@@ -426,170 +426,40 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void EventChoiceDialog_BuildActionsDispatchExactlyOneIntentPerUiOperation()
+        public void BuildDraftsUseBoundOriginalPanelAndNeverOpenRetiredPages()
         {
-            var root = new GameObject("Build Facility Dialog Test Root", typeof(RectTransform));
-            GameObject rightClickRoot = null;
-            GameObject confirmationRoot = null;
-            try
+            // 仅验证适配器宿主及一次分派，不冒充原生页面或正常对局验收。
+            var adapterType = Type.GetType("YC.Presentation.MobileCityWorkflowViewAdapter, Assembly-CSharp", true);
+            var adapter = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(adapterType);
+            var shown = new List<BuildFacilityDraftViewModel>();
+            var hidden = 0;
+            adapterType.GetMethod("BindBuildDraftView").Invoke(adapter, new object[] {
+                (Action<BuildFacilityDraftViewModel>)(model => shown.Add(model)), (Action)(() => hidden++) });
+            var expected = new List<BuildFacilityDraftViewModel>();
+            foreach (var phase in new[] { BuildFacilityDraftPhase.Selecting, BuildFacilityDraftPhase.Focused, BuildFacilityDraftPhase.Confirming })
             {
-                var dialogType = Type.GetType("YC.Presentation.EventChoiceDialog, Assembly-CSharp", false);
-                Assert.That(dialogType, Is.Not.Null);
-                var dialog = CreateEventDialog(dialogType, root.GetComponent<RectTransform>());
-                var focusIntents = new List<BuildFacilityIntent>();
-                var model = new BuildFacilityDraftViewModel(
-                    BuildFacilityDraftPhase.Focused,
-                    new List<BuildFacilityOptionQueryResult>().AsReadOnly(),
-                    null,
-                    FacilityCardDatabase.Get(FacilityCardDatabase.TradeDistrict),
-                    3,
-                    string.Empty,
-                    string.Empty,
-                    new List<int>().AsReadOnly(),
-                    dispatch: intent => focusIntents.Add(intent));
-
-                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(
-                    dialog,
-                    new object[] { model });
-
-                var resourceButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Choose Resource Payment");
-                var goldButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Choose Gold Payment");
-                var closeButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Close Build Facility Focus Button");
-                var panel = FindRectTransformByName(root, "Build Facility Focus Panel");
-                resourceButton.onClick.Invoke();
-                goldButton.onClick.Invoke();
-                Assert.That(focusIntents, Has.Count.EqualTo(1), "同一 View 实例只允许一次建设意图。");
-                Assert.That(focusIntents[0], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
-                Assert.That(
-                    ((BuildFacilityIntent.SelectPayment)focusIntents[0]).PaymentMode,
-                    Is.EqualTo(BuildFacilityService.PaymentModeResources));
-
-                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(dialog, new object[] { model });
-                goldButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Choose Gold Payment");
-                goldButton.onClick.Invoke();
-                Assert.That(focusIntents, Has.Count.EqualTo(2));
-                Assert.That(focusIntents[1], Is.TypeOf<BuildFacilityIntent.SelectPayment>());
-                Assert.That(
-                    ((BuildFacilityIntent.SelectPayment)focusIntents[1]).PaymentMode,
-                    Is.EqualTo(BuildFacilityService.PaymentModeGold));
-
-                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(dialog, new object[] { model });
-                closeButton = FindButtonByName(
-                    root.GetComponentsInChildren<Button>(true),
-                    "Close Build Facility Focus Button");
-                panel = FindRectTransformByName(root, "Build Facility Focus Panel");
-                Assert.That(closeButton.GetComponent<Outline>(), Is.Not.Null);
-                Assert.That(
-                    closeButton.transform.GetSiblingIndex(),
-                    Is.EqualTo(panel.childCount - 1),
-                    "关闭按钮必须位于窗口内容的最上层，避免被标题文本拦截点击。");
-                Assert.That(
-                    ExecuteEvents.Execute(
-                        closeButton.gameObject,
-                        new PointerEventData(EventSystem.current)
-                        {
-                            button = PointerEventData.InputButton.Left
-                        },
-                        ExecuteEvents.pointerClickHandler),
-                    Is.True);
-                Assert.That(focusIntents, Has.Count.EqualTo(3));
-                Assert.That(focusIntents[2], Is.TypeOf<BuildFacilityIntent.Cancel>());
-
-                var inputHandlerType = Type.GetType(
-                    "YC.Presentation.WindowCloseInputHandler, Assembly-CSharp",
-                    false);
-                Assert.That(inputHandlerType, Is.Not.Null);
-                var overlay = FindRectTransformByName(root, "Build Facility Focus Overlay");
-                var inputHandler = overlay.GetComponent(inputHandlerType);
-                Assert.That(inputHandler, Is.Not.Null);
-                inputHandlerType.GetMethod("RequestClose").Invoke(inputHandler, null);
-                Assert.That(focusIntents, Has.Count.EqualTo(3), "同一窗口只能派发一次关闭意图。");
-
-                rightClickRoot = new GameObject(
-                    "Build Facility Right Click Dialog Test Root",
-                    typeof(RectTransform));
-                var rightClickDialog = CreateEventDialog(
-                    dialogType,
-                    rightClickRoot.GetComponent<RectTransform>());
-                dialogType.GetMethod("ShowBuildFacilityFocus").Invoke(
-                    rightClickDialog,
-                    new object[] { model });
-                var rightClickOverlay = FindRectTransformByName(
-                    rightClickRoot,
-                    "Build Facility Focus Overlay");
-                var rightClickHandler = rightClickOverlay.GetComponent(inputHandlerType);
-                Assert.That(rightClickHandler, Is.Not.Null);
-                inputHandlerType.GetMethod("RequestClose").Invoke(rightClickHandler, null);
-                Assert.That(focusIntents, Has.Count.EqualTo(4));
-                Assert.That(
-                    focusIntents[3],
-                    Is.TypeOf<BuildFacilityIntent.Cancel>(),
-                    "右键关闭必须派发与关闭按钮相同的取消意图。");
-
-                confirmationRoot = new GameObject(
-                    "Build Facility Confirmation Dialog Test Root",
-                    typeof(RectTransform));
-                var confirmationDialog = CreateEventDialog(
-                    dialogType,
-                    confirmationRoot.GetComponent<RectTransform>());
-                var confirmationIntents = new List<BuildFacilityIntent>();
-                var confirmationModel = new BuildFacilityDraftViewModel(
-                    BuildFacilityDraftPhase.Confirming,
-                    new List<BuildFacilityOptionQueryResult>().AsReadOnly(),
-                    null,
-                    FacilityCardDatabase.Get(FacilityCardDatabase.TradeDistrict),
-                    3,
-                    BuildFacilityService.PaymentModeGold,
-                    string.Empty,
-                    new List<int>().AsReadOnly(),
-                    intent => confirmationIntents.Add(intent));
-                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
-                    confirmationDialog,
-                    new object[] { confirmationModel });
-
-                FindButtonByName(
-                    confirmationRoot.GetComponentsInChildren<Button>(true),
-                    "Back To Build Payment").onClick.Invoke();
-                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
-                    confirmationDialog,
-                    new object[] { confirmationModel });
-                FindButtonByName(
-                    confirmationRoot.GetComponentsInChildren<Button>(true),
-                    "Confirm Build Facility").onClick.Invoke();
-                dialogType.GetMethod("ShowBuildFacilityConfirmation").Invoke(
-                    confirmationDialog,
-                    new object[] { confirmationModel });
-                FindButtonByName(
-                    confirmationRoot.GetComponentsInChildren<Button>(true),
-                    "Close Build Facility Confirmation Button").onClick.Invoke();
-
-                Assert.That(confirmationIntents, Has.Count.EqualTo(3));
-                Assert.That(confirmationIntents[0], Is.TypeOf<BuildFacilityIntent.Back>());
-                Assert.That(confirmationIntents[1], Is.TypeOf<BuildFacilityIntent.Confirm>());
-                Assert.That(confirmationIntents[2], Is.TypeOf<BuildFacilityIntent.Cancel>());
+                var model = new BuildFacilityDraftViewModel(phase, null, null, null, -1,
+                    string.Empty, string.Empty, null, _ => { });
+                expected.Add(model);
+                adapterType.GetMethod("ShowBuildFacilityDraft").Invoke(adapter, new object[] { model });
             }
-            finally
-            {
-                if (confirmationRoot != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(confirmationRoot);
-                }
-
-                if (rightClickRoot != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(rightClickRoot);
-                }
-
-                UnityEngine.Object.DestroyImmediate(root);
-            }
+            Assert.That(shown, Is.EqualTo(expected), "各草稿阶段均只通知同一原建设宿主一次");
+            adapterType.GetMethod("ShowBuildFacilityDraft").Invoke(adapter, new object[] { null });
+            adapterType.GetMethod("HideBuildFacilityDraft").Invoke(adapter, null);
+            Assert.That(hidden, Is.EqualTo(2));
+            adapterType.GetMethod("BeginShutdown").Invoke(adapter, null);
+            adapterType.GetMethod("ShowBuildFacilityDraft").Invoke(adapter, new object[] { expected[0] });
+            adapterType.GetMethod("HideBuildFacilityDraft").Invoke(adapter, null);
+            Assert.That(shown.Count, Is.EqualTo(3));
+            Assert.That(hidden, Is.EqualTo(2), "停止后的旧回调不再影响页面");
+            var eventType = Type.GetType("YC.Presentation.EventChoiceDialog, Assembly-CSharp", true);
+            Assert.That(eventType.GetMethod("ShowBuildFacilityFocus"), Is.Null);
+            Assert.That(eventType.GetMethod("ShowBuildFacilityConfirmation"), Is.Null);
+            var modeType = Type.GetType("YC.Presentation.EventChoiceDialogMode, Assembly-CSharp", true);
+            Assert.That(Convert.ToInt32(Enum.Parse(modeType, "CharacterSecondEffectDecision")), Is.EqualTo(6));
+            Assert.That(Convert.ToInt32(Enum.Parse(modeType, "ConditionPayment")), Is.EqualTo(7));
+            Assert.That(Enum.IsDefined(modeType, 4), Is.False);
+            Assert.That(Enum.IsDefined(modeType, 5), Is.False);
         }
 
 

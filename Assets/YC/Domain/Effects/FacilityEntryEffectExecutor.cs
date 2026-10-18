@@ -495,8 +495,7 @@ namespace YC.Domain.Effects
             var preparation = context.Node.Payment?.Preparation;
             if (preparation != null)
             {
-                if (preparation.IsCancelled || !ResourcePaymentPreparationService.TryQuote(context.State, context.Node.PlayerId, "build",
-                    preparation.TargetId, preparation.ActionArguments, out var preparedCost, out var reason))
+                if (preparation.IsCancelled || !ResourcePaymentPreparationService.TryQuotePreparation(context.State, context.Node, out var preparedCost, out var reason))
                     return EffectStepResult.Failed("payment_preparation_source_changed");
                 return ResourceEffectExecutor.ExecutePayment(context, preparedCost, Object("paid", NormalizedValue.CreateBoolean(true)));
             }

@@ -1756,7 +1756,8 @@ namespace YC.Domain.Effects
 
                 EffectNodeRuntimeState requestOwner = Runtime.EffectNodes.Find(candidate =>
                     candidate != null && candidate.EffectId == request.OwnerEffectId);
-                if (requestOwner?.Payment?.Preparation != null && !requestOwner.Payment.Preparation.IsPromoted)
+                if (requestOwner?.Payment?.Preparation != null && !requestOwner.Payment.Preparation.IsPromoted &&
+                    requestOwner.Payment.Preparation.AuthorizationKind != "effect_build")
                 { diagnostic = "payment_requires_original_action_confirmation"; return false; }
                 if (IsDeferredResourceCollectionCompletion(request, requestOwner))
                 {
@@ -1790,6 +1791,16 @@ namespace YC.Domain.Effects
                     diagnostic = reason;
                     return false;
                 }
+
+                if (requestOwner?.Payment?.Preparation?.AuthorizationKind == "effect_build")
+                {
+                    bool submitted = TrySubmitEffectBuildPaymentAnswerOnWorking(request, answeringPlayerId, answer, out diagnostic);
+                    if (submitted) errorCode = CommandErrorCode.None;
+                    return submitted;
+                }
+                if (request.InteractionTypeId == FacilitySelectionEffectExecutor.NormalBuildInteractionType &&
+                    !(answer.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue && request.AllowDecline))
+                { diagnostic = "effect_build_requires_preparation"; return false; }
 
                 GameState work = GameStateCloneService.DeepClone(state);
                 EffectRuntimeState runtime = work.EffectRuntime;

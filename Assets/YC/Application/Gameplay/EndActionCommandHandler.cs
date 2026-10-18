@@ -58,7 +58,12 @@ namespace YC.Application.Gameplay
                     Parameter(command, "interactionId"), revision, command.CommandId, out var reason)) return Invalid(SettlementHostProtocol.ErrorCode(reason), reason);
                 var report = executor.RunUntilQuiescent();
                 if (report.Faulted) return Invalid(CommandErrorCode.UnknownCommand, report.FaultCode);
-                new RoundExecutionProjector().Project(state);
+                if (roundExecutionService != null)
+                {
+                    var advance = roundExecutionService.Advance(state);
+                    if (!advance.IsValid) return CommandResult.Invalid(advance);
+                }
+                else new RoundExecutionProjector().Project(state);
                 return CommandResult.SuccessResult(new List<GameEvent>(), "结算结束请求已处理。");
             }
 

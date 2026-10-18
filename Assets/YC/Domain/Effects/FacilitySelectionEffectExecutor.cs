@@ -14,6 +14,39 @@ namespace YC.Domain.Effects
     public static class FacilitySelectionEffectExecutor
     {
         public const string TypeId = "effect.facility.choose_build";
+        public const string NormalBuildInteractionType = "facility.build.normal";
+        internal static bool IsNormalBuildSelection(EffectNodeRuntimeState selection)
+        {
+            if (selection?.EffectTypeId != TypeId) return false;
+            string source = Text(selection.NormalizedArguments, "sourceZone", "supply");
+            string mode = Text(selection.NormalizedArguments, "paymentMode", "auto");
+            return (source == "supply" || source == "deck") && (mode == "auto" || mode == "resources" || mode == "gold");
+        }
+
+        // 候选集合证明授予；此处只复核选中实例的来源、限制与付款模式。
+        // 取牌后按冻结源验证，不能要求已放置设施仍在供应槽或载体仍在场。
+        internal static bool ValidateEffectBuildSource(GameState state, EffectNodeRuntimeState selection,
+            string targetItemId, string sourceZoneId, string paymentMode, bool requireCurrentSource)
+        {
+            if (!IsNormalBuildSelection(selection) || state?.ItemZones == null || string.IsNullOrEmpty(sourceZoneId)) return false;
+            string requested = Text(selection.NormalizedArguments, "paymentMode", "auto");
+            if (paymentMode != "resources" && paymentMode != "gold" || requested != "auto" && requested != paymentMode) return false;
+            var item = state.ItemZones.Items.Find(i => i.ItemId == targetItemId);
+            var zone = state.ItemZones.Zones.Find(z => z.ZoneId == sourceZoneId);
+            var definition = FacilityCardDatabase.Get(state, item?.DefinitionId);
+            if (item == null || zone == null || definition == null || item.PhysicalKind != ItemPhysicalKind.Card ||
+                !ItemTypeRegistry.CreateBuiltIn().IsAssignableTo(item.TypeId, "core.facility_card") || requireCurrentSource && item.ZoneId != sourceZoneId) return false;
+            string source = Text(selection.NormalizedArguments, "sourceZone", "supply");
+            bool includeStored = Value(selection.NormalizedArguments, "includeStoredFacilities") == null || Flag(selection.NormalizedArguments, "includeStoredFacilities");
+            if (source == "deck" ? zone.LocalZoneId != "facility_deck" : zone.TemplateId != "core.zone.facility_supply_slot" &&
+                !(includeStored && zone.TemplateId == "core.zone.card_facility_storage" &&
+                    (!requireCurrentSource || IsActiveStoredFacility(state, zone, selection.PlayerId)))) return false;
+            string effect = Text(selection.NormalizedArguments, "effectId");
+            var bound = Value(selection.NormalizedArguments, "maxGoldVoucherCost");
+            return (effect.Length == 0 || definition.EffectId == effect) &&
+                (!Flag(selection.NormalizedArguments, "excludeRainbow") || definition.Color != "rainbow") &&
+                (bound == null || bound.Kind == NormalizedValueKind.Integer && bound.IntegerValue >= 0 && definition.GoldVoucherCost <= bound.IntegerValue);
+        }
         public static void Register(EffectRegistry registry)
         {
             if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0"));
@@ -63,11 +96,39 @@ namespace YC.Domain.Effects
             bool free = source == "reserve" || Text(c.Node.NormalizedArguments, "paymentMode") == "free";
             if (c.Node.FlowStage == "built")
             {
-                if (c.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("build_child_failed");
+                if (c.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed && !(IsNormalBuildSelection(c.Node) && child.Payment?.Preparation?.IsCancelled == true))) return EffectStepResult.Failed("build_child_failed");
                 var id = Value(c.Node.ContinuationData, "selectedItemIds")?.Items.FirstOrDefault()?.StringValue;
                 if (string.IsNullOrEmpty(id) || !c.State.ItemZones.Items.Any(i => i.ItemId == id && c.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.city_facility_cell")))
                     return EffectStepResult.Failed("build_result_missing");
                 return EffectStepResult.Completed(Object("outcome", NormalizedValue.CreateString("built"), "builtItemId", NormalizedValue.CreateString(id)));
+            }
+            if (IsNormalBuildSelection(c.Node))
+            {
+                if (c.Node.FlowStage == "deck_declined") return EffectStepResult.Completed(NormalizedValue.CreateString("player_declined"));
+                if (c.Node.FlowStage == "deck_select")
+                {
+                    var previous = c.GetLatestInteractionAnswer();
+                    if (previous?.Kind == NormalizedValueKind.Boolean && !previous.BooleanValue && Flag(c.Node.NormalizedArguments, "allowDecline"))
+                        return EffectStepResult.Completed(NormalizedValue.CreateString("player_declined"));
+                    if (previous != null && previous.Kind != NormalizedValueKind.Null) return EffectStepResult.Failed("effect_build_requires_preparation");
+                }
+                if (c.Node.FlowStage.Length != 0 && c.Node.FlowStage != "deck_select") return EffectStepResult.Failed("effect_build_stage_invalid");
+                var scope = c.Registry.FacilityBuildCandidates.Resolve(c.State, c.Node.PlayerId,
+                    new FacilityBuildCandidateOptions { SourceZone = source, IncludeStoredFacilities = source == "supply" && (includeStored == null || Flag(c.Node.NormalizedArguments, "includeStoredFacilities")),
+                        EffectId = Text(c.Node.NormalizedArguments, "effectId"), ExcludeRainbow = Flag(c.Node.NormalizedArguments, "excludeRainbow"),
+                        MaxGoldVoucherCost = Value(c.Node.NormalizedArguments, "maxGoldVoucherCost") == null ? (int?)null : Number(c.Node.NormalizedArguments, "maxGoldVoucherCost") },
+                    c.Node.EffectId, c.State.EffectRuntime.StateRevision + 1);
+                var record = scope.Resolution;
+                if (record.FinalCandidateIds.Count == 0) return EffectStepResult.Completed(NormalizedValue.CreateString("no_legal_target"));
+                var request = new EffectInteractionSpec { InteractionTypeId = NormalBuildInteractionType, PromptKey = "facility.entry.choose_additional_build",
+                    AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1,
+                    AllowDecline = Flag(c.Node.NormalizedArguments, "allowDecline"), CandidateSetId = record.CandidateSetId,
+                    CandidateResolutionId = record.CandidateSetId, CandidateSetVersion = record.Version,
+                    PromptParameters = Object("sourceZone", NormalizedValue.CreateString(source),
+                        "expectedSourceZoneId", NormalizedValue.CreateString(source == "deck" ? FindZone(c.State, "facility_deck").ZoneId : ""),
+                        "candidateDefinitionIds", Strings(scope.Candidates.Select(candidate => candidate.DefinitionId)), "isDefaultSupplySet", NormalizedValue.CreateBoolean(scope.IsDefaultSupplySet)) };
+                request.CandidateIds.AddRange(record.FinalCandidateIds); c.State.EffectRuntime.CandidateResolutions.Add(record);
+                return EffectStepResult.Continue("deck_select").AddInteraction(request);
             }
             if (c.Node.FlowStage.Length == 0)
             {

@@ -26,17 +26,20 @@ namespace YC.Presentation.Workflows
         { playerId = -1; sourceKey = null; snapshot = null; }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int player)
+            => Query(state, player, null);
+
+        public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int player, GameStateView visibleState)
         {
             if (state == null) { Invalidate(); return Array.Empty<BuildFacilityOptionQueryResult>(); }
             if (!ItemZoneLegacyProjection.IsActive(state))
-            { Invalidate(); return query.Query(state, player); }
+            { Invalidate(); return query.Query(state, player, visibleState); }
             var key = SourceKey(state);
             if (snapshot == null || playerId != player || sourceKey != key)
             {
                 snapshot = query.QueryCandidates(state, player);
                 playerId = player; sourceKey = key;
             }
-            return query.Query(state, player, snapshot);
+            return query.Query(state, player, snapshot, visibleState);
         }
 
         private static string SourceKey(GameState state)

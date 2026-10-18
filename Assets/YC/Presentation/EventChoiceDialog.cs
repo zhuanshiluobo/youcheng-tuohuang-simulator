@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
-using YC.Domain.Facilities;
 using YC.Domain.Interactions;
 using YC.Domain.Presentation;
 using YC.Domain.Rules;
@@ -541,106 +540,8 @@ namespace YC.Presentation
             }
         }
 
-        public void ShowBuildFacilityFocus(BuildFacilityDraftViewModel model)
-        {
-            if (model == null || model.Facility == null)
-            {
-                return;
-            }
 
-            var layout = GetLayoutProfile();
-            if (!PrepareView(
-                    EventChoiceDialogMode.BuildFacilityFocus,
-                    "Build Facility Focus Overlay",
-                    "Build Facility Focus Panel",
-                    layout.BuildFacilityFocusPanelSize,
-                    layout.BuildFacilityFocusPanelPosition,
-                    true))
-            {
-                return;
-            }
 
-            var facility = model.Facility;
-            var effectiveResourceCost = model.SelectedOption == null
-                ? facility.ResourceCost
-                : model.SelectedOption.EffectiveResourceCost;
-            view.TitleText.text = facility.Name;
-            ConfigureFacilityPreview(facility.FacilityId, facility.Name);
-            view.BuildFocusDetailsText.text =
-                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
-                "资源费用：" + FormatResourceCost(effectiveResourceCost) + "\n" +
-                "金券费用：" + facility.GoldVoucherCost + "\n" +
-                "获得分数：" + facility.Score + "\n" +
-                "建成效果：" + FormatFacilityEffect(facility);
-
-            var resources = model.SelectedOption == null ? null : model.SelectedOption.ResourcesPayment;
-            view.BuildResourceLabel.text = "资源支付\n" + FormatResourceCost(effectiveResourceCost);
-            SetBuildPaymentButtonState(view.BuildResourceButton, resources != null && resources.IsAvailable);
-            view.BuildResourceButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.SelectPayment(
-                    BuildFacilityService.PaymentModeResources))));
-            view.BuildResourceReasonText.text = resources == null || resources.IsAvailable
-                ? string.Empty
-                : resources.Reason;
-
-            var gold = model.SelectedOption == null ? null : model.SelectedOption.GoldPayment;
-            view.BuildGoldLabel.text = "金券支付\n" + facility.GoldVoucherCost;
-            SetBuildPaymentButtonState(view.BuildGoldButton, gold != null && gold.IsAvailable);
-            view.BuildGoldButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.SelectPayment(
-                    BuildFacilityService.PaymentModeGold))));
-            view.BuildGoldReasonText.text = gold == null || gold.IsAvailable ? string.Empty : gold.Reason;
-            view.BuildFocusErrorText.text = model.ErrorMessage ?? string.Empty;
-            view.BuildFocusErrorText.gameObject.SetActive(!string.IsNullOrEmpty(model.ErrorMessage));
-            ConfigureClose(
-                () => model.Dispatch(new BuildFacilityIntent.Cancel()),
-                false);
-        }
-
-        public void ShowBuildFacilityConfirmation(BuildFacilityDraftViewModel model)
-        {
-            if (model == null || model.Facility == null)
-            {
-                return;
-            }
-
-            var layout = GetLayoutProfile();
-            if (!PrepareView(
-                    EventChoiceDialogMode.BuildFacilityConfirmation,
-                    "Build Facility Confirmation Overlay",
-                    "Build Facility Confirmation Panel",
-                    layout.BuildFacilityConfirmationPanelSize,
-                    layout.BuildFacilityConfirmationPanelPosition,
-                    true))
-            {
-                return;
-            }
-
-            var facility = model.Facility;
-            var effectiveResourceCost = model.SelectedOption == null
-                ? facility.ResourceCost
-                : model.SelectedOption.EffectiveResourceCost;
-            var resourcePayment = model.PaymentMode == BuildFacilityService.PaymentModeResources;
-            var paymentLabel = resourcePayment ? "资源" : "金券";
-            var paymentContent = resourcePayment ? FormatResourceCost(effectiveResourceCost) : facility.GoldVoucherCost + " 金券";
-
-            view.BuildConfirmationSummaryText.text =
-                "设施：" + facility.Name + "\n" +
-                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
-                "支付方式：" + paymentLabel + "\n" +
-                "支付内容：" + paymentContent + "\n" +
-                "获得分数：" + facility.Score + "\n" +
-                "建成效果：" + FormatFacilityEffect(facility);
-            view.BuildConfirmationErrorText.text = model.ErrorMessage ?? string.Empty;
-            view.BuildConfirmationErrorText.gameObject.SetActive(!string.IsNullOrEmpty(model.ErrorMessage));
-            view.BuildBackButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.Back())));
-            view.BuildConfirmButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.Confirm())));
-            ConfigureClose(
-                () => model.Dispatch(new BuildFacilityIntent.Cancel()),
-                false);
-        }
 
         public void ShowCharacterSecondEffectDecision(
             string cardName,
@@ -735,18 +636,6 @@ namespace YC.Presentation
             view.CloseInputHandler.Configure(() => request());
         }
 
-        private void ConfigureFacilityPreview(string facilityId, string fallbackLabel)
-        {
-            var sprite = dialogRegistry.CardVisualCatalog.GetFacility(facilityId);
-            CardArtworkView.Set(view.FacilityPreviewImage, sprite);
-            view.FacilityPreviewImage.gameObject.SetActive(sprite != null);
-            view.FacilityPreviewFallback.text = sprite == null ? fallbackLabel ?? facilityId ?? string.Empty : string.Empty;
-            view.FacilityPreviewFallback.gameObject.SetActive(sprite == null);
-            if (sprite != null)
-            {
-                view.FacilityPreviewAspect.aspectRatio = CardArtworkView.AspectRatio(sprite);
-            }
-        }
 
         private void InvokeStep(Action callback)
         {
@@ -771,53 +660,9 @@ namespace YC.Presentation
             callback?.Invoke();
         }
 
-        private static string FormatFacilityEffect(FacilityCardDefinition facility)
-        {
-            if (facility == null)
-            {
-                return "无";
-            }
 
-            return string.IsNullOrEmpty(facility.EffectType) ? "无" : facility.EffectType;
-        }
 
-        private static string FormatResourceCost(ResourceSet cost)
-        {
-            if (cost == null)
-            {
-                return "0";
-            }
 
-            var parts = new List<string>();
-            AddResourceCostPart(parts, "源岩", cost.Originium);
-            AddResourceCostPart(parts, "异铁", cost.Iron);
-            AddResourceCostPart(parts, "源石", cost.OriginiumShard);
-            AddResourceCostPart(parts, "至纯源石", cost.PureOriginium);
-            return parts.Count == 0 ? "0" : string.Join(" ", parts.ToArray());
-        }
-
-        private static void AddResourceCostPart(List<string> parts, string label, int amount)
-        {
-            if (amount > 0)
-            {
-                parts.Add(label + amount);
-            }
-        }
-
-        private static void SetBuildPaymentButtonState(Button button, bool enabled)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.interactable = enabled;
-            var image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = enabled ? UiTheme.ButtonBackground : UiTheme.DisabledButtonBackground;
-            }
-        }
 
         private void CreateExplorePaymentRecipientControls(
             EventChoiceDialogLayoutProfile layout,

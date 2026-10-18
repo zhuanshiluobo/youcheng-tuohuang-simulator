@@ -478,6 +478,8 @@ namespace YC.Application.Sessions
                     ResponseKind = RuleEventResponseKind.None,
                     Visibility = "public"
                 };
+                // 命令结果与已记录规则事件共用同一身份，不能把临时GUID发布给模拟副本。
+                legacyEvent.EventId = ruleEvent.EventId;
                 state.EffectRuntime.RuleEvents.Add(ruleEvent);
                 recordedEvents.Add(ruleEvent);
                 entries.Add(new RuleJournalEntry

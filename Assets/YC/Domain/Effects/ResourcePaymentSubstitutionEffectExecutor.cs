@@ -211,8 +211,10 @@ namespace YC.Domain.Effects
                     var operation = state.EffectRuntime.OperationWindows.Find(value => value.OperationWindowId == preparation.OperationWindowId &&
                         value.WindowGeneration == preparation.WindowGeneration && value.WindowKind == RoundMainlineNodeTypeIds.PlayerActionWindow &&
                         value.SourceEffectId == node.ParentEffectId && value.AuthorizedPlayerIds.SequenceEqual(new[] { payment.PlayerId }));
+                    bool validAuthorization = ResourcePaymentPreparationService.IsMainActionAuthorization(preparation) ? operation != null :
+                        preparation.AuthorizationKind == "effect_build" && ResourcePaymentPreparationService.ValidateEffectBuildAssociation(state, node, out _);
                     if (preparation.TargetId == null || preparation.BusinessBeforeEventId == null || preparation.SourceLocationId == null || preparation.PromotedActionEffectId == null ||
-                        preparation.PreparationOwnerEffectId != node.EffectId || operation == null || preparation.ActionKind != payment.SourceKind ||
+                        preparation.PreparationOwnerEffectId != node.EffectId || !validAuthorization || preparation.ActionKind != payment.SourceKind ||
                         preparation.ActionKind != "build" && preparation.ActionKind != "city_move" || preparation.IsCancelled && (preparation.IsPromoted || payment.IsCommitted || payment.IsCommitRequested || payment.SelectedSubstitution != null) ||
                         preparation.ActionArguments?.Kind != NormalizedValueKind.Object || !preparation.ActionArguments.TryValidate(out _) ||
                         preparation.IsPromoted != !string.IsNullOrEmpty(preparation.PromotedActionEffectId)) return false;

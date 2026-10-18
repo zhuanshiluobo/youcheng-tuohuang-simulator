@@ -8,7 +8,9 @@ using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
+using YC.Domain.Cards;
 using YC.Domain.Effects;
+using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Items;
 using YC.Domain.Maps;
@@ -69,9 +71,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var f = Create("core"); var own = new ItemZoneQuery().Project(f.State, GameStateViewer.Player(1)).Items.First();
             var draft = new CandidateSetDraft { CandidateSetId = "query.candidates", CandidateKind = "facility.build.card", SourceEffectId = "query.owner", ExecutingPlayerId = 1,
-                Context = ItemTransferEffectExecutor.Object("stateRevision", NormalizedValue.CreateInteger(f.State.EffectRuntime.StateRevision),
-                    "instances", NormalizedValue.CreateArray(new List<NormalizedValue> { ItemTransferEffectExecutor.Object("id", NormalizedValue.CreateString(own.ItemId), "definitionId", NormalizedValue.CreateString(own.DefinitionId)) }),
-                    "zones", NormalizedValue.CreateArray(new List<NormalizedValue>())) };
+                CandidatePoolIds = new List<string> { own.ItemId },
+                Context = ItemTransferEffectExecutor.Object("stateRevision", NormalizedValue.CreateInteger(f.State.EffectRuntime.StateRevision)) };
             var script = Script("return function(ctx) assert(GameData.IsDlcEnabled('core')); assert(#Global.Content.FindInstances()==1); assert(Global.Content.GetInstance('outside')==nil); return {} end");
             var definition = new LuaHandlerDefinition("query.subscription", "CandidateSetBuilding", "*", script);
             var factory = typeof(LuaEffectEventDispatcher).GetMethod("CreatePureCandidateContext", BindingFlags.Static | BindingFlags.NonPublic);
@@ -222,6 +223,250 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.Map.Influences.Any(i => i.PlayerId == 1 && i.SlotId == target), Is.True);
             Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(2));
             Assert.That(f.State.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void FacilityDeckContextKeepsFormalPoolAndOrderingWithoutPersistingQueryGraph()
+        {
+            var f = CandidateFixture(); var deck = ItemTransferEffectExecutor.FindZone(f.State, "facility_deck");
+            var expected = f.State.ItemZones.Items.Where(i => i.ZoneId == deck.ZoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToArray();
+            string before = JsonConvert.SerializeObject(f.State);
+            var snapshot = f.Registry.FacilityBuildCandidates.Resolve(f.State, 1,
+                new FacilityBuildCandidateOptions { SourceZone = "deck" }, stateRevision: f.State.EffectRuntime.StateRevision);
+            Assert.That(snapshot.FinalItemIds, Is.EqualTo(expected)); Assert.That(snapshot.DefaultItemIds, Is.EquivalentTo(expected));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
+            var requestNode = CandidateRun(f, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
+                ItemTransferEffectExecutor.Object("sourceZone", NormalizedValue.CreateString("deck"), "paymentMode", NormalizedValue.CreateString("free")), 1));
+            var request = CandidateOpen(f);
+            Assert.That(request.CandidateIds, Is.EqualTo(expected)); Assert.That(request.PromptParameters.IsValid(), Is.True);
+            Assert.That(ItemTransferEffectExecutor.Value(request.PromptParameters, "candidateDefinitionIds").Items.Count, Is.EqualTo(expected.Length));
+            Assert.That(f.State.EffectRuntime.CandidateResolutions.Single(r => r.CandidateSetId == request.CandidateSetId).FinalCandidateIds, Is.EqualTo(expected));
+            Assert.That(request.StateRevision, Is.EqualTo(f.State.EffectRuntime.StateRevision));
+            Assert.That(requestNode.Status, Is.EqualTo(EffectNodeStatus.Blocked));
+        }
+
+        [Test]
+        public void FacilityCandidatePayloadKeepsFullLocalArraysAndRejectsStaleRevision()
+        {
+            var f = CandidateFixture(); var deck = ItemTransferEffectExecutor.FindZone(f.State, "facility_deck");
+            var ids = f.State.ItemZones.Items.Where(i => i.ZoneId == deck.ZoneId).Select(i => i.ItemId).ToList();
+            var outside = f.State.ItemZones.Items.First(i => i.ZoneId != deck.ZoneId);
+            var draft = new CandidateSetDraft { CandidateSetId = "query.full-deck", CandidateKind = FacilityBuildCandidateQuery.CandidateKind,
+                SourceEffectId = "query.owner", ExecutingPlayerId = 1, CandidatePoolIds = ids, DefaultCandidateIds = ids.ToList(), CurrentIds = ids.ToList(),
+                Context = ItemTransferEffectExecutor.Object("stateRevision", NormalizedValue.CreateInteger(f.State.EffectRuntime.StateRevision),
+                    "sourceZone", NormalizedValue.CreateString("deck"), "includeStoredFacilities", NormalizedValue.CreateBoolean(true)) };
+            var localPayload = (LuaSnapshotValue)typeof(LuaEffectEventDispatcher).GetMethod("CreateCandidatePayload", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { draft });
+            Assert.That(CandidateSnapshotElements(localPayload), Is.GreaterThan(NormalizedValue.MaxElements), "正式四人企业＋感染者配方须覆盖完整临时payload超出持久化预算的边界。");
+            var script = Script("return function(ctx) assert(#ctx.payload.candidatePoolIds==" + ids.Count +
+                " and #ctx.payload.defaultCandidateIds==" + ids.Count + " and #ctx.payload.currentIds==" + ids.Count + "); " +
+                "local expected={" + string.Join(",", ids.Select(Q)) + "}; for i,id in ipairs(ctx.payload.candidatePoolIds) do assert(id==expected[i] and id==ctx.payload.defaultCandidateIds[i] and id==ctx.payload.currentIds[i]); assert(Global.Content.GetInstance(id)~=nil) end; " +
+                "assert(#Global.Content.FindInstances()==" + ids.Count + " and #Global.Content.FindZones()==1); " +
+                "assert(Global.Content.GetInstance(" + Q(outside.ItemId) + ")==nil); assert(Global.Map.GetMap().stateRevision==ctx.stateRevision); " +
+                "return {Candidate.Add({ids=ctx.payload.candidatePoolIds,reasonCode='query.full-pool'})} end");
+            var definition = new LuaHandlerDefinition("query.full-pool", "CandidateSetBuilding", "*", script);
+            var dispatcher = new LuaEffectEventDispatcher(f.Registry); string before = JsonConvert.SerializeObject(f.State);
+            var invoke = typeof(LuaEffectEventDispatcher).GetMethod("InvokeCandidatePatches", BindingFlags.Instance | BindingFlags.NonPublic);
+            var patches = (IList<CandidatePatch>)invoke.Invoke(dispatcher, new object[] { definition, f.State, draft, outside.ItemId });
+            Assert.That(patches.Single().CandidateIds, Is.EqualTo(ids.OrderBy(id => id, StringComparer.Ordinal))); Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
+            draft.Context.Properties.Single(p => p.Name == "stateRevision").Value = NormalizedValue.CreateInteger(f.State.EffectRuntime.StateRevision + 1);
+            Assert.That(Assert.Throws<TargetInvocationException>(() => invoke.Invoke(dispatcher, new object[] { definition, f.State, draft, outside.ItemId })).InnerException.Message,
+                Is.EqualTo("nmc_query_revision_mismatch"));
+        }
+
+        [Test]
+        public void StoredFacilityPolicyUsesRealLuaForPreviewRequestAndOwnerScope()
+        {
+            var f = CandidateFixture();
+            foreach (var zone in f.State.ItemZones.Zones.Where(z => z.TemplateId == "core.zone.facility_supply_slot" && f.State.ItemZones.Items.All(i => i.ZoneId != z.ZoneId)).ToList())
+                CandidateRun(f, ItemTransferEffectExecutor.RefillSpec(1, zone.ZoneId));
+            var carrier = f.State.ItemZones.Items.Single(i => i.DefinitionId == "operator.closure");
+            CandidateRun(f, ItemTransferEffectExecutor.MoveSpec(1, new[] { carrier.ItemId }, carrier.ZoneId,
+                ItemTransferEffectExecutor.FindZone(f.State, "hand", 1).ZoneId, "unordered", 1, "core.character_card_transfer"));
+            CandidateRun(f, EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); CandidateAnswer(f, NormalizedValue.CreateString(carrier.ItemId));
+            var activation = CandidateRun(f, CharacterLifecycleService.CreateUseSpec(1, carrier.ItemId, "tactic"));
+            Assert.That(activation.Status, Is.EqualTo(EffectNodeStatus.Blocked), activation.FailureReason + "；" +
+                string.Join(",", f.State.EffectRuntime.EffectNodes.Select(n => n.EffectTypeId + ":" + n.Status + ":" + n.FailureReason)));
+            string held = CandidateOpen(f).CandidateIds.First(); CandidateAnswer(f, NormalizedValue.CreateString(held));
+            CandidateAnswer(f, NormalizedValue.CreateBoolean(false));
+            var stored = f.State.ItemZones.Items.Single(i => i.ItemId == held);
+            Assert.That(f.State.ItemZones.Zones.Single(z => z.ZoneId == stored.ZoneId).ParentId, Is.EqualTo(carrier.ItemId));
+            var query = new BuildFacilityOptionQueryService(new BuildFacilityService(), f.Registry.FacilityBuildCandidates);
+            string before = JsonConvert.SerializeObject(f.State); var snapshot = query.QueryCandidates(f.State, 1);
+            Assert.That(snapshot.FinalItemIds, Does.Contain(held)); Assert.That(snapshot.Resolution.AppliedPatches.Single().SourceContentInstanceId, Is.EqualTo(carrier.ItemId));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
+            Assert.That(f.Registry.FacilityBuildCandidates.Resolve(f.State, 2).FinalItemIds, Does.Not.Contain(held));
+            Assert.That(f.Registry.FacilityBuildCandidates.Resolve(f.State, 1, new FacilityBuildCandidateOptions { IncludeStoredFacilities = false }).FinalItemIds, Does.Not.Contain(held));
+            Assert.That(f.Registry.FacilityBuildCandidates.Resolve(f.State, 1, new FacilityBuildCandidateOptions { SourceZone = "deck" }).FinalItemIds, Does.Not.Contain(held));
+            var view = GameStateViewProjector.Project(f.State, GameStateViewer.Player(1));
+            var client = GameStateViewProjector.ToClientState(view); client.ContentDefinitions = GameStateCloneService.DeepClone(f.State.ContentDefinitions);
+            string clientBefore = JsonConvert.SerializeObject(client); var local = query.QueryCandidates(client, 1, view.StateRevision);
+            Assert.That(local.FinalItemIds, Is.EqualTo(snapshot.FinalItemIds)); Assert.That(local.Resolution.StateRevision, Is.EqualTo(view.StateRevision));
+            Assert.That(client.EffectRuntime, Is.Null); Assert.That(JsonConvert.SerializeObject(client), Is.EqualTo(clientBefore));
+            var expected = snapshot.FinalItemIds.ToArray();
+            var selection = CandidateRun(f, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, playerId: 1));
+            Assert.That(CandidateOpen(f).CandidateIds, Is.EqualTo(expected)); Assert.That(CandidateOpen(f).PromptParameters.IsValid(), Is.True);
+            Assert.That(CandidateOpen(f).InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
+            var balances = JsonConvert.SerializeObject(f.State.Players.Select(p => p.Resources));
+            string originalSource = stored.ZoneId; var request = CandidateOpen(f);
+            Position(f.State, stored, ItemTransferEffectExecutor.FindZone(f.State, "retired"));
+            string beforeInvalidSource = JsonConvert.SerializeObject(f.State);
+            Assert.That(new EffectTreeExecutor(f.State, f.Registry).TryPrepareEffectBuildPayment(1, selection.EffectId,
+                request.GetStableInteractionId(), request.CandidateSetId, request.CandidateSetVersion, held,
+                ItemTransferEffectExecutor.Object("paymentMode", NormalizedValue.CreateString("gold"),
+                    "expectedSourceZoneId", NormalizedValue.CreateString(originalSource)), f.State.EffectRuntime.StateRevision,
+                "stored.source.changed", out _), Is.False);
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(beforeInvalidSource));
+            // 历史候选仍可显示，但已经离区的实例不能获得付款准备授权。
+            Assert.That(CandidateOpen(f).CandidateIds, Does.Contain(held));
+            Assert.That(JsonConvert.SerializeObject(f.State.Players.Select(p => p.Resources)), Is.EqualTo(balances));
+        }
+
+        [Test]
+        public void RaytheanDeckBuildKeepsFormalPaymentAndShuffleAfterAllOutcomes()
+        {
+            foreach (string outcome in new[] { "cancel", "no_resources", "no_slot", "built" })
+            {
+                var f = CandidateFixture();
+                if (outcome == "no_resources") f.State.FindPlayer(1).Resources = new ResourceSet();
+                if (outcome == "no_slot")
+                {
+                    var cells = f.State.ItemZones.Zones.Where(z => z.TemplateId == "core.zone.city_facility_cell" && z.OwnerPlayerId == 1).ToList();
+                    foreach (var cell in cells.Where(z => f.State.ItemZones.Items.All(i => i.ZoneId != z.ZoneId)))
+                        Position(f.State, f.State.ItemZones.Items.First(i => i.TypeId == "core.facility_card" && i.ZoneId == ItemTransferEffectExecutor.FindZone(f.State, "facility_deck").ZoneId), cell);
+                }
+                var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+                var ability = pack.Definitions.Single(d => d.DefinitionId == "enterprise.raythean").Abilities.Single(a => a.AbilityId == "enterprise.raythean.level_5.special");
+                string source = pack.GetScript(ability.Script);
+                var script = new LuaScriptDefinition("enterprise.raythean", ability.AbilityId, "query.raythean", ability.Version, source, LuaContentHasher.ComputeSha256(source));
+                new LuaEffectEventDispatcher(f.Registry).Register(new LuaHandlerDefinition("query.raythean", "QueryRaytheanActivated", "", script, EffectHandlerRole.Primary));
+                f.Registry.Register("query.raythean.source", c => EffectStepResult.Completed().AddEvent(new EffectEventRequest { EventType = "QueryRaytheanActivated", PlayerId = 1 }));
+                var deck = ItemTransferEffectExecutor.FindZone(f.State, "facility_deck");
+                var expectedIds = f.State.ItemZones.Items.Where(i => i.ZoneId == deck.ZoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToArray();
+                var supplyIds = f.State.ItemZones.Items.Where(i => f.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.facility_supply_slot")).Select(i => i.ItemId).ToArray();
+                var player = f.State.FindPlayer(1); var originalResources = JsonConvert.SerializeObject(player.Resources);
+                int gold = player.Resources.GoldVoucher, actions = player.RemainingMainActionsThisTurn;
+                Func<int> shuffles = () => f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck && n.Status == EffectNodeStatus.Completed);
+                var root = CandidateRun(f, EffectSpec.Create("query.raythean.source", playerId: 1));
+                var selection = CandidateOpen(f);
+                Assert.That(expectedIds, Is.Not.Empty, outcome);
+                Assert.That(selection.InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType), outcome);
+                Assert.That(selection.CandidateIds, Is.EqualTo(expectedIds), outcome);
+                Assert.That(selection.CandidateIds.Distinct().Count(), Is.EqualTo(expectedIds.Length), outcome);
+                Assert.That(selection.PromptParameters.IsValid(), Is.True, outcome);
+                Assert.That(ItemTransferEffectExecutor.Text(selection.PromptParameters, "expectedSourceZoneId"), Is.EqualTo(deck.ZoneId), outcome);
+                Assert.That(root.Status, Is.EqualTo(EffectNodeStatus.Blocked), outcome);
+                Assert.That(shuffles(), Is.Zero, outcome);
+                Assert.That(JsonConvert.SerializeObject(f.State.FindPlayer(1).Resources), Is.EqualTo(originalResources), outcome);
+                string selected = null; int price = 0;
+                if (outcome == "cancel") CandidateAnswer(f, NormalizedValue.CreateBoolean(false));
+                else
+                {
+                    selected = expectedIds.First(id => {
+                        var definition = FacilityCardDatabase.Get(f.State, f.State.ItemZones.Items.Single(i => i.ItemId == id).DefinitionId);
+                        return definition.GoldVoucherCost > 0 && (outcome != "built" || definition.EffectId == "gain_iron_4");
+                    });
+                    price = FacilityCardDatabase.Get(f.State, f.State.ItemZones.Items.Single(i => i.ItemId == selected).DefinitionId).GoldVoucherCost;
+                    var engine = new EffectTreeExecutor(f.State, f.Registry);
+                    var arguments = ItemTransferEffectExecutor.Object("paymentMode", NormalizedValue.CreateString("gold"),
+                        "expectedSourceZoneId", NormalizedValue.CreateString(deck.ZoneId));
+                    string beforePreparation = JsonConvert.SerializeObject(f.State);
+                    bool prepared = engine.TryPrepareEffectBuildPayment(1, selection.OwnerEffectId, selection.GetStableInteractionId(),
+                        selection.CandidateSetId, selection.CandidateSetVersion, selected, arguments, f.State.EffectRuntime.StateRevision,
+                        "query.raythean.prepare." + outcome, out string reason);
+                    if (outcome == "no_slot")
+                    {
+                        Assert.That(prepared, Is.False, outcome);
+                        Assert.That(reason, Is.EqualTo("invalid_build_slot"));
+                        Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(beforePreparation), outcome);
+                        Assert.That(CandidateOpen(f).GetStableInteractionId(), Is.EqualTo(selection.GetStableInteractionId()));
+                        Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.Payment?.Preparation?.AuthorizationKind == "effect_build"), Is.False);
+                        Assert.That(shuffles(), Is.Zero); CandidateAnswer(f, NormalizedValue.CreateBoolean(false));
+                    }
+                    else
+                    {
+                        Assert.That(prepared, Is.True, outcome + ":" + reason);
+                        Assert.That(selection.Status, Is.EqualTo("invalidated"), outcome);
+                        var payment = f.State.EffectRuntime.EffectNodes.Single(n => n.Payment?.Preparation?.AuthorizationKind == "effect_build");
+                        var payInput = CandidateOpen(f);
+                        Assert.That(payInput.OwnerEffectId, Is.EqualTo(payment.EffectId), outcome);
+                        Assert.That(payInput.InteractionTypeId, Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), outcome);
+                        Assert.That(payment.Payment.Preparation.SelectionOwnerEffectId, Is.EqualTo(selection.OwnerEffectId));
+                        Assert.That(payment.Payment.Preparation.TargetId, Is.EqualTo(selected));
+                        var view = GameStateViewProjector.ProjectForPlayer(f.State, 1).PreparedActionPayments.Single();
+                        Assert.That(view.IsReady, Is.True, outcome); Assert.That(view.CanConfirm, Is.EqualTo(outcome == "built"), outcome);
+                        Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.False, outcome);
+                        Assert.That(shuffles(), Is.Zero, outcome);
+                        Assert.That(JsonConvert.SerializeObject(f.State.FindPlayer(1).Resources), Is.EqualTo(originalResources), outcome);
+                        if (outcome == "no_resources")
+                        {
+                            string beforePay = JsonConvert.SerializeObject(f.State);
+                            Assert.That(new EffectTreeExecutor(f.State, f.Registry).TrySubmitInteraction(payInput.GetStableInteractionId(), 1,
+                                payInput.StateRevision, NormalizedValue.CreateString("pay"), out _), Is.False);
+                            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(beforePay));
+                            Assert.That(shuffles(), Is.Zero); CandidateAnswer(f, NormalizedValue.CreateString("decline"));
+                            Assert.That(payment.Payment.IsCommitted, Is.False);
+                        }
+                        else
+                        {
+                            CandidateAnswer(f, NormalizedValue.CreateString("pay"));
+                            var placement = CandidateOpen(f);
+                            Assert.That(placement.InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
+                            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold - price));
+                            Assert.That(shuffles(), Is.Zero);
+                            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == payment.EffectId).Payment.IsCommitted, Is.True);
+                            CandidateAnswer(f, NormalizedValue.CreateString(placement.CandidateIds.First()));
+                            Assert.That(f.State.ItemZones.Zones.Single(z => z.ZoneId == f.State.ItemZones.Items.Single(i => i.ItemId == selected).ZoneId).TemplateId, Is.EqualTo("core.zone.city_facility_cell"));
+                            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold - price));
+                            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build).Status, Is.EqualTo(EffectNodeStatus.Completed));
+                            string afterBuild = JsonConvert.SerializeObject(f.State);
+                            Assert.That(new EffectTreeExecutor(f.State, f.Registry).TrySubmitInteraction(payInput.GetStableInteractionId(), 1,
+                                f.State.EffectRuntime.StateRevision, NormalizedValue.CreateString("pay"), out _), Is.False);
+                            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(afterBuild));
+                        }
+                        Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.Payment?.Preparation?.AuthorizationKind == "effect_build"), Is.EqualTo(1), outcome);
+                        Assert.That(f.State.EffectRuntime.RuleEvents.Count(e => e.SourceEffectId == payment.EffectId && e.EventType == ResourcePaymentPreparationService.BeforeResourcePayment), Is.EqualTo(1), outcome);
+                    }
+                }
+                Assert.That(f.State.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False, outcome);
+                Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root.EffectId).Status, Is.EqualTo(EffectNodeStatus.Completed), outcome);
+                Assert.That(shuffles(), Is.EqualTo(1), outcome);
+                Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.EqualTo(outcome == "built" ? 1 : 0), outcome);
+                Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.Payment?.Preparation?.AuthorizationKind == "effect_build" && n.Payment.IsCommitted), Is.EqualTo(outcome == "built" ? 1 : 0), outcome);
+                Assert.That(f.State.ItemZones.Items.Where(i => i.ZoneId == deck.ZoneId).Select(i => i.ItemId), Is.EquivalentTo(expectedIds.Where(id => outcome != "built" || id != selected)), outcome);
+                Assert.That(f.State.ItemZones.Items.Where(i => f.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.facility_supply_slot")).Select(i => i.ItemId), Is.EqualTo(supplyIds), outcome);
+                Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(actions), outcome);
+                if (outcome != "built") Assert.That(JsonConvert.SerializeObject(f.State.FindPlayer(1).Resources), Is.EqualTo(originalResources), outcome);
+            }
+        }
+
+        private static Fixture CandidateFixture()
+        {
+            var config = new GameRuleConfiguration { PlayerCount = 4, MapId = StaticMapDefinitions.FourPlayerMapId,
+                EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
+            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core")), config);
+            config.ContentPackHash = catalog.ContentPackHash;
+            var f = new Fixture { State = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1,
+                Enumerable.Range(1, 4).Select(i => new PlayerSeat { PlayerId = i }).ToList(), config, 321, catalog.SetupRecipe,
+                catalog.ContentDefinitions, new[] { 1, 2, 3, 4 }, "query.facility.four-player-infected", null),
+                Map = new MapQueryService(StaticMapDefinitions.Resolve(config.MapId)), Registry = new EffectRegistry() };
+            f.Influence = new InfluenceService(f.Map); InfluenceEffectExecutor.Register(f.Registry, f.Influence); ResourceEffectExecutor.Register(f.Registry);
+            GenericLuaEffectExecutor.Register(f.Registry); FacilityEntryEffectExecutor.Register(f.Registry); CharacterCoverEffectExecutor.Register(f.Registry); catalog.Register(f.Registry);
+            f.State.Round = 1; f.State.ActionRound = 1; f.State.Phase = GamePhase.ActionRound1;
+            f.State.FindPlayer(1).Resources = new ResourceSet { Originium = 5, OriginiumShard = 2, Iron = 2, GoldVoucher = 20 };
+            return f;
+        }
+        private static int CandidateSnapshotElements(LuaSnapshotValue value) => 1 + value.Items.Sum(CandidateSnapshotElements) + value.Properties.Sum(p => CandidateSnapshotElements(p.Value));
+        private static EffectNodeRuntimeState CandidateRun(Fixture f, EffectSpec spec)
+        {
+            var engine = new EffectTreeExecutor(f.State, f.Registry); string id = engine.CreateRoot(spec);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage); return engine.GetNode(id);
+        }
+        private static InteractionRequest CandidateOpen(Fixture f) => f.State.EffectRuntime.InteractionRequests.Last(r => r.Status == "open");
+        private static void CandidateAnswer(Fixture f, NormalizedValue answer)
+        {
+            var request = CandidateOpen(f); var engine = new EffectTreeExecutor(f.State, f.Registry);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, request.StateRevision, answer, out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage);
         }
 
         private sealed class Fixture { public GameState State; public IMapQueryService Map; public InfluenceService Influence; public EffectRegistry Registry; public RoundExecutionService Round; }

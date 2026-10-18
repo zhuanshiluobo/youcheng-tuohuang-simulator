@@ -36,8 +36,16 @@ namespace YC.Presentation
         private InfluenceActionPresenter influenceActionPresenter;
         private ExplorationEventPresenter explorationEventPresenter;
         private TurnActionPresenter turnActionPresenter;
+        private Action<BuildFacilityDraftViewModel> showBuildDraft;
+        private Action hideBuildDraft;
         private bool shuttingDown;
         public void BeginShutdown() => shuttingDown = true;
+
+        public void BindBuildDraftView(Action<BuildFacilityDraftViewModel> show, Action hide)
+        {
+            showBuildDraft = show ?? throw new ArgumentNullException(nameof(show));
+            hideBuildDraft = hide ?? throw new ArgumentNullException(nameof(hide));
+        }
 
         public MobileCityWorkflowViewAdapter(
             Func<GameState> getState,
@@ -207,26 +215,11 @@ namespace YC.Presentation
         public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model)
         {
             if (shuttingDown) return;
-            if (model == null)
-            {
-                eventChoiceDialog.Hide();
-                return;
-            }
-
-            if (model.Phase == BuildFacilityDraftPhase.Focused)
-            {
-                eventChoiceDialog.ShowBuildFacilityFocus(model);
-            }
-            else if (model.Phase == BuildFacilityDraftPhase.Confirming)
-            {
-                eventChoiceDialog.ShowBuildFacilityConfirmation(model);
-            }
-            else
-            {
-                eventChoiceDialog.Hide();
-            }
+            if (model == null) { HideBuildFacilityDraft(); return; }
+            if (showBuildDraft == null) throw new InvalidOperationException("原建设面板尚未绑定。");
+            showBuildDraft(model);
         }
-        public void HideBuildFacilityDraft() => eventChoiceDialog.Hide();
+        public void HideBuildFacilityDraft() { if (!shuttingDown) hideBuildDraft?.Invoke(); }
         public void RefreshCityStylePreview() => cityStyleDeclarationDialog.RefreshProjection();
 
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)

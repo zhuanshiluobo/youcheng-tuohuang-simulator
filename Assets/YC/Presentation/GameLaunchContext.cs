@@ -48,6 +48,8 @@ namespace YC.Presentation
         private bool returningToStart;
         public bool IsLeavingGameplay => returningToStart;
         private bool completedSessionDetached;
+        internal bool IsCompletedSessionDetached => completedSessionDetached;
+        private string completedSessionSaveFailure;
         private string pendingReturnScene;
         private MirrorNetworkRuntime subscribedRuntime;
         private IOnlineRoomService subscribedRoomService;
@@ -137,6 +139,7 @@ namespace YC.Presentation
                 launchPlayerOrder, players == null ? new List<int> { localPlayerId } : new List<PlayerSeat>(players).ConvertAll(player => player.PlayerId)))
                 throw new InvalidOperationException("launch_player_order_invalid");
             if (launchPlayerOrder == null) throw new InvalidOperationException("launch_player_order_invalid");
+            MatchSaveController.Instance?.Unbind();
             GameId = gameId;
             ClearRestore();
             EventDeckSeed = seed;
@@ -147,6 +150,7 @@ namespace YC.Presentation
             UnsubscribeRoomService();
             returningToStart = false;
             completedSessionDetached = false;
+            completedSessionSaveFailure = null;
             pendingReturnScene = null;
             pendingOnlineSessionNotice = null;
             MapId = RuleConfiguration.MapId;
@@ -179,6 +183,7 @@ namespace YC.Presentation
         private void OnDestroy()
         {
             if (Instance != this) return;
+            MatchSaveController.Instance?.Unbind();
             UnsubscribeDisconnect();
             UnsubscribeRoomService();
             Instance = null;
@@ -195,12 +200,27 @@ namespace YC.Presentation
         private void DetachCompletedSession()
         {
             if (completedSessionDetached) return;
+            var transport = MirrorCommandTransport.Instance;
+            if (transport == null || !transport.CanDetachCompletedSession) return;
+            if (Mode == LaunchMode.Host)
+            {
+                var save = MatchSaveController.Instance;
+                string reason = "房主终局保存尚未绑定当前对局。";
+                if (save == null || !save.TryRetainCompletedHostSave(this, out reason))
+                {
+                    if (completedSessionSaveFailure != reason)
+                        Debug.LogWarning("终局确认数据尚未保留，联机会话暂不释放：" + reason);
+                    completedSessionSaveFailure = reason;
+                    return;
+                }
+            }
+            completedSessionSaveFailure = null;
             completedSessionDetached = true;
             // 保留本机玩家身份和结算状态，仅切断联机；不切场景，也不重建单人对局。
             UnsubscribeDisconnect();
             UnsubscribeRoomService();
             pendingOnlineSessionNotice = null;
-            MirrorCommandTransport.Instance?.Shutdown();
+            transport.Shutdown();
             OnlineRoomServiceProvider.ShutdownActive();
             if (!string.IsNullOrEmpty(pendingReturnScene)) ReturnToStartScene(pendingReturnScene);
         }
@@ -267,6 +287,8 @@ namespace YC.Presentation
                 Instance.UnsubscribeRoomService();
                 Instance.returningToStart = true;
                 Instance.pendingOnlineSessionNotice = null;
+                Instance.completedSessionDetached = false;
+                Instance.completedSessionSaveFailure = null;
                 Instance.Mode = LaunchMode.Local;
                 Instance.LocalPlayerId = 1;
                 Instance.RoomId = string.Empty;

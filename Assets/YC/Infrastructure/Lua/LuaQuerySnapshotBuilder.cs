@@ -21,7 +21,7 @@ namespace YC.Infrastructure.Lua
             if (enabled != null) snapshot.EnabledDlcIds.AddRange(enabled);
         }
 
-        internal static LuaSnapshotValue Map(GameState state)
+        internal static LuaSnapshotValue Map(GameState state, int? revision = null)
         {
             GameMapDefinition map;
             try { map = StaticMapDefinitions.Resolve(state.MapId); }
@@ -78,7 +78,7 @@ namespace YC.Infrastructure.Lua
                         routeValues.Where(r => routeLocations[r.Get("routeId").StringValue].Contains(from.LocationId) &&
                             routeLocations[r.Get("routeId").StringValue].Contains(to.LocationId))
                         .Select(r => O(E("id", r.Get("id")), E("routeId", r.Get("routeId"))))))).ToArray())));
-            return O(E("mapId", S(map.MapId)), E("stateRevision", N(state.EffectRuntime?.StateRevision ?? 0)), E("locations", A(locations)),
+            return O(E("mapId", S(map.MapId)), E("stateRevision", N(revision ?? state.EffectRuntime?.StateRevision ?? 0)), E("locations", A(locations)),
                 E("routes", A(routeValues)), E("regions", A(map.Regions.OrderBy(r => r.RegionId, StringComparer.Ordinal).Select(r => O(
                     E("regionId", S(r.RegionId)), E("locationIds", Strings(r.LocationIds)), E("routeIds", Strings(r.RouteIds)), E("scoreValue", N(r.ScoreValue)))))),
                 E("influenceSlots", A(slots)), E("influences", A(influenceValues)), E("resourcePoints", A(resources)), E("connectedLocations", O(connected.ToArray())),
@@ -148,33 +148,43 @@ namespace YC.Infrastructure.Lua
                 E("stateRevision", N(state.EffectRuntime?.StateRevision ?? 0)), E("contentPackHash", S(state.ContentPackHash)));
         }
 
-        internal static LuaSnapshotValue CandidateContent(GameState state, LuaSnapshotValue scoped)
+        internal static LuaSnapshotValue CandidateContent(GameState state, CandidateSetDraft draft, int revision)
         {
-            // 只补已经进入本次来源池的身份元数据；不加入其他区域或实例。
+            // 从本地当前状态物化本次来源池；这些只读查询资料不进入持久化Context。
             var definitions = Definitions(state);
             var byDefinition = definitions.Items.ToDictionary(d => d.Get("id").StringValue, StringComparer.Ordinal);
             var items = state.ItemZones.Items.ToDictionary(i => i.ItemId, StringComparer.Ordinal);
             var zones = state.ItemZones.Zones.ToDictionary(z => z.ZoneId, StringComparer.Ordinal);
-            var values = new List<LuaSnapshotValue>();
-            foreach (var value in scoped.Get("instances").Items)
+            var sourceItems = new List<ItemInstanceState>();
+            foreach (string id in draft.CandidatePoolIds)
             {
-                var fields = value.Properties.ToDictionary(p => p.Name, p => p.Value, StringComparer.Ordinal);
-                if (!items.TryGetValue(value.Get("id").StringValue, out var item)) throw new InvalidOperationException("lua_query_candidate_instance_missing");
-                fields["controller"] = S(Subject(item.ControllerSubject)); fields["ownerSubject"] = S(Subject(item.OwnerSubject)); fields["slotId"] = S(item.SlotId);
-                if (byDefinition.TryGetValue(value.Get("definitionId").StringValue, out var definition))
+                if (!items.TryGetValue(id, out var item)) throw new InvalidOperationException("lua_query_candidate_instance_missing");
+                sourceItems.Add(item);
+            }
+            var sourceZones = sourceItems.Select(item => zones.TryGetValue(item.ZoneId, out var zone) ? zone :
+                throw new InvalidOperationException("lua_query_candidate_zone_missing")).Distinct().ToList();
+            foreach (var zone in sourceZones)
+                if (zone.ParentKind == ZoneParentKind.Item && items.TryGetValue(zone.ParentId, out var carrier)) sourceItems.Add(carrier);
+            var values = new List<LuaSnapshotValue>();
+            foreach (var item in sourceItems.Distinct())
+            {
+                var fields = new Dictionary<string, LuaSnapshotValue>(StringComparer.Ordinal) {
+                    ["id"] = S(item.ItemId), ["definitionId"] = S(item.DefinitionId), ["zoneId"] = S(item.ZoneId),
+                    ["typeId"] = S(item.TypeId), ["owner"] = S(Player(item.ControllerSubject.PlayerId)),
+                    ["controller"] = S(Subject(item.ControllerSubject)), ["ownerSubject"] = S(Subject(item.OwnerSubject)), ["slotId"] = S(item.SlotId) };
+                if (byDefinition.TryGetValue(item.DefinitionId, out var definition))
                 { fields["contentType"] = definition.Get("contentType"); fields["tags"] = definition.Get("tags"); }
                 values.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
             }
             var zoneValues = new List<LuaSnapshotValue>();
-            foreach (var value in scoped.Get("zones").Items)
+            foreach (var zone in sourceZones)
             {
-                var fields = value.Properties.ToDictionary(p => p.Name, p => p.Value, StringComparer.Ordinal);
-                if (!zones.TryGetValue(value.Get("id").StringValue, out var zone)) throw new InvalidOperationException("lua_query_candidate_zone_missing");
-                fields["parentKind"] = S(zone.ParentKind.ToString());
-                zoneValues.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
+                zoneValues.Add(O(E("id", S(zone.ZoneId)), E("templateId", S(zone.TemplateId)), E("localZoneId", S(zone.LocalZoneId)),
+                    E("parentId", S(zone.ParentId)), E("owner", S(Player(zone.OwnerPlayerId))), E("parentKind", S(zone.ParentKind.ToString())),
+                    E("itemCount", N(sourceItems.Count(item => item.ZoneId == zone.ZoneId)))));
             }
             return O(E("instances", A(values)), E("zones", A(zoneValues)), E("definitions", definitions),
-                E("stateRevision", N(state.EffectRuntime?.StateRevision ?? 0)), E("contentPackHash", S(state.ContentPackHash)));
+                E("stateRevision", N(revision)), E("contentPackHash", S(state.ContentPackHash)));
         }
 
         internal static string Subject(ItemSubjectRef subject) => subject?.Kind == ItemSubjectKind.Player ? Player(subject.PlayerId) :

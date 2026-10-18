@@ -227,6 +227,7 @@ namespace YC.Presentation
                 RefreshInfluenceDisplay,
                 CompleteActionCommandUi,
                 GetPlayerDisplayName);
+            workflowView.BindBuildDraftView(ShowBuildDraftInOriginalPanel, HideBuildDraftInOriginalPanel);
             resourceCollectionPresenter = new ResourceCollectionPresenter(
                 gameplayAdapter,
                 gameplayAdapter,
@@ -1435,18 +1436,20 @@ namespace YC.Presentation
             buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
             if (turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
             var state = UiReadState();
-            if (state == null || !HasLocalOperationPermission(state) ||
+            var leaving = GameLaunchContext.Instance?.IsLeavingGameplay == true;
+            // 联网核验期间的临时禁交不代表建设草稿失效，不能借刷新取消正式付款准备。
+            if (state == null || leaving || state.CurrentPlayerId != localPlayerId ||
                 (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2))
             {
-                turnActionPresenter.CancelBuildFacility();
-                buildFacilityInteraction?.Synchronize();
-                buildInfoPanel?.SetExternalFacilitySupplyVisible(
-                    buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
+                // 先退役页面入口；取消的同步拒绝回执不能再次进入同一自动取消分支。
                 buildDialogActive = false;
                 buildDialogStep = BuildDialogStep.None;
                 selectedBuildFacilityId = string.Empty;
-                characterCardEffectChoiceDialog?.Hide();
-                if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
+                if (facilityBuildPage != null) facilityBuildPage.Hide();
+                if (!leaving) turnActionPresenter.CancelBuildFacility();
+                buildFacilityInteraction?.Synchronize();
+                buildInfoPanel?.SetExternalFacilitySupplyVisible(
+                    buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
                 return;
             }
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
@@ -1457,7 +1460,6 @@ namespace YC.Presentation
                 buildDialogActive = false;
                 buildDialogStep = BuildDialogStep.None;
                 selectedBuildFacilityId = string.Empty;
-                characterCardEffectChoiceDialog?.Hide();
                 if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
                 return;
             }
@@ -1475,6 +1477,26 @@ namespace YC.Presentation
         private FacilityBuildDialogView facilityBuildPage;
         private int buildDialogGeneration;
         private bool supplyInspectionActive;
+
+        private void ShowBuildDraftInOriginalPanel(BuildFacilityDraftViewModel model)
+        {
+            if (uiShuttingDown || model == null || turnActionPresenter == null ||
+                !turnActionPresenter.BuildInteraction.IsActive || turnActionPresenter.BuildInteraction.DraftPlayerId != localPlayerId) return;
+            var state = UiReadState();
+            if (state == null || GameLaunchContext.Instance?.IsLeavingGameplay == true || state.CurrentPlayerId != localPlayerId ||
+                (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)) return;
+            if (!buildDialogActive) { buildDialogActive = true; buildDialogGeneration++; }
+            selectedBuildFacilityId = model.SelectedOption?.FacilityId ?? turnActionPresenter.BuildInteraction.FacilityId;
+            PresentBuildFacilityDialog();
+        }
+
+        private void HideBuildDraftInOriginalPanel()
+        {
+            if (!buildDialogActive) return;
+            buildDialogActive = false; buildDialogStep = BuildDialogStep.None;
+            selectedBuildFacilityId = string.Empty; buildDialogGeneration++;
+            if (facilityBuildPage != null) facilityBuildPage.Hide();
+        }
 
         private void PresentFacilitySupplyInspection()
         {
@@ -1508,13 +1530,11 @@ namespace YC.Presentation
 
         private void PresentBuildFacilityDialog()
         {
-            if (!buildDialogActive || turnActionPresenter == null) return;
+            if (!buildDialogActive || turnActionPresenter == null || turnActionPresenter.BuildInteraction.DraftPlayerId != localPlayerId) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model == null) return;
             // 必要响应/异客分配暂用正式效果页；建设草稿留在原宿主，返回才刷新费用和按钮。
             if (ActionPaymentPreparation.HasBlockingChoice(UiReadState(), localPlayerId)) return;
-            characterCardEffectChoiceDialog?.Hide();
-            eventChoiceDialog.Hide();
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
             var owner = session;
@@ -1572,7 +1592,7 @@ namespace YC.Presentation
                    (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
                    turnActionPresenter != null &&
                    !turnActionPresenter.BuildInteraction.IsSubmissionInFlight &&
-                   turnActionPresenter.BuildInteraction.IsActive;
+                   turnActionPresenter.BuildInteraction.IsActive && turnActionPresenter.BuildInteraction.DraftPlayerId == localPlayerId;
         }
 
         private void SelectBuildFacility(string facilityId)
@@ -1671,7 +1691,6 @@ namespace YC.Presentation
                     buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
                 buildDialogActive = false;
                 buildDialogStep = BuildDialogStep.None;
-                characterCardEffectChoiceDialog?.Hide();
                 if (facilityBuildPage != null) facilityBuildPage.Hide();
                 SynchronizeEventCardInteraction();
                 return;
@@ -1693,16 +1712,15 @@ namespace YC.Presentation
 
         private void CancelBuildFacilityDialog()
         {
-            if (!buildDialogActive || turnActionPresenter == null) return;
+            if (!buildDialogActive || turnActionPresenter == null || turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
+            buildDialogActive = false;
+            buildDialogStep = BuildDialogStep.None;
+            selectedBuildFacilityId = string.Empty;
+            if (facilityBuildPage != null) facilityBuildPage.Hide();
             turnActionPresenter.CancelBuildFacility();
             buildFacilityInteraction?.Synchronize();
             buildInfoPanel?.SetExternalFacilitySupplyVisible(
                 buildInfoPanel != null && buildInfoPanel.IsFacilityEffectSelectionActive);
-            buildDialogActive = false;
-            buildDialogStep = BuildDialogStep.None;
-            selectedBuildFacilityId = string.Empty;
-            characterCardEffectChoiceDialog?.Hide();
-                if (!buildDialogActive && facilityBuildPage != null) facilityBuildPage.Hide();
             RefreshActionPanel();
         }
 

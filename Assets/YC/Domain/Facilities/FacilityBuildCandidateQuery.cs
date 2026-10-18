@@ -100,20 +100,8 @@ namespace YC.Domain.Facilities
                 Version = 1, CandidateKind = CandidateKind, SourceEffectId = sourceEffectId, ExecutingPlayerId = playerId,
                 CandidatePoolIds = pool, DefaultCandidateIds = defaults, CurrentIds = new List<string>(defaults),
                 Context = ItemTransferEffectExecutor.Object("sourceZone", NormalizedValue.CreateString(options.SourceZone), "includeStoredFacilities", NormalizedValue.CreateBoolean(options.IncludeStoredFacilities),
-                    "stateRevision", NormalizedValue.CreateInteger(stateRevision)) };
-            var sourceItems = pool.Select(id => items[id]).ToList();
-            var sourceZones = sourceItems.Select(item => zones[item.ZoneId]).Distinct().ToList();
-            foreach (var zone in sourceZones)
-                if (zone.ParentKind == ZoneParentKind.Item && items.TryGetValue(zone.ParentId, out var carrier)) sourceItems.Add(carrier);
-            draft.Context.Properties.Add(new NormalizedValueEntry { Name = "instances", Value = NormalizedValue.CreateArray(sourceItems.Distinct().Select(item =>
-                ItemTransferEffectExecutor.Object("id", NormalizedValue.CreateString(item.ItemId), "definitionId", NormalizedValue.CreateString(item.DefinitionId),
-                    "zoneId", NormalizedValue.CreateString(item.ZoneId), "typeId", NormalizedValue.CreateString(item.TypeId),
-                    "owner", NormalizedValue.CreateString("p" + item.ControllerSubject.PlayerId))).ToList()) });
-            draft.Context.Properties.Add(new NormalizedValueEntry { Name = "zones", Value = NormalizedValue.CreateArray(sourceZones.Select(zone =>
-                ItemTransferEffectExecutor.Object("id", NormalizedValue.CreateString(zone.ZoneId), "templateId", NormalizedValue.CreateString(zone.TemplateId),
-                    "localZoneId", NormalizedValue.CreateString(zone.LocalZoneId), "parentId", NormalizedValue.CreateString(zone.ParentId),
-                    "owner", NormalizedValue.CreateString("p" + zone.OwnerPlayerId), "itemCount", NormalizedValue.CreateInteger(sourceItems.Count(item => item.ZoneId == zone.ZoneId)))).ToList()) });
-            draft.Context.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
+                    // 读取的是当前本地快照；resolution可登记下一次提交的revision，不能拿未来版本读取Lua。
+                    "stateRevision", NormalizedValue.CreateInteger(state.EffectRuntime?.StateRevision ?? stateRevision)) };
             var registry = new CandidatePolicyRegistry();
             foreach (var mode in active)
             foreach (var policy in policies.Where(policy => policy.Kind == CandidateKind && policy.AbilityId == mode.AbilityId))

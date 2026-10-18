@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using YC.Application.Gameplay;
+using YC.Application.Interactions;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
@@ -26,8 +27,14 @@ namespace YC.Presentation.Workflows
         private int finalPlayer, finalRound, finalActionRound;
         private GamePhase finalPhase;
         private PreparedActionPaymentView finalPreparation;
+        private string effectBuildOwner;
+        public bool IsEffectBuild => !string.IsNullOrEmpty(effectBuildOwner);
+        public EffectBuildScope EffectBuildScope => IsEffectBuild ? selection.ReadEffectBuildScope(context.CurrentState) : null;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
-        public Func<GameStateView> GetVisibleState { set => paymentPreparation.GetVisibleState = value; }
+        public Func<GameStateView> GetVisibleState
+        {
+            set { paymentPreparation.GetVisibleState = value; selection.GetVisibleState = value; }
+        }
         public bool HasPreparedPayment => paymentPreparation.HasPreparation;
         public bool CanResumePreparedDraft => selection.IsActive && selection.PlayerId == context.LocalPlayerId &&
             (paymentPreparation.IsInFlight || paymentPreparation.Current?.TargetId == selection.FacilityId);
@@ -102,6 +109,7 @@ namespace YC.Presentation.Workflows
         }
 
         public string FacilityId => selection.FacilityId;
+        public int DraftPlayerId => selection.PlayerId;
         public int CityBoardSlotIndex => selection.CityBoardSlotIndex;
 
         public bool IsSubmissionInFlight
@@ -178,9 +186,26 @@ namespace YC.Presentation.Workflows
             PresentDraft();
         }
 
+        public void BeginEffectBuild(EffectBuildScope scope)
+        {
+            if (scope == null || scope.PlayerId != context.LocalPlayerId) throw new ArgumentException("牌堆建设作用域不属于本机玩家。", nameof(scope));
+            effectBuildOwner = scope.OwnerEffectId;
+            selection.BeginEffectBuild(scope);
+            paymentPreparation.GetEffectBuildScope = () => selection.ReadEffectBuildScope(context.CurrentState);
+            PresentDraft();
+        }
+
+        public void RefreshEffectBuild()
+        {
+            if (!IsEffectBuild || !selection.IsActive) return;
+            ContinueFinalPaymentIntent();
+            PresentDraft();
+        }
+
         public void SelectFacility(string facilityId)
         {
             if (RejectMutationWhileSubmitting()) return;
+            if (IsEffectBuild && EffectBuildScope?.Input == null) return;
             ClearFinalPaymentIntent();
             if (paymentPreparation.Current != null && paymentPreparation.Current.TargetId != facilityId)
             {
@@ -325,6 +350,7 @@ namespace YC.Presentation.Workflows
         public bool TryPreparePayment(string paymentMode)
         {
             if (RejectMutationWhileSubmitting()) return false;
+            if (IsEffectBuild && EffectBuildScope?.Input == null) return false;
             if (!selection.IsActive || string.IsNullOrEmpty(selection.FacilityId) ||
                 (paymentMode != BuildFacilityService.PaymentModeResources && paymentMode != BuildFacilityService.PaymentModeGold)) return false;
             if (paymentPreparation.Current == null || paymentPreparation.Current.PaymentMode != paymentMode)
@@ -361,19 +387,27 @@ namespace YC.Presentation.Workflows
         private void OnPaymentPreparationChanged()
         {
             if (!paymentPreparation.LastResolvedApplied) { ClearFinalPaymentIntent(); view.RefreshFromState(); PresentDraft(); return; }
-            if (paymentPreparation.LastResolvedOperation == "prepare_action" && !string.IsNullOrEmpty(finalMode))
+            if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build") && !string.IsNullOrEmpty(finalMode))
                 finalPreparation = paymentPreparation.Current;
             view.RefreshFromState(); PresentDraft();
             ContinueFinalPaymentIntent();
         }
         private void ContinueFinalPaymentIntent()
         {
-            if (string.IsNullOrEmpty(finalMode) || finalPreparation == null || IsSubmissionInFlight) return;
+            if (string.IsNullOrEmpty(finalMode) || IsSubmissionInFlight) return;
             var current = paymentPreparation.Current; var state = context.CurrentState;
+            // 热座必要响应可能先切换查看者；只在原玩家的正式投影返回后接纳已准确成功的准备。
+            if (IsEffectBuild && current == null) return;
+            if (IsEffectBuild && finalPreparation == null && paymentPreparation.LastResolvedApplied &&
+                paymentPreparation.LastResolvedOperation == "prepare_effect_build" && current.TargetId == finalFacility &&
+                current.PaymentMode == finalMode && current.SelectionOwnerEffectId == effectBuildOwner &&
+                current.SelectionInteractionId == paymentPreparation.LastPreparedSelectionInteractionId) finalPreparation = current;
+            if (finalPreparation == null) return;
             var mode = finalMode;
             var valid = ActionPaymentPreparation.SameIdentity(finalPreparation, current) && current.PaymentMode == mode && current.TargetId == finalFacility &&
-                state.GameId == finalGame && context.LocalPlayerId == finalPlayer && state.Round == finalRound &&
-                state.ActionRound == finalActionRound && state.Phase == finalPhase && selection.FacilityId == finalFacility;
+                state.GameId == finalGame && context.LocalPlayerId == finalPlayer && selection.FacilityId == finalFacility &&
+                (IsEffectBuild ? current.AuthorizationKind == "effect_build" && current.SelectionOwnerEffectId == effectBuildOwner :
+                    state.Round == finalRound && state.ActionRound == finalActionRound && state.Phase == finalPhase);
             if (!valid) { ClearFinalPaymentIntent(); return; }
             // 必要响应等待保留这次真实支付点击；计划保存后的可付变化不产生新点击意图。
             if (!current.IsReady) return;
@@ -409,6 +443,16 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
+            if (IsEffectBuild)
+            {
+                var scope = EffectBuildScope;
+                var input = scope?.ProjectInput();
+                if (input == null || !input.AllowDecline || scope.Payment != null && !scope.Payment.CanCancel) return;
+                ClearFinalPaymentIntent();
+                SubmitConfirmation(EffectInteractionCommands.Answer(input, context.LocalPlayerId, null, true));
+                return;
+            }
+
             if (paymentPreparation.HasPreparation) { paymentPreparation.Cancel(() => CancelCore(true)); return; }
             CancelCore(true);
         }
@@ -425,8 +469,25 @@ namespace YC.Presentation.Workflows
                 return;
             }
 
-            var command = selection.CreateConfirmationCommand();
-            if (!paymentPreparation.BindFinalCommand(command)) return;
+            GameCommand command;
+            if (IsEffectBuild)
+            {
+                var scope = EffectBuildScope;
+                if (scope?.Input == null || scope.Payment == null || !scope.Payment.IsReady || !scope.Payment.CanConfirm ||
+                    scope.Payment.TargetId != selection.FacilityId || scope.Payment.PaymentMode != selection.PaymentMode ||
+                    scope.Input.OwnerEffectId != scope.Payment.PaymentOwnerEffectId || scope.Input.InteractionId != scope.Payment.InteractionId) return;
+                command = EffectInteractionCommands.Answer(scope.ProjectInput(), context.LocalPlayerId, new[] { "pay" });
+            }
+            else
+            {
+                command = selection.CreateConfirmationCommand();
+                if (!paymentPreparation.BindFinalCommand(command)) return;
+            }
+            SubmitConfirmation(command);
+        }
+
+        private void SubmitConfirmation(GameCommand command)
+        {
             inFlightCommandId = command.CommandId;
             var gameId = context.CurrentState.GameId;
             try { commandGateway.Submit(
@@ -513,6 +574,8 @@ namespace YC.Presentation.Workflows
                     .Where(slot => slot.IsLegal).Select(slot => slot.CityBoardSlotIndex).ToArray(),
                 Dispatch, selection.IsSupplySource);
             model.PaymentPreparation = paymentPreparation.Current;
+            model.IsEffectBuild = IsEffectBuild;
+            if (IsEffectBuild) model.CanCancel = EffectBuildScope?.Input?.AllowDecline == true;
             return model;
         }
 

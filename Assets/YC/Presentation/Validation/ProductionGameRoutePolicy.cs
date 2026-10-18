@@ -887,7 +887,9 @@ namespace YC.Presentation.Validation
             }
             else if (new[] { "candidate_id", "candidate_ids", "candidate_id_array" }.Contains(request.AnswerSchema))
                 candidates.AddRange(request.CandidateIds.Where(id => id != "choice.skip" && id != "decline")
-                    .OrderBy(id => (request.Kind == "setup.basic_character.discard" || request.Kind == "operator.dispatch.return" ? -1L : 1L) * ProductionGameSelectionPriorities.Rank(request.Kind == "setup.enterprise.choose"
+                    .OrderBy(id => request.Kind == "operator.dispatch.return" && view.ItemZones.Items.Any(item =>
+                        item.ItemId == id && YC.Domain.Items.ItemTypeRegistry.CreateBuiltIn().IsAssignableTo(item.TypeId, "core.basic_character_card")) ? 0 : 1)
+                    .ThenBy(id => (request.Kind == "setup.basic_character.discard" || request.Kind == "operator.dispatch.return" ? -1L : 1L) * ProductionGameSelectionPriorities.Rank(request.Kind == "setup.enterprise.choose"
                         ? plan.SelectionPriorities.EnterpriseDefinitionIds : plan.SelectionPriorities.DispatchCharacterDefinitionIds,
                         CandidateDefinition(view, request, id)))
                     .ThenBy(id => { int rank = plan.CandidatePriorityDefinitionIds.IndexOf(CandidateDefinition(view, request, id)); return rank < 0 ? int.MaxValue : rank; })

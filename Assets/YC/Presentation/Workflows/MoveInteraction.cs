@@ -221,10 +221,10 @@ namespace YC.Presentation.Workflows
             draftRevision = CurrentRevision();
             observedPreparation = paymentPreparation.Current;
             if (paymentPreparation.LastResolvedOperation == "cancel_action") return;
-            view.RefreshFromState();
             if (!string.IsNullOrEmpty(preselectedTarget) && paymentPreparation.Current != null &&
                 paymentPreparation.Current.TargetId != preselectedTarget)
             {
+                view.RefreshFromState();
                 PrepareTarget(preselectedTarget);
                 return;
             }
@@ -232,6 +232,8 @@ namespace YC.Presentation.Workflows
             if (!string.IsNullOrEmpty(target) && paymentPreparation.Current?.CanConfirm == true &&
                 paymentPreparation.Current.TargetId == target && HasMoveTarget(target)) Move(target);
             else RestorePresentation();
+            // 先恢复普通目标，再让统一路由最后呈现原首击的待确认标记。
+            view.RefreshFromState();
         }
 
         public override InteractionResult OnInfluenceSlotClicked(string slotId)

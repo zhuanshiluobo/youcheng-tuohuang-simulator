@@ -32,68 +32,68 @@
     {
       "newArchitectureAssignmentDispatched": true,
       "hostId": "local",
-      "latestMessageId": "msg_09579964e2463674016acdd660ed208191ae6975f6b0b00599",
-      "latestMessage": "收尾接手也因capacity失败，仅只读无新写入，收尾权转新组合；不重复唤醒",
+      "latestMessageId": "msg_09579964e2463674016ad463bba350819199c4425c2cb56c81",
+      "latestMessage": "频繁恢复与回执缺口只读交付停写，根核原件；未修改未测试，断连仍未解决",
       "threadId": "01a1217b-9745-7430-81a7-6672d2ba8932",
-      "cursor": "7b4e0c4d-5959-4599-922f-03215b5f48d1:1",
-      "status": "notLoaded",
-      "latestTurnId": "01a1340d-39e4-7163-99c9-38334b2efc5b",
-      "latestTurnStatus": "failed"
+      "cursor": "1f13b469-bf20-49e7-8835-0ce0dd0495da:14",
+      "status": "idle",
+      "latestTurnId": "01a14d98-54a2-7c91-b042-fb11245f4820",
+      "latestTurnStatus": "completed"
     },
     {
       "hostId": "local",
       "latestMessageId": "msg_0226d165679c8a26016ace760bf0208191a56483226f635a2e",
       "threadId": "01a1217b-c862-7a01-83f6-cb099cb53a1c",
-      "cursor": "8137bec2-2ee4-4f4a-b51a-d04300ba6af2:1",
+      "cursor": "2cdce8a1-b5de-4c05-8210-e4735ad6f887:1",
       "status": "notLoaded",
-      "latestTurnId": "01a13679-3c7f-70d0-a192-3a0c392bdc80",
+      "latestTurnId": "01a140eb-3a0b-7e62-9275-df096d7fd9ee",
       "latestTurnStatus": "completed",
-      "latestMessage": "文字生产与Prefab停写；后续仅补企业测试三项元数据，已停写。实际字体/布局验证由组合完成。"
+      "latestMessage": "外层行高接续交付停写，未重复唤醒"
     },
     {
       "newArchitectureAssignmentDispatched": true,
       "hostId": "local",
       "threadId": "01a1217c-77db-7251-8fb2-cda7c1206a4d",
-      "cursor": "315b6fde-5ce7-49c3-ab2b-09730899af2f:201",
+      "cursor": "eab220c5-4902-4180-89fa-a2697f1b206c:47",
       "status": "idle",
-      "latestTurnId": "01a13c17-e9d5-79b0-a590-f759a4d184f9",
-      "latestTurnStatus": "inProgress",
+      "latestTurnId": "01a14a49-7175-77b3-afc6-8f460f9d6b2a",
+      "latestTurnStatus": "completed",
       "latestMessageId": "msg_04f85ea754dcf200016acfe5f56f1c819198da2a4df59cf65e",
-      "latestMessage": "报价查询已改用专门的只读资格判定：本人同目标、同窗口且可取消的准备不会再阻挡查看两种费用；两种支付方式仍分别检查余额。最终 Session 提交资格未放宽。"
+      "latestMessage": "供应建设规则完整交付停写且根核"
     },
     {
       "newArchitectureAssignmentDispatched": true,
       "hostId": "local",
       "latestMessageId": "msg_07c62c0a04e60069016acdd34cef0c8191a539e7352ee850bc",
-      "latestMessage": "只读说明多萝西收留复用通用角色能力页；误续旧任务的重复改动已撤回，自报未作为本轮验收",
+      "latestMessage": "素材标准交付停写，未重复唤醒",
       "threadId": "01a1217c-d809-7713-81ae-a585d284f338",
-      "cursor": "c029506f-ff1a-451f-b452-af02fef2fba0:2",
+      "cursor": "7d6f6c2d-eb0c-4534-b4e6-fe5723de0842:1",
       "status": "notLoaded",
-      "latestTurnId": "01a133f2-a667-7600-b49f-d60fc3bfb565",
+      "latestTurnId": "01a14095-bef6-77c1-961b-a4cdaf07de35",
       "latestTurnStatus": "completed"
     },
     {
       "newArchitectureAssignmentDispatched": true,
       "hostId": "local",
       "threadId": "01a1217e-5acf-7863-9dbb-19d11084399d",
-      "cursor": "b07ebaf9-6edb-42d9-afee-4464ce1d8807:257",
+      "cursor": "145921cd-446d-42eb-9428-231fa3431a9c:10",
       "status": "idle",
-      "latestTurnId": "01a13c17-eb7a-7c60-abac-927baff26675",
+      "latestTurnId": "01a14d98-5203-75f1-8796-fea61d4ece7b",
       "latestTurnStatus": "completed",
-      "latestMessageId": "msg_0519512885778ef3016acfe56287208191ab86f481051fd157",
-      "latestMessage": "德克萨斯地图单文件适配交付停写，根已核diff/hash与后续实际场景通过"
+      "latestMessageId": "msg_0519512885778ef3016ad46239036c8191ab7678b6f292abf4",
+      "latestMessage": "终局保存退出修补完整停写，根静态审阅完成，未编译未测试"
     },
     {
       "title": "新组合验收执行者",
       "replaces": "01a1217e-d855-7c02-943c-b5676422e028",
       "hostId": "local",
-      "latestMessageId": "msg_014ba163efb08963016acfe628447887d0a8ded637bb08ba4d",
+      "latestMessageId": "msg_014ba163efb08963016ad4640bdbec87d0b43c7b8f0fbdc7b8",
       "threadId": "01a13383-7ca4-7780-965c-fea872f39146",
-      "cursor": "f89f9796-e399-49d2-bb07-714c39046484:585",
-      "status": "active",
-      "latestTurnId": "01a13be5-0a9a-73c0-93d1-64c28532f8e1",
-      "latestTurnStatus": "inProgress",
-      "latestMessage": "182452两项实际场景2/2通过，自然exit0及0漂移；接必要构建/正常局"
+      "cursor": "e268c220-1781-4b9b-a738-3c2431bad79d:15",
+      "status": "idle",
+      "latestTurnId": "01a14d98-5576-77c1-8927-2ea6bcfde238",
+      "latestTurnStatus": "completed",
+      "latestMessage": "终局观察与导出修补完整停写，根静态审阅完成，未编译未测试"
     },
     {
       "title": "点击测试执行者",
@@ -2039,7 +2039,7 @@
     }
   },
   "currentUserDecisionRequired": false,
-  "unityRunWindowGranted": false,
+  "unityRunWindowGranted": true,
   "currentImplementationDelivery": {
     "shared": {
       "scope": "每局种子同步/持续随机/启动顺序/恢复",
@@ -2119,14 +2119,11 @@
     "protocol": "种子API/完整检查点方案已对齐，只改文档；新生产架构未实现"
   },
   "currentRunWindow": {
-    "ownerThreadId": "01a13383-7ca4-7780-965c-fea872f39146",
-    "active": false,
-    "released": true,
-    "kind": "接口整改后带UI独立应用三模式首局已分批完成；最新为125938企业＋感染者",
-    "source": "G:\\NoMadCity\\Logs\\InterfaceRemediation\\20261016\\事件条件页修补后-感染者正常局交付.json",
-    "fullGamePassed": true,
-    "actualExitCode": 0,
-    "gameId": "9679953e23ae4352a98ca1a922ab07e9"
+    "Owner": "01a13383-7ca4-7780-965c-fea872f39146",
+    "Status": "暂停测试；本轮三owner完整停写；无活动Unity/Player，无运行窗口",
+    "Active": false,
+    "NoGlobalTimeout": true,
+    "Contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\联机终局保存与验收驱动-暂停测试修补合同.md"
   },
   "automationState": {
     "id": "nomadcity",
@@ -4445,9 +4442,9 @@
       "allOwnersStoppedAndReleased": true
     }
   },
-  "currentImplementationContract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\接口审查整改-分批实施与验收合同.md",
-  "checkedAtLocal": "2026-10-16T14:57:12.0424987+08:00",
-  "currentNextStep": "本批完整交付已核定。后继覆盖复用未变自包含快照，从正常流程合法候选调整优先级；具体事件选点→条件页、临时聚居点retire/12券和其余内容仍按缺口处理，不为缺口立即重开。可见画面最终由用户人工验收，周期和外部点击仍暂停；当前未派新局。",
+  "currentImplementationContract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\联机终局保存与验收驱动-暂停测试修补合同.md",
+  "checkedAtLocal": "2026-10-17T22:33:18.9776622+08:00",
+  "currentNextStep": "用户暂停测试持续有效；两项终局源码修补完整停写且根静态审阅完成，未编译未测试；频繁断连只读定位完成但根因尚未关闭，等待后续指示，不启动任何验证",
   "fullGameAndUiReview": {
     "updatedAt": "2026-10-14T18:13:49+08:00",
     "contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\整局覆盖与未批准页面复核-执行合同.md",
@@ -4495,7 +4492,7 @@
     "optionPickerAuditRequested": true,
     "latestTransferDecision": "规则owner已获清理授权；审查owner继续只读，旧冻结失效"
   },
-  "lastDispatchAtLocal": "2026-10-14T19:40:26+08:00",
+  "lastDispatchAtLocal": "2026-10-17 23:22:07 +08:00",
   "facilityPlacementNameFix": {
     "status": "已实现；根核两处diff与五份hash一致，实际Show待下一必要构建验证",
     "owner": "01a1217e-5acf-7863-9dbb-19d11084399d",
@@ -5992,6 +5989,342 @@
       "DriverScrollBranchActualCount": 0
     }
   },
-  "phase": "接口审查整改与同类条目显示标准已交并核；基础、企业、企业＋感染者正常八回合分批通过。最新125938感染者局527命令全成功应用、实际exit0；本批窗口释放。特定事件交接与未覆盖内容保留，不宣称全视觉或所有内容通过。",
-  "updatedAt": "2026-10-16T14:57:12.0424987+08:00"
+  "phase": "建设本人投影报价修补已根核；恢复相同正常四端，工程营UI保留",
+  "updatedAt": "2026-10-18T14:27:12.3359729+08:00",
+  "networkUiFailureRepair": {
+    "contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\四端联机付款与生命周期-修补合同.md",
+    "failureGameId": "4783feafed5942ccb8aba2e9bfcf8ff6",
+    "failureReport": "G:\\NoMadCity\\Logs\\NetworkUiFullGame\\20261017-021747\\移城严格二次确认整局\\四端正常联机\\本次验收结论.json",
+    "status": "2026-10-17同类四端复验到R5采集断线；前4项修补实显已核，C定位物理源，组合修正式恢复等待与整局时限。",
+    "active": [
+      {
+        "role": "验收恢复等待驱动修补",
+        "threadId": "01a13383-7ca4-7780-965c-fea872f39146",
+        "afterCursor": "f073d07e-12e3-40ad-bf64-0750abfdac74:279"
+      },
+      {
+        "role": "断线分段观测实施",
+        "threadId": "01a1217e-5acf-7863-9dbb-19d11084399d",
+        "afterCursor": "44933385-2ecd-4ac7-b8dc-99ad9d37207d:80"
+      }
+    ],
+    "completed": [
+      {
+        "role": "事件身份修补",
+        "threadId": "01a1217b-9745-7430-81a7-6672d2ba8932",
+        "afterCursor": "3d5bc6cf-890f-4a34-8659-5be8a717d799:15",
+        "final": "事件身份修补已完成并停写。仅修改 GameSession，使返回事件复用正式 RuleEvent 的稳定 ID；GameEvent.cs 未改。 4 项窄验全部通过，修前失败原件已保留，249 个固定输入无漂移。尚未进行可见四端或完整局复验。 完整交付回执 · 修补说明"
+      },
+      {
+        "role": "界面与退出修补",
+        "threadId": "01a1217e-5acf-7863-9dbb-19d11084399d",
+        "afterCursor": "44933385-2ecd-4ac7-b8dc-99ad9d37207d:54",
+        "final": "三项修补已完成：支付按钮恢复、移城首击标记保留、退出取消递归阻断。 17 项隔离窄验通过，界面程序集编译无错误。本人已停写；正常四端整局与实际退出仍待组合复验。 交付记录"
+      }
+    ],
+    "combinationCursor": "f073d07e-12e3-40ad-bf64-0750abfdac74:15",
+    "sameTest": "四可见独立程序、正常菜单、本地Mirror四人企业＋感染者8回合；原控件内部事件非外部点击",
+    "pendingUserDecision": false,
+    "eventIdentityRootReview": {
+      "verifiedAt": "2026-10-16T19:56:10.964Z",
+      "evidence": "事件身份4项隔离检查通过；实际3项改动hash与30项证据hash一致；仅GameSession稳定ID赋值，不替代可见四端验收"
+    },
+    "rootReview": {
+      "at": "2026-10-16T20:09:24.869Z",
+      "b": "1生产源稳定事件ID赋值；4/4隔离结果与修前失败核定，3改动hash及30证据hash匹配",
+      "c": "4生产源与2测试文件hash匹配固定受测输入；10工作流/付款＋5原建设刷新方法＋2原Focus页按钮方法通过，net9固定源码Unity托管依赖编译0错误；非原生Canvas验收",
+      "boundary": "当前四端正常局、真实退出、Unity组合构建待验；历史热座结果不套用"
+    },
+    "lastNormalRunRootReview": {
+      "path": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\同类四端完整局-复验交付.json",
+      "gameId": "2262eabf0ac14a609527e34927ad9fa6",
+      "fullGamePassed": false,
+      "rootVerified": "共同360条Applied逐字段无差异；Host361/客户360，命令唯一且全部成功；5生产源冻结与当前hash一致；原确认PNG已读。四端自然exit2/0StackOverflow，非成功终局。",
+      "reportedValidated": "15资源建设/12取消/8移城无标记失败、6影响力策略及5建设使用特殊行动；19/20采集完成。",
+      "remaining": "R5最后采集至R8、恢复完成、金券支付及未遇内容，Steam实机/人工视觉另列"
+    }
+  },
+  "collectionConnectionInvestigation": {
+    "contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\四端采集断线与验收恢复等待-定位修补合同.md",
+    "active": null,
+    "completed": [
+      {
+        "role": "C只读定位",
+        "path": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\采集断线-定位交付.json",
+        "rootReview": "已核，首次物理根因仍未知，52秒不是函数计时；60秒只适用于物理回连"
+      }
+    ],
+    "pendingUserDecision": false,
+    "driverFirstReview": "已核7项驱动和5项汇总原件；恢复准确刷新拒绝未被driver消费已定向续派，不计产品恢复通过。",
+    "exactReceiptOwner": "01a13383-7ca4-7780-965c-fea872f39146：CommandSubmissionController现有准确回执只读观察出口，C不写此文件。",
+    "observationRootReview": {
+      "Status": "已核三源增量、当前和受测hash、4配置56项原结果、编译0错误；默认关闭，不改变业务和超时；原生运行与首次物理断线根因仍待验",
+      "Delivery": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\断线分段观测-交付.json",
+      "OwnerStopped": true,
+      "Flags": [
+        "--yc-network-observation",
+        "--yc-network-observation-output=每端独立绝对JSONL路径"
+      ]
+    },
+    "exactRefusalRootReview": {
+      "Status": "已核5文件增量及当前/固定hash，3组接续和4组汇总原件、固定编译0错误；正式恢复和整局仍待验",
+      "Delivery": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\恢复后准确拒绝接续-交付.json"
+    }
+  },
+  "facilityDeckCandidateFailureRepair": {
+    "owner": "01a1217c-77db-7251-8fb2-cda7c1206a4d",
+    "contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\雷神牌堆建设候选-修补与同局型复验合同.md",
+    "status": "3生产源/1测试源完整交付根核；5项窄验及同局26候选对照通过，正常四端待复验",
+    "failureGameId": "dd7280edf28245fdab23c0bf66182438",
+    "report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\分段观测四端复验-交付.json",
+    "commandId": "6ba1fda631b64b42ae0e44d51c9c0bce",
+    "sequence": 259,
+    "capacityCauseConfirmed": true,
+    "combinationCursor": "eb194b53-dbb3-4177-b95b-518e0f184577:87",
+    "ruleCursor": "53e26d18-6490-46c3-ad44-90c37dcfa6f9:43",
+    "pendingUserDecision": false,
+    "latestDecision": "各端从本地牌堆生成候选，不新增候选广播；本次修本地Context而非网络包",
+    "previousRunRootReview": "根已逐字段比共同258条Applied（含事件ID）无差异；259仅Host规则失败。已看首败原PNG，构建原件成功/0漂移，runner只加默认关闭诊断开关，四进程均已退出。",
+    "rootReview": {
+      "report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\雷神牌堆候选修补-交付.json",
+      "productionDiffRead": true,
+      "currentHashesMatch": true,
+      "testMethodsPassed": 5,
+      "buildExit": 0,
+      "runExit": 0,
+      "formalDeckCandidates": 44,
+      "originalSameGameCandidates": 26,
+      "contextElementsBefore": 169,
+      "contextElementsAfter": 4,
+      "originalIdsAndOrderSame": true,
+      "exactR4DraftUnavailable": true,
+      "ownerStopped": true,
+      "fullGamePassed": false
+    }
+  },
+  "unapprovedBuildFocusCleanup": {
+    "Owner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+    "Contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\未批准建设付款页-清理与原面板接续合同.md",
+    "Status": "旧单卡页与原生加载修补已核；新增原面板阻塞及建设额外确认问题正在只读溯源",
+    "Cursor": "09186847-f933-42d2-87f9-e917e11f50b0:142",
+    "Image": "C:\\Users\\wzy\\AppData\\Local\\Temp\\codex-clipboard-f2a8e096-1f6c-4d18-89bd-652c6063e701.png",
+    "Decision": "清理未批准Focus页；不得用Confirmation替代；保原大建设面板",
+    "ProductionRouteConfirmed": true,
+    "HistoricalRootAuthorizationRevoked": true,
+    "PendingUserDecision": false,
+    "CombinationCleanup": {
+      "Owner": "01a13383-7ca4-7780-965c-fea872f39146",
+      "Status": "报价修补后新轮已启动，核输入与占用后必要构建及四端正常整局；尚无本轮正常结果",
+      "Cursor": "eb194b53-dbb3-4177-b95b-518e0f184577:213",
+      "LastRunReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设旧页清理后四端-原生资产修补复验交付.json",
+      "LastRunComplete": true,
+      "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设旧页驱动适配清理-交付.json",
+      "DriverSHA256": "bc05393892992902ff1de14f239d66a5f827b7abae48ac52e54d996caed89478",
+      "NextReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设报价修补后四端-正常整局交付.json"
+    },
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\未批准建设付款页清理-交付.json",
+    "RootReview": "旧API生产零调用；额外建设Configure只有定义和测试无生产绑定；Prefab恰好删除盘点167对象，无新增/断引用，其余变化仅3共用文档旧引用与退役槽。Driver CurrentConditionPaymentDialog仍用编号7，公开ModeBlocks须保八槽。",
+    "Supplement": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\未批准建设付款页清理-公开模式契约补充交付.json",
+    "FinalViewSHA256": "c14a6f701afbf5dd5688b476c0a516c68272c7368b5cbad13ace22808133e885",
+    "BuildFailureReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设旧页清理后四端-交付.json",
+    "TestAssemblySupplement": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\未批准建设付款页清理-测试程序集边界补充交付.json",
+    "NativeAssetFailure": {
+      "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设旧页清理后四端-测试程序集修补补验交付.json",
+      "BuildExit": 0,
+      "PlayerExit": 2,
+      "RootCausePending": "六有效模式的实际Unity加载字段/对象需原生定位；源引用非零，4/5退役空位不在校验循环",
+      "Owner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+      "Test": "G:\\NoMadCity\\Assets\\YC\\Tests\\EditMode\\EventChoiceDialogAssetConfigurationTests.cs",
+      "Status": "根核真实前失败后通过，当前Prefab仅修一个裸空字符串；两测试进程按人类各PID授权结束，非自然退出。C已停写释放"
+    },
+    "NativeAssetSupplement": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\未批准建设付款页清理-真实资源加载补充交付.json",
+    "FinalPrefabSHA256": "e1ed52254d8ec646bafdaf3ea08a1df4eb655c543b99c8a78a310638df714d9c",
+    "PaymentHostFollowup": {
+      "Owner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+      "Status": "原大面板报价修补已实现且隔离验证根核；正常Player待复验，工程营UI未改",
+      "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设原面板阻塞-溯源分析.json",
+      "ConfirmedContract": "条件确认与统一支付前-实施合同.md:38，原大建设面板资源/金券按钮为唯一最终确认；额外选择式页面未经授权",
+      "RuntimeSceneBoundary": "client2是游戏玩家列表文字，不能判定截图进程/操作玩家；本局Host命令73为effect.build.choose_payment，非通用付款确认",
+      "OriginCorrection": "根核b88ad0b 2026-09-21已有额外建设选择付款方式，当前实体版沿用；异客批新增统一支付前及主要行动准备，不等于新增此选择页",
+      "LatestUserDecision": "工程营额外建设UI先不改，撤销该页整改/停测要求；原大面板报价误拒独立继续",
+      "SupplementReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设支付页面-准确来源补充.json",
+      "RepairReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设本人投影报价-修补交付.json",
+      "RootReview": "五源精确diff、7当前哈希、Before02修前两失败、After04修后22通过及Application47/Workflows49/完整测试编译退出0已核；未执行正常UI"
+    }
+  },
+  "deckBuildNormalFlowCorrection": {
+    "Status": "A/C会话与共享原生页面生命周期完整交付已核；建设最小Effect不消耗主行动，正常两来源及四端新版完整局待验",
+    "Contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\牌堆建设-复用正常建设流程修正合同.md",
+    "RuleOwner": "01a1217c-77db-7251-8fb2-cda7c1206a4d",
+    "UiOwner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+    "RuleReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-规则接续只读方案.json",
+    "UiReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-原面板接线只读方案.json",
+    "CurrentTestUnchanged": true,
+    "ProductionWritesAuthorized": true,
+    "RuleCursor": "eab220c5-4902-4180-89fa-a2697f1b206c:31",
+    "UiCursor": "d3f0a391-3742-4bac-955a-909b8f30f8ae:30",
+    "LatestDecision": "组合不在修改代码时可并行修实现但不打断；两Lua保持，deck全候选原面板，既有DTO五字段及付款子节点Answer；工程营UI保持",
+    "ImplementationReports": [
+      "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-规则实施交付.json",
+      "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-原面板实施交付.json"
+    ],
+    "ParallelDevelopment": "根核独立Player及Managed/StreamingAssets普通目录、无Unity；仅A/C独占业务文件及独立托管窄验，组合driver/快照/输入/运行窗口不动，无消息打断",
+    "CombinationSnapshot": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\报价复验-移除驱动窄修后正常四端-193759",
+    "RuleReviewed": {
+      "NativeUiVerified": false,
+      "ActualRunExit": 0,
+      "ActualBuildExit": 0,
+      "ProductionStopped": true,
+      "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-规则实施交付.json",
+      "OldAssertionCorrection": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-旧回归断言对齐交付.json",
+      "CurrentHashesMatch": 9,
+      "FinalCasesPassed": 10
+    },
+    "FollowupReports": [
+      "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-窗口与授权事实补修交付.json",
+      "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-会话接续补验交付.json"
+    ],
+    "IntegrationGaps": [
+      "新实现两来源正常可见Player待覆盖",
+      "新版本四端完整八回合及收尾主链接续待正常局验证"
+    ],
+    "FollowupReviewed": {
+      "RulePassed": 5,
+      "UiCurrentHashMatches": 13,
+      "Reports": [
+        "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-窗口与授权事实补修交付.json",
+        "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-会话接续补验交付.json"
+      ],
+      "ProductionCompileExit": 0,
+      "UiPassed": 16,
+      "NativeUiVerified": false,
+      "RuleCurrentHashMatches": 3,
+      "NativeResourceLifecycleVerified": true
+    }
+  },
+  "settlementMainlineContinuationCorrection": {
+    "OriginalRound": 4,
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\收尾结束-主链接续修补交付.json",
+    "Status": "单处理器Advance接续已完整交付根核，9项修后全过，修前5失败保留；正常四端仍待新局",
+    "AllAppliedEqual": true,
+    "CombinationCursor": "62accb07-0488-4608-b78b-d20a63d1a1d4:1",
+    "Owner": "01a1217c-77db-7251-8fb2-cda7c1206a4d",
+    "OriginalRun": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\报价复验-移除驱动窄修后正常四端-193759",
+    "AppliedCount": 284,
+    "NaturalExits": [
+      2,
+      2,
+      2,
+      2
+    ],
+    "Reviewed": {
+      "Passed": 9,
+      "CurrentHashMatches": 2,
+      "RunExit": 0,
+      "Cases": 9,
+      "BeforeFailed": 5,
+      "NativeOrNormalGameVerified": false,
+      "HandlerHash": "d6a1fc3560a891e7f04c4b90caa6e46fe612df058567ec2693612a905f6dee16",
+      "BuildExit": 0
+    }
+  },
+  "deckBuildNativeFollowup": {
+    "Status": "完整根核1项原生通过、自然exit0、同一页跨Flow复用/Dispose归零；前三轮原件保持，C停写释放",
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\牌堆建设-共享页面原生补验交付.json",
+    "Owner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+    "Reviewed": {
+      "Passed": 1,
+      "Failed": 0,
+      "ExitCode": 0,
+      "ProductionChanged": false,
+      "WritingStopped": true,
+      "WindowReleased": true,
+      "NormalUiAccepted": false,
+      "TestHash": "DB7AA538D79B3E901772E71F48647858026A452DAB27988BB6249B3FABBE27BF",
+      "CoordinatorHash": "D15F4041A9ADAD9A602DE17A39CC45EADD514F413B40B590EFF0477FC79FBD60"
+    }
+  },
+  "nonMainBuildSupplyCorrection": {
+    "Status": "已实现并根核隔离结果；正常可见UI/四端整局待新版",
+    "RuleOwner": "01a1217c-77db-7251-8fb2-cda7c1206a4d",
+    "UiOwner": "01a1217e-5acf-7863-9dbb-19d11084399d",
+    "RuleReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\供应区效果建设-规则实施交付.json",
+    "UiReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\供应区效果建设-原面板实施交付.json",
+    "PreserveEngineeringCampUi": false,
+    "CurrentRunUntouched": true,
+    "RuntimeSnapshot": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设最小Effect与收尾接续-正常四端-215705",
+    "RuleCursor": "eab220c5-4902-4180-89fa-a2697f1b206c:47",
+    "UiCursor": "d3f0a391-3742-4bac-955a-909b8f30f8ae:44",
+    "LatestDecision": "工程营入场直接建设最小Effect；工程营/新兴可原结束行动放弃，前置已付不退款",
+    "AllowDeclineDecision": "工程营/新兴建筑群允许现有结束行动放弃当前建设，已完成前置支付不退款；必要响应和已付放置不跳过",
+    "Contract": "G:\\NoMadCity\\prompt\\企业扩与感染者基础实装\\供应区效果建设-统一流程修正合同.md"
+  },
+  "lastCheckedAtLocal": "2026-10-17 23:15:28 +08:00",
+  "supplyBuildRootReview": {
+    "CheckedAt": "2026-10-17 23:15:28 +08:00",
+    "RuleMethodsPassed": 12,
+    "UiMethodsPassed": 10,
+    "ChangedSourceHashesMatched": 14,
+    "NormalUiPassed": false,
+    "FullGamePassed": false,
+    "PreviousGameId": "70af9dd1936644b0bf0a327a2cd68500",
+    "PreviousAppliedEqualCount": 97,
+    "PreviousNaturalExit": 2,
+    "PreviousFailureKind": "driver漏订阅新付款网关观察口",
+    "PreviousReport": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\建设最小Effect与收尾接续-新版四端交付.json",
+    "DriverFixHash": "e338ac6e54d94c57f59130103fe5aaceca762dc3406228ab6d7ca10899604648",
+    "DriverFixCompileExit": 0,
+    "UiEndButton": "静态接线存在，原Canvas待正常局验证",
+    "RawScopeLabelNote": "A结果原件Scope旧标签不算收尾验证"
+  },
+  "testingPause": {
+    "Paused": true,
+    "UserDecision": "2026-10-18：先不要继续测试了",
+    "Scope": "不启动测试、编译、Unity、构建或Player；可继续既有证据定位和源码修补；周期与外部点击保持暂停",
+    "AcknowledgedByCombination": true,
+    "NoProjectUnityOrPlayerObserved": true
+  },
+  "terminalSaveStaticReview": {
+    "ImplementationComplete": true,
+    "WritingStopped": true,
+    "RootStaticReviewComplete": true,
+    "CompilationRun": false,
+    "TestsRun": false,
+    "Status": "已实现待验证",
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\终局保存退出-暂停测试修补交付.json",
+    "Sources": [
+      "Assets/YC/Presentation/MatchSaveController.cs",
+      "Assets/YC/Presentation/GameLaunchContext.cs"
+    ],
+    "HashesMatched": true,
+    "Boundary": "原终局正式确认点在脱离前保留；保Host身份/正式存档协议/旧局generation隔离/真实失败重试；原回执缺口和断线尚未关闭"
+  },
+  "terminalDriverStaticReview": {
+    "ImplementationComplete": true,
+    "WritingStopped": true,
+    "RootStaticReviewComplete": true,
+    "CompilationRun": false,
+    "TestsRun": false,
+    "Status": "已实现待验证",
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\终局观察与导出-暂停测试修补交付.json",
+    "Sources": [
+      "Assets/YC/Presentation/Validation/HotseatUiValidationDriver.cs",
+      "Assets/YC/Presentation/Validation/HotseatUiValidationDriver.Network.cs"
+    ],
+    "HashesMatched": true,
+    "Boundary": "终局先于新动作许可；只使用本机真实确认边界；原Applied缺口仍严格失败；实际生命周期未测试"
+  },
+  "connectionRecoveryReadOnlyReview": {
+    "InvestigationComplete": true,
+    "WritingStopped": true,
+    "RootStaticReviewComplete": true,
+    "ProductionModified": false,
+    "TestsRun": false,
+    "Status": "只读定位完成，断连尚未解决",
+    "Report": "G:\\NoMadCity\\Logs\\NetworkUiFixes\\20261017\\频繁恢复与回执缺口-只读定位.json",
+    "SegmentRecoveryRounds": 9,
+    "SegmentMissingAppliedCount": 9,
+    "SameGameCumulativeRecoveryCount": 52,
+    "Boundary": "仅本段9轮独审；确认checkpoint跨过缺行，不补造原Applied；约36.96秒主线程帧及保存入队前同步工作为线索，底层断开原因未证实"
+  }
 }

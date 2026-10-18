@@ -383,12 +383,13 @@ namespace YC.Presentation
                 foreach (var pair in coverRows)
                 {
                     bool selected = pair.Key == selectedId;
+                    pair.Value.Button.interactable = canCover == null || canCover(pair.Key);
                     if (pair.Value.SelectionImage != null) pair.Value.SelectionImage.enabled = selected;
                     else pair.Value.Outline.enabled = selected;
                 }
                 int count = string.IsNullOrEmpty(selectedId) ? 0 : 1;
                 coverPage.ResourceSummaryText.text = string.Format(layoutProfile.SelectionSummaryFormat, count, 1, 1);
-                coverConfirm.interactable = count == 1;
+                coverConfirm.interactable = count == 1 && (canCover == null || canCover(selectedId));
                 return;
             }
             var request = new InteractionRequestProjection

@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using YC.Application.Gameplay;
+using YC.Domain.Commands;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
@@ -21,6 +23,181 @@ namespace YC.Tests.EditMode
     // 定向协议/业务夹具；不加载Unity、界面生成器或正式对局驱动，不计完整局覆盖。
     public sealed class SettlementFlowContractTests
     {
+        private GameState cleanupCommandState;
+        private GameCommand cleanupCommand;
+
+        // 仅隔离定位收尾主链接缝；不作为正常游戏或界面验收。
+        private Tuple<GameState, EffectRegistry, RoundExecutionService> CleanupCommandFixture(int round, bool lastPlayer,
+            SettlementWholeEffectPolicy policy = SettlementWholeEffectPolicy.Optional)
+        {
+            var state = State(); cleanupCommandState = state;
+            foreach (var player in state.Players) player.HandCardIds.Add("liskarm");
+            state.Round = round; state.MaxRounds = 8; state.Phase = GamePhase.Cleanup;
+            state.StartPlayerId = state.CurrentPlayerId = 1;
+            var chain = new RoundMainChainBuilder().Build(state.GameId, "", round, new[] { 1, 2 }, 1);
+            var main = chain.Nodes.Single(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow && n.PlayerId == (lastPlayer ? 2 : 1));
+            state.EffectRuntime.MainNodes.AddRange(chain.Nodes);
+            foreach (var previous in chain.Nodes.Where(n => n.MainlineIndex < main.MainlineIndex)) previous.Status = EffectNodeStatus.Completed;
+            state.EffectRuntime.ActiveMainNodeId = main.NodeId;
+            state.EffectRuntime.FirstMainNodeId = chain.FirstNodeId;
+            state.EffectRuntime.CurrentRoundExecutionId = chain.RoundExecutionId;
+            state.EffectRuntime.CurrentRoundNumber = round;
+            state.EffectRuntime.CurrentRoundStartPlayerId = 1;
+            state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
+            var registry = new EffectRegistry(); var rounds = new RoundExecutionService(registry);
+            registry.RegisterSettlementCatalogProvider("cleanup.command.fixture", (s, w) => { },
+                (s, w, e, force) => new SettlementAvailabilityResult { Enabled = true });
+            var engine = rounds.CreateCommandExecutor(state);
+            string id = engine.CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId,
+                Object("mainNodeId", NormalizedValue.CreateString(main.NodeId)), main.PlayerId));
+            main.ExecutionEffectId = id; main.Status = EffectNodeStatus.Running;
+            main.PublishedEventKeys.Add("PlayerCleanupStarted");
+            var owner = engine.GetNode(id); owner.FlowStage = "cleanup_started";
+            var window = SettlementEntryService.CreateWindow(state, owner, SettlementEntryService.PlayerCleanup, main.PlayerId, "", main.NodeId);
+            owner.SettlementWindow = window; state.EffectRuntime.ActiveSettlementWindowId = window.Context.Id;
+            var target = Node(state, "cleanup.command.pending", id); target.PlayerId = main.PlayerId;
+            SettlementEntryService.RegisterCleanup(state, window, target.EffectId, "ability.cleanup", "ability", "source", "activation",
+                policy, Presentation(), policy == SettlementWholeEffectPolicy.Optional ? "ability.available" : "");
+            var blocker = new EffectBlockerRuntimeState { BlockerId = "cleanup.command.child", OwnerEffectId = id,
+                TargetEffectId = target.EffectId, BlockerKind = "child" };
+            state.EffectRuntime.Blockers.Add(blocker); owner.BlockerIds.Add(blocker.BlockerId); owner.Status = EffectNodeStatus.Blocked;
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            new RoundExecutionProjector().Project(state);
+            cleanupCommand = new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = main.PlayerId,
+                CommandId = "cleanup.command.end", Parameters = new Dictionary<string, string> {
+                    { "windowId", window.Context.Id }, { "currentNodeEffectId", "" }, { "interactionId", "" },
+                    { "expectedRevision", state.EffectRuntime.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture) } } };
+            return Tuple.Create(state, registry, rounds);
+        }
+
+        [TestCase(4, false)]
+        [TestCase(4, true)]
+        [TestCase(8, true)]
+        public void EndCleanupCommandExecutesSuccessorWithoutAnotherCommand(int round, bool lastPlayer)
+        {
+            var fixture = CleanupCommandFixture(round, lastPlayer); var state = fixture.Item1;
+            string oldMain = state.EffectRuntime.ActiveMainNodeId;
+            string nextId = state.EffectRuntime.MainNodes.Single(n => n.NodeId == oldMain).NextNodeId;
+            var result = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3).Handle(state, cleanupCommand);
+            Assert.That(result.Succeeded, Is.True, result.LogMessage);
+            Assert.That(state.EffectRuntime.Status, Is.EqualTo(EffectRuntimeStatus.Active), state.EffectRuntime.LastFaultMessage);
+            var next = state.EffectRuntime.MainNodes.Single(n => n.NodeId == nextId);
+            Assert.That(next.ExecutionEffectId, Is.Not.Empty, "真实 EndAction 成功后后继仍为 Ready 且无执行效果。");
+            Assert.That(next.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            if (round == 8 && lastPlayer) {
+                Assert.That(state.Phase, Is.EqualTo(GamePhase.FinalScoring));
+                Assert.That(state.EffectRuntime.ActiveMainNodeId, Is.Empty);
+                Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            } else {
+                Assert.That(state.Round, Is.EqualTo(round + 1));
+                Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.True);
+            }
+            string completed = JsonConvert.SerializeObject(state);
+            var duplicate = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3).Handle(state, cleanupCommand);
+            Assert.That(duplicate.Succeeded, Is.False);
+            Assert.That(duplicate.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.WrongPhase));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(completed), "旧命令不得重复推进。");
+        }
+
+        [Test]
+        public void EndCleanupCommandKeepsCompatibilityWithoutRoundExecutionService()
+        {
+            var fixture = CleanupCommandFixture(4, true); var state = fixture.Item1;
+            var result = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2).Handle(state, cleanupCommand);
+            Assert.That(result.Succeeded, Is.True, result.LogMessage);
+            var main = state.EffectRuntime.MainNodes.Single(n => n.NodeId == state.EffectRuntime.ActiveMainNodeId);
+            Assert.That(main.NodeTypeId, Is.EqualTo(RoundMainlineNodeTypeIds.PlayerCleanupWindow));
+            Assert.That(main.CompletionRequested, Is.True);
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == main.ExecutionEffectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.Round, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void EndCleanupCommandRejectsRequiredDutyStaleRevisionAndForeignIdentity()
+        {
+            foreach (string invalid in new[] { "required", "stale", "foreign", "window", "node" }) {
+                var fixture = CleanupCommandFixture(4, true, invalid == "required" ? SettlementWholeEffectPolicy.Required : SettlementWholeEffectPolicy.Optional);
+                var state = fixture.Item1;
+                if (invalid == "stale") cleanupCommand.Parameters["expectedRevision"] = (state.EffectRuntime.StateRevision - 1).ToString();
+                if (invalid == "foreign") cleanupCommand.PlayerId = 1;
+                if (invalid == "window") cleanupCommand.Parameters["windowId"] = "old.window";
+                if (invalid == "node") cleanupCommand.Parameters["currentNodeEffectId"] = "unrelated.node";
+                string before = JsonConvert.SerializeObject(state);
+                var result = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3).Handle(state, cleanupCommand);
+                Assert.That(result.Succeeded, Is.False, invalid);
+                string reason = invalid == "required" ? "settlement_required_pending" : invalid == "stale" ? "state_revision_mismatch" :
+                    invalid == "foreign" ? "settlement_permission_denied" : invalid == "window" ? "settlement_window_not_active" : "settlement_end_context_invalid";
+                Assert.That(result.Validation.Reason, Is.EqualTo(reason), invalid);
+                Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before), invalid);
+            }
+        }
+
+        [Test]
+        public void EndCleanupCommandStartsNextPlayerAndWaitsForTheirRequiredResponse()
+        {
+            var fixture = CleanupCommandFixture(4, false); var state = fixture.Item1;
+            const string type = "fixture.cleanup.next_response";
+            fixture.Item2.Register(new EffectRegistration(type, c => c.Node.FlowStage == "" ?
+                EffectStepResult.Continue("answer").AddInteraction(new EffectInteractionSpec {
+                    InteractionTypeId = type, PromptKey = "core:contract.label", AnswerSchema = "boolean_accept",
+                    AnsweringPlayerId = 2, Visibility = "owner", MinSelections = 0, MaxSelections = 0,
+                    AllowDecline = false }) : EffectStepResult.Completed(), EffectExecutorKind.IntrinsicFlow));
+            fixture.Item2.RegisterEventHandler(new EffectEventHandlerRegistration(type, "PlayerCleanupStarted", "*", type,
+                c => c.Event.PlayerId == 2 ? new List<EffectSpec> { EffectSpec.Create(type, playerId: 2) } : new List<EffectSpec>()));
+            var handler = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3);
+            var result = handler.Handle(state, cleanupCommand);
+            Assert.That(result.Succeeded, Is.True, result.LogMessage);
+            var active = state.EffectRuntime.MainNodes.Single(n => n.NodeId == state.EffectRuntime.ActiveMainNodeId);
+            Assert.That(active.NodeTypeId, Is.EqualTo(RoundMainlineNodeTypeIds.PlayerCleanupWindow));
+            Assert.That(active.PlayerId, Is.EqualTo(2)); Assert.That(active.ExecutionEffectId, Is.Not.Empty);
+            Assert.That(active.CompletionRequested, Is.False); Assert.That(state.Round, Is.EqualTo(4));
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(2)); Assert.That(request.AllowDecline, Is.False);
+            string before = JsonConvert.SerializeObject(state);
+            var duplicate = handler.Handle(state, cleanupCommand);
+            Assert.That(duplicate.Succeeded, Is.False);
+            Assert.That(duplicate.Validation.Reason, Is.EqualTo("settlement_window_not_active"));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+        }
+
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        public void EndCleanupCommandRespectsCurrentNodeAndRequiredResponse(bool required, bool otherPlayer)
+        {
+            var fixture = CleanupCommandFixture(4, false, SettlementWholeEffectPolicy.Required); var state = fixture.Item1;
+            const string type = "fixture.cleanup.response";
+            fixture.Item2.Register(new EffectRegistration(type, c => c.Node.FlowStage == "" ?
+                EffectStepResult.Continue("answer").AddInteraction(new EffectInteractionSpec {
+                    InteractionTypeId = type, PromptKey = "core:contract.label", AnswerSchema = "boolean_accept",
+                    AnsweringPlayerId = otherPlayer ? 2 : 1, Visibility = "owner", MinSelections = 0, MaxSelections = 0,
+                    AllowDecline = !required }) : EffectStepResult.Completed(), EffectExecutorKind.IntrinsicFlow));
+            state.EffectRuntime.EffectNodes.Single(n => n.EffectId == "cleanup.command.pending").EffectTypeId = type;
+            var engine = fixture.Item3.CreateCommandExecutor(state);
+            var window = state.EffectRuntime.EffectNodes.Single(n => n.SettlementWindow != null).SettlementWindow;
+            Assert.That(engine.TryInvokeCharacterSettlementOption(1, window.Entries.Single().OptionId, "", state.EffectRuntime.StateRevision,
+                out _, out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            var handler = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3);
+            cleanupCommand.Parameters["expectedRevision"] = state.EffectRuntime.StateRevision.ToString();
+            string before = JsonConvert.SerializeObject(state);
+            Assert.That(handler.Handle(state, cleanupCommand).Succeeded, Is.False, "省略当前节点不得跳过真实响应。");
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+            cleanupCommand.Parameters["currentNodeEffectId"] = request.OwnerEffectId;
+            cleanupCommand.Parameters["interactionId"] = request.GetStableInteractionId();
+            var result = handler.Handle(state, cleanupCommand);
+            if (required) {
+                Assert.That(result.Succeeded, Is.False, result.LogMessage);
+                Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+                Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open").AnsweringPlayerId, Is.EqualTo(otherPlayer ? 2 : 1));
+            } else {
+                Assert.That(result.Succeeded, Is.True, result.LogMessage);
+                Assert.That(state.Round, Is.EqualTo(5));
+                Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.GetStableInteractionId() == request.GetStableInteractionId()).Status, Is.EqualTo("answered"));
+            }
+        }
+
         private static GameState State() => new GameState { GameId = "settlement.contract",
             Players = new List<PlayerState> { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } };
         private static EffectNodeRuntimeState Node(GameState state, string id, string parent = "")

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Mirror;
@@ -184,6 +186,7 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (Instance != this) return;
             ShutdownNetwork();
+            NetworkExecutionObservation.FlushPending();
             Instance = null;
         }
 
@@ -242,6 +245,7 @@ namespace YC.Infrastructure.Multiplayer
             localReconnectAttempts = 0;
             localReconnectDeadline = Time.unscaledTime + 60f;
             nextLocalReconnectTime = Time.unscaledTime + 1f;
+            NetworkExecutionObservation.Event("connection.reconnect.accepted", ObservationContext(), "physical_deadline_seconds=60");
             Debug.Log("[ClientReconnectLifecycle] 已接纳原身份回连，模式=" + (IsLocalTestMode ? "Local" : "Steam") + "，期限秒=60。");
             return true;
         }
@@ -294,6 +298,7 @@ namespace YC.Infrastructure.Multiplayer
 
         private void FailClientReconnect(string code)
         {
+            NetworkExecutionObservation.Event("connection.reconnect.failed", ObservationContext(), code);
             if (!reconnectLocalClient) return;
             reconnectLocalClient = false;
             if (!IsLocalTestMode) ClearSteamClientReconnect();
@@ -485,6 +490,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnServerDisconnected(NetworkConnectionToClient connection)
         {
+            NetworkExecutionObservation.Event("connection.server.disconnected_callback", ObservationContext(),
+                NetworkExecutionObservation.Enabled ? "connection=" + (connection?.connectionId ?? -1) : null);
             if (connection == null) return;
             publishedServerConnections.Remove(connection.connectionId);
             disconnectingServerConnections.Remove(connection.connectionId);
@@ -494,6 +501,7 @@ namespace YC.Infrastructure.Multiplayer
         private void OnLocalNetworkConnected()
         {
             if (networkShutdownRequested || !IsLocalTestMode && steamReconnectCancelled || localClientConnectedPublished) return;
+            NetworkExecutionObservation.Event("connection.client.connected_callback", ObservationContext());
             if (reconnectLocalClient && !TryValidateReconnectIdentity(out var failure)) { FailClientReconnect(failure); return; }
             localClientConnectedPublished = true;
             localClientDisconnectedPublished = false;
@@ -509,6 +517,7 @@ namespace YC.Infrastructure.Multiplayer
         private void OnLocalNetworkDisconnected()
         {
             if (networkShutdownRequested || localClientDisconnectedPublished) return;
+            NetworkExecutionObservation.Event("connection.client.disconnected_callback", ObservationContext());
             localClientDisconnectedPublished = true;
             localClientConnectedPublished = false;
             LocalClientDisconnected?.Invoke();
@@ -519,10 +528,22 @@ namespace YC.Infrastructure.Multiplayer
         }
 
         private void OnTransportClientError(TransportError error, string reason)
-            => Debug.LogWarning("[LocalMirrorLifecycle] 传输客户端错误；utc=" + DateTime.UtcNow.ToString("O") + "，错误=" + error + "，原因=" + reason);
+        {
+            NetworkExecutionObservation.Event("connection.client.transport_error", ObservationContext(),
+                NetworkExecutionObservation.Enabled ? error + ":" + reason : null);
+            Debug.LogWarning("[LocalMirrorLifecycle] 传输客户端错误；utc=" + DateTime.UtcNow.ToString("O") + "，错误=" + error + "，原因=" + reason);
+        }
 
         private void OnTransportServerError(int connectionId, TransportError error, string reason)
-            => Debug.LogWarning("[LocalMirrorLifecycle] 传输服务端错误；utc=" + DateTime.UtcNow.ToString("O") + "，连接=" + connectionId + "，错误=" + error + "，原因=" + reason);
+        {
+            NetworkExecutionObservation.Event("connection.server.transport_error", ObservationContext(),
+                NetworkExecutionObservation.Enabled ? "connection=" + connectionId + ";" + error + ":" + reason : null);
+            Debug.LogWarning("[LocalMirrorLifecycle] 传输服务端错误；utc=" + DateTime.UtcNow.ToString("O") + "，连接=" + connectionId + "，错误=" + error + "，原因=" + reason);
+        }
+
+        private NetworkExecutionObservation.Context ObservationContext() => !NetworkExecutionObservation.Enabled ? default :
+            MirrorCommandTransport.Instance != null ? MirrorCommandTransport.Instance.ReadObservationContext() :
+            new NetworkExecutionObservation.Context { Frame = Time.frameCount, GameId = steamReconnectGameId, Mode = IsHost ? "Host" : "Client" };
 
         private void PrepareForNetworkStart()
         {
@@ -556,7 +577,8 @@ namespace YC.Infrastructure.Multiplayer
             WaitingRoomLocalIdentityMessage message)
         {
             if (!IsLocalTestMode || connection == null) return;
-            ServerLocalIdentityPresented?.Invoke(connection.connectionId, message.Ticket);
+            using (NetworkExecutionObservation.Begin("connection.identity_callback", ObservationContext()))
+                ServerLocalIdentityPresented?.Invoke(connection.connectionId, message.Ticket);
         }
 
         private void OnWaitingRoomState(WaitingRoomStateMessage message)
@@ -632,6 +654,202 @@ namespace YC.Infrastructure.Multiplayer
             if (!NetworkServer.connections.TryGetValue(connectionId, out var connection)) return;
             disconnectingServerConnections.Add(connectionId);
             connection.Disconnect();
+        }
+    }
+
+    // 可选诊断，既不参与规则状态，也不向协议添加字段。关闭时不创建文件或写入任务。
+    internal static class NetworkExecutionObservation
+    {
+        private static readonly string outputPath;
+        private static readonly string configurationError;
+        private static int disabled, warningPublished;
+        private static long nextId;
+        private static readonly int mainThreadId = Thread.CurrentThread.ManagedThreadId;
+        private const double LongStageMilliseconds = 100;
+
+        static NetworkExecutionObservation()
+        {
+            bool requested = false;
+            string path = null;
+            foreach (var argument in Environment.GetCommandLineArgs())
+            {
+                if (argument == "--yc-network-observation") requested = true;
+                const string prefix = "--yc-network-observation-output=";
+                if (argument.StartsWith(prefix, StringComparison.Ordinal)) path = argument.Substring(prefix.Length);
+            }
+            if (!requested) return;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(path) || !Path.IsPathRooted(path))
+                    throw new ArgumentException("必须提供绝对 JSONL 输出路径。");
+                outputPath = Path.GetFullPath(path);
+            }
+            catch (Exception error) { configurationError = error.Message; }
+        }
+
+        internal static bool Enabled
+        {
+            get
+            {
+                if (configurationError != null && Volatile.Read(ref warningPublished) == 0) Fail(configurationError);
+                return outputPath != null && Volatile.Read(ref disabled) == 0;
+            }
+        }
+
+        internal struct Context
+        {
+            public string GameId, Mode, CommandId;
+            public int PlayerId, MembershipVersion, Frame, Revision, Slot;
+            public long SimulationEpoch, Sequence, OperationId;
+        }
+
+        private sealed class Record
+        {
+            public long Id, UtcTicks, MonotonicTicks, ClockFrequency, ElapsedTicks;
+            public int ThreadId, StartedFrame;
+            public string Utc => new DateTime(UtcTicks, DateTimeKind.Utc).ToString("O");
+            public string Stage, Edge, Detail;
+            public Context Context;
+            public Dictionary<string, long> CounterDelta;
+        }
+
+        internal struct Span : IDisposable
+        {
+            internal string Stage, Detail;
+            internal Context Context;
+            internal long Id, Started;
+            internal bool BeginRecorded;
+            internal YC.Application.Sessions.ExecutionTimingCounters Counters;
+            internal Dictionary<string, long> Before;
+            public void Dispose()
+            {
+                if (Stage == null) return;
+                long elapsed = System.Diagnostics.Stopwatch.GetTimestamp() - Started;
+                if (!BeginRecorded && elapsed * 1000d / System.Diagnostics.Stopwatch.Frequency < LongStageMilliseconds) return;
+                try
+                {
+                    Dictionary<string, long> delta = null;
+                    if (Before != null)
+                    {
+                        delta = new Dictionary<string, long>(StringComparer.Ordinal);
+                        foreach (var value in Counters.Snapshot())
+                            if (value.Key != "clock.frequency" && Before.TryGetValue(value.Key, out var previous) && value.Value != previous)
+                                delta.Add(value.Key, value.Value - previous);
+                    }
+                    var endContext = Context;
+                    endContext.Frame = Context.Frame >= 0 && Thread.CurrentThread.ManagedThreadId == mainThreadId ? Time.frameCount : -1;
+                    Enqueue(Stage, "end", endContext, Detail, Id, elapsed, delta, Context.Frame);
+                }
+                catch (Exception error) { Fail(error.Message); }
+            }
+        }
+
+        internal static Span Begin(string stage, Context context, bool commandLevel = true,
+            YC.Application.Sessions.ExecutionTimingCounters counters = null)
+        {
+            if (!Enabled) return default;
+            try
+            {
+                var span = new Span { Stage = stage, Context = context, Id = Interlocked.Increment(ref nextId),
+                    Started = System.Diagnostics.Stopwatch.GetTimestamp(), BeginRecorded = commandLevel, Counters = counters,
+                    Before = commandLevel && counters?.Enabled == true ? counters.Snapshot() : null };
+                if (commandLevel) Enqueue(stage, "begin", context, null, span.Id);
+                return span;
+            }
+            catch (Exception error) { Fail(error.Message); return default; }
+        }
+
+        internal static void Event(string stage, Context context, string detail = null)
+        {
+            if (Enabled) Enqueue(stage, "event", context, detail, Interlocked.Increment(ref nextId));
+        }
+
+        internal static void ObserveCompletion(Task task, Context context)
+        {
+            if (!Enabled) return;
+            context.Frame = -1; // 后台完成不能读取 Unity Time；await 返回另记主线程帧。
+            task.ContinueWith(completed => Event("save.background_task_completed", context, completed.Status.ToString()),
+                CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+
+        private static void Enqueue(string stage, string edge, Context context, string detail, long id,
+            long elapsed = 0, Dictionary<string, long> delta = null, int startedFrame = -1)
+        {
+            if (!Enabled) return;
+            try
+            {
+                int threadId = Thread.CurrentThread.ManagedThreadId;
+                if (threadId != mainThreadId) context.Frame = -1;
+                Sink.Add(new Record { Id = id, Stage = stage, Edge = edge, Context = context,
+                    UtcTicks = DateTime.UtcNow.Ticks, MonotonicTicks = System.Diagnostics.Stopwatch.GetTimestamp(),
+                    ClockFrequency = System.Diagnostics.Stopwatch.Frequency, ElapsedTicks = elapsed,
+                    ThreadId = threadId, StartedFrame = startedFrame, CounterDelta = delta,
+                    Detail = detail == null || detail.Length <= 512 ? detail : detail.Substring(0, 512) });
+            }
+            catch (Exception error) { Fail(error.Message); }
+        }
+
+        private static void Fail(string reason)
+        {
+            Interlocked.Exchange(ref disabled, 1);
+            if (Interlocked.Exchange(ref warningPublished, 1) == 0)
+                Debug.LogWarning("[NetworkObservation] 分段观测已关闭，诊断输出失败：" + reason);
+        }
+
+        internal static void FlushPending()
+        {
+            if (outputPath != null && !Sink.Idle.Wait(1000))
+                Debug.LogWarning("[NetworkObservation] 退出时诊断队列尚未写完，末尾记录可能缺失。");
+        }
+
+        private static class Sink
+        {
+            private static readonly object gate = new object();
+            private static readonly Queue<Record> pending = new Queue<Record>();
+            internal static readonly ManualResetEventSlim Idle = new ManualResetEventSlim(true);
+            private static bool running;
+            internal static void Add(Record record)
+            {
+                lock (gate)
+                {
+                    if (pending.Count >= 4096) { Fail("诊断队列达到4096项，保留已有记录。"); return; }
+                    pending.Enqueue(record);
+                    if (running) return;
+                    running = true; Idle.Reset();
+                    Task.Run(Drain);
+                }
+            }
+            private static void Drain()
+            {
+                try
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+                    using (var writer = new StreamWriter(new FileStream(outputPath, FileMode.Append, FileAccess.Write, FileShare.Read),
+                        new System.Text.UTF8Encoding(false)))
+                    {
+                        while (true)
+                        {
+                            Record record;
+                            lock (gate)
+                            {
+                                if (pending.Count == 0) break;
+                                record = pending.Dequeue();
+                            }
+                            writer.WriteLine(JsonConvert.SerializeObject(record, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+                        }
+                    }
+                    lock (gate)
+                    {
+                        if (pending.Count != 0) { Task.Run(Drain); return; }
+                        running = false; Idle.Set();
+                    }
+                }
+                catch (Exception error)
+                {
+                    Fail(error.Message);
+                    lock (gate) { pending.Clear(); running = false; Idle.Set(); }
+                }
+            }
         }
     }
 }

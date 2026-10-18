@@ -44,8 +44,8 @@
 
 | 回合与面 | 来源与标题 | 卡面效果文字 | Effect式 |
 | --- | --- | --- | --- |
-| 1A | A09 集中驻扎 | 立即获得2指令。剩余游戏每角色盖放阶段一次，获得1指令。战术：放置1影响力，获得5金券。 | `立即 GainCommand(2)`；`RegisterRule(盖牌阶段一次,GainCommand(1))`；`战术 [PlaceInfluence(你),GainResource(金券,5)]` |
-| 1B | A08 分遣部署 | 立即获得2指令。剩余游戏每角色盖放阶段一次，获得1指令。战术：放置2影响力；收尾阶段移除1个你的影响力。 | 前两项同1A；`战术 [Repeat(2,PlaceInfluence(你)),登记本回合收尾 RemoveInfluence(己方,1)]` |
+| 1A | A09 集中驻扎 | 立即获得2指令。剩余游戏：每角色盖放阶段一次，获得1指令。战术：放置1影响力，获得5金券。 | `立即 GainCommand(2)`；`RegisterRule(盖牌阶段一次,GainCommand(1))`；`战术 [PlaceInfluence(你),GainResource(金券,5)]` |
+| 1B | A08 分遣部署 | 立即获得2指令。剩余游戏：每角色盖放阶段一次，获得1指令。战术：放置2影响力；收尾阶段移除1个你的影响力。 | 前两项同1A；`战术 [Repeat(2,PlaceInfluence(你)),登记本回合收尾 RemoveInfluence(己方,1)]` |
 | 3A | A06 后勤保障 | 立即失去1分并干员特派。剩余游戏，每个取得的指令支付2金券，否则无法取得；你的影响力被移除或替换时，取得1指令。战术：放置或移除1影响力，之后从源岩/源石碎片/异铁选1个取得。 | `立即 [LoseScore(1),DispatchOperator组合(抽3)]`；`RegisterRule(取得指令,每枚可选Condition(PayResource(金券,2),GainCommand(1)))`；`RegisterRule(己方影响力移除/替换,GainCommand(1))`；`战术 [Choice(PlaceInfluence/RemoveInfluence),Choice(GainResource(三类之一,1))]` |
 | 3B | A07 合作战略 | 立即失去1分并干员特派；立即取得4指令，选择1企业提升2级。剩余游戏，每个取得的指令支付2金券，否则无法取得。战术：支付2源石碎片，移除1影响力后放置1影响力。 | `立即 [LoseScore(1),DispatchOperator组合(抽3),GainCommand(4),选择企业E,Repeat(2,UpgradeEnterprise(你,E,1))]`；登记同3A的指令加价；`战术 Condition(PayResource(碎片,2),[RemoveInfluence(合法目标,1),PlaceInfluence(你)])` |
 | 5A | A04 战术巡航 | 立即取得2指令。终局不计移动城市，若你场上影响力严格最多，得2分，否则失去1分。剩余游戏，城市移动后取得2源石碎片并移动1影响力。 | `立即 GainCommand(2)`；`FinalRule(严格最多且排除城市,GainScore(2),LoseScore(1))`；`RegisterRule(己方城市移动完成,[GainResource(碎片,2),MoveInfluence(你,1)])` |

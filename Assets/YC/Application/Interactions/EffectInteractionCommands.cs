@@ -4,12 +4,38 @@ using System.Globalization;
 using YC.Domain.Commands;
 using YC.Domain.Interactions;
 using YC.Domain.Rules;
+using YC.Domain.State;
+using YC.Application.Gameplay;
 
 namespace YC.Application.Interactions
 {
     /// <summary>展示层共用的回答协议；只提交投影中的身份与版本，规则验证仍在 Host。</summary>
     public static class EffectInteractionCommands
     {
+        public static GameCommand PrepareEffectBuildPayment(EffectBuildScope scope, string itemId, string paymentMode)
+        {
+            if (scope == null || !scope.CanChoose || !scope.AllowsPaymentMode(paymentMode) ||
+                !scope.TryGetCandidateSourceZoneId(itemId, out var sourceZoneId))
+                throw new ArgumentException("只能准备当前建设授权及真实来源中的实际设施。", nameof(scope));
+            var command = new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = scope.PlayerId, TargetId = itemId };
+            command.Parameters["operation"] = "prepare_effect_build";
+            command.Parameters["selectionOwnerEffectId"] = scope.OwnerEffectId;
+            command.Parameters["selectionInteractionId"] = scope.Selection.InteractionId;
+            command.Parameters["selectionCandidateSetId"] = scope.Selection.CandidateSetId;
+            command.Parameters["selectionCandidateSetVersion"] = scope.Selection.CandidateSetVersion.ToString(CultureInfo.InvariantCulture);
+            command.Parameters["expectedRevision"] = scope.VisibleState.StateRevision.ToString(CultureInfo.InvariantCulture);
+            command.Parameters["paymentMode"] = paymentMode;
+            command.Parameters["expectedSourceZoneId"] = sourceZoneId;
+            return command;
+        }
+
+        public static GameCommand CancelEffectBuildPayment(int playerId, string preparationOwnerEffectId, int expectedRevision)
+        {
+            var command = CancelPreparedActionPayment(playerId, preparationOwnerEffectId, expectedRevision);
+            command.Parameters["operation"] = "cancel_effect_build";
+            return command;
+        }
+
         public static GameCommand PrepareActionPayment(int playerId, string actionKind, string targetId, int expectedRevision,
             string paymentMode = "", string expectedSourceZoneId = "", int cityBoardSlotIndex = -1)
         {

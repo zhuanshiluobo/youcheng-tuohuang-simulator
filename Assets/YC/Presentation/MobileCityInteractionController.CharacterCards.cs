@@ -186,7 +186,12 @@ namespace YC.Presentation
             }
             if (!coverCandidates.Contains(selectedCoverCardId)) selectedCoverCardId = string.Empty;
             if (nextKey == coverCandidateKey && characterCoverChoiceDialog != null &&
-                characterCoverChoiceDialog.IsShowing) return;
+                characterCoverChoiceDialog.IsShowing)
+            {
+                // 联机确认前缀只改变提交许可，盖牌合同及候选不变；复用页面也须重算动态资格。
+                ShowCurrentCoverSelection();
+                return;
+            }
             if (nextKey != coverCandidateKey) coverContextVersion++;
             coverCandidateKey = nextKey;
             coverRequest = model.CurrentCoverSelection; coverGameId = state.GameId;

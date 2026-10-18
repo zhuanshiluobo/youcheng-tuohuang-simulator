@@ -5,6 +5,7 @@ namespace YC.Presentation
     {
         private InteractionRequestRouter interactionRequestRouter;
         private FacilityBuildPlacementUiCoordinator facilityBuildPlacement;
+        private FacilityBuildRequestUiCoordinator facilityBuildRequest;
         private EventCardInteractionUiCoordinator eventCardInteraction;
         private MapEffectInteractionUiCoordinator influenceEffectInteraction;
         private EnterpriseInteractionUiCoordinator enterpriseInteraction;
@@ -40,6 +41,13 @@ namespace YC.Presentation
             turnActionPresenter.BuildInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
             interactionRequestRouter.Register(facilityBuildPlacement);
             interactionRouter.Register(facilityBuildPlacement);
+            facilityBuildRequest?.Dispose();
+            facilityBuildRequest = new FacilityBuildRequestUiCoordinator(
+                () => UiReadState(), VisibleSaleState, () => localPlayerId, gameplayInteractionHud.DialogRegistry,
+                uiCanvas.transform as UnityEngine.RectTransform, gameplayAdapter,
+                () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId), SynchronizeInteractionFromState, SetPrompt);
+            interactionRequestRouter.Register(facilityBuildRequest);
+            interactionRouter.Register(facilityBuildRequest);
             interactionRequestRouter.Register(eventCardInteraction);
             interactionRequestRouter.Register(characterAbilityInteraction);
             interactionRequestRouter.Register(facilityInteraction);

@@ -158,20 +158,21 @@ namespace YC.Infrastructure.Lua
                 RouteKey = draft.CandidateKind ?? string.Empty,
                 PlayerId = draft.ExecutingPlayerId,
                 ResponseKind = RuleEventResponseKind.CandidatePatches,
-                Payload = CreateCandidatePayload(draft)
+                Payload = NormalizedValue.CreateNull()
             };
-            if (cardInstanceId.Length > 0)
-                ruleEvent.Payload.Properties.Add(Entry("cardInstanceRef", NormalizedValue.CreateStableReference("character_card", cardInstanceId)));
             var owner = new EffectNodeRuntimeState
             {
                 EffectId = string.IsNullOrEmpty(draft.SourceEffectId) ? draft.CandidateSetId : draft.SourceEffectId,
                 PlayerId = draft.ExecutingPlayerId
             };
             var handlerContext = new EffectEventHandlerContext(state, ruleEvent, owner, null);
-            LuaInvocationResult invocation = host.Invoke(
-                invocationDefinition.Script,
-                cardInstanceId.Length == 0 ? CreateInvocationContext(invocationDefinition, handlerContext) :
-                    CreatePureCandidateContext(invocationDefinition, state, draft, ruleEvent.Payload));
+            var invocationContext = cardInstanceId.Length == 0 ? CreateInvocationContext(invocationDefinition, handlerContext) :
+                CreatePureCandidateContext(invocationDefinition, state, draft, ruleEvent.Payload);
+            // 候选数组只在本地本次调用物化，不塞进受持久化元素预算约束的NormalizedValue。
+            var payload = CreateCandidatePayload(draft).Properties.ToList();
+            if (cardInstanceId.Length > 0) payload.Add(new LuaSnapshotEntry("cardInstanceRef", LuaSnapshotValue.String(cardInstanceId)));
+            invocationContext.FacadeSnapshot.EventPayload = LuaSnapshotValue.Object(payload);
+            LuaInvocationResult invocation = host.Invoke(invocationDefinition.Script, invocationContext);
             if (!invocation.IsSuccess)
             {
                 throw new InvalidOperationException(invocation.Diagnostic);
@@ -201,52 +202,42 @@ namespace YC.Infrastructure.Lua
         // 纯候选快照只含本次来源池和本人载体，不探测 Host 历史或托管钱包。
         private static LuaInvocationContext CreatePureCandidateContext(LuaHandlerDefinition definition, GameState state, CandidateSetDraft draft, NormalizedValue payload)
         {
-            if (ItemTransferEffectExecutor.Number(draft.Context, "stateRevision") != (state.EffectRuntime?.StateRevision ?? 0))
+            int revision = ItemTransferEffectExecutor.Number(draft.Context, "stateRevision", -1);
+            if (revision < 0 || state.EffectRuntime != null && revision != state.EffectRuntime.StateRevision)
                 throw new InvalidOperationException("nmc_query_revision_mismatch");
             var snapshot = LuaFacadeSnapshot.FromInvocation(ToPlayerKey(draft.ExecutingPlayerId), state.FindPlayer(draft.ExecutingPlayerId)?.Score ?? 0, 0, state.Players.Count, definition.Script.DefinitionVersion);
             snapshot.GameId = state.GameId; snapshot.PhaseId = state.Phase.ToString(); snapshot.Round = state.Round;
             snapshot.MaxRounds = state.MaxRounds; snapshot.ActionRound = state.ActionRound;
             snapshot.EventPayload = ToLuaSnapshot(payload);
-            LuaQuerySnapshotBuilder.Stamp(state, snapshot, ItemTransferEffectExecutor.Number(draft.Context, "stateRevision"));
-            snapshot.GlobalMap = CreateMapSnapshot(state);
-            snapshot.GlobalContent = ToLuaSnapshot(ItemTransferEffectExecutor.Object(
-                "instances", ItemTransferEffectExecutor.Value(draft.Context, "instances").Clone(),
-                "zones", ItemTransferEffectExecutor.Value(draft.Context, "zones").Clone()));
-            snapshot.GlobalContent = LuaQuerySnapshotBuilder.CandidateContent(state, snapshot.GlobalContent);
+            LuaQuerySnapshotBuilder.Stamp(state, snapshot, revision);
+            snapshot.GlobalMap = LuaQuerySnapshotBuilder.Map(state, revision);
+            snapshot.GlobalContent = LuaQuerySnapshotBuilder.CandidateContent(state, draft, revision);
             return new LuaInvocationContext(StableIdFactory.Create("event", draft.CandidateSetId, "CandidateSetBuilding"), "CandidateSetBuilding",
-                ToPlayerKey(draft.ExecutingPlayerId), ItemTransferEffectExecutor.Number(draft.Context, "stateRevision"), definition.Script.DefinitionVersion, state.Players.Count,
+                ToPlayerKey(draft.ExecutingPlayerId), revision, definition.Script.DefinitionVersion, state.Players.Count,
                 state.FindPlayer(draft.ExecutingPlayerId)?.Score ?? 0, 0, snapshot) { ResponseKind = "candidatePatches" };
         }
 
-        private static NormalizedValue CreateCandidatePayload(CandidateSetDraft draft)
+        private static LuaSnapshotValue CreateCandidatePayload(CandidateSetDraft draft)
         {
-            return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
+            return LuaSnapshotValue.Object(new List<LuaSnapshotEntry>
             {
-                Entry("candidateSetId", NormalizedValue.CreateString(draft.CandidateSetId)),
-                Entry("candidateKind", NormalizedValue.CreateString(draft.CandidateKind)),
-                Entry("sourceEffectId", NormalizedValue.CreateString(draft.SourceEffectId)),
-                Entry("executingPlayerId", NormalizedValue.CreateInteger(draft.ExecutingPlayerId)),
-                Entry("candidatePoolIds", StringArray(draft.CandidatePoolIds)),
-                Entry("defaultCandidateIds", StringArray(draft.DefaultCandidateIds)),
-                Entry("currentIds", StringArray(draft.CurrentIds)),
-                Entry("context", draft.Context.Clone())
+                new LuaSnapshotEntry("candidateSetId", LuaSnapshotValue.String(draft.CandidateSetId)),
+                new LuaSnapshotEntry("candidateKind", LuaSnapshotValue.String(draft.CandidateKind)),
+                new LuaSnapshotEntry("sourceEffectId", LuaSnapshotValue.String(draft.SourceEffectId)),
+                new LuaSnapshotEntry("executingPlayerId", LuaSnapshotValue.Integer(draft.ExecutingPlayerId)),
+                new LuaSnapshotEntry("candidatePoolIds", CandidateIds(draft.CandidatePoolIds)),
+                new LuaSnapshotEntry("defaultCandidateIds", CandidateIds(draft.DefaultCandidateIds)),
+                new LuaSnapshotEntry("currentIds", CandidateIds(draft.CurrentIds)),
+                new LuaSnapshotEntry("context", ToLuaSnapshot(draft.Context))
             });
         }
+
+        private static LuaSnapshotValue CandidateIds(IList<string> ids) =>
+            LuaSnapshotValue.Array(ids.Select(LuaSnapshotValue.String).ToList());
 
         private static NormalizedValueEntry Entry(string name, NormalizedValue value)
         {
             return new NormalizedValueEntry { Name = name, Value = value };
-        }
-
-        private static NormalizedValue StringArray(IList<string> values)
-        {
-            var items = new List<NormalizedValue>();
-            if (values != null)
-            {
-                for (int i = 0; i < values.Count; i++) items.Add(NormalizedValue.CreateString(values[i] ?? string.Empty));
-            }
-
-            return NormalizedValue.CreateArray(items);
         }
 
         public void RegisterContinuation(

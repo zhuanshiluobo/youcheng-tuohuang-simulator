@@ -171,6 +171,8 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class PreparedActionPaymentView
     {
+        public string AuthorizationKind = "main_action", SelectionOwnerEffectId = "", SelectionInteractionId = "", SelectionCandidateSetId = "";
+        public int SelectionCandidateSetVersion;
         public string PreparationOwnerEffectId = "", PaymentOwnerEffectId = "", PaymentId = "";
         public int PaymentGeneration, WindowGeneration;
         public string OperationWindowId = "", ActionKind = "", TargetId = "", InteractionId = "", PaymentMode = "";
@@ -525,13 +527,17 @@ namespace YC.Domain.State
             ProjectFinalScoring(state.FinalScoring, viewer, view);
             ProjectInteractions(state, viewer, view);
             if (viewer.Role == GameStateViewerRole.Player && runtime != null)
-                foreach (var owner in runtime.EffectNodes.Where(node => YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentPreparation(state, node, viewer.PlayerId)))
+                foreach (var owner in runtime.EffectNodes.Where(node => YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentPreparation(state, node, viewer.PlayerId) ||
+                    YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, node, viewer.PlayerId)))
                 {
                     var payment = owner.Payment; var preparation = payment.Preparation;
                     var request = runtime.InteractionRequests.LastOrDefault(value => value.OwnerEffectId == owner.EffectId && value.Status == "open" &&
                         value.InteractionTypeId == YC.Domain.Effects.ResourceEffectExecutor.PaymentConfirmationInteractionTypeId);
                     bool pending = YC.Domain.Effects.ResourcePaymentPreparationService.HasPendingResponse(state, owner);
                     view.PreparedActionPayments.Add(new PreparedActionPaymentView { PreparationOwnerEffectId = preparation.PreparationOwnerEffectId,
+                        AuthorizationKind = preparation.AuthorizationKind, SelectionOwnerEffectId = preparation.SelectionOwnerEffectId,
+                        SelectionInteractionId = preparation.SelectionInteractionId, SelectionCandidateSetId = preparation.SelectionCandidateSetId,
+                        SelectionCandidateSetVersion = preparation.SelectionCandidateSetVersion,
                         PaymentOwnerEffectId = owner.EffectId, PaymentId = payment.PaymentId, PaymentGeneration = payment.PaymentGeneration,
                         OperationWindowId = preparation.OperationWindowId, WindowGeneration = preparation.WindowGeneration,
                         ActionKind = preparation.ActionKind, TargetId = preparation.TargetId, InteractionId = request?.GetStableInteractionId() ?? "",

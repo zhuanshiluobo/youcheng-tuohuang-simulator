@@ -154,6 +154,8 @@ namespace YC.Presentation.Workflows
         }
 
         public bool IsSupplySource { get; private set; }
+        public bool IsEffectBuild { get; internal set; }
+        public bool CanCancel { get; internal set; } = true;
         public PreparedActionPaymentView PaymentPreparation { get; internal set; }
         public BuildFacilityDraftPhase Phase { get; private set; }
         public IReadOnlyList<BuildFacilityOptionQueryResult> Options { get; private set; }

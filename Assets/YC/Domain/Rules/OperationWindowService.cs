@@ -54,7 +54,59 @@ namespace YC.Domain.Rules
             Scope source = null;
             EffectNodeRuntimeState commandSource = null;
             string interactionId = Parameter(command, "interactionId");
-            if (command.Kind == GameCommandKind.AnswerInteraction)
+            string preparationOperation = command.Kind == GameCommandKind.PreparePaymentDraft ? Parameter(command, "operation") : "";
+            if (preparationOperation == "prepare_effect_build" || preparationOperation == "cancel_effect_build")
+            {
+                if (state.EffectRuntime.Status != EffectRuntimeStatus.Active ||
+                    !int.TryParse(Parameter(command, "expectedRevision"), NumberStyles.None, CultureInfo.InvariantCulture, out int revision) ||
+                    revision != state.EffectRuntime.StateRevision)
+                    return Reject(CommandErrorCode.StateRevisionMismatch, "牌堆建设准备命令的状态版本已过期。", out validation);
+                if (command.Parameters.ContainsKey("interactionId"))
+                    return Reject(CommandErrorCode.InvalidTarget, "牌堆建设准备命令不能替换其请求关联字段。", out validation);
+                InteractionRequest request;
+                if (preparationOperation == "prepare_effect_build")
+                {
+                    string ownerId = Parameter(command, "selectionOwnerEffectId"), requestId = Parameter(command, "selectionInteractionId");
+                    string candidateSetId = Parameter(command, "selectionCandidateSetId"), sourceZoneId = Parameter(command, "expectedSourceZoneId");
+                    if (!int.TryParse(Parameter(command, "selectionCandidateSetVersion"), NumberStyles.None, CultureInfo.InvariantCulture, out int version) || version < 1)
+                        return Reject(CommandErrorCode.InvalidTarget, "牌堆建设候选版本无效。", out validation);
+                    commandSource = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == ownerId);
+                    request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == requestId);
+                    var candidates = state.EffectRuntime.CandidateResolutions.Find(r => r.CandidateSetId == candidateSetId && r.Version == version);
+                    var target = state.ItemZones.Items.Find(i => i.ItemId == command.TargetId);
+                    if (commandSource?.EffectTypeId != FacilitySelectionEffectExecutor.TypeId || commandSource.PlayerId != command.PlayerId ||
+                        Terminal(commandSource.Status) || commandSource.PendingOutcome != EffectPendingOutcome.None || commandSource.FlowStage != "deck_select" ||
+                        !FacilitySelectionEffectExecutor.IsNormalBuildSelection(commandSource) ||
+                        request?.OwnerEffectId != ownerId || request.AnsweringPlayerId != command.PlayerId ||
+                        request.InteractionTypeId != FacilitySelectionEffectExecutor.NormalBuildInteractionType ||
+                        request.CandidateSetId != candidateSetId || request.CandidateSetVersion != version || !request.CandidateIds.Contains(command.TargetId) ||
+                        candidates?.SourceEffectId != ownerId || candidates.ExecutingPlayerId != command.PlayerId ||
+                        candidates.CandidateKind != YC.Domain.Facilities.FacilityBuildCandidateQuery.CandidateKind || !candidates.FinalCandidateIds.SequenceEqual(request.CandidateIds) ||
+                        string.IsNullOrEmpty(sourceZoneId) || target?.ZoneId != sourceZoneId ||
+                        !ResourcePaymentPreparationService.ValidateEffectBuildCandidate(state, commandSource, request, command.TargetId,
+                            sourceZoneId, Parameter(command, "paymentMode"), true))
+                        return Reject(CommandErrorCode.InvalidTarget, "牌堆建设准备未指向本人当前候选合同。", out validation);
+                }
+                else
+                {
+                    commandSource = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == Parameter(command, "preparationOwnerEffectId"));
+                    if (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, commandSource, command.PlayerId) ||
+                        commandSource.Payment.Preparation.IsPromoted || commandSource.Payment.IsCommitted || commandSource.Payment.IsCommitRequested)
+                        return Reject(CommandErrorCode.InvalidTarget, "牌堆建设取消未指向本人当前付款准备。", out validation);
+                    if (ResourcePaymentPreparationService.HasPendingResponse(state, commandSource))
+                        return Reject(CommandErrorCode.SettlementRequiredPending, "支付前必要响应尚未结束，不能取消准备。", out validation);
+                    request = state.EffectRuntime.InteractionRequests.LastOrDefault(r => r.Status == "open" && r.OwnerEffectId == commandSource.EffectId &&
+                        r.AnsweringPlayerId == command.PlayerId && r.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId);
+                    if (request == null || !commandSource.Payment.BeforePaymentReady)
+                        return Reject(CommandErrorCode.InvalidTarget, "牌堆建设准备没有当前可操作的付款请求。", out validation);
+                }
+                if (request.StateRevision != revision)
+                    return Reject(CommandErrorCode.StateRevisionMismatch, "牌堆建设准备请求已过期。", out validation);
+                source = model.RequestScope(request);
+                if (source == null)
+                    return Reject(CommandErrorCode.NotCurrentPlayer, "牌堆建设请求没有真实操作窗口。", out validation);
+            }
+            else if (command.Kind == GameCommandKind.AnswerInteraction)
             {
                 if (string.IsNullOrEmpty(interactionId)) interactionId = !string.IsNullOrEmpty(command.SourceId) ? command.SourceId : command.TargetId;
                 var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == interactionId);

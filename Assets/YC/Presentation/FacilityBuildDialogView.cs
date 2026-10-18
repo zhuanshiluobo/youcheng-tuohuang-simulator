@@ -59,12 +59,12 @@ namespace YC.Presentation
         [SerializeField] private string inspectionQuote = "请选择设施牌查看费用。";
         private CardViewer viewer;
 
-        public void RefreshSupplyStatus(GameState state, int playerId)
+        public void RefreshSupplyStatus(GameState state, int playerId, int? visibleDeckCount = null)
         {
             definitionState = state;
             if (state == null) return;
             visibleItems = new ItemZoneQuery().Project(state, GameStateViewer.Player(playerId));
-            supplyDeckText.text = string.Format(supplyDeckFormat, state.Decks.FacilityDeck.Count);
+            supplyDeckText.text = string.Format(supplyDeckFormat, visibleDeckCount ?? state.Decks.FacilityDeck.Count);
             ownedResources.SetCost(state.FindPlayer(playerId)?.Resources);
             var ids = new[] { FacilityCardDatabase.ExtensionHubRed, FacilityCardDatabase.ExtensionHubYellow,
                 FacilityCardDatabase.ExtensionHubBlue };
@@ -97,7 +97,7 @@ namespace YC.Presentation
             bool Current() => this != null && gameObject.activeInHierarchy && !submittingPayment && isCurrent() &&
                 !GameplayHudFrame.InformationInputBlockedThisFrame &&
                 (!placing || !GameplayHudFrame.EffectInputSuspended);
-            GameplayHudFrame.Active?.ShowPage(gameObject, placing);
+            GameplayHudFrame.Active?.ShowPage(gameObject, placing || model.IsEffectBuild);
             if (GameplayHudFrame.Active == null) gameObject.SetActive(true);
             if (candidatesHeading != null) candidatesHeading.text = model.IsSupplySource ? supplyHeading : alternateHeading;
             if (confirmLabel != null) confirmLabel.text = placing ? placeLabel : payLabel;
@@ -137,7 +137,7 @@ namespace YC.Presentation
                     viewer.OpenInspect(sprite, () =>
                     {
                         if (!isCurrent()) return;
-                        if (placing) GameplayHudFrame.Active?.ResumeEffectPage();
+                        if (placing || model.IsEffectBuild) GameplayHudFrame.Active?.ResumeEffectPage();
                         else GameplayHudFrame.Active?.ShowPage(gameObject, false);
                     }, isCurrent);
                 }, Current);
@@ -220,8 +220,7 @@ namespace YC.Presentation
                         new ResourceSet { GoldVoucher = definition.GoldVoucherCost }));
                 row.SetSelected(false);
                 row.Button.interactable = !inspectionOnly && !placing && payment != null && sameDraft &&
-                    (model.PaymentPreparation != null && model.PaymentPreparation.PaymentMode == mode
-                        ? model.PaymentPreparation.CanConfirm : payment.IsAvailable);
+                    isCurrent() && CanUseBuildPayment(model, mode);
                 row.Button.onClick.RemoveAllListeners();
                 row.Button.onClick.AddListener(() =>
                 {
@@ -234,7 +233,7 @@ namespace YC.Presentation
                 });
                 YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "build.payment." + mode);
             }
-            cancel.interactable = model.PaymentPreparation == null || model.PaymentPreparation.CanCancel;
+            cancel.interactable = model.CanCancel && (model.PaymentPreparation == null || model.PaymentPreparation.CanCancel);
             confirm.gameObject.SetActive(placing);
             costBreakdown.SetActive(!placing && selectedOption != null);
             quote.gameObject.SetActive(placing || selectedOption == null);
@@ -271,6 +270,21 @@ namespace YC.Presentation
             if (viewer != null) viewer.Dismiss();
             GameplayHudFrame.Active?.ReleasePage(gameObject);
             gameObject.SetActive(false);
+        }
+
+        private static bool CanUseBuildPayment(BuildFacilityDraftViewModel model, string mode)
+        {
+            var option = model?.SelectedOption;
+            if (option == null) return false;
+            var payment = mode == BuildFacilityService.PaymentModeResources ? option.ResourcesPayment :
+                mode == BuildFacilityService.PaymentModeGold ? option.GoldPayment : null;
+            if (payment == null) return false;
+            var preparation = model.PaymentPreparation;
+            if (preparation != null && preparation.ActionKind == "build" &&
+                preparation.TargetId == option.FacilityId && preparation.PaymentMode == mode &&
+                !string.IsNullOrEmpty(preparation.PreparationOwnerEffectId))
+                return preparation.IsReady && preparation.CanConfirm;
+            return payment.IsAvailable;
         }
     }
 }

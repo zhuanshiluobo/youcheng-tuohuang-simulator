@@ -27,6 +27,8 @@ namespace YC.Presentation
         private readonly Action<string> commandSettled;
         private readonly Action<string, bool> cityStyleCommandResolved;
         private readonly Action<string, string, bool, CommandErrorCode> interactionCommandResolved;
+        // 只在原准确回调成功交付后观察；不参与受理、规则执行、恢复或UI重试。
+        internal event Action<string, string, bool, CommandErrorCode, bool> SubmissionResolutionObserved;
         private readonly SubmittedInteractionCommands submittedCommands;
         private INetworkCommandTransport commandTransport;
         private bool sessionNoticeSubscribed;
@@ -454,7 +456,11 @@ namespace YC.Presentation
             unresolvedSimulationSubmissions.Remove(commandId);
             bool previous = RequiresExplicitRefreshForCurrentResult;
             RequiresExplicitRefreshForCurrentResult = requiresRefresh;
-            try { interactionCommandResolved?.Invoke(submittedGameId, commandId, accepted, errorCode); }
+            try
+            {
+                interactionCommandResolved?.Invoke(submittedGameId, commandId, accepted, errorCode);
+                SubmissionResolutionObserved?.Invoke(submittedGameId, commandId, accepted, errorCode, requiresRefresh);
+            }
             finally { RequiresExplicitRefreshForCurrentResult = previous; }
             return true;
         }

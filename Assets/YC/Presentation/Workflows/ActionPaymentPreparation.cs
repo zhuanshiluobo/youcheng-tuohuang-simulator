@@ -5,6 +5,8 @@ using YC.Domain.Commands;
 using YC.Domain.Interactions;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Application.Gameplay;
+using YC.Application.Interactions;
 
 namespace YC.Presentation.Workflows
 {
@@ -18,9 +20,11 @@ namespace YC.Presentation.Workflows
         private readonly Action<string> prompt;
         private string commandId, commandGameId, commandOperation;
         private int commandPlayerId;
-        private bool preparationRequested, shuttingDown;
+        private bool preparationRequested, shuttingDown, notifyingCancellation;
         private Action afterCancellation;
         public Func<GameStateView> GetVisibleState { private get; set; }
+        public Func<EffectBuildScope> GetEffectBuildScope { private get; set; }
+        public string LastPreparedSelectionInteractionId { get; private set; }
         public bool IsInFlight => !string.IsNullOrEmpty(commandId);
         public bool LastResolvedApplied { get; private set; }
         public string LastResolvedOperation { get; private set; }
@@ -34,7 +38,9 @@ namespace YC.Presentation.Workflows
             {
                 var view = View;
                 if (view == null || view.GameId != context.CurrentState?.GameId || view.ViewerPlayerId != context.LocalPlayerId) return null;
-                var matches = view.PreparedActionPayments.Where(payment => payment.ActionKind == actionKind).ToArray();
+                if (GetEffectBuildScope != null) return GetEffectBuildScope()?.Payment;
+                var matches = view.PreparedActionPayments.Where(payment => payment.ActionKind == actionKind &&
+                    payment.AuthorizationKind == "main_action").ToArray();
                 return matches.Length == 1 ? matches[0] : null;
             }
         }
@@ -50,9 +56,19 @@ namespace YC.Presentation.Workflows
         public bool Prepare(string targetId, string paymentMode = null, string sourceZoneId = null)
         {
             if (shuttingDown || IsInFlight) return false;
-            var command = NewCommand("prepare_action");
+            GameCommand command;
+            if (GetEffectBuildScope != null)
+            {
+                var scope = GetEffectBuildScope();
+                if (scope == null || !scope.CanChoose || !scope.AllowsPaymentMode(paymentMode) ||
+                    !scope.TryGetCandidateSourceZoneId(targetId, out var actualSourceZoneId) ||
+                    sourceZoneId != actualSourceZoneId) return false;
+                command = EffectInteractionCommands.PrepareEffectBuildPayment(scope, targetId, paymentMode);
+                LastPreparedSelectionInteractionId = scope.Selection.InteractionId;
+            }
+            else command = NewCommand("prepare_action");
             command.TargetId = targetId ?? string.Empty;
-            command.Parameters["actionKind"] = actionKind;
+            if (GetEffectBuildScope == null) command.Parameters["actionKind"] = actionKind;
             if (paymentMode != null) command.Parameters["paymentMode"] = paymentMode;
             if (sourceZoneId != null) command.Parameters["expectedSourceZoneId"] = sourceZoneId;
             preparationRequested = true;
@@ -60,7 +76,8 @@ namespace YC.Presentation.Workflows
         }
         public bool Cancel(Action afterApplied)
         {
-            if (shuttingDown || IsInFlight) return false;
+            // 准确拒绝会同步刷新原页面；该回执的刷新不能重发同一次取消。
+            if (shuttingDown || IsInFlight || notifyingCancellation) return false;
             var payment = Current;
             if (payment == null)
             {
@@ -69,7 +86,8 @@ namespace YC.Presentation.Workflows
                 return true;
             }
             if (!payment.CanCancel) return false;
-            var command = NewCommand("cancel_action");
+            var command = GetEffectBuildScope == null ? NewCommand("cancel_action") :
+                EffectInteractionCommands.CancelEffectBuildPayment(context.LocalPlayerId, payment.PreparationOwnerEffectId, View.StateRevision);
             command.Parameters["preparationOwnerEffectId"] = payment.PreparationOwnerEffectId;
             afterCancellation = afterApplied;
             return Send(command);
@@ -92,11 +110,18 @@ namespace YC.Presentation.Workflows
             var operation = commandOperation; commandOperation = null;
             LastResolvedOperation = operation;
             var continuation = afterCancellation;
+            var resolvedPlayer = commandPlayerId;
             afterCancellation = null;
-            if (applied && operation == "cancel_action" || !applied && operation == "prepare_action" && Current == null)
+            bool cancelling = operation == "cancel_action" || operation == "cancel_effect_build";
+            bool preparing = operation == "prepare_action" || operation == "prepare_effect_build";
+            if (applied && cancelling || !applied && preparing && Current == null)
                 preparationRequested = false;
-            changed?.Invoke();
-            if (applied) continuation?.Invoke();
+            var wasNotifyingCancellation = notifyingCancellation;
+            notifyingCancellation |= cancelling;
+            try { changed?.Invoke(); }
+            finally { notifyingCancellation = wasNotifyingCancellation; }
+            if (applied && !shuttingDown && context.CurrentState?.GameId == gameId && context.LocalPlayerId == resolvedPlayer)
+                continuation?.Invoke();
             return true;
         }
         public void ResetAfterCommit() { preparationRequested = false; afterCancellation = null; }
@@ -136,7 +161,9 @@ namespace YC.Presentation.Workflows
             first != null && second != null && first.PreparationOwnerEffectId == second.PreparationOwnerEffectId &&
             first.PaymentOwnerEffectId == second.PaymentOwnerEffectId && first.PaymentId == second.PaymentId &&
             first.PaymentGeneration == second.PaymentGeneration && first.OperationWindowId == second.OperationWindowId &&
-            first.WindowGeneration == second.WindowGeneration;
+            first.WindowGeneration == second.WindowGeneration && first.AuthorizationKind == second.AuthorizationKind &&
+            first.SelectionOwnerEffectId == second.SelectionOwnerEffectId && first.SelectionInteractionId == second.SelectionInteractionId &&
+            first.SelectionCandidateSetId == second.SelectionCandidateSetId && first.SelectionCandidateSetVersion == second.SelectionCandidateSetVersion;
         public static bool IsPreparedActionRequest(InteractionRequestProjection request) => IsPreparedParameters(request?.PromptParameters);
         public static bool IsPreparedParameters(NormalizedValue parameters)
         {
@@ -151,7 +178,12 @@ namespace YC.Presentation.Workflows
             requests?.Any(request => request != null && request.Status == "open" && request.AnsweringPlayerId == playerId &&
                 GameStateVisibilityPolicy.IsVisible(request.Visibility, request.AnsweringPlayerId, GameStateViewer.Player(playerId)) &&
                 !request.IsInternalMainlineInteraction() &&
-                !IsPreparedActionRequest(request)) == true;
+                !(IsPreparedActionRequest(request) && IsMainActionAuthorization(request.PromptParameters))) == true;
+        private static bool IsMainActionAuthorization(NormalizedValue parameters)
+        {
+            var kind = YC.Domain.Effects.ItemTransferEffectExecutor.Text(parameters, "authorizationKind");
+            return kind.Length == 0 || kind == "main_action";
+        }
         public static bool HasBlockingChoice(GameState state, int playerId) => state != null &&
             ((state.PendingChoice?.IsValid() == true) || (state.PendingCardSession?.IsValid() == true) ||
                 (state.PendingCharacterEffect?.IsValid() == true) || (state.PendingSpecialAction?.IsValid(state) == true) ||

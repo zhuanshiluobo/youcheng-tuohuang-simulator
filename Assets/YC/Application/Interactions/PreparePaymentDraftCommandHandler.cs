@@ -19,18 +19,41 @@ namespace YC.Application.Interactions
         public bool CanHandle(GameCommand command) => command?.Kind == GameCommandKind.PreparePaymentDraft;
         public CommandResult Handle(GameState state, GameCommand command)
         {
-            var phase = CommandPhasePolicy.ValidatePhase(state, command.Kind);
-            if (!phase.IsValid) return CommandResult.Invalid(phase);
             string Read(string key) => InvokeSettlementOptionCommandHandler.Parameter(command, key);
+            string operation = Read("operation");
+            // 效果准备由当前正式请求许可；不拿主要行动阶段拒绝其他阶段的真实授予。
+            if (operation != "prepare_effect_build" && operation != "cancel_effect_build")
+            {
+                var phase = CommandPhasePolicy.ValidatePhase(state, command.Kind);
+                if (!phase.IsValid) return CommandResult.Invalid(phase);
+            }
             if (!int.TryParse(Read("expectedRevision"), NumberStyles.None, CultureInfo.InvariantCulture, out int revision))
                 return Invalid("payment_revision_missing");
             var executor = rounds == null ? new EffectTreeExecutor(state, registry) : rounds.CreateCommandExecutor(state);
-            string operation = Read("operation");
-            var allowed = operation == "prepare_action" ? new[] { "operation", "actionKind", "expectedRevision", "paymentMode", "expectedSourceZoneId", "cityBoardSlotIndex" } :
-                operation == "cancel_action" ? new[] { "operation", "preparationOwnerEffectId", "expectedRevision" } :
+            var allowed = operation == "prepare_effect_build" ? new[] { "operation", "selectionOwnerEffectId", "selectionInteractionId", "selectionCandidateSetId", "selectionCandidateSetVersion", "expectedRevision", "paymentMode", "expectedSourceZoneId" } :
+                operation == "prepare_action" ? new[] { "operation", "actionKind", "expectedRevision", "paymentMode", "expectedSourceZoneId", "cityBoardSlotIndex" } :
+                operation == "cancel_action" || operation == "cancel_effect_build" ? new[] { "operation", "preparationOwnerEffectId", "expectedRevision" } :
                 new[] { "operation", "ownerEffectId", "interactionId", "candidateId", "expectedRevision" };
             if (string.IsNullOrEmpty(command.CommandId) || command.Parameters != null && System.Linq.Enumerable.Any(command.Parameters.Keys, key => Array.IndexOf(allowed, key) < 0))
                 return Invalid("payment_preparation_arguments_invalid");
+            if (operation == "prepare_effect_build")
+            {
+                if (!int.TryParse(Read("selectionCandidateSetVersion"), NumberStyles.None, CultureInfo.InvariantCulture, out int version))
+                    return Invalid("payment_preparation_arguments_invalid");
+                var arguments = NormalizedValue.CreateObject(new[] {
+                    new NormalizedValueEntry { Name = "paymentMode", Value = NormalizedValue.CreateString(Read("paymentMode")) },
+                    new NormalizedValueEntry { Name = "expectedSourceZoneId", Value = NormalizedValue.CreateString(Read("expectedSourceZoneId")) }
+                });
+                if (!executor.TryPrepareEffectBuildPayment(command.PlayerId, Read("selectionOwnerEffectId"), Read("selectionInteractionId"),
+                    Read("selectionCandidateSetId"), version, command.TargetId, arguments, revision, command.CommandId, out var effectReason)) return Invalid(effectReason);
+                return CommandResult.SuccessResult(new List<GameEvent>(), "已准备本次效果建设费用。");
+            }
+            if (operation == "cancel_effect_build")
+            {
+                if (!executor.TryCancelPreparedEffectBuildPayment(command.PlayerId, Read("preparationOwnerEffectId"), revision,
+                    command.CommandId, out var cancelEffectReason)) return Invalid(cancelEffectReason);
+                return CommandResult.SuccessResult(new List<GameEvent>(), "已取消本笔未提交的效果建设准备。");
+            }
             if (operation == "prepare_action")
             {
                 string kind = Read("actionKind");

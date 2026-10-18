@@ -282,6 +282,9 @@ namespace YC.Domain.Effects
                         Presentation = CreatePaymentPresentation(node, parent, requested, condition) };
                     request.CandidateIds.Add(condition ? "continue" : PaymentConfirmationCandidateId);
                     if (condition) request.CandidateIds.Add("decline");
+                    if (node.Payment.Preparation?.AuthorizationKind == "effect_build" &&
+                        ResourcePaymentPreparationService.ValidateEffectBuildAssociation(context.State, node, out var selection) && Flag(selection.NormalizedArguments, "allowDecline"))
+                    { request.AllowDecline = true; request.CandidateIds.Add("decline"); }
                     return EffectStepResult.Continue(PaymentConfirmationStage).AddInteraction(PrepareInteraction(context, request));
                 }
             }
