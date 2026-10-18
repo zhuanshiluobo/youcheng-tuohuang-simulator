@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: NCS_WedgeViolet
+  m_Shader: {fileID: 4800000, guid: df3c4efa504eda04a9776f8ceeb19199, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _StudioCube:
+        m_Texture: {fileID: 8900000, guid: a2041f8061815e64c81759a0d91a0f3e, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BackgroundNeutrality: 0.94
+    - _EnvironmentResponse: 0.5
+    - _Glossiness: 0.965
+    - _GlossyReflections: 1
+    - _HighlightCompression: 1
+    - _LightResponse: 0.09
+    - _Metallic: 0
+    - _Reflection: 1.35
+    - _Refraction: 0.012
+    - _SpecularHighlights: 1
+    - _Transmission: 1.05
+    m_Colors:
+    - _Color: {r: 0.13286832, g: 0.033104766, b: 0.39312312, a: 0.72}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+  m_BuildTextureStacks: []

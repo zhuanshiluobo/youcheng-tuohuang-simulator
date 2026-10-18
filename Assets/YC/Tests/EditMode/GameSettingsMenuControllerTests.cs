@@ -44,6 +44,16 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void GearButtonOpensSettingsThroughPrefabWiring()
+        {
+            var view = root.GetComponentInChildren(Type.GetType("YC.Presentation.GameSettingsMenuView, Assembly-CSharp", true), true);
+            var gear = (Button)view.GetType().GetProperty("GearButton").GetValue(view);
+            Assert.That(gear, Is.Not.Null);
+            gear.onClick.Invoke();
+            Assert.That(GetPublicProperty<bool>(controller, "IsOpen"), Is.True);
+        }
+
+        [Test]
         public void HandleEscapePressed_WhenClosed_OpensSettingsOverlay()
         {
             var overlay = root.transform.Find("Game Settings Canvas/Settings Overlay");

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using YC.Application.Sessions;
 using YC.Infrastructure.Multiplayer;
 using YC.Infrastructure.Persistence;
 
@@ -15,6 +18,10 @@ namespace YC.Presentation
         [SerializeField] private Button[] rows;
         [SerializeField] private Text[] rowTexts;
         [SerializeField] private Text[] rowTimes;
+        [SerializeField] private Text[] rowPlayerNames;
+        [SerializeField] private Image[] rowPlayerIcons;
+        [SerializeField] private Text[] rowResources;
+        [SerializeField] private Sprite[] playerMarkerSprites;
         [SerializeField] private Button[] deleteButtons;
         [SerializeField] private GenericWindowView deleteConfirmationPrefab;
         [SerializeField] private string timeFormat = "yyyy-MM-dd HH:mm:ss";
@@ -35,7 +42,9 @@ namespace YC.Presentation
         [SerializeField] private string onlineLabel = "联机对局";
         [SerializeField] private string threePlayerLabel = "三人地图";
         [SerializeField] private string fourPlayerLabel = "四人地图";
-        [SerializeField] private string slotFormat = "{0} {1}　{2}　{3}　回合 {4}";
+        [SerializeField] private string slotFormat = "{0} {1}　{2}　{3}　回合 {4}　行动轮 {5}";
+        [SerializeField] private string resourceFormat = "源岩 {0}　源石碎片 {1}　异铁 {2}　至纯源石 {3}　金券 {4}";
+        [SerializeField] private string unnamedPlayerFormat = "玩家{0}";
         [SerializeField] private string emptyFormat = "{0} {1}　{2}";
         [SerializeField] private string selectedFormat = "▶ {0}";
         [SerializeField] private string errorFormat = "操作失败：{0}";
@@ -148,7 +157,7 @@ namespace YC.Presentation
         {
             SetBusy(true);
             window.SetContent(mode == Mode.Save ? saveTitle : loadTitle,
-                mode == Mode.Save ? saveHint : loadHint, string.Empty);
+                string.Empty, mode == Mode.Save ? saveHint : loadHint);
             nextMemberButton.gameObject.SetActive(false);
             try
             {
@@ -175,12 +184,13 @@ namespace YC.Presentation
                     rowTimes[i].text = data == null ? string.Empty
                         : new DateTime(data.SavedUtcTicks, DateTimeKind.Utc).ToLocalTime().ToString(timeFormat);
                     deleteButtons[i].gameObject.SetActive(mode == Mode.Load && slot.Exists);
+                    int actionRound = RefreshRowDetails(i, data);
                     labels[i] = data == null
                         ? string.Format(emptyFormat, kind, i % MatchSaveStore.ManualCount + 1, slot.Error ?? emptyLabel)
                         : string.Format(slotFormat, kind, i % MatchSaveStore.ManualCount + 1,
                             data.Mode == YC.Application.Sessions.LaunchMode.Local ? localLabel : onlineLabel,
                             data.MapId == YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId ? threePlayerLabel : fourPlayerLabel,
-                            data.Round)
+                            data.Round, actionRound)
                             + (slot.Error == null ? string.Empty : "\n" + slot.Error);
                 }
                 UpdateSelection();
@@ -195,17 +205,44 @@ namespace YC.Presentation
                 if (this != null) SetBusy(false);
             }
         }
+        private int RefreshRowDetails(int index, MatchSaveData data)
+        {
+            // v2 存档保留正式恢复原包；这里只读取展示字段，不恢复整局或推进 effect 链。
+            var state = data?.ReadArchiveState();
+            var players = state?["Players"] as JArray;
+            int currentPlayerId = (int?)state?["CurrentPlayerId"] ?? -1;
+            var currentPlayer = players?.FirstOrDefault(player => (int?)player["PlayerId"] == currentPlayerId);
+            rowPlayerNames[index].gameObject.SetActive(currentPlayer != null);
+            string playerName = (string)currentPlayer?["Name"];
+            if (currentPlayer != null && string.IsNullOrWhiteSpace(playerName))
+                playerName = data.Seats.Find(s => s.PlayerId == currentPlayerId)?.PlayerName;
+            rowPlayerNames[index].text = currentPlayer == null ? string.Empty
+                : string.IsNullOrWhiteSpace(playerName) ? string.Format(unnamedPlayerFormat, currentPlayerId) : playerName;
+            int colorIndex = (int?)currentPlayer?["Color"] ?? -1;
+            var marker = colorIndex >= 0 && colorIndex < playerMarkerSprites.Length ? playerMarkerSprites[colorIndex] : null;
+            rowPlayerIcons[index].sprite = marker;
+            rowPlayerIcons[index].gameObject.SetActive(marker != null);
+
+            // 自己的资源属于存档记录的本地席位，与当前行动者独立。
+            var resources = players?.FirstOrDefault(player => (int?)player["PlayerId"] == data.LocalPlayerId)?["Resources"];
+            rowResources[index].gameObject.SetActive(resources != null);
+            rowResources[index].text = resources == null ? string.Empty : string.Format(resourceFormat,
+                (int?)resources["Originium"] ?? 0, (int?)resources["OriginiumShard"] ?? 0,
+                (int?)resources["Iron"] ?? 0, (int?)resources["PureOriginium"] ?? 0, (int?)resources["GoldVoucher"] ?? 0);
+            return (int?)state?["ActionRound"] ?? 0;
+        }
         private void RefreshSeats()
         {
             room = OnlineRoomServiceProvider.GetActive()?.GetCurrentRoom();
             if (room?.Resume == null || room.HasStarted) { window.Hide(); return; }
             var hint = room.WaitingMembers.Count == 0 ? noMemberLabel : string.Format(memberFormat,
                 room.WaitingMembers[memberIndex % room.WaitingMembers.Count].PlayerName, seatsHint);
-            window.SetContent(seatsTitle, seatError == null ? hint : string.Format(errorFormat, seatError), string.Empty);
+            window.SetContent(seatsTitle, string.Empty, seatError == null ? hint : string.Format(errorFormat, seatError));
             nextMemberButton.gameObject.SetActive(true);
             nextMemberButton.interactable = room.WaitingMembers.Count > 1;
             for (int i = 0; i < rows.Length; i++)
             {
+                RefreshRowDetails(i, null);
                 rowTimes[i].gameObject.SetActive(false);
                 deleteButtons[i].gameObject.SetActive(false);
                 rows[i].gameObject.SetActive(i < room.Seats.Count);

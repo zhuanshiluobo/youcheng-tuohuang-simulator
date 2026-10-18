@@ -9,6 +9,7 @@ namespace YC.Presentation
         private const float MaximumInputFrameStep = 1f / 20f;
 
         [SerializeField] private Transform rotationTarget;
+        [SerializeField] private RectTransform[] blockedDragAreas;
         [SerializeField, Min(0.01f)] private float degreesPerPixel = 0.28f;
         [SerializeField, Min(0.1f)] private float velocityResponse = 16f;
         [SerializeField, Min(1f)] private float maximumInertiaSpeed = 180f;
@@ -127,7 +128,32 @@ namespace YC.Presentation
 
         private bool Contains(Vector2 screenPosition)
         {
-            return RectTransformUtility.RectangleContainsScreenPoint(interactionArea, screenPosition, null);
+            if (!RectTransformUtility.RectangleContainsScreenPoint(interactionArea, screenPosition, null))
+            {
+                return false;
+            }
+
+            if (blockedDragAreas != null)
+            {
+                foreach (var blockedArea in blockedDragAreas)
+                {
+                    if (blockedArea == null || !blockedArea.gameObject.activeInHierarchy)
+                    {
+                        continue;
+                    }
+
+                    var canvas = blockedArea.GetComponentInParent<Canvas>();
+                    var eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                        ? canvas.worldCamera
+                        : null;
+                    if (RectTransformUtility.RectangleContainsScreenPoint(blockedArea, screenPosition, eventCamera))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private void BeginDrag(Vector2 screenPosition)

@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-16",
+  "date": "2026-10-18",
   "basis": [
     "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
     "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
@@ -335,6 +335,20 @@
         "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
         "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
         "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae"
+      ]
+    },
+    {
+      "id": "G01",
+      "role": "共享设置菜单的齿轮入口",
+      "expected": "远端 629065b SettingsGear.png",
+      "status": "已接入，画面待验",
+      "scope": "GameSettingsMenu/Settings Gear Button 及其未覆盖图像的实例",
+      "basis": [
+        "2026-10-18 用户明确要求合并远端设置齿轮；采用 629065b 的图和预制体接线，仅限设置入口。"
+      ],
+      "parameters": "参数/项目实际用法/设置齿轮.json",
+      "assetHashes": [
+        "3f915e0c40d2add9b5baff3fc16dc029e8e7d73198168bb05095c76e31e08142"
       ]
     }
   ]

@@ -14,14 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemId: 04
   displayName: "\u56FA\u6E90\u5CA9\u7EC4"
-  englishName: 
+  englishName: ORIROCK CLUSTER
   category: "\u7CBE\u826F"
   displayNumber: 04
-  description: 
-  defaultDisplay: 0
+  description: "\u56FA\u6E90\u5CA9\u538B\u7F29\u5B9A\u578B\u5F62\u6210\u7684\u5CA9\u77F3\u7EC4\u5408\uFF0C\u4E5F\u53EF\u81EA\u7136\u5F62\u6210\u3002\u8D28\u5730\u6613\u788E\uFF0C\u662F\u5F3A\u5316\u4E0E\u5408\u6210\u7528\u6599\u3002"
+  defaultDisplay: 1
   acquisitionRequirementText: 
   overrideSpotlightColor: 1
   spotlightColor: {r: 0, g: 0.7019608, b: 0.99215686, a: 1}
   icon: {fileID: 0}
-  displayPrefab: {fileID: 0}
+  displayPrefab: {fileID: 5665380817543579487, guid: 9d7af6253509cb845955705501febdf0, type: 3}
   useInteriorReflection: 0
+  viewPosePath: "\u56FA\u6E90\u5CA9\u7EC4_\u51E0\u4F55"
+  frontViewEuler: {x: -90, y: 180, z: 0}

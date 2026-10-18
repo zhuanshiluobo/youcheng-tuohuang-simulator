@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-18",
+  "basis": "2026-10-18 用户明确要求合并远端设置齿轮；采用 629065b 的图和预制体接线，仅限设置入口。",
+  "sourceCommit": "629065b",
+  "asset": "Assets/YC/Presentation/Sprites/SettingsGear.png",
+  "sha256": "3f915e0c40d2add9b5baff3fc16dc029e8e7d73198168bb05095c76e31e08142",
+  "guid": "01425c48a9dbe7e458951e78b1d37621",
+  "pixelSize": [
+    256,
+    256
+  ],
+  "targetPrefab": "Assets/YC/Presentation/Prefabs/GameSettings/GameSettingsMenu.prefab",
+  "targetObject": "Game Settings Canvas/Settings Gear Button",
+  "semantic": "打开设置窗口",
+  "states": "共用同一齿轮图；悬停缩放由 SettingsGearHover 驱动",
+  "sprite": {
+    "type": "Single",
+    "border": [
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "image": {
+    "type": "Simple",
+    "preserveAspect": true,
+    "raycastTarget": true,
+    "color": [
+      0.86,
+      0.75,
+      0.55,
+      1
+    ]
+  },
+  "hover": {
+    "scale": 1.1,
+    "duration": 0.1
+  },
+  "verification": "已接入源预制体；静态引用和定向功能测试另行记录，不代表画面验收通过。"
+}

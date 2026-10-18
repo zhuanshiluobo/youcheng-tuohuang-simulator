@@ -25,3 +25,5 @@ MonoBehaviour:
   icon: {fileID: 0}
   displayPrefab: {fileID: 2790436591947386746, guid: f41bdc9b4ffdb0e41830e767a8b599aa, type: 3}
   useInteriorReflection: 0
+  viewPosePath: "\u5C55\u793A\u59FF\u6001"
+  frontViewEuler: {x: 0, y: 180, z: 0}
