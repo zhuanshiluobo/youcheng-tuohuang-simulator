@@ -84,7 +84,7 @@ MonoBehaviour:
       ResizeMinSize: 15
       ResizeMaxSize: 23
       FontStyle: 0
-      Alignment: 0
+      Alignment: 1
       HorizontalOverflow: 0
       VerticalOverflow: 0
       ResizeTextForBestFit: 1
