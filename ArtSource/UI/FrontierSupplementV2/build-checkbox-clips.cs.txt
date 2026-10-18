@@ -1,0 +1,36 @@
+var folder = "Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2";
+var spritePaths = new string[8];
+var sprites = new UnityEngine.Sprite[8];
+for (var i = 0; i < 8; i++)
+{
+    spritePaths[i] = folder + "/forms/checkbox-transition-" + i.ToString("00") + ".png";
+    UnityEditor.AssetDatabase.ImportAsset(spritePaths[i], UnityEditor.ImportAssetOptions.ForceUpdate);
+    sprites[i] = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Sprite>(spritePaths[i]);
+    if (sprites[i] == null) return new { error = "Missing sprite", path = spritePaths[i] };
+}
+var clipFolder = folder + "/animations";
+if (!UnityEditor.AssetDatabase.IsValidFolder(clipFolder))
+    UnityEditor.AssetDatabase.CreateFolder(folder, "animations");
+var clipNames = new[] { "CheckboxSelect", "CheckboxCancel" };
+var durations = new[] { 0.18f, 0.14f };
+var results = new System.Collections.Generic.List<object>();
+for (var mode = 0; mode < 2; mode++)
+{
+    var clipPath = clipFolder + "/" + clipNames[mode] + ".anim";
+    if (UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(clipPath) != null)
+        return new { error = "Existing clip left untouched", path = clipPath };
+    var clip = new UnityEngine.AnimationClip();
+    clip.name = clipNames[mode];
+    clip.frameRate = 60;
+    var frames = new UnityEditor.ObjectReferenceKeyframe[8];
+    for (var i = 0; i < frames.Length; i++)
+    {
+        frames[i].time = durations[mode] * i / 7;
+        frames[i].value = sprites[mode == 0 ? i : 7 - i];
+    }
+    var binding = UnityEditor.EditorCurveBinding.PPtrCurve("", typeof(UnityEngine.UI.Image), "m_Sprite");
+    UnityEditor.AnimationUtility.SetObjectReferenceCurve(clip, binding, frames);
+    UnityEditor.AssetDatabase.CreateAsset(clip, clipPath);
+    results.Add(new { path = clipPath, seconds = clip.length, keyframes = frames.Length, property = binding.propertyName });
+}
+return new { clips = results, sceneChanged = false, prefabChanged = false };

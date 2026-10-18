@@ -1,0 +1,59 @@
+{
+  "browser": "本机 Chrome 无头预览",
+  "checks": {
+    "referenceImage": true,
+    "initialCheckboxStates": true,
+    "directCheckboxClick": true,
+    "selectAnimation": true,
+    "cancelAnimation": true,
+    "disabledCheckbox": true,
+    "compactSlotSize": true,
+    "slotTextFits": true,
+    "narrowNoHorizontalOverflow": true,
+    "scriptErrors": true
+  },
+  "screenshots": {
+    "revision": {
+      "width": 1600,
+      "height": 1100
+    },
+    "narrow": {
+      "width": 375,
+      "height": 1250
+    }
+  },
+  "unityIntegration": "未执行，等待审批",
+  "checkboxSelect": {
+    "checked": true,
+    "opacity": 0.416015,
+    "label": "选中"
+  },
+  "checkboxCancel": {
+    "checked": false,
+    "opacity": 0.91466,
+    "label": "未选中"
+  },
+  "slotGeometry": [
+    {
+      "width": 1424,
+      "height": 60
+    },
+    {
+      "width": 1424,
+      "height": 60
+    },
+    {
+      "width": 1424,
+      "height": 60
+    },
+    {
+      "width": 1424,
+      "height": 60
+    },
+    {
+      "width": 1424,
+      "height": 60
+    }
+  ],
+  "failures": []
+}

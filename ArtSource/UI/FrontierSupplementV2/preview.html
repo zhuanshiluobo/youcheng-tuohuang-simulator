@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>游城拓荒 · 工业拓荒皮肤审批</title>
+<style>
+@font-face { font-family:Project; src:url('../../../Assets/YC/Presentation/CommonUi/Fonts/MicrosoftYaHei-Regular-face0.ttf'); }
+@font-face { font-family:Heading; src:url('../../../Assets/YC/Presentation/CommonUi/Fonts/HanYiCuHeiJian-1.ttf'); }
+:root { --ink:#ecebda; --dark:#293131; --muted:#a7ada6; --gold:#ddc063; color-scheme:dark; }
+* { box-sizing:border-box; }
+body { margin:0; background:#292f30; color:var(--ink); font:15px/1.55 Project,'Microsoft YaHei',sans-serif; letter-spacing:0; }
+button,input { font:inherit; letter-spacing:0; }
+button { cursor:pointer; }
+button:disabled { cursor:default; }
+button:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+img { object-fit:contain; }
+[hidden] { display:none !important; }
+header.page-header { padding:20px 32px; display:flex; justify-content:space-between; align-items:center; gap:18px; color:var(--dark); background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/Frontier31/paper-bg.png') center/cover; border-bottom:3px solid #343a3b; }
+h1 { font:28px/1.4 Heading,Project,sans-serif; margin:0; }
+header p { margin:3px 0 0; font-size:13px; }
+.review-status { font-size:13px; border-left:3px solid #b59538; padding-left:12px; }
+main { max-width:1440px; margin:auto; padding:22px 32px 30px; }
+.section-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+h2 { margin:0; font-size:18px; font-weight:500; }
+.section-heading p { font-size:12px; color:var(--muted); margin:0; }
+.stage { min-height:635px; position:relative; display:grid; place-items:center; padding:30px; background:url('../../../Assets/Screenshots/screenshot-20260927-134757.png') center/cover; }
+.dispatch { position:relative; width:858px; max-width:100%; min-height:572px; padding:17px 28px 31px; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/panels/dispatch-panel.png') center/100% 100% no-repeat; }
+.window-header { height:87px; padding:5px 23px 0; display:flex; align-items:center; justify-content:space-between; gap:16px; color:var(--dark); }
+.window-header h2 { font:24px/1.4 Heading,Project,sans-serif; }
+.window-header p { margin:3px 0 0; font-size:12px; color:#626962; }
+.icon-button { padding:8px; width:38px; height:38px; border:0; background:none; display:grid; place-items:center; flex-shrink:0; }
+.icon-button img { width:22px; height:22px; }
+.window-body { padding:12px 15px 0; display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+.window-body h3 { font-size:14px; font-weight:500; margin:0 0 10px; border-bottom:1px solid #777d794d; padding-bottom:6px; color:#e2d9b5; }
+.sample-label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+.field { width:100%; height:46px; min-width:0; border:12px solid transparent; border-left-width:20px; border-right-width:20px; border-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-normal.png') 24 40 fill/12px 20px; padding:0 2px; background:none; color:var(--dark); outline:none; }
+.field:hover,.force-hover { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-hover.png'); }
+.field:focus-visible,.force-focus { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-focus.png'); }
+.field[aria-invalid=true] { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-error.png'); }
+.field:disabled { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/input-disabled.png'); color:#737B70; }
+.form-error { color:#db9d89; font-size:12px; min-height:18px; margin:4px 0 8px; }
+.dropdown { position:relative; }
+.dropdown > button { display:flex; align-items:center; justify-content:space-between; text-align:left; gap:12px; }
+.dropdown > button img { width:20px; height:20px; }
+.menu { position:absolute; left:0; right:0; top:51px; z-index:5; border:18px solid transparent; border-left-width:20px; border-right-width:20px; border-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-panel.png') 36 40 fill/18px 20px; display:grid; gap:2px; padding:0; }
+.option { min-height:38px; text-align:left; padding:4px 14px; border:0; color:var(--dark); background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-normal.png') center/100% 100%; }
+.option:hover,.option:focus-visible { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-hover.png'); outline:none; }
+.option[aria-selected=true] { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-selected.png'); color:var(--ink); }
+.option:disabled { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/dropdown-row-disabled.png'); color:#737b70; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; min-height:42px; gap:14px; }
+.setting-row label { display:flex; align-items:center; gap:10px; }
+.check { appearance:none; width:28px; height:28px; margin:0; flex:0 0 28px; border:0; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off.png') center/contain no-repeat; cursor:pointer; }
+.check:checked { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on.png'); }
+.check:focus-visible { outline:none; background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off-focus.png'); }
+.check:checked:focus-visible { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on-focus.png'); }
+.check:disabled { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-off-disabled.png'); }
+.check:checked:disabled { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/checkbox-on-disabled.png'); }
+.switch { width:52px; height:28px; flex-shrink:0; position:relative; border:0; padding:0; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-off.png') center/contain no-repeat; }
+.switch[aria-checked=true] { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-on.png'); }
+.switch:disabled { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-off-disabled.png'); }
+.switch:disabled[aria-checked=true] { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-track-on-disabled.png'); }
+.switch::after { content:''; position:absolute; left:4px; top:3px; width:20px; height:22px; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-normal.png') center/contain no-repeat; transition:left .16s; }
+.switch[aria-checked=true]::after { left:28px; }
+.switch:hover::after { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-hover.png'); }
+.switch:disabled::after { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/switch-thumb-disabled.png'); }
+.range-caption { display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:13px; margin-top:12px; }
+.range-caption output { color:var(--gold); }
+.range { appearance:none; width:100%; height:8px; margin:16px 0 18px; display:block; cursor:pointer; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-fill.png') left/var(--fill,64%) 100% no-repeat,url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-track.png') center/100% 100% no-repeat; }
+.range::-webkit-slider-thumb { appearance:none; width:20px; height:28px; border:0; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-normal.png') center/contain no-repeat; }
+.range:hover::-webkit-slider-thumb { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-hover.png'); }
+.range:active::-webkit-slider-thumb { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-pressed.png'); }
+.range:disabled::-webkit-slider-thumb { background-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-thumb-disabled.png'); }
+.range:focus-visible { outline:1px solid var(--gold); outline-offset:11px; }
+.range:disabled { filter:saturate(.2); cursor:default; }
+.action { min-height:46px; min-width:108px; display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 2px; background:none; color:var(--ink); border:12px solid transparent; border-left-width:20px; border-right-width:20px; border-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-normal.png') 24 40 fill/12px 20px; }
+.action:hover { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-hover.png'); }
+.action:active { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-pressed.png'); }
+.action:disabled { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-action-disabled.png'); color:#a0a69c; }
+.action.primary { color:var(--dark); border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-normal.png'); }
+.action.primary:hover { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-hover.png'); }
+.action.primary:active { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-pressed.png'); }
+.action.primary:disabled { border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/buttons/button-primary-disabled.png'); }
+.action img { width:20px; height:20px; }
+.actions { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.notice { min-height:82px; display:flex; align-items:center; gap:12px; color:var(--dark); border:18px solid transparent; border-left-width:22px; border-right-width:22px; border-image-source:var(--notice); border-image-slice:36 44 fill; border-image-width:18px 22px; padding:0; }
+.notice img { width:28px; height:28px; flex:0 0 28px; }
+.notice strong { font-size:15px; font-weight:500; }
+.notice p { margin:3px 0 0; color:#636C60; font-size:12px; }
+.notice > div { min-width:0; }
+.info { --notice:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-info.png'); }
+.success { --notice:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-success.png'); }
+.warning { --notice:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-warning.png'); }
+.error { --notice:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-error.png'); }
+.pending { --notice:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/notice-pending.png'); }
+.notice-list { display:grid; gap:9px; }
+.window-body .notice { min-height:76px; }
+.window-body .tooltip { margin-top:10px; }
+.spinner { animation:spin 1.4s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.progress-track { height:8px; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-track.png') center/100% 100%; margin:12px 1px 0; }
+.progress-fill { height:8px; width:0; background:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/forms/slider-fill.png') center/100% 100%; transition:width .2s; }
+.network-detail { min-height:18px; font-size:12px; color:var(--muted); margin:7px 0 0; }
+.tooltip { border:18px solid transparent; border-left-width:20px; border-right-width:20px; border-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-dark.png') 36 40 fill/18px 20px; margin-top:14px; padding:0 3px; position:relative; }
+.tooltip strong { font-weight:500; font-size:14px; }
+.tooltip p { color:var(--muted); font-size:12px; margin:3px 0 0; }
+.tooltip-arrow { position:absolute; top:-27px; left:14px; width:24px; height:12px; }
+.tooltip-light { color:var(--dark); border-image-source:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-light.png'); }
+.tooltip-light p { color:#636c60; }
+.restore { position:absolute; bottom:24px; right:24px; }
+.lower-section { border-top:1px solid #535b55; padding-top:20px; margin-top:25px; }
+.gallery { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; }
+.columns { display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+.muted { color:var(--muted); }
+.gallery .sample-label { font-size:13px; }
+.glyph-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:12px; }
+.glyph { display:grid; place-items:center; gap:8px; text-align:center; font-size:12px; color:var(--muted); }
+.glyph > img { width:38px; height:38px; }
+.glyph .dark-sample { background:#e3e0d1; width:50px; height:42px; display:grid; place-items:center; clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px); }
+.glyph .dark-sample img,.glyph img.muted-icon { width:24px; height:24px; }
+.references { display:grid; grid-template-columns:.8fr 1fr 1.4fr; gap:20px; }
+figure { margin:0; min-width:0; }
+figure > img { width:100%; height:225px; object-fit:contain; }
+figcaption { margin-top:8px; font-size:12px; color:var(--muted); }
+.source-note { font-size:12px; color:var(--muted); margin:18px 0 0; }
+a { color:#e0cc88; }
+.toast-host { position:fixed; right:22px; bottom:22px; width:400px; max-width:calc(100% - 44px); z-index:20; }
+.toast-host:empty { display:none; }
+.close-toast { background:none; border:0; padding:3px; margin-left:auto; }
+.close-toast img { width:18px; height:18px; }
+@media (max-width:1000px) {
+ main { padding:20px; } .stage { padding:20px; } .gallery { grid-template-columns:repeat(3,minmax(0,1fr)); }
+ .glyph-grid { grid-template-columns:repeat(6,minmax(0,1fr)); }
+}
+@media (max-width:700px) {
+ header.page-header { flex-direction:column; align-items:flex-start; padding:16px 20px; } h1 { font-size:23px; }
+ .stage { padding:12px 0; background-position:46% center; }
+ .dispatch { min-height:0; width:100%; padding:0; background:none; border:26px solid transparent; border-top-width:92px; border-bottom-width:48px; border-image:url('../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/panels/dispatch-panel.png') 184 80 104 fill/92px 26px 48px; }
+ .window-header { position:relative; margin-top:-88px; height:88px; padding:0 3px; }
+ .window-header h2 { font-size:20px; } .window-header p { font-size:11px; }
+ .window-body { padding:12px 0 0; grid-template-columns:1fr; gap:24px; }
+ .gallery { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+ .columns,.references { grid-template-columns:1fr; }
+ .glyph-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+ .notice { gap:9px; } .notice strong { font-size:14px; }
+ .action { min-width:100px; font-size:14px; }
+ .restore { position:static; margin-top:15px; }
+}
+@media (prefers-reduced-motion:reduce) { .spinner { animation:none; } .switch::after,.progress-fill { transition:none; } }
+</style>
+<link rel="stylesheet" href="revision-controls.css">
+</head>
+<body>
+<header class="page-header"><div><h1>游城拓荒 · 移动城市调度终端</h1><p>工业装甲 / 工程档案 / 拓荒调度</p></div><div class="review-status">全部完成 · 复核通过<br>独立资产，未替换现有界面</div></header>
+<main>
+<div class="section-heading"><h2>对局背景组合示意</h2><p>背景为项目既有截图；叠加窗口是本轮资产预览，不是 Unity 实机验收</p></div>
+<div class="stage">
+<article class="dispatch" id="dispatch" aria-label="调度终端预览">
+ <div class="window-header"><div><h2>拓荒调度</h2><p>移动城市 · 调度终端</p></div><button class="icon-button" id="close-window" title="关闭窗口" aria-label="关闭窗口"><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-close-dark.png" alt=""></button></div>
+ <div class="window-body">
+  <div><h3>终端设置</h3>
+   <label><span class="sample-label">房间编号</span><input class="field" id="room-code" value="A7K2P9" maxlength="6" autocomplete="off" aria-describedby="room-error"></label><p id="room-error" class="form-error"></p>
+   <span class="sample-label" id="map-label">拓荒地图</span>
+   <div class="dropdown"><button class="field" id="dropdown-trigger" type="button" aria-labelledby="map-label map-value" aria-haspopup="listbox" aria-expanded="false" aria-controls="map-menu"><span id="map-value">四人拓荒区</span><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-chevron-down-dark.png" alt=""></button>
+    <div class="menu" id="map-menu" role="listbox" aria-labelledby="map-label" hidden><button class="option" role="option" aria-selected="false">三人拓荒区</button><button class="option" role="option" aria-selected="true">四人拓荒区</button><button class="option" role="option" aria-selected="false" disabled>其他地图</button></div>
+   </div>
+   <div class="setting-row" style="margin-top:13px"><label><input type="checkbox" class="check" checked>行动确认</label><button class="switch" role="switch" aria-checked="true" aria-label="音效" title="音效"></button></div>
+   <label class="range-caption" for="volume"><span>音量</span><output id="volume-value">64%</output></label><input id="volume" class="range" type="range" value="64" min="0" max="100">
+   <div class="actions"><button class="action" id="validate-code" type="button">检查编号</button><button class="action primary" id="apply-settings" type="button"><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-check-dark.png" alt="">应用设置</button></div>
+  </div>
+  <div><h3>调度回执</h3><div class="notice-list">
+   <div class="notice info"><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-info-semantic.png" alt=""><div><strong>行动提示</strong><p>选择航道后确认支付路费。</p></div></div>
+   <div class="notice pending" id="network-notice"><img id="network-icon" class="spinner" src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/spinner-dark.png" alt=""><div><strong id="network-title">等待主机回执</strong><p id="network-message">调度命令已发送，等待同步。</p></div></div>
+  </div>
+  <div class="progress-track" id="progress" role="progressbar" aria-label="本地演示进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="progress-fill" class="progress-fill"></div></div>
+  <p class="network-detail" id="network-detail">本地状态演示，不连接真实房间</p>
+  <div class="actions"><button class="action" id="demo-wait" type="button">模拟同步</button><button class="action" id="demo-offline" type="button">模拟断线</button><button class="icon-button" id="demo-retry" type="button" aria-label="重试同步" title="重试同步"><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-retry-light.png" alt=""></button></div>
+  <div class="tooltip"><strong>探索</strong><p>查看可到达的资源点与路线费用。</p></div>
+  </div>
+ </div>
+</article>
+<button class="action primary restore" id="restore-window" type="button" hidden>打开调度终端</button>
+</div>
+
+<section class="lower-section"><div class="section-heading"><h2>消息与提示</h2><p>当前结算槽适配 · 1424 × 60 逻辑像素 · 横向九宫格</p></div><div class="message-slots">
+ <div class="message-slot" data-state="success"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>建设完成：设施已加入城市面板。</span></div></div>
+ <div class="message-slot" data-state="warning"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>待处理选择：1～1 项</span></div></div>
+ <div class="message-slot" data-state="error"><span class="message-face"></span><span class="message-caption">结算区域</span><div class="message-content"><span>连接中断，当前命令尚未确认，请重试。</span></div></div>
+ </div><div class="columns" style="margin-top:14px">
+ <div class="tooltip"><img class="tooltip-arrow" src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/feedback/tooltip-pointer-up.png" alt=""><strong>探索费用</strong><p>沿途经过收费航道时需要支付金券。</p></div>
+ <div class="tooltip tooltip-light"><strong>未满足使用条件</strong><p>完成主要行动后才可结束本轮行动。</p></div>
+ <div class="setting-row"><button class="action" disabled>等待确认</button><button class="action primary" type="button" id="demo-save"><img src="../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/icons/icon-save-dark.png" alt="">保存回执</button></div>
+ </div></section>
+
+<section class="lower-section"><div class="section-heading"><h2>输入框状态</h2><p>普通 / 悬停 / 焦点 / 错误 / 禁用</p></div><div class="gallery">
+ <label><span class="sample-label">普通</span><input class="field" value="A7K2P9" aria-label="普通输入框"></label>
+ <label><span class="sample-label">悬停</span><input class="field force-hover" value="A7K2P9" aria-label="悬停输入框"></label>
+ <label><span class="sample-label">焦点</span><input class="field force-focus" value="A7K2P9" aria-label="焦点输入框"></label>
+ <label><span class="sample-label">错误</span><input class="field" value="编号不完整" aria-invalid="true" aria-label="错误输入框"></label>
+ <label><span class="sample-label">禁用</span><input class="field" value="等待确认" disabled aria-label="禁用输入框"></label>
+ </div></section>
+
+<section class="lower-section"><div class="section-heading"><h2>机械拨片与勾选状态</h2><p>状态贴图可独立用于 Unity 原生控件</p></div><div class="columns">
+ <div><label class="setting-row"><span class="check-state-label">未选中</span><input class="check" type="checkbox"></label><label class="setting-row"><span class="check-state-label">选中</span><input class="check" type="checkbox" checked></label><label class="setting-row muted"><span>禁用</span><input class="check" type="checkbox" checked disabled></label></div>
+ <div><div class="setting-row"><span>关闭</span><button class="switch" role="switch" aria-checked="false" aria-label="关闭状态"></button></div><div class="setting-row"><span>开启</span><button class="switch" role="switch" aria-checked="true" aria-label="开启状态"></button></div><div class="setting-row muted"><span>禁用</span><button class="switch" role="switch" aria-checked="true" disabled aria-label="禁用开关"></button></div></div>
+ <div><label class="range-caption" for="locked-volume"><span>锁定音量</span><span>32%</span></label><input class="range" id="locked-volume" type="range" value="32" min="0" max="100" style="--fill:32%" disabled><div class="tooltip tooltip-light"><strong>机械拨片</strong><p>切角握柄与装甲面板保持一致。</p></div></div>
+ </div></section>
+
+<section class="lower-section"><div class="section-heading"><h2>语义图标</h2><p>浅色 / 深色 / 灰显三套</p></div><div class="glyph-grid" id="icon-grid"></div></section>
+
+<section class="lower-section"><div class="section-heading"><h2>本项目风格参考</h2><p>先核对本体素材，再制作补充资产</p></div><div class="references">
+ <figure><img src="references/city-board.png" alt="本项目城市面板"><figcaption>城市面板：铆接切角、工程标识与警戒条。</figcaption></figure>
+ <figure><img src="references/facility-001.jpg" alt="城邦行政区设施卡"><figcaption>原设施卡：纸质资料层、工业边缘与印刷质感。</figcaption></figure>
+ <figure><img src="../../../游城拓荒/UI素材/整理增量-2026-09-25-主框3.5/原包/preview/main-frame-preview.png" alt="本项目既有 UI 源预览"><figcaption>既有皮肤：保留细边框、深灰操作区和浅色标签。</figcaption></figure>
+ </div><p class="source-note">完整依据见 <a href="style-references.md">风格参考记录</a>；背景设定参考 <a href="https://ak.hypergryph.com/boardgame_nomadcity">《游城拓荒》官网</a>。原图保留，本轮无场景或预制体覆盖。</p></section>
+</main>
+<div class="toast-host" id="toast-host" aria-live="polite"></div>
+<script src="revision-controls.js"></script>
+<script>
+const assetRoot='../../../Assets/YC/Presentation/CommonUi/Sprites/FrontierSupplementV2/';
+const names=['info','success','warning','error','pending','reconnect','offline','retry','save','chevron-down','check','close'];
+const labels=['信息','成功','警告','错误','等待','重连','离线','重试','保存','展开','勾选','关闭'];
+document.getElementById('icon-grid').innerHTML=names.map((name,i)=>`<div class="glyph"><img src="${assetRoot}icons/icon-${name}-light.png" alt="${labels[i]}"><span>${labels[i]}</span><div class="dark-sample"><img src="${assetRoot}icons/icon-${name}-dark.png" alt=""></div><img class="muted-icon" src="${assetRoot}icons/icon-${name}-muted.png" alt=""></div>`).join('');
+document.querySelectorAll('.switch:not(:disabled)').forEach(button=>button.onclick=()=>button.setAttribute('aria-checked',String(button.getAttribute('aria-checked')!=='true')));
+const volume=document.getElementById('volume');
+volume.oninput=()=>{volume.style.setProperty('--fill',volume.value+'%');document.getElementById('volume-value').textContent=volume.value+'%';};
+let toastTimer;
+function toast(kind,title,message){
+ clearTimeout(toastTimer);const host=document.getElementById('toast-host');
+ host.innerHTML=`<div class="notice ${kind}"><img src="${assetRoot}icons/icon-${kind}-semantic.png" alt=""><div><strong></strong><p></p></div><button class="close-toast" aria-label="关闭提示" title="关闭提示"><img src="${assetRoot}icons/icon-close-dark.png" alt=""></button></div>`;
+ host.querySelector('strong').textContent=title;host.querySelector('p').textContent=message;
+ host.querySelector('button').onclick=()=>host.replaceChildren();toastTimer=setTimeout(()=>host.replaceChildren(),4500);
+}
+const trigger=document.getElementById('dropdown-trigger'),menu=document.getElementById('map-menu');
+function closeMenu(){menu.hidden=true;trigger.setAttribute('aria-expanded','false');}
+trigger.onclick=()=>{const opening=menu.hidden;menu.hidden=!opening;trigger.setAttribute('aria-expanded',String(opening));if(opening)menu.querySelector('[aria-selected=true]').focus();};
+menu.querySelectorAll('button').forEach(option=>option.onclick=()=>{menu.querySelectorAll('button').forEach(item=>item.setAttribute('aria-selected',String(item===option)));document.getElementById('map-value').textContent=option.textContent;closeMenu();trigger.focus();});
+menu.onkeydown=event=>{const items=[...menu.querySelectorAll('button:not(:disabled)')],index=items.indexOf(document.activeElement);if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();items[(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length].focus();}if(event.key==='Escape'){closeMenu();trigger.focus();}};
+document.addEventListener('click',event=>{if(!event.target.closest('.dropdown'))closeMenu();});
+const room=document.getElementById('room-code');
+function validate(){const valid=/^[a-z0-9]{6}$/i.test(room.value);room.setAttribute('aria-invalid',String(!valid));document.getElementById('room-error').textContent=valid?'':'请输入 6 位字母或数字。';return valid;}
+document.getElementById('validate-code').onclick=()=>{if(validate())toast('success','编号格式正确','此处只检查演示格式。');else room.focus();};
+document.getElementById('apply-settings').onclick=()=>{if(validate())toast('success','设置已应用','仅更新本地演示状态。');else room.focus();};
+room.oninput=()=>{room.removeAttribute('aria-invalid');document.getElementById('room-error').textContent='';};
+document.getElementById('demo-save').onclick=()=>toast('success','回执已保存','这是本地提示样例。');
+const dialog=document.getElementById('dispatch'),restore=document.getElementById('restore-window');
+document.getElementById('close-window').onclick=()=>{closeMenu();dialog.hidden=true;restore.hidden=false;restore.focus();};
+restore.onclick=()=>{dialog.hidden=false;restore.hidden=true;document.getElementById('close-window').focus();};
+let waitTimer,progress=0;const notice=document.getElementById('network-notice'),icon=document.getElementById('network-icon');
+function setProgress(value){document.getElementById('progress-fill').style.width=value+'%';document.getElementById('progress').setAttribute('aria-valuenow',String(value));}
+function networkState(kind,title,message,source,spinning=false){notice.className='notice '+kind;document.getElementById('network-title').textContent=title;document.getElementById('network-message').textContent=message;icon.src=assetRoot+source;icon.className=spinning?'spinner':'';}
+function startWait(){
+ clearInterval(waitTimer);progress=0;setProgress(0);networkState('pending','等待主机回执','调度命令已发送，等待同步。','feedback/spinner-dark.png',true);document.getElementById('demo-wait').disabled=true;
+ waitTimer=setInterval(()=>{progress+=20;setProgress(progress);if(progress>=100){clearInterval(waitTimer);document.getElementById('demo-wait').disabled=false;networkState('success','主机已确认','调度状态已同步。','icons/icon-success-semantic.png');}},400);
+}
+document.getElementById('demo-wait').onclick=startWait;document.getElementById('demo-retry').onclick=startWait;
+document.getElementById('demo-offline').onclick=()=>{clearInterval(waitTimer);setProgress(0);document.getElementById('demo-wait').disabled=false;networkState('error','连接已中断','当前命令尚未确认，请重试。','icons/icon-offline-dark.png');};
+</script>
+</body>
+</html>
