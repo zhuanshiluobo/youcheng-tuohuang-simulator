@@ -68,6 +68,20 @@ namespace YC.Application.Sessions
 
         public long LastAppliedSequence { get { lock (gate) return lastApplied; } }
         public bool IsStopped { get { lock (gate) return stopped; } }
+        private bool deferredRevisionValidation;
+        private int requestContractVersion, checkpointStateRevision;
+        internal void ConfigureRequestContractValidation(int version, int baseRevision)
+        { lock (gate) { requestContractVersion = version; checkpointStateRevision = baseRevision; } }
+        internal Dictionary<long, int> ReadObservedStateRevisions(int baseRevision)
+        {
+            lock (gate)
+            {
+                var result = new Dictionary<long, int> { [baseSequence] = baseRevision };
+                foreach (var pair in applied) result[pair.Key] = pair.Value.Outcome.StateRevision;
+                return result;
+            }
+        }
+        internal void EnableDeferredRevisionValidation() { lock (gate) deferredRevisionValidation = true; }
         public int BufferedCommandCount { get { lock (gate) return buffered.Count; } }
         public OrderedOperationCommandDto FailureCommand { get { lock (gate) return failureCommand == null ? null : OperationCommandCanonicalizer.SnapshotOrdered(failureCommand); } }
         public CommandResult FailureResult { get { lock (gate) return failureResult; } }
@@ -174,8 +188,31 @@ namespace YC.Application.Sessions
                             fault.Outcomes.AddRange(reply.Outcomes); return fault;
                         }
                         // 保留原 expectedRevision；只调用一次真实 Submit，不在这里重建答案或额外推进 Effect。
+                        if (deferredRevisionValidation && owned.ObservedGlobalSequence == lastApplied &&
+                            owned.ObservedStateRevision != (session.State.EffectRuntime?.StateRevision ?? 0))
+                        {
+                            var mismatch = Stop(owned, "observed_revision_mismatch", "执行到原观察前缀时版本不一致，保留原提案并进入恢复。", null);
+                            mismatch.Outcomes.AddRange(reply.Outcomes); return mismatch;
+                        }
+                        var originalCommand = owned.Command.ToCommand();
+                        if (!InteractionRequestValidity.TryReadMarker(originalCommand, out bool requestContract, out _, out var markerValidation))
+                        {
+                            var invalid = Stop(owned, "request_contract_marker_invalid", markerValidation.Reason, null);
+                            invalid.Outcomes.AddRange(reply.Outcomes); return invalid;
+                        }
+                        if (requestContract)
+                        {
+                            int observedRevision = owned.ObservedGlobalSequence == baseSequence ? checkpointStateRevision :
+                                applied.TryGetValue(owned.ObservedGlobalSequence, out var observedRecord) ? observedRecord.Outcome.StateRevision : -1;
+                            if (requestContractVersion != OperationCommandProtocol.RequestContractVersion || observedRevision != owned.ObservedStateRevision ||
+                                !originalCommand.Parameters.TryGetValue("expectedRevision", out var revisionText) || !int.TryParse(revisionText, out int originalRevision) || originalRevision != owned.ObservedStateRevision)
+                            {
+                                var invalid = Stop(owned, "request_contract_observation_invalid", "原请求观察前缀、版本或新语义能力不匹配。", null);
+                                invalid.Outcomes.AddRange(reply.Outcomes); return invalid;
+                            }
+                        }
                         CommandResult result;
-                        try { result = session.Submit(owned.Command.ToCommand()); }
+                        try { result = requestContract ? session.SubmitOrdered(owned) : session.Submit(originalCommand); }
                         catch (Exception exception)
                         {
                             var failure = Stop(owned, "rule_submit_exception", "规则提交出现异常：" + exception.Message, null);

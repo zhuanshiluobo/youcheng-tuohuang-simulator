@@ -656,9 +656,10 @@ namespace YC.Presentation
         private RectTransform GetUiCanvasTransform() =>
             uiCanvas == null ? null : uiCanvas.GetComponent<RectTransform>();
 
-        private void HideEventCardOptions()
+        private void HideEventCardOptions(bool preserveRequestDraft)
         {
-            ClearEventCardInteraction();
+            if (!preserveRequestDraft || !CanPreserveRequestDraftForRefresh())
+                ClearEventCardInteraction();
             if (explorationEventPresenter != null)
             {
                 explorationEventPresenter.Cancel();
@@ -686,6 +687,7 @@ namespace YC.Presentation
             explorationService = result.ExplorationService;
             resourceCollectionService = result.ResourceCollectionService;
             localPlayerId = result.LocalPlayerId;
+            // 此时尚未调用 BuildCommandSubmission/绑定网络owner，仅初始化启动展示。
             if (!ShouldControlCurrentPlayerLocally()) session.RefreshLocalProjection(GameStateViewer.Player(localPlayerId));
             gameplayInteractionHud.ConfigureGameplayPresentation(result.GameplayTextCatalog, result.GameplayDefinitionNames);
             buildFacilityOptions = new BuildFacilityOptionQueryService(
@@ -732,7 +734,7 @@ namespace YC.Presentation
         private void ReleaseRejectedSubmissionWait(string gameId, string commandId, bool accepted)
         {
             // 共享提交账本已核验提交身份；本层只释放当前局准确失败命令的本地等待。
-            if (accepted || string.IsNullOrEmpty(gameId) || gameId != session?.State?.GameId ||
+            if (accepted || string.IsNullOrEmpty(gameId) || gameId != UiReadState()?.GameId ||
                 string.IsNullOrEmpty(commandId)) return;
             NotifyPendingEffectSettled(commandId);
             if (commandId == characterUseCommandId) characterSettlementInProgress = false;
@@ -771,6 +773,8 @@ namespace YC.Presentation
                 new YC.Domain.Travel.RouteResourceSelectionService(mapQuery),
                 eventChoiceDialog, workflowView, SubmitPendingEffectCommand, RefreshRouteSelectionDraft);
             routeResourceSelection.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
+            routeResourceSelection.IsNetworkSession = () => commandSubmission?.UsesDeterministicSimulation == true;
+            enterpriseInteraction.IsNetworkSession = () => commandSubmission?.UsesDeterministicSimulation == true;
             characterAbilityInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
             enterpriseInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
             routeResourceSelection.RequiresExplicitRefresh = () => commandSubmission?.RequiresExplicitRefreshForCurrentResult == true;
@@ -830,6 +834,8 @@ namespace YC.Presentation
             InvalidateVisibleRead();
             if (RefreshSimulationPermissionOnly()) return;
             turnActionPresenter.SynchronizeFromState();
+            // 只在联机同一观察者的普通发表刷新中保草稿；切人清理仍走原分支。
+            var preserveRequestDraft = !viewerChanged && commandSubmission?.UsesDeterministicSimulation == true;
             var preserveMove = !viewerChanged && turnActionPresenter.MoveInteraction.CanResumePreparedDraft;
             var preserveBuild = !viewerChanged && turnActionPresenter.BuildInteraction.CanResumePreparedDraft;
             if (viewerChanged)
@@ -853,7 +859,7 @@ namespace YC.Presentation
             // 同一城市样式支付请求由路由器按 ID/版本刷新，保留收起状态与尚未支付的选择。
             if (preserveCollection) eventChoiceDialog.Hide();
             else if (specialActionInteraction == null || !specialActionInteraction.HasAuthoritativeRequest)
-                HideEventCardOptions();
+                HideEventCardOptions(preserveRequestDraft);
             RefreshAllFromState();
             if (preserveCollection) resourceCollectionPresenter.RefreshFromState();
             if (preserveDeploy) influenceActionPresenter.RefreshDeployDraft();

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -141,6 +142,28 @@ namespace YC.Infrastructure.Persistence
             string payload = JsonConvert.SerializeObject(data, JsonSettings);
             // 入队后调用方还会继续修改 DTO；后台只使用本次捕获的标识与文本。
             string gameId = data.GameId, contentHash = data.ContentHash;
+            return EnqueueSave(() => Task.FromResult(payload), gameId, contentHash, manualSlot);
+        }
+
+        // 仅接受调用方已经取得的固定恢复点；工厂不得访问活动 Session、Unity 或 Mirror。
+        // 与原 SaveAsync 共用唯一写盘队列，Local 原有同步冻结与返回语义保持。
+        public Task SavePreparedAsync(Func<Task<MatchSaveData>> prepare, string gameId, string contentHash, int manualSlot = -1,
+            CancellationToken cancellation = default)
+        {
+            if (prepare == null) throw new ArgumentNullException(nameof(prepare));
+            if (manualSlot < -1 || manualSlot >= ManualCount) throw new ArgumentOutOfRangeException(nameof(manualSlot));
+            return EnqueueSave(async () => {
+                var data = await prepare().ConfigureAwait(false) ?? throw new InvalidDataException("确认存档内容为空。");
+                if (data.GameId != gameId || data.ContentHash != contentHash)
+                    throw new InvalidDataException("确认存档与入队对局身份不一致。");
+                data.Validate();
+                return JsonConvert.SerializeObject(data, JsonSettings);
+            }, gameId, contentHash, manualSlot, cancellation);
+        }
+
+        private Task EnqueueSave(Func<Task<string>> preparePayload, string gameId, string contentHash, int manualSlot,
+            CancellationToken cancellation = default)
+        {
             lock (queueLock)
             {
                 int preferredSlot = restoredGameId == gameId ? restoredAutomaticSlot : -1;
@@ -148,6 +171,8 @@ namespace YC.Infrastructure.Persistence
                 tail = Task.Run(async () =>
                 {
                     try { await previous.ConfigureAwait(false); } catch { /* 后续保存仍然可以重试。 */ }
+                    cancellation.ThrowIfCancellationRequested();
+                    string payload = await preparePayload().ConfigureAwait(false);
                     // 前一笔写入完成后再查归属，连续提交也只能创建一份同类存档。
                     bool automatic = manualSlot < 0;
                     int first = automatic ? ManualCount : 0;
@@ -189,6 +214,7 @@ namespace YC.Infrastructure.Persistence
                             throw new IOException("本对局的自动存档损坏或不兼容，无法覆盖，请手动处理对应槽位。");
                     }
                     string json = JsonConvert.SerializeObject(new FileEnvelope { Payload = payload, Checksum = Hash(payload) }, JsonSettings);
+                    cancellation.ThrowIfCancellationRequested();
                     WriteAtomic(PathFor(slot), json);
                     if (automatic) { lock (queueLock) if (newGameId == gameId) newGameId = null; }
                     // 只在新档落盘后清理该对局的旧轮转副本；读取列表和失败写入均保留原档。

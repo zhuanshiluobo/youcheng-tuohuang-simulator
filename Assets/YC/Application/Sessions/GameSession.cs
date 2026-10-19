@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
@@ -20,19 +21,43 @@ namespace YC.Application.Sessions
         private PendingActionLog pendingActionLog;
         private Action<string, long> handlerTimingRecorder;
         private ISettlementProjectionProvider settlementProjectionProvider;
-        public GameStateView ProjectFor(GameStateViewer viewer) => GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer));
+        private int orderedRequestContractVersion;
+        internal void ConfigureOrderedRequestContractValidation(int version)
+        {
+            EnsureExecutionOwner();
+            if (!HasBackgroundExecutionOwner || version != 0 && version != InteractionRequestValidity.ContractVersion)
+                throw new InvalidOperationException("ordered_request_contract_configuration_invalid");
+            orderedRequestContractVersion = version;
+        }
+        public GameStateView ProjectFor(GameStateViewer viewer)
+        {
+            if (IsBackgroundReader)
+            {
+                if (viewer.Role != GameStateViewerRole.Player || viewer.PlayerId != backgroundPlayerId || View == null)
+                    throw new InvalidOperationException("published_view_not_ready_or_wrong_viewer");
+                return GameStateCloneService.DeepClone(View);
+            }
+            return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer));
+        }
 
         /// <summary>完整模拟状态的展示入口；只更新观察者投影，不提交规则或裁剪 State。</summary>
         public GameStateView RefreshLocalProjection(GameStateViewer viewer)
         {
+            EnsureExecutionOwner();
             var view = ProjectFor(viewer);
             View = view;
             return view;
         }
 
-        public GameState State { get; private set; }
+        private GameState activeState;
+        public GameState State
+        {
+            get => IsBackgroundReader ? Volatile.Read(ref backgroundReadState) ?? throw new InvalidOperationException("simulation_snapshot_not_ready") : activeState;
+            private set => activeState = value;
+        }
         public event Action StateCommitted;
-        public bool CommandsSuspended { get; set; }
+        private volatile bool commandsSuspended;
+        public bool CommandsSuspended { get => commandsSuspended; set => commandsSuspended = value; }
         public GameStateView View { get; private set; }
         public ExecutionTimingCounters ExecutionTimings { get; } = new ExecutionTimingCounters();
 
@@ -64,6 +89,7 @@ namespace YC.Application.Sessions
 
         public void RegisterHandler(IGameCommandHandler handler)
         {
+            EnsureExecutionOwner();
             if (handler == null)
             {
                 throw new ArgumentNullException(nameof(handler));
@@ -75,6 +101,7 @@ namespace YC.Application.Sessions
 
         public void ReplaceState(GameState state)
         {
+            EnsureExecutionOwner();
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -96,6 +123,7 @@ namespace YC.Application.Sessions
 
         public HostSessionArchiveDto CreateHostArchive(string contentHash = "")
         {
+            EnsureExecutionOwner();
             return HostRecoveryService.CreateArchive(State, contentHash);
         }
 
@@ -103,6 +131,7 @@ namespace YC.Application.Sessions
             HostSessionArchiveDto archive,
             YC.Domain.Effects.EffectRegistry registry = null)
         {
+            EnsureExecutionOwner();
             HostRecoveryResult result = HostRecoveryService.Recover(archive, registry);
             if (result.State != null)
             {
@@ -133,7 +162,26 @@ namespace YC.Application.Sessions
         }
 
         public CommandResult Submit(GameCommand command)
+            => SubmitCore(command, null);
+
+        internal CommandResult SubmitOrdered(OrderedOperationCommandDto ordered)
         {
+            EnsureExecutionOwner();
+            if (!HasBackgroundExecutionOwner || orderedRequestContractVersion != InteractionRequestValidity.ContractVersion)
+                throw new InvalidOperationException("request_contract_requires_negotiated_execution_owner");
+            var command = ordered.Command.ToCommand();
+            if (!InteractionRequestValidity.TryReadMarker(command, out bool present, out string digest, out var validation) || !present)
+                return CommandResult.Invalid(validation.IsValid ? ValidationResult.Failure(CommandErrorCode.InvalidTarget, "原有序命令缺少请求合同。") : validation);
+            if (!InteractionRequestValidity.TryReadRequestAuthority(State, command, out var authority, out validation))
+                return CommandResult.Invalid(validation);
+            if (authority.OperationWindowId != ordered.OperationWindowId || authority.WindowGeneration != ordered.WindowGeneration)
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "原有序命令窗口与真实请求不一致。"));
+            return SubmitCore(command, digest);
+        }
+
+        private CommandResult SubmitCore(GameCommand command, string verifiedOrderedRequestDigest)
+        {
+            EnsureExecutionOwner();
             if (CommandsSuspended) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "正在保存对局，请稍候。"));
             using var submitSample = new ExecutionSample(ExecutionTimings, "submit.total");
             if (command == null)
@@ -196,7 +244,9 @@ namespace YC.Application.Sessions
                     using (new ExecutionSample(ExecutionTimings, "submit.handler"))
                     using (ExecutionTimings.Enabled ? GameStateCloneService.BeginTimingScope(
                         handlerTimingRecorder ?? (handlerTimingRecorder = ExecutionTimings.AddSample)) : null)
-                        result = commandHandlers[i].Handle(workState, command);
+                        result = verifiedOrderedRequestDigest != null && commandHandlers[i] is IOrderedInteractionCommandHandler orderedHandler
+                            ? orderedHandler.HandleOrdered(workState, command, verifiedOrderedRequestDigest)
+                            : commandHandlers[i].Handle(workState, command);
                 }
                 catch (Exception ex)
                 {
@@ -264,8 +314,11 @@ namespace YC.Application.Sessions
                 pendingActionLog = nextPendingActionLog;
                 mutationGeneration++;
                 if (pendingRecoveryCapture != null) RetainRecoveryCapture(pendingRecoveryCapture);
-                foreach (Action listener in StateCommitted?.GetInvocationList() ?? Array.Empty<Delegate>())
-                    try { listener(); } catch (Exception) { /* 存档观察者不得撤销已发布的规则提交。 */ }
+                if (Volatile.Read(ref backgroundBound) != 0)
+                    Interlocked.Increment(ref backgroundCommitVersion);
+                else
+                    foreach (Action listener in StateCommitted?.GetInvocationList() ?? Array.Empty<Delegate>())
+                        try { listener(); } catch (Exception) { /* 存档观察者不得撤销已发布的规则提交。 */ }
                 return result;
             }
 
@@ -715,6 +768,12 @@ namespace YC.Application.Sessions
     {
         bool CanHandle(GameCommand command);
         CommandResult Handle(GameState state, GameCommand command);
+    }
+
+    // 仅Application内已验证的ordered调用能选择该入口，客户端参数不能让普通Submit忽略revision。
+    internal interface IOrderedInteractionCommandHandler
+    {
+        CommandResult HandleOrdered(GameState state, GameCommand command, string expectedRequestContractDigest);
     }
 
     public static class PublicActionLogFormatter

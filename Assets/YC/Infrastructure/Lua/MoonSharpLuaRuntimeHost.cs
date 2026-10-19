@@ -56,10 +56,24 @@ namespace YC.Infrastructure.Lua
             CoreModules.Bit32;
 
         private readonly LuaExecutionBudget _budget;
+        private readonly Func<Stopwatch> startExecutionClock;
+
+        static MoonSharpLuaRuntimeHost()
+        {
+            // CLR 保证类型初始化只执行一次；各调用仍只安装显式回调，不注册 CLR UserData。
+            UserData.RegistrationPolicy = InteropRegistrationPolicy.Default;
+        }
 
         public MoonSharpLuaRuntimeHost(LuaExecutionBudget budget = null)
+            : this(budget, Stopwatch.StartNew)
+        {
+        }
+
+        // 非公开计时接缝供隔离验证模拟线程停顿；正式装配始终使用真实Stopwatch。
+        private MoonSharpLuaRuntimeHost(LuaExecutionBudget budget, Func<Stopwatch> startExecutionClock)
         {
             _budget = budget ?? LuaExecutionBudget.Default;
+            this.startExecutionClock = startExecutionClock ?? throw new ArgumentNullException(nameof(startExecutionClock));
         }
 
         public LuaInvocationResult Invoke(
@@ -73,14 +87,14 @@ namespace YC.Infrastructure.Lua
                 return LuaInvocationResult.Failure(definition, validationCode, validationDiagnostic);
             }
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            ExecutionGuard guard = new ExecutionGuard(_budget.MaxInstructions, _budget.MaxMilliseconds, stopwatch);
+            Stopwatch stopwatch = startExecutionClock();
+            // 权威effects/candidate/settlement调用不能由GC、线程停顿或机器负载裁决成败。
+            // VM指令预算和全部返回结构/数量限制仍生效；展示入口的三参数guard仍保墙钟保护。
+            ExecutionGuard guard = new ExecutionGuard(_budget.MaxInstructions, _budget.MaxMilliseconds, stopwatch, false);
 
             try
             {
                 // 只允许显式注册的回调；本宿主不注册任何 UserData，因此 Lua 永远拿不到 CLR 对象。
-                UserData.RegistrationPolicy = InteropRegistrationPolicy.Default;
-
                 Script script = new Script(SandboxedModules);
                 script.Options.DebugPrint = _ => { };
                 InstallForbiddenGlobals(script, guard);
@@ -3397,19 +3411,21 @@ namespace YC.Infrastructure.Lua
             private readonly long _maxInstructions;
             private readonly Stopwatch _stopwatch;
             private readonly int _maxMilliseconds;
+            private readonly bool enforceWallClock;
 
-            public ExecutionGuard(long maxInstructions, int maxMilliseconds, Stopwatch stopwatch)
+            public ExecutionGuard(long maxInstructions, int maxMilliseconds, Stopwatch stopwatch, bool enforceWallClock = true)
             {
                 _maxInstructions = maxInstructions;
                 _maxMilliseconds = maxMilliseconds;
                 _stopwatch = stopwatch;
+                this.enforceWallClock = enforceWallClock;
             }
 
             public long MaxInstructions => _maxInstructions;
 
             public void ThrowIfTimeExceeded()
             {
-                if (_stopwatch.ElapsedMilliseconds > _maxMilliseconds)
+                if (enforceWallClock && _stopwatch.ElapsedMilliseconds > _maxMilliseconds)
                 {
                     throw new ScriptRuntimeException("nmc_time_budget_exceeded");
                 }

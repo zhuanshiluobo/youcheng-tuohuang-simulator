@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Mirror;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -53,8 +54,11 @@ namespace YC.Infrastructure.Multiplayer
         private DeterministicSimulationSessionOptions simulationOptions;
         private DeterministicSimulationCoordinator simulationCoordinator;
         private long nextSimulationTransfer;
+        private long transportGeneration;
+        private bool initialReadyPending;
+        private bool recoveryPreparationPending, recoveryCompletionPending;
+        private Exception observedExecutionFailure;
         private long observationOrderedThrough;
-        private long observationPumpThrough = -1, observationPumpApplied = -1;
         private readonly Dictionary<int, ProtocolAssembly> protocolPeers = new Dictionary<int, ProtocolAssembly>();
         private readonly ProtocolAssembly protocolHost = new ProtocolAssembly();
         private SimulationConfirmedRecoveryInstaller recoveryInstaller;
@@ -78,7 +82,7 @@ namespace YC.Infrastructure.Multiplayer
             MirrorNetworkRuntime.Instance != null && MirrorNetworkRuntime.Instance.HasClientReconnectIdentity &&
             (MirrorNetworkRuntime.Instance.IsLocalTestMode || MirrorNetworkRuntime.Instance.ClientReconnectGameId == localConnectionRecoveryGameId) &&
             string.IsNullOrEmpty(LocalSimulationConnectionRecoveryFailureCode) && simulationOptions != null &&
-            session?.State.GameId == localConnectionRecoveryGameId && session.State.ContentPackHash == simulationOptions.ContentPackHash && simulationOptions.GameId == localConnectionRecoveryGameId &&
+            session != null && simulationOptions.GameId == localConnectionRecoveryGameId &&
             simulationOptions.MembershipVersion == localConnectionRecoveryMembership &&
             (simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch || simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch + 1);
         private Action detachSimulationEvents;
@@ -122,10 +126,12 @@ namespace YC.Infrastructure.Multiplayer
         public DeterministicSimulationCoordinator SimulationCoordinator => simulationCoordinator;
         internal NetworkExecutionObservation.Context ReadObservationContext(string commandId = null, long sequence = -1) =>
             !NetworkExecutionObservation.Enabled ? default : new NetworkExecutionObservation.Context {
-                GameId = session?.State.GameId, Mode = mode.ToString(), PlayerId = localPlayerId,
+                GameId = simulationOptions?.GameId, Mode = mode.ToString(), PlayerId = localPlayerId,
                 SimulationEpoch = simulationOptions?.SimulationEpoch ?? 0, MembershipVersion = simulationOptions?.MembershipVersion ?? 0,
                 CommandId = commandId, Sequence = sequence >= 0 ? sequence : simulationCoordinator?.LastAppliedSequence ?? 0,
-                Frame = Time.frameCount, Revision = session?.State.EffectRuntime?.StateRevision ?? 0, Slot = -1 };
+                Frame = Time.frameCount, Revision = ReadPublishedRevision(), Slot = -1 };
+        private int ReadPublishedRevision() => simulationCoordinator != null && simulationCoordinator.TryReadPublishedSnapshot(out var snapshot)
+            ? snapshot.StateRevision : 0;
         public static MirrorCommandTransport Instance { get; private set; }
         public bool IsSynchronizing => initialized && (IsAwaitingLocalSimulationConnectionRecovery || IsRecoveringConfirmedPrefix ||
             simulationCoordinator == null || simulationCoordinator.IsStopped || simulationCoordinator.IsRecoveringConfirmedPrefix || simulationCoordinator.HasPendingLocalApplication);
@@ -158,7 +164,9 @@ namespace YC.Infrastructure.Multiplayer
             var identity = savedIdentity?.Snapshot() ?? new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
                 SimulationEpoch = 1, MembershipVersion = 1, GlobalCommandSequence = 0,
                 CheckpointId = "initial." + SimulationIdentityHash(JsonConvert.SerializeObject(new {
-                    options.GameId, options.ContentPackHash, options.SimulationEpoch, options.MembershipVersion, Players = options.FrozenPlayerIds.OrderBy(id => id).ToArray() })) };
+                    options.GameId, options.ContentPackHash, options.SimulationEpoch, options.MembershipVersion,
+                    RequestContractVersion = OperationCommandProtocol.RequestContractVersion, Players = options.FrozenPlayerIds.OrderBy(id => id).ToArray() })) };
+            identity.RequestContractVersion = OperationCommandProtocol.RequestContractVersion;
             var channel = new SimulationCheckpointChannel(identity, installer, createHostArchive, options.FrozenPlayerIds);
             Shutdown();
             savedCoordinatorFactory = savedCoordinator;
@@ -174,8 +182,8 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkServer.RegisterHandler<SimulationCheckpointErrorMessage>(OnCheckpointPeerError, false);
                 NetworkServer.RegisterHandler<SimulationProtocolPartMessage>(OnSimulationClientPart, false);
                 foreach (var connection in NetworkServer.connections.Values) OnServerConnected(connection);
-                AttachSimulation(prepared);
                 if (!channel.TryPrepareHostArchive(out var fault)) { PublishCheckpointFault(fault); return; }
+                AttachSimulation(prepared);
                 prepared.Begin();
                 if (savedIdentity != null) prepared.CompleteConfirmedRecovery(true);
             }
@@ -191,9 +199,9 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public bool HasCompletedSettlement => initialized && session != null &&
-            RoundTrackRule.IsFinalState(session.State) &&
-            session.State.FinalScoring != null && session.State.FinalScoring.IsResolved;
+        public bool HasCompletedSettlement => initialized && simulationCoordinator != null &&
+            simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) && snapshot.FinalScoringResolved &&
+            (snapshot.Phase == GamePhase.FinalScoring || snapshot.Phase == GamePhase.GameOver);
 
         public bool CanDetachCompletedSession
         {
@@ -239,20 +247,18 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (!initialized || checkpointChannel == null || !IsCheckpointSessionCurrent()) return;
             if (mode == LaunchMode.Host) RefreshPendingLocalBindings();
-            long through = NetworkExecutionObservation.Enabled && simulationCoordinator != null ?
-                Math.Max(simulationCoordinator.LastSequencedSequence, observationOrderedThrough) : 0;
-            bool pending = NetworkExecutionObservation.Enabled && simulationCoordinator != null && !simulationCoordinator.IsStopped &&
-                through > simulationCoordinator.LastAppliedSequence &&
-                (observationPumpThrough != through || observationPumpApplied != simulationCoordinator.LastAppliedSequence);
-            if (pending) { observationPumpThrough = through; observationPumpApplied = simulationCoordinator.LastAppliedSequence; }
-            var observation = NetworkExecutionObservation.Begin("simulation.pump", ReadObservationContext(), pending, session?.ExecutionTimings);
             try
             {
-                int count = simulationCoordinator?.Pump(simulationOptions.PumpCommandsPerFrame) ?? 0;
-                observation.Context.Sequence = simulationCoordinator?.LastAppliedSequence ?? 0;
-                if (NetworkExecutionObservation.Enabled) observation.Detail = "applied_count=" + count;
+                simulationCoordinator?.DrainMainThreadNotifications(simulationOptions.PumpCommandsPerFrame);
+                PublishSimulationReady();
+                PublishRecoveryCompleted();
+                ObserveBackgroundFailure();
             }
-            finally { observation.Dispose(); }
+            catch (Exception error)
+            {
+                // 已提交的原结果不可因消费者刷新异常被重新执行；记录主线程消费故障。
+                Debug.LogException(error, this);
+            }
             using (NetworkExecutionObservation.Begin("recovery.poll", ReadObservationContext(), false)) PollConfirmedRecovery();
             if (mode == LaunchMode.Client && NetworkClient.isConnected && IsRecoveringConfirmedPrefix && !recoveryFailed && confirmedRecoveryRequestPending)
                 RequestConfirmedRecovery();
@@ -272,7 +278,8 @@ namespace YC.Infrastructure.Multiplayer
                 {
                     using var admission = NetworkExecutionObservation.Begin("simulation.local_admission", ReadObservationContext(command.CommandId), true, session.ExecutionTimings);
                     var result = simulationCoordinator.AdmitProposal(localPlayerId, proposal); simulationCoordinator.ReceiveProposalResult(result);
-                    if (result.Status != OperationAdmissionStatus.Accepted && result.Status != OperationAdmissionStatus.Duplicate) return CommandResult.Invalid(new ValidationResult(false, result.ErrorCode, result.Reason));
+                    if (result.Status != OperationAdmissionStatus.Accepted && result.Status != OperationAdmissionStatus.Duplicate &&
+                        result.Status != OperationAdmissionStatus.PendingValidation) return CommandResult.Invalid(new ValidationResult(false, result.ErrorCode, result.Reason));
                 }
                 else SendSimulationClient("proposal", proposal);
                 return CommandResult.SuccessResult(new List<GameEvent>(), "命令已进入编序队列，等待本地执行。");
@@ -283,6 +290,7 @@ namespace YC.Infrastructure.Multiplayer
         public void Shutdown()
         {
             NetworkExecutionObservation.Event("simulation.shutdown", ReadObservationContext());
+            transportGeneration++; recoveryPreparationPending = recoveryCompletionPending = false;
             DetachSimulation(); simulationOptions = null; protocolPeers.Clear(); protocolHost.Reset(); nextSimulationTransfer = 0;
             recoveryInstaller = null; recoveryNotice = null; preparedRecovery = null; recoveryTransfer = null; recoveryAssembler = null; receivedRecoveryEnvelope = null; retiredSimulation = null;
             recoveryPrepared.Clear(); recoveryInstalled.Clear(); recoveryRequested = recoveryFinished = recoveryFailed = recoveryCommitIssued = false;
@@ -494,7 +502,7 @@ namespace YC.Infrastructure.Multiplayer
                 HasCompletedSettlement || recoveryInstaller == null || !recoveryInstaller.IsBoundTo(session, simulationOptions) || recoveryFailed ||
                 runtime == null || NetworkServer.active || !runtime.HasClientReconnectIdentity ||
                 !runtime.IsLocalTestMode && runtime.ClientReconnectGameId != simulationOptions.GameId ||
-                session.State.GameId != simulationOptions.GameId || session.State.ContentPackHash != simulationOptions.ContentPackHash || fault != null && fault.FaultCode != "simulation_connection_lost" ||
+                fault != null && fault.FaultCode != "simulation_connection_lost" ||
                 !runtime.TryBeginClientReconnect()) return false;
             if (!localConnectionRecoveryPending)
             {
@@ -521,8 +529,8 @@ namespace YC.Infrastructure.Multiplayer
         private bool IsCheckpointSessionCurrent()
         {
             if (checkpointChannel == null || checkpointChannel.IsStopped) return false;
-            if (session != null && session.State.GameId == checkpointChannel.Identity.GameId &&
-                session.State.ContentPackHash == checkpointChannel.Identity.ContentPackHash) return true;
+            if (session != null && simulationOptions?.GameId == checkpointChannel.Identity.GameId &&
+                simulationOptions.ContentPackHash == checkpointChannel.Identity.ContentPackHash) return true;
             checkpointChannel.Stop(); checkpointHostConnection = null; checkpointConnectionTokens.Clear();
             PublishCheckpointFault("checkpoint_session_changed"); return false;
         }
@@ -663,13 +671,16 @@ namespace YC.Infrastructure.Multiplayer
         private void AttachSimulation(DeterministicSimulationCoordinator coordinator, bool initialReady = true)
         {
             if (NetworkExecutionObservation.Enabled) session.ExecutionTimings.Enabled = true;
-            observationOrderedThrough = 0; observationPumpThrough = observationPumpApplied = -1;
+            observationOrderedThrough = 0;
             simulationCoordinator = coordinator;
+            observedExecutionFailure = null;
+            initialReadyPending = initialReady;
             Action<SimulationCommandAppliedDto> applied = value => { if (simulationCoordinator == coordinator) OnSimulationApplied(value); };
             Action<CommandValidationPrefixDto> validated = value => { if (simulationCoordinator == coordinator) OnSimulationValidated(value); };
             Action<SimulationWindowPermissionDto> permission = value => { if (simulationCoordinator == coordinator) OnSimulationPermission(value); };
             Action<SimulationProtocolFaultDto> fault = value => { if (simulationCoordinator == coordinator) OnSimulationFault(value); };
             Action<SimulationProposalResultDto> rejected = value => { if (simulationCoordinator == coordinator) OnSimulationProposalRejected(value); };
+            Action<SimulationProposalResultDto> finalAdmission = value => { if (simulationCoordinator == coordinator) SendFinalSimulationProposalResult(value); };
             Action<OrderedOperationCommandDto> ordered = value => { if (simulationCoordinator == coordinator) BroadcastSimulationOrdered(value); };
             Action<SimulationBoundaryDto> boundary = value => { if (simulationCoordinator == coordinator) BroadcastSimulationBoundary(value); };
             Action<SimulationWindowReadyDto> ready = value => { if (simulationCoordinator == coordinator) SendSimulationReady(value); };
@@ -678,28 +689,77 @@ namespace YC.Infrastructure.Multiplayer
             coordinator.SimulationCommandApplied += applied; coordinator.CommandValidationPrefixAdvanced += validated;
             coordinator.OperationWindowPermissionChanged += permission; coordinator.SimulationProtocolFaulted += fault;
             coordinator.SimulationProposalRejected += rejected; coordinator.OrderedCommandProduced += ordered;
+            coordinator.SimulationProposalResultProduced += finalAdmission;
             coordinator.BoundaryProduced += boundary; coordinator.WindowReadyProduced += ready;
             coordinator.WindowPermitProduced += permit; coordinator.MissingRangeRequested += missing;
             detachSimulationEvents = () => {
                 coordinator.SimulationCommandApplied -= applied; coordinator.CommandValidationPrefixAdvanced -= validated;
                 coordinator.OperationWindowPermissionChanged -= permission; coordinator.SimulationProtocolFaulted -= fault;
                 coordinator.SimulationProposalRejected -= rejected; coordinator.OrderedCommandProduced -= ordered;
+                coordinator.SimulationProposalResultProduced -= finalAdmission;
                 coordinator.BoundaryProduced -= boundary; coordinator.WindowReadyProduced -= ready;
                 coordinator.WindowPermitProduced -= permit; coordinator.MissingRangeRequested -= missing;
             };
-            if (initialReady) DeterministicSimulationReady?.Invoke(coordinator);
+            coordinator.ConfigureRequestContractValidation(checkpointChannel.Identity.RequestContractVersion);
+            coordinator.StartBackgroundExecution();
+        }
+
+        private void PublishSimulationReady()
+        {
+            if (!initialReadyPending || simulationCoordinator == null ||
+                !simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) || snapshot.GameId != simulationOptions.GameId) return;
+            initialReadyPending = false;
+            DeterministicSimulationReady?.Invoke(simulationCoordinator);
+        }
+
+        private void ObserveBackgroundFailure()
+        {
+            var failure = simulationCoordinator?.BackgroundExecutionException;
+            if (failure == null || ReferenceEquals(failure, observedExecutionFailure)) return;
+            observedExecutionFailure = failure;
+            Debug.LogException(failure, this);
+            // 若连故障快照也未能发表，仍交付准确的执行故障，不能静默停在未Ready。
+            if (simulationCoordinator.LastFault == null)
+                OnSimulationFault(new SimulationProtocolFaultDto { GameId = simulationOptions.GameId,
+                    SimulationEpoch = simulationOptions.SimulationEpoch, MembershipVersion = simulationOptions.MembershipVersion,
+                    FaultCode = "background_execution_exception", Diagnostic = failure.Message,
+                    ErrorCode = CommandErrorCode.UnknownCommand, RequiresRecovery = true });
+        }
+
+        private void PublishRecoveryCompleted()
+        {
+            if (!recoveryCompletionPending || simulationCoordinator == null ||
+                !simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) || snapshot.IsRecoveringConfirmedPrefix ||
+                snapshot.GameId != simulationOptions.GameId || snapshot.SimulationEpoch != simulationOptions.SimulationEpoch) return;
+            recoveryCompletionPending = false;
+            using (NetworkExecutionObservation.Begin("recovery.completed_notifications", ReadObservationContext()))
+                SimulationRecoveryCompleted?.Invoke(simulationCoordinator);
         }
 
         private void DetachSimulation()
         {
             var coordinator = simulationCoordinator; if (coordinator == null) return;
-            coordinator.Stop();
+            initialReadyPending = false;
+            coordinator.RequestStop();
             detachSimulationEvents?.Invoke(); detachSimulationEvents = null;
             simulationCoordinator = null;
+            ObserveExecutionStop(coordinator, observedExecutionFailure);
+        }
+
+        private static async void ObserveExecutionStop(DeterministicSimulationCoordinator coordinator, Exception observed)
+        {
+            try
+            {
+                await coordinator.ExecutionStopped;
+                var failure = coordinator.BackgroundExecutionException;
+                if (failure != null && !ReferenceEquals(failure, observed)) Debug.LogException(failure);
+            }
+            catch (Exception error) { Debug.LogException(error); }
         }
 
         private void OnSimulationApplied(SimulationCommandAppliedDto applied)
         {
+            PublishSimulationReady();
             if (applied == null || !CurrentSimulationIdentity(applied.GameId, applied.SimulationEpoch, applied.MembershipVersion)) return;
             using (NetworkExecutionObservation.Begin("simulation.applied_notifications",
                 ReadObservationContext(applied.Command?.CommandId, applied.GlobalCommandSequence), true, session.ExecutionTimings))
@@ -707,12 +767,30 @@ namespace YC.Infrastructure.Multiplayer
         }
         private bool CurrentSimulationIdentity(string gameId, long epoch, int membership) => simulationOptions != null &&
             gameId == simulationOptions.GameId && epoch == simulationOptions.SimulationEpoch && membership == simulationOptions.MembershipVersion;
-        private void OnSimulationPermission(SimulationWindowPermissionDto permission) => OperationWindowPermissionChanged?.Invoke(permission);
-        private void OnSimulationProposalRejected(SimulationProposalResultDto result) => SimulationProposalRejected?.Invoke(result);
+        private void OnSimulationPermission(SimulationWindowPermissionDto permission)
+        { PublishSimulationReady(); OperationWindowPermissionChanged?.Invoke(permission); }
+        private void OnSimulationProposalRejected(SimulationProposalResultDto result)
+        {
+            if (result?.Status == OperationAdmissionStatus.PendingValidation) return;
+            SimulationProposalRejected?.Invoke(result);
+        }
+        private void SendFinalSimulationProposalResult(SimulationProposalResultDto result)
+        {
+            if (mode != LaunchMode.Host || result?.Proposal?.Command == null ||
+                result.ProtocolVersion != OperationCommandProtocol.Version || result.Proposal.GameId != result.GameId ||
+                result.Proposal.SimulationEpoch != result.SimulationEpoch || result.Proposal.MembershipVersion != result.MembershipVersion ||
+                !CurrentSimulationIdentity(result.GameId, result.SimulationEpoch, result.MembershipVersion) ||
+                result.Status == OperationAdmissionStatus.PendingValidation || result.Proposal.Command.PlayerId == localPlayerId) return;
+            // 本机由B原ReceiveProposalResult交付；远端只发给原actor的当前已认证连接。
+            foreach (var connection in NetworkServer.connections.Values.ToArray())
+                if (connection != null && !(connection is LocalConnectionToClient) &&
+                    bindings.TryGetPlayer(connection.connectionId, out var actor) && actor == result.Proposal.Command.PlayerId)
+                    SendSimulationHost(connection, "proposal-result", result);
+        }
         private void OnSimulationValidated(CommandValidationPrefixDto prefix)
         { if (mode == LaunchMode.Host) BroadcastSimulation("validation-prefix", prefix); CommandValidationPrefixAdvanced?.Invoke(prefix); }
         private void OnSimulationFault(SimulationProtocolFaultDto fault)
-        { if (mode == LaunchMode.Host) BroadcastSimulation("stop", fault); SimulationProtocolFaulted?.Invoke(fault); }
+        { PublishSimulationReady(); if (mode == LaunchMode.Host) BroadcastSimulation("stop", fault); SimulationProtocolFaulted?.Invoke(fault); }
         private void BroadcastSimulationOrdered(OrderedOperationCommandDto ordered)
         {
             using (NetworkExecutionObservation.Begin("simulation.ordered_broadcast",
@@ -891,32 +969,45 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        private void PollConfirmedRecovery()
+        private async void PollConfirmedRecovery()
         {
-            if (!IsRecoveringConfirmedPrefix || recoveryFailed || mode != LaunchMode.Host || recoveryNotice != null) return;
-            if (!simulationCoordinator.IsStopped && simulationCoordinator.ReadPendingTail().Count != 0) return;
-            using var prepareObservation = NetworkExecutionObservation.Begin("recovery.host_prepare", ReadObservationContext(), true, session.ExecutionTimings);
+            if (!IsRecoveringConfirmedPrefix || recoveryFailed || recoveryPreparationPending || mode != LaunchMode.Host || recoveryNotice != null) return;
+            var coordinator = simulationCoordinator;
+            if (coordinator == null || !coordinator.IsStopped && coordinator.ReadPendingTail().Count != 0) return;
+            long generation = transportGeneration;
+            var installer = recoveryInstaller;
+            recoveryPreparationPending = true;
+            bool Current() => generation == transportGeneration && ReferenceEquals(coordinator, simulationCoordinator) &&
+                ReferenceEquals(installer, recoveryInstaller) && IsRecoveringConfirmedPrefix && !recoveryFailed;
             try
             {
-                if (!simulationCoordinator.TryCreateConfirmedRecoveryCheckpoint(simulationCoordinator.ValidatedThroughSequence,
-                    simulationOptions.SimulationEpoch + 1, out var checkpoint, out var result)) throw new InvalidOperationException(result.Reason);
+                var checkpoint = await coordinator.CreateConfirmedRecoveryCheckpointAsync(coordinator.ValidatedThroughSequence,
+                    simulationOptions.SimulationEpoch + 1);
+                if (!Current()) return;
                 var b = checkpoint.Baseline;
-                recoveryNotice = new SimulationRecoveryNoticeDto { GameId = b.GameId, SimulationEpoch = b.SimulationEpoch, MembershipVersion = b.MembershipVersion,
+                var notice = new SimulationRecoveryNoticeDto { GameId = b.GameId, SimulationEpoch = b.SimulationEpoch, MembershipVersion = b.MembershipVersion,
                     SourceSimulationEpoch = b.SourceSimulationEpoch, CheckpointId = b.CheckpointId, ConfirmedGlobalSequence = b.ConfirmedGlobalSequence,
-                    MetadataDigest = b.MetadataDigest, Phase = SimulationRecoveryPhase.Prepare, ResumeAllowed = !simulationCoordinator.IsStopped };
-                string json = SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint);
-                var envelope = RecoveryEnvelope(recoveryNotice); envelope.ContentPackHash = simulationOptions.ContentPackHash;
-                recoveryTransfer = SimulationCheckpointTransfer.Encode(envelope, json);
-                if (!recoveryInstaller.TryPrepare(recoveryNotice, json, out preparedRecovery, out result)) throw new InvalidOperationException(result.Reason);
+                    MetadataDigest = b.MetadataDigest, Phase = SimulationRecoveryPhase.Prepare, ResumeAllowed = !coordinator.IsStopped };
+                var envelope = RecoveryEnvelope(notice); envelope.ContentPackHash = simulationOptions.ContentPackHash;
+                // 只读脱离活动会话的 checkpoint；JSON和分包准备不占用运输帧。
+                string json = await Task.Run(() => SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint));
+                var transfer = await Task.Run(() => SimulationCheckpointTransfer.Encode(envelope, json));
+                if (!Current()) return;
+                var prepared = await installer.PrepareAsync(notice, json, coordinator);
+                if (!Current()) return;
+                recoveryNotice = notice; recoveryTransfer = transfer; preparedRecovery = prepared;
                 recoveryPrepared.Add(localPlayerId);
                 foreach (var connection in NetworkServer.connections.Values.Where(c => !(c is LocalConnectionToClient)).ToArray()) SendRecoveryPackage(connection);
                 TryCommitAllRecoveredMembers();
             }
-            catch (Exception exception) when (!(exception is OutOfMemoryException)) { FailConfirmedRecovery("recovery_host_prepare_failed", exception.Message); }
+            catch (Exception error)
+            { if (Current()) FailConfirmedRecovery("recovery_host_prepare_failed", error.Message); }
+            finally { if (generation == transportGeneration) recoveryPreparationPending = false; }
         }
 
-        private static SimulationCheckpointEnvelope RecoveryEnvelope(SimulationRecoveryNoticeDto notice) => new SimulationCheckpointEnvelope {
+        private SimulationCheckpointEnvelope RecoveryEnvelope(SimulationRecoveryNoticeDto notice) => new SimulationCheckpointEnvelope {
             ProtocolVersion = SimulationCheckpointEnvelope.RecoveryProtocolVersion, Purpose = SimulationCheckpointEnvelope.ConfirmedSimulationRecovery,
+            RequestContractVersion = checkpointChannel?.Identity.RequestContractVersion ?? 0,
             GameId = notice.GameId, SourceSimulationEpoch = notice.SourceSimulationEpoch, SimulationEpoch = notice.SimulationEpoch,
             MembershipVersion = notice.MembershipVersion, CheckpointId = notice.CheckpointId, GlobalCommandSequence = notice.ConfirmedGlobalSequence,
             ArchiveDigestVersion = SimulationCheckpointEnvelope.RecoveryDigestVersion };
@@ -1031,7 +1122,7 @@ namespace YC.Infrastructure.Multiplayer
                     else if (notice.Phase == SimulationRecoveryPhase.Installed && recoveryInstalled.Contains(localPlayerId) && recoveryCommitIssued && !recoveryFinished)
                     {
                         recoveryFinished = true; localConnectionRecoveryPending = false; simulationCoordinator.CompleteConfirmedRecovery(notice.ResumeAllowed);
-                        using (NetworkExecutionObservation.Begin("recovery.completed_notifications", ReadObservationContext())) SimulationRecoveryCompleted?.Invoke(simulationCoordinator);
+                        recoveryCompletionPending = true;
                     }
                     else if (notice.Phase == SimulationRecoveryPhase.Failed) FailConfirmedRecovery(notice.ErrorCode, notice.Reason);
                 }
@@ -1039,18 +1130,29 @@ namespace YC.Infrastructure.Multiplayer
             catch (Exception exception) when (!(exception is OutOfMemoryException)) { FailConfirmedRecovery("recovery_control_invalid", exception.Message); }
         }
 
-        private void ReceiveConfirmedRecoveryPart(SimulationCheckpointPartMessage part, SimulationCheckpointEnvelope envelope)
+        private async void ReceiveConfirmedRecoveryPart(SimulationCheckpointPartMessage part, SimulationCheckpointEnvelope envelope)
         {
-            if (mode != LaunchMode.Client || recoveryNotice == null || recoveryFailed || !IsBoundCheckpointHost(part.ConnectionToken)) return;
+            if (mode != LaunchMode.Client || recoveryNotice == null || recoveryFailed || recoveryPreparationPending || !IsBoundCheckpointHost(part.ConnectionToken)) return;
             if (preparedRecovery != null)
             { if (!SimulationCheckpointEnvelope.SamePayload(receivedRecoveryEnvelope, envelope)) FailConfirmedRecovery("recovery_payload_conflict", "重复恢复包与已准备原包冲突。"); return; }
             if (recoveryAssembler == null) return;
             if (!recoveryAssembler.TryAppend(envelope, part.Offset, part.Payload, out var json, out var fault)) { FailConfirmedRecovery(fault, "恢复检查点组装失败。"); return; }
             if (json == null) return;
             receivedRecoveryEnvelope = envelope.Snapshot();
-            using var prepareObservation = NetworkExecutionObservation.Begin("recovery.client_prepare", ReadObservationContext(null, envelope.GlobalCommandSequence), true, session.ExecutionTimings);
-            if (!recoveryInstaller.TryPrepare(recoveryNotice, json, out preparedRecovery, out var result)) { FailConfirmedRecovery(result.ErrorCode, result.Reason); return; }
-            SendRecoveryClient(RecoveryNotice(SimulationRecoveryPhase.Prepared));
+            long generation = transportGeneration;
+            var coordinator = simulationCoordinator; var installer = recoveryInstaller; var notice = recoveryNotice;
+            recoveryPreparationPending = true;
+            bool Current() => generation == transportGeneration && ReferenceEquals(coordinator, simulationCoordinator) &&
+                ReferenceEquals(notice, recoveryNotice) && ReferenceEquals(installer, recoveryInstaller) && !recoveryFailed;
+            try
+            {
+                var prepared = await installer.PrepareAsync(notice, json, coordinator);
+                if (!Current()) return;
+                preparedRecovery = prepared;
+                SendRecoveryClient(RecoveryNotice(SimulationRecoveryPhase.Prepared));
+            }
+            catch (Exception error) { if (Current()) FailConfirmedRecovery("recovery_client_prepare_failed", error.Message); }
+            finally { if (generation == transportGeneration) recoveryPreparationPending = false; }
         }
 
         private void TryCommitAllRecoveredMembers()
@@ -1082,7 +1184,7 @@ namespace YC.Infrastructure.Multiplayer
             using var releaseObservation = NetworkExecutionObservation.Begin("recovery.release", ReadObservationContext(), true, session.ExecutionTimings);
             recoveryFinished = true; simulationCoordinator.CompleteConfirmedRecovery(recoveryNotice.ResumeAllowed);
             BroadcastRecovery(SimulationRecoveryPhase.Installed);
-            using (NetworkExecutionObservation.Begin("recovery.completed_notifications", ReadObservationContext())) SimulationRecoveryCompleted?.Invoke(simulationCoordinator);
+            recoveryCompletionPending = true;
         }
 
         private void FailConfirmedRecovery(string code, string reason)

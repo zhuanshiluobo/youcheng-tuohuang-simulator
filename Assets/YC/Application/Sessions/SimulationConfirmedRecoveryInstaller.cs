@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YC.Domain.Effects;
@@ -93,12 +94,31 @@ namespace YC.Application.Sessions
             return root["Baseline"].ToObject<SimulationRecoveryBaselineDto>(JsonSerializer.Create(Settings));
         }
 
+        /// <summary>先异步等待旧owner在安全点退出；重图准备不运行在Mirror/Unity主线程。</summary>
+        public async Task<PreparedSimulationRecovery> PrepareAsync(SimulationRecoveryNoticeDto expected, string bundleJson,
+            DeterministicSimulationCoordinator previousCoordinator)
+        {
+            var notice = GameStateCloneService.DeepClone(expected);
+            if (previousCoordinator?.IsBackgroundExecutionEnabled == true)
+            {
+                previousCoordinator.RequestStop();
+                await previousCoordinator.ExecutionStopped.ConfigureAwait(false);
+            }
+            return await Task.Run(() =>
+            {
+                if (!TryPrepare(notice, bundleJson, out var candidate, out var result))
+                    throw new InvalidOperationException(result.ErrorCode + ":" + result.Reason);
+                return candidate;
+            }).ConfigureAwait(false);
+        }
+
         public bool TryPrepare(SimulationRecoveryNoticeDto expected, string bundleJson,
             out PreparedSimulationRecovery candidate, out SimulationRecoveryResultDto result)
         {
             candidate = null; result = new SimulationRecoveryResultDto { CheckpointId = expected?.CheckpointId ?? string.Empty };
             try
             {
+                if (!session.IsBackgroundExecutionQuiescent) throw new InvalidOperationException("recovery_execution_not_quiescent");
                 if (expected == null || expected.Phase != SimulationRecoveryPhase.Prepare || expected.ProtocolVersion != OperationCommandProtocol.Version ||
                     expected.GameId != originalOptions.GameId || expected.MembershipVersion != originalOptions.MembershipVersion ||
                     expected.SourceSimulationEpoch <= 0 || expected.SourceSimulationEpoch >= long.MaxValue || expected.SimulationEpoch != expected.SourceSimulationEpoch + 1 ||

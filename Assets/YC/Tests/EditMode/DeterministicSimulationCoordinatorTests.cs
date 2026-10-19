@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,6 +32,226 @@ namespace YC.Tests.EditMode
             return new[] { fixture.Host.Session, first.Session, second.Session };
         }
         public static GameCommand CreateCurrentAnswer(GameSession session, int player, string commandId) => Answer(session, player, commandId);
+
+        // 以下是隔离规则/线程夹具，不计作正式菜单、可见程序或正常联机界面验收。
+        [Test]
+        public void BackgroundHostAdmitsSameWindowWhileItsOriginalSubmitIsBlockedAndPublishesEveryExactResult()
+        {
+            using var entered = new ManualResetEventSlim();
+            using var release = new ManualResetEventSlim();
+            int calls = 0;
+            var group = ActionGroup(() => {
+                if (Interlocked.Increment(ref calls) == 1) { entered.Set(); if (!release.Wait(TimeSpan.FromSeconds(10))) throw new TimeoutException("隔离夹具未释放Submit。"); }
+            });
+            group.Seal(0, true);
+            var host = group.Host; var actor = group.Coordinators[1]; var delivered = new List<long>();
+            int mainThread = Thread.CurrentThread.ManagedThreadId;
+            host.SimulationCommandApplied += value => {
+                Assert.That(Thread.CurrentThread.ManagedThreadId, Is.EqualTo(mainThread));
+                Assert.That(host.TryReadPublishedSnapshot(out var current), Is.True);
+                Assert.That(current.LastAppliedSequence, Is.EqualTo(value.GlobalCommandSequence));
+                Assert.That(host.LastAppliedSequence, Is.EqualTo(value.GlobalCommandSequence));
+                Assert.That(group.Sessions[0].View.StateRevision, Is.EqualTo(current.StateRevision));
+                Assert.That(group.Sessions[0].State.EffectRuntime.StateRevision, Is.EqualTo(current.StateRevision));
+                delivered.Add(value.GlobalCommandSequence);
+            };
+            host.StartBackgroundExecution();
+            try
+            {
+                AwaitPublication(host, snapshot => snapshot.ReadWindowPermissions().Any(w => w.IsPermitted));
+                var first = Answer(group.Sessions[1], 1, "background-first");
+                Assert.That(actor.TryCreateLocalProposal(first, out var proposal1, out _), Is.True);
+                var admitted1 = host.AdmitProposal(1, proposal1);
+                Assert.That(admitted1.Status, Is.EqualTo(OperationAdmissionStatus.Accepted));
+                Assert.That(entered.Wait(TimeSpan.FromSeconds(10)), Is.True);
+                actor.ReceiveOrdered(admitted1.OrderedCommand); Assert.That(actor.Pump(1), Is.EqualTo(1));
+                Assert.That(actor.HasPendingLocalApplication, Is.False);
+                Assert.That(actor.ValidatedThroughSequence, Is.EqualTo(0));
+                Assert.That(actor.TryCreateLocalProposal(Answer(group.Sessions[1], 1, "background-second"), out var proposal2, out _), Is.True);
+                // 仅死锁逃生装置；接纳返回时门必须仍关着，不能借此等待Host Submit。
+                using var watchdog = new Timer(_ => release.Set(), null, TimeSpan.FromSeconds(10), Timeout.InfiniteTimeSpan);
+                var admitted2 = host.AdmitProposal(1, proposal2);
+                Assert.That(release.IsSet, Is.False, "接纳等到了被阻塞的Host业务执行。");
+                Assert.That(admitted2.Status, Is.EqualTo(OperationAdmissionStatus.Accepted));
+                Assert.That(admitted2.OrderedCommand.Command.CommandId, Is.EqualTo(proposal2.Command.CommandId));
+                Assert.That(admitted2.OrderedCommand.ObservedStateRevision, Is.EqualTo(proposal2.ObservedStateRevision));
+                Assert.That(host.LastAppliedSequence, Is.EqualTo(0));
+                actor.ReceiveOrdered(admitted2.OrderedCommand); Assert.That(actor.Pump(1), Is.EqualTo(1));
+                release.Set();
+                AwaitPublication(host, snapshot => snapshot.LastAppliedSequence == 2);
+                Assert.That(delivered, Is.EqualTo(new long[] { 1, 2 }));
+                Assert.That(host.AdmitProposal(1, proposal1).Status, Is.EqualTo(OperationAdmissionStatus.Duplicate));
+                Assert.That(calls, Is.EqualTo(2));
+            }
+            finally { release.Set(); StopBackground(host); }
+        }
+
+        [Test]
+        public void PublishedNestedValuesAndUiReadGraphCannotMutateTheFrozenCommandCapture()
+        {
+            var group = ActionGroup(); group.Seal(0, true); var host = group.Host;
+            host.StartBackgroundExecution();
+            try
+            {
+                var snapshot = AwaitPublication(host, value => value.ReadWindowPermissions().Any(w => w.IsPermitted));
+                var originalView = JsonConvert.SerializeObject(snapshot.ReadView());
+                var originalPermissions = JsonConvert.SerializeObject(snapshot.ReadWindowPermissions());
+                var originalBoundary = JsonConvert.SerializeObject(snapshot.ReadBoundary(0));
+                var view = snapshot.ReadView(); view.Players[0].HandCardIds.Add("caller-only"); view.Players[0].Name = "调用方副本";
+                var permissions = snapshot.ReadWindowPermissions(); permissions[0].Window.AuthorizedPlayerIds.Clear(); permissions[0].AvailablePlayerIds.Clear();
+                snapshot.ReadBoundary(0).Windows.Clear();
+                group.Sessions[0].State.EffectRuntime.StateRevision += 100;
+                Assert.That(JsonConvert.SerializeObject(snapshot.ReadView()), Is.EqualTo(originalView));
+                Assert.That(JsonConvert.SerializeObject(snapshot.ReadWindowPermissions()), Is.EqualTo(originalPermissions));
+                Assert.That(JsonConvert.SerializeObject(snapshot.ReadBoundary(0)), Is.EqualTo(originalBoundary));
+                Assert.Throws<InvalidOperationException>(() => group.Sessions[0].Submit(new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = 3 }));
+            }
+            finally { StopBackground(host); }
+        }
+
+        [Test]
+        public void BackgroundStopRevokesUndeliveredGenerationAndLocalSubmitRetainsItsSynchronousNotification()
+        {
+            var backgroundGroup = ActionGroup(); backgroundGroup.Seal(0, true); var host = backgroundGroup.Host;
+            int permissions = 0; host.OperationWindowPermissionChanged += _ => permissions++;
+            host.StartBackgroundExecution(); host.RequestStop(); StopBackground(host);
+            Assert.That(host.DrainMainThreadNotifications(32), Is.EqualTo(0)); Assert.That(permissions, Is.EqualTo(0));
+            var localGroup = ActionGroup(); var local = localGroup.Sessions[1]; var originalRoot = local.State;
+            int commits = 0; int caller = Thread.CurrentThread.ManagedThreadId;
+            local.StateCommitted += () => { Assert.That(Thread.CurrentThread.ManagedThreadId, Is.EqualTo(caller)); commits++; };
+            var result = local.Submit(Answer(local, 1, "local-synchronous-answer"));
+            Assert.That(result.Succeeded, Is.True); Assert.That(commits, Is.EqualTo(1));
+            Assert.That(local.State, Is.SameAs(originalRoot));
+            Assert.That(localGroup.Coordinators.All(c => !c.IsBackgroundExecutionEnabled), Is.True);
+        }
+
+        private static SimulationPublishedSnapshot AwaitPublication(DeterministicSimulationCoordinator coordinator, Func<SimulationPublishedSnapshot, bool> predicate)
+        {
+            var deadline = System.Diagnostics.Stopwatch.StartNew();
+            while (deadline.Elapsed < TimeSpan.FromSeconds(10))
+            {
+                coordinator.DrainMainThreadNotifications(32);
+                if (coordinator.TryReadPublishedSnapshot(out var snapshot) && predicate(snapshot)) return snapshot;
+                if (coordinator.BackgroundExecutionException != null) throw coordinator.BackgroundExecutionException;
+                Thread.Sleep(1);
+            }
+            throw new TimeoutException("隔离夹具未收到预期发布帧。");
+        }
+
+        [Test]
+        public void BackgroundRecoveryPreparationRejectsTheOwnerStartupGapAndRequiresSafeExit()
+        {
+            var group = ActionGroup(); var session = group.Sessions[0]; var restored = GameStateCloneService.DeepClone(session.State);
+            group.Host.StartBackgroundExecution();
+            try
+            {
+                Assert.That(session.TryPrepareConfirmedRecoveryState(restored, new GameSessionLogContinuationDto(),
+                    GameStateViewer.Player(3), out _, out var fault), Is.False);
+                Assert.That(fault, Is.EqualTo("recovery_execution_not_quiescent"));
+            }
+            finally { StopBackground(group.Host); }
+            Assert.That(session.TryPrepareConfirmedRecoveryState(restored, new GameSessionLogContinuationDto(),
+                GameStateViewer.Player(3), out var prepared, out var prepareFault), Is.True, prepareFault);
+            Assert.That(session.TryCommitPreparedRecovery(prepared, out var commitFault), Is.True, commitFault);
+        }
+
+        [Test]
+        public void OldPublishedCheckpointExportsItsOriginalStateAndContinuationAfterTheSessionRetentionWindowExpires()
+        {
+            var group = ActionGroup(requiredAnswerCount: 6); group.Seal(0, true); var host = group.Host;
+            SimulationPublishedSnapshot retained = null; string digest = null; int revision = 0;
+            host.StartBackgroundExecution();
+            try
+            {
+                AwaitPublication(host, snapshot => snapshot.ReadWindowPermissions().Any(w => w.IsPermitted));
+                for (int sequence = 1; sequence <= 5; sequence++)
+                {
+                    var current = ApplyBackgroundAnswer(group, sequence, "retained-answer-" + sequence);
+                    if (sequence == 1)
+                    {
+                        retained = current; revision = current.StateRevision;
+                        digest = RuleStateDigestService.Compute(group.Sessions[0].State);
+                    }
+                }
+                Assert.That(host.LastAppliedSequence, Is.EqualTo(5));
+                Assert.That(retained.LastAppliedSequence, Is.EqualTo(1));
+                Assert.That(retained.CanCreateSaveCheckpoint, Is.True);
+                Assert.That(group.Sessions[0].State.EffectRuntime.StateRevision > revision, Is.True);
+            }
+            finally { StopBackground(host); }
+            // 此前没有导出旧点；四次后续提交已越过latest/previous/pinned窗口，且旧owner已退出。
+            var export = retained.CreateSaveCheckpointAsync();
+            Assert.That(SpinWait.SpinUntil(() => export.IsCompleted, TimeSpan.FromSeconds(10)), Is.True);
+            var checkpoint = export.GetAwaiter().GetResult();
+            Assert.That(checkpoint.Baseline.ConfirmedGlobalSequence, Is.EqualTo(1));
+            Assert.That(checkpoint.Baseline.ConfirmedCommands.Single().Outcome.CommandId, Is.EqualTo("retained-answer-1"));
+            Assert.That(checkpoint.Archive.Snapshot.StateRevision, Is.EqualTo(revision));
+            Assert.That(RuleStateDigestService.Compute(checkpoint.Archive.Snapshot.State), Is.EqualTo(digest));
+            Assert.That(checkpoint.Continuation, Is.Not.Null);
+            // 本夹具只有AnswerInteraction，没有未完成的公共主行动日志，原continuation应为准确空续接。
+            Assert.That(SimulationConfirmedRecoveryInstaller.SerializeContinuation(checkpoint.Continuation),
+                Is.EqualTo(SimulationConfirmedRecoveryInstaller.SerializeContinuation(new GameSessionLogContinuationDto())));
+        }
+
+        [Test]
+        public void BackgroundProtocolFactFailureStillExportsTheEarlierFrozenConfirmedPrefix()
+        {
+            var group = ActionGroup(maximumHostBoundaryFacts: 1); group.Seal(0, true); var host = group.Host;
+            int faults = 0; host.SimulationProtocolFaulted += _ => faults++;
+            host.StartBackgroundExecution();
+            try
+            {
+                AwaitPublication(host, snapshot => snapshot.ReadWindowPermissions().Any(w => w.IsPermitted));
+                ApplyBackgroundAnswer(group, 1, "before-fact-failure-1");
+                ApplyBackgroundAnswer(group, 2, "before-fact-failure-2");
+                string confirmedDigest = RuleStateDigestService.Compute(group.Sessions[0].State);
+                int confirmedRevision = group.Sessions[0].State.EffectRuntime.StateRevision;
+                var end = new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = 1, CommandId = "fact-failure-end" };
+                Assert.That(group.Coordinators[1].TryCreateLocalProposal(end, out var proposal, out _), Is.True);
+                Assert.That(host.AdmitProposal(1, proposal).Status, Is.EqualTo(OperationAdmissionStatus.Accepted));
+                var stopped = AwaitPublication(host, snapshot => snapshot.IsStopped);
+                Assert.That(stopped.LastAppliedSequence, Is.EqualTo(3));
+                Assert.That(stopped.ValidatedThroughSequence, Is.EqualTo(2));
+                Assert.That(stopped.CanCreateSaveCheckpoint, Is.False);
+                Assert.That(faults, Is.EqualTo(1));
+                host.BeginConfirmedRecovery();
+                AwaitPublication(host, snapshot => snapshot.IsRecoveringConfirmedPrefix);
+                var export = host.CreateConfirmedRecoveryCheckpointAsync(2, 2);
+                Assert.That(SpinWait.SpinUntil(() => export.IsCompleted, TimeSpan.FromSeconds(10)), Is.True);
+                var checkpoint = export.GetAwaiter().GetResult();
+                Assert.That(checkpoint.Baseline.ConfirmedGlobalSequence, Is.EqualTo(2));
+                Assert.That(checkpoint.Baseline.ConfirmedCommands.Count, Is.EqualTo(2));
+                Assert.That(checkpoint.Archive.Snapshot.StateRevision, Is.EqualTo(confirmedRevision));
+                Assert.That(RuleStateDigestService.Compute(checkpoint.Archive.Snapshot.State), Is.EqualTo(confirmedDigest));
+                Assert.That(host.ReadPendingTail().Single().Command.CommandId, Is.EqualTo(end.CommandId));
+            }
+            finally { StopBackground(host); }
+        }
+
+        private static SimulationPublishedSnapshot ApplyBackgroundAnswer(Group group, int sequence, string commandId)
+        {
+            var actor = group.Coordinators[1];
+            Assert.That(actor.TryCreateLocalProposal(Answer(group.Sessions[1], 1, commandId), out var proposal, out _), Is.True);
+            var accepted = group.Host.AdmitProposal(1, proposal);
+            Assert.That(accepted.Status, Is.EqualTo(OperationAdmissionStatus.Accepted));
+            actor.ReceiveOrdered(accepted.OrderedCommand); Assert.That(actor.Pump(1), Is.EqualTo(1));
+            return AwaitPublication(group.Host, snapshot => snapshot.LastAppliedSequence == sequence);
+        }
+
+        private static void StopBackground(DeterministicSimulationCoordinator coordinator)
+        {
+            coordinator.RequestStop();
+            Assert.That(SpinWait.SpinUntil(() => coordinator.ExecutionStopped.IsCompleted, TimeSpan.FromSeconds(10)), Is.True,
+                "隔离夹具未等到执行owner安全退出。");
+        }
+
+        private sealed class BeforeHandle : IGameCommandHandler
+        {
+            private readonly IGameCommandHandler inner; private readonly Action before;
+            internal BeforeHandle(IGameCommandHandler inner, Action before) { this.inner = inner; this.before = before; }
+            public bool CanHandle(GameCommand command) => inner.CanHandle(command);
+            public CommandResult Handle(GameState state, GameCommand command) { before(); return inner.Handle(state, command); }
+        }
 
         [Test]
         public void CompleteInitialArchiveStartsThreeRealReplicasAndMissingLogIsAppliedOnce()
@@ -196,7 +417,7 @@ namespace YC.Tests.EditMode
             return command;
         }
 
-        private static Group ActionGroup()
+        private static Group ActionGroup(Action beforeHostAnswer = null, int requiredAnswerCount = 2, int maximumHostBoundaryFacts = 4096)
         {
             var state = new GameState { GameId = "same-actor-match", Phase = GamePhase.ActionRound1, Round = 1, CurrentPlayerId = 1, StartPlayerId = 1,
                 UseSeatTurnOrder = true, LaunchPlayerOrder = new List<int> { 1, 2, 3 }, MapId = StaticMapDefinitions.FourPlayerMapId };
@@ -204,11 +425,7 @@ namespace YC.Tests.EditMode
             var registry = new EffectRegistry(); var round = new RoundExecutionService(registry);
             Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
             round.MarkMainActionComplete(state, 1);
-            registry.Register(new EffectRegistration("test.simulation.required_input", ctx => {
-                if (ctx.GetLatestInteractionAnswer() != null && ctx.Node.FlowStage == "second") return EffectStepResult.Completed();
-                return EffectStepResult.Continue(ctx.Node.FlowStage == "" ? "first" : "second").AddInteraction(new EffectInteractionSpec {
-                    InteractionTypeId = "test.simulation.answer", AnsweringPlayerId = 1, AnswerSchema = "boolean_accept" });
-            }, EffectExecutorKind.IntrinsicFlow));
+            registry.Register(ActionAnswerRegistration(requiredAnswerCount));
             var engine = round.CreateCommandExecutor(state);
             Assert.That(engine.TryCreatePlayerActionEffect(1, EffectSpec.Create("test.simulation.required_input", playerId: 1), "1", "test.simulation", out _), Is.True);
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False);
@@ -216,11 +433,29 @@ namespace YC.Tests.EditMode
             Console.WriteLine(JsonConvert.SerializeObject(new { FixtureRevision = state.EffectRuntime.StateRevision, Requests = state.EffectRuntime.InteractionRequests.Where(r => r.Status == "open").Select(r => new { r.InteractionTypeId, r.StateRevision, r.AnsweringPlayerId }) }));
 #endif
             var sessions = Enumerable.Range(0, 3).Select(_ => new GameSession(GameStateCloneService.DeepClone(state))).ToArray();
-            foreach (var session in sessions) {
-                session.RegisterHandler(new AnswerInteractionCommandHandler(registry, round));
-                session.RegisterHandler(new EndActionCommandHandler(new RoundAdvanceService(round), new FinalScoringService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())), registry, round)); }
-            return new Group(sessions);
+            for (int i = 0; i < sessions.Length; i++) {
+                // 规则定义相同，但运行实例/registry归各副本；后台夹具不共享动态可写registry。
+                var replicaRegistry = new EffectRegistry();
+                replicaRegistry.Register(ActionAnswerRegistration(requiredAnswerCount));
+                var replicaRound = new RoundExecutionService(replicaRegistry);
+                IGameCommandHandler answerHandler = new AnswerInteractionCommandHandler(replicaRegistry, replicaRound);
+                sessions[i].RegisterHandler(i == 0 && beforeHostAnswer != null ? new BeforeHandle(answerHandler, beforeHostAnswer) : answerHandler);
+                sessions[i].RegisterHandler(new EndActionCommandHandler(new RoundAdvanceService(replicaRound), new FinalScoringService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())), replicaRegistry, replicaRound)); }
+            return new Group(sessions, maximumHostBoundaryFacts);
         }
+
+        private static EffectRegistration ActionAnswerRegistration(int requiredAnswerCount) => new EffectRegistration("test.simulation.required_input", ctx => {
+            if (requiredAnswerCount == 2)
+            {
+                if (ctx.GetLatestInteractionAnswer() != null && ctx.Node.FlowStage == "second") return EffectStepResult.Completed();
+                return EffectStepResult.Continue(ctx.Node.FlowStage == "" ? "first" : "second").AddInteraction(new EffectInteractionSpec {
+                    InteractionTypeId = "test.simulation.answer", AnsweringPlayerId = 1, AnswerSchema = "boolean_accept" });
+            }
+            int stage = ctx.Node.FlowStage == "" ? 0 : int.Parse(ctx.Node.FlowStage, CultureInfo.InvariantCulture);
+            if (ctx.GetLatestInteractionAnswer() != null && stage == requiredAnswerCount) return EffectStepResult.Completed();
+            return EffectStepResult.Continue((stage + 1).ToString(CultureInfo.InvariantCulture)).AddInteraction(new EffectInteractionSpec {
+                InteractionTypeId = "test.simulation.answer", AnsweringPlayerId = 1, AnswerSchema = "boolean_accept" });
+        }, EffectExecutorKind.IntrinsicFlow);
 
         private sealed class Group
         {
@@ -229,11 +464,14 @@ namespace YC.Tests.EditMode
             internal readonly List<CommandValidationPrefixDto> Prefixes = new List<CommandValidationPrefixDto>();
             internal DeterministicSimulationCoordinator Host => Coordinators[0];
             internal int Index(int player) => player == 3 ? 0 : player;
-            internal Group(GameSession[] sessions)
+            internal Group(GameSession[] sessions, int maximumHostBoundaryFacts = 4096)
             {
                 Sessions = sessions;
-                Coordinators = Enumerable.Range(0, 3).Select(i => new DeterministicSimulationCoordinator(sessions[i],
-                    DeterministicSimulationSessionOptions.CreateInitial(i == 0, i == 0 ? 3 : i, sessions[i], new[] { 1, 2, 3 }))).ToArray();
+                Coordinators = Enumerable.Range(0, 3).Select(i => {
+                    var options = DeterministicSimulationSessionOptions.CreateInitial(i == 0, i == 0 ? 3 : i, sessions[i], new[] { 1, 2, 3 });
+                    if (i == 0) options.MaximumBoundaryFacts = maximumHostBoundaryFacts;
+                    return new DeterministicSimulationCoordinator(sessions[i], options);
+                }).ToArray();
                 foreach (var coordinator in Coordinators) coordinator.Begin();
                 Host.WindowPermitProduced += permit => { foreach (var client in Coordinators.Skip(1)) client.ReceiveWindowPermit(permit); };
                 Host.CommandValidationPrefixAdvanced += prefix => Prefixes.Add(prefix);

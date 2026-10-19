@@ -169,6 +169,19 @@ namespace YC.Domain.Travel
 
         public ValidationResult TryValidatePlan(GameState state, RouteSelectionSession session, RouteSelectionRequestBinding requestBinding,
             RouteSelectionDraft draft, IReadOnlyList<string> selectableLocationIds, out RouteSelectionPreview preview)
+            => TryValidatePlanCore(state, session, requestBinding, draft, selectableLocationIds, false, out preview);
+
+        internal ValidationResult TryValidateNormalHarvestPlan(GameState state, RouteSelectionSession session, RouteSelectionRequestBinding requestBinding,
+            RouteSelectionDraft draft, IReadOnlyList<string> selectableLocationIds, out RouteSelectionPreview preview)
+        {
+            preview = null;
+            if (state == null || session == null || !InteractionRequestValidity.IsNormalHarvestOwner(state, state.EffectRuntime?.EffectNodes.Find(n => n.EffectId == session.OwnerEffectId)))
+                return Invalid("normal_harvest_request_owner_invalid");
+            return TryValidatePlanCore(state, session, requestBinding, draft, selectableLocationIds, true, out preview);
+        }
+
+        private ValidationResult TryValidatePlanCore(GameState state, RouteSelectionSession session, RouteSelectionRequestBinding requestBinding,
+            RouteSelectionDraft draft, IReadOnlyList<string> selectableLocationIds, bool concurrentPreflight, out RouteSelectionPreview preview)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
             if (session == null) throw new ArgumentNullException(nameof(session));
@@ -177,7 +190,8 @@ namespace YC.Domain.Travel
             if (selectableLocationIds == null) throw new ArgumentNullException(nameof(selectableLocationIds));
             preview = null;
             if (session.ActiveRequestBinding == null || requestBinding.SessionId != session.SessionId || requestBinding.ScopeKey != session.ActiveRequestBinding.ScopeKey
-                || requestBinding.FrozenFactsDigest != FactsDigest(state, session, selectableLocationIds)) return Invalid("route_selection_facts_changed");
+                || !(concurrentPreflight ? MatchesConcurrentRequestFacts(state, session, requestBinding, selectableLocationIds) :
+                    MatchesRequestFacts(state, session, requestBinding, selectableLocationIds))) return Invalid("route_selection_facts_changed");
             var projection = Query(state, session, draft, selectableLocationIds);
             if (!projection.Validation.IsValid) return projection.Validation;
             if (projection.Preview == null) return Invalid("route_selection_target_required");
@@ -199,13 +213,44 @@ namespace YC.Domain.Travel
             return ValidationResult.Success;
         }
 
+        internal bool MatchesRequestFacts(GameState state, RouteSelectionSession session, RouteSelectionRequestBinding binding, IReadOnlyList<string> selectable)
+        {
+            if (binding.FrozenFactsDigest == FactsDigest(state, session, selectable)) return true;
+            // 原公开计划入口仅在可信新答案留下接受事实后允许观察差异；旧无标答案仍按旧facts精确校验。
+            var owner = state.EffectRuntime?.EffectNodes.Find(n => n.EffectId == session.OwnerEffectId);
+            var proof = RouteSelectionSessionAuthority.Value(owner?.ContinuationData, InteractionRequestValidity.AcceptanceRecord);
+            if (RouteSelectionSessionAuthority.Integer(proof, InteractionRequestValidity.AcceptedVersionParameter) != InteractionRequestValidity.ContractVersion ||
+                RouteSelectionSessionAuthority.Text(proof, InteractionRequestValidity.AcceptedDigestParameter).Length != 64 ||
+                RouteSelectionSessionAuthority.Text(proof, InteractionRequestValidity.AcceptedCommandParameter).Length == 0 ||
+                owner?.ContinuationOperationContext?.SourceCommandId != RouteSelectionSessionAuthority.Text(proof, InteractionRequestValidity.AcceptedCommandParameter) ||
+                owner.ContinuationOperationContext.ActingPlayerId != session.PlayerId) return false;
+            var accepted = state.EffectRuntime.InteractionRequests.Find(r => r.OwnerEffectId == session.OwnerEffectId && r.Status == "answered" &&
+                r.InteractionTypeId == "route_resource.selection" && r.CandidateSetId == binding.CandidateSetId && r.CandidateSetVersion == binding.CandidateSetVersion &&
+                r.GetStableInteractionId() == RouteSelectionSessionAuthority.Text(proof, "interactionId"));
+            return accepted != null && MatchesConcurrentRequestFacts(state, session, binding, selectable);
+        }
+
+        internal bool MatchesConcurrentRequestFacts(GameState state, RouteSelectionSession session, RouteSelectionRequestBinding binding, IReadOnlyList<string> selectable)
+        {
+            if (binding.FrozenFactsDigest == FactsDigest(state, session, selectable)) return true;
+            var owner = state.EffectRuntime?.EffectNodes.Find(n => n.EffectId == session.OwnerEffectId);
+            if (!InteractionRequestValidity.IsNormalHarvestOwner(state, owner)) return false;
+            // 旧scope/facts字节保持。只复验并发投影CurrentPlayer的可能旧值，其余原facts逐字段参与同一摘要。
+            // 不改当前State、不重签scope，也不把真实路线、资源token、影响力或费用变动归为观察变化。
+            return state.Players.Select(p => p.PlayerId).Concat(new[] { -1 }).Distinct()
+                .Any(player => binding.FrozenFactsDigest == FactsDigest(state, session, selectable, player));
+        }
+
         internal string FactsDigest(GameState state, RouteSelectionSession session, IReadOnlyList<string> selectable)
+            => FactsDigest(state, session, selectable, state.CurrentPlayerId);
+
+        private string FactsDigest(GameState state, RouteSelectionSession session, IReadOnlyList<string> selectable, int observationPlayer)
         {
             var map = Map(state); var facts = new RouteTollService(map).ReadRouteFacts(state, session.PlayerId);
             var fields = new List<string> { "route_selection.v1", session.OwnerEffectId, session.Purpose.ToString(), session.PlayerId.ToString(CultureInfo.InvariantCulture), state.MapId,
                 state.FindPlayer(session.PlayerId)?.CityLocationId ?? "", session.ActionContextId, session.MinimumLocations.ToString(CultureInfo.InvariantCulture), session.MaximumLocations.ToString(CultureInfo.InvariantCulture), session.BudgetBindingId };
             AddList(fields, "upper", session.SelectableLocationUpperBound); AddList(fields, "eligible", selectable);
-            fields.Add(state.Phase.ToString()); fields.Add(state.CurrentPlayerId.ToString(CultureInfo.InvariantCulture)); fields.Add(state.Round.ToString(CultureInfo.InvariantCulture));
+            fields.Add(state.Phase.ToString()); fields.Add(observationPlayer.ToString(CultureInfo.InvariantCulture)); fields.Add(state.Round.ToString(CultureInfo.InvariantCulture));
             fields.Add("routeFacts"); fields.Add(facts.Count.ToString(CultureInfo.InvariantCulture));
             foreach (var fact in facts)
             {

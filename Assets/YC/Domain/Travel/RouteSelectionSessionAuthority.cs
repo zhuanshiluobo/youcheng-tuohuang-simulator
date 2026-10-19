@@ -77,6 +77,35 @@ namespace YC.Domain.Travel
             return ValidationResult.Success;
         }
 
+        /// <summary>正常并发采集的只读准入复验；不Finalize/Seal、不改scope或答案。</summary>
+        public ValidationResult TryValidateNormalHarvestRequest(GameState state, EffectNodeRuntimeState ownerNode,
+            InteractionRequest request, IReadOnlyList<string> selectedCandidateIds)
+        {
+            if (!InteractionRequestValidity.IsNormalHarvestOwner(state, ownerNode) || request?.Status != "open" ||
+                request.InteractionTypeId != "route_resource.selection" ||
+                !state.EffectRuntime.InteractionRequests.Any(r => ReferenceEquals(r, request)) ||
+                request.OwnerEffectId != ownerNode.EffectId || request.AnsweringPlayerId != ownerNode.PlayerId)
+                return Invalid("normal_harvest_request_owner_invalid");
+            var restored = TryRestore(state, ownerNode, out var session, out var binding);
+            if (!restored.IsValid) return restored;
+            var player = state.FindPlayer(session.PlayerId);
+            if (session.Purpose != RouteSelectionPurpose.NormalHarvest || session.Stage != RouteSelectionStage.Selecting || binding == null ||
+                player.CityLocationId != session.StartLocationId || player.HasCollectedResourcesThisRound ||
+                player.ResourceCollectionStartGoldVoucher != session.StartGoldVoucherAmount ||
+                binding.CandidateSetId != request.CandidateSetId || binding.CandidateSetVersion != request.CandidateSetVersion ||
+                binding.ScopeKey != Text(request.PromptParameters, "scopeKey") || binding.FrozenFactsDigest != Text(request.PromptParameters, "factsDigest"))
+                return Invalid("normal_harvest_request_binding_changed");
+            var map = Service.Map(state);
+            var eligible = YC.Domain.Effects.RouteResourceSelectionEffectExecutor.GetSelectableLocations(state, session, map)
+                .Where(id => session.SelectableLocationUpperBound.Contains(id)).ToArray();
+            if (!Service.MatchesConcurrentRequestFacts(state, session, binding, eligible)) return Invalid("route_selection_facts_changed");
+            if (selectedCandidateIds == null) return ValidationResult.Success;
+            var parsed = new RouteSelectionAnswerCodec().TryParse(request, selectedCandidateIds, out var answer);
+            if (!parsed.IsValid) return parsed;
+            if (answer.IsCancellation) return Invalid("normal_harvest_cannot_cancel");
+            return Service.TryValidateNormalHarvestPlan(state, session, binding, answer.Draft, eligible, out _);
+        }
+
         public ValidationResult TryPrepareRequest(GameState state, EffectNodeRuntimeState ownerNode, RouteSelectionSession session, IReadOnlyList<string> selectableLocationIds, out RouteSelectionRequestBinding requestBinding, out IReadOnlyList<string> candidateIds)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));

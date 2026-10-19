@@ -38,6 +38,18 @@ namespace YC.Presentation
         private bool localPreview;
         private GameState localPreviewState;
         private int localPreviewPlayer, localPreviewRevision;
+        public Func<bool> IsNetworkSession { private get; set; }
+        internal bool CanPreserveNormalHarvestDraft(InteractionRequestProjection routedRequest)
+        {
+            if (IsNetworkSession?.Invoke() != true || localPreview || Presenter.Session?.Purpose != RouteSelectionPurpose.NormalHarvest ||
+                rendered == null || (!ownsPresentation && !confirmedIntent.HasPending)) return false;
+            var current = Current();
+            var currentGame = state()?.GameId;
+            return current != null && CanRender(current) && current.StateRevision >= rendered.StateRevision &&
+                InteractionCommandIntent.SameContract(gameId, rendered, currentGame, current) &&
+                InteractionCommandIntent.SameContract(gameId, routedRequest, currentGame, current) &&
+                (!confirmedIntent.HasPending || confirmedIntent.IsPendingForRequest(currentGame, current));
+        }
         public bool HasUnsubmittedMainActionDraft => localPreview && string.IsNullOrEmpty(inFlight);
         public bool IsMainActionSubmissionInFlight => localPreview && !string.IsNullOrEmpty(inFlight);
 
@@ -107,6 +119,9 @@ namespace YC.Presentation
             var currentGame = state()?.GameId;
             if (gameId == currentGame && request.InteractionId == rendered?.InteractionId && request.StateRevision < rendered.StateRevision) return;
             if (!string.IsNullOrEmpty(currentGame) && confirmedIntent.IsBusy && !confirmedIntent.BelongsToContext(currentGame, player())) confirmedIntent.Reset();
+            // 联机正常采集已确认的原计划等待准确回执；他人发表不能清草稿或重新编制答案。
+            if (IsNetworkSession?.Invoke() == true && Presenter.Session?.Purpose == RouteSelectionPurpose.NormalHarvest &&
+                confirmedIntent.IsPendingForRequest(currentGame, request)) return;
             var publicState = visibleState();
             var interaction = publicState?.Interactions?.FirstOrDefault(value => value.InteractionId == request.InteractionId);
             if (interaction == null || !reader.TryRead(publicState, interaction, out var session, out var binding).IsValid)
@@ -251,7 +266,7 @@ namespace YC.Presentation
             }
             var command = EffectInteractionCommands.Answer(rendered, player(), answer, false);
             if (!confirmedIntent.Begin(gameId, rendered, command,
-                Presenter.Session.Purpose == RouteSelectionPurpose.NormalHarvest, SubmissionDependency())) return;
+                Presenter.Session.Purpose == RouteSelectionPurpose.NormalHarvest && IsNetworkSession?.Invoke() != true, SubmissionDependency())) return;
             lastSubmissionFrame = Time.frameCount;
             Dispatch(command);
         }

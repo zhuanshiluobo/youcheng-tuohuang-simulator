@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Rules;
@@ -8,12 +9,18 @@ using YC.Domain.State;
 
 namespace YC.Application.Sessions
 {
-    /// <summary>不持有状态图的只读句柄；仅原会话能导出仍保留的捕获点。</summary>
+    /// <summary>固定捕获只在Application内部可读；旧公开导出仍遵守原会话的保留窗口。</summary>
     public sealed class GameSessionRecoveryPoint
     {
-        internal GameSessionRecoveryPoint(GameSession owner, string commandId) { Owner = owner; CommandId = commandId ?? string.Empty; }
+        internal GameSessionRecoveryPoint(GameSession owner, string commandId) : this(owner, commandId, null, null) { }
+        internal GameSessionRecoveryPoint(GameSession owner, string commandId, GameState state, GameSessionLogContinuationDto continuation)
+        { Owner = owner; CommandId = commandId ?? string.Empty; CapturedState = state; CapturedContinuation = continuation; }
         internal GameSession Owner { get; }
+        internal GameState CapturedState { get; }
+        internal GameSessionLogContinuationDto CapturedContinuation { get; }
         public string CommandId { get; }
+        internal GameSessionRecoveryExport ExportDetached() => new GameSessionRecoveryExport(
+            HostRecoveryService.CreateArchive(GameStateCloneService.DeepClone(CapturedState)), GameStateCloneService.DeepClone(CapturedContinuation));
     }
 
     public sealed class GameSessionRecoveryExport
@@ -27,13 +34,15 @@ namespace YC.Application.Sessions
     public sealed class PreparedGameSessionRecovery
     {
         internal PreparedGameSessionRecovery(GameSession owner, long generation, GameState state, GameStateView view,
-            GameSessionLogContinuationDto continuation)
-        { Owner = owner; Generation = generation; State = state; View = view; Continuation = continuation; }
+            GameSessionLogContinuationDto continuation, bool backgroundPrepared = false, object preparedLog = null)
+        { Owner = owner; Generation = generation; State = state; View = view; Continuation = continuation; BackgroundPrepared = backgroundPrepared; PreparedLog = preparedLog; }
         internal GameSession Owner { get; }
         internal long Generation { get; }
         internal GameState State { get; }
         internal GameStateView View { get; }
         internal GameSessionLogContinuationDto Continuation { get; }
+        internal bool BackgroundPrepared { get; }
+        internal object PreparedLog { get; }
         internal bool Committed;
     }
 
@@ -108,6 +117,71 @@ namespace YC.Application.Sessions
 
     public sealed partial class GameSession
     {
+        private int backgroundBound, backgroundOwnerThread, backgroundPlayerId, backgroundOwnerExited;
+        private long backgroundGeneration, backgroundCommitVersion, backgroundPublishedCommitVersion = -1;
+        private GameState backgroundReadState;
+        private bool IsBackgroundReader => Volatile.Read(ref backgroundBound) != 0 && Thread.CurrentThread.ManagedThreadId != Volatile.Read(ref backgroundOwnerThread);
+        internal bool HasBackgroundExecutionOwner => Volatile.Read(ref backgroundOwnerThread) != 0;
+        internal bool IsBackgroundExecutionQuiescent => Volatile.Read(ref backgroundBound) == 0 || Volatile.Read(ref backgroundOwnerExited) != 0;
+        internal long BackgroundCommitVersion => Interlocked.Read(ref backgroundCommitVersion);
+        internal void BindBackgroundExecution(long generation, int playerId = -1)
+        {
+            if (Interlocked.CompareExchange(ref backgroundBound, 1, 0) != 0) throw new InvalidOperationException("session_execution_owner_already_bound");
+            backgroundGeneration = generation; backgroundPlayerId = playerId;
+            Volatile.Write(ref backgroundOwnerExited, 0);
+            backgroundReadState = null; backgroundPublishedCommitVersion = -1; backgroundCommitVersion = 0;
+        }
+        internal void ClaimBackgroundOwner(long generation)
+        {
+            if (backgroundGeneration != generation || Volatile.Read(ref backgroundBound) == 0 ||
+                Interlocked.CompareExchange(ref backgroundOwnerThread, Thread.CurrentThread.ManagedThreadId, 0) != 0)
+                throw new InvalidOperationException("session_execution_owner_conflict");
+        }
+        internal void ReleaseBackgroundOwner(long generation)
+        { if (backgroundGeneration == generation) { Volatile.Write(ref backgroundOwnerThread, 0); Volatile.Write(ref backgroundOwnerExited, 1); } }
+        internal void CancelBackgroundBinding(long generation)
+        { if (backgroundGeneration == generation && !HasBackgroundExecutionOwner) Volatile.Write(ref backgroundBound, 0); }
+        private void EnsureExecutionOwner()
+        { if (IsBackgroundReader) throw new InvalidOperationException("session_mutation_requires_execution_owner"); }
+        internal IReadOnlyList<Exception> PublishBackgroundReadState(long generation, long commitVersion, GameState uiState, GameStateView uiView, Func<bool> canNotify)
+        {
+            var errors = new List<Exception>();
+            if (backgroundGeneration != generation || Volatile.Read(ref backgroundBound) == 0) return errors;
+            Volatile.Write(ref backgroundReadState, uiState); View = uiView;
+            bool notify = commitVersion > backgroundPublishedCommitVersion && commitVersion > 0;
+            backgroundPublishedCommitVersion = commitVersion;
+            if (notify)
+                foreach (Action listener in StateCommitted?.GetInvocationList() ?? Array.Empty<Delegate>())
+                {
+                    if (!canNotify()) break;
+                    try { listener(); } catch (Exception exception) { errors.Add(exception); }
+                }
+            return errors;
+        }
+        internal GameSessionRecoveryPoint ReadLatestBackgroundRecoveryPoint()
+        {
+            EnsureExecutionOwner();
+            return FreezeBackgroundRecoveryPoint(latestRecoveryCapture?.Point ?? EnableConfirmedRecoveryCapture());
+        }
+        internal GameSessionRecoveryPoint FreezeBackgroundRecoveryPoint(GameSessionRecoveryPoint point)
+        {
+            EnsureExecutionOwner();
+            if (point == null || !ReferenceEquals(point.Owner, this)) throw new InvalidOperationException("checkpoint_not_retained");
+            var capture = ReferenceEquals(latestRecoveryCapture?.Point, point) ? latestRecoveryCapture :
+                ReferenceEquals(previousRecoveryCapture?.Point, point) ? previousRecoveryCapture :
+                ReferenceEquals(pinnedRecoveryCapture?.Point, point) ? pinnedRecoveryCapture : null;
+            if (capture == null) throw new InvalidOperationException("checkpoint_not_retained");
+            // 仅网络私有发布句柄持有强捕获；Local旧公开句柄继续只标识保留窗口。
+            return new GameSessionRecoveryPoint(this, point.CommandId, capture.State, capture.Continuation);
+        }
+        internal static CommandResult CopyCommandResult(CommandResult result)
+        {
+            if (result == null) return null;
+            if (!result.Succeeded) return CommandResult.Invalid(new ValidationResult(result.Validation.IsValid, result.Validation.ErrorCode, result.Validation.Reason));
+            return CommandResult.SuccessResult(result.Events.Select(e => new GameEvent { EventId = e.EventId, Kind = e.Kind, PlayerId = e.PlayerId,
+                SubjectId = e.SubjectId, Message = e.Message, Data = e.Data == null ? null : new Dictionary<string, string>(e.Data, StringComparer.Ordinal) }).ToList(), result.LogMessage);
+        }
+
         private long mutationGeneration;
         private bool confirmedRecoveryCaptureEnabled;
         private RecoveryCapture latestRecoveryCapture, previousRecoveryCapture, pinnedRecoveryCapture;
@@ -121,6 +195,7 @@ namespace YC.Application.Sessions
 
         public GameSessionRecoveryPoint EnableConfirmedRecoveryCapture()
         {
+            EnsureExecutionOwner();
             if (confirmedRecoveryCaptureEnabled && latestRecoveryCapture != null) return latestRecoveryCapture.Point;
             var capture = PrepareRecoveryCapture(State, pendingActionLog, string.Empty);
             confirmedRecoveryCaptureEnabled = true;
@@ -131,6 +206,7 @@ namespace YC.Application.Sessions
 
         public bool TryReadCommittedRecoveryPoint(string commandId, out GameSessionRecoveryPoint point)
         {
+            EnsureExecutionOwner();
             point = null;
             if (string.IsNullOrEmpty(commandId)) return false;
             var capture = latestRecoveryCapture?.Point.CommandId == commandId ? latestRecoveryCapture :
@@ -144,11 +220,13 @@ namespace YC.Application.Sessions
 
         public GameSessionRecoveryExport ExportConfirmedRecoveryPoint(GameSessionRecoveryPoint point)
         {
+            EnsureExecutionOwner();
             if (point == null || !ReferenceEquals(point.Owner, this)) throw new InvalidOperationException("checkpoint_not_retained");
             var capture = ReferenceEquals(latestRecoveryCapture?.Point, point) ? latestRecoveryCapture :
                 ReferenceEquals(previousRecoveryCapture?.Point, point) ? previousRecoveryCapture :
                 ReferenceEquals(pinnedRecoveryCapture?.Point, point) ? pinnedRecoveryCapture : null;
             if (capture == null) throw new InvalidOperationException("checkpoint_not_retained");
+            if (Volatile.Read(ref backgroundBound) != 0) return FreezeBackgroundRecoveryPoint(point).ExportDetached();
             return new GameSessionRecoveryExport(HostRecoveryService.CreateArchive(capture.State),
                 GameStateCloneService.DeepClone(capture.Continuation));
         }
@@ -168,19 +246,22 @@ namespace YC.Application.Sessions
             prepared = null; fault = string.Empty;
             try
             {
-                if (restored == null || continuation == null || restored.GameId != State.GameId ||
-                    restored.ContentPackHash != State.ContentPackHash || restored.EventDeckSeed != State.EventDeckSeed)
+                if (!IsBackgroundExecutionQuiescent) throw new InvalidOperationException("recovery_execution_not_quiescent");
+                if (restored == null || continuation == null || restored.GameId != activeState.GameId ||
+                    restored.ContentPackHash != activeState.ContentPackHash || restored.EventDeckSeed != activeState.EventDeckSeed)
                     throw new InvalidOperationException("recovery_session_identity_mismatch");
                 var detached = GameStateCloneService.DeepClone(restored);
                 var detachedContinuation = GameStateCloneService.DeepClone(continuation);
-                RestoreContinuation(detachedContinuation, detached);
+                var preparedLog = RestoreContinuation(detachedContinuation, detached);
                 if (detached.RandomRuntime != null && !GameplayRandomRuntime.TryValidate(detached.RandomRuntime,
                     detached.GameId, detached.EventDeckSeed, out string reason)) throw new InvalidOperationException(reason);
                 if (detached.EffectRuntime != null && !detached.EffectRuntime.TryValidate(out string runtimeReason))
                     throw new InvalidOperationException(runtimeReason);
                 var view = viewer.HasValue ? GameStateViewProjector.Project(detached, viewer.Value,
                     settlementProjectionProvider?.GetSettlementOptions(detached, viewer.Value)) : null;
-                prepared = new PreparedGameSessionRecovery(this, mutationGeneration, detached, view, detachedContinuation);
+                bool backgroundPrepared = Volatile.Read(ref backgroundBound) != 0;
+                prepared = new PreparedGameSessionRecovery(this, mutationGeneration, detached, view, detachedContinuation, backgroundPrepared,
+                    backgroundPrepared ? preparedLog : null);
                 return true;
             }
             catch (Exception ex) { fault = ex.Message; return false; }
@@ -189,13 +270,15 @@ namespace YC.Application.Sessions
         public bool TryCommitPreparedRecovery(PreparedGameSessionRecovery prepared, out string fault)
         {
             fault = string.Empty;
+            if (!IsBackgroundExecutionQuiescent) { fault = "recovery_execution_not_quiescent"; return false; }
             if (prepared == null || !ReferenceEquals(prepared.Owner, this)) { fault = "recovery_wrong_session"; return false; }
             if (prepared.Committed) return true;
             if (prepared.Generation != mutationGeneration) { fault = "recovery_prepared_expired"; return false; }
             PendingActionLog nextLog;
-            try { nextLog = RestoreContinuation(prepared.Continuation, prepared.State); }
+            try { nextLog = prepared.BackgroundPrepared ? (PendingActionLog)prepared.PreparedLog : RestoreContinuation(prepared.Continuation, prepared.State); }
             catch (Exception ex) { fault = ex.Message; return false; }
             // 所有可能失败的复制、校验和投影都在发布前完成。暂停区内只替换根引用，不调用消费者。
+            Volatile.Write(ref backgroundBound, 0); backgroundReadState = null;
             State = prepared.State;
             View = prepared.View;
             pendingActionLog = nextLog;
@@ -209,8 +292,8 @@ namespace YC.Application.Sessions
         private RecoveryCapture PrepareRecoveryCapture(GameState state, PendingActionLog log, string commandId)
         {
             using var captureSample = new ExecutionSample(ExecutionTimings, "recovery.capture");
-            return new RecoveryCapture { Point = new GameSessionRecoveryPoint(this, commandId),
-                State = GameStateCloneService.DeepClone(state), Continuation = CaptureContinuation(log) };
+            var captured = GameStateCloneService.DeepClone(state); var continuation = CaptureContinuation(log);
+            return new RecoveryCapture { Point = new GameSessionRecoveryPoint(this, commandId), State = captured, Continuation = continuation };
         }
 
         private void RetainRecoveryCapture(RecoveryCapture capture)

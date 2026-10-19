@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace YC.Application.Sessions
 {
@@ -15,7 +16,8 @@ namespace YC.Application.Sessions
         private readonly long[] calls = new long[Phases.Length];
         private readonly long[] ticks = new long[Phases.Length];
 
-        public bool Enabled { get; set; }
+        private int enabled;
+        public bool Enabled { get => Volatile.Read(ref enabled) != 0; set => Volatile.Write(ref enabled, value ? 1 : 0); }
 
         public void AddSample(string phase, long elapsedTicks)
         {
@@ -23,8 +25,8 @@ namespace YC.Application.Sessions
             int index = PhaseIndex(phase);
             if (index < 0) return;
             // 诊断累计不能因溢出改变原执行或异常路径。
-            if (calls[index] < long.MaxValue) calls[index]++;
-            ticks[index] = elapsedTicks > long.MaxValue - ticks[index] ? long.MaxValue : ticks[index] + elapsedTicks;
+            AddSaturated(ref calls[index], 1);
+            AddSaturated(ref ticks[index], elapsedTicks);
         }
 
         public Dictionary<string, long> Snapshot()
@@ -34,10 +36,17 @@ namespace YC.Application.Sessions
             };
             for (int i = 0; i < Phases.Length; i++)
             {
-                snapshot.Add(Phases[i] + ".calls", calls[i]);
-                snapshot.Add(Phases[i] + ".ticks", ticks[i]);
+                snapshot.Add(Phases[i] + ".calls", Interlocked.Read(ref calls[i]));
+                snapshot.Add(Phases[i] + ".ticks", Interlocked.Read(ref ticks[i]));
             }
             return snapshot;
+        }
+
+        private static void AddSaturated(ref long target, long value)
+        {
+            long before, after;
+            do { before = Interlocked.Read(ref target); after = value > long.MaxValue - before ? long.MaxValue : before + value; }
+            while (Interlocked.CompareExchange(ref target, after, before) != before);
         }
 
         private static int PhaseIndex(string phase)

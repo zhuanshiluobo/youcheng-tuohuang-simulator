@@ -124,6 +124,21 @@ namespace YC.Presentation
                     request.AnswerSchema == ResourceAllocationAnswer.BoundedAnswerSchema);
         }
 
+        // 仅已实测的初始角色弃牌多选；不将角色模式、地图或数量式草稿并入此许可。
+        internal bool CanPreserveUnsubmittedInitialCharacterDraft(InteractionRequestProjection routedRequest)
+        {
+            if (!ownsPresentation || ownsUseSelection || needsRefresh || confirmedIntent.IsBusy || !string.IsNullOrEmpty(inFlightCommandId) ||
+                renderedRequest?.InteractionTypeId != "setup.basic_character.discard" ||
+                renderedRequest.AnswerSchema != "candidate_ids" || renderedRequest.MaxSelections <= 1 ||
+                !TryGetRequest(out var request)) return false;
+            var game = getState()?.GameId;
+            var current = ProjectForPresentation(InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId()), game);
+            return CanRender(current) && current.StateRevision >= renderedRevision &&
+                InteractionCommandIntent.SameContract(renderedGameId, renderedRequest, game, current) &&
+                InteractionCommandIntent.SameContract(renderedGameId, routedRequest, game, current) &&
+                selectedCandidates.Count <= current.MaxSelections && selectedCandidates.All(id => current.CandidateIds.Contains(id));
+        }
+
         public void Render(InteractionRequestProjection projection)
         {
             if (!CanRender(projection))

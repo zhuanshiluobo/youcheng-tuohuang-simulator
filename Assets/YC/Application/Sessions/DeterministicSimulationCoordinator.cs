@@ -8,8 +8,8 @@ using YC.Domain.State;
 
 namespace YC.Application.Sessions
 {
-    /// <summary>单线程会话协调。编序、一次规则提交、边界汇合分别使用原有唯一组件。</summary>
-    public sealed class DeterministicSimulationCoordinator
+    /// <summary>默认同步协调；显式联机模式分离主线程编序与单owner规则执行。</summary>
+    public sealed partial class DeterministicSimulationCoordinator
     {
         // 仅诊断累计；关闭时不读时钟，值类型作用域不分配堆对象。
         private readonly struct ProtocolExecutionSample : IDisposable
@@ -58,12 +58,26 @@ namespace YC.Application.Sessions
         private readonly List<Action> deferredNotifications = new List<Action>();
         private GameSessionRecoveryPoint confirmedPoint;
         private List<SimulationWindowFactDto> confirmedWindows;
+        private int requestContractVersion;
+        private readonly int checkpointStateRevision;
+
+        public int RequestContractVersion => requestContractVersion;
+        /// <summary>运输在明确协商后、StartBackgroundExecution之前配置；0保持旧strict语义。</summary>
+        public void ConfigureRequestContractValidation(int version)
+        {
+            if (background != null) throw new InvalidOperationException("request_contract_configuration_after_start");
+            if (version != 0 && version != OperationCommandProtocol.RequestContractVersion)
+                throw new ArgumentException("request_contract_version_unsupported");
+            requestContractVersion = version;
+        }
 
         public event Action<SimulationCommandAppliedDto> SimulationCommandApplied;
         public event Action<CommandValidationPrefixDto> CommandValidationPrefixAdvanced;
         public event Action<SimulationWindowPermissionDto> OperationWindowPermissionChanged;
         public event Action<SimulationProtocolFaultDto> SimulationProtocolFaulted;
         public event Action<SimulationProposalResultDto> SimulationProposalRejected;
+        // 仅此前Pending的最终准入结果；运输向原verified actor转发，不把Pending当Rejected。
+        public event Action<SimulationProposalResultDto> SimulationProposalResultProduced;
         // 运输只消费这些原件事件；任何事件都不执行第二次业务提交。
         public event Action<OrderedOperationCommandDto> OrderedCommandProduced;
         public event Action<SimulationBoundaryDto> BoundaryProduced;
@@ -71,13 +85,13 @@ namespace YC.Application.Sessions
         public event Action<SimulationWindowPermitDto> WindowPermitProduced;
         public event Action<SimulationMissingRangeRequestDto> MissingRangeRequested;
 
-        public long LastAppliedSequence => replica.LastAppliedSequence;
+        public long LastAppliedSequence => OnBackgroundMainThread ? visibleBackground?.LastAppliedSequence ?? options.CheckpointGlobalSequence : replica.LastAppliedSequence;
         public long LastSequencedSequence => sequencer?.LastSequencedSequence ?? LastAppliedSequence;
-        public long ValidatedThroughSequence => validatedThrough;
-        public bool IsStopped => stopped;
-        public bool RequiresRecovery => requiresRecovery;
-        public bool HasPendingLocalApplication => pendingLocal != null;
-        public bool IsRecoveringConfirmedPrefix => recoveryFrozen;
+        public long ValidatedThroughSequence => OnBackgroundMainThread ? visibleBackground?.ValidatedThroughSequence ?? options.CheckpointGlobalSequence : validatedThrough;
+        public bool IsStopped => OnBackgroundMainThread ? background.IsStopping || background.Fatal != null || background.Latest?.IsStopped == true : stopped;
+        public bool RequiresRecovery => OnBackgroundMainThread ? backgroundMainFault != null || background.Latest?.RequiresRecovery == true : requiresRecovery;
+        public bool HasPendingLocalApplication => OnBackgroundMainThread ? backgroundPendingLocal != null : pendingLocal != null;
+        public bool IsRecoveringConfirmedPrefix => OnBackgroundMainThread ? backgroundRecoveryRequested || background.Latest?.IsRecoveringConfirmedPrefix == true : recoveryFrozen;
         public DeterministicSimulationSessionOptions SessionOptions => options.Snapshot();
 
         public DeterministicSimulationCoordinator(GameSession session, DeterministicSimulationSessionOptions options)
@@ -90,6 +104,7 @@ namespace YC.Application.Sessions
             this.options = (options ?? throw new ArgumentNullException(nameof(options))).Snapshot();
             var value = this.options;
             var identityState = preparedState ?? session.State;
+            checkpointStateRevision = identityState.EffectRuntime?.StateRevision ?? 0;
             OperationCommandCanonicalizer.ValidateIdentity(value.GameId, value.SimulationEpoch, value.MembershipVersion);
             if (identityState.GameId != value.GameId || identityState.ContentPackHash != value.ContentPackHash ||
                 value.FrozenPlayerIds == null || value.FrozenPlayerIds.Count == 0 || value.FrozenPlayerIds.Count > 256 ||
@@ -121,6 +136,7 @@ namespace YC.Application.Sessions
 
         public void Begin()
         {
+            if (OnBackgroundMainThread) { PostBackground(Begin); return; }
             if (begun || stopped) return;
             begun = true;
             try
@@ -135,6 +151,7 @@ namespace YC.Application.Sessions
 
         public bool TryCreateLocalProposal(GameCommand command, out OperationCommandProposalDto proposal, out ValidationResult validation)
         {
+            if (OnBackgroundMainThread) return TryCreateBackgroundProposal(command, out proposal, out validation);
             proposal = null;
             validation = new ValidationResult(false, CommandErrorCode.WrongPhase, "当前模拟未就绪或已停止。");
             if (!begun || stopped || recoveryFrozen || command == null) return false;
@@ -160,6 +177,7 @@ namespace YC.Application.Sessions
 
         public SimulationProposalResultDto AdmitProposal(int verifiedSourcePlayerId, OperationCommandProposalDto proposal)
         {
+            if (OnBackgroundMainThread) return AdmitBackgroundProposal(verifiedSourcePlayerId, proposal);
             var result = new SimulationProposalResultDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
                 Status = OperationAdmissionStatus.Rejected, ErrorCode = CommandErrorCode.WrongPhase, Reason = "当前模拟不受理提案。",
                 HostSequencedThrough = LastSequencedSequence, ExpectedClientSubmissionSequence = sequencer?.ReadNextSubmissionSequence(verifiedSourcePlayerId) ?? 1 };
@@ -197,6 +215,7 @@ namespace YC.Application.Sessions
 
         public void ReceiveProposalResult(SimulationProposalResultDto result)
         {
+            if (OnBackgroundMainThread) { ReceiveBackgroundProposalResult(result); return; }
             if (stopped || result == null || result.ProtocolVersion != OperationCommandProtocol.Version || !Identity(result.GameId, result.SimulationEpoch, result.MembershipVersion) || pendingLocal == null || result.Proposal == null) return;
             try
             {
@@ -212,6 +231,7 @@ namespace YC.Application.Sessions
 
         public OperationCommandReplicaResult ReceiveOrdered(OrderedOperationCommandDto command)
         {
+            if (OnBackgroundMainThread) return ReceiveBackgroundOrdered(command);
             if (stopped || recoveryFrozen) return Reply(OperationReplicaStatus.Stopped, "simulation_stopped");
             if (!begun || command == null || !Identity(command.GameId, command.SimulationEpoch, command.MembershipVersion)) return Reply(OperationReplicaStatus.Rejected, "ordered_identity_mismatch");
             try
@@ -240,6 +260,7 @@ namespace YC.Application.Sessions
 
         public int Pump(int maximumCommands)
         {
+            if (OnBackgroundMainThread) return DrainMainThreadNotifications(maximumCommands);
             if (maximumCommands <= 0) throw new ArgumentOutOfRangeException(nameof(maximumCommands));
             if (stopped || !begun || pumping || recoveryFrozen && !options.IsHost || queue.Count == 0) return 0;
             if (session.State.GameId != options.GameId || session.State.ContentPackHash != options.ContentPackHash)
@@ -257,9 +278,7 @@ namespace YC.Application.Sessions
                     {
                         using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.notifications"))
                         {
-                            if (result.RuleResult != null) SimulationCommandApplied?.Invoke(new SimulationCommandAppliedDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion, Command = CloneCommand(command.Command),
-                                GlobalCommandSequence = command.GlobalCommandSequence, OperationWindowId = command.OperationWindowId, WindowGeneration = command.WindowGeneration,
-                                WindowCommandSequence = command.WindowCommandSequence, RuleResult = result.RuleResult });
+                            if (result.RuleResult != null) PublishApplied(command, result.RuleResult);
                             Fault(result.ErrorCode, result.Reason, command, result.RuleResult);
                         }
                         break;
@@ -281,9 +300,7 @@ namespace YC.Application.Sessions
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.notifications"))
                     {
                         FlushNotifications();
-                        SimulationCommandApplied?.Invoke(new SimulationCommandAppliedDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion, Command = CloneCommand(command.Command),
-                            GlobalCommandSequence = command.GlobalCommandSequence, OperationWindowId = command.OperationWindowId,
-                            WindowGeneration = command.WindowGeneration, WindowCommandSequence = command.WindowCommandSequence, RuleResult = result.RuleResult });
+                        PublishApplied(command, result.RuleResult);
                     }
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.validation"))
                         ConsumeValidation();
@@ -291,7 +308,13 @@ namespace YC.Application.Sessions
                 PublishHostValidation();
                 return count;
             }
-            catch (Exception exception) { Fault("simulation_pump_exception", exception.Message); return count; }
+            catch (Exception exception)
+            {
+                Fault("simulation_pump_exception", exception.Message);
+                // 后台固定帧须保留事实失败通知；默认同步路径保持原时点。
+                if (background != null) FlushNotifications();
+                return count;
+            }
             finally { pumping = false; deferNotifications = false; deferredNotifications.Clear(); }
         }
 
@@ -346,16 +369,22 @@ namespace YC.Application.Sessions
             boundary.FactDigest = OperationCommandCanonicalizer.CanonicalBoundaryDigest(boundary);
             boundary = OperationCommandCanonicalizer.SnapshotBoundary(boundary); boundaries.Add(fence, boundary);
             if (announcements.TryGetValue(fence, out var announced) && announced.FactDigest != boundary.FactDigest) { Fault("boundary_mismatch", "同前缀窗口或规则摘要不一致。"); return; }
-            if (options.IsHost) { var notice = ReadBoundary(fence); Emit(() => BoundaryProduced?.Invoke(notice)); }
+            if (options.IsHost) { var notice = ReadBoundary(fence); Emit(() => Deliver(BoundaryProduced, notice)); }
             var localReady = new SimulationWindowReadyDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
                 PlayerId = options.LocalPlayerId, ReplicaId = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(options.LocalPlayerId), Boundary = ReadBoundary(fence) };
             if (options.IsHost) { ReceiveWindowReady(options.LocalPlayerId, localReady); TryPermit(fence); }
-            else Emit(() => WindowReadyProduced?.Invoke(localReady));
+            else Emit(() => Deliver(WindowReadyProduced, localReady));
             if (permits.TryGetValue(fence, out var permit)) ApplyPermit(permit);
         }
 
         public bool ReceiveBoundary(SimulationBoundaryDto boundary)
         {
+            if (OnBackgroundMainThread)
+            {
+                if (boundary == null || !Identity(boundary.GameId, boundary.SimulationEpoch, boundary.MembershipVersion)) return false;
+                try { var owned = OperationCommandCanonicalizer.SnapshotBoundary(boundary); PostBackground(() => ReceiveBoundary(owned)); return !IsStopped; }
+                catch (Exception exception) { BackgroundMainFault("boundary_invalid", exception.Message); return false; }
+            }
             if (!begun || stopped || options.IsHost || boundary == null || !Identity(boundary.GameId, boundary.SimulationEpoch, boundary.MembershipVersion)) return false;
             try
             {
@@ -366,14 +395,21 @@ namespace YC.Application.Sessions
                 if (!boundaries.ContainsKey(fence))
                 { if (fence != LastAppliedSequence) { Fault("boundary_history_missing", "已越过边界但无原前缀快照，禁止改用当前状态。"); return false; } CaptureBoundary(); }
                 if (boundaries[fence].FactDigest != owned.FactDigest) { Fault("boundary_mismatch", "同前缀窗口或规则摘要不一致。"); return false; }
-                WindowReadyProduced?.Invoke(new SimulationWindowReadyDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
-                    PlayerId = options.LocalPlayerId, ReplicaId = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(options.LocalPlayerId), Boundary = ReadBoundary(fence) }); return true;
+                var readyNotice = new SimulationWindowReadyDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
+                    PlayerId = options.LocalPlayerId, ReplicaId = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(options.LocalPlayerId), Boundary = ReadBoundary(fence) };
+                Emit(() => Deliver(WindowReadyProduced, readyNotice)); return true;
             }
             catch (Exception exception) { Fault("boundary_invalid", exception.Message); return false; }
         }
 
         public bool ReceiveWindowReady(int verifiedSourcePlayerId, SimulationWindowReadyDto value)
         {
+            if (OnBackgroundMainThread)
+            {
+                if (value == null || !Identity(value.GameId, value.SimulationEpoch, value.MembershipVersion)) return false;
+                try { var owned = GameStateCloneService.DeepClone(value); PostBackground(() => ReceiveWindowReady(verifiedSourcePlayerId, owned)); return !IsStopped; }
+                catch (Exception exception) { BackgroundMainFault("ready_invalid", exception.Message); return false; }
+            }
             if (!begun || stopped || !options.IsHost || value == null || value.ProtocolVersion != OperationCommandProtocol.Version || !Identity(value.GameId, value.SimulationEpoch, value.MembershipVersion) ||
                 verifiedSourcePlayerId != value.PlayerId || !options.FrozenPlayerIds.Contains(value.PlayerId) || value.ReplicaId != DeterministicSimulationSessionOptions.ReplicaIdForPlayer(value.PlayerId)) return false;
             try
@@ -403,11 +439,17 @@ namespace YC.Application.Sessions
             var permit = new SimulationWindowPermitDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
                 Boundary = ReadBoundary(fence), HostValidatedThroughSequence = fence, HostValidationPrefixDigest = hostPrefix,
                 ReadyReplicaIds = options.RequiredReplicaIds.OrderBy(id => id, StringComparer.Ordinal).ToList() };
-            permits.Add(fence, permit); ApplyPermit(permit); var notice = ClonePermit(permit); Emit(() => WindowPermitProduced?.Invoke(notice));
+            permits.Add(fence, permit); ApplyPermit(permit); var notice = ClonePermit(permit); Emit(() => Deliver(WindowPermitProduced, notice));
         }
 
         public bool ReceiveWindowPermit(SimulationWindowPermitDto permit)
         {
+            if (OnBackgroundMainThread)
+            {
+                if (permit == null || permit.ProtocolVersion != OperationCommandProtocol.Version || !Identity(permit.GameId, permit.SimulationEpoch, permit.MembershipVersion)) return false;
+                try { var owned = ClonePermit(permit); PostBackground(() => ReceiveWindowPermit(owned)); return !IsStopped; }
+                catch (Exception exception) { BackgroundMainFault("permit_invalid", exception.Message); return false; }
+            }
             if (!begun || stopped || options.IsHost || permit == null || permit.ProtocolVersion != OperationCommandProtocol.Version || !Identity(permit.GameId, permit.SimulationEpoch, permit.MembershipVersion)) return false;
             try
             {
@@ -437,6 +479,12 @@ namespace YC.Application.Sessions
 
         public bool ReceiveValidationPrefix(CommandValidationPrefixDto prefix)
         {
+            if (OnBackgroundMainThread)
+            {
+                if (prefix == null || !Identity(prefix.GameId, prefix.SimulationEpoch, prefix.MembershipVersion)) return false;
+                try { var owned = SimulationPublishedSnapshot.CopyValidation(prefix); PostBackground(() => ReceiveValidationPrefix(owned)); return !IsStopped; }
+                catch (Exception exception) { BackgroundMainFault("validation_invalid", exception.Message); return false; }
+            }
             if (!begun || stopped || options.IsHost || prefix == null || !Identity(prefix.GameId, prefix.SimulationEpoch, prefix.MembershipVersion)) return false;
             try
             {
@@ -478,7 +526,7 @@ namespace YC.Application.Sessions
                 if (local.StateRevision != outcome.StateRevision) { Fault("validation_revision_mismatch", "核验结果版本不一致。"); return false; }
                 previous = outcome.GlobalCommandSequence;
             }
-            if (advance && value.ValidatedThroughSequence > validatedThrough) { validatedThrough = value.ValidatedThroughSequence; CommandValidationPrefixAdvanced?.Invoke(value); }
+            if (advance && value.ValidatedThroughSequence > validatedThrough) { validatedThrough = value.ValidatedThroughSequence; Emit(() => Deliver(CommandValidationPrefixAdvanced, value)); }
             return true;
         }
 
@@ -489,15 +537,18 @@ namespace YC.Application.Sessions
         public OperationCommandRangeDto ReadMissingRange(long fromSequence, int maximumCount)
         { if (sequencer == null) throw new InvalidOperationException("simulation_not_host"); return sequencer.ReadRange(fromSequence, maximumCount); }
 
-        public SimulationBoundaryDto ReadBoundary(long fenceSequence) => boundaries.TryGetValue(fenceSequence, out var boundary) ? OperationCommandCanonicalizer.SnapshotBoundary(boundary) : null;
-        public IReadOnlyList<SimulationWindowPermissionDto> ReadWindowPermissions() => windows.Values.Select(Permission).ToList().AsReadOnly();
-        public IReadOnlyList<OrderedOperationCommandDto> ReadPendingTail() => queue.Values.Select(OperationCommandCanonicalizer.SnapshotOrdered).ToList().AsReadOnly();
-        public OperationCommandProposalDto ReadPendingLocalProposal() => pendingLocal == null ? null : OperationCommandCanonicalizer.SnapshotProposal(pendingLocal);
-        public CommandValidationPrefixDto ReadLocalValidationPrefix() => options.IsHost ? replica.CreateValidationPrefix(0, validatedThrough) : replica.CreateValidationPrefix();
-        public bool IsBoundaryPermitted(long fence) => !stopped && boundaries.TryGetValue(fence, out var boundary) && permits.TryGetValue(fence, out var permit) && boundary.FactDigest == permit.Boundary.FactDigest;
-        public SimulationProtocolFaultDto LastFault => CloneFault(lastFault);
+        public SimulationBoundaryDto ReadBoundary(long fenceSequence) => OnBackgroundMainThread ? visibleBackground?.ReadBoundary(fenceSequence) : boundaries.TryGetValue(fenceSequence, out var boundary) ? OperationCommandCanonicalizer.SnapshotBoundary(boundary) : null;
+        public IReadOnlyList<SimulationWindowPermissionDto> ReadWindowPermissions() => OnBackgroundMainThread ? TryReadPublishedSnapshot(out var snapshot) ? snapshot.ReadWindowPermissions() : new List<SimulationWindowPermissionDto>().AsReadOnly() : windows.Values.Select(Permission).ToList().AsReadOnly();
+        public IReadOnlyList<OrderedOperationCommandDto> ReadPendingTail() => OnBackgroundMainThread ? ReadBackgroundPendingTail() : queue.Values.Select(OperationCommandCanonicalizer.SnapshotOrdered).ToList().AsReadOnly();
+        public OperationCommandProposalDto ReadPendingLocalProposal() => OnBackgroundMainThread ? backgroundPendingLocal == null ? null : OperationCommandCanonicalizer.SnapshotProposal(backgroundPendingLocal) : pendingLocal == null ? null : OperationCommandCanonicalizer.SnapshotProposal(pendingLocal);
+        public CommandValidationPrefixDto ReadLocalValidationPrefix() => OnBackgroundMainThread ? visibleBackground?.ReadLocalValidationPrefix() : options.IsHost ? replica.CreateValidationPrefix(0, validatedThrough) : replica.CreateValidationPrefix();
+        public bool IsBoundaryPermitted(long fence) => OnBackgroundMainThread ? visibleBackground?.IsBoundaryPermitted(fence) == true && !IsStopped : !stopped && boundaries.TryGetValue(fence, out var boundary) && permits.TryGetValue(fence, out var permit) && boundary.FactDigest == permit.Boundary.FactDigest;
+        public SimulationProtocolFaultDto LastFault => OnBackgroundMainThread ? SimulationPublishedSnapshot.CopyFault(backgroundMainFault) ?? background.Latest?.ReadFault() : CloneFault(lastFault);
         public void BeginConfirmedRecovery()
-        { if (recoveryFrozen) return; recoveryFrozen = true; foreach (var record in windows.Values.Where(record => record.Open)) PublishPermission(record); }
+        {
+            if (OnBackgroundMainThread) { backgroundRecoveryRequested = true; RetirePendingAdmissions("原会话进入确认前缀恢复，原等待提案未获准入。"); PostBackground(BeginConfirmedRecovery); return; }
+            if (recoveryFrozen) return; recoveryFrozen = true; foreach (var record in windows.Values.Where(record => record.Open)) PublishPermission(record);
+        }
 
         private void CaptureConfirmedFacts(string commandId)
         {
@@ -518,11 +569,15 @@ namespace YC.Application.Sessions
 
         public bool TryCreateConfirmedRecoveryCheckpoint(long expectedConfirmedSequence, long targetEpoch,
             out SimulationRecoveryCheckpointDto checkpoint, out SimulationRecoveryResultDto result)
-            => TryExportCheckpoint(expectedConfirmedSequence, targetEpoch, true, out checkpoint, out result);
+        {
+            if (OnBackgroundMainThread) { checkpoint = null; result = new SimulationRecoveryResultDto { ErrorCode = "recovery_requires_published_snapshot", Reason = "联机恢复请异步准备固定检查点。" }; return false; }
+            return TryExportCheckpoint(expectedConfirmedSequence, targetEpoch, true, out checkpoint, out result);
+        }
 
         /// <summary>只在所有已接收命令均确认且没有执行中的提交时捕获；存档不会冻结或改动在线模拟。</summary>
         public bool TryCreateSaveCheckpoint(out SimulationRecoveryCheckpointDto checkpoint, out SimulationRecoveryResultDto result)
         {
+            if (OnBackgroundMainThread) { checkpoint = null; result = new SimulationRecoveryResultDto { ErrorCode = "save_requires_published_snapshot", Reason = "联机保存请异步准备固定确认点。" }; return false; }
             if (stopped || requiresRecovery || recoveryFrozen || pendingLocal != null || queue.Count != 0 ||
                 LastAppliedSequence != validatedThrough || LastSequencedSequence != validatedThrough)
             {
@@ -571,6 +626,7 @@ namespace YC.Application.Sessions
         // 仅全员 Installed 后调用；生产失败保留停止态，不能靠安装跳过失败尾段。
         public void CompleteConfirmedRecovery(bool resumeAllowed)
         {
+            if (OnBackgroundMainThread) { backgroundCompleteRequested = true; PostBackground(() => CompleteConfirmedRecovery(resumeAllowed)); return; }
             if (!recoveryFrozen) return;
             if (options.IsHost)
             {
@@ -580,28 +636,34 @@ namespace YC.Application.Sessions
             recoveryFrozen = false;
             CaptureBoundary();
         }
-        public void Stop() { stopped = true; }
+        public void Stop() { if (background != null) { RequestStop(); return; } stopped = true; }
         public void PeerDisconnected(int playerId)
         {
+            if (OnBackgroundMainThread) { PostBackground(() => PeerDisconnected(playerId)); return; }
             if (!options.IsHost || stopped) return;
             string id = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(playerId);
             foreach (var group in ready.Values) group.Remove(id);
         }
         public void ReceiveRemoteFault(SimulationProtocolFaultDto fault)
-        { if (!stopped && fault != null && fault.ProtocolVersion == OperationCommandProtocol.Version && Identity(fault.GameId, fault.SimulationEpoch, fault.MembershipVersion)) Fault(fault.FaultCode, fault.Diagnostic, null, null, fault); }
+        {
+            if (OnBackgroundMainThread) { var owned = SimulationPublishedSnapshot.CopyFault(fault); PostBackground(() => ReceiveRemoteFault(owned)); return; }
+            if (!stopped && fault != null && fault.ProtocolVersion == OperationCommandProtocol.Version && Identity(fault.GameId, fault.SimulationEpoch, fault.MembershipVersion)) Fault(fault.FaultCode, fault.Diagnostic, null, null, fault);
+        }
 
         private bool Identity(string gameId, long epoch, int membership) => gameId == options.GameId && epoch == options.SimulationEpoch && membership == options.MembershipVersion;
         private SimulationWindowPermissionDto Permission(WindowRecord record) => new SimulationWindowPermissionDto { Window = OperationCommandCanonicalizer.SnapshotWindow(record.Descriptor, options.GameId, options.SimulationEpoch, options.MembershipVersion),
             AvailablePlayerIds = new List<int>(record.Available), IsOpen = record.Open, IsPermitted = record.Permitted && !stopped && !recoveryFrozen,
             CanSubmitForLocalPlayer = record.Open && record.Permitted && !stopped && !recoveryFrozen && record.Available.Contains(options.LocalPlayerId), GlobalFenceSequence = record.PermissionFence };
-        private void PublishPermission(WindowRecord record) { var notice = Permission(record); Emit(() => OperationWindowPermissionChanged?.Invoke(notice)); }
-        private void Emit(Action notification) { if (deferNotifications) deferredNotifications.Add(notification); else notification(); }
+        private void PublishPermission(WindowRecord record) { var notice = Permission(record); Emit(() => Deliver(OperationWindowPermissionChanged, notice)); }
+        private void Emit(Action notification)
+        { if (deferNotifications) deferredNotifications.Add(notification); else if (background != null && background.IsWorkerThread) background.AddNotification(notification); else notification(); }
         private void FlushNotifications()
-        { var notifications = deferredNotifications.ToArray(); deferredNotifications.Clear(); deferNotifications = false; foreach (var notification in notifications) notification(); }
-        private SimulationWindowPermitDto ClonePermit(SimulationWindowPermitDto value) => new SimulationWindowPermitDto { GameId = value.GameId, SimulationEpoch = value.SimulationEpoch,
+        { var notifications = deferredNotifications.ToArray(); deferredNotifications.Clear(); deferNotifications = false; foreach (var notification in notifications) Emit(notification); }
+        private SimulationWindowPermitDto ClonePermit(SimulationWindowPermitDto value) => new SimulationWindowPermitDto { ProtocolVersion = value.ProtocolVersion, GameId = value.GameId, SimulationEpoch = value.SimulationEpoch,
             MembershipVersion = value.MembershipVersion, Boundary = OperationCommandCanonicalizer.SnapshotBoundary(value.Boundary), HostValidatedThroughSequence = value.HostValidatedThroughSequence,
             HostValidationPrefixDigest = value.HostValidationPrefixDigest, ReadyReplicaIds = value.ReadyReplicaIds == null ? null : new List<string>(value.ReadyReplicaIds) };
-        private void RequestMissing(long from) => MissingRangeRequested?.Invoke(new SimulationMissingRangeRequestDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion, FromSequence = from });
+        private void RequestMissing(long from)
+        { var notice = new SimulationMissingRangeRequestDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion, FromSequence = from }; Emit(() => Deliver(MissingRangeRequested, notice)); }
         private OperationCommandReplicaResult Reply(OperationReplicaStatus status, string code) => new OperationCommandReplicaResult { Status = status, ErrorCode = code, ExpectedGlobalSequence = LastAppliedSequence + 1 };
         private OperationCommandReplicaResult FaultReply(string code, string reason, OrderedOperationCommandDto command) { Fault(code, reason, command); return Reply(OperationReplicaStatus.Stopped, code); }
         private void Fault(string code, string reason, OrderedOperationCommandDto command = null, CommandResult result = null, SimulationProtocolFaultDto remote = null)
@@ -614,7 +676,8 @@ namespace YC.Application.Sessions
                 ErrorCode = result?.Validation?.ErrorCode ?? CommandErrorCode.UnknownCommand, LocalRuleResult = result, RequiresRecovery = true };
             lastFault.Command = CloneCommand(lastFault.Command); lastFault.RequiresRecovery = true;
             foreach (var record in windows.Values.Where(record => record.Open)) PublishPermission(record);
-            SimulationProtocolFaulted?.Invoke(CloneFault(lastFault));
+            var faultNotice = CloneFault(lastFault); if (background != null) faultNotice = SimulationPublishedSnapshot.CopyFault(faultNotice);
+            Emit(() => Deliver(SimulationProtocolFaulted, faultNotice));
         }
 
         private static GameCommandDto CloneCommand(GameCommandDto value) => value == null ? null : new GameCommandDto { CommandId = value.CommandId, Kind = value.Kind, PlayerId = value.PlayerId,
@@ -630,7 +693,7 @@ namespace YC.Application.Sessions
             if (!options.IsHost || validatedThrough <= publishedValidation) return;
             using var validationSample = new ProtocolExecutionSample(session.ExecutionTimings, "pump.validation");
             var prefix = replica.CreateValidationPrefix(publishedValidation, validatedThrough); publishedValidation = validatedThrough;
-            CommandValidationPrefixAdvanced?.Invoke(prefix);
+            Emit(() => Deliver(CommandValidationPrefixAdvanced, prefix));
         }
 
         private string ComputeBoundaryRuleDigest()

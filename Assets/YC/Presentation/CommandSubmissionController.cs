@@ -75,6 +75,9 @@ namespace YC.Presentation
             }
         }
 
+        // 只在主线程接纳发表版本时替换；UI 不读取执行线程的活动 State/View。
+        internal GameState PublishedState { get { EnsureSimulationLocalProjection(); return simulationProjectionState; } }
+        internal GameStateView PublishedView { get { EnsureSimulationLocalProjection(); return simulationProjectionView; } }
         public bool UsesDeterministicSimulation => usesDeterministicSimulation;
         public bool IsSimulationReady => !disposed && (!UsesDeterministicSimulation ||
             SimulationBindingIsCurrent && simulationCoordinator != null && !simulationCoordinator.IsStopped && !simulationCoordinator.RequiresRecovery);
@@ -87,7 +90,7 @@ namespace YC.Presentation
             SimulationTransportOwners.TryGetValue(simulationTransport, out var owner) && ReferenceEquals(owner, this);
         private bool SimulationBindingIsCurrent => !disposed && !simulationStopped && UsesDeterministicSimulation &&
             OwnsSimulationTransport && ReferenceEquals(simulationTransport.SimulationCoordinator, simulationCoordinator) &&
-            session.State.GameId == simulationGameId && launchContext != null && !launchContext.IsLeavingGameplay &&
+            launchContext != null && !launchContext.IsLeavingGameplay &&
             launchContext.GameId == simulationGameId && launchContext.LocalPlayerId == localPlayerId &&
             launchContext.Mode == simulationLaunchMode && GameSessionBootstrapper.IsNetworkLaunch(launchContext);
 
@@ -171,6 +174,9 @@ namespace YC.Presentation
                         installer = savedInstaller; savedCoordinator = () => savedInstaller.Coordinator;
                     }
                 }
+                // worker 绑定前保留独立启动展示图，后续只接收已发表版本。
+                simulationProjectionState = GameStateCloneService.DeepClone(session.State);
+                simulationProjectionView = session.View == null ? null : GameStateCloneService.DeepClone(session.View);
                 transport.InitializeDeterministicSimulation(session, launchContext.Mode, localPlayerId, launchContext.Players,
                     options, installer, archive, savedIdentity, savedCoordinator);
             }
@@ -235,7 +241,7 @@ namespace YC.Presentation
                 coordinator.SessionOptions.GameId != simulationGameId || coordinator.SessionOptions.SimulationEpoch != recoveryTargetEpoch ||
                 coordinator.SessionOptions.MembershipVersion != simulationMembershipVersion || coordinator.SessionOptions.LocalPlayerId != localPlayerId ||
                 launchContext == null || launchContext.IsLeavingGameplay || launchContext.GameId != simulationGameId ||
-                launchContext.LocalPlayerId != localPlayerId || launchContext.Mode != simulationLaunchMode || session.State.GameId != simulationGameId) return;
+                launchContext.LocalPlayerId != localPlayerId || launchContext.Mode != simulationLaunchMode) return;
             simulationCoordinator = coordinator; simulationEpoch = recoveryTargetEpoch; recoveryTargetEpoch = 0;
             lastAppliedResultSequence = coordinator.LastAppliedSequence; lastValidatedSequence = coordinator.ValidatedThroughSequence;
             simulationStopped = coordinator.IsStopped || coordinator.RequiresRecovery;
@@ -260,7 +266,7 @@ namespace YC.Presentation
                 !ReferenceEquals(simulationTransport.SimulationCoordinator, coordinator) ||
                 simulationCoordinator != null && !ReferenceEquals(simulationCoordinator, coordinator)) return;
             var options = coordinator.SessionOptions;
-            if (session.State.GameId != simulationGameId || launchContext.IsLeavingGameplay || launchContext.GameId != simulationGameId ||
+            if (launchContext.IsLeavingGameplay || launchContext.GameId != simulationGameId ||
                 launchContext.Mode != simulationLaunchMode || launchContext.LocalPlayerId != localPlayerId ||
                 options.GameId != simulationGameId || options.LocalPlayerId != localPlayerId || options.SimulationEpoch != simulationEpoch ||
                 options.MembershipVersion != simulationMembershipVersion) return;
@@ -293,20 +299,20 @@ namespace YC.Presentation
 
         private void EnsureSimulationLocalProjection()
         {
+            if (simulationCoordinator == null || ReferenceEquals(simulationTransport, null) ||
+                !ReferenceEquals(simulationTransport.SimulationCoordinator, simulationCoordinator) ||
+                !simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) ||
+                snapshot.GameId != simulationGameId || snapshot.SimulationEpoch != simulationEpoch ||
+                snapshot.MembershipVersion != simulationMembershipVersion || snapshot.LocalPlayerId != localPlayerId) return;
+            // GameSession 在 Drain 安装同一帧时已提供 worker 预先复制的主线程图。
+            // 不调用 RefreshLocalProjection，也不跨线程读取活动图或 registry。
             var state = session.State;
             var view = session.View;
-            if (ReferenceEquals(simulationProjectionState, state) && ReferenceEquals(simulationProjectionView, view) &&
-                view != null && view.GameId == state.GameId && view.ContentPackHash == state.ContentPackHash &&
-                view.ViewerRole == GameStateViewerRole.Player && view.ViewerPlayerId == localPlayerId &&
-                view.StateRevision == (state.EffectRuntime?.StateRevision ?? 0))
-            {
-                session.ExecutionTimings.AddSample("projection.reuse", 0);
-                return;
-            }
-            // 许可可能先于 Applied 发布；同一状态的后续通知继续使用这个本人投影。
-            using var projectionSample = new ExecutionSample(session.ExecutionTimings, "projection.build");
-            simulationProjectionView = session.RefreshLocalProjection(GameStateViewer.Player(localPlayerId));
+            if (state == null || view == null || view.ViewerRole != GameStateViewerRole.Player || view.ViewerPlayerId != localPlayerId ||
+                state.GameId != snapshot.GameId || view.GameId != snapshot.GameId || view.StateRevision != snapshot.StateRevision ||
+                view.ContentPackHash != snapshot.ContentHash || (state.EffectRuntime?.StateRevision ?? 0) != snapshot.StateRevision) return;
             simulationProjectionState = state;
+            simulationProjectionView = view;
         }
 
         private void OnSimulationCommandApplied(SimulationCommandAppliedDto applied)
@@ -337,10 +343,12 @@ namespace YC.Presentation
                 !MatchesSimulation(result.GameId, result.SimulationEpoch, result.MembershipVersion) || result.Proposal?.Command == null ||
                 result.Proposal.GameId != result.GameId || result.Proposal.SimulationEpoch != result.SimulationEpoch ||
                 result.Proposal.MembershipVersion != result.MembershipVersion ||
-                result.Status == OperationAdmissionStatus.Accepted || result.Status == OperationAdmissionStatus.Duplicate) return;
+                result.Status == OperationAdmissionStatus.Accepted || result.Status == OperationAdmissionStatus.Duplicate ||
+                result.Status == OperationAdmissionStatus.PendingValidation) return;
             var command = result.Proposal.Command;
             EnsureSimulationLocalProjection();
-            if (!ResolveSubmitted(command.CommandId, command.PlayerId, result.GameId, false, result.ErrorCode, result.RequiresRefresh)) return;
+            // 联机终态拒绝只交回玩家重新决策，不允许旧确认意图换CommandId重建。
+            if (!ResolveSubmitted(command.CommandId, command.PlayerId, result.GameId, false, result.ErrorCode, true)) return;
             cityStyleCommandResolved?.Invoke(command.CommandId, false); commandSettled?.Invoke(command.CommandId);
             refreshFromState(); setPrompt(result.Reason);
         }
@@ -357,9 +365,21 @@ namespace YC.Presentation
 
         private void OnSimulationFaulted(SimulationProtocolFaultDto fault)
         {
-            if (fault == null || fault.ProtocolVersion != OperationCommandProtocol.Version ||
-                !MatchesSimulation(fault.GameId, fault.SimulationEpoch, fault.MembershipVersion)) return;
+            // 恢复期间已冻结UI，仍须准确退役原等待；恢复失败不能被simulationStopped过滤掉。
+            if (fault == null || fault.ProtocolVersion != OperationCommandProtocol.Version || disposed || !UsesDeterministicSimulation ||
+                !OwnsSimulationTransport || launchContext == null || launchContext.IsLeavingGameplay ||
+                launchContext.GameId != simulationGameId || launchContext.LocalPlayerId != localPlayerId || launchContext.Mode != simulationLaunchMode ||
+                fault.GameId != simulationGameId || fault.MembershipVersion != simulationMembershipVersion ||
+                fault.SimulationEpoch != simulationEpoch && (recoveryTargetEpoch == 0 || fault.SimulationEpoch != recoveryTargetEpoch)) return;
+            if (simulationCoordinator == null) simulationCoordinator = simulationTransport.SimulationCoordinator;
             simulationStopped = true; simulationPermissions.Clear();
+            foreach (var submission in unresolvedSimulationSubmissions.ToArray())
+                if (ResolveSubmitted(submission.Key, submission.Value.Value, submission.Value.Key,
+                    false, fault.ErrorCode, true))
+                {
+                    cityStyleCommandResolved?.Invoke(submission.Key, false);
+                    commandSettled?.Invoke(submission.Key);
+                }
             refreshFromState(); setPrompt(fault.Diagnostic);
         }
 
@@ -371,9 +391,9 @@ namespace YC.Presentation
                 return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand,
                     "当前模拟会话已停止或切换，请返回房间重试。"));
             }
-            submittedCommands.Record(session.State.GameId, command);
+            submittedCommands.Record(UsesDeterministicSimulation ? simulationGameId : session.State.GameId, command);
             if (UsesDeterministicSimulation && command != null && command.PlayerId == localPlayerId && !string.IsNullOrEmpty(command.CommandId))
-                unresolvedSimulationSubmissions[command.CommandId] = new KeyValuePair<string, int>(session.State.GameId, command.PlayerId);
+                unresolvedSimulationSubmissions[command.CommandId] = new KeyValuePair<string, int>(simulationGameId, command.PlayerId);
             if (disposed || launchContext != null && launchContext.IsLeavingGameplay)
             {
                 appliedLocally = false;
@@ -387,7 +407,7 @@ namespace YC.Presentation
                 if (transported != null && (appliedLocally || !transported.Succeeded))
                     ResolveSubmitted(command?.CommandId, command?.PlayerId ?? -1, null, transported.Succeeded,
                         transported.Validation?.ErrorCode ?? CommandErrorCode.UnknownCommand,
-                        UsesDeterministicSimulation && transported.Validation?.ErrorCode == CommandErrorCode.StateRevisionMismatch);
+                        UsesDeterministicSimulation && !transported.Succeeded);
                 return transported;
             }
 
@@ -443,7 +463,7 @@ namespace YC.Presentation
         private void OnOnlineSessionNotice(string message)
         {
             if (disposed || launchContext == null || launchContext.IsLeavingGameplay ||
-                UsesDeterministicSimulation && (!OwnsSimulationTransport || launchContext.GameId != simulationGameId || session.State.GameId != simulationGameId ||
+                UsesDeterministicSimulation && (!OwnsSimulationTransport || launchContext.GameId != simulationGameId ||
                     launchContext.Mode != simulationLaunchMode || launchContext.LocalPlayerId != localPlayerId)) return;
             launchContext?.TryConsumeOnlineSessionNotice(out _);
             setPrompt(message);

@@ -71,6 +71,13 @@ namespace YC.Presentation
             interactionRequestRouter?.Clear();
         }
 
+        private bool CanPreserveRequestDraftForRefresh() =>
+            commandSubmission?.UsesDeterministicSimulation == true && interactionRequestRouter != null &&
+            (enterpriseInteraction?.CanPreserveUnsubmittedDraft(interactionRequestRouter.CurrentRequest) == true ||
+             enterpriseInteraction?.CanPreservePendingDraft(interactionRequestRouter.CurrentRequest) == true ||
+             routeResourceSelection?.CanPreserveNormalHarvestDraft(interactionRequestRouter.CurrentRequest) == true ||
+             characterAbilityInteraction?.CanPreserveUnsubmittedInitialCharacterDraft(interactionRequestRouter.CurrentRequest) == true);
+
         private bool SynchronizeEventCardInteraction()
         {
             if (interactionRequestRouter == null)

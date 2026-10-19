@@ -8,6 +8,10 @@ namespace YC.Application.Sessions
     public static class OperationCommandProtocol
     {
         public const int Version = 1;
+        // 可省略的新提案语义标识；旧无标识记录仍用原strict，原摘要编码/存档版本保持。
+        public const int RequestContractVersion = InteractionRequestValidity.ContractVersion;
+        public const string RequestContractVersionParameter = InteractionRequestValidity.VersionParameter;
+        public const string RequestContractDigestParameter = InteractionRequestValidity.DigestParameter;
     }
 
     [Serializable]
@@ -78,7 +82,7 @@ namespace YC.Application.Sessions
         public List<OrderedOperationCommandDto> Commands = new List<OrderedOperationCommandDto>();
     }
 
-    public enum OperationAdmissionStatus { Accepted, Duplicate, MissingSubmission, Rejected, Backpressure }
+    public enum OperationAdmissionStatus { Accepted, Duplicate, MissingSubmission, Rejected, Backpressure, PendingValidation }
     public sealed class OperationCommandAdmissionResult
     {
         public OperationAdmissionStatus Status { get; internal set; }

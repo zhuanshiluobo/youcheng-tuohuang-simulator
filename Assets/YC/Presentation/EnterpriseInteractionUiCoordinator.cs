@@ -28,6 +28,7 @@ namespace YC.Presentation
         private EnterpriseSelectionIntent submittedIntent;
         private EnterpriseSelectionDialogView submittedDialog;
         public Func<bool> CanSubmit { private get; set; }
+        public Func<bool> IsNetworkSession { private get; set; }
         public Func<bool> RequiresExplicitRefresh { private get; set; }
         public EnterpriseInteractionUiCoordinator(GameplayExpansionUi adapter, GameplayInteractionHudView hud,
             Func<IReadOnlyList<InteractionRequest>> requests, Func<int> player, Action<GameCommand> submit)
@@ -52,6 +53,33 @@ namespace YC.Presentation
             var current = Current();
             return CanSubmit?.Invoke() != false && !confirmedIntent.IsBusy && string.IsNullOrEmpty(inFlight) && current != null && CanRender(current) &&
                 InteractionCommandIntent.SameContract(renderedGame, request, adapter.VisibleView()?.GameId, current) && current.StateRevision >= request.StateRevision;
+        }
+        // 普通发表刷新只保未提交草稿，不恢复/重建已经发出的命令。
+        internal bool CanPreserveUnsubmittedDraft(InteractionRequestProjection routedRequest)
+        {
+            if (confirmedIntent.IsBusy || !string.IsNullOrEmpty(inFlight) || submittedIntent != null ||
+                renderedPlayer != player()) return false;
+            var current = Current();
+            var game = adapter.VisibleView()?.GameId;
+            if (current == null || !CanRender(current) || current.StateRevision < renderedRevision ||
+                !InteractionCommandIntent.SameContract(renderedGame, renderedRequest, game, current) ||
+                !InteractionCommandIntent.SameContract(renderedGame, routedRequest, game, current)) return false;
+            bool isDepartment = current.InteractionTypeId == "enterprise.department" || current.InteractionTypeId == "setup.department.choose";
+            var dialog = isDepartment ? department : enterprise;
+            return dialog != null && !dialog.Draft.IsPending && dialog.Draft.Projection != null &&
+                EnterpriseSelectionDraft.SameContract(dialog.Draft.Projection, BuildProjection(current));
+        }
+        internal bool CanPreservePendingDraft(InteractionRequestProjection routedRequest)
+        {
+            if (IsNetworkSession?.Invoke() != true || !confirmedIntent.HasPending || inFlight != confirmedIntent.CommandId ||
+                renderedRequest?.InteractionTypeId != "setup.enterprise.choose" ||
+                submittedIntent == null || submittedDialog == null || renderedPlayer != player()) return false;
+            var current = Current();
+            var game = adapter.VisibleView()?.GameId;
+            return current != null && CanRender(current) && current.StateRevision >= renderedRevision &&
+                confirmedIntent.IsPendingForRequest(game, current) &&
+                InteractionCommandIntent.SameContract(renderedGame, routedRequest, game, current) &&
+                EnterpriseSelectionDraft.SameContract(submittedDialog.Draft.Projection, BuildProjection(current));
         }
         public EnterpriseSelectionProjection BuildProjection(InteractionRequestProjection request)
         {
@@ -161,7 +189,7 @@ namespace YC.Presentation
         private void Send(InteractionRequestProjection request, GameCommand command)
         {
             if (!confirmedIntent.Begin(adapter.VisibleView()?.GameId, request, command,
-                request.InteractionTypeId == "setup.enterprise.choose")) return;
+                request.InteractionTypeId == "setup.enterprise.choose" && IsNetworkSession?.Invoke() != true)) return;
             Dispatch(command);
         }
         private void Dispatch(GameCommand command)

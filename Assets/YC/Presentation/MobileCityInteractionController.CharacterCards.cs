@@ -502,14 +502,15 @@ namespace YC.Presentation
 
         private Func<bool> CreateCharacterViewerCurrentGuard(CharacterCardPanelViewModel model, string key)
         {
-            var owner = session; var state = session?.State; var visible = VisibleSaleState();
+            var simulated = commandSubmission?.UsesDeterministicSimulation == true;
+            var owner = session; var state = simulated ? commandSubmission.PublishedState : session?.State; var visible = VisibleSaleState();
             var player = localPlayerId; var game = state?.GameId; var content = state?.ContentPackHash;
             var revision = UiReadState()?.EffectRuntime?.StateRevision ?? 0;
-            var simulated = commandSubmission?.UsesDeterministicSimulation == true;
             return () =>
             {
-                if (owner == null || !ReferenceEquals(session, owner) || !ReferenceEquals(session.State, state) ||
-                    localPlayerId != player || session.State.GameId != game || session.State.ContentPackHash != content) return false;
+                var currentState = simulated ? commandSubmission?.PublishedState : session?.State;
+                if (owner == null || !ReferenceEquals(session, owner) || !ReferenceEquals(currentState, state) ||
+                    localPlayerId != player || currentState?.GameId != game || currentState?.ContentPackHash != content) return false;
                 var read = UiReadState();
                 if (read == null || (read.EffectRuntime?.StateRevision ?? 0) != revision) return false;
                 if (!simulated)

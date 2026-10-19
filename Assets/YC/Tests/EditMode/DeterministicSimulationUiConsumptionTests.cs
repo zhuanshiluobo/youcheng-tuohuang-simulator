@@ -32,6 +32,55 @@ namespace YC.Tests.EditMode
                 BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { simulation, view, viewer });
 
         [Test]
+        public void LocalSubmissionKeepsSynchronousCommitAndSecondPlayerReceipt()
+        {
+            var state = new GameState { GameId = "热座同步保护局", CurrentPlayerId = 1,
+                RuleConfiguration = new GameRuleConfiguration { PlayerStageSchedulingMode = PlayerStageSchedulingMode.Sequential } };
+            state.Players.Add(new PlayerState { PlayerId = 1 });
+            state.Players.Add(new PlayerState { PlayerId = 2 });
+            var session = new GameSession(state);
+            var handler = new LocalSynchronousHandler(); session.RegisterHandler(handler);
+            var events = new List<string>(); session.StateCommitted += () => events.Add("commit");
+            var type = PresentationType("CommandSubmissionController");
+            var controller = Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                null, new object[] { session, null, 1, null, (Action)(() => { }), (Action<string>)(_ => { }),
+                    (Action<string>)(_ => { }), null,
+                    (Action<string, string, bool, CommandErrorCode>)((game, id, accepted, error) =>
+                    { Assert.That(game, Is.EqualTo(state.GameId)); Assert.That(accepted, Is.True); events.Add(id); }) }, null);
+            try
+            {
+                type.GetMethod("Initialize", new[] { typeof(EffectRegistry) }).Invoke(controller, new object[] { new EffectRegistry() });
+                Assert.That(type.GetProperty("UsesDeterministicSimulation").GetValue(controller), Is.False);
+                for (int player = 1; player <= 2; player++)
+                {
+                    var command = new GameCommand { CommandId = "热座原回执" + player, Kind = GameCommandKind.EndAction, PlayerId = player };
+                    var args = new object[] { command, false };
+                    var result = (CommandResult)type.GetMethod("Submit").Invoke(controller, args);
+                    events.Add("return");
+                    Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+                    Assert.That(args[1], Is.EqualTo(true));
+                    Assert.That(session.State.CurrentPlayerId, Is.EqualTo(player + 1));
+                    Assert.That(handler.ThreadId, Is.EqualTo(System.Threading.Thread.CurrentThread.ManagedThreadId));
+                }
+                Assert.That(events, Is.EqualTo(new[] { "commit", "热座原回执1", "return", "commit", "热座原回执2", "return" }));
+                Assert.That(session.State.RuleConfiguration.PlayerStageSchedulingMode, Is.EqualTo(PlayerStageSchedulingMode.Sequential));
+            }
+            finally { ((IDisposable)controller).Dispose(); }
+        }
+
+        private sealed class LocalSynchronousHandler : IGameCommandHandler
+        {
+            internal int ThreadId;
+            public bool CanHandle(GameCommand command) => command.Kind == GameCommandKind.EndAction;
+            public CommandResult Handle(GameState state, GameCommand command)
+            {
+                ThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                state.CurrentPlayerId = command.PlayerId + 1;
+                return CommandResult.SuccessResult(new List<YC.Domain.Events.GameEvent>(), "热座同步夹具");
+            }
+        }
+
+        [Test]
         public void PlayerUiReadStateKeepsCompleteSimulationAndHidesOtherHandsAndSecretReturns()
         {
             var state = new GameState { GameId = "本人展示局", ContentPackHash = "本人展示内容包",
@@ -99,7 +148,7 @@ namespace YC.Tests.EditMode
                 Assert.That(fixture.ResolveForeign(submitted, 1, fixture.Session.State.GameId), Is.False);
                 Assert.That(fixture.ResolveForeign(submitted, 2, "旧局"), Is.False);
                 Assert.That(fixture.InFlight, Is.EqualTo(submitted));
-                Assert.That(fixture.Host.Pump(1), Is.EqualTo(1));
+                fixture.AwaitLocalApplication(1);
                 Assert.That(fixture.ResultNotifications, Is.EqualTo(1));
                 Assert.That(fixture.InFlight, Is.Empty);
                 Assert.That(fixture.RequestRouter.CurrentRequest, Is.Not.Null);
@@ -144,7 +193,8 @@ namespace YC.Tests.EditMode
                 if (selected != null) Assert.That(selected, Does.Contain("strategy"));
                 Assert.That(fixture.DirectSubmissions, Is.EqualTo(1));
                 Assert.That(fixture.Host.LastSequencedSequence, Is.EqualTo(0));
-                Assert.That(fixture.Host.Pump(1), Is.EqualTo(0), "被拒提案不得执行或重签入队");
+                fixture.DriveTransport();
+                Assert.That(fixture.Host.LastAppliedSequence, Is.EqualTo(0), "被拒提案不得执行或重签入队");
             }
         }
 
@@ -313,7 +363,10 @@ namespace YC.Tests.EditMode
                     transportType.GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(transport, null);
                     Assert.That(transportType.GetProperty("Instance").GetValue(null), Is.SameAs(transport));
                     submissionType.GetMethod("Initialize", new[] { typeof(EffectRegistry) }).Invoke(submission, new object[] { registry });
-                    Assert.That(transport, Is.Not.Null); Assert.That(Host.IsStopped, Is.False, Host.LastFault?.Diagnostic);
+                    Assert.That(transport, Is.Not.Null);
+                    AwaitPublished(() => Host.ReadBoundary(0) != null);
+                    Assert.That(Host.IsBackgroundExecutionEnabled, Is.True, "正式运输入口必须显式启用执行owner");
+                    Assert.That(Host.IsStopped, Is.False, Host.LastFault?.Diagnostic);
                     Refresh();
                 }
                 catch { Dispose(); throw; }
@@ -357,6 +410,25 @@ namespace YC.Tests.EditMode
             { DirectSubmissions++; return ((IGameCommandPort)Adapter).Submit(command); }
             internal bool SubmitCurrent() => (bool)coordinatorType.GetMethod("TrySubmitUseSelection").Invoke(consumer,
                 new object[] { RequestRouter.CurrentRequest, "strategy" });
+            internal void DriveTransport() => transportType.GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(transport, null);
+            private void AwaitPublished(Func<bool> ready)
+            {
+                // 隔离夹具只排空正式运输通知，不同步Pump规则或改写会话。
+                var elapsed = System.Diagnostics.Stopwatch.StartNew();
+                while (true)
+                {
+                    DriveTransport();
+                    if (ready()) return;
+                    if (Host.BackgroundExecutionException != null) throw Host.BackgroundExecutionException;
+                    if (elapsed.Elapsed > TimeSpan.FromSeconds(10)) Assert.Fail("等待真实执行线程发表结果超时。");
+                    System.Threading.Thread.Sleep(1);
+                }
+            }
+            internal void AwaitLocalApplication(long sequence)
+            {
+                AwaitPublished(() => Host.LastAppliedSequence >= sequence && ResultNotifications > 0);
+                Assert.That(Host.LastAppliedSequence, Is.EqualTo(sequence));
+            }
             internal void PermitInitialWindow()
             {
                 var boundary = Host.ReadBoundary(0); Assert.That(boundary, Is.Not.Null);
@@ -364,6 +436,7 @@ namespace YC.Tests.EditMode
                 Assert.That(Host.ReceiveWindowReady(1, new SimulationWindowReadyDto { GameId = boundary.GameId,
                     SimulationEpoch = boundary.SimulationEpoch, MembershipVersion = boundary.MembershipVersion,
                     PlayerId = 1, ReplicaId = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(1), Boundary = peer.ReadBoundary(0) }), Is.True);
+                AwaitPublished(() => CanSubmit);
                 Refresh();
             }
             internal bool ResolveForeign(string command, int player, string game) => (bool)submissionType.GetMethod("ResolveSubmitted",

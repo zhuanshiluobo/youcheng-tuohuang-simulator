@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using YC.Domain.Commands;
+using YC.Domain.Travel;
 using YC.Domain.Interactions;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -921,9 +923,6 @@ namespace YC.Domain.Effects
             {
                 if (lastChild != null && lastChild.Status == EffectNodeStatus.Failed)
                 {
-                    if (ItemTransferEffectExecutor.Flag(node.NormalizedArguments, "ruleCondition") &&
-                        lastChild.FailureReason == "player_declined" && index == 0)
-                        return EffectStepResult.Failed("player_declined");
                     return EffectStepResult.Completed(CreateConditionResult(false, lastChild));
                 }
 
@@ -1735,6 +1734,28 @@ namespace YC.Domain.Effects
             NormalizedValue answer,
             out string diagnostic,
             out CommandErrorCode errorCode)
+            => TrySubmitInteractionCore(requestId, answeringPlayerId, expectedRevision, answer, null, out diagnostic, out errorCode);
+
+        internal bool TrySubmitInteractionAtRequestContract(GameCommand command, NormalizedValue answer, string expectedContractDigest,
+            out string diagnostic, out CommandErrorCode errorCode)
+        {
+            diagnostic = string.Empty; errorCode = CommandErrorCode.InvalidTarget;
+            if (Runtime.CurrentOperationContext?.SourceCommandId != command.CommandId || Runtime.CurrentOperationContext.ActingPlayerId != command.PlayerId)
+            { diagnostic = "请求合同入口缺少原有序命令的可信执行上下文。"; return false; }
+            if (!InteractionRequestValidity.TryValidateAnswer(state, command, expectedContractDigest, out var validation))
+            { diagnostic = validation.Reason; errorCode = validation.ErrorCode; return false; }
+            command.Parameters.TryGetValue("interactionId", out var id);
+            if (string.IsNullOrEmpty(id)) id = !string.IsNullOrEmpty(command.SourceId) ? command.SourceId : command.TargetId;
+            var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == id);
+            if (request == null) { diagnostic = "原交互已经关闭。"; return false; }
+            if (!int.TryParse(command.Parameters.TryGetValue("expectedRevision", out var revision) ? revision : "", out int expectedRevision) || expectedRevision < 0)
+            { diagnostic = "交互回答缺少有效的原expectedRevision。"; return false; }
+            return TrySubmitInteractionCore(request.GetStableInteractionId(), command.PlayerId, expectedRevision, answer, expectedContractDigest,
+                out diagnostic, out errorCode);
+        }
+
+        private bool TrySubmitInteractionCore(string requestId, int answeringPlayerId, int expectedRevision,
+            NormalizedValue answer, string verifiedContractDigest, out string diagnostic, out CommandErrorCode errorCode)
         {
             diagnostic = string.Empty;
             errorCode = CommandErrorCode.InvalidTarget;
@@ -1765,8 +1786,8 @@ namespace YC.Domain.Effects
                     return false;
                 }
 
-                if (expectedRevision < 0 || Runtime.StateRevision != expectedRevision ||
-                    request.StateRevision != expectedRevision)
+                if (expectedRevision < 0 || verifiedContractDigest == null &&
+                    (Runtime.StateRevision != expectedRevision || request.StateRevision != expectedRevision))
                 {
                     diagnostic = "交互已过期，请刷新当前交互。";
                     errorCode = CommandErrorCode.StateRevisionMismatch;
@@ -1813,6 +1834,16 @@ namespace YC.Domain.Effects
                 }
 
                 workingRequest.Status = "answered";
+                if (verifiedContractDigest != null && workingRequest.InteractionTypeId == "route_resource.selection")
+                {
+                    // 仅新可信入口写持久化接受事实；旧答案/旧存档不补标，后继仍可辨别legacy strict。
+                    var accepted = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedVersionParameter, NormalizedValue.CreateInteger(InteractionRequestValidity.ContractVersion));
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedDigestParameter, NormalizedValue.CreateString(verifiedContractDigest));
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedCommandParameter, NormalizedValue.CreateString(Runtime.CurrentOperationContext.SourceCommandId));
+                    RouteSelectionSessionAuthority.Set(accepted, "interactionId", NormalizedValue.CreateString(workingRequest.GetStableInteractionId()));
+                    RouteSelectionSessionAuthority.Set(owner.ContinuationData, InteractionRequestValidity.AcceptanceRecord, accepted);
+                }
                 owner.ContinuationOperationContext = runtime.CurrentOperationContext?.Clone() ?? owner.ContinuationOperationContext;
                 workingRequest.NormalizedAnswer = answer.Clone();
                 workingRequest.AnsweredAtRevision = runtime.StateRevision + 1;
@@ -2440,7 +2471,11 @@ namespace YC.Domain.Effects
             }
 
             if (node.ContinuationContext != null && node.PendingOutcome == EffectPendingOutcome.Completed &&
-                node.ChildEffectIds.Any(id => work.EffectRuntime.EffectNodes.Any(child => child.EffectId == id && child.Status == EffectNodeStatus.Failed)))
+                node.ChildEffectIds.Any(id => work.EffectRuntime.EffectNodes.Any(child => child.EffectId == id && child.Status == EffectNodeStatus.Failed &&
+                    // 条件左式失败已被本节点消费为正常未满足；不能在内容续接收口时重新升级为技术失败。
+                    !(node.EffectTypeId == EffectTypeIds.Condition &&
+                        ItemTransferEffectExecutor.Text(node.NormalizedResult, "outcome") == "condition_not_met" &&
+                        ItemTransferEffectExecutor.Text(node.NormalizedResult, "failedChildId") == child.EffectId))))
             {
                 node.PendingOutcome = EffectPendingOutcome.Failed;
                 node.FailureReason = "continuation_child_failed";
@@ -3179,9 +3214,12 @@ namespace YC.Domain.Effects
             InteractionRequest request,
             NormalizedValue answer,
             out string diagnostic)
+            => TryValidateInteractionAnswerOnState(state, request, answer, out diagnostic);
+
+        public static bool TryValidateInteractionAnswerOnState(GameState state, InteractionRequest request, NormalizedValue answer, out string diagnostic)
         {
             diagnostic = string.Empty;
-            if (request == null || answer == null)
+            if (state?.EffectRuntime == null || request == null || answer == null)
             {
                 diagnostic = "交互答案为空。";
                 return false;
@@ -3306,7 +3344,7 @@ namespace YC.Domain.Effects
 
                 if (!string.IsNullOrEmpty(request.CandidateResolutionId))
                 {
-                    CandidateResolutionRecord resolution = Runtime.CandidateResolutions.Find(candidate =>
+                    CandidateResolutionRecord resolution = state.EffectRuntime.CandidateResolutions.Find(candidate =>
                         candidate != null && candidate.CandidateSetId == request.CandidateResolutionId &&
                         candidate.Version == request.CandidateSetVersion);
                     if (resolution == null || !resolution.FinalCandidateIds.Contains(selectedIds[i]))

@@ -53,6 +53,8 @@ namespace YC.Presentation.Workflows
         public bool IsBusy => HasPending || waiting;
         public int RebuildCount => rebuilds;
         public bool BelongsToContext(string currentGameId, int currentPlayerId) => gameId == currentGameId && playerId == currentPlayerId;
+        public bool IsPendingForRequest(string currentGameId, InteractionRequestProjection request) =>
+            HasPending && gameId == currentGameId && IsOpen(request) && request.AnsweringPlayerId == playerId && Contract(request) == contract;
 
         public static bool SameContract(string leftGame, InteractionRequestProjection left,
             string rightGame, InteractionRequestProjection right) =>

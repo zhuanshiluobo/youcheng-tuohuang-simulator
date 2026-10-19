@@ -1,4 +1,5 @@
 using System;
+using YC.Application.Sessions;
 
 namespace YC.Infrastructure.Multiplayer
 {
@@ -18,6 +19,8 @@ namespace YC.Infrastructure.Multiplayer
         public const string GzipDigestVersion = "yc.simulation-checkpoint.gzip.sha256.v1";
 
         public int ProtocolVersion = CurrentProtocolVersion;
+        // 线上会话能力；缺字段的旧信封保持0，不能靠内容hash推断新请求语义。
+        public int RequestContractVersion;
         public string Purpose = InitialSimulation;
         public string GameId = string.Empty;
         public long SimulationEpoch;
@@ -38,6 +41,7 @@ namespace YC.Infrastructure.Multiplayer
 
         public static bool SameIdentity(SimulationCheckpointEnvelope left, SimulationCheckpointEnvelope right) =>
             left != null && right != null && left.ProtocolVersion == right.ProtocolVersion && left.Purpose == right.Purpose &&
+            left.RequestContractVersion == right.RequestContractVersion &&
             left.GameId == right.GameId && left.SimulationEpoch == right.SimulationEpoch && left.MembershipVersion == right.MembershipVersion &&
             left.SourceSimulationEpoch == right.SourceSimulationEpoch &&
             left.CheckpointId == right.CheckpointId && left.GlobalCommandSequence == right.GlobalCommandSequence &&
@@ -54,6 +58,7 @@ namespace YC.Infrastructure.Multiplayer
              SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
              ProtocolVersion == RecoveryProtocolVersion && Purpose == ConfirmedSimulationRecovery && SourceSimulationEpoch > 0 &&
              SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == RecoveryDigestVersion) &&
+            (RequestContractVersion == 0 || RequestContractVersion == OperationCommandProtocol.RequestContractVersion) &&
             ValidText(GameId, 128) && SimulationEpoch > 0 && MembershipVersion > 0 && ValidText(CheckpointId, 128) &&
             GlobalCommandSequence >= 0 && GlobalCommandSequence < long.MaxValue && ValidText(ContentPackHash, 128) &&
             Compression == GzipVersion && EncodedDigestVersion == GzipDigestVersion;

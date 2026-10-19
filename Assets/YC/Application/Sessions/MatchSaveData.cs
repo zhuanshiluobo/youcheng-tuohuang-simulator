@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Application.Sessions
 {
@@ -22,6 +24,29 @@ namespace YC.Application.Sessions
     [Serializable]
     public sealed class MatchSaveData
     {
+        /// <summary>联机专用：只读已发布固定确认点，序列化与Validate全部在后台完成。</summary>
+        public static async Task<MatchSaveData> CreateFromPublishedSnapshotAsync(MatchSaveData header, SimulationPublishedSnapshot snapshot)
+        {
+            if (header == null || snapshot == null || !snapshot.IsHost || header.Mode != LaunchMode.Host ||
+                header.LocalPlayerId != snapshot.LocalPlayerId || !string.IsNullOrEmpty(header.GameId) && header.GameId != snapshot.GameId)
+                throw new ArgumentException("published_save_identity_invalid");
+            // 入口只复制少量身份元数据，旧存档的大JSON不进入主线程复制路径。
+            var data = new MatchSaveData { Format = header.Format, Version = header.Version, SavedUtcTicks = header.SavedUtcTicks,
+                Mode = header.Mode, LocalTestNetwork = header.LocalTestNetwork, LocalPlayerId = header.LocalPlayerId, HostSteamId = header.HostSteamId,
+                Seats = header.Seats?.Select(seat => seat == null ? null : new MatchSaveSeat { PlayerId = seat.PlayerId, SteamId = seat.SteamId,
+                    OperatorId = seat.OperatorId, PlayerName = seat.PlayerName, Color = seat.Color }).ToList() };
+            var checkpoint = await snapshot.CreateSaveCheckpointAsync().ConfigureAwait(false);
+            return await Task.Run(() =>
+            {
+                data.GameId = snapshot.GameId; data.ContentHash = snapshot.ContentHash; data.MapId = snapshot.MapId; data.Round = snapshot.Round;
+                if (data.SavedUtcTicks <= 0) data.SavedUtcTicks = DateTime.UtcNow.Ticks;
+                data.ArchiveJson = HostRecoveryService.SerializeArchive(checkpoint.Archive);
+                data.ContinuationJson = SimulationConfirmedRecoveryInstaller.SerializeContinuation(checkpoint.Continuation);
+                data.SimulationCheckpointJson = SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint);
+                data.Validate(); return data;
+            }).ConfigureAwait(false);
+        }
+
         public const int CurrentVersion = 2;
         public string Format = "YC.MatchSave";
         public int Version = CurrentVersion;

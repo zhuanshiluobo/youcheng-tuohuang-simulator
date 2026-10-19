@@ -346,6 +346,8 @@ namespace YC.Application.Sessions
                     if (parameter == null || string.IsNullOrWhiteSpace(parameter.Key) || !keys.Add(parameter.Key))
                         throw new ArgumentException("command_parameter_duplicate_or_invalid");
             }
+            if (!InteractionRequestValidity.TryReadMarker(command.ToCommand(), out _, out _, out var markerValidation))
+                throw new ArgumentException(markerValidation.Reason);
         }
 
         private static byte[] Encode(Action<BinaryWriter> write)

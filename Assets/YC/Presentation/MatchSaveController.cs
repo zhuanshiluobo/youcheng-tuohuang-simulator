@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
 using YC.Application.Sessions;
 using YC.Infrastructure.Multiplayer;
@@ -21,12 +22,16 @@ namespace YC.Presentation
         private float retryAt;
         private string lastFailure;
         private long observationSaveId;
-        private MatchSaveData completedHostSave;
+        private SimulationPublishedSnapshot completedHostSnapshot;
+        private MatchSaveData completedHostHeader;
         private int completedHostSaveGeneration = -1;
-        private int completedHostSaveRevision;
-        private string completedHostSaveDigest;
+        private MirrorCommandTransport saveTransport;
+        private Action<SimulationCommandAppliedDto> networkApplied;
+        private Action<CommandValidationPrefixDto> networkValidated;
+        private Action<DeterministicSimulationCoordinator> networkRecovered;
+        private CancellationTokenSource saveLifetime = new CancellationTokenSource();
         public bool CanSave => session != null && context != null && context.Mode != LaunchMode.Client;
-        public string CurrentGameId => session?.State.GameId;
+        public string CurrentGameId => context?.Mode == LaunchMode.Local ? session?.State.GameId : context?.GameId;
         public string LastFailure => lastFailure;
         public bool HasSaves => store.HasSaves();
         public static MatchSaveController Ensure()
@@ -44,7 +49,7 @@ namespace YC.Presentation
         private void OnDestroy()
         {
             if (Instance != this) return;
-            Unbind(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
+            Unbind(); saveLifetime.Dispose(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
         }
         public Task<System.Collections.Generic.List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
         public Task Delete(int slot) => store.DeleteAsync(slot);
@@ -61,19 +66,41 @@ namespace YC.Presentation
             if (value == null || launch == null || launch.Mode == LaunchMode.Client) return;
             session = value; context = launch;
             if (NetworkExecutionObservation.Enabled) session.ExecutionTimings.Enabled = true;
-            session.StateCommitted += MarkDirty;
-            store.BeginMatch(session.State.GameId, launch.RestoreData == null);
+            if (launch.Mode == LaunchMode.Local) session.StateCommitted += MarkDirty;
+            else
+            {
+                // 联机规则提交在执行线程；保存生命周期只接受运输层主线程交付的通知。
+                saveTransport = MirrorCommandTransport.Instance;
+                if (saveTransport == null) throw new InvalidOperationException("联机保存缺少当前运输绑定。");
+                int epoch = generation;
+                bool Current() => epoch == generation && context == launch && session == value &&
+                    ReferenceEquals(MirrorCommandTransport.Instance, saveTransport);
+                networkApplied = applied => { if (Current() && applied.GameId == launch.GameId && applied.RuleResult?.Succeeded == true) MarkDirty(); };
+                networkValidated = prefix => { if (Current() && prefix.GameId == launch.GameId) dirty++; };
+                networkRecovered = coordinator => { if (Current() && coordinator.SessionOptions.GameId == launch.GameId) MarkDirty(); };
+                saveTransport.SimulationCommandApplied += networkApplied;
+                saveTransport.CommandValidationPrefixAdvanced += networkValidated;
+                saveTransport.SimulationRecoveryCompleted += networkRecovered;
+            }
+            store.BeginMatch(launch.Mode == LaunchMode.Local ? session.State.GameId : launch.GameId, launch.RestoreData == null);
             dirty = launch.RestoreData == null ? 1 : 0; saved = 0;
         }
         private void MarkDirty() { dirty++; ClearCompletedHostSave(); }
         private void ClearCompletedHostSave()
         {
-            completedHostSave = null; completedHostSaveGeneration = -1;
-            completedHostSaveRevision = 0; completedHostSaveDigest = null;
+            completedHostSnapshot = null; completedHostHeader = null; completedHostSaveGeneration = -1;
         }
         public void Unbind()
         {
-            if (session != null) { session.StateCommitted -= MarkDirty; session.CommandsSuspended = false; }
+            saveLifetime.Cancel(); saveLifetime.Dispose(); saveLifetime = new CancellationTokenSource();
+            if (session != null && context?.Mode == LaunchMode.Local) { session.StateCommitted -= MarkDirty; session.CommandsSuspended = false; }
+            if (!ReferenceEquals(saveTransport, null))
+            {
+                saveTransport.SimulationCommandApplied -= networkApplied;
+                saveTransport.CommandValidationPrefixAdvanced -= networkValidated;
+                saveTransport.SimulationRecoveryCompleted -= networkRecovered;
+            }
+            saveTransport = null; networkApplied = null; networkValidated = null; networkRecovered = null;
             generation++; session = null; context = null; dirty = saved = 0; saving = leaving = false;
             ClearCompletedHostSave(); lastFailure = null; retryAt = 0f; allowQuit = false; observationSaveId = 0;
         }
@@ -83,14 +110,14 @@ namespace YC.Presentation
             reason = null;
             try
             {
-                if (!CanSave || context != launch || context.Mode != LaunchMode.Host || context.IsCompletedSessionDetached ||
-                    context.GameId != session.State.GameId || !IsCompletedState(session.State))
+                if (!CanSave || context != launch || context.Mode != LaunchMode.Host || context.IsCompletedSessionDetached)
                     throw new InvalidOperationException("当前对局没有可保留的房主终局确认存档。");
-                var data = CaptureLiveSession(true);
-                completedHostSave = data;
+                var snapshot = ReadHostSaveSnapshot();
+                if (!snapshot.FinalScoringResolved || snapshot.Phase != GamePhase.FinalScoring && snapshot.Phase != GamePhase.GameOver)
+                    throw new InvalidOperationException("终局状态尚未形成同局一致的正式确认检查点。");
+                completedHostSnapshot = snapshot;
+                completedHostHeader = CreateHostSaveHeader();
                 completedHostSaveGeneration = generation;
-                completedHostSaveRevision = session.State.EffectRuntime.StateRevision;
-                completedHostSaveDigest = RuleStateDigestService.Compute(session.State);
                 // 释放运输层后仍由原保存队列写盘；失败保留此确认点供重试。
                 dirty++;
                 return true;
@@ -103,25 +130,26 @@ namespace YC.Presentation
             }
         }
 
-        private static bool IsCompletedState(GameState state) => state != null && RoundTrackRule.IsFinalState(state) &&
-            state.FinalScoring != null && state.FinalScoring.IsResolved;
-
-        private MatchSaveData CaptureDetachedCompletedHost()
+        private SimulationPublishedSnapshot ReadHostSaveSnapshot()
         {
-            using var captureObservation = NetworkExecutionObservation.Begin("save.capture", SaveObservationContext(), true, session.ExecutionTimings);
-            if (completedHostSave == null || completedHostSaveGeneration != generation ||
-                !IsCompletedState(session.State) || context.Mode != LaunchMode.Host ||
-                completedHostSave.Mode != LaunchMode.Host || completedHostSave.GameId != session.State.GameId ||
-                context.GameId != completedHostSave.GameId || completedHostSave.LocalPlayerId != context.LocalPlayerId ||
-                completedHostSave.ContentHash != session.State.ContentPackHash || completedHostSave.MapId != session.State.MapId ||
-                completedHostSaveRevision != session.State.EffectRuntime.StateRevision ||
-                completedHostSaveDigest != RuleStateDigestService.Compute(session.State))
-                throw new InvalidOperationException("终局确认存档已失效，不能跳过保存退出。");
-            var data = GameStateCloneService.DeepClone(completedHostSave);
-            data.SavedUtcTicks = DateTime.UtcNow.Ticks;
-            data.Validate();
-            return data;
+            var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
+            if (coordinator == null || !coordinator.TryReadPublishedSnapshot(out var snapshot) ||
+                snapshot.GameId != context.GameId || snapshot.LocalPlayerId != context.LocalPlayerId || !snapshot.CanCreateSaveCheckpoint)
+                throw new InvalidOperationException("联机正式确认保存点尚未就绪。");
+            return snapshot;
         }
+
+        private SimulationPublishedSnapshot ReadRetainedHostSnapshot()
+        {
+            var snapshot = completedHostSnapshot;
+            if (snapshot == null || completedHostHeader == null || completedHostSaveGeneration != generation ||
+                context.Mode != LaunchMode.Host || snapshot.GameId != context.GameId || snapshot.LocalPlayerId != context.LocalPlayerId ||
+                !snapshot.FinalScoringResolved || !snapshot.CanCreateSaveCheckpoint ||
+                snapshot.Phase != GamePhase.FinalScoring && snapshot.Phase != GamePhase.GameOver)
+                throw new InvalidOperationException("终局确认存档已失效，不能跳过保存退出。");
+            return snapshot;
+        }
+
         private async void LateUpdate()
         {
             if (!CanSave || saving || leaving || dirty == saved || Time.unscaledTime < retryAt) return;
@@ -131,55 +159,22 @@ namespace YC.Presentation
         public MatchSaveData Capture()
         {
             if (!CanSave) throw new InvalidOperationException("只有本地对局或房主可以保存。");
-            if (context.Mode == LaunchMode.Host && context.IsCompletedSessionDetached)
-                return CaptureDetachedCompletedHost();
-            return CaptureLiveSession(false);
+            if (context.Mode != LaunchMode.Local)
+                throw new InvalidOperationException("联机存档必须通过异步保存入口从固定确认点生成。");
+            return CaptureLiveSession();
         }
 
-        private MatchSaveData CaptureLiveSession(bool requireCompletedCheckpoint)
+        private MatchSaveData CaptureLiveSession()
         {
             using var captureObservation = NetworkExecutionObservation.Begin("save.capture", SaveObservationContext(), true, session.ExecutionTimings);
-            string archive, continuation, simulation = null;
-            if (context.Mode == LaunchMode.Host)
-            {
-                var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
-                if (coordinator == null || coordinator.SessionOptions.GameId != session.State.GameId)
-                    throw new InvalidOperationException("联机确认通道尚未就绪。");
-                SimulationRecoveryCheckpointDto checkpoint;
-                SimulationRecoveryResultDto result;
-                using (NetworkExecutionObservation.Begin("save.checkpoint", SaveObservationContext(), true, session.ExecutionTimings))
-                    if (!coordinator.TryCreateSaveCheckpoint(out checkpoint, out result))
-                        throw new InvalidOperationException(result.Reason);
-                if (requireCompletedCheckpoint)
-                {
-                    var confirmedState = checkpoint?.Archive?.Snapshot?.State;
-                    string digest = RuleStateDigestService.Compute(session.State);
-                    if (!IsCompletedState(confirmedState) || confirmedState.GameId != session.State.GameId ||
-                        confirmedState.ContentPackHash != session.State.ContentPackHash ||
-                        confirmedState.EffectRuntime?.StateRevision != session.State.EffectRuntime.StateRevision ||
-                        checkpoint.Baseline?.GameId != session.State.GameId ||
-                        checkpoint.Baseline.RuleDigestVersion != RuleStateDigestService.DigestVersion ||
-                        checkpoint.Baseline.RuleStateDigest != digest || RuleStateDigestService.Compute(confirmedState) != digest)
-                        throw new InvalidOperationException("终局状态尚未形成同局一致的正式确认检查点。");
-                }
-                using (NetworkExecutionObservation.Begin("save.archive_serialize", SaveObservationContext()))
-                    archive = HostRecoveryService.SerializeArchive(checkpoint.Archive);
-                using (NetworkExecutionObservation.Begin("save.continuation_serialize", SaveObservationContext()))
-                    continuation = SimulationConfirmedRecoveryInstaller.SerializeContinuation(checkpoint.Continuation);
-                using (NetworkExecutionObservation.Begin("save.simulation_serialize", SaveObservationContext()))
-                    simulation = SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint);
-            }
-            else
-            {
-                var export = session.ExportConfirmedRecoveryPoint(session.EnableConfirmedRecoveryCapture());
-                archive = HostRecoveryService.SerializeArchive(export.Archive);
-                continuation = SimulationConfirmedRecoveryInstaller.SerializeContinuation(export.Continuation);
-            }
+            var export = session.ExportConfirmedRecoveryPoint(session.EnableConfirmedRecoveryCapture());
+            string archive = HostRecoveryService.SerializeArchive(export.Archive);
+            string continuation = SimulationConfirmedRecoveryInstaller.SerializeContinuation(export.Continuation);
             var data = new MatchSaveData { SavedUtcTicks = DateTime.UtcNow.Ticks, Mode = context.Mode,
                 LocalPlayerId = context.LocalPlayerId, LocalTestNetwork = LocalMirrorTestMode.IsEnabled,
                 MapId = session.State.MapId, GameId = session.State.GameId, Round = session.State.Round,
                 ContentHash = session.State.ContentPackHash, ArchiveJson = archive, ContinuationJson = continuation,
-                SimulationCheckpointJson = simulation };
+                SimulationCheckpointJson = null };
             foreach (var player in session.State.Players)
             {
                 var seat = context.Players.Find(s => s.PlayerId == player.PlayerId);
@@ -189,6 +184,24 @@ namespace YC.Presentation
             data.HostSteamId = data.Seats.Find(s => s.PlayerId == data.LocalPlayerId)?.SteamId ?? 0;
             data.Validate(); return data;
         }
+        private MatchSaveData CreateHostSaveHeader()
+        {
+            var seats = CopySaveSeats();
+            return new MatchSaveData { Mode = LaunchMode.Host, GameId = context.GameId,
+                LocalPlayerId = context.LocalPlayerId, LocalTestNetwork = LocalMirrorTestMode.IsEnabled,
+                HostSteamId = seats.Find(value => value.PlayerId == context.LocalPlayerId)?.SteamId ?? 0,
+                Seats = seats, SavedUtcTicks = DateTime.UtcNow.Ticks };
+        }
+
+        private System.Collections.Generic.List<MatchSaveSeat> CopySaveSeats()
+        {
+            var seats = new System.Collections.Generic.List<MatchSaveSeat>();
+            foreach (var seat in context.Players)
+                seats.Add(new MatchSaveSeat { PlayerId = seat.PlayerId, Color = seat.Color,
+                    PlayerName = seat.PlayerName, SteamId = seat.SteamId, OperatorId = seat.OperatorId });
+            return seats;
+        }
+
         public async Task<bool> Save(int slot = -1)
         {
             if (saving) { lastFailure = "正在写入存档，请稍候。"; return false; }
@@ -199,9 +212,21 @@ namespace YC.Presentation
             saveObservation.Context = observationContext;
             try
             {
-                var capture = Capture();
                 Task write;
-                using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext)) write = store.SaveAsync(capture, slot);
+                if (context?.Mode == LaunchMode.Host)
+                {
+                    var snapshot = context.IsCompletedSessionDetached ? ReadRetainedHostSnapshot() : ReadHostSaveSnapshot();
+                    var header = context.IsCompletedSessionDetached ? GameStateCloneService.DeepClone(completedHostHeader) : CreateHostSaveHeader();
+                    header.SavedUtcTicks = DateTime.UtcNow.Ticks;
+                    using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext))
+                        write = store.SavePreparedAsync(() => MatchSaveData.CreateFromPublishedSnapshotAsync(header, snapshot),
+                            snapshot.GameId, snapshot.ContentHash, slot, saveLifetime.Token);
+                }
+                else
+                {
+                    var capture = Capture();
+                    using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext)) write = store.SaveAsync(capture, slot);
+                }
                 NetworkExecutionObservation.ObserveCompletion(write, observationContext);
                 using (NetworkExecutionObservation.Begin("save.await_resume", observationContext)) await write;
                 if (epoch != generation) return false;
@@ -221,10 +246,10 @@ namespace YC.Presentation
         {
             if (!NetworkExecutionObservation.Enabled) return default;
             var identity = MirrorCommandTransport.Instance != null ? MirrorCommandTransport.Instance.ReadObservationContext() : default;
-            identity.GameId = session?.State.GameId;
+            identity.GameId = context?.Mode == LaunchMode.Local ? session?.State.GameId : context?.GameId;
             identity.Mode = context?.Mode.ToString();
             identity.PlayerId = context?.LocalPlayerId ?? -1;
-            identity.Revision = session?.State.EffectRuntime?.StateRevision ?? 0;
+            if (context?.Mode == LaunchMode.Local) identity.Revision = session?.State.EffectRuntime?.StateRevision ?? 0;
             identity.Frame = Time.frameCount; identity.Slot = slot;
             identity.OperationId = observationSaveId;
             return identity;
@@ -251,7 +276,7 @@ namespace YC.Presentation
             }
             catch (Exception error)
             { if (epoch == generation) { lastFailure = error.Message; Debug.LogWarning("保存退出未完成：" + error.Message); } }
-            finally { if (epoch == generation) { leaving = false; if (session != null) session.CommandsSuspended = false;
+            finally { if (epoch == generation) { leaving = false; if (session != null && context?.Mode == LaunchMode.Local) session.CommandsSuspended = false;
                 if (!string.IsNullOrEmpty(lastFailure)) MatchSaveWindowView.OpenSaveFailure(lastFailure); } }
         }
         private bool WantsToQuit()

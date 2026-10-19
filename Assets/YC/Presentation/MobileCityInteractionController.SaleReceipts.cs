@@ -41,7 +41,7 @@ namespace YC.Presentation
             var canSubmit = CanSubmitGameplayCommand;
             var permissionChanged = lastSimulationUiCanSubmit != canSubmit;
             lastSimulationUiSession = session;
-            lastSimulationUiState = session.State;
+            lastSimulationUiState = commandSubmission.PublishedState;
             lastSimulationUiView = view;
             lastSimulationUiGame = view.GameId;
             lastSimulationUiContent = view.ContentPackHash;
@@ -68,7 +68,7 @@ namespace YC.Presentation
 
         private bool IsSameSimulationUiContext(GameStateView view, bool ready, bool hasResult) =>
             view != null && ReferenceEquals(lastSimulationUiSession, session) &&
-            ReferenceEquals(lastSimulationUiState, session?.State) && ReferenceEquals(lastSimulationUiView, view) &&
+            ReferenceEquals(lastSimulationUiState, commandSubmission?.PublishedState) && ReferenceEquals(lastSimulationUiView, view) &&
             lastSimulationUiGame == view.GameId && lastSimulationUiRevision == view.StateRevision &&
             lastSimulationUiContent == view.ContentPackHash && lastSimulationUiReady == ready &&
             lastSimulationUiViewer == localPlayerId && !viewerChanged && !hasResult;
@@ -108,13 +108,14 @@ namespace YC.Presentation
             if (session == null) return null;
             if (ShouldControlCurrentPlayerLocally()) return session.State;
             var view = VisibleSaleState();
-            if (view == null) return null;
+            var simulation = commandSubmission?.UsesDeterministicSimulation == true ? commandSubmission.PublishedState : session.State;
+            if (view == null || simulation == null) return null;
             if (ReferenceEquals(uiReadView, view) && ReferenceEquals(uiReadSession, session) &&
-                ReferenceEquals(uiReadSimulationState, session.State)) return uiReadState;
-            var projected = PlayerUiReadStateFactory.Create(session.State, view, localPlayerId);
+                ReferenceEquals(uiReadSimulationState, simulation)) return uiReadState;
+            var projected = PlayerUiReadStateFactory.Create(simulation, view, localPlayerId);
             uiReadSession = session;
             uiReadView = view;
-            uiReadSimulationState = session.State;
+            uiReadSimulationState = simulation;
             uiReadState = projected;
             return projected;
         }
@@ -156,14 +157,15 @@ namespace YC.Presentation
         private Func<bool> CreateVisibleSnapshotGuard(GameStateView snapshot)
         {
             var boundSession = session;
-            var boundState = session?.State;
-            var boundView = session?.View;
+            var simulated = commandSubmission?.UsesDeterministicSimulation == true;
+            var boundState = simulated ? commandSubmission.PublishedState : session?.State;
+            var boundView = simulated ? commandSubmission.PublishedView : session?.View;
             var viewer = localPlayerId;
             var gameId = snapshot?.GameId;
             var revision = snapshot?.StateRevision ?? -1;
             if (!ShouldControlCurrentPlayerLocally())
                 return () => snapshot != null && ReferenceEquals(session, boundSession) &&
-                    ReferenceEquals(session?.State, boundState) && viewer == localPlayerId &&
+                    ReferenceEquals(simulated ? commandSubmission?.PublishedState : session?.State, boundState) && viewer == localPlayerId &&
                     snapshot.ViewerRole == GameStateViewerRole.Player && snapshot.ViewerPlayerId == viewer &&
                     VisibleSaleState()?.GameId == gameId && VisibleSaleState()?.StateRevision == revision &&
                     VisibleSaleState()?.ContentPackHash == snapshot.ContentPackHash;
@@ -179,6 +181,7 @@ namespace YC.Presentation
 
         private GameStateView VisibleSaleState()
         {
+            if (commandSubmission?.UsesDeterministicSimulation == true) return commandSubmission.PublishedView;
             if (session?.State == null) return null;
             if (session.View != null)
                 return session.View.ViewerRole == GameStateViewerRole.Player && session.View.ViewerPlayerId == localPlayerId &&
