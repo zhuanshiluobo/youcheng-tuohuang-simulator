@@ -1,0 +1,117 @@
+{
+  "date": "2026-10-22",
+  "main": "eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8",
+  "txym": "1bc3a5e3b3684659225cb9e255c836e8b6bd4020",
+  "mergeBase": "d147f8d581911fa3b4e8d4b1e41ca32e0d6bd370",
+  "mainVersion": "0.5.0-alpha",
+  "tipDifferenceCount": 5811,
+  "classifications": {
+    "仅txym改动": 5248,
+    "仅主线改动": 494,
+    "双方不同改动": 69
+  },
+  "modules": {
+    "-.png": {
+      "仅txym改动": 1
+    },
+    ".gitattributes": {
+      "仅主线改动": 1
+    },
+    ".gitignore": {
+      "双方不同改动": 1
+    },
+    ".rgignore": {
+      "仅txym改动": 1
+    },
+    "AGENTS.md": {
+      "仅txym改动": 1
+    },
+    "ArtSource": {
+      "仅主线改动": 398
+    },
+    "Assets/Resources": {
+      "仅txym改动": 3
+    },
+    "Assets/Scenes": {
+      "仅txym改动": 1,
+      "双方不同改动": 1
+    },
+    "Assets/StreamingAssets/Content": {
+      "仅txym改动": 850
+    },
+    "Assets/YC/Application": {
+      "仅txym改动": 72,
+      "双方不同改动": 5
+    },
+    "Assets/YC/Domain": {
+      "仅txym改动": 206,
+      "双方不同改动": 5
+    },
+    "Assets/YC/Editor": {
+      "仅主线改动": 3,
+      "双方不同改动": 4,
+      "仅txym改动": 10
+    },
+    "Assets/YC/Infrastructure": {
+      "仅txym改动": 63,
+      "双方不同改动": 10,
+      "仅主线改动": 6
+    },
+    "Assets/YC/Presentation": {
+      "仅txym改动": 754,
+      "双方不同改动": 25,
+      "仅主线改动": 15
+    },
+    "Assets/YC/Tests": {
+      "仅txym改动": 380,
+      "双方不同改动": 8,
+      "仅主线改动": 13
+    },
+    "ConfigTables": {
+      "仅主线改动": 2,
+      "双方不同改动": 1
+    },
+    "ProjectSettings": {
+      "仅主线改动": 1
+    },
+    "README.md": {
+      "双方不同改动": 1
+    },
+    "docs": {
+      "仅txym改动": 23,
+      "仅主线改动": 2,
+      "双方不同改动": 8
+    },
+    "prompt": {
+      "仅txym改动": 970,
+      "仅主线改动": 52
+    },
+    "tools": {
+      "仅txym改动": 34
+    },
+    "游城拓荒": {
+      "仅txym改动": 1879,
+      "仅主线改动": 1
+    }
+  },
+  "sameChangedCount": 2207,
+  "relocationCandidateCount": 62,
+  "merge": {
+    "exitCode": 1,
+    "tree": "6e24b6730f419613c087d83859d9c22cf44ee65a",
+    "conflictPathCount": 52,
+    "stderr": ""
+  },
+  "conflictModules": {
+    ".gitignore": 1,
+    "Assets/YC/Application": 3,
+    "Assets/YC/Domain": 2,
+    "Assets/YC/Editor": 4,
+    "Assets/YC/Infrastructure": 10,
+    "Assets/YC/Presentation": 19,
+    "Assets/YC/Tests": 7,
+    "ConfigTables": 1,
+    "README.md": 1,
+    "docs": 4
+  }
+}

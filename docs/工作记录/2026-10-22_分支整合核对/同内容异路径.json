@@ -1,0 +1,430 @@
+[
+  {
+    "主线路径": "ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/FixedViewFrameReview/AxisLockedFrameReview/Textures/BipolarNanoflake_FixedView_Core_BaseColor.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/BipolarNanoflake/Textures/BipolarNanoflake_Core_BaseColor.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/FixedViewFrameReview/AxisLockedFrameReview/Textures/BipolarNanoflake_FixedView_Core_Emission.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/BipolarNanoflake/Textures/BipolarNanoflake_Core_Emission.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/FixedViewFrameReview/AxisLockedFrameReview/Textures/BipolarNanoflake_RedAxes_Emission.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/BipolarNanoflake/Textures/BipolarNanoflake_RedAxes_Emission.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/UnityDelivery/BipolarNanoflake_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/BipolarNanoflake/BipolarNanoflake_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/BipolarNanoflake/RedCoreRegionReview/UnityDelivery/material_manifest.json",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/BipolarNanoflake/material_manifest.json"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/D32Steel/D32Steel_Blockout.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/D32Steel/D32Steel_Blockout.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/D32Steel/D32Steel_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/D32Steel/D32Steel_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/OrirockCluster_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/OrirockCluster_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/OrirockClusterLower_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/LowerSolid/OrirockClusterLower_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_BaseColor.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/LowerSolid/Textures/OrirockClusterLower_BaseColor.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_MetallicSmoothness.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/LowerSolid/Textures/OrirockClusterLower_MetallicSmoothness.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_Normal.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/LowerSolid/Textures/OrirockClusterLower_Normal.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_Occlusion.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/LowerSolid/Textures/OrirockClusterLower_Occlusion.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SquareRevision/OrirockClusterLower_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/ReviewDraft/OrirockClusterLower_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SquareRevision/textures/OrirockClusterLower_BaseColor.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/ReviewDraft/Textures/OrirockClusterLower_BaseColor.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SquareRevision/textures/OrirockClusterLower_MetallicSmoothness.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/ReviewDraft/Textures/OrirockClusterLower_MetallicSmoothness.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SquareRevision/textures/OrirockClusterLower_Normal.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/ReviewDraft/Textures/OrirockClusterLower_Normal.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/SquareRevision/textures/OrirockClusterLower_Occlusion.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/ReviewDraft/Textures/OrirockClusterLower_Occlusion.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_BaseColor.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/Textures/OrirockCluster_BaseColor.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_MetallicSmoothness.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/Textures/OrirockCluster_MetallicSmoothness.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_Normal.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/Textures/OrirockCluster_Normal.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_Occlusion.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockCluster/Textures/OrirockCluster_Occlusion.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockConcentration/OrirockConcentration_Finished.fbx",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockConcentration/OrirockConcentration_Finished.fbx"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockConcentration/textures/OrirockConcentration_BaseColor.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockConcentration/Textures/OrirockConcentration_BaseColor.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockConcentration/textures/OrirockConcentration_MetallicSmoothness.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockConcentration/Textures/OrirockConcentration_MetallicSmoothness.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockConcentration/textures/OrirockConcentration_Normal.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockConcentration/Textures/OrirockConcentration_Normal.png"
+    ]
+  },
+  {
+    "主线路径": "ArtSource/Materials/OrirockFamily/OrirockConcentration/textures/OrirockConcentration_Occlusion.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Models/OrirockFamily/OrirockConcentration/Textures/OrirockConcentration_Occlusion.png"
+    ]
+  },
+  {
+    "主线路径": "Assets/StreamingAssets/Content/core/artwork/facility/building_001.jpg",
+    "txym同内容路径": [
+      "ArtSource/UI/FrontierSupplementV2/references/facility-001.jpg"
+    ]
+  },
+  {
+    "主线路径": "Assets/StreamingAssets/Content/core/artwork/facility/facility_enterprise_office.jpg",
+    "txym同内容路径": [
+      "ArtSource/UI/FrontierSupplementV2/references/facility-001.jpg"
+    ]
+  },
+  {
+    "主线路径": "Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs.meta",
+    "txym同内容路径": [
+      "Assets/YC/Tests/EditMode/GameCommandSerializationTests.cs.meta"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-Main-Step2-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-MainEnd-Step0-Restored-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-MainEnd-Step2-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-SampleScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-Main-Step2-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-MainEnd-Step0-Restored-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-MainEnd-Step2-1920x1080-actual-1920x1080.png",
+    "txym同内容路径": [
+      "prompt/UI换新/执行记录/证据/UI008-RightColumn-Verified-ThreePlayerScene-Main-Step0-Restored-1920x1080-actual-1920x1080.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/企业升级.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/企业升级.png",
+      "游城拓荒/icon/企业升级.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/企业升级.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/企业特效.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/企业特效.png",
+      "游城拓荒/icon/企业特效.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/企业特效.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/分数.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-score.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/分数.png",
+      "游城拓荒/icon/分数.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-score.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/分数结算时.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/分数结算时.png",
+      "游城拓荒/icon/分数结算时.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/分数结算时.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/剩余游戏.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/剩余游戏.png",
+      "游城拓荒/icon/剩余游戏.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/剩余游戏.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/城市移动.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/城市移动.png",
+      "游城拓荒/icon/城市移动.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/城市移动.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/干员特派_罗德岛.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/干员特派_罗德岛.png",
+      "游城拓荒/icon/干员特派_罗德岛.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/干员特派_罗德岛.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/建设.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/action-build.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/建设.png",
+      "游城拓荒/icon/建设.png",
+      "游城拓荒/可用UI素材/资产/主行动按钮/项目当前图标/action-build.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/建设牌拆分/grid_r01_c01.jpg",
+    "txym同内容路径": [
+      "ArtSource/UI/FrontierSupplementV2/references/facility-001.jpg"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg",
+    "txym同内容路径": [
+      "ArtSource/UI/FrontierSupplementV2/references/facility-001.jpg"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/异铁.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-iron.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/异铁.png",
+      "游城拓荒/icon/异铁.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-iron.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/快速行动.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/快速行动.png",
+      "游城拓荒/icon/快速行动.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/快速行动.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/战术行动.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/战术行动.png",
+      "游城拓荒/icon/战术行动.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/战术行动.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/替换.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/替换.png",
+      "游城拓荒/icon/替换.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/替换.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/条件式符号.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/条件式符号.png",
+      "游城拓荒/icon/条件式符号.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/条件式符号.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/永续指示物.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/永续指示物.png",
+      "游城拓荒/icon/永续指示物.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/永续指示物.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/源岩.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-orirock.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/源岩.png",
+      "游城拓荒/icon/源岩.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-orirock.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/源石碎片.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-originium-shard.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/源石碎片.png",
+      "游城拓荒/icon/源石碎片.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-originium-shard.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/特殊行动.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/特殊行动.png",
+      "游城拓荒/icon/特殊行动.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/特殊行动.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/移除.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/移除.png",
+      "游城拓荒/icon/移除.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/移除.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/立刻.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/立刻.png",
+      "游城拓荒/icon/立刻.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/立刻.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/至纯源石.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-pure-originium.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/至纯源石.png",
+      "游城拓荒/icon/至纯源石.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-pure-originium.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/调度.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/调度.png",
+      "游城拓荒/icon/调度.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/调度.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/部署.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/action-deploy.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/部署.png",
+      "游城拓荒/icon/部署.png",
+      "游城拓荒/可用UI素材/资产/主行动按钮/项目当前图标/action-deploy.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/金券.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/GameplayHud/Sprites/Icons/resource-gold-voucher.png",
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/金券.png",
+      "游城拓荒/icon/金券.png",
+      "游城拓荒/可用UI素材/资产/项目已授权派生/资源图标/resource-gold-voucher.png"
+    ]
+  },
+  {
+    "主线路径": "游城拓荒/素材/限定指示物.png",
+    "txym同内容路径": [
+      "Assets/YC/Presentation/Text/Sprites/InlineRules/icon/限定指示物.png",
+      "游城拓荒/icon/限定指示物.png",
+      "游城拓荒/可用UI素材/资产/玩法正文图标/用户指定/icon/限定指示物.png"
+    ]
+  }
+]
