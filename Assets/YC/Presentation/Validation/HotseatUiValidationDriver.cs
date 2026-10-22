@@ -147,6 +147,17 @@ namespace YC.Presentation.Validation
             driver.selectedCase = Argument("--yc-hotseat-ui-validation-case=") ?? "";
             driver.started = Time.realtimeSinceStartup;
             UnityEngine.Application.runInBackground = true;
+            // 同机多窗口可显式限制渲染负载；只影响本验收进程，不改时间尺度、规则或等待门限。
+            if (int.TryParse(Argument("--yc-validation-frame-rate="), out int frameRate) && frameRate > 0)
+            {
+                int previousVSync = QualitySettings.vSyncCount;
+                int previousFrameRate = UnityEngine.Application.targetFrameRate;
+                QualitySettings.vSyncCount = 0;
+                UnityEngine.Application.targetFrameRate = frameRate;
+                driver.Write("验收渲染设置.json", new { PreviousVSync = previousVSync, PreviousFrameRate = previousFrameRate,
+                    TargetFrameRate = frameRate, VSync = QualitySettings.vSyncCount, TimeScale = Time.timeScale,
+                    Scope = "仅显式启动的可见验收进程；正常启动保持原设置" });
+            }
             UnityEngine.Application.logMessageReceived += driver.OnLog;
             driver.StartCoroutine(driver.Guarded(driver.Run()));
         }
@@ -1258,6 +1269,7 @@ namespace YC.Presentation.Validation
 
         private IEnumerator NormalChoice()
         {
+            bool normalFlow = CoverageMode || SaveResumeMode;
             if (NetworkMode)
             {
                 // 新发表请求可能同帧重建选项；等正常渲染，再读取当前请求和原控件。
@@ -1285,7 +1297,7 @@ namespace YC.Presentation.Validation
             var enterprise = FindObjectsOfType<EnterpriseSelectionDialogView>().FirstOrDefault(v => v.Draft.Projection != null && !v.Draft.Projection.ReadOnly);
             if (request?.InteractionTypeId == "character.cleanup.settlement")
             {
-                var chip = CoverageMode ? hud.GetComponentsInChildren<SettlementEffectChipView>().FirstOrDefault(c =>
+                var chip = normalFlow ? hud.GetComponentsInChildren<SettlementEffectChipView>().FirstOrDefault(c =>
                     (bool)Read(c, "executionAllowed") && !(bool)Read(c, "pending") &&
                     (!CampaignMode || (Read(c, "option") as SettlementOptionView)?.SourceDefinitionId != "infected.character.amiya")) : null;
                 if (chip != null && (!mobile.CanEndCurrentAction() || CampaignMode &&
@@ -1356,7 +1368,7 @@ namespace YC.Presentation.Validation
                     OriginalRequest = request, SelectedPlayers = selected, Command = commands[before], CommandsAdded = commands.Count - before, State = Observe() });
                 Covered("page:player-selection");
             }
-            else if (CoverageMode && ChoiceExecuteButton() != null)
+            else if (normalFlow && ChoiceExecuteButton() != null)
             {
                 yield return Press(ChoiceExecuteButton(), "正常效果页面选择一个合法分支");
             }
@@ -1460,14 +1472,16 @@ namespace YC.Presentation.Validation
                     else
                     {
                         var candidates = FindObjectsOfType<MapButtonView>().Where(b =>
-                            (b.TargetKind == WorkflowHighlightTargetKind.Location || CoverageMode &&
+                            (b.TargetKind == WorkflowHighlightTargetKind.Location || normalFlow &&
                                 (b.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot ||
                                  request?.InteractionTypeId == "effect.route.choose" && b.TargetKind == WorkflowHighlightTargetKind.Route && request.CandidateIds.Contains(b.TargetId))) &&
                             b.IsInteractive).ToArray();
-                        bool influenceDestination = request?.InteractionTypeId != "effect.influence.remove.target" &&
+                        bool influenceDestination = CoverageMode && request?.InteractionTypeId != "effect.influence.remove.target" &&
                             request?.InteractionTypeId != "effect.influence.move.source" &&
-                            // Lua 的移除请求沿正式提示键识别，不能套用新增放置时避开己方影响力的策略。
-                            request?.PromptKey != "effect.influence.remove.choose_target";
+                            // 移除和替换选择的是已有影响力，不能套用新增放置时的空槽策略。
+                            request?.PromptKey != "effect.influence.remove.choose_target" &&
+                            request?.PromptKey != "effect.influence.replace.target" &&
+                            request?.PromptKey != "effect.influence.replace.choose_target";
                         var influenceTargets = candidates.Where(button => influenceDestination && button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot).ToArray();
                         bool mapArray = EffectDialogSelectionSpec.IsInfluenceMapArray(request) &&
                             request.MinSelections > 1 && request.MinSelections == request.MaxSelections;

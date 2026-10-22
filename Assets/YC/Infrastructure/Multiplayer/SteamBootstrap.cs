@@ -60,7 +60,7 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (IsInitialized) SteamAPI.RunCallbacks();
         }
-        private void OnApplicationQuit() => Shutdown();
+        // 正式退出由 MirrorNetworkRuntime 的 Application.quitting 回调按传输、SDK 的顺序释放。
         private void OnDestroy()
         {
             if (Instance == this)

@@ -74,12 +74,18 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test]
         public void DeepCloneStillRejectsPersistentDictionaryAndCycles()
         {
-            Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(new InvalidContainer()));
+            Assert.That(Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(new InvalidContainer())).Message,
+                Does.Contain("InvalidContainer.Values"));
             var cycle = new CyclicDto(); cycle.Next = cycle;
-            Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(cycle));
+            Assert.That(Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(cycle)).Message,
+                Does.Contain("CyclicDto.Next"));
             Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(new ObjectContainer { Value = new Dictionary<string, int>() }));
             var objectCycle = new ObjectContainer(); objectCycle.Value = objectCycle;
             Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(objectCycle));
+            var siblings = new[] { new ObjectContainer { Value = new List<string> { "ok" } },
+                new ObjectContainer { Value = new Dictionary<string, int>() } };
+            Assert.That(Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(siblings)).Message,
+                Does.Contain("[1].Value"));
         }
 
         [Test]
@@ -127,7 +133,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void ReusedQueryNeverSharesVisibilityAcrossPlayersOrAfterSecretRetirement()
+        public void ReusedQueryKeepsPrivateRetiredCardsVisibleOnlyToTheirCurrentHolder()
         {
             var state = EntityState(); var query = new ItemZoneQuery(); var card = Card(state);
             var declaration = new CardZoneDefinition
@@ -153,10 +159,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var viewer in new[] { GameStateViewer.Player(1), GameStateViewer.Player(2), GameStateViewer.Spectator, GameStateViewer.Unknown })
             {
                 var view = query.Project(state, viewer);
-                Assert.That(view.Items.Any(item => item.ItemId == card.ItemId || item.ItemId == cube.ItemId), Is.False);
-                Assert.That(view.Zones.Any(zone => zone.Zone.ParentId == card.ItemId), Is.False);
-                Assert.That(view.Orders.Any(order => order.ItemIds.Contains(card.ItemId) || order.ItemIds.Contains(cube.ItemId)), Is.False);
+                // 2026-10-08 回盒合同：最后持有者仍可查看本人私密回盒及其附属区。
+                bool holder = viewer.Role == GameStateViewerRole.Player && viewer.PlayerId == card.ControllerSubject.PlayerId;
+                Assert.That(view.Items.Any(item => item.ItemId == card.ItemId), Is.EqualTo(holder));
+                Assert.That(view.Items.Any(item => item.ItemId == cube.ItemId), Is.EqualTo(holder));
+                Assert.That(view.Zones.Any(zone => zone.Zone.ParentId == card.ItemId), Is.EqualTo(holder));
+                Assert.That(view.Orders.Any(order => order.ItemIds.Contains(card.ItemId)), Is.False);
                 Assert.That(view.Zones.Single(zone => zone.Zone.LocalZoneId == "secret_retired").ItemCount, Is.EqualTo(1));
+                Assert.That(view.Zones.Single(zone => zone.Zone.LocalZoneId == "secret_retired").IdentitiesVisible, Is.False);
             }
             Assert.That(query.Project(state, GameStateViewer.Host).Items.Any(item => item.ItemId == card.ItemId), Is.True);
         }

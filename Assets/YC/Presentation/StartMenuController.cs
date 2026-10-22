@@ -399,11 +399,6 @@ namespace YC.Presentation
             }
         }
 
-        private void OnApplicationQuit()
-        {
-            OnlineRoomServiceProvider.DisposeActive();
-        }
-
         public void StartGame()
         {
             if (loadingGame)

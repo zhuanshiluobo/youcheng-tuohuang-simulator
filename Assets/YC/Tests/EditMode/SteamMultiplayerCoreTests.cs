@@ -194,12 +194,14 @@ namespace YC.Tests.EditMode
             var path = Path.Combine(UnityEngine.Application.dataPath, "YC/Presentation/StartMenuController.cs");
             var source = File.ReadAllText(path);
             var onDestroyStart = source.IndexOf("private void OnDestroy()", System.StringComparison.Ordinal);
-            var onQuitStart = source.IndexOf("private void OnApplicationQuit()", System.StringComparison.Ordinal);
+            var onQuitStart = source.IndexOf("public void StartGame()", onDestroyStart, System.StringComparison.Ordinal);
             Assert.GreaterOrEqual(onDestroyStart, 0);
             Assert.Greater(onQuitStart, onDestroyStart);
             var onDestroyBody = source.Substring(onDestroyStart, onQuitStart - onDestroyStart);
             StringAssert.DoesNotContain("roomService.Dispose()", onDestroyBody);
-            StringAssert.Contains("OnlineRoomServiceProvider.DisposeActive()", source.Substring(onQuitStart));
+            var runtime = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "YC/Infrastructure/Multiplayer/MirrorNetworkRuntime.cs"));
+            StringAssert.Contains("Application.quitting += OnApplicationQuitting", runtime);
+            StringAssert.Contains("OnlineRoomServiceProvider.DisposeActive()", runtime);
         }
 
         [Test]
@@ -298,7 +300,10 @@ namespace YC.Tests.EditMode
                 Is.LessThan(createdCallback.IndexOf("StartHost", System.StringComparison.Ordinal)));
             Assert.That(
                 enteredCallback.IndexOf("pendingCreate == null && pendingJoin == null", System.StringComparison.Ordinal),
-                Is.LessThan(enteredCallback.IndexOf("StartClient", System.StringComparison.Ordinal)));
+                Is.LessThan(enteredCallback.IndexOf("RefreshRoom();", System.StringComparison.Ordinal)));
+            var publish = ExtractMethod(serviceSource, "private void PublishRoom", "private void AssignStableSeats");
+            StringAssert.Contains("room.LocalPlayerId > 0", publish);
+            StringAssert.Contains("subscribedRuntime.StartClient(originalHostSteamId)", publish);
         }
 
         [Test]
@@ -529,7 +534,8 @@ namespace YC.Tests.EditMode
             var source = ReadSource("YC/Presentation/GameLaunchContext.cs");
             var detach = ExtractMethod(source, "private void DetachCompletedSession", "public static void ReturnToStartScene");
             StringAssert.Contains("UnsubscribeDisconnect();", detach);
-            StringAssert.Contains("MirrorCommandTransport.Instance?.Shutdown();", detach);
+            StringAssert.Contains("var transport = MirrorCommandTransport.Instance;", detach);
+            StringAssert.Contains("transport.Shutdown();", detach);
             StringAssert.Contains("OnlineRoomServiceProvider.ShutdownActive();", detach);
             StringAssert.DoesNotContain("Players.Clear", detach);
             StringAssert.DoesNotContain("Mode = LaunchMode.Local", detach);
@@ -544,8 +550,8 @@ namespace YC.Tests.EditMode
         public void CompletedSettlement_HostWaitsForClientsAndBothExitButtonsUseSafeReturn()
         {
             var source = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
-            StringAssert.Contains("initialized && session != null", source);
-            StringAssert.Contains("session.State.FinalScoring.IsResolved", source);
+            StringAssert.Contains("initialized && simulationCoordinator != null", source);
+            StringAssert.Contains("simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) && snapshot.FinalScoringResolved", source);
             var detach = ExtractMethod(source, "public bool CanDetachCompletedSession", "public static MirrorCommandTransport Ensure");
             StringAssert.Contains("if (mode != LaunchMode.Host) return true;", detach);
             StringAssert.Contains("NetworkServer.connections.Values", detach);

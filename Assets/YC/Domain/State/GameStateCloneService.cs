@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Text;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Domain.State
@@ -58,6 +59,33 @@ namespace YC.Domain.State
             }
         }
 
+        // 诊断路径随递归复用缓冲区；只有报错才生成完整字符串，避免每个状态节点分配长路径。
+        private sealed class CopyPath
+        {
+            private readonly StringBuilder buffer;
+            internal CopyPath(string root) { buffer = new StringBuilder(root); }
+            internal Segment Enter(string field)
+            {
+                var segment = new Segment(buffer);
+                buffer.Append('.').Append(field);
+                return segment;
+            }
+            internal Segment Enter(int index)
+            {
+                var segment = new Segment(buffer);
+                buffer.Append('[').Append(index).Append(']');
+                return segment;
+            }
+            public override string ToString() => buffer.ToString();
+            internal readonly struct Segment : IDisposable
+            {
+                private readonly StringBuilder buffer;
+                private readonly int length;
+                internal Segment(StringBuilder buffer) { this.buffer = buffer; length = buffer.Length; }
+                public void Dispose() => buffer.Length = length;
+            }
+        }
+
         private readonly struct CloneTimingOperation : IDisposable
         {
             private readonly CloneTimingScope scope;
@@ -98,7 +126,7 @@ namespace YC.Domain.State
                 return null;
             }
 
-            var result = (T)CloneValue(source, typeof(T), typeof(T).Name, new HashSet<object>(ReferenceEqualityComparer.Instance));
+            var result = (T)CloneValue(source, typeof(T), new CopyPath(typeof(T).Name), new HashSet<object>(ReferenceEqualityComparer.Instance));
             if (result is GameState state) YC.Domain.Items.ItemZoneLegacyProjection.Bind(state);
             return result;
         }
@@ -115,7 +143,7 @@ namespace YC.Domain.State
             CopyObjectFieldsInto(
                 target,
                 source,
-                typeof(GameState).Name,
+                new CopyPath(typeof(GameState).Name),
                 new HashSet<ReferencePair>(ReferencePairComparer.Instance));
             YC.Domain.Items.ItemZoneLegacyProjection.Bind(target);
         }
@@ -133,7 +161,7 @@ namespace YC.Domain.State
         private static object CloneValue(
             object value,
             Type declaredType,
-            string path,
+            CopyPath path,
             HashSet<object> activeReferences)
         {
             if (value == null)
@@ -178,7 +206,7 @@ namespace YC.Domain.State
             return CloneObjectFields(value, type, path, activeReferences, true);
         }
 
-        private static object CloneArray(Array source, string path, HashSet<object> activeReferences)
+        private static object CloneArray(Array source, CopyPath path, HashSet<object> activeReferences)
         {
             EnterReference(source, path, activeReferences);
             try
@@ -187,7 +215,8 @@ namespace YC.Domain.State
                 Array clone = Array.CreateInstance(elementType, source.Length);
                 for (int i = 0; i < source.Length; i++)
                 {
-                    clone.SetValue(CloneValue(source.GetValue(i), elementType, path + "[" + i + "]", activeReferences), i);
+                    using var elementPath = path.Enter(i);
+                    clone.SetValue(CloneValue(source.GetValue(i), elementType, path, activeReferences), i);
                 }
 
                 return clone;
@@ -201,19 +230,20 @@ namespace YC.Domain.State
         private static object CloneList(
             IList source,
             Type listType,
-            string path,
+            CopyPath path,
             HashSet<object> activeReferences)
         {
             EnterReference(source, path, activeReferences);
             try
             {
                 var metadata = StateCopyMetadata.For(listType);
-                IList clone = (IList)metadata.Create();
+                IList clone = (IList)metadata.CreateList(source.Count);
                 Type elementType = metadata.ElementType;
                 bool scalarElement = StateCopyMetadata.For(elementType).IsScalar;
                 for (int i = 0; i < source.Count; i++)
                 {
-                    clone.Add(scalarElement ? source[i] : CloneValue(source[i], elementType, path + "[" + i + "]", activeReferences));
+                    using var elementPath = path.Enter(i);
+                    clone.Add(scalarElement ? source[i] : CloneValue(source[i], elementType, path, activeReferences));
                 }
 
                 return clone;
@@ -227,7 +257,7 @@ namespace YC.Domain.State
         private static object CloneObjectFields(
             object source,
             Type type,
-            string path,
+            CopyPath path,
             HashSet<object> activeReferences,
             bool trackReference)
         {
@@ -239,15 +269,19 @@ namespace YC.Domain.State
             try
             {
                 var metadata = StateCopyMetadata.For(type);
-                object clone = metadata.Create();
-                StateCopyField[] fields = metadata.Fields;
+                bool shallow = metadata.ShallowClone != null;
+                object clone = shallow ? metadata.ShallowClone(source) : metadata.Create();
+                // 标量直接按类型复制，避免深图中逐字段装箱和两次委托调用；引用仍逐项深克隆。
+                if (!shallow) metadata.CopyScalars?.Invoke(clone, source);
+                StateCopyField[] fields = shallow || metadata.CopyScalars != null ? metadata.ReferenceFields : metadata.Fields;
                 for (int i = 0; i < fields.Length; i++)
                 {
                     StateCopyField field = fields[i];
+                    using var fieldPath = path.Enter(field.Name);
                     object fieldValue = field.GetValue(source);
                     field.SetValue(
                         clone,
-                        field.IsScalar ? fieldValue : CloneValue(fieldValue, field.FieldType, path + "." + field.Name, activeReferences));
+                        field.IsScalar ? fieldValue : CloneValue(fieldValue, field.FieldType, path, activeReferences));
                 }
 
                 return clone;
@@ -264,7 +298,7 @@ namespace YC.Domain.State
         private static void CopyObjectFieldsInto(
             object target,
             object source,
-            string path,
+            CopyPath path,
             HashSet<ReferencePair> visited)
         {
             if (target == null || source == null)
@@ -284,10 +318,13 @@ namespace YC.Domain.State
                 return;
             }
 
-            StateCopyField[] fields = StateCopyMetadata.For(source.GetType()).Fields;
+            var metadata = StateCopyMetadata.For(source.GetType());
+            metadata.CopyScalars?.Invoke(target, source);
+            StateCopyField[] fields = metadata.CopyScalars != null ? metadata.ReferenceFields : metadata.Fields;
             for (int i = 0; i < fields.Length; i++)
             {
                 StateCopyField field = fields[i];
+                using var fieldPath = path.Enter(field.Name);
                 object sourceValue = field.GetValue(source);
                 field.SetValue(
                     target,
@@ -295,7 +332,7 @@ namespace YC.Domain.State
                         field.GetValue(target),
                         sourceValue,
                         field.FieldType,
-                        path + "." + field.Name,
+                        path,
                         visited));
             }
         }
@@ -304,7 +341,7 @@ namespace YC.Domain.State
             object target,
             object source,
             Type declaredType,
-            string path,
+            CopyPath path,
             HashSet<ReferencePair> visited)
         {
             if (source == null)
@@ -334,12 +371,13 @@ namespace YC.Domain.State
                     Type elementType = metadata.ElementType;
                     for (int i = 0; i < sourceArray.Length; i++)
                     {
+                        using var elementPath = path.Enter(i);
                         targetArray.SetValue(
                             CopyValueInto(
                                 targetArray.GetValue(i),
                                 sourceArray.GetValue(i),
                                 elementType,
-                                path + "[" + i + "]",
+                                path,
                                 visited),
                             i);
                     }
@@ -368,11 +406,12 @@ namespace YC.Domain.State
                 int sharedCount = Math.Min(targetList.Count, sourceList.Count);
                 for (int i = 0; i < sharedCount; i++)
                 {
+                    using var elementPath = path.Enter(i);
                     targetList[i] = scalarElement ? sourceList[i] : CopyValueInto(
                         targetList[i],
                         sourceList[i],
                         elementType,
-                        path + "[" + i + "]",
+                        path,
                         visited);
                 }
 
@@ -383,11 +422,12 @@ namespace YC.Domain.State
 
                 for (int i = targetList.Count; i < sourceList.Count; i++)
                 {
+                    using var elementPath = path.Enter(i);
                     targetList.Add(scalarElement ? sourceList[i] : CopyValueInto(
                         null,
                         sourceList[i],
                         elementType,
-                        path + "[" + i + "]",
+                        path,
                         visited));
                 }
 
@@ -527,7 +567,7 @@ namespace YC.Domain.State
             return StateCopyMetadata.For(type).IsList;
         }
 
-        private static void EnterReference(object value, string path, HashSet<object> activeReferences)
+        private static void EnterReference(object value, CopyPath path, HashSet<object> activeReferences)
         {
             if (!activeReferences.Add(value))
             {

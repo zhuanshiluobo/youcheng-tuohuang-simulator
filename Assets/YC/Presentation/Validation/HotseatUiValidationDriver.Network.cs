@@ -1527,6 +1527,23 @@ namespace YC.Presentation.Validation
                 NetworkObserveSaveFailure("报告完成等待退出");
                 yield return new WaitForSecondsRealtime(.2f);
             }
+            if (code == 0 && networkRole != "host")
+            {
+                // 成功短局由房主先走正式保存退出；客户端保持连接，收到断开并回到主页后再退出。
+                // 同时关闭会把“主动保存退出”变成中途断线，属于另外的生命周期验收。
+                began = Time.realtimeSinceStartup;
+                while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "StartScene" &&
+                    Time.realtimeSinceStartup - began < 120f)
+                    yield return new WaitForSecondsRealtime(.2f);
+                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "StartScene")
+                {
+                    Write("正常退出等待失败.json", new { AtUtc = DateTime.UtcNow.ToString("o"),
+                        Reason = "等待房主保存退出后返回主页超时", WindowPreserved = true, ForcedQuit = false });
+                    yield break;
+                }
+                Write("房主退出后正常返回主页.json", new { AtUtc = DateTime.UtcNow.ToString("o"),
+                    Scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, ForcedQuit = false });
+            }
             // 退出受产品保存门禁约束；一次请求被拦截后保留现场，不循环触发保存失败弹窗。
             Write("正常退出请求.json", new { AtUtc = DateTime.UtcNow.ToString("o"), ExitCode = code, RequestCount = 1,
                 ResolvedTerminalObserved = NetworkHasResolvedTerminal(), AutomaticRetry = false });
