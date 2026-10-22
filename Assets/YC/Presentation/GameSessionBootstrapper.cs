@@ -1,6 +1,7 @@
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
+using YC.Application.Presentation;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
@@ -18,6 +19,9 @@ using YC.Domain.Scoring;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Infrastructure.Lua;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using UnityEngine;
 
 namespace YC.Presentation
@@ -27,7 +31,7 @@ namespace YC.Presentation
         public sealed class Result
         {
             public GameSession Session;
-            public string ContentHash;
+            public EffectRegistry EffectRegistry;
             public MapQueryService MapQuery;
             public InfluenceService InfluenceService;
             public CityMovementService MovementService;
@@ -35,24 +39,80 @@ namespace YC.Presentation
             public ResourceCollectionService ResourceCollectionService;
             public EventDeckService EventDeckService;
             public int LocalPlayerId;
+            public YC.Domain.Enterprises.EnterpriseDefinitions EnterpriseDefinitions;
+            public System.Collections.Generic.IDictionary<string, CharacterModeContract> CharacterModes;
+            public System.Collections.Generic.IReadOnlyList<PlayerDetailDisplayDefinition> PlayerDetailDefinitions;
+            public YC.Domain.Facilities.FacilityBuildCandidateQuery FacilityBuildCandidates;
+            public YC.Domain.Presentation.IGameplayTextCatalogSnapshot GameplayTextCatalog;
+            public IReadOnlyDictionary<string, string> GameplayDefinitionNames;
+            public GameplayTextResolver TextResolver;
+        }
+
+        public static Result BuildForGameplay(GameLaunchContext launchContext,
+            bool useRightCardSmokeState, bool prepareSharedCityStyleSmokeState)
+        {
+            if (!IsNetworkLaunch(launchContext))
+                return Build(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState);
+            if (useRightCardSmokeState || prepareSharedCityStyleSmokeState)
+                throw new System.InvalidOperationException("deterministic_network_launch_disallows_smoke_state");
+            return Build(launchContext, false, false, launchContext.Mode == LaunchMode.Client);
         }
 
         public static Result Build(
             GameLaunchContext launchContext,
             bool useRightCardSmokeState = false,
-            bool prepareSharedCityStyleSmokeState = false,
-            MatchSaveData restore = null)
-        {
-            if (restore != null) restore.Validate();
-            var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(
-                restore != null ? restore.MapId : (launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.MapId)));
-            var launchMode = launchContext == null ? LaunchMode.Local : launchContext.Mode;
-            var eventDeckSeed = restore == null ? GetEventDeckSeed(launchContext) : restore.Archive.Snapshot.State.EventDeckSeed;
-            var eventDeckService = new EventDeckService(eventDeckSeed);
-            var localPlayerId = ResolveLocalPlayerId(launchContext);
+            bool prepareSharedCityStyleSmokeState = false)
+            => Build(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState, false);
 
-            var players = launchContext == null ? null : launchContext.Players;
-            var state = restore != null ? GameStateCloneService.DeepClone(restore.Archive.Snapshot.State) : useRightCardSmokeState
+        // 保留原三参数反射入口；新模式显式传入两个旧标志，避免可选参数重载歧义。
+        internal static Result Build(
+            GameLaunchContext launchContext,
+            bool useRightCardSmokeState,
+            bool prepareSharedCityStyleSmokeState,
+            bool deferRuleInitialization = false)
+            => BuildCore(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState, deferRuleInitialization, launchContext?.RestoreData);
+
+        public static Result Restore(GameLaunchContext context, MatchSaveData data)
+        {
+            data.Validate();
+            return BuildCore(context, false, false, false, data);
+        }
+
+        private static Result BuildCore(GameLaunchContext launchContext, bool useRightCardSmokeState,
+            bool prepareSharedCityStyleSmokeState, bool deferRuleInitialization, MatchSaveData restore)
+        {
+            if (deferRuleInitialization && (launchContext == null || launchContext.Mode != LaunchMode.Client ||
+                !launchContext.RandomReady || useRightCardSmokeState || prepareSharedCityStyleSmokeState))
+                throw new System.InvalidOperationException("deferred_initialization_requires_frozen_client_start");
+            if (launchContext == null && restore == null) launchContext = GameLaunchContext.Ensure();
+            if (restore == null && !launchContext.RandomReady)
+            {
+                if (launchContext.Mode != LaunchMode.Local) throw new System.InvalidOperationException("random_initialization_required");
+                var initialConfiguration = launchContext.RuleConfiguration ?? new GameRuleConfiguration
+                { MapId = launchContext.MapId, PlayerCount = launchContext.Players.Count == 0 ? 1 : launchContext.Players.Count };
+                launchContext.ConfigureNewLocal(launchContext.LocalPlayerId, launchContext.RoomId, launchContext.Players, initialConfiguration);
+            }
+            var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(
+                restore != null ? restore.MapId : launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.RuleConfiguration?.MapId ?? launchContext.MapId));
+            var launchMode = restore?.Mode ?? (launchContext == null ? LaunchMode.Local : launchContext.Mode);
+            var eventDeckSeed = restore?.EventDeckSeed ?? GetEventDeckSeed(launchContext);
+            var eventDeckService = new EventDeckService(eventDeckSeed);
+            var localPlayerId = restore?.LocalPlayerId ?? ResolveLocalPlayerId(launchContext);
+
+            var players = restore != null ? restore.Seats.ConvertAll(s => s.ToSeat()) : launchContext == null ? null : launchContext.Players;
+            var configuration = restore?.Configuration ?? launchContext?.RuleConfiguration?.Clone() ?? new GameRuleConfiguration
+            { MapId = mapQuery.Map.MapId, PlayerCount = players == null || players.Count == 0 ? 1 : players.Count };
+            configuration.PlayerStageSchedulingMode = launchMode == LaunchMode.Local
+                ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent;
+            var activeCatalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, configuration);
+            if (restore != null && activeCatalog.ContentPackHash != restore.ContentHash)
+                throw new System.InvalidOperationException("存档的内容版本与当前配置不一致，请使用保存时的内容包。");
+            var textResolver = new GameplayTextResolver(activeCatalog.TextCatalog, cacheScopeId: "catalog:" + activeCatalog.ContentPackHash);
+            try { textResolver.Precompile(); }
+            catch (GameplayTextFormatException error)
+            { throw new System.IO.InvalidDataException("玩法文案目录语法错误：" + error.TextKey + "@" + error.Position + "。", error); }
+            configuration.ContentPackHash = activeCatalog.ContentPackHash;
+            var state = useRightCardSmokeState
                 ? RightCardSmokeStateFactory.CreateInitialState(
                     launchMode,
                     localPlayerId,
@@ -61,28 +121,33 @@ namespace YC.Presentation
                     eventDeckSeed,
                     prepareSharedCityStyleSmokeState)
                 : GameLaunchStateFactory.CreateInitialState(
-                    launchMode,
+                    restore != null ? LaunchMode.Client : launchMode,
                     localPlayerId,
                     players,
-                    mapQuery.Map.MapId,
-                    eventDeckSeed);
-            if (restore == null) state.GameId = System.Guid.NewGuid().ToString("N");
+                    configuration, eventDeckSeed, activeCatalog.SetupRecipe, activeCatalog.ContentDefinitions,
+                    restore?.LaunchPlayerOrder ?? launchContext.LaunchPlayerOrder, restore?.GameId ?? launchContext.GameId,
+                    restore?.RandomState ?? launchContext.InitialRandomState);
             if (useRightCardSmokeState)
             {
+                state.GameId = launchContext.GameId;
+                state.EventDeckSeed = eventDeckSeed;
+                state.RandomRuntime = launchContext.InitialRandomState.Clone();
                 localPlayerId = state.CurrentPlayerId;
             }
 
-            if (restore == null) eventDeckService.InitializeDecks(
-                state.Decks,
+            if (restore == null && launchMode != LaunchMode.Client && !YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) eventDeckService.InitializeDecks(
+                state,
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Green),
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Yellow),
                 EventCardDatabase.GetCardIds(YC.Domain.Rules.EventColor.Red),
-                mapQuery.Map.MapId == StaticMapDefinitions.ThreePlayerMapId ? 3 : 4);
+                mapId: state.MapId);
 
             var resourceTokenService = new ResourceTokenService();
             var session = new GameSession(state);
             var influenceService = new InfluenceService(mapQuery);
             var effectRegistry = new EffectRegistry();
+            RouteResourceSelectionEffectExecutor.Register(effectRegistry, mapQuery);
+            activeCatalog.Register(effectRegistry);
             InfluenceEffectExecutor.Register(effectRegistry, influenceService);
             ResourceEffectExecutor.Register(effectRegistry);
 
@@ -139,7 +204,6 @@ namespace YC.Presentation
                 mapQuery,
                 influenceService,
                 movementService);
-            CityStyleLuaCatalog.Register(effectRegistry);
             session.RegisterHandler(new UseSpecialActionCommandHandler(
                 effectRegistry,
                 specialActionOptionQuery,
@@ -165,7 +229,6 @@ namespace YC.Presentation
                 resourceTokenService);
             if (EventCardDatabase.IsInitialized)
             {
-                EventCardLuaCatalog.Register(effectRegistry);
             }
             var exploreLocationCommandHandler = new ExploreLocationCommandHandler(
                 explorationService,
@@ -173,15 +236,13 @@ namespace YC.Presentation
                 effectRegistry);
             session.RegisterHandler(exploreLocationCommandHandler);
             FacilityEntryEffectExecutor.Register(effectRegistry);
-            FacilityLuaCatalog.Register(effectRegistry);
             var buildFacilityService = BuildFacilityService.CreateForEffectTree();
             session.RegisterHandler(new BuildFacilityCommandHandler(
                 buildFacilityService,
                 roundAdvanceService,
                 effectRegistry));
-            session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService()));
+            session.RegisterHandler(new DeclareCityStyleCommandHandler(new DeclareCityStyleService(), effectRegistry));
             RoundStartedRedZoneRule.Register(effectRegistry, mapQuery);
-            CharacterCardLuaCatalog.Register(effectRegistry);
             session.RegisterHandler(new SetupCommandHandler(
                 mapQuery,
                 eventDeckService,
@@ -191,63 +252,74 @@ namespace YC.Presentation
             session.RegisterHandler(new CoverCharacterCardCommandHandler(characterCardService, effectRegistry));
             session.RegisterHandler(new UseCharacterCardCommandHandler(characterCardService, effectRegistry));
             session.RegisterHandler(new AnswerInteractionCommandHandler(effectRegistry, roundExecutionService));
+            session.RegisterHandler(new InvokeSettlementOptionCommandHandler(effectRegistry, roundExecutionService));
+            session.RegisterHandler(new PreparePaymentDraftCommandHandler(effectRegistry, roundExecutionService));
             session.RegisterHandler(new EndActionCommandHandler(
                 roundAdvanceService,
-                new FinalScoringService(mapQuery)));
+                new FinalScoringService(mapQuery), effectRegistry, roundExecutionService));
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService, roundAdvanceService));
 
             if (restore != null)
             {
-                if (restore.ContentHash != effectRegistry.ContentPackHash)
-                    throw new System.InvalidOperationException("存档内容包与当前游戏不一致，不能恢复。");
-                var recovered = session.RecoverHost(restore.Archive, effectRegistry);
-                if (!recovered.Succeeded)
-                    throw new System.InvalidOperationException("对局恢复失败：" + recovered.FaultCode + " " + recovered.Diagnostic);
+                var recovered = HostRecoveryService.RecoverJson(restore.ArchiveJson, effectRegistry);
+                if (!recovered.Succeeded) throw new System.InvalidOperationException(recovered.FaultCode + ":" + recovered.Diagnostic);
+                if (recovered.State.GameId != restore.GameId || recovered.State.ContentPackHash != activeCatalog.ContentPackHash ||
+                    recovered.State.MapId != restore.MapId || recovered.State.EventDeckSeed != restore.EventDeckSeed ||
+                    Newtonsoft.Json.JsonConvert.SerializeObject(recovered.State.RuleConfiguration) != Newtonsoft.Json.JsonConvert.SerializeObject(configuration))
+                    throw new System.InvalidOperationException("存档恢复身份不一致。");
+                if (restore.Mode == LaunchMode.Host)
+                {
+                    var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(restore.SimulationCheckpointJson);
+                    OperationCommandCanonicalizer.ValidateRecoveryBaseline(MatchSaveData.OptionsFor(baseline, true, localPlayerId), baseline, recovered.State);
+                }
+                var continuation = SimulationConfirmedRecoveryInstaller.ReadContinuation(restore.ContinuationJson);
+                PreparedGameSessionRecovery prepared;
+                string fault;
+                bool ready = launchMode == LaunchMode.Local
+                    ? session.TryPrepareLocalRecoveryState(recovered.State, continuation, out prepared, out fault)
+                    : session.TryPrepareConfirmedRecoveryState(recovered.State, continuation, GameStateViewer.Player(localPlayerId), out prepared, out fault);
+                if (!ready ||
+                    !session.TryCommitPreparedRecovery(prepared, out fault)) throw new System.InvalidOperationException(fault);
             }
-            if (restore == null && session.State.Phase == GamePhase.Entrance)
+            else if (!deferRuleInitialization && session.State.Phase == GamePhase.Entrance)
             {
+                if (session.State.RuleConfiguration != null && !string.IsNullOrEmpty(session.State.RuleConfiguration.ContentPackHash))
+                    effectRegistry.ContentPackHash = session.State.RuleConfiguration.ContentPackHash;
                 var entrance = roundExecutionService.StartEntrance(session.State);
                 if (!entrance.IsValid) throw new System.InvalidOperationException(entrance.Reason);
             }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (launchContext != null && launchMode == LaunchMode.Host)
+                NetworkGameValidationDriver.BindHostRecoverySession(session, effectRegistry);
+#endif
+
             return new Result
             {
                 Session = session,
-                ContentHash = effectRegistry.ContentPackHash,
+                EffectRegistry = effectRegistry,
                 MapQuery = mapQuery,
                 InfluenceService = influenceService,
                 MovementService = movementService,
                 ExplorationService = explorationService,
                 ResourceCollectionService = resourceCollectionService,
                 EventDeckService = eventDeckService,
-                LocalPlayerId = localPlayerId
+                LocalPlayerId = localPlayerId,
+                EnterpriseDefinitions = effectRegistry.EnterpriseDefinitions,
+                CharacterModes = effectRegistry.CharacterAbilityContracts,
+                PlayerDetailDefinitions = activeCatalog.PlayerDetailDefinitions,
+                FacilityBuildCandidates = effectRegistry.FacilityBuildCandidates,
+                GameplayTextCatalog = activeCatalog.TextCatalog,
+                GameplayDefinitionNames = new ReadOnlyDictionary<string, string>(activeCatalog.Definitions.ToDictionary(d => d.DefinitionId, d => d.DisplayName, System.StringComparer.Ordinal)),
+                TextResolver = textResolver
             };
-        }
-
-        public static Result Restore(GameLaunchContext context, MatchSaveData data)
-        {
-            if (data == null) throw new System.ArgumentNullException(nameof(data));
-            if (data.MapId != StaticMapDefinitions.ThreePlayerMapId && data.MapId != StaticMapDefinitions.FourPlayerMapId)
-                throw new System.InvalidOperationException("存档地图不存在。");
-            // 主菜单预检也必须具有完整内容和处理器，不依赖地图场景 Awake 的先后顺序。
-            var pack = ExternalContentRuntime.Pack;
-            EventCardDatabase.InitializeExternal(pack.CreateEvents());
-            CharacterCardDatabase.Initialize(pack.CreateCharacters());
-            FacilityCardDatabase.InitializeExternal(pack.CreateFacilities());
-            CityStyleDatabase.InitializeExternal(pack.CreateCityStyles());
-            SpecialActionDatabase.InitializeExternal(pack.CreateSpecialActions());
-            return Build(context, restore: data);
         }
 
         public static int GetEventDeckSeed(GameLaunchContext launchContext)
         {
-            if (launchContext == null || string.IsNullOrEmpty(launchContext.RoomId))
-            {
-                return EventDeckService.DefaultSeed;
-            }
-
-            return EventDeckService.CreateSeed(launchContext.RoomId);
+            if (launchContext == null || !launchContext.RandomReady) throw new System.InvalidOperationException("random_initialization_required");
+            return launchContext.EventDeckSeed;
         }
 
         public static bool IsNetworkLaunch(GameLaunchContext launchContext)

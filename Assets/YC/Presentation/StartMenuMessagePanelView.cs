@@ -9,7 +9,8 @@ namespace YC.Presentation
         [SerializeField] private Text messageText;
         [SerializeField] private Button actionButton;
         [SerializeField] private Text actionButtonText;
-
+        [SerializeField] private string operationErrorActionLabel;
+        [SerializeField] private string roomDisbandedActionLabel;
         [Header("状态文案")]
         [SerializeField] private string roomDisbandedTitle = "房间已解散";
         [SerializeField] private string roomDisbandedMessage = "关闭提示后返回主页";
@@ -19,6 +20,8 @@ namespace YC.Presentation
         public Text MessageText => messageText;
         public Button ActionButton => actionButton;
         public Text ActionButtonText => actionButtonText;
+        public string OperationErrorActionLabel => operationErrorActionLabel;
+        public string RoomDisbandedActionLabel => roomDisbandedActionLabel;
         public string RoomDisbandedTitle => roomDisbandedTitle;
         public string RoomDisbandedMessage => roomDisbandedMessage;
         public string UnknownErrorMessage => unknownErrorMessage;

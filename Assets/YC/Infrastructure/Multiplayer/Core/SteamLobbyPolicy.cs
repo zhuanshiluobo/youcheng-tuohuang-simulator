@@ -7,7 +7,7 @@ namespace YC.Infrastructure.Multiplayer
     {
         public const uint AppId = 480;
         public const string GameKey = "yc_nomad_city";
-        public const string ProtocolVersion = "6";
+        public const string ProtocolVersion = "8";
         public const string WaitingStatus = "waiting";
         public const string StartedStatus = "started";
         public const string SessionKindKey = "sessionKind";
@@ -29,7 +29,7 @@ namespace YC.Infrastructure.Multiplayer
 
             if (!Has(data, "protocolVersion", ProtocolVersion))
             {
-                reason = "房间协议版本不一致。";
+                reason = "room_protocol_mismatch";
                 return false;
             }
 

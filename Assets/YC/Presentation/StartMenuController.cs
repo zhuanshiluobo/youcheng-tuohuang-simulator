@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using YC.Application.DevTools;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
@@ -17,7 +18,6 @@ namespace YC.Presentation
         private const string DevLocalMirrorJoinPrefix = "--yc-dev-local-mirror-join=";
         private const string DevLocalMirrorRoomFilePrefix = "--yc-dev-local-mirror-room-file=";
         private const string LocalGameSeedSourcePrefix = "LOCAL_GAME_";
-        private const int SteamTwoPlayerValidationCount = 2;
         private const string CollectionRoomSceneName = "CollectionRoom";
         private const string CreatorSiteUrl = "https://github.com/zhuanshiluobo";
         private const string OfficialSiteUrl = "https://ak.hypergryph.com/boardgame_nomadcity";
@@ -31,22 +31,84 @@ namespace YC.Presentation
         [NonSerialized] private LobbyJoinRequestFlow lobbyJoinRequestFlow;
         [NonSerialized] private bool roomEventsSubscribed;
         private readonly object networkEventLock = new object();
-        private readonly List<Text> roomSeatRows = new List<Text>();
+        private bool roomRequestPending;
+        private int roomNetworkingRequestVersion;
         private GameObject roomPanel;
         private InputField joinRoomInput;
         private Text roomStatusText;
-        // 临时通知不参与热重载序列化，避免 null 被还原为空房间并触发弹窗。
         [NonSerialized] private RoomState pendingRoomUpdate;
         [NonSerialized] private RoomState pendingGameStart;
         private string pendingNetworkError;
         private bool pendingRoomDisbanded;
         private bool pendingLobbyJoinRequested;
         private int selectedRoomPlayerCount = 4;
+        [SerializeField] private string roomReadyCaption = "准备";
+        [SerializeField] private string roomCancelReadyCaption = "取消准备";
+        [SerializeField] private string roomConfigurationSummaryFormat = "{0} · {1} · {2} · {3} 人 · 修订 {4}";
+        [SerializeField] private string roomThreePlayerMapCaption = "三人地图";
+        [SerializeField] private string roomFourPlayerMapCaption = "四人地图";
+        [SerializeField] private string roomStandardRuleCaption = "标准模式";
+        [SerializeField] private string roomCoreExpansionCaption = "基础";
+        [SerializeField] private string roomEnterpriseExpansionCaption = "企业";
+        [SerializeField] private string roomInfectedExpansionCaption = "感染者";
+        [SerializeField] private string roomPreparedCaption = "已准备";
+        [SerializeField] private string roomUnpreparedCaption = "未准备";
+        [SerializeField] private string roomCanStartCaption = "所有成员已准备，可以开始游戏。";
+        [SerializeField] private string roomWaitingForHostCaption = "等待房主开始游戏。";
+        [Serializable] private sealed class RoomReasonCaption
+        {
+            public string ReasonCode;
+            public string Caption;
+            public RoomReasonCaption(string code, string caption) { ReasonCode = code; Caption = caption; }
+        }
+        [SerializeField] private List<RoomReasonCaption> roomReasonCaptions = new List<RoomReasonCaption>
+        {
+            new RoomReasonCaption("not_room_host", "只有房主可以执行此操作。"),
+            new RoomReasonCaption("configuration_stale", "房间配置已变化，请按最新配置重试。"),
+            new RoomReasonCaption("unsupported_player_count", "当前实际人数不满足开局条件。"),
+            new RoomReasonCaption("map_requires_four_player", "四名玩家必须使用四人地图。"),
+            new RoomReasonCaption("missing_enterprise_dependency", "启用感染者需要同时启用企业。"),
+            new RoomReasonCaption("rule_mode_not_implemented", "所选规则模式尚未实现。"),
+            new RoomReasonCaption("content_not_ready", "所选内容组合或人数配方尚未完成。"),
+            new RoomReasonCaption("content_version_mismatch", "玩家的内容或规则版本与房间不一致。"),
+            new RoomReasonCaption("player_not_ready", "等待成员连接、身份验证及当前配置准备。"),
+            new RoomReasonCaption("seat_occupied", "目标座位已占用或已关闭。"),
+            new RoomReasonCaption("seat_swap_stale", "换座请求已失效，请重新申请。"),
+            new RoomReasonCaption("service_unavailable", "该服务暂不可用。"),
+            new RoomReasonCaption("room_protocol_mismatch", "房间协议不匹配，请使用相同版本。"),
+            new RoomReasonCaption("legacy_entity_state_unsupported", "旧对局状态无法可靠恢复。")
+        };
+        private string roomHostStartCaption;
         private int selectedLocalCityCount = 1;
-        [System.NonSerialized] private MatchSaveData resumeArchive;
         private bool loadingGame;
-        private bool joiningRoom;
+        [System.NonSerialized] private MatchSaveData resumeArchive;
         public bool CanOpenMatchSave => !loadingGame && !joiningRoom && roomPanel == null;
+        public void RefreshMatchSaveAvailability()
+        { if (view != null) view.SetMatchSaveAvailable(MatchSaveController.Ensure().HasSaves); }
+        public async System.Threading.Tasks.Task RestoreMatch(MatchSaveData data)
+        {
+            if (!CanOpenMatchSave) throw new InvalidOperationException("已有房间或启动流程正在进行。");
+            data.Validate();
+            GameLaunchContext.Ensure().ClearRestore(); resumeArchive = null;
+            if (data.Mode == LaunchMode.Local)
+            {
+                roomService.Shutdown(); GameLaunchContext.Ensure().ConfigureSavedLocal(data); BeginMapSceneLoad();
+                if (!loadingGame) throw new InvalidOperationException("无法启动存档地图。");
+                return;
+            }
+            if (data.LocalTestNetwork != LocalMirrorTestMode.IsEnabled) throw new InvalidOperationException("此存档的联机后端与当前模式不一致。");
+            joiningRoom = true;
+            try
+            {
+                if (!(roomService is IResumableOnlineRoomService resumable)) throw new InvalidOperationException("当前房间服务不支持续局。");
+                var room = await resumable.CreateResumeRoomAsync(ResumeRoomOptions.FromSave(data));
+                if (this == null) { roomService.Shutdown(); return; }
+                resumeArchive = data; ShowRoomPanel(room, true);
+            }
+            catch { resumeArchive = null; roomService.Shutdown(); throw; }
+            finally { joiningRoom = false; }
+        }
+        private bool joiningRoom;
         private bool autoStartLocalMirrorGame;
         private bool autoStartLocalMirrorRequestPending;
         private float nextAutoStartLocalMirrorAttemptTime;
@@ -56,7 +118,6 @@ namespace YC.Presentation
 
         private void Awake()
         {
-            // 每次进入运行模式都从无待处理房间通知开始。
             pendingRoomUpdate = null;
             pendingGameStart = null;
             UnityEngine.Application.runInBackground = true;
@@ -82,7 +143,6 @@ namespace YC.Presentation
                 return;
             }
 
-            MatchSaveController.Instance?.Unbind();
             ProcessPendingLobbyJoinRequest();
         }
 
@@ -92,7 +152,7 @@ namespace YC.Presentation
 
         private void BindRoomService()
         {
-            // 脚本重载会丢失托管服务；OnEnable 只恢复服务和订阅，不重建菜单或关闭房间。
+            // 热重载只恢复服务和订阅，不重建菜单或关闭现有房间。
             if (roomService == null) roomService = OnlineRoomServiceProvider.GetOrCreate();
             if (lobbyJoinRequestFlow == null) lobbyJoinRequestFlow = new LobbyJoinRequestFlow(roomService);
             if (roomEventsSubscribed) return;
@@ -133,7 +193,7 @@ namespace YC.Presentation
             int hostPlayerCount;
             if (int.TryParse(hostPlayerCountText, out hostPlayerCount))
             {
-                selectedRoomPlayerCount = Mathf.Clamp(hostPlayerCount, 3, 4);
+                selectedRoomPlayerCount = Mathf.Clamp(hostPlayerCount, 2, 4);
                 autoStartLocalMirrorGame = true;
                 Debug.Log(
                     "[LocalMirrorAutomation] Creating " +
@@ -344,47 +404,15 @@ namespace YC.Presentation
             OnlineRoomServiceProvider.DisposeActive();
         }
 
-        public async System.Threading.Tasks.Task RestoreMatch(MatchSaveData data)
-        {
-            if (loadingGame || joiningRoom) throw new InvalidOperationException("已有启动流程正在进行。");
-            GameLaunchContext.Ensure().ClearRestore();
-            resumeArchive = null;
-            if (data.Mode == LaunchMode.Local)
-            {
-                roomService.Shutdown();
-                var context = GameLaunchContext.Ensure();
-                context.Configure(LaunchMode.Local, data.LocalPlayerId, data.GameId, data.Seats.ConvertAll(s => s.ToSeat()), data.MapId);
-                context.SetRestore(data);
-                BeginMapSceneLoad();
-                if (!loadingGame) { context.ClearRestore(); throw new InvalidOperationException("无法启动存档地图。"); }
-                return;
-            }
-            if (data.LocalTestNetwork != LocalMirrorTestMode.IsEnabled)
-                throw new InvalidOperationException("此存档的联机后端与当前运行模式不一致。");
-            joiningRoom = true;
-            try
-            {
-                var resumable = roomService as IResumableOnlineRoomService;
-                if (resumable == null) throw new InvalidOperationException("当前后端不支持续局。");
-                var room = await resumable.CreateResumeRoomAsync(ResumeRoomOptions.FromSave(data));
-                if (this == null) { roomService.Shutdown(); return; }
-                resumeArchive = data;
-                ShowRoomPanel(room, true);
-            }
-            catch { resumeArchive = null; roomService.Shutdown(); throw; }
-            finally { joiningRoom = false; }
-        }
         public void StartGame()
         {
             if (loadingGame)
             {
                 return;
             }
-            resumeArchive = null;
-            GameLaunchContext.Instance?.ClearRestore();
 
             var seats = new List<PlayerSeat>();
-            var colors = new[] { PlayerColor.Blue, PlayerColor.Red, PlayerColor.Green, PlayerColor.Yellow };
+            var colors = new[] { PlayerColor.Green, PlayerColor.Yellow, PlayerColor.Blue, PlayerColor.Red };
             for (var i = 0; i < selectedLocalCityCount; i++)
             {
                 seats.Add(new PlayerSeat
@@ -399,16 +427,32 @@ namespace YC.Presentation
                     IsReady = true
                 });
             }
-            GameLaunchContext.Ensure().Configure(LaunchMode.Local, 1, CreateLocalGameSeedSource(), seats,
-                YC.Domain.Maps.StaticMapDefinitions.ForPlayerCount(selectedRoomPlayerCount).MapId);
+            var configuration = new GameRuleConfiguration
+            {
+                MapId = YC.Domain.Maps.StaticMapDefinitions.ForPlayerCount(selectedRoomPlayerCount).MapId,
+                PlayerCount = seats.Count
+            };
+            configuration.ContentPackHash = OnlineRoomServiceProvider.ContentCapabilities.GetContentPackHash(configuration);
+            GameLaunchContext.Ensure().ConfigureNewLocal(1, CreateLocalGameSeedSource(), seats, configuration, GetExplicitLocalGameSeed());
             BeginMapSceneLoad();
+        }
+
+        private static int? GetExplicitLocalGameSeed()
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var seed = GetCommandLineValue(Environment.GetCommandLineArgs(), "--yc-player-journey-seed=");
+            if (YC.PlayerJourney.PlayerJourneyRuntime.IsRunning && !string.IsNullOrEmpty(seed))
+                return int.TryParse(seed, out var numericSeed) ? numericSeed : YC.Domain.Cards.EventDeckService.CreateSeed(LocalGameSeedSourcePrefix + seed);
+#endif
+            return null;
         }
 
         private static string CreateLocalGameSeedSource()
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             var seed = GetCommandLineValue(Environment.GetCommandLineArgs(), "--yc-player-journey-seed=");
-            if (!string.IsNullOrEmpty(seed)) return LocalGameSeedSourcePrefix + seed;
+            if (YC.PlayerJourney.PlayerJourneyRuntime.IsRunning && !string.IsNullOrEmpty(seed))
+                return LocalGameSeedSourcePrefix + seed;
 #endif
             return LocalGameSeedSourcePrefix + Guid.NewGuid().ToString("N");
         }
@@ -419,19 +463,26 @@ namespace YC.Presentation
             {
                 return;
             }
-            resumeArchive = null;
-            GameLaunchContext.Instance?.ClearRestore();
 
             joiningRoom = true;
             ShowRoomProgressPanel(
                 "创建房间",
-                LocalMirrorTestMode.IsEnabled ? "正在创建 Mirror 本地测试房间..." : "正在初始化 Steam Lobby / P2P...");
+                LocalMirrorTestMode.IsEnabled ? "正在创建 Mirror 本地测试房间..." : "正在创建本地房间...");
 
             try
             {
                 var room = await roomService.CreateRoomAsync(
-                    LocalMirrorTestMode.IsEnabled ? LocalMirrorTestMode.PlayerName : "Player 1",
+                    LocalMirrorTestMode.IsEnabled ? LocalMirrorTestMode.PlayerName : "房主",
                     selectedRoomPlayerCount);
+                var configured = await roomService.ChangeConfigurationAsync(new ChangeRoomConfigurationRequest
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), RoomId = room.RoomId,
+                    RequestingPlayerId = room.LocalPlayerId, ExpectedConfigurationRevision = room.Configuration.ConfigurationRevision,
+                    MapId = selectedRoomPlayerCount == 4 ? YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId : YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId,
+                    RuleModeId = "standard", EnabledExpansionIds = new List<string> { "core" }
+                });
+                if (!configured.Success) throw new InvalidOperationException(configured.ReasonCode);
+                room = configured.Snapshot;
                 if (this == null) return;
                 joiningRoom = false;
                 ShowRoomPanel(room, true);
@@ -478,33 +529,25 @@ namespace YC.Presentation
             view.CoverImage.texture = coverTexture;
             BindStaticUi();
             view.HideRoomPanels();
+            // 存读档另项适配，当前构建不开放尚未接线的入口。
             RefreshMatchSaveAvailability();
             return true;
         }
 
-        public void RefreshMatchSaveAvailability()
-        {
-            if (view != null) view.SetMatchSaveAvailable(MatchSaveController.Ensure().HasSaves);
-        }
-
         private void BindStaticUi()
         {
-            if (view.LoadGameButton != null)
-                BindButton(view.LoadGameButton, () => MatchSaveWindowView.OpenLoad(this));
-            BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);
+            if (view.LoadGameButton != null) BindButton(view.LoadGameButton, () => MatchSaveWindowView.OpenLoad(this));
+            BindButton(view.StartGameButton, CreateStandardRoom);
             YC.PlayerJourney.PlayerAutomationId.Attach(view.StartGameButton.gameObject, "start.local_game");
             // 地图选择已改为人数与地图轮换面板，确认按钮承担原四人地图按钮的自动化入口。
             YC.PlayerJourney.PlayerAutomationId.Attach(view.MapSelectionPanel.StartButton.gameObject, "start.four_player_map");
-            BindButton(view.OnlineModeButton, ShowOnlineModePanel);
+            BindButton(view.OnlineModeButton, JoinRoom);
             BindButton(view.AchievementsButton, ShowAchievementsPanel);
             BindButton(view.QuitGameButton, QuitGame);
             BindButton(view.CreatorSiteButton, () => UnityEngine.Application.OpenURL(CreatorSiteUrl));
             BindButton(view.OfficialSiteButton, () => UnityEngine.Application.OpenURL(OfficialSiteUrl));
             BindButton(view.WikiButton, () => UnityEngine.Application.OpenURL(WikiUrl));
 
-            BindButton(view.OnlineModePanel.CreateRoomButton, ShowOnlineMapSelectionPanel);
-            BindButton(view.OnlineModePanel.JoinRoomButton, JoinRoom);
-            BindButton(view.OnlineModePanel.BackButton, HideRoomPanel);
             BindButton(view.AchievementsPanel.CollectionRoomButton, EnterCollectionRoom);
             BindButton(view.AchievementsPanel.BackButton, HideRoomPanel);
 
@@ -518,11 +561,28 @@ namespace YC.Presentation
             BindButton(view.JoinPanel.PasteButton, PasteRoomCodeFromClipboard);
             BindButton(view.JoinPanel.JoinButton, ConnectToRoom);
             BindButton(view.JoinPanel.BackButton, HideRoomPanel);
-            BindButton(view.RoomPanel.InviteButton, InviteSteamFriends);
-            BindButton(view.RoomPanel.StartButton, StartOnlineGame);
+            view.RoomPanel.SetServiceAvailability(roomService.SupportsFriendInvites);
+            view.RoomPanel.MapSelectionRequested += id => ChangeRoomConfiguration(id, null, null, false);
+            view.RoomPanel.RuleModeSelectionRequested += id => ChangeRoomConfiguration(null, id, null, false);
+            view.RoomPanel.ExpansionSelectionRequested += (id, enabled) => ChangeRoomConfiguration(null, null, id, enabled);
+            view.RoomPanel.ReadyRequested += ready => SendRoomRequest(new SetRoomReadyRequest { IsUserReady = ready }, roomService.SetReadyAsync);
+            view.RoomPanel.StartRequested += () => SendRoomRequest(new StartConfiguredGameRequest(), roomService.StartConfiguredGameAsync);
+            view.RoomPanel.SeatStatusRequested += (index, status) => SendRoomRequest(new SetRoomSeatStatusRequest { SeatIndex = index, Status = status }, roomService.SetSeatStatusAsync);
+            view.RoomPanel.SeatSwapRequested += index => SendRoomRequest(new RequestRoomSeatSwapRequest { TargetSeatIndex = index }, roomService.RequestSeatSwapAsync);
+            view.RoomPanel.SeatSwapConfirmationRequested += (id, accepted) => SendRoomRequest(new ConfirmRoomSeatSwapRequest { SwapRequestId = id, Accepted = accepted }, roomService.ConfirmSeatSwapAsync);
+            view.RoomPanel.InvitationRequested += InviteSteamFriends;
+            view.RoomPanel.NetworkingRequested += ToggleRoomNetworking;
+            view.RoomPanel.LocalPlayerAdditionRequested += (index, name) =>
+            {
+                if (roomService is ILocalRoomPlayerControl local)
+                    SendRoomRequest(new AddLocalRoomPlayerRequest { SeatIndex = index, PlayerName = name }, local.AddLocalPlayerAsync);
+            };
+            view.RoomPanel.LocalPlayerRemovalRequested += index =>
+            {
+                if (roomService is ILocalRoomPlayerControl local)
+                    SendRoomRequest(new RemoveLocalRoomPlayerRequest { SeatIndex = index }, local.RemoveLocalPlayerAsync);
+            };
             BindButton(view.RoomPanel.BackButton, HideRoomPanel);
-            if (view.RoomPanel.ResumeSeatsButton != null)
-                BindButton(view.RoomPanel.ResumeSeatsButton, MatchSaveWindowView.OpenSeats);
         }
 
         private static void BindButton(Button button, UnityEngine.Events.UnityAction action)
@@ -544,16 +604,6 @@ namespace YC.Presentation
         private void ShowLocalMapSelectionPanel()
         {
             ShowMapSelectionPanel(false);
-        }
-
-        private void ShowOnlineModePanel()
-        {
-            view.HideRoomPanels();
-            var panel = view.OnlineModePanel;
-            panel.gameObject.SetActive(true);
-            roomPanel = panel.gameObject;
-            joinRoomInput = null;
-            roomStatusText = null;
         }
 
         private void ShowAchievementsPanel()
@@ -626,14 +676,7 @@ namespace YC.Presentation
             joinRoomInput = panel.RoomCodeInput;
             roomStatusText = panel.StatusText;
             roomStatusText.text = string.Empty;
-            var isLocalTest = LocalMirrorTestMode.IsEnabled;
-            panel.DescriptionText.text = isLocalTest ? panel.LocalDescription : panel.SteamDescription;
-
-            var placeholder = joinRoomInput.placeholder as Text;
-            if (placeholder != null)
-            {
-                placeholder.text = isLocalTest ? panel.LocalRoomCodePlaceholder : panel.SteamRoomCodePlaceholder;
-            }
+            panel.ShowConnectionType(LocalMirrorTestMode.IsEnabled);
         }
 
         private async void ConnectToRoom()
@@ -649,8 +692,6 @@ namespace YC.Presentation
                 return;
             }
 
-            resumeArchive = null;
-            GameLaunchContext.Instance?.ClearRestore();
             var roomCode = joinRoomInput.text.Trim();
             joiningRoom = true;
             SetRoomStatus(LocalMirrorTestMode.IsEnabled
@@ -671,6 +712,9 @@ namespace YC.Presentation
                 if (this == null) return;
                 joiningRoom = false;
                 SetRoomStatus("加入房间失败：" + ex.Message);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.LogWarning(ex.ToString());
+#endif
             }
         }
 
@@ -699,9 +743,6 @@ namespace YC.Presentation
             switch (result.Status)
             {
                 case LobbyJoinRequestStatus.Joined:
-                    resumeArchive = null;
-                    GameLaunchContext.Instance?.ClearRestore();
-                    goto case LobbyJoinRequestStatus.AlreadyInRoom;
                 case LobbyJoinRequestStatus.AlreadyInRoom:
                     ShowRoomPanel(
                         result.Room,
@@ -731,12 +772,14 @@ namespace YC.Presentation
                 return;
             }
 
-            view.HideRoomPanels();
             var panel = view.RoomPanel;
-            panel.gameObject.SetActive(true);
+            if (roomPanel != panel.gameObject || !panel.gameObject.activeSelf)
+            {
+                view.HideRoomPanels();
+                panel.gameObject.SetActive(true);
+            }
             roomPanel = panel.gameObject;
             roomStatusText = panel.StatusText;
-            ClearRoomSeatRows();
 
             if (hostControls && !string.IsNullOrEmpty(devLocalMirrorRoomOutputPath))
             {
@@ -758,62 +801,58 @@ namespace YC.Presentation
                 }
             }
 
-            panel.RoomCodeText.text = "房间号 " + room.RoomId;
-            BindButton(panel.CopyButton, () => CopyRoomCodeToClipboard(room.RoomId));
+            panel.SetServiceAvailability(roomService.SupportsFriendInvites);
+            var networking = roomService as IRoomNetworkingControl;
+            panel.SetNetworkingState(networking == null || networking.IsOnline, networking != null);
+            var supportsLocalPlayers = roomService is ILocalRoomPlayerControl local && local.SupportsLocalPlayers;
+            panel.SetLocalPlayerAvailability(supportsLocalPlayers);
+            panel.Render(room, room.LocalPlayerId);
 
-            var isTwoPlayerSteamValidation = room.PlayerCount == SteamTwoPlayerValidationCount &&
-                                             roomService.SupportsFriendInvites;
-            panel.ValidationText.gameObject.SetActive(isTwoPlayerSteamValidation);
-            panel.ValidationText.text = isTwoPlayerSteamValidation
-                ? panel.SteamTwoPlayerValidationDescription
-                : string.Empty;
-
-            for (var i = 0; i < room.Seats.Count; i++)
-            {
-                var seat = room.Seats[i];
-                var status = GetSeatReadinessLabel(seat);
-                var marker = seat.PlayerId == room.LocalPlayerId ? "（你）" : string.Empty;
-                var line = string.Format("{0}. {1}{2}  {3}", seat.PlayerId, seat.PlayerName, marker, status);
-                var row = Instantiate(panel.SeatTemplate, panel.SeatListRoot, false);
-                row.name = "Seat " + seat.PlayerId;
-                row.text = line;
-                row.color = UiTheme.GetPlayerColor(seat.Color, seat.LobbyMemberPresent ? 1f : 0.55f);
-                row.gameObject.SetActive(true);
-                roomSeatRows.Add(row);
-            }
-
-            var canStart = RoomReadinessPolicy.TryValidateStart(room, out var readinessReason);
-            roomStatusText.text = hostControls
-                ? (canStart
-                    ? (isTwoPlayerSteamValidation
-                        ? "两名玩家均已验证，可以开始 Steam 联机人工验证。"
-                        : "所有玩家的网络连接和身份均已验证，可以开始游戏。")
-                    : readinessReason)
-                : "等待房主确认所有玩家的网络连接和身份。";
-
-            panel.InviteButton.gameObject.SetActive(roomService.SupportsFriendInvites);
-            panel.StartButton.gameObject.SetActive(hostControls);
-            panel.StartButton.interactable = canStart;
-            if (panel.ResumeSeatsButton != null)
-                panel.ResumeSeatsButton.gameObject.SetActive(hostControls && room.Resume != null && !room.HasStarted);
-
-            if (autoStartLocalMirrorGame && hostControls && canStart)
+            if (autoStartLocalMirrorGame && hostControls && panel.CanStartCurrentRoom)
             {
                 TryAutoStartLocalMirrorGame();
             }
         }
 
-        private void ClearRoomSeatRows()
+        private void ChangeRoomConfiguration(string mapId, string ruleModeId, string expansionId, bool enabled)
         {
-            for (var i = 0; i < roomSeatRows.Count; i++)
+            var room = view.RoomPanel.DisplayedRoom;
+            if (room == null || room.LocalPlayerId != room.HostPlayerId) return;
+            var selected = new List<string>(room.Configuration.EnabledExpansionIds);
+            if (expansionId != null)
             {
-                if (roomSeatRows[i] != null)
-                {
-                    Destroy(roomSeatRows[i].gameObject);
-                }
+                if (enabled && !selected.Contains(expansionId)) selected.Add(expansionId);
+                else if (!enabled) selected.Remove(expansionId);
             }
+            SendRoomRequest(new ChangeRoomConfigurationRequest
+            {
+                MapId = mapId ?? room.Configuration.MapId,
+                RuleModeId = ruleModeId ?? room.Configuration.RuleModeId,
+                EnabledExpansionIds = selected
+            }, roomService.ChangeConfigurationAsync);
+        }
 
-            roomSeatRows.Clear();
+        private async void SendRoomRequest<T>(T request, Func<T, Task<RoomConfigurationResult>> send) where T : RoomConfigurationRequest
+        {
+            var room = view.RoomPanel.DisplayedRoom;
+            if (roomRequestPending || room == null) return;
+            var hostOnly = request is ChangeRoomConfigurationRequest || request is SetRoomSeatStatusRequest || request is StartConfiguredGameRequest ||
+                request is AddLocalRoomPlayerRequest || request is RemoveLocalRoomPlayerRequest;
+            if (hostOnly && room.LocalPlayerId != room.HostPlayerId) return;
+            request.CommandId = Guid.NewGuid().ToString("N");
+            request.RoomId = room.RoomId;
+            request.RequestingPlayerId = room.LocalPlayerId;
+            request.ExpectedConfigurationRevision = room.Configuration.ConfigurationRevision;
+            roomRequestPending = true;
+            view.RoomPanel.SetRequestPending(true);
+            RoomConfigurationResult result;
+            try { result = await send(request); }
+            catch (Exception ex) { result = new RoomConfigurationResult { Success = false, ReasonCode = ex.Message }; }
+            if (this == null) return;
+            roomRequestPending = false;
+            view.RoomPanel.SetRequestPending(false);
+            if (roomPanel == view.RoomPanel.gameObject && view.RoomPanel.DisplayedRoom?.RoomId == request.RoomId)
+                view.RoomPanel.ShowCommandResult(result);
         }
 
         private void TryAutoStartLocalMirrorGame()
@@ -828,6 +867,7 @@ namespace YC.Presentation
 
             var room = roomService == null ? null : roomService.GetCurrentRoom();
             if (room == null ||
+                room.PlayerCount != selectedRoomPlayerCount ||
                 room.LocalPlayerId != room.HostPlayerId ||
                 !RoomReadinessPolicy.TryValidateStart(room, out _))
             {
@@ -856,29 +896,37 @@ namespace YC.Presentation
             }
         }
 
-        private async void StartOnlineGame()
-        {
-            try
-            {
-                await roomService.StartGameAsync();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning("开始联机对局失败：" + ex.Message);
-                SetRoomStatus("开始游戏失败：" + ex.Message);
-            }
-        }
-
-        private void InviteSteamFriends()
+        private void InviteSteamFriends(int seatIndex)
         {
             try
             {
                 roomService.InviteFriends();
+                view.RoomPanel.ShowInvitationEntryOpened(seatIndex);
             }
             catch (Exception ex)
             {
                 SetRoomStatus("无法打开 Steam 好友邀请：" + ex.Message);
             }
+        }
+
+        private async void ToggleRoomNetworking(bool enabled)
+        {
+            if (roomRequestPending || !(roomService is IRoomNetworkingControl networking)) return;
+            var current = view.RoomPanel.DisplayedRoom;
+            if (current == null || current.LocalPlayerId != current.HostPlayerId) return;
+            var operation = ++roomNetworkingRequestVersion;
+            roomRequestPending = true;
+            view.RoomPanel.SetRequestPending(true);
+            string error = null;
+            try { await networking.SetOnlineAsync(enabled); }
+            catch (Exception ex) { error = ex.Message; }
+            if (this == null || operation != roomNetworkingRequestVersion) return;
+            roomRequestPending = false;
+            view.RoomPanel.SetRequestPending(false);
+            if (roomPanel != view.RoomPanel.gameObject) return;
+            var room = roomService.GetCurrentRoom();
+            if (room != null) ShowRoomPanel(room, room.LocalPlayerId == room.HostPlayerId);
+            if (!string.IsNullOrEmpty(error)) SetRoomStatus(view.RoomPanel.ResolveReason(error));
         }
 
         private void ShowRoomProgressPanel(string title, string message)
@@ -921,14 +969,17 @@ namespace YC.Presentation
                 return;
             }
 
-            var mode = localPlayerId == room.HostPlayerId ? LaunchMode.Host : LaunchMode.Client;
-            if (room.Resume != null && mode == LaunchMode.Host && resumeArchive == null)
+            var mode = roomService is IRoomNetworkingControl networking && !networking.IsOnline
+                ? LaunchMode.Local : localPlayerId == room.HostPlayerId ? LaunchMode.Host : LaunchMode.Client;
+            if (!room.HasStarted || !RoomStateSerializer.TryValidate(room, out _))
             {
-                Debug.LogWarning("续局存档已失效，已中止启动。", this); return;
+                SetRoomStatus(view.RoomPanel.ResolveReason("room_protocol_mismatch"));
+                return;
             }
-            var context = GameLaunchContext.Ensure();
-            context.Configure(mode, localPlayerId, room.RoomId, room.Seats, room.Resume?.MapId);
-            if (mode == LaunchMode.Host && resumeArchive != null) context.SetRestore(resumeArchive);
+            if (room.Resume != null)
+                GameLaunchContext.Ensure().ConfigureSavedRoom(mode, localPlayerId, room, mode == LaunchMode.Host ? resumeArchive : null);
+            else GameLaunchContext.Ensure().Configure(mode, localPlayerId, room.RoomId, room.Seats, room.Configuration.Clone(), room.LaunchPlayerOrder,
+                room.GameId, room.EventDeckSeed, room.RandomRuntime);
             resumeArchive = null;
             BeginMapSceneLoad();
         }
@@ -989,10 +1040,12 @@ namespace YC.Presentation
         private void HideRoomPanel()
         {
             resumeArchive = null;
-            GameLaunchContext.Instance?.ClearRestore();
+            roomNetworkingRequestVersion++;
+            roomRequestPending = false;
+            view.RoomPanel.SetRequestPending(false);
+            lock (networkEventLock) { pendingRoomUpdate = null; pendingGameStart = null; }
             view.HideRoomPanels();
             roomPanel = null;
-            ClearRoomSeatRows();
             joinRoomInput = null;
             roomStatusText = null;
             joiningRoom = false;
@@ -1008,8 +1061,9 @@ namespace YC.Presentation
             joinRoomInput = null;
             roomStatusText = panel.MessageText;
             panel.TitleText.text = title;
-            panel.MessageText.text = string.IsNullOrEmpty(message) ? panel.UnknownErrorMessage : message;
+            panel.MessageText.text = string.IsNullOrEmpty(message) ? panel.UnknownErrorMessage : ResolveRoomReasonCaption(message);
             panel.ActionButton.gameObject.SetActive(true);
+            panel.ActionButtonText.text = panel.OperationErrorActionLabel;
             BindButton(panel.ActionButton, HideRoomPanel);
         }
 
@@ -1024,16 +1078,14 @@ namespace YC.Presentation
             panel.TitleText.text = panel.RoomDisbandedTitle;
             panel.MessageText.text = panel.RoomDisbandedMessage;
             panel.ActionButton.gameObject.SetActive(true);
+            panel.ActionButtonText.text = panel.RoomDisbandedActionLabel;
             BindButton(panel.ActionButton, ConfirmRoomDisbanded);
         }
 
         private void ConfirmRoomDisbanded()
         {
-            resumeArchive = null;
-            GameLaunchContext.Instance?.ClearRestore();
             view.HideRoomPanels();
             roomPanel = null;
-            ClearRoomSeatRows();
             roomStatusText = null;
             joinRoomInput = null;
             joiningRoom = false;
@@ -1053,8 +1105,14 @@ namespace YC.Presentation
         {
             if (roomStatusText != null)
             {
-                roomStatusText.text = message;
+                roomStatusText.text = ResolveRoomReasonCaption(message);
             }
+        }
+
+        private string ResolveRoomReasonCaption(string code)
+        {
+            var caption = roomReasonCaptions.Find(item => item != null && item.ReasonCode == code);
+            return caption == null ? code : caption.Caption;
         }
 
         private void CopyRoomCodeToClipboard(string roomCode)

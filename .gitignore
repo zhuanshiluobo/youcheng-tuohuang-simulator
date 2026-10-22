@@ -95,3 +95,11 @@ Thumbs.db
 /ArtSource/Materials/OrirockFamily/OrirockConcentration/UniformMaterialRevision/previous_unity/OrirockConcentration_Normal.png
 /ArtSource/Materials/OrirockFamily/OrirockConcentration/UniformMaterialRevision/previous_unity/OrirockConcentration_Occlusion.png
 /ArtSource/**/__pycache__/
+
+# UI 验证生成物：保留说明、测试结果和资产映射，快照与批量截图仅作本地证据。
+/prompt/UI换新/执行记录/**/*.png
+/prompt/UI换新/执行记录/**/*.json
+/prompt/UI换新/执行记录/**/*.diff
+/prompt/UI换新/执行记录/**/*.zip
+# 资产映射清单继续纳入版本控制，包含下级目录。
+!/prompt/UI换新/执行记录/**/*资产映射.json

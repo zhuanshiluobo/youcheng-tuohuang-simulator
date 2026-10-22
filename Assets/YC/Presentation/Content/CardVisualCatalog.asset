@@ -12,3 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34878c71b40c19341be9d12d1299574c, type: 3}
   m_Name: CardVisualCatalog
   m_EditorClassIdentifier: 
+  characterBackTextures:
+  - color: 0
+    texture: {fileID: 2800000, guid: 473e289a27467844c8f11f052a0c903a, type: 3}
+  - color: 3
+    texture: {fileID: 2800000, guid: 9f4fb97e7dcddf54494a027d83da8bcc, type: 3}
+  - color: 2
+    texture: {fileID: 2800000, guid: f00f4e9a391a10d49a69d0f324e6ddc5, type: 3}
+  - color: 1
+    texture: {fileID: 2800000, guid: b2b74655e2e2f754aae40144b8b4bdbc, type: 3}
+  cityBoardTexture: {fileID: 2800000, guid: cfbcd3b26b03e954999a7fd904f94250, type: 3}

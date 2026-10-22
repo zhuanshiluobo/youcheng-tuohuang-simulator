@@ -85,17 +85,6 @@ namespace YC.Domain.Commands
     }
 
     [Serializable]
-    public sealed class ConfirmedGameCommandDto
-    {
-        public int Sequence;
-        public GameCommandDto Command = new GameCommandDto();
-        // CommandAccepted 通知只填充 Sequence 和 Command。
-        // 以下字段仅保留给显式构造的兼容 DTO；生产网络使用 ConfirmedGameStateViewDto。
-        public YC.Domain.State.GameStateView View;
-        public GameState State;
-    }
-
-    [Serializable]
     public sealed class RejectedGameCommandDto
     {
         public GameCommandDto Command = new GameCommandDto();

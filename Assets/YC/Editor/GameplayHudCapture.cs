@@ -611,15 +611,11 @@ namespace YC.Presentation.Editor
             if (cards)
             {
                 dialogsComponent.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth);
-                var facilityIds = ExternalContentRuntime.Pack.ActiveDefinitions
-                    .Where(definition => definition.ContentType == "facility")
-                    .Select(definition => definition.RuntimeId).ToArray();
-                if (facilityIds.Length == 0)
-                    throw new InvalidOperationException("外部内容包没有可用于诊断的设施卡。");
+                var entries = Enumerable.Range(1, 7).Select(i => registry.CardVisualCatalog.GetFacility("building_" + i.ToString("000"))).ToArray();
                 for (int i = 0; i < 7; i++)
                 {
                     var card = dialogsComponent.CreateFacilityCard();
-                    card.CardImage.texture = registry.CardVisualCatalog.GetFacility(facilityIds[i % facilityIds.Length]);
+                    CardArtworkView.Set(card.CardImage, entries[i]);
                     card.FallbackLabel.gameObject.SetActive(false);
                     card.SelectionImage.enabled = i < 2;
                     card.DetailsButton.onClick.RemoveAllListeners();

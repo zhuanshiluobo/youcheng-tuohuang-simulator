@@ -1,29 +1,39 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
 using YC.Application.Sessions;
 using YC.Infrastructure.Multiplayer;
 using YC.Infrastructure.Persistence;
+using YC.Domain.Rules;
+using YC.Domain.State;
 
 namespace YC.Presentation
 {
-    /// <summary>无界面的本机存档协调器：自动保存、串行写盘及退出等待，不依赖预制体。</summary>
     public sealed class MatchSaveController : MonoBehaviour
     {
         public static MatchSaveController Instance { get; private set; }
         private MatchSaveStore store;
         private GameSession session;
-        [NonSerialized] private MatchSaveData configuration;
-        private bool allowQuit, flushing;
-        private int generation;
-        private long saveSequence, completedSaveSequence;
+        private GameLaunchContext context;
+        private int generation, dirty, saved;
+        private bool saving, leaving, allowQuit;
+        private float retryAt;
         private string lastFailure;
-        public bool CanSave => session != null && configuration != null;
-        public string CurrentGameId => session?.State.GameId;
+        private long observationSaveId;
+        private SimulationPublishedSnapshot completedHostSnapshot;
+        private MatchSaveData completedHostHeader;
+        private int completedHostSaveGeneration = -1;
+        private MirrorCommandTransport saveTransport;
+        private Action<SimulationCommandAppliedDto> networkApplied;
+        private Action<CommandValidationPrefixDto> networkValidated;
+        private Action<DeterministicSimulationCoordinator> networkRecovered;
+        private CancellationTokenSource saveLifetime = new CancellationTokenSource();
+        public bool CanSave => session != null && context != null && context.Mode != LaunchMode.Client;
+        public string CurrentGameId => context?.Mode == LaunchMode.Local ? session?.State.GameId : context?.GameId;
         public string LastFailure => lastFailure;
-
+        public bool HasSaves => store.HasSaves();
         public static MatchSaveController Ensure()
         {
             if (Instance != null) return Instance;
@@ -32,137 +42,247 @@ namespace YC.Presentation
         private void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
+            Instance = this; DontDestroyOnLoad(gameObject);
             store = new MatchSaveStore(Path.Combine(UnityEngine.Application.persistentDataPath, "MatchSaves"));
             UnityEngine.Application.wantsToQuit += WantsToQuit;
         }
         private void OnDestroy()
         {
             if (Instance != this) return;
-            Unbind();
-            UnityEngine.Application.wantsToQuit -= WantsToQuit;
-            Instance = null;
+            Unbind(); saveLifetime.Dispose(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
         }
-        public bool HasSaves => store.HasSaves();
-        public List<MatchSaveSlot> ListSlots() => store.List();
-        public Task<List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
+        public Task<System.Collections.Generic.List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
         public Task Delete(int slot) => store.DeleteAsync(slot);
         public MatchSaveData Read(int slot)
         {
             var data = store.Read(slot);
             GameSessionBootstrapper.Restore(null, data);
-            store.EnsureResumeCapacity(data.GameId);
-            store.SetRestoreSource(slot, data.GameId);
+            store.EnsureResumeCapacity(data.GameId); store.SetRestoreSource(slot, data.GameId);
             return data;
         }
-        public void Bind(GameSession value, string contentHash, GameLaunchContext context, bool restored)
+        public void Bind(GameSession value, GameLaunchContext launch)
         {
             Unbind();
-            if (context != null && context.Mode == LaunchMode.Client) return;
-            session = value;
-            configuration = new MatchSaveData {
-                Mode = context == null ? LaunchMode.Local : context.Mode,
-                LocalPlayerId = context == null ? 1 : context.LocalPlayerId,
-                LocalTestNetwork = LocalMirrorTestMode.IsEnabled, ContentHash = contentHash
-            };
-            foreach (var player in session.State.Players)
+            if (value == null || launch == null || launch.Mode == LaunchMode.Client) return;
+            session = value; context = launch;
+            if (NetworkExecutionObservation.Enabled) session.ExecutionTimings.Enabled = true;
+            if (launch.Mode == LaunchMode.Local) session.StateCommitted += MarkDirty;
+            else
             {
-                var seat = context?.Players.Find(s => s.PlayerId == player.PlayerId);
-                configuration.Seats.Add(new MatchSaveSeat { PlayerId = player.PlayerId,
-                    SteamId = seat == null ? 0 : seat.SteamId, OperatorId = seat?.OperatorId,
-                    PlayerName = seat == null ? player.PlayerId.ToString() : seat.PlayerName, Color = player.Color });
+                // 联机规则提交在执行线程；保存生命周期只接受运输层主线程交付的通知。
+                saveTransport = MirrorCommandTransport.Instance;
+                if (saveTransport == null) throw new InvalidOperationException("联机保存缺少当前运输绑定。");
+                int epoch = generation;
+                bool Current() => epoch == generation && context == launch && session == value &&
+                    ReferenceEquals(MirrorCommandTransport.Instance, saveTransport);
+                networkApplied = applied => { if (Current() && applied.GameId == launch.GameId && applied.RuleResult?.Succeeded == true) MarkDirty(); };
+                networkValidated = prefix => { if (Current() && prefix.GameId == launch.GameId) dirty++; };
+                networkRecovered = coordinator => { if (Current() && coordinator.SessionOptions.GameId == launch.GameId) MarkDirty(); };
+                saveTransport.SimulationCommandApplied += networkApplied;
+                saveTransport.CommandValidationPrefixAdvanced += networkValidated;
+                saveTransport.SimulationRecoveryCompleted += networkRecovered;
             }
-            configuration.HostSteamId = configuration.Seats.Find(s => s.PlayerId == 1)?.SteamId ?? 0;
-            store.BeginMatch(session.State.GameId, !restored);
-            foreach (var slot in store.List())
-            {
-                if (slot.Data == null) continue;
-                try { GameSessionBootstrapper.Restore(null, slot.Data); }
-                catch { store.ProtectAutomaticSlot(slot.Index); }
-            }
-            session.StateCommitted += AutoSave;
-            // 成功读档本身不写原文件；下一次提交才自动保存。新局初始化完成保存一次。
-            if (!restored) AutoSave();
+            store.BeginMatch(launch.Mode == LaunchMode.Local ? session.State.GameId : launch.GameId, launch.RestoreData == null);
+            dirty = launch.RestoreData == null ? 1 : 0; saved = 0;
+        }
+        private void MarkDirty() { dirty++; ClearCompletedHostSave(); }
+        private void ClearCompletedHostSave()
+        {
+            completedHostSnapshot = null; completedHostHeader = null; completedHostSaveGeneration = -1;
         }
         public void Unbind()
         {
-            if (session != null)
+            saveLifetime.Cancel(); saveLifetime.Dispose(); saveLifetime = new CancellationTokenSource();
+            if (session != null && context?.Mode == LaunchMode.Local) { session.StateCommitted -= MarkDirty; session.CommandsSuspended = false; }
+            if (!ReferenceEquals(saveTransport, null))
             {
-                session.StateCommitted -= AutoSave;
-                session.CommandsSuspended = false;
+                saveTransport.SimulationCommandApplied -= networkApplied;
+                saveTransport.CommandValidationPrefixAdvanced -= networkValidated;
+                saveTransport.SimulationRecoveryCompleted -= networkRecovered;
             }
-            flushing = false;
-            session = null; configuration = null; generation++;
-            lastFailure = null;
+            saveTransport = null; networkApplied = null; networkValidated = null; networkRecovered = null;
+            generation++; session = null; context = null; dirty = saved = 0; saving = leaving = false;
+            ClearCompletedHostSave(); lastFailure = null; retryAt = 0f; allowQuit = false; observationSaveId = 0;
         }
-        private MatchSaveData Capture()
+
+        internal bool TryRetainCompletedHostSave(GameLaunchContext launch, out string reason)
         {
-            if (!CanSave) throw new InvalidOperationException("本机不是当前对局的权威端。");
-            var data = new MatchSaveData {
-                SavedUtcTicks = DateTime.UtcNow.Ticks, Mode = configuration.Mode,
-                LocalTestNetwork = configuration.LocalTestNetwork, LocalPlayerId = configuration.LocalPlayerId,
-                HostSteamId = configuration.HostSteamId, ContentHash = configuration.ContentHash,
-                MapId = session.State.MapId, GameId = session.State.GameId, Round = session.State.Round,
-                Seats = configuration.Seats, Archive = session.CreateHostArchive(configuration.ContentHash)
-            };
-            return data;
-        }
-        private async void AutoSave() { await Save(-1); }
-        public async Task<bool> Save(int slot = -1)
-        {
-            var epoch = generation;
-            var sequence = ++saveSequence;
+            reason = null;
             try
             {
-                await store.SaveAsync(Capture(), slot);
-                if (epoch == generation && sequence >= completedSaveSequence) { completedSaveSequence = sequence; lastFailure = null; }
+                if (!CanSave || context != launch || context.Mode != LaunchMode.Host || context.IsCompletedSessionDetached)
+                    throw new InvalidOperationException("当前对局没有可保留的房主终局确认存档。");
+                var snapshot = ReadHostSaveSnapshot();
+                if (!snapshot.FinalScoringResolved || snapshot.Phase != GamePhase.FinalScoring && snapshot.Phase != GamePhase.GameOver)
+                    throw new InvalidOperationException("终局状态尚未形成同局一致的正式确认检查点。");
+                completedHostSnapshot = snapshot;
+                completedHostHeader = CreateHostSaveHeader();
+                completedHostSaveGeneration = generation;
+                // 释放运输层后仍由原保存队列写盘；失败保留此确认点供重试。
+                dirty++;
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                if (epoch == generation && sequence >= completedSaveSequence) { completedSaveSequence = sequence; lastFailure = ex.Message; }
-                Debug.LogWarning("Match save: " + ex.Message);
+                ClearCompletedHostSave();
+                reason = lastFailure = error.Message;
                 return false;
             }
         }
-        public async void RequestLeave(Action action)
+
+        private SimulationPublishedSnapshot ReadHostSaveSnapshot()
         {
-            if (flushing) return;
-            if (!CanSave) { action(); return; }
-            var epoch = generation;
-            flushing = true;
-            session.CommandsSuspended = true;
+            var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
+            if (coordinator == null || !coordinator.TryReadPublishedSnapshot(out var snapshot) ||
+                snapshot.GameId != context.GameId || snapshot.LocalPlayerId != context.LocalPlayerId || !snapshot.CanCreateSaveCheckpoint)
+                throw new InvalidOperationException("联机正式确认保存点尚未就绪。");
+            return snapshot;
+        }
+
+        private SimulationPublishedSnapshot ReadRetainedHostSnapshot()
+        {
+            var snapshot = completedHostSnapshot;
+            if (snapshot == null || completedHostHeader == null || completedHostSaveGeneration != generation ||
+                context.Mode != LaunchMode.Host || snapshot.GameId != context.GameId || snapshot.LocalPlayerId != context.LocalPlayerId ||
+                !snapshot.FinalScoringResolved || !snapshot.CanCreateSaveCheckpoint ||
+                snapshot.Phase != GamePhase.FinalScoring && snapshot.Phase != GamePhase.GameOver)
+                throw new InvalidOperationException("终局确认存档已失效，不能跳过保存退出。");
+            return snapshot;
+        }
+
+        private async void LateUpdate()
+        {
+            if (!CanSave || saving || leaving || dirty == saved || Time.unscaledTime < retryAt) return;
+            int epoch = generation;
+            if (!await Save() && epoch == generation) retryAt = Time.unscaledTime + 2f;
+        }
+        public MatchSaveData Capture()
+        {
+            if (!CanSave) throw new InvalidOperationException("只有本地对局或房主可以保存。");
+            if (context.Mode != LaunchMode.Local)
+                throw new InvalidOperationException("联机存档必须通过异步保存入口从固定确认点生成。");
+            return CaptureLiveSession();
+        }
+
+        private MatchSaveData CaptureLiveSession()
+        {
+            using var captureObservation = NetworkExecutionObservation.Begin("save.capture", SaveObservationContext(), true, session.ExecutionTimings);
+            var export = session.ExportConfirmedRecoveryPoint(session.EnableConfirmedRecoveryCapture());
+            string archive = HostRecoveryService.SerializeArchive(export.Archive);
+            string continuation = SimulationConfirmedRecoveryInstaller.SerializeContinuation(export.Continuation);
+            var data = new MatchSaveData { SavedUtcTicks = DateTime.UtcNow.Ticks, Mode = context.Mode,
+                LocalPlayerId = context.LocalPlayerId, LocalTestNetwork = LocalMirrorTestMode.IsEnabled,
+                MapId = session.State.MapId, GameId = session.State.GameId, Round = session.State.Round,
+                ContentHash = session.State.ContentPackHash, ArchiveJson = archive, ContinuationJson = continuation,
+                SimulationCheckpointJson = null };
+            foreach (var player in session.State.Players)
+            {
+                var seat = context.Players.Find(s => s.PlayerId == player.PlayerId);
+                data.Seats.Add(new MatchSaveSeat { PlayerId = player.PlayerId, Color = player.Color,
+                    PlayerName = seat?.PlayerName ?? player.Name, SteamId = seat?.SteamId ?? 0, OperatorId = seat?.OperatorId });
+            }
+            data.HostSteamId = data.Seats.Find(s => s.PlayerId == data.LocalPlayerId)?.SteamId ?? 0;
+            data.Validate(); return data;
+        }
+        private MatchSaveData CreateHostSaveHeader()
+        {
+            var seats = CopySaveSeats();
+            return new MatchSaveData { Mode = LaunchMode.Host, GameId = context.GameId,
+                LocalPlayerId = context.LocalPlayerId, LocalTestNetwork = LocalMirrorTestMode.IsEnabled,
+                HostSteamId = seats.Find(value => value.PlayerId == context.LocalPlayerId)?.SteamId ?? 0,
+                Seats = seats, SavedUtcTicks = DateTime.UtcNow.Ticks };
+        }
+
+        private System.Collections.Generic.List<MatchSaveSeat> CopySaveSeats()
+        {
+            var seats = new System.Collections.Generic.List<MatchSaveSeat>();
+            foreach (var seat in context.Players)
+                seats.Add(new MatchSaveSeat { PlayerId = seat.PlayerId, Color = seat.Color,
+                    PlayerName = seat.PlayerName, SteamId = seat.SteamId, OperatorId = seat.OperatorId });
+            return seats;
+        }
+
+        public async Task<bool> Save(int slot = -1)
+        {
+            if (saving) { lastFailure = "正在写入存档，请稍候。"; return false; }
+            var epoch = generation; int version = dirty; saving = true;
+            var observationContext = SaveObservationContext(slot);
+            var saveObservation = NetworkExecutionObservation.Begin("save.total", observationContext);
+            observationSaveId = observationContext.OperationId = saveObservation.Id;
+            saveObservation.Context = observationContext;
             try
             {
-                // 保存并退出始终捕获最新状态；保存过程不创建提示窗口。
-                if (!await Save())
-                    throw new IOException(lastFailure);
-                await store.FlushAsync();
-                if (epoch != generation) return;
-                if (!string.IsNullOrEmpty(lastFailure)) throw new IOException(lastFailure);
+                Task write;
+                if (context?.Mode == LaunchMode.Host)
+                {
+                    var snapshot = context.IsCompletedSessionDetached ? ReadRetainedHostSnapshot() : ReadHostSaveSnapshot();
+                    var header = context.IsCompletedSessionDetached ? GameStateCloneService.DeepClone(completedHostHeader) : CreateHostSaveHeader();
+                    header.SavedUtcTicks = DateTime.UtcNow.Ticks;
+                    using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext))
+                        write = store.SavePreparedAsync(() => MatchSaveData.CreateFromPublishedSnapshotAsync(header, snapshot),
+                            snapshot.GameId, snapshot.ContentHash, slot, saveLifetime.Token);
+                }
+                else
+                {
+                    var capture = Capture();
+                    using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext)) write = store.SaveAsync(capture, slot);
+                }
+                NetworkExecutionObservation.ObserveCompletion(write, observationContext);
+                using (NetworkExecutionObservation.Begin("save.await_resume", observationContext)) await write;
+                if (epoch != generation) return false;
+                saved = version; lastFailure = null;
+                return true;
             }
-            catch (Exception ex)
-            {
-                Debug.LogWarning("退出前存档未完成，已取消退出：" + ex.Message);
-                return;
-            }
+            catch (Exception error) { if (epoch == generation) lastFailure = error.Message; return false; }
             finally
             {
-                if (epoch == generation)
-                {
-                    flushing = false;
-                    if (session != null) session.CommandsSuspended = false;
-                }
+                if (epoch == generation) saving = false;
+                if (epoch == generation) observationSaveId = 0;
+                saveObservation.Dispose();
             }
-            Unbind();
-            action();
+        }
+
+        private NetworkExecutionObservation.Context SaveObservationContext(int slot = -1)
+        {
+            if (!NetworkExecutionObservation.Enabled) return default;
+            var identity = MirrorCommandTransport.Instance != null ? MirrorCommandTransport.Instance.ReadObservationContext() : default;
+            identity.GameId = context?.Mode == LaunchMode.Local ? session?.State.GameId : context?.GameId;
+            identity.Mode = context?.Mode.ToString();
+            identity.PlayerId = context?.LocalPlayerId ?? -1;
+            if (context?.Mode == LaunchMode.Local) identity.Revision = session?.State.EffectRuntime?.StateRevision ?? 0;
+            identity.Frame = Time.frameCount; identity.Slot = slot;
+            identity.OperationId = observationSaveId;
+            return identity;
+        }
+        public async void RequestLeave(Action action)
+        {
+            if (leaving) return;
+            if (!CanSave) { action(); return; }
+            var epoch = generation; leaving = true;
+            if (context.Mode == LaunchMode.Local) session.CommandsSuspended = true;
+            try
+            {
+                while (saving) { if (epoch != generation) return; await Task.Yield(); }
+                for (int attempt = 0; attempt < 4; attempt++)
+                {
+                    if (epoch != generation) return;
+                    if (!await Save()) { if (epoch != generation) return; throw new IOException(lastFailure); }
+                    await store.FlushAsync();
+                    if (epoch != generation) return;
+                    if (dirty != saved) continue;
+                    Unbind(); action(); return;
+                }
+                lastFailure = "仍有新的操作正在结算，请稍后再保存退出。";
+            }
+            catch (Exception error)
+            { if (epoch == generation) { lastFailure = error.Message; Debug.LogWarning("保存退出未完成：" + error.Message); } }
+            finally { if (epoch == generation) { leaving = false; if (session != null && context?.Mode == LaunchMode.Local) session.CommandsSuspended = false;
+                if (!string.IsNullOrEmpty(lastFailure)) MatchSaveWindowView.OpenSaveFailure(lastFailure); } }
         }
         private bool WantsToQuit()
         {
             if (allowQuit || !CanSave) return true;
-            RequestLeave(() => { allowQuit = true; UnityEngine.Application.Quit(); });
-            return false;
+            RequestLeave(() => { allowQuit = true; UnityEngine.Application.Quit(); }); return false;
         }
     }
 }

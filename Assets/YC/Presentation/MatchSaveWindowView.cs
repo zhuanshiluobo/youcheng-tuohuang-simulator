@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using YC.Application.Sessions;
@@ -65,6 +67,7 @@ namespace YC.Presentation
         private float nextRoomRefresh;
         private string[] labels;
         private string seatError;
+        private string saveFailure;
         private GenericWindowView deleteConfirmation;
         public static bool IsAnyOpen => activeWindow != null && activeWindow.gameObject.activeInHierarchy;
         public static bool WasClosedThisFrame => closedFrame == Time.frameCount;
@@ -78,6 +81,15 @@ namespace YC.Presentation
         {
             if (MatchSaveController.Instance == null || !MatchSaveController.Instance.CanSave) return;
             Open(Mode.Save, null);
+        }
+        public static void OpenSaveFailure(string error)
+        {
+            OpenSave();
+            if (activeWindow != null)
+            {
+                activeWindow.saveFailure = error;
+                activeWindow.message.text = string.Format(activeWindow.errorFormat, error);
+            }
         }
         public static void OpenSeats()
         {
@@ -172,16 +184,17 @@ namespace YC.Presentation
                     rowTimes[i].text = data == null ? string.Empty
                         : new DateTime(data.SavedUtcTicks, DateTimeKind.Utc).ToLocalTime().ToString(timeFormat);
                     deleteButtons[i].gameObject.SetActive(mode == Mode.Load && slot.Exists);
-                    RefreshRowDetails(i, data);
+                    int actionRound = RefreshRowDetails(i, data);
                     labels[i] = data == null
                         ? string.Format(emptyFormat, kind, i % MatchSaveStore.ManualCount + 1, slot.Error ?? emptyLabel)
                         : string.Format(slotFormat, kind, i % MatchSaveStore.ManualCount + 1,
                             data.Mode == YC.Application.Sessions.LaunchMode.Local ? localLabel : onlineLabel,
                             data.MapId == YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId ? threePlayerLabel : fourPlayerLabel,
-                            data.Round, data.Archive.Snapshot.State.ActionRound)
+                            data.Round, actionRound)
                             + (slot.Error == null ? string.Empty : "\n" + slot.Error);
                 }
                 UpdateSelection();
+                if (!string.IsNullOrEmpty(saveFailure)) message.text = string.Format(errorFormat, saveFailure);
             }
             catch (Exception ex)
             {
@@ -192,26 +205,31 @@ namespace YC.Presentation
                 if (this != null) SetBusy(false);
             }
         }
-        private void RefreshRowDetails(int index, MatchSaveData data)
+        private int RefreshRowDetails(int index, MatchSaveData data)
         {
-            var state = data?.Archive?.Snapshot?.State;
-            var currentPlayer = state?.FindPlayer(state.CurrentPlayerId);
+            // v2 存档保留正式恢复原包；这里只读取展示字段，不恢复整局或推进 effect 链。
+            var state = data?.ReadArchiveState();
+            var players = state?["Players"] as JArray;
+            int currentPlayerId = (int?)state?["CurrentPlayerId"] ?? -1;
+            var currentPlayer = players?.FirstOrDefault(player => (int?)player["PlayerId"] == currentPlayerId);
             rowPlayerNames[index].gameObject.SetActive(currentPlayer != null);
-            string playerName = currentPlayer?.Name;
+            string playerName = (string)currentPlayer?["Name"];
             if (currentPlayer != null && string.IsNullOrWhiteSpace(playerName))
-                playerName = data.Seats.Find(s => s.PlayerId == currentPlayer.PlayerId)?.PlayerName;
+                playerName = data.Seats.Find(s => s.PlayerId == currentPlayerId)?.PlayerName;
             rowPlayerNames[index].text = currentPlayer == null ? string.Empty
-                : string.IsNullOrWhiteSpace(playerName) ? string.Format(unnamedPlayerFormat, currentPlayer.PlayerId) : playerName;
-            int colorIndex = currentPlayer == null ? -1 : (int)currentPlayer.Color;
+                : string.IsNullOrWhiteSpace(playerName) ? string.Format(unnamedPlayerFormat, currentPlayerId) : playerName;
+            int colorIndex = (int?)currentPlayer?["Color"] ?? -1;
             var marker = colorIndex >= 0 && colorIndex < playerMarkerSprites.Length ? playerMarkerSprites[colorIndex] : null;
             rowPlayerIcons[index].sprite = marker;
             rowPlayerIcons[index].gameObject.SetActive(marker != null);
 
             // 自己的资源属于存档记录的本地席位，与当前行动者独立。
-            var resources = state?.FindPlayer(data.LocalPlayerId)?.Resources;
+            var resources = players?.FirstOrDefault(player => (int?)player["PlayerId"] == data.LocalPlayerId)?["Resources"];
             rowResources[index].gameObject.SetActive(resources != null);
             rowResources[index].text = resources == null ? string.Empty : string.Format(resourceFormat,
-                resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium, resources.GoldVoucher);
+                (int?)resources["Originium"] ?? 0, (int?)resources["OriginiumShard"] ?? 0,
+                (int?)resources["Iron"] ?? 0, (int?)resources["PureOriginium"] ?? 0, (int?)resources["GoldVoucher"] ?? 0);
+            return (int?)state?["ActionRound"] ?? 0;
         }
         private void RefreshSeats()
         {
