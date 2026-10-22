@@ -168,6 +168,19 @@ namespace YC.Presentation
             return Mathf.Max(MinimumDistance, baseDistance) / Mathf.Max(MinimumTangent, zoom);
         }
 
+        // 相对最大 UI 开口的可见矩形；最多收缩一个轴，直至整图可见。
+        public static Rect CalculateContainedViewport(Vector2 mapSize, float availableAspect,
+            float distance, float verticalFieldOfViewDegrees)
+        {
+            var height = 2f * distance * Mathf.Tan(verticalFieldOfViewDegrees * Mathf.Deg2Rad * .5f);
+            var widthFraction = Mathf.Clamp01(mapSize.x / Mathf.Max(.0001f, height * availableAspect));
+            var heightFraction = Mathf.Clamp01(mapSize.y / Mathf.Max(.0001f, height));
+            if (widthFraction > .99999f) widthFraction = 1f;
+            if (heightFraction > .99999f) heightFraction = 1f;
+            return new Rect((1f - widthFraction) * .5f, (1f - heightFraction) * .5f,
+                widthFraction, heightFraction);
+        }
+
         private static void NormalizePlaneAxes(ref Vector3 planeAxisX, ref Vector3 planeAxisY)
         {
             planeAxisX = planeAxisX.sqrMagnitude > 0f ? planeAxisX.normalized : Vector3.right;

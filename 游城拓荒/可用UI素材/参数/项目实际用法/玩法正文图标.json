@@ -1,0 +1,663 @@
+{
+  "date": "2026-10-10",
+  "scope": "只登记26个已批准正文用途；不修改Unity资产",
+  "deduplication": "相同字节仅存一份；新增用途必须单独授权登记",
+  "copied": 18,
+  "reused": 8,
+  "entries": [
+    {
+      "id": "core:rule.enterprise_upgrade",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\企业升级.png",
+      "sha256": "c6fba1ab684a891c51143e529573e97d9477b422762ea0853e680ad605bc88ea",
+      "image": {
+        "width": 250,
+        "height": 250
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.enterprise_upgrade.alt",
+        "arguments": []
+      },
+      "altTextValue": "企业升级",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/企业升级.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\企业升级.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/企业升级.png",
+      "assetKey": "core:rule.enterprise_upgrade.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.enterprise_special",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\企业特效.png",
+      "sha256": "377d7786c5c9ccc0843398549a394247914c8bbf50520b9604f47a3fb420e0bd",
+      "image": {
+        "width": 250,
+        "height": 250
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.enterprise_special.alt",
+        "arguments": []
+      },
+      "altTextValue": "企业特效",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/企业特效.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\企业特效.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/企业特效.png",
+      "assetKey": "core:rule.enterprise_special.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.score",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\分数.png",
+      "sha256": "1cbc9e3a6496e13ae04f2baf2d7cf804c62188ff12566b5b25f345c860fa38c8",
+      "image": {
+        "width": 207,
+        "height": 184
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.score.alt",
+        "arguments": []
+      },
+      "altTextValue": "分数",
+      "monochrome": false,
+      "renderMode": "number_overlay",
+      "valueRequired": true,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/分数.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\分数.png",
+      "valueAltTextKey": "core:resource.score.value_alt",
+      "valueAltTextTemplate": "{value} 分",
+      "numberOverlayStyleKey": "core:score_number_overlay",
+      "overlayContract": "图标内叠加数值，作为不可拆分的一段排版；数字不烘焙进贴图",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-score.png",
+      "assetKey": "core:resource.score.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.score_settlement",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\分数结算时.png",
+      "sha256": "2040cb715d58004efb1e7ea7f94e8dd37d882c6627437997fbdb8716b71f974f",
+      "image": {
+        "width": 220,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.score_settlement.alt",
+        "arguments": []
+      },
+      "altTextValue": "分数结算时",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/分数结算时.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\分数结算时.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/分数结算时.png",
+      "assetKey": "core:timing.score_settlement.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.remaining_game",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\剩余游戏.png",
+      "sha256": "7c6cd23e5a8ba44b24172f6a5ba4c4d2d3e72ab925f78e55428c93c3921927b8",
+      "image": {
+        "width": 182,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.remaining_game.alt",
+        "arguments": []
+      },
+      "altTextValue": "剩余游戏",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/剩余游戏.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\剩余游戏.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/剩余游戏.png",
+      "assetKey": "core:timing.remaining_game.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.city_move",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\城市移动.png",
+      "sha256": "76054d15af252be42b40cbcb9b30bfe81f0109254694b580244a8feac1289fc4",
+      "image": {
+        "width": 218,
+        "height": 107
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.city_move.alt",
+        "arguments": []
+      },
+      "altTextValue": "城市移动",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/城市移动.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\城市移动.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/城市移动.png",
+      "assetKey": "core:rule.city_move.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.operator_dispatch",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\干员特派_罗德岛.png",
+      "sha256": "1ede2a3e8626649a42864d725719d679e58989033249cafbe72fd1971ca5c5f8",
+      "image": {
+        "width": 610,
+        "height": 483
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.operator_dispatch.alt",
+        "arguments": []
+      },
+      "altTextValue": "干员特派",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/干员特派_罗德岛.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\干员特派_罗德岛.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/干员特派_罗德岛.png",
+      "assetKey": "core:rule.operator_dispatch.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.build",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\建设.png",
+      "sha256": "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+      "image": {
+        "width": 162,
+        "height": 148
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.build.alt",
+        "arguments": []
+      },
+      "altTextValue": "建设",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/建设.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\建设.png",
+      "actualCatalogPath": "资产/主行动按钮/项目当前图标/action-build.png",
+      "assetKey": "core:rule.build.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.iron",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\异铁.png",
+      "sha256": "9b38b152b545bad3547e2e36c2ba4847e0d2928e6d6ca086fe4793610246be15",
+      "image": {
+        "width": 168,
+        "height": 163
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.iron.alt",
+        "arguments": []
+      },
+      "altTextValue": "异铁",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/异铁.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\异铁.png",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-iron.png",
+      "assetKey": "core:resource.iron.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.quick_action",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\快速行动.png",
+      "sha256": "6c9fafe2d64e7747a437f3253474576891a5ebf5eb34281be0ae0fb74856edd5",
+      "image": {
+        "width": 182,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.quick_action.alt",
+        "arguments": []
+      },
+      "altTextValue": "快速行动",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/快速行动.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\快速行动.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/快速行动.png",
+      "assetKey": "core:timing.quick_action.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.tactical_action",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\战术行动.png",
+      "sha256": "922ee17d9bbcfa796ef80d96d1393e80780ad33a639ebf95d3abc706621dcbef",
+      "image": {
+        "width": 182,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.tactical_action.alt",
+        "arguments": []
+      },
+      "altTextValue": "战术行动",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/战术行动.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\战术行动.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/战术行动.png",
+      "assetKey": "core:timing.tactical_action.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.replace",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\替换.png",
+      "sha256": "dc376fffbc03fdb02ca3ebd5e205fa960d99383dd137fba84ad5e20303881780",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.replace.alt",
+        "arguments": []
+      },
+      "altTextValue": "替换",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/替换.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\替换.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/替换.png",
+      "assetKey": "core:rule.replace.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:syntax.condition",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\条件式符号.png",
+      "sha256": "2a25a79a9eb475e71a4cc7c4f1e2cdde787b89f6eb133072e38e49c7a57031fd",
+      "image": {
+        "width": 61,
+        "height": 60
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:syntax.condition.alt",
+        "arguments": []
+      },
+      "altTextValue": "条件式",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/条件式符号.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\条件式符号.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/条件式符号.png",
+      "assetKey": "core:syntax.condition.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.persistent_marker",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\永续指示物.png",
+      "sha256": "6404210fbe61fae2863127addd92e450c7efb43fe5a216c72cb1aae9fb1582a5",
+      "image": {
+        "width": 56,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.persistent_marker.alt",
+        "arguments": []
+      },
+      "altTextValue": "永续指示物",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/永续指示物.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\永续指示物.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/永续指示物.png",
+      "assetKey": "core:rule.persistent_marker.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.orirock",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\源岩.png",
+      "sha256": "8169788424ab3bd5a628b4fd087cb71bcf0e08f2c90561f3e5d212f5a3ac1a1b",
+      "image": {
+        "width": 163,
+        "height": 180
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.orirock.alt",
+        "arguments": []
+      },
+      "altTextValue": "源岩",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/源岩.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\源岩.png",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-orirock.png",
+      "assetKey": "core:resource.orirock.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.originium_shard",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\源石碎片.png",
+      "sha256": "0d42200e77c0907ffcb507c2b795908845862d53b4bbfdc315960e5b7fb71b2f",
+      "image": {
+        "width": 150,
+        "height": 160
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.originium_shard.alt",
+        "arguments": []
+      },
+      "altTextValue": "源石碎片",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/源石碎片.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\源石碎片.png",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-originium-shard.png",
+      "assetKey": "core:resource.originium_shard.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.special_action",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\特殊行动.png",
+      "sha256": "ae4557aa66f1861f8aa3457714539cc37898f869da3f363615a5a22918daa08a",
+      "image": {
+        "width": 182,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.special_action.alt",
+        "arguments": []
+      },
+      "altTextValue": "特殊行动",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/特殊行动.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\特殊行动.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/特殊行动.png",
+      "assetKey": "core:timing.special_action.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.remove",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\移除.png",
+      "sha256": "01c9650c14aaf51f9eb6f455806c99834240cc4e2ad49cd7d318017275aac5f3",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove.alt",
+        "arguments": []
+      },
+      "altTextValue": "移除",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/移除.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\移除.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/移除.png",
+      "assetKey": "core:rule.remove.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:timing.immediate",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\立刻.png",
+      "sha256": "cca2b16c49b46b2fdb9242a93cdf52547cfd6bec729e50bca0834255e19c8f0b",
+      "image": {
+        "width": 98,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.immediate.alt",
+        "arguments": []
+      },
+      "altTextValue": "立刻",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/立刻.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\立刻.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/立刻.png",
+      "assetKey": "core:timing.immediate.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.pure_originium",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\至纯源石.png",
+      "sha256": "01524d7c6bd1992a2aed6cb1228261e7d40c29b709057b109d0453f0689633fa",
+      "image": {
+        "width": 179,
+        "height": 180
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.pure_originium.alt",
+        "arguments": []
+      },
+      "altTextValue": "至纯源石",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/至纯源石.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\至纯源石.png",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-pure-originium.png",
+      "assetKey": "core:resource.pure_originium.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.dispatch",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\调度.png",
+      "sha256": "c32991529fedd1f53820d3a6c0270a8bc5ab007e3234fed2ffa97d5207255b33",
+      "image": {
+        "width": 166,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.dispatch.alt",
+        "arguments": []
+      },
+      "altTextValue": "调度",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/调度.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\调度.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/调度.png",
+      "assetKey": "core:rule.dispatch.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.deploy",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\部署.png",
+      "sha256": "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.deploy.alt",
+        "arguments": []
+      },
+      "altTextValue": "部署",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/部署.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\部署.png",
+      "actualCatalogPath": "资产/主行动按钮/项目当前图标/action-deploy.png",
+      "assetKey": "core:rule.deploy.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:resource.gold_voucher",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\金券.png",
+      "sha256": "f65b9d6946c6910ba5ad9eede7082bd208dc1af9c44c5b3e8d0f3b003524d855",
+      "image": {
+        "width": 180,
+        "height": 178
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.gold_voucher.alt",
+        "arguments": []
+      },
+      "altTextValue": "金券",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/金券.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\金券.png",
+      "actualCatalogPath": "资产/项目已授权派生/资源图标/resource-gold-voucher.png",
+      "assetKey": "core:resource.gold_voucher.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.limited_marker",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\限定指示物.png",
+      "sha256": "6a2c92595a69e1fa5354785144fd0821946469677ec2aeeea555d5767888c521",
+      "image": {
+        "width": 56,
+        "height": 56
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.limited_marker.alt",
+        "arguments": []
+      },
+      "altTextValue": "限定指示物",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/icon/限定指示物.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\限定指示物.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/限定指示物.png",
+      "assetKey": "core:rule.limited_marker.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.remove_card_marker",
+      "source": "G:\\NoMadCity\\游城拓荒\\自制icon\\移除卡片标记.png",
+      "sha256": "861816c04f14c81e44d5d0a4fbd8f71b61d2c7422a45f6c536bc7d840ca50a18",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove_card_marker.alt",
+        "arguments": []
+      },
+      "altTextValue": "移除卡片标记",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/自制icon/移除卡片标记.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\自制icon\\移除卡片标记.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/自制icon/移除卡片标记.png",
+      "assetKey": "core:rule.remove_card_marker.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    },
+    {
+      "id": "core:rule.remove_own_influence",
+      "source": "G:\\NoMadCity\\游城拓荒\\自制icon\\移除自己的影响力.png",
+      "sha256": "c71b7ce0d47684a72020cc14eaa788b2b9e173872de4dd3fffed16ceb156b27e",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove_own_influence.alt",
+        "arguments": []
+      },
+      "altTextValue": "移除自己的影响力",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "selectionStatus": "用途已登记，可用库字节与实际路径已核验；Unity未导入",
+      "plannedCatalogPath": "资产/玩法正文图标/用户指定/自制icon/移除自己的影响力.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\自制icon\\移除自己的影响力.png",
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/自制icon/移除自己的影响力.png",
+      "assetKey": "core:rule.remove_own_influence.asset",
+      "implementationStatus": "用途已登记；Unity导入与视觉待文字负责人完成"
+    }
+  ]
+}

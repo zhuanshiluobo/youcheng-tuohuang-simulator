@@ -41,7 +41,7 @@ end";
             foreach (var content in pack.ActiveDefinitions)
             {
                 if (content.ContentType != "city_style" || !(content.Data["specialAction"] is Newtonsoft.Json.Linq.JObject)) continue;
-                string actionId = (string)pack.CreateCityStyles().First(d => d.CityStyleId == content.RuntimeId).SpecialActionId;
+                string actionId = (string)pack.CreateCityStyles().First(d => d.CityStyleId == (pack.UseDefinitionIds ? content.DefinitionId : content.RuntimeId)).SpecialActionId;
                 string subscription = (string)content.Data["luaSubscriptionId"] ?? "city-styles." + content.RuntimeId;
                 string ability = (string)content.Data["luaAbilityId"] ?? "city_styles." + content.RuntimeId;
                 string completion = (string)content.Data["luaCompletionHandlerId"] ?? "";

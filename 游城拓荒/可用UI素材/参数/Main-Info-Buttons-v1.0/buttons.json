@@ -1,0 +1,36 @@
+{
+  "region": {
+    "label": "区控",
+    "base": "assets/bases/region-{state}.png",
+    "icon": "assets/icons/region-light.png"
+  },
+  "game-box": {
+    "label": "游戏盒",
+    "base": "assets/bases/game-box-{state}.png",
+    "icon": "assets/icons/game-box-light.png"
+  },
+  "states": [
+    "default",
+    "hover",
+    "pressed",
+    "disabled"
+  ],
+  "recommendedSizes": [
+    {
+      "buttonHeight": 48,
+      "iconCanvas": 32,
+      "labelFontSize": 20
+    },
+    {
+      "buttonHeight": 56,
+      "iconCanvas": 36,
+      "labelFontSize": 22
+    },
+    {
+      "buttonHeight": 64,
+      "iconCanvas": 40,
+      "labelFontSize": 24
+    }
+  ],
+  "iconScaleRule": "Keep square canvas and aspect ratio; do not scale to the whole button width."
+}

@@ -55,7 +55,9 @@ namespace YC.Domain.Rules
         CollectResource,
         ResolvePendingChoice,
         EndAction,
-        AnswerInteraction
+        AnswerInteraction,
+        InvokeSettlementOption,
+        PreparePaymentDraft
     }
 
     public enum CommandErrorCode
@@ -72,7 +74,11 @@ namespace YC.Domain.Rules
         ClosedLocation,
         NoRoute,
         PendingChoiceRequired,
-        UnknownCommand
+        UnknownCommand,
+        StateRevisionMismatch,
+        SettlementRequiredPending,
+        SettlementCurrentNodeStopForbidden,
+        SettlementWindowMismatch
     }
 
     public enum GameEventKind

@@ -1,0 +1,60 @@
+{
+  "definitionId": "infected.facility.rhodes_office_yellow",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "罗德岛办事处",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/facilities/infected.facility.rhodes_office_yellow.jpg",
+  "artworkSpriteId": "infected_facility_rhodes_office_yellow",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.facility.rhodes_office_yellow.entry",
+      "mode": "entry",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.facility.rhodes_office_yellow.entry",
+      "script": "lua/facilities/infected.facility.rhodes_office_yellow.entry.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "facilityId": "infected.facility.rhodes_office_yellow",
+    "name": "罗德岛办事处",
+    "color": "yellow",
+    "score": 0,
+    "resourceCost": {
+      "originium": 1,
+      "originiumShard": 1,
+      "iron": 2,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "goldVoucherCost": 14,
+    "unique": true,
+    "uniqueGroupId": "infected.facility.rhodes_office",
+    "hasEntryEffect": true,
+    "keywords": [
+      "unique",
+      "entry"
+    ],
+    "effectId": "infected.facility.rhodes_office_yellow.entry",
+    "effectType": "enterprise",
+    "description": "干员特派，或选择两家不同企业各提升一级。",
+    "effectText": "干员特派，或选择两家不同企业各提升一级。",
+    "reserveOnly": false,
+    "defaultSupply": 1,
+    "onBuiltReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "effectScript": "lua/facilities/infected.facility.rhodes_office_yellow.entry.lua"
+  }
+}

@@ -8,6 +8,7 @@ namespace YC.Domain.Rules
     public static class RoundMainlineNodeTypeIds
     {
         public const string PlayerEntrance = "player_entrance";
+        public const string PlayerEntranceSetup = "player_entrance_setup";
         public const string RoundStarted = "round_started";
         public const string CharacterCover = "character_cover";
         public const string PlayerActionWindow = "player_action_window";
@@ -42,8 +43,16 @@ namespace YC.Domain.Rules
             IList<int> playerOrder,
             int startPlayerId = -1,
             bool includeEntrance = false)
+            => Build(gameId, roundExecutionId, roundNumber, playerOrder, startPlayerId, includeEntrance,
+                PlayerStageSchedulingMode.Concurrent);
+
+        public RoundMainChain Build(
+            string gameId, string roundExecutionId, int roundNumber, IList<int> playerOrder,
+            int startPlayerId, bool includeEntrance, PlayerStageSchedulingMode playerStageSchedulingMode)
         {
             ValidateInput(roundNumber, playerOrder);
+            if (!Enum.IsDefined(typeof(PlayerStageSchedulingMode), playerStageSchedulingMode))
+                throw new ArgumentOutOfRangeException(nameof(playerStageSchedulingMode));
 
             var order = new List<int>(playerOrder);
             if (string.IsNullOrEmpty(roundExecutionId))
@@ -66,7 +75,11 @@ namespace YC.Domain.Rules
             };
 
             if (includeEntrance)
-                foreach (int playerId in order) AddNode(chain, RoundMainlineNodeTypeIds.PlayerEntrance, playerId, 0);
+            {
+                if (playerStageSchedulingMode == PlayerStageSchedulingMode.Sequential)
+                    foreach (int player in order) AddNode(chain, RoundMainlineNodeTypeIds.PlayerEntrance, player, 0);
+                else AddNode(chain, RoundMainlineNodeTypeIds.PlayerEntranceSetup, -1, 0);
+            }
             AddNode(chain, RoundMainlineNodeTypeIds.RoundStarted, -1, 0);
             AddNode(chain, RoundMainlineNodeTypeIds.CharacterCover, -1, 0, order[0]);
 

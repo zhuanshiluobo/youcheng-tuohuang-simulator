@@ -26,6 +26,7 @@ namespace YC.Presentation.Workflows
                         SourceNodeId = item.SourceNodeId, OwnerEffectId = item.OwnerEffectId,
                         InteractionTypeId = item.Kind, AnsweringPlayerId = item.AnsweringPlayerId,
                         Visibility = item.Visibility, PromptKey = item.PromptKey,
+                        Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(item.Presentation),
                         PromptParameters = item.PromptParameters?.Clone(), CandidateSetId = item.CandidateSetId,
                         CandidateSetVersion = item.CandidateSetVersion, CandidateIds = item.CandidateIds == null ? new List<string>() : new List<string>(item.CandidateIds),
                         MinSelections = item.MinSelections, MaxSelections = item.MaxSelections,
@@ -38,6 +39,7 @@ namespace YC.Presentation.Workflows
             if (state?.EffectRuntime?.InteractionRequests == null) return result;
             foreach (var item in state.EffectRuntime.InteractionRequests)
             {
+                if (item == null || item.Status != "open" || item.AnsweringPlayerId != playerId) continue;
                 var projected = InteractionRequestProjector.ProjectForPlayer(item, playerId);
                 if (projected == null || !projected.VisibleToViewer || projected.Status != "open" || projected.AnsweringPlayerId != playerId) continue;
                 result.Add(new InteractionRequest
@@ -46,6 +48,7 @@ namespace YC.Presentation.Workflows
                     SourceNodeId = projected.SourceNodeId, OwnerEffectId = projected.OwnerEffectId,
                     InteractionTypeId = projected.InteractionTypeId, AnsweringPlayerId = projected.AnsweringPlayerId,
                     Visibility = projected.Visibility, PromptKey = projected.PromptKey, PromptParameters = projected.PromptParameters,
+                    Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(projected.Presentation),
                     CandidateSetId = projected.CandidateSetId, CandidateSetVersion = projected.CandidateSetVersion,
                     CandidateIds = projected.CandidateIds, MinSelections = projected.MinSelections, MaxSelections = projected.MaxSelections,
                     AllowDecline = projected.AllowDecline, AnswerSchema = projected.AnswerSchema, Status = projected.Status,

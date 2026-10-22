@@ -43,6 +43,13 @@ namespace YC.Domain.Rules
                     state.ActionRound = 0;
                     state.CurrentPlayerId = node.PlayerId;
                     break;
+                case RoundMainlineNodeTypeIds.PlayerEntranceSetup:
+                    state.Phase = GamePhase.Entrance;
+                    state.ActionRound = 0;
+                    var entranceExecution = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == node.ExecutionEffectId);
+                    node.ActiveTaskPlayerId = RoundExecutionService.GetEntrancePicker(state.EffectRuntime, entranceExecution);
+                    state.CurrentPlayerId = node.ActiveTaskPlayerId;
+                    break;
                 case RoundMainlineNodeTypeIds.RoundStarted:
                     state.Phase = GamePhase.RoundStart;
                     state.ActionRound = 0;
@@ -52,7 +59,9 @@ namespace YC.Domain.Rules
                 case RoundMainlineNodeTypeIds.CharacterCover:
                     state.Phase = GamePhase.CharacterCover;
                     state.ActionRound = 0;
-                    state.CurrentPlayerId = ResolveCharacterCoverPlayer(state, node);
+                    var coverExecution = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == node.ExecutionEffectId);
+                    state.CurrentPlayerId = RoundExecutionService.IsParallelCoverExecution(coverExecution)
+                        ? -1 : ResolveCharacterCoverPlayer(state, node);
                     break;
 
                 case RoundMainlineNodeTypeIds.PlayerActionWindow:
@@ -66,8 +75,13 @@ namespace YC.Domain.Rules
                 case RoundMainlineNodeTypeIds.Collection:
                     state.Phase = GamePhase.ResourceCollection;
                     state.ActionRound = 0;
-                    // 采集是开放顺序窗口，旧字段不能伪造一个当前玩家。
-                    state.CurrentPlayerId = -1;
+                    var collectionExecution = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == node.ExecutionEffectId);
+                    // 创建请求前先投影同一策略，避免请求观察到 -1 后又被本机投影改为首位。
+                    bool sequentialCollection = collectionExecution == null
+                        ? state.RuleConfiguration?.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Sequential
+                        : RoundExecutionService.IsSequentialCollectionExecution(collectionExecution);
+                    state.CurrentPlayerId = sequentialCollection
+                        ? ResolveSequentialCollectionPlayer(state, collectionExecution) : -1;
                     break;
 
                 case RoundMainlineNodeTypeIds.PlayerCleanupWindow:
@@ -130,6 +144,15 @@ namespace YC.Domain.Rules
             GameState state,
             MainlineNodeRuntimeState node)
         {
+            var execution = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == node.ExecutionEffectId);
+            if (execution != null)
+                foreach (string id in execution.ChildEffectIds)
+                {
+                    var task = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == id);
+                    if (task != null && task.EffectTypeId == YC.Domain.Cards.CharacterCoverEffectExecutor.EffectTypeId &&
+                        task.Status != EffectNodeStatus.Completed && task.Status != EffectNodeStatus.Failed && task.Status != EffectNodeStatus.Faulted)
+                        return task.PlayerId;
+                }
             if (node.ActiveTaskPlayerId > 0)
             {
                 return node.ActiveTaskPlayerId;
@@ -148,6 +171,23 @@ namespace YC.Domain.Rules
                 }
             }
 
+            return -1;
+        }
+
+        private static int ResolveSequentialCollectionPlayer(GameState state, EffectNodeRuntimeState execution)
+        {
+            // 已记录采集结果但必要响应尚未结束时，仍由该任务所属玩家持有控制权。
+            foreach (string id in execution?.ChildEffectIds ?? new List<string>())
+            {
+                var child = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == id);
+                if (child != null && child.EffectTypeId == YC.Domain.Effects.RouteResourceSelectionEffectExecutor.TypeId &&
+                    YC.Domain.Travel.RouteSelectionSessionAuthority.Integer(child.NormalizedArguments, "purpose", -1) ==
+                        (int)YC.Domain.Travel.RouteSelectionPurpose.NormalHarvest &&
+                    child.Status != EffectNodeStatus.Completed && child.Status != EffectNodeStatus.Failed && child.Status != EffectNodeStatus.Faulted)
+                    return child.PlayerId;
+            }
+            foreach (int playerId in state.EffectRuntime.PlayerOrderSnapshot)
+                if (state.FindPlayer(playerId)?.HasCollectedResourcesThisRound == false) return playerId;
             return -1;
         }
     }

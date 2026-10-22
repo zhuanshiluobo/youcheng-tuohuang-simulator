@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
-using YC.Domain.Facilities;
+using YC.Domain.Interactions;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
@@ -28,6 +29,8 @@ namespace YC.Presentation
         {
             get { return view != null; }
         }
+
+        public EventChoiceDialogView Copy => view != null ? view : dialogRegistry.EventChoiceDialogPrefab;
 
         public void SetChoiceHighlightColor(Color color)
         {
@@ -150,11 +153,11 @@ namespace YC.Presentation
         private void ShowAssetizedEventCardOptions(
             EventCardDefinition card,
             string metadataLabel,
-            Texture2D artwork,
+            Sprite artwork,
             Action<int> onChoiceSelected)
         {
             var layout = GetLayoutProfile();
-            var eventCardExpandedSize = new Vector2(artwork.width, artwork.height);
+            var eventCardExpandedSize = new Vector2(artwork.rect.width, artwork.rect.height);
             if (!PrepareView(
                     EventChoiceDialogMode.EventCard,
                     "Event Choice Overlay",
@@ -167,7 +170,7 @@ namespace YC.Presentation
             }
 
             view.ConfigureArtworkMode();
-            view.EventCardArtworkImage.texture = artwork;
+            CardArtworkView.Set(view.EventCardArtworkImage, artwork);
             view.EventCardArtworkImage.gameObject.SetActive(true);
             view.EventCardArtworkImage.transform.SetAsFirstSibling();
 
@@ -188,7 +191,7 @@ namespace YC.Presentation
             {
                 // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
                 var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
-                var row = view.CreateChoiceRow(view.ArtworkChoiceHost);
+                var row = view.CreateArtworkChoiceRow(view.ArtworkChoiceHost);
                 YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Root.gameObject.name = "Choice " + (i + 1);
                 ConfigureAssetizedChoiceRow(
@@ -378,6 +381,94 @@ namespace YC.Presentation
             view.ExploreConfirmButton.onClick.AddListener(() => InvokeStep(onConfirm));
         }
 
+        public void ShowConditionPayment(InteractionRequestProjection request, GameplayTextDocument description,
+            Action<Component, GameplayTextDocument, bool> renderText,
+            Func<bool> isCurrent, Action execute, Action decline)
+        {
+            if (request == null || isCurrent == null || !isCurrent()) return;
+            var copy = dialogRegistry.EventChoiceDialogPrefab;
+            if (!PrepareView(EventChoiceDialogMode.ConditionPayment,
+                    "Condition Payment Overlay", "Condition Payment Panel",
+                    copy.ConditionPaymentPanelSize, copy.ConditionPaymentPanelPosition, false)) return;
+            var kind = request.PromptParameters?.Properties.Find(entry => entry.Name == "sourceKind")?.Value;
+            view.SetConditionPaymentTitle(kind?.StringValue == "condition");
+            if (description == null || renderText == null)
+                throw new InvalidOperationException("条件付款缺少正式提示文档或渲染入口。");
+            view.DescriptionText.gameObject.SetActive(true);
+            view.ConditionPaymentDescriptionDocument.enabled = true;
+            // 两种付款文档共用已配置的紧凑正文尺度，避免短文沿事件正文BestFit上限放大。
+            view.ConditionPaymentDescriptionDocument.SetFontSizeOverride(view.DescriptionText.resizeTextForBestFit
+                ? view.DescriptionText.resizeTextMinSize : view.DescriptionText.fontSize);
+            renderText(view.ConditionPaymentDescriptionDocument, description, false);
+            var canPay = request.PromptParameters?.Properties.Find(entry => entry.Name == "canPay")?.Value;
+            view.ConditionPaymentExecuteButton.interactable = execute != null &&
+                (canPay?.Kind != NormalizedValueKind.Boolean || canPay.BooleanValue);
+            view.ConditionPaymentDeclineButton.gameObject.SetActive(decline != null);
+            view.ConditionPaymentExecuteButton.onClick.AddListener(() =>
+            {
+                if (isCurrent() && view != null && view.ConditionPaymentExecuteButton.IsInteractable())
+                    InvokeTerminal(execute);
+            });
+            if (decline != null) view.ConditionPaymentDeclineButton.onClick.AddListener(() =>
+            {
+                if (isCurrent()) InvokeTerminal(decline);
+            });
+        }
+
+        public void ShowRoutePaymentOptions(RoutePaymentOptionsViewModel model, Func<int, string> getPlayerDisplayName)
+        {
+            if (model?.Recipients == null || model.IsCurrent == null || !model.IsCurrent()) return;
+            var layout = GetLayoutProfile();
+            var buttonCount = model.Recipients.Count + (model.Remove == null ? 0 : 1);
+            if (!PrepareView(EventChoiceDialogMode.ResourceCollectionPayment,
+                    "Resource Collection Payment Overlay", "Resource Collection Payment Panel",
+                    new Vector2(layout.ResourcePaymentPanelWidth,
+                        layout.ResourcePaymentPanelBaseHeight + buttonCount * layout.ResourcePaymentPanelRowStep),
+                    layout.ResourcePaymentPanelPosition, false)) return;
+            var hasPlayers = false;
+            view.ResourcePaymentBankButton.gameObject.SetActive(false);
+            foreach (var recipient in model.Recipients)
+            {
+                var subjectKey = recipient.SubjectKey;
+                var isBank = recipient.Kind == YC.Domain.Travel.RouteRecipientKind.Bank;
+                var playerName = isBank ? view.ResourcePaymentBankName :
+                    getPlayerDisplayName == null ? recipient.PlayerId.ToString() : getPlayerDisplayName(recipient.PlayerId.Value);
+                Button button;
+                if (isBank)
+                {
+                    button = view.ResourcePaymentBankButton;
+                    button.gameObject.SetActive(true);
+                    view.ResourcePaymentBankLabel.text = string.Format(view.ResourcePaymentBankFormat, model.GoldVoucherAmount);
+                }
+                else
+                {
+                    hasPlayers = true;
+                    var row = view.CreateResourceCollectionRecipientButton(view.ResourcePaymentRecipientHost);
+                    row.Root.gameObject.name = "Route Recipient " + subjectKey;
+                    row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, model.GoldVoucherAmount);
+                    button = row.Button;
+                }
+                button.onClick.AddListener(() =>
+                {
+                    if (model.IsCurrent()) InvokeTerminal(() => model.SelectRecipient?.Invoke(subjectKey));
+                });
+                if (subjectKey == model.SelectedSubjectKey)
+                {
+                    view.ResourcePaymentReceiverText.text = string.Format(view.ResourcePaymentSelectedFormat, playerName, model.GoldVoucherAmount);
+                    button.Select();
+                }
+            }
+            view.ResourcePaymentRecipientHost.gameObject.SetActive(hasPlayers);
+            if (string.IsNullOrEmpty(model.SelectedSubjectKey))
+                view.ResourcePaymentReceiverText.text = hasPlayers ? view.ResourcePaymentPlayerPrompt : view.ResourcePaymentBankPrompt;
+            view.ResourcePaymentCancelButton.gameObject.SetActive(model.Remove != null);
+            if (model.Remove != null) view.ResourcePaymentCancelButton.onClick.AddListener(() =>
+            {
+                if (model.IsCurrent()) InvokeTerminal(model.Remove);
+            });
+            ConfigureClose(() => { if (model.IsCurrent()) model.Cancel?.Invoke(); }, true);
+        }
+
         public void ShowResourceCollectionPaymentOptions(
             string routeId,
             int amount,
@@ -385,11 +476,13 @@ namespace YC.Presentation
             Func<int, string> getPlayerDisplayName,
             Action<int> onRecipientSelected,
             Action onBankSelected,
-            Action onCancel)
+            Action onCancel,
+            int? selectedRecipientPlayerId = null,
+            Action onPaymentRemoved = null)
         {
             var layout = GetLayoutProfile();
             var recipientCount = recipientPlayerIds == null ? 0 : recipientPlayerIds.Count;
-            var buttonCount = Math.Max(1, recipientCount);
+            var buttonCount = Math.Max(1, recipientCount) + (selectedRecipientPlayerId.HasValue ? 1 : 0);
             if (!PrepareView(
                     EventChoiceDialogMode.ResourceCollectionPayment,
                     "Resource Collection Payment Overlay",
@@ -407,16 +500,27 @@ namespace YC.Presentation
             view.ResourcePaymentRecipientHost.gameObject.SetActive(recipientCount > 0);
 
             var receiverLabel = recipientCount <= 0
-                ? "航道 " + routeId + "：支付给银行"
-                : "航道 " + routeId + "：选择路费接收玩家";
+                ? view.ResourcePaymentBankPrompt
+                : view.ResourcePaymentPlayerPrompt;
+            if (selectedRecipientPlayerId.HasValue)
+            {
+                var selectedName = selectedRecipientPlayerId.Value <= 0
+                    ? view.ResourcePaymentBankName
+                    : getPlayerDisplayName == null ? selectedRecipientPlayerId.Value.ToString()
+                        : getPlayerDisplayName(selectedRecipientPlayerId.Value);
+                receiverLabel = string.Format(view.ResourcePaymentSelectedFormat, selectedName, amount);
+                view.ResourcePaymentCancelButton.gameObject.SetActive(onPaymentRemoved != null);
+                view.ResourcePaymentCancelButton.onClick.AddListener(() => InvokeTerminal(onPaymentRemoved));
+            }
             view.ResourcePaymentReceiverText.text = receiverLabel;
             ConfigureClose(onCancel, true);
 
             if (recipientCount <= 0)
             {
                 view.ResourcePaymentBankButton.gameObject.SetActive(true);
-                view.ResourcePaymentBankLabel.text = "支付 " + amount + " 金券";
+                view.ResourcePaymentBankLabel.text = string.Format(view.ResourcePaymentBankFormat, amount);
                 view.ResourcePaymentBankButton.onClick.AddListener(() => InvokeTerminal(onBankSelected));
+                if (selectedRecipientPlayerId.HasValue) view.ResourcePaymentBankButton.Select();
                 return;
             }
 
@@ -429,112 +533,15 @@ namespace YC.Presentation
                 var row = view.CreateResourceCollectionRecipientButton(
                     view.ResourcePaymentRecipientHost);
                 row.Root.gameObject.name = "Pay Player " + recipientPlayerId;
-                row.Label.text = "向 " + playerName + " 支付 " + amount + " 金券";
+                row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, amount);
                 row.Button.onClick.AddListener(() => InvokeTerminal(
                     () => onRecipientSelected?.Invoke(recipientPlayerId)));
+                if (selectedRecipientPlayerId == recipientPlayerId) row.Button.Select();
             }
         }
 
-        public void ShowBuildFacilityFocus(BuildFacilityDraftViewModel model)
-        {
-            if (model == null || model.Facility == null)
-            {
-                return;
-            }
 
-            var layout = GetLayoutProfile();
-            if (!PrepareView(
-                    EventChoiceDialogMode.BuildFacilityFocus,
-                    "Build Facility Focus Overlay",
-                    "Build Facility Focus Panel",
-                    layout.BuildFacilityFocusPanelSize,
-                    layout.BuildFacilityFocusPanelPosition,
-                    true))
-            {
-                return;
-            }
 
-            var facility = model.Facility;
-            var effectiveResourceCost = model.SelectedOption == null
-                ? facility.ResourceCost
-                : model.SelectedOption.EffectiveResourceCost;
-            view.TitleText.text = facility.Name;
-            ConfigureFacilityPreview(facility.FacilityId, facility.Name);
-            view.BuildFocusDetailsText.text =
-                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
-                "资源费用：" + FormatResourceCost(effectiveResourceCost) + "\n" +
-                "金券费用：" + facility.GoldVoucherCost + "\n" +
-                "获得分数：" + facility.Score + "\n" +
-                "建成效果：" + FormatFacilityEffect(facility);
-
-            var resources = model.SelectedOption == null ? null : model.SelectedOption.ResourcesPayment;
-            view.BuildResourceLabel.text = "资源支付\n" + FormatResourceCost(effectiveResourceCost);
-            SetBuildPaymentButtonState(view.BuildResourceButton, resources != null && resources.IsAvailable);
-            view.BuildResourceButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.SelectPayment(
-                    BuildFacilityService.PaymentModeResources))));
-            view.BuildResourceReasonText.text = resources == null || resources.IsAvailable
-                ? string.Empty
-                : resources.Reason;
-
-            var gold = model.SelectedOption == null ? null : model.SelectedOption.GoldPayment;
-            view.BuildGoldLabel.text = "金券支付\n" + facility.GoldVoucherCost;
-            SetBuildPaymentButtonState(view.BuildGoldButton, gold != null && gold.IsAvailable);
-            view.BuildGoldButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.SelectPayment(
-                    BuildFacilityService.PaymentModeGold))));
-            view.BuildGoldReasonText.text = gold == null || gold.IsAvailable ? string.Empty : gold.Reason;
-            view.BuildFocusErrorText.text = model.ErrorMessage ?? string.Empty;
-            view.BuildFocusErrorText.gameObject.SetActive(!string.IsNullOrEmpty(model.ErrorMessage));
-            ConfigureClose(
-                () => model.Dispatch(new BuildFacilityIntent.Cancel()),
-                false);
-        }
-
-        public void ShowBuildFacilityConfirmation(BuildFacilityDraftViewModel model)
-        {
-            if (model == null || model.Facility == null)
-            {
-                return;
-            }
-
-            var layout = GetLayoutProfile();
-            if (!PrepareView(
-                    EventChoiceDialogMode.BuildFacilityConfirmation,
-                    "Build Facility Confirmation Overlay",
-                    "Build Facility Confirmation Panel",
-                    layout.BuildFacilityConfirmationPanelSize,
-                    layout.BuildFacilityConfirmationPanelPosition,
-                    true))
-            {
-                return;
-            }
-
-            var facility = model.Facility;
-            var effectiveResourceCost = model.SelectedOption == null
-                ? facility.ResourceCost
-                : model.SelectedOption.EffectiveResourceCost;
-            var resourcePayment = model.PaymentMode == BuildFacilityService.PaymentModeResources;
-            var paymentLabel = resourcePayment ? "资源" : "金券";
-            var paymentContent = resourcePayment ? FormatResourceCost(effectiveResourceCost) : facility.GoldVoucherCost + " 金券";
-
-            view.BuildConfirmationSummaryText.text =
-                "设施：" + facility.Name + "\n" +
-                "建设位置：第 " + (model.CityBoardSlotIndex + 1) + " 格\n" +
-                "支付方式：" + paymentLabel + "\n" +
-                "支付内容：" + paymentContent + "\n" +
-                "获得分数：" + facility.Score + "\n" +
-                "建成效果：" + FormatFacilityEffect(facility);
-            view.BuildConfirmationErrorText.text = model.ErrorMessage ?? string.Empty;
-            view.BuildConfirmationErrorText.gameObject.SetActive(!string.IsNullOrEmpty(model.ErrorMessage));
-            view.BuildBackButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.Back())));
-            view.BuildConfirmButton.onClick.AddListener(() => InvokeStep(
-                () => model.Dispatch(new BuildFacilityIntent.Confirm())));
-            ConfigureClose(
-                () => model.Dispatch(new BuildFacilityIntent.Cancel()),
-                false);
-        }
 
         public void ShowCharacterSecondEffectDecision(
             string cardName,
@@ -629,18 +636,6 @@ namespace YC.Presentation
             view.CloseInputHandler.Configure(() => request());
         }
 
-        private void ConfigureFacilityPreview(string facilityId, string fallbackLabel)
-        {
-            var texture = dialogRegistry.CardVisualCatalog.GetFacility(facilityId);
-            view.FacilityPreviewImage.texture = texture;
-            view.FacilityPreviewImage.gameObject.SetActive(texture != null);
-            view.FacilityPreviewFallback.text = texture == null ? fallbackLabel ?? facilityId ?? string.Empty : string.Empty;
-            view.FacilityPreviewFallback.gameObject.SetActive(texture == null);
-            if (texture != null)
-            {
-                view.FacilityPreviewAspect.aspectRatio = (float)texture.width / texture.height;
-            }
-        }
 
         private void InvokeStep(Action callback)
         {
@@ -665,53 +660,9 @@ namespace YC.Presentation
             callback?.Invoke();
         }
 
-        private static string FormatFacilityEffect(FacilityCardDefinition facility)
-        {
-            if (facility == null)
-            {
-                return "无";
-            }
 
-            return string.IsNullOrEmpty(facility.EffectType) ? "无" : facility.EffectType;
-        }
 
-        private static string FormatResourceCost(ResourceSet cost)
-        {
-            if (cost == null)
-            {
-                return "0";
-            }
 
-            var parts = new List<string>();
-            AddResourceCostPart(parts, "源岩", cost.Originium);
-            AddResourceCostPart(parts, "异铁", cost.Iron);
-            AddResourceCostPart(parts, "源石", cost.OriginiumShard);
-            AddResourceCostPart(parts, "至纯源石", cost.PureOriginium);
-            return parts.Count == 0 ? "0" : string.Join(" ", parts.ToArray());
-        }
-
-        private static void AddResourceCostPart(List<string> parts, string label, int amount)
-        {
-            if (amount > 0)
-            {
-                parts.Add(label + amount);
-            }
-        }
-
-        private static void SetBuildPaymentButtonState(Button button, bool enabled)
-        {
-            if (button == null)
-            {
-                return;
-            }
-
-            button.interactable = enabled;
-            var image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = enabled ? UiTheme.ButtonBackground : UiTheme.DisabledButtonBackground;
-            }
-        }
 
         private void CreateExplorePaymentRecipientControls(
             EventChoiceDialogLayoutProfile layout,

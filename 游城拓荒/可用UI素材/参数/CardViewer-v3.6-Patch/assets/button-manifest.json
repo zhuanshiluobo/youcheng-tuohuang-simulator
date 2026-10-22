@@ -1,0 +1,303 @@
+{
+  "version": "3.6.1",
+  "units": "logical px",
+  "textBaked": false,
+  "assets": {
+    "action-normal": {
+      "svg": "assets/buttons/action-normal.svg",
+      "png": "assets/buttons/action-normal.png",
+      "png2x": "assets/buttons/action-normal@2x.png",
+      "logicalSize": [
+        224,
+        64
+      ],
+      "sourceSize1x": [
+        224,
+        64
+      ],
+      "sourceSize2x": [
+        448,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#302B23",
+      "labelOffsetY": 0
+    },
+    "action-hover": {
+      "svg": "assets/buttons/action-hover.svg",
+      "png": "assets/buttons/action-hover.png",
+      "png2x": "assets/buttons/action-hover@2x.png",
+      "logicalSize": [
+        224,
+        64
+      ],
+      "sourceSize1x": [
+        224,
+        64
+      ],
+      "sourceSize2x": [
+        448,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#29251E",
+      "labelOffsetY": 0
+    },
+    "action-pressed": {
+      "svg": "assets/buttons/action-pressed.svg",
+      "png": "assets/buttons/action-pressed.png",
+      "png2x": "assets/buttons/action-pressed@2x.png",
+      "logicalSize": [
+        224,
+        64
+      ],
+      "sourceSize1x": [
+        224,
+        64
+      ],
+      "sourceSize2x": [
+        448,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#29251E",
+      "labelOffsetY": 1
+    },
+    "action-disabled": {
+      "svg": "assets/buttons/action-disabled.svg",
+      "png": "assets/buttons/action-disabled.png",
+      "png2x": "assets/buttons/action-disabled@2x.png",
+      "logicalSize": [
+        224,
+        64
+      ],
+      "sourceSize1x": [
+        224,
+        64
+      ],
+      "sourceSize2x": [
+        448,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#B9AF99",
+      "labelOffsetY": 0
+    },
+    "cancel-normal": {
+      "svg": "assets/buttons/cancel-normal.svg",
+      "png": "assets/buttons/cancel-normal.png",
+      "png2x": "assets/buttons/cancel-normal@2x.png",
+      "logicalSize": [
+        176,
+        64
+      ],
+      "sourceSize1x": [
+        176,
+        64
+      ],
+      "sourceSize2x": [
+        352,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#D8CBB5",
+      "labelOffsetY": 0
+    },
+    "cancel-hover": {
+      "svg": "assets/buttons/cancel-hover.svg",
+      "png": "assets/buttons/cancel-hover.png",
+      "png2x": "assets/buttons/cancel-hover@2x.png",
+      "logicalSize": [
+        176,
+        64
+      ],
+      "sourceSize1x": [
+        176,
+        64
+      ],
+      "sourceSize2x": [
+        352,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#F0E3CB",
+      "labelOffsetY": 0
+    },
+    "cancel-pressed": {
+      "svg": "assets/buttons/cancel-pressed.svg",
+      "png": "assets/buttons/cancel-pressed.png",
+      "png2x": "assets/buttons/cancel-pressed@2x.png",
+      "logicalSize": [
+        176,
+        64
+      ],
+      "sourceSize1x": [
+        176,
+        64
+      ],
+      "sourceSize2x": [
+        352,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#DFD0B5",
+      "labelOffsetY": 1
+    },
+    "cancel-disabled": {
+      "svg": "assets/buttons/cancel-disabled.svg",
+      "png": "assets/buttons/cancel-disabled.png",
+      "png2x": "assets/buttons/cancel-disabled@2x.png",
+      "logicalSize": [
+        176,
+        64
+      ],
+      "sourceSize1x": [
+        176,
+        64
+      ],
+      "sourceSize2x": [
+        352,
+        128
+      ],
+      "sourceSlices1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sourceSlices2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "labelColor": "#8F8270",
+      "labelOffsetY": 0
+    }
+  }
+}

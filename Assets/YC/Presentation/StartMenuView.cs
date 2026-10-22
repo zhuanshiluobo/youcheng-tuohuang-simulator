@@ -21,7 +21,6 @@ namespace YC.Presentation
         [SerializeField] private Button wikiButton;
 
         [Header("Room panels")]
-        [SerializeField] private StartMenuOnlineModePanelView onlineModePanel;
         [SerializeField] private StartMenuAchievementsPanelView achievementsPanel;
         [SerializeField] private StartMenuMapSelectionPanelView mapSelectionPanel;
         [SerializeField] private StartMenuJoinPanelView joinPanel;
@@ -38,7 +37,6 @@ namespace YC.Presentation
         public Button CreatorSiteButton => creatorSiteButton;
         public Button OfficialSiteButton => officialSiteButton;
         public Button WikiButton => wikiButton;
-        public StartMenuOnlineModePanelView OnlineModePanel => onlineModePanel;
         public StartMenuAchievementsPanelView AchievementsPanel => achievementsPanel;
         public StartMenuMapSelectionPanelView MapSelectionPanel => mapSelectionPanel;
         public StartMenuJoinPanelView JoinPanel => joinPanel;
@@ -73,17 +71,6 @@ namespace YC.Presentation
                 creatorSiteButton == null || officialSiteButton == null || wikiButton == null)
             {
                 reason = "主菜单按钮引用不完整。";
-                return false;
-            }
-
-            if (onlineModePanel == null)
-            {
-                reason = "联机模式面板引用缺失。";
-                return false;
-            }
-
-            if (!onlineModePanel.TryValidateConfiguration(out reason))
-            {
                 return false;
             }
 
@@ -148,7 +135,6 @@ namespace YC.Presentation
 
         public void HideRoomPanels()
         {
-            onlineModePanel.gameObject.SetActive(false);
             achievementsPanel.gameObject.SetActive(false);
             mapSelectionPanel.gameObject.SetActive(false);
             joinPanel.gameObject.SetActive(false);

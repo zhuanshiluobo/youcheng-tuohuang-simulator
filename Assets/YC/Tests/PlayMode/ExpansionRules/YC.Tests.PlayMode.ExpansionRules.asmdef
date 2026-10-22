@@ -1,0 +1,14 @@
+{
+  "name": "YC.Tests.PlayMode.ExpansionRules",
+  "rootNamespace": "YC.Tests.PlayMode.ExpansionRules",
+  "references": ["YC.Domain", "YC.Presentation.Workflows", "YC.Infrastructure.Lua", "YC.Application", "YC.Multiplayer.Core", "UnityEngine.TestRunner"],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

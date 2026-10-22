@@ -17,6 +17,8 @@ namespace YC.Presentation
         [SerializeField] private Image localPlayerColorSwatch;
         [SerializeField] private Text remainingInfluenceText;
         [SerializeField] private Text statusText;
+        [SerializeField] private string allCollectionLocationsSelectedText;
+        public string AllCollectionLocationsSelectedText => allCollectionLocationsSelectedText;
         [SerializeField] private Button useCharacterButton;
         [SerializeField] private Button declareCityStyleButton;
         [SerializeField] private Button deployButton;

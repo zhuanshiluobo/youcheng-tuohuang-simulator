@@ -1,14 +1,18 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Exploration;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
@@ -212,7 +216,10 @@ namespace YC.Tests.EditMode
         public void GrantedExplore_ReusesNormalWorkflowButDoesNotConsumeAnotherMainAction()
         {
             var state = CreateThreePlayerActionState();
-            state.Decks.EventDeckYellow.Add("event_yellow_01");
+            var map = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()); state.MapId = map.Map.MapId;
+            state.FindPlayer(1).CityLocationId = "A-03"; state.FindPlayer(1).InfluenceSupply = 10; state.FindPlayer(1).RemainingMainActionsThisTurn = 1;
+            state.FindPlayer(2).CityLocationId = "G-01";
+            state.Decks.EventDeckGreen.Add("event_green_01");
             state.PendingCardSession = new PendingCardSessionState
             {
                 SessionId = "facility-effect",
@@ -222,31 +229,41 @@ namespace YC.Tests.EditMode
                 PlayerId = 1,
                 OptionIds = { FacilityPendingChoiceTypes.ExploreOption }
             };
-            var handler = CreateThreePlayerHandler();
+            var registry = new EffectRegistry(); GenericLuaEffectExecutor.Register(registry); ResourceEffectExecutor.Register(registry);
+            var influence = new InfluenceService(map); var decks = new EventDeckService(73); var tokens = new ResourceTokenService();
+            InfluenceEffectExecutor.Register(registry, influence); EventCardEffectExecutor.Register(registry, map, influence, decks, tokens); EventCardLuaCatalog.Register(registry);
+            var exploration = new ExplorationService(map, influence, decks, tokens); ExplorationEffectExecutor.Register(registry, map, exploration, decks, tokens);
+            var handler = new ExploreLocationCommandHandler(exploration, new RoundAdvanceService(), registry);
 
             var begin = handler.BeginGrantedExplore(state, new GameCommand
             {
                 Kind = GameCommandKind.ResolvePendingChoice,
                 PlayerId = 1,
                 TargetId = "building_039"
-            }, "mine-b");
+            }, "A-01");
 
             Assert.That(begin.Succeeded, Is.True, begin.Validation.Reason);
-            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.CardMoved), Is.True);
-            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.ResourceChanged), Is.True);
-            Assert.That(begin.Events.Exists(item => item.Kind == GameEventKind.ChoiceOpened), Is.True);
-            Assert.That(state.PendingCardSession.ChoiceType,
-                Is.EqualTo(ExploreLocationCommandHandler.ExploreEventChoiceType));
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo("route_resource.selection"));
+            Assert.That(state.Decks.EventDeckGreen.Count, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(10));
+            Assert.That(state.PendingCardSession, Is.Null);
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False);
-
-            var resolved = handler.Handle(state, new GameCommand
+            string scope = request.PromptParameters.Properties.Single(p => p.Name == "scopeKey").Value.StringValue;
+            var ids = new[] { RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Commit), RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Location, "A-01"),
+                RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.RouteAndRecipient, "A1", "bank"), RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.RouteAndRecipient, "A2", "bank") };
+            var executor = new EffectTreeExecutor(state, registry);
+            Assert.That(executor.TrySubmitInteraction(request.InteractionId, 1, state.EffectRuntime.StateRevision, NormalizedValue.CreateArray(ids.Select(NormalizedValue.CreateString).ToList()), out var reason), Is.True, reason);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.EqualTo(4));
+            for (int guard = 0; state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open") && guard < 40; guard++)
             {
-                Kind = GameCommandKind.ResolvePendingChoice,
-                PlayerId = 1,
-                OptionIds = { "1" }
-            });
-
-            Assert.That(resolved.Succeeded, Is.True, resolved.Validation.Reason);
+                request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open"); executor = new EffectTreeExecutor(state, registry);
+                Assert.That(executor.TrySubmitInteraction(request.InteractionId, 1, NormalizedValue.CreateString(request.CandidateIds[0]), out reason), Is.True, reason);
+                Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            }
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            Assert.That(state.Map.ResourceTokens.Any(t => t.LocationId == "A-01"), Is.True); Assert.That(state.Map.Influences.Any(i => i.LocationId == "A-01" && i.PlayerId == 1), Is.True);
+            Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.Zero);
             Assert.That(state.FindPlayer(1).ActedMainActionThisTurn, Is.False,
                 "额外探索结算事件后不应改变它是否消耗主要行动的来源语义。");
         }
@@ -593,10 +610,10 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ExploreLocation_OnFourPlayerMapWithSingleLocalPlayer_RedZoneOpensAtRound4()
+        public void ExploreLocation_OnFourPlayerMapWithSingleLocalPlayer_RedZoneOpensAtRound6()
         {
             var state = CreateFourPlayerSingleLocalPlayerActionState();
-            state.Round = 4;
+            state.Round = 6;
             state.Decks.EventDeckRed.Add("event_red_01");
             var handler = CreateFourPlayerHandler();
 

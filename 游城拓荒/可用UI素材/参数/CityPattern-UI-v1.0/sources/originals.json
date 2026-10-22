@@ -1,0 +1,48 @@
+{
+  "sourceLibraryId": "libfile_25e2432b559881918f34b8c561d2fa65",
+  "sourcePackage": "TTS游城拓荒图包 稳定分支20240414（测试分支0414通用）.zip",
+  "originals": [
+    {
+      "path": "originals/city-board.png",
+      "sourceArchiveEntry": "Images/httpcloud3steamusercontentcomugc228282474125852910944652F116C43BA768A11347BABEA33BE8F9386C6.png",
+      "sourceIndex": 51,
+      "size": [
+        2059,
+        3801
+      ],
+      "sha256": "67c85fce31269b13181d1c9b1593f640b9ab4b6d81b489cd05125891660d6218"
+    },
+    {
+      "path": "originals/facility-atlas.jpg",
+      "sourceArchiveEntry": "Images/httpcloud3steamusercontentcomugc228282568938988881364BB3B209DD32E203615136FBC0A3F17E891A000.jpg",
+      "sourceIndex": 57,
+      "size": [
+        5400,
+        5100
+      ],
+      "sha256": "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269"
+    },
+    {
+      "path": "originals/patterns-i-atlas.jpg",
+      "sourceArchiveEntry": "Images/httpcloud3steamusercontentcomugc22828256893790428149545D0E61E3AD6E5FDA16355B4BC55F28BAE07E9.jpg",
+      "sourceIndex": 56,
+      "size": [
+        2790,
+        1800
+      ],
+      "sha256": "7644904a93cb936dce3dd4ced190ae8533ebbcc58a6eb3f78506e6528a8f75e0"
+    },
+    {
+      "path": "originals/patterns-ii-atlas.jpg",
+      "sourceArchiveEntry": "Images/httpcloud3steamusercontentcomugc243370565564452031896FA12A89A50C9776E05AB89B95EFDB93690E888.jpg",
+      "sourceIndex": 73,
+      "size": [
+        1860,
+        1200
+      ],
+      "sha256": "3945062c584e2309efee54db608403e9977a7b35143b1da17af3ddc9177a9eda"
+    }
+  ],
+  "styleSource": "FacilityBuild-UI-v1.0.zip and original Card-Picker buttons",
+  "reusedWithoutImageEditing": true
+}

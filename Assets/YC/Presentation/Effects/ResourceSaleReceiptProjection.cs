@@ -12,6 +12,8 @@ namespace YC.Presentation
         {
             public string EffectId;
             public long Revenue;
+            public long? SoldCount;
+            public bool? Finished;
         }
 
         public static Receipt Latest(GameStateView view, int playerId)
@@ -24,9 +26,9 @@ namespace YC.Presentation
                     effect.PlayerId != playerId || effect.EffectTypeId != LuaDomainEffectTypeIds.ResourceSell ||
                     effect.Status != EffectNodeStatus.Completed ||
                     !GameStateVisibilityPolicy.IsVisible(effect.Visibility, effect.PlayerId, GameStateViewer.Player(playerId)) ||
-                    effect.NormalizedResult == null || effect.NormalizedResult.Kind != NormalizedValueKind.Integer ||
-                    effect.NormalizedResult.IntegerValue < 0) continue;
-                receipts[effect.EffectId] = new Receipt { EffectId = effect.EffectId, Revenue = effect.NormalizedResult.IntegerValue };
+                    effect.NormalizedResult == null) continue;
+                var receipt = ReadResult(effect.EffectId, effect.NormalizedResult);
+                if (receipt != null) receipts[effect.EffectId] = receipt;
             }
 
             // 完成事件的顺序由内核产生；节点创建顺序不能代表成交先后。
@@ -50,6 +52,35 @@ namespace YC.Presentation
             if (latest == null && receipts.Count == 1)
                 foreach (var receipt in receipts.Values) latest = receipt;
             return latest;
+        }
+
+        private static Receipt ReadResult(string effectId, NormalizedValue result)
+        {
+            if (result.Kind == NormalizedValueKind.Integer)
+                return result.IntegerValue < 0 ? null : new Receipt { EffectId = effectId, Revenue = result.IntegerValue };
+            var revenue = Field(result, "revenue");
+            var soldCount = Field(result, "soldCount");
+            var finished = Field(result, "finished");
+            if (revenue?.Kind != NormalizedValueKind.Integer || revenue.IntegerValue < 0 ||
+                soldCount?.Kind != NormalizedValueKind.Integer || soldCount.IntegerValue < 0 ||
+                finished?.Kind != NormalizedValueKind.Boolean) return null;
+            return new Receipt { EffectId = effectId, Revenue = revenue.IntegerValue,
+                SoldCount = soldCount.IntegerValue, Finished = finished.BooleanValue };
+        }
+
+        private static NormalizedValue Field(NormalizedValue value, string key)
+        {
+            if (value?.Kind != NormalizedValueKind.Object || value.Properties == null) return null;
+            NormalizedValue result = null;
+            var found = false;
+            foreach (var item in value.Properties)
+                if (item?.Name == key)
+                {
+                    if (found) return null;
+                    found = true;
+                    result = item.Value;
+                }
+            return result;
         }
 
         private static string Text(NormalizedValue value, string key)

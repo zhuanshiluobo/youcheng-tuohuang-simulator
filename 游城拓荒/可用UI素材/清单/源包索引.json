@@ -1,0 +1,301 @@
+[
+  {
+    "package": "MainGameUI-v2.2.zip",
+    "version": "2.2内容基线",
+    "sha256": "82b7a44d7e399c62007a5a298766c9f722bf3510f296a68e66a1bd716fe3422d",
+    "members": 280,
+    "category": "通用控件与原画",
+    "documents": [
+      "文档/原始说明/MainGameUI-v2.2/GENERATION_NOTES.md",
+      "文档/原始说明/MainGameUI-v2.2/README.md",
+      "文档/原始说明/MainGameUI-v2.2/docs/TOPBAR_UPDATE.md",
+      "文档/原始说明/MainGameUI-v2.2/docs/UI_LAYOUT.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "MainGameUI-Topbar-v2.2.zip",
+    "version": "已淘汰",
+    "sha256": "d04a2d6d501200dde71f83011a7475a3440b95949a1619033c73f853d5a68e0f",
+    "members": 25,
+    "category": "已淘汰",
+    "documents": [],
+    "notes": []
+  },
+  {
+    "package": "MainGameUI-CooperationMarkers-v1.zip",
+    "version": "1",
+    "sha256": "5fdfa64842061c42e2c87b9646abb6de0b8116f3173258afe773fee09b1afb7c",
+    "members": 98,
+    "category": "玩家标记",
+    "documents": [
+      "文档/原始说明/MainGameUI-CooperationMarkers-v1/README.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "FrontierUI-v3-Patch.zip",
+    "version": "3.1组件 / 3.0区域布局",
+    "sha256": "01ec53446a4e46076395102325b6b900ddea9edb400ea7602d0d2a5ecea4e59f",
+    "members": 142,
+    "category": "通用皮肤与顶栏",
+    "documents": [
+      "文档/原始说明/FrontierUI-v3-Patch/README.md",
+      "文档/原始说明/FrontierUI-v3-Patch/docs/INCREMENTAL_PATCH.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "MainButtons-v3.2-Patch.zip",
+    "version": "3.2",
+    "sha256": "7eedc3e232ea088ad641e9503e5f5c70cea4db3f3206abe3f0e82a9e57e2f62c",
+    "members": 174,
+    "category": "主行动按钮",
+    "documents": [
+      "文档/原始说明/MainButtons-v3.2-Patch/BUTTON_PATCH.md",
+      "文档/原始说明/MainButtons-v3.2-Patch/README.md"
+    ],
+    "notes": [
+      "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
+      "城市样式确认继续采用已指定primary四态；本轮不扩大到UI-011普通页面。",
+      "建设/部署图标采用项目当前替换图，light/dark/muted三字段均绑定同一张对应图，原版三色退出候选。"
+    ]
+  },
+  {
+    "package": "EffectRows-v3.4-Patch.zip",
+    "version": "3.4",
+    "sha256": "e26fa15a5e554b7274b270d505cc52abe2e7a63ca20637b2956d02d64375ea64",
+    "members": 144,
+    "category": "效果条目",
+    "documents": [
+      "文档/原始说明/EffectRows-v3.4-Patch/EFFECT_ROW_PATCH.md",
+      "文档/原始说明/EffectRows-v3.4-Patch/README.md"
+    ],
+    "notes": [
+      "v33-兼容ID仍指向3.4，无需装3.3。",
+      "最新2026-10-06用户要求效果条目外框76、正文31；长文只同步缩小两种字号，不能增加条目长宽。依据prompt/企业扩与感染者基础实装/10-局内明细内容与条目返工清单.md及06增量规范第3行。"
+    ]
+  },
+  {
+    "package": "MainFrame-v3.5-Patch.zip",
+    "version": "3.5",
+    "sha256": "a17552fbf7074f32656363c5b73974dc2db518e0ffff5e6cfc48a059f847d313",
+    "members": 102,
+    "category": "主界面四项框体",
+    "documents": [
+      "文档/原始说明/MainFrame-v3.5-Patch/FRAME_PATCH.md",
+      "文档/原始说明/MainFrame-v3.5-Patch/README.md"
+    ],
+    "notes": [
+      "替换职责只有四项，不概括为所有专用窗口强制用3.5；普通模块边框继续Frontier3.1。"
+    ]
+  },
+  {
+    "package": "CardViewer-v3.6-Patch.zip",
+    "version": "3.6.2",
+    "sha256": "8fc33ac1fe47212187d937405454486ed8a4c398a772e5aaf7347370c7cedcdd",
+    "members": 53,
+    "category": "卡牌查看器",
+    "documents": [
+      "文档/原始说明/CardViewer-v3.6-Patch/BUTTON_REVISION.md",
+      "文档/原始说明/CardViewer-v3.6-Patch/INTERACTION.md",
+      "文档/原始说明/CardViewer-v3.6-Patch/LAYOUT.md",
+      "文档/原始说明/CardViewer-v3.6-Patch/README.md",
+      "文档/原始说明/CardViewer-v3.6-Patch/REPLACE_BUTTONS.md"
+    ],
+    "notes": [
+      "包文件名3.6不能盖过包内3.6.2文档。外部CardViewer-v3.6-Layout.md中的旧金色按钮描述已过期。",
+      "两种新按钮接入路径择一；项目执行记录/角色牌3.6.2修复/说明.md明确采用紧凑@2x。"
+    ]
+  },
+  {
+    "package": "Card-Picker-UI-v1.zip",
+    "version": "1.0专用保留",
+    "sha256": "3d9cc4d45c17ae0dbcb93c1a6cea9ac686e0f8e48d72de38c39a1767b5e87190",
+    "members": 11,
+    "category": "多卡选择",
+    "documents": [
+      "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+    ],
+    "notes": [
+      "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+    ]
+  },
+  {
+    "package": "Option-Picker-UI-v1.zip",
+    "version": "1",
+    "sha256": "b304ec6c440444521632ef771a1645e53a89925ea9120dee8daf986078832685",
+    "members": 17,
+    "category": "普通选项与数量",
+    "documents": [
+      "文档/原始说明/Option-Picker-UI-v1/GENERATION_NOTES.md",
+      "文档/原始说明/Option-Picker-UI-v1/OPTION_WINDOWS.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "EnterprisePicker-v1.0.zip",
+    "version": "1.0.1",
+    "sha256": "4f149a671aac127a80138b84205c373f8a334f39f127e3d2c74270d85a88fc60",
+    "members": 196,
+    "category": "企业选择",
+    "documents": [
+      "文档/原始说明/EnterprisePicker-v1.0/README.md",
+      "文档/原始说明/EnterprisePicker-v1.0/docs/ENTERPRISE_PICKER.md"
+    ],
+    "notes": [
+      "2026-10-07用户明确企业页外层Frame改Frontier module-frame，原先仅EnterpriseSelectionDialog，三种模式共用；后续2026-10-07 22:31记录确认Department也已获准并改为module-frame。",
+      "当前标准：外框module-frame，确认/返回/取消等按钮MainButtons3.2；内容板图、分区与其他既有层按实际资产使用。本轮确认覆盖较早3.1按钮期望。"
+    ]
+  },
+  {
+    "package": "FacilityBuild-UI-v1.0.zip",
+    "version": "1.0",
+    "sha256": "d6f16705a70182262bd6f586cafb556f4bb81ff78650f90372bb5f9c0ac766d9",
+    "members": 205,
+    "category": "设施建设",
+    "documents": [
+      "文档/原始说明/FacilityBuild-UI-v1.0/README.md",
+      "文档/原始说明/FacilityBuild-UI-v1.0/docs/FACILITY_BUILD.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "CityPattern-UI-v1.0.zip",
+    "version": "1.0",
+    "sha256": "63818c6fd5754ef85604500cce607c007c738b642c0268a32005b57824c8e1f5",
+    "members": 201,
+    "category": "城市样式",
+    "documents": [
+      "文档/原始说明/CityPattern-UI-v1.0/README.md",
+      "文档/原始说明/CityPattern-UI-v1.0/docs/CITY_PATTERN.md"
+    ],
+    "notes": [
+      "城市样式明确用户例外：去掉所有Unavailable Lock、额外宣告带、取消/放大/返回按钮；状态Track不再叠Image/State Label；97%卡图、零值全透明；确认用3.2 primary四态。icon-lock仍可供其他合法窗口，禁止城市样式恢复。"
+    ]
+  },
+  {
+    "package": "RhineDepartment-UI-v1.0.zip",
+    "version": "1.0",
+    "sha256": "35c9132bf40913fc0c5b6752471ebe5153b0382589b613614769a1bd685816da",
+    "members": 206,
+    "category": "莱茵科室",
+    "documents": [
+      "文档/原始说明/RhineDepartment-UI-v1.0/README.md",
+      "文档/原始说明/RhineDepartment-UI-v1.0/docs/RHINE_DEPARTMENT.md"
+    ],
+    "notes": [
+      "当前标准：外框module-frame，确认/返回/取消等按钮MainButtons3.2；内容板图、分区与其他既有层按实际资产使用。本轮确认覆盖较早3.1按钮期望。"
+    ]
+  },
+  {
+    "package": "Room-UI-v1.0.zip",
+    "version": "已被完整包替代",
+    "sha256": "3945077a9f07b9a9d18007d24f2c591c9179a8dbf80e53bb891286031dcf4d7a",
+    "members": 490,
+    "category": "已淘汰",
+    "documents": [],
+    "notes": []
+  },
+  {
+    "package": "Room-UI-v1.1-VerticalMaps.zip",
+    "version": "1.1",
+    "sha256": "c24b701b120801ee14bc99635812f583bf6f94fde8225c0b4d7db6e42aec1723",
+    "members": 491,
+    "category": "房间",
+    "documents": [
+      "文档/原始说明/Room-UI-v1.1-VerticalMaps/ASSET_MANIFEST.md",
+      "文档/原始说明/Room-UI-v1.1-VerticalMaps/CHANGELOG.md",
+      "文档/原始说明/Room-UI-v1.1-VerticalMaps/README.md",
+      "文档/原始说明/Room-UI-v1.1-VerticalMaps/ROOM_UI_GUIDE.md"
+    ],
+    "notes": [
+      "最新三人图上、四人图下；只有四名已入座玩家强制四人图，减少人数不自动换图。"
+    ]
+  },
+  {
+    "package": "Settlement-Effects-v1.0.zip",
+    "version": "1.0",
+    "sha256": "2c3c7273bcd1f14b174d1ab740341deaaf3ea81858e2027028fd76c8ba211118",
+    "members": 97,
+    "category": "结算插入按钮",
+    "documents": [
+      "文档/原始说明/Settlement-Effects-v1.0/README.md"
+    ],
+    "notes": [
+      "M03用户确认尚未实现；保留为待实现专用素材，不判定为当前错用，不在本次整理中接入。"
+    ]
+  },
+  {
+    "package": "Settlement-Icons-Extra-v1.1.zip",
+    "version": "1.1增补",
+    "sha256": "8cb0725791b9b698c7b9c592d009402386de98acbf4008fefd3a4f2a3da01ff1",
+    "members": 488,
+    "category": "结算备用图标",
+    "documents": [
+      "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md"
+    ],
+    "notes": [
+      "1.1不是1.0换皮覆盖；22x22逻辑像素等比，色版按状态。翻面图标存在不授权恢复已删除翻面功能。"
+    ]
+  },
+  {
+    "package": "Main-Info-Buttons-v1.0.zip",
+    "version": "1.0",
+    "sha256": "c49769c5fb6b28661508eaeea2f33ed85e159e7ce6645b4196a29bfee3aea724",
+    "members": 117,
+    "category": "区控与游戏盒入口",
+    "documents": [
+      "文档/原始说明/Main-Info-Buttons-v1.0/README.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "Region-Squares-v1.0.zip",
+    "version": "1.0",
+    "sha256": "49d20a2047d64407c0a88cb2705cb8c52c5fd3fc980dbf1db3828db6b587dfa7",
+    "members": 64,
+    "category": "区域标记",
+    "documents": [
+      "文档/原始说明/Region-Squares-v1.0/README.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "Area-Control-v1.0.zip",
+    "version": "1.0",
+    "sha256": "4b7cb99e8141990a474b922dc3c30020abdbf28f7381cd6de1c86dd9017d74b4",
+    "members": 89,
+    "category": "区控页面",
+    "documents": [
+      "文档/原始说明/Area-Control-v1.0/README.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "Player-Select-v1.0.zip",
+    "version": "1.0",
+    "sha256": "c9b6d92d2438b2a88d1029363daae150d9289bc9fcdf45990bbc887b2d00a361",
+    "members": 138,
+    "category": "玩家选择",
+    "documents": [
+      "文档/原始说明/Player-Select-v1.0/ASSET_MANIFEST.md",
+      "文档/原始说明/Player-Select-v1.0/PLAYER_SELECT_GUIDE.md",
+      "文档/原始说明/Player-Select-v1.0/README.md"
+    ],
+    "notes": []
+  },
+  {
+    "package": "Game-Box-v1.0.zip",
+    "version": "1.0",
+    "sha256": "55f1976c83472097720cfbac0d3746415e756b9bd0c6305554ece0cb4e1c6a53",
+    "members": 113,
+    "category": "游戏盒页面",
+    "documents": [
+      "文档/原始说明/Game-Box-v1.0/ASSET_MANIFEST.md",
+      "文档/原始说明/Game-Box-v1.0/GAME_BOX_UI.md",
+      "文档/原始说明/Game-Box-v1.0/README.md"
+    ],
+    "notes": []
+  }
+]

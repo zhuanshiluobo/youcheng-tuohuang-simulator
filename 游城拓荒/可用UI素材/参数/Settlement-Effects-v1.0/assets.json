@@ -1,0 +1,910 @@
+{
+  "version": "1.0",
+  "logicalHeight": 44,
+  "baseCanvas": [
+    192,
+    44
+  ],
+  "sliceLTRB": [
+    22,
+    21,
+    22,
+    21
+  ],
+  "sliceLTRB2x": [
+    44,
+    42,
+    44,
+    42
+  ],
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "palette": {
+    "default": {
+      "fill": "#DCD3BD",
+      "edge": "#A99A79",
+      "inner": "#F5EDDC",
+      "ink": "#38372E"
+    },
+    "hover": {
+      "fill": "#EBDFC2",
+      "edge": "#D7BC77",
+      "inner": "#FFF4D9",
+      "ink": "#322F24"
+    },
+    "pressed": {
+      "fill": "#BCAF8E",
+      "edge": "#D0BA82",
+      "inner": "#E0D0AB",
+      "ink": "#302C21"
+    },
+    "pending": {
+      "fill": "#75684C",
+      "edge": "#C5AC70",
+      "inner": "#C2AB77",
+      "ink": "#F0E4C7"
+    },
+    "disabled": {
+      "fill": "#514F46",
+      "edge": "#706B5D",
+      "inner": "#8A8170",
+      "ink": "#A9A392"
+    }
+  },
+  "assets": {
+    "bases/default": {
+      "svg": "assets/bases/chip-default.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/bases/chip-default.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/bases/chip-default@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "bases",
+      "textBakedIn": false,
+      "state": "default",
+      "iconBakedIn": false
+    },
+    "layers/fill/default": {
+      "svg": "assets/layers/fill/chip-default.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/fill/chip-default.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/fill/chip-default@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/fill",
+      "textBakedIn": false,
+      "state": "default",
+      "iconBakedIn": false
+    },
+    "layers/frame/default": {
+      "svg": "assets/layers/frame/chip-default.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/frame/chip-default.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/frame/chip-default@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/frame",
+      "textBakedIn": false,
+      "state": "default",
+      "iconBakedIn": false
+    },
+    "bases/hover": {
+      "svg": "assets/bases/chip-hover.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/bases/chip-hover.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/bases/chip-hover@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "bases",
+      "textBakedIn": false,
+      "state": "hover",
+      "iconBakedIn": false
+    },
+    "layers/fill/hover": {
+      "svg": "assets/layers/fill/chip-hover.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/fill/chip-hover.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/fill/chip-hover@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/fill",
+      "textBakedIn": false,
+      "state": "hover",
+      "iconBakedIn": false
+    },
+    "layers/frame/hover": {
+      "svg": "assets/layers/frame/chip-hover.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/frame/chip-hover.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/frame/chip-hover@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/frame",
+      "textBakedIn": false,
+      "state": "hover",
+      "iconBakedIn": false
+    },
+    "bases/pressed": {
+      "svg": "assets/bases/chip-pressed.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/bases/chip-pressed.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/bases/chip-pressed@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "bases",
+      "textBakedIn": false,
+      "state": "pressed",
+      "iconBakedIn": false
+    },
+    "layers/fill/pressed": {
+      "svg": "assets/layers/fill/chip-pressed.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/fill/chip-pressed.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/fill/chip-pressed@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/fill",
+      "textBakedIn": false,
+      "state": "pressed",
+      "iconBakedIn": false
+    },
+    "layers/frame/pressed": {
+      "svg": "assets/layers/frame/chip-pressed.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/frame/chip-pressed.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/frame/chip-pressed@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/frame",
+      "textBakedIn": false,
+      "state": "pressed",
+      "iconBakedIn": false
+    },
+    "bases/pending": {
+      "svg": "assets/bases/chip-pending.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/bases/chip-pending.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/bases/chip-pending@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "bases",
+      "textBakedIn": false,
+      "state": "pending",
+      "iconBakedIn": false
+    },
+    "layers/fill/pending": {
+      "svg": "assets/layers/fill/chip-pending.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/fill/chip-pending.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/fill/chip-pending@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/fill",
+      "textBakedIn": false,
+      "state": "pending",
+      "iconBakedIn": false
+    },
+    "layers/frame/pending": {
+      "svg": "assets/layers/frame/chip-pending.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/frame/chip-pending.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/frame/chip-pending@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/frame",
+      "textBakedIn": false,
+      "state": "pending",
+      "iconBakedIn": false
+    },
+    "bases/disabled": {
+      "svg": "assets/bases/chip-disabled.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/bases/chip-disabled.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/bases/chip-disabled@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "bases",
+      "textBakedIn": false,
+      "state": "disabled",
+      "iconBakedIn": false
+    },
+    "layers/fill/disabled": {
+      "svg": "assets/layers/fill/chip-disabled.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/fill/chip-disabled.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/fill/chip-disabled@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/fill",
+      "textBakedIn": false,
+      "state": "disabled",
+      "iconBakedIn": false
+    },
+    "layers/frame/disabled": {
+      "svg": "assets/layers/frame/chip-disabled.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/layers/frame/chip-disabled.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/layers/frame/chip-disabled@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "layers/frame",
+      "textBakedIn": false,
+      "state": "disabled",
+      "iconBakedIn": false
+    },
+    "focus": {
+      "svg": "assets/overlays/focus-ring.svg",
+      "size": [
+        192,
+        44
+      ],
+      "png": [
+        {
+          "path": "assets/overlays/focus-ring.png",
+          "width": 192,
+          "height": 44,
+          "scale": 1
+        },
+        {
+          "path": "assets/overlays/focus-ring@2x.png",
+          "width": 384,
+          "height": 88,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        22,
+        21,
+        22,
+        21
+      ],
+      "role": "focus-overlay",
+      "textBakedIn": false
+    },
+    "icons/discount-dark": {
+      "svg": "assets/icons/discount-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/discount-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/discount-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/discount-light": {
+      "svg": "assets/icons/discount-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/discount-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/discount-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/discount-muted": {
+      "svg": "assets/icons/discount-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/discount-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/discount-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/cooperate-dark": {
+      "svg": "assets/icons/cooperate-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/cooperate-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/cooperate-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/cooperate-light": {
+      "svg": "assets/icons/cooperate-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/cooperate-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/cooperate-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/cooperate-muted": {
+      "svg": "assets/icons/cooperate-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/cooperate-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/cooperate-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/insert-dark": {
+      "svg": "assets/icons/insert-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/insert-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/insert-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/insert-light": {
+      "svg": "assets/icons/insert-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/insert-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/insert-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/insert-muted": {
+      "svg": "assets/icons/insert-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/insert-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/insert-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/build-dark": {
+      "svg": "assets/icons/build-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/build-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/build-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/build-light": {
+      "svg": "assets/icons/build-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/build-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/build-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    },
+    "icons/build-muted": {
+      "svg": "assets/icons/build-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons/build-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/build-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "example-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true
+    }
+  }
+}

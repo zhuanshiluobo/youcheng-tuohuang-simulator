@@ -1,5 +1,15 @@
 namespace YC.Presentation.Workflows
 {
+    public interface IRouteInteraction
+    {
+        InteractionResult OnRouteClicked(string routeId);
+    }
+
+    public interface IMapConfirmationScope
+    {
+        string MapConfirmationScope { get; }
+    }
+
     public interface IInteraction
     {
         string Id { get; }
@@ -21,5 +31,12 @@ namespace YC.Presentation.Workflows
         void Cancel();
 
         void NotifyCommandSettled(string commandId);
+
+    }
+
+    public interface IInteractionCommandResultConsumer
+    {
+        void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted,
+            YC.Domain.Rules.CommandErrorCode errorCode);
     }
 }

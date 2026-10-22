@@ -1,0 +1,73 @@
+{
+  "definitionId": "enterprise.event.cave_ruins",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "洞穴遗迹",
+  "expansionId": "enterprise",
+  "replaces": {
+    "expansionId": "core",
+    "contentType": "event",
+    "definitionId": "event_yellow_02"
+  },
+  "artwork": "artwork/sheets/event_yellow_faces.jpg",
+  "artworkSpriteId": "event_yellow_012",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "enterprise.event.cave_ruins.resolve",
+      "mode": "resolve",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.event.cave_ruins.resolve",
+      "script": "lua/events/enterprise.event.cave_ruins.resolve.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cardId": "event_yellow_02",
+    "name": "洞穴遗迹",
+    "description": "“头儿，爆破小组炸开了一条隐藏的通道，后面竟然是一片……人造建筑的遗址，我们无法确认其年代，也无法确认其建造者。”——信使所带回的信息。",
+    "color": 1,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "choiceDescriptions": [
+      "爆破：获得5源岩",
+      "写信给梅兰德历史协会：获得10金券",
+      "联系赞助商：支付1异铁，选择1家企业升级1级"
+    ],
+    "choiceRewards": [
+      {
+        "originium": 5,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 10
+      },
+      {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      }
+    ],
+    "choicePendingEffects": [
+      [],
+      [],
+      []
+    ],
+    "effectScript": "lua/events/enterprise.event.cave_ruins.resolve.lua"
+  }
+}

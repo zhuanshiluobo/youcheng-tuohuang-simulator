@@ -1,0 +1,85 @@
+{
+  "definitionId": "infected.character.amiya",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "阿米娅",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.amiya.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.basic_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.amiya.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.amiya.strategy",
+      "script": "lua/characters/infected.character.amiya.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.amiya.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.amiya.tactic",
+      "script": "lua/characters/infected.character.amiya.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlementActionId": "character.grant_current_double_use",
+      "titleKey": "合作协议",
+      "descriptionKey": "弃置阿米娅，按所选顺序使用当前角色的策略与计谋。",
+      "settlement": {
+        "entryKind": "optional_insertion",
+        "localId": "infected.character.amiya.tactic.optional_insertion",
+        "availabilityHandlerId": "infected.character.amiya.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.amiya.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.amiya.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.amiya.tactic.label"
+          },
+          "iconKey": "core:settlement.chain_link",
+          "contentMode": "icon_text"
+        },
+        "offerHandlerId": "infected.character.amiya.tactic.settlement.offers"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.amiya",
+    "cardId": "infected.character.amiya",
+    "name": "阿米娅",
+    "acquisitionRole": "initial",
+    "instanceTypeId": "core.basic_character_card",
+    "strategyAbilityId": "infected.character.amiya.strategy",
+    "tacticAbilityId": "infected.character.amiya.tactic",
+    "strategyName": "调用凭证",
+    "tacticName": "合作协议",
+    "sourceReference": "I26",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.amiya.tactic",
+        "effectText": "计谋·合作协议（持续性）：使用角色牌时，将本牌移至角色弃牌区作为条件，然后按希望顺序连续使用该角色的策略和计谋。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "阿米娅"
+      }
+    ]
+  }
+}

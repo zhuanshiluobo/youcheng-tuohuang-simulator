@@ -1,0 +1,83 @@
+{
+  "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/character-atlas.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\素材\\角色卡.jpg"
+    ]
+  },
+  "081182980414c10c123b05e43c7f905e23124a26c8d80cca66c21e61767eb828": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/character-back-reunion.jpg"
+    ],
+    "matches": []
+  },
+  "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/character-back-rhodes.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\企业扩\\罗德岛干员牌背.jpg"
+    ]
+  },
+  "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/enterprise-atlas.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\企业扩\\企业合作板 2行4列.jpg"
+    ]
+  },
+  "3aa098e6a1b2b682997b1b6fc4f50e7035b0bc222901b9c18c819e22b7bf8452": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/entrepreneur-1.jpg"
+    ],
+    "matches": []
+  },
+  "aa52cd4718387d366ab50eb694ee9c3e6e99b82b08afca7e260fab2a9dfa768f": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/entrepreneur-2.jpg"
+    ],
+    "matches": []
+  },
+  "6dcaf1a548aca0b428339bf03b0074e15f79fa596c044015957cd837c5b1ac69": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/entrepreneur-3.jpg"
+    ],
+    "matches": []
+  },
+  "605f6fb43c8021706847d7d9db0d4483a5bfa05fcd09bf15b13e96b6996464bf": {
+    "members": [
+      "MainGameUI-v2.2/07-originals/world-map.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\地图\\四人.jpg"
+    ]
+  },
+  "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269": {
+    "members": [
+      "FacilityBuild-UI-v1.0/originals/facility-atlas.jpg",
+      "CityPattern-UI-v1.0/originals/facility-atlas.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\素材\\建设牌堆.jpg"
+    ]
+  },
+  "7644904a93cb936dce3dd4ced190ae8533ebbcc58a6eb3f78506e6528a8f75e0": {
+    "members": [
+      "CityPattern-UI-v1.0/originals/patterns-i-atlas.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\素材\\城市样式牌1.jpg"
+    ]
+  },
+  "3945062c584e2309efee54db608403e9977a7b35143b1da17af3ddc9177a9eda": {
+    "members": [
+      "CityPattern-UI-v1.0/originals/patterns-ii-atlas.jpg"
+    ],
+    "matches": [
+      "游城拓荒\\素材\\城市样式牌2.jpg"
+    ]
+  }
+}

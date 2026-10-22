@@ -46,6 +46,13 @@ namespace YC.Presentation
                         totals[(int)marker.PlayerColor]++;
                 for (var color = 0; color < 4; color++)
                 {
+                    var square = slot.blocks[color].GetComponent<InfluenceMarker2DView>();
+                    if (square != null)
+                    {
+                        slot.blocks[color].gameObject.SetActive(true);
+                        square.SetCount(totals[color], totals[color] > 0 ? 1f : 0f);
+                        continue;
+                    }
                     slot.counts[color].text = totals[color].ToString();
                     slot.blocks[color].gameObject.SetActive(true);
                     // 零值完全透明，但保留四个布局位置，避免其他玩家随显隐移位。

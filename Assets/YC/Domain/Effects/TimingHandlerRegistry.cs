@@ -9,7 +9,8 @@ namespace YC.Domain.Effects
     {
         public static void RegisterPlayerCleanupAfterResolveOnce(
             EffectRegistry registry, string sourceType, string abilityId, string version,
-            string contentHash, Func<EffectEventHandlerContext, IList<EffectSpec>> handler)
+            string contentHash, Func<EffectEventHandlerContext, IList<EffectSpec>> handler,
+            Action<EffectSpec, EffectNodeRuntimeState, TimingHandlerBinding> decorateCleanupRoot = null)
         {
             string key = abilityId + ".playerCleanup";
             if (registry.HasEventHandler(key)) return;
@@ -54,7 +55,17 @@ namespace YC.Domain.Effects
                                 new NormalizedValueEntry { Name = "bindingId", Value = NormalizedValue.CreateString(binding.BindingId) }
                             })
                         };
-                        spec.Children.AddRange(handler(context));
+                        var sourceEvent = GameStateCloneService.DeepClone(context.Event);
+                        sourceEvent.HostOnlyPayload = sourceEvent.HostOnlyPayload?.Kind == NormalizedValueKind.Object
+                            ? sourceEvent.HostOnlyPayload.Clone() : NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
+                        sourceEvent.HostOnlyPayload.Properties.RemoveAll(p => p.Name == "cardInstanceRef" || p.Name == "useId");
+                        sourceEvent.HostOnlyPayload.Properties.Add(new NormalizedValueEntry { Name = "cardInstanceRef", Value =
+                            ItemTransferEffectExecutor.Value(source.NormalizedArguments, "cardInstanceId")?.Clone() ?? NormalizedValue.CreateNull() });
+                        sourceEvent.HostOnlyPayload.Properties.Add(new NormalizedValueEntry { Name = "useId", Value =
+                            NormalizedValue.CreateString(Read(source.NormalizedArguments, "useId")) });
+                        sourceEvent.HostOnlyPayload.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
+                        spec.Children.AddRange(handler(new EffectEventHandlerContext(context.State, sourceEvent, source, context.Registration)));
+                        decorateCleanupRoot?.Invoke(spec, source, binding);
                         binding.Status = "attached";
                         effects.Add(spec);
                     }

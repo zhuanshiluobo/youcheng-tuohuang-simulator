@@ -8,7 +8,7 @@ namespace YC.Infrastructure.Multiplayer
 
         public static ulong ForPlayer(int playerId)
         {
-            if (playerId < 1 || playerId > 4)
+            if (playerId < 1)
                 throw new ArgumentOutOfRangeException(nameof(playerId));
 
             return SimulatedIdentityBase + (ulong)playerId;

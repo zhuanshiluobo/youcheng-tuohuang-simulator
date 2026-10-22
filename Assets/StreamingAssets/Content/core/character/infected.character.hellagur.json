@@ -1,0 +1,82 @@
+{
+  "definitionId": "infected.character.hellagur",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "赫拉格",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.hellagur.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.hellagur.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.hellagur.strategy",
+      "script": "lua/characters/infected.character.hellagur.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/infected.character.hellagur.strategy.lua",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.hellagur.strategy.cleanup_order",
+        "availabilityHandlerId": "infected.character.hellagur.strategy.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.hellagur.strategy.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.hellagur.strategy.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.hellagur.strategy.label"
+          },
+          "iconKey": "core:settlement.chain_defer",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "required"
+      }
+    },
+    {
+      "abilityId": "infected.character.hellagur.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.hellagur.tactic",
+      "script": "lua/characters/infected.character.hellagur.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.hellagur.tactic.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.hellagur",
+    "cardId": "infected.character.hellagur",
+    "name": "赫拉格",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.hellagur.strategy",
+    "tacticAbilityId": "infected.character.hellagur.tactic",
+    "strategyName": "诡道兵法",
+    "tacticName": "运筹帷幄",
+    "sourceReference": "I31",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.hellagur.strategy",
+        "effectText": "策略·诡道兵法：执行3次，每次选择放置1个你的影响力或移除1个合法目标影响力；本回合收尾阶段移除自己的2个影响力。来源角色离场不取消已经登记的收尾义务。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Delayed",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "赫拉格"
+      }
+    ]
+  }
+}

@@ -20,9 +20,9 @@ MonoBehaviour:
   drawerFrame: {fileID: 21300000, guid: ba406cda5d8729a419c7c8a2b464f3c1, type: 3}
   cardBackground: {fileID: 21300000, guid: e26ca69b2fc150242b66a471fbdddb55, type: 3}
   cardFrame: {fileID: 21300000, guid: 328813539f533c2449046fb16398784a, type: 3}
-  primaryButton: {fileID: 21300000, guid: 6b15b2f14a32abc4f802520d29150fb7, type: 3}
-  secondaryButton: {fileID: 21300000, guid: 89d566eed90cc4a4b9e60335c7e60377, type: 3}
-  disabledButton: {fileID: 21300000, guid: d7a006428d20cd34796eebd067221015, type: 3}
+  primaryButton: {fileID: 21300000, guid: 4648f077c8bba6140ba688ff6c667e07, type: 3}
+  secondaryButton: {fileID: 21300000, guid: 181c454b33768d046b5ab0213470c335, type: 3}
+  disabledButton: {fileID: 21300000, guid: dc69849ac050a064389e92d8d4cb180a, type: 3}
   selectedOverlay: {fileID: 21300000, guid: f74fdea60ee0c6d45806b6411416ba4a, type: 3}
   scrollbarTrack: {fileID: 21300000, guid: f57fe0a04165ea3419d5c605c76a32e9, type: 3}
   scrollbarThumb: {fileID: 21300000, guid: 22c8711713c66eb499c9858e3f0db6fe, type: 3}

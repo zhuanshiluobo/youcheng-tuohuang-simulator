@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using UnityEngine;
 using YC.Application.Interactions;
 using YC.Domain.Commands;
@@ -35,6 +36,12 @@ namespace YC.Presentation
         private string inventoryKey = string.Empty;
         private readonly List<string> selectedCandidates = new List<string>();
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        public Func<GameStateView> GetVisibleState { private get; set; }
+        public GameplayExpansionUi ExpansionUi { private get; set; }
+        private GameStateView presentationView;
+        private InteractionRequestProjection presentationInput, presentationProjection;
+        private string presentationGameId;
+        private int presentationPlayerId = -1;
 
         public FacilityInteractionUiCoordinator(
             Func<GameState> getState,
@@ -67,6 +74,12 @@ namespace YC.Presentation
         }
 
         public string Id => "effect.facility.renderer";
+        public string MapConfirmationScope => string.IsNullOrEmpty(inFlightCommandId) && TryGetRequest(out var request)
+            ? request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion + ":" + selectedCandidates.Count
+            : string.Empty;
+        public InteractionPresentation BuildMapPresentation() => string.IsNullOrEmpty(MapConfirmationScope) || !TryGetRequest(out var request)
+            ? InteractionPresentation.Busy
+            : new InteractionPresentation(BuildHighlights(request), string.Empty, InteractionMode.Busy);
         public int Priority => 305;
         public bool CanRender(InteractionRequestProjection request) => request != null && request.VisibleToViewer && request.Status == "open" &&
             request.AnsweringPlayerId == getLocalPlayerId() && request.InteractionTypeId == FacilityEntryEffectTypeIds.InteractionType;
@@ -91,6 +104,7 @@ namespace YC.Presentation
 
         private bool RenderRequest(InteractionRequestProjection request)
         {
+            request = ProjectForPresentation(request);
             var interactionId = request.InteractionId;
             var sameRequest = interactionId == renderedInteractionId;
             if (sameRequest && request.StateRevision < renderedRevision) return true;
@@ -124,7 +138,7 @@ namespace YC.Presentation
                 ShowCandidateOptions(request, sameRequest);
             }
 
-            setPrompt(FormatPrompt(request.PromptKey));
+            setPrompt(RequestPrompt(request));
             return true;
         }
 
@@ -168,10 +182,17 @@ namespace YC.Presentation
         private bool TryHandleCandidateClicked(string candidateId)
         {
             InteractionRequestProjection request;
-            if (!TryGetRequest(out request) || string.IsNullOrEmpty(candidateId) ||
-                request.CandidateIds == null || !request.CandidateIds.Contains(candidateId))
+            if (!TryGetRequest(out request) || string.IsNullOrEmpty(candidateId) || request.CandidateIds == null)
             {
                 return false;
+            }
+
+            if (!request.CandidateIds.Contains(candidateId))
+            {
+                var match = request.CandidateIds.Find(id => id == "explore:" + candidateId ||
+                    id == "replace:" + candidateId || id == "deploy:" + candidateId);
+                if (match == null) return false;
+                candidateId = match;
             }
 
             SelectCandidate(request, candidateId);
@@ -180,20 +201,51 @@ namespace YC.Presentation
 
         private void ShowCandidateOptions(InteractionRequestProjection request, bool preserveScroll = true)
         {
-            dialog.ShowSelection(dialog.Copy.FacilitySelectionTitle, FormatPrompt(request.PromptKey), new EffectDialogSelectionSpec
+            var requestGameId = getState()?.GameId;
+            var executeImmediately = EffectDialogSelectionSpec.IsExecutionChoice(request);
+            bool Current()
+            {
+                if (requestGameId != getState()?.GameId || !IsCurrent(request)) return false;
+                if (!executeImmediately) return true;
+                var observedRevision = GetVisibleState?.Invoke()?.StateRevision ?? getState()?.EffectRuntime?.StateRevision;
+                return request.StateRevision == renderedRevision &&
+                    (!observedRevision.HasValue || observedRevision.Value == renderedRevision) &&
+                    TryGetRequest(out var current) &&
+                    InteractionCommandIntent.SameContract(requestGameId, request, getState()?.GameId, current);
+            }
+            var isBuild = request.PromptKey == "facility.entry.choose_additional_build";
+            var supply = request.PromptParameters?.Properties.Find(value => value.Name == "isDefaultSupplySet")?.Value;
+            var title = !isBuild ? dialog.Copy.FacilitySelectionTitle : supply?.BooleanValue == true
+                ? dialog.Copy.BuildCandidateSupplyTitle : dialog.Copy.BuildCandidateAlternateTitle;
+            var specification = new EffectDialogSelectionSpec
             {
                 Request = request,
+                ExecuteImmediately = executeImmediately,
                 SelectedIds = selectedCandidates,
-                Label = FormatCandidateLabel,
+                Players = PlayerSelectionRequestAdapter.Build(request,getState(),getLocalPlayerId(),selectedCandidates),
+                PlayerSelectionChanged = ids =>
+                { selectedCandidates.Clear(); foreach (var id in ids) selectedCandidates.Add("player:"+id); },
+                Label = candidateId => FormatCandidateLabel(candidateId, request),
                 OptionNamePrefix = "Option ",
-                IsCurrent = () => IsCurrent(request),
-                Select = candidateId => SelectCandidate(request, candidateId),
-                Confirm = () => SubmitCandidateAnswer(request, new List<string>(selectedCandidates)),
-                Cancel = request.AllowDecline ? (Action)(() =>
+                IsCurrent = Current,
+                Select = candidateId =>
                 {
-                    if (IsCurrent(request)) SubmitAnswer(EffectInteractionCommands.Answer(request, getLocalPlayerId(), null, true));
-                }) : null
-            }, preserveScroll);
+                    if (!Current()) return;
+                    if (executeImmediately) SubmitCandidateAnswer(request, new List<string> { candidateId });
+                    else SelectCandidate(request, candidateId);
+                },
+                Confirm = () => SubmitCandidateAnswer(request, new List<string>(selectedCandidates)),
+                Cancel = null
+            };
+            if (UsesSelectionDocument(request) && ExpansionUi != null)
+            {
+                specification.ResolveText = ExpansionUi.ResolveGameplayText;
+                specification.RenderText = ExpansionUi.RenderEnterpriseDetails;
+                specification.PromptDocument = specification.ResolvePromptDocument();
+                specification.CompatibilityPrompt = () => FormatPrompt(request.PromptKey);
+            }
+            dialog.ShowSelection(title, specification.PromptDocument == null ? FormatPrompt(request.PromptKey) : null,
+                specification, preserveScroll);
         }
 
         private bool IsCurrent(InteractionRequestProjection request)
@@ -215,13 +267,27 @@ namespace YC.Presentation
             int total = 5;
             if (request.CandidateIds != null) foreach (var candidate in request.CandidateIds)
                 if (candidate.StartsWith("total:", StringComparison.Ordinal) && int.TryParse(candidate.Substring(6), out int requestedTotal)) total = requestedTotal;
+            var declaredTotal = ItemTransferEffectExecutor.Value(request.PromptParameters, "totalAmount");
+            if (!isSale && declaredTotal?.Kind == NormalizedValueKind.Integer) total = checked((int)declaredTotal.IntegerValue);
             var maximums = isSale
                 ? new List<int> { resources.Originium, resources.OriginiumShard, resources.Iron, resources.PureOriginium }
                 : new List<int> { total, total, total };
             var exactTotal = isSale ? -1 : total;
-            dialog.ShowResourceAllocation(
+            var formalRequest = !isSale && request.PromptKey == "effect.resource.choose_amounts" ? request : null;
+            var declaredRows = ItemTransferEffectExecutor.Value(formalRequest?.PromptParameters, "rowIds");
+            var rowIds = declaredRows?.Kind == NormalizedValueKind.Array
+                ? declaredRows.Items.Select(value => value.Kind == NormalizedValueKind.String ? value.StringValue : null).ToArray() : null;
+            if (rowIds == null || !rowIds.SequenceEqual(new[] { "Originium", "OriginiumShard", "Iron" })) formalRequest = null;
+            var declaredMaximums = ItemTransferEffectExecutor.Value(formalRequest?.PromptParameters, "rowMaximums");
+            if (declaredMaximums?.Kind == NormalizedValueKind.Array && declaredMaximums.Items.Count == maximums.Count)
+                maximums = declaredMaximums.Items.Select(value => checked((int)value.IntegerValue)).ToList();
+            if (formalRequest != null && ExpansionUi != null)
+                dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
+            var description = formalRequest?.Presentation?.Prompt != null || formalRequest?.Presentation?.Progress != null
+                ? null : isSale ? dialog.Copy.SaleDescription : string.Format(dialog.Copy.ResourceAllocationDescriptionFormat, total);
+            dialog.ShowResourceAllocation(formalRequest, formalRequest == null ? null : rowIds,
                 dialog.Copy.ResourceAllocationTitle,
-                isSale ? dialog.Copy.SaleDescription : string.Format(dialog.Copy.ResourceAllocationDescriptionFormat, total),
+                description,
                 labels,
                 maximums,
                 exactTotal,
@@ -343,7 +409,7 @@ namespace YC.Presentation
                     target = candidate.Substring(candidate.IndexOf(':') + 1);
                     semantic = WorkflowHighlightSemantic.DeployTarget;
                 }
-                else if (candidate.IndexOf('-', StringComparison.Ordinal) > 0)
+                else if (!candidate.Contains(":") && candidate.IndexOf('-', StringComparison.Ordinal) > 0)
                 {
                     targetKind = WorkflowHighlightTargetKind.Location;
                     semantic = WorkflowHighlightSemantic.MoveTarget;
@@ -376,6 +442,40 @@ namespace YC.Presentation
             ShowCandidateOptions(request);
         }
 
+        private InteractionRequestProjection ProjectForPresentation(InteractionRequestProjection request)
+        {
+            var gameId = getState()?.GameId;
+            var playerId = getLocalPlayerId();
+            var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
+            if (presentationGameId == gameId && presentationPlayerId == playerId && ReferenceEquals(presentationView, visible) &&
+                presentationInput?.StateRevision == request.StateRevision &&
+                InteractionCommandIntent.SameContract(gameId, presentationInput, gameId, request)) return presentationProjection;
+            var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(getState(), visible, playerId) : GetVisibleRequests();
+            var original = requests?.FirstOrDefault(value => value != null && value.GetStableInteractionId() == request.InteractionId &&
+                value.SourceNodeId == request.SourceNodeId && value.CandidateSetId == request.CandidateSetId &&
+                value.CandidateSetVersion == request.CandidateSetVersion && value.StateRevision == request.StateRevision);
+            var safe = original == null ? GameStateCloneService.DeepClone(request) :
+                InteractionRequestProjector.ProjectForPlayer(original, playerId, visible, gameId);
+            if (original == null) safe.Presentation = null;
+            presentationView = visible;
+            presentationInput = GameStateCloneService.DeepClone(request);
+            presentationProjection = safe;
+            presentationGameId = gameId;
+            presentationPlayerId = playerId;
+            return safe;
+        }
+
+        private static bool UsesSelectionDocument(InteractionRequestProjection request) =>
+            request.Presentation?.Prompt != null || request.Presentation?.Options?.Count > 0 ||
+            request.PromptKey == "facility.entry.choose_vehicle_action" || request.PromptKey == "facility.entry.choose_adjacent";
+
+        private string RequestPrompt(InteractionRequestProjection request)
+        {
+            var document = ExpansionUi == null || !(UsesSelectionDocument(request) || request.PromptKey == "effect.resource.choose_amounts")
+                ? null : EffectDialogTextDocuments.ResolvePrompt(request, ExpansionUi.ResolveGameplayText);
+            return document == null ? FormatPrompt(request.PromptKey) : document.ToPlainText();
+        }
+
         private static string FormatPrompt(string key)
         {
             switch (key)
@@ -397,9 +497,16 @@ namespace YC.Presentation
             }
         }
 
-        private string FormatCandidateLabel(string candidateId)
+        private string FormatCandidateLabel(string candidateId, InteractionRequestProjection request)
         {
             if (string.IsNullOrEmpty(candidateId)) return "未命名选项";
+            int candidateIndex = request.CandidateIds.IndexOf(candidateId);
+            var definitions = ItemTransferEffectExecutor.Value(request.PromptParameters, "candidateDefinitionIds");
+            if (definitions?.Kind == NormalizedValueKind.Array && candidateIndex >= 0 && candidateIndex < definitions.Items.Count)
+            {
+                var definition = FacilityCardDatabase.Get(definitions.Items[candidateIndex].StringValue);
+                if (definition != null) return definition.Name;
+            }
             if (candidateId == "vehicle.remove_move") return "移除 1 个影响力，然后调度 1 次";
             if (candidateId == "vehicle.explore") return "执行 1 次探索";
             if (candidateId == "resources") return "支付资源";

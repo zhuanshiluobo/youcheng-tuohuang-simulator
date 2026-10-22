@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using YC.Domain.Commands;
+using YC.Domain.Travel;
+using YC.Domain.Interactions;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 
 namespace YC.Domain.Effects
 {
+    public delegate bool GameplayPresentationProvider(
+        string scriptPath, GameplayPresentationContext context,
+        out GameplayPresentationResult result, out string diagnostic);
+
     public enum EffectExecutorKind
     {
         Atomic,
@@ -99,6 +108,8 @@ namespace YC.Domain.Effects
     [Serializable]
     public sealed class EffectSpec
     {
+        public YC.Domain.Presentation.SettlementEffectDefinition Settlement;
+        public YC.Domain.Presentation.EffectPresentationDefinition Presentation;
         public string EffectTypeId = string.Empty;
         public string DefinitionVersion = string.Empty;
         public string SourceId = string.Empty;
@@ -111,6 +122,7 @@ namespace YC.Domain.Effects
         public string DeclinePromptKey = string.Empty;
         public string UnavailablePolicy = string.Empty;
         public string CompletionHandlerId = string.Empty;
+        public NormalizedValue ContinuationContext;
         public string ContinuationContentId = string.Empty;
         public string ContinuationContentInstanceId = string.Empty;
         public string ContinuationAbilityId = string.Empty;
@@ -150,18 +162,21 @@ namespace YC.Domain.Effects
             IList<EffectSpec> leftEffects,
             IList<EffectSpec> rightEffects,
             bool allowDecline = false,
-            int decisionPlayerId = -1)
+            int decisionPlayerId = -1,
+            bool ruleCondition = false)
         {
             var spec = new EffectSpec(EffectTypeIds.Condition)
             {
                 AllowDecline = allowDecline,
                 DecisionPlayerId = decisionPlayerId,
+                PlayerId = ruleCondition ? (decisionPlayerId > 0 ? decisionPlayerId : (leftEffects ?? rightEffects)?.FirstOrDefault()?.PlayerId ?? -1) : -1,
                 NestedEffectGroups = new List<List<EffectSpec>>
                 {
                     CopySpecs(leftEffects),
                     CopySpecs(rightEffects)
                 }
             };
+            spec.NormalizedArguments = ItemTransferEffectExecutor.Object("ruleCondition", NormalizedValue.CreateBoolean(ruleCondition));
             return spec;
         }
 
@@ -188,6 +203,8 @@ namespace YC.Domain.Effects
 
             var runtime = new EffectSpecRuntimeState
             {
+                Settlement = GameStateCloneService.DeepClone(Settlement),
+                Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(Presentation),
                 EffectTypeId = EffectTypeId ?? string.Empty,
                 DefinitionVersion = DefinitionVersion ?? string.Empty,
                 SourceId = SourceId ?? string.Empty,
@@ -200,6 +217,7 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = DeclinePromptKey ?? string.Empty,
                 UnavailablePolicy = UnavailablePolicy ?? string.Empty,
                 CompletionHandlerId = CompletionHandlerId ?? string.Empty,
+                ContinuationContext = ContinuationContext?.Clone(),
                 ContinuationContentId = ContinuationContentId ?? string.Empty,
                 ContinuationContentInstanceId = ContinuationContentInstanceId ?? string.Empty,
                 ContinuationAbilityId = ContinuationAbilityId ?? string.Empty,
@@ -236,6 +254,8 @@ namespace YC.Domain.Effects
             return runtime;
         }
 
+        public EffectSpecRuntimeState ToPersistentDefinition() => ToRuntimeState();
+
         internal static List<EffectSpec> CopySpecs(IList<EffectSpec> source)
         {
             var result = new List<EffectSpec>();
@@ -256,6 +276,15 @@ namespace YC.Domain.Effects
 
     public sealed class EffectStepResult
     {
+        internal sealed class IndependentChildren
+        {
+            internal string Key;
+            internal int StartIndex;
+            internal List<EffectSpec> Members;
+        }
+
+        internal readonly List<IndependentChildren> IndependentChildGroups = new List<IndependentChildren>();
+
         public EffectStepResult()
         {
             ChildEffects = new List<EffectSpec>();
@@ -311,6 +340,20 @@ namespace YC.Domain.Effects
         {
             if (children == null) return this;
             for (int i = 0; i < children.Count; i++) AddChild(children[i]);
+            return this;
+        }
+
+        /// <summary>显式添加一个固定成员的独立子任务组；前后普通子任务仍是顺序屏障。</summary>
+        public EffectStepResult AddIndependentChildren(string stableGroupKey, IList<EffectSpec> specs)
+        {
+            if (string.IsNullOrWhiteSpace(stableGroupKey)) throw new ArgumentException("独立子任务组 key 不能为空。", nameof(stableGroupKey));
+            if (specs == null || specs.Count == 0) throw new ArgumentException("独立子任务组不能为空。", nameof(specs));
+            if (IndependentChildGroups.Exists(group => group.Key == stableGroupKey))
+                throw new ArgumentException("同一父节点不能重复添加或扩充独立子任务组。", nameof(stableGroupKey));
+            var members = new List<EffectSpec>(specs);
+            if (members.Exists(spec => spec == null)) throw new ArgumentException("独立子任务组成员不能为 null。", nameof(specs));
+            IndependentChildGroups.Add(new IndependentChildren { Key = stableGroupKey, StartIndex = ChildEffects.Count, Members = members });
+            ChildEffects.AddRange(members);
             return this;
         }
 
@@ -381,6 +424,7 @@ namespace YC.Domain.Effects
 
     public sealed class EffectInteractionSpec
     {
+        public YC.Domain.Presentation.GameplayInteractionPresentation Presentation { get; set; }
         public string SourceNodeId { get; set; } = string.Empty;
         public string InteractionTypeId { get; set; } = string.Empty;
         public string Visibility { get; set; } = "public";
@@ -399,19 +443,35 @@ namespace YC.Domain.Effects
 
     public sealed class EffectExecutionContext
     {
+        private readonly Func<IReadOnlyList<DeferredResponseDependency>, bool> attachDeferredDependencies;
         internal EffectExecutionContext(
             GameState state,
             EffectNodeRuntimeState node,
-            EffectRegistry registry)
+            EffectRegistry registry,
+            EffectRuntimeLimits limits = null)
+            : this(state, node, registry, limits, null) { }
+
+        internal EffectExecutionContext(GameState state, EffectNodeRuntimeState node, EffectRegistry registry,
+            EffectRuntimeLimits limits, Func<IReadOnlyList<DeferredResponseDependency>, bool> attachDeferredDependencies)
         {
             State = state;
-            Node = node;
+            contextNodeId = node.EffectId;
             Registry = registry;
+            Limits = limits ?? EffectRuntimeLimits.Default;
+            this.attachDeferredDependencies = attachDeferredDependencies;
+        }
+
+        public bool TryAttachDeferredResponseDependenciesOnWorking(IReadOnlyList<DeferredResponseDependency> dependencies)
+        {
+            if (attachDeferredDependencies == null) throw new InvalidOperationException("当前 Effect 没有旁路依赖的工作事务绑定。");
+            return attachDeferredDependencies(dependencies);
         }
 
         public GameState State { get; }
-        public EffectNodeRuntimeState Node { get; }
+        private readonly string contextNodeId;
+        public EffectNodeRuntimeState Node => State.EffectRuntime.EffectNodes.Find(node => node.EffectId == contextNodeId);
         public EffectRegistry Registry { get; }
+        public EffectRuntimeLimits Limits { get; }
 
         public IList<EffectNodeRuntimeState> ChildNodes
         {
@@ -512,6 +572,8 @@ namespace YC.Domain.Effects
 
     public sealed class EffectEventHandlerRegistration
     {
+        public EventResponseAttachmentKind AttachmentKind { get; set; } = EventResponseAttachmentKind.RequiredChild;
+        public Func<EffectEventHandlerContext, EffectSpec, DeferredEventResponseDescriptor> DescribeDeferredResponse { get; set; }
         public EffectEventHandlerRegistration(
             string subscriptionId,
             string eventType,
@@ -593,10 +655,18 @@ namespace YC.Domain.Effects
         }
     }
 
-    public sealed class EffectRegistry
+    public sealed partial class EffectRegistry
     {
+        public YC.Domain.Influence.InfluenceService InfluenceService { get; set; }
+        public YC.Domain.Enterprises.EnterpriseDefinitions EnterpriseDefinitions { get; set; } = new YC.Domain.Enterprises.EnterpriseDefinitions();
         public string ContentPackHash { get; set; } = string.Empty;
+        public GameSetupRecipe SetupRecipe { get; set; }
+        public GameContentDefinitions ContentDefinitions { get; set; }
+        public GameplayPresentationProvider GameplayPresenter { get; set; }
+        public YC.Domain.Facilities.FacilityBuildCandidateQuery FacilityBuildCandidates { get; set; } = new YC.Domain.Facilities.FacilityBuildCandidateQuery();
+        public GameRuleConfiguration LaunchConfiguration { get; set; }
         public Dictionary<string, string> CharacterActivationSubscriptions { get; } = new Dictionary<string, string>(StringComparer.Ordinal);
+        public Dictionary<string, YC.Domain.Cards.CharacterModeContract> CharacterAbilityContracts { get; } = new Dictionary<string, YC.Domain.Cards.CharacterModeContract>(StringComparer.Ordinal);
 
         private readonly Dictionary<string, EffectRegistration> effects = new Dictionary<string, EffectRegistration>(StringComparer.Ordinal);
         private readonly List<EffectEventHandlerRegistration> eventHandlers = new List<EffectEventHandlerRegistration>();
@@ -905,6 +975,9 @@ namespace YC.Domain.Effects
                 ? NormalizedValue.CreateNull()
                 : data.NormalizedArguments.Clone())
             {
+                Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(data.Presentation),
+                Settlement = GameStateCloneService.DeepClone(data.Settlement),
+                Visibility = data.Visibility,
                 DefinitionVersion = data.DefinitionVersion,
                 SourceId = data.SourceId,
                 PlayerId = data.PlayerId,
@@ -914,6 +987,7 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = data.DeclinePromptKey,
                 UnavailablePolicy = data.UnavailablePolicy,
                 CompletionHandlerId = data.CompletionHandlerId,
+                ContinuationContext = data.ContinuationContext?.Clone(),
                 ContinuationContentId = data.ContinuationContentId,
                 ContinuationContentInstanceId = data.ContinuationContentInstanceId,
                 ContinuationAbilityId = data.ContinuationAbilityId,
@@ -958,6 +1032,9 @@ namespace YC.Domain.Effects
                 data.EffectTypeId,
                 data.NormalizedArguments == null ? NormalizedValue.CreateNull() : data.NormalizedArguments.Clone())
             {
+                Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(data.Presentation),
+                Settlement = GameStateCloneService.DeepClone(data.Settlement),
+                Visibility = data.Visibility,
                 DefinitionVersion = data.DefinitionVersion,
                 SourceId = data.SourceId,
                 PlayerId = data.PlayerId,
@@ -967,6 +1044,7 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = data.DeclinePromptKey,
                 UnavailablePolicy = data.UnavailablePolicy,
                 CompletionHandlerId = data.CompletionHandlerId,
+                ContinuationContext = data.ContinuationContext?.Clone(),
                 ContinuationContentId = data.ContinuationContentId,
                 ContinuationContentInstanceId = data.ContinuationContentInstanceId,
                 ContinuationAbilityId = data.ContinuationAbilityId,
@@ -1055,7 +1133,7 @@ namespace YC.Domain.Effects
         public bool Faulted { get { return !string.IsNullOrEmpty(FaultCode); } }
     }
 
-    public class EffectTreeExecutor
+    public partial class EffectTreeExecutor
     {
         private readonly GameState state;
         private readonly EffectRegistry registry;
@@ -1088,6 +1166,8 @@ namespace YC.Domain.Effects
             this.limits = limits ?? EffectRuntimeLimits.Default;
             this.nodeTerminalObserver = nodeTerminalObserver;
             if (this.state.EffectRuntime == null) this.state.EffectRuntime = new EffectRuntimeState();
+            if (!EffectContinuationContext.TryValidate(this.state.EffectRuntime, out string contextReason)) throw new KernelException(EffectFaultCodes.InvalidEffectSpec, contextReason);
+            if (!ContentTransactionEffectExecutor.TryValidateRuntime(this.state,out string transactionReason)) throw new KernelException(EffectFaultCodes.InvalidEffectSpec,transactionReason);
         }
 
         public GameState State { get { return state; } }
@@ -1148,6 +1228,7 @@ namespace YC.Domain.Effects
                         }
 
                         EffectNodeRuntimeState node = CreateNode(spec, createdNodeId, normalizedRoundId, string.Empty);
+                        node.OperationContext = runtime.CurrentOperationContext?.Clone();
                         runtime.EffectNodes.Add(node);
                         AddContinuationBinding(runtime, node);
                     },
@@ -1221,9 +1302,110 @@ namespace YC.Domain.Effects
             string sourceId,
             out string nodeId)
         {
+            if (Runtime.EffectNodes.Any(node => ResourcePaymentPreparationService.IsCurrentPreparation(state, node, playerId)))
+            { nodeId = ""; lastDiagnostic = "payment_preparation_cancel_required"; return false; }
             if (TryAttachToCurrentPlayerActionWindow(playerId, spec, out nodeId)) return true;
             if (!string.IsNullOrEmpty(Runtime.ActiveMainNodeId)) return false;
             return TryCreateRoot(spec, roundId, sourceId, out nodeId);
+        }
+
+        /// <summary>局部插入只替换同一使用的模式请求；失效、去重和条件子树同次RuleCommit。</summary>
+        public bool TryInvokeCharacterSettlementOption(int playerId, string optionId, string useId, int expectedRevision,
+            out bool alreadyInvoked, out string diagnostic)
+        {
+            alreadyInvoked = false; diagnostic = string.Empty;
+            if (Runtime.EffectNodes.Any(n => n.SettlementWindow?.Entries?.Any(e => e.OptionId == optionId) == true))
+                return TryInvokeSettlementEntry(playerId, optionId, useId, expectedRevision, out alreadyInvoked, out diagnostic);
+            var option = YC.Domain.Cards.CharacterSettlementOptionQuery.GetOptions(state, playerId, useId).FirstOrDefault(value => value.OptionId == optionId);
+            if (option == null) { diagnostic = "settlement_option_missing"; return false; }
+            var originalOwner = Runtime.EffectNodes.Find(value => value.EffectId == option.OwnerEffectId);
+            if (YC.Domain.Cards.CharacterSettlementOptionQuery.IsInvoked(originalOwner, optionId)) { alreadyInvoked = true; return true; }
+            if (!option.IsEnabled || expectedRevision != Runtime.StateRevision) { diagnostic = expectedRevision != Runtime.StateRevision ? "state_revision_mismatch" : option.DisabledReasonCode; return false; }
+            bool cleanupOption = string.IsNullOrEmpty(useId) && Runtime.InteractionRequests.Any(value =>
+                value.OwnerEffectId == originalOwner?.EffectId && value.GetStableInteractionId() == option.InteractionId &&
+                value.Status == "open" && value.InteractionTypeId == YC.Domain.Cards.CharacterContentEffectExecutor.CleanupInteractionTypeId);
+            if (string.IsNullOrEmpty(useId) && !cleanupOption)
+            {
+                bool created = TryCreatePlayerActionEffect(playerId, ContentLifecycleEffectExecutor.AwardSpec(playerId, option.SourceItemId, false), "", option.SourceItemId, out _);
+                if (!created) diagnostic = LastDiagnostic;
+                return created;
+            }
+            IList<EffectSpec> specs = cleanupOption ? YC.Domain.Cards.CharacterContentEffectExecutor.GetCleanupBody(state, option) : new[] {
+                YC.Domain.Cards.CharacterLifecycleService.CreateDoubleUseInsertion(playerId, useId, option.SourceItemId) };
+            foreach (var spec in specs) ValidateSpec(spec, 0, 0);
+            var work = GameStateCloneService.DeepClone(state);
+            var owner = work.EffectRuntime.EffectNodes.Single(value => value.EffectId == option.OwnerEffectId);
+            var request = work.EffectRuntime.InteractionRequests.Single(value => value.GetStableInteractionId() == option.InteractionId && value.Status == "open");
+            request.Status = "invalidated";
+            foreach (var blocker in work.EffectRuntime.Blockers.Where(value => value.InteractionRequestId == option.InteractionId)) blocker.IsResolved = true;
+            var invoked = YC.Domain.Effects.ItemTransferEffectExecutor.Value(owner.ContinuationData, "invokedOptionIds")?.Clone() ?? NormalizedValue.CreateArray(new List<NormalizedValue>());
+            invoked.Items.Add(NormalizedValue.CreateString(optionId));
+            YC.Domain.Effects.ItemTransferEffectExecutor.Set(owner, "invokedOptionIds", invoked);
+            if (cleanupOption) owner.FlowStage = "cleanup_started";
+            else
+            {
+                var use = work.CharacterUses.Single(value => value.UseId == useId); use.DoubleUseSourceItemId = option.SourceItemId;
+                owner.FlowStage = "awaiting_insertion";
+            }
+            var entries = new List<RuleJournalEntry>();
+            var attached = AppendChildEffects(work, owner, specs, "settlement", optionId, entries);
+            CommitPreparedWork(work, "settlement.invoke:" + optionId, entries, -1, -1, new[] { owner.EffectId, attached[0] });
+            return true;
+        }
+
+        public bool CanStopCharacterMode(int playerId, string useId, string interactionId, int expectedRevision) =>
+            YC.Domain.Cards.CharacterLifecycleService.TryGetModeStopScope(state, playerId, useId, interactionId, expectedRevision, out _, out _);
+
+        public bool TryStopCharacterMode(int playerId, string useId, string interactionId, int expectedRevision, string commandId, out string diagnostic)
+        {
+            diagnostic = string.Empty;
+            var previous = state.CharacterUses.Find(value => value.UseId == useId);
+            if (!string.IsNullOrEmpty(commandId) && previous?.StopCommandId == commandId && previous.ExecutingPlayerId == playerId) return true;
+            if (string.IsNullOrEmpty(commandId) || !YC.Domain.Cards.CharacterLifecycleService.TryGetModeStopScope(state, playerId, useId, interactionId, expectedRevision, out var activation, out var owned))
+            { diagnostic = "character_mode_stop_not_available"; return false; }
+            var work = GameStateCloneService.DeepClone(state);
+            var use = work.CharacterUses.Single(value => value.UseId == useId);
+            use.SkippedModes.Add(use.ModeOrder[1]); use.StopCommandId = commandId; use.StoppedActivationEffectId = activation.EffectId;
+            var entries = new List<RuleJournalEntry>();
+            foreach (var node in work.EffectRuntime.EffectNodes.Where(value => owned.Contains(value.EffectId) && value.EffectId != activation.EffectId))
+            {
+                // 已有完成事件代表已提交结果；它的外部响应与收据不能改写。
+                if (IsTerminal(node.Status) || !string.IsNullOrEmpty(node.CompletedEventId)) continue;
+                ItemTransferEffectExecutor.Set(node, YC.Domain.Cards.CharacterLifecycleService.StoppedUseKey, NormalizedValue.CreateString(useId));
+                node.PendingOutcome = EffectPendingOutcome.Failed;
+                node.FailureReason = YC.Domain.Cards.CharacterLifecycleService.ModeStoppedReason;
+                node.Status = EffectNodeStatus.Blocked;
+                var binding = work.EffectRuntime.ContinuationBindings.Find(value => value.BindingId == node.ContinuationBindingId);
+                if (binding != null) binding.Status = ContinuationBindingStatus.Cancelled;
+                foreach (var request in work.EffectRuntime.InteractionRequests.Where(value => value.OwnerEffectId == node.EffectId && value.Status == "open" && value.AnsweringPlayerId == playerId))
+                {
+                    request.Status = "cancelled";
+                    ResolveInteractionBlockerOnWorking(work.EffectRuntime, request.GetStableInteractionId());
+                    entries.Add(new RuleJournalEntry { Kind = RuleJournalEntryKind.Interaction, EntityId = request.GetStableInteractionId(), Detail = YC.Domain.Cards.CharacterLifecycleService.ModeStoppedReason });
+                }
+                entries.Add(new RuleJournalEntry { Kind = RuleJournalEntryKind.EffectNode, EntityId = node.EffectId, Detail = YC.Domain.Cards.CharacterLifecycleService.ModeStoppedReason });
+            }
+            CommitPreparedWork(work, commandId, entries, -1, -1, owned.ToList());
+            return true;
+        }
+
+        private bool TryMigrateCharacterSecondMode()
+        {
+            var use = state.CharacterUses.Find(value => value.SelectionProtocolVersion == 2 && !value.Finished && value.ModeOrder.Count == 1 && value.CompletedModes.Count == 1 && value.OfferSecondEffect && value.CanOfferSecondEffect &&
+                Runtime.InteractionRequests.Any(request => request.OwnerEffectId == value.OwnerEffectId && request.Status == "open" && request.InteractionTypeId == YC.Domain.Cards.CharacterLifecycleService.SecondModeInteractionTypeId));
+            if (use == null) return false;
+            var work = GameStateCloneService.DeepClone(state);
+            use = work.CharacterUses.Single(value => value.UseId == use.UseId);
+            var owner = work.EffectRuntime.EffectNodes.Single(value => value.EffectId == use.OwnerEffectId);
+            var quick = work.EffectRuntime.EffectNodes.Single(value => value.EffectId == owner.ParentEffectId);
+            foreach (var request in work.EffectRuntime.InteractionRequests.Where(value => value.OwnerEffectId == owner.EffectId && value.Status == "open" && value.InteractionTypeId == YC.Domain.Cards.CharacterLifecycleService.SecondModeInteractionTypeId))
+            { request.Status = "invalidated"; ResolveInteractionBlockerOnWorking(work.EffectRuntime, request.GetStableInteractionId()); }
+            use.SelectionProtocolVersion = 3;
+            foreach (var node in new[] { owner, quick }) node.NormalizedArguments.Properties.Single(value => value.Name == "selectionProtocolVersion").Value = NormalizedValue.CreateInteger(3);
+            owner.FlowStage = "resolving_modes";
+            if (!HasUnresolvedBlocker(work.EffectRuntime, owner)) owner.Status = EffectNodeStatus.Ready;
+            CommitPreparedWork(work, "character.selection.migrate:" + use.UseId, new List<RuleJournalEntry>(), -1, -1, new[] { owner.EffectId, quick.EffectId });
+            return true;
         }
 
         public string CreateChild(string parentEffectId, EffectSpec spec)
@@ -1372,13 +1554,16 @@ namespace YC.Domain.Effects
             try
             {
                 string nodeId;
+                if (TryMigrateCharacterSecondMode()) return true;
                 if (TryPromoteCreated(out nodeId)) return true;
                 if (TryStartReady(out nodeId)) return true;
                 if (TryExecuteRunning(out nodeId)) return true;
                 if (Runtime.Status != EffectRuntimeStatus.Active) return false;
                 if (TryResumeBlocked(out nodeId)) return true;
 
-                if (HasNonTerminalNodes() && !HasOpenInteraction())
+                if (HasNonTerminalNodes() && !HasOpenInteraction() && !SettlementEntryService.HasPendingPlayerSelection(Runtime) &&
+                    !Runtime.EffectNodes.Any(node => node.Payment?.Preparation != null && !node.Payment.Preparation.IsPromoted && !node.Payment.Preparation.IsCancelled &&
+                        node.Payment.Preparation.ActionKind == "city_move" && node.Payment.Preparation.TargetId.Length == 0))
                 {
                     Fault(
                         EffectFaultCodes.NoProgress,
@@ -1429,7 +1614,7 @@ namespace YC.Domain.Effects
 
             return new EffectRunReport(
                 steps,
-                Runtime.Status == EffectRuntimeStatus.Active && HasOpenInteraction(),
+                Runtime.Status == EffectRuntimeStatus.Active && (HasOpenInteraction() || SettlementEntryService.HasPendingPlayerSelection(Runtime)),
                 Runtime.Status == EffectRuntimeStatus.Active && !HasNonTerminalNodes(),
                 Runtime.Status == EffectRuntimeStatus.PausedFault ? Runtime.LastFaultCode : string.Empty);
         }
@@ -1538,7 +1723,42 @@ namespace YC.Domain.Effects
             NormalizedValue answer,
             out string diagnostic)
         {
+            return TrySubmitInteraction(requestId, answeringPlayerId, expectedRevision,
+                answer, out diagnostic, out _);
+        }
+
+        public bool TrySubmitInteraction(
+            string requestId,
+            int answeringPlayerId,
+            int expectedRevision,
+            NormalizedValue answer,
+            out string diagnostic,
+            out CommandErrorCode errorCode)
+            => TrySubmitInteractionCore(requestId, answeringPlayerId, expectedRevision, answer, null, out diagnostic, out errorCode);
+
+        internal bool TrySubmitInteractionAtRequestContract(GameCommand command, NormalizedValue answer, string expectedContractDigest,
+            out string diagnostic, out CommandErrorCode errorCode)
+        {
+            diagnostic = string.Empty; errorCode = CommandErrorCode.InvalidTarget;
+            if (Runtime.CurrentOperationContext?.SourceCommandId != command.CommandId || Runtime.CurrentOperationContext.ActingPlayerId != command.PlayerId)
+            { diagnostic = "请求合同入口缺少原有序命令的可信执行上下文。"; return false; }
+            if (!InteractionRequestValidity.TryValidateAnswer(state, command, expectedContractDigest, out var validation))
+            { diagnostic = validation.Reason; errorCode = validation.ErrorCode; return false; }
+            command.Parameters.TryGetValue("interactionId", out var id);
+            if (string.IsNullOrEmpty(id)) id = !string.IsNullOrEmpty(command.SourceId) ? command.SourceId : command.TargetId;
+            var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == id);
+            if (request == null) { diagnostic = "原交互已经关闭。"; return false; }
+            if (!int.TryParse(command.Parameters.TryGetValue("expectedRevision", out var revision) ? revision : "", out int expectedRevision) || expectedRevision < 0)
+            { diagnostic = "交互回答缺少有效的原expectedRevision。"; return false; }
+            return TrySubmitInteractionCore(request.GetStableInteractionId(), command.PlayerId, expectedRevision, answer, expectedContractDigest,
+                out diagnostic, out errorCode);
+        }
+
+        private bool TrySubmitInteractionCore(string requestId, int answeringPlayerId, int expectedRevision,
+            NormalizedValue answer, string verifiedContractDigest, out string diagnostic, out CommandErrorCode errorCode)
+        {
             diagnostic = string.Empty;
+            errorCode = CommandErrorCode.InvalidTarget;
             if (Runtime.Status != EffectRuntimeStatus.Active)
             {
                 diagnostic = "运行时已经暂停于故障。";
@@ -1557,16 +1777,20 @@ namespace YC.Domain.Effects
 
                 EffectNodeRuntimeState requestOwner = Runtime.EffectNodes.Find(candidate =>
                     candidate != null && candidate.EffectId == request.OwnerEffectId);
+                if (requestOwner?.Payment?.Preparation != null && !requestOwner.Payment.Preparation.IsPromoted &&
+                    requestOwner.Payment.Preparation.AuthorizationKind != "effect_build")
+                { diagnostic = "payment_requires_original_action_confirmation"; return false; }
                 if (IsDeferredResourceCollectionCompletion(request, requestOwner))
                 {
                     diagnostic = "资源收集尚未完成，不能提前结束采集阶段。";
                     return false;
                 }
 
-                if (expectedRevision < 0 || Runtime.StateRevision != expectedRevision ||
-                    request.StateRevision != expectedRevision)
+                if (expectedRevision < 0 || verifiedContractDigest == null &&
+                    (Runtime.StateRevision != expectedRevision || request.StateRevision != expectedRevision))
                 {
                     diagnostic = "交互已过期，请刷新当前交互。";
+                    errorCode = CommandErrorCode.StateRevisionMismatch;
                     return false;
                 }
 
@@ -1589,6 +1813,16 @@ namespace YC.Domain.Effects
                     return false;
                 }
 
+                if (requestOwner?.Payment?.Preparation?.AuthorizationKind == "effect_build")
+                {
+                    bool submitted = TrySubmitEffectBuildPaymentAnswerOnWorking(request, answeringPlayerId, answer, out diagnostic);
+                    if (submitted) errorCode = CommandErrorCode.None;
+                    return submitted;
+                }
+                if (request.InteractionTypeId == FacilitySelectionEffectExecutor.NormalBuildInteractionType &&
+                    !(answer.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue && request.AllowDecline))
+                { diagnostic = "effect_build_requires_preparation"; return false; }
+
                 GameState work = GameStateCloneService.DeepClone(state);
                 EffectRuntimeState runtime = work.EffectRuntime;
                 InteractionRequest workingRequest = FindInteraction(runtime, id);
@@ -1600,6 +1834,17 @@ namespace YC.Domain.Effects
                 }
 
                 workingRequest.Status = "answered";
+                if (verifiedContractDigest != null && workingRequest.InteractionTypeId == "route_resource.selection")
+                {
+                    // 仅新可信入口写持久化接受事实；旧答案/旧存档不补标，后继仍可辨别legacy strict。
+                    var accepted = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedVersionParameter, NormalizedValue.CreateInteger(InteractionRequestValidity.ContractVersion));
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedDigestParameter, NormalizedValue.CreateString(verifiedContractDigest));
+                    RouteSelectionSessionAuthority.Set(accepted, InteractionRequestValidity.AcceptedCommandParameter, NormalizedValue.CreateString(Runtime.CurrentOperationContext.SourceCommandId));
+                    RouteSelectionSessionAuthority.Set(accepted, "interactionId", NormalizedValue.CreateString(workingRequest.GetStableInteractionId()));
+                    RouteSelectionSessionAuthority.Set(owner.ContinuationData, InteractionRequestValidity.AcceptanceRecord, accepted);
+                }
+                owner.ContinuationOperationContext = runtime.CurrentOperationContext?.Clone() ?? owner.ContinuationOperationContext;
                 workingRequest.NormalizedAnswer = answer.Clone();
                 workingRequest.AnsweredAtRevision = runtime.StateRevision + 1;
                 if (workingRequest.InteractionTypeId == "collection.task")
@@ -1610,7 +1855,7 @@ namespace YC.Domain.Effects
                         collectingPlayer.HasCollectedResourcesThisRound = true;
                     }
                 }
-                if (workingRequest.InteractionTypeId == "action.decline_effect")
+                if (workingRequest.InteractionTypeId == "action.decline_effect" && string.IsNullOrEmpty(owner.Payment?.RuleConditionOwnerEffectId))
                 {
                     var choice = answer.Kind == NormalizedValueKind.Array && answer.Items.Count == 1 ? answer.Items[0] : answer;
                     string selected = choice.Kind == NormalizedValueKind.StableReference ? choice.ReferenceId : choice.StringValue;
@@ -1654,6 +1899,7 @@ namespace YC.Domain.Effects
                     Payload = answer
                 });
                 CommitPreparedWork(work, "interaction.answer:" + id, entries, eventStart, receiptStart, new[] { owner.EffectId });
+                errorCode = CommandErrorCode.None;
                 return true;
             }
             catch (KernelException exception)
@@ -1792,6 +2038,22 @@ namespace YC.Domain.Effects
                     return false;
                 }
 
+                var preparedRulePayment = ResourcePaymentPreparationService.FindDeclinableRulePayment(state, source, playerId);
+                if (preparedRulePayment != null)
+                {
+                    var preparedWork = GameStateCloneService.DeepClone(state);
+                    var paymentOwner = preparedWork.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == preparedRulePayment.EffectId);
+                    ResourcePaymentSubstitutionEffectExecutor.CancelDraft(paymentOwner);
+                    ClosePreparedPaymentInput(preparedWork, paymentOwner);
+                    paymentOwner.PendingOutcome = EffectPendingOutcome.Failed; paymentOwner.FailureReason = "player_declined";
+                    var preparedEntries = new List<RuleJournalEntry>();
+                    int preparedEventStart = preparedWork.EffectRuntime.RuleEvents.Count;
+                    int preparedReceiptStart = preparedWork.EffectRuntime.DispatchReceipts.Count;
+                    TryCompleteNodeOnWorking(preparedWork, paymentOwner, preparedEntries);
+                    CommitPreparedWork(preparedWork, "effect.decline:" + effectId, preparedEntries, preparedEventStart, preparedReceiptStart, new[] { paymentOwner.EffectId });
+                    return true;
+                }
+
                 if (!source.AllowDecline ||
                     (source.DecisionPlayerId >= 0 && source.DecisionPlayerId != playerId) ||
                     source.PendingOutcome != EffectPendingOutcome.None ||
@@ -1843,7 +2105,7 @@ namespace YC.Domain.Effects
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
             {
                 EffectNodeRuntimeState node = Runtime.EffectNodes[i];
-                if (node != null && node.Status == EffectNodeStatus.Created && IsEligibleCreated(node))
+                if (node != null && node.Status == EffectNodeStatus.Created && IsSchedulingEligible(node))
                 {
                     nodeId = node.EffectId;
                     CommitStatus(nodeId, EffectNodeStatus.Ready, "effect.ready");
@@ -1860,7 +2122,7 @@ namespace YC.Domain.Effects
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
             {
                 EffectNodeRuntimeState node = Runtime.EffectNodes[i];
-                if (node != null && node.Status == EffectNodeStatus.Ready)
+                if (node != null && node.Status == EffectNodeStatus.Ready && IsSchedulingEligible(node))
                 {
                     nodeId = node.EffectId;
                     CommitStatus(nodeId, EffectNodeStatus.Running, "effect.running");
@@ -1877,7 +2139,7 @@ namespace YC.Domain.Effects
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
             {
                 EffectNodeRuntimeState node = Runtime.EffectNodes[i];
-                if (node != null && node.Status == EffectNodeStatus.Running)
+                if (node != null && node.Status == EffectNodeStatus.Running && IsSchedulingEligible(node))
                 {
                     nodeId = node.EffectId;
                     try
@@ -1910,6 +2172,7 @@ namespace YC.Domain.Effects
                 if (node == null || node.Status != EffectNodeStatus.Blocked) continue;
                 nodeId = node.EffectId;
                 string currentNodeId = nodeId;
+                if (HasUnresolvedBlocker(Runtime, node)) continue;
                 GameState work = GameStateCloneService.DeepClone(state);
                 EffectNodeRuntimeState workingNode = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == currentNodeId);
                 ResolveTerminalTargetBlockersOnWorking(work.EffectRuntime, workingNode);
@@ -1937,13 +2200,21 @@ namespace YC.Domain.Effects
         {
             EffectNodeRuntimeState source = GetNode(nodeId);
             EffectRegistration registration = registry.Get(source.EffectTypeId);
-            if (!string.IsNullOrEmpty(source.DefinitionVersion) && source.DefinitionVersion != registration.DefinitionVersion)
-                throw new KernelException(EffectFaultCodes.DefinitionVersionMismatch, "恢复的 Effect 执行版本不匹配：" + source.EffectTypeId);
+            if (!string.IsNullOrEmpty(source.DefinitionVersion) && source.DefinitionVersion != registration.DefinitionVersion && !ItemTransferEffectExecutor.CanRestoreLegacy(state, source) && !InfluenceEffectExecutor.CanRestoreLegacy(state, source))
+                throw new KernelException(EffectFaultCodes.DefinitionVersionMismatch, "Effect 定义版本与存档不匹配：" + source.EffectTypeId + "。请使用原定义恢复；不支持重新解释旧节点。");
             GameState work = GameStateCloneService.DeepClone(state);
             EffectNodeRuntimeState node = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == nodeId);
 
+            if (ItemTransferEffectExecutor.CanRestoreLegacy(work, node) || InfluenceEffectExecutor.CanRestoreLegacy(work, node)) node.DefinitionVersion = registration.DefinitionVersion;
+            if (node.EffectTypeId == EffectTypeIds.Condition && ItemTransferEffectExecutor.Flag(node.NormalizedArguments, "ruleCondition") &&
+                string.IsNullOrEmpty(node.FlowStage))
+            {
+                node.AllowDecline = node.NestedGroupSizes[0] != 1 || node.NestedEffects[0].EffectTypeId != ResourceEffectTypeIds.Pay;
+                node.DecisionPlayerId = node.PlayerId;
+            }
             if (node.AllowDecline && string.IsNullOrEmpty(node.FlowStage))
             {
+                bool ruleCondition = node.EffectTypeId == EffectTypeIds.Condition && ItemTransferEffectExecutor.Flag(node.NormalizedArguments, "ruleCondition");
                 var gate = new EffectStepResult();
                 gate.AddInteraction(new EffectInteractionSpec
                 {
@@ -1953,6 +2224,13 @@ namespace YC.Domain.Effects
                         ? "effect.decline"
                         : node.DeclinePromptKey,
                     AllowDecline = true,
+                    PromptParameters = ruleCondition ? ItemTransferEffectExecutor.Object(
+                        "sourceKind", NormalizedValue.CreateString("condition"),
+                        "ownerEffectId", NormalizedValue.CreateString(node.EffectId),
+                        "ruleConditionOwnerEffectId", NormalizedValue.CreateString(node.EffectId)) : NormalizedValue.CreateObject(new List<NormalizedValueEntry>()),
+                    Presentation = ruleCondition ? GameplayPresentationNormalizer.Clone(node.Presentation?.Interaction) :
+                        string.IsNullOrEmpty(node.DeclinePromptKey) || node.DeclinePromptKey == "effect.decline"
+                        ? new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.effect.optional") } : null,
                     AnswerSchema = "candidate_id",
                     CandidateIds = { "continue", "decline" },
                     MinSelections = 1,
@@ -1976,9 +2254,11 @@ namespace YC.Domain.Effects
             // 接受只放行一次；随后执行器把自身阶段写回持久化节点。
             if (node.FlowStage == "optional_accepted") node.FlowStage = string.Empty;
             EffectStepResult result;
+            var entries = new List<RuleJournalEntry>();
             try
             {
-                result = registration.Executor(new EffectExecutionContext(work, node, registry));
+                result = registration.Executor(new EffectExecutionContext(work, node, registry, limits,
+                    dependencies => TryAttachDeferredResponseDependenciesOnWorking(work, nodeId, dependencies, entries)));
             }
             catch (KernelException)
             {
@@ -1989,6 +2269,7 @@ namespace YC.Domain.Effects
                 throw new KernelException(EffectFaultCodes.HandlerException, exception.Message, exception);
             }
 
+            node = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == nodeId);
             if (result == null)
             {
                 throw new KernelException(EffectFaultCodes.InvalidHandlerResult, "Effect 处理器返回 null。");
@@ -1999,7 +2280,6 @@ namespace YC.Domain.Effects
                 throw new KernelException(EffectFaultCodes.NoProgress, "Effect 处理器没有产生进展：" + result.FailureReason);
             }
 
-            var entries = new List<RuleJournalEntry>();
             ApplyStepResult(work, node, result, entries);
         }
 
@@ -2020,7 +2300,7 @@ namespace YC.Domain.Effects
                     : result.NormalizedResult.Clone();
             }
 
-            if (result.ChildEffects.Count > 0)
+            if (result.ChildEffects.Count > 0 || result.IndependentChildGroups.Count > 0)
             {
                 AppendChildEffects(
                     work,
@@ -2028,7 +2308,8 @@ namespace YC.Domain.Effects
                     result.ChildEffects,
                     "child",
                     "child_effect",
-                    entries);
+                    entries,
+                    result.IndependentChildGroups);
             }
 
             // 主链节点只保存其运行 Effect 的顺序子任务索引，避免恢复时重新推导或重复创建。
@@ -2108,6 +2389,10 @@ namespace YC.Domain.Effects
                 throw new KernelException(EffectFaultCodes.NoProgress, "Effect 处理器没有结果、子节点或阻塞项。");
             }
 
+            // 选点已经写入 entered/结果/真实事件时即可放行后位；不等待该节点终态。
+            if (!IsNormalTerminal(node.Status))
+                ActivateAffectedEntranceOwners(work, node.EffectId, entries);
+
             CommitPreparedWork(
                 work,
                 "effect.execute:" + node.EffectId,
@@ -2157,9 +2442,16 @@ namespace YC.Domain.Effects
                     Visibility = string.IsNullOrEmpty(node.Visibility)
                         ? (node.PlayerId >= 0 ? "owner" : "public")
                         : node.Visibility,
-                    ResponseKind = RuleEventResponseKind.Effects,
+                    ResponseKind = IsStoppedCharacterNode(work, node) ? RuleEventResponseKind.None : RuleEventResponseKind.Effects,
                     DefinitionVersion = node.DefinitionVersion,
                     SemanticKey = "completion",
+                    HostOnlyPayload = node.ContinuationContext == null ? NormalizedValue.CreateNull() : CreateObject(new Dictionary<string,NormalizedValue> {
+                        { "effectId", NormalizedValue.CreateString(node.EffectId) },
+                        { "effectTypeId", NormalizedValue.CreateString(node.EffectTypeId) },
+                        { "failureReason", NormalizedValue.CreateString(node.FailureReason ?? string.Empty) },
+                        { "outcome", NormalizedValue.CreateString(node.PendingOutcome == EffectPendingOutcome.Completed ? "completed" : "failed") },
+                        { "normalizedResult", node.NormalizedResult?.Clone() ?? NormalizedValue.CreateNull() },
+                        { "continuationContext", node.ContinuationContext.Clone() } }),
                     Payload = CreateObject(new Dictionary<string, NormalizedValue>
                     {
                         { "effectId", NormalizedValue.CreateString(node.EffectId) },
@@ -2178,6 +2470,17 @@ namespace YC.Domain.Effects
                 return;
             }
 
+            if (node.ContinuationContext != null && node.PendingOutcome == EffectPendingOutcome.Completed &&
+                node.ChildEffectIds.Any(id => work.EffectRuntime.EffectNodes.Any(child => child.EffectId == id && child.Status == EffectNodeStatus.Failed &&
+                    // 条件左式失败已被本节点消费为正常未满足；不能在内容续接收口时重新升级为技术失败。
+                    !(node.EffectTypeId == EffectTypeIds.Condition &&
+                        ItemTransferEffectExecutor.Text(node.NormalizedResult, "outcome") == "condition_not_met" &&
+                        ItemTransferEffectExecutor.Text(node.NormalizedResult, "failedChildId") == child.EffectId))))
+            {
+                node.PendingOutcome = EffectPendingOutcome.Failed;
+                node.FailureReason = "continuation_child_failed";
+            }
+            CompleteDeferredResponseOnWorking(work, node, entries);
             node.Status = node.PendingOutcome == EffectPendingOutcome.Completed
                 ? EffectNodeStatus.Completed
                 : EffectNodeStatus.Failed;
@@ -2185,10 +2488,14 @@ namespace YC.Domain.Effects
             {
                 ContinuationBinding binding = work.EffectRuntime.ContinuationBindings.Find(candidate =>
                     candidate != null && candidate.BindingId == node.ContinuationBindingId);
-                if (binding != null) binding.Status = ContinuationBindingStatus.Completed;
+                if (binding != null && binding.Status != ContinuationBindingStatus.Cancelled) binding.Status = ContinuationBindingStatus.Completed;
             }
-            OnNodeTerminalOnWorking(work, work.EffectRuntime, node);
+            OnNodeTerminalOnWorking(work, work.EffectRuntime, node, entries);
         }
+
+        private static bool IsStoppedCharacterNode(GameState work, EffectNodeRuntimeState node) =>
+            node.FailureReason == YC.Domain.Cards.CharacterLifecycleService.ModeStoppedReason &&
+            work.CharacterUses.Any(use => use.UseId == ItemTransferEffectExecutor.Text(node.ContinuationData, YC.Domain.Cards.CharacterLifecycleService.StoppedUseKey) && use.SkippedModes.Count == 1);
 
         private void DispatchEventsOnWorking(
             GameState work,
@@ -2232,6 +2539,7 @@ namespace YC.Domain.Effects
 
                 var ruleEvent = new RuleEvent
                 {
+                    OperationContext = OperationCause(work, work.EffectRuntime.EffectNodes.Find(n => n.EffectId == sourceId))?.Clone(),
                     EventId = eventId,
                     EventType = request.EventType,
                     SourceEffectId = sourceId,
@@ -2351,15 +2659,25 @@ namespace YC.Domain.Effects
                 }
                 ValidateSpecList(specs, 0);
                 var attached = new List<string>();
+                var deferredIds = new List<string>();
                 if (specs.Count > 0)
                 {
-                    attached.AddRange(AppendChildEffects(
+                    var attachmentOwner = owner;
+                    if (handler.Role == EffectHandlerRole.Continuation && owner.ContinuationContext != null &&
+                        owner.ContinuationScopeRootEffectId != owner.EffectId)
+                    {
+                        attachmentOwner = work.EffectRuntime.EffectNodes.Single(n => n.EffectId == owner.ContinuationScopeRootEffectId);
+                        if (attachmentOwner.ContinuationContentHash != owner.ContinuationContentHash || attachmentOwner.ContinuationAbilityId != owner.ContinuationAbilityId)
+                            throw new KernelException(EffectFaultCodes.ContinuationBindingMissing, "continuation_scope_mismatch");
+                    }
+                    if (!TryAttachDeferredEventResponsesOnWorking(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds))
+                        attached.AddRange(AppendChildEffects(
                         work,
-                        owner,
+                        attachmentOwner,
                         specs,
                         "event",
                         handler.SubscriptionId,
-                        entries));
+                        entries, settlementTriggerId: ruleEvent.EventId, operationContext: ruleEvent.OperationContext));
                 }
 
                 string receiptId = StableIdFactory.Create(
@@ -2381,6 +2699,8 @@ namespace YC.Domain.Effects
                     AbilityId = handler.AbilityId,
                     InvocationKey = ruleEvent.EventId + ":" + handler.SubscriptionId,
                     AttachedEffectIds = attached,
+                    ActualAttachmentKind = deferredIds.Count == 0 ? EventResponseAttachmentKind.RequiredChild : EventResponseAttachmentKind.DeferredPlayerResponse,
+                    DeferredResponseIds = deferredIds,
                     Succeeded = true
                 });
                 entries.Add(new RuleJournalEntry
@@ -2453,7 +2773,10 @@ namespace YC.Domain.Effects
             IList<EffectSpec> specs,
             string idKind,
             string pathKey,
-            List<RuleJournalEntry> entries)
+            List<RuleJournalEntry> entries,
+            IList<EffectStepResult.IndependentChildren> independentGroups = null,
+            string settlementTriggerId = null,
+            OperationCommandContext operationContext = null)
         {
             ValidateSpecList(specs, 0);
             EffectRuntimeState runtime = work.EffectRuntime;
@@ -2470,6 +2793,22 @@ namespace YC.Domain.Effects
 
             var attached = new List<string>();
             int initialChildCount = owner.ChildEffectIds.Count;
+            if (independentGroups != null && independentGroups.Count > 0)
+            {
+                var keys = new HashSet<string>(owner.ChildSchedulingGroups.ConvertAll(group => group.StableGroupKey), StringComparer.Ordinal);
+                int previousEnd = 0;
+                foreach (var group in independentGroups)
+                {
+                    if (group == null || string.IsNullOrWhiteSpace(group.Key) || !keys.Add(group.Key) ||
+                        group.Members == null || group.Members.Count == 0 || group.StartIndex < previousEnd ||
+                        group.StartIndex > specs.Count - group.Members.Count)
+                        throw new KernelException(EffectFaultCodes.InvalidHandlerResult, "独立子任务组重复、扩充或边界无效。");
+                    for (int member = 0; member < group.Members.Count; member++)
+                        if (!ReferenceEquals(group.Members[member], specs[group.StartIndex + member]))
+                            throw new KernelException(EffectFaultCodes.InvalidHandlerResult, "独立子任务组的固定成员已被改动。");
+                    previousEnd = group.StartIndex + group.Members.Count;
+                }
+            }
             for (int i = 0; i < specs.Count; i++)
             {
                 EffectSpec spec = specs[i];
@@ -2487,7 +2826,11 @@ namespace YC.Domain.Effects
                 }
 
                 EffectNodeRuntimeState child = CreateNode(spec, id, owner.RoundId, owner.EffectId);
+                child.OperationContext = (operationContext ?? OperationCause(work, owner))?.Clone();
                 runtime.EffectNodes.Add(child);
+                if (child.ContinuationContext != null && owner.ContinuationContext != null &&
+                    child.ContinuationAbilityId == owner.ContinuationAbilityId && child.ContinuationContentHash == owner.ContinuationContentHash)
+                    child.ContinuationScopeRootEffectId = owner.ContinuationScopeRootEffectId;
                 AddContinuationBinding(runtime, child);
                 owner.ChildEffectIds.Add(id);
                 attached.Add(id);
@@ -2513,30 +2856,23 @@ namespace YC.Domain.Effects
                 });
             }
 
-            for (int i = 0; i < owner.ChildEffectIds.Count; i++)
+            if (independentGroups != null && independentGroups.Count > 0)
             {
-                EffectNodeRuntimeState child = runtime.EffectNodes.Find(candidate => candidate.EffectId == owner.ChildEffectIds[i]);
-                if (child != null && child.Status == EffectNodeStatus.Created)
+                foreach (var group in independentGroups)
                 {
-                    bool previousTerminal = true;
-                    for (int j = 0; j < i; j++)
+                    owner.ChildSchedulingGroups.Add(new EffectChildSchedulingGroup
                     {
-                        EffectNodeRuntimeState previous = runtime.EffectNodes.Find(candidate => candidate.EffectId == owner.ChildEffectIds[j]);
-                        if (previous == null || !IsNormalTerminal(previous.Status))
-                        {
-                            previousTerminal = false;
-                            break;
-                        }
-                    }
-
-                    if (previousTerminal)
-                    {
-                        child.Status = EffectNodeStatus.Ready;
-                        break;
-                    }
+                        GroupId = StableIdFactory.Create("effect_child_group", owner.EffectId, group.Key),
+                        OwnerEffectId = owner.EffectId,
+                        StableGroupKey = group.Key,
+                        Mode = EffectChildSchedulingMode.Independent,
+                        StartIndex = initialChildCount + group.StartIndex,
+                        ChildEffectIds = attached.GetRange(group.StartIndex, group.Members.Count)
+                    });
                 }
             }
-
+            RegisterAttachedSettlementSegments(work, owner, attached, settlementTriggerId);
+            ActivateNextChild(runtime, owner);
             return attached;
         }
 
@@ -2614,6 +2950,7 @@ namespace YC.Domain.Effects
 
             var request = new InteractionRequest
             {
+                OperationContext = OperationCause(work, owner)?.Clone(),
                 InteractionId = requestId,
                 RequestId = requestId,
                 SourceNodeId = string.IsNullOrEmpty(spec.SourceNodeId) ? owner.EffectId : spec.SourceNodeId,
@@ -2623,6 +2960,7 @@ namespace YC.Domain.Effects
                 Visibility = spec.Visibility ?? "public",
                 PromptKey = spec.PromptKey ?? string.Empty,
                 PromptParameters = spec.PromptParameters.Clone(),
+                Presentation = ResolveInteractionPresentation(owner, spec),
                 CandidateSetId = spec.CandidateSetId ?? string.Empty,
                 CandidateSetVersion = spec.CandidateSetVersion,
                 CandidateResolutionId = spec.CandidateResolutionId ?? string.Empty,
@@ -2644,6 +2982,9 @@ namespace YC.Domain.Effects
             }
 
             runtime.InteractionRequests.Add(request);
+            AddResourcePaymentFacts(work, owner, request);
+            AddPaymentChoiceFacts(work, owner, request);
+            OpenInteractionSettlementWindow(work, owner, request);
             string blockerId = StableIdFactory.Create("blocker", owner.EffectId, requestId, "interaction");
             AddBlockerOnWorking(
                 work,
@@ -2653,6 +2994,152 @@ namespace YC.Domain.Effects
                 "interaction",
                 "等待玩家交互答案",
                 blockerId);
+            ApplyInteractionPresentationOnWorking(work, owner, request);
+        }
+
+        private void ApplyInteractionPresentationOnWorking(
+            GameState work, EffectNodeRuntimeState owner, InteractionRequest request)
+        {
+            if (registry.GameplayPresenter == null || request.Visibility != GameStateVisibilityPolicy.Owner) return;
+            EffectNodeRuntimeState repeat = null;
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+            for (var current = owner; current != null && visited.Add(current.EffectId);
+                current = work.EffectRuntime.EffectNodes.Find(node => node.EffectId == current.ParentEffectId))
+                if (current.EffectTypeId == LuaDomainEffectTypeIds.Repeat) { repeat = current; break; }
+            if (string.IsNullOrEmpty(owner.Presentation?.PresentationScript) &&
+                string.IsNullOrEmpty(repeat?.Presentation?.PresentationScript)) return;
+
+            // 只执行身份可见投影；不调用带规则查询的完整GameStateView投影。
+            var identities = new YC.Domain.Items.ItemZoneQuery().Project(work, GameStateViewer.Player(request.AnsweringPlayerId));
+            string sourceId = ItemTransferEffectExecutor.Text(request.PromptParameters, "sourceItemId");
+            if (sourceId.Length == 0) sourceId = owner.ContinuationContentInstanceId ?? string.Empty;
+            var source = identities.Items.Find(item => item.ItemId == sourceId);
+            var allowedItems = new HashSet<string>(identities.Items.Where(item =>
+                item.ItemId == source?.ItemId || request.CandidateIds.Contains(item.ItemId)).Select(item => item.ItemId), StringComparer.Ordinal);
+            var allowedDefinitions = new HashSet<string>(identities.Items.Where(item => allowedItems.Contains(item.ItemId))
+                .Select(item => item.DefinitionId), StringComparer.Ordinal);
+            var canSee = GameStateViewProjector.CreateGameplayTextArgumentVisibility(new GameStateView {
+                GameId = work.GameId, ViewerRole = GameStateViewerRole.Player, ViewerPlayerId = request.AnsweringPlayerId,
+                StateRevision = request.StateRevision, ItemZones = identities });
+            bool CanSeeProvidedArgument(GameplayTextArgument argument) => canSee(argument) &&
+                (argument.Kind == "item" && allowedItems.Contains(argument.Value.ReferenceId) ||
+                 argument.Kind == "definition" && allowedDefinitions.Contains(argument.Value.ReferenceId));
+            var facts = new List<NormalizedValueEntry> {
+                new NormalizedValueEntry { Name = "candidateIds", Value = ItemTransferEffectExecutor.Strings(request.CandidateIds) },
+                new NormalizedValueEntry { Name = "minSelections", Value = NormalizedValue.CreateInteger(request.MinSelections) },
+                new NormalizedValueEntry { Name = "maxSelections", Value = NormalizedValue.CreateInteger(request.MaxSelections) }
+            };
+            if (owner.EffectTypeId == FacilitySelectionEffectExecutor.TypeId)
+                facts.Add(new NormalizedValueEntry { Name = "promptKey", Value = NormalizedValue.CreateString(request.PromptKey) });
+            foreach (string name in new[] { "minAmount", "maxAmount", "totalAmount", "rowIds", "rowMaximums" })
+            {
+                var value = ItemTransferEffectExecutor.Value(request.PromptParameters, name);
+                if (value != null && (name == "minAmount" || name == "maxAmount" || name == "totalAmount"
+                    ? value.Kind == NormalizedValueKind.Integer : value.Kind == NormalizedValueKind.Array))
+                    facts.Add(new NormalizedValueEntry { Name = name, Value = value.Clone() });
+            }
+            var completed = ItemTransferEffectExecutor.Value(repeat?.ContinuationData, "completedCount");
+            var total = ItemTransferEffectExecutor.Value(repeat?.ContinuationData, "requestedCount");
+            if (completed?.Kind == NormalizedValueKind.Integer && total?.Kind == NormalizedValueKind.Integer &&
+                completed.IntegerValue >= 0 && total.IntegerValue >= completed.IntegerValue && total.IntegerValue <= int.MaxValue)
+            {
+                facts.Add(new NormalizedValueEntry { Name = "completedCount", Value = completed.Clone() });
+                facts.Add(new NormalizedValueEntry { Name = "totalCount", Value = total.Clone() });
+            }
+            var rows = ItemTransferEffectExecutor.Value(request.PromptParameters, "rowIds");
+            var rowIds = rows?.Kind == NormalizedValueKind.Array
+                ? rows.Items.Select(value => value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue)
+                : Enumerable.Empty<string>();
+            void Present(EffectNodeRuntimeState scriptOwner, bool progressOnly)
+            {
+                string path = scriptOwner?.Presentation?.PresentationScript;
+                if (string.IsNullOrEmpty(path)) return;
+                var context = new GameplayPresentationContext {
+                    Purpose = "interaction", EffectId = scriptOwner.EffectId, InteractionId = request.GetStableInteractionId(),
+                    AbilityId = scriptOwner.ContinuationAbilityId ?? string.Empty, SourceItemId = source?.ItemId ?? string.Empty,
+                    SourceDefinitionId = source?.DefinitionId ?? string.Empty, ViewerPlayerId = request.AnsweringPlayerId,
+                    StateRevision = request.StateRevision, Facts = NormalizedValue.CreateObject(facts) };
+                string diagnostic;
+                try
+                {
+                    if (registry.GameplayPresenter(path, context, out var result, out diagnostic))
+                    {
+                        GameplayPresentationNormalizer.Validate(result);
+                        var incoming = GameplayPresentationNormalizer.ProjectInteraction(result?.Interaction, true,
+                            request.CandidateIds, rowIds, CanSeeProvidedArgument);
+                        if (incoming == null) return;
+                        if (progressOnly)
+                        {
+                            if (incoming.Progress == null) return;
+                            request.Presentation = request.Presentation ?? new GameplayInteractionPresentation();
+                            request.Presentation.Progress = incoming.Progress;
+                        }
+                        else request.Presentation = MergeInteractionPresentation(request.Presentation, incoming);
+                        return;
+                    }
+                }
+                catch (Exception error) { diagnostic = error.Message; }
+                work.EffectRuntime.Diagnostics.Add(new EffectDiagnosticRuntimeState {
+                    Code = "presentation_failed", Message = diagnostic ?? string.Empty,
+                    NodeId = scriptOwner.EffectId, StateRevision = request.StateRevision });
+            }
+            Present(owner, false);
+            if (repeat != null && repeat.EffectId != owner.EffectId) Present(repeat, true);
+        }
+
+        private static GameplayInteractionPresentation ResolveInteractionPresentation(
+            EffectNodeRuntimeState owner, EffectInteractionSpec spec)
+        {
+            var requestPresentation = spec.Presentation;
+            var nodePresentation = owner.Presentation?.Interaction;
+            string defaultKey;
+            switch (spec.InteractionTypeId)
+            {
+                case "setup.influence.optional": defaultKey = "core:interaction.map.initial_influence"; break;
+                case "effect.influence.place.target": defaultKey = spec.AllowDecline ? "core:interaction.map.influence.place.optional" : "core:interaction.map.influence.place"; break;
+                case "effect.influence.remove.target": defaultKey = spec.AllowDecline ? "core:interaction.map.influence.remove.optional" : "core:interaction.map.influence.remove"; break;
+                case "lua.choice": defaultKey = spec.PromptKey == "effect.influence.replace.choose_target" ? "core:interaction.map.influence.replace" : string.Empty; break;
+                case "effect.city.move.target": defaultKey = "core:interaction.map.city_move"; break;
+                case "entrance.location": defaultKey = "core:interaction.map.entrance"; break;
+                case "effect.route.choose": defaultKey = "core:interaction.map.route"; break;
+                case "action.decline_effect": defaultKey = spec.PromptKey == "effect.decline" ? "core:interaction.effect.optional" : string.Empty; break;
+                default: defaultKey = string.Empty; break;
+            }
+            bool nativeDefault = !string.IsNullOrEmpty(defaultKey) && requestPresentation?.Prompt?.Key == defaultKey &&
+                requestPresentation.Prompt.Arguments.Count == 0 && requestPresentation.Progress == null &&
+                requestPresentation.Options.Count == 0 && requestPresentation.QuantityRows.Count == 0;
+            if (!nativeDefault) return GameplayPresentationNormalizer.Clone(requestPresentation ?? nodePresentation);
+            // 可选节点的 Interaction 已用于 gate；后续同节点地图请求使用自己的正文。
+            if (owner.AllowDecline && spec.InteractionTypeId != "action.decline_effect") nodePresentation = null;
+            return nodePresentation == null ? GameplayPresentationNormalizer.Clone(requestPresentation)
+                : MergeInteractionPresentation(requestPresentation, nodePresentation);
+        }
+
+        private static GameplayInteractionPresentation MergeInteractionPresentation(
+            GameplayInteractionPresentation current, GameplayInteractionPresentation incoming)
+        {
+            var result = GameplayPresentationNormalizer.Clone(current) ?? new GameplayInteractionPresentation();
+            if (incoming.Prompt != null) result.Prompt = incoming.Prompt;
+            if (incoming.Progress != null) result.Progress = incoming.Progress;
+            foreach (var option in incoming.Options)
+            {
+                var target = result.Options.Find(value => value.CandidateId == option.CandidateId);
+                if (target == null) { result.Options.Add(option); continue; }
+                if (option.Label != null) target.Label = option.Label;
+                if (option.Description != null) target.Description = option.Description;
+                if (option.DisabledReason != null) target.DisabledReason = option.DisabledReason;
+                if (!string.IsNullOrEmpty(option.IconKey)) target.IconKey = option.IconKey;
+            }
+            foreach (var row in incoming.QuantityRows)
+            {
+                var target = result.QuantityRows.Find(value => value.RowId == row.RowId);
+                if (target == null) { result.QuantityRows.Add(row); continue; }
+                if (row.Label != null) target.Label = row.Label;
+                if (row.Description != null) target.Description = row.Description;
+                if (row.Unit != null) target.Unit = row.Unit;
+                if (!string.IsNullOrEmpty(row.IconKey)) target.IconKey = row.IconKey;
+            }
+            return result;
         }
 
         private void AddBlockerOnWorking(
@@ -2727,16 +3214,41 @@ namespace YC.Domain.Effects
             InteractionRequest request,
             NormalizedValue answer,
             out string diagnostic)
+            => TryValidateInteractionAnswerOnState(state, request, answer, out diagnostic);
+
+        public static bool TryValidateInteractionAnswerOnState(GameState state, InteractionRequest request, NormalizedValue answer, out string diagnostic)
         {
             diagnostic = string.Empty;
-            if (request == null || answer == null)
+            if (state?.EffectRuntime == null || request == null || answer == null)
             {
                 diagnostic = "交互答案为空。";
                 return false;
             }
-
             if (request.AllowDecline && answer.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue)
                 return true;
+            if (request?.AnswerSchema == ResourceAllocationAnswer.BoundedAnswerSchema)
+            {
+                var minimum = ItemTransferEffectExecutor.Value(request.PromptParameters, "minAmount");
+                var maximum = ItemTransferEffectExecutor.Value(request.PromptParameters, "maxAmount");
+                var rowLimits = ItemTransferEffectExecutor.Value(request.PromptParameters, "rowMaximums");
+                var limits = new Dictionary<string, int>(StringComparer.Ordinal);
+                if (minimum?.Kind != NormalizedValueKind.Integer || maximum?.Kind != NormalizedValueKind.Integer || rowLimits?.Kind != NormalizedValueKind.Object || answer?.Kind != NormalizedValueKind.String)
+                { diagnostic = "bounded_resource_allocation_contract_invalid"; return false; }
+                foreach (var entry in rowLimits.Properties)
+                {
+                    if (entry.Value.Kind != NormalizedValueKind.Integer || entry.Value.IntegerValue < 0 || entry.Value.IntegerValue > 99)
+                    { diagnostic = "bounded_resource_allocation_row_invalid"; return false; }
+                    limits.Add(entry.Name, (int)entry.Value.IntegerValue);
+                }
+                return ResourceAllocationAnswer.TryParseBounded(answer.StringValue, request.CandidateIds, (int)minimum.IntegerValue, (int)maximum.IntegerValue, limits, out _, out diagnostic);
+            }
+            if (request.AnswerSchema == ContentPrimitiveEffectExecutor.QuantityAnswerSchema)
+            {
+                bool valid = request.InteractionTypeId == ContentPrimitiveEffectExecutor.QuantityInteractionTypeId &&
+                    ContentPrimitiveEffectExecutor.TryReadBoundedAmount(request.PromptParameters, answer, out _);
+                if (!valid) diagnostic = "quantity_answer_out_of_range";
+                return valid;
+            }
             // 兼容已保存的旧版放弃确认；新版 UI 使用 continue / decline 明确区分。
             if (request.InteractionTypeId == "action.decline_effect" && answer.Kind == NormalizedValueKind.Boolean)
                 return true;
@@ -2832,7 +3344,7 @@ namespace YC.Domain.Effects
 
                 if (!string.IsNullOrEmpty(request.CandidateResolutionId))
                 {
-                    CandidateResolutionRecord resolution = Runtime.CandidateResolutions.Find(candidate =>
+                    CandidateResolutionRecord resolution = state.EffectRuntime.CandidateResolutions.Find(candidate =>
                         candidate != null && candidate.CandidateSetId == request.CandidateResolutionId &&
                         candidate.Version == request.CandidateSetVersion);
                     if (resolution == null || !resolution.FinalCandidateIds.Contains(selectedIds[i]))
@@ -2926,8 +3438,37 @@ namespace YC.Domain.Effects
         private void OnNodeTerminalOnWorking(
             GameState work,
             EffectRuntimeState runtime,
-            EffectNodeRuntimeState node)
+            EffectNodeRuntimeState node,
+            List<RuleJournalEntry> entries)
         {
+            if (node.EffectTypeId.StartsWith("timing.handler.", StringComparison.Ordinal) && node.FailureReason == "whole_effect_declined")
+            {
+                var source = runtime.EffectNodes.Find(n => n.EffectId == ItemTransferEffectExecutor.Text(node.NormalizedArguments, "sourceEffectId"));
+                var binding = source?.TimingBindings.Find(b => b.BindingId == ItemTransferEffectExecutor.Text(node.NormalizedArguments, "bindingId"));
+                if (binding != null) { binding.Status = "cancelled"; binding.AttachedEffectId = node.EffectId; }
+            }
+            foreach (var windowOwner in runtime.EffectNodes.Where(n => n.SettlementWindow != null))
+            {
+                var window = windowOwner.SettlementWindow;
+                bool wasActive = window.ActiveTargetEffectId == node.EffectId;
+                SettlementEntryService.ObserveTerminal(window, node);
+                if (window.Context.OwnerEffectId == node.EffectId) window.IsClosed = true;
+                if (wasActive && window.Context.Kind != SettlementEntryService.PlayerCleanup)
+                {
+                    bool resumePayment = window.Context.Kind == SettlementEntryService.ResourcePayment && windowOwner.Payment != null &&
+                        !windowOwner.Payment.IsCommitted && !windowOwner.Payment.IsCommitRequested;
+                    window.IsClosed = !resumePayment;
+                    if (window.Context.Kind == SettlementEntryService.ResourcePayment && !string.IsNullOrEmpty(window.ResumeFlowStage))
+                    {
+                        windowOwner.FlowStage = window.ResumeFlowStage;
+                        if (resumePayment) ReopenSuspendedPaymentOnWorking(work, windowOwner, window);
+                    }
+                }
+                if (window.Context.Kind == SettlementEntryService.PlayerCleanup && window.Entries.Count > 0 &&
+                    window.Entries.All(e => e.SettlementState == "resolved" || e.SettlementState == "declined")) window.IsClosed = true;
+                if (window.IsClosed && runtime.ActiveSettlementWindowId == window.Context.Id)
+                    runtime.ActiveSettlementWindowId = SettlementHostProtocol.FindAncestorWindowId(runtime, windowOwner.ParentEffectId);
+            }
             for (int i = 0; i < runtime.Blockers.Count; i++)
             {
                 EffectBlockerRuntimeState blocker = runtime.Blockers[i];
@@ -2950,6 +3491,38 @@ namespace YC.Domain.Effects
             {
                 nodeTerminalObserver(work, node);
             }
+            ActivateAffectedEntranceOwners(work, node.EffectId, entries);
+        }
+
+        private static void ActivateAffectedEntranceOwners(
+            GameState work, string changedEffectId, List<RuleJournalEntry> entries)
+        {
+            var runtime = work.EffectRuntime;
+            var ownerIds = RoundExecutionService.GetEntranceSchedulingOwners(runtime, changedEffectId);
+            if (ownerIds == null || ownerIds.Count == 0) return;
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var ownerId in ownerIds)
+            {
+                if (!visited.Add(ownerId)) continue;
+                var owner = runtime.EffectNodes.Find(candidate => candidate.EffectId == ownerId);
+                if (owner == null)
+                    throw new KernelException(EffectFaultCodes.BlockerTargetMissing, "入场调度所属节点不存在。");
+                if (IsTerminal(owner.Status)) continue;
+                var created = owner.ChildEffectIds.Where(id => runtime.EffectNodes.Exists(candidate =>
+                    candidate.EffectId == id && candidate.Status == EffectNodeStatus.Created)).ToList();
+                ActivateNextChild(runtime, owner);
+                foreach (var childId in created)
+                {
+                    var child = runtime.EffectNodes.Find(candidate => candidate.EffectId == childId);
+                    if (child.Status != EffectNodeStatus.Ready) continue;
+                    entries.Add(new RuleJournalEntry
+                    {
+                        Kind = RuleJournalEntryKind.EffectNode,
+                        EntityId = childId,
+                        Detail = "entrance_child_ready"
+                    });
+                }
+            }
         }
 
         private static void ActivateNextChild(EffectRuntimeState runtime, EffectNodeRuntimeState owner)
@@ -2958,16 +3531,23 @@ namespace YC.Domain.Effects
             for (int i = 0; i < owner.ChildEffectIds.Count; i++)
             {
                 EffectNodeRuntimeState child = runtime.EffectNodes.Find(candidate => candidate.EffectId == owner.ChildEffectIds[i]);
-                if (child == null) continue;
-                if (IsNormalTerminal(child.Status)) continue;
-                if (child.Status != EffectNodeStatus.Created) return;
-                for (int j = 0; j < i; j++)
+                if (child == null || IsNormalTerminal(child.Status)) continue;
+                if (owner.SettlementWindow?.Context?.Kind == SettlementEntryService.PlayerCleanup && owner.SettlementWindow.Entries.Exists(e => e.TargetEffectId == child.EffectId))
                 {
-                    EffectNodeRuntimeState previous = runtime.EffectNodes.Find(candidate => candidate.EffectId == owner.ChildEffectIds[j]);
-                    if (previous == null || !IsNormalTerminal(previous.Status)) return;
+                    if (!runtime.IsChildSchedulingEligible(owner, i)) continue;
+                    if (child.Status == EffectNodeStatus.Created) child.Status = EffectNodeStatus.Ready;
+                    return;
                 }
-
-                child.Status = EffectNodeStatus.Ready;
+                var group = owner.ChildSchedulingGroups.Find(value => i >= value.StartIndex && i - value.StartIndex < value.ChildEffectIds.Count);
+                if (group == null && child.Status != EffectNodeStatus.Created) return;
+                if (group == null && !runtime.IsChildSchedulingEligible(owner, i)) return;
+                int end = group == null ? i + 1 : group.StartIndex + group.ChildEffectIds.Count;
+                for (int member = i; member < end; member++)
+                {
+                    var candidate = runtime.EffectNodes.Find(value => value.EffectId == owner.ChildEffectIds[member]);
+                    if (candidate != null && candidate.Status == EffectNodeStatus.Created &&
+                        runtime.IsChildSchedulingEligible(owner, member)) candidate.Status = EffectNodeStatus.Ready;
+                }
                 return;
             }
         }
@@ -3010,20 +3590,15 @@ namespace YC.Domain.Effects
             return target != null && IsNormalTerminal(target.Status);
         }
 
-        private bool IsEligibleCreated(EffectNodeRuntimeState node)
+        private bool IsSchedulingEligible(EffectNodeRuntimeState node)
         {
+            if (node.Payment?.Preparation?.ActionKind == "city_move" && !node.Payment.Preparation.IsCancelled &&
+                !node.Payment.Preparation.IsPromoted && node.Payment.Preparation.TargetId.Length == 0) return false;
             if (string.IsNullOrEmpty(node.ParentEffectId)) return true;
             EffectNodeRuntimeState parent = GetNode(node.ParentEffectId);
             if (parent == null || IsTerminal(parent.Status)) return false;
             int index = parent.ChildEffectIds.IndexOf(node.EffectId);
-            if (index < 0) return false;
-            for (int i = 0; i < index; i++)
-            {
-                EffectNodeRuntimeState previous = GetNode(parent.ChildEffectIds[i]);
-                if (previous == null || !IsNormalTerminal(previous.Status)) return false;
-            }
-
-            return true;
+            return index >= 0 && Runtime.IsChildSchedulingEligible(parent, index);
         }
 
         private static int GetDepth(EffectRuntimeState runtime, string nodeId)
@@ -3051,8 +3626,13 @@ namespace YC.Domain.Effects
         {
             EffectRegistration registration = registry.Get(spec.EffectTypeId);
             registration.Validate(spec);
+            YC.Domain.Presentation.GameplayPresentationNormalizer.Validate(spec.Presentation);
+            if (!GameplayPresentationStateValidator.TryValidateSpecMetadata(spec.Presentation, spec.Settlement, out var metadataReason))
+                throw new KernelException(EffectFaultCodes.InvalidEffectSpec, metadataReason);
             EffectNodeRuntimeState node = new EffectNodeRuntimeState
             {
+                Settlement = GameStateCloneService.DeepClone(spec.Settlement),
+                Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(spec.Presentation),
                 EffectId = nodeId,
                 RoundId = roundId ?? string.Empty,
                 ParentEffectId = parentId ?? string.Empty,
@@ -3073,6 +3653,8 @@ namespace YC.Domain.Effects
                 NestedEffects = new List<EffectSpecRuntimeState>(),
                 NestedGroupSizes = new List<int>(),
                 ContinuationHandlerId = spec.CompletionHandlerId ?? string.Empty,
+                ContinuationContext = spec.ContinuationContext?.Clone(),
+                ContinuationScopeRootEffectId = spec.ContinuationContext == null ? "" : nodeId,
                 ContinuationBindingId = string.Empty,
                 ContinuationContentId = spec.ContinuationContentId ?? string.Empty,
                 ContinuationContentInstanceId = spec.ContinuationContentInstanceId ?? string.Empty,
@@ -3253,6 +3835,10 @@ namespace YC.Domain.Effects
             IList<string> touchedNodeIds)
         {
             if (work == null || work.EffectRuntime == null) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, "工作状态为空。");
+            if (!YC.Domain.Cards.CharacterLifecycleService.ValidateRetainedBasicCharacters(work, out string retentionReason))
+                throw new KernelException(EffectFaultCodes.InvalidRuntimeState, retentionReason);
+            if (!TryValidateDeferredResponses(work, registry, out string deferredReason))
+                throw new KernelException(EffectFaultCodes.InvalidRuntimeState, deferredReason);
             var commitEntries = entries == null ? new List<RuleJournalEntry>() : new List<RuleJournalEntry>(entries);
             if (commitEntries.Count == 0)
             {
@@ -3265,10 +3851,11 @@ namespace YC.Domain.Effects
             }
 
             work.EffectRuntime.StepCount = checked(work.EffectRuntime.StepCount + 1);
+            OperationWindowService.Synchronize(work);
             RuleCommit commit;
             try
             {
-                commit = RuleCommit.Apply(work, commandId ?? string.Empty, commitEntries.ToArray());
+                commit = RuleCommit.ApplyPreparedEffectCommit(work, commandId ?? string.Empty, commitEntries.ToArray());
             }
             catch (InvalidOperationException exception)
             {
@@ -3282,12 +3869,6 @@ namespace YC.Domain.Effects
                     ", revision=" + work.EffectRuntime.StateRevision.ToString(CultureInfo.InvariantCulture) + "）",
                     exception);
             }
-            string validationReason;
-            if (!work.EffectRuntime.TryValidate(out validationReason))
-            {
-                throw new KernelException(EffectFaultCodes.InvalidRuntimeState, validationReason);
-            }
-
             for (int i = 0; i < commit.Entries.Count; i++)
             {
                 RuleJournalEntry entry = commit.Entries[i];
@@ -3295,7 +3876,8 @@ namespace YC.Domain.Effects
                 {
                     EffectNodeRuntimeState createdNode = work.EffectRuntime.EffectNodes.Find(
                         candidate => candidate.EffectId == entry.EntityId);
-                    if (createdNode != null && createdNode.LastCommitSequence == 0)
+                    if (createdNode != null && (createdNode.LastCommitSequence == 0 ||
+                        entry.Detail == "entrance_child_ready"))
                     {
                         createdNode.LastCommitSequence = entry.CommitSequence;
                     }
@@ -3351,7 +3933,8 @@ namespace YC.Domain.Effects
                         node.EffectId == nodeId ||
                         IsAncestorOf(runtime, node.EffectId, nodeId))
                     {
-                        node.Status = EffectNodeStatus.Faulted;
+                        // 保管中的旁路子树保持可恢复身份；故障仍暂停整个runtime。
+                        if (!TryFindDeferredResponse(work, node.EffectId, out _)) node.Status = EffectNodeStatus.Faulted;
                     }
                 }
 
@@ -3387,6 +3970,14 @@ namespace YC.Domain.Effects
                 state.EffectRuntime.LastFaultCode = code ?? EffectFaultCodes.InvalidRuntimeState;
                 state.EffectRuntime.LastFaultMessage = (message ?? string.Empty) + "；故障记录失败：" + exception.Message;
             }
+        }
+
+        private static OperationCommandContext OperationCause(GameState work, EffectNodeRuntimeState owner)
+        {
+            var current = work.EffectRuntime.CurrentOperationContext;
+            // 当前事务只覆盖其准确来源节点；其他并发任务消费自己保存的创建/继续因果。
+            return current != null && owner?.EffectId == current.SourceEffectId ? current :
+                owner?.ContinuationOperationContext ?? owner?.OperationContext;
         }
 
         private static bool IsAncestorOf(EffectRuntimeState runtime, string candidateId, string descendantId)

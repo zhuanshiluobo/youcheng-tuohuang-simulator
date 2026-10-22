@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c4bc534de084ae6b2669678306b0638, type: 3}
+  m_Name: GameBoxArtworkCatalog
+  m_EditorClassIdentifier: 
+  entries:
+  - visualKey: resource-Originium-0
+    sprite: {fileID: 21300000, guid: 1bbc1b71662b41ceb62ea42880a44838, type: 3}
+  - visualKey: resource-OriginiumShard-0
+    sprite: {fileID: 21300000, guid: 1f0384ffcff74d3ca3bd89624fb4388e, type: 3}
+  - visualKey: resource-Iron-0
+    sprite: {fileID: 21300000, guid: 0832e42990524a0294942ecbdb993e5a, type: 3}
+  - visualKey: resource-PureOriginium-0
+    sprite: {fileID: 21300000, guid: c55ffa89550b4d33aedeeb6ff0605be3, type: 3}
+  - visualKey: resource-Originium-2
+    sprite: {fileID: 21300000, guid: 8f1d6ce55ccf49dc9a0c65c86a894f22, type: 3}

@@ -157,7 +157,7 @@ namespace YC.Application.Gameplay
 
             var originiumAmount = -1;
             var ironAmount = -1;
-            var definition = SpecialActionDatabase.Get(specialActionId);
+            var definition = SpecialActionDatabase.Get(state, specialActionId);
             if (definition != null && definition.EffectKind == SpecialActionEffectKind.CompositePowerMove &&
                 (!TryGetNonNegativeInt(command, OriginiumAmountParameter, out originiumAmount) ||
                  !TryGetNonNegativeInt(command, IronAmountParameter, out ironAmount)))

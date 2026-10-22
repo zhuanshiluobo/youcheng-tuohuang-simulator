@@ -1,34 +1,64 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
+using YC.Domain.Cards;
+using YC.Domain.CityStyles;
+using YC.Domain.Facilities;
 using YC.Domain.Rules;
-using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
     public sealed class CardVisualCatalogEditorAssetTests
     {
+        [Test]
+        public void RuntimeInstanceIdsResolveCharacterArtworkWithoutDirtyingTheCatalog()
+        {
+            var catalog = AssetDatabase.LoadMainAssetAtPath(CatalogPath);
+            var resolverField = catalog.GetType().GetField("runtimeDefinitionResolver", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var originalResolver = resolverField.GetValue(catalog);
+            bool wasDirty = EditorUtility.IsDirty(catalog);
+            try
+            {
+                Func<string, string> resolver = id => id == "visible_character_instance" ? CharacterCardDatabase.Liskarm : id;
+                catalog.GetType().GetMethod("BindRuntimeDefinitions").Invoke(catalog, new object[] { resolver });
+                var getter = catalog.GetType().GetMethod("GetCharacterFront");
+                var direct = getter.Invoke(catalog, new object[] { CharacterCardDatabase.Liskarm });
+                Assert.That(direct, Is.Not.Null);
+                Assert.That(getter.Invoke(catalog, new object[] { "visible_character_instance" }), Is.SameAs(direct));
+                Assert.That(EditorUtility.IsDirty(catalog), Is.EqualTo(wasDirty));
+            }
+            finally { resolverField.SetValue(catalog, originalResolver); }
+        }
+
         private const string CatalogPath =
             "Assets/YC/Presentation/Content/CardVisualCatalog.asset";
         private const string GameplayHudPrefabPath =
             "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab";
 
         [Test]
-        public void Catalog_UsesDecodedExternalArtworkWithoutPersistentTextureDependencies()
+        public void Catalog_UsesExternalSpritesAndKeepsOnlySharedPersistentTextures()
         {
             var catalog = AssetDatabase.LoadMainAssetAtPath(CatalogPath);
             Assert.That(catalog, Is.Not.Null);
-            Assert.That(catalog.GetType().FullName, Is.EqualTo("YC.Presentation.CardVisualCatalog"));
             AssertCatalogValid(catalog);
-
-            foreach (var dependency in AssetDatabase.GetDependencies(CatalogPath, true))
-                Assert.That(AssetDatabase.LoadMainAssetAtPath(dependency), Is.Not.InstanceOf<Texture2D>(), dependency);
-
             var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
-            var pack = (ExternalContentPack)runtime.GetProperty("Pack").GetValue(null);
+            var pack = (YC.Infrastructure.Lua.ExternalContentPack)runtime.GetProperty("Pack").GetValue(null);
+            foreach (var pair in new[] { ("facility", "FacilityCount"), ("city_style", "CityStyleCount"),
+                ("character", "CharacterFrontCount"), ("event", "EventCount") })
+                Assert.That(GetProperty<int>(catalog, pair.Item2),
+                    Is.EqualTo(pack.ActiveDefinitions.Count(definition => definition.ContentType == pair.Item1)));
+            var serialized = new SerializedObject(catalog);
+            foreach (var name in new[] { "facilityTextures", "cityStyleTextures", "characterFrontTextures", "eventTextures" })
+                Assert.That(serialized.FindProperty(name), Is.Null, name);
+            var shared = 0;
+            CheckCharacterBackEntries(serialized.FindProperty("characterBackTextures"), ref shared);
+            AssertPersistent(serialized.FindProperty("cityBoardTexture").objectReferenceValue as Texture2D);
+            Assert.That(shared, Is.EqualTo(Enum.GetValues(typeof(PlayerColor)).Length));
+            var sheets = new Dictionary<string, Texture2D>();
             foreach (var definition in pack.ActiveDefinitions)
             {
                 var method = definition.ContentType == "facility" ? "GetFacility" :
@@ -36,26 +66,19 @@ namespace YC.Tests.EditMode
                     definition.ContentType == "character" ? "GetCharacterFront" :
                     definition.ContentType == "event" ? "GetEvent" : null;
                 if (method == null) continue;
-                var texture = InvokeTexture(catalog, method, definition.RuntimeId);
-                AssertDecoded(texture, definition.RuntimeId);
-                var externalTexture = runtime.GetMethod("GetArtwork").Invoke(null,
-                    new object[] { definition.ContentType, definition.RuntimeId });
-                Assert.That(texture, Is.SameAs(externalTexture), definition.RuntimeId);
-                Assert.That(InvokeTexture(catalog, method, definition.RuntimeId), Is.SameAs(texture));
+                var sprite = catalog.GetType().GetMethod(method).Invoke(catalog, new object[] { definition.RuntimeId }) as Sprite;
+                Assert.That(sprite, Is.Not.Null, definition.DefinitionId);
+                var slice = definition.ArtworkSlice;
+                Assert.That(slice, Is.Not.Null, definition.DefinitionId);
+                Assert.That(sprite.name, Is.EqualTo(definition.ArtworkSpriteId));
+                Assert.That(sprite.rect, Is.EqualTo(new Rect(slice.X, slice.Y, slice.Width, slice.Height)));
+                Assert.That(sprite.texture.width, Is.EqualTo(slice.SourceWidth));
+                Assert.That(sprite.texture.height, Is.EqualTo(slice.SourceHeight));
+                if (sheets.TryGetValue(definition.Artwork, out var sheet)) Assert.That(sprite.texture, Is.SameAs(sheet));
+                else sheets.Add(definition.Artwork, sprite.texture);
             }
-
-            foreach (PlayerColor color in Enum.GetValues(typeof(PlayerColor)))
-            {
-                var texture = InvokeTexture(catalog, "GetCharacterBack", color);
-                AssertDecoded(texture, color.ToString());
-                Assert.That(texture, Is.SameAs(runtime.GetMethod("GetSharedArtwork").Invoke(null,
-                    new object[] { "character_back_" + (int)color })));
-            }
-            var board = catalog.GetType().GetMethod("GetCityBoard").Invoke(catalog, null) as Texture2D;
-            AssertDecoded(board, "city_board");
-            Assert.That(board, Is.SameAs(runtime.GetMethod("GetSharedArtwork").Invoke(null,
-                new object[] { "city_board" })));
-            Assert.That(InvokeTexture(catalog, "GetFacility", "unknown_card"), Is.Null);
+            Assert.That(sheets.Count, Is.GreaterThan(0));
+            Assert.That(catalog.GetType().GetMethod("GetFacility").Invoke(catalog, new object[] { "unknown_card" }), Is.Null);
         }
 
         [Test]
@@ -82,62 +105,6 @@ namespace YC.Tests.EditMode
             Assert.That(
                 new SerializedObject(registry).FindProperty("cardVisualCatalog").objectReferenceValue,
                 Is.SameAs(catalog));
-        }
-
-        [Test]
-        public void CityBoardPrefabs_BindTheSharedExternalTextureWithoutLegacyArtworkDependencies()
-        {
-            var catalog = AssetDatabase.LoadMainAssetAtPath(CatalogPath);
-            Assert.That(catalog, Is.Not.Null);
-            var board = catalog.GetType().GetMethod("GetCityBoard").Invoke(catalog, null) as Texture2D;
-            AssertDecoded(board, "city_board");
-            var bindingType = Type.GetType("YC.Presentation.SharedArtworkImage, Assembly-CSharp", true);
-            var boardViewType = Type.GetType("YC.Presentation.BuildInfoPanelView, Assembly-CSharp", true);
-            var paths = new[]
-            {
-                "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
-                GameplayHudPrefabPath,
-                "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/FacilityBuildDialog.prefab"
-            };
-            var expectedBindings = new[] { 1, 2, 1 };
-            for (var i = 0; i < paths.Length; i++)
-            {
-                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(paths[i]);
-                Assert.That(prefab, Is.Not.Null, paths[i]);
-                foreach (var dependency in AssetDatabase.GetDependencies(paths[i], true))
-                {
-                    Assert.That(dependency, Does.Not.StartWith("Assets/YC/Presentation/Resources/CardImages/"), paths[i]);
-                    Assert.That(dependency, Is.Not.EqualTo(
-                        "Assets/YC/Presentation/CardPicker/Artwork/facility-city-board.png"), paths[i]);
-                }
-                var instance = UnityEngine.Object.Instantiate(prefab);
-                try
-                {
-                    foreach (var view in instance.GetComponentsInChildren(boardViewType, true))
-                    {
-                        var image = (RawImage)boardViewType.GetProperty("CityBoardImage").GetValue(view);
-                        image.texture = null;
-                        var arguments = new object[] { null };
-                        var valid = (bool)boardViewType.GetMethod("TryValidateConfiguration").Invoke(view, arguments);
-                        Assert.That(valid, Is.True, arguments[0] as string);
-                        Assert.That(image.texture, Is.SameAs(board), paths[i]);
-                    }
-                    var bindings = instance.GetComponentsInChildren(bindingType, true);
-                    Assert.That(bindings.Length, Is.EqualTo(expectedBindings[i]), paths[i]);
-                    foreach (var binding in bindings)
-                    {
-                        for (var parent = binding.transform; parent != null; parent = parent.parent)
-                            parent.gameObject.SetActive(true);
-                        var image = binding.GetComponent<RawImage>();
-                        Assert.That(image, Is.Not.Null, paths[i]);
-                        Assert.That(image.texture, Is.SameAs(board), paths[i] + ":" + binding.name);
-                    }
-                }
-                finally
-                {
-                    UnityEngine.Object.DestroyImmediate(instance);
-                }
-            }
         }
 
         [Test]
@@ -169,12 +136,30 @@ namespace YC.Tests.EditMode
             StringAssert.DoesNotContain("new Texture2D(", legacyLoader);
         }
 
-        private static void AssertDecoded(Texture2D texture, string label)
+        private static void CheckCharacterBackEntries(
+            SerializedProperty entries,
+            ref int persistentTextures)
         {
-            Assert.That(texture, Is.Not.Null, label);
-            Assert.That(texture.width, Is.GreaterThan(0), label);
-            Assert.That(texture.height, Is.GreaterThan(0), label);
-            Assert.That(AssetDatabase.Contains(texture), Is.False, label);
+            Assert.That(entries, Is.Not.Null);
+            Assert.That(entries.arraySize, Is.EqualTo(Enum.GetValues(typeof(PlayerColor)).Length));
+            var colors = new HashSet<int>();
+            for (var i = 0; i < entries.arraySize; i++)
+            {
+                var entry = entries.GetArrayElementAtIndex(i);
+                Assert.That(colors.Add(entry.FindPropertyRelative("color").enumValueIndex), Is.True);
+                AssertPersistent(entry.FindPropertyRelative("texture").objectReferenceValue as Texture2D);
+                persistentTextures++;
+            }
+        }
+
+        private static void AssertPersistent(Texture2D texture)
+        {
+            Assert.That(texture, Is.Not.Null);
+            Assert.That(
+                AssetDatabase.TryGetGUIDAndLocalFileIdentifier(texture, out string guid, out long localId),
+                Is.True);
+            Assert.That(guid, Is.Not.Empty);
+            Assert.That(localId, Is.Not.EqualTo(0));
         }
 
         private static void AssertCatalogValid(UnityEngine.Object catalog)
@@ -186,11 +171,10 @@ namespace YC.Tests.EditMode
             Assert.That(valid, Is.True, arguments[0] as string);
         }
 
-        private static Texture2D InvokeTexture(UnityEngine.Object catalog, string methodName, object argument)
+        private static T GetProperty<T>(UnityEngine.Object target, string propertyName)
         {
-            return catalog.GetType().GetMethod(methodName).Invoke(
-                catalog,
-                new[] { argument }) as Texture2D;
+            return (T)target.GetType().GetProperty(propertyName).GetValue(target, null);
         }
+
     }
 }

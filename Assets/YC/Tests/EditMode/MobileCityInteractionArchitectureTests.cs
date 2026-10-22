@@ -364,10 +364,19 @@ namespace YC.Tests.EditMode
                 StringAssert.DoesNotContain("ShowCharacterSecondEffectDecision", source, fileName);
             }
 
-            Assert.That(
-                lineBudgetCount,
-                Is.LessThanOrEqualTo(1200),
-                "Controller 核心职责行数超限；RightCardSmoke 仍参与实际编译，仅排除于核心职责行数预算，且仍扫描危险模式。");
+            // 行数仅作为诊断指标；职责合同约束行为边界，不能靠删空行或改排版通过。
+            TestContext.WriteLine("场景控制器业务行数（含空行）：" + lineBudgetCount);
+            foreach (var path in paths)
+            {
+                var source = File.ReadAllText(path);
+                // 规则执行、事务与网络传输必须留在相应服务；场景控制器只能接线和提交命令。
+                StringAssert.DoesNotContain("new EffectTreeExecutor", source, path);
+                StringAssert.DoesNotContain("new AuthoritativeCommandDispatcher", source, path);
+                StringAssert.DoesNotContain(".RelocateItems(", source, path);
+                StringAssert.DoesNotContain(".TryPay(", source, path);
+                StringAssert.DoesNotContain("NetworkClient.Send", source, path);
+                StringAssert.DoesNotContain("JsonConvert.SerializeObject", source, path);
+            }
             Assert.That(rightCardSmokeLineCount, Is.GreaterThan(0));
             Assert.That(
                 allPartialLineCount,

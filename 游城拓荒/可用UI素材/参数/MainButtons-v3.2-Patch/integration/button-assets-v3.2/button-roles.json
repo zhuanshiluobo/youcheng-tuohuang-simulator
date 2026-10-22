@@ -1,0 +1,326 @@
+{
+  "version": "3.2",
+  "baseline": "FrontierUI-v3-Patch / 3.1",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "assets": "button-assets-v3.2/button-assets.json",
+  "textIsRuntime": true,
+  "iconIdTemplate": "icon-{glyph}-{light|dark|muted}",
+  "baseIdTemplate": "{family}-{state}",
+  "states": [
+    "default",
+    "hover",
+    "pressed",
+    "disabled",
+    "selected",
+    "selected-hover"
+  ],
+  "roles": [
+    {
+      "id": "tab.main",
+      "label": "主要行动",
+      "family": "tab",
+      "glyph": "main-actions",
+      "rect": [
+        1352,
+        598,
+        180,
+        48
+      ],
+      "iconRect": [
+        1364,
+        606,
+        32,
+        32
+      ],
+      "labelCenter": [
+        1463,
+        622
+      ],
+      "fontSize": 19,
+      "selectedState": "selected",
+      "previewAction": "tab-actions"
+    },
+    {
+      "id": "tab.quick",
+      "label": "快速行动",
+      "family": "tab",
+      "glyph": "quick-actions",
+      "rect": [
+        1538,
+        598,
+        180,
+        48
+      ],
+      "iconRect": [
+        1550,
+        606,
+        32,
+        32
+      ],
+      "labelCenter": [
+        1649,
+        622
+      ],
+      "fontSize": 19,
+      "selectedState": "selected",
+      "previewAction": "tab-quick"
+    },
+    {
+      "id": "tab.city",
+      "label": "城市样式",
+      "family": "tab",
+      "glyph": "city-patterns",
+      "rect": [
+        1724,
+        598,
+        180,
+        48
+      ],
+      "iconRect": [
+        1736,
+        606,
+        32,
+        32
+      ],
+      "labelCenter": [
+        1835,
+        622
+      ],
+      "fontSize": 19,
+      "selectedState": "selected",
+      "previewAction": "tab-patterns"
+    },
+    {
+      "id": "action.deploy",
+      "label": "部署",
+      "family": "action",
+      "glyph": "deploy",
+      "rect": [
+        1364,
+        700,
+        258,
+        55
+      ],
+      "iconRect": [
+        1381,
+        708.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1525,
+        727.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1429,
+        713,
+        1429,
+        742
+      ],
+      "previewAction": "action-0"
+    },
+    {
+      "id": "action.dispatch",
+      "label": "调度",
+      "family": "action",
+      "glyph": "dispatch",
+      "rect": [
+        1634,
+        700,
+        258,
+        55
+      ],
+      "iconRect": [
+        1651,
+        708.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1795,
+        727.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1699,
+        713,
+        1699,
+        742
+      ],
+      "previewAction": "action-1"
+    },
+    {
+      "id": "action.explore",
+      "label": "探索",
+      "family": "action",
+      "glyph": "explore",
+      "rect": [
+        1364,
+        765,
+        258,
+        55
+      ],
+      "iconRect": [
+        1381,
+        773.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1525,
+        792.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1429,
+        778,
+        1429,
+        807
+      ],
+      "previewAction": "action-2"
+    },
+    {
+      "id": "action.move",
+      "label": "城市移动",
+      "family": "action",
+      "glyph": "city-move",
+      "rect": [
+        1634,
+        765,
+        258,
+        55
+      ],
+      "iconRect": [
+        1651,
+        773.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1795,
+        792.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1699,
+        778,
+        1699,
+        807
+      ],
+      "previewAction": "action-3"
+    },
+    {
+      "id": "action.build",
+      "label": "建设",
+      "family": "action",
+      "glyph": "build",
+      "rect": [
+        1364,
+        830,
+        258,
+        55
+      ],
+      "iconRect": [
+        1381,
+        838.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1525,
+        857.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1429,
+        843,
+        1429,
+        872
+      ],
+      "previewAction": "action-4"
+    },
+    {
+      "id": "action.special",
+      "label": "特殊行动",
+      "family": "action",
+      "glyph": "special",
+      "rect": [
+        1634,
+        830,
+        258,
+        55
+      ],
+      "iconRect": [
+        1651,
+        838.5,
+        38,
+        38
+      ],
+      "labelCenter": [
+        1795,
+        857.5
+      ],
+      "fontSize": 21,
+      "separator": [
+        1699,
+        843,
+        1699,
+        872
+      ],
+      "previewAction": "action-5"
+    },
+    {
+      "id": "undo",
+      "label": "撤销",
+      "family": "undo",
+      "glyph": "undo",
+      "rect": [
+        36,
+        1005,
+        132,
+        48
+      ],
+      "iconRect": [
+        48,
+        1014,
+        30,
+        30
+      ],
+      "labelCenter": [
+        121,
+        1029
+      ],
+      "fontSize": 20,
+      "previewAction": "undo"
+    },
+    {
+      "id": "endAction",
+      "label": "结束行动",
+      "family": "primary",
+      "glyph": "end",
+      "rect": [
+        1640,
+        1003,
+        236,
+        52
+      ],
+      "iconRect": [
+        1678,
+        1014,
+        30,
+        30
+      ],
+      "labelCenter": [
+        1785,
+        1029
+      ],
+      "fontSize": 21,
+      "previewAction": "end"
+    }
+  ],
+  "pathBase": "installed preview package root"
+}

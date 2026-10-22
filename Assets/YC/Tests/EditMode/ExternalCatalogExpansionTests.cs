@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -54,7 +54,7 @@ namespace YC.Tests.EditMode
             template["data"]["effectId"] = "external.custom.reward"; template["data"]["effectScript"] = "reward.lua";
             File.WriteAllText(Path.Combine(root, "template.json"), template.ToString());
             File.WriteAllText(Path.Combine(root, "reward.lua"), "return function(ctx) return { Effect.GainResource({recipient=ctx.playerId,resourceType='iron',amount=7}) } end");
-            File.Copy(Path.Combine(core, "artwork/facility/building_001.jpg"), Path.Combine(root, "card.jpg"));
+            File.Copy(Path.Combine(core, "artwork/sheets/character_faces.jpg"), Path.Combine(root, "card.jpg"));
             var definition = new JObject { ["contentType"] = "facility", ["displayName"] = "扩展设施", ["version"] = "1", ["expansionId"] = "test",
                 ["replaces"] = JValue.CreateNull(), ["abilities"] = new JArray(), ["data"] = new JObject(), ["dataTemplate"] = "template.json" };
             var inventory = new JObject { ["groups"] = new JArray(new JObject { ["idPrefix"] = "external", ["definition"] = definition,

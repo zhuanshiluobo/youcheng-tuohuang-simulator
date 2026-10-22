@@ -1,0 +1,867 @@
+{
+  "version": "1.0",
+  "styleSources": [
+    "Area-Control-v1.0",
+    "Main-Info-Buttons-v1.0",
+    "original cooperation squares"
+  ],
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "sliceOrder": [
+    "left",
+    "top",
+    "right",
+    "bottom"
+  ],
+  "assets": {
+    "window-fill": {
+      "path": "assets/window/fill.png",
+      "path2x": "assets/window/fill@2x.png",
+      "svg": "assets/window/fill.svg",
+      "size": [
+        1560,
+        920
+      ],
+      "copiedFrom": "output/Area-Control-v1.0/assets/window/window-fill",
+      "textBakedIn": false,
+      "role": "window-fill",
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "window-frame": {
+      "path": "assets/window/frame.png",
+      "path2x": "assets/window/frame@2x.png",
+      "svg": "assets/window/frame.svg",
+      "size": [
+        512,
+        320
+      ],
+      "copiedFrom": "output/Area-Control-v1.0/assets/window/window-frame",
+      "textBakedIn": false,
+      "role": "transparent-frame",
+      "sliceLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "slice2xLTRB": [
+        40,
+        40,
+        40,
+        40
+      ]
+    },
+    "dim-overlay": {
+      "path": "assets/window/dim-overlay.png",
+      "svg": "assets/window/dim-overlay.svg",
+      "size": [
+        4,
+        4
+      ],
+      "copiedFrom": "output/Area-Control-v1.0/assets/window/dim-overlay",
+      "textBakedIn": false,
+      "role": "screen-dim",
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": null
+    },
+    "header-fill": {
+      "path": "assets/header/fill.png",
+      "path2x": "assets/header/fill@2x.png",
+      "svg": "assets/header/fill.svg",
+      "size": [
+        1528,
+        116
+      ],
+      "copiedFrom": "output/Area-Control-v1.0/assets/header/header-fill",
+      "textBakedIn": false,
+      "role": "header-fill",
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "header-accent": {
+      "path": "assets/header/accent.png",
+      "path2x": "assets/header/accent@2x.png",
+      "svg": "assets/header/accent.svg",
+      "size": [
+        4,
+        48
+      ],
+      "copiedFrom": "output/Area-Control-v1.0/assets/header/header-accent",
+      "textBakedIn": false,
+      "role": "accent",
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "game-box-icon": {
+      "path": "assets/header/game-box-icon.png",
+      "path2x": "assets/header/game-box-icon@2x.png",
+      "svg": "assets/header/game-box-icon.svg",
+      "size": [
+        64,
+        64
+      ],
+      "copiedFrom": "output/Main-Info-Buttons-v1.0/assets/icons/game-box-dark",
+      "textBakedIn": false,
+      "role": "icon",
+      "proportionalOnly": true,
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "module-fill": {
+      "svg": "assets/modules/fill.svg",
+      "size": [
+        512,
+        384
+      ],
+      "png": [
+        {
+          "path": "assets/modules/fill.png",
+          "width": 512,
+          "height": 384,
+          "scale": 1
+        },
+        {
+          "path": "assets/modules/fill@2x.png",
+          "width": 1024,
+          "height": 768,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "module-fill",
+      "textBakedIn": false,
+      "path": "assets/modules/fill.png",
+      "path2x": "assets/modules/fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "module-frame": {
+      "svg": "assets/modules/frame.svg",
+      "size": [
+        512,
+        384
+      ],
+      "png": [
+        {
+          "path": "assets/modules/frame.png",
+          "width": 512,
+          "height": 384,
+          "scale": 1
+        },
+        {
+          "path": "assets/modules/frame@2x.png",
+          "width": 1024,
+          "height": 768,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "transparent-module-frame",
+      "textBakedIn": false,
+      "path": "assets/modules/frame.png",
+      "path2x": "assets/modules/frame@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    "module-title-fill": {
+      "svg": "assets/modules/title-fill.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/modules/title-fill.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/modules/title-fill@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "module-heading-fill",
+      "textBakedIn": false,
+      "path": "assets/modules/title-fill.png",
+      "path2x": "assets/modules/title-fill@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "module-title-frame": {
+      "svg": "assets/modules/title-frame.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/modules/title-frame.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/modules/title-frame@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "transparent-heading-frame",
+      "textBakedIn": false,
+      "path": "assets/modules/title-frame.png",
+      "path2x": "assets/modules/title-frame@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "module-title-accent": {
+      "svg": "assets/modules/title-accent.svg",
+      "size": [
+        4,
+        30
+      ],
+      "png": [
+        {
+          "path": "assets/modules/title-accent.png",
+          "width": 4,
+          "height": 30,
+          "scale": 1
+        },
+        {
+          "path": "assets/modules/title-accent@2x.png",
+          "width": 8,
+          "height": 60,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "heading-accent",
+      "textBakedIn": false,
+      "path": "assets/modules/title-accent.png",
+      "path2x": "assets/modules/title-accent@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "footer-divider": {
+      "svg": "assets/window/footer-divider.svg",
+      "size": [
+        1024,
+        2
+      ],
+      "png": [
+        {
+          "path": "assets/window/footer-divider.png",
+          "width": 1024,
+          "height": 2,
+          "scale": 1
+        },
+        {
+          "path": "assets/window/footer-divider@2x.png",
+          "width": 2048,
+          "height": 4,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "divider",
+      "textBakedIn": false,
+      "path": "assets/window/footer-divider.png",
+      "path2x": "assets/window/footer-divider@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "marker-strip-fill": {
+      "svg": "assets/markers/strip-fill.svg",
+      "size": [
+        512,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/markers/strip-fill.png",
+          "width": 512,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/markers/strip-fill@2x.png",
+          "width": 1024,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "marker-strip-fill",
+      "textBakedIn": false,
+      "path": "assets/markers/strip-fill.png",
+      "path2x": "assets/markers/strip-fill@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "marker-strip-frame": {
+      "svg": "assets/markers/strip-frame.svg",
+      "size": [
+        512,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/markers/strip-frame.png",
+          "width": 512,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/markers/strip-frame@2x.png",
+          "width": 1024,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "transparent-marker-strip-frame",
+      "textBakedIn": false,
+      "path": "assets/markers/strip-frame.png",
+      "path2x": "assets/markers/strip-frame@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "player-01": {
+      "path": "assets/markers/cooperation-01-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-cooperation-square",
+      "copiedUnchanged": true,
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "proportionalOnly": true,
+      "textBakedIn": false,
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": null
+    },
+    "player-02": {
+      "path": "assets/markers/cooperation-02-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-cooperation-square",
+      "copiedUnchanged": true,
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "proportionalOnly": true,
+      "textBakedIn": false,
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": null
+    },
+    "player-04": {
+      "path": "assets/markers/cooperation-04-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-cooperation-square",
+      "copiedUnchanged": true,
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "proportionalOnly": true,
+      "textBakedIn": false,
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": null
+    },
+    "player-08": {
+      "path": "assets/markers/cooperation-08-64.png",
+      "size": [
+        64,
+        64
+      ],
+      "role": "original-cooperation-square",
+      "copiedUnchanged": true,
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "proportionalOnly": true,
+      "textBakedIn": false,
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": null
+    },
+    "generic-card-frame": {
+      "svg": "assets/piles/card-frame.svg",
+      "size": [
+        256,
+        256
+      ],
+      "png": [
+        {
+          "path": "assets/piles/card-frame.png",
+          "width": 256,
+          "height": 256,
+          "scale": 1
+        },
+        {
+          "path": "assets/piles/card-frame@2x.png",
+          "width": 512,
+          "height": 512,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "ratio-independent-card-edge",
+      "textBakedIn": false,
+      "path": "assets/piles/card-frame.png",
+      "path2x": "assets/piles/card-frame@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "pile-hover": {
+      "svg": "assets/piles/hover-outline.svg",
+      "size": [
+        256,
+        256
+      ],
+      "png": [
+        {
+          "path": "assets/piles/hover-outline.png",
+          "width": 256,
+          "height": 256,
+          "scale": 1
+        },
+        {
+          "path": "assets/piles/hover-outline@2x.png",
+          "width": 512,
+          "height": 512,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "optional-pile-hover-outline",
+      "textBakedIn": false,
+      "path": "assets/piles/hover-outline.png",
+      "path2x": "assets/piles/hover-outline@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    "card-shadow": {
+      "svg": "assets/piles/shadow.svg",
+      "size": [
+        256,
+        256
+      ],
+      "png": [
+        {
+          "path": "assets/piles/shadow.png",
+          "width": 256,
+          "height": 256,
+          "scale": 1
+        },
+        {
+          "path": "assets/piles/shadow@2x.png",
+          "width": 512,
+          "height": 512,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        18,
+        18,
+        18,
+        18
+      ],
+      "role": "ratio-independent-short-shadow",
+      "textBakedIn": false,
+      "path": "assets/piles/shadow.png",
+      "path2x": "assets/piles/shadow@2x.png",
+      "slice2xLTRB": [
+        36,
+        36,
+        36,
+        36
+      ]
+    },
+    "count-badge": {
+      "svg": "assets/tokens/count-badge.svg",
+      "size": [
+        64,
+        32
+      ],
+      "png": [
+        {
+          "path": "assets/tokens/count-badge.png",
+          "width": 64,
+          "height": 32,
+          "scale": 1
+        },
+        {
+          "path": "assets/tokens/count-badge@2x.png",
+          "width": 128,
+          "height": 64,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "role": "optional-token-count-background",
+      "textBakedIn": false,
+      "path": "assets/tokens/count-badge.png",
+      "path2x": "assets/tokens/count-badge@2x.png",
+      "slice2xLTRB": [
+        12,
+        12,
+        12,
+        12
+      ]
+    },
+    "token-item-hover": {
+      "svg": "assets/tokens/item-hover.svg",
+      "size": [
+        128,
+        96
+      ],
+      "png": [
+        {
+          "path": "assets/tokens/item-hover.png",
+          "width": 128,
+          "height": 96,
+          "scale": 1
+        },
+        {
+          "path": "assets/tokens/item-hover@2x.png",
+          "width": 256,
+          "height": 192,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "optional-token-focus",
+      "textBakedIn": false,
+      "path": "assets/tokens/item-hover.png",
+      "path2x": "assets/tokens/item-hover@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ]
+    },
+    "scroll-track": {
+      "svg": "assets/scrollbar/track.svg",
+      "size": [
+        8,
+        128
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/track.png",
+          "width": 8,
+          "height": 128,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/track@2x.png",
+          "width": 16,
+          "height": 256,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "role": "vertical-scroll-track",
+      "textBakedIn": false,
+      "path": "assets/scrollbar/track.png",
+      "path2x": "assets/scrollbar/track@2x.png",
+      "slice2xLTRB": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "scroll-thumb-default": {
+      "svg": "assets/scrollbar/thumb-default.svg",
+      "size": [
+        8,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-default.png",
+          "width": 8,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-default@2x.png",
+          "width": 16,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "default",
+      "path": "assets/scrollbar/thumb-default.png",
+      "path2x": "assets/scrollbar/thumb-default@2x.png",
+      "slice2xLTRB": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "scroll-thumb-hover": {
+      "svg": "assets/scrollbar/thumb-hover.svg",
+      "size": [
+        8,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-hover.png",
+          "width": 8,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-hover@2x.png",
+          "width": 16,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "hover",
+      "path": "assets/scrollbar/thumb-hover.png",
+      "path2x": "assets/scrollbar/thumb-hover@2x.png",
+      "slice2xLTRB": [
+        8,
+        8,
+        8,
+        8
+      ]
+    },
+    "scroll-thumb-drag": {
+      "svg": "assets/scrollbar/thumb-drag.svg",
+      "size": [
+        8,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-drag.png",
+          "width": 8,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-drag@2x.png",
+          "width": 16,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        4,
+        4,
+        4,
+        4
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "drag",
+      "path": "assets/scrollbar/thumb-drag.png",
+      "path2x": "assets/scrollbar/thumb-drag@2x.png",
+      "slice2xLTRB": [
+        8,
+        8,
+        8,
+        8
+      ]
+    }
+  },
+  "runtimeAssetsOnly": true,
+  "previewArtIsNotRuntimeSkin": true
+}

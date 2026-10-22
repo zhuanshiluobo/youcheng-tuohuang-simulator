@@ -1,0 +1,22 @@
+{
+  "Green": {
+    "hex": "#5FD200",
+    "bit": 1,
+    "label": "G"
+  },
+  "Yellow": {
+    "hex": "#FFBF00",
+    "bit": 2,
+    "label": "Y"
+  },
+  "Blue": {
+    "hex": "#006CFF",
+    "bit": 4,
+    "label": "B"
+  },
+  "Red": {
+    "hex": "#EC0000",
+    "bit": 8,
+    "label": "R"
+  }
+}

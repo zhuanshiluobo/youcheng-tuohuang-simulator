@@ -3,7 +3,7 @@
   "contentType": "event",
   "version": "1.0.0",
   "displayName": "高污染环境",
-  "artwork": "artwork/event/event_red_04.jpg",
+  "artwork": "artwork/sheets/event_red_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -51,5 +51,6 @@
     ]
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "event_red_004"
 }

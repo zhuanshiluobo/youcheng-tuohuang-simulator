@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Items;
+using YC.Domain.Effects;
 
 namespace YC.Domain.CityStyles
 {
@@ -44,6 +46,8 @@ namespace YC.Domain.CityStyles
             List<int> selectedSlotIndexes,
             bool useExplicitSelection)
         {
+            if (ItemZoneLegacyProjection.IsActive(state))
+                throw new InvalidOperationException("city_style_declaration_requires_effect");
             var validation = ValidateInternal(
                 state,
                 playerId,
@@ -56,7 +60,7 @@ namespace YC.Domain.CityStyles
             }
 
             var player = state.FindPlayer(playerId);
-            var cityStyle = CityStyleDatabase.Get(cityStyleId);
+            var cityStyle = CityStyleDatabase.Get(state, cityStyleId);
             var match = useExplicitSelection
                 ? patternMatcher.MatchSelected(state, playerId, cityStyle, selectedSlotIndexes)
                 : patternMatcher.Match(state, playerId, cityStyle);
@@ -90,7 +94,7 @@ namespace YC.Domain.CityStyles
             return DeclareCityStyleResult.Success(cityStyle, match);
         }
 
-        private static CityStyleDeclarationState CreateDeclarationState(
+        internal static CityStyleDeclarationState CreateDeclarationState(
             CityStyleDefinition cityStyle,
             int playerId,
             int previousDeclarationCount)
@@ -156,12 +160,14 @@ namespace YC.Domain.CityStyles
             }
 
             CityStyleDefinition cityStyle;
-            if (!CityStyleDatabase.TryGet(cityStyleId, out cityStyle))
+            if (!CityStyleDatabase.TryGet(state, cityStyleId, out cityStyle))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "未知城市样式。");
             }
+            if (ItemZoneLegacyProjection.IsActive(state) && !state.Decks.CityStyleSupply.Contains(cityStyle.CityStyleId))
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该城市样式未进入本局供应。");
 
-            var declaredCount = CountDeclarations(player, cityStyle.CityStyleId);
+            var declaredCount = ItemZoneLegacyProjection.IsActive(state) ? player.DeclaredCityStyles.FindAll(d => d.CityStyleId == cityStyle.CityStyleId && d.MarkerArea.Length > 0).Count : CountDeclarations(player, cityStyle.CityStyleId);
 
             if (declaredCount >= cityStyle.MaxDeclarationsPerPlayer)
             {

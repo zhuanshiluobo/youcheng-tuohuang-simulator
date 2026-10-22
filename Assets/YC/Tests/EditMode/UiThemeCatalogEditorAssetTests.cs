@@ -9,39 +9,18 @@ namespace YC.Tests.EditMode
     public sealed class UiThemeCatalogEditorAssetTests
     {
         [Test]
-        public void CatalogAndPrefab_AreCanonicalAndReady()
+        public void CatalogAndPrefab_UseConfiguredThemeAndAreReady()
         {
             var catalog = LoadRequiredCatalog();
-            AssertColor(catalog, "PanelBackground", .08f, .07f, .055f, .94f);
-            AssertColor(catalog, "PanelBackgroundLighter", .14f, .1f, .06f, .96f);
-            AssertColor(catalog, "SectionTitleBackground", .12f, .09f, .06f, .92f);
-            AssertColor(catalog, "ScrollBackground", .06f, .05f, .04f, .5f);
-            AssertColor(catalog, "ButtonBackground", .16f, .1f, .055f, .96f);
-            AssertColor(catalog, "DisabledButtonBackground", .09f, .075f, .06f, .72f);
-            AssertColor(catalog, "GoldText", .86f, .75f, .55f, 1f);
-            AssertColor(catalog, "GoldOutline", .78f, .63f, .38f, .85f);
-            AssertColor(catalog, "GoldOutlineThin", .78f, .63f, .38f, .65f);
-            AssertColor(catalog, "GoldSeparator", .78f, .63f, .38f, .7f);
-            AssertColor(catalog, "CyanAccent", .12f, .88f, 1f, 1f);
-            AssertColor(catalog, "TacticalMapBackground", .08f, .1f, .12f, 1f);
-            AssertColor(catalog, "DarkShadow", .06f, .04f, .025f, .9f);
-            AssertColor(catalog, "DarkShadowLight", .06f, .04f, .025f, .95f);
-            AssertColor(catalog, "LabelText", .7f, .65f, .55f, 1f);
-            AssertColor(catalog, "ValueText", .95f, .9f, .82f, 1f);
-            AssertColor(catalog, "TrackBackground", .1f, .1f, .09f, .88f);
-            AssertColor(catalog, "DangerBand", .56f, .08f, .06f, .95f);
-            AssertColor(catalog, "SafeBand", .82f, .78f, .67f, .95f);
-            AssertColor(catalog, "GameOverOverlay", 0f, 0f, 0f, .62f);
-            AssertColor(catalog, "GameOverDialog", .16f, .1f, .055f, .98f);
-            Assert.That(Read<Vector2>(catalog, "CanvasReferenceResolution"), Is.EqualTo(new Vector2(1920f, 1080f)));
-            Assert.That(Read<float>(catalog, "CanvasMatchWidthOrHeight"), Is.EqualTo(.5f));
-            Assert.That(Read<Vector2>(catalog, "DialogActionButtonSize"), Is.EqualTo(new Vector2(220f, 48f)));
-            Assert.That(Read<Vector2>(catalog, "ViewerCloseButtonSize"), Is.EqualTo(new Vector2(42f, 42f)));
-            Assert.That(Read<Vector2>(catalog, "ViewerCloseButtonOffset"), Is.EqualTo(new Vector2(-18f, -12f)));
-            AssertPlayerColor(catalog, "Red", .7019608f, 0f, .1137255f, 1f);
-            AssertPlayerColor(catalog, "Blue", .003921569f, .2705882f, .6980392f, .4f);
-            AssertPlayerColor(catalog, "Green", .3764706f, .8235294f, .003921569f, 1f);
-            AssertPlayerColor(catalog, "Yellow", 1f, .7450981f, 0f, 1f);
+            var theme = RequireType("YC.Presentation.UiTheme");
+            InvokeStatic(theme, "Initialize", catalog);
+            // 用户资产是样式来源，只验证运行时读取同一份配置，不锁定颜色或几何常量。
+            foreach (var property in catalog.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            {
+                var runtime = theme.GetProperty(property.Name, BindingFlags.Static | BindingFlags.Public);
+                if (runtime != null && property.CanRead && property.GetIndexParameters().Length == 0)
+                    Assert.That(runtime.GetValue(null), Is.EqualTo(property.GetValue(catalog)), property.Name);
+            }
             InvokeReadiness("ValidateReadyForBuild");
         }
 

@@ -1,0 +1,99 @@
+{
+  "referenceCanvas": [
+    1920,
+    1080
+  ],
+  "coordinateOrigin": "top-left",
+  "window": [
+    135,
+    130,
+    1650,
+    820
+  ],
+  "header": [
+    155,
+    148,
+    1610,
+    116
+  ],
+  "modules": {
+    "character": [
+      160,
+      284,
+      316,
+      540
+    ],
+    "event": [
+      486,
+      284,
+      316,
+      540
+    ],
+    "enterprise": [
+      812,
+      284,
+      260,
+      540
+    ],
+    "token": [
+      1082,
+      284,
+      678,
+      540
+    ]
+  },
+  "pileArea": {
+    "character": [
+      180,
+      364,
+      276,
+      360
+    ],
+    "event": [
+      506,
+      364,
+      276,
+      360
+    ]
+  },
+  "pileMaxBox": {
+    "character": [
+      182,
+      260
+    ],
+    "event": [
+      200,
+      250
+    ]
+  },
+  "eventSourceAspect": null,
+  "eventSourceSizeVerified": false,
+  "eventSizing": "Wait for the actual single-sprite width and height, then contain independently inside event pile area. Never default to character aspect.",
+  "markerSize": [
+    44,
+    44
+  ],
+  "tokenContent": [
+    1096,
+    360,
+    624,
+    412
+  ],
+  "tokenTrack": [
+    1736,
+    360,
+    8,
+    412
+  ],
+  "tokenScrollHitArea": [
+    1728,
+    360,
+    24,
+    412
+  ],
+  "footerText": "单击牌堆查看 · 点击空白处关闭",
+  "sourceOrder": "bottom-to-top",
+  "maxVisiblePileLayers": 5,
+  "ownEnterpriseMaximum": 1,
+  "eventDisplayCapIsLayoutOnly": true
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -8,19 +9,15 @@ using YC.Domain.State;
 
 namespace YC.Presentation.Workflows
 {
-    public sealed class InfluenceActionPresenter : IInteractionWorkflow
+    public sealed class InfluenceActionPresenter : InteractionBase, IInteractionWorkflow
     {
         private enum InfluenceActionStage
         {
             Inactive,
             SelectingDeployTarget,
             SelectingDispatchSource,
-            SelectingDispatchTarget,
-            ChoosingDispatchContinuation
+            SelectingDispatchTarget
         }
-
-        private const string SecondSourceParameter = "source2";
-        private const string SecondTargetParameter = "target2";
 
         private readonly IGameplayContext context;
         private readonly CommandGateway commandGateway;
@@ -30,10 +27,42 @@ namespace YC.Presentation.Workflows
 
         private string pendingConfirmationAction = string.Empty;
         private string pendingConfirmationSlotId = string.Empty;
-        private string dispatchSourceSlotId = string.Empty;
-        private string firstSourceSlotId = string.Empty;
-        private string firstTargetSlotId = string.Empty;
+
+
+
         private InfluenceActionStage stage = InfluenceActionStage.Inactive;
+        private DeployDraft deployDraft;
+        private DeployDraft submittedDeployDraft;
+        private string deployCommandId = string.Empty;
+        private string dispatchCommandId = string.Empty;
+        private DeployDraft dispatchDraft;
+        private DeployDraft submittedDispatchDraft;
+        public Func<int> ObservedStateRevision { private get; set; }
+        public string SourceInfluenceId { get; private set; } = string.Empty;
+        public string SourceSlotId { get; private set; } = string.Empty;
+        public string TargetSlotId { get; private set; } = string.Empty;
+        public bool HasUnsubmittedMainActionDraft => (IsSelectingDeployTarget || IsSelectingDispatchSource || IsSelectingDispatchTarget) &&
+            !IsDeploySubmissionInFlight && !IsDispatchSubmissionInFlight;
+        public bool IsDispatchSubmissionInFlight => !string.IsNullOrEmpty(dispatchCommandId) && IsDeploySessionCurrent(submittedDispatchDraft);
+
+        private sealed class DeployDraft
+        {
+            public GameState State;
+            public string GameId;
+            public int PlayerId;
+            public int Round;
+            public int ActionRound;
+            public GamePhase Phase;
+            public int Revision;
+        }
+
+        public bool IsDeploySubmissionInFlight =>
+            !string.IsNullOrEmpty(deployCommandId) && IsDeploySessionCurrent(submittedDeployDraft);
+
+        public bool CanResumeDeployDraft => IsSelectingDeployTarget &&
+            IsDeployDraftCurrent(deployDraft) && CanSpendDeployAction();
+        public bool CanResumeDispatchDraft => (IsSelectingDispatchSource || IsSelectingDispatchTarget) &&
+            IsDeployDraftCurrent(dispatchDraft) && CanSpendDeployAction();
 
         public InfluenceActionPresenter(
             IGameplayContext context,
@@ -60,7 +89,7 @@ namespace YC.Presentation.Workflows
             }
         }
 
-        public bool IsActive
+        public override bool IsActive
         {
             get { return stage != InfluenceActionStage.Inactive; }
         }
@@ -82,7 +111,7 @@ namespace YC.Presentation.Workflows
 
         public bool IsChoosingDispatchContinuation
         {
-            get { return stage == InfluenceActionStage.ChoosingDispatchContinuation; }
+            get { return false; }
         }
 
         public string CurrentPrompt
@@ -92,15 +121,9 @@ namespace YC.Presentation.Workflows
                 switch (stage)
                 {
                     case InfluenceActionStage.SelectingDeployTarget:
-                        return "选择一个影响力空格放置影响力。";
-                    case InfluenceActionStage.SelectingDispatchSource:
-                        return HasPendingFirstMove
-                            ? "调度：请选择第二个影响力。"
-                            : "调度：先选择一个自己的影响力。";
-                    case InfluenceActionStage.SelectingDispatchTarget:
-                        return "请选择调度目标槽位。";
-                    case InfluenceActionStage.ChoosingDispatchContinuation:
-                        return "已预览本次调度。请选择再次调度，或取消以结束调度。";
+                        return IsDeploySubmissionInFlight
+                            ? CommandGateway.BuildWaitingForHostPrompt("部署命令")
+                            : "选择一个影响力空格放置影响力。";
                     default:
                         return string.Empty;
                 }
@@ -109,25 +132,24 @@ namespace YC.Presentation.Workflows
 
         public string DispatchSourceSlotId
         {
-            get { return dispatchSourceSlotId; }
+            get { return SourceSlotId; }
         }
 
         public string FirstSourceSlotId
         {
-            get { return firstSourceSlotId; }
+            get { return SourceSlotId; }
         }
 
         public string FirstTargetSlotId
         {
-            get { return firstTargetSlotId; }
+            get { return TargetSlotId; }
         }
 
         public bool HasPendingFirstMove
         {
             get
             {
-                return !string.IsNullOrEmpty(firstSourceSlotId) &&
-                       !string.IsNullOrEmpty(firstTargetSlotId);
+                return false;
             }
         }
 
@@ -143,7 +165,16 @@ namespace YC.Presentation.Workflows
 
         public void BeginDeploy()
         {
+            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight) return;
+            ClearDeploySubmission();
             ClearState();
+            var state = context.CurrentState;
+            if (state == null) { SetStage(InfluenceActionStage.Inactive); return; }
+            deployDraft = new DeployDraft
+            {
+                State = state, GameId = state.GameId, PlayerId = context.LocalPlayerId,
+                Round = state.Round, ActionRound = state.ActionRound, Phase = state.Phase, Revision = CurrentRevision()
+            };
             SetStage(InfluenceActionStage.SelectingDeployTarget);
             PresentDeployTargets();
             view.ShowPrompt(CurrentPrompt);
@@ -151,27 +182,27 @@ namespace YC.Presentation.Workflows
 
         public void BeginDispatch()
         {
-            if (HasPendingFirstMove)
-            {
-                SetStage(InfluenceActionStage.ChoosingDispatchContinuation);
-                ShowDispatchDecision();
-                return;
-            }
-
+            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight || !CanSpendDeployAction()) return;
             ClearState();
+            var state = context.CurrentState;
+            dispatchDraft = new DeployDraft { State = state, GameId = state.GameId, PlayerId = context.LocalPlayerId,
+                Round = state.Round, ActionRound = state.ActionRound, Phase = state.Phase, Revision = CurrentRevision() };
             SetStage(InfluenceActionStage.SelectingDispatchSource);
-            PresentDispatchSources();
-            view.ShowPrompt(CurrentPrompt);
+            PresentDispatchTargets();
         }
 
-        public void Cancel()
+        public override void Cancel()
         {
+            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight) return;
             Clear();
         }
 
         public void Clear()
         {
-            ClearState();
+            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight) return;
+            var ownedPresentation = IsActive;
+            ClearState(ownedPresentation);
+            if (!ownedPresentation) return;
             SetStage(InfluenceActionStage.Inactive);
         }
 
@@ -191,91 +222,51 @@ namespace YC.Presentation.Workflows
 
         public void RestorePresentation()
         {
+            if (IsSelectingDispatchSource || IsSelectingDispatchTarget) { PresentDispatchTargets(); return; }
             switch (stage)
             {
                 case InfluenceActionStage.SelectingDeployTarget:
                     PresentDeployTargets();
                     view.ShowPrompt(CurrentPrompt);
                     break;
-                case InfluenceActionStage.SelectingDispatchSource:
-                    PresentDispatchSources();
-                    view.ShowPrompt(CurrentPrompt);
-                    break;
-                case InfluenceActionStage.SelectingDispatchTarget:
-                    PresentDispatchTargets(dispatchSourceSlotId);
-                    view.ShowPrompt(CurrentPrompt);
-                    break;
-                case InfluenceActionStage.ChoosingDispatchContinuation:
-                    view.ClearHighlights();
-                    RefreshPreview();
-                    ShowDispatchDecision();
-                    break;
             }
         }
 
         public void SelectLocation(string locationId)
         {
+            if (IsSelectingDispatchSource || IsSelectingDispatchTarget)
+            { SelectDispatchSlot(FindFirstLocationSlot(locationId, slot => IsSelectingDispatchSource ? FindDispatchSource(slot) != null : CanDispatchTo(slot))); return; }
+            if (IsSelectingDeployTarget && !CanInteractWithDeploy()) return;
             switch (stage)
             {
                 case InfluenceActionStage.SelectingDeployTarget:
                     SelectDeploySlot(FindFirstLocationSlot(locationId, CanDeployTo));
-                    break;
-                case InfluenceActionStage.SelectingDispatchSource:
-                    SelectDispatchSourceSlot(FindFirstSourceAtLocation(locationId));
-                    break;
-                case InfluenceActionStage.SelectingDispatchTarget:
-                    SelectDispatchTargetSlot(FindFirstLocationSlot(locationId, CanDispatchTo));
                     break;
             }
         }
 
         public void SelectSlot(string slotId)
         {
+            if (IsSelectingDispatchSource || IsSelectingDispatchTarget) { SelectDispatchSlot(slotId); return; }
             switch (stage)
             {
                 case InfluenceActionStage.SelectingDeployTarget:
                     SelectDeploySlot(slotId);
                     break;
-                case InfluenceActionStage.SelectingDispatchSource:
-                    SelectDispatchSourceSlot(slotId);
-                    break;
-                case InfluenceActionStage.SelectingDispatchTarget:
-                    SelectDispatchTargetSlot(slotId);
-                    break;
             }
         }
 
-        public void ContinueDispatch()
-        {
-            if (!HasPendingFirstMove)
-            {
-                view.HideDispatchDecision();
-                return;
-            }
+        public void ContinueDispatch() { view.HideDispatchDecision(); }
 
-            view.HideDispatchDecision();
-            ClearConfirmation();
-            dispatchSourceSlotId = string.Empty;
-            SetStage(InfluenceActionStage.SelectingDispatchSource);
-            PresentDispatchSources();
-            view.ShowPrompt(CurrentPrompt);
-        }
-
-        public void FinishDispatch()
-        {
-            if (!HasPendingFirstMove)
-            {
-                view.HideDispatchDecision();
-                return;
-            }
-
-            SubmitDispatch(string.Empty, string.Empty);
-        }
+        public void FinishDispatch() { view.HideDispatchDecision(); }
 
         private void SelectDeploySlot(string slotId)
         {
+            if (!CanInteractWithDeploy()) return;
             if (string.IsNullOrEmpty(slotId) || !CanDeployTo(slotId))
             {
+                ClearConfirmation();
+                PresentDeployTargets();
                 view.ShowPrompt("该位置没有可部署的影响力空格。");
                 return;
             }
@@ -296,103 +287,202 @@ namespace YC.Presentation.Workflows
 
         private void SubmitDeploy(string slotId)
         {
-            commandGateway.Submit(
-                new GameCommand
-                {
-                    Kind = GameCommandKind.DeployInfluence,
-                    PlayerId = context.LocalPlayerId,
-                    TargetId = slotId
-                },
-                new SubmitCallbacks(
-                    view.ShowPrompt,
+            var draft = deployDraft;
+            var command = new GameCommand
+            {
+                Kind = GameCommandKind.DeployInfluence,
+                PlayerId = draft.PlayerId,
+                TargetId = slotId
+            };
+            // 先上锁，覆盖Submit中同步回调再次点击的情况；等待Host时保留至对应回执。
+            submittedDeployDraft = draft;
+            deployCommandId = command.CommandId;
+            try
+            {
+                commandGateway.Submit(command, new SubmitCallbacks(
+                    message => { if (ReferenceEquals(deployDraft, draft) && IsDeployDraftCurrent(draft)) view.ShowPrompt(message); },
                     CommandGateway.BuildWaitingForHostPrompt("部署命令"))
                 {
-                    OnAppliedLocally = result => Complete("部署")
+                    BeforeRejectedPrompt = _ => NotifyDeployCommandSettled(command.CommandId),
+                    OnAppliedLocally = result => CompleteAppliedSubmission(draft.GameId, command.CommandId)
                 });
+            }
+            catch
+            {
+                NotifyDeployCommandSettled(command.CommandId);
+                throw;
+            }
         }
 
-        private void SelectDispatchSourceSlot(string slotId)
+        public void NotifyDeployCommandSettled(string commandId)
         {
+            if (string.IsNullOrEmpty(deployCommandId) || commandId != deployCommandId) return;
+            var submitted = submittedDeployDraft;
+            ClearDeploySubmission();
+            // 切换行动后只解除旧命令门禁，不复活旧草稿或覆盖新行动的高亮。
+            if (!ReferenceEquals(deployDraft, submitted) || !IsSelectingDeployTarget) return;
+            if (!CanResumeDeployDraft) { Clear(); return; }
             ClearConfirmation();
+            PresentDeployTargets();
+        }
+
+        public void RefreshDeployDraft()
+        {
+            if (!CanResumeDeployDraft) return;
+            ClearConfirmation();
+            PresentDeployTargets();
+        }
+
+        private void ClearDeploySubmission()
+        {
+            deployCommandId = string.Empty;
+            submittedDeployDraft = null;
+        }
+
+        private bool IsDeploySessionCurrent(DeployDraft draft)
+        {
             var state = context.CurrentState;
-            var placement = state == null ? null : influenceService.FindInfluence(state, slotId);
-            if (placement == null ||
-                placement.PlayerId != context.LocalPlayerId ||
-                placement.SlotId == firstSourceSlotId)
-            {
-                view.ShowPrompt("请选择一个自己的影响力作为调度来源。");
-                return;
-            }
-
-            if (!CanMoveFrom(placement.SlotId))
-            {
-                view.ShowPrompt("该影响力当前没有可调度的目标。");
-                return;
-            }
-
-            dispatchSourceSlotId = placement.SlotId;
-            SetStage(InfluenceActionStage.SelectingDispatchTarget);
-            PresentDispatchTargets(dispatchSourceSlotId);
-            view.ShowPrompt(CurrentPrompt);
+            return draft != null && state != null && draft.GameId == state.GameId &&
+                   draft.PlayerId == context.LocalPlayerId;
         }
 
-        private void SelectDispatchTargetSlot(string targetSlotId)
+        private bool IsDeployDraftCurrent(DeployDraft draft)
         {
-            if (string.IsNullOrEmpty(targetSlotId) || !CanDispatchTo(targetSlotId))
-            {
-                view.ShowPrompt("该位置没有可调度进入的影响力空格。");
-                return;
-            }
+            var state = context.CurrentState;
+            return IsDeploySessionCurrent(draft) && ReferenceEquals(state, draft.State) &&
+                   state.CurrentPlayerId == draft.PlayerId && state.Round == draft.Round &&
+                   state.ActionRound == draft.ActionRound && state.Phase == draft.Phase && CurrentRevision() == draft.Revision;
+        }
+        private int CurrentRevision() => ObservedStateRevision?.Invoke() ?? context.CurrentState?.EffectRuntime?.StateRevision ?? 0;
 
-            if (!ConfirmOnSecondSelection(
-                    "DispatchInfluence",
-                    targetSlotId,
-                    "确认移动：再次点击目标槽位。",
-                    WorkflowHighlightSemantic.DispatchTarget))
-            {
-                return;
-            }
-
-            if (HasPendingFirstMove)
-            {
-                SubmitDispatch(dispatchSourceSlotId, targetSlotId);
-                return;
-            }
-
-            firstSourceSlotId = dispatchSourceSlotId;
-            firstTargetSlotId = targetSlotId;
-            dispatchSourceSlotId = string.Empty;
-            SetStage(InfluenceActionStage.ChoosingDispatchContinuation);
-            view.ClearHighlights();
-            RefreshPreview();
-            ShowDispatchDecision();
-            view.ShowPrompt(CurrentPrompt);
+        private bool CanSpendDeployAction()
+        {
+            var state = context.CurrentState;
+            return state != null && (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
+                   !state.HasPendingChoice() && new MainActionBudgetService().HasAvailableMainAction(state, context.LocalPlayerId);
         }
 
-        private void SubmitDispatch(string secondSourceSlotId, string secondTargetSlotId)
+        private bool CanInteractWithDeploy()
         {
+            if (!CanResumeDeployDraft) { Clear(); return false; }
+            return !IsDeploySubmissionInFlight;
+        }
+
+        private void SubmitDispatch()
+        {
+            if (IsDispatchSubmissionInFlight) return;
+            var draft = dispatchDraft;
             view.HideDispatchDecision();
             var command = new GameCommand
             {
                 Kind = GameCommandKind.DispatchInfluence,
-                PlayerId = context.LocalPlayerId,
-                SourceId = firstSourceSlotId,
-                TargetId = firstTargetSlotId
+                PlayerId = draft.PlayerId,
+                SourceId = SourceInfluenceId,
+                TargetId = TargetSlotId
             };
-            if (!string.IsNullOrEmpty(secondSourceSlotId) && !string.IsNullOrEmpty(secondTargetSlotId))
+            dispatchCommandId = command.CommandId;
+            submittedDispatchDraft = draft;
+            try
             {
-                command.Parameters[SecondSourceParameter] = secondSourceSlotId;
-                command.Parameters[SecondTargetParameter] = secondTargetSlotId;
-            }
-
             commandGateway.Submit(
                 command,
                 new SubmitCallbacks(
-                    view.ShowPrompt,
+                    message => { if (ReferenceEquals(dispatchDraft, draft) && IsDeploySessionCurrent(draft)) view.ShowPrompt(message); },
                     CommandGateway.BuildWaitingForHostPrompt("调度命令"))
                 {
-                    OnAppliedLocally = result => Complete("调度")
+                    BeforeRejectedPrompt = _ => NotifyDispatchCommandSettled(command.CommandId),
+                    AfterRejectedPrompt = _ => view.RefreshActionPanel(),
+                    OnAppliedLocally = _ => CompleteAppliedSubmission(draft.GameId, command.CommandId)
                 });
+            }
+            catch { NotifyDispatchCommandSettled(command.CommandId); throw; }
+        }
+
+        public void NotifyDispatchCommandSettled(string commandId)
+        {
+            if (string.IsNullOrEmpty(dispatchCommandId) || commandId != dispatchCommandId) return;
+            var submitted = submittedDispatchDraft;
+            dispatchCommandId = string.Empty; submittedDispatchDraft = null;
+            if (!ReferenceEquals(dispatchDraft, submitted)) return;
+            TargetSlotId = string.Empty;
+            if (!CanResumeDispatchDraft) { Clear(); return; }
+            PresentDispatchTargets();
+        }
+
+        private string FindDispatchSource(string slot)
+        {
+            var state = context.CurrentState;
+            return state?.Map?.Influences.FirstOrDefault(value => value.PlayerId == context.LocalPlayerId && value.SlotId == slot &&
+                influenceService.GetLegalMovementSlotIds(state, value.InfluenceId).Any(target => influenceService.CanMove(state, context.LocalPlayerId, value.InfluenceId, target).IsValid))?.InfluenceId;
+        }
+        private bool CanDispatchTo(string slot) => !string.IsNullOrEmpty(SourceInfluenceId) &&
+            influenceService.CanMove(context.CurrentState, context.LocalPlayerId, SourceInfluenceId, slot).IsValid;
+        private void SelectDispatchSlot(string slot)
+        {
+            if (IsDispatchSubmissionInFlight) return;
+            if (!CanResumeDispatchDraft) { Clear(); return; }
+            if (IsSelectingDispatchSource)
+            {
+                var source = FindDispatchSource(slot); if (source == null) return;
+                SourceInfluenceId = source; SourceSlotId = slot;
+                SetStage(InfluenceActionStage.SelectingDispatchTarget); PresentDispatchTargets(); return;
+            }
+            if (!CanDispatchTo(slot)) return;
+            TargetSlotId = slot; SubmitDispatch();
+        }
+        private IReadOnlyList<WorkflowHighlight> DispatchHighlights()
+        {
+            var result = new List<WorkflowHighlight>();
+            if (!IsDeployDraftCurrent(dispatchDraft) || IsDispatchSubmissionInFlight) return result;
+            if (IsSelectingDispatchSource)
+            {
+                foreach (var source in context.CurrentState.Map.Influences.Where(value => value.PlayerId == context.LocalPlayerId))
+                    if (FindDispatchSource(source.SlotId) != null) AddSlotHighlight(result, source.SlotId, WorkflowHighlightSemantic.DispatchSource, true);
+            }
+            else if (IsSelectingDispatchTarget)
+                foreach (var slot in influenceService.GetLegalMovementSlotIds(context.CurrentState, SourceInfluenceId))
+                    if (CanDispatchTo(slot)) AddSlotHighlight(result, slot, WorkflowHighlightSemantic.DispatchTarget, true);
+            return result;
+        }
+        private void PresentDispatchTargets()
+        {
+            view.SetHighlights(DispatchHighlights()); view.RefreshInfluencePreview(!string.IsNullOrEmpty(SourceInfluenceId), SourceSlotId, TargetSlotId);
+            view.RefreshActionPanel();
+        }
+        public override string Id => "active.dispatch";
+        public override InteractionPriority Priority => InteractionPriority.ActiveAction;
+        public override InteractionResult OnLocationClicked(string id)
+        { if (!IsSelectingDispatchSource && !IsSelectingDispatchTarget) return InteractionResult.Passthrough; SelectLocation(id); return InteractionResult.Consumed; }
+        public override InteractionResult OnInfluenceSlotClicked(string id)
+        { if (!IsSelectingDispatchSource && !IsSelectingDispatchTarget) return InteractionResult.Passthrough; SelectSlot(id); return InteractionResult.Consumed; }
+        public override InteractionResult OnMobileCityClicked() => InteractionResult.Passthrough;
+        public override InteractionResult OnEscape() => IsDispatchSubmissionInFlight ? InteractionResult.Consumed : InteractionResult.Passthrough;
+        public override InteractionPresentation BuildPresentation() => IsDispatchSubmissionInFlight
+            ? new InteractionPresentation(null, CommandGateway.BuildWaitingForHostPrompt("调度命令"), InteractionMode.Busy)
+            : IsSelectingDispatchSource || IsSelectingDispatchTarget ? new InteractionPresentation(DispatchHighlights(), string.Empty, InteractionMode.Busy) : InteractionPresentation.Empty;
+        public override void NotifyCommandSettled(string commandId) { NotifyDispatchCommandSettled(commandId); NotifyDeployCommandSettled(commandId); }
+        public override void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted, CommandErrorCode errorCode)
+        {
+            var submitted = commandId == deployCommandId ? submittedDeployDraft : commandId == dispatchCommandId ? submittedDispatchDraft : null;
+            if (submitted == null || submitted.GameId != gameId || !IsDeploySessionCurrent(submitted)) return;
+            if (!accepted) { NotifyCommandSettled(commandId); return; }
+            CompleteAppliedSubmission(gameId, commandId);
+        }
+
+        private void CompleteAppliedSubmission(string gameId, string commandId)
+        {
+            if (string.IsNullOrEmpty(commandId)) return;
+            bool deploy = commandId == deployCommandId;
+            var submitted = deploy ? submittedDeployDraft : commandId == dispatchCommandId ? submittedDispatchDraft : null;
+            if (submitted == null || submitted.GameId != gameId) return;
+            if (deploy) ClearDeploySubmission();
+            else { dispatchCommandId = string.Empty; submittedDispatchDraft = null; }
+            // 正式成功必然可能推进 revision；核原提交归属，不拿旧草稿 revision 拦截成功收尾。
+            // 两条成功通知共用入口，先释放准确命令，重复通知不再刷新，也不覆盖新草稿。
+            if (!IsDeploySessionCurrent(submitted) ||
+                !ReferenceEquals(deploy ? deployDraft : dispatchDraft, submitted)) return;
+            if (deploy) Complete("部署");
+            else { Clear(); view.RefreshActionPanel(); }
         }
 
         private void Complete(string actionName)
@@ -417,9 +507,7 @@ namespace YC.Presentation.Workflows
 
             pendingConfirmationAction = action;
             pendingConfirmationSlotId = slotId;
-            var highlights = new List<WorkflowHighlight>();
-            AddSlotHighlight(highlights, slotId, semantic, true);
-            view.SetHighlights(highlights);
+            RestorePresentation();
             RefreshPreview();
             view.ShowPrompt(prompt);
             return false;
@@ -427,78 +515,11 @@ namespace YC.Presentation.Workflows
 
         private void PresentDeployTargets()
         {
+            if (!CanInteractWithDeploy()) return;
             var highlights = new List<WorkflowHighlight>();
-            VisitAllSlots(slotId =>
-            {
-                if (CanDeployTo(slotId))
-                {
-                    AddSlotHighlight(highlights, slotId, WorkflowHighlightSemantic.DeployTarget, true);
-                }
-            });
+            foreach (var slotId in influenceService.GetLegalPlacementSlotIds(context.CurrentState, deployDraft.PlayerId))
+                AddSlotHighlight(highlights, slotId, WorkflowHighlightSemantic.DeployTarget, true);
             view.SetHighlights(highlights);
-            RefreshPreview();
-            view.RefreshActionPanel();
-        }
-
-        private void PresentDispatchSources()
-        {
-            var highlights = new List<WorkflowHighlight>();
-            var state = context.CurrentState;
-            if (state != null && state.Map != null)
-            {
-                for (var i = 0; i < state.Map.Influences.Count; i++)
-                {
-                    var placement = state.Map.Influences[i];
-                    if (placement.PlayerId == context.LocalPlayerId &&
-                        placement.SlotId != firstSourceSlotId &&
-                        CanMoveFrom(placement.SlotId))
-                    {
-                        AddSlotHighlight(
-                            highlights,
-                            placement.SlotId,
-                            WorkflowHighlightSemantic.DispatchSource,
-                            true);
-                    }
-                }
-            }
-
-            view.SetHighlights(highlights);
-            RefreshPreview();
-            view.RefreshActionPanel();
-        }
-
-        private void PresentDispatchTargets(string sourceSlotId)
-        {
-            var highlights = new List<WorkflowHighlight>();
-            if (!string.IsNullOrEmpty(sourceSlotId))
-            {
-                VisitAllSlots(slotId =>
-                {
-                    if (CanMoveFromTo(sourceSlotId, slotId))
-                    {
-                        AddSlotHighlight(
-                            highlights,
-                            slotId,
-                            WorkflowHighlightSemantic.DispatchTarget,
-                            true);
-                    }
-                });
-            }
-
-            view.SetHighlights(highlights);
-            RefreshPreview();
-            view.RefreshActionPanel();
-        }
-
-        private void ShowDispatchDecision()
-        {
-            view.ShowDispatchDecision(new DispatchDecisionViewModel(
-                "调度已移动到目标槽位",
-                "可以再调度一个影响力，或取消并结束本次调度。",
-                "再次调度",
-                "取消",
-                ContinueDispatch,
-                FinishDispatch));
             RefreshPreview();
             view.RefreshActionPanel();
         }
@@ -508,56 +529,6 @@ namespace YC.Presentation.Workflows
             var state = context.CurrentState;
             return state != null &&
                    influenceService.CanPlace(state, context.LocalPlayerId, slotId).IsValid;
-        }
-
-        private bool CanDispatchTo(string slotId)
-        {
-            return CanMoveFromTo(dispatchSourceSlotId, slotId);
-        }
-
-        private bool CanMoveFrom(string sourceSlotId)
-        {
-            if (string.IsNullOrEmpty(sourceSlotId) || sourceSlotId == firstSourceSlotId)
-            {
-                return false;
-            }
-
-            var found = false;
-            VisitAllSlots(slotId =>
-            {
-                if (!found && CanMoveFromTo(sourceSlotId, slotId))
-                {
-                    found = true;
-                }
-            });
-            return found;
-        }
-
-        private bool CanMoveFromTo(string sourceSlotId, string targetSlotId)
-        {
-            var state = context.CurrentState;
-            if (state == null || string.IsNullOrEmpty(sourceSlotId) || string.IsNullOrEmpty(targetSlotId))
-            {
-                return false;
-            }
-
-            if (!HasPendingFirstMove)
-            {
-                return influenceService.CanMove(
-                    state,
-                    context.LocalPlayerId,
-                    sourceSlotId,
-                    targetSlotId).IsValid;
-            }
-
-            return influenceService.CanMoveAtomically(
-                state,
-                context.LocalPlayerId,
-                new List<InfluenceMoveRequest>
-                {
-                    new InfluenceMoveRequest(firstSourceSlotId, firstTargetSlotId),
-                    new InfluenceMoveRequest(sourceSlotId, targetSlotId)
-                }).IsValid;
         }
 
         private string FindFirstLocationSlot(string locationId, Func<string, bool> predicate)
@@ -589,51 +560,7 @@ namespace YC.Presentation.Workflows
             return string.Empty;
         }
 
-        private string FindFirstSourceAtLocation(string locationId)
-        {
-            var state = context.CurrentState;
-            if (state == null || state.Map == null)
-            {
-                return string.Empty;
-            }
-
-            for (var i = 0; i < state.Map.Influences.Count; i++)
-            {
-                var placement = state.Map.Influences[i];
-                if (placement.PlayerId == context.LocalPlayerId &&
-                    placement.LocationId == locationId &&
-                    placement.SlotId != firstSourceSlotId &&
-                    CanMoveFrom(placement.SlotId))
-                {
-                    return placement.SlotId;
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private void VisitAllSlots(Action<string> visitor)
-        {
-            for (var locationIndex = 0; locationIndex < mapQuery.Map.Locations.Count; locationIndex++)
-            {
-                var location = mapQuery.Map.Locations[locationIndex];
-                for (var slotIndex = 0; slotIndex < location.InfluenceSlotCount; slotIndex++)
-                {
-                    visitor(InfluenceService.GetLocationSlotId(location.LocationId, slotIndex));
-                }
-            }
-
-            for (var routeIndex = 0; routeIndex < mapQuery.Map.Routes.Count; routeIndex++)
-            {
-                var route = mapQuery.Map.Routes[routeIndex];
-                for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-                {
-                    visitor(InfluenceService.GetRouteSlotId(route.RouteId, slotIndex));
-                }
-            }
-        }
-
-        private static void AddSlotHighlight(
+        private void AddSlotHighlight(
             ICollection<WorkflowHighlight> highlights,
             string slotId,
             WorkflowHighlightSemantic semantic,
@@ -642,21 +569,8 @@ namespace YC.Presentation.Workflows
             highlights.Add(new WorkflowHighlight(
                 WorkflowHighlightTargetKind.InfluenceSlot,
                 slotId,
-                semantic));
-
-            if (!includeLocation ||
-                !slotId.StartsWith(InfluenceSlotReference.LocationPrefix, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            var rest = slotId.Substring(InfluenceSlotReference.LocationPrefix.Length);
-            var separator = rest.LastIndexOf(':');
-            var locationId = separator < 0 ? rest : rest.Substring(0, separator);
-            highlights.Add(new WorkflowHighlight(
-                WorkflowHighlightTargetKind.Location,
-                locationId,
-                semantic));
+                semantic,
+                pendingConfirmationSlotId == slotId ? WorkflowHighlightState.PendingConfirmation : WorkflowHighlightState.Available));
         }
 
         private PlayerState GetPlayer()
@@ -673,7 +587,7 @@ namespace YC.Presentation.Workflows
 
         private void RefreshPreview()
         {
-            view.RefreshInfluencePreview(HasPendingFirstMove, firstSourceSlotId, firstTargetSlotId);
+            view.RefreshInfluencePreview(false, string.Empty, string.Empty);
         }
 
         private void ClearConfirmation()
@@ -682,12 +596,13 @@ namespace YC.Presentation.Workflows
             pendingConfirmationSlotId = string.Empty;
         }
 
-        private void ClearState()
+        private void ClearState(bool clearPresentation = true)
         {
+            deployDraft = null;
+            dispatchDraft = null; SourceInfluenceId = SourceSlotId = TargetSlotId = string.Empty;
             ClearConfirmation();
-            dispatchSourceSlotId = string.Empty;
-            firstSourceSlotId = string.Empty;
-            firstTargetSlotId = string.Empty;
+
+            if (!clearPresentation) return;
             view.HideDispatchDecision();
             view.ClearHighlights();
             RefreshPreview();

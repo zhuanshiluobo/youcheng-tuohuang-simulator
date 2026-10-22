@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Skipped:Ignored" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.0975292">
+  <test-suite type="TestSuite" id="1062" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="43" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.097529" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+    <properties />
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1120" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="43" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.093588" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+      <properties>
+        <property name="_PID" value="39636" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestSuite" id="1121" name="YC" fullname="YC" runstate="Runnable" testcasecount="43" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.092891" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-suite type="TestSuite" id="1122" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="43" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.092420" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+          <properties />
+          <reason>
+            <message><![CDATA[One or more child tests were ignored]]></message>
+          </reason>
+          <test-suite type="TestSuite" id="1123" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="43" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.091761" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+            <properties />
+            <reason>
+              <message><![CDATA[One or more child tests were ignored]]></message>
+            </reason>
+            <test-suite type="TestFixture" id="1084" name="GameplayMainHudPlayModeTests" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" testcasecount="15" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:30Z" duration="2.087782" total="6" passed="2" failed="0" inconclusive="0" skipped="4" asserts="0">
+              <properties />
+              <reason>
+                <message><![CDATA[One or more child tests were ignored]]></message>
+              </reason>
+              <test-case id="1095" name="BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" methodname="BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1073449646" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:27Z" duration="0.008549" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <reason>
+                  <message><![CDATA[使用项目已有的建设行动测试起点；所有选择与提交走正式 UI 和规则。]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1093" name="CardPicker_HorizontalWheelAndScrollbarReachLastCard" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardPicker_HorizontalWheelAndScrollbarReachLastCard" methodname="CardPicker_HorizontalWheelAndScrollbarReachLastCard" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="2100687454" result="Passed" start-time="2026-09-30 07:50:27Z" end-time="2026-09-30 07:50:29Z" duration="1.714832" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" methodname="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1827580076" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:29Z" end-time="2026-09-30 07:50:29Z" duration="0.003136" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <reason>
+                  <message><![CDATA[沿用项目行动阶段测试起点；不代表从大厅开始的联机验收。]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1098" name="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" methodname="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1503353192" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:29Z" end-time="2026-09-30 07:50:29Z" duration="0.002340" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <reason>
+                  <message><![CDATA[沿用项目行动阶段测试起点；不代表从大厅开始的联机验收。]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1091" name="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" methodname="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="561780141" result="Skipped" label="Ignored" start-time="2026-09-30 07:50:29Z" end-time="2026-09-30 07:50:29Z" duration="0.001760" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <reason>
+                  <message><![CDATA[此用例使用正式右卡行动阶段启动状态。]]></message>
+                </reason>
+              </test-case>
+              <test-case id="1089" name="OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" methodname="OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="80161872" result="Passed" start-time="2026-09-30 07:50:29Z" end-time="2026-09-30 07:50:30Z" duration="0.346900" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

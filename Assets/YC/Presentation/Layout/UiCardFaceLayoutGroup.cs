@@ -12,6 +12,13 @@ namespace YC.Presentation
         [SerializeField] private float aspect = 12f / 17f;
         [SerializeField] private float detailsHeight = 32f;
         [SerializeField] private float ornamentInset = 18f;
+        private float artworkAspect;
+        public void SetArtworkAspect(RectTransform source, float value)
+        {
+            if (source != artwork || Mathf.Approximately(artworkAspect, value)) return;
+            artworkAspect = value;
+            SetDirty();
+        }
         public override void CalculateLayoutInputHorizontal() { base.CalculateLayoutInputHorizontal(); }
         public override void CalculateLayoutInputVertical() { }
         public override void SetLayoutHorizontal() { Place(); }
@@ -19,8 +26,9 @@ namespace YC.Presentation
         private void Place()
         {
             var size = rectTransform.rect.size;
-            var width = Mathf.Min(Mathf.Max(1, size.x - ornamentInset * 2), Mathf.Max(1, size.y - detailsHeight - ornamentInset * 2) * aspect);
-            var height = width / aspect;
+            var currentAspect = artworkAspect > 0 ? artworkAspect : aspect;
+            var width = Mathf.Min(Mathf.Max(1, size.x - ornamentInset * 2), Mathf.Max(1, size.y - detailsHeight - ornamentInset * 2) * currentAspect);
+            var height = width / currentAspect;
             var x = (size.x - width) * .5f;
             var y = ornamentInset;
             SetChildAlongAxis(artwork, 0, x, width);

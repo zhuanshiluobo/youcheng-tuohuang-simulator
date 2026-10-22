@@ -1,0 +1,82 @@
+{
+  "definitionId": "infected.character.gavial_the_invincible",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "百炼嘉维尔",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.gavial_the_invincible.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.gavial_the_invincible.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.gavial_the_invincible.strategy",
+      "script": "lua/characters/infected.character.gavial_the_invincible.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "content.infected.character.gavial_the_invincible.strategy.continue",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.gavial_the_invincible.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.gavial_the_invincible.tactic",
+      "script": "lua/characters/infected.character.gavial_the_invincible.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.gavial_the_invincible.tactic.completed",
+      "cleanupScript": "lua/characters/infected.character.gavial_the_invincible.tactic.lua",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.gavial_the_invincible.tactic.cleanup_order",
+        "availabilityHandlerId": "infected.character.gavial_the_invincible.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.gavial_the_invincible.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.gavial_the_invincible.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.gavial_the_invincible.tactic.label"
+          },
+          "iconKey": "core:settlement.scope_adjacent",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.gavial_the_invincible",
+    "cardId": "infected.character.gavial_the_invincible",
+    "name": "百炼嘉维尔",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.gavial_the_invincible.strategy",
+    "tacticAbilityId": "infected.character.gavial_the_invincible.tactic",
+    "strategyName": "丛林之魂",
+    "tacticName": "撼地巨斧",
+    "sourceReference": "I32",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.gavial_the_invincible.tactic",
+        "effectText": "计谋·撼地巨斧（持续性）：把嘉维尔指示物放在任意资源点。每个收尾阶段一次，将其移到相邻资源点，再移动该资源点上的1个影响力，由你选择去向，保留原所有者并遵守其放置限制。嘉维尔指示物不占影响力或城市槽，创建后永久保留；来源角色离场后不再触发此持续效果。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "百炼嘉维尔"
+      }
+    ]
+  }
+}

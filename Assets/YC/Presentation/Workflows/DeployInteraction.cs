@@ -56,5 +56,10 @@ namespace YC.Presentation.Workflows
                 presenter.Cancel();
             }
         }
+
+        public override void NotifyCommandSettled(string commandId)
+        {
+            presenter.NotifyDeployCommandSettled(commandId);
+        }
     }
 }

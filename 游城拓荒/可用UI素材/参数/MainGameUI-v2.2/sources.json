@@ -1,0 +1,85 @@
+[
+  {
+    "file": "07-originals/character-atlas.jpg",
+    "source": "asset-100.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "42859d86d80867bea640052ef8e85348063c45b72f4c0add8cc0a47f4ae76847"
+  },
+  {
+    "file": "07-originals/character-back-reunion.jpg",
+    "source": "asset-037.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "081182980414c10c123b05e43c7f905e23124a26c8d80cca66c21e61767eb828"
+  },
+  {
+    "file": "07-originals/character-back-rhodes.jpg",
+    "source": "asset-102.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f"
+  },
+  {
+    "file": "07-originals/city-board.png",
+    "source": "asset-051.png",
+    "copiedWithoutImageEditing": true,
+    "sha256": "67c85fce31269b13181d1c9b1593f640b9ab4b6d81b489cd05125891660d6218"
+  },
+  {
+    "file": "07-originals/enterprise-atlas.jpg",
+    "source": "asset-046.jpg",
+    "sourceWorkspacePath": "/workspace/scratch/f2adf1f55c56/tmp/assets-review/asset-046.jpg",
+    "sourceSize": [
+      2600,
+      3700
+    ],
+    "copiedWithoutImageEditing": true,
+    "sha256": "e5f0cfd4262b6e58f859249606fd7886070c6eb91adcf33cf51cd51b9a4bc261"
+  },
+  {
+    "file": "07-originals/entrepreneur-1.jpg",
+    "source": "asset-052.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "3aa098e6a1b2b682997b1b6fc4f50e7035b0bc222901b9c18c819e22b7bf8452"
+  },
+  {
+    "file": "07-originals/entrepreneur-2.jpg",
+    "source": "asset-053.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "aa52cd4718387d366ab50eb694ee9c3e6e99b82b08afca7e260fab2a9dfa768f"
+  },
+  {
+    "file": "07-originals/entrepreneur-3.jpg",
+    "source": "asset-054.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "6dcaf1a548aca0b428339bf03b0074e15f79fa596c044015957cd837c5b1ac69"
+  },
+  {
+    "file": "07-originals/resource-iron.png",
+    "source": "option-picker-ui-v1/assets/resource-iron.png",
+    "copiedWithoutImageEditing": true,
+    "sha256": "2da089ee32aa6c4a329f6f055b5e527de84c788099b15b64a39f7415859d37e3"
+  },
+  {
+    "file": "07-originals/resource-originium.png",
+    "source": "option-picker-ui-v1/assets/resource-originium.png",
+    "copiedWithoutImageEditing": true,
+    "sha256": "3d3b8553130e658276e040e5aac963961fcc1f40464c57ad1c3b7cb19d753cc6"
+  },
+  {
+    "file": "07-originals/resource-pure.png",
+    "source": "option-picker-ui-v1/assets/resource-pure.png",
+    "copiedWithoutImageEditing": true,
+    "sha256": "c1ddc84b577953c3604251608de84652787b0186ef42f50e2d02fd9ccb0862b9"
+  },
+  {
+    "file": "07-originals/resource-rock.png",
+    "source": "option-picker-ui-v1/assets/resource-rock.png",
+    "copiedWithoutImageEditing": true,
+    "sha256": "81b92f61c43cc1b2f45396a550a6c6d6b0682c461a1aed454ae4fc0bddc17ea1"
+  },
+  {
+    "file": "07-originals/world-map.jpg",
+    "source": "asset-099.jpg",
+    "copiedWithoutImageEditing": true,
+    "sha256": "605f6fb43c8021706847d7d9db0d4483a5bfa05fcd09bf15b13e96b6996464bf"
+  }
+]

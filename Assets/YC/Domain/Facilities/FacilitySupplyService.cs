@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using YC.Domain.CardFlows;
 using YC.Domain.State;
+using YC.Domain.Items;
+using YC.Domain.Effects;
+using System.Linq;
 
 namespace YC.Domain.Facilities
 {
@@ -12,6 +15,18 @@ namespace YC.Domain.Facilities
     {
         public const int SupplySize = 6;
         private static readonly ICardPoolService CardPool = new CardPoolService();
+
+        // 实体路径只补指定槽。空堆成功无变化，已占用槽明确拒绝覆盖。
+        public static ItemTransferResult RefillSlot(EffectExecutionContext context, string slotZoneId)
+        {
+            var query = new ItemZoneQuery();
+            var slot = query.FindZone(context.State, slotZoneId);
+            if (slot?.TemplateId != "core.zone.facility_supply_slot" || query.GetItemIds(context.State, slotZoneId).Count > 0)
+                throw new InvalidOperationException("destination_rejected");
+            var deck = ItemTransferEffectExecutor.FindZone(context.State, "facility_deck");
+            var request = new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ExpectedSource = new ItemPositionRef { ZoneId = deck.ZoneId }, Destination = new ZoneRef { ZoneId = slotZoneId }, InsertionKind = "unordered", OperationProfileId = "core.facility_card_transfer", ItemIds = query.GetTopItemIds(context.State, deck.ZoneId, 1).ToList() };
+            return new ItemTransferService().RelocateItems(context, request);
+        }
 
         public static void Initialize(
             DeckRuntimeState decks,
@@ -29,7 +44,7 @@ namespace YC.Domain.Facilities
             Refill(decks.FacilitySupply, decks.FacilityDeck);
         }
 
-        public static void Refill(List<string> supply, List<string> deck)
+        public static void Refill(IList<string> supply, IList<string> deck)
         {
             if (supply == null) throw new ArgumentNullException(nameof(supply));
             if (deck == null) throw new ArgumentNullException(nameof(deck));
@@ -41,8 +56,8 @@ namespace YC.Domain.Facilities
         }
 
         public static bool ReplaceBuiltCard(
-            List<string> supply,
-            List<string> deck,
+            IList<string> supply,
+            IList<string> deck,
             string facilityId)
         {
             if (supply == null) throw new ArgumentNullException(nameof(supply));
@@ -68,8 +83,8 @@ namespace YC.Domain.Facilities
         }
 
         public static bool ReturnSupplyCardToDeck(
-            List<string> supply,
-            List<string> deck,
+            IList<string> supply,
+            IList<string> deck,
             string facilityId)
         {
             if (supply == null) throw new ArgumentNullException(nameof(supply));
@@ -91,13 +106,13 @@ namespace YC.Domain.Facilities
             return true;
         }
 
-        private static string Draw(List<string> deck)
+        private static string Draw(IList<string> deck)
         {
-            var decks = new DeckRuntimeState
-            {
-                FacilityDeck = deck
-            };
-            return CardPool.Draw(decks, CardPoolService.FacilityPoolId);
+            if (deck.Count == 0) throw new InvalidOperationException("设施牌堆为空。");
+            int index = deck.Count - 1;
+            string cardId = deck[index];
+            deck.RemoveAt(index);
+            return cardId;
         }
     }
 }

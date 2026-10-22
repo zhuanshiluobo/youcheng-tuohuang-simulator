@@ -29,7 +29,7 @@ namespace YC.Presentation
         public static RectTransform CreateDragGhost(
             RectTransform canvas,
             RectTransform source,
-            Texture texture,
+            Sprite sprite,
             string fallbackLabel,
             Font fallbackFont,
             CardDragGhostLayout layout)
@@ -57,8 +57,8 @@ namespace YC.Presentation
             ghost.sizeDelta = source.rect.size;
 
             var image = ghostObject.GetComponent<RawImage>();
-            image.texture = texture;
-            image.color = texture == null ? CardBackground : Color.white;
+            CardArtworkView.Set(image, sprite);
+            image.color = sprite == null ? CardBackground : Color.white;
             image.raycastTarget = false;
 
             var canvasGroup = ghostObject.GetComponent<CanvasGroup>();
@@ -66,7 +66,7 @@ namespace YC.Presentation
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
 
-            if (texture == null && !string.IsNullOrEmpty(fallbackLabel))
+            if (sprite == null && !string.IsNullOrEmpty(fallbackLabel))
             {
                 AddFallbackLabel(ghost, fallbackLabel, fallbackFont, layout);
             }
@@ -218,7 +218,6 @@ namespace YC.Presentation
     {
         private Button button;
         private Action singleClick;
-        private Action doubleClick;
         private Func<bool> canBeginDrag;
         private Action<PointerEventData> beginDrag;
         private Action<PointerEventData> drag;
@@ -232,12 +231,10 @@ namespace YC.Presentation
 
         public void ConfigureClick(
             Button configuredButton,
-            Action configuredSingleClick,
-            Action configuredDoubleClick)
+            Action configuredSingleClick)
         {
             button = configuredButton;
             singleClick = configuredSingleClick;
-            doubleClick = configuredDoubleClick;
         }
 
         public void ConfigureDrag(
@@ -283,12 +280,6 @@ namespace YC.Presentation
             if (suppressClickForCurrentPress)
             {
                 suppressClickForCurrentPress = false;
-                return;
-            }
-
-            if (eventData.clickCount >= 2)
-            {
-                doubleClick?.Invoke();
                 return;
             }
 

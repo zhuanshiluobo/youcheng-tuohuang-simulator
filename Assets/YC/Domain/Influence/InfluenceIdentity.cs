@@ -16,6 +16,7 @@ namespace YC.Domain.Influence
         public static void Ensure(GameState state)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) return;
             if (state.Map == null) state.Map = new MapRuntimeState();
             if (state.Map.Influences == null) state.Map.Influences = new List<InfluencePlacement>();
 
@@ -45,6 +46,7 @@ namespace YC.Domain.Influence
 
         public static string CreateNewId(GameState state, int playerId, string slotId, string sourceId)
         {
+            YC.Domain.Items.ItemZoneLegacyProjection.RejectLegacyWrite(state);
             if (state == null) throw new ArgumentNullException(nameof(state));
             if (state.Map == null) state.Map = new MapRuntimeState();
             if (state.Map.Influences == null) state.Map.Influences = new List<InfluencePlacement>();

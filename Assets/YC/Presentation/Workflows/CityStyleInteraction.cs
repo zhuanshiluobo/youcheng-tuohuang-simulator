@@ -121,6 +121,7 @@ namespace YC.Presentation.Workflows
 
         public void OpenPreview(string initialCityStyleId)
         {
+            if (context.CurrentState?.FindPlayer(context.LocalPlayerId) == null) return;
             ShowPreview(initialCityStyleId, false);
         }
 
@@ -154,9 +155,10 @@ namespace YC.Presentation.Workflows
                     (id, slots) => selection.ValidateSelection(context.CurrentState, playerId, id, slots),
                     declare ? (Func<string, IReadOnlyList<int>, bool>)((id, slots) =>
                         context.LocalPlayerId == playerId && context.CurrentState.GameId == gameId && TrySubmitDeclare(id, slots, receipt)) : null,
-                    null, restoreBuildInteraction,
-                    (id, marker, originium, iron) => context.LocalPlayerId == playerId &&
-                        context.CurrentState.GameId == gameId && TrySubmitSpecialAction(id, marker, originium, iron, receipt),
+                    null, declare ? restoreBuildInteraction : (Action)null,
+                    string.IsNullOrEmpty(unavailable) ? (Func<string, string, int, int, bool>)((id, marker, originium, iron) =>
+                        context.LocalPlayerId == playerId && context.CurrentState.GameId == gameId &&
+                        TrySubmitSpecialAction(id, marker, originium, iron, receipt)) : null,
                     declare, refresh, key, state.EffectRuntime == null ? 0 : state.EffectRuntime.StateRevision, () => receipt.Status,
                     state.Players.Find(p => p.PlayerId == playerId)?.Name ?? string.Empty,
                     state.Players.Find(p => p.PlayerId == playerId)?.InfluenceSupply ?? 0);

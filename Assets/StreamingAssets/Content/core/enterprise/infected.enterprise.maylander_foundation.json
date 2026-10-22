@@ -1,0 +1,164 @@
+{
+  "definitionId": "infected.enterprise.maylander_foundation",
+  "contentType": "enterprise",
+  "version": "1.0.0",
+  "displayName": "梅兰德基金会",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/enterprises/infected_maylander_foundation.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.board_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.enterprise.maylander_foundation.level_1.special",
+      "mode": "level_1.special",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.enterprise.maylander_foundation.level_1.special",
+      "script": "lua/enterprises/infected.enterprise.maylander_foundation.level_1.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_1.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "infected.enterprise.maylander_foundation.level_2.special",
+      "mode": "level_2.special",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.enterprise.maylander_foundation.level_2.special",
+      "script": "lua/enterprises/infected.enterprise.maylander_foundation.level_2.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_2.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "infected.enterprise.maylander_foundation.level_3.special",
+      "mode": "level_3.special",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.enterprise.maylander_foundation.level_3.special",
+      "script": "lua/enterprises/infected.enterprise.maylander_foundation.level_3.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_3.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "infected.enterprise.maylander_foundation.level_4.reward",
+      "mode": "level_4.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.enterprise.maylander_foundation.level_4.reward",
+      "script": "lua/enterprises/infected.enterprise.maylander_foundation.level_4.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_4.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "infected.enterprise.maylander_foundation.level_5.reward",
+      "mode": "level_5.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.enterprise.maylander_foundation.level_5.reward",
+      "script": "lua/enterprises/infected.enterprise.maylander_foundation.level_5.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_5.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "data": {
+    "levels": [
+      {
+        "level": 0,
+        "kind": "empty",
+        "abilityId": ""
+      },
+      {
+        "level": 1,
+        "kind": "special",
+        "abilityId": "infected.enterprise.maylander_foundation.level_1.special",
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_1.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 2,
+        "kind": "special",
+        "abilityId": "infected.enterprise.maylander_foundation.level_2.special",
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_2.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 3,
+        "kind": "special",
+        "abilityId": "infected.enterprise.maylander_foundation.level_3.special",
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_3.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 4,
+        "kind": "reward",
+        "abilityId": "infected.enterprise.maylander_foundation.level_4.reward",
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_4.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 5,
+        "kind": "reward",
+        "abilityId": "infected.enterprise.maylander_foundation.level_5.reward",
+        "description": {
+          "key": "core:infected.enterprise.maylander_foundation.level_5.description",
+          "arguments": []
+        }
+      }
+    ],
+    "departmentRewardPolicy": ""
+  },
+  "presentation": {
+    "detailScript": "lua/presentation/enterprise.details.lua"
+  }
+}

@@ -1,0 +1,1866 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::IpcConnector] Channel LicenseClient-wzy doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 20832)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-wzy" at "2026-09-30T04:48:11.8447059Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 20832, path: "D:/2022.3.62f1c1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.16.2+bdef8f5
+  Session Id:              e0d49d674bf74388893cc77883063633
+  Correlation Id:          f07adc1dfc9e2658f1db175e022f7696
+  External correlation Id: 3827503966910504131
+  Machine Id:              2sF3F2wFFvNwMKY1rzfdr/szcz8=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-wzy" (connect: 0.57s, validation: 0.05s, handshake: 0.03s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-wzy-notifications" at "2026-09-30T04:48:11.9333872Z"
+[Licensing::Module] Connected to LicensingClient (PId: 20832, launch time: 0.00, total connection time: 0.65s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully updated license
+Built from '2022.3/china_unity/release' branch; Version is '2022.3.62f1c1 (b0109b07edb8) revision 11538587'; Using compiler version '192829333'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) 64bit Professional' Language: 'zh' Physical Memory: 98060 MB
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] Serial number assigned to: "F4-5XCY-RQ8U-5U3Q-WQ4J-XXXX"
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1, IsPro: 0
+[Licensing::Client] Successfully resolved entitlement details
+
+COMMAND LINE ARGUMENTS:
+D:\2022.3.62f1c1\Editor\Unity.exe
+-batchmode
+-projectPath
+G:\NoMadCity
+-runTests
+-testPlatform
+EditMode
+-testResults
+G:\NoMadCity\Logs\CardSpriteMigration\postdelete-retry\editmode-20260930_124810.xml
+-logFile
+G:\NoMadCity\Logs\CardSpriteMigration\postdelete-retry\editmode-20260930_124810.log
+-testFilter
+CardSpriteSliceTests;CardVisualCatalogEditorAssetTests;CardViewerTests;CardPickerDialogTests;ExternalContentPackTests;ExternalCatalogExpansionTests;BuildFacilityCommandHandlerTests
+Successfully changed project path to: G:\NoMadCity
+G:/NoMadCity
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [35804]  Target information:
+
+Player connection [35804]  * "[IP] 192.168.1.21 [Port] 55504 [Flags] 2 [Guid] 2177204587 [EditorId] 2177204587 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-IKMDFV8) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [35804]  * "[IP] 172.28.182.139 [Port] 55504 [Flags] 2 [Guid] 2177204587 [EditorId] 2177204587 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-IKMDFV8) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [35804]  * "[IP] 192.168.56.1 [Port] 55504 [Flags] 2 [Guid] 2177204587 [EditorId] 2177204587 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-IKMDFV8) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [35804]  * "[IP] 192.168.232.1 [Port] 55504 [Flags] 2 [Guid] 2177204587 [EditorId] 2177204587 [Version] 1048832 [Id] WindowsEditor(7,DESKTOP-IKMDFV8) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [35804] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [35804] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+[Package Manager] UpmClient::Connect -- Connected to IPC stream "Upm-3016" after 0.2 seconds.
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 61 packages:
+  Packages from [https://package.openupm.com]:
+    com.mirrornetworking.mirror@96.6.4 (location: G:\NoMadCity\Library\PackageCache\com.mirrornetworking.mirror@96.6.4)
+  Packages from [https://packages.unity.cn]:
+    com.unity.collab-proxy@2.12.4 (location: G:\NoMadCity\Library\PackageCache\com.unity.collab-proxy@2.12.4)
+    com.unity.ide.rider@3.0.36 (location: G:\NoMadCity\Library\PackageCache\com.unity.ide.rider@3.0.36)
+    com.unity.ide.visualstudio@2.0.22 (location: G:\NoMadCity\Library\PackageCache\com.unity.ide.visualstudio@2.0.22)
+    com.unity.nuget.newtonsoft-json@3.2.1 (location: G:\NoMadCity\Library\PackageCache\com.unity.nuget.newtonsoft-json@3.2.1)
+    com.unity.test-framework@1.1.33 (location: G:\NoMadCity\Library\PackageCache\com.unity.test-framework@1.1.33)
+    com.unity.textmeshpro@3.0.7 (location: G:\NoMadCity\Library\PackageCache\com.unity.textmeshpro@3.0.7)
+    com.unity.toolchain.win-x86_64-linux-x86_64@2.0.11 (location: G:\NoMadCity\Library\PackageCache\com.unity.toolchain.win-x86_64-linux-x86_64@2.0.11)
+    com.unity.sysroot@2.0.10 (location: G:\NoMadCity\Library\PackageCache\com.unity.sysroot@2.0.10)
+    com.unity.sysroot.linux-x86_64@2.0.9 (location: G:\NoMadCity\Library\PackageCache\com.unity.sysroot.linux-x86_64@2.0.9)
+    com.unity.ext.nunit@1.0.6 (location: G:\NoMadCity\Library\PackageCache\com.unity.ext.nunit@1.0.6)
+    com.unity.2d.animation@9.2.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.animation@9.2.0)
+    com.unity.2d.pixel-perfect@5.1.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.pixel-perfect@5.1.0)
+    com.unity.2d.psdimporter@8.1.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.psdimporter@8.1.0)
+    com.unity.2d.spriteshape@9.1.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.spriteshape@9.1.0)
+    com.unity.2d.tilemap.extras@3.1.3 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.tilemap.extras@3.1.3)
+    com.unity.2d.aseprite@1.1.9 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.aseprite@1.1.9)
+    com.unity.2d.common@8.1.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.common@8.1.0)
+    com.unity.mathematics@1.2.6 (location: G:\NoMadCity\Library\PackageCache\com.unity.mathematics@1.2.6)
+    com.unity.collections@1.2.4 (location: G:\NoMadCity\Library\PackageCache\com.unity.collections@1.2.4)
+    com.unity.burst@1.8.21 (location: G:\NoMadCity\Library\PackageCache\com.unity.burst@1.8.21)
+  Built-in packages:
+    com.unity.feature.2d@2.0.1 (location: G:\NoMadCity\Library\PackageCache\com.unity.feature.2d@2.0.1)
+    com.unity.ugui@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.ugui@1.0.0)
+    com.unity.modules.ai@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.ai@1.0.0)
+    com.unity.modules.androidjni@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.androidjni@1.0.0)
+    com.unity.modules.animation@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.animation@1.0.0)
+    com.unity.modules.assetbundle@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.assetbundle@1.0.0)
+    com.unity.modules.audio@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.audio@1.0.0)
+    com.unity.modules.cloth@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.cloth@1.0.0)
+    com.unity.modules.director@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.director@1.0.0)
+    com.unity.modules.imageconversion@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.imageconversion@1.0.0)
+    com.unity.modules.imgui@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.imgui@1.0.0)
+    com.unity.modules.jsonserialize@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.jsonserialize@1.0.0)
+    com.unity.modules.particlesystem@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.particlesystem@1.0.0)
+    com.unity.modules.physics@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.physics@1.0.0)
+    com.unity.modules.physics2d@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.physics2d@1.0.0)
+    com.unity.modules.screencapture@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.screencapture@1.0.0)
+    com.unity.modules.terrain@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.terrain@1.0.0)
+    com.unity.modules.terrainphysics@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.terrainphysics@1.0.0)
+    com.unity.modules.tilemap@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.tilemap@1.0.0)
+    com.unity.modules.ui@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.ui@1.0.0)
+    com.unity.modules.uielements@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.uielements@1.0.0)
+    com.unity.modules.umbra@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.umbra@1.0.0)
+    com.unity.modules.unityanalytics@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unityanalytics@1.0.0)
+    com.unity.modules.unitywebrequest@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unitywebrequest@1.0.0)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle@1.0.0)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unitywebrequestaudio@1.0.0)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unitywebrequesttexture@1.0.0)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.unitywebrequestwww@1.0.0)
+    com.unity.modules.vehicles@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.vehicles@1.0.0)
+    com.unity.modules.video@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.video@1.0.0)
+    com.unity.modules.vr@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.vr@1.0.0)
+    com.unity.modules.wind@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.wind@1.0.0)
+    com.unity.modules.xr@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.xr@1.0.0)
+    com.unity.modules.subsystems@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.modules.subsystems@1.0.0)
+    com.unity.2d.sprite@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.sprite@1.0.0)
+    com.unity.2d.tilemap@1.0.0 (location: G:\NoMadCity\Library\PackageCache\com.unity.2d.tilemap@1.0.0)
+  Git packages:
+    org.moonsharp.moonsharp@https://github.com/moonsharp-devs/moonsharp.git?path=/interpreter#0fb8ba9106c44b140b8f56cb44cb1b50b358897c (location: G:\NoMadCity\Library\PackageCache\org.moonsharp.moonsharp@0fb8ba9106)
+    com.coplaydev.unity-mcp@https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main (location: G:\NoMadCity\Library\PackageCache\com.coplaydev.unity-mcp@c14de1e6dc)
+    com.mirror.steamworks.net@https://github.com/Chykary/FizzySteamworks.git?path=/com.mirror.steamworks.net#FizzySteamworks-6.0.1 (location: G:\NoMadCity\Library\PackageCache\com.mirror.steamworks.net@2571659263)
+    com.rlabrecque.steamworks.net@https://github.com/rlabrecque/Steamworks.NET.git?path=/com.rlabrecque.steamworks.net#2025.163.0 (location: G:\NoMadCity\Library\PackageCache\com.rlabrecque.steamworks.net@98d6584e45)
+[Subsystems] No new subsystems found in resolved package list.
+Package Manager log level set to [2]
+[Package Manager] Done registering packages in 0.07 seconds
+Artifact Garbage Collection - Removed 2 unused hashed content files
+Refreshing native plugins compatible for Editor in 6.82 ms, found 5 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 2022.3.62f1c1 (b0109b07edb8)
+[Subsystems] Discovering subsystems at path D:/2022.3.62f1c1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path G:/NoMadCity/Assets
+GfxDevice: creating device client; threaded=0; jobified=0
+Direct3D:
+    Version:  Direct3D 11.0 [level 11.1]
+    Renderer: NVIDIA GeForce RTX 4060 Ti (ID=0x2803)
+    Vendor:   NVIDIA
+    VRAM:     7949 MB
+    Driver:   32.0.15.9186
+[Licensing::Client] Successfully resolved entitlement details
+Initialize mono
+Mono path[0] = 'D:/2022.3.62f1c1/Editor/Data/Managed'
+Mono path[1] = 'D:/2022.3.62f1c1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'D:/2022.3.62f1c1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56016
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: D:/2022.3.62f1c1/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: D:/2022.3.62f1c1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll
+Register platform support module: D:/2022.3.62f1c1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Register platform support module: D:/2022.3.62f1c1/Editor/Data/PlaybackEngines/LinuxStandaloneSupport/UnityEditor.LinuxStandalone.Extensions.dll
+Registered in 0.026069 seconds.
+- Loaded All Assemblies, in  0.220 seconds
+Native extension for LinuxStandalone target not found
+Native extension for WindowsStandalone target not found
+Native extension for iOS target not found
+Native extension for Android target not found
+Android Extension - Scanning For ADB Devices 170 ms
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  0.352 seconds
+Domain Reload Profiling: 572ms
+	BeginReloadAssembly (57ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (0ms)
+	RebuildCommonClasses (19ms)
+	RebuildNativeTypeToScriptingClass (6ms)
+	initialDomainReloadingComplete (54ms)
+	LoadAllAssembliesAndSetupDomain (84ms)
+		LoadAssemblies (57ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (83ms)
+			TypeCache.Refresh (82ms)
+				TypeCache.ScanAssembly (73ms)
+			ScanForSourceGeneratedMonoScriptInfo (0ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (352ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (326ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (223ms)
+			SetLoadedEditorAssemblies (3ms)
+			RefreshPlugins (0ms)
+			BeforeProcessingInitializeOnLoad (1ms)
+			ProcessInitializeOnLoadAttributes (71ms)
+			ProcessInitializeOnLoadMethodAttributes (29ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+A meta data file (.meta) exists but its asset 'Packages/com.mirrornetworking.mirror/LICENSE' can't be found. When moving or deleting files outside of Unity, please ensure that the corresponding .meta file is moved or deleted along with it.
+Couldn't delete Packages/com.mirrornetworking.mirror/LICENSE.meta because it's in an immutable folder.
+A meta data file (.meta) exists but its asset 'Packages/com.mirrornetworking.mirror/README.md' can't be found. When moving or deleting files outside of Unity, please ensure that the corresponding .meta file is moved or deleted along with it.
+Couldn't delete Packages/com.mirrornetworking.mirror/README.md.meta because it's in an immutable folder.
+Asset Packages/com.mirrornetworking.mirror/Mirror/Assets has no meta file, but it's in an immutable folder. The asset will be ignored.
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+Starting: D:\2022.3.62f1c1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: G:/NoMadCity
+DisplayProgressbar: Compiling Scripts
+ExitCode: 4 Duration: 0s172ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1900b0aE-inputdata.json
+[677/892    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+*** Tundra requires additional run (0.15 seconds), 2 items updated, 676 evaluated
+Starting: D:\2022.3.62f1c1\Editor\Data\Tools\netcorerun\netcorerun.exe "D:\2022.3.62f1c1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1900b0aE.dag.json" "Library/Bee/1900b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: G:/NoMadCity
+ExitCode: 0 Duration: 0s367ms
+Starting: D:\2022.3.62f1c1\Editor\Data\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1900b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1900b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: G:/NoMadCity
+ExitCode: 0 Duration: 1s776ms
+Finished compiling graph: 895 nodes, 13327 flattened edges (10495 ToBuild, 152 ToUse), maximum node priority 957
+[484/892    0s] WriteText Library/Bee/artifacts/1900b0aE.dag/YC.Presentation.Workflows.rsp
+[677/892    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[876/892    0s] Csc Library/Bee/artifacts/1900b0aE.dag/YC.Presentation.Workflows.dll (+2 others)
+[877/892    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/YC.Presentation.Workflows.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/YC.Presentation.Workflows.dll, with 127 defines and 145 references
+
+processors: Mirror.Weaver.ILPostProcessorHook, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Mirror.Weaver.ILPostProcessorHook
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[878/892    0s] CopyFiles Library/ScriptAssemblies/YC.Presentation.Workflows.pdb
+[879/892    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll (+2 others)
+[880/892    0s] CopyFiles Library/ScriptAssemblies/YC.Presentation.Workflows.dll
+[881/892    0s] Csc Library/Bee/artifacts/1900b0aE.dag/YC.Tests.EditMode.dll (+2 others)
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(711,51): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.GameStarted' is never used
+
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(713,48): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.ErrorOccurred' is never used
+
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(710,51): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.RoomUpdated' is never used
+
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(712,40): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.RoomDisbanded' is never used
+[882/892    0s] Csc Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[883/892    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/YC.Tests.EditMode.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/YC.Tests.EditMode.dll, with 125 defines and 231 references
+
+processors: Mirror.Weaver.ILPostProcessorHook, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Mirror.Weaver.ILPostProcessorHook
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[884/892    0s] CopyFiles Library/ScriptAssemblies/YC.Tests.EditMode.pdb
+[885/892    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp-Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp-Editor.dll, with 125 defines and 302 references
+
+processors: Mirror.Weaver.ILPostProcessorHook, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Mirror.Weaver.ILPostProcessorHook
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[886/892    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[887/892    0s] ILPostProcess Library/Bee/artifacts/1900b0aE.dag/post-processed/Assembly-CSharp.dll (+pdb)
+Processing assembly Library/Bee/artifacts/1900b0aE.dag/Assembly-CSharp.dll, with 127 defines and 282 references
+
+processors: Mirror.Weaver.ILPostProcessorHook, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+
+running Mirror.Weaver.ILPostProcessorHook
+
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[888/892    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.pdb
+[889/892    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp.dll
+[890/892    0s] CopyFiles Library/ScriptAssemblies/YC.Tests.EditMode.dll
+[891/892    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (1.76 seconds), 18 items updated, 892 evaluated
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(711,51): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.GameStarted' is never used
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(713,48): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.ErrorOccurred' is never used
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(710,51): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.RoomUpdated' is never used
+Assets\YC\Tests\EditMode\SteamMultiplayerCoreTests.cs(712,40): warning CS0067: The event 'SteamMultiplayerCoreTests.FakeOnlineRoomService.RoomDisbanded' is never used
+AssetDatabase: script compilation time: 2.613639s
+Begin MonoManager ReloadAssembly
+- Loaded All Assemblies, in  1.890 seconds
+Refreshing native plugins compatible for Editor in 2.79 ms, found 5 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Start importing Assets/YC/Presentation/Maps/Highlights using Guid(5e6cc64c8412555ea3f875307c0eaf7e) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b394b0bb5d220687f06791b5aaeeeaf6') in 0.006318 seconds
+Start importing Assets/YC/Tests/EditMode/CardSpriteSliceTests.cs using Guid(00eaf9bcd2cea574ab13dff6f15d5fbc) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '8dc9b49e6232a7118dd9f904ee10a35a') in 0.013185 seconds
+Start importing Assets/YC/Presentation/Workflows/IInteraction.cs using Guid(102dedff27744d308f75bf89410c87ba) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'd1cd0056b3d271eafa8c5a1cac5f9d94') in 0.001005 seconds
+Start importing Assets/YC/Presentation/MapView.cs using Guid(50e705b482e251e4da4f10bc19a5a48b) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '222ce9e105826766d93eb10e39a83980') in 0.000743 seconds
+Start importing Assets/YC/Presentation/Workflows/ResourceCollectionPresenter.cs using Guid(61f123f30ab54cb197b4950da99f2df2) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '2a78d15d92093b33143f1caccd567f91') in 0.000704 seconds
+Start importing Assets/YC/Presentation/MapButtonView.cs using Guid(535e90eff888530dab232e558a19bd17) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '780db229e12d16ebb3ef9e81221b7433') in 0.000706 seconds
+Start importing Assets/YC/Presentation/Workflows/WorkflowPorts.cs using Guid(e3f1099014ff48b6b93160bfa2d67c25) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'ad45bcb88c0a3d388be22bdc3fd7372b') in 0.000878 seconds
+Start importing Assets/YC/Presentation/MobileCityWorkflowViewAdapter.cs using Guid(046cfa74da114446964254f740be7e8b) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b52ced5e4e54e80d5334c1725d1f49b1') in 0.000835 seconds
+Start importing Assets/YC/Presentation/Maps/MapDisplayLayout.cs using Guid(a57cd8eeadcb43fdacf97d506c24e6f3) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '7f3d87b228d7b4ebcc6f771f8ba66db0') in 0.000744 seconds
+Start importing Assets/YC/Presentation/MapViewPresenter.cs using Guid(f5ea6ad5cbddeb44593a78ea197f0bea) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b31340aaa7a0634712ebbdd6baae78fa') in 0.000658 seconds
+Start importing Assets/YC/Presentation/MobileCityInteractionController.cs using Guid(d6a381aa4cb64bca8d123c39588429b0) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '784b7ab190afb8701e0f3515ce7ec5cd') in 0.000699 seconds
+Start importing Assets/YC/Infrastructure/Lua/ExternalContentPack.cs using Guid(575eeeb24307477cb70478346d30faa8) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '1c9516acdaf5a91f8efe24589ffb210a') in 0.000605 seconds
+Start importing Assets/YC/Presentation/Workflows/InteractionRouter.cs using Guid(876abc1c6c604b8888fcefc508988546) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b82b10550caeda8bd3e7b9fb88299873') in 0.000755 seconds
+Start importing Assets/YC/Presentation/Workflows/ResourceCollectionCoverage.cs using Guid(c74d8f54817be89489d7a5de5a2d4f8c) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'e037f48c361f0ee32983d0acf4f5d86f') in 0.006531 seconds
+Start importing Assets/YC/Tests/PlayMode/CardSpriteMigrationRuntimeProbe.cs using Guid(085e1493e463f634cbe79e8b18b02dd4) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '5139516adad816907369038f55e3d2fd') in 0.007634 seconds
+Start importing Assets/YC/Presentation/ExternalContentRuntime.cs using Guid(1cc905b8f92940a3b3c4d64000c913e9) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '49026bb27723c0288b9e68e691147983') in 0.000888 seconds
+Start importing Assets/YC/Presentation/Maps/MapHighlightCatalog.cs using Guid(2e6eba7502e753a08c0fe1e08a755c38) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '989c9cc8e415f932282996c8c0815e00') in 0.000789 seconds
+Start importing Assets/YC/Editor/CardSpriteMigrationVerification.cs using Guid(ce895aaaf656498478c6ca26a61834d2) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'e50f0ba37d7de942da412f43422a63f9') in 0.005613 seconds
+Refreshing native plugins compatible for Editor in 2.52 ms, found 5 plugins.
+Native extension for LinuxStandalone target not found
+Native extension for WindowsStandalone target not found
+Native extension for iOS target not found
+Native extension for Android target not found
+Mirror | mirror-networking.com | discord.gg/N9QVxbM
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.426 seconds
+Domain Reload Profiling: 4316ms
+	BeginReloadAssembly (86ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (3ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (16ms)
+	RebuildCommonClasses (19ms)
+	RebuildNativeTypeToScriptingClass (6ms)
+	initialDomainReloadingComplete (16ms)
+	LoadAllAssembliesAndSetupDomain (1763ms)
+		LoadAssemblies (1673ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (135ms)
+			TypeCache.Refresh (113ms)
+				TypeCache.ScanAssembly (100ms)
+			ScanForSourceGeneratedMonoScriptInfo (15ms)
+			ResolveRequiredComponents (5ms)
+	FinalizeReload (2426ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (2349ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (15ms)
+			SetLoadedEditorAssemblies (2ms)
+			RefreshPlugins (0ms)
+			BeforeProcessingInitializeOnLoad (24ms)
+			ProcessInitializeOnLoadAttributes (2253ms)
+			ProcessInitializeOnLoadMethodAttributes (53ms)
+			AfterProcessingInitializeOnLoad (1ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (4ms)
+Start importing Assets/YC/Presentation/Maps/Highlights/influence-selected@4x.png using Guid(06fa51ee597c511f9a44cba7318604a9) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'ed0b6dce6002d7246a5003e9062cd1aa') in 0.018583 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/resource-available@4x.png using Guid(9623323c8c2d58578425daf414aff14b) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b83a4715fbeebc3e335c3a91ad2cc8fb') in 0.012507 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/route-single-available@4x.png using Guid(f62911998bf55701bd9dce24395a2f8a) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '46098ea6ed4376d14dcdc63c996e3107') in 0.004855 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/resource-selected@4x.png using Guid(f8b8dba20d5a501a88fb07cbd2a7f76f) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '193fb99130881fc7bebb76b62a1683ef') in 0.010423 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/influence-available@4x.png using Guid(c975225e91a25bc8bceb38f5786aadd7) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '8b2005fe305e8559cac8d83fe592b33d') in 0.002720 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/route-double-available@4x.png using Guid(dab24ee3c0f45230879f55ccbb307ba4) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '2770b7ec1f424180f32f305301fb4dac') in 0.004800 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/route-single-selected@4x.png using Guid(6c82d4ac858351529913880e0a02ffd2) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'd525d04026c5d5363f255a235c19c34c') in 0.004310 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/route-double-selected@4x.png using Guid(3f5b8a75dd8a54d19a0cece816cc304d) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '5951d67f5e7c22bc80e089de5dabc2be') in 0.004203 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/MapHighlightCatalog.asset using Guid(31b2d42632505f4d8dc8632942cdf0b0) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '4882be78161fb725c912cfb7a674ad35') in 0.007670 seconds
+Start importing Assets/Resources/MapLayouts/map-four-players.asset using Guid(07db2f96f43c41d6be8c2c15966f760e) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '2b73e5aa6b73ef07444286ab26ddef1f') in 0.016911 seconds
+Start importing Assets/Resources/MapLayouts/map-three-players.asset using Guid(a95a302ef0b38d647b73f8dc289018cf) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'b2355b5f2ab9bb4551f8594c399de7bc') in 0.005852 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/four-player-map.json using Guid(e04236c0fae75e4ebfca10340e488dda) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: '758f8a7084640ae64774e658dbd5e803') in 0.002820 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/three-player-map.json using Guid(f22585146a0b523a8ce59fe0e6808489) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'ce56d5b456c8eeb8ab73d39b2d9fa3d2') in 0.003078 seconds
+Start importing Assets/YC/Presentation/Maps/Highlights/assets.json using Guid(a798ec79b7455d73a6efacfc7a69dcf2) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ -> (artifact id: 'eb806e571f8ad87a09a790da8b319e65') in 0.001670 seconds
+Start importing Assets/Resources/MapViews/map-three-players.prefab using Guid(f1d470bb5e63f1e429e3de1cb9454af7) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5021089453636751680) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1804948532445519915) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3855461931711213437) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4551868764809735880) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3060620999048146126) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (611427577741039999) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8809768044056707852) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7515903926473383072) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3524175549611395432) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3132086649222279493) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7900193919431257706) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5337461987243820291) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1998295824377025399) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1227397480930327311) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2562051932296773899) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2949158799029573847) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1434115981814203117) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8034321120589386423) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4276787859542314846) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5259059997703361772) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6067775462344353936) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8345479056576418307) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1636763632828539512) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2987461861586471946) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5843039280967082315) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3599043440209576680) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3147950722828027879) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2444873242301109577) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5117527069979591520) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7310209534932444296) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7646203083416263986) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7364584516073780212) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5019941036562747644) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7576514634895009617) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2921534991632610143) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (380208071486456350) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2583439183430932437) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (566545916210231769) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6355866839523339655) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8963406871972227944) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (826425347994453822) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2012818293567883967) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4845363543742538650) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2635016861811072589) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (844643907029882883) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1235530222147632002) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8653372973971520844) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2347471945647489166) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7267954054102269280) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2672324608322872817) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2479999837854482801) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6385516655275897905) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3797477828898257183) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (9086485410183656315) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7635883447612087837) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6146743124675842364) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1090775402533893961) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7788660847952948439) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4752781174146343223) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4751670118464364683) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2650612775785672953) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3255719585511455869) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2846559967025784738) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1363967060481626639) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4539919711804833577) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6955755468424908055) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4854353505269773079) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3324423569803254969) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3592290552871296778) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4283001916276645567) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1536761611809524600) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (254450668519688622) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5144530734017696749) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5521646510183408795) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5795616674880116967) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1710307833224737434) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8387640759644765041) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5271284283707702764) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (80499853578039913) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3866733879519277727) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3455667783441577872) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6437202089614461626) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8613736780776186484) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5641113054084281716) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2020434714358979374) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6660727356001066480) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7242920498648217350) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1145035954069989492) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7093021613212943235) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3359360505488584947) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7731768723269085151) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (936581540377861083) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (371472878703740868) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2114242294068908124) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2214794315990562976) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2296946301103842048) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3918115175526743827) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2362787632321883706) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7946599600412388677) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2870208733138760060) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8664732194455001887) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5557444031223605617) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6685262257093198918) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7310374965059948878) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3229181616361308968) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4331863886472511686) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8957043751803096379) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3106927995496729799) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3399183336960262450) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7889766556503480102) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2284957340792208072) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8817835183251853148) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7720470996506157760) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7651246238866582920) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2399638051795768710) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2717592831159280958) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (875669952855763208) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (124620135324036701) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (9065321187426417308) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3481543151350302403) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (2752123492744130822) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5758952216271517167) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1548753637789715445) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7959431607146585599) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5454091755317970328) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3406196340036615344) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6980367058219353969) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8087860055336291078) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3604229852833779556) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1938725665725040855) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5583449968895430043) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1803643392204501065) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (4055179522345742513) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (107109577174464435) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (5294890573891639558) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (3082119789817954436) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (1752249494817123161) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (6705492863344310989) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (7001004254527496505) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (622724870185921452) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (9080388709579865899) doesn't exist!
+Broken text PPtr in file(Library/Unused/545d0a3760ac3734ead93da50a301e01). Local file identifier (8005141443469334440) doesn't exist!
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Problem detected while importing the Prefab file: 'Assets/Resources/MapViews/map-three-players.prefab'.
+The file might be corrupt or have a missing Variant parent or nested Prefabs. See details below.
+Errors:
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+ -> (artifact id: '8059e672cf78b304b4d3891e6b831877') in 0.155475 seconds
+Start importing Assets/YC/Presentation/Prefabs/Map/MapView.prefab using Guid(8b0f4d6ff3b02384e96723a98fa9fa0d) Importer(-1,00000000000000000000000000000000) [PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3878196252027029015) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8229085385604675136) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2877681470673927765) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5846131446079709226) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4496324908702378657) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7442768120473259314) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2197282074521405373) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9076353823089090154) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (821296619884169513) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (398872582144420078) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4763840676671227256) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3002366787318444962) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9183578386887462673) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (50720098146389911) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8861214387352306333) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2018931230792284901) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4005940750862251842) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3268849071029537070) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1445907515549811048) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3569425940339504736) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6930021394686150033) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3695189319793726469) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4337218806961904738) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2450173465459960743) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5896852602161275821) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4695869916540607686) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2803895448794811967) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (131219611852920985) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (357065060439957961) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7597389857340251807) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5142572796549619585) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4358227435630677417) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4196541919160998614) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8198250903716010941) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5934912713726990095) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9193614471471850213) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8874805858730737510) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1098579130686798174) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6114979399757675945) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (107742071422788141) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7688077400379221405) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8532261383427950135) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4592135071383765990) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3851983222749699050) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8262275102170324645) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7001429319393275954) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5139409837793287997) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2988812232226393473) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3585637932488490252) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6326006383825020859) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1479934626966136909) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2396713266413610318) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1884030135195940810) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (218015741526650089) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4181147995942432557) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8724845033780513802) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8111317179052768726) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6187250095426139334) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1525416302572689632) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3310629121110393813) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2572873734778818082) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6930823764807280582) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1317586248338856947) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (790863888436283087) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7760149276088405657) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5064215118877373711) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6159405425532915805) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7133508978226094797) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1366294868471727222) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (394021308096114632) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6610743511481400770) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8456522197544541762) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6329906659397381779) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6220025129388839651) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7138554120851144005) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5051250622719454772) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1756285430816459410) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9124961914620064490) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8768109060008013341) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4007943872684704214) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8507248256476953042) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7837573570212528634) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (555479592172761148) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (94724410882297485) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5639216419721635376) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3401937314619009392) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7797928740485042043) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6087574551180211403) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5173601920137591335) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6917538257555966783) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (165461525996426090) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (355514593494155232) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2825364264939475928) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (366162538515674354) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9206492355797025040) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7412675284436690181) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4089492988652814769) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (890783209246299383) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5330198374056628764) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1773476583366933793) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4675634540825479634) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8474985908470688714) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3730151184158290337) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3732585694782375733) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (578582334317569152) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9106970744002673425) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8064449038953725678) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3971268948809081970) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2500143226614021704) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4829316465075154934) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6198695407652382584) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4065587784852253717) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5003551711706098865) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2137441405554256614) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8238467170343586213) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3251985862205963766) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7239354669748893158) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4830639526408073034) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7992396902645454314) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2956177626597063001) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4951720834514401701) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7231430181605276488) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7538916553871372685) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (49460213638009278) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3862265185103695227) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7238411001714890673) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6165127965290763226) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1054560906312119992) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5594473648654131819) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1590398201779710852) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5773706839466132668) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (370981671833932378) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7396154772797739706) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (84692359149936575) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1256615351680886935) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4493837036283666266) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (283250362683293771) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2553135126751896495) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6909981122818706869) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6017763046608346852) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5802886295213673950) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1634022691954553857) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8415561896541031841) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3129193583254542599) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5874589629225813169) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8570988240016256722) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2341209305247113125) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2073798247672810838) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (3544268446287014813) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7869023129509129960) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7524659374371454732) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4314925144983466897) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (9029676975874325629) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7456097608187797252) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (7309669662170693701) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4774552995196788291) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (6021671420213123020) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (437110208214360861) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (363591260530818810) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2764076315937512400) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5339508281806968391) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (2673428501433816377) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4870476436731251280) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (530781695615507614) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (4044430144443678174) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8142685323391643189) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1212299227662604346) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (5911762778391782036) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (1174276439478415647) doesn't exist!
+Broken text PPtr in file(Library/Unused/bc600b112d0200f45a138f73b77ab90d). Local file identifier (8920923516621738642) doesn't exist!
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Problem detected while importing the Prefab file: 'Assets/YC/Presentation/Prefabs/Map/MapView.prefab'.
+The file might be corrupt or have a missing Variant parent or nested Prefabs. See details below.
+Errors:
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+	Transform child can't be loaded
+ -> (artifact id: '7fd73b01456b634b567affdd857f8b0e') in 0.082729 seconds
+Refreshing native plugins compatible for Editor in 2.77 ms, found 5 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=9dc410cc06fd8794b93c94e235ec3829): Total: 8.292 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=34 (actual=34, local cache=0, cache server=0)
+		Asset DB Process Time: managed=25 ms, native=1050 ms
+		Asset DB Callback time: managed=222 ms, native=4 ms
+		Scripting: domain reloads=1, domain reload time=4349 ms, compile time=2615 ms, other=23 ms
+		Project Asset Count: scripts=5816, non-scripts=2287
+		Asset File Changes: new=1, changed=6, moved=0, deleted=0
+		Scan Filter Count: 0
+	InvokeBeforeRefreshCallbacks: 0.176ms
+	ApplyChangesToAssetFolders: 0.038ms
+	Scan: 52.158ms
+	OnSourceAssetsModified: 1.292ms
+	GetAllGuidsForCategorization: 0.540ms
+	CategorizeAssets: 75.431ms
+	ImportOutOfDateAssets: 2901.517ms (-179.701ms without children)
+		ImportManagerImport: 447.581ms (53.936ms without children)
+			ImportInProcess: 393.397ms
+			UpdateCategorizedAssets: 0.248ms
+		CompileScripts: 2614.740ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 15.242ms
+		ReloadImportedAssets: 1.157ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 1.437ms
+		InitializingProgressBar: 0.006ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 1.055ms
+	PostProcessAllAssets: 222.496ms
+	Hotreload: 3.713ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.000ms
+	UnloadStreamsBegin: 0.214ms
+	PersistCurrentRevisions: 0.800ms
+	UnloadStreamsEnd: 0.034ms
+	GenerateScriptTypeHashes: 3.539ms
+	Untracked: 5033.124ms
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.03 seconds
+Scanning for USB devices : 4.351ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-游城拓荒模拟器
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+ProgressiveSceneManager::Cancel()
+Unloading 12 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 97 unused Assets / (510.1 KB). Loaded Objects now: 5082.
+Memory consumption went from 131.8 MB to 131.3 MB.
+Total: 5.455100 ms (FindLiveObjects: 0.279100 ms CreateObjectMapping: 0.073800 ms MarkObjects: 4.836400 ms  DeleteObjects: 0.264900 ms)
+
+[Project] Loading completed in 15.284 seconds
+	Project init time: 				9.767 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.230 seconds
+		Asset Database init time: 		0.170 seconds
+		Global illumination init time: 	0.003 seconds
+		Assemblies load time: 			0.579 seconds
+		Unity extensions init time: 	0.004 seconds
+		Asset Database refresh time: 	0.000 seconds
+	Scene opening time: 			0.236 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1790743706542,"processId":3016,"projectLoad":15.2836123,"projectInit":9.766956,"templateInit":0.0,"packageManagerInit":0.2300947,"assetDatabaseInit":0.1701033,"globalIlluminationInit":0.003068,"assembliesLoad":0.5791106,"unityExtensionsInit":0.0037314,"assetDatabaseRefresh":0.0000069,"sceneOpening":0.2357452}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1790743706542,"processId":3016,"editorVersion":"2022.3.62f1c1 (b0109b07edb8)","branch":"2022.3/china_unity/release","buildType":"Release","platform":"Windows"}
+Running tests for EditMode
+With test filter: CardSpriteSliceTests, CardVisualCatalogEditorAssetTests, CardViewerTests, CardPickerDialogTests, ExternalContentPackTests, ExternalCatalogExpansionTests, BuildFacilityCommandHandlerTests
+Executing tests with settings: test mode = EditMode
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:InitializeAndExecuteRun (string[]) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/CommandLineTest/Executer.cs:47)
+UnityEditor.TestTools.TestRunner.CommandLineTest.TestStarter:UpdateWatch () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/CommandLineTest/TestStarter.cs:50)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 47)
+
+[UnityConnectServicesConfig] config is NOT valid, switching to default
+Created GICache directory at C:/Users/wzy/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.013s, timestamps: [15.291 - 15.303]
+gi::BakeBackendSwitch: switching bake backend from 3 to 1.
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 5097.
+Memory consumption went from 128.6 MB to 128.6 MB.
+Total: 5.374500 ms (FindLiveObjects: 0.163700 ms CreateObjectMapping: 0.063600 ms MarkObjects: 5.138800 ms  DeleteObjects: 0.008000 ms)
+
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Applied No Throttling for test run.
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+MCPForUnity.Editor.Helpers.McpLog:Info (string,bool) (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Helpers/McpLog.cs:40)
+MCPForUnity.Editor.Services.TestRunnerNoThrottle:ApplyNoThrottling () (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Services/TestRunnerNoThrottle.cs:101)
+MCPForUnity.Editor.Services.TestRunnerNoThrottle/TestCallbacks:RunStarted (UnityEditor.TestTools.TestRunner.Api.ITestAdaptor) (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Services/TestRunnerNoThrottle.cs:138)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator/<>c__DisplayClass6_0:<RunStarted>b__0 (UnityEditor.TestTools.TestRunner.Api.ICallbacks) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:39)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator:TryInvokeAllCallbacks (System.Action`1<UnityEditor.TestTools.TestRunner.Api.ICallbacks>) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:122)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator:RunStarted (NUnit.Framework.Interfaces.ITest) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:39)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegatorListener:RunStarted (NUnit.Framework.Interfaces.ITest) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegatorListener.cs:10)
+UnityEngine.Events.InvokableCall`1<NUnit.Framework.Interfaces.ITest>:Invoke (NUnit.Framework.Interfaces.ITest)
+UnityEngine.Events.UnityEvent`1<NUnit.Framework.Interfaces.ITest>:Invoke (NUnit.Framework.Interfaces.ITest)
+UnityEditor.TestTools.TestRunner.EditModeRunner:Run () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestRunner/EditModeRunner.cs:183)
+UnityEditor.TestTools.TestRunner.EditModeLauncher:Run () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestLaunchers/EditModeLauncher.cs:67)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.LegacyEditModeRunTask/<Execute>d__1:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestRun/Tasks/LegacyEditModeRunTask.cs:18)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:124)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Helpers/McpLog.cs Line: 40)
+
+DisplayProgressbar: Test Runner
+Request Asset Garbage Collect because used heap size increased from 128.5 MB to 404.5 MB, exceeding the threshold of 256.0 MB.
+Unloading 199 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 203 unused Assets / (305.1 KB). Loaded Objects now: 11993.
+Memory consumption went from 393.9 MB to 393.6 MB.
+Total: 11.877800 ms (FindLiveObjects: 0.436500 ms CreateObjectMapping: 0.175800 ms MarkObjects: 11.088100 ms  DeleteObjects: 0.176600 ms)
+
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Unloading 9 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 6875 unused Assets / (42.8 MB). Loaded Objects now: 5192.
+Memory consumption went from 465.0 MB to 422.2 MB.
+Total: 11.511400 ms (FindLiveObjects: 0.331100 ms CreateObjectMapping: 0.140300 ms MarkObjects: 6.041800 ms  DeleteObjects: 4.997700 ms)
+
+<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+MCPForUnity.Editor.Helpers.McpLog:Info (string,bool) (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Helpers/McpLog.cs:40)
+MCPForUnity.Editor.Services.TestRunnerNoThrottle:RestoreThrottling () (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Services/TestRunnerNoThrottle.cs:114)
+MCPForUnity.Editor.Services.TestRunnerNoThrottle/TestCallbacks:RunFinished (UnityEditor.TestTools.TestRunner.Api.ITestResultAdaptor) (at ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Services/TestRunnerNoThrottle.cs:143)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator/<>c__DisplayClass8_0:<RunFinished>b__0 (UnityEditor.TestTools.TestRunner.Api.ICallbacks) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:52)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator:TryInvokeAllCallbacks (System.Action`1<UnityEditor.TestTools.TestRunner.Api.ICallbacks>) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:122)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegator:RunFinished (NUnit.Framework.Interfaces.ITestResult) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegator.cs:52)
+UnityEditor.TestTools.TestRunner.Api.CallbacksDelegatorListener:RunFinished (NUnit.Framework.Interfaces.ITestResult) (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/Api/CallbacksDelegatorListener.cs:15)
+UnityEngine.Events.InvokableCall`1<NUnit.Framework.Interfaces.ITestResult>:Invoke (NUnit.Framework.Interfaces.ITestResult)
+UnityEngine.Events.UnityEvent`1<NUnit.Framework.Interfaces.ITestResult>:Invoke (NUnit.Framework.Interfaces.ITestResult)
+UnityEditor.TestTools.TestRunner.EditModeRunner:CompleteTestRun () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestRunner/EditModeRunner.cs:305)
+UnityEditor.TestTools.TestRunner.EditModeRunner:TestConsumer () (at ./Library/PackageCache/com.unity.test-framework@1.1.33/UnityEditor.TestRunner/TestRunner/EditModeRunner.cs:294)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.coplaydev.unity-mcp@c14de1e6dc/Editor/Helpers/McpLog.cs Line: 40)
+
+Saving results to: G:\NoMadCity\Logs\CardSpriteMigration\postdelete-retry\editmode-20260930_124810.xml
+Killing ADB server in 0.0326503 seconds.
+[PhysX] Initialized MultithreadedTaskDispatcher with 24 workers.
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-wzy-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-wzy channel disconnected successfully.
+Cleanup mono
+[Performance] WinEditorMain                                                                                                        :        1 samples, Peak.  5.22 s (1.0x), Avg.  5.22 s, Total. 5.225 s (18.9%)
+[Performance] WinEditorMain.ConfigureCrashHandler                                                                                  :        1 samples, Peak.  20.1 us (1.0x), Avg.  20.1 us, Total. 20.10 us (0.0%)
+[Performance] WinEditorMain.CurlRequestInitialize                                                                                  :        1 samples, Peak.   390 us (1.0x), Avg.   390 us, Total. 390.2 us (0.0%)
+[Performance] WinEditorMain.SetupLogFile                                                                                           :        1 samples, Peak.   150 us (1.0x), Avg.   150 us, Total. 150.1 us (0.0%)
+[Performance] WinEditorMain.RunNativeTestsIfRequiredAndExit                                                                        :        1 samples, Peak. 100.0 ns (1.0x), Avg. 100.0 ns, Total. 100.00 ns (0.0%)
+[Performance] WinEditorMain.Licensing                                                                                              :        1 samples, Peak.  5.19 s (1.0x), Avg.  5.19 s, Total. 5.188 s (18.8%)
+[Performance] WinEditorMain.InitializeCrashHandler                                                                                 :        1 samples, Peak.  19.4 ms (1.0x), Avg.  19.4 ms, Total. 19.40 ms (0.1%)
+[Performance] WinEditorMain.CreateApplication                                                                                      :        1 samples, Peak.  14.3 ms (1.0x), Avg.  14.3 ms, Total. 14.33 ms (0.1%)
+[Performance] Application.InitializeProject                                                                                        :        1 samples, Peak.  9.77 s (1.0x), Avg.  9.77 s, Total. 9.767 s (35.4%)
+[Performance] Application.PackageManager.StartServer                                                                               :        1 samples, Peak.  2.78 ms (1.0x), Avg.  2.78 ms, Total. 2.783 ms (0.0%)
+[Performance] Application.AcquireProjectLock                                                                                       :        1 samples, Peak.  2.92 ms (1.0x), Avg.  2.92 ms, Total. 2.921 ms (0.0%)
+[Performance] Application.InitializeEngineNoGraphics                                                                               :        1 samples, Peak.  37.0 ms (1.0x), Avg.  37.0 ms, Total. 37.03 ms (0.1%)
+[Performance] Application.PackageManager.Initialize                                                                                :        1 samples, Peak.   230 ms (1.0x), Avg.   230 ms, Total. 230.1 ms (0.8%)
+[Performance] Connecting to Package Manager                                                                                        :       24 samples, Peak.  51.8 us (18.4x), Avg.  2.82 us, Total. 67.70 us (0.0%)
+[Performance] Application.EngineGraphics.Initialize                                                                                :        1 samples, Peak.   175 ms (1.0x), Avg.   175 ms, Total. 174.7 ms (0.6%)
+[Performance] Application.GI.Initialize                                                                                            :        1 samples, Peak.  3.07 ms (1.0x), Avg.  3.07 ms, Total. 3.069 ms (0.0%)
+[Performance] Application.LoadAllDefaultResourcesFromEditor                                                                        :        1 samples, Peak.  1.26 ms (1.0x), Avg.  1.26 ms, Total. 1.261 ms (0.0%)
+[Performance] Application.LoadMonoAssemblies                                                                                       :        1 samples, Peak.   579 ms (1.0x), Avg.   579 ms, Total. 579.1 ms (2.1%)
+[Performance] RestoreManagedReferences                                                                                             :        2 samples, Peak.  26.7 ms (2.0x), Avg.  13.3 ms, Total. 26.69 ms (0.1%)
+[Performance] InitializeOnLoad DrivenRectTransformUndo                                                                             :        2 samples, Peak.   272 us (1.0x), Avg.   260 us, Total. 520.6 us (0.0%)
+[Performance] InitializeOnLoad SceneSearch                                                                                         :        2 samples, Peak.  83.0 us (1.2x), Avg.  72.0 us, Total. 144.1 us (0.0%)
+[Performance] InitializeOnLoad CloudBuild                                                                                          :        2 samples, Peak.  2.80 us (1.2x), Avg.  2.25 us, Total. 4.500 us (0.0%)
+[Performance] InitializeOnLoad NativeFormatImporterUtility                                                                         :        2 samples, Peak.  1.72 ms (1.2x), Avg.  1.38 ms, Total. 2.757 ms (0.0%)
+[Performance] InitializeOnLoad SearchService                                                                                       :        2 samples, Peak.  84.3 us (1.1x), Avg.  79.6 us, Total. 159.3 us (0.0%)
+[Performance] InitializeOnLoad SettingsService                                                                                     :        2 samples, Peak.  6.80 us (1.3x), Avg.  5.20 us, Total. 10.40 us (0.0%)
+[Performance] InitializeOnLoad WindowLayout                                                                                        :        2 samples, Peak.   151 us (1.0x), Avg.   149 us, Total. 297.7 us (0.0%)
+[Performance] InitializeOnLoad AssetStoreContext                                                                                   :        2 samples, Peak.  14.6 ms (1.7x), Avg.  8.52 ms, Total. 17.04 ms (0.1%)
+[Performance] InitializeOnLoad PoolManager                                                                                         :        2 samples, Peak.   370 us (1.0x), Avg.   364 us, Total. 727.5 us (0.0%)
+[Performance] InitializeOnLoad MixerEffectDefinitionReloader                                                                       :        2 samples, Peak.  1.70 ms (1.3x), Avg.  1.35 ms, Total. 2.705 ms (0.0%)
+[Performance] InitializeOnLoad ProjectSearch                                                                                       :        2 samples, Peak.  75.0 us (1.3x), Avg.  57.1 us, Total. 114.1 us (0.0%)
+[Performance] InitializeOnLoad UISystemProfilerRenderService                                                                       :        2 samples, Peak.  5.40 us (1.1x), Avg.  5.00 us, Total. 10.00 us (0.0%)
+[Performance] InitializeOnLoad EditMode                                                                                            :        2 samples, Peak.   276 us (1.0x), Avg.   264 us, Total. 527.1 us (0.0%)
+[Performance] InitializeOnLoad UnityConnect                                                                                        :        2 samples, Peak.  31.9 us (1.0x), Avg.  31.6 us, Total. 63.20 us (0.0%)
+[Performance] InitializeOnLoad ManagedDebugger                                                                                     :        2 samples, Peak.   356 us (1.0x), Avg.   348 us, Total. 696.3 us (0.0%)
+[Performance] InitializeOnLoad ShortcutIntegration                                                                                 :        2 samples, Peak.  35.5 us (1.0x), Avg.  34.2 us, Total. 68.40 us (0.0%)
+[Performance] InitializeOnLoad AddComponentWindow                                                                                  :        2 samples, Peak.  64.6 us (1.0x), Avg.  63.3 us, Total. 126.7 us (0.0%)
+[Performance] InitializeOnLoad ManagedDebuggerWindow                                                                               :        2 samples, Peak.  88.0 us (1.1x), Avg.  79.1 us, Total. 158.1 us (0.0%)
+[Performance] InitializeOnLoad CacheServerWindow                                                                                   :        2 samples, Peak.  5.80 us (1.3x), Avg.  4.60 us, Total. 9.200 us (0.0%)
+[Performance] InitializeOnLoad PlayModeDownload                                                                                    :        2 samples, Peak.  3.14 ms (2.0x), Avg.  1.61 ms, Total. 3.210 ms (0.0%)
+[Performance] InitializeOnLoad MenuItems                                                                                           :        2 samples, Peak.   131 us (1.5x), Avg.  88.1 us, Total. 176.2 us (0.0%)
+[Performance] InitializeOnLoad PrefabInstanceChangedListener                                                                       :        2 samples, Peak.   192 us (1.4x), Avg.   134 us, Total. 268.5 us (0.0%)
+[Performance] InitializeOnLoad ObjectSelectorSearch                                                                                :        2 samples, Peak.  31.9 us (1.1x), Avg.  28.6 us, Total. 57.20 us (0.0%)
+[Performance] InitializeOnLoad EditorMonitor                                                                                       :        2 samples, Peak.   412 us (1.2x), Avg.   351 us, Total. 702.4 us (0.0%)
+[Performance] InitializeOnLoad RetainedMode                                                                                        :        2 samples, Peak.  1.81 ms (1.1x), Avg.  1.60 ms, Total. 3.205 ms (0.0%)
+[Performance] InitializeOnLoad EditorShaderLoader                                                                                  :        2 samples, Peak.   596 us (1.2x), Avg.   513 us, Total. 1.025 ms (0.0%)
+[Performance] InitializeOnLoad EditorDelegateRegistration                                                                          :        2 samples, Peak.   400 us (1.1x), Avg.   363 us, Total. 726.2 us (0.0%)
+[Performance] InitializeOnLoad UIDocumentHierarchyWatcher                                                                          :        2 samples, Peak.  55.7 us (1.1x), Avg.  49.7 us, Total. 99.40 us (0.0%)
+[Performance] InitializeOnLoad LiveReloadTrackerCreator                                                                            :        2 samples, Peak.   146 us (1.1x), Avg.   136 us, Total. 272.3 us (0.0%)
+[Performance] InitializeOnLoad UxmlObjectEditorFactories                                                                           :        2 samples, Peak.   315 us (1.0x), Avg.   304 us, Total. 608.8 us (0.0%)
+[Performance] InitializeOnLoad UXMLEditorFactories                                                                                 :        2 samples, Peak.  34.3 ms (1.0x), Avg.  34.2 ms, Total. 68.39 ms (0.2%)
+[Performance] InitializeOnLoad PurchasingService                                                                                   :        2 samples, Peak.  4.62 ms (1.0x), Avg.  4.59 ms, Total. 9.182 ms (0.0%)
+[Performance] InitializeOnLoad CloudBuildPoller                                                                                    :        2 samples, Peak.  70.0 us (1.0x), Avg.  69.4 us, Total. 138.9 us (0.0%)
+[Performance] InitializeOnLoad EditorGameServicesAnalytics                                                                         :        2 samples, Peak.  1.06 ms (1.3x), Avg.   808 us, Total. 1.615 ms (0.0%)
+[Performance] InitializeOnLoad AnalyticsService                                                                                    :        2 samples, Peak.   124 us (1.0x), Avg.   120 us, Total. 240.0 us (0.0%)
+[Performance] InitializeOnLoad BuildService                                                                                        :        2 samples, Peak.  91.3 us (1.0x), Avg.  88.5 us, Total. 177.0 us (0.0%)
+[Performance] InitializeOnLoad AdsService                                                                                          :        2 samples, Peak.   336 us (1.1x), Avg.   302 us, Total. 603.1 us (0.0%)
+[Performance] InitializeOnLoad UDPService                                                                                          :        2 samples, Peak.   117 us (1.1x), Avg.   104 us, Total. 208.6 us (0.0%)
+[Performance] InitializeOnLoad CrashService                                                                                        :        2 samples, Peak.  89.3 us (1.0x), Avg.  86.4 us, Total. 172.8 us (0.0%)
+[Performance] InitializeOnLoad ServicesRepository                                                                                  :        2 samples, Peak.   200 ns (1.0x), Avg.   200 ns, Total. 400.0 ns (0.0%)
+[Performance] InitializeOnLoad SearchWindow                                                                                        :        2 samples, Peak.  97.3 us (1.2x), Avg.  83.5 us, Total. 167.1 us (0.0%)
+[Performance] InitializeOnLoad CustomIndexers                                                                                      :        2 samples, Peak.  10.7 ms (1.1x), Avg.  9.42 ms, Total. 18.84 ms (0.1%)
+[Performance] InitializeOnLoad SearchMonitor                                                                                       :        2 samples, Peak.   663 us (1.1x), Avg.   608 us, Total. 1.216 ms (0.0%)
+[Performance] InitializeOnLoad ParameterControllerEditor                                                                           :        2 samples, Peak.  13.2 us (1.1x), Avg.  11.7 us, Total. 23.50 us (0.0%)
+[Performance] InitializeOnLoad LayerSettingsWindow                                                                                 :        2 samples, Peak.  11.7 us (1.6x), Avg.  7.10 us, Total. 14.20 us (0.0%)
+[Performance] InitializeOnLoad PackageManagerHookGUIDConverter.RegisterPackagesEventHandler                                        :        2 samples, Peak.   544 us (1.7x), Avg.   318 us, Total. 635.5 us (0.0%)
+[Performance] InitializeOnLoad EditorDragAndDrop.RegisterEditorClient                                                              :        2 samples, Peak.   163 us (1.2x), Avg.   141 us, Total. 282.4 us (0.0%)
+[Performance] InitializeOnLoad EditorEventCallbacks.InitializeFontAssetResourceChangeCallBacks                                     :        2 samples, Peak.   718 us (1.0x), Avg.   703 us, Total. 1.405 ms (0.0%)
+[Performance] InitializeOnLoad SceneTemplateService.Init                                                                           :        2 samples, Peak.   734 us (1.1x), Avg.   638 us, Total. 1.277 ms (0.0%)
+[Performance] InitializeOnLoad DiagnosticSwitchesConsoleMessage.Init                                                               :        2 samples, Peak.  5.48 ms (1.9x), Avg.  2.88 ms, Total. 5.752 ms (0.0%)
+[Performance] InitializeOnLoad MemoryProfilerCompilationGuard.InjectCompileGuard                                                   :        2 samples, Peak.   122 us (1.6x), Avg.  77.7 us, Total. 155.5 us (0.0%)
+[Performance] InitializeOnLoad EditorWindow.Initialize                                                                             :        2 samples, Peak.   150 us (1.0x), Avg.   149 us, Total. 297.6 us (0.0%)
+[Performance] InitializeOnLoad AssetPostprocessingInternal.RefreshCustomDependencies                                               :        2 samples, Peak.  2.01 ms (1.3x), Avg.  1.59 ms, Total. 3.178 ms (0.0%)
+[Performance] InitializeOnLoad SysrootManager.Initialize                                                                           :        2 samples, Peak.  9.50 us (1.0x), Avg.  9.45 us, Total. 18.90 us (0.0%)
+[Performance] InitializeOnLoad PackageManagerWindow.EditorInitializedInSafeMode                                                    :        2 samples, Peak.  15.7 ms (2.0x), Avg.  7.90 ms, Total. 15.80 ms (0.1%)
+[Performance] InitializeOnLoad ToolShortcutContext.Init                                                                            :        2 samples, Peak.  88.3 us (1.1x), Avg.  83.0 us, Total. 165.9 us (0.0%)
+[Performance] InitializeOnLoad SceneVisibilityManager.Initialize                                                                   :        2 samples, Peak.  1.99 ms (1.6x), Avg.  1.26 ms, Total. 2.511 ms (0.0%)
+[Performance] InitializeOnLoad ScopedRegistryAddedPopup.SubscribeToRegistriesAdded                                                 :        2 samples, Peak.  4.30 ms (2.0x), Avg.  2.18 ms, Total. 4.362 ms (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: UnityEditor.SceneTemplate.SceneTemplateService.AfterAssemblyReload         :        2 samples, Peak.  2.05 ms (1.8x), Avg.  1.13 ms, Total. 2.253 ms (0.0%)
+[Performance] ProcessService.EditorAfterLoadAllAssemblies                                                                          :        2 samples, Peak.   219 us (1.1x), Avg.   191 us, Total. 382.6 us (0.0%)
+[Performance] Application.ReadLicenseInfo                                                                                          :        1 samples, Peak.  12.6 ms (1.0x), Avg.  12.6 ms, Total. 12.57 ms (0.0%)
+[Performance] Application.InitialRefresh                                                                                           :        1 samples, Peak.  8.29 s (1.0x), Avg.  8.29 s, Total. 8.293 s (30.1%)
+[Performance] BuilderAssetModificationProcessor.OnWillCreateAsset                                                                  :        1 samples, Peak.   597 us (1.0x), Avg.   597 us, Total. 596.9 us (0.0%)
+[Performance] ShaderImporter.SourceAssetModified                                                                                   :        2 samples, Peak.   600 ns (1.3x), Avg.   450 ns, Total. 900.0 ns (0.0%)
+[Performance] ShaderIncludeImporter.SourceAssetModified                                                                            :        2 samples, Peak.   600 ns (1.0x), Avg.   600 ns, Total. 1.200 us (0.0%)
+[Performance] Compiling Scripts                                                                                                    :        1 samples, Peak.  2.61 s (1.0x), Avg.  2.61 s, Total. 2.614 s (9.5%)
+[Performance] AssemblyReloadEvents.beforeAssemblyReload: UnityEditor.SceneTemplate.SceneTemplateService.BeforeAssemblyReload       :        1 samples, Peak.   290 us (1.0x), Avg.   290 us, Total. 290.1 us (0.0%)
+[Performance] PSDImporterAssetPostProcessor.OnPreprocessAsset                                                                      :       34 samples, Peak.   773 us (23.8x), Avg.  32.5 us, Total. 1.105 ms (0.0%)
+[Performance] PresetManagerPostProcessor.OnPreprocessAsset                                                                         :       34 samples, Peak.   216 us (14.4x), Avg.  15.0 us, Total. 508.7 us (0.0%)
+[Performance] CancelSplashScreenOnAssetChange.OnPreprocessAsset                                                                    :       34 samples, Peak.   108 us (21.8x), Avg.  4.98 us, Total. 169.3 us (0.0%)
+[Performance] SpritePostProcess.OnPreprocessAsset                                                                                  :       34 samples, Peak.  1.46 ms (11.1x), Avg.   131 us, Total. 4.466 ms (0.0%)
+[Performance] InitializeOnLoad MoveToAssetsFolder                                                                                  :        1 samples, Peak.  32.4 ms (1.0x), Avg.  32.4 ms, Total. 32.41 ms (0.1%)
+[Performance] AssetDatabase.Refresh                                                                                                :        1 samples, Peak.  1.30 us (1.0x), Avg.  1.30 us, Total. 1.300 us (0.0%)
+[Performance] InitializeOnLoad BackgroundWatcher                                                                                   :        1 samples, Peak.   126 us (1.0x), Avg.   126 us, Total. 125.6 us (0.0%)
+[Performance] InitializeOnLoad UnityTestProtocolStarter                                                                            :        1 samples, Peak.   153 us (1.0x), Avg.   153 us, Total. 153.0 us (0.0%)
+[Performance] InitializeOnLoad TestStarter                                                                                         :        1 samples, Peak.  1.97 ms (1.0x), Avg.  1.97 ms, Total. 1.967 ms (0.0%)
+[Performance] InitializeOnLoad RerunCallbackInitializer                                                                            :        1 samples, Peak.  1.66 ms (1.0x), Avg.  1.66 ms, Total. 1.655 ms (0.0%)
+[Performance] InitializeOnLoad BurstLoader                                                                                         :        1 samples, Peak.  1.29 s (1.0x), Avg.  1.29 s, Total. 1.290 s (4.7%)
+[Performance] InitializeOnLoad EditorToolManager                                                                                   :        1 samples, Peak.  1.87 ms (1.0x), Avg.  1.87 ms, Total. 1.871 ms (0.0%)
+[Performance] InitializeOnLoad RedistInstall                                                                                       :        1 samples, Peak.   277 us (1.0x), Avg.   277 us, Total. 276.9 us (0.0%)
+[Performance] InitializeOnLoad RiderScriptEditor                                                                                   :        1 samples, Peak.  5.85 ms (1.0x), Avg.  5.85 ms, Total. 5.851 ms (0.0%)
+[Performance] InitializeOnLoad CallbackInitializer                                                                                 :        1 samples, Peak.   871 us (1.0x), Avg.   871 us, Total. 870.5 us (0.0%)
+[Performance] InitializeOnLoad SpriteEditorWindow                                                                                  :        1 samples, Peak.   312 us (1.0x), Avg.   312 us, Total. 311.8 us (0.0%)
+[Performance] InitializeOnLoad PackageEntryPoint                                                                                   :        1 samples, Peak.   153 ms (1.0x), Avg.   153 ms, Total. 152.9 ms (0.6%)
+[Performance] InitializeOnLoad BackgroundImport                                                                                    :        1 samples, Peak.   132 us (1.0x), Avg.   132 us, Total. 132.2 us (0.0%)
+[Performance] InitializeOnLoad LegacyServerSrcMigration                                                                            :        1 samples, Peak.   148 us (1.0x), Avg.   148 us, Total. 148.1 us (0.0%)
+[Performance] InitializeOnLoad TransportCommandDispatcher                                                                          :        1 samples, Peak.   527 ms (1.0x), Avg.   527 ms, Total. 527.4 ms (1.9%)
+[Performance] InitializeOnLoad McpEditorShutdownCleanup                                                                            :        1 samples, Peak.   594 us (1.0x), Avg.   594 us, Total. 593.9 us (0.0%)
+[Performance] InitializeOnLoad StdioBridgeReloadHandler                                                                            :        1 samples, Peak.   274 us (1.0x), Avg.   274 us, Total. 274.5 us (0.0%)
+[Performance] InitializeOnLoad EditorStateCache                                                                                    :        1 samples, Peak.  67.3 ms (1.0x), Avg.  67.3 ms, Total. 67.33 ms (0.2%)
+[Performance] InitializeOnLoad StdIoVersionMigration                                                                               :        1 samples, Peak.  60.7 us (1.0x), Avg.  60.7 us, Total. 60.70 us (0.0%)
+[Performance] InitializeOnLoad StartupConfigRewrite                                                                                :        1 samples, Peak.   102 us (1.0x), Avg.   102 us, Total. 101.7 us (0.0%)
+[Performance] InitializeOnLoad HttpAutoStartHandler                                                                                :        1 samples, Peak.  71.4 us (1.0x), Avg.  71.4 us, Total. 71.40 us (0.0%)
+[Performance] InitializeOnLoad StdioBridgeHost                                                                                     :        1 samples, Peak.   441 us (1.0x), Avg.   441 us, Total. 440.6 us (0.0%)
+[Performance] InitializeOnLoad HttpBridgeReloadHandler                                                                             :        1 samples, Peak.   222 us (1.0x), Avg.   222 us, Total. 222.0 us (0.0%)
+[Performance] InitializeOnLoad AssetGenJobManager                                                                                  :        1 samples, Peak.   489 us (1.0x), Avg.   489 us, Total. 489.1 us (0.0%)
+[Performance] InitializeOnLoad TestRunnerNoThrottle                                                                                :        1 samples, Peak.   373 us (1.0x), Avg.   373 us, Total. 373.0 us (0.0%)
+[Performance] InitializeOnLoad ProjectIdentityUtility                                                                              :        1 samples, Peak.  86.3 us (1.0x), Avg.  86.3 us, Total. 86.30 us (0.0%)
+[Performance] InitializeOnLoad SetupWindowService                                                                                  :        1 samples, Peak.  34.7 us (1.0x), Avg.  34.7 us, Total. 34.70 us (0.0%)
+[Performance] InitializeOnLoad PlayModeOptionsGuard                                                                                :        1 samples, Peak.   177 us (1.0x), Avg.   177 us, Total. 177.4 us (0.0%)
+[Performance] InitializeOnLoad VisualStudioEditor                                                                                  :        1 samples, Peak.  4.47 ms (1.0x), Avg.  4.47 ms, Total. 4.474 ms (0.0%)
+[Performance] InitializeOnLoad TestRunnerApiListener                                                                               :        1 samples, Peak.   498 us (1.0x), Avg.   498 us, Total. 498.5 us (0.0%)
+[Performance] InitializeOnLoad VisualStudioIntegration                                                                             :        1 samples, Peak.  1.32 ms (1.0x), Avg.  1.32 ms, Total. 1.319 ms (0.0%)
+[Performance] InitializeOnLoad PrefabLayoutRebuilder                                                                               :        1 samples, Peak.   175 us (1.0x), Avg.   175 us, Total. 175.5 us (0.0%)
+[Performance] InitializeOnLoad SpriteSkinCompositeStartup                                                                          :        1 samples, Peak.  13.3 ms (1.0x), Avg.  13.3 ms, Total. 13.30 ms (0.0%)
+[Performance] InitializeOnLoad AndroidManifestHelper                                                                               :        1 samples, Peak.  19.2 us (1.0x), Avg.  19.2 us, Total. 19.20 us (0.0%)
+[Performance] InitializeOnLoad MirrorRenderPipelineConverter                                                                       :        1 samples, Peak.   144 us (1.0x), Avg.   144 us, Total. 144.3 us (0.0%)
+[Performance] InitializeOnLoad UnityInternalsInjector                                                                              :        1 samples, Peak.   732 us (1.0x), Avg.   732 us, Total. 732.1 us (0.0%)
+[Performance] InitializeOnLoad UVCSToolbarBoostrap                                                                                 :        1 samples, Peak.  67.2 ms (1.0x), Avg.  67.2 ms, Total. 67.24 ms (0.2%)
+[Performance] InitializeOnLoad UnityAnalyticsStorage                                                                               :        1 samples, Peak.   243 us (1.0x), Avg.   243 us, Total. 243.0 us (0.0%)
+[Performance] InitializeOnLoad BoneGizmoInitializer                                                                                :        1 samples, Peak.  1.96 ms (1.0x), Avg.  1.96 ms, Total. 1.958 ms (0.0%)
+[Performance] InitializeOnLoad Analytics                                                                                           :        1 samples, Peak.   166 us (1.0x), Avg.   166 us, Total. 165.8 us (0.0%)
+[Performance] InitializeOnLoad SceneDragAndDrop                                                                                    :        1 samples, Peak.   112 us (1.0x), Avg.   112 us, Total. 112.1 us (0.0%)
+[Performance] InitializeOnLoad SpriteShapeUpdateCache                                                                              :        1 samples, Peak.   365 us (1.0x), Avg.   365 us, Total. 364.6 us (0.0%)
+[Performance] InitializeOnLoad SpriteShapeUnityAnalyticsStorage                                                                    :        1 samples, Peak.  11.4 us (1.0x), Avg.  11.4 us, Total. 11.40 us (0.0%)
+[Performance] InitializeOnLoad IKEditorManager.CreateInstance                                                                      :        1 samples, Peak.  1.15 ms (1.0x), Avg.  1.15 ms, Total. 1.147 ms (0.0%)
+[Performance] InitializeOnLoad $BurstDirectCallInitializer.Initialize                                                              :        7 samples, Peak.  10.6 ms (3.6x), Avg.  2.99 ms, Total. 20.93 ms (0.1%)
+[Performance] InitializeOnLoad SceneViewGridManager.Initialize                                                                     :        1 samples, Peak.  3.10 ms (1.0x), Avg.  3.10 ms, Total. 3.101 ms (0.0%)
+[Performance] InitializeOnLoad TilemapPrefabStageHelper.Initialize                                                                 :        1 samples, Peak.   967 us (1.0x), Avg.   967 us, Total. 967.4 us (0.0%)
+[Performance] InitializeOnLoad SceneViewOpenTilePaletteHelper.Initialize                                                           :        1 samples, Peak.   694 us (1.0x), Avg.   694 us, Total. 694.0 us (0.0%)
+[Performance] InitializeOnLoad TileDragAndDropManager.Initialize                                                                   :        1 samples, Peak.   483 us (1.0x), Avg.   483 us, Total. 483.1 us (0.0%)
+[Performance] InitializeOnLoad SysrootPackage.IssueWarningIfLinuxIL2CPPNotPresent                                                  :        1 samples, Peak.   137 us (1.0x), Avg.   137 us, Total. 136.9 us (0.0%)
+[Performance] InitializeOnLoad GeneratedNetworkCode.InitReadWriters                                                                :        4 samples, Peak.  2.64 ms (1.3x), Avg.  1.96 ms, Total. 7.844 ms (0.0%)
+[Performance] InitializeOnLoad Welcome.OnInitializeOnLoad                                                                          :        1 samples, Peak.   484 us (1.0x), Avg.   484 us, Total. 483.9 us (0.0%)
+[Performance] InitializeOnLoad VisualStudioEditor.LegacyVisualStudioCodePackageDisabler                                            :        1 samples, Peak.   151 us (1.0x), Avg.   151 us, Total. 150.9 us (0.0%)
+[Performance] InitializeOnLoad PostInstallScript.Execute                                                                           :        1 samples, Peak.   675 us (1.0x), Avg.   675 us, Total. 674.9 us (0.0%)
+[Performance] InitializeOnLoad UnityReflect.OnLoad                                                                                 :        1 samples, Peak.   341 us (1.0x), Avg.   341 us, Total. 340.9 us (0.0%)
+[Performance] InitializeOnLoad GetMenuItems.BuildCache                                                                             :        1 samples, Peak.  3.93 ms (1.0x), Avg.  3.93 ms, Total. 3.934 ms (0.0%)
+[Performance] InitializeOnLoad ExecuteCode.OnDomainReload                                                                          :        1 samples, Peak.   277 us (1.0x), Avg.   277 us, Total. 276.5 us (0.0%)
+[Performance] InitializeOnLoad McpLogRecord.RefreshFromPrefs                                                                       :        1 samples, Peak.   130 us (1.0x), Avg.   130 us, Total. 130.1 us (0.0%)
+[Performance] InitializeOnLoad BackgroundImport.Setup                                                                              :        1 samples, Peak.   794 us (1.0x), Avg.   794 us, Total. 793.9 us (0.0%)
+[Performance] InitializeOnLoad TestJobDataHolder.ResumeRunningJobs                                                                 :        1 samples, Peak.   736 us (1.0x), Avg.   736 us, Total. 735.7 us (0.0%)
+[Performance] InitializeOnLoad AnalyticsReporter.RegisterCallbacks                                                                 :        1 samples, Peak.   215 us (1.0x), Avg.   215 us, Total. 215.0 us (0.0%)
+[Performance] InitializeOnLoad PreprocessorDefine.AddDefineSymbols                                                                 :        1 samples, Peak.   424 us (1.0x), Avg.   424 us, Total. 424.0 us (0.0%)
+[Performance] InitializeOnLoad EdgegapWindowV2.AddDefineSymbols                                                                    :        1 samples, Peak.   131 us (1.0x), Avg.   131 us, Total. 131.1 us (0.0%)
+[Performance] InitializeOnLoad LocalhostBuildMenu.RunBatchBuildWhenRequested                                                       :        1 samples, Peak.   122 us (1.0x), Avg.   122 us, Total. 121.9 us (0.0%)
+[Performance] InitializeOnLoad ExternalContentRuntime.RegisterEditorLifetime                                                       :        1 samples, Peak.   245 us (1.0x), Avg.   245 us, Total. 245.1 us (0.0%)
+[Performance] DidReloadScriptsTestRunnerWindow.CompilationCallback                                                                 :        1 samples, Peak.   133 us (1.0x), Avg.   133 us, Total. 133.3 us (0.0%)
+[Performance] DidReloadScriptsTestListCache.ScriptReloaded                                                                         :        1 samples, Peak.   961 us (1.0x), Avg.   961 us, Total. 961.2 us (0.0%)
+[Performance] DidReloadScriptsAdvancedDropdownWindow.OnScriptReload                                                                :        1 samples, Peak.   152 us (1.0x), Avg.   152 us, Total. 152.0 us (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: MCPForUnity.Editor.Services.StdioBridgeReloadHandler.OnAfterAssemblyReload :        1 samples, Peak.   780 us (1.0x), Avg.   780 us, Total. 780.4 us (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: callback in MCPForUnity.Editor.Services.EditorStateCache                   :        1 samples, Peak.   254 us (1.0x), Avg.   254 us, Total. 254.5 us (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: MCPForUnity.Editor.Services.HttpBridgeReloadHandler.OnAfterAssemblyReload  :        1 samples, Peak.  94.6 us (1.0x), Avg.  94.6 us, Total. 94.60 us (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: UnityEditor.U2D.Animation.BoneGizmo.OnAfterAssemblyReload                  :        1 samples, Peak.   500 us (1.0x), Avg.   500 us, Total. 499.9 us (0.0%)
+[Performance] AssemblyReloadEvents.afterAssemblyReload: MCPForUnity.Editor.Tools.UnityReflect.InvalidateCache                      :        1 samples, Peak.   252 us (1.0x), Avg.   252 us, Total. 252.1 us (0.0%)
+[Performance] TextureImporter.Import                                                                                               :        8 samples, Peak.  14.5 ms (2.8x), Avg.  5.18 ms, Total. 41.47 ms (0.2%)
+[Performance] MapTexturePostprocessor.OnPreprocessTexture                                                                          :        8 samples, Peak.   222 us (5.5x), Avg.  40.7 us, Total. 325.8 us (0.0%)
+[Performance] SpritePostProcess.OnPostprocessSprites                                                                               :        8 samples, Peak.  7.09 ms (5.6x), Avg.  1.28 ms, Total. 10.21 ms (0.0%)
+[Performance] AssetDatabase.ImportAssets                                                                                           :        3 samples, Peak.   400 ns (1.5x), Avg.   267 ns, Total. 800.0 ns (0.0%)
+[Performance] VersionControl.Task.Wait                                                                                             :        1 samples, Peak.  5.10 us (1.0x), Avg.  5.10 us, Total. 5.100 us (0.0%)
+[Performance] TMPro_TexturePostProcessor.OnPostprocessAllAssets                                                                    :        2 samples, Peak.  7.49 ms (1.0x), Avg.  7.44 ms, Total. 14.88 ms (0.1%)
+[Performance] UVCSAssetPostprocessor.OnPostprocessAllAssets                                                                        :        2 samples, Peak.   472 us (1.0x), Avg.   462 us, Total. 924.4 us (0.0%)
+[Performance] BuilderAssetPostprocessor.OnPostprocessAllAssets                                                                     :        2 samples, Peak.  3.08 ms (1.0x), Avg.  3.08 ms, Total. 6.155 ms (0.0%)
+[Performance] ArtifactBrowserPostProcessor.OnPostprocessAllAssets                                                                  :        2 samples, Peak.   395 us (1.0x), Avg.   393 us, Total. 786.1 us (0.0%)
+[Performance] AssetEvents.OnPostprocessAllAssets                                                                                   :        4 samples, Peak.   162 us (1.5x), Avg.   106 us, Total. 424.7 us (0.0%)
+[Performance] AudioMixerPostprocessor.OnPostprocessAllAssets                                                                       :        2 samples, Peak.   233 us (1.0x), Avg.   232 us, Total. 464.5 us (0.0%)
+[Performance] StyleCatalogPostProcessor.OnPostprocessAllAssets                                                                     :        2 samples, Peak.  13.3 ms (1.0x), Avg.  13.3 ms, Total. 26.62 ms (0.1%)
+[Performance] BuildCatalog                                                                                                         :        1 samples, Peak.  12.6 ms (1.0x), Avg.  12.6 ms, Total. 12.55 ms (0.0%)
+[Performance] ModelImporterPostProcessor.OnPostprocessAllAssets                                                                    :        2 samples, Peak.   973 us (1.0x), Avg.   970 us, Total. 1.940 ms (0.0%)
+[Performance] RetainedModeAssetPostprocessor.OnPostprocessAllAssets                                                                :        2 samples, Peak.  1.67 ms (1.0x), Avg.  1.67 ms, Total. 3.340 ms (0.0%)
+[Performance] AssetChangedListener.OnPostprocessAllAssets                                                                          :        2 samples, Peak.  1.50 ms (1.0x), Avg.  1.50 ms, Total. 3.000 ms (0.0%)
+[Performance] SpeedTreePostProcessor.OnPostprocessAllAssets                                                                        :        2 samples, Peak.   267 us (1.0x), Avg.   264 us, Total. 528.6 us (0.0%)
+[Performance] TextAssetPostProcessor.OnPostprocessAllAssets                                                                        :        2 samples, Peak.  1.08 ms (1.0x), Avg.  1.07 ms, Total. 2.149 ms (0.0%)
+[Performance] AssetProcessor.OnPostprocessAllAssets                                                                                :        6 samples, Peak.  1.28 ms (1.6x), Avg.   777 us, Total. 4.662 ms (0.0%)
+[Performance] SpriteLibraryAssetPostprocessor.OnPostprocessAllAssets                                                               :        2 samples, Peak.   208 us (1.0x), Avg.   206 us, Total. 413.0 us (0.0%)
+[Performance] PSDImporterAssetPostProcessor.OnPostprocessAllAssets                                                                 :        2 samples, Peak.  91.8 us (1.0x), Avg.  90.1 us, Total. 180.2 us (0.0%)
+[Performance] PSDImportPostProcessor.OnPostprocessAllAssets                                                                        :        2 samples, Peak.   102 us (1.0x), Avg.   101 us, Total. 201.5 us (0.0%)
+[Performance] SpriteEditorTexturePostprocessor.OnPostprocessAllAssets                                                              :        2 samples, Peak.   223 us (1.0x), Avg.   222 us, Total. 443.1 us (0.0%)
+[Performance] SpriteShapeAssetPostProcessor.OnPostprocessAllAssets                                                                 :        2 samples, Peak.   172 us (1.0x), Avg.   170 us, Total. 340.6 us (0.0%)
+[Performance] SyncVS.PostprocessSyncProject                                                                                        :        1 samples, Peak.   181 ms (1.0x), Avg.   181 ms, Total. 180.9 ms (0.7%)
+[Performance] EditorApplication.projectChanged: UnityEditor.Audio.MixerEffectDefinitionReloader.OnProjectChanged                   :        1 samples, Peak.   285 us (1.0x), Avg.   285 us, Total. 284.7 us (0.0%)
+[Performance] EditorApplication.projectChanged: MCPForUnity.Editor.Helpers.ProjectIdentityUtility.ScheduleCacheRefresh             :        1 samples, Peak.  1.60 us (1.0x), Avg.  1.60 us, Total. 1.600 us (0.0%)
+[Performance] Application.ImportPackagesAndSetTemplateWhenCreatingProject                                                          :        1 samples, Peak.  11.3 ms (1.0x), Avg.  11.3 ms, Total. 11.30 ms (0.0%)
+[Performance] Application.SyncCurrentColorSpace                                                                                    :        1 samples, Peak.  63.6 ms (1.0x), Avg.  63.6 ms, Total. 63.63 ms (0.2%)
+[Performance] Application.OnUsbDevicesChanged                                                                                      :        1 samples, Peak.  4.50 ms (1.0x), Avg.  4.50 ms, Total. 4.497 ms (0.0%)
+[Performance] Application.AssetInstanceCacheUpdate                                                                                 :        1 samples, Peak.   400 ns (1.0x), Avg.   400 ns, Total. 400.0 ns (0.0%)
+[Performance] Application.UnityExtensions.Initialize                                                                               :        1 samples, Peak.  3.73 ms (1.0x), Avg.  3.73 ms, Total. 3.733 ms (0.0%)
+[Performance] CodeEditorProjectSync.SyncEditorProject                                                                              :        1 samples, Peak.  64.0 ms (1.0x), Avg.  64.0 ms, Total. 63.99 ms (0.2%)
+[Performance] Application.ExecuteStartups                                                                                          :        1 samples, Peak.  38.6 ms (1.0x), Avg.  38.6 ms, Total. 38.57 ms (0.1%)
+[Performance] Menu.RegisterMenuInterface                                                                                           :       26 samples, Peak.  2.00 us (9.6x), Avg.   208 ns, Total. 5.400 us (0.0%)
+[Performance] Gizmo.RebuildRenderers                                                                                               :        1 samples, Peak.  37.7 ms (1.0x), Avg.  37.7 ms, Total. 37.68 ms (0.1%)
+[Performance] Gizmo.AddGizmoRenderers                                                                                              :      125 samples, Peak.  1.13 ms (78.8x), Avg.  14.3 us, Total. 1.790 ms (0.0%)
+[Performance] Application.editorInitializingProject                                                                                :        1 samples, Peak.  13.4 us (1.0x), Avg.  13.4 us, Total. 13.40 us (0.0%)
+[Performance] Application.FinishLoadingProject                                                                                     :        1 samples, Peak.   236 ms (1.0x), Avg.   236 ms, Total. 235.7 ms (0.9%)
+[Performance] Application.InitializeMenu                                                                                           :        1 samples, Peak.  44.1 ms (1.0x), Avg.  44.1 ms, Total. 44.12 ms (0.2%)
+[Performance] Menu.RebuildAll                                                                                                      :        1 samples, Peak.  44.1 ms (1.0x), Avg.  44.1 ms, Total. 44.11 ms (0.2%)
+[Performance] Menu.BuildRegisteredMenuInterfaces                                                                                   :        1 samples, Peak.  40.6 ms (1.0x), Avg.  40.6 ms, Total. 40.60 ms (0.1%)
+[Performance] Menu.FilterMenuItem                                                                                                  :      946 samples, Peak.  21.6 ms (932.6x), Avg.  23.2 us, Total. 21.94 ms (0.1%)
+[Performance] UpdateAllMenus                                                                                                       :        1 samples, Peak.   584 us (1.0x), Avg.   584 us, Total. 583.7 us (0.0%)
+[Performance] Menu.RebuildOSMainMenu                                                                                               :        2 samples, Peak.  2.75 ms (1.3x), Avg.  2.14 ms, Total. 4.270 ms (0.0%)
+[Performance] EditorSceneManager.sceneClosing: UnityEditor.SceneVisibilityManager.EditorSceneManagerOnSceneClosing                 :        3 samples, Peak.   199 us (2.9x), Avg.  69.3 us, Total. 207.8 us (0.0%)
+[Performance] GUIView.RepaintAll.PlayerLoopController                                                                              :       23 samples, Peak.  1.40 us (1.9x), Avg.   726 ns, Total. 16.70 us (0.0%)
+[Performance] EditorSceneManager.newSceneCreated: UnityEditor.SceneTemplate.SceneTemplateService.OnNewSceneCreated                 :        3 samples, Peak.   183 us (3.0x), Avg.  61.9 us, Total. 185.7 us (0.0%)
+[Performance] EditorSceneManager.newSceneCreated: UnityEditor.SceneVisibilityManager.EditorSceneManagerOnNewSceneCreated           :        3 samples, Peak.   163 us (2.8x), Avg.  57.4 us, Total. 172.3 us (0.0%)
+[Performance] EditorSceneManager.newSceneCreated: UnityEditor.SceneManagement.StageNavigationManager.OnNewSceneCreated             :        3 samples, Peak.  54.1 us (2.9x), Avg.  18.7 us, Total. 56.10 us (0.0%)
+[Performance] Application.InvokeFinishedLoadingProject                                                                             :        1 samples, Peak.   159 ms (1.0x), Avg.   159 ms, Total. 159.2 ms (0.6%)
+[Performance] ProcessService.OnProjectLoaded                                                                                       :        1 samples, Peak.  44.3 us (1.0x), Avg.  44.3 us, Total. 44.30 us (0.0%)
+[Performance] Application.InvokeProjectWasLoaded                                                                                   :        1 samples, Peak.  64.4 us (1.0x), Avg.  64.4 us, Total. 64.40 us (0.0%)
+[Performance] Application.Message                                                                                                  :       49 samples, Peak.   133 us (16.1x), Avg.  8.29 us, Total. 406.2 us (0.0%)
+[Performance] Application.Message.Timer                                                                                            :       10 samples, Peak.  22.0 us (1.4x), Avg.  15.7 us, Total. 156.9 us (0.0%)
+[Performance] Application.Message.WM_0031F                                                                                         :        1 samples, Peak.  9.20 us (1.0x), Avg.  9.20 us, Total. 9.200 us (0.0%)
+[Performance] Application.Tick                                                                                                     :       48 samples, Peak.  2.43 s (14.0x), Avg.   174 ms, Total. 8.359 s (30.3%)
+[Performance] CheckLicensingClient                                                                                                 :        2 samples, Peak.  12.6 us (1.2x), Avg.  10.8 us, Total. 21.60 us (0.0%)
+[Performance] CheckLicensingClientNotification                                                                                     :        2 samples, Peak.  13.3 us (1.1x), Avg.  12.0 us, Total. 24.00 us (0.0%)
+[Performance] LicenseActivated.Tick                                                                                                :        1 samples, Peak.  7.80 us (1.0x), Avg.  7.80 us, Total. 7.800 us (0.0%)
+[Performance] Application.TickVersionControl                                                                                       :       49 samples, Peak.  1.60 us (1.8x), Avg.   902 ns, Total. 44.20 us (0.0%)
+[Performance] MonoCompiler.Tick                                                                                                    :       11 samples, Peak.  5.40 us (3.4x), Avg.  1.58 us, Total. 17.40 us (0.0%)
+[Performance] UnityConnect.Tick                                                                                                    :       22 samples, Peak.  4.49 ms (21.3x), Avg.   211 us, Total. 4.641 ms (0.0%)
+[Performance] UnityVersionControl.Tick                                                                                             :       22 samples, Peak.  1.00 us (4.4x), Avg.   227 ns, Total. 5.000 us (0.0%)
+[Performance] CurlRequest.Tick                                                                                                     :       17 samples, Peak.   135 us (10.7x), Avg.  12.5 us, Total. 213.3 us (0.0%)
+[Performance] HubClient.Tick                                                                                                       :       17 samples, Peak.   600 ns (2.0x), Avg.   294 ns, Total. 5.000 us (0.0%)
+[Performance] AssetDatabase.Tick                                                                                                   :       17 samples, Peak.  59.6 us (16.0x), Avg.  3.72 us, Total. 63.30 us (0.0%)
+[Performance] SceneBackgroundTask.Tick                                                                                             :       15 samples, Peak.   300 ns (1.6x), Avg.   193 ns, Total. 2.900 us (0.0%)
+[Performance] Scheduler.Tick                                                                                                       :       29 samples, Peak.  1.47 ms (26.7x), Avg.  55.1 us, Total. 1.597 ms (0.0%)
+[Performance] RepaintAllProfilerWindows                                                                                            :        6 samples, Peak.   198 us (5.9x), Avg.  33.8 us, Total. 202.6 us (0.0%)
+[Performance] PlayerUpdates.Tick                                                                                                   :       22 samples, Peak.  22.8 us (1.8x), Avg.  13.0 us, Total. 285.8 us (0.0%)
+[Performance] Application.TickGlobalCallbacks                                                                                      :       49 samples, Peak.  21.8 ms (45.8x), Avg.   476 us, Total. 23.30 ms (0.1%)
+[Performance] CoreBusinessMetrics.Tick                                                                                             :        1 samples, Peak.  56.1 us (1.0x), Avg.  56.1 us, Total. 56.10 us (0.0%)
+[Performance] EditorAnalytics.Tick                                                                                                 :       11 samples, Peak.  7.50 us (7.9x), Avg.   955 ns, Total. 10.50 us (0.0%)
+[Performance] GI.Tick                                                                                                              :       22 samples, Peak.   590 us (9.6x), Avg.  61.6 us, Total. 1.356 ms (0.0%)
+[Performance] Video.Update                                                                                                         :       49 samples, Peak.  1.30 us (4.3x), Avg.   302 ns, Total. 14.80 us (0.0%)
+[Performance] UnitySynchronization.ExecuteTasks                                                                                    :       22 samples, Peak.  4.40 us (2.5x), Avg.  1.79 us, Total. 39.40 us (0.0%)
+[Performance] Application.TickPreloadManager                                                                                       :       49 samples, Peak.  79.6 us (22.8x), Avg.  3.49 us, Total. 170.9 us (0.0%)
+[Performance] Application.TickProgress                                                                                             :       49 samples, Peak.  1.62 ms (48.2x), Avg.  33.5 us, Total. 1.644 ms (0.0%)
+[Performance] Application.TickSceneTracker                                                                                         :       48 samples, Peak.  2.43 s (14.1x), Avg.   172 ms, Total. 8.277 s (30.0%)
+[Performance] EditorApplication.update                                                                                             :       48 samples, Peak.  2.43 s (14.1x), Avg.   172 ms, Total. 8.276 s (30.0%)
+[Performance] EditorApplication.update: UnityEditor.TestTools.TestRunner.CommandLineTest.TestStarter.UpdateWatch                   :        1 samples, Peak.  24.8 ms (1.0x), Avg.  24.8 ms, Total. 24.75 ms (0.1%)
+[Performance] EditorApplication.update: Unity.PlasticSCM.Editor.Hub.ProcessHubCommand.RunOnceWhenAccessTokenIsInitialized          :       49 samples, Peak.   148 us (35.3x), Avg.  4.19 us, Total. 205.3 us (0.0%)
+[Performance] EditorApplication.update: MCPForUnity.Editor.Services.Transport.TransportCommandDispatcher.ProcessQueue              :       49 samples, Peak.   466 us (45.7x), Avg.  10.2 us, Total. 499.6 us (0.0%)
+[Performance] EditorApplication.update: MCPForUnity.Editor.Services.EditorStateCache.OnUpdate                                      :       49 samples, Peak.   315 us (38.0x), Avg.  8.30 us, Total. 406.6 us (0.0%)
+[Performance] EditorApplication.update: callback in Microsoft.Unity.VisualStudio.Editor.VisualStudioIntegration                    :        1 samples, Peak.  6.01 ms (1.0x), Avg.  6.01 ms, Total. 6.009 ms (0.0%)
+[Performance] EditorApplication.update: Microsoft.Unity.VisualStudio.Editor.VisualStudioIntegration.OnUpdate                       :       49 samples, Peak.   227 us (40.2x), Avg.  5.65 us, Total. 276.8 us (0.0%)
+[Performance] EditorApplication.update: callback in Unity.PlasticSCM.Editor.Execute                                                :        1 samples, Peak.   385 us (1.0x), Avg.   385 us, Total. 384.8 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.U2D.Aseprite.BackgroundImport.OnUpdate                                         :       49 samples, Peak.   189 us (28.0x), Avg.  6.75 us, Total. 330.9 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.PackageManager.UI.Internal.ApplicationProxy.OnUpdate                           :       49 samples, Peak.   364 us (39.9x), Avg.  9.13 us, Total. 447.2 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.SceneManagement.StageNavigationManager.Update                                  :       49 samples, Peak.   276 us (44.6x), Avg.  6.20 us, Total. 303.8 us (0.0%)
+[Performance] ConsoleLog.Tick                                                                                                      :       11 samples, Peak.   147 us (8.2x), Avg.  17.8 us, Total. 195.7 us (0.0%)
+[Performance] HierarchyWindow.Tick                                                                                                 :       15 samples, Peak.  3.00 ms (8.5x), Avg.   352 us, Total. 5.273 ms (0.0%)
+[Performance] EditorApplication.hierarchyChanged: Unity.UIElements.Editor.UIDocumentHierarchyWatcher.OnHierarchyChanged            :        6 samples, Peak.   286 us (1.7x), Avg.   171 us, Total. 1.028 ms (0.0%)
+[Performance] EditorApplication.hierarchyChanged: UnityEditor.Tilemaps.SceneViewGridManager.UpdateCache                            :        6 samples, Peak.  2.35 ms (6.0x), Avg.   393 us, Total. 2.358 ms (0.0%)
+[Performance] EditorApplication.hierarchyChanged: UnityEditor.Tilemaps.SceneViewOpenTilePaletteHelper.SelectionChanged             :        6 samples, Peak.  16.0 us (4.4x), Avg.  3.65 us, Total. 21.90 us (0.0%)
+[Performance] EditorApplication.hierarchyChanged: UnityEditor.Tilemaps.GridPaintingState.HierarchyChanged                          :        6 samples, Peak.   101 us (5.6x), Avg.  17.9 us, Total. 107.3 us (0.0%)
+[Performance] Inspector.Tick                                                                                                       :       15 samples, Peak.  23.6 ms (15.0x), Avg.  1.58 ms, Total. 23.67 ms (0.1%)
+[Performance] EditorApplication.delayCall: UnityEditor.ShortcutManagement.ShortcutIntegration.EnsureShortcutsAreInitialized        :        1 samples, Peak.  20.4 ms (1.0x), Avg.  20.4 ms, Total. 20.36 ms (0.1%)
+[Performance] EditorApplication.delayCall: callback in RedistInstall                                                               :        1 samples, Peak.   907 us (1.0x), Avg.   907 us, Total. 907.5 us (0.0%)
+[Performance] EditorApplication.delayCall: MCPForUnity.Editor.Helpers.ProjectIdentityUtility.CacheIdentityOnMainThread             :        1 samples, Peak.  1.09 ms (1.0x), Avg.  1.09 ms, Total. 1.090 ms (0.0%)
+[Performance] EditorApplication.delayCall: Mirror.Examples.Editor.MirrorRenderPipelineConverter.CheckPipelineOnLoad                :        1 samples, Peak.   176 us (1.0x), Avg.   176 us, Total. 176.3 us (0.0%)
+[Performance] EditorApplication.delayCall: callback in UnityEditor.EditorWindow                                                    :        1 samples, Peak.   831 us (1.0x), Avg.   831 us, Total. 831.4 us (0.0%)
+[Performance] EditorApplication.delayCall: callback in UnityEditor.EditorTools.ToolShortcutContext                                 :        1 samples, Peak.  71.3 us (1.0x), Avg.  71.3 us, Total. 71.30 us (0.0%)
+[Performance] EditorApplication.delayCall: callback in UnityEditor.SceneVisibilityManager                                          :        1 samples, Peak.  23.6 us (1.0x), Avg.  23.6 us, Total. 23.60 us (0.0%)
+[Performance] EditorApplication.delayCall: UnityEditor.EditorTools.EditorToolContext.Activate                                      :        1 samples, Peak.  1.00 us (1.0x), Avg.  1.00 us, Total. 1.000 us (0.0%)
+[Performance] Tooltip.Tick                                                                                                         :       21 samples, Peak.  48.9 us (3.7x), Avg.  13.2 us, Total. 277.9 us (0.0%)
+[Performance] Application.RequestRepaintForPanels                                                                                  :       48 samples, Peak.   273 us (32.1x), Avg.  8.51 us, Total. 408.4 us (0.0%)
+[Performance] Application.UpdateScene                                                                                              :       48 samples, Peak.  12.6 ms (32.4x), Avg.   388 us, Total. 18.62 ms (0.1%)
+[Performance] Application.UpdateTextureStreaming                                                                                   :       48 samples, Peak.   600 ns (3.0x), Avg.   200 ns, Total. 9.600 us (0.0%)
+[Performance] Application.UpdateVideoTextures                                                                                      :       48 samples, Peak.   500 ns (3.9x), Avg.   129 ns, Total. 6.200 us (0.0%)
+[Performance] PackageImporter.Tick                                                                                                 :       10 samples, Peak.   400 ns (2.2x), Avg.   180 ns, Total. 1.800 us (0.0%)
+[Performance] InspectorBackground.Tick                                                                                             :       15 samples, Peak.  1.30 us (2.5x), Avg.   527 ns, Total. 7.900 us (0.0%)
+[Performance] BurstDebug.Tick                                                                                                      :        6 samples, Peak.   800 ns (1.3x), Avg.   617 ns, Total. 3.700 us (0.0%)
+[Performance] Application.ChangeLayoutIfNeeded                                                                                     :       48 samples, Peak.   100 ns (3.7x), Avg.  27.1 ns, Total. 1.300 us (0.0%)
+[Performance] AsyncReadManager.ForceCloseFiles                                                                                     :        5 samples, Peak.  76.7 us (1.9x), Avg.  41.0 us, Total. 204.8 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner.ExecuteStep                         :       48 samples, Peak.   327 ms (19.8x), Avg.  16.5 ms, Total. 790.8 ms (2.9%)
+[Performance] GUIView.RepaintAll.RepaintScene                                                                                      :       28 samples, Peak.   800 ns (2.9x), Avg.   271 ns, Total. 7.600 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.TestTools.TestRunner.EditModeRunnerCallback.DisplayProgressBar                 :       25 samples, Peak.   171 us (12.4x), Avg.  13.8 us, Total. 345.9 us (0.0%)
+[Performance] EditorApplication.update: UnityEditor.TestTools.TestRunner.EditModeRunner.TestConsumer                               :       24 samples, Peak.  2.43 s (7.8x), Avg.   310 ms, Total. 7.450 s (27.0%)
+[Performance] Application.Shutdown.SaveDefaultWindowPreferences                                                                    :        1 samples, Peak.   102 us (1.0x), Avg.   102 us, Total. 102.4 us (0.0%)
+[Performance] Application.Shutdown.SaveSceneManagerSetup                                                                           :        1 samples, Peak.   141 us (1.0x), Avg.   141 us, Total. 141.5 us (0.0%)
+[Performance] Application.Shutdown.CleanupAllContainerWindows                                                                      :        1 samples, Peak.   700 ns (1.0x), Avg.   700 ns, Total. 700.0 ns (0.0%)
+[Performance] EditorApplication.quitting: Unity.Burst.Editor.BurstLoader.OnEditorApplicationQuitting                               :        1 samples, Peak.  21.8 us (1.0x), Avg.  21.8 us, Total. 21.80 us (0.0%)
+[Performance] EditorApplication.quitting: MCPForUnity.Editor.Services.McpEditorShutdownCleanup.OnEditorQuitting                    :        1 samples, Peak.   209 us (1.0x), Avg.   209 us, Total. 209.2 us (0.0%)
+[Performance] EditorApplication.quitting: MCPForUnity.Editor.Services.StdioBridgeReloadHandler.CancelRetries                       :        1 samples, Peak.  42.3 us (1.0x), Avg.  42.3 us, Total. 42.30 us (0.0%)
+[Performance] EditorApplication.quitting: UnityEditor.Tilemaps.SceneViewGridManager.EditorQuitting                                 :        1 samples, Peak.  48.0 us (1.0x), Avg.  48.0 us, Total. 48.00 us (0.0%)
+[Performance] EditorApplication.quitting: YC.Presentation.ExternalContentRuntime.Reset                                             :        1 samples, Peak.  8.04 ms (1.0x), Avg.  8.04 ms, Total. 8.038 ms (0.0%)
+[Performance] EditorApplication.quitting: callback in UnityEditor.TextCore.Text.EditorEventCallbacks                               :        1 samples, Peak.  7.65 ms (1.0x), Avg.  7.65 ms, Total. 7.649 ms (0.0%)
+[Performance] Killing ADB server                                                                                                   :        1 samples, Peak.  32.4 ms (1.0x), Avg.  32.4 ms, Total. 32.39 ms (0.1%)
+[Performance] Application.Shutdown.PauseProfilerSession                                                                            :        1 samples, Peak.  19.7 us (1.0x), Avg.  19.7 us, Total. 19.70 us (0.0%)
+[Performance] Application.Shutdown.PauseAssetImportWorkers                                                                         :        1 samples, Peak.   157 us (1.0x), Avg.   157 us, Total. 157.1 us (0.0%)
+[Performance] Application.Shutdown.SaveAssets                                                                                      :        1 samples, Peak.  6.38 ms (1.0x), Avg.  6.38 ms, Total. 6.382 ms (0.0%)
+[Performance] PaletteAssetModificationProcessor.OnWillSaveAssets                                                                   :        1 samples, Peak.   202 us (1.0x), Avg.   202 us, Total. 202.4 us (0.0%)
+[Performance] UnityCloudProjectLinkMonitor.OnWillSaveAssets                                                                        :        1 samples, Peak.   286 us (1.0x), Avg.   286 us, Total. 285.6 us (0.0%)
+[Performance] UVCSAssetModificationProcessor.OnWillSaveAssets                                                                      :        1 samples, Peak.   200 us (1.0x), Avg.   200 us, Total. 199.7 us (0.0%)
+[Performance] BuilderAssetModificationProcessor.OnWillSaveAssets                                                                   :        1 samples, Peak.   221 us (1.0x), Avg.   221 us, Total. 221.0 us (0.0%)
+[Performance] TerrainModificationProcessor.OnWillSaveAssets                                                                        :        1 samples, Peak.   377 us (1.0x), Avg.   377 us, Total. 376.7 us (0.0%)
+[Performance] Application.Shutdown.CleanupRenderPipeline                                                                           :        1 samples, Peak.  7.20 us (1.0x), Avg.  7.20 us, Total. 7.200 us (0.0%)
+[Performance] Application.Shutdown.StopPreloadManager                                                                              :        1 samples, Peak.  9.63 ms (1.0x), Avg.  9.63 ms, Total. 9.634 ms (0.0%)
+[Performance] Application.Shutdown.DestroyWorld                                                                                    :        1 samples, Peak.   423 us (1.0x), Avg.   423 us, Total. 422.5 us (0.0%)
+[Performance] Application.Shutdown.CleanupAfterLoad                                                                                :        1 samples, Peak.   128 ms (1.0x), Avg.   128 ms, Total. 128.0 ms (0.5%)
+[Performance] Application.Shutdown.Progress                                                                                        :        1 samples, Peak.  2.60 us (1.0x), Avg.  2.60 us, Total. 2.600 us (0.0%)
+[Performance] Application.Shutdown.GICleanupManagers                                                                               :        1 samples, Peak.   617 us (1.0x), Avg.   617 us, Total. 616.8 us (0.0%)
+[Performance] Application.Shutdown.MenuCleanupClass                                                                                :        1 samples, Peak.   201 us (1.0x), Avg.   201 us, Total. 200.8 us (0.0%)
+[Performance] Application.Shutdown.ADBSaveStateBeforeShutdown                                                                      :        1 samples, Peak.  8.30 us (1.0x), Avg.  8.30 us, Total. 8.300 us (0.0%)
+[Performance] Application.Shutdown.RemoteShutdown                                                                                  :        1 samples, Peak.   800 ns (1.0x), Avg.   800 ns, Total. 800.0 ns (0.0%)
+[Performance] Application.Shutdown.CleanupVCProvider                                                                               :        1 samples, Peak.  8.80 us (1.0x), Avg.  8.80 us, Total. 8.800 us (0.0%)
+[Performance] Application.Shutdown.InputShutdown                                                                                   :        1 samples, Peak.   500 ns (1.0x), Avg.   500 ns, Total. 500.0 ns (0.0%)
+[Performance] Application.Shutdown.GizmoManagerDestroy                                                                             :        1 samples, Peak.   822 us (1.0x), Avg.   822 us, Total. 822.4 us (0.0%)
+[Performance] Application.Shutdown.ProfilerSession                                                                                 :        1 samples, Peak.   237 us (1.0x), Avg.   237 us, Total. 236.7 us (0.0%)
+[Performance] Application.Shutdown.ReleaseGfxWindowOnAllGUIViews                                                                   :        1 samples, Peak.   600 ns (1.0x), Avg.   600 ns, Total. 600.0 ns (0.0%)
+[Performance] Application.Shutdown.CleanupEngine                                                                                   :        1 samples, Peak.   159 ms (1.0x), Avg.   159 ms, Total. 159.5 ms (0.6%)
+[Performance] Application.Shutdown.CleanupAssetDatabase                                                                            :        1 samples, Peak.  6.59 ms (1.0x), Avg.  6.59 ms, Total. 6.587 ms (0.0%)
+[Performance] Application.Shutdown.ScriptCompilationCleanUp                                                                        :        1 samples, Peak.  13.9 ms (1.0x), Avg.  13.9 ms, Total. 13.85 ms (0.1%)
+[Performance] Application.Shutdown.DestroyJobSystem                                                                                :        1 samples, Peak.   107 us (1.0x), Avg.   107 us, Total. 107.4 us (0.0%)
+[Performance] Application.Shutdown.CleanupPersistentManager                                                                        :        1 samples, Peak.  1.52 ms (1.0x), Avg.  1.52 ms, Total. 1.518 ms (0.0%)
+[Performance] Application.Shutdown.CleanupAsyncReadManager                                                                         :        1 samples, Peak.  2.79 ms (1.0x), Avg.  2.79 ms, Total. 2.788 ms (0.0%)
+[Performance] Application.Shutdown.CleanupProgressBar                                                                              :        1 samples, Peak.   300 ns (1.0x), Avg.   300 ns, Total. 300.0 ns (0.0%)
+[Performance] Application.Shutdown.CleanupMono                                                                                     :        1 samples, Peak.   207 ms (1.0x), Avg.   207 ms, Total. 206.6 ms (0.7%)
+[Performance] Application.Shutdown.CleanupStdConverters                                                                            :        1 samples, Peak.  5.70 us (1.0x), Avg.  5.70 us, Total. 5.700 us (0.0%)
+[Performance] Application.Shutdown.UnloadAllPlatformSupportModuleNativeDlls                                                        :        1 samples, Peak.   800 ns (1.0x), Avg.   800 ns, Total. 800.0 ns (0.0%)
+[Performance] Application.Shutdown.UnloadAllPlatformSupportNativeLibraries                                                         :        1 samples, Peak.  2.83 s (1.0x), Avg.  2.83 s, Total. 2.827 s (10.3%)
+[Performance] Application.Shutdown.CleanupAutoDocumentation                                                                        :        1 samples, Peak.   297 us (1.0x), Avg.   297 us, Total. 297.4 us (0.0%)
+[Performance] Application.Shutdown.ShaderNameManagerDestroy                                                                        :        1 samples, Peak.  47.7 us (1.0x), Avg.  47.7 us, Total. 47.70 us (0.0%)
+[Performance] Application.Shutdown.CleanupCacheServer                                                                              :        1 samples, Peak.   200 ns (1.0x), Avg.   200 ns, Total. 200.0 ns (0.0%)
+[Performance] Application.Shutdown.Virtualization_Shutdown                                                                         :        1 samples, Peak.   400 ns (1.0x), Avg.   400 ns, Total. 400.0 ns (0.0%)
+[Performance] Application.Shutdown.DevConnections                                                                                  :        1 samples, Peak.   207 us (1.0x), Avg.   207 us, Total. 207.3 us (0.0%)
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server::Kill -- Server was shutdown
+Memory Statistics:
+[ALLOC_TEMP_TLS] TLS Allocator
+  StackAllocators : 
+    [ALLOC_TEMP_CurlRequest]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_MAIN]
+      Peak usage frame count: [4.0 KB-8.0 KB]: 2 frames, [8.0 KB-16.0 KB]: 1 frames, [16.0 KB-32.0 KB]: 6 frames, [32.0 KB-64.0 KB]: 2 frames, [64.0 KB-128.0 KB]: 2 frames, [2.0 MB-4.0 MB]: 3 frames, [4.0 MB-8.0 MB]: 1 frames, [8.0 MB-16.0 MB]: 3 frames
+      Initial Block Size 16.0 MB
+      Current Block Size 25.2 MB
+      Peak Allocated Bytes 13.6 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 18]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 8]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 4]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.0 MB
+      Peak Allocated Bytes 1.0 MB
+      Overflow Count 1
+    [ALLOC_TEMP_AUDIO_FMOD mixer thread]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 5]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 10]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 3]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BatchDeleteObjects]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 21]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_REST Message Handler]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_CoreBusinessMetricsCache]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 8.0 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 13]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 2.5 KB
+      Overflow Count 1
+    [ALLOC_TEMP_Background Job.Worker 2]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 1.9 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 22]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_AssetDatabase.IOService]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 11]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 10]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 2.0 KB
+      Overflow Count 1
+    [ALLOC_TEMP_Job.Worker 15]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 12]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Loading.PreloadManager]
+      Initial Block Size 32.0 MB
+      Current Block Size 32.0 MB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Profiler.Dispatcher]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 14]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 3]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.0 MB
+      Peak Allocated Bytes 1.0 MB
+      Overflow Count 1
+    [ALLOC_TEMP_BakingJobs.Worker 7]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 17]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 5]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_CurlRequest]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 1.9 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 13]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 2]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.0 MB
+      Peak Allocated Bytes 1.0 MB
+      Overflow Count 1
+    [ALLOC_TEMP_BakingJobs.Worker 6]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 11]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 3.1 KB
+      Overflow Count 1
+    [ALLOC_TEMP_Job.Worker 0]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 1.0 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 5]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.0 MB
+      Peak Allocated Bytes 1.0 MB
+      Overflow Count 1
+    [ALLOC_TEMP_Job.Worker 6]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 4.6 KB
+      Overflow Count 1
+    [ALLOC_TEMP_Background Job.Worker 9]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 8]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 9]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 2.8 KB
+      Overflow Count 1
+    [ALLOC_TEMP_DirMonitor]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 1.7 KB
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 1]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 0.6 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Loading.AsyncRead]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 256 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 10]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 16]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 9]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_AUDIO_FMOD (WASAPI) feeder thread]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 168 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 6]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 1]
+      Initial Block Size 32.0 KB
+      Current Block Size 168.0 KB
+      Peak Allocated Bytes 128.1 KB
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 11]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 20]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_AUDIO_FMOD stream thread]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 2]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 7]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 8]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 15]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 0]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 3]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 14]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_EditorTaskManager]
+      Initial Block Size 64.0 KB
+      Current Block Size 68.0 KB
+      Peak Allocated Bytes 64.0 KB
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 15]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 1]
+      Initial Block Size 256.0 KB
+      Current Block Size 1.5 MB
+      Peak Allocated Bytes 1.5 MB
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 4]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 12]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_HTTP REST Server]
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 74 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 12]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_BakingJobs.Worker 13]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_AssetGarbageCollectorHelper] x 23
+      Initial Block Size 64.0 KB
+      Current Block Size 64.0 KB
+      Peak Allocated Bytes 0 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 0]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 4]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Background Job.Worker 14]
+      Initial Block Size 32.0 KB
+      Current Block Size 32.0 KB
+      Peak Allocated Bytes 54 B
+      Overflow Count 0
+    [ALLOC_TEMP_Job.Worker 7]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 10.0 KB
+      Overflow Count 1
+    [ALLOC_TEMP_Job.Worker 19]
+      Initial Block Size 256.0 KB
+      Current Block Size 256.0 KB
+      Peak Allocated Bytes 4.1 KB
+      Overflow Count 0
+[ALLOC_MEMORYPROFILER]
+  Peak usage frame count: [256.0 KB-0.5 MB]: 5 frames, [0.5 MB-1.0 MB]: 15 frames
+  Requested Block Size 1.0 MB
+  Peak Block count 2
+  Peak Allocated memory 0.8 MB
+  Peak Large allocation bytes 0 B
+[ALLOC_DEFAULT] Dual Thread Allocator
+  Peak main deferred allocation count 1298
+    [ALLOC_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 11.3 MB
+    [ALLOC_DEFAULT_MAIN]
+      Peak usage frame count: [64.0 MB-128.0 MB]: 20 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 6
+      Peak Allocated memory 85.7 MB
+      Peak Large allocation bytes 0 B
+    [ALLOC_DEFAULT_THREAD]
+      Peak usage frame count: [4.0 MB-8.0 MB]: 20 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 1
+      Peak Allocated memory 7.1 MB
+      Peak Large allocation bytes 0 B
+[ALLOC_TEMP_JOB_1_FRAME]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_2_FRAMES]
+  Initial Block Size 2.0 MB
+  Used Block Count 0
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_4_FRAMES (JobTemp)]
+  Initial Block Size 2.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_TEMP_JOB_ASYNC (Background)]
+  Initial Block Size 1.0 MB
+  Used Block Count 1
+  Overflow Count (too large) 0
+  Overflow Count (full) 0
+[ALLOC_GFX] Dual Thread Allocator
+  Peak main deferred allocation count 0
+    [ALLOC_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 11.3 MB
+    [ALLOC_GFX_MAIN]
+      Peak usage frame count: [4.0 MB-8.0 MB]: 5 frames, [8.0 MB-16.0 MB]: 1 frames, [128.0 MB-256.0 MB]: 5 frames, [256.0 MB-0.50 GB]: 9 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 8
+      Peak Allocated memory 291.5 MB
+      Peak Large allocation bytes 191.4 MB
+    [ALLOC_GFX_THREAD]
+      Peak usage frame count: [0-1.0 KB]: 20 frames
+      Requested Block Size 16.0 MB
+      Peak Block count 1
+      Peak Allocated memory 160 B
+      Peak Large allocation bytes 0 B
+[ALLOC_CACHEOBJECTS] Dual Thread Allocator
+  Peak main deferred allocation count 7050
+    [ALLOC_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 11.3 MB
+    [ALLOC_CACHEOBJECTS_MAIN]
+      Peak usage frame count: [16.0 MB-32.0 MB]: 5 frames, [32.0 MB-64.0 MB]: 13 frames, [64.0 MB-128.0 MB]: 2 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 20
+      Peak Allocated memory 80.8 MB
+      Peak Large allocation bytes 50.4 MB
+    [ALLOC_CACHEOBJECTS_THREAD]
+      Peak usage frame count: [0-1.0 KB]: 20 frames
+      Requested Block Size 4.0 MB
+      Peak Block count 1
+      Peak Allocated memory 304 B
+      Peak Large allocation bytes 0 B
+[ALLOC_TYPETREE] Dual Thread Allocator
+  Peak main deferred allocation count 3737
+    [ALLOC_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 11.3 MB
+    [ALLOC_TYPETREE_MAIN]
+      Peak usage frame count: [1.0 MB-2.0 MB]: 5 frames, [2.0 MB-4.0 MB]: 12 frames, [8.0 MB-16.0 MB]: 2 frames, [16.0 MB-32.0 MB]: 1 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 12
+      Peak Allocated memory 21.8 MB
+      Peak Large allocation bytes 0 B
+    [ALLOC_TYPETREE_THREAD]
+      Peak usage frame count: [1.0 KB-2.0 KB]: 20 frames
+      Requested Block Size 2.0 MB
+      Peak Block count 1
+      Peak Allocated memory 2.0 KB
+      Peak Large allocation bytes 0 B
+[ALLOC_PROFILER]
+  Peak usage frame count: [256.0 KB-0.5 MB]: 20 frames
+  Requested Block Size 16.0 MB
+  Peak Block count 1
+  Peak Allocated memory 0.5 MB
+  Peak Large allocation bytes 0 B
+    [ALLOC_PROFILER_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.1 KB
+[ALLOC_PROFILER_EDITOR]
+  Peak usage frame count: [0-1.0 KB]: 20 frames
+  Requested Block Size 1.0 MB
+  Peak Block count 0
+  Peak Allocated memory 0 B
+  Peak Large allocation bytes 0 B
+    [ALLOC_PROFILER_BUCKET]
+      Large Block size 32.0 MB
+      Used Block count 1
+      Peak Allocated bytes 4.1 KB
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1790743718907,"processId":3016,"allocatedMemory":25096251,"memoryLabels":[{"Default":20431},{"Permanent":15615},{"NewDelete":80952},{"Thread":4229524},{"Manager":36539},{"VertexData":12},{"Geometry":560},{"Texture":176},{"Shader":68792},{"Material":24},{"GfxDevice":57048},{"Animation":296},{"Audio":3928},{"FontEngine":272},{"Physics":513},{"Serialization":948},{"Input":14744},{"JobScheduler":34552},{"Mono":40},{"ScriptingNativeRuntime":191848},{"BaseObject":1627276},{"Resource":1360},{"Renderer":2304},{"Transform":16},{"File":888},{"WebCam":96},{"Culling":40},{"Terrain":1137},{"Wind":24},{"STL":48},{"String":15518},{"DynamicArray":111228},{"HashMap":4421296},{"Utility":2665986},{"Curl":1424},{"PoolAlloc":1728},{"AI":104},{"TypeTree":5077},{"ScriptManager":640},{"RuntimeInitializeOnLoadManager":80},{"SpriteAtlas":128},{"GI":4072},{"Director":7960},{"WebRequest":688},{"VR":46081},{"SceneManager":568},{"Video":72},{"LazyScriptCache":40},{"NativeArray":12},{"Camera":25},{"Secure":1},{"SerializationCache":1584},{"APIUpdating":11872},{"Subsystems":392},{"VirtualTexturing":57896},{"StaticSafetyDebugInfo":327680},{"EditorGui":56},{"EditorUtility":25095},{"VersionControl":4},{"Undo":704},{"AssetDatabase":10949659},{"RestService":1414},{"EditorGi":376},{"License":3584},{"UnityConnect":25344},{"Collab":593},{"Upm":2032},{"DrivenProperties":96},{"LocalIPC":272},{"ProfilerEditor":10943},{"CoreBusinessMetrics":3844},{"AssetReference":40},{"IPCStream":40}]}

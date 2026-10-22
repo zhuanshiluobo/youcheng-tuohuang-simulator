@@ -1,0 +1,1820 @@
+{
+  "version": "3.2",
+  "design": "Frontier field operations / graphite, ivory, engineering yellow",
+  "pixelAlpha": "straight",
+  "sourceSizes": {
+    "button": [
+      256,
+      80
+    ],
+    "icon": [
+      64,
+      64
+    ]
+  },
+  "assets": {
+    "action-default": {
+      "path": "assets/bases/action-default.png",
+      "path2x": "assets/bases/action-default@2x.png",
+      "svg": "assets/bases/action-default.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "action",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 6,
+      "recommendedInk": "light"
+    },
+    "action-hover": {
+      "path": "assets/bases/action-hover.png",
+      "path2x": "assets/bases/action-hover@2x.png",
+      "svg": "assets/bases/action-hover.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "action",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 6,
+      "recommendedInk": "light"
+    },
+    "action-pressed": {
+      "path": "assets/bases/action-pressed.png",
+      "path2x": "assets/bases/action-pressed@2x.png",
+      "svg": "assets/bases/action-pressed.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "action",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 6,
+      "recommendedInk": "light"
+    },
+    "action-disabled": {
+      "path": "assets/bases/action-disabled.png",
+      "path2x": "assets/bases/action-disabled@2x.png",
+      "svg": "assets/bases/action-disabled.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "action",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 6,
+      "recommendedInk": "muted"
+    },
+    "tab-default": {
+      "path": "assets/bases/tab-default.png",
+      "path2x": "assets/bases/tab-default@2x.png",
+      "svg": "assets/bases/tab-default.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "light"
+    },
+    "tab-hover": {
+      "path": "assets/bases/tab-hover.png",
+      "path2x": "assets/bases/tab-hover@2x.png",
+      "svg": "assets/bases/tab-hover.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "light"
+    },
+    "tab-pressed": {
+      "path": "assets/bases/tab-pressed.png",
+      "path2x": "assets/bases/tab-pressed@2x.png",
+      "svg": "assets/bases/tab-pressed.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "light"
+    },
+    "tab-disabled": {
+      "path": "assets/bases/tab-disabled.png",
+      "path2x": "assets/bases/tab-disabled@2x.png",
+      "svg": "assets/bases/tab-disabled.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "muted"
+    },
+    "tab-selected": {
+      "path": "assets/bases/tab-selected.png",
+      "path2x": "assets/bases/tab-selected@2x.png",
+      "svg": "assets/bases/tab-selected.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "selected",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "dark"
+    },
+    "tab-selected-hover": {
+      "path": "assets/bases/tab-selected-hover.png",
+      "path2x": "assets/bases/tab-selected-hover@2x.png",
+      "svg": "assets/bases/tab-selected-hover.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "tab",
+      "state": "selected-hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 4,
+      "recommendedInk": "dark"
+    },
+    "primary-default": {
+      "path": "assets/bases/primary-default.png",
+      "path2x": "assets/bases/primary-default@2x.png",
+      "svg": "assets/bases/primary-default.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "primary",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "dark"
+    },
+    "primary-hover": {
+      "path": "assets/bases/primary-hover.png",
+      "path2x": "assets/bases/primary-hover@2x.png",
+      "svg": "assets/bases/primary-hover.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "primary",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "dark"
+    },
+    "primary-pressed": {
+      "path": "assets/bases/primary-pressed.png",
+      "path2x": "assets/bases/primary-pressed@2x.png",
+      "svg": "assets/bases/primary-pressed.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "primary",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "dark"
+    },
+    "primary-disabled": {
+      "path": "assets/bases/primary-disabled.png",
+      "path2x": "assets/bases/primary-disabled@2x.png",
+      "svg": "assets/bases/primary-disabled.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "primary",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "muted"
+    },
+    "undo-default": {
+      "path": "assets/bases/undo-default.png",
+      "path2x": "assets/bases/undo-default@2x.png",
+      "svg": "assets/bases/undo-default.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "undo",
+      "state": "default",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "light"
+    },
+    "undo-hover": {
+      "path": "assets/bases/undo-hover.png",
+      "path2x": "assets/bases/undo-hover@2x.png",
+      "svg": "assets/bases/undo-hover.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "undo",
+      "state": "hover",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "light"
+    },
+    "undo-pressed": {
+      "path": "assets/bases/undo-pressed.png",
+      "path2x": "assets/bases/undo-pressed@2x.png",
+      "svg": "assets/bases/undo-pressed.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "undo",
+      "state": "pressed",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "light"
+    },
+    "undo-disabled": {
+      "path": "assets/bases/undo-disabled.png",
+      "path2x": "assets/bases/undo-disabled@2x.png",
+      "svg": "assets/bases/undo-disabled.svg",
+      "viewBox": [
+        256,
+        80
+      ],
+      "role": "button-background",
+      "family": "undo",
+      "state": "disabled",
+      "slices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "sliceOrder": [
+        "left",
+        "top",
+        "right",
+        "bottom"
+      ],
+      "contentInset": [
+        18,
+        12,
+        18,
+        12
+      ],
+      "minSize": [
+        72,
+        40
+      ],
+      "textBakedIn": false,
+      "iconBakedIn": false,
+      "cornerRadius": 8,
+      "recommendedInk": "muted"
+    },
+    "icon-main-actions-light": {
+      "path": "assets/icons/main-actions-light.png",
+      "path2x": "assets/icons/main-actions-light@2x.png",
+      "svg": "assets/icons/main-actions-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "main-actions",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-main-actions-dark": {
+      "path": "assets/icons/main-actions-dark.png",
+      "path2x": "assets/icons/main-actions-dark@2x.png",
+      "svg": "assets/icons/main-actions-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "main-actions",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-main-actions-muted": {
+      "path": "assets/icons/main-actions-muted.png",
+      "path2x": "assets/icons/main-actions-muted@2x.png",
+      "svg": "assets/icons/main-actions-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "main-actions",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-quick-actions-light": {
+      "path": "assets/icons/quick-actions-light.png",
+      "path2x": "assets/icons/quick-actions-light@2x.png",
+      "svg": "assets/icons/quick-actions-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "quick-actions",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-quick-actions-dark": {
+      "path": "assets/icons/quick-actions-dark.png",
+      "path2x": "assets/icons/quick-actions-dark@2x.png",
+      "svg": "assets/icons/quick-actions-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "quick-actions",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-quick-actions-muted": {
+      "path": "assets/icons/quick-actions-muted.png",
+      "path2x": "assets/icons/quick-actions-muted@2x.png",
+      "svg": "assets/icons/quick-actions-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "quick-actions",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-patterns-light": {
+      "path": "assets/icons/city-patterns-light.png",
+      "path2x": "assets/icons/city-patterns-light@2x.png",
+      "svg": "assets/icons/city-patterns-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-patterns",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-patterns-dark": {
+      "path": "assets/icons/city-patterns-dark.png",
+      "path2x": "assets/icons/city-patterns-dark@2x.png",
+      "svg": "assets/icons/city-patterns-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-patterns",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-patterns-muted": {
+      "path": "assets/icons/city-patterns-muted.png",
+      "path2x": "assets/icons/city-patterns-muted@2x.png",
+      "svg": "assets/icons/city-patterns-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-patterns",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-deploy-light": {
+      "path": "assets/icons/deploy-light.png",
+      "path2x": "assets/icons/deploy-light@2x.png",
+      "svg": "assets/icons/deploy-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "deploy",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-deploy-dark": {
+      "path": "assets/icons/deploy-dark.png",
+      "path2x": "assets/icons/deploy-dark@2x.png",
+      "svg": "assets/icons/deploy-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "deploy",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-deploy-muted": {
+      "path": "assets/icons/deploy-muted.png",
+      "path2x": "assets/icons/deploy-muted@2x.png",
+      "svg": "assets/icons/deploy-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "deploy",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-dispatch-light": {
+      "path": "assets/icons/dispatch-light.png",
+      "path2x": "assets/icons/dispatch-light@2x.png",
+      "svg": "assets/icons/dispatch-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "dispatch",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-dispatch-dark": {
+      "path": "assets/icons/dispatch-dark.png",
+      "path2x": "assets/icons/dispatch-dark@2x.png",
+      "svg": "assets/icons/dispatch-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "dispatch",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-dispatch-muted": {
+      "path": "assets/icons/dispatch-muted.png",
+      "path2x": "assets/icons/dispatch-muted@2x.png",
+      "svg": "assets/icons/dispatch-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "dispatch",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-explore-light": {
+      "path": "assets/icons/explore-light.png",
+      "path2x": "assets/icons/explore-light@2x.png",
+      "svg": "assets/icons/explore-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "explore",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-explore-dark": {
+      "path": "assets/icons/explore-dark.png",
+      "path2x": "assets/icons/explore-dark@2x.png",
+      "svg": "assets/icons/explore-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "explore",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-explore-muted": {
+      "path": "assets/icons/explore-muted.png",
+      "path2x": "assets/icons/explore-muted@2x.png",
+      "svg": "assets/icons/explore-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "explore",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-move-light": {
+      "path": "assets/icons/city-move-light.png",
+      "path2x": "assets/icons/city-move-light@2x.png",
+      "svg": "assets/icons/city-move-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-move",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-move-dark": {
+      "path": "assets/icons/city-move-dark.png",
+      "path2x": "assets/icons/city-move-dark@2x.png",
+      "svg": "assets/icons/city-move-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-move",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-city-move-muted": {
+      "path": "assets/icons/city-move-muted.png",
+      "path2x": "assets/icons/city-move-muted@2x.png",
+      "svg": "assets/icons/city-move-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "city-move",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-build-light": {
+      "path": "assets/icons/build-light.png",
+      "path2x": "assets/icons/build-light@2x.png",
+      "svg": "assets/icons/build-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "build",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-build-dark": {
+      "path": "assets/icons/build-dark.png",
+      "path2x": "assets/icons/build-dark@2x.png",
+      "svg": "assets/icons/build-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "build",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-build-muted": {
+      "path": "assets/icons/build-muted.png",
+      "path2x": "assets/icons/build-muted@2x.png",
+      "svg": "assets/icons/build-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "build",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-special-light": {
+      "path": "assets/icons/special-light.png",
+      "path2x": "assets/icons/special-light@2x.png",
+      "svg": "assets/icons/special-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "special",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-special-dark": {
+      "path": "assets/icons/special-dark.png",
+      "path2x": "assets/icons/special-dark@2x.png",
+      "svg": "assets/icons/special-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "special",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-special-muted": {
+      "path": "assets/icons/special-muted.png",
+      "path2x": "assets/icons/special-muted@2x.png",
+      "svg": "assets/icons/special-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "special",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-undo-light": {
+      "path": "assets/icons/undo-light.png",
+      "path2x": "assets/icons/undo-light@2x.png",
+      "svg": "assets/icons/undo-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "undo",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-undo-dark": {
+      "path": "assets/icons/undo-dark.png",
+      "path2x": "assets/icons/undo-dark@2x.png",
+      "svg": "assets/icons/undo-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "undo",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-undo-muted": {
+      "path": "assets/icons/undo-muted.png",
+      "path2x": "assets/icons/undo-muted@2x.png",
+      "svg": "assets/icons/undo-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "undo",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-end-light": {
+      "path": "assets/icons/end-light.png",
+      "path2x": "assets/icons/end-light@2x.png",
+      "svg": "assets/icons/end-light.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "end",
+      "ink": "light",
+      "color": "#ECEBDA",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-end-dark": {
+      "path": "assets/icons/end-dark.png",
+      "path2x": "assets/icons/end-dark@2x.png",
+      "svg": "assets/icons/end-dark.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "end",
+      "ink": "dark",
+      "color": "#263030",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    },
+    "icon-end-muted": {
+      "path": "assets/icons/end-muted.png",
+      "path2x": "assets/icons/end-muted@2x.png",
+      "svg": "assets/icons/end-muted.svg",
+      "viewBox": [
+        64,
+        64
+      ],
+      "role": "button-icon",
+      "name": "end",
+      "ink": "muted",
+      "color": "#747E77",
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "safeArea": [
+        4,
+        4,
+        56,
+        56
+      ],
+      "recommendedDisplaySize": [
+        28,
+        32
+      ],
+      "textBakedIn": false
+    }
+  },
+  "roles": {
+    "deploy": {
+      "baseFamily": "action",
+      "icon": "deploy",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "dispatch": {
+      "baseFamily": "action",
+      "icon": "dispatch",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "explore": {
+      "baseFamily": "action",
+      "icon": "explore",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "city-move": {
+      "baseFamily": "action",
+      "icon": "city-move",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "build": {
+      "baseFamily": "action",
+      "icon": "build",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "special": {
+      "baseFamily": "action",
+      "icon": "special",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "main-actions": {
+      "baseFamily": "tab",
+      "icon": "main-actions",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled",
+        "selected",
+        "selected-hover"
+      ]
+    },
+    "quick-actions": {
+      "baseFamily": "tab",
+      "icon": "quick-actions",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled",
+        "selected",
+        "selected-hover"
+      ]
+    },
+    "city-patterns": {
+      "baseFamily": "tab",
+      "icon": "city-patterns",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled",
+        "selected",
+        "selected-hover"
+      ]
+    },
+    "undo": {
+      "baseFamily": "undo",
+      "icon": "undo",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    },
+    "end": {
+      "baseFamily": "primary",
+      "icon": "end",
+      "text": "runtime",
+      "states": [
+        "default",
+        "hover",
+        "pressed",
+        "disabled"
+      ]
+    }
+  }
+}

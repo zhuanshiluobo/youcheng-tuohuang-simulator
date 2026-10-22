@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Failed(Child)" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.8089899">
+  <test-suite type="TestSuite" id="1063" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="44" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.808990" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1122" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="44" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.801213" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="53612" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1123" name="YC" fullname="YC" runstate="Runnable" testcasecount="44" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.798629" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1124" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="44" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.796429" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1125" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="44" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.793659" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1103" name="MapHighlightPlayModeTests" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" testcasecount="2" result="Failed" site="Child" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.790289" total="1" passed="0" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1104" name="BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests.BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" methodname="BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" seed="568103901" result="Failed" start-time="2026-09-30 11:21:50Z" end-time="2026-09-30 11:21:52Z" duration="1.781004" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  点击入口返回后的统一刷新必须保留城市移动预选
+  Expected: True
+  But was:  False
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.PlayMode.MapHighlightPlayModeTests+<BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce>d__0.MoveNext () [0x0034b] in G:\NoMadCity\Assets\YC\Tests\PlayMode\FacilityCatalog\MapHighlightPlayModeTests.cs:58
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                </failure>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

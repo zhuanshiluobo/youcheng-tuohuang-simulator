@@ -1,7 +1,13 @@
 return function(ctx)
     if ctx.eventType ~= 'EffectCompleted' then
-        return { Effect.Choice({ player = ctx.playerId, options = { 'originium', 'originium-shard', 'iron' },
-            promptKey = 'character.cannot.tactic.choose_resource' }) }
+        return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = { 'originium', 'originium-shard', 'iron' },
+            promptKey = 'character.cannot.tactic.choose_resource' }), {
+            interaction = { prompt = Text.Ref('core:interaction.character.cannot.tactic.resource.prompt'), options = {
+                { candidateId = 'originium', label = Text.Ref('core:interaction.resource.originium') },
+                { candidateId = 'originium-shard', label = Text.Ref('core:interaction.resource.originium_shard') },
+                { candidateId = 'iron', label = Text.Ref('core:interaction.resource.iron') }
+            } }
+        }) }
     end
     if ctx.payload.outcome ~= 'completed' then return {} end
     local selected = ctx.payload.normalizedResult
@@ -15,6 +21,7 @@ return function(ctx)
             local batch = amount
             if batch > 50 then batch = 50 end
             table.insert(effects, Effect.PayResource({ payer = player, resourceType = types[selected], amount = batch,
+                allowSubstitution = false,
                 reasonId = 'character.cannot.tactic' }))
             table.insert(effects, Effect.GainResource({ recipient = player, resourceType = 'gold_voucher', amount = batch * 2,
                 reasonId = 'character.cannot.tactic' }))

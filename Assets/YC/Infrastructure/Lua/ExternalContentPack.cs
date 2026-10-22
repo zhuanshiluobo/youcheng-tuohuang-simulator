@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,11 +10,24 @@ using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
 using YC.Domain.SpecialActions;
+using YC.Domain.Items;
+using YC.Domain.Effects;
 
 namespace YC.Infrastructure.Lua
 {
+    [Serializable] public sealed class ExternalSettlementHandlerDefinition
+    {
+        public string HandlerId = string.Empty, Script = string.Empty, EntryPoint = string.Empty, Version = string.Empty;
+    }
+    [Serializable] public sealed class ExternalSettlementDefinition
+    {
+        public string EntryKind = string.Empty, LocalId = string.Empty, OfferHandlerId = string.Empty, AvailabilityHandlerId = string.Empty, WholeEffectPolicy = string.Empty;
+        public YC.Domain.Presentation.SettlementPresentationDefinition Presentation;
+    }
     public sealed class ExternalAbilityDefinition
     {
+        public ExternalSettlementDefinition Settlement;
+        public YC.Domain.Presentation.AbilityPresentationDefinition Presentation;
         public string AbilityId = "";
         public string Mode = "";
         public string SkillType = "";
@@ -25,6 +38,11 @@ namespace YC.Infrastructure.Lua
         public string Version = "";
         public string CompletionHandlerId = "";
         public string CleanupScript = "";
+        public string SettlementActionId = "", TitleKey = "", DescriptionKey = "";
+        public string[] ObservedEvents = Array.Empty<string>();
+        public Dictionary<string, EventResponseAttachmentKind> EventResponseAttachments = new Dictionary<string, EventResponseAttachmentKind>(StringComparer.Ordinal);
+        public string ObserverSubjectPolicy = "";
+        public string CandidateKindFilter = "";
     }
 
     public sealed class ExternalReplacementReference
@@ -34,8 +52,22 @@ namespace YC.Infrastructure.Lua
         public string DefinitionId = "";
     }
 
+    /// <summary>内容包内的卡牌裁切矩形；以 Unity 纹理左下角为原点，单位为源像素。</summary>
+    public sealed class ExternalArtworkSlice
+    {
+        public string Id = "";
+        public string Artwork = "";
+        public int SourceWidth;
+        public int SourceHeight;
+        public int X;
+        public int Y;
+        public int Width;
+        public int Height;
+    }
+
     public sealed class ExternalContentDefinition
     {
+        public YC.Domain.Presentation.ContentPresentationDefinition Presentation;
         public bool Enabled = true;
         public string ExpansionId = "";
         public ExternalReplacementReference Replaces;
@@ -44,8 +76,12 @@ namespace YC.Infrastructure.Lua
         public string Version = "";
         public string DisplayName = "";
         public string Artwork = "";
+        public string ArtworkSpriteId = "";
+        [JsonIgnore] public ExternalArtworkSlice ArtworkSlice;
         public string[] Tags = Array.Empty<string>();
         public JArray PlayerMarkerZones = new JArray();
+        public string ItemTypeId = string.Empty;
+        public List<CardZoneDefinition> CardZones = new List<CardZoneDefinition>();
         public List<ExternalAbilityDefinition> Abilities = new List<ExternalAbilityDefinition>();
         public string DataTemplate = "";
         [JsonIgnore] public string RuntimeId = "";
@@ -61,9 +97,24 @@ namespace YC.Infrastructure.Lua
         private readonly Dictionary<string, string> runtimeIds = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> scripts = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, byte[]> files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        private readonly HashSet<string> presentationFiles = new HashSet<string>(StringComparer.Ordinal);
+        public GameplayPresentationCatalog Presentation { get; private set; } = new GameplayPresentationCatalog();
+        public string PresentationContentHash { get; private set; } = string.Empty;
+        private readonly List<ExternalSettlementHandlerDefinition> settlementHandlers = new List<ExternalSettlementHandlerDefinition>();
+        public IReadOnlyList<ExternalSettlementHandlerDefinition> SettlementHandlers => settlementHandlers.Select(YC.Domain.State.GameStateCloneService.DeepClone).ToList().AsReadOnly();
         private readonly Dictionary<string, string> sharedArtwork = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly Dictionary<string, ExternalArtworkSlice> artworkSlices = new Dictionary<string, ExternalArtworkSlice>(StringComparer.Ordinal);
+        public IReadOnlyList<ExternalArtworkSlice> ArtworkSlices => artworkSlices.Values.Select(CloneSlice).ToList().AsReadOnly();
         public string RootPath { get; private set; }
         public string ContentHash { get; private set; }
+        public string ContentPackHash => ContentHash;
+        public int SchemaVersion { get; private set; }
+        private JObject manifestSnapshot;
+        public JObject Manifest { get => (JObject)manifestSnapshot.DeepClone(); private set => manifestSnapshot = (JObject)value.DeepClone(); }
+        public IReadOnlyDictionary<string, string> Scripts => new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(scripts);
+        public IReadOnlyList<YC.Domain.Rules.GameSetupRecipe> SetupRecipes => setupRecipes.Select(YC.Domain.State.GameStateCloneService.DeepClone).ToList().AsReadOnly();
+        private readonly List<YC.Domain.Rules.GameSetupRecipe> setupRecipes = new List<YC.Domain.Rules.GameSetupRecipe>();
+        internal bool UseDefinitionIds;
         public string PackId { get; private set; }
         public static ExternalContentPack Current => current ?? (current = Load(Path.Combine(Environment.CurrentDirectory, "Assets/StreamingAssets/Content/core")));
         public static void Configure(string root) { current = Load(root); }
@@ -73,6 +124,7 @@ namespace YC.Infrastructure.Lua
         {
             var result = JsonConvert.DeserializeObject<ExternalContentDefinition>(JsonConvert.SerializeObject(value));
             result.RuntimeId = value.RuntimeId;
+            result.ArtworkSlice = CloneSlice(value.ArtworkSlice);
             return result;
         }
 
@@ -80,10 +132,30 @@ namespace YC.Infrastructure.Lua
         {
             var pack = new ExternalContentPack { RootPath = Path.GetFullPath(root) };
             JObject manifest = pack.ReadJson("pack.json");
-            if ((int?)manifest["schemaVersion"] != 2 || string.IsNullOrWhiteSpace((string)manifest["packId"]) ||
+            if (!new[] { 2, 3 }.Contains((int?)manifest["schemaVersion"] ?? 0) || string.IsNullOrWhiteSpace((string)manifest["packId"]) ||
                 string.IsNullOrWhiteSpace((string)manifest["version"]) || !(manifest["definitions"] is JArray))
                 throw new InvalidDataException("内容包 pack.json 缺少必需字段或 schemaVersion 不支持。");
             pack.PackId = (string)manifest["packId"];
+            pack.SchemaVersion = (int)manifest["schemaVersion"];
+            pack.Manifest = (JObject)manifest.DeepClone();
+            if (manifest["uiIcons"] != null) throw new InvalidDataException("uiIcons 已撤销，请使用 presentation.icons。");
+            pack.Presentation = GameplayPresentationCatalog.Load(manifest["presentation"], pack.PackId, pack.ReadPresentationJson, pack.ReadPresentationArtwork);
+            foreach (string path in pack.Presentation.DefaultScriptPaths) pack.LoadPresentationScript(path);
+            if (manifest["settlementHandlers"] is JArray handlers)
+                foreach (var token in handlers)
+                {
+                    var handler = token.ToObject<ExternalSettlementHandlerDefinition>();
+                    if (handler == null || string.IsNullOrWhiteSpace(handler.HandlerId) || string.IsNullOrWhiteSpace(handler.Script) || string.IsNullOrWhiteSpace(handler.EntryPoint) || string.IsNullOrWhiteSpace(handler.Version) || pack.settlementHandlers.Any(h => h.HandlerId == handler.HandlerId)) throw new InvalidDataException("settlement_handler_invalid");
+                    pack.LoadPresentationScript(handler.Script); pack.settlementHandlers.Add(handler);
+                }
+            else if (manifest["settlementHandlers"] != null) throw new InvalidDataException("settlement_handlers_schema_invalid");
+            if (pack.SchemaVersion == 3 && (!(manifest["requiredCapabilities"] is JArray capabilities) || capabilities.Any(c => c.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)c)) ||
+                !(manifest["expansionDependencies"] is JArray dependencies) || dependencies.OfType<JObject>().Count() != dependencies.Count || dependencies.Any(d => d["expansionId"]?.Type != JTokenType.String || !(d["requires"] is JArray needs) || needs.Any(n => n.Type != JTokenType.String)) ||
+                !(manifest["setupRecipes"] is JArray declaredRecipes) || declaredRecipes.Any(r => r.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)r))))
+                throw new InvalidDataException("schema3_manifest_invalid");
+            if (manifest["setupRecipes"] is JArray recipes)
+                foreach (string path in recipes.Values<string>()) pack.setupRecipes.Add(pack.ReadJson(path).ToObject<YC.Domain.Rules.GameSetupRecipe>());
+            if (manifest["artworkSlices"] != null) pack.ReadArtworkSlices((string)manifest["artworkSlices"]);
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var abilityIds = new HashSet<string>(StringComparer.Ordinal);
             var subscriptionIds = new HashSet<string>(StringComparer.Ordinal);
@@ -94,11 +166,29 @@ namespace YC.Infrastructure.Lua
                 if (json["expansionId"]?.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)json["expansionId"]) ||
                     json.Property("replaces") == null || (json["replaces"].Type != JTokenType.Null && json["replaces"].Type != JTokenType.Object))
                     throw new InvalidDataException("内容必须填写 expansionId 和 replaces（不替换时为 null）：" + relative);
-                var definition = json.ToObject<ExternalContentDefinition>();
+                var definitionJson = (JObject)json.DeepClone();
+                definitionJson.Remove("presentation");
+                if (definitionJson["abilities"] is JArray abilityJsons)
+                    foreach (var abilityJson in abilityJsons.OfType<JObject>())
+                    { abilityJson.Remove("presentation"); if (abilityJson["settlement"] is JObject settlementJson) settlementJson.Remove("presentation"); }
+                var definition = definitionJson.ToObject<ExternalContentDefinition>();
+                definition.Presentation = GameplayPresentationCatalog.ReadDto<YC.Domain.Presentation.ContentPresentationDefinition>(json["presentation"]);
+                if (json["abilities"] is JArray originalAbilities)
+                    for (int i = 0; i < definition.Abilities.Count; i++)
+                    {
+                        definition.Abilities[i].Presentation = GameplayPresentationCatalog.ReadDto<YC.Domain.Presentation.AbilityPresentationDefinition>(originalAbilities[i]["presentation"]);
+                        if (definition.Abilities[i].Settlement != null) definition.Abilities[i].Settlement.Presentation = GameplayPresentationCatalog.ReadDto<YC.Domain.Presentation.SettlementPresentationDefinition>(originalAbilities[i]["settlement"]?["presentation"]);
+                    }
                 if (definition == null || string.IsNullOrWhiteSpace(definition.DefinitionId) || !ids.Add(definition.DefinitionId) ||
                     string.IsNullOrWhiteSpace(definition.Version) || string.IsNullOrWhiteSpace(definition.DisplayName) || definition.Data == null || definition.Abilities == null)
                     throw new InvalidDataException("内容定义缺字段或 ID 重复：" + relative);
-                if (!new[] { "character", "facility", "event", "city_style", "enterprise_board", "entrepreneur_ability", "entrepreneur_round" }.Contains(definition.ContentType))
+                ValidateItemZoneDeclaration(json, definition);
+                pack.Presentation.ValidateReferences(definition.Presentation);
+                pack.Presentation.ValidateEnterpriseDescriptions(definition);
+                if ((definition.ContentType == "enterprise" || definition.ContentType == "department") && definition.Presentation != null)
+                    pack.presentationFiles.Add(relative);
+                if (!string.IsNullOrEmpty(definition.Presentation?.DetailScript)) pack.LoadPresentationScript(definition.Presentation.DetailScript);
+                if (!new[] { "character", "facility", "event", "city_style", "enterprise", "department", "component", "contract", "award", "enterprise_board", "entrepreneur_ability", "entrepreneur_round" }.Contains(definition.ContentType))
                     throw new InvalidDataException("未知内容类型：" + definition.ContentType);
                 ValidateReplacement(definition);
                 if (!string.IsNullOrEmpty(definition.DataTemplate))
@@ -111,14 +201,34 @@ namespace YC.Infrastructure.Lua
                     definition.Data = data;
                 }
                 pack.ReadArtwork(definition.Artwork);
+                if (!string.IsNullOrEmpty(definition.ArtworkSpriteId))
+                {
+                    definition.ArtworkSlice = pack.FindRegisteredArtworkSlice(definition.ArtworkSpriteId);
+                    if (definition.ArtworkSlice == null || definition.ArtworkSlice.Artwork != definition.Artwork)
+                        throw new InvalidDataException("卡牌的 artworkSpriteId 未登记或整图路径不一致：" + definition.DefinitionId);
+                }
                 if (definition.Data["effectScript"] != null) pack.LoadScript((string)definition.Data["effectScript"]);
                 var zones = new HashSet<string>(StringComparer.Ordinal);
                 if (definition.PlayerMarkerZones == null) throw new InvalidDataException("playerMarkerZones 不能为空。");
                 foreach (var zone in definition.PlayerMarkerZones)
                     if (string.IsNullOrWhiteSpace((string)zone["zoneId"]) || !zones.Add((string)zone["zoneId"]) || (int?)zone["capacity"] < 0 || zone["capacity"] == null)
                         throw new InvalidDataException("玩家标记区 ID 或容量无效：" + definition.DefinitionId);
+                foreach (var zone in definition.CardZones)
+                    if (!zones.Add(zone.LocalZoneId)) throw new InvalidDataException("localZoneId 与既有玩家标记区重复：" + definition.DefinitionId);
                 foreach (var ability in definition.Abilities)
                 {
+                    pack.Presentation.ValidateReferences(ability?.Presentation);
+                    if (ability?.Settlement != null)
+                    {
+                        pack.Presentation.ValidateReferences(ability.Settlement.Presentation);
+                        if (!new[] { "optional_insertion", "cleanup_order" }.Contains(ability.Settlement.EntryKind) || string.IsNullOrWhiteSpace(ability.Settlement.LocalId) || !ability.Settlement.LocalId.StartsWith(ability.AbilityId + ".", StringComparison.Ordinal)) throw new InvalidDataException("settlement_declaration_invalid");
+                        foreach (string id in new[] { ability.Settlement.OfferHandlerId, ability.Settlement.AvailabilityHandlerId }.Where(id => !string.IsNullOrEmpty(id)))
+                            if (!pack.settlementHandlers.Any(h => h.HandlerId == id)) throw new InvalidDataException("settlement_handler_missing:" + id);
+                        if (string.IsNullOrEmpty(ability.Settlement.AvailabilityHandlerId) ||
+                            ability.Settlement.EntryKind == "optional_insertion" && string.IsNullOrEmpty(ability.Settlement.OfferHandlerId)) throw new InvalidDataException("settlement_handler_missing");
+                        if (ability.Settlement.EntryKind == "cleanup_order" && !new[] { "optional", "required" }.Contains(ability.Settlement.WholeEffectPolicy)) throw new InvalidDataException("settlement_whole_effect_policy_missing");
+                    }
+                    if (!string.IsNullOrEmpty(ability?.Presentation?.Effect?.PresentationScript)) pack.LoadPresentationScript(ability.Presentation.Effect.PresentationScript);
                     if (ability == null || string.IsNullOrWhiteSpace(ability.AbilityId) || !abilityIds.Add(ability.AbilityId) ||
                         string.IsNullOrWhiteSpace(ability.SubscriptionId) || !subscriptionIds.Add(ability.SubscriptionId) || string.IsNullOrWhiteSpace(ability.Version))
                         throw new InvalidDataException("能力 ID、订阅或版本缺失/重复：" + definition.DefinitionId);
@@ -132,6 +242,20 @@ namespace YC.Infrastructure.Lua
                         throw new InvalidDataException("未启用特殊区域时 specialZoneId 必须为空：" + ability.AbilityId);
                     pack.LoadScript(ability.Script);
                     if (!string.IsNullOrEmpty(ability.CleanupScript)) pack.LoadScript(ability.CleanupScript);
+                    if (ability.ObservedEvents == null || ability.ObservedEvents.Distinct(StringComparer.Ordinal).Count() != ability.ObservedEvents.Length ||
+                        ability.ObservedEvents.Any(eventType => !new[] { "InfluenceRemoved", "InfluenceReplaced", "CharacterCardCovered", "CharacterEffectCompleted", "CharacterUseFinished", "CollectionStarted", "CandidateSetBuilding" }.Contains(eventType)) ||
+                        ability.ObservedEvents.Length > 0 && (ability.SkillType != "persistent" || !new[] { "departed_owner", "self" }.Contains(ability.ObserverSubjectPolicy)) ||
+                        ability.ObservedEvents.Length == 0 && ability.ObserverSubjectPolicy != "") throw new InvalidDataException("持续事件声明无效：" + ability.AbilityId);
+                    if (ability.EventResponseAttachments == null || ability.EventResponseAttachments.Any(pair =>
+                        !ability.ObservedEvents.Contains(pair.Key) || !Enum.IsDefined(typeof(EventResponseAttachmentKind), pair.Value) ||
+                        pair.Value == EventResponseAttachmentKind.DeferredPlayerResponse &&
+                        (ability.ObserverSubjectPolicy != "departed_owner" || !new[] { "InfluenceRemoved", "InfluenceReplaced" }.Contains(pair.Key))))
+                        throw new InvalidDataException("事件响应挂载声明无效：" + ability.AbilityId);
+                    bool candidateObserver = ability.ObservedEvents.Contains("CandidateSetBuilding");
+                    if (candidateObserver ? ability.ObserverSubjectPolicy != "self" || ability.CandidateKindFilter != YC.Domain.Facilities.FacilityBuildCandidateQuery.CandidateKind : ability.CandidateKindFilter != "")
+                        throw new InvalidDataException("持续候选声明无效：" + ability.AbilityId);
+                    if (ability.SettlementActionId.Length > 0 && (ability.SkillType != "persistent" || !new[] { CharacterSettlementOptionQuery.DoubleUseActionId, CharacterContentEffectExecutor.CleanupActionId }.Contains(ability.SettlementActionId))) throw new InvalidDataException("结算来源声明无效：" + ability.AbilityId);
+                    if (ability.SettlementActionId == CharacterContentEffectExecutor.CleanupActionId && string.IsNullOrEmpty(ability.CleanupScript)) throw new InvalidDataException("可选收尾来源缺少收尾脚本：" + ability.AbilityId);
                 }
                 if (definition.ContentType == "character" && (definition.Abilities.Count != 2 ||
                     definition.Abilities.Count(a => a.Mode == "strategy") != 1 || definition.Abilities.Count(a => a.Mode == "tactic") != 1))
@@ -160,6 +284,11 @@ namespace YC.Infrastructure.Lua
             foreach (var item in pack.files.OrderBy(p => p.Key, StringComparer.Ordinal))
                 hashInput.Append(item.Key).Append(':').Append(Convert.ToBase64String(item.Value)).Append('\n');
             pack.ContentHash = LuaContentHasher.ComputeSha256(hashInput.ToString());
+            var presentationInput = new StringBuilder();
+            foreach (var item in pack.files.Where(p => pack.presentationFiles.Contains(p.Key)).OrderBy(p => p.Key, StringComparer.Ordinal))
+                presentationInput.Append(item.Key).Append(':').Append(Convert.ToBase64String(item.Value)).Append('\n');
+            pack.PresentationContentHash = pack.Presentation.SchemaVersion == 0 ? string.Empty : LuaContentHasher.ComputeSha256(presentationInput.ToString());
+            pack.Presentation.BindContentHash(pack.ContentHash);
             return pack;
         }
 
@@ -170,6 +299,19 @@ namespace YC.Infrastructure.Lua
             if (manifest["facilityInventory"] == null) yield break;
             string inventoryPath = (string)manifest["facilityInventory"];
             var inventory = ReadJson(inventoryPath);
+            // 独立设施定义与数量清单共享同一源，避免在 groups 中复制整份规则。
+            if (inventory["definitionFiles"] != null)
+            {
+                if (!(inventory["definitionFiles"] is JArray files) || files.Any(f => f.Type != JTokenType.String))
+                    throw new InvalidDataException("设施 definitionFiles 必须为相对路径数组。");
+                foreach (string path in files.Values<string>())
+                {
+                    var definition = ReadJson(path);
+                    if ((string)definition["contentType"] != "facility")
+                        throw new InvalidDataException("设施清单引用了非设施定义：" + path);
+                    yield return new KeyValuePair<string, JObject>(path, definition);
+                }
+            }
             if (!(inventory["groups"] is JArray groups)) throw new InvalidDataException("设施清单必须包含 groups 数组。");
             var generated = new List<JObject>();
             foreach (var group in groups)
@@ -195,6 +337,7 @@ namespace YC.Infrastructure.Lua
                         var definition = (JObject)basis.DeepClone();
                         definition["definitionId"] = id;
                         definition["artwork"] = (string)entry?["artwork"] ?? (string)variant["artwork"];
+                        definition["artworkSpriteId"] = (string)entry?["artworkSpriteId"] ?? (string)variant["artworkSpriteId"] ?? "";
                         var data = definition["data"] as JObject ?? new JObject();
                         data["color"] = color; data["facilityId"] = id; data["manifestId"] = id;
                         definition["data"] = data;
@@ -223,7 +366,7 @@ namespace YC.Infrastructure.Lua
             var replacements = new Dictionary<string, ExternalContentDefinition>(StringComparer.Ordinal);
             foreach (var definition in selected)
             {
-                if (definition.ContentType.StartsWith("enterprise", StringComparison.Ordinal) || definition.ContentType.StartsWith("entrepreneur", StringComparison.Ordinal))
+                if (definition.ContentType == "enterprise_board" || definition.ContentType.StartsWith("entrepreneur", StringComparison.Ordinal))
                     throw new InvalidDataException("该内容类型尚未接入对局，只能作为未启用的定义示例：" + definition.ContentType);
                 if (definition.Replaces == null) continue;
                 if (!byId.ContainsKey(definition.Replaces.DefinitionId))
@@ -250,6 +393,85 @@ namespace YC.Infrastructure.Lua
         {
             if (!runtimeIds.TryGetValue(id ?? "", out var runtimeId)) return null;
             return activeDefinitions.FirstOrDefault(d => d.ContentType == type && d.RuntimeId == runtimeId);
+        }
+
+        /// <summary>沿正式活动目录校验和装配返回本局内容快照；调用者应按本局配置与内容哈希缓存。</summary>
+        public ExternalContentPack CreateActiveSnapshot(YC.Domain.Rules.GameRuleConfiguration configuration)
+            => ActiveContentCatalogBuilder.Build(this, configuration).Pack;
+
+        internal ExternalContentPack CreateActiveSnapshot(IEnumerable<string> expansions, string activeHash = "")
+        {
+            var snapshot = new ExternalContentPack { RootPath = RootPath, PackId = PackId, SchemaVersion = SchemaVersion,
+                Manifest = (JObject)Manifest.DeepClone(), ContentHash = activeHash, PresentationContentHash = PresentationContentHash, Presentation = Presentation.WithContentHash(activeHash) };
+            snapshot.definitions.AddRange(definitions.Select(Clone));
+            snapshot.presentationFiles.UnionWith(presentationFiles);
+            snapshot.settlementHandlers.AddRange(settlementHandlers.Select(YC.Domain.State.GameStateCloneService.DeepClone));
+            foreach (var pair in scripts) snapshot.scripts.Add(pair.Key, pair.Value);
+            foreach (var pair in files) snapshot.files.Add(pair.Key, pair.Value);
+            foreach (var pair in artworkSlices) snapshot.artworkSlices.Add(pair.Key, CloneSlice(pair.Value));
+            foreach (var pair in sharedArtwork) snapshot.sharedArtwork.Add(pair.Key, pair.Value);
+            snapshot.setupRecipes.AddRange(setupRecipes.Select(YC.Domain.State.GameStateCloneService.DeepClone));
+            snapshot.ResolveActiveDefinitions(new JArray(expansions));
+            return snapshot;
+        }
+
+        internal void SetActiveHash(string hash) { ContentHash = hash; Presentation.BindContentHash(hash); }
+        private JObject ReadPresentationJson(string path) { var result = ReadJson(path); presentationFiles.Add(path); return result; }
+        private void ReadPresentationArtwork(string path) { ReadArtwork(path); presentationFiles.Add(path); }
+        private void LoadPresentationScript(string path) { LoadScript(path); presentationFiles.Add(path); }
+        public bool TryPresent(string scriptPath, YC.Domain.Presentation.GameplayPresentationContext context, out YC.Domain.Presentation.GameplayPresentationResult result, out LuaFailureCode code, out string diagnostic)
+        {
+            result = null;
+            if (!presentationFiles.Contains(scriptPath)) { code = LuaFailureCode.InvalidDefinition; diagnostic = "未登记显示脚本。"; return false; }
+            string source = GetScript(scriptPath);
+            var definition = new LuaScriptDefinition(PackId + ":presentation", "presentation", "Present", "1", source, LuaContentHasher.ComputeSha256(source));
+            try
+            {
+                if (context?.Purpose == "enterprise_detail") context = PrepareEnterpriseDetailContext(scriptPath, context);
+            }
+            catch (Exception error) when (error is InvalidDataException || error is ArgumentException)
+            { code = LuaFailureCode.InvalidDefinition; diagnostic = error.Message; return false; }
+            if (!new MoonSharpLuaRuntimeHost().TryPresent(definition, context, out result, out code, out diagnostic)) return false;
+            try { Presentation.ValidateReferences(result); return true; }
+            catch (InvalidDataException error) { result = null; code = LuaFailureCode.InvalidReturnShape; diagnostic = error.Message; return false; }
+        }
+
+        // 动态身份由查看者可见投影授权；逐级文案只取当前活动目录，绝不读取对局状态。
+        private YC.Domain.Presentation.GameplayPresentationContext PrepareEnterpriseDetailContext(string scriptPath,
+            YC.Domain.Presentation.GameplayPresentationContext context)
+        {
+            YC.Domain.Presentation.GameplayPresentationNormalizer.Validate(context);
+            var content = activeDefinitions.Find(value => value.DefinitionId == context.SourceDefinitionId &&
+                (value.ContentType == "enterprise" || value.ContentType == "department"));
+            if (content == null || content.Presentation?.DetailScript != scriptPath)
+                throw new InvalidDataException("presentation_enterprise_source_invalid:" + context.SourceDefinitionId);
+            var safe = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(context);
+            if (safe.Facts == null || safe.Facts.Kind != YC.Domain.State.NormalizedValueKind.Object)
+                throw new InvalidDataException("presentation_enterprise_facts_invalid");
+            safe.Facts.Properties.RemoveAll(value => value.Name == "enterpriseLevelDescriptions" || value.Name == "activeDepartmentLevelDescriptions");
+            safe.Facts.Properties.Add(new YC.Domain.State.NormalizedValueEntry { Name = "enterpriseLevelDescriptions", Value = LevelDescriptions(content) });
+            var active = safe.Facts.Properties.Find(value => value.Name == "activeDepartmentDefinitionId")?.Value;
+            if (active != null)
+            {
+                if (content.ContentType != "enterprise" || (string)content.Data["departmentRewardPolicy"] != "active_department" ||
+                    active.Kind != YC.Domain.State.NormalizedValueKind.String || string.IsNullOrWhiteSpace(active.StringValue))
+                    throw new InvalidDataException("presentation_active_department_invalid");
+                var department = activeDefinitions.Find(value => value.DefinitionId == active.StringValue && value.ContentType == "department" &&
+                    (string)value.Data["enterpriseRuntimeId"] == content.RuntimeId);
+                if (department == null) throw new InvalidDataException("presentation_active_department_invalid:" + active.StringValue);
+                safe.Facts.Properties.Add(new YC.Domain.State.NormalizedValueEntry { Name = "activeDepartmentLevelDescriptions", Value = LevelDescriptions(department) });
+            }
+            safe.Facts = YC.Domain.State.NormalizedValue.CreateObject(safe.Facts.Properties);
+            return safe;
+        }
+        private static YC.Domain.State.NormalizedValue LevelDescriptions(ExternalContentDefinition content)
+        {
+            var levels = content.Data[content.ContentType == "department" ? "rewards" : "levels"] as JArray;
+            if (levels == null) throw new InvalidDataException("presentation_enterprise_levels_missing:" + content.DefinitionId);
+            return YC.Domain.State.NormalizedValue.CreateArray(levels.Where(level => (int?)level["level"] > 0 && level["description"] != null)
+                .OrderBy(level => (int)level["level"])
+                .Select(level => YC.Domain.Presentation.GameplayPresentationNormalizer.ToNormalized(
+                    GameplayPresentationCatalog.ReadDto<YC.Domain.Presentation.GameplayTextRef>(level["description"]))).ToList());
         }
 
         private static void ValidateReplacement(ExternalContentDefinition definition)
@@ -286,6 +508,90 @@ namespace YC.Infrastructure.Lua
             if (ext != ".png" && ext != ".jpg" && ext != ".jpeg") throw new InvalidDataException("贴图必须为 PNG 或 JPEG：" + relative);
             ReadFile(relative);
         }
+
+        private static void ValidateItemZoneDeclaration(JObject json, ExternalContentDefinition definition)
+        {
+            var types = ItemTypeRegistry.CreateBuiltIn();
+            var templates = ZoneTemplateRegistry.CreateBuiltIn(types);
+            string carrierTypeId = string.IsNullOrEmpty(definition.ItemTypeId)
+                ? definition.ContentType == "character" ? "core.basic_character_card" : definition.ContentType == "facility" ? "core.facility_card" : definition.ContentType == "event" ? "core.event_card" : "core.board_card"
+                : definition.ItemTypeId;
+            if (types.Find(carrierTypeId) == null) throw new InvalidDataException("itemTypeId 未注册：" + definition.DefinitionId);
+            string requiredTypeId = definition.ContentType == "component" ? carrierTypeId : definition.ContentType == "contract" ? "core.contract_card" : definition.ContentType == "award" ? "core.award_card" : definition.ContentType == "character" ? "core.character_card" : definition.ContentType == "facility" ? "core.facility_card" : definition.ContentType == "event" ? "core.event_card" : "core.board_card";
+            if (!types.IsAssignableTo(carrierTypeId, requiredTypeId)) throw new InvalidDataException("itemTypeId 物理身份与内容类型不相容：" + definition.DefinitionId);
+            if (definition.CardZones == null) throw new InvalidDataException("cardZones 不能为空：" + definition.DefinitionId);
+            if (json["cardZones"] == null) return;
+            if (!(json["cardZones"] is JArray zones)) throw new InvalidDataException("cardZones 必须为数组：" + definition.DefinitionId);
+            var localIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var raw in zones)
+            {
+                if (!(raw is JObject obj)) throw new InvalidDataException("cardZones 必须为对象数组：" + definition.DefinitionId);
+                if (!templates.ValidateExternalFields(obj.Properties().Select(property => property.Name), out var reason)) throw new InvalidDataException(reason + ": " + definition.DefinitionId);
+                if (obj.Property("maxMarkersPerPayment") != null && obj["maxMarkersPerPayment"].Type != JTokenType.Integer) throw new InvalidDataException("maxMarkersPerPayment_invalid: " + definition.DefinitionId);
+                // 容量是否提供要看原 JSON，而非反序列化后的默认值。
+                if (obj["capacityPolicy"]?.Value<string>() == "unbounded" && obj.Property("capacity") != null) throw new InvalidDataException("capacity_rejected: " + definition.DefinitionId);
+            }
+            foreach (var declaration in definition.CardZones)
+            {
+                if (!localIds.Add(declaration.LocalZoneId)) throw new InvalidDataException("localZoneId_duplicate: " + definition.DefinitionId);
+                if (!templates.ValidateCardZoneDeclaration(carrierTypeId, declaration, out var reason)) throw new InvalidDataException(reason + ": " + definition.DefinitionId);
+            }
+        }
+        private static void ValidateArtworkSlice(ExternalArtworkSlice slice, string definitionId)
+        {
+            if (slice == null || slice.X < 0 || slice.Y < 0 || slice.Width <= 0 || slice.Height <= 0 ||
+                (long)slice.X + slice.Width > slice.SourceWidth || (long)slice.Y + slice.Height > slice.SourceHeight)
+                throw new InvalidDataException("卡牌内容必须提供有效 artworkSlice 矩形：" + definitionId);
+        }
+
+        private static ExternalArtworkSlice CloneSlice(ExternalArtworkSlice slice) => slice == null ? null :
+            new ExternalArtworkSlice { Id = slice.Id, Artwork = slice.Artwork, SourceWidth = slice.SourceWidth,
+                SourceHeight = slice.SourceHeight, X = slice.X, Y = slice.Y, Width = slice.Width, Height = slice.Height };
+
+        private void ReadArtworkSlices(string relative)
+        {
+            var document = ReadJson(relative);
+            if ((int?)document["schemaVersion"] != 1 || (string)document["coordinateOrigin"] != "bottom-left" ||
+                !(document["sheets"] is JArray sheets) || !(document["slices"] is JArray slices))
+                throw new InvalidDataException("卡牌切片清单缺字段或坐标系不支持：" + relative);
+            var byId = new Dictionary<string, JObject>(StringComparer.Ordinal);
+            foreach (JObject sheet in sheets)
+            {
+                string id = (string)sheet["id"];
+                if (string.IsNullOrWhiteSpace(id) || byId.ContainsKey(id)) throw new InvalidDataException("整图 ID 为空或重复。");
+                int width = (int?)sheet["width"] ?? 0, height = (int?)sheet["height"] ?? 0;
+                int rows = (int?)sheet["rows"] ?? 0, columns = (int?)sheet["columns"] ?? 0;
+                int cellWidth = (int?)sheet["cellWidth"] ?? 0, cellHeight = (int?)sheet["cellHeight"] ?? 0;
+                if (rows <= 0 || columns <= 0 || cellWidth <= 0 || cellHeight <= 0 ||
+                    (long)columns * cellWidth != width || (long)rows * cellHeight != height)
+                    throw new InvalidDataException("整图网格尺寸不一致：" + id);
+                ReadArtwork((string)sheet["artwork"]);
+                byId.Add(id, sheet);
+            }
+            var occupied = new HashSet<string>(StringComparer.Ordinal);
+            foreach (JObject entry in slices)
+            {
+                string id = (string)entry["id"], sheetId = (string)entry["sheetId"];
+                if (string.IsNullOrWhiteSpace(id) || artworkSlices.ContainsKey(id) ||
+                    sheetId == null || !byId.TryGetValue(sheetId, out var sheet) || !(entry["rect"] is JObject rect))
+                    throw new InvalidDataException("切片 ID、整图引用或矩形无效：" + id);
+                if (new[] { "x", "y", "width", "height" }.Any(field => rect[field]?.Type != JTokenType.Integer))
+                    throw new InvalidDataException("切片矩形必须明确填写四个整数像素值：" + id);
+                var slice = rect.ToObject<ExternalArtworkSlice>();
+                slice.Id = id; slice.Artwork = (string)sheet["artwork"];
+                slice.SourceWidth = (int)sheet["width"]; slice.SourceHeight = (int)sheet["height"];
+                ValidateArtworkSlice(slice, id);
+                int cell = (int?)entry["cell"] ?? 0, columns = (int)sheet["columns"], rows = (int)sheet["rows"];
+                int w = (int)sheet["cellWidth"], h = (int)sheet["cellHeight"];
+                if (cell <= 0 || cell > rows * columns || !occupied.Add(sheetId + ":" + cell) ||
+                    (sheet["skippedCells"] as JArray)?.Values<int>().Contains(cell) == true ||
+                    (int?)entry["row"] != (cell - 1) / columns + 1 || (int?)entry["column"] != (cell - 1) % columns + 1 ||
+                    slice.X != ((cell - 1) % columns) * w || slice.Y != slice.SourceHeight - ((cell - 1) / columns + 1) * h ||
+                    slice.Width != w || slice.Height != h)
+                    throw new InvalidDataException("切片格子越界、重复、已跳过或矩形与原图序号不一致：" + id);
+                artworkSlices.Add(id, slice);
+            }
+        }
         private void LoadScript(string relative)
         {
             if (scripts.ContainsKey(relative)) return;
@@ -310,11 +616,13 @@ namespace YC.Infrastructure.Lua
         public string GetScript(string relative) => scripts.TryGetValue(relative, out var source) ? source : throw new InvalidDataException("未登记脚本：" + relative);
         public byte[] GetArtworkBytes(string relative) => (byte[])ReadFile(relative).Clone();
         public string FindArtwork(string type, string id) => FindActiveDefinition(type, id)?.Artwork;
+        public ExternalArtworkSlice FindArtworkSlice(string type, string id) => CloneSlice(FindActiveDefinition(type, id)?.ArtworkSlice);
+        public ExternalArtworkSlice FindRegisteredArtworkSlice(string id) => id != null && artworkSlices.TryGetValue(id, out var slice) ? CloneSlice(slice) : null;
         public string FindSharedArtwork(string id) => sharedArtwork.TryGetValue(id, out var path) ? path : null;
         public IReadOnlyList<CharacterCardDefinition> CreateCharacters() => activeDefinitions.Where(d => d.ContentType == "character").Select(d =>
         {
             var value = d.Data.ToObject<CharacterCardDefinition>();
-            value.TemplateId = d.RuntimeId; value.CardId = d.RuntimeId; value.Name = d.DisplayName;
+            value.TemplateId = UseDefinitionIds ? d.DefinitionId : d.RuntimeId; value.CardId = value.TemplateId; value.Name = d.DisplayName;
             value.ConfiguredStrategyAbilityId = d.Abilities.Single(a => a.Mode == "strategy").AbilityId;
             value.ConfiguredTacticAbilityId = d.Abilities.Single(a => a.Mode == "tactic").AbilityId;
             value.IsExternalDefinition = true;
@@ -324,21 +632,21 @@ namespace YC.Infrastructure.Lua
         }).ToList().AsReadOnly();
         public IReadOnlyList<EventCardDefinition> CreateEvents() => activeDefinitions.Where(d => d.ContentType == "event").Select(d =>
         {
-            var value = d.Data.ToObject<EventCardDefinition>(); value.CardId = d.RuntimeId; value.Name = d.DisplayName; return value;
+            var value = d.Data.ToObject<EventCardDefinition>(); value.CardId = UseDefinitionIds ? d.DefinitionId : d.RuntimeId; value.Name = d.DisplayName; return value;
         }).ToList().AsReadOnly();
         public IReadOnlyList<FacilityCardDefinition> CreateFacilities() => activeDefinitions.Where(d => d.ContentType == "facility").Select(d =>
         {
-            var value = d.Data.ToObject<FacilityCardDefinition>(); value.FacilityId = d.RuntimeId; value.ManifestId = d.RuntimeId; value.Name = d.DisplayName; return value;
+            var value = d.Data.ToObject<FacilityCardDefinition>(); value.FacilityId = UseDefinitionIds ? d.DefinitionId : d.RuntimeId; value.ManifestId = value.FacilityId; value.Name = d.DisplayName; return value;
         }).ToList().AsReadOnly();
         public IReadOnlyList<CityStyleDefinition> CreateCityStyles() => activeDefinitions.Where(d => d.ContentType == "city_style").Select(d =>
         {
-            var value = d.Data.ToObject<CityStyleDefinition>(); value.CityStyleId = d.RuntimeId; value.Name = d.DisplayName;
+            var value = d.Data.ToObject<CityStyleDefinition>(); value.CityStyleId = UseDefinitionIds ? d.DefinitionId : d.RuntimeId; value.Name = d.DisplayName;
             value.SpecialActionId = (string)definitions.Single(r => r.DefinitionId == d.RuntimeId).Data["specialActionId"] ?? "";
             return value;
         }).ToList().AsReadOnly();
         public IReadOnlyList<SpecialActionDefinition> CreateSpecialActions() => activeDefinitions.Where(d => d.ContentType == "city_style" && d.Data["specialAction"]?.Type == JTokenType.Object).Select(d =>
         {
-            var value = d.Data["specialAction"].ToObject<SpecialActionDefinition>(); value.CityStyleId = d.RuntimeId;
+            var value = d.Data["specialAction"].ToObject<SpecialActionDefinition>(); value.CityStyleId = UseDefinitionIds ? d.DefinitionId : d.RuntimeId;
             value.SpecialActionId = (string)definitions.Single(r => r.DefinitionId == d.RuntimeId).Data["specialActionId"] ?? "";
             return value;
         }).ToList().AsReadOnly();

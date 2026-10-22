@@ -16,331 +16,389 @@ MonoBehaviour:
   MapSprite: {fileID: 21300000, guid: 9756ed9c18ed9c64a8d957a9068c595f, type: 3}
   Locations:
   - LocationId: A-01
+    ButtonPosition: {x: 0.8874511719, y: 0.2236328125}
     NormalizedPosition: {x: 0.90875, y: 0.22375}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.0425, y: 0.02625}
+    - Offset: {x: -0.04229492187, y: 0.00623046875}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.0425, y: 0.00625}
+    - Offset: {x: -0.04229492187, y: 0.02649414062}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: A-02
+    ButtonPosition: {x: 0.8432617188, y: 0.4438476562}
     NormalizedPosition: {x: 0.86375, y: 0.44375}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.041484375, y: 0.0064453125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.041484375, y: 0.02670898438}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: A-03
+    ButtonPosition: {x: 0.6877441406, y: 0.3782958984}
     NormalizedPosition: {x: 0.70875, y: 0.37875}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04200195312, y: 0.005771484375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04200195312, y: 0.02627929688}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-01
+    ButtonPosition: {x: 0.8940429688, y: 0.6633300781}
     NormalizedPosition: {x: 0.915, y: 0.663125}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.041953125, y: 0.006552734375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.041953125, y: 0.02681640625}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-02
+    ButtonPosition: {x: 0.7634277344, y: 0.7332763672}
     NormalizedPosition: {x: 0.78375, y: 0.73375}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04131835937, y: 0.005751953125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04131835937, y: 0.02625976562}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: B-03
+    ButtonPosition: {x: 0.6389160156, y: 0.6395263672}
     NormalizedPosition: {x: 0.659375, y: 0.63875}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04145507813, y: 0.007001953125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04145507813, y: 0.02750976562}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-01
+    ButtonPosition: {x: 0.7331542969, y: 0.8995361328}
     NormalizedPosition: {x: 0.754375, y: 0.89875}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04221679688, y: 0.00701171875}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04221679688, y: 0.02751953125}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-02
+    ButtonPosition: {x: 0.4909667969, y: 0.8566894531}
     NormalizedPosition: {x: 0.511875, y: 0.85625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04190429687, y: 0.006787109375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04190429687, y: 0.02705078125}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: C-03
+    ButtonPosition: {x: 0.1735839844, y: 0.8663330078}
     NormalizedPosition: {x: 0.194375, y: 0.86625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04178710937, y: 0.00630859375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04178710937, y: 0.02681640625}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-01
+    ButtonPosition: {x: 0.662109375, y: 0.2060546875}
     NormalizedPosition: {x: 0.6825, y: 0.20625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04138671875, y: 0.00615234375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04138671875, y: 0.02641601563}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-02
+    ButtonPosition: {x: 0.4724121094, y: 0.2196044922}
     NormalizedPosition: {x: 0.49375, y: 0.22}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04233398438, y: 0.005830078125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04233398438, y: 0.02633789062}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: D-03
+    ButtonPosition: {x: 0.4826660156, y: 0.4530029297}
     NormalizedPosition: {x: 0.5025, y: 0.45375}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04083007812, y: 0.005478515625}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04083007812, y: 0.02598632813}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-01
+    ButtonPosition: {x: 0.4777832031, y: 0.6654052734}
     NormalizedPosition: {x: 0.49875, y: 0.66625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04196289063, y: 0.005380859375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04196289063, y: 0.02588867187}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-02
+    ButtonPosition: {x: 0.2418212891, y: 0.6768798828}
     NormalizedPosition: {x: 0.2625, y: 0.67625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04155273438, y: 0.00685546875}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.041796875, y: 0.02736328125}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: E-03
+    ButtonPosition: {x: 0.10546875, y: 0.6186523438}
     NormalizedPosition: {x: 0.12625, y: 0.61875}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04177734375, y: 0.00625}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04177734375, y: 0.02651367187}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-01
+    ButtonPosition: {x: 0.2648925781, y: 0.2583007812}
     NormalizedPosition: {x: 0.285625, y: 0.25875}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04172851563, y: 0.0058984375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04172851563, y: 0.02616210938}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-02
+    ButtonPosition: {x: 0.2893066406, y: 0.46484375}
     NormalizedPosition: {x: 0.31, y: 0.465625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04168945312, y: 0.00556640625}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04168945312, y: 0.02583007812}
       Size: 1
       ColliderRadius: 0.22
   - LocationId: F-03
+    ButtonPosition: {x: 0.1016845703, y: 0.4061279297}
     NormalizedPosition: {x: 0.1225, y: 0.40625}
     ResourceTokenOffset: {x: -0.0492, y: -0.0307}
     InfluenceSlots:
-    - Offset: {x: -0.041875, y: 0.02625}
+    - Offset: {x: -0.04193359375, y: 0.006103515625}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: -0.041875, y: 0.00625}
+    - Offset: {x: -0.04168945312, y: 0.02661132812}
       Size: 1
       ColliderRadius: 0.22
   Routes:
   - RouteId: A1
+    ButtonPosition: {x: 0.8571777344, y: 0.33984375}
+    SourceButtonId: L05
     NormalizedPosition: {x: 0.86875, y: 0.346875}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.000146484375, y: 0.00029296875}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: A2
+    ButtonPosition: {x: 0.7119140625, y: 0.4963378906}
+    SourceButtonId: L09
     NormalizedPosition: {x: 0.72625, y: 0.50375}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.009208984375, y: -8.7890625e-05}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.008857421875, y: -8.7890625e-05}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: B1
+    ButtonPosition: {x: 0.7783203125, y: 0.6079101562}
+    SourceButtonId: L14
     NormalizedPosition: {x: 0.789375, y: 0.615625}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.0006640625, y: -0.000390625}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: B2
+    ButtonPosition: {x: 0.8557128906, y: 0.8615722656}
+    SourceButtonId: L19
     NormalizedPosition: {x: 0.87, y: 0.86875}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.00916015625, y: 0.000146484375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.008662109375, y: 0.000146484375}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: C1
+    ButtonPosition: {x: 0.3371582031, y: 0.9035644531}
+    SourceButtonId: L20
     NormalizedPosition: {x: 0.34875, y: 0.910625}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.000126953125, y: 0.000263671875}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: C2
+    ButtonPosition: {x: 0.6396484375, y: 0.8112792969}
+    SourceButtonId: L18
     NormalizedPosition: {x: 0.64875, y: 0.81875}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.003974609375, y: -0.000146484375}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.01409179687, y: -0.000146484375}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: D1
+    ButtonPosition: {x: 0.5844726562, y: 0.2739257812}
+    SourceButtonId: L03
     NormalizedPosition: {x: 0.59875, y: 0.28125}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.009150390625, y: 0}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.008916015625, y: 0}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: D2
+    ButtonPosition: {x: 0.3918457031, y: 0.3469238281}
+    SourceButtonId: L06
     NormalizedPosition: {x: 0.405625, y: 0.354375}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.00865234375, y: -0.000126953125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.0094140625, y: -0.000126953125}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: E1
+    ButtonPosition: {x: 0.3010253906, y: 0.5705566406}
+    SourceButtonId: L13
     NormalizedPosition: {x: 0.315625, y: 0.578125}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.00947265625, y: -0.000244140625}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.00859375, y: -0.000244140625}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: E2
+    ButtonPosition: {x: 0.1328125, y: 0.767578125}
+    SourceButtonId: L16
     NormalizedPosition: {x: 0.14625, y: 0.775}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.008310546875, y: -9.765625e-05}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.00951171875, y: -9.765625e-05}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F1
+    ButtonPosition: {x: 0.3693847656, y: 0.2263183594}
+    SourceButtonId: L02
     NormalizedPosition: {x: 0.38125, y: 0.234375}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: -0.000146484375, y: -0.000732421875}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F2
+    ButtonPosition: {x: 0.2890625, y: 0.3615722656}
+    SourceButtonId: L07
     NormalizedPosition: {x: 0.300625, y: 0.369375}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.00015625, y: -0.000478515625}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: F3
+    ButtonPosition: {x: 0.1694335938, y: 0.3083496094}
+    SourceButtonId: L04
     NormalizedPosition: {x: 0.18125, y: 0.31625}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: -9.765625e-05, y: -0.000576171875}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R1
+    ButtonPosition: {x: 0.7751464844, y: 0.1831054688}
+    SourceButtonId: L01
     NormalizedPosition: {x: 0.78625, y: 0.190625}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.000615234375, y: -0.0001953125}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R2
+    ButtonPosition: {x: 0.9184570312, y: 0.3706054688}
+    SourceButtonId: L08
     NormalizedPosition: {x: 0.93, y: 0.37875}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.00017578125, y: -0.0008203125}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R3
+    ButtonPosition: {x: 0.3393554688, y: 0.7763671875}
+    SourceButtonId: L17
     NormalizedPosition: {x: 0.350625, y: 0.78375}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.00044921875, y: -5.859375e-05}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R4
+    ButtonPosition: {x: 0.09545898438, y: 0.5161132812}
+    SourceButtonId: L10
     NormalizedPosition: {x: 0.109375, y: 0.523125}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.0087890625, y: 0.0003125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.00927734375, y: 0.0003125}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R6
+    ButtonPosition: {x: 0.8796386719, y: 0.5402832031}
+    SourceButtonId: L11
     NormalizedPosition: {x: 0.89125, y: 0.5475}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: 0.000107421875, y: 0.000107421875}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R7
+    ButtonPosition: {x: 0.5388183594, y: 0.5598144531}
+    SourceButtonId: L12
     NormalizedPosition: {x: 0.553125, y: 0.5675}
     InfluenceSlots:
-    - Offset: {x: -0.009375, y: 0}
+    - Offset: {x: -0.0091796875, y: -0.000361328125}
       Size: 1
       ColliderRadius: 0.22
-    - Offset: {x: 0.009375, y: 0}
+    - Offset: {x: 0.00888671875, y: -0.000361328125}
       Size: 1
       ColliderRadius: 0.22
   - RouteId: R5
+    ButtonPosition: {x: 0.4975585938, y: 0.7648925781}
+    SourceButtonId: L15
     NormalizedPosition: {x: 0.509375, y: 0.7725}
     InfluenceSlots:
-    - Offset: {x: 0, y: 0}
+    - Offset: {x: -9.765625e-05, y: -0.000283203125}
       Size: 1
       ColliderRadius: 0.22
   spatialLayoutManifestSha256: 1C1D1488A8EBBF35085CDE6FB4830F679D69EB40B63A4C4D38B64087FA186636

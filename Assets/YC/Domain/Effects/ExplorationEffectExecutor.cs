@@ -18,6 +18,28 @@ namespace YC.Domain.Effects
 
     public static class ExplorationEffectSpecFactory
     {
+        public static EffectSpec ExploreFinalized(int playerId, string selectionOwnerEffectId,
+            string selectionSessionId, string commitmentId, int selectionRevision, string targetLocationId,
+            string influenceSlotId = "", bool allowFacilityEntry = false, bool consumeMainAction = true,
+            string sourceId = "")
+        {
+            return new EffectSpec(ExplorationEffectTypeIds.Explore, NormalizedValue.CreateObject(new List<NormalizedValueEntry>
+            {
+                Entry("paymentProtocol", NormalizedValue.CreateString(RouteTollEscrowService.Protocol)),
+                Entry("selectionOwnerEffectId", NormalizedValue.CreateStableReference("effect", selectionOwnerEffectId)),
+                Entry("selectionSessionId", NormalizedValue.CreateString(selectionSessionId)),
+                Entry("commitmentId", NormalizedValue.CreateString(commitmentId)),
+                Entry("selectionRevision", NormalizedValue.CreateInteger(selectionRevision)),
+                Entry("targetLocation", NormalizedValue.CreateStableReference("location", targetLocationId)),
+                Entry("influenceSlot", string.IsNullOrEmpty(influenceSlotId) ? NormalizedValue.CreateNull()
+                    : NormalizedValue.CreateStableReference("slot", influenceSlotId)),
+                Entry("allowFacilityEntry", NormalizedValue.CreateBoolean(allowFacilityEntry)),
+                Entry("consumeMainAction", NormalizedValue.CreateBoolean(consumeMainAction))
+            })) { PlayerId = playerId, SourceId = sourceId ?? string.Empty,
+                DefinitionVersion = ExplorationEffectExecutor.DefinitionVersion };
+        }
+
+        // 只供原预付协议节点恢复；正常新探索使用引用权威选择承诺的ExploreFinalized。
         public static EffectSpec Explore(
             int playerId,
             string targetLocationId,
@@ -83,8 +105,8 @@ namespace YC.Domain.Effects
     }
 
     /// <summary>
-    /// 探索是移动完成后的恢复型子流程：校验路径和路费，按资源 Effect 支付，
-    /// 再把事件牌解析作为子 Effect 接上。客户端只提交稳定路线、地块和影响力槽位 ID。
+    /// 探索复用权威选择承诺，先将路费移入可恢复托管，完成事件后一次交付。
+    /// 原预付节点继续按原协议恢复，客户端不能提交金额或改写收款计划。
     /// </summary>
     public sealed class ExplorationEffectExecutor
     {
@@ -95,18 +117,23 @@ namespace YC.Domain.Effects
         private readonly RouteTollService routeTollService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;
+        private readonly IRouteSelectionSessionAuthority selectionAuthority;
+        private readonly RouteTollEscrowService escrowService;
 
         public ExplorationEffectExecutor(
             IMapQueryService mapQuery,
             ExplorationService explorationService,
             EventDeckService eventDeckService,
-            ResourceTokenService resourceTokenService)
+            ResourceTokenService resourceTokenService,
+            IRouteSelectionSessionAuthority selectionAuthority = null)
         {
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.explorationService = explorationService ?? throw new ArgumentNullException(nameof(explorationService));
             this.routeTollService = new RouteTollService(mapQuery);
             this.eventDeckService = eventDeckService ?? throw new ArgumentNullException(nameof(eventDeckService));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
+            this.selectionAuthority = selectionAuthority ?? new RouteSelectionSessionAuthority(mapQuery);
+            this.escrowService = new RouteTollEscrowService(mapQuery);
         }
 
         public static void Register(
@@ -114,10 +141,11 @@ namespace YC.Domain.Effects
             IMapQueryService mapQuery,
             ExplorationService explorationService,
             EventDeckService eventDeckService,
-            ResourceTokenService resourceTokenService)
+            ResourceTokenService resourceTokenService,
+            IRouteSelectionSessionAuthority selectionAuthority = null)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
-            var executor = new ExplorationEffectExecutor(mapQuery, explorationService, eventDeckService, resourceTokenService);
+            var executor = new ExplorationEffectExecutor(mapQuery, explorationService, eventDeckService, resourceTokenService, selectionAuthority);
             EffectRegistration ignored;
             if (registry.TryGet(ExplorationEffectTypeIds.Explore, out ignored)) return;
             registry.Register(new EffectRegistration(
@@ -132,6 +160,11 @@ namespace YC.Domain.Effects
 
         private EffectStepResult Execute(EffectExecutionContext context)
         {
+            if (Get(context.Node.NormalizedArguments, "paymentProtocol") != null)
+                return ExecuteEscrow(context);
+            if (context.Node.FlowStage == RouteTollEscrowService.AwaitingEventStage ||
+                Get(context.Node.ContinuationData, RouteTollEscrowService.ReceiptField) != null)
+                throw new KernelException("route_toll_protocol_missing", "探索托管节点缺少原支付协议。");
             string targetLocationId;
             string influenceSlotId;
             MapPath path;
@@ -212,7 +245,7 @@ namespace YC.Domain.Effects
                     }
                 }
 
-                EventColor color = StaticMapDefinitions.GetEventColor(targetLocationId);
+                EventColor color = StaticMapDefinitions.GetEventColor(mapQuery.Map, targetLocationId);
                 children.Add(EventCardEffectSpecFactory.Resolve(
                     context.Node.PlayerId,
                     color,
@@ -254,6 +287,8 @@ namespace YC.Domain.Effects
 
         private static string ValidateSpec(EffectSpec spec)
         {
+            if (Get(spec?.NormalizedArguments, "paymentProtocol") != null)
+                return ValidateEscrowArguments(spec.NormalizedArguments);
             string target;
             string slot;
             MapPath path;
@@ -264,6 +299,130 @@ namespace YC.Domain.Effects
             return TryReadArguments(spec == null ? null : spec.NormalizedArguments, out target, out slot, out path, out recipients, out allow, out consume, out diagnostic)
                 ? string.Empty
                 : diagnostic;
+        }
+
+        private EffectStepResult ExecuteEscrow(EffectExecutionContext context)
+        {
+            var node = context.Node;
+            string error = ValidateEscrowArguments(node.NormalizedArguments);
+            if (error.Length != 0) throw new KernelException("route_toll_arguments_invalid", error);
+            string target = Get(node.NormalizedArguments, "targetLocation").ReferenceId;
+            string selectionOwner = Get(node.NormalizedArguments, "selectionOwnerEffectId").ReferenceId;
+            string sessionId = Get(node.NormalizedArguments, "selectionSessionId").StringValue;
+            string commitmentId = Get(node.NormalizedArguments, "commitmentId").StringValue;
+            int revision = (int)Get(node.NormalizedArguments, "selectionRevision").IntegerValue;
+            bool allowFacility = Get(node.NormalizedArguments, "allowFacilityEntry").BooleanValue;
+            bool consumeAction = Get(node.NormalizedArguments, "consumeMainAction").BooleanValue;
+            string stage = node.FlowStage ?? string.Empty;
+            if (stage.Length == 0)
+            {
+                var resolved = selectionAuthority.TryResolveFinalized(context.State, selectionOwner,
+                    out var session, out var commitment);
+                if (!resolved.IsValid) return EffectStepResult.Failed(resolved.Reason);
+                if (session.SessionId != sessionId || commitment.CommitmentId != commitmentId ||
+                    commitment.AcceptedAtStateRevision != revision || session.PlayerId != node.PlayerId ||
+                    commitment.AcceptedPreview?.SelectedLocationIds == null ||
+                    commitment.AcceptedPreview.SelectedLocationIds.Count != 1 ||
+                    commitment.AcceptedPreview.SelectedLocationIds[0] != target)
+                    return EffectStepResult.Failed("route_toll_selection_binding_mismatch");
+                var slotArg = Get(node.NormalizedArguments, "influenceSlot");
+                string slot = explorationService.ResolveInfluenceSlotId(context.State, node.PlayerId, target,
+                    slotArg.Kind == NormalizedValueKind.Null ? string.Empty : slotArg.ReferenceId);
+                MapPath witness = BuildConnectivityWitness(session, commitment.AcceptedPreview, target);
+                // 只使用用户确认子图中的连通见证；费用始终由完整AcceptedPreview计划校验。
+                var eligibility = explorationService.CanExplore(context.State, node.PlayerId, target, witness,
+                    -1, slot, null, null, false, allowFacility);
+                if (!eligibility.IsValid) return EffectStepResult.Failed(eligibility.Reason);
+                var preflight = escrowService.TryValidateReserve(context.State, node, session, commitment);
+                if (!preflight.IsValid) return EffectStepResult.Failed(preflight.Reason);
+
+                var claim = selectionAuthority.TryClaimFinalized(context.State, node, selectionOwner, commitmentId,
+                    out session, out commitment);
+                if (!claim.IsValid) throw new KernelException("route_toll_claim_failed", claim.Reason);
+                var reserved = escrowService.TryReserve(context.State, node, session, commitment, out var receipt, out bool changed);
+                if (!reserved.IsValid) throw new KernelException("route_toll_reserve_invariant", reserved.Reason);
+                if (!changed) throw new KernelException("route_toll_initial_receipt_conflict", "探索初始阶段已经存在托管收据。");
+                return EffectStepResult.Continue(RouteTollEscrowService.AwaitingEventStage)
+                    .AddChild(EventCardEffectSpecFactory.Resolve(node.PlayerId,
+                        StaticMapDefinitions.GetEventColor(mapQuery.Map, target), target, slot, "exploration.event:" + target))
+                    .AddLog(new EffectLogEntrySpec { PlayerId = node.PlayerId,
+                        Message = "预留探索路费 " + receipt.OriginalAmount.ToString(CultureInfo.InvariantCulture) + " 金券。" });
+            }
+            if (stage != RouteTollEscrowService.AwaitingEventStage)
+                throw new KernelException("route_toll_stage_invalid", "探索托管阶段无效。");
+            foreach (var child in context.ChildNodes)
+            {
+                if (child.Status == EffectNodeStatus.Failed || child.Status == EffectNodeStatus.Faulted)
+                    throw new KernelException("route_toll_event_failed", "探索事件尚未成功完成，路费托管保持原状。");
+                if (child.Status != EffectNodeStatus.Completed)
+                    return EffectStepResult.NoProgress("探索事件及响应链尚未结束。");
+            }
+            var settled = escrowService.TrySettle(context.State, node, out var completedReceipt, out bool delivered);
+            if (!settled.IsValid) throw new KernelException("route_toll_settlement_failed", settled.Reason);
+            if (delivered && consumeAction)
+                new MainActionBudgetService().SpendCompletedMainAction(context.State, node.PlayerId);
+            var result = EffectStepResult.Completed(NormalizedValue.CreateObject(new List<NormalizedValueEntry> {
+                new NormalizedValueEntry { Name = "outcome", Value = NormalizedValue.CreateString("completed") },
+                new NormalizedValueEntry { Name = "targetLocationId", Value = NormalizedValue.CreateString(target) },
+                new NormalizedValueEntry { Name = "tollSettlementReceiptId", Value = NormalizedValue.CreateString(completedReceipt.SettlementReceiptId) }
+            }));
+            if (delivered)
+            {
+                // 内核以节点+日志索引去重：预留固定占0，交付固定占1。
+                result.AddLog(new EffectLogEntrySpec { PlayerId = node.PlayerId,
+                    Message = "预留探索路费 " + completedReceipt.OriginalAmount.ToString(CultureInfo.InvariantCulture) + " 金券。" });
+                result.AddLog(new EffectLogEntrySpec { PlayerId = node.PlayerId,
+                    Message = "交付探索路费 " + completedReceipt.OriginalAmount.ToString(CultureInfo.InvariantCulture) + " 金券。" });
+            }
+            return result;
+        }
+
+        private static MapPath BuildConnectivityWitness(RouteSelectionSession session, RouteSelectionPreview preview, string target)
+        {
+            var locations = new List<string> { target }; var routes = new List<string>();
+            var seen = new HashSet<string>(StringComparer.Ordinal); string current = target;
+            while (current != session.StartLocationId)
+            {
+                if (!seen.Add(current)) throw new KernelException("route_toll_witness_invalid", "选择承诺的连通见证含环。");
+                RouteConnectivityLink found = null;
+                foreach (var link in preview.ConnectivityWitness)
+                    if (link.LocationId == current) { if (found != null) throw new KernelException("route_toll_witness_invalid", "连通见证重复。"); found = link; }
+                if (found == null || string.IsNullOrEmpty(found.ParentLocationId) || string.IsNullOrEmpty(found.ViaRouteId))
+                    throw new KernelException("route_toll_witness_invalid", "选择承诺缺少目标连通见证。");
+                routes.Add(found.ViaRouteId); current = found.ParentLocationId; locations.Add(current);
+            }
+            locations.Reverse(); routes.Reverse();
+            return new MapPath { LocationIds = locations, RouteIds = routes };
+        }
+
+        private static string ValidateEscrowArguments(NormalizedValue args)
+        {
+            if (args?.Kind != NormalizedValueKind.Object || !args.IsValid()) return "托管探索参数无效。";
+            if (Get(args, "paymentProtocol")?.Kind != NormalizedValueKind.String ||
+                Get(args, "paymentProtocol").StringValue != RouteTollEscrowService.Protocol) return "探索支付协议不受支持。";
+            foreach (string name in new[] { "selectionOwnerEffectId", "targetLocation" })
+            {
+                var value = Get(args, name);
+                if (value?.Kind != NormalizedValueKind.StableReference ||
+                    value.ReferenceType != (name == "targetLocation" ? "location" : "effect") ||
+                    string.IsNullOrEmpty(value.ReferenceId)) return "探索选择引用缺失。";
+            }
+            var slot = Get(args, "influenceSlot");
+            if (slot == null || slot.Kind != NormalizedValueKind.Null && (slot.Kind != NormalizedValueKind.StableReference ||
+                slot.ReferenceType != "slot" || string.IsNullOrEmpty(slot.ReferenceId))) return "探索影响力槽参数无效。";
+            foreach (string name in new[] { "selectionSessionId", "commitmentId" })
+                if (Get(args, name)?.Kind != NormalizedValueKind.String || string.IsNullOrEmpty(Get(args, name).StringValue))
+                    return "探索选择会话或承诺ID缺失。";
+            if (Get(args, "selectionRevision")?.Kind != NormalizedValueKind.Integer || Get(args, "selectionRevision").IntegerValue < 0 ||
+                Get(args, "allowFacilityEntry")?.Kind != NormalizedValueKind.Boolean ||
+                Get(args, "consumeMainAction")?.Kind != NormalizedValueKind.Boolean) return "探索选择版本或行动参数无效。";
+            return string.Empty;
+        }
+
+        private static NormalizedValue Get(NormalizedValue args, string name)
+        {
+            if (args?.Properties == null) return null;
+            return args.Properties.Find(entry => entry != null && entry.Name == name)?.Value;
         }
 
         private static bool TryReadArguments(

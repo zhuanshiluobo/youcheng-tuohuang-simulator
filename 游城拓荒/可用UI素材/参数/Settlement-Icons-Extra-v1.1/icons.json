@@ -1,0 +1,501 @@
+{
+  "version": "1.1",
+  "compatibleWith": "Settlement-Effects-v1.0",
+  "displaySize": [
+    22,
+    22
+  ],
+  "canvasSize": [
+    24,
+    24
+  ],
+  "strokeWidth": 1.7,
+  "tones": {
+    "dark": "#38372E",
+    "light": "#F0E4C7",
+    "muted": "#A9A392"
+  },
+  "count": 40,
+  "icons": [
+    {
+      "id": "ui-card-inspect",
+      "label": "查看卡牌",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "点击查看、检查卡牌详情",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-inspect-dark.png",
+        "light": "assets/icons-extra/ui-card-inspect-light.png",
+        "muted": "assets/icons-extra/ui-card-inspect-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-flip",
+      "label": "翻面",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "正反面切换、揭示卡牌",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-flip-dark.png",
+        "light": "assets/icons-extra/ui-card-flip-light.png",
+        "muted": "assets/icons-extra/ui-card-flip-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-retrieve",
+      "label": "收回手牌",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "收回、回收至手牌",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-retrieve-dark.png",
+        "light": "assets/icons-extra/ui-card-retrieve-light.png",
+        "muted": "assets/icons-extra/ui-card-retrieve-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-return",
+      "label": "放回牌堆",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "归还、放回原牌堆",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-return-dark.png",
+        "light": "assets/icons-extra/ui-card-return-light.png",
+        "muted": "assets/icons-extra/ui-card-return-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-box",
+      "label": "移出至游戏盒",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "移出本局、放回游戏盒",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-box-dark.png",
+        "light": "assets/icons-extra/ui-card-box-light.png",
+        "muted": "assets/icons-extra/ui-card-box-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-swap",
+      "label": "交换卡牌",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "交换两张牌、替换当前选择",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-swap-dark.png",
+        "light": "assets/icons-extra/ui-card-swap-light.png",
+        "muted": "assets/icons-extra/ui-card-swap-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-reorder",
+      "label": "调整牌序",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "整理牌堆、改变卡牌先后顺序",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-reorder-dark.png",
+        "light": "assets/icons-extra/ui-card-reorder-light.png",
+        "muted": "assets/icons-extra/ui-card-reorder-muted.png"
+      }
+    },
+    {
+      "id": "ui-card-reserve",
+      "label": "暂存卡牌",
+      "category": "cards",
+      "categoryLabel": "卡牌操作",
+      "suggestedUse": "保留、暂存、延后处理该牌",
+      "files": {
+        "dark": "assets/icons-extra/ui-card-reserve-dark.png",
+        "light": "assets/icons-extra/ui-card-reserve-light.png",
+        "muted": "assets/icons-extra/ui-card-reserve-muted.png"
+      }
+    },
+    {
+      "id": "ui-insert-before",
+      "label": "前置插入",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "在当前结算之前插入",
+      "files": {
+        "dark": "assets/icons-extra/ui-insert-before-dark.png",
+        "light": "assets/icons-extra/ui-insert-before-light.png",
+        "muted": "assets/icons-extra/ui-insert-before-muted.png"
+      }
+    },
+    {
+      "id": "ui-insert-after",
+      "label": "后置追加",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "在当前结算之后追加",
+      "files": {
+        "dark": "assets/icons-extra/ui-insert-after-dark.png",
+        "light": "assets/icons-extra/ui-insert-after-light.png",
+        "muted": "assets/icons-extra/ui-insert-after-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-link",
+      "label": "关联结算",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "两个效果相互关联、连锁触发",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-link-dark.png",
+        "light": "assets/icons-extra/ui-chain-link-light.png",
+        "muted": "assets/icons-extra/ui-chain-link-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-branch",
+      "label": "分支选择",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "进入不同结算分支",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-branch-dark.png",
+        "light": "assets/icons-extra/ui-chain-branch-light.png",
+        "muted": "assets/icons-extra/ui-chain-branch-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-merge",
+      "label": "合并结算",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "多个来源合并处理",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-merge-dark.png",
+        "light": "assets/icons-extra/ui-chain-merge-light.png",
+        "muted": "assets/icons-extra/ui-chain-merge-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-repeat",
+      "label": "再次结算",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "重复执行、再触发一次",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-repeat-dark.png",
+        "light": "assets/icons-extra/ui-chain-repeat-light.png",
+        "muted": "assets/icons-extra/ui-chain-repeat-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-defer",
+      "label": "延后处理",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "排队等待、暂缓当前效果",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-defer-dark.png",
+        "light": "assets/icons-extra/ui-chain-defer-light.png",
+        "muted": "assets/icons-extra/ui-chain-defer-muted.png"
+      }
+    },
+    {
+      "id": "ui-chain-skip",
+      "label": "跳过此项",
+      "category": "sequence",
+      "categoryLabel": "结算顺序",
+      "suggestedUse": "忽略本次可选结算",
+      "files": {
+        "dark": "assets/icons-extra/ui-chain-skip-dark.png",
+        "light": "assets/icons-extra/ui-chain-skip-light.png",
+        "muted": "assets/icons-extra/ui-chain-skip-muted.png"
+      }
+    },
+    {
+      "id": "ui-condition-met",
+      "label": "条件满足",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "条件列表已满足、允许插入",
+      "files": {
+        "dark": "assets/icons-extra/ui-condition-met-dark.png",
+        "light": "assets/icons-extra/ui-condition-met-light.png",
+        "muted": "assets/icons-extra/ui-condition-met-muted.png"
+      }
+    },
+    {
+      "id": "ui-condition-wait",
+      "label": "等待条件",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "尚需另一项条件或步骤",
+      "files": {
+        "dark": "assets/icons-extra/ui-condition-wait-dark.png",
+        "light": "assets/icons-extra/ui-condition-wait-light.png",
+        "muted": "assets/icons-extra/ui-condition-wait-muted.png"
+      }
+    },
+    {
+      "id": "ui-trigger-notify",
+      "label": "触发提示",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "出现新的响应时机或可用效果",
+      "files": {
+        "dark": "assets/icons-extra/ui-trigger-notify-dark.png",
+        "light": "assets/icons-extra/ui-trigger-notify-light.png",
+        "muted": "assets/icons-extra/ui-trigger-notify-muted.png"
+      }
+    },
+    {
+      "id": "ui-trigger-once",
+      "label": "执行一次",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "单次执行、处理一个效果",
+      "files": {
+        "dark": "assets/icons-extra/ui-trigger-once-dark.png",
+        "light": "assets/icons-extra/ui-trigger-once-light.png",
+        "muted": "assets/icons-extra/ui-trigger-once-muted.png"
+      }
+    },
+    {
+      "id": "ui-trigger-ready",
+      "label": "效果就绪",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "已准备完成、可响应",
+      "files": {
+        "dark": "assets/icons-extra/ui-trigger-ready-dark.png",
+        "light": "assets/icons-extra/ui-trigger-ready-light.png",
+        "muted": "assets/icons-extra/ui-trigger-ready-muted.png"
+      }
+    },
+    {
+      "id": "ui-trigger-blocked",
+      "label": "暂不可用",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "当前时机或条件不允许",
+      "files": {
+        "dark": "assets/icons-extra/ui-trigger-blocked-dark.png",
+        "light": "assets/icons-extra/ui-trigger-blocked-light.png",
+        "muted": "assets/icons-extra/ui-trigger-blocked-muted.png"
+      }
+    },
+    {
+      "id": "ui-effect-suspend",
+      "label": "暂停效果",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "暂停处理、等待玩家决定",
+      "files": {
+        "dark": "assets/icons-extra/ui-effect-suspend-dark.png",
+        "light": "assets/icons-extra/ui-effect-suspend-light.png",
+        "muted": "assets/icons-extra/ui-effect-suspend-muted.png"
+      }
+    },
+    {
+      "id": "ui-effect-expire",
+      "label": "机会结束",
+      "category": "conditions",
+      "categoryLabel": "条件与触发",
+      "suggestedUse": "时机已过、临时效果到期",
+      "files": {
+        "dark": "assets/icons-extra/ui-effect-expire-dark.png",
+        "light": "assets/icons-extra/ui-effect-expire-light.png",
+        "muted": "assets/icons-extra/ui-effect-expire-muted.png"
+      }
+    },
+    {
+      "id": "ui-target-self",
+      "label": "选择自己",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "以当前玩家为对象",
+      "files": {
+        "dark": "assets/icons-extra/ui-target-self-dark.png",
+        "light": "assets/icons-extra/ui-target-self-light.png",
+        "muted": "assets/icons-extra/ui-target-self-muted.png"
+      }
+    },
+    {
+      "id": "ui-target-other",
+      "label": "选择他人",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "指定另一名玩家",
+      "files": {
+        "dark": "assets/icons-extra/ui-target-other-dark.png",
+        "light": "assets/icons-extra/ui-target-other-light.png",
+        "muted": "assets/icons-extra/ui-target-other-muted.png"
+      }
+    },
+    {
+      "id": "ui-target-many",
+      "label": "选择多名",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "选取多个玩家或多个对象",
+      "files": {
+        "dark": "assets/icons-extra/ui-target-many-dark.png",
+        "light": "assets/icons-extra/ui-target-many-light.png",
+        "muted": "assets/icons-extra/ui-target-many-muted.png"
+      }
+    },
+    {
+      "id": "ui-target-all",
+      "label": "全部目标",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "所有符合条件的对象",
+      "files": {
+        "dark": "assets/icons-extra/ui-target-all-dark.png",
+        "light": "assets/icons-extra/ui-target-all-light.png",
+        "muted": "assets/icons-extra/ui-target-all-muted.png"
+      }
+    },
+    {
+      "id": "ui-target-pick",
+      "label": "手动指定",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "进入点击选择目标模式",
+      "files": {
+        "dark": "assets/icons-extra/ui-target-pick-dark.png",
+        "light": "assets/icons-extra/ui-target-pick-light.png",
+        "muted": "assets/icons-extra/ui-target-pick-muted.png"
+      }
+    },
+    {
+      "id": "ui-scope-area",
+      "label": "限定区域",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "在某个区域内选择或生效",
+      "files": {
+        "dark": "assets/icons-extra/ui-scope-area-dark.png",
+        "light": "assets/icons-extra/ui-scope-area-light.png",
+        "muted": "assets/icons-extra/ui-scope-area-muted.png"
+      }
+    },
+    {
+      "id": "ui-scope-adjacent",
+      "label": "相邻目标",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "仅选择相邻位置或邻接对象",
+      "files": {
+        "dark": "assets/icons-extra/ui-scope-adjacent-dark.png",
+        "light": "assets/icons-extra/ui-scope-adjacent-light.png",
+        "muted": "assets/icons-extra/ui-scope-adjacent-muted.png"
+      }
+    },
+    {
+      "id": "ui-scope-path",
+      "label": "沿途范围",
+      "category": "targets",
+      "categoryLabel": "目标与范围",
+      "suggestedUse": "路径、沿途或连续目标",
+      "files": {
+        "dark": "assets/icons-extra/ui-scope-path-dark.png",
+        "light": "assets/icons-extra/ui-scope-path-light.png",
+        "muted": "assets/icons-extra/ui-scope-path-muted.png"
+      }
+    },
+    {
+      "id": "ui-batch-use",
+      "label": "批量处理",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "统一执行多项可用效果",
+      "files": {
+        "dark": "assets/icons-extra/ui-batch-use-dark.png",
+        "light": "assets/icons-extra/ui-batch-use-light.png",
+        "muted": "assets/icons-extra/ui-batch-use-muted.png"
+      }
+    },
+    {
+      "id": "ui-quantity-adjust",
+      "label": "调整数量",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "设置一次处理的数量",
+      "files": {
+        "dark": "assets/icons-extra/ui-quantity-adjust-dark.png",
+        "light": "assets/icons-extra/ui-quantity-adjust-light.png",
+        "muted": "assets/icons-extra/ui-quantity-adjust-muted.png"
+      }
+    },
+    {
+      "id": "ui-substitute",
+      "label": "替代支付",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "使用另一个来源或对象替代",
+      "files": {
+        "dark": "assets/icons-extra/ui-substitute-dark.png",
+        "light": "assets/icons-extra/ui-substitute-light.png",
+        "muted": "assets/icons-extra/ui-substitute-muted.png"
+      }
+    },
+    {
+      "id": "ui-copy-effect",
+      "label": "复制效果",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "复制一个效果或生成副本",
+      "files": {
+        "dark": "assets/icons-extra/ui-copy-effect-dark.png",
+        "light": "assets/icons-extra/ui-copy-effect-light.png",
+        "muted": "assets/icons-extra/ui-copy-effect-muted.png"
+      }
+    },
+    {
+      "id": "ui-adjust-value",
+      "label": "调整数值",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "修改费用、阈值或效果参数",
+      "files": {
+        "dark": "assets/icons-extra/ui-adjust-value-dark.png",
+        "light": "assets/icons-extra/ui-adjust-value-light.png",
+        "muted": "assets/icons-extra/ui-adjust-value-muted.png"
+      }
+    },
+    {
+      "id": "ui-choose-order",
+      "label": "指定顺序",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "选择多个效果的执行顺序",
+      "files": {
+        "dark": "assets/icons-extra/ui-choose-order-dark.png",
+        "light": "assets/icons-extra/ui-choose-order-light.png",
+        "muted": "assets/icons-extra/ui-choose-order-muted.png"
+      }
+    },
+    {
+      "id": "ui-preview-result",
+      "label": "预览结果",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "执行前查看可能的结果",
+      "files": {
+        "dark": "assets/icons-extra/ui-preview-result-dark.png",
+        "light": "assets/icons-extra/ui-preview-result-light.png",
+        "muted": "assets/icons-extra/ui-preview-result-muted.png"
+      }
+    },
+    {
+      "id": "ui-pin-effect",
+      "label": "固定效果",
+      "category": "controls",
+      "categoryLabel": "批量与调整",
+      "suggestedUse": "保留关注、固定常用选项",
+      "files": {
+        "dark": "assets/icons-extra/ui-pin-effect-dark.png",
+        "light": "assets/icons-extra/ui-pin-effect-light.png",
+        "muted": "assets/icons-extra/ui-pin-effect-muted.png"
+      }
+    }
+  ]
+}

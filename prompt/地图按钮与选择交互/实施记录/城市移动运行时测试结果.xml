@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="2" result="Passed" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.7331254">
+  <test-suite type="TestSuite" id="1063" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="44" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.733125" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <test-suite type="Assembly" id="1122" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="44" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.725633" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="50500" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <test-suite type="TestSuite" id="1123" name="YC" fullname="YC" runstate="Runnable" testcasecount="44" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.723261" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1124" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="44" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.721027" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1125" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="44" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.718920" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1103" name="MapHighlightPlayModeTests" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:22Z" duration="5.715453" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1105" name="BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests.BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" methodname="BothActualScenes_CollectionAndIndependentConfirmation_ProduceEvidence" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" seed="844336075" result="Passed" start-time="2026-09-30 11:26:16Z" end-time="2026-09-30 11:26:20Z" duration="4.142505" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+              <test-case id="1104" name="BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" fullname="YC.Tests.PlayMode.MapHighlightPlayModeTests.BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" methodname="BothActualScenes_MoveSelectionSurvivesRefreshAndConfirmsOnce" classname="YC.Tests.PlayMode.MapHighlightPlayModeTests" runstate="Runnable" seed="576074831" result="Passed" start-time="2026-09-30 11:26:20Z" end-time="2026-09-30 11:26:22Z" duration="1.563234" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

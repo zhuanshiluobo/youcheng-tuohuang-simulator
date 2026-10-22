@@ -3,7 +3,7 @@
   "contentType": "event",
   "version": "1.0.0",
   "displayName": "外露矿床",
-  "artwork": "artwork/event/event_green_03.jpg",
+  "artwork": "artwork/sheets/event_green_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
@@ -42,5 +42,6 @@
     ]
   },
   "expansionId": "core",
-  "replaces": null
+  "replaces": null,
+  "artworkSpriteId": "event_green_003"
 }

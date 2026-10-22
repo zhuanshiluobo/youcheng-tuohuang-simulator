@@ -1,0 +1,1013 @@
+{
+  "version": "1.0.0",
+  "coordinate_system": {
+    "svg_viewbox": [
+      0,
+      0,
+      128,
+      128
+    ],
+    "color_square": [
+      16,
+      16,
+      96,
+      96
+    ],
+    "png_sizes": [
+      32,
+      64,
+      128
+    ],
+    "transparent_outer_corners": true
+  },
+  "bit_order": "GYBR",
+  "palette": [
+    {
+      "key": "G",
+      "name": "Green",
+      "bit": 1,
+      "hex": "#5FD200",
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 10.705,
+        "contrast_white": 1.962,
+        "recommended_contrast": 10.705,
+        "small_text_wcag_aa": true
+      }
+    },
+    {
+      "key": "Y",
+      "name": "Yellow",
+      "bit": 2,
+      "hex": "#FFBF00",
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 12.704,
+        "contrast_white": 1.653,
+        "recommended_contrast": 12.704,
+        "small_text_wcag_aa": true
+      }
+    },
+    {
+      "key": "B",
+      "name": "Blue",
+      "bit": 4,
+      "hex": "#006CFF",
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 4.589,
+        "contrast_white": 4.576,
+        "recommended_contrast": 4.589,
+        "small_text_wcag_aa": true
+      }
+    },
+    {
+      "key": "R",
+      "name": "Red",
+      "bit": 8,
+      "hex": "#EC0000",
+      "text": {
+        "recommended_hex": "#FFFFFF",
+        "contrast_black": 4.567,
+        "contrast_white": 4.599,
+        "recommended_contrast": 4.599,
+        "small_text_wcag_aa": true
+      }
+    }
+  ],
+  "frame_palette": {
+    "body": "#716E65",
+    "edge": "#BBB7AB",
+    "shadow": "#292E2B",
+    "empty": "#171D1A"
+  },
+  "markers": [
+    {
+      "id": "cooperation-00",
+      "mask": 0,
+      "mask_hex": "00",
+      "members": [],
+      "colors": [],
+      "geometry": {
+        "kind": "empty",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "fill": "#171D1A"
+      },
+      "paths": {
+        "svg": "cooperation-00.svg",
+        "png": {
+          "32": "cooperation-00-32.png",
+          "64": "cooperation-00-64.png",
+          "128": "cooperation-00-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-01",
+      "mask": 1,
+      "mask_hex": "01",
+      "members": [
+        "G"
+      ],
+      "colors": [
+        "#5FD200"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-01.svg",
+        "png": {
+          "32": "cooperation-01-32.png",
+          "64": "cooperation-01-64.png",
+          "128": "cooperation-01-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-02",
+      "mask": 2,
+      "mask_hex": "02",
+      "members": [
+        "Y"
+      ],
+      "colors": [
+        "#FFBF00"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "Y"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-02.svg",
+        "png": {
+          "32": "cooperation-02-32.png",
+          "64": "cooperation-02-64.png",
+          "128": "cooperation-02-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-03",
+      "mask": 3,
+      "mask_hex": "03",
+      "members": [
+        "G",
+        "Y"
+      ],
+      "colors": [
+        "#5FD200",
+        "#FFBF00"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "G",
+          "Y"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-03.svg",
+        "png": {
+          "32": "cooperation-03-32.png",
+          "64": "cooperation-03-64.png",
+          "128": "cooperation-03-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-04",
+      "mask": 4,
+      "mask_hex": "04",
+      "members": [
+        "B"
+      ],
+      "colors": [
+        "#006CFF"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "B"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-04.svg",
+        "png": {
+          "32": "cooperation-04-32.png",
+          "64": "cooperation-04-64.png",
+          "128": "cooperation-04-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-05",
+      "mask": 5,
+      "mask_hex": "05",
+      "members": [
+        "G",
+        "B"
+      ],
+      "colors": [
+        "#5FD200",
+        "#006CFF"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "G",
+          "B"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-05.svg",
+        "png": {
+          "32": "cooperation-05-32.png",
+          "64": "cooperation-05-64.png",
+          "128": "cooperation-05-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-06",
+      "mask": 6,
+      "mask_hex": "06",
+      "members": [
+        "Y",
+        "B"
+      ],
+      "colors": [
+        "#FFBF00",
+        "#006CFF"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "Y",
+          "B"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-06.svg",
+        "png": {
+          "32": "cooperation-06-32.png",
+          "64": "cooperation-06-64.png",
+          "128": "cooperation-06-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-07",
+      "mask": 7,
+      "mask_hex": "07",
+      "members": [
+        "G",
+        "Y",
+        "B"
+      ],
+      "colors": [
+        "#5FD200",
+        "#FFBF00",
+        "#006CFF"
+      ],
+      "geometry": {
+        "kind": "vertical-thirds",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G",
+          "Y",
+          "B"
+        ],
+        "positions": [
+          "left",
+          "middle",
+          "right"
+        ],
+        "area_fraction": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-07.svg",
+        "png": {
+          "32": "cooperation-07-32.png",
+          "64": "cooperation-07-64.png",
+          "128": "cooperation-07-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-08",
+      "mask": 8,
+      "mask_hex": "08",
+      "members": [
+        "R"
+      ],
+      "colors": [
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "R"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-08.svg",
+        "png": {
+          "32": "cooperation-08-32.png",
+          "64": "cooperation-08-64.png",
+          "128": "cooperation-08-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-09",
+      "mask": 9,
+      "mask_hex": "09",
+      "members": [
+        "G",
+        "R"
+      ],
+      "colors": [
+        "#5FD200",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "G",
+          "R"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-09.svg",
+        "png": {
+          "32": "cooperation-09-32.png",
+          "64": "cooperation-09-64.png",
+          "128": "cooperation-09-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0a",
+      "mask": 10,
+      "mask_hex": "0a",
+      "members": [
+        "Y",
+        "R"
+      ],
+      "colors": [
+        "#FFBF00",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "Y",
+          "R"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0a.svg",
+        "png": {
+          "32": "cooperation-0a-32.png",
+          "64": "cooperation-0a-64.png",
+          "128": "cooperation-0a-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0b",
+      "mask": 11,
+      "mask_hex": "0b",
+      "members": [
+        "G",
+        "Y",
+        "R"
+      ],
+      "colors": [
+        "#5FD200",
+        "#FFBF00",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "vertical-thirds",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G",
+          "Y",
+          "R"
+        ],
+        "positions": [
+          "left",
+          "middle",
+          "right"
+        ],
+        "area_fraction": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0b.svg",
+        "png": {
+          "32": "cooperation-0b-32.png",
+          "64": "cooperation-0b-64.png",
+          "128": "cooperation-0b-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0c",
+      "mask": 12,
+      "mask_hex": "0c",
+      "members": [
+        "B",
+        "R"
+      ],
+      "colors": [
+        "#006CFF",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "diagonal-halves",
+        "diagonal": [
+          [
+            112,
+            16
+          ],
+          [
+            16,
+            112
+          ]
+        ],
+        "order": [
+          "B",
+          "R"
+        ],
+        "positions": [
+          "upper-left-triangle",
+          "lower-right-triangle"
+        ],
+        "area_fraction": [
+          0.5,
+          0.5
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0c.svg",
+        "png": {
+          "32": "cooperation-0c-32.png",
+          "64": "cooperation-0c-64.png",
+          "128": "cooperation-0c-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0d",
+      "mask": 13,
+      "mask_hex": "0d",
+      "members": [
+        "G",
+        "B",
+        "R"
+      ],
+      "colors": [
+        "#5FD200",
+        "#006CFF",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "vertical-thirds",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G",
+          "B",
+          "R"
+        ],
+        "positions": [
+          "left",
+          "middle",
+          "right"
+        ],
+        "area_fraction": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0d.svg",
+        "png": {
+          "32": "cooperation-0d-32.png",
+          "64": "cooperation-0d-64.png",
+          "128": "cooperation-0d-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0e",
+      "mask": 14,
+      "mask_hex": "0e",
+      "members": [
+        "Y",
+        "B",
+        "R"
+      ],
+      "colors": [
+        "#FFBF00",
+        "#006CFF",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "vertical-thirds",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "Y",
+          "B",
+          "R"
+        ],
+        "positions": [
+          "left",
+          "middle",
+          "right"
+        ],
+        "area_fraction": [
+          0.3333333333333333,
+          0.3333333333333333,
+          0.3333333333333333
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0e.svg",
+        "png": {
+          "32": "cooperation-0e-32.png",
+          "64": "cooperation-0e-64.png",
+          "128": "cooperation-0e-128.png"
+        }
+      }
+    },
+    {
+      "id": "cooperation-0f",
+      "mask": 15,
+      "mask_hex": "0f",
+      "members": [
+        "G",
+        "Y",
+        "B",
+        "R"
+      ],
+      "colors": [
+        "#5FD200",
+        "#FFBF00",
+        "#006CFF",
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "quadrants",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G",
+          "Y",
+          "B",
+          "R"
+        ],
+        "positions": [
+          "top-left",
+          "top-right",
+          "bottom-left",
+          "bottom-right"
+        ],
+        "area_fraction": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "paths": {
+        "svg": "cooperation-0f.svg",
+        "png": {
+          "32": "cooperation-0f-32.png",
+          "64": "cooperation-0f-64.png",
+          "128": "cooperation-0f-128.png"
+        }
+      }
+    }
+  ],
+  "state_overlays": [
+    {
+      "id": "hover",
+      "paths": {
+        "svg": "overlay-hover.svg",
+        "png": {
+          "32": "overlay-hover-32.png",
+          "64": "overlay-hover-64.png",
+          "128": "overlay-hover-128.png"
+        }
+      },
+      "preserves_color_square": true,
+      "transparent_interior": true
+    },
+    {
+      "id": "selected",
+      "paths": {
+        "svg": "overlay-selected.svg",
+        "png": {
+          "32": "overlay-selected-32.png",
+          "64": "overlay-selected-64.png",
+          "128": "overlay-selected-128.png"
+        }
+      },
+      "preserves_color_square": true,
+      "transparent_interior": true
+    },
+    {
+      "id": "focus",
+      "paths": {
+        "svg": "overlay-focus.svg",
+        "png": {
+          "32": "overlay-focus-32.png",
+          "64": "overlay-focus-64.png",
+          "128": "overlay-focus-128.png"
+        }
+      },
+      "preserves_color_square": true,
+      "transparent_interior": true
+    }
+  ],
+  "digit_backplates": [
+    {
+      "id": "digit-base-green",
+      "mask": 1,
+      "members": [
+        "G"
+      ],
+      "colors": [
+        "#5FD200"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "G"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 10.705,
+        "contrast_white": 1.962,
+        "recommended_contrast": 10.705,
+        "small_text_wcag_aa": true
+      },
+      "paths": {
+        "svg": "digit-base-green.svg",
+        "png": {
+          "32": "digit-base-green-32.png",
+          "64": "digit-base-green-64.png",
+          "128": "digit-base-green-128.png"
+        }
+      }
+    },
+    {
+      "id": "digit-base-yellow",
+      "mask": 2,
+      "members": [
+        "Y"
+      ],
+      "colors": [
+        "#FFBF00"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "Y"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 12.704,
+        "contrast_white": 1.653,
+        "recommended_contrast": 12.704,
+        "small_text_wcag_aa": true
+      },
+      "paths": {
+        "svg": "digit-base-yellow.svg",
+        "png": {
+          "32": "digit-base-yellow-32.png",
+          "64": "digit-base-yellow-64.png",
+          "128": "digit-base-yellow-128.png"
+        }
+      }
+    },
+    {
+      "id": "digit-base-blue",
+      "mask": 4,
+      "members": [
+        "B"
+      ],
+      "colors": [
+        "#006CFF"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "B"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "text": {
+        "recommended_hex": "#000000",
+        "contrast_black": 4.589,
+        "contrast_white": 4.576,
+        "recommended_contrast": 4.589,
+        "small_text_wcag_aa": true
+      },
+      "paths": {
+        "svg": "digit-base-blue.svg",
+        "png": {
+          "32": "digit-base-blue-32.png",
+          "64": "digit-base-blue-64.png",
+          "128": "digit-base-blue-128.png"
+        }
+      }
+    },
+    {
+      "id": "digit-base-red",
+      "mask": 8,
+      "members": [
+        "R"
+      ],
+      "colors": [
+        "#EC0000"
+      ],
+      "geometry": {
+        "kind": "solid",
+        "region": [
+          16,
+          16,
+          96,
+          96
+        ],
+        "order": [
+          "R"
+        ],
+        "area_fraction": [
+          1
+        ]
+      },
+      "text": {
+        "recommended_hex": "#FFFFFF",
+        "contrast_black": 4.567,
+        "contrast_white": 4.599,
+        "recommended_contrast": 4.599,
+        "small_text_wcag_aa": true
+      },
+      "paths": {
+        "svg": "digit-base-red.svg",
+        "png": {
+          "32": "digit-base-red-32.png",
+          "64": "digit-base-red-64.png",
+          "128": "digit-base-red-128.png"
+        }
+      }
+    }
+  ],
+  "text_guidance": {
+    "digit_anchor_svg": [
+      64,
+      64
+    ],
+    "digit_safe_box_svg": [
+      34,
+      34,
+      60,
+      60
+    ],
+    "single_colour": "Use the recommended pure black or pure white foreground for that colour; recommendations apply to exact fully opaque fills.",
+    "multi_colour": "Black text reaches at least 4.5:1 on all four exact palette fills. A neutral opaque text badge can improve legibility across patterned colour boundaries.",
+    "multi_colour_badge": {
+      "background": "#171D1A",
+      "foreground": "#FFFFFF"
+    },
+    "production_art_contains_text": false
+  },
+  "integration": {
+    "order": [
+      "marker",
+      "state overlay",
+      "optional number text"
+    ],
+    "scaling": "Keep a square aspect ratio. Place overlays at exactly the same origin and dimensions as their marker.",
+    "two_colour_layout": "One square split diagonally; never two separate tiles.",
+    "colour_values": "RGB interior values are exact; antialiased boundary pixels may be blended."
+  },
+  "validation": {
+    "status": "passed",
+    "combinations": 16,
+    "nonempty_combinations": 15,
+    "png_files_checked": 69,
+    "png_sizes": [
+      32,
+      64,
+      128
+    ],
+    "rgba_transparency": true,
+    "exact_interior_rgb": true,
+    "state_overlays_preserve_colour_square": true
+  },
+  "gallery": {
+    "svg": "gallery.svg",
+    "png": "gallery.png"
+  }
+}

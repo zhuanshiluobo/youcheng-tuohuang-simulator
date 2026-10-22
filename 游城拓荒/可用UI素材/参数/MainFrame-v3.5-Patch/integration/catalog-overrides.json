@@ -1,0 +1,966 @@
+{
+  "framePatchVersion": "3.5",
+  "assets": {
+    "outer-frame": {
+      "svg": "frame-assets-v3.5/outer-frame.svg",
+      "path": "frame-assets-v3.5/outer-frame@2x.png",
+      "png2x": "frame-assets-v3.5/outer-frame@2x.png",
+      "sourceRect": [
+        0,
+        0,
+        3840,
+        2160
+      ],
+      "logicalSize": [
+        1920,
+        1080
+      ],
+      "pixelDimensions": {
+        "1x": [
+          1920,
+          1080
+        ],
+        "2x": [
+          3840,
+          2160
+        ]
+      },
+      "viewBox": [
+        3840,
+        2160
+      ],
+      "svgViewBox": [
+        0,
+        0,
+        1920,
+        1080
+      ],
+      "slices": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "targetSlices": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetInsets": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "borders1x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "borders2x": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "contentInset": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "transparentCenter": true,
+      "drawCenter": false,
+      "externalResources": false,
+      "lineWidthLogical": 1.25,
+      "innerLineWidthLogical": 0.65,
+      "visibleEdgeWidthLogical": 4.825,
+      "role": "screen perimeter; transparent center",
+      "parts": {
+        "top-left": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/top-left.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/top-left.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/top-left@2x.png",
+          "sourceRect": [
+            0,
+            0,
+            24,
+            24
+          ],
+          "logicalSize": [
+            24,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              24
+            ],
+            "2x": [
+              48,
+              48
+            ]
+          },
+          "stretch": "none"
+        },
+        "top": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/top.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/top.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/top@2x.png",
+          "sourceRect": [
+            24,
+            0,
+            1872,
+            24
+          ],
+          "logicalSize": [
+            1872,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1872,
+              24
+            ],
+            "2x": [
+              3744,
+              48
+            ]
+          },
+          "stretch": "x"
+        },
+        "top-right": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/top-right.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/top-right.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/top-right@2x.png",
+          "sourceRect": [
+            1896,
+            0,
+            24,
+            24
+          ],
+          "logicalSize": [
+            24,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              24
+            ],
+            "2x": [
+              48,
+              48
+            ]
+          },
+          "stretch": "none"
+        },
+        "left": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/left.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/left.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/left@2x.png",
+          "sourceRect": [
+            0,
+            24,
+            24,
+            1032
+          ],
+          "logicalSize": [
+            24,
+            1032
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              1032
+            ],
+            "2x": [
+              48,
+              2064
+            ]
+          },
+          "stretch": "y"
+        },
+        "right": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/right.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/right.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/right@2x.png",
+          "sourceRect": [
+            1896,
+            24,
+            24,
+            1032
+          ],
+          "logicalSize": [
+            24,
+            1032
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              1032
+            ],
+            "2x": [
+              48,
+              2064
+            ]
+          },
+          "stretch": "y"
+        },
+        "bottom-left": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/bottom-left.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/bottom-left.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/bottom-left@2x.png",
+          "sourceRect": [
+            0,
+            1056,
+            24,
+            24
+          ],
+          "logicalSize": [
+            24,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              24
+            ],
+            "2x": [
+              48,
+              48
+            ]
+          },
+          "stretch": "none"
+        },
+        "bottom": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/bottom.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/bottom.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/bottom@2x.png",
+          "sourceRect": [
+            24,
+            1056,
+            1872,
+            24
+          ],
+          "logicalSize": [
+            1872,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1872,
+              24
+            ],
+            "2x": [
+              3744,
+              48
+            ]
+          },
+          "stretch": "x"
+        },
+        "bottom-right": {
+          "svg": "frame-assets-v3.5/parts/outer-frame/bottom-right.svg",
+          "path": "frame-assets-v3.5/parts/outer-frame/bottom-right.png",
+          "png2x": "frame-assets-v3.5/parts/outer-frame/bottom-right@2x.png",
+          "sourceRect": [
+            1896,
+            1056,
+            24,
+            24
+          ],
+          "logicalSize": [
+            24,
+            24
+          ],
+          "pixelDimensions": {
+            "1x": [
+              24,
+              24
+            ],
+            "2x": [
+              48,
+              48
+            ]
+          },
+          "stretch": "none"
+        }
+      },
+      "bytes": 38906,
+      "sha256": "bd29698c4eb350dab6697f43a33f99b967ed5293183a6740239aaca69c0ad905",
+      "path1x": "frame-assets-v3.5/outer-frame.png",
+      "pixelRatio": 2,
+      "coordinateUnit": "source PNG pixels; targetSlices are UI units"
+    },
+    "bottom-frame": {
+      "svg": "frame-assets-v3.5/bottom-frame.svg",
+      "path": "frame-assets-v3.5/bottom-frame@2x.png",
+      "png2x": "frame-assets-v3.5/bottom-frame@2x.png",
+      "sourceRect": [
+        0,
+        0,
+        3840,
+        192
+      ],
+      "logicalSize": [
+        1920,
+        96
+      ],
+      "pixelDimensions": {
+        "1x": [
+          1920,
+          96
+        ],
+        "2x": [
+          3840,
+          192
+        ]
+      },
+      "viewBox": [
+        3840,
+        192
+      ],
+      "svgViewBox": [
+        0,
+        0,
+        1920,
+        96
+      ],
+      "slices": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "targetInsets": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "borders1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "borders2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "contentInset": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "transparentCenter": true,
+      "drawCenter": false,
+      "externalResources": false,
+      "lineWidthLogical": 1.25,
+      "innerLineWidthLogical": 0.65,
+      "visibleEdgeWidthLogical": 4.825,
+      "role": "bottom bar perimeter; transparent center",
+      "parts": {
+        "top-left": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/top-left.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/top-left.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/top-left@2x.png",
+          "sourceRect": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "top": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/top.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/top.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/top@2x.png",
+          "sourceRect": [
+            12,
+            0,
+            1896,
+            12
+          ],
+          "logicalSize": [
+            1896,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1896,
+              12
+            ],
+            "2x": [
+              3792,
+              24
+            ]
+          },
+          "stretch": "x"
+        },
+        "top-right": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/top-right.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/top-right.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/top-right@2x.png",
+          "sourceRect": [
+            1908,
+            0,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "left": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/left.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/left.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/left@2x.png",
+          "sourceRect": [
+            0,
+            12,
+            12,
+            72
+          ],
+          "logicalSize": [
+            12,
+            72
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              72
+            ],
+            "2x": [
+              24,
+              144
+            ]
+          },
+          "stretch": "y"
+        },
+        "right": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/right.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/right.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/right@2x.png",
+          "sourceRect": [
+            1908,
+            12,
+            12,
+            72
+          ],
+          "logicalSize": [
+            12,
+            72
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              72
+            ],
+            "2x": [
+              24,
+              144
+            ]
+          },
+          "stretch": "y"
+        },
+        "bottom-left": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/bottom-left.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/bottom-left.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/bottom-left@2x.png",
+          "sourceRect": [
+            0,
+            84,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "bottom": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/bottom.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/bottom.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/bottom@2x.png",
+          "sourceRect": [
+            12,
+            84,
+            1896,
+            12
+          ],
+          "logicalSize": [
+            1896,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1896,
+              12
+            ],
+            "2x": [
+              3792,
+              24
+            ]
+          },
+          "stretch": "x"
+        },
+        "bottom-right": {
+          "svg": "frame-assets-v3.5/parts/bottom-frame/bottom-right.svg",
+          "path": "frame-assets-v3.5/parts/bottom-frame/bottom-right.png",
+          "png2x": "frame-assets-v3.5/parts/bottom-frame/bottom-right@2x.png",
+          "sourceRect": [
+            1908,
+            84,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        }
+      },
+      "bytes": 4630,
+      "sha256": "53a02d948db0fdfea70eb09efa5d35392516d15829e6adbfcf460475e31a5108",
+      "path1x": "frame-assets-v3.5/bottom-frame.png",
+      "pixelRatio": 2,
+      "coordinateUnit": "source PNG pixels; targetSlices are UI units"
+    },
+    "chain-slot-frame": {
+      "svg": "frame-assets-v3.5/chain-slot-frame.svg",
+      "path": "frame-assets-v3.5/chain-slot-frame@2x.png",
+      "png2x": "frame-assets-v3.5/chain-slot-frame@2x.png",
+      "sourceRect": [
+        0,
+        0,
+        2048,
+        128
+      ],
+      "logicalSize": [
+        1024,
+        64
+      ],
+      "pixelDimensions": {
+        "1x": [
+          1024,
+          64
+        ],
+        "2x": [
+          2048,
+          128
+        ]
+      },
+      "viewBox": [
+        2048,
+        128
+      ],
+      "svgViewBox": [
+        0,
+        0,
+        1024,
+        64
+      ],
+      "slices": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "targetSlices": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "targetInsets": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "borders1x": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "borders2x": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "contentInset": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "transparentCenter": true,
+      "drawCenter": false,
+      "externalResources": false,
+      "lineWidthLogical": 1.25,
+      "innerLineWidthLogical": 0.65,
+      "visibleEdgeWidthLogical": 4.825,
+      "role": "resolution slot perimeter; transparent center",
+      "parts": {
+        "top-left": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/top-left.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/top-left.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/top-left@2x.png",
+          "sourceRect": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "top": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/top.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/top.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/top@2x.png",
+          "sourceRect": [
+            12,
+            0,
+            1000,
+            12
+          ],
+          "logicalSize": [
+            1000,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1000,
+              12
+            ],
+            "2x": [
+              2000,
+              24
+            ]
+          },
+          "stretch": "x"
+        },
+        "top-right": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/top-right.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/top-right.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/top-right@2x.png",
+          "sourceRect": [
+            1012,
+            0,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "left": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/left.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/left.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/left@2x.png",
+          "sourceRect": [
+            0,
+            12,
+            12,
+            40
+          ],
+          "logicalSize": [
+            12,
+            40
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              40
+            ],
+            "2x": [
+              24,
+              80
+            ]
+          },
+          "stretch": "y"
+        },
+        "right": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/right.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/right.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/right@2x.png",
+          "sourceRect": [
+            1012,
+            12,
+            12,
+            40
+          ],
+          "logicalSize": [
+            12,
+            40
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              40
+            ],
+            "2x": [
+              24,
+              80
+            ]
+          },
+          "stretch": "y"
+        },
+        "bottom-left": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/bottom-left.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/bottom-left.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/bottom-left@2x.png",
+          "sourceRect": [
+            0,
+            52,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        },
+        "bottom": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/bottom.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/bottom.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/bottom@2x.png",
+          "sourceRect": [
+            12,
+            52,
+            1000,
+            12
+          ],
+          "logicalSize": [
+            1000,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              1000,
+              12
+            ],
+            "2x": [
+              2000,
+              24
+            ]
+          },
+          "stretch": "x"
+        },
+        "bottom-right": {
+          "svg": "frame-assets-v3.5/parts/chain-slot-frame/bottom-right.svg",
+          "path": "frame-assets-v3.5/parts/chain-slot-frame/bottom-right.png",
+          "png2x": "frame-assets-v3.5/parts/chain-slot-frame/bottom-right@2x.png",
+          "sourceRect": [
+            1012,
+            52,
+            12,
+            12
+          ],
+          "logicalSize": [
+            12,
+            12
+          ],
+          "pixelDimensions": {
+            "1x": [
+              12,
+              12
+            ],
+            "2x": [
+              24,
+              24
+            ]
+          },
+          "stretch": "none"
+        }
+      },
+      "bytes": 2530,
+      "sha256": "14f5f21dd2647dde76fd3f4f000b952a84f3119b1a7c1dbd1c1178fee1d66d54",
+      "path1x": "frame-assets-v3.5/chain-slot-frame.png",
+      "pixelRatio": 2,
+      "coordinateUnit": "source PNG pixels; targetSlices are UI units"
+    },
+    "bottom-bar": {
+      "path": "frame-assets-v3.5/bottom-bar-clean@2x.png",
+      "svg": "frame-assets-v3.5/bottom-bar-clean.svg",
+      "png2x": "frame-assets-v3.5/bottom-bar-clean@2x.png",
+      "viewBox": [
+        3840,
+        192
+      ],
+      "svgViewBox": [
+        0,
+        0,
+        1920,
+        96
+      ],
+      "logicalSize": [
+        1920,
+        96
+      ],
+      "pixelDimensions": {
+        "1x": [
+          1920,
+          96
+        ],
+        "2x": [
+          3840,
+          192
+        ]
+      },
+      "slices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "targetSlices": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "targetInsets": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "borders1x": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "borders2x": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "contentInset": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "opaque": true,
+      "transparentCenter": false,
+      "drawCenter": true,
+      "externalResources": false,
+      "role": "bottom bar background only; opaque rectangle with no border or corner decoration",
+      "stretch": "xy",
+      "bytes": 13519,
+      "sha256": "11d799603a3a82c42f3d5f614e6400f9a6d2cd18300b064e2371c3064ee999d2",
+      "path1x": "frame-assets-v3.5/bottom-bar-clean.png",
+      "pixelRatio": 2,
+      "coordinateUnit": "source PNG pixels; targetSlices are UI units",
+      "sourceRect": [
+        0,
+        0,
+        3840,
+        192
+      ]
+    }
+  }
+}

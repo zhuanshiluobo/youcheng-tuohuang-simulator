@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using YC.Domain.Items;
 using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Application.Setup;
@@ -233,7 +235,14 @@ namespace YC.Tests.EditMode
             GamePhase expectedPhase)
         {
             // 此夹具验证回合与座位顺序，入场点预有标记，不需要事件牌堆。
-            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = locationId, ResourceType = ResourceType.Iron, Amount = 1 });
+            var location = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == locationId);
+            var tokens = state.ItemZones.Zones.Single(zone => zone.ParentId == location.ZoneId && zone.LocalZoneId == "resource_point_markers");
+            state.ItemZones.Items.Add(new ItemInstanceState {
+                ItemId = "test_resource_" + locationId, DefinitionId = "core.resource_point.iron", TypeId = "core.resource_point_token",
+                PhysicalKind = ItemPhysicalKind.Token, ZoneId = tokens.ZoneId,
+                LocalState = YC.Domain.Effects.ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateString("Iron"), "amount", NormalizedValue.CreateInteger(1))
+            });
+            Assert.That(new ItemZoneQuery().TryValidate(state, out string reason), Is.True, reason);
             var result = setupHandler.Handle(state, new GameCommand
             {
                 Kind = GameCommandKind.ChooseInitialLocation,
@@ -242,8 +251,23 @@ namespace YC.Tests.EditMode
             });
 
             Assert.That(result.Succeeded, Is.True, result.Validation == null ? string.Empty : result.Validation.Reason);
+            for (int setupAnswers = 0; setupAnswers < 4; setupAnswers++)
+            {
+                var pending = state.EffectRuntime.InteractionRequests.Find(request => request.Status == "open" &&
+                    (request.InteractionTypeId == "setup.influence.optional" || request.InteractionTypeId == "round.supply.retire"));
+                if (pending == null) break;
+                Assert.That(state.Players.Count, Is.EqualTo(2));
+                int owner = pending.AnsweringPlayerId;
+                if (pending.InteractionTypeId == "setup.influence.optional") Assert.That(owner, Is.EqualTo(playerId));
+                var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
+                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(pending, owner), owner, new[] { pending.CandidateIds[0] });
+                var accepted = new YC.Application.Interactions.AnswerInteractionCommandHandler(setupHandler.EffectRegistry,
+                    new RoundExecutionService(setupHandler.EffectRegistry)).Handle(state, answer);
+                Assert.That(accepted.Succeeded, Is.True, accepted.Validation?.Reason);
+            }
             Assert.That(state.FindPlayer(playerId).CityLocationId, Is.EqualTo(locationId));
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(expectedCurrentPlayerId));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(expectedCurrentPlayerId),
+                Newtonsoft.Json.JsonConvert.SerializeObject(new { state.Phase, state.EffectRuntime.LastFaultCode, state.EffectRuntime.LastFaultMessage, requests = state.EffectRuntime.InteractionRequests.Where(request => request.Status == "open") }));
             Assert.That(state.Phase, Is.EqualTo(expectedPhase));
         }
 

@@ -6,6 +6,7 @@ using UnityEngine;
 namespace YC.Presentation
 {
     [ExecuteAlways]
+    [DefaultExecutionOrder(-100)]
     public sealed class MapDisplayController : MonoBehaviour
     {
         private const float DefaultAspect = 16f / 9f;
@@ -25,11 +26,28 @@ namespace YC.Presentation
         [Header("Navigation")]
         [SerializeField, Range(0.1f, 1f)] private float minZoom = 0.9f;
         [SerializeField, Range(1f, 3f)] private float maxZoom = 2f;
-        [SerializeField, Min(0.01f)] private float wheelZoomStep = 0.1f;
+        [SerializeField, Min(0.01f)] private float wheelZoomStep = 0.18f;
         [SerializeField, Min(0.01f)] private float zoomSmoothTime = 0.12f;
 
         private readonly List<Vector3> tabletopCorners = new List<Vector3>(32);
 
+        private static MapDisplayController active;
+        private Vector2 mapSize;
+        private float minimumNavigationZoom;
+        private bool pointerPending;
+        private Vector2 pointerStart;
+        private int mouseDragButton;
+        private bool isPinching;
+        private bool waitForTouchRelease;
+        private int pinchFingerA, pinchFingerB;
+        private Vector2 previousPinchCenter;
+        private float previousPinchDistance;
+        private int suppressClickThroughFrame = -1;
+        public static MapDisplayController Active => active;
+        public Rect VisibleViewportInRegion { get; private set; } = new Rect(0f, 0f, 1f, 1f);
+        public static bool SuppressMapClick => active != null &&
+            (active.isDragging || active.isPinching || active.waitForTouchRelease ||
+             Time.frameCount <= active.suppressClickThroughFrame);
         private Plane tabletopPlane;
         private Quaternion cameraRotation;
         private Vector3 focusPoint;
@@ -55,12 +73,15 @@ namespace YC.Presentation
 
         private void OnEnable()
         {
+            active = this;
             FitCameraToMap();
             ApplyDevelopmentZoomOverride();
         }
 
         private void OnDisable()
         {
+            if (active == this) active = null;
+            isPinching = waitForTouchRelease = false;
             EndDrag();
             hasZoomAnchor = false;
             zoomVelocity = 0f;
@@ -88,7 +109,7 @@ namespace YC.Presentation
                 return;
             }
 
-            if (!Mathf.Approximately(targetCamera.aspect, layoutAspect))
+            if (!Mathf.Approximately(AvailableAspect, layoutAspect))
             {
                 FitCameraToMap(true);
             }
@@ -102,8 +123,13 @@ namespace YC.Presentation
             if (!hasFocus)
             {
                 EndDrag();
+                isPinching = false;
+                waitForTouchRelease = Input.touchCount > 0;
             }
         }
+
+        private float AvailableAspect => cameraViewport.width * Mathf.Max(1, Screen.width) /
+            (cameraViewport.height * Mathf.Max(1, Screen.height));
 
         public void FitCameraToMap()
         {
@@ -146,17 +172,20 @@ namespace YC.Presentation
             targetCamera.orthographic = false;
             targetCamera.fieldOfView = fieldOfView;
             targetCamera.rect = cameraViewport;
-            var aspect = targetCamera.aspect > 0f ? targetCamera.aspect : DefaultAspect;
+            var aspect = AvailableAspect > 0f ? AvailableAspect : DefaultAspect;
             layoutAspect = aspect;
             var mapWidth = mapRenderer.transform.TransformVector(Vector3.right * spriteBounds.size.x).magnitude;
             var mapHeight = mapRenderer.transform.TransformVector(Vector3.up * spriteBounds.size.y).magnitude;
             var verticalTangent = Mathf.Tan(fieldOfView * Mathf.Deg2Rad * 0.5f);
-            // 最小缩放时也让完整相机视口落在地图内，而不是把整张地图缩进视口。
+            // 初始仍铺满观察框；继续缩小时收缩开口的多余一轴，直到全图可见。
             var maximumDistance = Mathf.Min(mapWidth / aspect, mapHeight) / (2f * verticalTangent);
             baseDistance = maximumDistance * minZoom;
+            mapSize = new Vector2(mapWidth, mapHeight);
+            var wholeMapDistance = Mathf.Max(mapWidth / aspect, mapHeight) / (2f * verticalTangent);
+            minimumNavigationZoom = baseDistance / Mathf.Max(.01f, wholeMapDistance);
 
             currentZoom = preserveNavigation
-                ? Mathf.Clamp(previousZoom, minZoom, maxZoom)
+                ? Mathf.Clamp(previousZoom, minimumNavigationZoom, maxZoom)
                 : minZoom;
             targetZoom = currentZoom;
             zoomVelocity = 0f;
@@ -182,8 +211,8 @@ namespace YC.Presentation
 
             if (preserveNavigation)
             {
-                currentZoom = Mathf.Clamp(previousZoom, minZoom, maxZoom);
-                targetZoom = Mathf.Clamp(previousTargetZoom, minZoom, maxZoom);
+                currentZoom = Mathf.Clamp(previousZoom, minimumNavigationZoom, maxZoom);
+                targetZoom = Mathf.Clamp(previousTargetZoom, minimumNavigationZoom, maxZoom);
                 focusPoint = previousFocus;
             }
             ApplyCameraTransform();
@@ -197,6 +226,9 @@ namespace YC.Presentation
             if (viewport.width <= 0f || viewport.height <= 0f)
             {
                 EndDrag();
+                isPinching = false;
+                waitForTouchRelease = Input.touchCount > 0;
+                suppressClickThroughFrame = Time.frameCount + 1;
                 hasZoomAnchor = false;
                 if (targetCamera != null) targetCamera.enabled = false;
                 return;
@@ -275,50 +307,126 @@ namespace YC.Presentation
             corners.Add(mapRenderer.transform.TransformPoint(new Vector3(max.x, min.y, spriteBounds.center.z)));
         }
 
+        private bool CanStartNavigation(Vector2 position) =>
+            MapCameraGeometry.IsScreenPointInCameraViewport(targetCamera, position) &&
+            !TabletopPointerClassifier.IsBlockedByFlatHud(position);
+
         private void ReadNavigationInput()
         {
-            var mousePosition = (Vector2)Input.mousePosition;
-
-            if (Input.GetMouseButtonUp(1))
+            if (Input.touchCount > 0)
             {
+                ReadTouchNavigation();
+                return; // 不重复消费触摸模拟的鼠标事件。
+            }
+            if (isPinching || waitForTouchRelease)
+            {
+                isPinching = waitForTouchRelease = false;
+                suppressClickThroughFrame = Time.frameCount + 1;
                 EndDrag();
             }
-
-            if (isDragging && !Input.GetMouseButton(1))
+            var position = (Vector2)Input.mousePosition;
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
             {
-                EndDrag();
+                mouseDragButton = Input.GetMouseButtonDown(0) ? 0 : 1;
+                BeginPointer(position);
             }
+            if (pointerPending && Input.GetMouseButton(mouseDragButton)) MovePointer(position);
+            if (pointerPending && !Input.GetMouseButton(mouseDragButton)) EndDrag();
+            var wheel = Input.mouseScrollDelta.y;
+            if (Mathf.Abs(wheel) > InputEpsilon && CanStartNavigation(position))
+                SetZoomTarget(position, targetZoom + wheel * wheelZoomStep);
+        }
 
-            if (Input.GetMouseButtonDown(1) &&
-                MapCameraGeometry.IsScreenPointInCameraViewport(targetCamera, mousePosition) &&
-                !TabletopPointerClassifier.IsBlockedByFlatHud(mousePosition) &&
-                MapCameraGeometry.TryScreenPointToPlane(targetCamera, mousePosition, tabletopPlane, out dragAnchorWorld))
-            {
-                isDragging = true;
-            }
+        private void BeginPointer(Vector2 position)
+        {
+            EndDrag();
+            if (!CanStartNavigation(position) || !MapCameraGeometry.TryScreenPointToPlane(
+                targetCamera, position, tabletopPlane, out dragAnchorWorld)) return;
+            pointerPending = true;
+            pointerStart = position;
+            targetZoom = currentZoom;
+            hasZoomAnchor = false;
+        }
 
-            if (isDragging && Input.GetMouseButton(1))
-            {
-                if (!MapCameraGeometry.IsScreenPointInCameraViewport(targetCamera, mousePosition) ||
-                    TabletopPointerClassifier.IsBlockedByFlatHud(mousePosition)) EndDrag();
-                else UpdateDrag(mousePosition);
-            }
+        private void MovePointer(Vector2 position)
+        {
+            if (!pointerPending) return;
+            if (!CanStartNavigation(position)) { EndDrag(); return; }
+            var threshold = UnityEngine.EventSystems.EventSystem.current == null ? 6f :
+                UnityEngine.EventSystems.EventSystem.current.pixelDragThreshold;
+            if (!isDragging && (position - pointerStart).sqrMagnitude < threshold * threshold) return;
+            isDragging = true;
+            suppressClickThroughFrame = Time.frameCount + 1;
+            UpdateDrag(position);
+        }
 
-            var wheelDelta = Input.mouseScrollDelta.y;
-            if (Mathf.Abs(wheelDelta) <= InputEpsilon ||
-                !MapCameraGeometry.IsScreenPointInCameraViewport(targetCamera, mousePosition) ||
-                TabletopPointerClassifier.IsBlockedByFlatHud(mousePosition))
+        private void SetZoomTarget(Vector2 position, float zoom)
+        {
+            targetZoom = Mathf.Clamp(zoom, minimumNavigationZoom, maxZoom);
+            zoomAnchorScreen = position;
+            hasZoomAnchor = MapCameraGeometry.TryScreenPointToPlane(
+                targetCamera, position, tabletopPlane, out _);
+        }
+
+        private void ReadTouchNavigation()
+        {
+            if (Input.touchCount >= 2)
             {
+                if (!isPinching)
+                {
+                    var a = Input.GetTouch(0); var b = Input.GetTouch(1);
+                    if (waitForTouchRelease || !CanStartNavigation(a.position) || !CanStartNavigation(b.position))
+                    { waitForTouchRelease = true; EndDrag(); return; }
+                    EndDrag();
+                    isPinching = true;
+                    pinchFingerA = a.fingerId; pinchFingerB = b.fingerId;
+                    previousPinchCenter = (a.position + b.position) * .5f;
+                    previousPinchDistance = Vector2.Distance(a.position, b.position);
+                    targetZoom = currentZoom;
+                }
+                Touch first = default, second = default;
+                var foundA = false; var foundB = false;
+                for (var i = 0; i < Input.touchCount; i++)
+                {
+                    var touch = Input.GetTouch(i);
+                    if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled) continue;
+                    if (touch.fingerId == pinchFingerA) { first = touch; foundA = true; }
+                    if (touch.fingerId == pinchFingerB) { second = touch; foundB = true; }
+                }
+                if (!foundA || !foundB || !CanContinuePinch(first.position) || !CanContinuePinch(second.position))
+                { isPinching = false; waitForTouchRelease = true; return; }
+                ApplyPinch(first.position, second.position);
                 return;
             }
+            if (isPinching) { isPinching = false; waitForTouchRelease = true; }
+            if (waitForTouchRelease) return;
+            var single = Input.GetTouch(0);
+            if (single.phase == TouchPhase.Began) BeginPointer(single.position);
+            else if (single.phase == TouchPhase.Moved || single.phase == TouchPhase.Stationary) MovePointer(single.position);
+            else EndDrag();
+        }
 
-            targetZoom = Mathf.Clamp(targetZoom + wheelDelta * wheelZoomStep, minZoom, maxZoom);
-            zoomAnchorScreen = mousePosition;
-            hasZoomAnchor = MapCameraGeometry.TryScreenPointToPlane(
-                targetCamera,
-                zoomAnchorScreen,
-                tabletopPlane,
-                out _);
+        private bool CanContinuePinch(Vector2 position)
+        {
+            // 开口会随缩小收缩；已捕获的双指仍可留在原地图区域，避免缩放自行中断。
+            var availablePixels = new Rect(cameraViewport.x * Screen.width, cameraViewport.y * Screen.height,
+                cameraViewport.width * Screen.width, cameraViewport.height * Screen.height);
+            return availablePixels.Contains(position) && !TabletopPointerClassifier.IsBlockedByFlatHud(position);
+        }
+
+        private void ApplyPinch(Vector2 first, Vector2 second)
+        {
+            var center = (first + second) * .5f;
+            var distance = Vector2.Distance(first, second);
+            if (previousPinchDistance > 1f && distance > 1f)
+            {
+                if (MapCameraGeometry.TryScreenPointToPlane(targetCamera, previousPinchCenter,
+                    tabletopPlane, out dragAnchorWorld)) UpdateDrag(center);
+                SetZoomTarget(center, targetZoom * distance / previousPinchDistance);
+            }
+            previousPinchCenter = center;
+            previousPinchDistance = distance;
+            suppressClickThroughFrame = Time.frameCount + 1;
         }
 
         private void UpdateDrag(Vector2 mousePosition)
@@ -367,7 +475,7 @@ namespace YC.Presentation
                 zoomSmoothTime,
                 Mathf.Infinity,
                 Time.unscaledDeltaTime);
-            currentZoom = Mathf.Clamp(currentZoom, minZoom, maxZoom);
+            currentZoom = Mathf.Clamp(currentZoom, minimumNavigationZoom, maxZoom);
             ApplyCameraTransform();
 
             var desiredFocus = focusPoint;
@@ -410,7 +518,17 @@ namespace YC.Presentation
                 return;
             }
 
-            var safeZoom = Mathf.Max(minZoom, currentZoom);
+            var safeZoom = Mathf.Max(minimumNavigationZoom, currentZoom);
+            var distance = MapCameraGeometry.CalculateZoomedDistance(baseDistance, safeZoom);
+            VisibleViewportInRegion = MapCameraGeometry.CalculateContainedViewport(
+                mapSize, layoutAspect, distance, fieldOfView);
+            var opening = VisibleViewportInRegion;
+            targetCamera.rect = new Rect(cameraViewport.x + opening.x * cameraViewport.width,
+                cameraViewport.y + opening.y * cameraViewport.height,
+                cameraViewport.width * opening.width, cameraViewport.height * opening.height);
+            // 裁掉的是多余视口，不改变剩余屏幕像素对应的地图比例。
+            targetCamera.fieldOfView = 2f * Mathf.Atan(Mathf.Tan(fieldOfView * Mathf.Deg2Rad * .5f) *
+                opening.height) * Mathf.Rad2Deg;
             var cameraPosition = MapCameraGeometry.CalculateCameraPosition(
                 focusPoint,
                 cameraRotation,
@@ -426,6 +544,8 @@ namespace YC.Presentation
 
         private void EndDrag()
         {
+            if (isDragging) suppressClickThroughFrame = Time.frameCount + 1;
+            pointerPending = false;
             isDragging = false;
         }
 
@@ -458,7 +578,7 @@ namespace YC.Presentation
                     return;
                 }
 
-                currentZoom = Mathf.Clamp(value, minZoom, maxZoom);
+                currentZoom = Mathf.Clamp(value, minimumNavigationZoom, maxZoom);
                 targetZoom = currentZoom;
                 zoomVelocity = 0f;
                 hasZoomAnchor = false;

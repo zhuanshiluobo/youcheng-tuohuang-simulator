@@ -182,7 +182,7 @@ namespace YC.Application.Gameplay
             var placement = FindFacilityPlacement(state, command.PlayerId, targetSlotIndex);
             FacilityCardDefinition target;
             if (placement == null ||
-                !FacilityCardDatabase.TryGet(placement.FacilityCardId, out target) ||
+                !FacilityCardDatabase.TryGet(state, placement.FacilityCardId, out target) ||
                 !target.HasEntryEffect ||
                 string.Equals(target.Color, "rainbow", StringComparison.OrdinalIgnoreCase))
             {

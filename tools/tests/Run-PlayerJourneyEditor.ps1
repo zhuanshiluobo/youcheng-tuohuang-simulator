@@ -14,9 +14,10 @@ if (-not $OutputDirectory) { $OutputDirectory = Join-Path $project ('Logs\Player
 New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
 $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
 if (Test-Path -LiteralPath (Join-Path $output 'result.json')) { throw '结果目录已有记录，请使用新的目录。' }
+if (Test-Path -LiteralPath (Join-Path $output '.player-journey-started')) { throw '该目录的测试已启动过，请使用新的目录。' }
 $owners = @(Get-CimInstance Win32_Process -Filter "name = 'Unity.exe'" | Where-Object { $_.CommandLine -and $_.CommandLine.Replace('/','\').Contains($project) })
 if ($owners.Count -gt 0) { throw '该项目已有 Unity 进程，请等待其完成。' }
-$arguments = @('-projectPath', ('"' + $project + '"'), '-executeMethod', 'YC.Editor.PlayerJourneyEditorLauncher.Run',
+$arguments = @('--yc-player-journey-run-once', '-projectPath', ('"' + $project + '"'), '-executeMethod', 'YC.Editor.PlayerJourneyEditorLauncher.Run',
     '-screen-width', '1920', '-screen-height', '1080', ('--yc-player-journey-scenario=' + $Scenario),
     ('--yc-player-journey-seed=' + $Seed), ('"--yc-player-journey-output=' + $output + '"'), '-logFile', ('"' + (Join-Path $output 'unity.log') + '"'))
 if ($EntranceLocation) { $arguments += ('--yc-player-journey-entrance=' + $EntranceLocation) }

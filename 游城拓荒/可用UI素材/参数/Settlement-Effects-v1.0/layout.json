@@ -1,0 +1,136 @@
+{
+  "version": "1.0",
+  "units": "logical px at 1920x1080",
+  "coordinateOrigin": "top-left",
+  "container": {
+    "height": 60,
+    "minWidth": 136,
+    "title": "结算区域",
+    "headerReserved": 152,
+    "hideHeaderBelowWidth": 520
+  },
+  "viewport": {
+    "leftInset": 24,
+    "rightInset": 24,
+    "topInset": 8,
+    "height": 44,
+    "clip": true,
+    "showScrollbar": false,
+    "formula": "left=reserved+24; width=containerWidth-reserved-48"
+  },
+  "button": {
+    "height": 44,
+    "radius": 21,
+    "gap": 10,
+    "fontSize": 18,
+    "horizontalTextInset": 16,
+    "minTextWidth": 88,
+    "maxWidth": 280,
+    "iconSize": 22,
+    "iconGap": 8,
+    "iconOnlyWidth": 48,
+    "roundingStep": 2,
+    "measureActualFont": true,
+    "overflowText": "single-line ellipsis",
+    "states": [
+      "default",
+      "hover",
+      "pressed",
+      "pending",
+      "disabled"
+    ],
+    "stateChangesResize": false
+  },
+  "slice": {
+    "baseSize": [
+      192,
+      44
+    ],
+    "LTRB": [
+      22,
+      21,
+      22,
+      21
+    ],
+    "at2xSize": [
+      384,
+      88
+    ],
+    "at2xLTRB": [
+      44,
+      42,
+      44,
+      42
+    ]
+  },
+  "motion": {
+    "order": "arrival order; append to right",
+    "durationMs": 360,
+    "fadeMs": 100,
+    "batchStaggerMs": 60,
+    "maxBatchDelayMs": 180,
+    "easing": "cubic-bezier(.22,.75,.22,1)",
+    "startTranslateX": "max(0, viewportWidth+24-(layoutX-scrollLeft))",
+    "reducedMotion": "instant",
+    "atEndTolerancePx": 12,
+    "manualInteractionGraceMs": 1200,
+    "scrollWhileReviewingEarlierItems": false
+  },
+  "input": {
+    "dragThresholdPx": 6,
+    "suppressClickAfterDragMs": 250,
+    "wheel": "horizontal or vertical delta maps to horizontal while scroll can move",
+    "touch": "native horizontal scrolling",
+    "keyboard": [
+      "Tab",
+      "ArrowLeft",
+      "ArrowRight",
+      "Home",
+      "End",
+      "Enter",
+      "Space"
+    ]
+  },
+  "mainPreview": {
+    "containerXYWH": [
+      190,
+      1000,
+      1420,
+      60
+    ],
+    "viewportXYWH": [
+      366,
+      1008,
+      1220,
+      44
+    ]
+  },
+  "api": {
+    "required": [
+      "id"
+    ],
+    "content": "label or icon; icon-only requires ariaLabel",
+    "state": [
+      "default",
+      "pending",
+      "disabled"
+    ],
+    "optional": [
+      "label",
+      "icon",
+      "ariaLabel",
+      "description",
+      "monochrome",
+      "data"
+    ],
+    "methods": [
+      "add",
+      "update",
+      "remove",
+      "setContext",
+      "clear",
+      "destroy",
+      "snapshot"
+    ]
+  }
+}

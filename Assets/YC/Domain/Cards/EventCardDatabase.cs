@@ -8,6 +8,8 @@ namespace YC.Domain.Cards
 {
     public static class EventCardDatabase
     {
+        public static EventCardDefinition Get(GameState state, string id) => state?.ContentDefinitions == null ? Get(id) :
+            GameStateCloneService.DeepClone(state.ContentDefinitions.Events.Find(value => value.CardId == YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id)));
         public const int ExpectedDefinitionCount = 22;
 
         // 原始牌面标题右上角标“4”的四人专用牌；不依赖 Unity 目录加载或显示名称。

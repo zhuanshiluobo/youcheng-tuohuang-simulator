@@ -236,7 +236,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void StateDtos_JsonRoundTrip_PreserveSpecialActionSessionBudgetAndLevelTwoUsedArea()
+        public void GameState_JsonRoundTrip_PreserveSpecialActionSessionBudgetAndLevelTwoUsedArea()
         {
             var state = new GameState
             {
@@ -281,21 +281,7 @@ namespace YC.Tests.EditMode
                 }
             };
 
-            var initial = CloneJson(new InitialGameStateDto
-            {
-                NextConfirmedSequence = 7,
-                State = state
-            });
-            var confirmed = CloneJson(new ConfirmedGameCommandDto
-            {
-                Sequence = 6,
-                State = state
-            });
-
-            AssertSpecialSnapshot(initial.State);
-            Assert.That(initial.NextConfirmedSequence, Is.EqualTo(7));
-            AssertSpecialSnapshot(confirmed.State);
-            Assert.That(confirmed.Sequence, Is.EqualTo(6));
+            AssertSpecialSnapshot(CloneJson(state));
         }
 
         [Test]

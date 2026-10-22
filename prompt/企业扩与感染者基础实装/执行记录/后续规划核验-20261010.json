@@ -1,0 +1,1026 @@
+{
+  "checkedAt": "2026-10-10T00:00:24.433109+08:00",
+  "scope": "只读静态核对与历史原始XML复核；本次未运行Unity或测试，不构成当前版本运行验收",
+  "productionManifest": {
+    "path": "Assets/StreamingAssets/Content/core/pack.json",
+    "sha256": "d350b174fe1eafa96ca538b6ba61d982fe4b3ac7cdb4b3138b9f34921e0cfc87",
+    "schemaVersion": 3,
+    "definitionCount": 63,
+    "infectedDefinitions": [],
+    "setupRecipes": [
+      "recipes/standard.json",
+      "recipes/enterprise.json"
+    ],
+    "infectedRecipeFileExists": true,
+    "presentation": null
+  },
+  "plannedFiles": [
+    {
+      "path": "Assets/YC/Domain/Presentation/GameplayTextContracts.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/YC/Application/Presentation/GameplayTextResolver.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/YC/Presentation/Text/GameplayTextView.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/YC/Domain/Effects/SettlementEntryService.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/YC/Infrastructure/Lua/SettlementLuaCatalog.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/YC/Presentation/Settlement/SettlementEffectStripView.cs",
+      "exists": false
+    },
+    {
+      "path": "Assets/StreamingAssets/Content/core/presentation/texts.zh-CN.json",
+      "exists": false
+    },
+    {
+      "path": "Assets/StreamingAssets/Content/core/presentation/icons.json",
+      "exists": false
+    }
+  ],
+  "assets": {
+    "结算按钮": [
+      {
+        "key": "settlement.chip-default",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-default@2x.png",
+        "sha256": "02035b57f6a0d01a88a8786c443330bf8fc5d23297ff15960670910a7264c3bd",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-default@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-default@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "settlement.chip-disabled",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-disabled@2x.png",
+        "sha256": "009f3f9f325eb53f33df19347b4b2fb9d5b4b357f59936f58a2579afd0f90a17",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-disabled@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-disabled@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "settlement.chip-hover",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-hover@2x.png",
+        "sha256": "97b8af12648574ffeda0ab84d67855de9fc8dd8a75cd18589935cdfccac2ff0e",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-hover@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-hover@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "settlement.chip-pending",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-pending@2x.png",
+        "sha256": "e1f10929409fb48e76dd49c925e3ffff1e7750f0635d8cf78d5c889f9f772521",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pending@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-pending@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "settlement.chip-pressed",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-pressed@2x.png",
+        "sha256": "6bf6aeadb9329fb5080d237945b34967a1f274cc496c610f9a46ce9a5024ff4d",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pressed@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "底栏结算区域横向效果按钮条，pending/disabled语义不同；整底与fill+frame二选一",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-pressed@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_link.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-dark@2x.png",
+        "sha256": "6c5336886d840a3fabf2eb86bce8cb29ddeea4e7fcf701f40357e322d713df60",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_link.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-light@2x.png",
+        "sha256": "845d8883e27752e940fe00ea0c06d5e633380ba69382fcbe6dff2f7776c73d31",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_link.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-muted@2x.png",
+        "sha256": "db484c3c06a46da0c613f6940039749e7f2ed54ed64c587d9ba29411efc201c7",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.substitute.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-dark@2x.png",
+        "sha256": "1b3a586c08827afe0002d0c22f98170fdcefdf1430f934f88903ebc338f1d1e7",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.substitute.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-light@2x.png",
+        "sha256": "a1b7b84a92f7be2f5a8ac549f5455a390541b3b74f04ffa25d974a5050c1af92",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.substitute.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-muted@2x.png",
+        "sha256": "0daeecd54aca51081576104f2604650bed2b432d717f21322829a3fa9613211a",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.trigger_ready.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-dark@2x.png",
+        "sha256": "5e962957f7ea2908c33c6d93aa4cdcb7553e3b21f40f89cc5e408e2259311a8d",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.trigger_ready.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-light@2x.png",
+        "sha256": "0017f7f69babe91e2f85181d345665dcf9a20b7e7761c05be15a1deb14ec46f2",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.trigger_ready.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-muted@2x.png",
+        "sha256": "048f8a9828b8d988d578e716e4897c3e5105dbcd30196d2488679f31b8d391da",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.scope_adjacent.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-dark@2x.png",
+        "sha256": "e01b9a28dc4434ed04d360df526bea3288d3612736fff925ab818b058e77c0ca",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.scope_adjacent.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-light@2x.png",
+        "sha256": "13c5e81f705b99d35d640cd65c7c934366a95b53659bfabf6070346d14ec2d27",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.scope_adjacent.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-muted@2x.png",
+        "sha256": "b7241ccbb2e6f0c3615b1e1b2b064f998d2ce588a8d2354db35bdfb440326dcb",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.choose_order.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-dark@2x.png",
+        "sha256": "c6944cca050ab2e1e4f3b92d2b4b095b9c3df43f34cdef3ee599236c6faa87e2",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.choose_order.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-light@2x.png",
+        "sha256": "fb1dc1ac3c832dfc96ee48bc44b6249730ef3dd5f041b477ddbca18ff8f3b6db",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.choose_order.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-muted@2x.png",
+        "sha256": "561bc32377f7e8a75efa7b71e28f5432a5072cbe661809f0792940d06889e0c8",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_defer.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-dark@2x.png",
+        "sha256": "fceca884eb979bf156ae56e54435cac7d2a8bfd244c438940eaa055360608062",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_defer.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-light@2x.png",
+        "sha256": "f12d0f9f2d0b8f47f5ba6910a634e457d9b334ee1ced9de29534bb1e5647c157",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.chain_defer.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-muted@2x.png",
+        "sha256": "5c0dfc98c78d5ef0a5981a2a90433c60389105f00a3872c8c383648404694add",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-muted@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.target_other.dark",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-dark@2x.png",
+        "sha256": "94bf220f18330e7c991794fbc648f55ac7f681bb2d629dc700bf8f127cc75756",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-dark@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-dark@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.target_other.light",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-light@2x.png",
+        "sha256": "e1d6a28ad587b6c052bad4751d0014d3baf1807906597d4e81392de482fa71e2",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-light@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-light@2x.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:settlement.target_other.muted",
+        "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-muted@2x.png",
+        "sha256": "8fc8597235549e1c9e6053ca5379c32d92526e55729c09c81323894186151b86",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-muted@2x.png",
+        "catalogRegistered": true,
+        "catalogHashMatches": true,
+        "catalogUses": [
+          {
+            "purpose": "40个UI备用图标三色；明确不修改1.0按钮，不替代卡面符号或玩家/企业原标记",
+            "scope": "全部"
+          }
+        ],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-muted@2x.png",
+        "unityFileExists": false
+      }
+    ],
+    "玩法正文": [
+      {
+        "key": "core:rule.enterprise_upgrade",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\企业升级.png",
+        "sha256": "c6fba1ab684a891c51143e529573e97d9477b422762ea0853e680ad605bc88ea",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/企业升级.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\企业升级.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.enterprise_special",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\企业特效.png",
+        "sha256": "377d7786c5c9ccc0843398549a394247914c8bbf50520b9604f47a3fb420e0bd",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/企业特效.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\企业特效.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.score",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\分数.png",
+        "sha256": "1cbc9e3a6496e13ae04f2baf2d7cf804c62188ff12566b5b25f345c860fa38c8",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/分数.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\分数.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.score_settlement",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\分数结算时.png",
+        "sha256": "2040cb715d58004efb1e7ea7f94e8dd37d882c6627437997fbdb8716b71f974f",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/分数结算时.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\分数结算时.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.remaining_game",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\剩余游戏.png",
+        "sha256": "7c6cd23e5a8ba44b24172f6a5ba4c4d2d3e72ab925f78e55428c93c3921927b8",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/剩余游戏.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\剩余游戏.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.city_move",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\城市移动.png",
+        "sha256": "76054d15af252be42b40cbcb9b30bfe81f0109254694b580244a8feac1289fc4",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/城市移动.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\城市移动.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.operator_dispatch",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\干员特派_罗德岛.png",
+        "sha256": "1ede2a3e8626649a42864d725719d679e58989033249cafbe72fd1971ca5c5f8",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/干员特派_罗德岛.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\干员特派_罗德岛.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.build",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\建设.png",
+        "sha256": "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/建设.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\建设.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.iron",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\异铁.png",
+        "sha256": "9b38b152b545bad3547e2e36c2ba4847e0d2928e6d6ca086fe4793610246be15",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/异铁.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\异铁.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.quick_action",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\快速行动.png",
+        "sha256": "6c9fafe2d64e7747a437f3253474576891a5ebf5eb34281be0ae0fb74856edd5",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/快速行动.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\快速行动.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.tactical_action",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\战术行动.png",
+        "sha256": "922ee17d9bbcfa796ef80d96d1393e80780ad33a639ebf95d3abc706621dcbef",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/战术行动.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\战术行动.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.replace",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\替换.png",
+        "sha256": "dc376fffbc03fdb02ca3ebd5e205fa960d99383dd137fba84ad5e20303881780",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/替换.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\替换.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:syntax.condition",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\条件式符号.png",
+        "sha256": "2a25a79a9eb475e71a4cc7c4f1e2cdde787b89f6eb133072e38e49c7a57031fd",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/条件式符号.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\条件式符号.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.persistent_marker",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\永续指示物.png",
+        "sha256": "6404210fbe61fae2863127addd92e450c7efb43fe5a216c72cb1aae9fb1582a5",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/永续指示物.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\永续指示物.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.orirock",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\源岩.png",
+        "sha256": "8169788424ab3bd5a628b4fd087cb71bcf0e08f2c90561f3e5d212f5a3ac1a1b",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/源岩.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\源岩.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.originium_shard",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\源石碎片.png",
+        "sha256": "0d42200e77c0907ffcb507c2b795908845862d53b4bbfdc315960e5b7fb71b2f",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/源石碎片.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\源石碎片.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.special_action",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\特殊行动.png",
+        "sha256": "ae4557aa66f1861f8aa3457714539cc37898f869da3f363615a5a22918daa08a",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/特殊行动.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\特殊行动.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.remove",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\移除.png",
+        "sha256": "01c9650c14aaf51f9eb6f455806c99834240cc4e2ad49cd7d318017275aac5f3",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/移除.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\移除.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:timing.immediate",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\立刻.png",
+        "sha256": "cca2b16c49b46b2fdb9242a93cdf52547cfd6bec729e50bca0834255e19c8f0b",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/立刻.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\立刻.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.pure_originium",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\至纯源石.png",
+        "sha256": "01524d7c6bd1992a2aed6cb1228261e7d40c29b709057b109d0453f0689633fa",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/至纯源石.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\至纯源石.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.dispatch",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\调度.png",
+        "sha256": "c32991529fedd1f53820d3a6c0270a8bc5ab007e3234fed2ffa97d5207255b33",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/调度.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\调度.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.deploy",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\部署.png",
+        "sha256": "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/部署.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\部署.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:resource.gold_voucher",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\金券.png",
+        "sha256": "f65b9d6946c6910ba5ad9eede7082bd208dc1af9c44c5b3e8d0f3b003524d855",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/金券.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\金券.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.limited_marker",
+        "source": "G:\\NoMadCity\\游城拓荒\\icon\\限定指示物.png",
+        "sha256": "6a2c92595a69e1fa5354785144fd0821946469677ec2aeeea555d5767888c521",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/icon/限定指示物.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\限定指示物.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.remove_card_marker",
+        "source": "G:\\NoMadCity\\游城拓荒\\自制icon\\移除卡片标记.png",
+        "sha256": "861816c04f14c81e44d5d0a4fbd8f71b61d2c7422a45f6c536bc7d840ca50a18",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/自制icon/移除卡片标记.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\自制icon\\移除卡片标记.png",
+        "unityFileExists": false
+      },
+      {
+        "key": "core:rule.remove_own_influence",
+        "source": "G:\\NoMadCity\\游城拓荒\\自制icon\\移除自己的影响力.png",
+        "sha256": "c71b7ce0d47684a72020cc14eaa788b2b9e173872de4dd3fffed16ceb156b27e",
+        "mappingHashMatches": true,
+        "catalogPath": "资产/玩法正文图标/用户指定/自制icon/移除自己的影响力.png",
+        "catalogRegistered": false,
+        "catalogHashMatches": null,
+        "catalogUses": [],
+        "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\自制icon\\移除自己的影响力.png",
+        "unityFileExists": false
+      }
+    ]
+  },
+  "testedInputComparisons": {
+    "最近四牌区": {
+      "source": "Logs/MercenaryAndViewedPilesAcceptance/20261009/retry-piles-134545/inputs-before.json",
+      "count": 3555,
+      "changed": [
+        {
+          "path": "Assets/YC/Domain/Items/ItemZoneQuery.cs",
+          "testedSha256": "0cd0c34ffde1484a9d5e89833db58b4a7943ad5c9e77b6388a7f445bef4d80e5",
+          "currentSha256": "c8dfb2ccae751ac430d2a1a2486d35affb45b6661511f24baebee43f4e3ab2c3"
+        },
+        {
+          "path": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+          "testedSha256": "e694d652c35522f4501a592aee66216e59fc31112a04158e88147e6076b4d916",
+          "currentSha256": "878e2a4b08abc94586a39a6b1a3d91b6d8b277aad1f42b9cddca494342826de8"
+        },
+        {
+          "path": "Assets/YC/Presentation/StartMenuRoomPanelView.cs",
+          "testedSha256": "b619511088cfca129dd5ba521d9daa9f331c3ddac4d8c808fea1ce71463eb9b6",
+          "currentSha256": "231c603e7d07ad52b54723c5f4a42379bf6ff75a5b651fe8256c19699fbd41a5"
+        }
+      ]
+    },
+    "移动探索性能": {
+      "source": "Logs/InteractionFlowAcceptance/20261009/performance-followup-20261009-070054/inputs-before.json",
+      "count": 3549,
+      "changed": [
+        {
+          "path": "Assets/StreamingAssets/Content/core/character/infected.character.flowing_shape_alpha.json",
+          "testedSha256": "e61a95e6192a8d2f6511fbe6bfd0331fa7903773c22d53db35e87d1931a4bd7b",
+          "currentSha256": "08cf733292415d37986f5a95c359bb89c126a676fa19e1a28dffd927f8be1bb1"
+        },
+        {
+          "path": "Assets/StreamingAssets/Content/core/character/infected.character.flowing_shape_beta.json",
+          "testedSha256": "fac48e8deee3e269dfa646410b4c040d5f0dc73dfa48c4e30c2c2d7d7bac7bf3",
+          "currentSha256": "b7117515c431cedb1ccf49c556a5456925b0061e07a669d0161f8c6811310dc2"
+        },
+        {
+          "path": "Assets/StreamingAssets/Content/core/character/infected.character.flowing_shape_gamma.json",
+          "testedSha256": "38bd5d5bc72f38b1d781e56ef1fa8e4eacaaf157f7dddd8d722ed7893ec6dc9c",
+          "currentSha256": "ef70727f92a911f9db0cd078c9ec00a42e686f6a768e9fcd2ea8476c42f0af0e"
+        },
+        {
+          "path": "Assets/StreamingAssets/Content/core/pack.json",
+          "testedSha256": "64539705c64fc6ddd2c18fa63b4091a44334405749b870c2dfe77e372096b3a4",
+          "currentSha256": "d350b174fe1eafa96ca538b6ba61d982fe4b3ac7cdb4b3138b9f34921e0cfc87"
+        },
+        {
+          "path": "Assets/YC/Domain/Cards/CharacterCardDatabase.cs",
+          "testedSha256": "00885ce39ea36a4d63729b354155f5874143e46774a74a63e6b91d3434d6e577",
+          "currentSha256": "9362a4aa38e7eef64f7d75bb4457ee858b9049ce58b91e90d38eb7c31f0e8531"
+        },
+        {
+          "path": "Assets/YC/Domain/Cards/CharacterCardDefinition.cs",
+          "testedSha256": "c6a8bcddabb4bccb876381c236d0c7aadb2cc29f96e2f7c5cba42b10a30a3b1d",
+          "currentSha256": "6e6dc37634f588e0237ad250e7c50a16f77e6afec255214c13d94fb81fab88dd"
+        },
+        {
+          "path": "Assets/YC/Domain/Items/ItemZoneModels.cs",
+          "testedSha256": "efde301293523d45708495be2cc8bacd9867fe61f3c5a9e5ee6d98ea249f8e4a",
+          "currentSha256": "fb3b56ab45fb677ea724498644618685bdd839477f1875b6b63a5aa6bf8e051f"
+        },
+        {
+          "path": "Assets/YC/Domain/Items/ItemZoneQuery.cs",
+          "testedSha256": "5009348ebe023f73336b81c1921ccebe2265605199e9be44323eaac7a5ed1f1c",
+          "currentSha256": "c8dfb2ccae751ac430d2a1a2486d35affb45b6661511f24baebee43f4e3ab2c3"
+        },
+        {
+          "path": "Assets/YC/Domain/State/GameBoxStateProjector.cs",
+          "testedSha256": "d11c0f72e029e5a83d91d0f9a82a846fd309cb75ac630bf50bde6c541add450e",
+          "currentSha256": "f9fbc0dc84200145a4d9ed74ef18927f53898b8c8a2856939e6b60a2d888e8c0"
+        },
+        {
+          "path": "Assets/YC/Presentation/CardVisualCatalog.cs",
+          "testedSha256": "f24f68930e6ea661e11b2625339c47ee7d3cca3e5b66bff06ca70353a46f49f4",
+          "currentSha256": "45a785e81244fe2f739ddbebc52fd436578b0a4e8d842f7f931ddaf37d196557"
+        },
+        {
+          "path": "Assets/YC/Presentation/CharacterHandPanel.cs",
+          "testedSha256": "a6094c82f14150cd0ceeb89a047c271b112be5e4bacddc86ae6cbbb0cecbac20",
+          "currentSha256": "5b2131bd53f8b24eda3c510c09a7be0deeda4428581b5e209ea3aed1c3727e4a"
+        },
+        {
+          "path": "Assets/YC/Presentation/GameplayHud/GameplayMainModules.cs",
+          "testedSha256": "320a41356c0747458b92b67acd3ea20eafd08659c3574522c89e5f0d7934c508",
+          "currentSha256": "3c1fe21a62a771922246183a9f157be3491cf8c6bf2d32d470bbaad270c1c4c3"
+        },
+        {
+          "path": "Assets/YC/Presentation/MapEffectInteractionUiCoordinator.cs",
+          "testedSha256": "f134bcb4900877aeb0f676bd914670690f8a2cd051f4db1afc58b5ab6f1bb9fb",
+          "currentSha256": "4fda7d09f258f39ec7b0327b09bc08c72f1e1b6398f30af3f338e441cd474f30"
+        },
+        {
+          "path": "Assets/YC/Presentation/MobileCityInteractionController.cs",
+          "testedSha256": "2463318aed116b1f5e2fbf62769fc02be7d74567eaa9bdba034225c531cedb63",
+          "currentSha256": "0321b3accfbaf7ee3fe9894cd8f572c396ba5855682fa83a2693d1b9122c4496"
+        },
+        {
+          "path": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+          "testedSha256": "48e105cd9bd52c259254090ab5a1c07a04a75dc54ce59d9eee55580415c36ac8",
+          "currentSha256": "878e2a4b08abc94586a39a6b1a3d91b6d8b277aad1f42b9cddca494342826de8"
+        },
+        {
+          "path": "Assets/YC/Presentation/StartMenuRoomPanelView.cs",
+          "testedSha256": "b619511088cfca129dd5ba521d9daa9f331c3ddac4d8c808fea1ce71463eb9b6",
+          "currentSha256": "231c603e7d07ad52b54723c5f4a42379bf6ff75a5b651fe8256c19699fbd41a5"
+        }
+      ]
+    }
+  },
+  "historicalXml": [
+    {
+      "path": "Logs/InteractionFlowAcceptance/20261009/actual-ui/combined-run/playmode-20261009_055300.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.CardGesturesAndSourceDetailsPreservePendingDraft",
+          "result": "Failed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.DispatchMovesSequentiallyAndStopsOnlyRemainingChild",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.QuantityAndCleanupUseAllocationAndSettlementBar",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.StoredFacilityBuildUsesInstanceAndBottomBarStop",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.CityMoveOnFourPlayerMapCommitsPositionCostAndAction",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "path": "Logs/InteractionFlowAcceptance/20261009/actual-ui/followup/playmode-20261009_055729.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.CardGesturesAndSourceDetailsPreservePendingDraft",
+          "result": "Failed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.ExplorationOnFourPlayerMapUsesOwnFreeRouteAndCompletesEvent",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "path": "Logs/InteractionFlowAcceptance/20261009/actual-ui/final-followup/playmode-20261009_060348.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.InteractionFlowAcceptanceUiTests.CardGesturesAndSourceDetailsPreservePendingDraft",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.CityMoveOnFourPlayerMapCommitsPositionCostAndAction",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.ExplorationOnFourPlayerMapUsesOwnFreeRouteAndCompletesEvent",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "path": "Logs/InteractionFlowAcceptance/20261009/performance-followup-20261009-070054/playmode-20261009_073636.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.CityMoveOnFourPlayerMapCommitsPositionCostAndAction",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MixedMapMainActionUiTests.ExplorationOnFourPlayerMapUsesOwnFreeRouteAndCompletesEvent",
+          "result": "Passed"
+        }
+      ]
+    },
+    {
+      "path": "Logs/MercenaryAndViewedPilesAcceptance/20261009/retry-fixture-134008/playmode-20261009_134033.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MercenaryAndViewedPilesUiTests.MercenaryEntryMapsRealInfluenceInstanceAndReplacesOnce",
+          "result": "Passed"
+        },
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MercenaryAndViewedPilesUiTests.PlayerPileInspectionPreservesViewerAndPendingChoice",
+          "result": "Failed"
+        }
+      ]
+    },
+    {
+      "path": "Logs/MercenaryAndViewedPilesAcceptance/20261009/retry-piles-134545/playmode-20261009_134613.xml",
+      "cases": [
+        {
+          "name": "YC.Tests.PlayMode.ExpansionRules.MercenaryAndViewedPilesUiTests.PlayerPileInspectionPreservesViewerAndPendingChoice",
+          "result": "Passed"
+        }
+      ]
+    }
+  ],
+  "historicalFailedTestSummary": {
+    "source": "Logs/GameplayUiRework/second-batch-integration-acceptance-20261008-0420/editmode-latest-by-case.json",
+    "total": 258,
+    "passed": 224,
+    "failed": 34,
+    "fixtures": {
+      "YC.Tests.EditMode.ExploreLocationCommandHandlerTests": 23,
+      "YC.Tests.EditMode.FacilityLuaCompositionTests": 1,
+      "YC.Tests.EditMode.NMC005RoundExecutionEditModeTests": 1,
+      "YC.Tests.EditMode.ResourceCollectionCommandHandlerTests": 4,
+      "YC.Tests.EditMode.ResourceCollectionServiceTests": 2,
+      "YC.Tests.EditMode.TurnActionPresenterTests": 3
+    }
+  }
+}

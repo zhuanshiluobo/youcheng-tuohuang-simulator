@@ -1,0 +1,19 @@
+{
+  "definitionId": "infected.component.influence_lock_token",
+  "contentType": "component",
+  "version": "1.0.0",
+  "displayName": "影响力锁定指示物",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/components/infected.component.influence_lock_token.png",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "infected.influence_lock_token",
+  "cardZones": [],
+  "abilities": [],
+  "data": {
+    "instanceTypeId": "infected.influence_lock_token",
+    "quantityPolicy": "finite"
+  }
+}

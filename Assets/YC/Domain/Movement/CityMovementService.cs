@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.CardFlows;
@@ -205,7 +205,7 @@ namespace YC.Domain.Movement
             }
 
             var cost = waiveBaseCost ? new ResourceSet() : travelCostService.GetCityMoveBaseCost();
-            if (!waiveBaseCost && !player.Resources.CanPay(cost))
+            if (!waiveBaseCost && !YC.Domain.Effects.ResourceEffectExecutor.CanPayWithStoredMarkers(state, playerId, cost))
             {
                 return ValidationResult.Failure(CommandErrorCode.InsufficientResource, "玩家无法支付城市移动费用。");
             }
@@ -709,18 +709,18 @@ namespace YC.Domain.Movement
             var eventColor = GetEventColor(targetLocationId);
             if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "No cards remain in the matching event deck.");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空，无法进入尚未揭示的资源点。");
             }
 
-            var card = EventCardDatabase.Get(PeekEventCardId(state.Decks, eventColor));
+            var card = EventCardDatabase.Get(state, PeekEventCardId(state.Decks, eventColor));
             if (card == null)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Matching event card data does not exist.");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应事件牌数据不存在。");
             }
 
             if (card.ChoiceRewards.Count <= 0)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "Move city event card has no options.");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "城市移动事件牌没有可用选项。");
             }
 
             if (selectedOptionIndex >= card.ChoiceRewards.Count)

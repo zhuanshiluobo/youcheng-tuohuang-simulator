@@ -1,0 +1,99 @@
+{
+  "definitionId": "city_style_city_construction_frontier",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "城建开拓区",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/city_style_level_1.jpg",
+  "artworkSpriteId": "city_style_1_005",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "city_style_city_construction_frontier.special",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "content.city_style_city_construction_frontier.special",
+      "script": "lua/city_styles/city_style_city_construction_frontier.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "city_style_city_construction_frontier.special.complete"
+    }
+  ],
+  "data": {
+    "cityStyleId": "city_style_city_construction_frontier",
+    "name": "城建开拓区",
+    "level": 1,
+    "score": 5,
+    "description": "失去1分，从设施牌堆选择1张按正常费用建设；无论建设结果均洗混设施牌堆。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.city_construction_frontier",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 4,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ]
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.city_construction_frontier",
+      "cityStyleId": "city_style_city_construction_frontier",
+      "name": "城建开拓区",
+      "description": "失去1分，从设施牌堆选择1张按正常费用建设；无论建设结果均洗混设施牌堆。",
+      "level": 1,
+      "effectKind": 3,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": false
+    },
+    "luaSubscriptionId": "content.city_style_city_construction_frontier.special",
+    "luaAbilityId": "city_style_city_construction_frontier.special",
+    "luaCompletionHandlerId": "city_style_city_construction_frontier.special.complete",
+    "luaVersion": "1.0.0",
+    "effectScript": "lua/city_styles/city_style_city_construction_frontier.special.lua"
+  }
+}

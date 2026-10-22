@@ -1,0 +1,337 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "infected",
+  "initialBasicCharacterCount": 8,
+  "basicCharacterKeepCount": 5,
+  "maxRetainedBasicCharacterCount": 5,
+  "cityStyleLevelOneDrawCount": 4,
+  "cityStyleLevelTwoDrawCount": 2,
+  "enterpriseEntrance": true,
+  "operatorDrawCount": 3,
+  "entries": [
+    {
+      "entryId": "initial_amiya",
+      "definitionId": "infected.character.amiya",
+      "quantity": 1,
+      "perPlayer": true,
+      "initialZoneRole": "hand",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_stonehoove_security",
+      "definitionId": "infected.enterprise.stonehoove_security",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "enterprise_maylander_foundation",
+      "definitionId": "infected.enterprise.maylander_foundation",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_muelsyse",
+      "definitionId": "infected.character.muelsyse",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_jessica_the_liberated",
+      "definitionId": "infected.character.jessica_the_liberated",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_swire",
+      "definitionId": "infected.character.swire",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_lin",
+      "definitionId": "infected.character.lin",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_silence_the_paradigmatic",
+      "definitionId": "infected.character.silence_the_paradigmatic",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_hellagur",
+      "definitionId": "infected.character.hellagur",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_gavial_the_invincible",
+      "definitionId": "infected.character.gavial_the_invincible",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "operator_ceobe",
+      "definitionId": "infected.character.ceobe",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "operator_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "flowing_shape_alpha",
+      "definitionId": "infected.character.flowing_shape_alpha",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "flowing_shapes",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "flowing_shape_beta",
+      "definitionId": "infected.character.flowing_shape_beta",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "flowing_shapes",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "flowing_shape_gamma",
+      "definitionId": "infected.character.flowing_shape_gamma",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "flowing_shapes",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "award_enterprise_special",
+      "definitionId": "infected.award.enterprise_special",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "awards",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.maylander_foundation",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "award_score",
+      "definitionId": "infected.award.score",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "awards",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.maylander_foundation",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "award_roads",
+      "definitionId": "infected.award.roads",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "awards",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.maylander_foundation",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "award_permanent_support",
+      "definitionId": "infected.award.permanent_support",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "awards",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.maylander_foundation",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "company_markers",
+      "definitionId": "infected.component.company_marker",
+      "quantity": 8,
+      "perPlayer": false,
+      "initialZoneRole": "company_markers",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.stonehoove_security",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "lifetime_security_contracts",
+      "definitionId": "infected.contract.lifetime_security",
+      "quantity": 2,
+      "perPlayer": false,
+      "initialZoneRole": "contracts",
+      "condition": {
+        "kind": "enterprise_selected",
+        "runtimeId": "infected.enterprise.stonehoove_security",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "temporary_settlements",
+      "definitionId": "infected.facility.temporary_settlement",
+      "quantity": 3,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "rhodes_office_red",
+      "definitionId": "infected.facility.rhodes_office_red",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "rhodes_office_blue",
+      "definitionId": "infected.facility.rhodes_office_blue",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "rhodes_office_yellow",
+      "definitionId": "infected.facility.rhodes_office_yellow",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "facility_deck",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_emerging_buildings",
+      "definitionId": "infected.city_style.emerging_buildings",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_district_management",
+      "definitionId": "infected.city_style.district_management",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    },
+    {
+      "entryId": "style_enterprise_offices",
+      "definitionId": "infected.city_style.enterprise_offices",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "city_styles",
+      "condition": {
+        "kind": "always",
+        "runtimeId": "",
+        "abilityId": ""
+      }
+    }
+  ]
+}

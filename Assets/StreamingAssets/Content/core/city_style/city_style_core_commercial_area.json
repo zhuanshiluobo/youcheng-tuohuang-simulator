@@ -1,0 +1,92 @@
+{
+  "definitionId": "city_style_core_commercial_area",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "核心商业区",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/city_style_level_1.jpg",
+  "artworkSpriteId": "city_style_1_007",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "city_style_core_commercial_area.special",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "content.city_style_core_commercial_area.special",
+      "script": "lua/city_styles/city_style_core_commercial_area.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cityStyleId": "city_style_core_commercial_area",
+    "name": "核心商业区",
+    "level": 1,
+    "score": 3,
+    "description": "选择获得4金券、1源岩、1异铁或1源石碎片，再立即执行1次建设、探索或移动城市。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.core_commercial_area",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 3,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        }
+      ]
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.core_commercial_area",
+      "cityStyleId": "city_style_core_commercial_area",
+      "name": "核心商业区",
+      "description": "选择获得4金券、1源岩、1异铁或1源石碎片，再立即执行1次建设、探索或移动城市。",
+      "level": 1,
+      "effectKind": 3,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": false
+    },
+    "luaSubscriptionId": "content.city_style_core_commercial_area.special",
+    "luaAbilityId": "city_style_core_commercial_area.special",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.0.0",
+    "effectScript": "lua/city_styles/city_style_core_commercial_area.special.lua"
+  }
+}

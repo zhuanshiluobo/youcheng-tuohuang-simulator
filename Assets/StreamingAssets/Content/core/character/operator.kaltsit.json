@@ -1,0 +1,49 @@
+{
+  "definitionId": "operator.kaltsit",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "凯尔希",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.kaltsit.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "operator.kaltsit.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.kaltsit.strategy",
+      "script": "lua/characters/operator.kaltsit.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.kaltsit.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.operator.kaltsit.tactic",
+      "script": "lua/characters/operator.kaltsit.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "operator.kaltsit",
+    "cardId": "operator.kaltsit",
+    "name": "凯尔希",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.kaltsit.strategy",
+    "tacticAbilityId": "operator.kaltsit.tactic"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "definitionId": "infected.character.muelsyse",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "缪尔赛思",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.muelsyse.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.muelsyse.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.muelsyse.strategy",
+      "script": "lua/characters/infected.character.muelsyse.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/infected.character.muelsyse.strategy.lua",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.character.muelsyse.strategy.cleanup_order",
+        "availabilityHandlerId": "infected.character.muelsyse.strategy.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.character.muelsyse.strategy.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.character.muelsyse.strategy.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.character.muelsyse.strategy.label"
+          },
+          "iconKey": "core:settlement.chain_defer",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    },
+    {
+      "abilityId": "infected.character.muelsyse.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.infected.character.muelsyse.tactic",
+      "script": "lua/characters/infected.character.muelsyse.tactic.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.muelsyse.tactic.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "observedEvents": [
+        "CharacterCardCovered",
+        "CharacterUseFinished",
+        "CollectionStarted"
+      ],
+      "observerSubjectPolicy": "self"
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.muelsyse",
+    "cardId": "infected.character.muelsyse",
+    "name": "缪尔赛思",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "infected.character.muelsyse.strategy",
+    "tacticAbilityId": "infected.character.muelsyse.tactic",
+    "strategyName": "生机勃发",
+    "tacticName": "流形技艺",
+    "sourceReference": "I03",
+    "playerDetails": [
+      {
+        "abilityId": "infected.character.muelsyse.tactic",
+        "effectText": "计谋·流形技艺（持续性）：获得3张流形角色，每张分别选择加入手牌或弃牌区；角色盖放阶段可额外盖放1张流形；采集阶段开始，若该流形仍盖放，可将其回到手牌。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": true,
+        "displayName": "缪尔赛思"
+      },
+      {
+        "abilityId": "infected.character.muelsyse.strategy",
+        "effectText": "策略·生机勃发：放置1个并移动1个你的影响力；本回合收尾阶段再放置1个、移动1个你的影响力。来源角色离场不取消已经登记的收尾义务。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Delayed",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "缪尔赛思"
+      }
+    ]
+  }
+}

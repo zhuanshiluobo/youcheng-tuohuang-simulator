@@ -8,6 +8,8 @@ namespace YC.Domain.SpecialActions
 {
     public static class SpecialActionDatabase
     {
+        public static SpecialActionDefinition Get(YC.Domain.State.GameState state, string id) => state?.ContentDefinitions == null ? Get(id) :
+            YC.Domain.State.GameStateCloneService.DeepClone(state.ContentDefinitions.SpecialActions.Find(value => value.SpecialActionId == id));
         public const string MilitaryIndustrialArea = "special_action.city_style.military_industrial_area";
         public const string MobilizationSupportSystem = "special_action.city_style.mobilization_support_system";
         public const string CompositePowerSystem = "special_action.city_style.composite_power_system";

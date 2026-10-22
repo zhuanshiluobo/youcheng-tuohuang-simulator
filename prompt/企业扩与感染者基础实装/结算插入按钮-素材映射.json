@@ -1,0 +1,1246 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-10-09",
+  "implementationStatus": "2026-10-14逐项核对：26张指定图片已导入，21图标键绑定一致；布局/入场已修，必要组件和正常Player单来源截图已核。其他屏幕/多来源动画手感未验；各来源业务通过另查交付，不由此映射推定。",
+  "catalogStandard": "M03",
+  "mode": "完整整底；禁止与fill/frame重复叠加",
+  "sourceReadScope": [
+    "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮",
+    "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标"
+  ],
+  "assetCount": 26,
+  "assetCountMeaning": "本轮选定待实装图片数，非原包全量文件数",
+  "plannedBaseCount": 5,
+  "plannedIconVariantCount": 21,
+  "buttonCount": 13,
+  "keyboardNavigationIncluded": false,
+  "stateIconTone": {
+    "default": "dark",
+    "hover": "dark",
+    "pressed": "dark",
+    "pending": "light",
+    "disabled": "muted"
+  },
+  "excluded": [
+    {
+      "id": "v1.0.insert/build/cooperate/discount",
+      "reason": "未分配给本批实际来源，不导入本批；不再作为待定选择"
+    },
+    {
+      "id": "focus-ring",
+      "reason": "用户未要求键盘导航，本批排除"
+    }
+  ],
+  "icons": [
+    {
+      "id": "core:settlement.chain_link",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-chain-link",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.chain_link.dark",
+      "light": "core:settlement.chain_link.light",
+      "muted": "core:settlement.chain_link.muted"
+    },
+    {
+      "id": "core:settlement.substitute",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-substitute",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.substitute.dark",
+      "light": "core:settlement.substitute.light",
+      "muted": "core:settlement.substitute.muted"
+    },
+    {
+      "id": "core:settlement.trigger_ready",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-trigger-ready",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.trigger_ready.dark",
+      "light": "core:settlement.trigger_ready.light",
+      "muted": "core:settlement.trigger_ready.muted"
+    },
+    {
+      "id": "core:settlement.target_other",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-target-other",
+      "dark": "core:settlement.target_other.dark",
+      "light": "core:settlement.target_other.light",
+      "muted": "core:settlement.target_other.muted",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验"
+    },
+    {
+      "id": "core:settlement.scope_adjacent",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-scope-adjacent",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.scope_adjacent.dark",
+      "light": "core:settlement.scope_adjacent.light",
+      "muted": "core:settlement.scope_adjacent.muted"
+    },
+    {
+      "id": "core:settlement.choose_order",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-choose-order",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.choose_order.dark",
+      "light": "core:settlement.choose_order.light",
+      "muted": "core:settlement.choose_order.muted"
+    },
+    {
+      "id": "core:settlement.chain_defer",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "assetId": "ui-chain-defer",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ],
+      "resolutionStatus": "三态图片已导入且目录绑定一致；各来源业务与视觉另验",
+      "dark": "core:settlement.chain_defer.dark",
+      "light": "core:settlement.chain_defer.light",
+      "muted": "core:settlement.chain_defer.muted"
+    }
+  ],
+  "buttons": [
+    {
+      "abilityId": "infected.character.amiya.tactic",
+      "definitionId": "infected.character.amiya",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.amiya.json",
+      "sourceDisplayName": "阿米娅",
+      "entryKind": "optional_insertion",
+      "label": {
+        "key": "core:settlement.infected.character.amiya.tactic.label",
+        "arguments": []
+      },
+      "labelText": "阿米娅·合作协议",
+      "description": {
+        "key": "core:settlement.infected.character.amiya.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "使用角色牌选择模式前，将阿米娅移至角色弃牌区，令当前角色使用可以按选定顺序结算策略和计谋。不是把同一技能重复执行两次。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.amiya.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.chain_link",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "operator.passenger.tactic",
+      "definitionId": "operator.passenger",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\operator.passenger.json",
+      "sourceDisplayName": "异客",
+      "entryKind": "optional_insertion",
+      "label": {
+        "key": "core:settlement.operator.passenger.tactic.label",
+        "arguments": []
+      },
+      "labelText": "异客·隐蔽仓库",
+      "description": {
+        "key": "core:settlement.operator.passenger.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "当前整笔资源支付尚未提交时，分配异客牌上的标记，合计至多替代2个源岩、源石碎片或异铁；不能替代金券、至纯源石，不能出售。",
+      "ariaLabel": {
+        "key": "core:settlement.operator.passenger.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.substitute",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "operator.dorothy.tactic",
+      "definitionId": "operator.dorothy",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\operator.dorothy.json",
+      "sourceDisplayName": "多萝西",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.operator.dorothy.tactic.label",
+        "arguments": []
+      },
+      "labelText": "多萝西·为了大家",
+      "description": {
+        "key": "core:settlement.operator.dorothy.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，移除此牌上2个标记，然后放置1个你的影响力。",
+      "ariaLabel": {
+        "key": "core:settlement.operator.dorothy.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "operator.mudrock.tactic",
+      "definitionId": "operator.mudrock",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\operator.mudrock.json",
+      "sourceDisplayName": "泥岩",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.operator.mudrock.tactic.label",
+        "arguments": []
+      },
+      "labelText": "泥岩·泥岩小队",
+      "description": {
+        "key": "core:settlement.operator.mudrock.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，支付2个源岩，放置1个你的影响力。",
+      "ariaLabel": {
+        "key": "core:settlement.operator.mudrock.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.jessica_the_liberated.tactic",
+      "definitionId": "infected.character.jessica_the_liberated",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.jessica_the_liberated.json",
+      "sourceDisplayName": "涤火杰西卡",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.jessica_the_liberated.tactic.label",
+        "arguments": []
+      },
+      "labelText": "涤火杰西卡·不义之财",
+      "description": {
+        "key": "core:settlement.infected.character.jessica_the_liberated.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，支付绑定设施卡面金券费用加2的金券，获得2分后将本角色移至角色弃牌区；金券不足时不可执行。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.jessica_the_liberated.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.trigger_ready",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.swire.tactic",
+      "definitionId": "infected.character.swire",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.swire.json",
+      "sourceDisplayName": "诗怀雅",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.swire.tactic.label",
+        "arguments": []
+      },
+      "labelText": "诗怀雅·和气生财",
+      "description": {
+        "key": "core:settlement.infected.character.swire.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，归还本牌上1枚玩家标记，获得6金券；选择同一家企业，你与该标记所有者各提升1级合作等级。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.swire.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.target_other",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.lin.tactic",
+      "definitionId": "infected.character.lin",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.lin.json",
+      "sourceDisplayName": "林",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.lin.tactic.label",
+        "arguments": []
+      },
+      "labelText": "林·劫富济贫",
+      "description": {
+        "key": "core:settlement.infected.character.lin.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，移除本牌上1个标记，从当前至少拥有20金券的对手处获得10金券；没有合格对手时仍可移除标记，随后不获得金券。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.lin.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.target_other",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.gavial_the_invincible.tactic",
+      "definitionId": "infected.character.gavial_the_invincible",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.gavial_the_invincible.json",
+      "sourceDisplayName": "百炼嘉维尔",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.gavial_the_invincible.tactic.label",
+        "arguments": []
+      },
+      "labelText": "百炼嘉维尔·撼地巨斧",
+      "description": {
+        "key": "core:settlement.infected.character.gavial_the_invincible.tactic.description",
+        "arguments": []
+      },
+      "descriptionText": "每个收尾阶段一次，将嘉维尔指示物移到相邻资源点，再移动该资源点上的1个影响力，保留其所有者和放置限制。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.gavial_the_invincible.tactic.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.scope_adjacent",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.award.permanent_support.cleanup",
+      "definitionId": "infected.award.permanent_support",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\award\\infected.award.permanent_support.json",
+      "sourceDisplayName": "梅兰德基金会—授勋卡",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.award.permanent_support.cleanup.label",
+        "arguments": []
+      },
+      "labelText": "授勋卡",
+      "description": {
+        "key": "core:settlement.infected.award.permanent_support.cleanup.description",
+        "arguments": []
+      },
+      "descriptionText": "梅兰德基金会—授勋卡：每个收尾阶段一次，获得3金券和1个任选基础资源，并移动1个你的影响力。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.award.permanent_support.cleanup.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.choose_order",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.muelsyse.strategy",
+      "definitionId": "infected.character.muelsyse",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.muelsyse.json",
+      "sourceDisplayName": "缪尔赛思",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.muelsyse.strategy.label",
+        "arguments": []
+      },
+      "labelText": "缪尔赛思·生机勃发",
+      "description": {
+        "key": "core:settlement.infected.character.muelsyse.strategy.description",
+        "arguments": []
+      },
+      "descriptionText": "本回合已使用策略产生的收尾段：放置1个你的影响力，再移动1个你的影响力。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.muelsyse.strategy.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "operator.w.strategy",
+      "definitionId": "operator.w",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\operator.w.json",
+      "sourceDisplayName": "W",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.operator.w.strategy.label",
+        "arguments": []
+      },
+      "labelText": "W·伺机出动",
+      "description": {
+        "key": "core:settlement.operator.w.strategy.description",
+        "arguments": []
+      },
+      "descriptionText": "本回合已使用策略产生的收尾义务：移除2个你的影响力。不能结束收尾来放弃此义务。",
+      "ariaLabel": {
+        "key": "core:settlement.operator.w.strategy.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "character.liskarm.strategy",
+      "definitionId": "liskarm",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\liskarm.json",
+      "sourceDisplayName": "雷蛇",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.character.liskarm.strategy.label",
+        "arguments": []
+      },
+      "labelText": "雷蛇·安保协议",
+      "description": {
+        "key": "core:settlement.character.liskarm.strategy.description",
+        "arguments": []
+      },
+      "descriptionText": "本回合已使用策略产生的收尾义务：移除1个你的影响力。不能结束收尾来放弃此义务。",
+      "ariaLabel": {
+        "key": "core:settlement.character.liskarm.strategy.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    },
+    {
+      "abilityId": "infected.character.hellagur.strategy",
+      "definitionId": "infected.character.hellagur",
+      "sourceDefinition": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\character\\infected.character.hellagur.json",
+      "sourceDisplayName": "赫拉格",
+      "entryKind": "cleanup_order",
+      "label": {
+        "key": "core:settlement.infected.character.hellagur.strategy.label",
+        "arguments": []
+      },
+      "labelText": "赫拉格·诡道兵法",
+      "description": {
+        "key": "core:settlement.infected.character.hellagur.strategy.description",
+        "arguments": []
+      },
+      "descriptionText": "本回合已使用策略产生的收尾义务：移除2个你的影响力。不能结束收尾来放弃此义务。",
+      "ariaLabel": {
+        "key": "core:settlement.infected.character.hellagur.strategy.label",
+        "arguments": []
+      },
+      "iconKey": "core:settlement.chain_defer",
+      "contentMode": "icon_text",
+      "selectionStatus": "用户指定图标/文案映射；不代表该来源完整流程或画面已验收"
+    }
+  ],
+  "assets": [
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-default@2x.png",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-default@2x.png",
+      "sha256": "02035b57f6a0d01a88a8786c443330bf8fc5d23297ff15960670910a7264c3bd",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "resourceKey": "settlement.chip-default",
+      "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-default@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-disabled@2x.png",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-disabled@2x.png",
+      "sha256": "009f3f9f325eb53f33df19347b4b2fb9d5b4b357f59936f58a2579afd0f90a17",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "resourceKey": "settlement.chip-disabled",
+      "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-disabled@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-hover@2x.png",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-hover@2x.png",
+      "sha256": "97b8af12648574ffeda0ab84d67855de9fc8dd8a75cd18589935cdfccac2ff0e",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "resourceKey": "settlement.chip-hover",
+      "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-hover@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-pending@2x.png",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pending@2x.png",
+      "sha256": "e1f10929409fb48e76dd49c925e3ffff1e7750f0635d8cf78d5c889f9f772521",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "resourceKey": "settlement.chip-pending",
+      "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-pending@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算插入按钮\\Settlement-Effects-v1.0\\assets\\bases\\chip-pressed@2x.png",
+      "catalogPath": "资产/结算插入按钮/Settlement-Effects-v1.0/assets/bases/chip-pressed@2x.png",
+      "sha256": "6bf6aeadb9329fb5080d237945b34967a1f274cc496c610f9a46ce9a5024ff4d",
+      "image": {
+        "width": 384,
+        "height": 88
+      },
+      "purpose": "结算插入按钮整底",
+      "resourceKey": "settlement.chip-pressed",
+      "plannedUnityPath": "G:/NoMadCity/Assets/YC/Presentation/Settlement/Sprites/Bases/chip-pressed@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        44,
+        42,
+        44,
+        42
+      ],
+      "imageType": "Sliced",
+      "pixelsPerUnitMultiplier": 1,
+      "requiredCanvasReferencePixelsPerUnit": 100,
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持"
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-dark@2x.png",
+      "sha256": "6c5336886d840a3fabf2eb86bce8cb29ddeea4e7fcf701f40357e322d713df60",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_link.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-light@2x.png",
+      "sha256": "845d8883e27752e940fe00ea0c06d5e633380ba69382fcbe6dff2f7776c73d31",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_link.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-link-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-link-muted@2x.png",
+      "sha256": "db484c3c06a46da0c613f6940039749e7f2ed54ed64c587d9ba29411efc201c7",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_link.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-link-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.amiya.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-dark@2x.png",
+      "sha256": "1b3a586c08827afe0002d0c22f98170fdcefdf1430f934f88903ebc338f1d1e7",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.substitute.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-light@2x.png",
+      "sha256": "a1b7b84a92f7be2f5a8ac549f5455a390541b3b74f04ffa25d974a5050c1af92",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.substitute.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-substitute-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-substitute-muted@2x.png",
+      "sha256": "0daeecd54aca51081576104f2604650bed2b432d717f21322829a3fa9613211a",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.substitute.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-substitute-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.passenger.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-dark@2x.png",
+      "sha256": "5e962957f7ea2908c33c6d93aa4cdcb7553e3b21f40f89cc5e408e2259311a8d",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.trigger_ready.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-light@2x.png",
+      "sha256": "0017f7f69babe91e2f85181d345665dcf9a20b7e7761c05be15a1deb14ec46f2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.trigger_ready.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-trigger-ready-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-trigger-ready-muted@2x.png",
+      "sha256": "048f8a9828b8d988d578e716e4897c3e5105dbcd30196d2488679f31b8d391da",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.trigger_ready.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-trigger-ready-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "operator.dorothy.tactic",
+        "operator.mudrock.tactic",
+        "infected.character.jessica_the_liberated.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-dark@2x.png",
+      "sha256": "e01b9a28dc4434ed04d360df526bea3288d3612736fff925ab818b058e77c0ca",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.scope_adjacent.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-light@2x.png",
+      "sha256": "13c5e81f705b99d35d640cd65c7c934366a95b53659bfabf6070346d14ec2d27",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.scope_adjacent.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-scope-adjacent-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-scope-adjacent-muted@2x.png",
+      "sha256": "b7241ccbb2e6f0c3615b1e1b2b064f998d2ce588a8d2354db35bdfb440326dcb",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.scope_adjacent.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-scope-adjacent-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.gavial_the_invincible.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-dark@2x.png",
+      "sha256": "c6944cca050ab2e1e4f3b92d2b4b095b9c3df43f34cdef3ee599236c6faa87e2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.choose_order.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-light@2x.png",
+      "sha256": "fb1dc1ac3c832dfc96ee48bc44b6249730ef3dd5f041b477ddbca18ff8f3b6db",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.choose_order.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-choose-order-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-choose-order-muted@2x.png",
+      "sha256": "561bc32377f7e8a75efa7b71e28f5432a5072cbe661809f0792940d06889e0c8",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.choose_order.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-choose-order-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.award.permanent_support.cleanup"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-dark@2x.png",
+      "sha256": "fceca884eb979bf156ae56e54435cac7d2a8bfd244c438940eaa055360608062",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_defer.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-light@2x.png",
+      "sha256": "f12d0f9f2d0b8f47f5ba6910a634e457d9b334ee1ced9de29534bb1e5647c157",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_defer.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-chain-defer-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-chain-defer-muted@2x.png",
+      "sha256": "5c0dfc98c78d5ef0a5981a2a90433c60389105f00a3872c8c383648404694add",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.chain_defer.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-chain-defer-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.muelsyse.strategy",
+        "operator.w.strategy",
+        "character.liskarm.strategy",
+        "infected.character.hellagur.strategy"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-dark@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-dark@2x.png",
+      "sha256": "94bf220f18330e7c991794fbc648f55ac7f681bb2d629dc700bf8f127cc75756",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.target_other.dark",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-dark@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-light@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-light@2x.png",
+      "sha256": "e1d6a28ad587b6c052bad4751d0014d3baf1807906597d4e81392de482fa71e2",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.target_other.light",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-light@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ]
+    },
+    {
+      "source": "G:\\NoMadCity\\游城拓荒\\可用UI素材\\资产\\结算备用图标\\Settlement-Icons-Extra-v1.1\\assets\\icons-extra\\ui-target-other-muted@2x.png",
+      "catalogPath": "资产/结算备用图标/Settlement-Icons-Extra-v1.1/assets/icons-extra/ui-target-other-muted@2x.png",
+      "sha256": "8fc8597235549e1c9e6053ca5379c32d92526e55729c09c81323894186151b86",
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "purpose": "按用户指定绑定按钮外观；不参与规则或交互判定",
+      "usage": "settlement_action",
+      "resourceKey": "core:settlement.target_other.muted",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Settlement\\Sprites\\Icons\\ui-target-other-muted@2x.png",
+      "spritePixelsPerUnit": 200,
+      "unityBorderLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "imageType": "Simple",
+      "preserveAspect": true,
+      "displaySize": [
+        22,
+        22
+      ],
+      "status": "已导入；2026-10-14哈希与指定源一致",
+      "selectionStatus": "用户指定用途保持",
+      "assignedAbilityIds": [
+        "infected.character.swire.tactic",
+        "infected.character.lin.tactic"
+      ]
+    }
+  ],
+  "presentationContract": "局内玩法文案与图标转译-实装准备.md",
+  "selectionBasis": "用户明确修改优先；图形含义不限制选用，不得据此改变Effect、挂链、费用、资格、顺序或交互。",
+  "plannedIconKeyCount": 7,
+  "resolvedIconKeyCount": 7,
+  "unresolvedIconKeyCount": 0,
+  "unresolvedIcons": [],
+  "currentVisualContract": "结算按钮布局与入场表现-修补合同.md",
+  "decorativeVerticalLinesIncluded": false
+}

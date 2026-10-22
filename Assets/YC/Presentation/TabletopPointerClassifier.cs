@@ -10,7 +10,7 @@ namespace YC.Presentation
     {
         public static bool CanRouteMapPointer(Vector2 screenPosition)
         {
-            return MapCameraGeometry.IsScreenPointInCameraViewport(
+            return !MapDisplayController.SuppressMapClick && MapCameraGeometry.IsScreenPointInCameraViewport(
                        Camera.main, screenPosition) &&
                    !IsBlockedByFlatHud(screenPosition);
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.CardFlows;
 using YC.Domain.Cards;
@@ -9,6 +10,29 @@ namespace YC.Presentation.Workflows
 {
     public sealed class TurnActionPanelPresenter
     {
+        public Func<bool> HasUsableSpecialAction { private get; set; }
+        public Func<bool> HasSwitchableMainActionDraft { private get; set; }
+        public Func<bool> HasMainActionSubmissionInFlight { private get; set; }
+        public Func<bool> HasCommittedSettlement { private get; set; }
+        public static bool HasCommittedSettlementContext(GameState state, GameStateView visible, int playerId)
+        {
+            if (state == null) return false;
+            if (!string.IsNullOrEmpty(visible?.ActiveSettlementWindowId) &&
+                !visible.PreparedActionPayments.Any(payment => payment.CanCancel &&
+                    payment.PaymentOwnerEffectId == visible.SettlementEndAction?.OwnerEffectId)) return true;
+            if (visible?.CharacterUses.Any(use => use.ExecutingPlayerId == playerId && !use.Finished && !use.SelectionCancelled) == true)
+                return true;
+            if (visible == null && state.CharacterUses.Any(use => use.ExecutingPlayerId == playerId && !use.Finished && !use.SelectionCancelled)) return true;
+            if (state.PendingCharacterEffect?.IsValid() == true && state.PendingCharacterEffect.PlayerId == playerId) return true;
+            if (visible != null)
+                return visible.Interactions?.Any(request => request != null && request.Status == "open" && request.AnsweringPlayerId == playerId &&
+                    GameStateVisibilityPolicy.IsVisible(request.Visibility, request.AnsweringPlayerId, GameStateViewer.Player(playerId)) &&
+                    !ActionPaymentPreparation.IsPreparedParameters(request.PromptParameters) && request.Kind != "collection.task" && !(request.Kind ?? string.Empty).StartsWith(InteractionRequest.MainlineCompletionInteractionPrefix, StringComparison.Ordinal)) == true;
+
+            return state.EffectRuntime?.InteractionRequests?.Any(request => request != null && request.Status == "open" &&
+                request.AnsweringPlayerId == playerId && !ActionPaymentPreparation.IsPreparedActionRequest(request) && !request.IsInternalMainlineInteraction() &&
+                GameStateVisibilityPolicy.IsVisible(request.Visibility, request.AnsweringPlayerId, GameStateViewer.Player(playerId))) == true;
+        }
         public string CharacterCoverPrompt { get; set; } = string.Empty;
         private static readonly MainActionBudgetService MainActionBudgetService =
             new MainActionBudgetService();
@@ -22,6 +46,7 @@ namespace YC.Presentation.Workflows
         private readonly BuildInteraction buildInteraction;
         private readonly Func<string> getCompletedActionName;
         private readonly Func<bool> canEndCurrentAction;
+        private readonly Func<bool> canStopPendingCharacterMode;
         private readonly Func<bool> isSelectingMoveTarget;
 
         public TurnActionPanelPresenter(
@@ -34,9 +59,11 @@ namespace YC.Presentation.Workflows
             BuildInteraction buildInteraction,
             Func<string> getCompletedActionName,
             Func<bool> canEndCurrentAction,
-            Func<bool> isSelectingMoveTarget)
+            Func<bool> isSelectingMoveTarget,
+            Func<bool> canStopPendingCharacterMode = null)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
+            this.canStopPendingCharacterMode = canStopPendingCharacterMode;
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.flowCoordinator = flowCoordinator ??
                                    throw new ArgumentNullException(nameof(flowCoordinator));
@@ -74,16 +101,18 @@ namespace YC.Presentation.Workflows
             var isActionPhase = state.Phase == GamePhase.ActionRound1 ||
                                 state.Phase == GamePhase.ActionRound2;
             var isLocalTurn = state.CurrentPlayerId == context.LocalPlayerId;
-            var hasPendingChoice = state.HasPendingChoice();
+            var committedSettlement = HasCommittedSettlement?.Invoke() == true;
+            var hasPendingChoice = ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId) || committedSettlement;
             var mainActionDone = player != null &&
                                  !MainActionBudgetService.HasAvailableMainAction(
                                      state,
                                      context.LocalPlayerId);
             var hasLocalBuildDraft = buildInteraction.IsActive;
             var canChooseQuickAction = isActionPhase &&
+                                       HasMainActionSubmissionInFlight?.Invoke() != true &&
                                        isLocalTurn &&
                                        !hasPendingChoice &&
-                                       !hasLocalBuildDraft;
+                                       (!hasLocalBuildDraft || HasSwitchableMainActionDraft?.Invoke() == true);
             var canChooseMainAction = canChooseQuickAction && !mainActionDone;
             var pendingCharacterEffect = state.PendingCharacterEffect;
             var hasUnfinishedCharacterUse = pendingCharacterEffect != null &&
@@ -125,7 +154,7 @@ namespace YC.Presentation.Workflows
                 player != null,
                 player == null ? PlayerColor.Red : player.Color,
                 player == null ? 0 : player.InfluenceSupply,
-                player != null &&
+                player != null && !committedSettlement &&
                 !player.UsedCharacterThisRound &&
                 !string.IsNullOrEmpty(player.CoveredCharacterCardId) &&
                 (canOpenUnfinishedCharacterUse ||
@@ -136,19 +165,21 @@ namespace YC.Presentation.Workflows
                 canChooseMainAction,
                 canChooseMainAction && player != null,
                 canChooseMainAction,
-                canEndCurrentAction() && !RoundTrackRule.IsFinalState(state),
-                waiting) { CanViewFacilitySupply = player != null &&
-                    (mainActionDone || !isLocalTurn || !isActionPhase) };
+                ((canStopPendingCharacterMode?.Invoke() ?? false) || canEndCurrentAction()) && !RoundTrackRule.IsFinalState(state),
+                waiting) { CanInspectCityStyles = player != null,
+                    CanUseSpecialAction = canChooseMainAction && (HasUsableSpecialAction?.Invoke() ?? false),
+                    AllCollectionLocationsSelected = resourceCollectionPresenter.AllLocationsCovered,
+                    CanViewFacilitySupply = player != null };
         }
 
         public bool CanStartMainAction()
         {
-            return CanStartAction(false);
+            return HasCommittedSettlement?.Invoke() != true && CanStartAction(false);
         }
 
         public bool CanStartQuickAction()
         {
-            return CanStartAction(true);
+            return HasCommittedSettlement?.Invoke() != true && CanStartAction(true);
         }
 
         public string GetQuickActionUnavailableReason()
@@ -160,7 +191,7 @@ namespace YC.Presentation.Workflows
                 return "当前玩家不存在。";
             }
 
-            if (buildInteraction.IsActive)
+            if (buildInteraction.IsActive && HasSwitchableMainActionDraft?.Invoke() != true)
             {
                 return "请先完成或取消当前建设草稿。";
             }
@@ -170,7 +201,7 @@ namespace YC.Presentation.Workflows
                 return "尚未轮到本机玩家行动。";
             }
 
-            if (state.HasPendingChoice())
+            if (ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId))
             {
                 return "请先处理待选择项。";
             }
@@ -182,7 +213,7 @@ namespace YC.Presentation.Workflows
             }
 
             if (flowCoordinator.CurrentMode != InteractionMode.ChooseAction &&
-                flowCoordinator.CurrentMode != InteractionMode.Hidden)
+                flowCoordinator.CurrentMode != InteractionMode.Hidden && HasSwitchableMainActionDraft?.Invoke() != true)
             {
                 return "请先完成或取消当前正在进行的行动。";
             }
@@ -198,7 +229,7 @@ namespace YC.Presentation.Workflows
                 return "当前没有可结束的回合。";
             }
 
-            if (state.HasPendingChoice())
+            if (ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId))
             {
                 return "请先处理待选择项。";
             }
@@ -238,6 +269,7 @@ namespace YC.Presentation.Workflows
 
         private bool CanStartAction(bool quickAction)
         {
+            if (HasMainActionSubmissionInFlight?.Invoke() == true) return false;
             var state = context.CurrentState;
             var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
             if (player == null)
@@ -246,7 +278,7 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            if (buildInteraction.IsActive)
+            if (buildInteraction.IsActive && HasSwitchableMainActionDraft?.Invoke() != true)
             {
                 view.ShowPrompt("请先完成或取消当前建设草稿。");
                 return false;
@@ -254,7 +286,7 @@ namespace YC.Presentation.Workflows
 
             if (quickAction &&
                 flowCoordinator.CurrentMode != InteractionMode.ChooseAction &&
-                flowCoordinator.CurrentMode != InteractionMode.Hidden)
+                flowCoordinator.CurrentMode != InteractionMode.Hidden && HasSwitchableMainActionDraft?.Invoke() != true)
             {
                 view.ShowPrompt("请先完成或取消当前正在进行的行动，再执行快速行动。");
                 return false;
@@ -266,7 +298,7 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            if (state.HasPendingChoice())
+            if (ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId))
             {
                 view.ShowPrompt("请先处理待选择项。");
                 return false;
@@ -384,7 +416,7 @@ namespace YC.Presentation.Workflows
                     if (state.PendingCharacterEffect.PlayerId != context.LocalPlayerId)
                         return "结束阶段：等待玩家 " + state.PendingCharacterEffect.PlayerId + " 完成雷蛇影响力移除。";
 
-                    return "结束阶段：雷蛇要求移除 1 个己方影响力。请点击地图上高亮的影响力；选择完成前不能结束本回合";
+                    return "结束阶段：雷蛇要求移除自己的1个影响力。请点击地图上高亮的影响力；选择完成前不能结束本回合";
                 }
 
                 return "收尾阶段：请完成当前收尾效果，结算后自动继续。";

@@ -4,7 +4,7 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>统一角色牌弹窗结算与地图选点，保留两者原有分工。</summary>
-    internal sealed class CharacterCardInteraction : InteractionBase
+    internal sealed class CharacterCardInteraction : InteractionBase, IMapConfirmationScope
     {
         private readonly CharacterCardEffectInteractionUiCoordinator effectCoordinator;
         private readonly CharacterMapInteractionCoordinator mapCoordinator;
@@ -35,6 +35,7 @@ namespace YC.Presentation
         }
 
         public override string Id => "pending.character-card";
+        public string MapConfirmationScope => mapCoordinator.MapConfirmationScope;
 
         public override InteractionPriority Priority => InteractionPriority.PendingResolution;
 
@@ -75,7 +76,7 @@ namespace YC.Presentation
         {
             if (mapCoordinator.Synchronize())
             {
-                return InteractionPresentation.Busy;
+                return mapCoordinator.BuildMapPresentation();
             }
 
             if (effectCoordinator.SynchronizePending())

@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-09",
+  "standard": "B02",
+  "source": "游城拓荒/感染者扩/httpssteamusercontentaakamaihdnetugc24112026936145425552A17EC79883ACDBA9C52546E92B6F918D2AE96A7.jpg",
+  "catalogPath": "资产/角色牌背/流形角色牌背.jpg",
+  "unityPath": "Assets/StreamingAssets/Content/core/artwork/flowing_shape_back.jpg",
+  "unityGuid": "b3497b499ffa46fa80b478ee56501465",
+  "sharedArtworkKey": "flowing_shape_back",
+  "sha256": "17b0b4f48ee16e8b6bab6797d1dc7972fc7c9478448f4e9a0c956c87785bdfe4",
+  "bytes": 222759,
+  "width": 600,
+  "height": 850,
+  "imageFit": "contain",
+  "importer": "DefaultImporter，运行时ExternalContentRuntime.LoadImage",
+  "usage": "仅流形实体配置的物理牌背，不扩展为所有生成角色默认。匿名组只公开同背面数量，不泄露甲/乙/丙身份和顺序。",
+  "validation": "源图已查看，三处原字节hash相同；Unity视觉待验"
+}

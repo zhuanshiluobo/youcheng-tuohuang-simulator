@@ -15,6 +15,7 @@ namespace YC.Application.Gameplay
         public const string CardIdParameter = "cardId";
         public const string EffectModeParameter = "effectMode";
         public const string EffectOrderParameter = "effectOrder";
+        public const string StopRemainingModeIntent = "stop_remaining_mode";
         public const string Strategy = CharacterEffectModes.Strategy;
         public const string Tactic = CharacterEffectModes.Tactic;
         public const string Both = CharacterEffectModes.Both;
@@ -54,6 +55,17 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
+            if (command.Kind == GameCommandKind.UseCharacterCard && GetParameter(command, "intent") == StopRemainingModeIntent)
+            {
+                if (effectRegistry == null || !int.TryParse(GetParameter(command, "expectedRevision"), out int revision))
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "角色停止请求缺少有效版本。"));
+                var engine = new EffectTreeExecutor(state, effectRegistry);
+                if (!engine.TryStopCharacterMode(command.PlayerId, GetParameter(command, "useId"), GetParameter(command, "interactionId"), revision, command.CommandId, out string error))
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, error));
+                var stopped = engine.RunUntilQuiescent();
+                return stopped.Faulted ? CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, state.EffectRuntime.LastFaultMessage)) :
+                    CommandResult.SuccessResult(new List<GameEvent>(), string.Empty);
+            }
             if (command.Kind == GameCommandKind.ResolvePendingChoice)
             {
                 return HandleResolvePendingCharacterEffect(state, command);
@@ -67,6 +79,34 @@ namespace YC.Application.Gameplay
 
             var mode = GetParameter(command, EffectModeParameter);
             var order = GetParameter(command, EffectOrderParameter);
+
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+            {
+                if (effectRegistry == null) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "真实角色使用缺少Effect注册表。"));
+                if (!string.IsNullOrEmpty(command.CommandId) && state.EffectRuntime.EffectNodes.Exists(node =>
+                    node.EffectTypeId == CharacterLifecycleService.QuickActionTypeId && node.PlayerId == command.PlayerId &&
+                    ItemTransferEffectExecutor.Text(node.NormalizedArguments, "beginCommandId") == command.CommandId))
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该角色使用命令已经处理。"));
+                var available = CharacterLifecycleService.GetAvailability(state, command.PlayerId, cardId);
+                if (!available.CanUse || state.HasPendingChoice()) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, available.CanUse ? "请先处理待选择项。" : available.DisabledReasonCode));
+                if (mode.Length > 0 && mode != Strategy && mode != Tactic && mode != Both || mode != Both && order.Length > 0 || mode == Both && order != StrategyFirst && order != TacticFirst)
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "角色模式或顺序无效。"));
+                if (mode == Both && state.StartPlayerId != command.PlayerId && !state.CharacterActionRoundPermissions.Exists(permission => permission.PlayerId == command.PlayerId && permission.ExpiresActionRoundSequence == CharacterLifecycleService.GetActionRoundSequence(state)))
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本次角色使用没有双发许可。"));
+                var instanceDefinition = CharacterLifecycleService.GetDefinition(state, cardId);
+                if (instanceDefinition == null || !effectRegistry.CharacterActivationSubscriptions.ContainsKey(instanceDefinition.StrategyAbilityId) || !effectRegistry.CharacterActivationSubscriptions.ContainsKey(instanceDefinition.TacticAbilityId) || !effectRegistry.CharacterAbilityContracts.ContainsKey(instanceDefinition.StrategyAbilityId) || !effectRegistry.CharacterAbilityContracts.ContainsKey(instanceDefinition.TacticAbilityId))
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "角色实例缺少已注册能力。"));
+                CharacterLifecycleService.Register(effectRegistry);
+                bool offerSecond = string.Equals(GetParameter(command, CharacterEffectParameterKeys.OfferSecondEffect), "true", StringComparison.OrdinalIgnoreCase);
+                var spec = CharacterLifecycleService.CreateQuickActionSpec(command.PlayerId, cardId, mode, order, offerSecond);
+                spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "beginCommandId", Value = NormalizedValue.CreateString(command.CommandId ?? string.Empty) });
+                spec.NormalizedArguments.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
+                spec.Visibility = GameStateVisibilityPolicy.Owner; spec.StableKey = "command:" + command.CommandId;
+                var executor = new EffectTreeExecutor(state, effectRegistry);
+                if (!executor.TryCreatePlayerActionEffect(command.PlayerId, spec, state.EffectRuntime.CurrentRoundExecutionId, command.CommandId, out _)) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, executor.LastDiagnostic));
+                var report = executor.RunUntilQuiescent();
+                return report.Faulted ? CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, state.EffectRuntime.LastFaultMessage)) : CommandResult.SuccessResult(new List<GameEvent>(), report.WaitingForInput ? "请选择角色使用模式。" : "角色使用已完成。");
+            }
 
             CommandResult unifiedResult;
             if (TryHandleUnifiedAbility(
@@ -87,7 +127,7 @@ namespace YC.Application.Gameplay
             }
 
             BindTinManPendingContext(state, command);
-            var definition = CharacterCardDatabase.Get(cardId);
+            var definition = CharacterCardDatabase.Get(state, cardId);
             if (state.PendingCharacterEffect != null && state.PendingCharacterEffect.IsValid())
             {
                 return CommandResult.SuccessResult(new List<GameEvent>(), string.Empty);
@@ -118,7 +158,7 @@ namespace YC.Application.Gameplay
                 return false;
             }
 
-            var definition = CharacterCardDatabase.Get(cardId);
+            var definition = CharacterCardDatabase.Get(state, cardId);
             string strategyAbilityId = definition == null ? string.Empty : definition.StrategyAbilityId;
             string tacticAbilityId = definition == null ? string.Empty : definition.TacticAbilityId;
             string abilityId = mode == CharacterEffectModes.Strategy
@@ -303,7 +343,7 @@ namespace YC.Application.Gameplay
                 return CommandResult.SuccessResult(new List<GameEvent>(), string.Empty);
             }
 
-            var definition = CharacterCardDatabase.Get(cardId);
+            var definition = CharacterCardDatabase.Get(state, cardId);
             var cardName = definition == null ? string.Empty : definition.Name;
             var message = wasDelayedCleanup
                 ? "玩家 " + command.PlayerId + " 完成了角色牌“" + cardName + "”的收尾结算。"

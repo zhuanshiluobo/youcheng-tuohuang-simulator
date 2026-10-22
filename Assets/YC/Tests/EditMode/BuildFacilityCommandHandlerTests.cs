@@ -4,6 +4,7 @@ using YC.Application.Gameplay;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
+using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -133,7 +134,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void BuildFacility_ResolvesEntryEffectAfterPlacementAndScoreBeforeSupplyRefill()
+        public void BuildFacility_ResolvesEntryEffectAfterSupplyRefillPlacementAndScore()
         {
             var state = CreateActionState();
             state.Decks.FacilitySupply.Add(FacilityCardDatabase.SourceStoneRefinery);
@@ -582,19 +583,19 @@ namespace YC.Tests.EditMode
                 LaunchMode.Local,
                 1,
                 null,
-                "map_four_players",
+                StaticMapDefinitions.FourPlayerMapId,
                 123);
             var sameSeedState = GameLaunchStateFactory.CreateInitialState(
                 LaunchMode.Local,
                 1,
                 null,
-                "map_four_players",
+                StaticMapDefinitions.FourPlayerMapId,
                 123);
             var differentSeedState = GameLaunchStateFactory.CreateInitialState(
                 LaunchMode.Local,
                 1,
                 null,
-                "map_four_players",
+                StaticMapDefinitions.FourPlayerMapId,
                 456);
 
             Assert.That(state.Decks.FacilitySupply, Is.Not.Empty);
@@ -622,7 +623,7 @@ namespace YC.Tests.EditMode
                     new PlayerSeat { PlayerId = 3, PlayerName = "Player 3", Color = PlayerColor.Green },
                     new PlayerSeat { PlayerId = 4, PlayerName = "Player 4", Color = PlayerColor.Yellow }
                 },
-                "map_four_players",
+                StaticMapDefinitions.FourPlayerMapId,
                 123);
 
             Assert.That(state.Map.Facilities, Has.Count.EqualTo(4));
@@ -642,6 +643,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                MapId = StaticMapDefinitions.ThreePlayerMapId,
                 Phase = GamePhase.ActionRound1,
                 Round = 1,
                 ActionRound = 1,
@@ -708,8 +710,8 @@ namespace YC.Tests.EditMode
                         placement.CityBoardSlotIndex == cityBoardSlotIndex),
                     Is.True,
                     "入场效果前应已将设施放入指定槽位。");
-                Assert.That(state.Decks.FacilitySupply, Does.Contain(facility.FacilityId), "入场效果结算时供应区尚未补牌。");
-                Assert.That(state.Decks.FacilityDeck, Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }));
+                Assert.That(state.Decks.FacilitySupply, Is.EqualTo(new[] { FacilityCardDatabase.TradeDistrict }), "入场效果结算前应已补回原供应槽。");
+                Assert.That(state.Decks.FacilityDeck, Is.Empty);
                 WasCalled = true;
             }
         }

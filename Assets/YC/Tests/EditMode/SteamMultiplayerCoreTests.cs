@@ -145,7 +145,8 @@ namespace YC.Tests.EditMode
             Assert.AreEqual(90000000000000004UL, LocalMirrorIdentity.ForPlayer(4));
             Assert.AreNotEqual(LocalMirrorIdentity.ForPlayer(1), LocalMirrorIdentity.ForPlayer(2));
             Assert.Throws<System.ArgumentOutOfRangeException>(() => LocalMirrorIdentity.ForPlayer(0));
-            Assert.Throws<System.ArgumentOutOfRangeException>(() => LocalMirrorIdentity.ForPlayer(5));
+            Assert.AreEqual(90000000000000005UL, LocalMirrorIdentity.ForPlayer(5));
+            Assert.AreNotEqual(LocalMirrorIdentity.ForPlayer(1), LocalMirrorIdentity.ForPlayer(5));
         }
 
         [Test]
@@ -232,8 +233,7 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("selectedRoomPlayerCount = 4;", standardRoom);
             StringAssert.DoesNotContain("CreateSteamTwoPlayerVerificationRoom", source);
             StringAssert.DoesNotContain("SteamTwoPlayerButton", source);
-            StringAssert.Contains("BindButton(view.StartGameButton, ShowLocalMapSelectionPanel);", source);
-            StringAssert.Contains("BindButton(view.OnlineModePanel.CreateRoomButton, ShowOnlineMapSelectionPanel);", source);
+            // 创建/加入的实际主菜单点击链由RoomEntryUiTests验证，已移除联机选择中间页。
             StringAssert.Contains("BindButton(view.MapSelectionPanel.NextMapButton, ToggleSelectedMap);", source);
             StringAssert.Contains("BindButton(view.MapSelectionPanel.StartButton, ConfirmSelectedMap);", source);
         }
@@ -398,14 +398,14 @@ namespace YC.Tests.EditMode
                 RoomId = "480-room",
                 HostPlayerId = 1,
                 LocalPlayerId = 1,
-                PlayerCount = 4,
-                Seats = new List<PlayerSeat>
+                Configuration = new YC.Domain.Rules.GameRuleConfiguration { PlayerCount = 4, MapId = "map-four-players" },
+                SeatSlots = CreateSlots(new List<PlayerSeat>
                 {
                     new PlayerSeat { PlayerId = 1, SteamId = 101, Color = PlayerColor.Blue },
                     new PlayerSeat { PlayerId = 2, SteamId = 202, Color = PlayerColor.Red },
                     new PlayerSeat { PlayerId = 3, SteamId = 303, Color = PlayerColor.Green },
                     new PlayerSeat { PlayerId = 4, SteamId = 404, Color = PlayerColor.Yellow }
-                }
+                })
             };
 
             Assert.That(RoomState.TryLocalizeAuthoritativeSnapshot(
@@ -416,10 +416,10 @@ namespace YC.Tests.EditMode
             Assert.That(localized.LocalPlayerId, Is.EqualTo(3));
             Assert.That(localized.Seats.ConvertAll(seat => seat.Color), Is.EqualTo(new[]
             {
-                PlayerColor.Blue,
-                PlayerColor.Red,
                 PlayerColor.Green,
-                PlayerColor.Yellow
+                PlayerColor.Yellow,
+                PlayerColor.Blue,
+                PlayerColor.Red
             }));
             Assert.That(snapshot.LocalPlayerId, Is.EqualTo(1), "不得改写 Host 原始快照");
 
@@ -427,10 +427,10 @@ namespace YC.Tests.EditMode
                 UnityEngine.JsonUtility.ToJson(snapshot));
             Assert.That(wireSnapshot.Seats.ConvertAll(seat => seat.Color), Is.EqualTo(new[]
             {
-                PlayerColor.Blue,
-                PlayerColor.Red,
                 PlayerColor.Green,
-                PlayerColor.Yellow
+                PlayerColor.Yellow,
+                PlayerColor.Blue,
+                PlayerColor.Red
             }), "Mirror JSON 载荷必须保留每个座位的颜色");
         }
 
@@ -440,10 +440,12 @@ namespace YC.Tests.EditMode
             var snapshot = new RoomState
             {
                 RoomId = "expected",
-                Seats = new List<PlayerSeat>
+                HostPlayerId = 1,
+                Configuration = new YC.Domain.Rules.GameRuleConfiguration { PlayerCount = 1 },
+                SeatSlots = CreateSlots(new List<PlayerSeat>
                 {
                     new PlayerSeat { PlayerId = 1, SteamId = 101, Color = PlayerColor.Blue }
-                }
+                })
             };
 
             Assert.That(RoomState.TryLocalizeAuthoritativeSnapshot(snapshot, "other", 101, out _), Is.False);
@@ -451,7 +453,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SteamWaitingRoom_BroadcastsHostSnapshotAndRendersSeatColors()
+        public void SteamWaitingRoom_BroadcastsHostSnapshotAndRendersConfiguredPanel()
         {
             var runtimeSource = ReadSource("YC/Infrastructure/Multiplayer/MirrorNetworkRuntime.cs");
             StringAssert.Contains("NetworkClient.RegisterHandler<WaitingRoomStateMessage>", runtimeSource);
@@ -464,7 +466,7 @@ namespace YC.Tests.EditMode
             StringAssert.Contains("runtime.WaitingRoomStateReceived -= OnWaitingRoomStateReceived;", serviceSource);
 
             var menuSource = ReadSource("YC/Presentation/StartMenuController.cs");
-            StringAssert.Contains("row.color = UiTheme.GetPlayerColor(seat.Color", menuSource);
+            StringAssert.Contains("panel.Render(room, room.LocalPlayerId);", menuSource);
         }
 
         [Test]
@@ -542,14 +544,13 @@ namespace YC.Tests.EditMode
         public void CompletedSettlement_HostWaitsForClientsAndBothExitButtonsUseSafeReturn()
         {
             var source = ReadSource("YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs");
-            StringAssert.Contains("!awaitingInitialState", source);
+            StringAssert.Contains("initialized && session != null", source);
             StringAssert.Contains("session.State.FinalScoring.IsResolved", source);
             var detach = ExtractMethod(source, "public bool CanDetachCompletedSession", "public static MirrorCommandTransport Ensure");
             StringAssert.Contains("if (mode != LaunchMode.Host) return true;", detach);
             StringAssert.Contains("NetworkServer.connections.Values", detach);
             StringAssert.Contains("!(connection is LocalConnectionToClient)", detach);
-            var broadcast = ExtractMethod(source, "private void BroadcastAccepted", "private void SendRejected");
-            Assert.Less(broadcast.IndexOf("connection.Send"), broadcast.IndexOf("ConfirmedStateViewApplied?.Invoke"));
+            StringAssert.Contains("simulationCoordinator.ValidatedThroughSequence < simulationCoordinator.LastAppliedSequence", detach);
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/FinalScoreController.cs"));
             StringAssert.Contains("GameLaunchContext.ReturnToStartScene", ReadSource("YC/Presentation/GameSettingsMenuController.cs"));
         }
@@ -684,8 +685,7 @@ namespace YC.Tests.EditMode
             {
                 RoomId = roomId,
                 HostPlayerId = 1,
-                LocalPlayerId = localPlayerId,
-                PlayerCount = 3
+                LocalPlayerId = localPlayerId
             };
         }
 
@@ -742,9 +742,28 @@ namespace YC.Tests.EditMode
                 throw new System.NotSupportedException();
 
             public Task StartGameAsync() => Task.CompletedTask;
+            public Task<RoomConfigurationResult> ChangeConfigurationAsync(ChangeRoomConfigurationRequest request) => Unavailable();
+            public Task<RoomConfigurationResult> SetReadyAsync(SetRoomReadyRequest request) => Unavailable();
+            public Task<RoomConfigurationResult> SetSeatStatusAsync(SetRoomSeatStatusRequest request) => Unavailable();
+            public Task<RoomConfigurationResult> RequestSeatSwapAsync(RequestRoomSeatSwapRequest request) => Unavailable();
+            public Task<RoomConfigurationResult> ConfirmSeatSwapAsync(ConfirmRoomSeatSwapRequest request) => Unavailable();
+            public Task<RoomConfigurationResult> StartConfiguredGameAsync(StartConfiguredGameRequest request) => Unavailable();
+            private Task<RoomConfigurationResult> Unavailable() => Task.FromResult(RoomConfigurationService.Result(CurrentRoom, "service_unavailable"));
             public void InviteFriends() { }
             public void Shutdown() => ShutdownCalls++;
             public void Dispose() { }
+        }
+
+        private static List<RoomSeatSlotState> CreateSlots(IList<PlayerSeat> seats)
+        {
+            var slots = new List<RoomSeatSlotState>();
+            for (var i = 0; i < 4; i++)
+            {
+                var player = i < seats.Count ? seats[i] : null;
+                if (player != null) player.Color = RoomConfigurationService.GetSeatColor(i);
+                slots.Add(new RoomSeatSlotState { SeatIndex = i, Status = player == null ? "open" : "occupied", Occupant = player });
+            }
+            return slots;
         }
     }
 }

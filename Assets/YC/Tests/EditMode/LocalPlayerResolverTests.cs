@@ -8,6 +8,20 @@ namespace YC.Tests.EditMode
     public sealed class LocalPlayerResolverTests
     {
         [Test]
+        public void Resolve_CurrentPendingRequestWinsOverEarlierInsertedPlayers()
+        {
+            var state = CreateState(GamePhase.Entrance);
+            state.CurrentPlayerId = 2;
+            state.EffectRuntime.InteractionRequests.Add(new InteractionRequest { Status = "open", AnsweringPlayerId = 1, InteractionTypeId = "setup.basic_character.discard" });
+            state.EffectRuntime.InteractionRequests.Add(new InteractionRequest { Status = "open", AnsweringPlayerId = 2, InteractionTypeId = "setup.department.choose" });
+            var resolver = new LocalPlayerResolver();
+            Assert.That(resolver.Resolve(state, 1, true), Is.EqualTo(2));
+            Assert.That(resolver.Resolve(state, 1, false), Is.EqualTo(1));
+            state.EffectRuntime.InteractionRequests.RemoveAt(1);
+            Assert.That(resolver.Resolve(state, 2, true), Is.EqualTo(1), "当前玩家没有输入时仍保留真正的跨玩家响应。");
+        }
+
+        [Test]
         public void Resolve_NetworkedContextKeepsConfiguredLocalPlayer()
         {
             var state = CreateState(GamePhase.ActionRound1);

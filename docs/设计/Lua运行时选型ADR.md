@@ -100,6 +100,8 @@ GlobalConsts | TableIterators | String | Table | Basic | Bit32
 
 ### 4.4 确定性与资源预算
 
+2026-10-19 修订：权威 Effect、候选及结算查询必须在相同规则输入下得到一致结果。原100ms墙钟拒绝会把线程停顿、GC或机器负载转成规则分歧，已从权威 `MoonSharpLuaRuntimeHost.Invoke` 的成败裁决中移除；展示专用 `TryPresent` 等入口保留原墙钟保护。默认预算配置及公开构造接口保持，非公开计时接缝仅供隔离验证；不是Lua/玩家可选忽略开关。Local仍同步执行、Sequential调度不变。依据：[建设付款准备修复合同](../../prompt/企业扩与感染者基础实装/建设付款准备主客端分歧-修复与补验合同.md)与`Logs/NetworkUiFixes/20261019/建设付款分歧-核心修复交付.json`。旧测试证据保持其当时版本，不追写为新语义通过。
+
 每次调用新建 `Script`，不保存 VM。脚本只能看到调用上下文快照和白名单回调；无时间、随机、I/O、网络、CLR 反射入口，因而在相同内容 hash、版本和输入快照下，输出顺序由 Lua 返回数组顺序决定。
 
 默认预算如下：
@@ -107,7 +109,7 @@ GlobalConsts | TableIterators | String | Table | Basic | Bit32
 | 项目 | 默认值 | 处理方式 |
 |---|---:|---|
 | 指令数 | 10,000 | 通过 MoonSharp coroutine 的 `AutoYieldCounter` 预抢占；yield 表示失败并返回 `InstructionBudgetExceeded` |
-| 执行时间 | 100 ms | 宿主入口和每个白名单回调检查 `Stopwatch`；超限返回 `TimeBudgetExceeded` |
+| 执行时间 | 展示入口默认 100 ms | 展示/元数据入口保留 `Stopwatch` 超限保护；权威 `Invoke` 不以墙钟时间裁决规则成败，仍执行下列确定性预算 |
 | 脚本正文 | 32 KiB | 入口校验，超限返回 `ScriptTooLarge` |
 | 返回 EffectSpec 数 | 16 | 归一化前检查，超限返回 `ReturnLimitExceeded` |
 | 返回 table 深度 | 8 | 递归检查，超限返回 `TableDepthExceeded` |

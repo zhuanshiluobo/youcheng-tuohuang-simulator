@@ -1,0 +1,1892 @@
+[
+  {
+    "package": "Area-Control-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "Card-Picker-UI-v1.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "CardViewer-v3.6-Patch.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "CityPattern-UI-v1.0.zip",
+    "svgWithoutSameStemPng": [
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-00.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-01.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-02.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-03.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-04.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-05.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-06.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-07.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-08.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-09.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0a.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0b.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0c.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0d.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0e.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/cooperation-0f.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/digit-base-blue.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/digit-base-green.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/digit-base-red.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/digit-base-yellow.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/overlay-focus.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/overlay-hover.svg",
+      "CityPattern-UI-v1.0/shared/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": [
+      {
+        "svg": "CityPattern-UI-v1.0/assets/frame-available.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/assets/frame-selected.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/card-slot-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/card-slot-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/module-fill-dark.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/module-fill-paper.svg",
+        "dependencies": [
+          "../05-textures/paper-ivory-base.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/module-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/module-header-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/module-header-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/submodule-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/02-modules/thin-row-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/button-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/stepper-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/tab-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "CityPattern-UI-v1.0/shared/03-controls/tab-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "EffectRows-v3.4-Patch.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "EnterprisePicker-v1.0.zip",
+    "svgWithoutSameStemPng": [
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-00.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-01.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-02.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-03.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-04.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-05.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-06.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-07.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-08.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-09.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0a.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0b.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0c.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0d.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0e.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/cooperation-0f.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/digit-base-blue.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/digit-base-green.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/digit-base-red.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/digit-base-yellow.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/overlay-focus.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/overlay-hover.svg",
+      "EnterprisePicker-v1.0/shared/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": [
+      {
+        "svg": "EnterprisePicker-v1.0/assets/frame-available.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/assets/frame-selected.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/card-slot-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/card-slot-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/module-fill-dark.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/module-fill-paper.svg",
+        "dependencies": [
+          "../05-textures/paper-ivory-base.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/module-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/module-header-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/module-header-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/submodule-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/02-modules/thin-row-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-fill-primary-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/button-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/stepper-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/stepper-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/tab-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "EnterprisePicker-v1.0/shared/03-controls/tab-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "FacilityBuild-UI-v1.0.zip",
+    "svgWithoutSameStemPng": [
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-00.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-01.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-02.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-03.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-04.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-05.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-06.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-07.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-08.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-09.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0a.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0b.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0c.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0d.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0e.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/cooperation-0f.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-blue.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-green.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-red.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/digit-base-yellow.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/overlay-focus.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/overlay-hover.svg",
+      "FacilityBuild-UI-v1.0/shared/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": [
+      {
+        "svg": "FacilityBuild-UI-v1.0/assets/frame-available.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/assets/frame-selected.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/card-slot-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-dark.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/module-fill-paper.svg",
+        "dependencies": [
+          "../05-textures/paper-ivory-base.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/module-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/module-header-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/submodule-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/02-modules/thin-row-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/button-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/stepper-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/tab-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "FacilityBuild-UI-v1.0/shared/03-controls/tab-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "FrontierUI-v3-Patch.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": [
+      {
+        "svg": "FrontierUI-v3-Patch/bottom-v3/bottom-bar.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/bottom-v3/chain-slot-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/bottom-v3/chain-slot-frame.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/bottom-v3/undo-disabled.svg",
+        "dependencies": [
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/bottom-v3/undo-enabled.svg",
+        "dependencies": [
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/button-disabled.svg",
+        "dependencies": [
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/button-primary.svg",
+        "dependencies": [
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png",
+          "../sources/original-button-primary.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/button-secondary.svg",
+        "dependencies": [
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png",
+          "../sources/original-button-secondary.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/card-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/card-frame.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/drawer-frame.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/header-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/module-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/module-frame.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/outer-frame.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/shared-v3/paper-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/redzone-paper.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/topbar-bg.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/topbar-tool-default.svg",
+        "dependencies": [
+          "../shared-v3/paper-bg.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/topbar-tool-hover.svg",
+        "dependencies": [
+          "../shared-v3/paper-bg.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/turn-tag-refined.svg",
+        "dependencies": [
+          "../shared-v3/paper-bg.png"
+        ]
+      },
+      {
+        "svg": "FrontierUI-v3-Patch/topbar-v3/turn-tag.svg",
+        "dependencies": [
+          "../sources/frontier-material.png",
+          "../sources/frontier-material.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Game-Box-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "Main-Info-Buttons-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "MainButtons-v3.2-Patch.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "MainFrame-v3.5-Patch.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "MainGameUI-CooperationMarkers-v1.zip",
+    "svgWithoutSameStemPng": [
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-00.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-01.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-02.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-03.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-04.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-05.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-06.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-07.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-08.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-09.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0a.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0b.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0c.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0d.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0e.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/cooperation-0f.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-blue.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-green.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-red.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/digit-base-yellow.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/overlay-focus.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/overlay-hover.svg",
+      "MainGameUI-CooperationMarkers-v1/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "MainGameUI-Topbar-v2.2.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "MainGameUI-v2.2.zip",
+    "svgWithoutSameStemPng": [
+      "MainGameUI-v2.2/04-markers/cooperation-00.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-01.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-02.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-03.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-04.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-05.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-06.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-07.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-08.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-09.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0a.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0b.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0c.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0d.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0e.svg",
+      "MainGameUI-v2.2/04-markers/cooperation-0f.svg",
+      "MainGameUI-v2.2/04-markers/digit-base-blue.svg",
+      "MainGameUI-v2.2/04-markers/digit-base-green.svg",
+      "MainGameUI-v2.2/04-markers/digit-base-red.svg",
+      "MainGameUI-v2.2/04-markers/digit-base-yellow.svg",
+      "MainGameUI-v2.2/04-markers/overlay-focus.svg",
+      "MainGameUI-v2.2/04-markers/overlay-hover.svg",
+      "MainGameUI-v2.2/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": [
+      {
+        "svg": "MainGameUI-v2.2/02-modules/card-slot-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/card-slot-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/module-fill-dark.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/module-fill-paper.svg",
+        "dependencies": [
+          "../05-textures/paper-ivory-base.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/module-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/module-header-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/module-header-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/submodule-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/02-modules/thin-row-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-primary-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-fill-primary-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/button-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/stepper-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/stepper-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/stepper-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/stepper-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/stepper-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/tab-fill-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/tab-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/tab-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "MainGameUI-v2.2/03-controls/tab-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Option-Picker-UI-v1.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "Player-Select-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": [
+      {
+        "svg": "Player-Select-v1.0/assets/avatar/fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Player-Select-v1.0/assets/avatar/frame.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Player-Select-v1.0/assets/buttons/close-default.svg",
+        "dependencies": [
+          "../../sources/material-67882a56e82e567c.png",
+          "../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Player-Select-v1.0/assets/buttons/close-disabled.svg",
+        "dependencies": [
+          "../../sources/material-67882a56e82e567c.png",
+          "../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Player-Select-v1.0/assets/buttons/close-hover.svg",
+        "dependencies": [
+          "../../sources/material-67882a56e82e567c.png",
+          "../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Player-Select-v1.0/assets/buttons/close-pressed.svg",
+        "dependencies": [
+          "../../sources/material-67882a56e82e567c.png",
+          "../../sources/material-67882a56e82e567c.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Region-Squares-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "RhineDepartment-UI-v1.0.zip",
+    "svgWithoutSameStemPng": [
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-00.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-01.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-02.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-03.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-04.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-05.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-06.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-07.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-08.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-09.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0a.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0b.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0c.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0d.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0e.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/cooperation-0f.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-blue.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-green.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-red.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/digit-base-yellow.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/overlay-focus.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/overlay-hover.svg",
+      "RhineDepartment-UI-v1.0/shared/04-markers/overlay-selected.svg"
+    ],
+    "svgWithExternalReferences": [
+      {
+        "svg": "RhineDepartment-UI-v1.0/assets/frame-available.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/assets/frame-selected.svg",
+        "dependencies": [
+          "../sources/effect-frame-source.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/card-slot-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-dark.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/module-fill-paper.svg",
+        "dependencies": [
+          "../05-textures/paper-ivory-base.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/module-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-fill.svg",
+        "dependencies": [
+          "../05-textures/metal-brown-base.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/module-header-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/submodule-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/02-modules/thin-row-frame.svg",
+        "dependencies": [
+          "../05-textures/art/window-frame-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-fill-primary-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/button-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-hover.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-fill-pressed.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/stepper-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-active.svg",
+        "dependencies": [
+          "../05-textures/art/button-yellow-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-default.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/tab-fill-disabled.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      },
+      {
+        "svg": "RhineDepartment-UI-v1.0/shared/03-controls/tab-frame.svg",
+        "dependencies": [
+          "../05-textures/art/button-gray-art.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Room-UI-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": [
+      {
+        "svg": "Room-UI-v1.0/assets/avatars/fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/avatars/frame.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/accent/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/dark/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/buttons/neutral/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/help/reading-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/maps/label-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/panels/module-frame.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/panels/paper-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/panels/seat-header-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/panels/section-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/shell/footer-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/shell/screen-fill.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.0/assets/shell/topbar-fill.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Room-UI-v1.1-VerticalMaps.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": [
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/avatars/fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/avatars/frame.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/accent/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/dark/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/default-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/default.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/disabled-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/disabled.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/hover-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/hover.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/pressed-fill.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/pressed.svg",
+        "dependencies": [
+          "../../../sources/material-67882a56e82e567c.png",
+          "../../../sources/material-67882a56e82e567c.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/help/reading-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/maps/label-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/panels/module-frame.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/panels/paper-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/panels/seat-header-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/panels/section-fill.svg",
+        "dependencies": [
+          "../../sources/material-1c0499c01b330543.png",
+          "../../sources/material-1c0499c01b330543.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/shell/footer-fill.svg",
+        "dependencies": [
+          "../../sources/material-a869bca6b92d9fab.png",
+          "../../sources/material-a869bca6b92d9fab.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/shell/screen-fill.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      },
+      {
+        "svg": "Room-UI-v1.1-VerticalMaps/assets/shell/topbar-fill.svg",
+        "dependencies": [
+          "../../sources/material-a0fe4e8e64194de3.png"
+        ]
+      }
+    ]
+  },
+  {
+    "package": "Settlement-Effects-v1.0.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  },
+  {
+    "package": "Settlement-Icons-Extra-v1.1.zip",
+    "svgWithoutSameStemPng": [],
+    "svgWithExternalReferences": []
+  }
+]

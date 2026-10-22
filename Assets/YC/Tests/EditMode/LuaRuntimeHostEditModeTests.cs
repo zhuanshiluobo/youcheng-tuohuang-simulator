@@ -9,11 +9,10 @@ namespace YC.Tests.EditMode
         public void UnimplementedConstructors_AreNotAdvertisedToContent()
         {
             var result = Invoke(@"return function(ctx)
-                local names = { 'Repeat', 'RollDice', 'ApplyResourceDiscount', 'PlaceRoad',
-                    'OperateToken', 'ShuffleFacilityDeck', 'RotateFacilityCard',
-                    'ResolveCharacterCardEffect', 'RevealCharacterCard', 'SetCharacterDoubleUseRule', 'DispatchOperator',
-                    'UpgradeEnterprise', 'ActivateEnterpriseSpecial', 'SwitchDepartment',
-                    'Collect', 'OpenPlayerTaskGroup', 'MainActionDeploy', 'MainActionDispatch', 'MainActionBuild',
+                if Effect.RollDice == nil then error('RollDice 已实现，应对内容开放') end
+                local names = { 'ApplyResourceDiscount', 'RotateFacilityCard',
+                    'ResolveCharacterCardEffect', 'RevealCharacterCard', 'DispatchOperator',
+                    'OpenPlayerTaskGroup', 'MainActionDeploy', 'MainActionDispatch', 'MainActionBuild',
                     'MainActionMoveCity', 'MainActionSpecial', 'DeclareCityStyle' }
                 for _, name in ipairs(names) do if Effect[name] ~= nil then error(name) end end
                 local player = GameData.GetPlayers()[1]

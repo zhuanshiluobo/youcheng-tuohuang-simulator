@@ -138,6 +138,8 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleEffectMove(GameState state, GameCommand command)
         {
+            var guard = MainActionCommandGuard.Validate(state, command);
+            if (!guard.IsValid) return CommandResult.Invalid(guard);
             if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, "城市移动必须提交稳定的目标地块 ID。");
@@ -157,14 +159,19 @@ namespace YC.Application.Gameplay
                 false,
                 true,
                 command.CommandId);
-            if (!executor.TryCreatePlayerActionEffect(
+            string preparationId = GetParameter(command, "paymentPreparationOwnerEffectId");
+            string preparationDiagnostic = "";
+            bool created = preparationId.Length > 0 ? executor.TryCreatePreparedPlayerActionEffect(command.PlayerId, preparationId,
+                moveSpec, "", command.CommandId, out nodeId, out preparationDiagnostic) : executor.TryCreatePlayerActionEffect(
                     command.PlayerId,
                     moveSpec,
                     string.Empty,
                     command.CommandId,
-                    out nodeId))
+                    out nodeId);
+            if (!created)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
+                return Invalid(preparationId.Length > 0 ? SettlementHostProtocol.ErrorCode(preparationDiagnostic) : CommandErrorCode.InvalidTarget,
+                    preparationId.Length > 0 ? preparationDiagnostic : executor.LastDiagnostic);
             }
 
             EffectRunReport report = executor.RunUntilQuiescent();
@@ -173,9 +180,22 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "城市移动 Effect 无法继续：" + report.FaultCode);
             }
 
+            var moveNode = state.EffectRuntime.EffectNodes.FindLast(node => node.EffectId == nodeId);
+            if (moveNode == null)
+                return Invalid(CommandErrorCode.InvalidTarget, "城市移动执行节点不存在。");
+            if (moveNode.Status == EffectNodeStatus.Failed || moveNode.PendingOutcome == EffectPendingOutcome.Failed)
+            {
+                var failureCode = Enum.TryParse(moveNode.FailureReason, out CommandErrorCode parsedCode) && parsedCode != CommandErrorCode.None
+                    ? parsedCode : CommandErrorCode.InvalidTarget;
+                string reason = moveNode.NormalizedResult?.Kind == NormalizedValueKind.String && !string.IsNullOrEmpty(moveNode.NormalizedResult.StringValue)
+                    ? moveNode.NormalizedResult.StringValue : moveNode.FailureReason;
+                return Invalid(failureCode, "城市移动失败：" + reason);
+            }
+
             return CommandResult.SuccessResult(
                 new List<GameEvent>(),
-                report.WaitingForInput ? "城市移动已提交，等待事件牌选择。" : "城市移动已完成。");
+                moveNode.Status == EffectNodeStatus.Completed ? "城市移动已完成。" :
+                report.WaitingForInput ? "城市移动已提交，等待事件牌选择。" : "城市移动正在结算。");
         }
 
         private static string ResolveSubmittedTargetLocationId(string submittedTargetId)
@@ -227,7 +247,7 @@ namespace YC.Application.Gameplay
                 roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
             }
 
-            var card = EventCardDatabase.Get(result.EventCardId);
+            var card = EventCardDatabase.Get(state, result.EventCardId);
             var message = "Player " + command.PlayerId + " resolved move city event " + card.Name + ".";
             var events = new List<GameEvent>
             {
@@ -294,7 +314,7 @@ namespace YC.Application.Gameplay
             CityMovementResult result,
             List<GameEvent> events)
         {
-            var card = EventCardDatabase.Get(result.EventCardId);
+            var card = EventCardDatabase.Get(state, result.EventCardId);
             events.Add(new GameEvent
             {
                 Kind = GameEventKind.CardMoved,

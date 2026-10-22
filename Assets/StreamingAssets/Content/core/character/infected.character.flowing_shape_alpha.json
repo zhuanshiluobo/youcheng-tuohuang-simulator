@@ -1,0 +1,53 @@
+{
+  "definitionId": "infected.character.flowing_shape_alpha",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "流形甲",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.flowing_shape_alpha.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.generated_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.flowing_shape_alpha.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.flowing_shape_alpha.strategy",
+      "script": "lua/characters/infected.character.flowing_shape_alpha.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.flowing_shape_alpha.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.infected.character.flowing_shape_alpha.tactic",
+      "script": "lua/characters/infected.character.flowing_shape_alpha.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.flowing_shape_alpha",
+    "cardId": "infected.character.flowing_shape_alpha",
+    "name": "流形甲",
+    "acquisitionRole": "generated",
+    "backVisualKey": "flowing_shape_back",
+    "instanceTypeId": "core.generated_character_card",
+    "strategyAbilityId": "infected.character.flowing_shape_alpha.strategy",
+    "tacticAbilityId": "infected.character.flowing_shape_alpha.tactic",
+    "strategyName": "分流",
+    "tacticName": "汇聚",
+    "sourceReference": "I11"
+  }
+}

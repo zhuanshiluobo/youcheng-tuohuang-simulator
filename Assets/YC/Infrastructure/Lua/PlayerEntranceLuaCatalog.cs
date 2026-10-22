@@ -13,7 +13,7 @@ return function(ctx)
             table.insert(effects, Effect.GainResource({ recipient = payload.player, resourceType = resource, amount = 2 }))
         end
     end
-    local point = Global.Map.GetResourcePoint(payload.resourcePoint)
+    local point = Global.Map.GetLocation(payload.resourcePoint)
     if point ~= nil and not point.hasResourcePointIndicator then
         table.insert(effects, Effect.RevealEventCard({
             player = payload.player, eventDeck = 'main', eventColor = 'green',

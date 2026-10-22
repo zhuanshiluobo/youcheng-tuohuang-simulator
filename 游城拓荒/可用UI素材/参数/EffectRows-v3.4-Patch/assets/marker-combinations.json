@@ -1,0 +1,153 @@
+{
+  "source": "Existing cooperation marker sprites supplied in the prior main UI package",
+  "size": [
+    64,
+    64
+  ],
+  "colors": [
+    {
+      "name": "Green",
+      "hex": "#5FD200",
+      "bit": 1
+    },
+    {
+      "name": "Yellow",
+      "hex": "#FFBF00",
+      "bit": 2
+    },
+    {
+      "name": "Blue",
+      "hex": "#006CFF",
+      "bit": 4
+    },
+    {
+      "name": "Red",
+      "hex": "#EC0000",
+      "bit": 8
+    }
+  ],
+  "combinations": [
+    {
+      "mask": 1,
+      "colors": [
+        "Green"
+      ],
+      "path": "assets/markers/cooperation-01-64.png"
+    },
+    {
+      "mask": 2,
+      "colors": [
+        "Yellow"
+      ],
+      "path": "assets/markers/cooperation-02-64.png"
+    },
+    {
+      "mask": 3,
+      "colors": [
+        "Green",
+        "Yellow"
+      ],
+      "path": "assets/markers/cooperation-03-64.png"
+    },
+    {
+      "mask": 4,
+      "colors": [
+        "Blue"
+      ],
+      "path": "assets/markers/cooperation-04-64.png"
+    },
+    {
+      "mask": 5,
+      "colors": [
+        "Green",
+        "Blue"
+      ],
+      "path": "assets/markers/cooperation-05-64.png"
+    },
+    {
+      "mask": 6,
+      "colors": [
+        "Yellow",
+        "Blue"
+      ],
+      "path": "assets/markers/cooperation-06-64.png"
+    },
+    {
+      "mask": 7,
+      "colors": [
+        "Green",
+        "Yellow",
+        "Blue"
+      ],
+      "path": "assets/markers/cooperation-07-64.png"
+    },
+    {
+      "mask": 8,
+      "colors": [
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-08-64.png"
+    },
+    {
+      "mask": 9,
+      "colors": [
+        "Green",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-09-64.png"
+    },
+    {
+      "mask": 10,
+      "colors": [
+        "Yellow",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0a-64.png"
+    },
+    {
+      "mask": 11,
+      "colors": [
+        "Green",
+        "Yellow",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0b-64.png"
+    },
+    {
+      "mask": 12,
+      "colors": [
+        "Blue",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0c-64.png"
+    },
+    {
+      "mask": 13,
+      "colors": [
+        "Green",
+        "Blue",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0d-64.png"
+    },
+    {
+      "mask": 14,
+      "colors": [
+        "Yellow",
+        "Blue",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0e-64.png"
+    },
+    {
+      "mask": 15,
+      "colors": [
+        "Green",
+        "Yellow",
+        "Blue",
+        "Red"
+      ],
+      "path": "assets/markers/cooperation-0f-64.png"
+    }
+  ]
+}

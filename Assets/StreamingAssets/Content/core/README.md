@@ -6,6 +6,7 @@
 - `character/*.json`：五张角色牌；`abilities` 指定策略/计谋脚本及收尾脚本。
 - `lua/characters/*.lua`：十项能力和雷蛇收尾。全部组合通用 Effect，没有角色专用 C# executor。
 - `facility_inventory.json`、`event/*.json`、`city_style/*.json`：设施数量清单、事件和城市样式静态数据。设施和样式的 `data.effectScript` 指向外部 Lua；事件效果由 JSON 数据生成。
+- `templates/facilities/*.json`、`artwork_slices.json`：设施共用规则模板和整图切片配置。设施实例及其 `artworkSpriteId` 在 `facility_inventory.json` 中维护。
 - `artwork/`：实际 PNG/JPEG 文件。`artwork` 路径相对本目录，与 Unity GUID 无关。
 - `content.schema.json`：编辑器可参考的共同 JSON 格式；运行时还校验跨文件引用、ID、脚本语法等。
 - `examples/`：企业板、企业家能力牌与回合卡的未启用模板，不在 `pack.json` 中。玩法尚未接入，不可设为 `enabled: true` 混入正式包。
@@ -91,10 +92,10 @@ Lua 只能读取快照并返回 Effect，不能访问文件、Unity UI 或直接
 
 ## 设施数量的口径（模板拆分前记录）
 
-当前 `facility/` 是 46 份完整实体牌 JSON，按名称和 effectId 分别去重均为 19 种。同名牌仍各有 definitionId、成本/分数/效果数据、贴图引用，例如 `building_001`～`building_003` 都是城邦行政区。它不是“19 个模板 + 46 个实例引用”的压缩定义；同效果共用 Lua 模块也不代表 JSON 已按模板去重。本次仅补充元数据，保持既有牌组组成与 ID。
+模板拆分前，`facility/` 曾保存 46 份完整实体牌 JSON，按名称和 effectId 分别去重均为 19 种。同名牌各有 definitionId、成本/分数/效果数据、贴图引用，例如 `building_001`～`building_003` 都是城邦行政区。当时尚未采用“19 个模板 + 46 个实例引用”的压缩定义，元数据补充阶段保持了既有牌组组成与 ID。这是历史记录；旧逐张 JSON 已于 2026-10-01 清理，当前来源见下文。
 
 
-## 内容装配与设施模板（当前可执行实现）
+## 内容装配（当前可执行实现）
 
 `pack.json.enabledExpansionIds` 控制启用哪些扩展，核心包显式为 `["core"]`。新增扩展文件仍须加入同一 `definitions` 清单，并以当前包根目录为相对路径基准；本轮没有实现独立 ZIP/多个目录自动扫描或菜单扩展选择器。
 
@@ -109,18 +110,26 @@ Lua 只能读取快照并返回 Effect，不能访问文件、Unity UI 或直接
 5. 设施/事件/城市样式仍受现有目录的数量、颜色和行为族等合同约束；替换不会取消这些约束。城市样式沿用原特殊行动 ID，设施仍按 effectId 注册，共用同 effectId 的实例须引用相同脚本。不支持通过单张替换偷偷给共用行为族设置冲突脚本；新的行为族仍需完成通用内核迁移。
 6. 永续/一次性的生命周期、特殊区域 UI 按用户要求留待具体扩展卡实现；企业与企业家玩法仍不能启用。
 
-设施现已变为 **19 份共用数据模板 + 46 份实体牌引用**：
+### 设施模板拆分（历史阶段）
+
+在迁入数量清单前，设施曾拆分为 **19 份共用数据模板 + 46 份实体牌引用**：
 
 - `templates/facilities/*.json`：同名设施共用费用、分数、效果描述与 Lua 脚本路径等字段。
-- `facility/*.json`：稳定实体 ID、名称、贴图、扩展/替换声明，以及 `dataTemplate` 和 `data` 差异。异色等差异保留在实体 data 中。
+- 当时的 `facility/*.json`：稳定实体 ID、名称、贴图、扩展/替换声明，以及 `dataTemplate` 和 `data` 差异。异色等差异保留在实体 data 中；这些逐张文件现已清理。
 - 加载时模板 data 为底，再递归合并实体 data；数组整体替换，显式 null 覆盖原值。只支持一层设施模板，不递归继承，引用受包内路径限制。
-- 修改模板影响所有引用实例；修改实例 data 只覆盖该牌。运行时仍产出原来的 46 项完整设施目录，供应/储备及 UI 不变。
+- 当时修改模板影响所有引用实例，修改逐张文件的 data 只覆盖该牌。迁移后仍产出原来的 46 项完整设施目录，供应/储备及 UI 不变。
 
-例如 `facility/building_001.json` 的 `dataTemplate` 指向 `templates/facilities/unique_only.json`。模板本身不作为实体牌加入 pack.definitions。46 张展开后的 data 已逐项与迁移前快照比较一致。
+例如当时 `facility/building_001.json` 的 `dataTemplate` 指向 `templates/facilities/unique_only.json`。模板本身不作为实体牌加入 pack.definitions；该阶段的 46 张展开后 data 已逐项与迁移前快照比较一致。当前应在 `facility_inventory.json` 中维护实例配置。
 
-## 设施颜色数量与动态目录（2026-09-20）
+## 设施颜色数量与动态目录（2026-09-20 启用，2026-10-01 更新）
 
-正式设施来源改为 `pack.json.facilityInventory` 指向的 `facility_inventory.json`。清单包含 19 组模板引用，按 `variants[].color/count` 展开 46 张实体；其中初始供应 41 张、储备 4 张、企业办事处 1 张。旧 `facility/*.json` 文件保留参考，已不在正式 definitions 清单中，修改它们不会改变当前牌组。
+正式设施来源是 `pack.json.facilityInventory` 指向的 `facility_inventory.json`。清单包含 19 组模板引用，按 `variants[].color/count` 展开 46 份实体定义；其中初始供应 41 张、储备 4 张，另有 1 张未启用的企业办事处占位。旧 `facility/*.json` 不再参与加载，其 46 份逐张配置及对应 `.meta` 已于 2026-10-01 清理。
+
+当前修改入口：
+
+- `facility_inventory.json`：组、颜色、数量、稳定实例 ID、差异数据及 `artworkSpriteId`。
+- `templates/facilities/*.json`：共用费用、分数、规则数据与 Lua 脚本路径。
+- `artwork_slices.json`：由 `artworkSpriteId` 引用的整图路径和切片矩形；只负责卡面显示，不替代设施规则配置。
 
 每组填写 `idPrefix`、共用 `definition` 和颜色 `variants`。每种颜色的 count 是实际张数；现有 `instances` 显式保留历史 ID 和各自图片。未填写别名的序号生成 `<idPrefix>_<color>_<三位序号>`，增加 count 不改变原有 ID。例如前两张自动 ID 为 `custom_blue_001`、`custom_blue_002`，增至三张只追加 `custom_blue_003`。显式别名数量不能大于 count；减少已有核心数量时须同步调整对应别名。
 

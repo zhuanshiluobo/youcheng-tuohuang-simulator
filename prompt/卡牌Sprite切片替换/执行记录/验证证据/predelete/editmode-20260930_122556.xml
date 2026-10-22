@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="92" result="Failed(Child)" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.7046909">
+  <test-suite type="TestSuite" id="2438" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="1242" result="Failed" site="Child" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.704691" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="3872" name="YC.Tests.EditMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.EditMode.dll" runstate="Runnable" testcasecount="1242" result="Failed" site="Child" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.690961" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="536" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="3873" name="YC" fullname="YC" runstate="Runnable" testcasecount="1242" result="Failed" site="Child" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.685653" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="3874" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="1242" result="Failed" site="Child" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.680561" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="SetUpFixture" id="2900" name="EditMode" fullname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" classname="YC.Tests.EditMode.FacilityCardDatabaseSetUpFixture" runstate="Runnable" testcasecount="1242" result="Failed" site="Child" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:45Z" duration="6.674098" total="92" passed="87" failed="5" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="2472" name="CardPickerDialogTests" fullname="YC.Tests.EditMode.CardPickerDialogTests" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="13" result="Passed" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:40Z" duration="2.046029" total="13" passed="13" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2484" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:40Z" duration="1.893866" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2482" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;CharacterCardEffectChoiceDialog&quot;)" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;CharacterCardEffectChoiceDialog&quot;)" methodname="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="603159007" result="Passed" start-time="2026-09-30 04:26:38Z" end-time="2026-09-30 04:26:40Z" duration="1.883473" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2483" name="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;FacilityEffectChoiceDialog&quot;)" fullname="YC.Tests.EditMode.CardPickerDialogTests.ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(&quot;FacilityEffectChoiceDialog&quot;)" methodname="ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1653700922" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.005996" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2481" name="CardRow_KeepsArtworkAspectAndReachesLastCard" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.092979" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2473" name="CardRow_KeepsArtworkAspectAndReachesLastCard(2,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(2,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="2095277526" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.038765" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2474" name="CardRow_KeepsArtworkAspectAndReachesLastCard(6,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(6,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1592068656" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.006943" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2475" name="CardRow_KeepsArtworkAspectAndReachesLastCard(7,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(7,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="274302377" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.007049" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2476" name="CardRow_KeepsArtworkAspectAndReachesLastCard(9,1920)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(9,1920)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="890161082" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.008944" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2477" name="CardRow_KeepsArtworkAspectAndReachesLastCard(2,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(2,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1747214115" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.004479" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2478" name="CardRow_KeepsArtworkAspectAndReachesLastCard(6,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(6,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="33425817" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.006806" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2479" name="CardRow_KeepsArtworkAspectAndReachesLastCard(7,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(7,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="98252858" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.007080" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2480" name="CardRow_KeepsArtworkAspectAndReachesLastCard(9,1024)" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardRow_KeepsArtworkAspectAndReachesLastCard(9,1024)" methodname="CardRow_KeepsArtworkAspectAndReachesLastCard" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1534567527" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.008775" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2487" name="CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" fullname="YC.Tests.EditMode.CardPickerDialogTests.CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" methodname="CardSelectionIsDraftOnly_AndReadOnlyCardsHaveNoConfirmation" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1780376596" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.017189" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2486" name="DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" fullname="YC.Tests.EditMode.CardPickerDialogTests.DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" methodname="DetailsReturnPreservesHorizontalScrollAndDraftWithoutSelectingOrSubmitting" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="730088115" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.016574" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2485" name="ResourceSaleAndExtensionHubKeepTheirOriginalShell" fullname="YC.Tests.EditMode.CardPickerDialogTests.ResourceSaleAndExtensionHubKeepTheirOriginalShell" methodname="ResourceSaleAndExtensionHubKeepTheirOriginalShell" classname="YC.Tests.EditMode.CardPickerDialogTests" runstate="Runnable" seed="1616935476" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.020349" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2504" name="CardViewerTests" fullname="YC.Tests.EditMode.CardViewerTests" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:42Z" duration="1.386262" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2508" name="DestroyedViewer_LateCloseAndDismissAreSafeWithoutCallbacks" fullname="YC.Tests.EditMode.CardViewerTests.DestroyedViewer_LateCloseAndDismissAreSafeWithoutCallbacks" methodname="DestroyedViewer_LateCloseAndDismissAreSafeWithoutCallbacks" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="199772260" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.011576" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2505" name="Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" fullname="YC.Tests.EditMode.CardViewerTests.Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" methodname="Inspect_HasNoExecutionOrCardIdentity_AndCancelOnlyReturns" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="30922976" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:40Z" duration="0.010302" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2514" name="ModesKeepSameCardRect_AndContainDifferentImageAspects" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:42Z" duration="1.318088" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2510" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,912)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,912)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="346473721" result="Passed" start-time="2026-09-30 04:26:40Z" end-time="2026-09-30 04:26:42Z" duration="1.240741" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2511" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,1032)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(1920,1032)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1699729849" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.026847" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2512" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(2560,912)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(2560,912)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1830357468" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.025529" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2513" name="ModesKeepSameCardRect_AndContainDifferentImageAspects(900,432)" fullname="YC.Tests.EditMode.CardViewerTests.ModesKeepSameCardRect_AndContainDifferentImageAspects(900,432)" methodname="ModesKeepSameCardRect_AndContainDifferentImageAspects" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="179732218" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.023503" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2507" name="StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" fullname="YC.Tests.EditMode.CardViewerTests.StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" methodname="StaleSource_CannotSubmitOrRestore_AndDismissDoesNotReturn" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="2104072810" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.011523" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2506" name="Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" fullname="YC.Tests.EditMode.CardViewerTests.Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" methodname="Use_RequiresEnabledCurrentChoice_AndOnlyDispatchesOnce" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1581743761" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.010143" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2509" name="UseButtons_SwitchTexturesAndDisabledStateOverridesPointer" fullname="YC.Tests.EditMode.CardViewerTests.UseButtons_SwitchTexturesAndDisabledStateOverridesPointer" methodname="UseButtons_SwitchTexturesAndDisabledStateOverridesPointer" classname="YC.Tests.EditMode.CardViewerTests" runstate="Runnable" seed="1209109808" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.012501" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2515" name="CardVisualCatalogEditorAssetTests" fullname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests" classname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:43Z" duration="0.927461" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2516" name="Catalog_UsesExternalSpritesAndKeepsOnlySharedPersistentTextures" fullname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests.Catalog_UsesExternalSpritesAndKeepsOnlySharedPersistentTextures" methodname="Catalog_UsesExternalSpritesAndKeepsOnlySharedPersistentTextures" classname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests" runstate="Runnable" seed="2017386622" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.788441" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2517" name="GameplayHud_UsesCatalogThroughConnectedRegistry" fullname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests.GameplayHud_UsesCatalogThroughConnectedRegistry" methodname="GameplayHud_UsesCatalogThroughConnectedRegistry" classname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests" runstate="Runnable" seed="1657472220" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:42Z" duration="0.000915" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2518" name="ProductionCardVisuals_OnlyContentLoaderDecodesExternalArtwork" fullname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests.ProductionCardVisuals_OnlyContentLoaderDecodesExternalArtwork" methodname="ProductionCardVisuals_OnlyContentLoaderDecodesExternalArtwork" classname="YC.Tests.EditMode.CardVisualCatalogEditorAssetTests" runstate="Runnable" seed="1582745790" result="Passed" start-time="2026-09-30 04:26:42Z" end-time="2026-09-30 04:26:43Z" duration="0.136411" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2823" name="ExternalCatalogExpansionTests" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.239286" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2833" name="CityStyleAndActionCatalogs_AllowNewIdsAndExternalCosts" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.CityStyleAndActionCatalogs_AllowNewIdsAndExternalCosts" methodname="CityStyleAndActionCatalogs_AllowNewIdsAndExternalCosts" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="1452892902" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.012849" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2832" name="EventCatalog_UsesExternalColorPoolsInsteadOfCanonicalIds" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.EventCatalog_UsesExternalColorPoolsInsteadOfCanonicalIds" methodname="EventCatalog_UsesExternalColorPoolsInsteadOfCanonicalIds" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="222294634" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.009744" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2824" name="GeneratedFacilityInventory_AcceptsNewIdsAndEffectAndRunsLuaAfterRecovery" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.GeneratedFacilityInventory_AcceptsNewIdsAndEffectAndRunsLuaAfterRecovery" methodname="GeneratedFacilityInventory_AcceptsNewIdsAndEffectAndRunsLuaAfterRecovery" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="581936854" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.094727" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2831" name="InvalidInventory_IsRejected" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.074988" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2826" name="InvalidInventory_IsRejected(&quot;negative&quot;)" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected(&quot;negative&quot;)" methodname="InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="1801262625" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.008416" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2827" name="InvalidInventory_IsRejected(&quot;fraction&quot;)" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected(&quot;fraction&quot;)" methodname="InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="30297878" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.015591" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2828" name="InvalidInventory_IsRejected(&quot;color&quot;)" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected(&quot;color&quot;)" methodname="InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="1592155288" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.022056" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2829" name="InvalidInventory_IsRejected(&quot;duplicate_id&quot;)" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected(&quot;duplicate_id&quot;)" methodname="InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="932514740" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.018698" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2830" name="InvalidInventory_IsRejected(&quot;too_many&quot;)" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InvalidInventory_IsRejected(&quot;too_many&quot;)" methodname="InvalidInventory_IsRejected" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="678932250" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.008366" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2825" name="InventoryQuantityChange_KeepsExistingIdsAndChangesHash" fullname="YC.Tests.EditMode.ExternalCatalogExpansionTests.InventoryQuantityChange_KeepsExistingIdsAndChangesHash" methodname="InventoryQuantityChange_KeepsExistingIdsAndChangesHash" classname="YC.Tests.EditMode.ExternalCatalogExpansionTests" runstate="Runnable" seed="258100213" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.044974" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2834" name="ExternalContentPackTests" fullname="YC.Tests.EditMode.ExternalContentPackTests" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="38" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:44Z" duration="1.611333" total="38" passed="38" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2843" name="BrokenContentPackFailsBeforeActivation" fullname="YC.Tests.EditMode.ExternalContentPackTests.BrokenContentPackFailsBeforeActivation" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.048485" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2839" name="BrokenContentPackFailsBeforeActivation(&quot;escape&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.BrokenContentPackFailsBeforeActivation(&quot;escape&quot;)" methodname="BrokenContentPackFailsBeforeActivation" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="70458872" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.015073" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2840" name="BrokenContentPackFailsBeforeActivation(&quot;duplicate&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.BrokenContentPackFailsBeforeActivation(&quot;duplicate&quot;)" methodname="BrokenContentPackFailsBeforeActivation" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="846635062" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.015260" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2841" name="BrokenContentPackFailsBeforeActivation(&quot;script&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.BrokenContentPackFailsBeforeActivation(&quot;script&quot;)" methodname="BrokenContentPackFailsBeforeActivation" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1349787585" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.009381" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2842" name="BrokenContentPackFailsBeforeActivation(&quot;missing_artwork&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.BrokenContentPackFailsBeforeActivation(&quot;missing_artwork&quot;)" methodname="BrokenContentPackFailsBeforeActivation" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1124020610" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.007624" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2838" name="ChangedExternalScriptChangesHashAndRejectsOldState" fullname="YC.Tests.EditMode.ExternalContentPackTests.ChangedExternalScriptChangesHashAndRejectsOldState" methodname="ChangedExternalScriptChangesHashAndRejectsOldState" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="391701894" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.070020" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2837" name="ChoiceBranches_OnlySelectedBranchExecutesAfterRecovery" fullname="YC.Tests.EditMode.ExternalContentPackTests.ChoiceBranches_OnlySelectedBranchExecutesAfterRecovery" methodname="ChoiceBranches_OnlySelectedBranchExecutesAfterRecovery" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2006090855" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:43Z" duration="0.058801" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2835" name="CorePack_LoadsAllRuntimeDefinitionsScriptsAndArtwork" fullname="YC.Tests.EditMode.ExternalContentPackTests.CorePack_LoadsAllRuntimeDefinitionsScriptsAndArtwork" methodname="CorePack_LoadsAllRuntimeDefinitionsScriptsAndArtwork" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1395088195" result="Passed" start-time="2026-09-30 04:26:43Z" end-time="2026-09-30 04:26:44Z" duration="0.621396" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2861" name="ExpansionReplacement_UsesNewScriptAndArtworkInOriginalHandSlot" fullname="YC.Tests.EditMode.ExternalContentPackTests.ExpansionReplacement_UsesNewScriptAndArtworkInOriginalHandSlot" methodname="ExpansionReplacement_UsesNewScriptAndArtworkInOriginalHandSlot" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="616754571" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.105704" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2873" name="FacilityTemplate_MergesEntityOverridesAndParticipatesInContentHash" fullname="YC.Tests.EditMode.ExternalContentPackTests.FacilityTemplate_MergesEntityOverridesAndParticipatesInContentHash" methodname="FacilityTemplate_MergesEntityOverridesAndParticipatesInContentHash" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1009156320" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.047976" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2868" name="InvalidActiveExpansionSelection_IsRejected" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.097776" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2863" name="InvalidActiveExpansionSelection_IsRejected(&quot;conflict&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected(&quot;conflict&quot;)" methodname="InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="412208784" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.028356" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2864" name="InvalidActiveExpansionSelection_IsRejected(&quot;missing_target&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected(&quot;missing_target&quot;)" methodname="InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="821672630" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.014419" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2865" name="InvalidActiveExpansionSelection_IsRejected(&quot;disabled_target_expansion&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected(&quot;disabled_target_expansion&quot;)" methodname="InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="623473702" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.018133" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2866" name="InvalidActiveExpansionSelection_IsRejected(&quot;unknown_expansion&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected(&quot;unknown_expansion&quot;)" methodname="InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2023276584" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.014657" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2867" name="InvalidActiveExpansionSelection_IsRejected(&quot;duplicate_expansion&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidActiveExpansionSelection_IsRejected(&quot;duplicate_expansion&quot;)" methodname="InvalidActiveExpansionSelection_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="274167767" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.020207" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2859" name="InvalidDefinitionMetadata_IsRejected" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.123115" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2849" name="InvalidDefinitionMetadata_IsRejected(&quot;expansion_missing&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;expansion_missing&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="406440469" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.007684" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2850" name="InvalidDefinitionMetadata_IsRejected(&quot;replacement_missing&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;replacement_missing&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1946916595" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.012431" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2851" name="InvalidDefinitionMetadata_IsRejected(&quot;replacement_type&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;replacement_type&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="631552264" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.015467" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2852" name="InvalidDefinitionMetadata_IsRejected(&quot;replacement_self&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;replacement_self&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1213325639" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.009905" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2853" name="InvalidDefinitionMetadata_IsRejected(&quot;skill_missing&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;skill_missing&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="979328721" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.012289" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2854" name="InvalidDefinitionMetadata_IsRejected(&quot;skill_unknown&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;skill_unknown&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="341919781" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.013184" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2855" name="InvalidDefinitionMetadata_IsRejected(&quot;persistent_zone_unspecified&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;persistent_zone_unspecified&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2005828308" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.009624" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2856" name="InvalidDefinitionMetadata_IsRejected(&quot;zone_missing&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;zone_missing&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="234800049" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.013013" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2857" name="InvalidDefinitionMetadata_IsRejected(&quot;normal_zone&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;normal_zone&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1123597423" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.012907" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2858" name="InvalidDefinitionMetadata_IsRejected(&quot;zone_disabled_but_referenced&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidDefinitionMetadata_IsRejected(&quot;zone_disabled_but_referenced&quot;)" methodname="InvalidDefinitionMetadata_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="987555245" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.013706" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2877" name="InvalidFacilityTemplate_IsRejected" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidFacilityTemplate_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.024717" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2874" name="InvalidFacilityTemplate_IsRejected(&quot;missing&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidFacilityTemplate_IsRejected(&quot;missing&quot;)" methodname="InvalidFacilityTemplate_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2017772302" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.008750" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2875" name="InvalidFacilityTemplate_IsRejected(&quot;wrong_type&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidFacilityTemplate_IsRejected(&quot;wrong_type&quot;)" methodname="InvalidFacilityTemplate_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1588366315" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.008254" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2876" name="InvalidFacilityTemplate_IsRejected(&quot;escape&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.InvalidFacilityTemplate_IsRejected(&quot;escape&quot;)" methodname="InvalidFacilityTemplate_IsRejected" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1070191695" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.006558" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-case id="2836" name="NewExternalCharacter_ActivatesWithoutEnumOrCSharpCardBranch" fullname="YC.Tests.EditMode.ExternalContentPackTests.NewExternalCharacter_ActivatesWithoutEnumOrCSharpCardBranch" methodname="NewExternalCharacter_ActivatesWithoutEnumOrCSharpCardBranch" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1573284823" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.046541" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2862" name="ReplacementChain_IsIndependentOfManifestLoadOrder" fullname="YC.Tests.EditMode.ExternalContentPackTests.ReplacementChain_IsIndependentOfManifestLoadOrder" methodname="ReplacementChain_IsIndependentOfManifestLoadOrder" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="862469454" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.075442" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2860" name="ReplacementReference_ValidatesLoadedTargetAndRejectsCycles" fullname="YC.Tests.EditMode.ExternalContentPackTests.ReplacementReference_ValidatesLoadedTargetAndRejectsCycles" methodname="ReplacementReference_ValidatesLoadedTargetAndRejectsCycles" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2050606271" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.047779" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="2878" name="RuntimeArtworkUsesExternalPackAndCachesDecodedTexture" fullname="YC.Tests.EditMode.ExternalContentPackTests.RuntimeArtworkUsesExternalPackAndCachesDecodedTexture" methodname="RuntimeArtworkUsesExternalPackAndCachesDecodedTexture" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1671232018" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.000952" asserts="0">
+                <properties />
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2848" name="SkillMetadata_RoundTripsWithOptionalPersistentZone" fullname="YC.Tests.EditMode.ExternalContentPackTests.SkillMetadata_RoundTripsWithOptionalPersistentZone" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.125002" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2844" name="SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;normal&quot;,False)" fullname="YC.Tests.EditMode.ExternalContentPackTests.SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;normal&quot;,False)" methodname="SkillMetadata_RoundTripsWithOptionalPersistentZone" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="636193533" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.024271" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2845" name="SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;one_shot&quot;,False)" fullname="YC.Tests.EditMode.ExternalContentPackTests.SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;one_shot&quot;,False)" methodname="SkillMetadata_RoundTripsWithOptionalPersistentZone" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2003332128" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.032116" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2846" name="SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;persistent&quot;,False)" fullname="YC.Tests.EditMode.ExternalContentPackTests.SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;persistent&quot;,False)" methodname="SkillMetadata_RoundTripsWithOptionalPersistentZone" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1506222901" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.041822" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2847" name="SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;persistent&quot;,True)" fullname="YC.Tests.EditMode.ExternalContentPackTests.SkillMetadata_RoundTripsWithOptionalPersistentZone(&quot;persistent&quot;,True)" methodname="SkillMetadata_RoundTripsWithOptionalPersistentZone" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1890190221" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.025163" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2872" name="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData" fullname="YC.Tests.EditMode.ExternalContentPackTests.TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.113358" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2869" name="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;facility&quot;,&quot;building_001&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;facility&quot;,&quot;building_001&quot;)" methodname="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="1424939791" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.035438" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2870" name="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;event&quot;,&quot;event_green_01&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;event&quot;,&quot;event_green_01&quot;)" methodname="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="657869570" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.033618" asserts="0">
+                  <properties />
+                </test-case>
+                <test-case id="2871" name="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;city_style&quot;,&quot;city_style_test&quot;)" fullname="YC.Tests.EditMode.ExternalContentPackTests.TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData(&quot;city_style&quot;,&quot;city_style_test&quot;)" methodname="TypedReplacement_PreservesRuntimeSlotWhileUsingVariantData" classname="YC.Tests.EditMode.ExternalContentPackTests" runstate="Runnable" seed="2112542763" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.043100" asserts="0">
+                  <properties />
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="3555" name="PresentationSelectionControllerTests" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" testcasecount="20" result="Failed" site="Child" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:45Z" duration="0.354251" total="20" passed="15" failed="5" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="3563" name="BuildFacilitySelection_CreatesBuildCommandWithFacilitySlotAndPaymentMode" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildFacilitySelection_CreatesBuildCommandWithFacilitySlotAndPaymentMode" methodname="BuildFacilitySelection_CreatesBuildCommandWithFacilitySlotAndPaymentMode" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="41921583" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.002521" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3564" name="BuildFacilitySelection_KeepsDraftLocalAcrossDragEscapeModifyFailureAndCancel" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildFacilitySelection_KeepsDraftLocalAcrossDragEscapeModifyFailureAndCancel" methodname="BuildFacilitySelection_KeepsDraftLocalAcrossDragEscapeModifyFailureAndCancel" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="2032694154" result="Passed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.004043" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3572" name="BuildInfoPanel_BuildInteractionDragsPublicCardHighlightsLegalEmptySlotsAndKeepsSharedState" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_BuildInteractionDragsPublicCardHighlightsLegalEmptySlotsAndKeepsSharedState" methodname="BuildInfoPanel_BuildInteractionDragsPublicCardHighlightsLegalEmptySlotsAndKeepsSharedState" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1601127970" result="Failed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:44Z" duration="0.065731" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.PresentationSelectionControllerTests.AssertCardImageViewerIsOpen () [0x0003b] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1927
+at YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_BuildInteractionDragsPublicCardHighlightsLegalEmptySlotsAndKeepsSharedState () [0x0028c] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1160
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3570" name="BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels" methodname="BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1209767609" result="Failed" start-time="2026-09-30 04:26:44Z" end-time="2026-09-30 04:26:45Z" duration="0.026530" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[  Expected: 0.501999974f +/- 0.00100000005f
+  But was:  0.500242829f
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.PresentationSelectionControllerTests.AssertCityBoardSlotIsCenteredOnBoard (UnityEngine.UI.Button button, UnityEngine.RectTransform boardImage, System.Single normalizedX, System.Single normalizedY) [0x00053] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1767
+at YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_RefreshCreatesInteractiveBuildHotspotsWithoutEmptySlotLabels () [0x002c3] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:684
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3573" name="BuildInfoPanel_RefreshRotatesDeclaredCityStyleSlotsOnly" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_RefreshRotatesDeclaredCityStyleSlotsOnly" methodname="BuildInfoPanel_RefreshRotatesDeclaredCityStyleSlotsOnly" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1718792799" result="Failed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.024040" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[  Expected: 0
+  But was:  10
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_RefreshRotatesDeclaredCityStyleSlotsOnly () [0x0008f] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1229
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3566" name="BuildInfoPanel_TypeExistsForRightSideBuildPanel" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.BuildInfoPanel_TypeExistsForRightSideBuildPanel" methodname="BuildInfoPanel_TypeExistsForRightSideBuildPanel" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="656732960" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.000358" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3567" name="CardVisualCatalog_CoversAllFacilityAndCityStyleDefinitions" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.CardVisualCatalog_CoversAllFacilityAndCityStyleDefinitions" methodname="CardVisualCatalog_CoversAllFacilityAndCityStyleDefinitions" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="2013457744" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001813" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3571" name="CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" methodname="CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="177425306" result="Failed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.146709" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[Missing button: View Original Card]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.PresentationSelectionControllerTests.FindButtonByName (UnityEngine.UI.Button[] buttons, System.String name) [0x00022] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1749
+at YC.Tests.EditMode.PresentationSelectionControllerTests.CityStylePreview_SelectionDetailsSwitchingAndConfirmationKeepTheCorrectDraft () [0x006f8] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1011
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3565" name="CityStyleSelection_ReportsAvailabilityAndCreatesDeclareCommand" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.CityStyleSelection_ReportsAvailabilityAndCreatesDeclareCommand" methodname="CityStyleSelection_ReportsAvailabilityAndCreatesDeclareCommand" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1922915023" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001233" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3574" name="DeclareCityStyle_SettlementRefreshesPublicMarkerAndOnlyRotatesExactSelectedSlots" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.DeclareCityStyle_SettlementRefreshesPublicMarkerAndOnlyRotatesExactSelectedSlots" methodname="DeclareCityStyle_SettlementRefreshesPublicMarkerAndOnlyRotatesExactSelectedSlots" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1030994656" result="Failed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.012644" asserts="0">
+                <properties />
+                <failure>
+                  <message><![CDATA[  Expected: 0
+  But was:  4
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.EditMode.PresentationSelectionControllerTests.DeclareCityStyle_SettlementRefreshesPublicMarkerAndOnlyRotatesExactSelectedSlots () [0x001a7] in G:\NoMadCity\Assets\YC\Tests\EditMode\PresentationSelectionControllerTests.cs:1332
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="3569" name="EventArtwork_ResizingPreservesAspectAndHotspotsWithinImage" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.EventArtwork_ResizingPreservesAspectAndHotspotsWithinImage" methodname="EventArtwork_ResizingPreservesAspectAndHotspotsWithinImage" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1181906336" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.022632" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3568" name="EventChoiceDialog_BuildActionsDispatchExactlyOneIntentPerUiOperation" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.EventChoiceDialog_BuildActionsDispatchExactlyOneIntentPerUiOperation" methodname="EventChoiceDialog_BuildActionsDispatchExactlyOneIntentPerUiOperation" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1837235566" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.028801" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3562" name="EventInfluenceTargetSelection_CompletesAfterRequiredSlotsAndWritesCommandParameter" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.EventInfluenceTargetSelection_CompletesAfterRequiredSlotsAndWritesCommandParameter" methodname="EventInfluenceTargetSelection_CompletesAfterRequiredSlotsAndWritesCommandParameter" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="765101427" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001273" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3561" name="EventOptionSelection_ReportsInfluenceTargetRequirement" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.EventOptionSelection_ReportsInfluenceTargetRequirement" methodname="EventOptionSelection_ReportsInfluenceTargetRequirement" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1783039971" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.000884" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3557" name="ExplorePathSelection_KeepsTargetAndSelectsIndexedPathChoice" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.ExplorePathSelection_KeepsTargetAndSelectsIndexedPathChoice" methodname="ExplorePathSelection_KeepsTargetAndSelectsIndexedPathChoice" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1414198846" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001695" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3556" name="ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients" methodname="ExplorePaymentRecipientSelection_BuildsDefaultsAllowsValidSelectionAndEncodesRecipients" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="57511692" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001551" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3560" name="MapInteractionConfirmation_SecondRequestConfirmsAndClearRestoresState" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.MapInteractionConfirmation_SecondRequestConfirmsAndClearRestoresState" methodname="MapInteractionConfirmation_SecondRequestConfirmsAndClearRestoresState" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="1332381716" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.000844" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3575" name="PendingChoiceView_PrefersPendingCardSessionAndFallsBackToLegacyChoice" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.PendingChoiceView_PrefersPendingCardSessionAndFallsBackToLegacyChoice" methodname="PendingChoiceView_PrefersPendingCardSessionAndFallsBackToLegacyChoice" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="744239126" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.000932" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3559" name="ResourceCollectionSelection_ApplyQuery_ReplacesDerivedNetworkAndPreservesPaymentChoice" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.ResourceCollectionSelection_ApplyQuery_ReplacesDerivedNetworkAndPreservesPaymentChoice" methodname="ResourceCollectionSelection_ApplyQuery_ReplacesDerivedNetworkAndPreservesPaymentChoice" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="5144528" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.001751" asserts="0">
+                <properties />
+              </test-case>
+              <test-case id="3558" name="ResourceCollectionSelection_TogglesLocationsBuildsRoutesAndEncodesPayments" fullname="YC.Tests.EditMode.PresentationSelectionControllerTests.ResourceCollectionSelection_TogglesLocationsBuildsRoutesAndEncodesPayments" methodname="ResourceCollectionSelection_TogglesLocationsBuildsRoutesAndEncodesPayments" classname="YC.Tests.EditMode.PresentationSelectionControllerTests" runstate="Runnable" seed="754056167" result="Passed" start-time="2026-09-30 04:26:45Z" end-time="2026-09-30 04:26:45Z" duration="0.002209" asserts="0">
+                <properties />
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -23,18 +23,27 @@ namespace YC.Presentation.Workflows
                 return configuredLocalPlayerId;
             }
 
-            // 新 Effect 交互所属玩家可能不是当前行动玩家；内部主链完成请求不应切换控制权。
+            // 当前玩家的真实未完成交互优先；请求插入顺序不能抢走热座页面。
             if (state.EffectRuntime != null && state.EffectRuntime.InteractionRequests != null)
             {
+                var requestTurnOrder = turnOrderService.GetTurnOrder(state);
+                int fallbackPlayer = -1, fallbackOrder = int.MaxValue;
                 for (var i = 0; i < state.EffectRuntime.InteractionRequests.Count; i++)
                 {
                     var request = state.EffectRuntime.InteractionRequests[i];
                     if (request != null && request.Status == "open" &&
                         !request.IsInternalMainlineInteraction() && request.AnsweringPlayerId > 0)
                     {
-                        return request.AnsweringPlayerId;
+                        if (request.AnsweringPlayerId == state.CurrentPlayerId) return request.AnsweringPlayerId;
+                        int playerOrder = requestTurnOrder.Count;
+                        for (int index = 0; index < requestTurnOrder.Count; index++)
+                            if (requestTurnOrder[index] == request.AnsweringPlayerId) { playerOrder = index; break; }
+                        if (fallbackPlayer < 0 || playerOrder < fallbackOrder)
+                        { fallbackPlayer = request.AnsweringPlayerId; fallbackOrder = playerOrder; }
                     }
                 }
+                // 当前玩家没有自己的输入时，真实跨玩家必要响应仍可接管本机。
+                if (fallbackPlayer > 0) return fallbackPlayer;
             }
 
             // 待选所属玩家可能不是当前行动玩家（例如多人雷蛇收尾）。

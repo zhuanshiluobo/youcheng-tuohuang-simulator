@@ -1,0 +1,129 @@
+{
+  "canvas": [
+    1920,
+    1080
+  ],
+  "components": [
+    {
+      "role": "window-frame",
+      "path": "shared/02-modules/module-frame.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "role": "window-fill",
+      "path": "shared/02-modules/module-fill-dark.png",
+      "kind": "independent-background"
+    },
+    {
+      "role": "section-frame",
+      "path": "shared/02-modules/module-frame.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "role": "section-fill",
+      "path": "shared/02-modules/module-fill-dark.png",
+      "kind": "independent-background"
+    },
+    {
+      "role": "effect-row-frame",
+      "path": "shared/02-modules/submodule-frame.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        18,
+        18,
+        18,
+        18
+      ]
+    },
+    {
+      "role": "card-selected-frame",
+      "path": "assets/frame-selected.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "card-available-frame",
+      "path": "assets/frame-available.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "unavailable-frame",
+      "path": "assets/frame-unavailable.png",
+      "kind": "transparent-nine-slice",
+      "border": [
+        20,
+        20,
+        20,
+        20
+      ]
+    },
+    {
+      "role": "confirm-art",
+      "path": "shared/card-picker/button-primary.png",
+      "kind": "unchanged-original-button",
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    },
+    {
+      "role": "cancel-art",
+      "path": "shared/card-picker/button-secondary.png",
+      "kind": "unchanged-original-button",
+      "visibleRect": [
+        35,
+        102,
+        1916,
+        582
+      ]
+    },
+    {
+      "role": "vertical-scroll-track",
+      "path": "shared/03-controls/scrollbar-track-v.png",
+      "kind": "independent-scroll-asset"
+    },
+    {
+      "role": "vertical-scroll-thumb",
+      "path": "shared/03-controls/scrollbar-thumb-v.png",
+      "kind": "independent-scroll-asset"
+    }
+  ],
+  "layering": [
+    "modal-shade",
+    "fills",
+    "original-card-city-content",
+    "state-frame",
+    "runtime-icons-text",
+    "interaction-hotspots"
+  ],
+  "notes": [
+    "Buttons preserve their original integrated art; their text is separate.",
+    "Window and section frames remain separate from fill textures.",
+    "Exact render layout is authoritative in preview/data.js."
+  ]
+}

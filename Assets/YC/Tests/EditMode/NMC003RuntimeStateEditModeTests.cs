@@ -87,7 +87,11 @@ namespace YC.Tests.EditMode
             state.EffectRuntime.RuleEvents[0].StateRevision = commit.StateRevision;
             state.EffectRuntime.RuleEvents[0].CommitSequence = commit.LastCommitSequence;
 
-            GameState roundTrip = JsonUtility.FromJson<GameState>(JsonUtility.ToJson(state));
+            // Host 存档使用 Newtonsoft；JsonUtility 无法保留当前可选引用和实体位置结构。
+            var archiveSettings = (Newtonsoft.Json.JsonSerializerSettings)typeof(HostRecoveryService)
+                .GetField("ArchiveSettings", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null);
+            GameState roundTrip = Newtonsoft.Json.JsonConvert.DeserializeObject<GameState>(
+                Newtonsoft.Json.JsonConvert.SerializeObject(state, archiveSettings), archiveSettings);
 
             Assert.That(roundTrip, Is.Not.Null);
             Assert.That(roundTrip.EffectRuntime, Is.Not.Null);
@@ -131,7 +135,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void NetworkStateDtos_AreDetachedFromAuthoritativeSession()
+        public void HostArchives_AreDetachedFromAuthoritativeSession()
         {
             GameState state = new GameState
             {
@@ -140,31 +144,21 @@ namespace YC.Tests.EditMode
             };
             var session = new GameSession(state);
             session.RegisterHandler(new MutatingHandler(true));
-            var dispatcher = new AuthoritativeCommandDispatcher(session);
-            InitialGameStateDto initial = dispatcher.CreateInitialStateSynchronization();
-
-            initial.State.Players[0].Score = 99;
+            var initial = session.CreateHostArchive(state.ContentPackHash);
+            initial.Snapshot.State.Players[0].Score = 99;
             Assert.That(session.State.Players[0].Score, Is.Zero);
-
-            ConfirmedGameCommandDto accepted = null;
-            dispatcher.CommandAccepted += dto => accepted = dto;
-            CommandResult result = dispatcher.SubmitHostCommand(new GameCommandDto
+            CommandResult result = session.Submit(new GameCommand
             {
-                CommandId = "command-network-boundary",
+                CommandId = "command-archive-boundary",
                 Kind = GameCommandKind.EndAction,
                 PlayerId = 1
             });
+            var accepted = session.CreateHostArchive(state.ContentPackHash);
 
             Assert.That(result.Succeeded, Is.True);
             Assert.That(accepted, Is.Not.Null);
-            Assert.That(accepted.State, Is.Null);
-            var confirmedView = dispatcher.CreateConfirmedStateViewSynchronization(
-                accepted, GameStateViewer.Player(1));
-            confirmedView.View.Players[0].Score = 101;
-            confirmedView.Command.CommandId = "changed-view-command";
+            accepted.Snapshot.State.Players[0].Score = 101;
             Assert.That(session.State.Players[0].Score, Is.EqualTo(5));
-            Assert.That(accepted.Command.CommandId, Is.EqualTo("command-network-boundary"));
-            Assert.That(session.State.Logs[0].CommandId, Is.EqualTo("command-network-boundary"));
         }
 
         [TestCase(true, 1)]

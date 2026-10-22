@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,6 +8,10 @@ using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Interactions;
 using YC.Presentation.Workflows;
+using YC.Domain.Presentation;
+using YC.Application.Presentation;
+using System.Globalization;
+using System.Linq;
 
 namespace YC.Presentation
 {
@@ -22,6 +27,8 @@ namespace YC.Presentation
         [SerializeField] private RectTransform bottomBarContent;
         [SerializeField] private RectTransform contentRect;
         [SerializeField] private RectTransform mapRegion;
+        [SerializeField] private RectTransform mapViewport;
+        [SerializeField] private RectTransform mapVisibleBounds;
         [SerializeField] private RectTransform mainSurface;
         [SerializeField] private RectTransform mainRegions;
         [SerializeField] private HorizontalLayoutGroup columnsLayout;
@@ -38,6 +45,10 @@ namespace YC.Presentation
         [SerializeField] private Image[] roundTicks;
         [SerializeField] private Text summaryText;
         [SerializeField] private Text shortSummaryText;
+        [SerializeField] private GameplayTextView summaryDocumentView;
+        [SerializeField] private GameplayTextView shortSummaryDocumentView;
+        [SerializeField] private GameplayTextStyle gameplayTextStyle;
+        [SerializeField] private GameplayIconCatalog gameplayIconCatalog;
         [SerializeField] private Text scoreValueText;
         [SerializeField] private Text[] resourceValueTexts;
         [SerializeField] private Button settingsButton;
@@ -60,6 +71,9 @@ namespace YC.Presentation
         [SerializeField] private string skippableSelectionSummaryFormat = "待处理选择：{0}～{1} 项（可跳过）";
         [SerializeField] private string targetSummary = "待处理目标：请选择目标";
         [SerializeField] private string skippableTargetSummary = "待处理目标：请选择目标（可跳过）";
+        [SerializeField] private string voucherReservationSummaryFormat = "{0}  |  金券（可用/预留）：{1}";
+        [SerializeField] private string voucherReservationPlayerFormat = "{0}号 {1}/{2}";
+        [SerializeField] private string voucherReservationPlayerSeparator = "；";
         [Header("阶段显示文案")]
         [SerializeField] private string setupPhaseText = "准备";
         [SerializeField] private string entrancePhaseText = "入场";
@@ -92,7 +106,34 @@ namespace YC.Presentation
         private string currentFlowId;
         private InteractionRequestProjection currentProjection;
         private string lastActionSummary;
+        private string collectionCompletionSummary;
+        private string voucherReservationSummary;
+        private string routeSelectionSummary;
         private string interactionMessage;
+        private GameplayTextDocument scopedInteractionMessageDocument;
+        private string scopedMessageGameId, scopedMessageContentHash;
+        private int scopedMessageViewer = -1, scopedMessageRevision = -1;
+        private Func<bool> scopedMessageIsCurrent;
+        private GameplayTextDocument legacyInteractionMessageDocument;
+        private string legacyMessageGameId, legacyMessagePendingId, legacyMessageContentHash;
+        private int legacyMessageViewer = -1, legacyMessageRevision = -1;
+        private Func<bool> legacyMessageIsCurrent;
+        private Func<string, string> legacyDefinitionNameResolver;
+        private GameplayTextDocument interactionDocument;
+        private InteractionRequestProjection interactionDocumentRequest;
+        private string interactionDocumentGameId;
+        private int interactionDocumentViewer = -1, interactionDocumentRevision = -1;
+        private bool interactionMessageOverridesPrompt;
+        private IGameplayTextCatalogSnapshot gameplayCatalog;
+        private IReadOnlyDictionary<string, string> gameplayDefinitionNames;
+        private GameplayTextResolver gameplayResolver;
+        private LegacyGameplayTextAdapter legacyText;
+        private GameplayTextContext gameplayContext;
+        private GameStateView gameplaySnapshot;
+        private readonly HashSet<GameplayTextView> configuredTextViews = new HashSet<GameplayTextView>();
+        private bool summaryDefaultsCaptured, defaultLongSummary, defaultShortSummary;
+        private int presentationGeneration;
+        private string gameplayScope;
         private float interactionMessageExpiresAt;
         private bool mapViewportDirty;
         private int currentRevision;
@@ -100,13 +141,29 @@ namespace YC.Presentation
         private int suspendedRevision;
         private bool effectSuspended;
         private bool mapInteractionActive;
+        private sealed class PageReturnContext
+        {
+            public GameObject Page, Focus;
+            public string Key;
+            public Func<bool> IsCurrent;
+            public Action Restore;
+            public string FocusPath;
+            public ScrollRect[] Scrolls;
+            public Vector2[] ScrollPositions;
+        }
+        private PageReturnContext actionPage, informationReturn;
+        private GameObject informationPage;
+        private bool informationNavigation;
+        private string navigationGameId;
+        private int navigationViewer = -1, informationReturnedFrame = -1;
         private readonly List<RectTransform> externalPages = new List<RectTransform>();
-        private System.Func<bool> canCancelMainAction;
-        private System.Action cancelMainAction;
+        private Func<bool> canCancelMainAction;
+        private Action cancelMainAction;
 
         public static GameplayHudFrame Active => active;
-        public static bool EffectInputSuspended => active != null && active.effectSuspended &&
-            (!active.mapInteractionActive || active.visiblePage != null);
+        public static bool InformationInputBlockedThisFrame => active != null && active.informationReturnedFrame == Time.frameCount;
+        public static bool EffectInputSuspended => active != null && (InformationInputBlockedThisFrame ||
+            active.informationNavigation || active.effectSuspended && (!active.mapInteractionActive || active.visiblePage != null));
         public RectTransform ContentRect => contentRect;
         public Canvas BarCanvas => barCanvas;
         public RectTransform TopBar => topBar;
@@ -116,23 +173,47 @@ namespace YC.Presentation
         public Button UndoButton => undoButton;
         public Button EndActionButton => endActionButton;
         public string InteractionMessage => interactionMessage ?? string.Empty;
+        public bool GameplayPresentationReady => gameplayContext != null;
+        public int PresentationGeneration => presentationGeneration;
 
         public bool TryValidateConfiguration(out string reason)
         {
-            if (barCanvas == null || safeArea == null || topBar == null || bottomBar == null ||
-                contentRect == null || mapRegion == null || mainSurface == null || mainRegions == null ||
-                columnsLayout == null || topContentLayout == null || mapSurroundLayout == null || citySlotsLayout == null ||
-                topBarContent == null || bottomBarContent == null ||
-                mapBackdrops == null || mapBackdrops.Length != 4 ||
-                roundNumberText == null || roundTotalText == null ||
-                phaseText == null || redZoneText == null || redZoneOpenRoundText == null ||
-                turnTagText == null || roundTicks == null || roundTicks.Length == 0 ||
-                summaryText == null || shortSummaryText == null || scoreValueText == null ||
-                resourceValueTexts == null || resourceValueTexts.Length != 5 ||
-                settingsButton == null || foldButton == null || foldButtonText == null ||
-                undoButton == null || endActionButton == null)
+            var missing = new List<string>();
+            void Require(string field, UnityEngine.Object value) { if (value == null) missing.Add(field + "=null"); }
+            void RequireArray<T>(string field, T[] value, int count, bool minimum = false)
             {
-                reason = "常驻栏或内容区的预制体引用不完整。";
+                if (value == null) missing.Add(field + "=null");
+                else if (minimum ? value.Length < count : value.Length != count)
+                    missing.Add(field + ".Length=" + value.Length + "，要求" + (minimum ? "至少" : string.Empty) + count);
+            }
+            Require(nameof(barCanvas), barCanvas); Require(nameof(safeArea), safeArea);
+            Require(nameof(topBar), topBar); Require(nameof(bottomBar), bottomBar);
+            Require(nameof(contentRect), contentRect); Require(nameof(mapRegion), mapRegion);
+            Require(nameof(mapViewport), mapViewport); Require(nameof(mapVisibleBounds), mapVisibleBounds);
+            Require(nameof(mainSurface), mainSurface); Require(nameof(mainRegions), mainRegions);
+            Require(nameof(columnsLayout), columnsLayout); Require(nameof(topContentLayout), topContentLayout);
+            Require(nameof(mapSurroundLayout), mapSurroundLayout); Require(nameof(citySlotsLayout), citySlotsLayout);
+            Require(nameof(topBarContent), topBarContent); Require(nameof(bottomBarContent), bottomBarContent);
+            RequireArray(nameof(mapBackdrops), mapBackdrops, 4);
+            Require(nameof(roundNumberText), roundNumberText); Require(nameof(roundTotalText), roundTotalText);
+            Require(nameof(phaseText), phaseText); Require(nameof(redZoneText), redZoneText);
+            Require(nameof(redZoneOpenRoundText), redZoneOpenRoundText); Require(nameof(turnTagText), turnTagText);
+            RequireArray(nameof(roundTicks), roundTicks, 1, true);
+            Require(nameof(summaryText), summaryText); Require(nameof(shortSummaryText), shortSummaryText);
+            Require(nameof(summaryDocumentView), summaryDocumentView); Require(nameof(shortSummaryDocumentView), shortSummaryDocumentView);
+            if (summaryDocumentView != null && summaryDocumentView.GetComponent<Text>() != summaryText)
+                missing.Add(nameof(summaryDocumentView) + ".Text与" + nameof(summaryText) + "不是同一组件（" + ConfigurationObjectPath(summaryDocumentView.transform) + "）");
+            if (shortSummaryDocumentView != null && shortSummaryDocumentView.GetComponent<Text>() != shortSummaryText)
+                missing.Add(nameof(shortSummaryDocumentView) + ".Text与" + nameof(shortSummaryText) + "不是同一组件（" + ConfigurationObjectPath(shortSummaryDocumentView.transform) + "）");
+            Require(nameof(gameplayTextStyle), gameplayTextStyle);
+            if (gameplayTextStyle != null) Require(nameof(gameplayTextStyle) + ".FontRoles（" + gameplayTextStyle.name + "）", gameplayTextStyle.FontRoles);
+            Require(nameof(gameplayIconCatalog), gameplayIconCatalog); Require(nameof(scoreValueText), scoreValueText);
+            RequireArray(nameof(resourceValueTexts), resourceValueTexts, 5);
+            Require(nameof(settingsButton), settingsButton); Require(nameof(foldButton), foldButton);
+            Require(nameof(foldButtonText), foldButtonText); Require(nameof(undoButton), undoButton); Require(nameof(endActionButton), endActionButton);
+            if (missing.Count > 0)
+            {
+                reason = "常驻栏或内容区的预制体引用不完整：" + ConfigurationObjectPath(transform) + " / GameplayHudFrame；" + string.Join("；", missing) + "。";
                 return false;
             }
             if (barCanvas.sortingOrder != GameplayUiLayers.PersistentBars ||
@@ -146,9 +227,18 @@ namespace YC.Presentation
             return true;
         }
 
+        private static string ConfigurationObjectPath(Transform value)
+        {
+            var names = new List<string>();
+            for (var current = value; current != null; current = current.parent) names.Add(current.name);
+            names.Reverse();
+            return string.Join("/", names);
+        }
+
         private void Awake()
         {
             active = this;
+            CaptureSummaryDefaults();
             Canvas.willRenderCanvases += ReadCompletedLayout;
             if (contentRect != null) contentCanvas = contentRect.GetComponentInParent<Canvas>();
             InteractionRequestRouter.RequestRouted += HandleRequestRouted;
@@ -177,7 +267,8 @@ namespace YC.Presentation
             if (active == this) active = null;
         }
 
-        public void BindMainActionCancellation(System.Func<bool> canCancel, System.Action cancel)
+        private readonly Vector3[] completedMapCorners = new Vector3[4];
+        public void BindMainActionCancellation(Func<bool> canCancel, Action cancel)
         {
             canCancelMainAction = canCancel;
             cancelMainAction = cancel;
@@ -186,20 +277,19 @@ namespace YC.Presentation
 
         private void CancelMainAction()
         {
-            if (canCancelMainAction != null && canCancelMainAction()) cancelMainAction?.Invoke();
+            if (canCancelMainAction?.Invoke() == true) cancelMainAction?.Invoke();
             RefreshUndoButton();
         }
 
         private void RefreshUndoButton()
         {
             if (undoButton == null) return;
-            var available = canCancelMainAction != null && canCancelMainAction();
+            var available = canCancelMainAction?.Invoke() == true;
             var buttonState = undoButton.GetComponent<UiMainButtonState>();
             if (buttonState != null) buttonState.SetAvailable(available);
             else undoButton.interactable = available;
         }
 
-        private readonly Vector3[] completedMapCorners = new Vector3[4];
         private Rect completedMapRect;
 
         private void ReadCompletedLayout()
@@ -213,6 +303,17 @@ namespace YC.Presentation
                 completedMapRect = rect;
                 mapViewportDirty = true;
             }
+            // 展开详情会在 Update 之后改变原生布局；同帧同步真实相机视口，
+            // 避免只缩小外框、地图仍绘制到刚腾出的详情区域。
+            if (mapViewportDirty)
+            {
+                mapViewportDirty = false;
+                ApplyMapViewport();
+                RefreshMapOpening();
+                if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
+                ApplyBackdrops();
+            }
+            else RefreshMapOpening();
             for (var i = externalPages.Count - 1; i >= 0; i--)
             {
                 if (externalPages[i] == null) externalPages.RemoveAt(i);
@@ -235,27 +336,32 @@ namespace YC.Presentation
         private void Update()
         {
             RefreshUndoButton();
-            if (stagePage != null && !stagePageSuspended && (visiblePage == null || !visiblePage.activeSelf))
+            if (!informationNavigation && stagePage != null && !stagePageSuspended && (visiblePage == null || !visiblePage.activeSelf))
                 ShowPage(stagePage, false);
             if (barCanvas != null && (lastScreenWidth != Screen.width || lastScreenHeight != Screen.height ||
                 lastSafeArea != Screen.safeArea || lastScaleFactor != barCanvas.scaleFactor ||
                 (mainSurface != null && lastSurfaceSize != mainSurface.rect.size) ||
                 (contentCanvas != null && lastContentScaleFactor != contentCanvas.scaleFactor)))
                 ApplyLayout(false);
-            if (mapViewportDirty)
-            {
-                mapViewportDirty = false;
-                // 首次布局可能晚于 Awake；地图开口和相机必须消费同一最终矩形。
-                if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
-                ApplyBackdrops();
-                ApplyMapViewport();
-            }
         }
 
-        public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason)
+        public void Refresh(GameState state, ActionPanelViewModel action, string endUnavailableReason,
+            string collectionCompletion = null, GameStateView publicState = null)
         {
             RefreshUndoButton();
-            if (state == null || action == null) return;
+            BindGameplaySnapshot(publicState);
+            var game = publicState?.GameId ?? state?.GameId;
+            var viewer = publicState?.ViewerPlayerId ?? -1;
+            if (navigationGameId != game || navigationViewer != viewer)
+            {
+                informationReturn = actionPage = null;
+                informationPage = null;
+                informationNavigation = false;
+                navigationGameId = game;
+                navigationViewer = viewer;
+            }
+            RefreshVoucherReservationSummary(publicState);
+            if (state == null || action == null) { UpdateSummary(); return; }
             if (roundNumberText != null) roundNumberText.text = state.Round.ToString();
             if (roundTotalText != null) roundTotalText.text = "/ " + state.MaxRounds + " 回合";
             if (phaseText != null) phaseText.text = GetPhaseText(state.Phase);
@@ -294,6 +400,7 @@ namespace YC.Presentation
                 }
             }
             lastActionSummary = action.CanEndAction ? action.StatusText : endUnavailableReason;
+            collectionCompletionSummary = action.AllCollectionLocationsSelected ? collectionCompletion : null;
             UpdateSummary();
             if (redZoneText != null)
             {
@@ -326,10 +433,16 @@ namespace YC.Presentation
 
         private void SetRequestWithFlow(string interactionId, int revision, string flowId)
         {
+            if (currentRequestId != interactionId || revision != currentRevision)
+            {
+                ClearInteractionDocument();
+                interactionMessageOverridesPrompt = GetScopedInteractionMessageDocument() != null || GetLegacyInteractionMessageDocument() != null;
+            }
             var replaced = currentRequestId != interactionId || revision < currentRevision;
             var sameFlow = !string.IsNullOrEmpty(flowId) && flowId == currentFlowId;
             if (replaced)
             {
+                routeSelectionSummary = null;
                 mapInteractionActive = false;
                 if (!sameFlow) effectSuspended = false;
                 if (visiblePage != null && visiblePage == suspendedEffectPage)
@@ -360,6 +473,9 @@ namespace YC.Presentation
 
         public void ClearRequest()
         {
+            ClearInteractionDocument();
+            interactionMessageOverridesPrompt = GetScopedInteractionMessageDocument() != null || GetLegacyInteractionMessageDocument() != null;
+            routeSelectionSummary = null;
             mapInteractionActive = false;
             currentRequestId = null;
             currentFlowId = null;
@@ -373,40 +489,442 @@ namespace YC.Presentation
 
         public void SetInteractionMessage(string message, string pendingPrompt = null)
         {
+            ClearScopedInteractionMessageDocument();
+            ClearLegacyInteractionMessageDocument();
+            ClearInteractionDocument();
             if (!string.IsNullOrEmpty(pendingPrompt) &&
                 (string.IsNullOrEmpty(message) || !message.Contains(pendingPrompt)))
                 message = string.IsNullOrEmpty(message) ? pendingPrompt : message + "\n" + pendingPrompt;
             interactionMessage = string.IsNullOrWhiteSpace(message) ? null : message;
+            interactionMessageOverridesPrompt = interactionMessage != null;
             interactionMessageExpiresAt = Time.unscaledTime + 3f;
+            UpdateSummary();
+        }
+
+        public void SetScopedInteractionMessageDocument(string gameId, int viewerPlayerId, int revision,
+            GameplayTextDocument document, Func<bool> isCurrent)
+        {
+            if (!BindScopedInteractionMessageDocument(gameId, viewerPlayerId, revision, document, isCurrent)) return;
+            if (document != null)
+            {
+                ClearLegacyInteractionMessageDocument();
+                ClearInteractionDocument();
+                interactionMessage = null;
+                interactionMessageOverridesPrompt = true;
+                interactionMessageExpiresAt = Time.unscaledTime + 3f;
+            }
+            UpdateSummary();
+        }
+
+        private bool BindScopedInteractionMessageDocument(string gameId, int viewerPlayerId, int revision,
+            GameplayTextDocument document, Func<bool> isCurrent)
+        {
+            if (document == null)
+            {
+                if (scopedMessageGameId != gameId || scopedMessageViewer != viewerPlayerId || scopedMessageRevision != revision) return false;
+                ClearScopedInteractionMessageDocument();
+                return true;
+            }
+            var view = gameplaySnapshot;
+            if (view == null || view.ViewerRole != GameStateViewerRole.Player || view.GameId != gameId ||
+                view.ViewerPlayerId != viewerPlayerId || view.StateRevision != revision || isCurrent?.Invoke() != true) return false;
+            scopedInteractionMessageDocument = document;
+            scopedMessageGameId = gameId; scopedMessageViewer = viewerPlayerId; scopedMessageRevision = revision;
+            scopedMessageContentHash = view.ContentPackHash; scopedMessageIsCurrent = isCurrent;
+            return true;
+        }
+
+        private GameplayTextDocument GetScopedInteractionMessageDocument()
+        {
+            if (scopedInteractionMessageDocument == null) return null;
+            var view = gameplaySnapshot;
+            if (view != null && view.ViewerRole == GameStateViewerRole.Player && view.GameId == scopedMessageGameId &&
+                view.ViewerPlayerId == scopedMessageViewer && view.StateRevision == scopedMessageRevision &&
+                view.ContentPackHash == scopedMessageContentHash && scopedMessageIsCurrent?.Invoke() == true)
+                return scopedInteractionMessageDocument;
+            ClearScopedInteractionMessageDocument();
+            return null;
+        }
+
+        private void ClearScopedInteractionMessageDocument()
+        {
+            var hadDocument = scopedInteractionMessageDocument != null;
+            scopedInteractionMessageDocument = null; scopedMessageGameId = scopedMessageContentHash = null;
+            scopedMessageViewer = scopedMessageRevision = -1; scopedMessageIsCurrent = null;
+            if (!hadDocument) return;
+            interactionMessageOverridesPrompt = false;
+            if (summaryDocumentView is GameplayTextView longView) longView.ClearBinding();
+            if (shortSummaryDocumentView is GameplayTextView shortView) shortView.ClearBinding();
+        }
+
+        public void SetLegacyInteractionMessageDocument(string gameId, int viewerPlayerId, int revision,
+            string pendingId, GameplayTextDocument document, Func<bool> isCurrent)
+        {
+            if (!BindLegacyInteractionMessageDocument(gameId, viewerPlayerId, revision, pendingId, document, isCurrent)) return;
+            if (document != null)
+            {
+                ClearScopedInteractionMessageDocument();
+                ClearInteractionDocument();
+                interactionMessage = null;
+                interactionMessageOverridesPrompt = true;
+                interactionMessageExpiresAt = Time.unscaledTime + 3f;
+            }
+            UpdateSummary();
+        }
+
+        private bool BindLegacyInteractionMessageDocument(string gameId, int viewerPlayerId, int revision,
+            string pendingId, GameplayTextDocument document, Func<bool> isCurrent)
+        {
+            if (document == null)
+            {
+                if (legacyMessageGameId != gameId || legacyMessageViewer != viewerPlayerId ||
+                    legacyMessageRevision != revision || legacyMessagePendingId != pendingId) return false;
+                ClearLegacyInteractionMessageDocument();
+                return true;
+            }
+            if (!MatchesLegacyMessage(gameId, viewerPlayerId, revision, pendingId, gameplaySnapshot) ||
+                isCurrent?.Invoke() != true) return false;
+            legacyInteractionMessageDocument = document;
+            legacyMessageGameId = gameId;
+            legacyMessageViewer = viewerPlayerId;
+            legacyMessageRevision = revision;
+            legacyMessagePendingId = pendingId;
+            legacyMessageContentHash = gameplaySnapshot.ContentPackHash;
+            legacyMessageIsCurrent = isCurrent;
+            return true;
+        }
+
+        private static bool MatchesLegacyMessage(string gameId, int viewerPlayerId, int revision,
+            string pendingId, GameStateView view)
+        {
+            if (string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(pendingId) || view == null ||
+                view.ViewerRole != GameStateViewerRole.Player || view.ViewerPlayerId != viewerPlayerId ||
+                view.GameId != gameId || view.StateRevision != revision) return false;
+            var matches = view.Interactions.Where(value => value.InteractionId == pendingId).Take(2).ToArray();
+            return matches.Length == 1 && matches[0].AnsweringPlayerId == viewerPlayerId &&
+                matches[0].Visibility == GameStateVisibilityPolicy.Owner && matches[0].Status == "open" &&
+                (matches[0].Kind == YC.Domain.Cards.CharacterPendingChoiceTypes.TinManDiscard ||
+                 matches[0].Kind == YC.Domain.Cards.CharacterPendingChoiceTypes.TinManFirstPurchase ||
+                 matches[0].Kind == YC.Domain.Cards.CharacterPendingChoiceTypes.TinManSecondPurchase);
+        }
+
+        private GameplayTextDocument GetLegacyInteractionMessageDocument()
+        {
+            if (legacyInteractionMessageDocument == null) return null;
+            if (MatchesLegacyMessage(legacyMessageGameId, legacyMessageViewer, legacyMessageRevision,
+                    legacyMessagePendingId, gameplaySnapshot) &&
+                gameplaySnapshot.ContentPackHash == legacyMessageContentHash && legacyMessageIsCurrent?.Invoke() == true &&
+                !MatchesSummaryRequest(currentProjection, gameplaySnapshot)) return legacyInteractionMessageDocument;
+            ClearLegacyInteractionMessageDocument();
+            return null;
+        }
+
+        private void ClearLegacyInteractionMessageDocument()
+        {
+            var hadDocument = legacyInteractionMessageDocument != null;
+            legacyInteractionMessageDocument = null;
+            legacyMessageGameId = legacyMessagePendingId = legacyMessageContentHash = null;
+            legacyMessageViewer = legacyMessageRevision = -1;
+            legacyMessageIsCurrent = null;
+            if (!hadDocument) return;
+            interactionMessageOverridesPrompt = false;
+            if (summaryDocumentView is GameplayTextView longView) longView.ClearBinding();
+            if (shortSummaryDocumentView is GameplayTextView shortView) shortView.ClearBinding();
+        }
+
+        internal static bool MatchesSummaryRequest(InteractionRequestProjection request, GameStateView view)
+        {
+            if (request == null || view == null || view.ViewerRole != GameStateViewerRole.Player ||
+                request.AnsweringPlayerId != view.ViewerPlayerId || !request.VisibleToViewer || request.Status != "open" ||
+                view.StateRevision < request.StateRevision) return false;
+            var matches = view.Interactions?.Where(value => value != null && value.InteractionId == request.InteractionId).Take(2).ToArray();
+            if (matches == null || matches.Length != 1) return false;
+            var match = matches[0];
+            return match.SourceNodeId == request.SourceNodeId && match.OwnerEffectId == request.OwnerEffectId &&
+                match.Kind == request.InteractionTypeId && match.PromptKey == request.PromptKey &&
+                match.AnsweringPlayerId == request.AnsweringPlayerId && match.Visibility == request.Visibility &&
+                match.StateRevision == request.StateRevision && match.CandidateSetId == request.CandidateSetId &&
+                match.CandidateSetVersion == request.CandidateSetVersion && match.MinSelections == request.MinSelections &&
+                match.MaxSelections == request.MaxSelections && match.AllowDecline == request.AllowDecline &&
+                match.AnswerSchema == request.AnswerSchema && match.Status == request.Status &&
+                match.CandidateIds != null && request.CandidateIds != null && match.CandidateIds.SequenceEqual(request.CandidateIds);
+        }
+
+        public void SetInteractionDocument(InteractionRequestProjection request, GameplayTextDocument document)
+        {
+            if (document == null)
+            {
+                if (request == null || interactionDocumentRequest?.InteractionId == request.InteractionId &&
+                    interactionDocumentRequest.StateRevision == request.StateRevision &&
+                    InteractionCommandIntent.SameContract(interactionDocumentGameId, interactionDocumentRequest, interactionDocumentGameId, request))
+                    ClearInteractionDocument();
+                return;
+            }
+            if (!MatchesSummaryRequest(request, gameplaySnapshot) || currentProjection == null ||
+                currentProjection.StateRevision != request.StateRevision ||
+                !InteractionCommandIntent.SameContract(gameplaySnapshot.GameId, currentProjection, gameplaySnapshot.GameId, request)) return;
+            if (ReferenceEquals(interactionDocument, document) && GetInteractionDocument() != null) return;
+            ClearScopedInteractionMessageDocument();
+            ClearLegacyInteractionMessageDocument();
+            interactionDocument = document;
+            interactionDocumentRequest = GameStateCloneService.DeepClone(request);
+            interactionDocumentGameId = gameplaySnapshot.GameId;
+            interactionDocumentViewer = gameplaySnapshot.ViewerPlayerId;
+            interactionDocumentRevision = gameplaySnapshot.StateRevision;
+            interactionMessage = null;
+            interactionMessageOverridesPrompt = false;
+            UpdateSummary();
+        }
+
+        private GameplayTextDocument GetInteractionDocument()
+        {
+            if (interactionDocument == null) return null;
+            if (gameplaySnapshot?.GameId == interactionDocumentGameId && gameplaySnapshot.ViewerPlayerId == interactionDocumentViewer &&
+                gameplaySnapshot.StateRevision == interactionDocumentRevision && MatchesSummaryRequest(interactionDocumentRequest, gameplaySnapshot) &&
+                currentProjection?.StateRevision == interactionDocumentRequest.StateRevision &&
+                InteractionCommandIntent.SameContract(interactionDocumentGameId, interactionDocumentRequest, interactionDocumentGameId, currentProjection))
+                return interactionDocument;
+            ClearInteractionDocument();
+            return null;
+        }
+
+        private void ClearInteractionDocument()
+        {
+            interactionDocument = null;
+            interactionDocumentRequest = null;
+            interactionDocumentGameId = null;
+            interactionDocumentViewer = interactionDocumentRevision = -1;
+            if (summaryDocumentView is GameplayTextView longView) longView.ClearBinding();
+            if (shortSummaryDocumentView is GameplayTextView shortView) shortView.ClearBinding();
+        }
+
+        private InteractionView GetSummaryRequest()
+        {
+            if (gameplaySnapshot == null) return null;
+            if (!string.IsNullOrEmpty(currentRequestId))
+                return currentProjection?.InteractionId == currentRequestId && MatchesSummaryRequest(currentProjection, gameplaySnapshot)
+                    ? gameplaySnapshot.Interactions.Single(value => value.InteractionId == currentRequestId) : null;
+            return gameplaySnapshot.Interactions.LastOrDefault(value => value.Status == "open" && value.AnsweringPlayerId == gameplaySnapshot.ViewerPlayerId);
+        }
+
+        public void SetRouteSelectionSummary(string summary)
+        {
+            routeSelectionSummary = summary;
             UpdateSummary();
         }
 
         public void UpdateInteractionMessage(bool keepVisible)
         {
-            if (interactionMessage == null) return;
+            GetScopedInteractionMessageDocument();
+            GetLegacyInteractionMessageDocument();
+            if (interactionMessage == null && legacyInteractionMessageDocument == null && scopedInteractionMessageDocument == null) return;
             if (keepVisible) interactionMessageExpiresAt = Time.unscaledTime + 3f;
             else if (Time.unscaledTime >= interactionMessageExpiresAt)
             {
+                ClearScopedInteractionMessageDocument();
+                ClearLegacyInteractionMessageDocument();
                 interactionMessage = null;
+                interactionMessageOverridesPrompt = false;
                 UpdateSummary();
             }
         }
 
         private void UpdateSummary()
         {
+            if (gameplayContext == null) return;
+            var document = GetScopedInteractionMessageDocument() ?? GetLegacyInteractionMessageDocument() ?? GetInteractionDocument();
+            var request = GetSummaryRequest();
+            if (interactionMessageOverridesPrompt && !string.IsNullOrEmpty(interactionMessage))
+                document = legacyText.Resolve(interactionMessage, LegacyGameplayTextInputKind.Literal, gameplayContext);
+            else if (document == null && request?.Presentation?.Prompt != null)
+                document = ResolveGameplayText(request.Presentation.Prompt);
+            var message = gameplaySnapshot?.ResolutionMessage;
+            if (document == null && message?.Message != null && message.ViewerPlayerId == gameplayContext.ViewerPlayerId &&
+                message.StateRevision == gameplayContext.StateRevision)
+                document = ResolveGameplayText(message.Message);
             var summary = lastActionSummary;
-            if (currentProjection != null && currentProjection.Status == "open")
+            if (request != null)
             {
-                var skippable = currentProjection.AllowDecline;
-                summary = currentProjection.MaxSelections > 0
+                var skippable = request.AllowDecline;
+                summary = request.MaxSelections > 0
                     ? string.Format(skippable ? skippableSelectionSummaryFormat :
-                        selectionSummaryFormat, currentProjection.MinSelections,
-                        currentProjection.MaxSelections)
+                        selectionSummaryFormat, request.MinSelections,
+                        request.MaxSelections)
                     : skippable ? skippableTargetSummary : targetSummary;
             }
-            if (!string.IsNullOrEmpty(interactionMessage)) summary = interactionMessage;
-            if (summaryText != null) summaryText.text = summary ?? string.Empty;
-            if (shortSummaryText != null) shortSummaryText.text = summary ?? string.Empty;
+            if (!string.IsNullOrEmpty(routeSelectionSummary)) summary = routeSelectionSummary;
+            if (request == null && !string.IsNullOrEmpty(interactionMessage)) summary = interactionMessage;
+            if (!string.IsNullOrEmpty(collectionCompletionSummary)) summary += "\n" + collectionCompletionSummary;
+            if (!string.IsNullOrEmpty(voucherReservationSummary))
+            {
+                summary = string.Format(voucherReservationSummaryFormat,
+                    summary ?? string.Empty, voucherReservationSummary);
+                summary = summary.TrimStart(' ', '|');
+            }
+            if (document == null) document = legacyText.Resolve(summary ?? string.Empty, LegacyGameplayTextInputKind.Literal, gameplayContext);
+            RenderGameplayText(summaryDocumentView, document, false);
+            RenderGameplayText(shortSummaryDocumentView, document, false);
+        }
+
+        public void ConfigureGameplayPresentation(IGameplayTextCatalogSnapshot catalog, IReadOnlyDictionary<string, string> definitionNames)
+        {
+            if (catalog == null) throw new ArgumentNullException(nameof(catalog));
+            if (gameplayTextStyle == null || gameplayIconCatalog == null) throw new InvalidOperationException("玩法文字资产尚未接线。");
+            foreach (var view in configuredTextViews) if (view != null) view.ClearBinding();
+            configuredTextViews.Clear(); gameplayCatalog = catalog;
+            ClearScopedInteractionMessageDocument();
+            ClearLegacyInteractionMessageDocument();
+            ClearInteractionDocument();
+            interactionMessageOverridesPrompt = false;
+            presentationGeneration++;
+            gameplayDefinitionNames = definitionNames ?? throw new ArgumentNullException(nameof(definitionNames));
+            gameplayScope = null; gameplayContext = null; gameplaySnapshot = null;
+        }
+
+        public void BindGameplaySnapshot(GameStateView view)
+        {
+            if (ReferenceEquals(gameplaySnapshot, view) && gameplayContext != null) return;
+            if (view == null || view.ViewerRole != GameStateViewerRole.Player || gameplayCatalog == null ||
+                gameplayCatalog.ContentHash != view.ContentPackHash)
+            {
+                ClearScopedInteractionMessageDocument();
+                ClearLegacyInteractionMessageDocument();
+                ClearInteractionDocument();
+                interactionMessageOverridesPrompt = false;
+                gameplaySnapshot = null; gameplayContext = null;
+                foreach (var text in configuredTextViews) if (text != null) text.ClearBinding();
+                return;
+            }
+            string scope = view.GameId + ":" + view.ViewerPlayerId + ":" + view.ContentPackHash;
+            if (scope != gameplayScope)
+            {
+                foreach (var text in configuredTextViews) if (text != null) text.ClearBinding();
+                ClearScopedInteractionMessageDocument();
+                ClearLegacyInteractionMessageDocument();
+                ClearInteractionDocument();
+                interactionMessageOverridesPrompt = false;
+                configuredTextViews.Clear(); interactionMessage = routeSelectionSummary = null;
+                gameplayScope = scope; gameplayResolver = gameplayTextStyle.CreateResolver(gameplayCatalog, scope);
+                presentationGeneration++;
+                // 完整目录语法与加载失败由共享正式装配统一预编译；此处仅创建观察者解析作用域。
+                legacyText = new LegacyGameplayTextAdapter(gameplayResolver);
+            }
+            var playerNames = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var player in view.Players)
+                if (!string.IsNullOrWhiteSpace(player.Name))
+                {
+                    string id = player.PlayerId.ToString(CultureInfo.InvariantCulture);
+                    playerNames[id] = player.Name; playerNames["p" + id] = player.Name;
+                }
+            var definitions = BuildVisibleGameplayDefinitionNames(view, gameplayDefinitionNames, legacyDefinitionNameResolver);
+            var items = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var item in view.ItemZones.Items) if (definitions.TryGetValue(item.DefinitionId, out var name)) items[item.ItemId] = name;
+            gameplaySnapshot = view;
+            GetScopedInteractionMessageDocument();
+            GetLegacyInteractionMessageDocument();
+            GetInteractionDocument();
+            gameplayContext = new GameplayTextContext { VisibilityScopeId = scope, Catalog = gameplayCatalog,
+                ContentHash = view.ContentPackHash, Locale = gameplayCatalog.Locale, ViewerPlayerId = view.ViewerPlayerId,
+                StateRevision = view.StateRevision, PlayerNames = playerNames, ItemNames = items, DefinitionNames = definitions,
+                SemanticKeywords = gameplayTextStyle.GetKeywordSnapshot() };
+            // 资源名称和图标均由正式目录声明，缺项由统一解析器产生诊断。
+            var resourceNames = new Dictionary<string, string>(StringComparer.Ordinal);
+            var resourceIcons = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var pair in new[] { new[] { "core:resource.orirock", "originium", "Originium" }, new[] { "core:resource.originium_shard", "originium_shard", "OriginiumShard" },
+                new[] { "core:resource.iron", "iron", "Iron" }, new[] { "core:resource.pure_originium", "pure_originium", "PureOriginium" }, new[] { "core:resource.gold_voucher", "gold_voucher", "GoldVoucher" } })
+                if (gameplayCatalog.TryGetIcon(pair[0], out var icon) && icon.AltText != null)
+                    foreach (var id in pair.Skip(1)) { resourceNames[id] = gameplayResolver.Resolve(icon.AltText, gameplayContext).ToPlainText(); resourceIcons[id] = icon.Id; }
+            gameplayContext.ResourceNames = resourceNames; gameplayContext.ResourceIconKeys = resourceIcons;
+            UpdateSummary();
+        }
+
+        public void BindLegacyGameplayDefinitionNames(Func<string, string> resolveVisibleName)
+        {
+            legacyDefinitionNameResolver = resolveVisibleName;
+            ClearScopedInteractionMessageDocument();
+            ClearLegacyInteractionMessageDocument();
+            ClearInteractionDocument();
+            gameplayContext = null;
+            presentationGeneration++;
+        }
+
+        private static Dictionary<string, string> BuildVisibleGameplayDefinitionNames(GameStateView view,
+            IReadOnlyDictionary<string, string> knownNames, Func<string, string> resolveVisibleLegacyName)
+        {
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (view == null || view.ViewerRole != GameStateViewerRole.Player || knownNames == null) return result;
+            foreach (var id in view.ItemZones.Items.Select(item => item.DefinitionId)
+                .Concat(view.CharacterSettlementOptions.Select(option => option.SourceDefinitionId)).Distinct())
+                if (!string.IsNullOrEmpty(id) && knownNames.TryGetValue(id, out var name) && !string.IsNullOrEmpty(name)) result[id] = name;
+            foreach (var player in view.Players.Where(value => value.PlayerId == view.ViewerPlayerId && value.PrivateCardIdsVisible))
+                foreach (var id in player.HandCardIds.Concat(player.DiscardCardIds)
+                    .Concat(new[] { player.CoveredCharacterCardId }).Where(value => !string.IsNullOrEmpty(value)).Distinct())
+                {
+                    if (result.ContainsKey(id)) continue;
+                    var name = knownNames.TryGetValue(id, out var known) ? known : resolveVisibleLegacyName?.Invoke(id);
+                    if (!string.IsNullOrEmpty(name)) result[id] = name;
+                }
+            return result;
+        }
+
+        public GameplayTextDocument ResolveGameplayText(GameplayTextRef text) => text == null || gameplayContext == null ? null : gameplayResolver.Resolve(text, gameplayContext);
+        private GameplayTextView ConfigureTextView(Component component)
+        {
+            var view = component as GameplayTextView;
+            if (view == null || gameplayCatalog == null) throw new InvalidOperationException("玩法文案宿主或活动目录缺失。");
+            if (configuredTextViews.Add(view)) view.Configure(view.GetComponent<Text>(), gameplayTextStyle, gameplayIconCatalog, gameplayCatalog);
+            return view;
+        }
+        public void RenderGameplayText(Component component, GameplayTextDocument document, bool singleLine)
+        {
+            if (component == null) throw new InvalidOperationException("玩法文案宿主缺失。");
+            if (document == null) { ((GameplayTextView)component).ClearBinding(); return; }
+            var view = ConfigureTextView(component);
+            // Chip 已按完整测量和 padding 限宽；View 每次读最终标签框，增宽后可恢复全文。
+            if (singleLine) view.BindSingleLineEllipsized(document, float.MaxValue);
+            else view.Bind(document);
+        }
+        public float MeasureGameplayText(Component component, GameplayTextDocument document) => ConfigureTextView(component).MeasureSingleLineWidth(document);
+        public Sprite ResolveGameplayIcon(string key, string tone)
+        {
+            if (gameplayCatalog != null && gameplayCatalog.TryGetIcon(key, out var icon) &&
+                gameplayIconCatalog.TryResolve(icon, tone == "light" ? GameplayIconTone.Light : tone == "muted" ? GameplayIconTone.Muted : GameplayIconTone.Dark, out var sprite)) return sprite;
+            return null;
+        }
+        private void CaptureSummaryDefaults()
+        {
+            if (summaryDefaultsCaptured) return;
+            defaultLongSummary = longSummary != null && longSummary.activeSelf;
+            defaultShortSummary = shortSummary != null && shortSummary.activeSelf;
+            summaryDefaultsCaptured = true;
+        }
+        public void SetSettlementButtonsVisible(bool visible)
+        {
+            CaptureSummaryDefaults();
+            if (longSummary != null) longSummary.SetActive(!visible && defaultLongSummary);
+            if (shortSummary != null) shortSummary.SetActive(!visible && defaultShortSummary);
+            if (!visible) UpdateSummary();
+        }
+
+        private void RefreshVoucherReservationSummary(GameStateView publicState)
+        {
+            voucherReservationSummary = null;
+            var players = publicState == null ? null : publicState.Players;
+            if (players == null) return;
+            var hasReservation = false;
+            for (var i = 0; i < players.Count; i++)
+                if (players[i] != null && players[i].ReservedGoldVoucher > 0)
+                    hasReservation = true;
+            if (!hasReservation) return;
+            var balances = new List<string>(players.Count);
+            foreach (var id in new TurnOrderService().GetLaunchPlayerOrder(publicState))
+            {
+                var player = players.Find(p => p.PlayerId == id);
+                if (player == null) continue;
+                balances.Add(string.Format(voucherReservationPlayerFormat, player.PlayerId,
+                    player.AvailableGoldVoucher, player.ReservedGoldVoucher));
+            }
+            voucherReservationSummary = string.Join(voucherReservationPlayerSeparator, balances);
         }
 
         public void ShowStagePage(GameObject page)
@@ -419,6 +937,114 @@ namespace YC.Presentation
             stagePage = page;
             stagePageSuspended = false;
             ShowPage(page, false);
+        }
+
+        /// <summary>登记已有行动页面；临时查看资料不结束其草稿或规则请求。</summary>
+        public void RegisterActionPage(GameObject page, string key, Func<bool> isCurrent, Action restore)
+        {
+            if (page == null) return;
+            actionPage = new PageReturnContext { Page = page, Key = key, IsCurrent = isCurrent, Restore = restore };
+        }
+
+        public void ShowInformationPage(GameObject page)
+        {
+            if (page == null) return;
+            if (!informationNavigation)
+            {
+                var source = visiblePage;
+                var focus = EventSystem.current?.currentSelectedGameObject;
+                informationReturn = null;
+                if (source != null && actionPage?.Page == source && actionPage.IsCurrent() &&
+                    !(source == suspendedEffectPage && CanFoldEffectPage))
+                {
+                    var registered = actionPage;
+                    informationReturn = new PageReturnContext { Page = source, Focus = focus, Key = registered.Key,
+                        IsCurrent = () => actionPage?.Page == source && actionPage.Key == registered.Key && registered.IsCurrent(),
+                        Restore = registered.Restore };
+                }
+                else if ((source == null || source == suspendedEffectPage) && CanFoldEffectPage)
+                {
+                    source = suspendedEffectPage;
+                    var request = currentRequestId;
+                    var revision = currentRevision;
+                    var candidateSet = currentProjection?.CandidateSetId;
+                    var candidateVersion = currentProjection?.CandidateSetVersion;
+                    var wasSuspended = effectSuspended;
+                    var wasMapInteraction = mapInteractionActive;
+                    informationReturn = new PageReturnContext { Page = source, Focus = focus,
+                        IsCurrent = () => source == suspendedEffectPage && currentRequestId == request && currentRevision >= revision &&
+                            currentProjection?.CandidateSetId == candidateSet && currentProjection?.CandidateSetVersion == candidateVersion,
+                        Restore = () => { if (wasSuspended) mapInteractionActive = wasMapInteraction; else ResumeEffectPage(); } };
+                }
+                else if (source != null && source == stagePage)
+                {
+                    informationReturn = new PageReturnContext { Page = source, Focus = focus,
+                        IsCurrent = () => stagePage == source, Restore = () => ShowStagePage(source) };
+                }
+                if (informationReturn != null)
+                {
+                    informationReturn.Scrolls = source.GetComponentsInChildren<ScrollRect>(true);
+                    informationReturn.ScrollPositions = new Vector2[informationReturn.Scrolls.Length];
+                    for (var i = 0; i < informationReturn.Scrolls.Length; i++)
+                        informationReturn.ScrollPositions[i] = informationReturn.Scrolls[i].normalizedPosition;
+                    if (focus != null && focus.transform.IsChildOf(source.transform))
+                    {
+                        var names = new List<string>();
+                        for (var node = focus.transform; node != source.transform; node = node.parent) names.Add(node.name);
+                        names.Reverse();
+                        informationReturn.FocusPath = string.Join("/", names);
+                    }
+                }
+                informationNavigation = true;
+            }
+            informationPage = page;
+            ShowPage(page, false);
+        }
+
+        /// <summary>用户关闭资料导航时返回；失效清理用 AbandonInformationPage，内部转页用 ReleasePage。</summary>
+        public void CloseInformationPage(GameObject page)
+        {
+            if (page == null) return;
+            if (!informationNavigation || informationPage != page) { ReleasePage(page); return; }
+            var saved = informationReturn;
+            informationReturn = null;
+            informationPage = null;
+            informationNavigation = false;
+            informationReturnedFrame = Time.frameCount;
+            ReleasePage(page);
+            if (saved?.Page == null || saved.IsCurrent?.Invoke() != true) return;
+            saved.Restore?.Invoke();
+            if (!saved.Page.activeInHierarchy) return;
+            Canvas.ForceUpdateCanvases();
+            for (var i = 0; saved.Scrolls != null && i < saved.Scrolls.Length; i++)
+                if (saved.Scrolls[i] != null)
+                {
+                    saved.Scrolls[i].StopMovement();
+                    saved.Scrolls[i].normalizedPosition = saved.ScrollPositions[i];
+                }
+            var focus = saved.Focus != null && saved.Focus.activeInHierarchy ? saved.Focus :
+                string.IsNullOrEmpty(saved.FocusPath) ? null : saved.Page.transform.Find(saved.FocusPath)?.gameObject;
+            RestorePageFocus(saved.Page, focus);
+        }
+
+        public bool IsActionPageCovered(GameObject page) => informationNavigation && page != null &&
+            (actionPage?.Page == page || suspendedEffectPage == page);
+
+        public void AbandonInformationPage(GameObject page)
+        {
+            var abandonedCurrentInformation = page != null && informationPage == page;
+            if (abandonedCurrentInformation)
+            {
+                informationReturn = null;
+                informationPage = null;
+                informationNavigation = false;
+            }
+            ReleasePage(page);
+            // 新请求可能已在资料页后登记；关闭资料时交回该页，不改变用户主动收起的状态。
+            if (abandonedCurrentInformation && !informationNavigation && !effectSuspended && visiblePage == null &&
+                suspendedEffectPage != null && !string.IsNullOrEmpty(currentRequestId) &&
+                suspendedRequestId == currentRequestId && suspendedRevision == currentRevision)
+                ShowPage(suspendedEffectPage, true);
         }
 
         public void ConfigureStagePageFolding(GameObject page, bool allowFolding)
@@ -441,11 +1067,25 @@ namespace YC.Presentation
         public void ShowPage(GameObject page, bool effectPage)
         {
             if (page == null) return;
+            if (informationNavigation && (stagePage == page ||
+                actionPage?.Page == page && informationReturn?.Page == page && informationReturn.IsCurrent?.Invoke() == true))
+            {
+                if (stagePage == page) stagePageSuspended = true;
+                page.SetActive(false);
+                return;
+            }
+            if (informationNavigation && actionPage?.Page == page && !effectPage)
+            {
+                // 新行动明确替换资料页；失效的旧返回上下文不能把新草稿隐藏。
+                informationReturn = null;
+                informationPage = null;
+                informationNavigation = false;
+            }
             if (stagePageFoldable && visiblePage == stagePage && page != stagePage)
                 SuspendStagePage();
             if (!effectPage && !string.IsNullOrEmpty(currentRequestId))
                 SuspendEffectForInformation();
-            var keepEffectHidden = effectPage && effectSuspended &&
+            var keepEffectHidden = effectPage && (effectSuspended || informationNavigation) &&
                                    !string.IsNullOrEmpty(currentRequestId);
             if (!keepEffectHidden && visiblePage != null && visiblePage != page)
             {
@@ -479,6 +1119,8 @@ namespace YC.Presentation
         public void ReleasePage(GameObject page)
         {
             if (page == null) return;
+            if (actionPage?.Page == page) actionPage = null;
+            if (informationReturn?.Page == page) informationReturn = null;
             ReleaseStagePage(page);
             if (suspendedEffectPage == page)
             {
@@ -529,6 +1171,7 @@ namespace YC.Presentation
 
         private void ToggleEffectPage()
         {
+            if (informationNavigation) return;
             if (!CanFoldEffectPage && stagePageFoldable && stagePage != null)
             {
                 if (!stagePageSuspended) SuspendStagePage();
@@ -616,7 +1259,7 @@ namespace YC.Presentation
             var effectPageAvailable = CanFoldEffectPage;
             var canRestore = effectPageAvailable || (stagePageFoldable && stagePage != null);
             var suspended = effectPageAvailable ? effectSuspended : stagePageSuspended;
-            if (foldButton != null) foldButton.interactable = canRestore;
+            if (foldButton != null) foldButton.interactable = canRestore && !informationNavigation;
             if (foldButtonText != null)
                 foldButtonText.text = canRestore
                     ? (suspended ? foldSuspendedText : foldVisibleText)
@@ -655,10 +1298,10 @@ namespace YC.Presentation
 
         private void ApplyBackdrops()
         {
-            if (mainSurface == null || mapRegion == null || mapBackdrops == null ||
+            if (mainSurface == null || mapVisibleBounds == null || mapBackdrops == null ||
                 mapBackdrops.Length != 4) return;
             var corners = new Vector3[4];
-            mapRegion.GetWorldCorners(corners);
+            mapVisibleBounds.GetWorldCorners(corners);
             var lowerLeft = mainSurface.InverseTransformPoint(corners[0]);
             var upperRight = mainSurface.InverseTransformPoint(corners[2]);
             var rect = mainSurface.rect;
@@ -679,6 +1322,20 @@ namespace YC.Presentation
             rect.pivot = Vector2.zero;
             rect.anchoredPosition = new Vector2(x, y);
             rect.sizeDelta = new Vector2(Mathf.Max(0f, width), Mathf.Max(0f, height));
+        }
+
+        private void RefreshMapOpening()
+        {
+            var display = MapDisplayController.Active;
+            if (mapVisibleBounds == null || display == null) return;
+            var opening = display.VisibleViewportInRegion;
+            var min = opening.min; var max = opening.max;
+            if (mapVisibleBounds.anchorMin == min && mapVisibleBounds.anchorMax == max) return;
+            mapVisibleBounds.anchorMin = min;
+            mapVisibleBounds.anchorMax = max;
+            mapVisibleBounds.offsetMin = mapVisibleBounds.offsetMax = Vector2.zero;
+            if (mapSurroundLayout != null) mapSurroundLayout.Refresh();
+            ApplyBackdrops();
         }
 
         private void ApplyMapViewport()

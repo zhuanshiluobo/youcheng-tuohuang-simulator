@@ -1,0 +1,162 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04062c3e85fe4fedbd706d26944a0a66, type: 3}
+  m_Name: InfluenceMarker2DCatalog
+  m_EditorClassIdentifier:
+  entries:
+  - color: 0
+    displayName: "\u7a7a\u8272"
+    plain: {fileID: 21300000, guid: e4ccfe279bb142e78889ccd0fa89eb5a, type: 3}
+    numbered: {fileID: 21300000, guid: e4ccfe279bb142e78889ccd0fa89eb5a, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 1, g: 1, b: 1, a: 1}
+  - color: 1
+    displayName: "\u7eff\u8272"
+    plain: {fileID: 21300000, guid: d2a36eaffcff7c64c80b212aed5e18bb, type: 3}
+    numbered: {fileID: 21300000, guid: 43a115ab64a44905b6e59942a40cab0e, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 2
+    displayName: "\u9ec4\u8272"
+    plain: {fileID: 21300000, guid: 7722385aa1bdd9f41a422730b70eabb3, type: 3}
+    numbered: {fileID: 21300000, guid: 06b2cf5ea58043ef8507667b24daac3f, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 3
+    displayName: "\u7eff\u9ec4"
+    plain: {fileID: 21300000, guid: 57d16a9ebc313f949ae2f1c74d721242, type: 3}
+    numbered: {fileID: 21300000, guid: 57d16a9ebc313f949ae2f1c74d721242, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 4
+    displayName: "\u84dd\u8272"
+    plain: {fileID: 21300000, guid: b859f758d01777b429c6bf8ae21edaf4, type: 3}
+    numbered: {fileID: 21300000, guid: 6ec85599dabc4992ba79fbbaf904465c, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 5
+    displayName: "\u7eff\u84dd"
+    plain: {fileID: 21300000, guid: 20e248e377acc2b4bac7cb0f2ca271e0, type: 3}
+    numbered: {fileID: 21300000, guid: 20e248e377acc2b4bac7cb0f2ca271e0, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 6
+    displayName: "\u9ec4\u84dd"
+    plain: {fileID: 21300000, guid: 40eda79e57c4a464d8bd6b325c328447, type: 3}
+    numbered: {fileID: 21300000, guid: 40eda79e57c4a464d8bd6b325c328447, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 7
+    displayName: "\u7eff\u9ec4\u84dd"
+    plain: {fileID: 21300000, guid: d056f4f9a22ac2e45a1734467996e79b, type: 3}
+    numbered: {fileID: 21300000, guid: d056f4f9a22ac2e45a1734467996e79b, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 8
+    displayName: "\u7ea2\u8272"
+    plain: {fileID: 21300000, guid: d8e9dcadd3e3fb24bb85d7f34e062e31, type: 3}
+    numbered: {fileID: 21300000, guid: 0bbe9a4cc9a24c37b016b8042c016b7d, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 1, g: 1, b: 1, a: 1}
+  - color: 9
+    displayName: "\u7eff\u7ea2"
+    plain: {fileID: 21300000, guid: 15eb4fe249fc56d47b7d203f8bc7da70, type: 3}
+    numbered: {fileID: 21300000, guid: 15eb4fe249fc56d47b7d203f8bc7da70, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 10
+    displayName: "\u9ec4\u7ea2"
+    plain: {fileID: 21300000, guid: 904bdbe3f6028d047b5d3a7f4be93f4c, type: 3}
+    numbered: {fileID: 21300000, guid: 904bdbe3f6028d047b5d3a7f4be93f4c, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 11
+    displayName: "\u7eff\u9ec4\u7ea2"
+    plain: {fileID: 21300000, guid: eba9485fce57d5a45877be83d0e3491b, type: 3}
+    numbered: {fileID: 21300000, guid: eba9485fce57d5a45877be83d0e3491b, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 12
+    displayName: "\u84dd\u7ea2"
+    plain: {fileID: 21300000, guid: 85d8d47708ead5c4ea44f0f65cfa2664, type: 3}
+    numbered: {fileID: 21300000, guid: 85d8d47708ead5c4ea44f0f65cfa2664, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 13
+    displayName: "\u7eff\u84dd\u7ea2"
+    plain: {fileID: 21300000, guid: 0c317edea57df7b44871d82a44abde6a, type: 3}
+    numbered: {fileID: 21300000, guid: 0c317edea57df7b44871d82a44abde6a, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 14
+    displayName: "\u9ec4\u84dd\u7ea2"
+    plain: {fileID: 21300000, guid: b12981d731ab1a64d92fb16f434a01f9, type: 3}
+    numbered: {fileID: 21300000, guid: b12981d731ab1a64d92fb16f434a01f9, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 15
+    displayName: "\u7eff\u9ec4\u84dd\u7ea2"
+    plain: {fileID: 21300000, guid: 3565717282fb6104385c5164ed15f32e, type: 3}
+    numbered: {fileID: 21300000, guid: 3565717282fb6104385c5164ed15f32e, type: 3}
+    flat: {fileID: 0}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 16
+    displayName: "A\u533a"
+    plain: {fileID: 21300000, guid: 197ee95571f2492b9ab53f0e1d85a95d, type: 3}
+    numbered: {fileID: 21300000, guid: 197ee95571f2492b9ab53f0e1d85a95d, type: 3}
+    flat: {fileID: 21300000, guid: 531e4dc78e104034ba90e3dce3cbeea9, type: 3}
+    numberInk: {r: 1, g: 1, b: 1, a: 1}
+  - color: 17
+    displayName: "B\u533a"
+    plain: {fileID: 21300000, guid: 1a45ae2a04524c859faa90ec27442172, type: 3}
+    numbered: {fileID: 21300000, guid: 1a45ae2a04524c859faa90ec27442172, type: 3}
+    flat: {fileID: 21300000, guid: 3ba27a00502f4bf0902e54d33bb3a6c2, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 18
+    displayName: "C\u533a"
+    plain: {fileID: 21300000, guid: f918d67771214dd1b7ac9bf147df3cdc, type: 3}
+    numbered: {fileID: 21300000, guid: f918d67771214dd1b7ac9bf147df3cdc, type: 3}
+    flat: {fileID: 21300000, guid: 2d33f6f695cd48eca3abeecd26a4bcd9, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 19
+    displayName: "D\u533a"
+    plain: {fileID: 21300000, guid: 2b661ec705384c88a82ccb541bce00e7, type: 3}
+    numbered: {fileID: 21300000, guid: 2b661ec705384c88a82ccb541bce00e7, type: 3}
+    flat: {fileID: 21300000, guid: f141835a8a144ef4835fc6e91cd78774, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 20
+    displayName: "E\u533a"
+    plain: {fileID: 21300000, guid: 81a581eb23fe4c90bb9753b0d2cf0692, type: 3}
+    numbered: {fileID: 21300000, guid: 81a581eb23fe4c90bb9753b0d2cf0692, type: 3}
+    flat: {fileID: 21300000, guid: 449cfa59489e4147973ed4c00e1b7381, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 21
+    displayName: "F\u533a"
+    plain: {fileID: 21300000, guid: a2baa88529ad4cfdbb1ecd027be6bab3, type: 3}
+    numbered: {fileID: 21300000, guid: a2baa88529ad4cfdbb1ecd027be6bab3, type: 3}
+    flat: {fileID: 21300000, guid: af52499662704ddbb51f3b72aa455125, type: 3}
+    numberInk: {r: 1, g: 1, b: 1, a: 1}
+  - color: 22
+    displayName: "G\u533a"
+    plain: {fileID: 21300000, guid: 5b44a56c7a154d61862273b046f49fe6, type: 3}
+    numbered: {fileID: 21300000, guid: 5b44a56c7a154d61862273b046f49fe6, type: 3}
+    flat: {fileID: 21300000, guid: 177a8876437d41f4aaf5df94a8815d8a, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  - color: 23
+    displayName: "R\u533a"
+    plain: {fileID: 21300000, guid: 9cb1059b2f3b4cf1b0f58a3823401951, type: 3}
+    numbered: {fileID: 21300000, guid: 9cb1059b2f3b4cf1b0f58a3823401951, type: 3}
+    flat: {fileID: 21300000, guid: e36aa7cf5e9b4aca85809df8ce8a44fa, type: 3}
+    numberInk: {r: 0, g: 0, b: 0, a: 1}
+  hoverOverlay: {fileID: 21300000, guid: 9bb0ac483a5147c0a557ad911a12cc73, type: 3}
+  selectedOverlay: {fileID: 21300000, guid: fecbdd738d43473282358211c64ff13b, type: 3}
+  focusOverlay: {fileID: 21300000, guid: b9a92ea3bd884858a73ca3467e9e13f9, type: 3}

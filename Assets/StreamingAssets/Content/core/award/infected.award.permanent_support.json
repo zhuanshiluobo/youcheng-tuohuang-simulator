@@ -1,0 +1,63 @@
+{
+  "definitionId": "infected.award.permanent_support",
+  "contentType": "award",
+  "version": "1.0.0",
+  "displayName": "梅兰德基金会—授勋卡",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/awards/infected.award.permanent_support.jpg",
+  "artworkSpriteId": "infected_award_permanent_support",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.award.permanent_support.cleanup",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.award.permanent_support.cleanup",
+      "script": "lua/awards/infected.award.permanent_support.cleanup.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "infected.award.permanent_support.cleanup.cleanup_order",
+        "availabilityHandlerId": "infected.award.permanent_support.cleanup.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.infected.award.permanent_support.cleanup.label"
+          },
+          "description": {
+            "key": "core:settlement.infected.award.permanent_support.cleanup.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.infected.award.permanent_support.cleanup.label"
+          },
+          "iconKey": "core:settlement.choose_order",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "instanceTypeId": "core.award_card",
+    "acquisitionRole": "reward_pool",
+    "lifecycle": "persistent",
+    "titleKey": "梅兰德基金会授勋",
+    "descriptionKey": "",
+    "playerDetails": [
+      {
+        "abilityId": "infected.award.permanent_support.cleanup",
+        "effectText": "在剩余游戏中，每个收尾阶段一次，获得3金券和1个任选基础资源（源岩、源石碎片或异铁），并移动1个你的影响力。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "梅兰德基金会—授勋卡"
+      }
+    ]
+  },
+  "itemTypeId": "core.award_card"
+}

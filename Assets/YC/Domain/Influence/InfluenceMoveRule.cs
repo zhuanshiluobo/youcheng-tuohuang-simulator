@@ -48,9 +48,10 @@ namespace YC.Domain.Influence
 
         private static InfluencePlacement FindInfluenceAtSlot(GameState state, string slotId)
         {
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var placement = state.Map.Influences[i];
+                var placement = influences[i];
                 if (placement != null &&
                     (placement.SlotId == slotId || InfluenceIdentity.GetStableId(state, placement) == slotId))
                 {

@@ -140,5 +140,7 @@
     "F:\\游城拓荒模拟器-integration\\Assets\\YC\\Application\\Sessions\\AuthoritativeCommandDispatcher.cs.meta"
   ],
   "scope": "仅处理已确认的52路径冲突分组及必要配套meta；其他文件不自动合入，保留部分整合状态。",
-  "selectedFilesApplied": true
+  "selectedFilesApplied": true,
+  "recordPhase": "首次部分整合的历史选择，已被后续完整合并取代",
+  "supersededBy": "完整整合与验收.md"
 }

@@ -1,0 +1,164 @@
+{
+  "definitionId": "enterprise.rim_billiton",
+  "contentType": "enterprise",
+  "version": "1.0.0",
+  "displayName": "雷姆必拓",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/enterprise_boards.jpg",
+  "artworkSpriteId": "enterprise.rim_billiton.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.board_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "enterprise.rim_billiton.level_1.special",
+      "mode": "level_1.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rim_billiton.level_1.special",
+      "script": "lua/enterprises/enterprise.rim_billiton.level_1.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_1.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.rim_billiton.level_2.special",
+      "mode": "level_2.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rim_billiton.level_2.special",
+      "script": "lua/enterprises/enterprise.rim_billiton.level_2.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_2.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.rim_billiton.level_3.reward",
+      "mode": "level_3.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rim_billiton.level_3.reward",
+      "script": "lua/enterprises/enterprise.rim_billiton.level_3.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_3.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.rim_billiton.level_4.special",
+      "mode": "level_4.special",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rim_billiton.level_4.special",
+      "script": "lua/enterprises/enterprise.rim_billiton.level_4.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_4.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "enterprise.rim_billiton.level_5.reward",
+      "mode": "level_5.reward",
+      "skillType": "normal",
+      "subscriptionId": "content.enterprise.rim_billiton.level_5.reward",
+      "script": "lua/enterprises/enterprise.rim_billiton.level_5.reward.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "presentation": {
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_5.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "data": {
+    "levels": [
+      {
+        "level": 0,
+        "kind": "empty",
+        "abilityId": ""
+      },
+      {
+        "level": 1,
+        "kind": "special",
+        "abilityId": "enterprise.rim_billiton.level_1.special",
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_1.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 2,
+        "kind": "special",
+        "abilityId": "enterprise.rim_billiton.level_2.special",
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_2.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 3,
+        "kind": "reward",
+        "abilityId": "enterprise.rim_billiton.level_3.reward",
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_3.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 4,
+        "kind": "special",
+        "abilityId": "enterprise.rim_billiton.level_4.special",
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_4.description",
+          "arguments": []
+        }
+      },
+      {
+        "level": 5,
+        "kind": "reward",
+        "abilityId": "enterprise.rim_billiton.level_5.reward",
+        "description": {
+          "key": "core:enterprise.rim_billiton.level_5.description",
+          "arguments": []
+        }
+      }
+    ],
+    "departmentRewardPolicy": ""
+  },
+  "presentation": {
+    "detailScript": "lua/presentation/enterprise.details.lua"
+  }
+}

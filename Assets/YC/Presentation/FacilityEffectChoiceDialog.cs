@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.Interactions;
+using YC.Domain.Presentation;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -27,6 +29,8 @@ namespace YC.Presentation
     {
         private readonly RectTransform canvas;
         private readonly EffectDialogShell shell;
+        private readonly GameplayDialogRegistry registry;
+        private PlayerSelectionPageView players;
         private readonly CardVisualCatalog cardVisualCatalog;
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardInteractionLayoutProfile cardInteractionLayoutProfile;
@@ -34,6 +38,12 @@ namespace YC.Presentation
         private RectTransform facilityCardDragGhost;
         private CardViewer facilityCardImageViewer;
         private int presentationRevision;
+        private Func<GameplayTextRef, GameplayTextDocument> resolveText;
+        private Action<Component, GameplayTextDocument, bool> renderText;
+
+        public void BindGameplayText(Func<GameplayTextRef, GameplayTextDocument> resolve,
+            Action<Component, GameplayTextDocument, bool> render)
+        { resolveText = resolve; renderText = render; }
 
         internal FacilityEffectChoiceDialog(
             GameplayDialogRegistry dialogRegistry,
@@ -58,6 +68,7 @@ namespace YC.Presentation
                 throw new InvalidOperationException(
                     "FacilityEffectChoiceDialog 缺少有效的 CardInteractionLayoutProfile：" + layoutReason);
             }
+            registry = dialogRegistry;
             shell = new EffectDialogShell(
                 dialogRegistry);
         }
@@ -66,7 +77,7 @@ namespace YC.Presentation
 
         public bool IsShowing
         {
-            get { return shell.IsShowing; }
+            get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy; }
         }
 
         public void ShowOptions(
@@ -81,10 +92,34 @@ namespace YC.Presentation
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
+            if (spec.Players != null)
+            {
+                shell.Hide();
+                if (players == null) players = registry.InstantiatePlayerSelection(canvas);
+                spec.Players.Title = title; spec.Players.Description = description;
+                spec.Players.AllowCancel &= spec.Cancel != null;
+                players.Present(spec.Players,ids =>
+                    { spec.PlayerSelectionChanged?.Invoke(ids); spec.Confirm?.Invoke(); },spec.Cancel,spec.IsCurrent,
+                    spec.IsEffectPage,spec.PlayerSelectionChanged);
+                return;
+            }
+            if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            spec.CardTexture = id => cardVisualCatalog.GetFacility(id);
-            var panel = Rebuild(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.HasCardArtwork());
+            if (spec.CardSprite == null) spec.CardSprite = id => cardVisualCatalog.GetFacility(
+                GameplayExpansionUi.CandidateDefinition(spec.Request, id) is string definition && !string.IsNullOrEmpty(definition)
+                    ? definition : id);
+            var panel = PreparePage(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.HasCardArtwork());
             AddHeading(panel, title, description);
+            if (spec.PromptDocument != null)
+            {
+                var view = panel.GetComponentInParent<EffectDialogShellView>();
+                var reason = "实际设施选择页面缺少EffectDialogShellView。";
+                if (view == null || !view.TryRenderGameplayHeading(spec.PromptDocument, spec.RenderText, out reason))
+                {
+                    Debug.LogWarning("设施选择正式提示未接入：" + reason, view);
+                    AddHeading(panel, title, spec.CompatibilityPrompt?.Invoke() ?? description);
+                }
+            }
             shell.AddSelection(panel, spec);
             shell.RestoreScroll(scroll);
         }
@@ -106,7 +141,7 @@ namespace YC.Presentation
             Action cancelDrag,
             Action skip)
         {
-            var panel = Rebuild(
+            var panel = PreparePage(
                 layoutProfile.ExtensionHubPanelSize,
                 Vector2.zero,
                 "\u5ef6\u4f38\u67a2\u7ebd\uff1a\u62d6\u52a8\u5361\u7247\u5230\u57ce\u5e02\u9762\u677f\u7a7a\u69fd\u4f4d\u5efa\u8bbe\u3002",
@@ -123,7 +158,7 @@ namespace YC.Presentation
             for (var i = 0; i < optionCount; i++)
             {
                 var option = options[i];
-                var texture = cardVisualCatalog.GetFacility(option.FacilityId);
+                var sprite = cardVisualCatalog.GetFacility(option.FacilityId);
                 var card = EffectDialogShell.CreateFacilityCard(panel);
                 card.gameObject.name = "Extension Hub Card " + option.FacilityId;
                 var cardRect = card.CardRect;
@@ -140,8 +175,8 @@ namespace YC.Presentation
 
                 var imageRect = card.CardImage.rectTransform;
                 layoutProfile.FacilityCardImageLayout.ApplyTo(imageRect);
-                card.CardImage.texture = texture;
-                card.CardImage.color = texture == null ? Color.clear : Color.white;
+                CardArtworkView.Set(card.CardImage, sprite);
+                card.CardImage.color = sprite == null ? Color.clear : Color.white;
                 card.CardImage.raycastTarget = false;
 
                 var label = card.FallbackLabel;
@@ -151,7 +186,7 @@ namespace YC.Presentation
                 label.alignment = TextAnchor.MiddleCenter;
                 label.fontStyle = FontStyle.Normal;
                 label.color = UiTheme.GoldText;
-                label.gameObject.SetActive(texture == null);
+                label.gameObject.SetActive(sprite == null);
                 layoutProfile.FacilityCardFallbackLayout.ApplyTo(label.rectTransform);
 
                 var facilityId = option.FacilityId;
@@ -161,11 +196,11 @@ namespace YC.Presentation
                 Action showDetails = () =>
                 {
                     if (presentationRevision != displayedRevision || card == null ||
-                        !card.gameObject.activeInHierarchy || GameplayHudFrame.EffectInputSuspended || texture == null) return;
+                        !card.gameObject.activeInHierarchy || GameplayHudFrame.EffectInputSuspended || sprite == null) return;
                     CardImagePreviewUtility.Open(
                         ref facilityCardImageViewer,
                         canvas,
-                        texture);
+                        sprite);
                     if (facilityCardImageViewer == null) return;
                     facilityCardImageViewer.SetReturn(() =>
                     {
@@ -173,10 +208,10 @@ namespace YC.Presentation
                         GameplayHudFrame.Active?.ResumeEffectPage();
                     }, () => presentationRevision == displayedRevision);
                 };
-                interaction.ConfigureClick(button, showDetails, null);
+                interaction.ConfigureClick(button, showDetails);
                 if (card.DetailsButton != null)
                 {
-                    card.DetailsButton.gameObject.SetActive(texture != null);
+                    card.DetailsButton.gameObject.SetActive(sprite != null);
                     card.DetailsButton.onClick.RemoveAllListeners();
                     card.DetailsButton.onClick.AddListener(() => showDetails());
                 }
@@ -185,7 +220,7 @@ namespace YC.Presentation
                         card.gameObject.activeInHierarchy && !GameplayHudFrame.EffectInputSuspended,
                     eventData =>
                     {
-                        BeginFacilityCardDrag(cardRect, texture, cardName, card.FallbackLabel.font, eventData);
+                        BeginFacilityCardDrag(cardRect, sprite, cardName, card.FallbackLabel.font, eventData);
                         beginDrag?.Invoke();
                     },
                     MoveFacilityCardDrag,
@@ -215,7 +250,7 @@ namespace YC.Presentation
             Action back,
             string backLabel = null)
         {
-            var panel = Rebuild(layoutProfile.OptionsPanelSize, Vector2.zero);
+            var panel = PreparePage(layoutProfile.OptionsPanelSize, Vector2.zero);
             AddHeading(panel, title, description);
 
             var scrollBottom = back == null
@@ -261,6 +296,16 @@ namespace YC.Presentation
             Func<bool> isCurrent = null,
             IReadOnlyList<int> unitPrices = null)
         {
+            ShowResourceAllocation(null, null, title, description, labels, maximums, exactTotal, confirm, skip,
+                initialValues, draftChanged, isCurrent, unitPrices);
+        }
+
+        public void ShowResourceAllocation(InteractionRequestProjection request, IReadOnlyList<string> rowIds,
+            string title, string description, IReadOnlyList<string> labels, IReadOnlyList<int> maximums,
+            int exactTotal, Action<IReadOnlyList<int>> confirm, Action skip,
+            IReadOnlyList<int> initialValues = null, Action<IReadOnlyList<int>> draftChanged = null,
+            Func<bool> isCurrent = null, IReadOnlyList<int> unitPrices = null)
+        {
             if (unitPrices == null && exactTotal < 0)
                 unitPrices = new[]
                 {
@@ -270,9 +315,10 @@ namespace YC.Presentation
                     YC.Domain.Economy.ResourceSaleService.PureOriginiumUnitPrice
                 };
             var scroll = initialValues != null && initialValues.Count > 0 ? shell.ScrollPosition : 1f;
-            var panel = Rebuild(layoutProfile.ResourceAllocationPanelSize, Vector2.zero);
+            var panel = PreparePage(layoutProfile.ResourceAllocationPanelSize, Vector2.zero);
             shell.AddResourceAllocation(panel, new ResourceAllocationSpec
             {
+                Request = request, RowIds = rowIds, ResolveText = resolveText, RenderText = renderText,
                 Title = title,
                 Description = description,
                 Labels = labels,
@@ -340,7 +386,7 @@ namespace YC.Presentation
             bool startOnMap)
         {
             var panelHeight = layoutProfile.MapPromptPanelHeight;
-            var panel = Rebuild(
+            var panel = PreparePage(
                 new Vector2(layoutProfile.MapPromptPanelWidth, panelHeight),
                 layoutProfile.MapPromptPanelPosition,
                 summary,
@@ -386,6 +432,7 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            if (players != null) { players.Close(); UnityEngine.Object.Destroy(players.gameObject); players = null; }
             presentationRevision++;
             backAction = null;
             DestroyFacilityCardDragGhost();
@@ -393,7 +440,7 @@ namespace YC.Presentation
             shell.Hide();
         }
 
-        private RectTransform Rebuild(
+        private RectTransform PreparePage(
             Vector2 size,
             Vector2 position,
             string mapMessage = null,
@@ -403,7 +450,7 @@ namespace YC.Presentation
             backAction = null;
             DestroyFacilityCardDragGhost();
             facilityCardImageViewer?.Close();
-            var panel = shell.Rebuild(
+            var panel = shell.PreparePage(
                 canvas,
                 "Facility Effect Choice Overlay",
                 "Facility Effect Choice Panel",
@@ -420,7 +467,7 @@ namespace YC.Presentation
 
         private void BeginFacilityCardDrag(
             RectTransform source,
-            Texture2D texture,
+            Sprite sprite,
             string fallbackLabel,
             Font fallbackFont,
             PointerEventData eventData)
@@ -429,7 +476,7 @@ namespace YC.Presentation
             facilityCardDragGhost = FacilityCardDragUtility.CreateDragGhost(
                 canvas,
                 source,
-                texture,
+                sprite,
                 fallbackLabel,
                 fallbackFont,
                 cardInteractionLayoutProfile.DragGhostLayout);

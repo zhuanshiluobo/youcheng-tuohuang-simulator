@@ -1,0 +1,695 @@
+[
+  {
+    "path": "文档/原始说明/MainGameUI-v2.2/GENERATION_NOTES.md",
+    "sha256": "9cdefe3e1a406c77e23f9301b61414bfaffb479b10a4347b57f56d2fdd5f7e63"
+  },
+  {
+    "path": "文档/原始说明/MainGameUI-v2.2/README.md",
+    "sha256": "89ddb7de7872d3b93d2b317e509e75a02a9cbc38fc4b0f9be0b1f23299427d70"
+  },
+  {
+    "path": "文档/原始说明/MainGameUI-v2.2/docs/TOPBAR_UPDATE.md",
+    "sha256": "0ab7ce88be108d2c69475df2c4a7e16301d185119df82887f882b34090754e2c"
+  },
+  {
+    "path": "文档/原始说明/MainGameUI-v2.2/docs/UI_LAYOUT.md",
+    "sha256": "9c31f23eccbbd215cc5d7a61117ac72c8ca82a354c1bafb598559f874aaa5587"
+  },
+  {
+    "path": "文档/原始说明/MainGameUI-CooperationMarkers-v1/README.md",
+    "sha256": "7f6d94e2db7c0ad618de78e92d3cdae649c2e5a2500adcaa4e36f918afcbf371"
+  },
+  {
+    "path": "文档/原始说明/FrontierUI-v3-Patch/README.md",
+    "sha256": "e508c716648b84d1ba41c47375a161b8ea111ea859433429589377364f61f93d"
+  },
+  {
+    "path": "文档/原始说明/FrontierUI-v3-Patch/docs/INCREMENTAL_PATCH.md",
+    "sha256": "c1d49b7b15a830d899d937755fe0aadfda2d8d2db6f335fde026c1c4d5b3d9c7"
+  },
+  {
+    "path": "文档/原始说明/MainButtons-v3.2-Patch/BUTTON_PATCH.md",
+    "sha256": "09d19da8eceb19aac8b8a5ccf62d0bc6e5684265d08d81a41577f7b786e3447c"
+  },
+  {
+    "path": "文档/原始说明/MainButtons-v3.2-Patch/README.md",
+    "sha256": "3a0c9a253faa824a1adb4b6421e2bb436d3654a6170e1ab7c0f79a77e2736f37"
+  },
+  {
+    "path": "文档/原始说明/EffectRows-v3.4-Patch/EFFECT_ROW_PATCH.md",
+    "sha256": "7765749f9845b37064538d82280f9d9576299888e07e6be96e6bbebb375bc879"
+  },
+  {
+    "path": "文档/原始说明/EffectRows-v3.4-Patch/README.md",
+    "sha256": "fb93842df45d21cd4cdc2d63951330b2e9dc7af27e250261de95e81bcec1f98a"
+  },
+  {
+    "path": "文档/原始说明/MainFrame-v3.5-Patch/FRAME_PATCH.md",
+    "sha256": "d2c562aa21a7c282772a790d92bce732d47ce7ddce0645054a2de7383527724c"
+  },
+  {
+    "path": "文档/原始说明/MainFrame-v3.5-Patch/README.md",
+    "sha256": "4418e279d89666607fd6882cef60cad246ad258b45d8b0f1765937cd9a679756"
+  },
+  {
+    "path": "文档/原始说明/CardViewer-v3.6-Patch/BUTTON_REVISION.md",
+    "sha256": "c6f62647c4c1787a50e796ad43386daf3cb2b5afaad56faee2c0cefedf3f5e4a"
+  },
+  {
+    "path": "文档/原始说明/CardViewer-v3.6-Patch/INTERACTION.md",
+    "sha256": "cd57480e440d69536010675b1d0965582b7ecde9b7c71c0fc54950ff2527e525"
+  },
+  {
+    "path": "文档/原始说明/CardViewer-v3.6-Patch/LAYOUT.md",
+    "sha256": "a54c08c413edd0ca0bb4a46d9bb6bb02d17100a83d087b58e483ca2759390efe"
+  },
+  {
+    "path": "文档/原始说明/CardViewer-v3.6-Patch/README.md",
+    "sha256": "da0ec768c35e2015a67247e5d3504716288b3cf22b99f9f12550dc78aba6c5f0"
+  },
+  {
+    "path": "文档/原始说明/CardViewer-v3.6-Patch/REPLACE_BUTTONS.md",
+    "sha256": "93e9ccdba9526be407205829cac4eb48a75132c623a4638c965f991352d915b1"
+  },
+  {
+    "path": "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+    "sha256": "8d43dd03716d8d0eecafec7b0ff55466d2f830b4a1dc67d1716f23db9f620ef9"
+  },
+  {
+    "path": "文档/原始说明/Option-Picker-UI-v1/GENERATION_NOTES.md",
+    "sha256": "74fd15f0c60db9fdc0611b44df9547ca603e5695ec06ce1bf2b3d9259c90d6ef"
+  },
+  {
+    "path": "文档/原始说明/Option-Picker-UI-v1/OPTION_WINDOWS.md",
+    "sha256": "096f6744dc0800ea303269aeff29d4e0b8cefab8805d716994966ab53bcb39a2"
+  },
+  {
+    "path": "文档/原始说明/EnterprisePicker-v1.0/README.md",
+    "sha256": "e567e8799e118d5eef85e254aaec661270245d7623917f6853df7f84ac2ceb7f"
+  },
+  {
+    "path": "文档/原始说明/EnterprisePicker-v1.0/docs/ENTERPRISE_PICKER.md",
+    "sha256": "0f57dcffc31ad0ebdc181e124b6e12907ce6142ef3fc1ab26d64d43b778b088a"
+  },
+  {
+    "path": "文档/原始说明/FacilityBuild-UI-v1.0/README.md",
+    "sha256": "0b0bda50412b98b1993c44275841dc4cd26058af85b42b3a7d793ff78f0efea9"
+  },
+  {
+    "path": "文档/原始说明/FacilityBuild-UI-v1.0/docs/FACILITY_BUILD.md",
+    "sha256": "ffe78d386261dcc225895fbc0e3490c337bec9d18ddf3e76661ff8bedc77e421"
+  },
+  {
+    "path": "文档/原始说明/CityPattern-UI-v1.0/README.md",
+    "sha256": "b2203f7d28b84a872ab97c6407acb04176fa4fc5213376d1d348d6c0509ac779"
+  },
+  {
+    "path": "文档/原始说明/CityPattern-UI-v1.0/docs/CITY_PATTERN.md",
+    "sha256": "2dee534054538cfb63e02feb6ea4ef917c529a5e3ec743179baef4f0ef0a4ec7"
+  },
+  {
+    "path": "文档/原始说明/RhineDepartment-UI-v1.0/README.md",
+    "sha256": "7a2138d425b5c917a7adc16d409a345b27fa7fffb79f8ac370d300dbfdecba18"
+  },
+  {
+    "path": "文档/原始说明/RhineDepartment-UI-v1.0/docs/RHINE_DEPARTMENT.md",
+    "sha256": "1e76c4a906284dc5a7553c5fc94fb59e3a2d36d33017e76ec3570fafb7056820"
+  },
+  {
+    "path": "文档/原始说明/Room-UI-v1.1-VerticalMaps/ASSET_MANIFEST.md",
+    "sha256": "61822da99546b2b878425ec7e802e6b55d476fb4fc6df989d1acafdc83ecbb58"
+  },
+  {
+    "path": "文档/原始说明/Room-UI-v1.1-VerticalMaps/CHANGELOG.md",
+    "sha256": "54cb6c7d66b84134c223149d399dfa748c3658cf6bbf909be47c46d6e610f9fc"
+  },
+  {
+    "path": "文档/原始说明/Room-UI-v1.1-VerticalMaps/README.md",
+    "sha256": "e803db19ac30ede0b409edce5ce990577f65ab842eb58e1664bca0d6e0900b48"
+  },
+  {
+    "path": "文档/原始说明/Room-UI-v1.1-VerticalMaps/ROOM_UI_GUIDE.md",
+    "sha256": "e28ff3f2949b12711b923fb5922cfd97b365c26428d9fc8b0816c45b0313f8fd"
+  },
+  {
+    "path": "文档/原始说明/Settlement-Effects-v1.0/README.md",
+    "sha256": "46ac3cb75e275ab6329d6a3cca347ada2d8afe4f14fca5052e4bbb5dc1f1d47e"
+  },
+  {
+    "path": "文档/原始说明/Settlement-Icons-Extra-v1.1/README.md",
+    "sha256": "941026cbe3f49dcc76334edfc78f5302226d177cefe6bf53e1dbe336af8e6df7"
+  },
+  {
+    "path": "文档/原始说明/Main-Info-Buttons-v1.0/README.md",
+    "sha256": "77705005578157d366dc8e2c0cab38f5e587e364fe964c18867f558b4742b0bc"
+  },
+  {
+    "path": "文档/原始说明/Region-Squares-v1.0/README.md",
+    "sha256": "c97fa8135eb442b308363c0b49225b3cb939e689cf2144524a4db59072068776"
+  },
+  {
+    "path": "文档/原始说明/Area-Control-v1.0/README.md",
+    "sha256": "da9fa38be45c083b7065c7724fb871dbc7d7e87419f7150cf9c4d16fe8acec22"
+  },
+  {
+    "path": "文档/原始说明/Player-Select-v1.0/ASSET_MANIFEST.md",
+    "sha256": "71c9cb10752edd9a3b76626d9982dd35d4232cc1ea3716b479378e17f5edc2b9"
+  },
+  {
+    "path": "文档/原始说明/Player-Select-v1.0/PLAYER_SELECT_GUIDE.md",
+    "sha256": "14f129f6b3758ceb0bdb18ffcbef6a09900a805d2e06f0cde3a8bb8aed085cad"
+  },
+  {
+    "path": "文档/原始说明/Player-Select-v1.0/README.md",
+    "sha256": "f2901ee09ae923674b261df54104401a852ccb7b5c2c8db2b75714399dc51b1d"
+  },
+  {
+    "path": "文档/原始说明/Game-Box-v1.0/ASSET_MANIFEST.md",
+    "sha256": "b00bcf147c466954aa81ed14656efa5019ad5e9bc79b73359d93469a3ccf1cfe"
+  },
+  {
+    "path": "文档/原始说明/Game-Box-v1.0/GAME_BOX_UI.md",
+    "sha256": "8bad8562e00496394ec05102a7719ff2e2d2d3724163e715f1a37109e1b99175"
+  },
+  {
+    "path": "文档/原始说明/Game-Box-v1.0/README.md",
+    "sha256": "c8e962101629755022075901f7f45b9349acd5e3b202607abf346914e245478f"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Card-Pile-Layout-Guide.md",
+    "sha256": "3ed01a64abf451757b025f13a58fcc741f5eac0e87f1390e00d8f98224dd8112"
+  },
+  {
+    "path": "文档/原始说明/独立说明/CardViewer-v3.6-Layout.md",
+    "sha256": "99b988c5effa2eef0a208b44a874c9971e134d0d3761b7bd72b202c9209fb902"
+  },
+  {
+    "path": "文档/原始说明/独立说明/CityPattern-Layout-v1.0.md",
+    "sha256": "2dee534054538cfb63e02feb6ea4ef917c529a5e3ec743179baef4f0ef0a4ec7"
+  },
+  {
+    "path": "文档/原始说明/独立说明/EffectRows-v3.4-Notes.md",
+    "sha256": "7765749f9845b37064538d82280f9d9576299888e07e6be96e6bbebb375bc879"
+  },
+  {
+    "path": "文档/原始说明/独立说明/EnterprisePicker-Layout-v1.0.md",
+    "sha256": "0f57dcffc31ad0ebdc181e124b6e12907ce6142ef3fc1ab26d64d43b778b088a"
+  },
+  {
+    "path": "文档/原始说明/独立说明/FacilityBuild-Layout-v1.0.md",
+    "sha256": "ffe78d386261dcc225895fbc0e3490c337bec9d18ddf3e76661ff8bedc77e421"
+  },
+  {
+    "path": "文档/原始说明/独立说明/FrontierUI-v3-Incremental.md",
+    "sha256": "c1d49b7b15a830d899d937755fe0aadfda2d8d2db6f335fde026c1c4d5b3d9c7"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Game-Box-v1.0-Guide.md",
+    "sha256": "8bad8562e00496394ec05102a7719ff2e2d2d3724163e715f1a37109e1b99175"
+  },
+  {
+    "path": "文档/原始说明/独立说明/MainButtons-v3.2-Notes.md",
+    "sha256": "09d19da8eceb19aac8b8a5ccf62d0bc6e5684265d08d81a41577f7b786e3447c"
+  },
+  {
+    "path": "文档/原始说明/独立说明/MainFrame-v3.5-Notes.md",
+    "sha256": "d2c562aa21a7c282772a790d92bce732d47ce7ddce0645054a2de7383527724c"
+  },
+  {
+    "path": "文档/原始说明/独立说明/MainGameUI-Layout-v2.2.md",
+    "sha256": "9c31f23eccbbd215cc5d7a61117ac72c8ca82a354c1bafb598559f874aaa5587"
+  },
+  {
+    "path": "文档/原始说明/独立说明/OPTION_WINDOWS.md",
+    "sha256": "096f6744dc0800ea303269aeff29d4e0b8cefab8805d716994966ab53bcb39a2"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Player-Select-v1.0-Guide.md",
+    "sha256": "14f129f6b3758ceb0bdb18ffcbef6a09900a805d2e06f0cde3a8bb8aed085cad"
+  },
+  {
+    "path": "文档/原始说明/独立说明/RhineDepartment-Layout-v1.0.md",
+    "sha256": "1e76c4a906284dc5a7553c5fc94fb59e3a2d36d33017e76ec3570fafb7056820"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Room-UI-v1.0-Guide.md",
+    "sha256": "46e142e0e6307e5034f496dd43fec9778d9aab653456315739f30d4f32deb288"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Room-UI-v1.1-VerticalMaps-Guide.md",
+    "sha256": "e28ff3f2949b12711b923fb5922cfd97b365c26428d9fc8b0816c45b0313f8fd"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Settlement-Effects-v1.0-Guide.md",
+    "sha256": "46ac3cb75e275ab6329d6a3cca347ada2d8afe4f14fca5052e4bbb5dc1f1d47e"
+  },
+  {
+    "path": "文档/原始说明/独立说明/UI_LAYOUT.md",
+    "sha256": "8d43dd03716d8d0eecafec7b0ff55466d2f830b4a1dc67d1716f23db9f620ef9"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/01-topbar/status-ribbons.json",
+    "sha256": "bbde219eb54a3085c3aa10806379f0e274d02096f54dbbf0816d8d4f0a1d9068"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/01-topbar/title-plaque.json",
+    "sha256": "24bfdcea036b93fbddd8931e8ef6d41ed3bd4b8ff40d04eb6cf45cd6b91f7361"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/01-topbar/topbar-v22.json",
+    "sha256": "16f222458681647d0c822c185fb65464a14203762b0ffe3e05f4e31bf81dfdda"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/art-prompts.json",
+    "sha256": "851363a7c23f677c9c8c1ed28ba7e9d990c3fa98621b8132046e43ee7da70425"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/chrome-validation.json",
+    "sha256": "2e1b46715d406f572c0df2da2a30e7a6c541e265db61cbccfae47bd609c22da1"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/chrome.json",
+    "sha256": "aefd806b88f5bca029dca0a96d1d7ec89db6f67a20cb08f31141967aa3cdd22d"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/layout.json",
+    "sha256": "49191fb424cb1d03c7afcfc92cf6c5bc93438cc31449a608d31ad30749b00845"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/palette.json",
+    "sha256": "c50bb0ef777eed3b23f1bc8e2ffb804cd7b64be4ed55ba44ec57e94d47be31cd"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/sources.json",
+    "sha256": "dc1e60719fc771c440d7a2a7da2d35d7af1c6973d5e971db69a5b142058ea8fb"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/textures.json",
+    "sha256": "b4bacaad9ee919ae1d27c63d11fa74534e4cdafd00bcb05cefc9296b26c88e99"
+  },
+  {
+    "path": "参数/MainGameUI-v2.2/asset-manifest.json",
+    "sha256": "a1095fe1c93268d54cbfb13f03e85b9f118e6eb5108e60852a34fce3dac06c76"
+  },
+  {
+    "path": "参数/MainGameUI-Topbar-v2.2/01-topbar/topbar-v22.json",
+    "sha256": "16f222458681647d0c822c185fb65464a14203762b0ffe3e05f4e31bf81dfdda"
+  },
+  {
+    "path": "参数/MainGameUI-CooperationMarkers-v1/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/MainGameUI-CooperationMarkers-v1/palette.json",
+    "sha256": "c50bb0ef777eed3b23f1bc8e2ffb804cd7b64be4ed55ba44ec57e94d47be31cd"
+  },
+  {
+    "path": "参数/FrontierUI-v3-Patch/asset-manifest.json",
+    "sha256": "08c566a827ccfab12aba97eae0cdd7350f72d9c1e787e6d2c23d317e9edecdb1"
+  },
+  {
+    "path": "参数/FrontierUI-v3-Patch/layout-patch.json",
+    "sha256": "ed6c874a3c0cbaad2878fa638695bc4afa1f561b3f9d95b63beabf5d2f4dfa7e"
+  },
+  {
+    "path": "参数/FrontierUI-v3-Patch/skin-patch.json",
+    "sha256": "cb28cafc994d06f26d76b319697294a3e52bd17b91a33c3e31d6cd63ff44dfdf"
+  },
+  {
+    "path": "参数/FrontierUI-v3-Patch/sources/asset-validation.json",
+    "sha256": "6a8b631ac2ad83b8020571276212713084d5146a91a6691372aa96ead5f2f49a"
+  },
+  {
+    "path": "参数/FrontierUI-v3-Patch/topbar-v3/content-layout.json",
+    "sha256": "91596338d1b06d3fa74477d1b9103a163fb0ba0b08b5893cda4a5efef787ac75"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/assets/button-assets.json",
+    "sha256": "61e061ef3b8b6e89f76dbd1908c2992b40bd35a9665aa34a5029ec06fb64267a"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/button-roles.json",
+    "sha256": "c40579a91d992692317cf7af21f23e40cb37fa83c1ac4221ae2baf9d55a1ccae"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/integration/asset-manifest.json",
+    "sha256": "395895c09ccedda985c940e8976c51f72884cf4c0a7128afae54cbeee8586af9"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/integration/button-assets-v3.2/button-assets.json",
+    "sha256": "6add8a0373d19afbcc0cfa4e3fbd7660cf4c146650d53963114ceec22eaa2ed1"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/integration/button-assets-v3.2/button-roles.json",
+    "sha256": "2b8dd781d48a948a5eaff4aae129b3695a9005a25377b121a8e6c7068918ef9a"
+  },
+  {
+    "path": "参数/MainButtons-v3.2-Patch/patch-manifest.json",
+    "sha256": "511a5ce7e4a85d4011e318f530743cb132ae0e432b7679fe169ee64407d7d88d"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/assets/effect-assets.json",
+    "sha256": "6f1928fcd2b09a6189652a28dc897b4a946798615f8813935132e3add71d5683"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/assets/marker-combinations.json",
+    "sha256": "7851c934badc4fcd8d900eb50c6c3e8db8f8ec7f7a962cca2b957acdfac2e5df"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/integration/asset-manifest.json",
+    "sha256": "a3529065623bd0bc7e1e434c4aadbc91ab0b01849bf125d869cedefd479656c0"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/integration/effect-assets-v3.4/effect-assets.json",
+    "sha256": "c6a5f7b735b263fe987459984d830abc4eb07b5069e8c546953c94ffd99497ff"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/integration/effect-assets-v3.4/marker-combinations.json",
+    "sha256": "4d58ed493112b017803cb5442e4516c986f8b35b65205a4c169215476a6f2a6b"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/patch-manifest.json",
+    "sha256": "2eb88f9bb670d963d735a389c41079236dca57e7f9624c9098068518ccdd1ed3"
+  },
+  {
+    "path": "参数/EffectRows-v3.4-Patch/prefab-contract.json",
+    "sha256": "3f39dbc04e4bab66d1c955579a2f20b6fbbafc7a77a50c1da73bba922885c55f"
+  },
+  {
+    "path": "参数/MainFrame-v3.5-Patch/assets/frame-assets.json",
+    "sha256": "63e687d6cbe2d54783db50ddec6b5dff9fb903afc40f364432fd0e9e0e19b840"
+  },
+  {
+    "path": "参数/MainFrame-v3.5-Patch/integration/catalog-overrides.json",
+    "sha256": "0b057e4ea6aeae784aa3c46182cb78b42707ac523102168e41e38e05cc6155b8"
+  },
+  {
+    "path": "参数/MainFrame-v3.5-Patch/integration/frame-assets-installed.json",
+    "sha256": "e559ab199277088762f3fcc3eb3d68647407ff7824288d09e2849df026135836"
+  },
+  {
+    "path": "参数/MainFrame-v3.5-Patch/patch-manifest.json",
+    "sha256": "4aa5009e21e305229abe12ecf61b674e91dd3159b0aeafd538c2a6583169b9c5"
+  },
+  {
+    "path": "参数/CardViewer-v3.6-Patch/assets/button-manifest.json",
+    "sha256": "92fb1a1fbdb0a18cd4b8227f7407b0fb2a6cb2d83427d569b46678f7c595d078"
+  },
+  {
+    "path": "参数/CardViewer-v3.6-Patch/integration/viewer-schema.json",
+    "sha256": "59e5b9827e51bff8ab915521d1ff23954b9bd471ba84c1910f8710971c3bcfba"
+  },
+  {
+    "path": "参数/CardViewer-v3.6-Patch/layout.json",
+    "sha256": "0bd6f2763eac6459942a4597ea70696da2ee877996c434045cf21edfe66f884c"
+  },
+  {
+    "path": "参数/Card-Picker-UI-v1/layout.json",
+    "sha256": "80bd8dfa3648b265199e045ba3f71cf7b1e37d0c338ef08f53fa8876185c5255"
+  },
+  {
+    "path": "参数/Option-Picker-UI-v1/options.json",
+    "sha256": "04105b694e6b3f659c4d67e7800cefb3ab7742083022fa239584c8dd508f5033"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/assets/selection-assets.json",
+    "sha256": "1d1b614aa521fe147f7ee0d8cce5958db5cc7567de7079ccaea00fd2d9db6f95"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/shared/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/shared/card-picker/button-primary.json",
+    "sha256": "06b18c5429b98c7d8c585ccc2af0dfd6a054529551e9407d15f7f703fd0a49c5"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/shared/chrome.json",
+    "sha256": "06ba9306e87b20ddca3864e4d5d8bab3eacc9555f9842102117aa1fa6f2041f0"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/shared/textures.json",
+    "sha256": "08949ad56e3dee921b12e7a1d42925793841509f2aa26278175d086f374c1e72"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/sources/generation.json",
+    "sha256": "277676f6c3781073c096c519ae106bdf3eb9dbad8e6083dc564f81fbe1046707"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/sources/originals.json",
+    "sha256": "1c52472924905b8b79c4765d98eeced88c8ffe9aa3983b15bb61812bd0368dd7"
+  },
+  {
+    "path": "参数/EnterprisePicker-v1.0/asset-manifest.json",
+    "sha256": "ad6d3db98d22b3de1c1ffaea95da49e99251fe42a2ccf233c48ed42c9bde6e6b"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/assets/component-map.json",
+    "sha256": "e2edd5eafb730fd0482026c759fbeb2c8fa08f4e8e9ccf51ef6daf92b7ca07bf"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/assets/selection-assets.json",
+    "sha256": "1d1b614aa521fe147f7ee0d8cce5958db5cc7567de7079ccaea00fd2d9db6f95"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/shared/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/shared/card-picker/button-primary.json",
+    "sha256": "16ff702dc50bad0b315612263068513fa52ec9b8e3f52cc7c0fa0cecbd4f8ba1"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/shared/chrome.json",
+    "sha256": "06ba9306e87b20ddca3864e4d5d8bab3eacc9555f9842102117aa1fa6f2041f0"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/shared/textures.json",
+    "sha256": "08949ad56e3dee921b12e7a1d42925793841509f2aa26278175d086f374c1e72"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/sources/card-and-city-map.json",
+    "sha256": "b365585e08132b0281ea74ef67d11b194e928bae5836e4cad89448e3cda153f3"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/sources/originals.json",
+    "sha256": "fae95619b27fd62bfb028479c4e9ca3b62dc24102c1945e3fef5516aeb969abc"
+  },
+  {
+    "path": "参数/FacilityBuild-UI-v1.0/asset-manifest.json",
+    "sha256": "e05aed1f79298c6201f9b694142472e1575f5cf9d25be0ec244d46cb32e52a92"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/assets/component-map.json",
+    "sha256": "4ba4af32ad6019da54fe01ded73893dda95515f6e692f7d4293e7d3d37afce7a"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/assets/selection-assets.json",
+    "sha256": "1d1b614aa521fe147f7ee0d8cce5958db5cc7567de7079ccaea00fd2d9db6f95"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/shared/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/shared/card-picker/button-primary.json",
+    "sha256": "16ff702dc50bad0b315612263068513fa52ec9b8e3f52cc7c0fa0cecbd4f8ba1"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/shared/chrome.json",
+    "sha256": "06ba9306e87b20ddca3864e4d5d8bab3eacc9555f9842102117aa1fa6f2041f0"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/shared/textures.json",
+    "sha256": "08949ad56e3dee921b12e7a1d42925793841509f2aa26278175d086f374c1e72"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/sources/originals.json",
+    "sha256": "1d13432d1f0bac44abbc4715740b37641331a8d446f7d5365aaefcdc162b1a96"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/sources/pattern-card-map.json",
+    "sha256": "3424400b6c2b684afdad2583691481efc70897f47df4b9cb74738d57b1a4acc1"
+  },
+  {
+    "path": "参数/CityPattern-UI-v1.0/asset-manifest.json",
+    "sha256": "364ca78967fcb4abbe0f1ca626ecf1ada579441fec4d8860277b1ad99735ff01"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/assets/component-map.json",
+    "sha256": "18e777371a38e676b0493d3ee721c3793545afd8e8fa5c14083fde267165fdb6"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/assets/selection-assets.json",
+    "sha256": "1d1b614aa521fe147f7ee0d8cce5958db5cc7567de7079ccaea00fd2d9db6f95"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/shared/04-markers/markers.json",
+    "sha256": "b7263dfcbf0ee59354120963424f0096eaa506605fe82c6e35aa5c0156fca093"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/shared/card-picker/button-primary.json",
+    "sha256": "16ff702dc50bad0b315612263068513fa52ec9b8e3f52cc7c0fa0cecbd4f8ba1"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/shared/chrome.json",
+    "sha256": "06ba9306e87b20ddca3864e4d5d8bab3eacc9555f9842102117aa1fa6f2041f0"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/shared/textures.json",
+    "sha256": "08949ad56e3dee921b12e7a1d42925793841509f2aa26278175d086f374c1e72"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/sources/board-map.json",
+    "sha256": "3c256e1696d64d799fa602c9eb080ac50500ab174e9a88034a123e262e9606cb"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/sources/originals.json",
+    "sha256": "9fe94eed0d60ea67890021786875b151d3578f7beb0ab0c7a80ac7d3a43a5363"
+  },
+  {
+    "path": "参数/RhineDepartment-UI-v1.0/asset-manifest.json",
+    "sha256": "f86740c6ca1ea874fabeb23f0e1fb9568d56be95cffccc21a07bf0473ea9d817"
+  },
+  {
+    "path": "参数/Room-UI-v1.0/assets.json",
+    "sha256": "8673a50cad793dd286c72983e6fe96d5bae4a6cf17a43e84eeb79880b7b812d8"
+  },
+  {
+    "path": "参数/Room-UI-v1.0/button-bindings.json",
+    "sha256": "b647ec4d2cf5dcaf3a63f232a889ed273171dc1ae06f344d73f7b379c9aa0114"
+  },
+  {
+    "path": "参数/Room-UI-v1.0/example-room.json",
+    "sha256": "bbb8f4e6aae30fab9c01f8d624abb4a864963ad3df4a936a0b80d5e0192ce274"
+  },
+  {
+    "path": "参数/Room-UI-v1.0/layout.json",
+    "sha256": "45a6828edf29f974864014489bbece14668d13f973375aa647ec63133ddb688d"
+  },
+  {
+    "path": "参数/Room-UI-v1.0/sources/manifest.json",
+    "sha256": "66b51986ed1001460acc1dd95bfb2e329e91cf59e000c172f826c0d19876a439"
+  },
+  {
+    "path": "参数/Room-UI-v1.1-VerticalMaps/assets.json",
+    "sha256": "ac0b31c8c748e162d79be4fc8bda6859ef5f728d9608f291ee4ba76ce22ca556"
+  },
+  {
+    "path": "参数/Room-UI-v1.1-VerticalMaps/button-bindings.json",
+    "sha256": "bc1141cba93606699482f5b9751268e7b7424edd873a80d99290cd29efac21bc"
+  },
+  {
+    "path": "参数/Room-UI-v1.1-VerticalMaps/example-room.json",
+    "sha256": "bbb8f4e6aae30fab9c01f8d624abb4a864963ad3df4a936a0b80d5e0192ce274"
+  },
+  {
+    "path": "参数/Room-UI-v1.1-VerticalMaps/layout.json",
+    "sha256": "ac71ee62868ca5c936578e702408b931899a2d01c4b9629d5e58fe5231ac2388"
+  },
+  {
+    "path": "参数/Room-UI-v1.1-VerticalMaps/sources/manifest.json",
+    "sha256": "66b51986ed1001460acc1dd95bfb2e329e91cf59e000c172f826c0d19876a439"
+  },
+  {
+    "path": "参数/Settlement-Effects-v1.0/assets.json",
+    "sha256": "e3fbc569b630bb89209c009d6ee5cc8006816def3cd6d346a9636abcfcde277c"
+  },
+  {
+    "path": "参数/Settlement-Effects-v1.0/layout.json",
+    "sha256": "d895450885cd868db1184c1d7b4e382e497fd5cf38f8cacd8fc49e8d20d85093"
+  },
+  {
+    "path": "参数/Settlement-Icons-Extra-v1.1/assets.json",
+    "sha256": "967ebf21680293aff455f0b787afa73630d00f9b3f650a73e96ea92c3cf14f49"
+  },
+  {
+    "path": "参数/Settlement-Icons-Extra-v1.1/icons.json",
+    "sha256": "fdd33e7b9447834fe21c668f613ee3b81010b81c4dde97ba35e92c5c5320e846"
+  },
+  {
+    "path": "参数/Main-Info-Buttons-v1.0/assets.json",
+    "sha256": "c335a360c66383301299ef8e71d3e5bd997e4ee0b8c3a879258b5b77ca1648bc"
+  },
+  {
+    "path": "参数/Main-Info-Buttons-v1.0/buttons.json",
+    "sha256": "73a61e9fb4eb3de728f1c46c8b6d74350f23c6c43650939bf27c31c7ff719155"
+  },
+  {
+    "path": "参数/Region-Squares-v1.0/assets.json",
+    "sha256": "2a9bdc7927fa3ca7db504ded56107bc66b8154ce663aaf70b999d8dc0f29e3c2"
+  },
+  {
+    "path": "参数/Region-Squares-v1.0/palette.json",
+    "sha256": "f04b09868b9e8fbc9b7cf8360efec9f6bb4ae84390b6e08532f7e286767d3d5b"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/assets.json",
+    "sha256": "aca742d3916292c789f359043f5f54f3b9bf423b4f0d098a01ef284e0ab584a7"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/data/example-four-player.json",
+    "sha256": "c1433e2a51e105cca14e4808cf1cbed674eede16cd66d6c27f95ffd25ac972b3"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/data/example-three-player.json",
+    "sha256": "1c0703e66827f04b6cd60aca066b86f7663484777af47f2e513694e84596dc40"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/data/map-regions.json",
+    "sha256": "25e2c96179ca7331c1ac15a3f881629fb6decef4e1b08d43b02b2216bc6a1dae"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/data/palette.json",
+    "sha256": "f04b09868b9e8fbc9b7cf8360efec9f6bb4ae84390b6e08532f7e286767d3d5b"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/layout.json",
+    "sha256": "b72d89cf2d0ebd56dd5c99bc98dbf7bd10c6be864ec82651584d6892bb74162d"
+  },
+  {
+    "path": "参数/Area-Control-v1.0/sources/generation.json",
+    "sha256": "dc93cda0dacae62ba57a654d1cc94b31a5efdd14eb9963c6c676580c07e21b26"
+  },
+  {
+    "path": "参数/Player-Select-v1.0/assets.json",
+    "sha256": "0b5a248319201d6ec334240e752baa84c6f25e8874841b944e00541ed06e9462"
+  },
+  {
+    "path": "参数/Player-Select-v1.0/example-data.json",
+    "sha256": "7a64a135d4adfc021b90bc5f8c9bf73c75549c59cd21c85ef410302b31a799bd"
+  },
+  {
+    "path": "参数/Player-Select-v1.0/layout.json",
+    "sha256": "4cf1d0721651f8150aecd8ff74e33e3daae62f5ee0088cb337ed5b7dea050fcf"
+  },
+  {
+    "path": "参数/Player-Select-v1.0/sources/manifest.json",
+    "sha256": "66b51986ed1001460acc1dd95bfb2e329e91cf59e000c172f826c0d19876a439"
+  },
+  {
+    "path": "参数/Game-Box-v1.0/assets.json",
+    "sha256": "1a475d664f407367fcf25958370df33f1b81592f06127b2b8043ff7557943df1"
+  },
+  {
+    "path": "参数/Game-Box-v1.0/example-data.json",
+    "sha256": "bc9c64e061ae574deab6c9f1b4a720ec983fb6a4b75d3133b2433d603958a1f6"
+  },
+  {
+    "path": "参数/Game-Box-v1.0/layout.json",
+    "sha256": "9961cc7c84f86718379eb3f3ed4f145a6949e5d82e9521f490464565c05aba88"
+  },
+  {
+    "path": "参数/Game-Box-v1.0/prefab.json",
+    "sha256": "9198baf02a40938ea00b8817443a96187ad515da912df78010d260e138e6237e"
+  },
+  {
+    "path": "文档/原始说明/独立说明/Rhine-Department-Placement.png",
+    "sha256": "f1e313ee5e392234f754db4a115561354683e2ad0b298ec80110908fcd8de0f9",
+    "purpose": "科室板叠放坐标及原图修正说明图；禁止导入为运行时UI贴图"
+  }
+]

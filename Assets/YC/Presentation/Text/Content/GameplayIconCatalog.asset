@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8091889cea91423bb3e74426f4a8b81c, type: 3}
+  m_Name: GameplayIconCatalog
+  m_EditorClassIdentifier:
+  bindings:
+  - AssetKey: core:settlement.chain_link.dark
+    Sprite: {fileID: 21300000, guid: 33850ddd4ec85b0d961722484bd32090, type: 3}
+  - AssetKey: core:settlement.chain_link.light
+    Sprite: {fileID: 21300000, guid: 35f5150fdd10540eb9391961f44b3bbb, type: 3}
+  - AssetKey: core:settlement.chain_link.muted
+    Sprite: {fileID: 21300000, guid: 1e720f6395415058a41d2ca791be8838, type: 3}
+  - AssetKey: core:settlement.substitute.dark
+    Sprite: {fileID: 21300000, guid: a627f4137e2455048b7a609bc47a119a, type: 3}
+  - AssetKey: core:settlement.substitute.light
+    Sprite: {fileID: 21300000, guid: ba4dd071576558b88197d8bc5c42e8b5, type: 3}
+  - AssetKey: core:settlement.substitute.muted
+    Sprite: {fileID: 21300000, guid: 051e979758cc5026bad7d89cc22e6976, type: 3}
+  - AssetKey: core:settlement.trigger_ready.dark
+    Sprite: {fileID: 21300000, guid: 02247e8bcc035606af65125b4ab760c9, type: 3}
+  - AssetKey: core:settlement.trigger_ready.light
+    Sprite: {fileID: 21300000, guid: ac93567e40d5567489414be846daaf0f, type: 3}
+  - AssetKey: core:settlement.trigger_ready.muted
+    Sprite: {fileID: 21300000, guid: 12a2ea55030e5487b73d239c98e911f0, type: 3}
+  - AssetKey: core:settlement.scope_adjacent.dark
+    Sprite: {fileID: 21300000, guid: da2c76593a1b5284962529d3188f5c54, type: 3}
+  - AssetKey: core:settlement.scope_adjacent.light
+    Sprite: {fileID: 21300000, guid: 40c8f603ce6b5e91be46b4d967a71c5e, type: 3}
+  - AssetKey: core:settlement.scope_adjacent.muted
+    Sprite: {fileID: 21300000, guid: 1915d3e233a7512aa4b55aea76b74d28, type: 3}
+  - AssetKey: core:settlement.choose_order.dark
+    Sprite: {fileID: 21300000, guid: bbce5e7ff6195756a2bed911445e5a64, type: 3}
+  - AssetKey: core:settlement.choose_order.light
+    Sprite: {fileID: 21300000, guid: a90e24574bb65e688b5331fe16fd252c, type: 3}
+  - AssetKey: core:settlement.choose_order.muted
+    Sprite: {fileID: 21300000, guid: 737d71e7ac715f259993c9645e5c8a8f, type: 3}
+  - AssetKey: core:settlement.chain_defer.dark
+    Sprite: {fileID: 21300000, guid: f964397ebf2f5f1ca0dc27416f935828, type: 3}
+  - AssetKey: core:settlement.chain_defer.light
+    Sprite: {fileID: 21300000, guid: 883f1af3bdac5c3eb8ef2758e0c90216, type: 3}
+  - AssetKey: core:settlement.chain_defer.muted
+    Sprite: {fileID: 21300000, guid: 90ee66ee30da530faf1b90c03f244933, type: 3}
+  - AssetKey: core:settlement.target_other.dark
+    Sprite: {fileID: 21300000, guid: ee895cbe444253f08e47635e349e4f7a, type: 3}
+  - AssetKey: core:settlement.target_other.light
+    Sprite: {fileID: 21300000, guid: 5f7fde7b373656e6ba908e92deb60a78, type: 3}
+  - AssetKey: core:settlement.target_other.muted
+    Sprite: {fileID: 21300000, guid: 932e0130089a5ddcadcc1500b2368ec2, type: 3}
+  - AssetKey: core:rule.enterprise_upgrade.asset
+    Sprite: {fileID: 21300000, guid: 8994c2897ce053c099fc5df54d089ead, type: 3}
+  - AssetKey: core:rule.enterprise_special.asset
+    Sprite: {fileID: 21300000, guid: b75c39b16476561380e13aa041497b35, type: 3}
+  - AssetKey: core:resource.score.asset
+    Sprite: {fileID: 21300000, guid: 53e633dc9898539f8849049247fbe905, type: 3}
+  - AssetKey: core:timing.score_settlement.asset
+    Sprite: {fileID: 21300000, guid: 4370140471a65c6cb4116a97dfcabe36, type: 3}
+  - AssetKey: core:timing.remaining_game.asset
+    Sprite: {fileID: 21300000, guid: d687f50676d550a386a6a8322b64d22e, type: 3}
+  - AssetKey: core:rule.city_move.asset
+    Sprite: {fileID: 21300000, guid: df571237730857b39e6e80edf16e9c1b, type: 3}
+  - AssetKey: core:rule.operator_dispatch.asset
+    Sprite: {fileID: 21300000, guid: 0df9fa0d0b355c92880b313a42da4c3b, type: 3}
+  - AssetKey: core:rule.build.asset
+    Sprite: {fileID: 21300000, guid: e19ff37e41f25ff5a3bba4efccb9b601, type: 3}
+  - AssetKey: core:resource.iron.asset
+    Sprite: {fileID: 21300000, guid: fb269754584c540ea4dc2a759adae761, type: 3}
+  - AssetKey: core:timing.quick_action.asset
+    Sprite: {fileID: 21300000, guid: f7bbf7cb4a435a7eb8a3ff5567603008, type: 3}
+  - AssetKey: core:timing.tactical_action.asset
+    Sprite: {fileID: 21300000, guid: baf0067920b35c95a681b0f621c08cfe, type: 3}
+  - AssetKey: core:rule.replace.asset
+    Sprite: {fileID: 21300000, guid: f19db1b938da500a94c32d017ae1ca12, type: 3}
+  - AssetKey: core:syntax.condition.asset
+    Sprite: {fileID: 21300000, guid: 770eceaf04e95d0f934535e9fe18b5ee, type: 3}
+  - AssetKey: core:rule.persistent_marker.asset
+    Sprite: {fileID: 21300000, guid: 6408c3370bec5d29a4168b953ef25b66, type: 3}
+  - AssetKey: core:resource.orirock.asset
+    Sprite: {fileID: 21300000, guid: 3b008f346d345ba785e2532ae66e0380, type: 3}
+  - AssetKey: core:resource.originium_shard.asset
+    Sprite: {fileID: 21300000, guid: 33a6a0d5771a51cf96f8cb979c1335a3, type: 3}
+  - AssetKey: core:timing.special_action.asset
+    Sprite: {fileID: 21300000, guid: a525b2fba1eb5cedbbda8530062fe830, type: 3}
+  - AssetKey: core:rule.remove.asset
+    Sprite: {fileID: 21300000, guid: b28b86b30d485128a0a769e07a336425, type: 3}
+  - AssetKey: core:timing.immediate.asset
+    Sprite: {fileID: 21300000, guid: 3091fc6d9ace5955a24ab3be8d4d5397, type: 3}
+  - AssetKey: core:resource.pure_originium.asset
+    Sprite: {fileID: 21300000, guid: 68183de2a8065bbfb3c30f176263ede4, type: 3}
+  - AssetKey: core:rule.dispatch.asset
+    Sprite: {fileID: 21300000, guid: 669453fc06d45a46bba028a769dd6920, type: 3}
+  - AssetKey: core:rule.deploy.asset
+    Sprite: {fileID: 21300000, guid: fb7f59dd44cc57029fd6f25f770af0d8, type: 3}
+  - AssetKey: core:resource.gold_voucher.asset
+    Sprite: {fileID: 21300000, guid: 0a9f2480ecf959819d9dfac26b84fa1a, type: 3}
+  - AssetKey: core:rule.limited_marker.asset
+    Sprite: {fileID: 21300000, guid: eed5e09da6915f998b219e1831d7c0ec, type: 3}
+  - AssetKey: core:rule.remove_card_marker.asset
+    Sprite: {fileID: 21300000, guid: 31a067410832587c9ae7d678a8e824a6, type: 3}
+  - AssetKey: core:rule.remove_own_influence.asset
+    Sprite: {fileID: 21300000, guid: 63382e76e244548aa35ff2407f20e93a, type: 3}

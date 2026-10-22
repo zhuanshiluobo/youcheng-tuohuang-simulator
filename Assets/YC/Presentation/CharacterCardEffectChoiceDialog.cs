@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.Facilities;
 using YC.Domain.Interactions;
+using YC.Domain.Presentation;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 using UnityEngine;
@@ -12,10 +14,32 @@ namespace YC.Presentation
     /// <summary>角色牌非地图参数的专用结算弹窗；不读取或修改共享游戏状态。</summary>
     internal sealed class CharacterCardEffectChoiceDialog
     {
+        public Func<string, string> ResolveCharacterDefinition { get; set; }
+        public Action<InteractionRequestProjection, GameplayTextDocument, Action<Component, GameplayTextDocument, bool>, Func<bool>, Action, Action> RenderPaymentConfirmation { get; set; }
+        public Func<bool> IsPaymentConfirmationShowing { get; set; }
+        public Action HidePaymentConfirmation { get; set; }
+        private bool ownsPaymentConfirmation;
         private readonly RectTransform canvas;
         private readonly EffectDialogShell shell;
         private readonly EffectDialogLayoutProfile layoutProfile;
         private readonly CardVisualCatalog cards;
+        private readonly GameplayDialogRegistry registry;
+        private PlayerSelectionPageView players;
+        private Func<GameplayTextRef, GameplayTextDocument> resolveText;
+        private Action<Component, GameplayTextDocument, bool> renderText;
+        private RectTransform lastSelectionPanel;
+        private EffectDialogShellView coverPage;
+        private UnityEngine.UI.Button coverConfirm;
+        private string coverPageKey, coverSelectedId;
+        private List<string> coverPageCandidates;
+        private readonly Dictionary<string, FacilityEffectCardView> coverRows = new Dictionary<string, FacilityEffectCardView>();
+
+        public void BindGameplayText(Func<GameplayTextRef, GameplayTextDocument> resolve,
+            Action<Component, GameplayTextDocument, bool> render)
+        {
+            resolveText = resolve;
+            renderText = render;
+        }
 
         internal CharacterCardEffectChoiceDialog(
             GameplayDialogRegistry dialogRegistry,
@@ -25,6 +49,7 @@ namespace YC.Presentation
             if (dialogRegistry == null) throw new ArgumentNullException(nameof(dialogRegistry));
             layoutProfile = dialogRegistry.EffectDialogLayoutProfile;
             cards = dialogRegistry.CardVisualCatalog;
+            registry = dialogRegistry;
             var layoutReason = string.Empty;
             if (layoutProfile == null || !layoutProfile.TryValidateConfiguration(out layoutReason))
             {
@@ -39,7 +64,8 @@ namespace YC.Presentation
 
         public bool IsShowing
         {
-            get { return shell.IsShowing; }
+            get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy ||
+                ownsPaymentConfirmation && IsPaymentConfirmationShowing?.Invoke() == true; }
         }
 
         public void ShowSecondEffectStep(CharacterCardPanelViewModel model, Action strategy, Action tactic,
@@ -73,8 +99,34 @@ namespace YC.Presentation
             ShowOptionsCore(title, description, options, cancel, cancelLabel, true);
         }
 
+        public void ShowOptions(InteractionRequestProjection request, string title, string description,
+            IReadOnlyList<EffectDialogOption> options, Action cancel = null, string cancelLabel = null)
+        {
+            ShowOptionsCore(title, description, options, cancel, cancelLabel, true, ResolveOptionsPrompt(request));
+        }
+
+        internal GameplayTextDocument ResolveOptionsPrompt(InteractionRequestProjection request) =>
+            EffectDialogTextDocuments.ResolvePrompt(request, resolveText);
+
+        internal GameplayTextDocument ResolveGameplayText(GameplayTextRef text) =>
+            text == null ? null : resolveText?.Invoke(text);
+
+        internal GameplayTextDocument ResolveLegacyOptionsPrompt(GameplayInteractionPresentation presentation) =>
+            ResolveGameplayText(presentation?.Prompt);
+
+        internal GameplayTextDocument ResolveLegacyOptionLabel(GameplayInteractionPresentation presentation, string candidateId) =>
+            ResolveGameplayText(presentation?.Options.Find(option => option.CandidateId == candidateId)?.Label);
+
+        internal int GameplayTextGeneration => GameplayHudFrame.Active?.PresentationGeneration ?? 0;
+
+        public void ShowOptions(GameplayTextDocument promptDocument, string title, string description,
+            IReadOnlyList<EffectDialogOption> options, Action cancel = null, string cancelLabel = null)
+        {
+            ShowOptionsCore(title, description, options, cancel, cancelLabel, true, promptDocument);
+        }
+
         private void ShowOptionsCore(string title, string description, IReadOnlyList<EffectDialogOption> options,
-            Action cancel, string cancelLabel, bool effectPage)
+            Action cancel, string cancelLabel, bool effectPage, GameplayTextDocument promptDocument = null)
         {
             var optionCount = options == null ? 0 : options.Count;
             var panelSize = layoutProfile.CharacterOptionsPanelBaseSize;
@@ -82,7 +134,7 @@ namespace YC.Presentation
                 panelSize.y + optionCount * layoutProfile.CharacterOptionsRowHeight,
                 layoutProfile.CharacterOptionsPanelMinHeight,
                 layoutProfile.CharacterOptionsPanelMaxHeight);
-            var panel = Rebuild(panelSize, effectPage);
+            var panel = PreparePage(panelSize, effectPage);
             EffectDialogShell.AddHeading(
                 panel,
                 title,
@@ -91,6 +143,13 @@ namespace YC.Presentation
                 "Character Effect Title",
                 "Character Effect Description",
                 24);
+            if (promptDocument != null)
+            {
+                var view = panel.GetComponentInParent<EffectDialogShellView>(true);
+                var reason = "实际可选页面缺少EffectDialogShellView。";
+                if (view == null || !view.TryRenderGameplayHeading(promptDocument, renderText, out reason))
+                    Debug.LogWarning("可选效果正式提示未接入：" + reason, view);
+            }
             var content = EffectDialogShell.AddOptionScroll(
                 panel,
                 "Character Effect Options Scroll",
@@ -98,7 +157,7 @@ namespace YC.Presentation
                     ? layoutProfile.CharacterOptionsScrollBottom
                     : layoutProfile.CharacterOptionsScrollBottomWithCancel,
                 layoutProfile.CharacterOptionsScrollTop);
-            EffectDialogShell.AddOptions(content, options, "Character Effect Option ", Hide);
+            EffectDialogShell.AddOptions(content, options, "Character Effect Option ", Hide, renderText);
 
             if (cancel != null)
             {
@@ -122,18 +181,158 @@ namespace YC.Presentation
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
+            if (spec.Players != null)
+            {
+                shell.Hide();
+                if (players == null) players = registry.InstantiatePlayerSelection(canvas);
+                spec.Players.Title = title; spec.Players.Description = description;
+                spec.Players.AllowCancel &= spec.Cancel != null;
+                players.Present(spec.Players,ids =>
+                    { spec.PlayerSelectionChanged?.Invoke(ids); spec.Confirm?.Invoke(); },spec.Cancel,spec.IsCurrent,
+                    spec.IsEffectPage,spec.PlayerSelectionChanged);
+                return;
+            }
+            if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            spec.CardTexture = id => cards.GetFacility(id) ?? cards.GetCharacterFront(id) ?? cards.GetEvent(id);
-            var panel = Rebuild(layoutProfile.SelectionPanelSize, spec.IsEffectPage, spec.HasCardArtwork());
+            if (spec.CardSprite == null) spec.CardSprite = id => cards.GetFacility(id) ?? cards.GetCharacterFront(id) ?? cards.GetEvent(id);
+            var panel = PreparePage(layoutProfile.SelectionPanelSize, spec.IsEffectPage, spec.HasCardArtwork());
             EffectDialogShell.AddHeading(panel, title, description);
+            if (spec.PromptDocument != null)
+            {
+                var view = panel.GetComponentInParent<EffectDialogShellView>(true);
+                var reason = "实际选择页面缺少EffectDialogShellView。";
+                if (view == null || !view.TryRenderGameplayHeading(spec.PromptDocument, spec.RenderText, out reason))
+                {
+                    Debug.LogWarning("选择正式提示未接入：" + reason, view);
+                    EffectDialogShell.AddHeading(panel, title, spec.CompatibilityPrompt?.Invoke() ?? description);
+                }
+            }
             shell.AddSelection(panel, spec);
+            lastSelectionPanel = panel;
             shell.RestoreScroll(scroll);
+        }
+
+        public void ShowQuantity(string label, int minimum, int maximum,
+            IReadOnlyList<int> initialValues, Action<IReadOnlyList<int>> draftChanged,
+            Func<bool> isCurrent, Action<int> confirm)
+        {
+            ShowQuantity(null, label, minimum, maximum, initialValues, draftChanged, isCurrent, confirm);
+        }
+
+        public void ShowQuantity(InteractionRequestProjection request, string label, int minimum, int maximum,
+            IReadOnlyList<int> initialValues, Action<IReadOnlyList<int>> draftChanged,
+            Func<bool> isCurrent, Action<int> confirm)
+        {
+            string[] rowIds = null;
+            var declaredRows = request?.PromptParameters?.Properties?.FirstOrDefault(value => value.Name == "rowIds")?.Value;
+            if (declaredRows != null)
+            {
+                if (declaredRows.Kind != NormalizedValueKind.Array || declaredRows.Items == null ||
+                    declaredRows.Items.Count != 1 || declaredRows.Items[0]?.Kind != NormalizedValueKind.String ||
+                    string.IsNullOrEmpty(declaredRows.Items[0].StringValue))
+                    throw new InvalidOperationException("数量请求必须声明唯一的有效行标识。");
+                rowIds = new[] { declaredRows.Items[0].StringValue };
+            }
+            else
+            {
+                var amountKind = request?.PromptParameters?.Properties?.FirstOrDefault(value => value.Name == "amountKind")?.Value;
+                if (amountKind?.Kind == NormalizedValueKind.String && !string.IsNullOrEmpty(amountKind.StringValue))
+                    rowIds = new[] { amountKind.StringValue };
+            }
+            if (players != null) players.Close();
+            var panel = PreparePage(layoutProfile.SalePanelSize);
+            shell.AddResourceAllocation(panel, new ResourceAllocationSpec
+            {
+                Request = request,
+                RowIds = rowIds,
+                ResolveText = resolveText,
+                RenderText = renderText,
+                Title = layoutProfile.QuantitySelectionTitle,
+                Description = string.Format(layoutProfile.QuantitySelectionDescription, minimum, maximum),
+                Labels = new[] { label }, Maximums = new[] { maximum }, MinimumTotal = minimum,
+                InitialValues = initialValues, DraftChanged = draftChanged, IsCurrent = isCurrent,
+                ShowInventoryPreview = false, ConfirmLabel = layoutProfile.SelectionConfirmLabel,
+                Confirm = values => confirm(values[0])
+            });
+        }
+
+        public void ShowPaymentConfirmation(string description, Func<bool> isCurrent, Action confirm)
+        {
+            if (players != null) players.Close();
+            var panel = PreparePage(layoutProfile.ResourceAllocationPanelSize);
+            if (panel == null) return;
+            shell.AddResourceAllocation(panel, new ResourceAllocationSpec
+            {
+                Title = layoutProfile.ResourceAllocationTitle, Description = description,
+                Labels = Array.Empty<string>(), IsCurrent = isCurrent, ShowInventoryPreview = false,
+                ConfirmLabel = layoutProfile.SelectionConfirmLabel, Confirm = _ => confirm?.Invoke()
+            });
+        }
+
+        public void ShowPaymentConfirmation(InteractionRequestProjection request, Func<bool> isCurrent,
+            Action confirm, Action decline = null)
+        {
+            var document = EffectDialogTextDocuments.ResolvePrompt(request, resolveText);
+            if (document == null || renderText == null || RenderPaymentConfirmation == null)
+                throw new InvalidOperationException("付款宿主缺少正式文档、渲染合同或专用窗口接线。");
+            Hide();
+            ownsPaymentConfirmation = true;
+            RenderPaymentConfirmation(request, document, renderText, isCurrent, confirm, decline);
+        }
+
+        public void ShowBoundedResourceAllocation(string description, IReadOnlyList<string> labels,
+            IReadOnlyList<int> maximums, int minimumTotal, int maximumTotal,
+            IReadOnlyList<int> initialValues, Action<IReadOnlyList<int>> draftChanged,
+            Func<bool> isCurrent, Action<IReadOnlyList<int>> confirm, Action cancel)
+        {
+            ShowBoundedResourceAllocation(null, null, description, labels, maximums, minimumTotal, maximumTotal,
+                initialValues, draftChanged, isCurrent, confirm, cancel);
+        }
+
+        public void ShowBoundedResourceAllocation(InteractionRequestProjection request, IReadOnlyList<string> rowIds,
+            string description, IReadOnlyList<string> labels, IReadOnlyList<int> maximums, int minimumTotal, int maximumTotal,
+            IReadOnlyList<int> initialValues, Action<IReadOnlyList<int>> draftChanged,
+            Func<bool> isCurrent, Action<IReadOnlyList<int>> confirm, Action cancel)
+        {
+            if (players != null) players.Close();
+            var scroll = initialValues != null && initialValues.Count > 0 ? shell.ScrollPosition : 1f;
+            var panel = PreparePage(layoutProfile.ResourceAllocationPanelSize);
+            shell.AddResourceAllocation(panel, new ResourceAllocationSpec
+            {
+                Request = request, RowIds = rowIds, ResolveText = resolveText, RenderText = renderText,
+                Title = layoutProfile.ResourceAllocationTitle, Description = description,
+                Labels = labels, Maximums = maximums, MinimumTotal = minimumTotal, MaximumTotal = maximumTotal,
+                InitialValues = initialValues, DraftChanged = draftChanged, IsCurrent = isCurrent,
+                ShowInventoryPreview = false, ConfirmLabel = layoutProfile.SelectionConfirmLabel,
+                CancelLabel = layoutProfile.SelectionCancelLabel, Confirm = confirm, Cancel = cancel
+            });
+            shell.RestoreScroll(scroll);
+        }
+
+        public void ShowResourceType(IReadOnlyList<string> labels,
+            IReadOnlyList<int> initialValues, Action<IReadOnlyList<int>> draftChanged,
+            Func<bool> isCurrent, Action<int> confirm)
+        {
+            if (players != null) players.Close();
+            var maximums = new int[labels.Count];
+            for (var i = 0; i < maximums.Length; i++) maximums[i] = 1;
+            var panel = PreparePage(layoutProfile.SalePanelSize);
+            shell.AddResourceAllocation(panel, new ResourceAllocationSpec
+            {
+                Title = layoutProfile.ResourceTypeSelectionTitle,
+                Description = layoutProfile.ResourceTypeSelectionDescription,
+                Labels = labels, Maximums = maximums, ExactTotal = 1, ExclusiveChoice = true,
+                InitialValues = initialValues != null && initialValues.Count == labels.Count ? initialValues : new int[labels.Count],
+                DraftChanged = draftChanged, IsCurrent = isCurrent,
+                ShowInventoryPreview = false, ConfirmLabel = layoutProfile.SelectionConfirmLabel,
+                Confirm = values =>
+                { for (var i = 0; i < values.Count; i++) if (values[i] == 1) { confirm(i); return; } }
+            });
         }
 
         public void ShowExecutionChoices(string title, string description,
             IReadOnlyList<EffectDialogOption> options, Func<bool> isCurrent)
         {
-            string selected = null;
             var candidates = new List<string>();
             var byId = new Dictionary<string, EffectDialogOption>();
             foreach (var option in options)
@@ -141,31 +340,27 @@ namespace YC.Presentation
                 candidates.Add(option.StableId);
                 byId.Add(option.StableId, option);
             }
-            Action render = null;
-            render = () => ShowSelection(title, description, new EffectDialogSelectionSpec
+            ShowSelection(title, description, new EffectDialogSelectionSpec
             {
                 Request = new InteractionRequestProjection
                 {
                     VisibleToViewer = true, CandidateIds = candidates,
                     MinSelections = 1, MaxSelections = 1, AllowDecline = true
                 },
-                SelectedIds = selected == null ? new string[0] : new[] { selected },
-                Label = id => byId[id].Label,
-                SourceLabel = id => byId[id].SourceLabel,
+                ExecuteImmediately = true,
+                Label = id => string.IsNullOrEmpty(byId[id].SourceLabel) ? byId[id].Label : byId[id].SourceLabel,
                 DescriptionLabel = id => byId[id].DescriptionLabel,
                 CanSelect = id => byId[id].Enabled,
-                Select = id => { selected = id; render(); },
-                Confirm = () =>
+                Select = id =>
                 {
-                    if (selected == null || !byId[selected].Enabled || !isCurrent()) return;
-                    var option = byId[selected];
+                    if (!byId.TryGetValue(id, out var option) || !option.Enabled || !isCurrent() ||
+                        option.IsCurrent?.Invoke() == false) return;
                     Hide();
                     option.Select?.Invoke();
                 },
                 Cancel = Hide, IsCurrent = isCurrent, IsEffectPage = false,
                 OptionNamePrefix = "Special Action Option "
             }, true);
-            render();
         }
 
         public void ShowCoverSelection(
@@ -173,11 +368,30 @@ namespace YC.Presentation
             string selectedId,
             Func<string, bool> canCover,
             Action<string> select,
-            Action confirm)
+            Action confirm,
+            string contextKey = null)
         {
             var candidates = candidateIds == null
                 ? new List<string>()
                 : new List<string>(candidateIds);
+            coverSelectedId = selectedId;
+            if (!string.IsNullOrEmpty(contextKey) && contextKey == coverPageKey && coverPage != null &&
+                shell.IsVisible && shell.OwnsPage(coverPage.gameObject) && coverConfirm != null &&
+                coverPageCandidates != null && coverPageCandidates.SequenceEqual(candidates) &&
+                coverRows.Count == candidates.Count && coverRows.Values.All(row => row != null))
+            {
+                foreach (var pair in coverRows)
+                {
+                    bool selected = pair.Key == selectedId;
+                    pair.Value.Button.interactable = canCover == null || canCover(pair.Key);
+                    if (pair.Value.SelectionImage != null) pair.Value.SelectionImage.enabled = selected;
+                    else pair.Value.Outline.enabled = selected;
+                }
+                int count = string.IsNullOrEmpty(selectedId) ? 0 : 1;
+                coverPage.ResourceSummaryText.text = string.Format(layoutProfile.SelectionSummaryFormat, count, 1, 1);
+                coverConfirm.interactable = count == 1 && (canCover == null || canCover(selectedId));
+                return;
+            }
             var request = new InteractionRequestProjection
             {
                 VisibleToViewer = true,
@@ -200,8 +414,8 @@ namespace YC.Presentation
                     SelectedIds = string.IsNullOrEmpty(selectedId)
                         ? new string[0]
                         : new[] { selectedId },
-                    Label = CharacterCardPanelPresenter.ResolveCardDisplayName,
-                    CardTexture = id => cards.GetCharacterFront(id),
+                    Label = id => CharacterCardPanelPresenter.ResolveCardDisplayName(ResolveCharacterDefinition?.Invoke(id) ?? id),
+                    CardSprite = id => cards.GetCharacterFront(ResolveCharacterDefinition?.Invoke(id) ?? id),
                     IsCurrent = () => candidates.Exists(id => canCover == null || canCover(id)),
                     CanSelect = id => canCover == null || canCover(id),
                     OptionNamePrefix = "Character Cover Card ",
@@ -210,10 +424,25 @@ namespace YC.Presentation
                     Select = id => select?.Invoke(id),
                     Confirm = () =>
                     {
-                        if (!string.IsNullOrEmpty(selectedId)) confirm?.Invoke();
+                        if (!string.IsNullOrEmpty(coverSelectedId)) confirm?.Invoke();
                     }
                 },
                 true);
+            coverPageKey = contextKey;
+            coverPageCandidates = candidates;
+            coverRows.Clear();
+            coverPage = lastSelectionPanel == null ? null : lastSelectionPanel.GetComponentInParent<EffectDialogShellView>();
+            coverConfirm = lastSelectionPanel == null ? null : lastSelectionPanel.GetComponentsInChildren<UnityEngine.UI.Button>(true)
+                .SingleOrDefault(button => button.gameObject.activeSelf && button.gameObject.name == "Confirm Selection");
+            if (lastSelectionPanel != null)
+                foreach (var row in lastSelectionPanel.GetComponentsInChildren<FacilityEffectCardView>(true))
+                {
+                    if (!row.gameObject.activeSelf) continue;
+                    var marker = row.Button == null ? null : row.Button.GetComponent<YC.PlayerJourney.PlayerAutomationId>();
+                    const string prefix = "selection.card.";
+                    if (marker != null && marker.Id != null && marker.Id.StartsWith(prefix, StringComparison.Ordinal))
+                        coverRows[marker.Id.Substring(prefix.Length)] = row;
+                }
         }
 
         public void ShowBuildFacilities(
@@ -263,7 +492,7 @@ namespace YC.Presentation
                                 option.Reason) + "）"
                             : name;
                     },
-                    CardTexture = cards.GetFacility,
+                    CardSprite = cards.GetFacility,
                     IsCurrent = isCurrent,
                     CanSelect = id => buildable.Contains(id),
                     OptionNamePrefix = "Build Facility Card ",
@@ -385,12 +614,13 @@ namespace YC.Presentation
             IReadOnlyList<string> labels, IReadOnlyList<int> maximums, IReadOnlyList<int> unitPrices,
             Action<IReadOnlyList<int>> confirm, Action cancel, IReadOnlyList<int> initialValues,
             Action<IReadOnlyList<int>> draftChanged, Func<bool> isCurrent, string receiptSummary = null,
-            IReadOnlyList<int> inventory = null)
+            IReadOnlyList<int> inventory = null, InteractionRequestProjection request = null)
         {
             var scroll = initialValues != null && initialValues.Count > 0 ? shell.ScrollPosition : 1f;
-            var panel = Rebuild(layoutProfile.SalePanelSize);
+            var panel = PreparePage(layoutProfile.SalePanelSize);
             shell.AddResourceAllocation(panel, new ResourceAllocationSpec
             {
+                Request = request, ResolveText = resolveText, RenderText = renderText,
                 Title = layoutProfile.SaleTitle,
                 Description = string.IsNullOrEmpty(receiptSummary) ? layoutProfile.SaleDescription :
                     layoutProfile.SaleDescription + "\n" + receiptSummary,
@@ -442,7 +672,7 @@ namespace YC.Presentation
             Action<IReadOnlyList<int>> draftChanged = null,
             Func<bool> isCurrent = null,
             IReadOnlyList<int> liveMaximums = null,
-            string receiptSummary = null)
+            string receiptSummary = null, InteractionRequestProjection request = null)
         {
             var resourceIds = new[] { "originium", "originium-shard", "iron", "pure-originium" };
             var labels = new[] { "源岩", "源石碎片", "异铁", "至纯源石" };
@@ -496,17 +726,23 @@ namespace YC.Presentation
                     confirm(selected.AsReadOnly());
                 },
                 canFinish ? (Action)(() => confirm(new[] { "sale|originium|0" })) : cancel,
-                initialValues, draftChanged, isCurrent, receiptSummary, liveMaximums);
+                initialValues, draftChanged, isCurrent, receiptSummary, liveMaximums, request);
         }
 
         public void Hide()
         {
+            if (ownsPaymentConfirmation) { ownsPaymentConfirmation = false; HidePaymentConfirmation?.Invoke(); }
+            coverPageKey = coverSelectedId = null;
+            coverPage = null; coverConfirm = null; coverPageCandidates = null;
+            coverRows.Clear(); lastSelectionPanel = null;
+            if (players != null) { players.Close(); UnityEngine.Object.Destroy(players.gameObject); players = null; }
             shell.Hide();
         }
 
-        private RectTransform Rebuild(Vector2 size, bool effectPage = true, bool cardPicker = false)
+        private RectTransform PreparePage(Vector2 size, bool effectPage = true, bool cardPicker = false)
         {
-            return shell.Rebuild(
+            if (ownsPaymentConfirmation) { ownsPaymentConfirmation = false; HidePaymentConfirmation?.Invoke(); }
+            return shell.PreparePage(
                 canvas,
                 "Character Card Effect Overlay",
                 "Character Card Effect Panel",

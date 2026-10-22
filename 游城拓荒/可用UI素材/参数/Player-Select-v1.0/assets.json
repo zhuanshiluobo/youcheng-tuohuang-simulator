@@ -1,0 +1,1024 @@
+{
+  "name": "Player-Select",
+  "version": "1.0",
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "sliceOrder": [
+    "left",
+    "top",
+    "right",
+    "bottom"
+  ],
+  "assets": {
+    "window-fill": {
+      "path": "assets/window/fill.png",
+      "size": [
+        1560,
+        920
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "window-fill",
+      "source": "output/Area-Control-v1.0/assets/window/window-fill.png",
+      "sourceSHA256": "f328bd1ab007e9759aad4e329a03d6ee1732c7bbc62edcd30bb7a20c7229188c",
+      "copiedUnchanged": true,
+      "path2x": "assets/window/fill@2x.png",
+      "svg": "assets/window/fill.svg"
+    },
+    "window-frame": {
+      "path": "assets/window/frame.png",
+      "size": [
+        512,
+        320
+      ],
+      "sliceLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "slice2xLTRB": [
+        40,
+        40,
+        40,
+        40
+      ],
+      "textBakedIn": false,
+      "role": "transparent-window-frame",
+      "source": "output/Area-Control-v1.0/assets/window/window-frame.png",
+      "sourceSHA256": "54928e03f9abfc0004b1c8386ed49586764dc8c507f7f6aa551469f1ea3856fa",
+      "copiedUnchanged": true,
+      "path2x": "assets/window/frame@2x.png",
+      "svg": "assets/window/frame.svg"
+    },
+    "dim-overlay": {
+      "path": "assets/window/dim-overlay.png",
+      "size": [
+        4,
+        4
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "modal-dim",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/help/dim-overlay.png",
+      "sourceSHA256": "4625b8ec364c45621c82e9cc7b3a9856a82d7721d926fa3d9892572b4296a336",
+      "copiedUnchanged": true,
+      "path2x": "assets/window/dim-overlay@2x.png",
+      "svg": "assets/window/dim-overlay.svg"
+    },
+    "accent": {
+      "path": "assets/window/accent.png",
+      "size": [
+        4,
+        40
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "title-accent",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/panels/accent.png",
+      "sourceSHA256": "cef41383dba8c57d69c6351adcd2b2d4fbc3d09c2d4feb9f16d4477719c6dc3a",
+      "copiedUnchanged": true,
+      "path2x": "assets/window/accent@2x.png",
+      "svg": "assets/window/accent.svg"
+    },
+    "divider": {
+      "path": "assets/window/divider.png",
+      "size": [
+        1024,
+        2
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "divider",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/panels/divider.png",
+      "sourceSHA256": "08776d0b7da02f62dc6601302cf1a263bea3c4d4ca22c647ef5e8e57efe0418a",
+      "copiedUnchanged": true,
+      "path2x": "assets/window/divider@2x.png",
+      "svg": "assets/window/divider.svg"
+    },
+    "avatar-frame": {
+      "path": "assets/avatar/frame.png",
+      "size": [
+        320,
+        456
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "original-frame-adapted-to-square-with-nine-slice",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/avatars/frame.png",
+      "sourceSHA256": "7bb91c958a6ea729293d2eef619633c91bc03542738e9af2bbaeae1500280ab7",
+      "copiedUnchanged": true,
+      "path2x": "assets/avatar/frame@2x.png",
+      "svg": "assets/avatar/frame.svg"
+    },
+    "avatar-fill": {
+      "path": "assets/avatar/fill.png",
+      "size": [
+        256,
+        256
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "empty-avatar-fill",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/avatars/fill.png",
+      "sourceSHA256": "d88000bfa05ba51a0bd8ab0fc28c2d0fe34e068108bb656ccf0c172bacf7926f",
+      "copiedUnchanged": true,
+      "path2x": "assets/avatar/fill@2x.png",
+      "svg": "assets/avatar/fill.svg"
+    },
+    "option-frame-default": {
+      "path": "assets/options/frame-default.png",
+      "size": [
+        400,
+        300
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "transparent-map-choice-border",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/maps/frame-default.png",
+      "sourceSHA256": "d6cd71ba88261d6b8677509b6daad23361cd32329d36bd775a2438536ccbf34d",
+      "copiedUnchanged": true,
+      "path2x": "assets/options/frame-default@2x.png",
+      "svg": "assets/options/frame-default.svg"
+    },
+    "option-frame-hover": {
+      "path": "assets/options/frame-hover.png",
+      "size": [
+        400,
+        300
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "transparent-map-choice-border",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/maps/frame-hover.png",
+      "sourceSHA256": "036b57616957c43c0e1927f6ddad7649abe2a1b119871c49a6431a31f0eaba6c",
+      "copiedUnchanged": true,
+      "path2x": "assets/options/frame-hover@2x.png",
+      "svg": "assets/options/frame-hover.svg"
+    },
+    "option-frame-selected": {
+      "path": "assets/options/frame-selected.png",
+      "size": [
+        400,
+        300
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "transparent-map-choice-border",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/maps/frame-selected.png",
+      "sourceSHA256": "2abdf7a281ef37bed9acc58fbc8b94b581f9922f13560cfb5a4e2ddf7aba0e93",
+      "copiedUnchanged": true,
+      "path2x": "assets/options/frame-selected@2x.png",
+      "svg": "assets/options/frame-selected.svg"
+    },
+    "option-frame-disabled": {
+      "path": "assets/options/frame-disabled.png",
+      "size": [
+        400,
+        300
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "transparent-map-choice-border",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/maps/frame-disabled.png",
+      "sourceSHA256": "fc60b7d82a987a649bda6a86d4e828a87ea29bc624ec4197e8e54ff03e14626a",
+      "copiedUnchanged": true,
+      "path2x": "assets/options/frame-disabled@2x.png",
+      "svg": "assets/options/frame-disabled.svg"
+    },
+    "option-fill-default": {
+      "path": "assets/options/fill-default.png",
+      "path2x": "assets/options/fill-default@2x.png",
+      "svg": "assets/options/fill-default.svg",
+      "size": [
+        284,
+        320
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "textBakedIn": false,
+      "role": "option-translucent-fill"
+    },
+    "option-fill-hover": {
+      "path": "assets/options/fill-hover.png",
+      "path2x": "assets/options/fill-hover@2x.png",
+      "svg": "assets/options/fill-hover.svg",
+      "size": [
+        284,
+        320
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "textBakedIn": false,
+      "role": "option-translucent-fill"
+    },
+    "option-fill-selected": {
+      "path": "assets/options/fill-selected.png",
+      "path2x": "assets/options/fill-selected@2x.png",
+      "svg": "assets/options/fill-selected.svg",
+      "size": [
+        284,
+        320
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "textBakedIn": false,
+      "role": "option-translucent-fill"
+    },
+    "option-fill-disabled": {
+      "path": "assets/options/fill-disabled.png",
+      "path2x": "assets/options/fill-disabled@2x.png",
+      "svg": "assets/options/fill-disabled.svg",
+      "size": [
+        284,
+        320
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "textBakedIn": false,
+      "role": "option-translucent-fill"
+    },
+    "checkbox-unchecked": {
+      "path": "assets/selection/checkbox-unchecked.png",
+      "size": [
+        36,
+        36
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "checkbox-base-without-check",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/forms/checkbox-unchecked.png",
+      "sourceSHA256": "d64c698812ba60bb1c7da06f45f0a5231d73122db399dc609f9c3cf4cd2a5f1b",
+      "copiedUnchanged": true,
+      "path2x": "assets/selection/checkbox-unchecked@2x.png",
+      "svg": "assets/selection/checkbox-unchecked.svg"
+    },
+    "checkbox-checked": {
+      "path": "assets/selection/checkbox-checked.png",
+      "size": [
+        36,
+        36
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "checkbox-base-without-check",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/forms/checkbox-checked.png",
+      "sourceSHA256": "ad72052b59c2cab4eda01cb59bec5c5edec3058b606368c3631961abc885c0a2",
+      "copiedUnchanged": true,
+      "path2x": "assets/selection/checkbox-checked@2x.png",
+      "svg": "assets/selection/checkbox-checked.svg"
+    },
+    "checkbox-disabled": {
+      "path": "assets/selection/checkbox-disabled.png",
+      "size": [
+        36,
+        36
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "checkbox-base-without-check",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/forms/checkbox-disabled.png",
+      "sourceSHA256": "f70f8e30af1c275c1d3a9759be001d0ea31ef3daf75a86f41f3254879473ba51",
+      "copiedUnchanged": true,
+      "path2x": "assets/selection/checkbox-disabled@2x.png",
+      "svg": "assets/selection/checkbox-disabled.svg"
+    },
+    "icon-players-dark": {
+      "path": "assets/icons/players-dark.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "icon",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/icons/players-dark.png",
+      "sourceSHA256": "c1f4cee6106a4d95c32a7ffe00a32373129ff5374433f9d7d9dca2a3d477e08d",
+      "copiedUnchanged": true,
+      "path2x": "assets/icons/players-dark@2x.png",
+      "svg": "assets/icons/players-dark.svg",
+      "proportionalOnly": true
+    },
+    "icon-check-dark": {
+      "path": "assets/icons/check-dark.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "icon",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/icons/check-dark.png",
+      "sourceSHA256": "6fc1e553f705778a8559ba0c38648fdb3a8f60b0211f885f19e93b20a4e23cee",
+      "copiedUnchanged": true,
+      "path2x": "assets/icons/check-dark@2x.png",
+      "svg": "assets/icons/check-dark.svg",
+      "proportionalOnly": true
+    },
+    "icon-close-dark": {
+      "path": "assets/icons/close-dark.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "icon",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/icons/close-dark.png",
+      "sourceSHA256": "668e28280ca3feeaaaaf7a3e6a6df48c9b328e561ae77c0717788fa2dd8529bc",
+      "copiedUnchanged": true,
+      "path2x": "assets/icons/close-dark@2x.png",
+      "svg": "assets/icons/close-dark.svg",
+      "proportionalOnly": true
+    },
+    "icon-lock-muted": {
+      "path": "assets/icons/lock-muted.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "icon",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/icons/lock-muted.png",
+      "sourceSHA256": "aaf44ef4161db09c7635538cfb2e2c4c719d7659d1b98e311508d810f3347982",
+      "copiedUnchanged": true,
+      "path2x": "assets/icons/lock-muted@2x.png",
+      "svg": "assets/icons/lock-muted.svg",
+      "proportionalOnly": true
+    },
+    "icon-empty-seat-muted": {
+      "path": "assets/icons/empty-seat-muted.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "icon",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/icons/empty-seat-muted.png",
+      "sourceSHA256": "965ded017a48315def9338bfaaeb8498a17349d7addce27f1900339b5758c568",
+      "copiedUnchanged": true,
+      "path2x": "assets/icons/empty-seat-muted@2x.png",
+      "svg": "assets/icons/empty-seat-muted.svg",
+      "proportionalOnly": true
+    },
+    "close-default": {
+      "path": "assets/buttons/close-default.png",
+      "size": [
+        256,
+        72
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/default.png",
+      "sourceSHA256": "a29d910267dc389e0508813dd90712768e257f7440f8af99260fe029b0b1daa7",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/close-default@2x.png",
+      "svg": "assets/buttons/close-default.svg"
+    },
+    "close-hover": {
+      "path": "assets/buttons/close-hover.png",
+      "size": [
+        256,
+        72
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/hover.png",
+      "sourceSHA256": "3065cf312218603e9f0a5125942b47cbb442a94844be52e173e9184c98cdc289",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/close-hover@2x.png",
+      "svg": "assets/buttons/close-hover.svg"
+    },
+    "close-pressed": {
+      "path": "assets/buttons/close-pressed.png",
+      "size": [
+        256,
+        72
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/pressed.png",
+      "sourceSHA256": "76df52904059a18aa1e89011cb95cc1c9dec634d8ebde3f7823877f43c4ad666",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/close-pressed@2x.png",
+      "svg": "assets/buttons/close-pressed.svg"
+    },
+    "close-disabled": {
+      "path": "assets/buttons/close-disabled.png",
+      "size": [
+        256,
+        72
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/buttons/neutral/disabled.png",
+      "sourceSHA256": "d5e43d172364efaa53977ae6a6f3138cab47499b04e5201b8fed5aea735a5ab7",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/close-disabled@2x.png",
+      "svg": "assets/buttons/close-disabled.svg"
+    },
+    "confirm-normal": {
+      "path": "assets/buttons/confirm-normal.png",
+      "size": [
+        224,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/action-normal.png",
+      "sourceSHA256": "fe665d088b7ffe426cf16798dd78b99ff40cf09b3c9ee808ccc0ce2d5dd78bff",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/confirm-normal@2x.png",
+      "svg": "assets/buttons/confirm-normal.svg"
+    },
+    "confirm-hover": {
+      "path": "assets/buttons/confirm-hover.png",
+      "size": [
+        224,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/action-hover.png",
+      "sourceSHA256": "632896b694c87d7bf4fb2281410a161465f27f9fef310145653704e22c469f7d",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/confirm-hover@2x.png",
+      "svg": "assets/buttons/confirm-hover.svg"
+    },
+    "confirm-pressed": {
+      "path": "assets/buttons/confirm-pressed.png",
+      "size": [
+        224,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/action-pressed.png",
+      "sourceSHA256": "c7f090c482dbcdff6780349d1c9dd71501232a6b0ea23bba02f0ef87a1c692c4",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/confirm-pressed@2x.png",
+      "svg": "assets/buttons/confirm-pressed.svg"
+    },
+    "confirm-disabled": {
+      "path": "assets/buttons/confirm-disabled.png",
+      "size": [
+        224,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/action-disabled.png",
+      "sourceSHA256": "bfb8645d438245a9cb7a6d62aa03b18f8ca8738138dfc1ea462644ec045a784e",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/confirm-disabled@2x.png",
+      "svg": "assets/buttons/confirm-disabled.svg"
+    },
+    "cancel-normal": {
+      "path": "assets/buttons/cancel-normal.png",
+      "size": [
+        176,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/cancel-normal.png",
+      "sourceSHA256": "da470195f6ad5a722c30e0214e86e202ffe7a46e91ee542b655c9396bea8bbcb",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/cancel-normal@2x.png",
+      "svg": "assets/buttons/cancel-normal.svg"
+    },
+    "cancel-hover": {
+      "path": "assets/buttons/cancel-hover.png",
+      "size": [
+        176,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/cancel-hover.png",
+      "sourceSHA256": "7d8e58932e3d14a08bd104c14ea9ca634b7df2457ce65d9944d89745a2fe7494",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/cancel-hover@2x.png",
+      "svg": "assets/buttons/cancel-hover.svg"
+    },
+    "cancel-pressed": {
+      "path": "assets/buttons/cancel-pressed.png",
+      "size": [
+        176,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/cancel-pressed.png",
+      "sourceSHA256": "edd2c0db4a60ebf592167ab1455c719cb198fc75ea8d82c7657fa6caf01ea1ff",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/cancel-pressed@2x.png",
+      "svg": "assets/buttons/cancel-pressed.svg"
+    },
+    "cancel-disabled": {
+      "path": "assets/buttons/cancel-disabled.png",
+      "size": [
+        176,
+        64
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "textBakedIn": false,
+      "role": "combined-button-base",
+      "source": "tmp/card-viewer-v362/work/card-viewer-v3.6/assets/buttons/cancel-disabled.png",
+      "sourceSHA256": "f88bc24dd0b13b69afc640b8c038ab017d0af034dff98f928fcee25f1e0af9c7",
+      "copiedUnchanged": true,
+      "path2x": "assets/buttons/cancel-disabled@2x.png",
+      "svg": "assets/buttons/cancel-disabled.svg"
+    },
+    "marker-green": {
+      "path": "assets/markers/green.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "original-cooperation-square",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/seats/square-green.png",
+      "sourceSHA256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "marker-yellow": {
+      "path": "assets/markers/yellow.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "original-cooperation-square",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/seats/square-yellow.png",
+      "sourceSHA256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "marker-blue": {
+      "path": "assets/markers/blue.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "original-cooperation-square",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/seats/square-blue.png",
+      "sourceSHA256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    },
+    "marker-red": {
+      "path": "assets/markers/red.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "textBakedIn": false,
+      "role": "original-cooperation-square",
+      "source": "output/Room-UI-v1.1-VerticalMaps/assets/seats/square-red.png",
+      "sourceSHA256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "copiedUnchanged": true,
+      "proportionalOnly": true
+    }
+  },
+  "styleSources": [
+    "Area-Control-v1.0",
+    "Room-UI-v1.1",
+    "CardViewer-v3.6.2 buttons"
+  ],
+  "pngStandalone": true,
+  "svgSourceDirectory": "sources/"
+}

@@ -1,0 +1,4534 @@
+[
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\cannot.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/character/cannot.jpg",
+    "sha256": "9fea8e8804c8e9c8e58b931a6f030f725b33dd39718b9012ddb567717dd1bee7",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\cannot.jpg.meta",
+    "metaSha256": "b97e41b6069945b21a743809a2e002c536ef82a0dfd04d5f3bd473aacd7ae45d",
+    "guid": "15a89d3b9f7af5f478c4dbe0a6784d95",
+    "newSprites": [
+      "character_004"
+    ],
+    "definitionIds": [
+      "cannot"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\elysium.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/character/elysium.jpg",
+    "sha256": "c9d7e0645520041013428e8af7c4af1a3e3334464e603cc34d19f9c797604a89",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\elysium.jpg.meta",
+    "metaSha256": "787e7fabce0462a0f3ce6ca274117ec30d0848e13171a78e57166214684653cf",
+    "guid": "8f4c05eb394bd744092bc837f6277788",
+    "newSprites": [
+      "character_005"
+    ],
+    "definitionIds": [
+      "elysium"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\liskarm.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/character/liskarm.jpg",
+    "sha256": "9d06e8ccecd054b8203676d8356df1a8cddd49e18168ef55ebab19f3a259ee15",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\liskarm.jpg.meta",
+    "metaSha256": "6ded5e87a1049226e092709699de91e156a81e59e679ccc54a32c3bc009951f3",
+    "guid": "1c0f88d9f38df3048ad94988262a9b7c",
+    "newSprites": [
+      "character_001"
+    ],
+    "definitionIds": [
+      "liskarm"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\texas.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/character/texas.jpg",
+    "sha256": "f57053b976becf4f4612ffe86f8c6de4e8c4a6f4f881657f07465c31ac88580c",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\texas.jpg.meta",
+    "metaSha256": "e76eb89b886ed39f8b8c7bc4af14d3b1d15d182bf988920eedae953a041cff9b",
+    "guid": "e18626492b60deb408bb0c6abd37904b",
+    "newSprites": [
+      "character_002"
+    ],
+    "definitionIds": [
+      "texas"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\tin-man.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/character/tin-man.jpg",
+    "sha256": "275d73511fd992871be85d2dceb2756fd5af51e1f0455361da435bea93c1e443",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\character\\tin-man.jpg.meta",
+    "metaSha256": "f3295da5046bd1ed4bd5c6c055f3d7cba110ba41c1b38e85a46d36c6ed833de2",
+    "guid": "1a959f2a52941634980c7626642f2ae4",
+    "newSprites": [
+      "character_003"
+    ],
+    "definitionIds": [
+      "tin-man"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_composite_power_system.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_composite_power_system.jpg",
+    "sha256": "a2fe29e90790379df59e7cdd65fcb4ba9dc84d12787ae0fe2827703f317e4401",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_composite_power_system.jpg.meta",
+    "metaSha256": "da3b0639ec9367978c27f0416fae857c46a849d5e3af9a5d2cd8de11c9d5bd62",
+    "guid": "8e69913733559924882e729e4c5a62c7",
+    "newSprites": [
+      "city_style_1_003"
+    ],
+    "definitionIds": [
+      "city_style_composite_power_system"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_efficient_mobile_management_system.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_efficient_mobile_management_system.jpg",
+    "sha256": "d4bca03a42ae150fc4e8ab0518ac84be127ec667f5a65fa00155e37586c3847c",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_efficient_mobile_management_system.jpg.meta",
+    "metaSha256": "bad295ccecb815e07d19a19a767d730fe9191f69b7175ddce9fe5f55a4e47073",
+    "guid": "4d3d43ba51280c74dbe870cc43535f38",
+    "newSprites": [
+      "city_style_2_002"
+    ],
+    "definitionIds": [
+      "city_style_efficient_mobile_management_system"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_material_relay_station.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_material_relay_station.jpg",
+    "sha256": "6873f968b80be79cb69f82b0b700b5235bba2e2fed9d061914ef4d293714fd02",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_material_relay_station.jpg.meta",
+    "metaSha256": "62b942ebdfd84282fc4db7e767db503862894d9ab6f9273f37cbb559855ec86c",
+    "guid": "86c8a6f2ad1bd564db75887527b792e4",
+    "newSprites": [
+      "city_style_1_009"
+    ],
+    "definitionIds": [
+      "city_style_material_relay_station"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_military_industrial_area.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_military_industrial_area.jpg",
+    "sha256": "8bd527748154316f8d137a7a713ec5d1c435b00dea705f0e9325a6d29a55b079",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_military_industrial_area.jpg.meta",
+    "metaSha256": "8638d79e1f5b1d0dabe0ca77b786076ea6fa589d86ee7f85e75e0f28af4b16c2",
+    "guid": "0009b89d6421b3449a45a070687ddf35",
+    "newSprites": [
+      "city_style_1_001"
+    ],
+    "definitionIds": [
+      "city_style_military_industrial_area"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_mobilization_support_system.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_mobilization_support_system.jpg",
+    "sha256": "256f4c11ae83c18ca8f7effbc4f693e82e76a73c98b1e50154f41fe740e7fb4a",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_mobilization_support_system.jpg.meta",
+    "metaSha256": "4b37698f240399a80e44689bc57c4cccf2e3d402d8b2dffe6bb8c48c1ac5ac6a",
+    "guid": "2b8e054a8e469a84ba1d9a65ebd3b36f",
+    "newSprites": [
+      "city_style_1_002"
+    ],
+    "definitionIds": [
+      "city_style_mobilization_support_system"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_source_stone_industrial_hub.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_source_stone_industrial_hub.jpg",
+    "sha256": "565b20365741d228cc3cb18afd53d29839ee5d02c2519ead875ad79bc09c8cd8",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\city_style\\city_style_source_stone_industrial_hub.jpg.meta",
+    "metaSha256": "2f05bb1a18210c928827afb5eb91e3f6065436f24742171fda9beca66ae6c150",
+    "guid": "240a21c4b53e1f746b99057e708047cd",
+    "newSprites": [
+      "city_style_2_001"
+    ],
+    "definitionIds": [
+      "city_style_source_stone_industrial_hub"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_01.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_01.jpg",
+    "sha256": "499efa8f5ba099aee3c1326b602ec114138a9a40beb66efb5fb831283de64622",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_01.jpg.meta",
+    "metaSha256": "e341ba793275bd3da0bb75a6536215473b30fab78e8266d3a3a65ad51a7a7493",
+    "guid": "551510279332d2b4d92638d11f11c4fe",
+    "newSprites": [
+      "event_green_001"
+    ],
+    "definitionIds": [
+      "event_green_01"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_02.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_02.jpg",
+    "sha256": "183b0f8a1931ab6c9ff373936b27f6da9da94dd7f2b7067941b93564b2add4e3",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_02.jpg.meta",
+    "metaSha256": "33d05b9273d29dd48dfc7dce7bb23bbc825f600d80ffd1b22ceb3ee5f3b064c4",
+    "guid": "a7bee66667d937a4798b1301b09c1601",
+    "newSprites": [
+      "event_green_002"
+    ],
+    "definitionIds": [
+      "event_green_02"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_03.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_03.jpg",
+    "sha256": "bca47f6246964b5abd35dd84290e17fd5c2a354003cefdb29eebfdf5335c7734",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_03.jpg.meta",
+    "metaSha256": "2273c060307f9d1c05a7ffeb688f2bd6d36d37845a5837d3fd7f15ef3c640560",
+    "guid": "32b91be800075f243965bef311fda078",
+    "newSprites": [
+      "event_green_003"
+    ],
+    "definitionIds": [
+      "event_green_03"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_04.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_04.jpg",
+    "sha256": "2e4bb1be1317f78b10185e89426b7e623a50253d734d6051756251a844f66573",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_04.jpg.meta",
+    "metaSha256": "62e1824ac3214c93995f0bee520b7fd56b438a3bada9a54a08c3ab30267607a4",
+    "guid": "68f6e089c036128448df87a0c3da779d",
+    "newSprites": [
+      "event_green_004"
+    ],
+    "definitionIds": [
+      "event_green_04"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_05.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_05.jpg",
+    "sha256": "237d50d5b0622f6cb09a2edfb5b21d2c4ddcd63c964b6dab2a234f935f172e3c",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_05.jpg.meta",
+    "metaSha256": "ced555a90a2692c3e06d19deb72a884f163a3e211926b0937f5feb783cce3ea6",
+    "guid": "041e7751ce1a0cb41bcae149aefb3bbb",
+    "newSprites": [
+      "event_green_005"
+    ],
+    "definitionIds": [
+      "event_green_05"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_06.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_green_06.jpg",
+    "sha256": "11e429759814ac3a241e5cd7fa66119c6a1ee69111af78a550a88a4e3e716902",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_green_06.jpg.meta",
+    "metaSha256": "077b75b1943d7f4882e33b3aa2ceaec8ca5811258f3396dec9ff8bed18fb3dd5",
+    "guid": "0a45c774a1e335548a82d62592c32ec3",
+    "newSprites": [
+      "event_green_006"
+    ],
+    "definitionIds": [
+      "event_green_06"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_01.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_01.jpg",
+    "sha256": "17254f2e9a845d251f55a8dee63cf4806118c4bd043e79b35ba489152d913e5c",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_01.jpg.meta",
+    "metaSha256": "d2061444ff9adc80144d65c7e01b40abfb07f68fac58b80c4199505cfa82b8a7",
+    "guid": "15f1c30a2bc630d4c98c621b6c6e3142",
+    "newSprites": [
+      "event_red_001"
+    ],
+    "definitionIds": [
+      "event_red_01"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_02.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_02.jpg",
+    "sha256": "1999ecc0efdc7abf44ab6b9c8a88dc2ec891590a02ebcc74b725ce05677b79ff",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_02.jpg.meta",
+    "metaSha256": "084d7b017a8818b86441ecc0435e89f87ff8e98cb16939f4a834f228291c6879",
+    "guid": "05c658a38ea6cdd4aa620c19f806c3e9",
+    "newSprites": [
+      "event_red_002"
+    ],
+    "definitionIds": [
+      "event_red_02"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_03.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_03.jpg",
+    "sha256": "dc54f56d3f45e43772a8e3ddff14ac55aaf809d9ce309d9ba4c81c9e8e36baa6",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_03.jpg.meta",
+    "metaSha256": "67920d9c9eb93662bcd105ab971a868a45265760ae2d10552b832f93641149bf",
+    "guid": "22e906d049878254f9faeb7448b3e2e2",
+    "newSprites": [
+      "event_red_003"
+    ],
+    "definitionIds": [
+      "event_red_03"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_04.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_04.jpg",
+    "sha256": "30e771d79bf9e6b25033687db6e8e0583e30305380f6fd96cb2ae5b30846dc44",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_04.jpg.meta",
+    "metaSha256": "46e9a2457caa80deda0fd4b12dd5f5804ec10777b63b745d814df335f06acd8e",
+    "guid": "eaaa82d196f28ce498cc23d1f3b47b01",
+    "newSprites": [
+      "event_red_004"
+    ],
+    "definitionIds": [
+      "event_red_04"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_05.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_05.jpg",
+    "sha256": "dd51faf4d0c6e04e63e5798f8502131a0066c59fba827c7c2d65f962c8a31c8d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_05.jpg.meta",
+    "metaSha256": "821d2f073c0a128ac02d845fa792c8b5973fa2c4539ea3b100233b7391e9f642",
+    "guid": "e6126d6a0d563054abf0e36640b04377",
+    "newSprites": [
+      "event_red_005"
+    ],
+    "definitionIds": [
+      "event_red_05"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_06.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_red_06.jpg",
+    "sha256": "d2496af76b0039a5ee5e867c6533b69c8a49bf063d294b331c17168ae740cdcb",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_red_06.jpg.meta",
+    "metaSha256": "cdfe747bc4665f8baf59a816eb8ed171e9cadad669610ac870543e1859c090d0",
+    "guid": "e4e48e4c3226c9b4392e208c14768daf",
+    "newSprites": [
+      "event_red_006"
+    ],
+    "definitionIds": [
+      "event_red_06"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_01.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_01.jpg",
+    "sha256": "beed9c8e800e38cd2820c483763e854943b7af09bbd5c68db39801dbe9002c5d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_01.jpg.meta",
+    "metaSha256": "820a4877a86808a4f20f08ad2e132542c7ad30880b2e960ff6be992641fd3b8d",
+    "guid": "c0e3bc39247bdda45ad8cfcf7c378345",
+    "newSprites": [
+      "event_yellow_001"
+    ],
+    "definitionIds": [
+      "event_yellow_01"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_02.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_02.jpg",
+    "sha256": "1e236cee77a7aed5ebf0ac7a9160089362a69fe05635600d9b4c1b8e91e2ca75",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_02.jpg.meta",
+    "metaSha256": "f89a4a1ac091ec86d2c073cf660b6265e646dd65a5fa6dcdefd12e8ef81c3312",
+    "guid": "e13dd540528b7b2488a738db8d8d65d5",
+    "newSprites": [
+      "event_yellow_002"
+    ],
+    "definitionIds": [
+      "event_yellow_02"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_03.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_03.jpg",
+    "sha256": "b6ac6d8a20b42b1d2575c3afce6d6a0ee44fa5dafb3cc4bc4ef9c79a6bc7c2dd",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_03.jpg.meta",
+    "metaSha256": "7508f0e788c97ad6690dd88980389d9e9aa62e51bdcdab78cb0b9cb3eea1b86a",
+    "guid": "fdd2f3ece4caa8c44a969fee1eecd97b",
+    "newSprites": [
+      "event_yellow_003"
+    ],
+    "definitionIds": [
+      "event_yellow_03"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_04.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_04.jpg",
+    "sha256": "ff8ef29eaf227c66cb45cbd86ec3e90ba4093283813b7a7a0ce03f8327b3e286",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_04.jpg.meta",
+    "metaSha256": "c3f6526dbafb220e3dcb5c19beaef931766c5a04ff50e13eac295b6116d28a09",
+    "guid": "4af671ad8da6afa4fbce156fc1c99280",
+    "newSprites": [
+      "event_yellow_004"
+    ],
+    "definitionIds": [
+      "event_yellow_04"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_05.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_05.jpg",
+    "sha256": "88ec4ea7d3ac7a4ddb24ce1b818492362fac8ce1f7f0f48d416b33517dd9ae62",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_05.jpg.meta",
+    "metaSha256": "a939c5af29215720ecb610e9f7402b52440f268c75ee48fc4f21974a55f3669f",
+    "guid": "607470cb4a901934b9a830dd44ce143d",
+    "newSprites": [
+      "event_yellow_005"
+    ],
+    "definitionIds": [
+      "event_yellow_05"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_06.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_06.jpg",
+    "sha256": "49b44a0ea70659139e6b287b62da21753128e4499372ccc028bacbad6aa9621b",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_06.jpg.meta",
+    "metaSha256": "38cdc11b558945e6747ae1835670b3221a1b6563a7017ad5212a3abcbdc5464b",
+    "guid": "70e644abb2eff564f8b92b5e53d85278",
+    "newSprites": [
+      "event_yellow_006"
+    ],
+    "definitionIds": [
+      "event_yellow_06"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_07.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_07.jpg",
+    "sha256": "2463a1717baf4754841dbcdf1a003bc5f0c1b3ad73916aa36d40ea84769bd8d6",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_07.jpg.meta",
+    "metaSha256": "30fd0728058412e252fb77c0fd798a3f281a83f3311a61ce931e6e9b28d14241",
+    "guid": "0a2168a564d54414b8d084a5fa50d101",
+    "newSprites": [
+      "event_yellow_007"
+    ],
+    "definitionIds": [
+      "event_yellow_07"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_08.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_08.jpg",
+    "sha256": "6664fbdc73738e735ac806a0a06f424c0466a0e16c407d2ed61e636ab476a137",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_08.jpg.meta",
+    "metaSha256": "02d5b9987f695769371d699d1f35b0bc1be11637629537ccc47f86247193fbeb",
+    "guid": "c1fa9d4c5aaea584aaaecb99b870c811",
+    "newSprites": [
+      "event_yellow_008"
+    ],
+    "definitionIds": [
+      "event_yellow_08"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_09.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_09.jpg",
+    "sha256": "5b64fab42e62642ddaa064d20d3a1ce24d11794fef940f0989936f3801e19771",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_09.jpg.meta",
+    "metaSha256": "185c3b31bfc864837b9c267aa3a6ef133aee033e6228bf3cb69a0c2a3f483b41",
+    "guid": "cc036f831d878634fa72a2b083fbb315",
+    "newSprites": [
+      "event_yellow_009"
+    ],
+    "definitionIds": [
+      "event_yellow_09"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_10.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/event/event_yellow_10.jpg",
+    "sha256": "ad8a664592c2606d030c33bc53d025918e06fc2d7d7d7cc296d4a0e9ec221d88",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\event\\event_yellow_10.jpg.meta",
+    "metaSha256": "7b8c8fca3a1a228cb557c531fef004c17b1cd8679b09f9c7cb2f3a4b9f06d588",
+    "guid": "4bdcbac020064c4429907cb6e4e95849",
+    "newSprites": [
+      "event_yellow_010"
+    ],
+    "definitionIds": [
+      "event_yellow_10"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_001.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_001.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_001.jpg.meta",
+    "metaSha256": "3511220ba3feb5da0b67fe9d3d3d393c0f29d1e9ff39185a7ae240a992eb7b1d",
+    "guid": "988053eb919338942b414bc8d8cf972d",
+    "newSprites": [
+      "facility_001"
+    ],
+    "definitionIds": [
+      "building_001"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_002.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_002.jpg",
+    "sha256": "78bb354052d352d39c236f81ffcb46aba0ea51e7e1ceedc0f410b4de3064c2ac",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_002.jpg.meta",
+    "metaSha256": "9e7624ef6421e13043d67ee925dd2d6df6d6250be8070658292f76fb5c214160",
+    "guid": "fea7ad24c1628424897ed138f7d1317d",
+    "newSprites": [
+      "facility_002"
+    ],
+    "definitionIds": [
+      "building_002"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_003.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_003.jpg",
+    "sha256": "813ed5617220f402f2d6b17c798f433ab8532e3b6a18189db619595276de65da",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_003.jpg.meta",
+    "metaSha256": "2bb43ba6f55f8ab7220dd70bfec4d83ebc9e6efcf49afa3c6e27df60a1685c54",
+    "guid": "3d07412178f60c84f97a936739df3876",
+    "newSprites": [
+      "facility_003"
+    ],
+    "definitionIds": [
+      "building_003"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_004.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_004.jpg",
+    "sha256": "20339639270e7352fe8f019b6f0d06dd386f55118d982a3ad5f2eeb7cb5da98e",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_004.jpg.meta",
+    "metaSha256": "a3595d96f871f5c3c1088e575b12a14a5d4a5eb2653f6660846ff70afa5672ce",
+    "guid": "90113b74f00870f46a3dc2963cd8b67d",
+    "newSprites": [
+      "facility_004"
+    ],
+    "definitionIds": [
+      "building_004"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_005.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_005.jpg",
+    "sha256": "e2db777887ea00f530e95a0079bd6af5b3c988de732c77acb33faa1f48a68cc8",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_005.jpg.meta",
+    "metaSha256": "b30f22fe812d05e4cd648af9255252f1169592cf8f5696b8616e01c312035e29",
+    "guid": "372054a33c9ad9949a383e726cbf0c97",
+    "newSprites": [
+      "facility_005"
+    ],
+    "definitionIds": [
+      "building_005"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_006.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_006.jpg",
+    "sha256": "f8ef41da4b355842f5bb9e0f9abc4113b07eb1bb71066e4aac068f5d6265a533",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_006.jpg.meta",
+    "metaSha256": "253ebea1001808f1484f8053668e31fd53a601c050cabccdbbd84cae6aba61d7",
+    "guid": "2501dafcc717db84c95177ae8142c7a1",
+    "newSprites": [
+      "facility_006"
+    ],
+    "definitionIds": [
+      "building_006"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_007.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_007.jpg",
+    "sha256": "7f6bbc6996c99b09d9228c55f6a56066b1fcdde181e9a9683351fc09bcf250b2",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_007.jpg.meta",
+    "metaSha256": "c53c43ec917cd7a71f64ca058d88770f29d3bd60621a5f1aee56316e5e60eb55",
+    "guid": "9789e18bda0129a419d09d83fe165593",
+    "newSprites": [
+      "facility_007"
+    ],
+    "definitionIds": [
+      "building_007"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_008.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_008.jpg",
+    "sha256": "133f986ec4736f25969970c52f2b38faec1d74686347cea35b8d34d87102a1a0",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_008.jpg.meta",
+    "metaSha256": "d482024c83cba5d709a18f12913ed5e8cf888ce4f22543dcb3c898e5dc779c0a",
+    "guid": "62ca4dea933180642937d0d1042ada60",
+    "newSprites": [
+      "facility_008"
+    ],
+    "definitionIds": [
+      "building_008"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_009.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_009.jpg",
+    "sha256": "5211f9ac9f5f013c22c546c1206d4372611664afe9a55c5efd09540ffc87f7d4",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_009.jpg.meta",
+    "metaSha256": "94f1e802597b1a4ae208e6beef5d8d62fc178f9dcdd823d133a3eed8c3aa9697",
+    "guid": "d57fc82500656364dbb09b461706c46c",
+    "newSprites": [
+      "facility_009"
+    ],
+    "definitionIds": [
+      "building_009"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_010.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_010.jpg",
+    "sha256": "b93ac60e0d0c9784a0806afa8a1bd595fd1eaea4e5a6ec47b5fb2c6f8f26f375",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_010.jpg.meta",
+    "metaSha256": "6936e896b1b90978b1f975ffd3993ff1bb30423adba0f8a160f0cba4059cefce",
+    "guid": "ee36cbe391629a743904e9c89bdf763a",
+    "newSprites": [
+      "facility_010"
+    ],
+    "definitionIds": [
+      "building_010"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_011.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_011.jpg",
+    "sha256": "097c1f64c0220a08486ad8a2a0c31a796a8b3bc1400208895dcc55e4bb5e1051",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_011.jpg.meta",
+    "metaSha256": "5c0b99ac4fc84a5dd678c24d26a67b260564bba478a36760009f08e63a23cc8e",
+    "guid": "3c5e5b347901555498f896f00acc7806",
+    "newSprites": [
+      "facility_011"
+    ],
+    "definitionIds": [
+      "building_011"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_012.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_012.jpg",
+    "sha256": "81f946f5d1501f24e08c06f65a9f38c93f87cba08d46e1a7002e917464bc844a",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_012.jpg.meta",
+    "metaSha256": "1e7e4310d939b8ccb3b5bb2adc3fa433ef12ccb7881223390c2ee9ffce503738",
+    "guid": "89d2579a3682a5648a950671cc4cfcdf",
+    "newSprites": [
+      "facility_012"
+    ],
+    "definitionIds": [
+      "building_012"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_013.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_013.jpg",
+    "sha256": "4de41265019ffd8f65242d9b79676737902cc83016bf082a1e56509c2bd8c6d4",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_013.jpg.meta",
+    "metaSha256": "78e42856e593368e7410782ec4809c3326b9f03c25b1750fc565def9fad9e4cd",
+    "guid": "466192c918aef8844bc57b8209d7abf9",
+    "newSprites": [
+      "facility_013"
+    ],
+    "definitionIds": [
+      "building_013"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_014.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_014.jpg",
+    "sha256": "8a40b9c1781dc9e9c0e65a34bf375df728d8a2e714308b0e58da3b0be2c7b3cf",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_014.jpg.meta",
+    "metaSha256": "79f70b1288bc87a102a2e0702383a92de8f85ace62c5da4c574fa3d33b0f8914",
+    "guid": "2e70e5c6db7244f47ab69094b9de59bc",
+    "newSprites": [
+      "facility_014"
+    ],
+    "definitionIds": [
+      "building_014"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_015.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_015.jpg",
+    "sha256": "0ae1aa314afe8e5b66d1e0cf02763efc2e4730b7e30c51c9ecfc76a9ac4bb392",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_015.jpg.meta",
+    "metaSha256": "e077543cd6db806c8d0cfcaeee7e08ebfbb663d144acc82b2c2291bd45b317c7",
+    "guid": "4e5dc3b927ad5ab4dbdc979f10ceb384",
+    "newSprites": [
+      "facility_015"
+    ],
+    "definitionIds": [
+      "building_015"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_016.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_016.jpg",
+    "sha256": "ad9d1c54d300c6a704dea5aaf9bb3afc58ab9b8608e3580640e4bfb9502a2fdb",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_016.jpg.meta",
+    "metaSha256": "18685017466b6a0a90a818c9d77b0e8fbf08fcb4fae54003789bb1e5b855236d",
+    "guid": "0d87a7ed520143e41ac108e340d251e2",
+    "newSprites": [
+      "facility_016"
+    ],
+    "definitionIds": [
+      "building_016"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_017.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_017.jpg",
+    "sha256": "27efb91cae02aa1a898cf8a8e71eb6807177b8462800b7cb780226b63f39b635",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_017.jpg.meta",
+    "metaSha256": "1370f531856d8d859729e0b39446dfffc79264541f647886d7cb8db8ee62ac69",
+    "guid": "cfc4cddba6958f746b3ec6051e5211f9",
+    "newSprites": [
+      "facility_017"
+    ],
+    "definitionIds": [
+      "building_017"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_018.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_018.jpg",
+    "sha256": "a4533404d39be359e0c3a0e5ef4b324c90b5ec76934fa124c817089ccf161679",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_018.jpg.meta",
+    "metaSha256": "f681636955d5b7538907d886091874d3267a4d09ad5ad76bb8560acb82e393c1",
+    "guid": "31dd32229e682a8408a804970c26eb16",
+    "newSprites": [
+      "facility_018"
+    ],
+    "definitionIds": [
+      "building_018"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_019.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_019.jpg",
+    "sha256": "86aa518f6038c4e3bd839a7d6bf42f833a5f2e9a10a5ea2cb90cf5e270ba9b2d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_019.jpg.meta",
+    "metaSha256": "008f4a836ad75c0b039511f5afbc1352593ae77f90133d29f8e341971302dede",
+    "guid": "ab2992a4649be864e80e066331852147",
+    "newSprites": [
+      "facility_019"
+    ],
+    "definitionIds": [
+      "building_019"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_020.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_020.jpg",
+    "sha256": "a7225f253c12cdedf050f50f705ed0005dcdaf46357b4f92f70cc4efb04705b3",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_020.jpg.meta",
+    "metaSha256": "852b876a009a133d7a5a4504cef491072cff2b2deff157c0d8d83226389b2a6d",
+    "guid": "d974b4c736d2ad44db0329d71e4ec74c",
+    "newSprites": [
+      "facility_020"
+    ],
+    "definitionIds": [
+      "building_020"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_021.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_021.jpg",
+    "sha256": "a517239128c2f72c69eb08d7d0d3b2783911c0c5626468ddb82084e5a50cef8a",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_021.jpg.meta",
+    "metaSha256": "11a0e4b7ea08009c54d686a98689d4051fb5224bd8bb3c43170f9ed13b306b47",
+    "guid": "34a220f5d8aa8bf4aa7bb7b32c942486",
+    "newSprites": [
+      "facility_021"
+    ],
+    "definitionIds": [
+      "building_021"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_022.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_022.jpg",
+    "sha256": "8e83be79775c7971dbfe3c580e5af72c2bb4eedd9eda1a871c751e18a3212540",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_022.jpg.meta",
+    "metaSha256": "718f0d03b698921a11aea5d47404d221b497a0199bf673e5ff54395e9fdfcf27",
+    "guid": "4a6c2ea48c46a804bafe9437fb54f3f4",
+    "newSprites": [
+      "facility_023"
+    ],
+    "definitionIds": [
+      "building_022"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_023.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_023.jpg",
+    "sha256": "1a660a522cb71999584f0a237c656828d5bab485d176fc098285297bbb80e74d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_023.jpg.meta",
+    "metaSha256": "114e01229efc948694628e41c52fd0d8f7ce2c4cf2514c22f176399c7de9a0ec",
+    "guid": "cf6829b34e22bb64997910cf0ba6a477",
+    "newSprites": [
+      "facility_024"
+    ],
+    "definitionIds": [
+      "building_023"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_024.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_024.jpg",
+    "sha256": "a77f55e8e93d56a9d66d6292ebf7cdd5720517b4679e77feebeb56eb9112b8eb",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_024.jpg.meta",
+    "metaSha256": "7bfee88a88c2975b8db24e394664c7e98e2b231f92aacf3c3c187e727467ca04",
+    "guid": "46528c78dc8a956459f6f33228925dd7",
+    "newSprites": [
+      "facility_025"
+    ],
+    "definitionIds": [
+      "building_024"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_025.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_025.jpg",
+    "sha256": "1aaeb45778a7c8cc08c673937f2c261bb8a3e484301f39548f6888f02f709e2d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_025.jpg.meta",
+    "metaSha256": "50e8a520c1e7e5cfa1fc1dfa2508c9ef305ce8b59789da30b5750126145459f9",
+    "guid": "a2cec709ad0bc0f4cb51755a11d7e512",
+    "newSprites": [
+      "facility_026"
+    ],
+    "definitionIds": [
+      "building_025"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_026.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_026.jpg",
+    "sha256": "61438bb16310a522ce0d29b09890ade67b69f4a6886ccc80fa9204eea0c36196",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_026.jpg.meta",
+    "metaSha256": "f6a8d06ba3ed6ecdba9070cf909e1f18f66b6ce9bfad062bccbc1a0a3ddf9be1",
+    "guid": "5afc21eaf745e1848a63d09a19c5dafa",
+    "newSprites": [
+      "facility_027"
+    ],
+    "definitionIds": [
+      "building_026"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_027.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_027.jpg",
+    "sha256": "88c2bf566cea62b8e88c1087aa1a100a5b0fcca322ee8290a7f98d45a495690b",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_027.jpg.meta",
+    "metaSha256": "5cc44412513ea5fbfcdf6ea51b0db24515e69bc09833e5a1c455c17559fe0f39",
+    "guid": "9cc2e165a79044b479d718983783e3d8",
+    "newSprites": [
+      "facility_028"
+    ],
+    "definitionIds": [
+      "building_027"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_028.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_028.jpg",
+    "sha256": "d31781502b904c4bce12bbbde9695d50ef53cbd95e3807a911a2c267ff454162",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_028.jpg.meta",
+    "metaSha256": "5a7d88ae163430507be1e59ac196b45680f9bdda626bf3d17d1de00922d92671",
+    "guid": "f9bf2c3ae9d107e43adf7dc685da194a",
+    "newSprites": [
+      "facility_029"
+    ],
+    "definitionIds": [
+      "building_028"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_029.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_029.jpg",
+    "sha256": "766d873d9a8e2e85a17e513de75c6d377099fa1606e3df87947ae10336ee3172",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_029.jpg.meta",
+    "metaSha256": "db76062b46281f8f57f6b28d7bc0b56947a2031e06e5df5c4050edb14108453e",
+    "guid": "cf9acc697efdf7849b3a0cf2d71c184c",
+    "newSprites": [
+      "facility_030"
+    ],
+    "definitionIds": [
+      "building_029"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_030.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_030.jpg",
+    "sha256": "338263150704573d52d19e4230cbaddec6fdd1bde265db3a944a40202b881e74",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_030.jpg.meta",
+    "metaSha256": "83d414edcc3273908413c6d575178e36fedcb44a227acb7a874aac01f97d00a0",
+    "guid": "63545cdea84d77c4d8270508f2c97cbb",
+    "newSprites": [
+      "facility_031"
+    ],
+    "definitionIds": [
+      "building_030"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_031.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_031.jpg",
+    "sha256": "f35f8b1fb5d0003280c3b23953f5f3fdc143c57507ac9c137b4689588b64d64d",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_031.jpg.meta",
+    "metaSha256": "1f912f637e86446ed6fb27eab3469ce884faf1961c79fd68e3edfb5434e48f80",
+    "guid": "0cad6ba486801d34a8c49a0ef14e2ba6",
+    "newSprites": [
+      "facility_032"
+    ],
+    "definitionIds": [
+      "building_031"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_032.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_032.jpg",
+    "sha256": "141cbc67f7eb62484293ba0ea02b1611fd894fc8a4de891234966178c5931482",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_032.jpg.meta",
+    "metaSha256": "d3145b307b6718b378f1639ef0d72b46e21541db9d760a024a3f4f425918a86b",
+    "guid": "d3d9f4c15abbcff46a57fc6e328f1f4c",
+    "newSprites": [
+      "facility_034"
+    ],
+    "definitionIds": [
+      "building_032"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_033.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_033.jpg",
+    "sha256": "d872754329d846ab117addf5d5a23ba6cd7aec028898edb510bc5ff7459c6621",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_033.jpg.meta",
+    "metaSha256": "465b83f1c761584c8f14904f88033397952ef43a5d8e841725e97ed9e74272ac",
+    "guid": "bf241d32529018a42a01306d1db18d4c",
+    "newSprites": [
+      "facility_035"
+    ],
+    "definitionIds": [
+      "building_033"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_034.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_034.jpg",
+    "sha256": "0f8b83c90042206a8129004ed2b971e1850db64cd4879fde35802fc97b0cf9b6",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_034.jpg.meta",
+    "metaSha256": "c53a44a5aaca307723aa7a58aa63065df5fb30857f6e8b09d561248372acbca6",
+    "guid": "69dbd50e924fe4a4d8c9bb38257c69ea",
+    "newSprites": [
+      "facility_036"
+    ],
+    "definitionIds": [
+      "building_034"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_035.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_035.jpg",
+    "sha256": "42e323e038a4c8a661fdee9a9641ceab90ccd0eca88ec13d9e73a21441433924",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_035.jpg.meta",
+    "metaSha256": "baecf48cd68c1449574c1a5337e42b5d828337eaae53fed229874082e881900c",
+    "guid": "2dd477148caf2e8419a0d52a562d094b",
+    "newSprites": [
+      "facility_037"
+    ],
+    "definitionIds": [
+      "building_035"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_036.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_036.jpg",
+    "sha256": "7f53aa993b7c44b244c96d2507904d05e47a64a87ed23d72d4a35abcd63ec4ab",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_036.jpg.meta",
+    "metaSha256": "aeadcd89823eda527a2ec6943b1f78e150ee55d5a665632b562bd2be3d09c85c",
+    "guid": "f087a7bf3e4b6974daaccb0046142fc9",
+    "newSprites": [
+      "facility_038"
+    ],
+    "definitionIds": [
+      "building_036"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_037.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_037.jpg",
+    "sha256": "129e04c2a4b67c5e90f9a4c8788f52cabc06b63bd2a3c99dae7dde0309fd6480",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_037.jpg.meta",
+    "metaSha256": "20282e5bd46be6cc41efb85dba7cfa64dabc5a14f75505da0a5a1096e2aac909",
+    "guid": "6b02d398109c29341833503ac5f120e6",
+    "newSprites": [
+      "facility_039"
+    ],
+    "definitionIds": [
+      "building_037"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_038.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_038.jpg",
+    "sha256": "f074a72737c908c3d494faf0fdcbfd5237a5a5c3f04ebcbbc41e50b37d73ea51",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_038.jpg.meta",
+    "metaSha256": "a2b79adbe87a9aa542064ceb6df632d05b1a1aa2c460379046d0a7a2a2ad2559",
+    "guid": "787c107737536414fad22f39791e1caf",
+    "newSprites": [
+      "facility_040"
+    ],
+    "definitionIds": [
+      "building_038"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_039.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_039.jpg",
+    "sha256": "65ff4b1f9db35ad57bf0892bbad421938ab813bc96a0db248f2cf7c056501435",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_039.jpg.meta",
+    "metaSha256": "d153b6d81171490c6300fd9a6ef6c7ba81e88da7c73016b8946d9cc613fcb54f",
+    "guid": "42c80b7d707f5a64d9c53ba93421bf5b",
+    "newSprites": [
+      "facility_041"
+    ],
+    "definitionIds": [
+      "building_039"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_040.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_040.jpg",
+    "sha256": "3073abaa2317918a740cf19d2235e732c66181ee491127814403c9d049ab5e15",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_040.jpg.meta",
+    "metaSha256": "e489cbe73b5295dbd3c16320c5df805eadbb40df87306c772f1e6d32656f543a",
+    "guid": "6a0afdd43591af444a2a8ac8fdbe57b2",
+    "newSprites": [
+      "facility_042"
+    ],
+    "definitionIds": [
+      "building_040"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_041.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/building_041.jpg",
+    "sha256": "91adc063c270cdd30cd6683327e67daf3a9afef95fcf4f4dba66a02180f339f3",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\building_041.jpg.meta",
+    "metaSha256": "35034b3b04eba7aceac79ed8c7cee7092171934d387d38634b7df074ad4cde5a",
+    "guid": "65d5f4f90cd3bb04ca8d0e22006c71eb",
+    "newSprites": [
+      "facility_043"
+    ],
+    "definitionIds": [
+      "building_041"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\facility_enterprise_office.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/facility_enterprise_office.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\facility_enterprise_office.jpg.meta",
+    "metaSha256": "ce81aa14bb69058f1222b695ae4a933230700dac907c898b504e98561690aa41",
+    "guid": "3ea7af57acaec7f44b3d5355f7051214",
+    "newSprites": [
+      "facility_049"
+    ],
+    "definitionIds": [
+      "facility_enterprise_office"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_001.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/reserve_001.jpg",
+    "sha256": "d0793bef19b768f6cfb329bd4196ed959c7a55f51e9e4d89a1fca6c84e77b40b",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_001.jpg.meta",
+    "metaSha256": "8516b909ebef79cdd32cbbfb7a395bc8afa8c1d516539175552b6a4b291b5283",
+    "guid": "6b0c5096f2581624c8f5ffc4db52ad73",
+    "newSprites": [
+      "facility_045",
+      "facility_046",
+      "facility_047",
+      "facility_048"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_002.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/reserve_002.jpg",
+    "sha256": "b8cf5876dd3d36a88f8d03c45ba570babe9783674ad4c29dd20089482939b930",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_002.jpg.meta",
+    "metaSha256": "639a0e03d377410bdf2aa3106eedb2459454f20568a063f02e3947773817600a",
+    "guid": "9937ac99d52090f448eda70a256bac20",
+    "newSprites": [
+      "facility_022"
+    ],
+    "definitionIds": [
+      "reserve_002"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_003.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/reserve_003.jpg",
+    "sha256": "ad364c7168f0b52764cd956d13b41297a53c4e5007203671d361e63cbec954b0",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_003.jpg.meta",
+    "metaSha256": "03fa59726ac518966074ac0cdc7d7204261a26db76278bb9c83fd750645da9f5",
+    "guid": "e865a22d4c821304c867f4adaead2f7b",
+    "newSprites": [
+      "facility_033"
+    ],
+    "definitionIds": [
+      "reserve_003"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_004.jpg",
+    "relativePath": "Assets/StreamingAssets/Content/core/artwork/facility/reserve_004.jpg",
+    "sha256": "06c4aec5c523328faa094a7e6d823fd8e1ff23f89890f2ff877eb8d0a6f095dd",
+    "metaPath": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\artwork\\facility\\reserve_004.jpg.meta",
+    "metaSha256": "14cf7bcd6439283af4ecf680881fe622480a1a47907888d83808bd7c14fef905",
+    "guid": "9b16bbfe4762a2a46b39335cedc20af6",
+    "newSprites": [
+      "facility_044"
+    ],
+    "definitionIds": [
+      "reserve_004"
+    ],
+    "reason": "运行时旧正面；定义已关联整图 Sprite"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\cannot.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg",
+    "sha256": "9fea8e8804c8e9c8e58b931a6f030f725b33dd39718b9012ddb567717dd1bee7",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\cannot.jpg.meta",
+    "metaSha256": "508537ad5b154096bdc75816e9b865d40ece3ec1e14db4b5147e0381dbcec360",
+    "guid": "ba86672a41c78e54db52d6f8a0487db0",
+    "newSprites": [
+      "character_004"
+    ],
+    "definitionIds": [
+      "cannot"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\elysium.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg",
+    "sha256": "c9d7e0645520041013428e8af7c4af1a3e3334464e603cc34d19f9c797604a89",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\elysium.jpg.meta",
+    "metaSha256": "d74c0db236b7a8872a147c75905cf782b42a4eabd5a61a564e948215c35dca5d",
+    "guid": "dfb19c9bac7a54741b3c9c76e0aec9a9",
+    "newSprites": [
+      "character_005"
+    ],
+    "definitionIds": [
+      "elysium"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\liskarm.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg",
+    "sha256": "9d06e8ccecd054b8203676d8356df1a8cddd49e18168ef55ebab19f3a259ee15",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\liskarm.jpg.meta",
+    "metaSha256": "6633ec178586fe82bd392d7402cdc9ed249bc31414ba88a5fbf69d2680f4152d",
+    "guid": "a136b3d42d6c21a41b4d03c35ea54762",
+    "newSprites": [
+      "character_001"
+    ],
+    "definitionIds": [
+      "liskarm"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\texas.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg",
+    "sha256": "f57053b976becf4f4612ffe86f8c6de4e8c4a6f4f881657f07465c31ac88580c",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\texas.jpg.meta",
+    "metaSha256": "1ba2be68b16e8b14268478f59c951bba73e16f9096913c1718f295577ab9234e",
+    "guid": "3e04720757aa0b74aae6180416dc6606",
+    "newSprites": [
+      "character_002"
+    ],
+    "definitionIds": [
+      "texas"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\tin-man.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg",
+    "sha256": "275d73511fd992871be85d2dceb2756fd5af51e1f0455361da435bea93c1e443",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Characters\\tin-man.jpg.meta",
+    "metaSha256": "7d256748e13c2fc1d92d88b35c70e8116df9c2f5ff3dd4fab63d9517bb691a95",
+    "guid": "b5f6cf5533f85c54695447b52f3fa3b4",
+    "newSprites": [
+      "character_003"
+    ],
+    "definitionIds": [
+      "tin-man"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\composite_power_system.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg",
+    "sha256": "a2fe29e90790379df59e7cdd65fcb4ba9dc84d12787ae0fe2827703f317e4401",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\composite_power_system.jpg.meta",
+    "metaSha256": "0ecae971c8cb157eec16682c507b7f3b3cf78ce66bc74d7aaacc9e4867d33355",
+    "guid": "ec16c5c9cb19f274aa5b3142d8cedc7d",
+    "newSprites": [
+      "city_style_1_003"
+    ],
+    "definitionIds": [
+      "city_style_composite_power_system"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\efficient_mobile_management_system.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg",
+    "sha256": "d4bca03a42ae150fc4e8ab0518ac84be127ec667f5a65fa00155e37586c3847c",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\efficient_mobile_management_system.jpg.meta",
+    "metaSha256": "c283152ade2fa4383728847ef0b001757ba91cb67ceb22eef8718d132d88a414",
+    "guid": "5a2ea71abc2a6cb4dbd16662dc6307f1",
+    "newSprites": [
+      "city_style_2_002"
+    ],
+    "definitionIds": [
+      "city_style_efficient_mobile_management_system"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\material_relay_station.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg",
+    "sha256": "6873f968b80be79cb69f82b0b700b5235bba2e2fed9d061914ef4d293714fd02",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\material_relay_station.jpg.meta",
+    "metaSha256": "0c1308a5d9d019bd7a6a1de5902ab52dd9be6cde6847bdbacfd4992e28e1a577",
+    "guid": "d4a9a93e2e729274e9808cf9e1b42b54",
+    "newSprites": [
+      "city_style_1_009"
+    ],
+    "definitionIds": [
+      "city_style_material_relay_station"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\military_industrial_area.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg",
+    "sha256": "8bd527748154316f8d137a7a713ec5d1c435b00dea705f0e9325a6d29a55b079",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\military_industrial_area.jpg.meta",
+    "metaSha256": "2e12b8628d4b1ed1845e69975b3a96f67f82ac36b40f39e09c033c751aa784fd",
+    "guid": "13d11e9463ab4ac42a0b09e2790f7c99",
+    "newSprites": [
+      "city_style_1_001"
+    ],
+    "definitionIds": [
+      "city_style_military_industrial_area"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\mobilization_support_system.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg",
+    "sha256": "256f4c11ae83c18ca8f7effbc4f693e82e76a73c98b1e50154f41fe740e7fb4a",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\mobilization_support_system.jpg.meta",
+    "metaSha256": "a7c4743de958bc23beb5c905865ef5575d3b9b9f19b49fec9cd50343d4ef9db7",
+    "guid": "86c0f00fe68ebac4f95b2d84e9ee1ab3",
+    "newSprites": [
+      "city_style_1_002"
+    ],
+    "definitionIds": [
+      "city_style_mobilization_support_system"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\source_stone_industrial_hub.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg",
+    "sha256": "565b20365741d228cc3cb18afd53d29839ee5d02c2519ead875ad79bc09c8cd8",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\CityStyles\\source_stone_industrial_hub.jpg.meta",
+    "metaSha256": "4e9a49ef9e851fc740307e5330e5a063ad7adb2ab0e96c87c7589a76c202087e",
+    "guid": "48ce49aa93deb8043901d5ce0b60066e",
+    "newSprites": [
+      "city_style_2_001"
+    ],
+    "definitionIds": [
+      "city_style_source_stone_industrial_hub"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_01.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg",
+    "sha256": "499efa8f5ba099aee3c1326b602ec114138a9a40beb66efb5fb831283de64622",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_01.jpg.meta",
+    "metaSha256": "eb4c83d9ab92af1c3b2c47282c3de0c75c1cec71e8d48d4ae11e3a803a0f7653",
+    "guid": "8d2de57a255c0814685c60c43c4f44c6",
+    "newSprites": [
+      "event_green_001"
+    ],
+    "definitionIds": [
+      "event_green_01"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_02.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg",
+    "sha256": "183b0f8a1931ab6c9ff373936b27f6da9da94dd7f2b7067941b93564b2add4e3",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_02.jpg.meta",
+    "metaSha256": "1625327e55e64fcce60ee8f0aaf6d8f80eaa8f4022e4c486460a628c97684b00",
+    "guid": "d35c51b4eeae8d848899e4f6e3dc899a",
+    "newSprites": [
+      "event_green_002"
+    ],
+    "definitionIds": [
+      "event_green_02"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_03.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg",
+    "sha256": "bca47f6246964b5abd35dd84290e17fd5c2a354003cefdb29eebfdf5335c7734",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_03.jpg.meta",
+    "metaSha256": "ab631414d2297e778f1b893bd91c388ada6b7ae4faac336208fe48d574edc13d",
+    "guid": "c54232ffe73f8d54bb4738379f543cc0",
+    "newSprites": [
+      "event_green_003"
+    ],
+    "definitionIds": [
+      "event_green_03"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_04.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg",
+    "sha256": "2e4bb1be1317f78b10185e89426b7e623a50253d734d6051756251a844f66573",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_04.jpg.meta",
+    "metaSha256": "721b7076f72bb0c75e80c1af166beaa33abdaefd1f39956abfa2f8e4a8246af5",
+    "guid": "0375f823b23b65541b3431c4f497abd4",
+    "newSprites": [
+      "event_green_004"
+    ],
+    "definitionIds": [
+      "event_green_04"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_05.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg",
+    "sha256": "237d50d5b0622f6cb09a2edfb5b21d2c4ddcd63c964b6dab2a234f935f172e3c",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_05.jpg.meta",
+    "metaSha256": "fa9e8b76251ccf54111e3e2c5f42593a41a5d3e453d073eae5bb3abb67bd1a0c",
+    "guid": "116dfe9b4bc5d8e498de6a63bfc51a31",
+    "newSprites": [
+      "event_green_005"
+    ],
+    "definitionIds": [
+      "event_green_05"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_06.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg",
+    "sha256": "11e429759814ac3a241e5cd7fa66119c6a1ee69111af78a550a88a4e3e716902",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_green_06.jpg.meta",
+    "metaSha256": "52fe9b5c8d0232c193fb817799d876dc9f378d0a8d66884c6dffc49397fc21cf",
+    "guid": "8c3aa612e315c6c4d8d30c07d4a8a386",
+    "newSprites": [
+      "event_green_006"
+    ],
+    "definitionIds": [
+      "event_green_06"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_01.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg",
+    "sha256": "17254f2e9a845d251f55a8dee63cf4806118c4bd043e79b35ba489152d913e5c",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_01.jpg.meta",
+    "metaSha256": "62c84467cccaa6a080afbf3879c2a87b22edccf99be473b8a1f7f2ee5b7a2b29",
+    "guid": "be85e97bb3933d047b7c8d0b414bd18b",
+    "newSprites": [
+      "event_red_001"
+    ],
+    "definitionIds": [
+      "event_red_01"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_02.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg",
+    "sha256": "1999ecc0efdc7abf44ab6b9c8a88dc2ec891590a02ebcc74b725ce05677b79ff",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_02.jpg.meta",
+    "metaSha256": "86e5064f55622f7012a8bbe6983b5479bdfdba758cae4bab2e07dbb8f6735592",
+    "guid": "e8c6ef9e5e17bda4aad16c7ff23dd640",
+    "newSprites": [
+      "event_red_002"
+    ],
+    "definitionIds": [
+      "event_red_02"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_03.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg",
+    "sha256": "dc54f56d3f45e43772a8e3ddff14ac55aaf809d9ce309d9ba4c81c9e8e36baa6",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_03.jpg.meta",
+    "metaSha256": "fe3b4cbbd75b044ec5e2a2788e8a1f8b5936fa4e27f1724b28b0ef690a7a9b1d",
+    "guid": "0a6c86cbc9180fc4f84bef3496a79668",
+    "newSprites": [
+      "event_red_003"
+    ],
+    "definitionIds": [
+      "event_red_03"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_04.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg",
+    "sha256": "30e771d79bf9e6b25033687db6e8e0583e30305380f6fd96cb2ae5b30846dc44",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_04.jpg.meta",
+    "metaSha256": "cb83bc67cdef26e4292f6aaacb237bd1b61827b5432e2c482386fc2822c181c2",
+    "guid": "30177c79a6b244141a0434c8d2a8e840",
+    "newSprites": [
+      "event_red_004"
+    ],
+    "definitionIds": [
+      "event_red_04"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_05.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg",
+    "sha256": "dd51faf4d0c6e04e63e5798f8502131a0066c59fba827c7c2d65f962c8a31c8d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_05.jpg.meta",
+    "metaSha256": "fc3030c09107e3acb26927ad29c959a95ac0eedcf61deb33ee45b61288cbd4a1",
+    "guid": "3bf9b65d8f0da034d8ecfedf0df94a15",
+    "newSprites": [
+      "event_red_005"
+    ],
+    "definitionIds": [
+      "event_red_05"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_06.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg",
+    "sha256": "d2496af76b0039a5ee5e867c6533b69c8a49bf063d294b331c17168ae740cdcb",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_red_06.jpg.meta",
+    "metaSha256": "be963417d1b16dbb1ce22a19c623fa443321fb9129379399eb5004377b5280b6",
+    "guid": "790093cde0c1ef249a7ca274fac38087",
+    "newSprites": [
+      "event_red_006"
+    ],
+    "definitionIds": [
+      "event_red_06"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_01.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg",
+    "sha256": "beed9c8e800e38cd2820c483763e854943b7af09bbd5c68db39801dbe9002c5d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_01.jpg.meta",
+    "metaSha256": "4196b5172f1d8637c3158e84cb97043738825f182427edc5cc062e44e5a277b7",
+    "guid": "e87615c0b3d2bab408a76569720d8850",
+    "newSprites": [
+      "event_yellow_001"
+    ],
+    "definitionIds": [
+      "event_yellow_01"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_02.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg",
+    "sha256": "1e236cee77a7aed5ebf0ac7a9160089362a69fe05635600d9b4c1b8e91e2ca75",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_02.jpg.meta",
+    "metaSha256": "15c6b2996bb78c01c2ae29f691ba68189a2cef9331f7b1f7183ed5fee2f16927",
+    "guid": "7ad8d88e967058e498c92b6c6bb20da1",
+    "newSprites": [
+      "event_yellow_002"
+    ],
+    "definitionIds": [
+      "event_yellow_02"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_03.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg",
+    "sha256": "b6ac6d8a20b42b1d2575c3afce6d6a0ee44fa5dafb3cc4bc4ef9c79a6bc7c2dd",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_03.jpg.meta",
+    "metaSha256": "33ba91645ccea608ecd90b5490f7859043a2a5124a1c6141b2f2ddc33dbfc2d5",
+    "guid": "7e79a6fbe12647c47b8c6a710ec8dfb5",
+    "newSprites": [
+      "event_yellow_003"
+    ],
+    "definitionIds": [
+      "event_yellow_03"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_04.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg",
+    "sha256": "ff8ef29eaf227c66cb45cbd86ec3e90ba4093283813b7a7a0ce03f8327b3e286",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_04.jpg.meta",
+    "metaSha256": "3f50e5d4fccb34dbd1149b588e21571e7048ffae5a399398beb6f6b176d7d8e2",
+    "guid": "58806cf3878a0194993994c1e25beb73",
+    "newSprites": [
+      "event_yellow_004"
+    ],
+    "definitionIds": [
+      "event_yellow_04"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_05.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg",
+    "sha256": "88ec4ea7d3ac7a4ddb24ce1b818492362fac8ce1f7f0f48d416b33517dd9ae62",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_05.jpg.meta",
+    "metaSha256": "4a31da4f52580b1732815b15d0302835c7516ea35d3e628f87c8b04b8fd84624",
+    "guid": "27d154faf39d5a049a60407fc1476b73",
+    "newSprites": [
+      "event_yellow_005"
+    ],
+    "definitionIds": [
+      "event_yellow_05"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_06.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg",
+    "sha256": "49b44a0ea70659139e6b287b62da21753128e4499372ccc028bacbad6aa9621b",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_06.jpg.meta",
+    "metaSha256": "dee217a21e82d5b9d7b21c4784930121a263777094ca23e5ccea5154f8b9ff6f",
+    "guid": "7df87fcf0115fb247abca5648505501b",
+    "newSprites": [
+      "event_yellow_006"
+    ],
+    "definitionIds": [
+      "event_yellow_06"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_07.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg",
+    "sha256": "2463a1717baf4754841dbcdf1a003bc5f0c1b3ad73916aa36d40ea84769bd8d6",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_07.jpg.meta",
+    "metaSha256": "9fbc78210647e516df3828dfd66aac2a1bf20cdc4c5a224cb81936155b774b0c",
+    "guid": "22d09d5e908c58d4cb9b27978fb94935",
+    "newSprites": [
+      "event_yellow_007"
+    ],
+    "definitionIds": [
+      "event_yellow_07"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_08.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg",
+    "sha256": "6664fbdc73738e735ac806a0a06f424c0466a0e16c407d2ed61e636ab476a137",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_08.jpg.meta",
+    "metaSha256": "e4e17af4701325261ac59186381d7aff339dd6a069768b28bc16066b3085de04",
+    "guid": "1ccca5f2c7e065e4caaf7293bb2709f5",
+    "newSprites": [
+      "event_yellow_008"
+    ],
+    "definitionIds": [
+      "event_yellow_08"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_09.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg",
+    "sha256": "5b64fab42e62642ddaa064d20d3a1ce24d11794fef940f0989936f3801e19771",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_09.jpg.meta",
+    "metaSha256": "7ffc89f119acd861558b90a5df77badc94fb256e870135ab05e84a258a57b1b8",
+    "guid": "72122abd68526a14699e3f7fce77a705",
+    "newSprites": [
+      "event_yellow_009"
+    ],
+    "definitionIds": [
+      "event_yellow_09"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_10.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg",
+    "sha256": "ad8a664592c2606d030c33bc53d025918e06fc2d7d7d7cc296d4a0e9ec221d88",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Events\\event_yellow_10.jpg.meta",
+    "metaSha256": "cd326b871bb07cab73112ec9c179d6f0e909cdf766a6bb16372015091c5a5ef9",
+    "guid": "b9b9fa70818a3a64d9dbe3314b591ffb",
+    "newSprites": [
+      "event_yellow_010"
+    ],
+    "definitionIds": [
+      "event_yellow_10"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\affiliated_energy_facility.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg",
+    "sha256": "20339639270e7352fe8f019b6f0d06dd386f55118d982a3ad5f2eeb7cb5da98e",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\affiliated_energy_facility.jpg.meta",
+    "metaSha256": "b5ac9ca2bd968a475bd223bf37b9bbf1332a1987bad7ba2b55ccbf5a27814e9e",
+    "guid": "4e97d68ba772f6e42bb9d9cce9705119",
+    "newSprites": [
+      "facility_004"
+    ],
+    "definitionIds": [
+      "building_004"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\borough_administrative_district.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\borough_administrative_district.jpg.meta",
+    "metaSha256": "c17c6dc42df0ac67d52ba455ba244fb32fe0b7ead9c0744e1b9ec1a0f7bc296a",
+    "guid": "4dd04a8326ce9544ab69ed1cfaf9984e",
+    "newSprites": [
+      "facility_001",
+      "facility_049"
+    ],
+    "definitionIds": [
+      "building_001",
+      "facility_enterprise_office"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_001.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_001.jpg.meta",
+    "metaSha256": "55055d651aeb20e7bdc28b81ba19391681e7ed55a5475bdc8503adf94bd407b7",
+    "guid": "fec9150bfa0ae014da93c0cf55c35185",
+    "newSprites": [
+      "facility_001"
+    ],
+    "definitionIds": [
+      "building_001"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_002.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg",
+    "sha256": "78bb354052d352d39c236f81ffcb46aba0ea51e7e1ceedc0f410b4de3064c2ac",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_002.jpg.meta",
+    "metaSha256": "d65c79788f1fbfade9c362d65cb409342c749670cd7e94f92ba882cbbf3371f5",
+    "guid": "0fe880866d0d44149b2639cd54f4dff7",
+    "newSprites": [
+      "facility_002"
+    ],
+    "definitionIds": [
+      "building_002"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_003.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg",
+    "sha256": "813ed5617220f402f2d6b17c798f433ab8532e3b6a18189db619595276de65da",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_003.jpg.meta",
+    "metaSha256": "42aa26a4dfadfb9f8ad7f8bf41a620852deb5e305ddb47cf3de0095207300950",
+    "guid": "8adb6d95a2c323e44bcd4d52faa5f2b1",
+    "newSprites": [
+      "facility_003"
+    ],
+    "definitionIds": [
+      "building_003"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_004.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg",
+    "sha256": "20339639270e7352fe8f019b6f0d06dd386f55118d982a3ad5f2eeb7cb5da98e",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_004.jpg.meta",
+    "metaSha256": "35babee60ebfd3eb29dbf4198ec7b4f0f7d704ec886358e0afc8c78d3072e755",
+    "guid": "034718f5edda8544da2151a4a77e39b7",
+    "newSprites": [
+      "facility_004"
+    ],
+    "definitionIds": [
+      "building_004"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_005.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg",
+    "sha256": "e2db777887ea00f530e95a0079bd6af5b3c988de732c77acb33faa1f48a68cc8",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_005.jpg.meta",
+    "metaSha256": "999b45959239261381bc1f027e3c2dfe1b6c2a23d4f754e4757bc454a533f9b4",
+    "guid": "95a99df95f0798648bb0db807ea35cf2",
+    "newSprites": [
+      "facility_005"
+    ],
+    "definitionIds": [
+      "building_005"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_006.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg",
+    "sha256": "f8ef41da4b355842f5bb9e0f9abc4113b07eb1bb71066e4aac068f5d6265a533",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_006.jpg.meta",
+    "metaSha256": "6de506881f74465f700e8f299d94ef9cfd7a458b2b90c748e4c1b538636fa9c4",
+    "guid": "2efe7bfe7c4519e4e97349cdefa8839c",
+    "newSprites": [
+      "facility_006"
+    ],
+    "definitionIds": [
+      "building_006"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_007.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg",
+    "sha256": "7f6bbc6996c99b09d9228c55f6a56066b1fcdde181e9a9683351fc09bcf250b2",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_007.jpg.meta",
+    "metaSha256": "3c24d6717354d9cfb503bd70d8784b45b6d3ea1e6fef5d7fd3b3e8fe9ebbee82",
+    "guid": "eebc6ba83a098fc49836ab8cdb6804a0",
+    "newSprites": [
+      "facility_007"
+    ],
+    "definitionIds": [
+      "building_007"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_008.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg",
+    "sha256": "133f986ec4736f25969970c52f2b38faec1d74686347cea35b8d34d87102a1a0",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_008.jpg.meta",
+    "metaSha256": "59ecee0495fcdf1614f16f24a81d2a4f4af3b8c24c8867fab887229dd8f1b9bf",
+    "guid": "24bd89e2d7194d647a74464951756362",
+    "newSprites": [
+      "facility_008"
+    ],
+    "definitionIds": [
+      "building_008"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_009.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg",
+    "sha256": "5211f9ac9f5f013c22c546c1206d4372611664afe9a55c5efd09540ffc87f7d4",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_009.jpg.meta",
+    "metaSha256": "f35805ef593790fe0a21ce58b2bfeb00899214713c72696476c58403f03844b1",
+    "guid": "3c969dcec16cc62479894c8205972b75",
+    "newSprites": [
+      "facility_009"
+    ],
+    "definitionIds": [
+      "building_009"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_010.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg",
+    "sha256": "b93ac60e0d0c9784a0806afa8a1bd595fd1eaea4e5a6ec47b5fb2c6f8f26f375",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_010.jpg.meta",
+    "metaSha256": "ddadf87a579f231dd5eb98b1168ff474825a35113a712455f44efbcf15280579",
+    "guid": "91b061662b2a2a84bbcb5839991c5e9c",
+    "newSprites": [
+      "facility_010"
+    ],
+    "definitionIds": [
+      "building_010"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_011.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg",
+    "sha256": "097c1f64c0220a08486ad8a2a0c31a796a8b3bc1400208895dcc55e4bb5e1051",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_011.jpg.meta",
+    "metaSha256": "37fa9f7cc009568b7ab4ea31d49c0b860e9dab4ba2db9a93262d7191d78adb7c",
+    "guid": "8a1fff9b7afaf3f43ad612d4624f9fb3",
+    "newSprites": [
+      "facility_011"
+    ],
+    "definitionIds": [
+      "building_011"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_012.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg",
+    "sha256": "81f946f5d1501f24e08c06f65a9f38c93f87cba08d46e1a7002e917464bc844a",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_012.jpg.meta",
+    "metaSha256": "51549a1c9320ea12314bd353f517b99abacf49422e58043ded6a0e65b27a75ab",
+    "guid": "018e4faa643708d42b40a441c08b6bcc",
+    "newSprites": [
+      "facility_012"
+    ],
+    "definitionIds": [
+      "building_012"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_013.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg",
+    "sha256": "4de41265019ffd8f65242d9b79676737902cc83016bf082a1e56509c2bd8c6d4",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_013.jpg.meta",
+    "metaSha256": "fa8d4418090a80c275e8b877407c7104178e80827635535faee1957e0464a73a",
+    "guid": "5add9fd5fdb24d742b2f8d348f9445d7",
+    "newSprites": [
+      "facility_013"
+    ],
+    "definitionIds": [
+      "building_013"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_014.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg",
+    "sha256": "8a40b9c1781dc9e9c0e65a34bf375df728d8a2e714308b0e58da3b0be2c7b3cf",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_014.jpg.meta",
+    "metaSha256": "1798a4da0ac7025f69638dcf5ab1816d0ffed2f3a0cc70dea85771460e4fbadb",
+    "guid": "597c99f5c6c884b41a015c3a2d8ae265",
+    "newSprites": [
+      "facility_014"
+    ],
+    "definitionIds": [
+      "building_014"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_015.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg",
+    "sha256": "0ae1aa314afe8e5b66d1e0cf02763efc2e4730b7e30c51c9ecfc76a9ac4bb392",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_015.jpg.meta",
+    "metaSha256": "0a4b4ec5e138616447d667da4692fbb3dea63c2e4188d9f02ff3a7085033a28e",
+    "guid": "4c86999ba371f834997150189a5345ad",
+    "newSprites": [
+      "facility_015"
+    ],
+    "definitionIds": [
+      "building_015"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_016.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg",
+    "sha256": "ad9d1c54d300c6a704dea5aaf9bb3afc58ab9b8608e3580640e4bfb9502a2fdb",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_016.jpg.meta",
+    "metaSha256": "e497abbc94d3dee26be216e5f79ad9bc10c28c3d9c49aec610b782e88e79bb53",
+    "guid": "7bbc33fee1a36f0408d9c5842a83f2e5",
+    "newSprites": [
+      "facility_016"
+    ],
+    "definitionIds": [
+      "building_016"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_017.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg",
+    "sha256": "27efb91cae02aa1a898cf8a8e71eb6807177b8462800b7cb780226b63f39b635",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_017.jpg.meta",
+    "metaSha256": "8368617c2ff08dbce0d28a995a8d9513f45205e5c8cc97a29f379a08382db68d",
+    "guid": "a0858fdec6197054f8e88d1cc3efb8ce",
+    "newSprites": [
+      "facility_017"
+    ],
+    "definitionIds": [
+      "building_017"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_018.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg",
+    "sha256": "a4533404d39be359e0c3a0e5ef4b324c90b5ec76934fa124c817089ccf161679",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_018.jpg.meta",
+    "metaSha256": "5ea6aa8dabe71d61df816c2bfcfc17a1bd96fa2553ada6527ce244378770021a",
+    "guid": "74dbdf81366c0a446a3dcccb3ead8de8",
+    "newSprites": [
+      "facility_018"
+    ],
+    "definitionIds": [
+      "building_018"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_019.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg",
+    "sha256": "86aa518f6038c4e3bd839a7d6bf42f833a5f2e9a10a5ea2cb90cf5e270ba9b2d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_019.jpg.meta",
+    "metaSha256": "d3d4b509079edbf66ef80a53c8995bd14497af00760376a2f4268980c1c6bae8",
+    "guid": "4f787d27d6da0ce4796ebe1cc909c233",
+    "newSprites": [
+      "facility_019"
+    ],
+    "definitionIds": [
+      "building_019"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_020.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg",
+    "sha256": "a7225f253c12cdedf050f50f705ed0005dcdaf46357b4f92f70cc4efb04705b3",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_020.jpg.meta",
+    "metaSha256": "cbfae9b9cee12fd4e2e323dafe0dca391cebabdff269236188e6b9915c958e30",
+    "guid": "1ec25186e50daff468bcaff94074a26a",
+    "newSprites": [
+      "facility_020"
+    ],
+    "definitionIds": [
+      "building_020"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_021.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg",
+    "sha256": "a517239128c2f72c69eb08d7d0d3b2783911c0c5626468ddb82084e5a50cef8a",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_021.jpg.meta",
+    "metaSha256": "84d9b8abf5acf4dd512a5f66a48f85265ee7733fa41accf16d9af172fa87f079",
+    "guid": "5d78811d7eebbfa49b5ed5a5f706e1da",
+    "newSprites": [
+      "facility_021"
+    ],
+    "definitionIds": [
+      "building_021"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_022.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg",
+    "sha256": "8e83be79775c7971dbfe3c580e5af72c2bb4eedd9eda1a871c751e18a3212540",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_022.jpg.meta",
+    "metaSha256": "bfae8b930f10d8d4bcbd752931af81552aa0e01994bba8df6a70b5108e3b2aa7",
+    "guid": "8c774bea727b8ee499bfca8cbb1f7b43",
+    "newSprites": [
+      "facility_023"
+    ],
+    "definitionIds": [
+      "building_022"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_023.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg",
+    "sha256": "1a660a522cb71999584f0a237c656828d5bab485d176fc098285297bbb80e74d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_023.jpg.meta",
+    "metaSha256": "5b27524b50fbe2f3d9b410b789c5a3925f317f9641c66e67b0c8596b859ff464",
+    "guid": "ad342d08e2142f44e8e86d8d02b65ee1",
+    "newSprites": [
+      "facility_024"
+    ],
+    "definitionIds": [
+      "building_023"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_024.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg",
+    "sha256": "a77f55e8e93d56a9d66d6292ebf7cdd5720517b4679e77feebeb56eb9112b8eb",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_024.jpg.meta",
+    "metaSha256": "076468aad440a00da5228cbd0293e8b0c974fa033553f1ab62cc9812411eb2d9",
+    "guid": "cfdc00178bf89134c842317917034360",
+    "newSprites": [
+      "facility_025"
+    ],
+    "definitionIds": [
+      "building_024"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_025.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg",
+    "sha256": "1aaeb45778a7c8cc08c673937f2c261bb8a3e484301f39548f6888f02f709e2d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_025.jpg.meta",
+    "metaSha256": "42b48ad259d96d768036ab2ae55954b165c2ec34c4a55a51e5f3cb9589538862",
+    "guid": "fe93a2d560a7a0c4790db1920ee80200",
+    "newSprites": [
+      "facility_026"
+    ],
+    "definitionIds": [
+      "building_025"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_026.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg",
+    "sha256": "61438bb16310a522ce0d29b09890ade67b69f4a6886ccc80fa9204eea0c36196",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_026.jpg.meta",
+    "metaSha256": "edc85dde008ec95aba0fb04d151fbc50fbcc6d1c6e71c7a611b76c6248405fac",
+    "guid": "376c9b21a95916e4c974fd66bc4133c1",
+    "newSprites": [
+      "facility_027"
+    ],
+    "definitionIds": [
+      "building_026"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_027.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg",
+    "sha256": "88c2bf566cea62b8e88c1087aa1a100a5b0fcca322ee8290a7f98d45a495690b",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_027.jpg.meta",
+    "metaSha256": "cb6985a834ad55d0bd6a66098161535895c57b4b9245dc0626f8c1fcd99e7bbf",
+    "guid": "8e6d2865e156e08448902729e505ae79",
+    "newSprites": [
+      "facility_028"
+    ],
+    "definitionIds": [
+      "building_027"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_028.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg",
+    "sha256": "d31781502b904c4bce12bbbde9695d50ef53cbd95e3807a911a2c267ff454162",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_028.jpg.meta",
+    "metaSha256": "8a9cfaf91091a3bedd5dfe381f58c2622292c3feddf4366fcefeca8c7b976bc7",
+    "guid": "e6340a8e573c80e4e9a26595f6e4e640",
+    "newSprites": [
+      "facility_029"
+    ],
+    "definitionIds": [
+      "building_028"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_029.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg",
+    "sha256": "766d873d9a8e2e85a17e513de75c6d377099fa1606e3df87947ae10336ee3172",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_029.jpg.meta",
+    "metaSha256": "be28e9cc43b45a227d12d533c12ac212ae9c1270ca16a4d765eb5887a737f27f",
+    "guid": "77a230676ff84384d8d5986967bef0ee",
+    "newSprites": [
+      "facility_030"
+    ],
+    "definitionIds": [
+      "building_029"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_030.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg",
+    "sha256": "338263150704573d52d19e4230cbaddec6fdd1bde265db3a944a40202b881e74",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_030.jpg.meta",
+    "metaSha256": "dd182c80cb48c888f79644327352c5cf90f51684a005fa19de37eef8d45560c9",
+    "guid": "552627f809a5c194ba6b6c6b4cdecb3c",
+    "newSprites": [
+      "facility_031"
+    ],
+    "definitionIds": [
+      "building_030"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_031.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg",
+    "sha256": "f35f8b1fb5d0003280c3b23953f5f3fdc143c57507ac9c137b4689588b64d64d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_031.jpg.meta",
+    "metaSha256": "84ee06b2358539c76de1f1d0a0c75f4010fcb5573700a8218ade209646d367ac",
+    "guid": "ce21012919dce264b9b89d008ea42fe8",
+    "newSprites": [
+      "facility_032"
+    ],
+    "definitionIds": [
+      "building_031"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_032.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg",
+    "sha256": "141cbc67f7eb62484293ba0ea02b1611fd894fc8a4de891234966178c5931482",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_032.jpg.meta",
+    "metaSha256": "3f92933cb73e8d72c9bee2f035211c4d5331f33c0f4a730a9a4aef57e91301a7",
+    "guid": "7df5d330d2e03394090119da259d6451",
+    "newSprites": [
+      "facility_034"
+    ],
+    "definitionIds": [
+      "building_032"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_033.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg",
+    "sha256": "d872754329d846ab117addf5d5a23ba6cd7aec028898edb510bc5ff7459c6621",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_033.jpg.meta",
+    "metaSha256": "7d94bc42e76cb06f7d5ee12b16284bf2a877adc0216a2dbb126e0b039a1c4b8c",
+    "guid": "72b8ac6136989a4438ad6ea7d9d8558d",
+    "newSprites": [
+      "facility_035"
+    ],
+    "definitionIds": [
+      "building_033"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_034.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg",
+    "sha256": "0f8b83c90042206a8129004ed2b971e1850db64cd4879fde35802fc97b0cf9b6",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_034.jpg.meta",
+    "metaSha256": "d3897fa38437f059ae9e84ce395fca1145b53037f048950efe9c4b25acfa2598",
+    "guid": "1b808c1485bd63f4ca5deb24c8e4f6ff",
+    "newSprites": [
+      "facility_036"
+    ],
+    "definitionIds": [
+      "building_034"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_035.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg",
+    "sha256": "42e323e038a4c8a661fdee9a9641ceab90ccd0eca88ec13d9e73a21441433924",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_035.jpg.meta",
+    "metaSha256": "7a67ee2178cf01114ef37a34e7a591cbe76e666fcd6aee94886d3de1e89edd19",
+    "guid": "b08b97ca590369f41be8a0e87c192ae1",
+    "newSprites": [
+      "facility_037"
+    ],
+    "definitionIds": [
+      "building_035"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_036.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg",
+    "sha256": "7f53aa993b7c44b244c96d2507904d05e47a64a87ed23d72d4a35abcd63ec4ab",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_036.jpg.meta",
+    "metaSha256": "1cd58c7ea0bc014e3bb90b9ee810c42c1a7c26fb4347614c0f9e62bd2a775cdf",
+    "guid": "4f23d94f780a01a4ba140bd53ba3296f",
+    "newSprites": [
+      "facility_038"
+    ],
+    "definitionIds": [
+      "building_036"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_037.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg",
+    "sha256": "129e04c2a4b67c5e90f9a4c8788f52cabc06b63bd2a3c99dae7dde0309fd6480",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_037.jpg.meta",
+    "metaSha256": "00eb35f2fccb780268e613f8af23ba17d1a0623dc9570d05bddf71d844258cbf",
+    "guid": "095b17ad0656ab64a8f920e2bba1f125",
+    "newSprites": [
+      "facility_039"
+    ],
+    "definitionIds": [
+      "building_037"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_038.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg",
+    "sha256": "f074a72737c908c3d494faf0fdcbfd5237a5a5c3f04ebcbbc41e50b37d73ea51",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_038.jpg.meta",
+    "metaSha256": "643adf957fc0c618ceead94f1859345e29e0f47ff14376a68b9ed7dd0737619e",
+    "guid": "bf0b165c2bead8743adc52b9db4cd2f0",
+    "newSprites": [
+      "facility_040"
+    ],
+    "definitionIds": [
+      "building_038"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_039.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg",
+    "sha256": "65ff4b1f9db35ad57bf0892bbad421938ab813bc96a0db248f2cf7c056501435",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_039.jpg.meta",
+    "metaSha256": "1811b09b7d2307043c8285ab4d4af543a1f9832ed8df7ce019be0330245c25c5",
+    "guid": "11568facf27ede04a81400064a3afe8a",
+    "newSprites": [
+      "facility_041"
+    ],
+    "definitionIds": [
+      "building_039"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_040.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg",
+    "sha256": "3073abaa2317918a740cf19d2235e732c66181ee491127814403c9d049ab5e15",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_040.jpg.meta",
+    "metaSha256": "4f94e9f099a7eeac8b118dafad2d81ea0971c71fedc30ee9b0fbe919d372aad7",
+    "guid": "b7037be58a63b3043aecbde43c8efe29",
+    "newSprites": [
+      "facility_042"
+    ],
+    "definitionIds": [
+      "building_040"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_041.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg",
+    "sha256": "91adc063c270cdd30cd6683327e67daf3a9afef95fcf4f4dba66a02180f339f3",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\building_041.jpg.meta",
+    "metaSha256": "85221e843cc7ecd9ab5220ab172ba47fb4d474128be2f7e5cdbefbdb3b2b21e4",
+    "guid": "3a4dffe9aa76a2948945ec0a29a5fa18",
+    "newSprites": [
+      "facility_043"
+    ],
+    "definitionIds": [
+      "building_041"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\core_command_tower.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg",
+    "sha256": "d0793bef19b768f6cfb329bd4196ed959c7a55f51e9e4d89a1fca6c84e77b40b",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\core_command_tower.jpg.meta",
+    "metaSha256": "3b0a7164d2a650e40cc8269b3469edf702c116fc09fdecf4e10f0cd17687b98b",
+    "guid": "43dd052fc7ba5c2458c58c317417ebd8",
+    "newSprites": [
+      "facility_045",
+      "facility_046",
+      "facility_047",
+      "facility_048"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\enterprise_office.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\enterprise_office.jpg.meta",
+    "metaSha256": "67c749c35d4d8ffa9df25124598af8ee0436092bb9e4b6c5b666b6dec8ff2379",
+    "guid": "219752c51199df34197d2553d2bbff4f",
+    "newSprites": [
+      "facility_049"
+    ],
+    "definitionIds": [
+      "facility_enterprise_office"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\equipment_warehouse.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg",
+    "sha256": "65ff4b1f9db35ad57bf0892bbad421938ab813bc96a0db248f2cf7c056501435",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\equipment_warehouse.jpg.meta",
+    "metaSha256": "869a11fd8dfb2a278154b97daaf632f05d6ee399944892eb44eb7523077ec5e6",
+    "guid": "efef6513ff1dbdc478d3739845961f92",
+    "newSprites": [
+      "facility_041"
+    ],
+    "definitionIds": [
+      "building_039"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\federal_office.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg",
+    "sha256": "7f6bbc6996c99b09d9228c55f6a56066b1fcdde181e9a9683351fc09bcf250b2",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\federal_office.jpg.meta",
+    "metaSha256": "bd950f6f26201dd7109fd2a8e374f0ff1a42e625afac4256758b156e7cd3c813",
+    "guid": "27fcdbd5ff2bfb040bb950dc89ee9f42",
+    "newSprites": [
+      "facility_007"
+    ],
+    "definitionIds": [
+      "building_007"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\iron_refinery.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg",
+    "sha256": "a4533404d39be359e0c3a0e5ef4b324c90b5ec76934fa124c817089ccf161679",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\iron_refinery.jpg.meta",
+    "metaSha256": "1952cc807af6c60534b5be9f79a5511220f2cfff069f727d9d378f99c87f88f8",
+    "guid": "de60abb50010a7042a52e27f37011026",
+    "newSprites": [
+      "facility_018"
+    ],
+    "definitionIds": [
+      "building_018"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\originium_purification_plant.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg",
+    "sha256": "88c2bf566cea62b8e88c1087aa1a100a5b0fcca322ee8290a7f98d45a495690b",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\originium_purification_plant.jpg.meta",
+    "metaSha256": "496e9b7bc48a213bc8e29437afa2becace87ec84fcf24f63d43f4d7809e95e3e",
+    "guid": "ca6f75036d2e5f641993c20d774b09b9",
+    "newSprites": [
+      "facility_028"
+    ],
+    "definitionIds": [
+      "building_027"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_001.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg",
+    "sha256": "d0793bef19b768f6cfb329bd4196ed959c7a55f51e9e4d89a1fca6c84e77b40b",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_001.jpg.meta",
+    "metaSha256": "b43ed104e537ffb138a1575ddbb95a911ca99cd260db3424bcb89d5459e4b095",
+    "guid": "4124e29a47b6bc940a22e700d153660d",
+    "newSprites": [
+      "facility_045",
+      "facility_046",
+      "facility_047",
+      "facility_048"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_002.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg",
+    "sha256": "b8cf5876dd3d36a88f8d03c45ba570babe9783674ad4c29dd20089482939b930",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_002.jpg.meta",
+    "metaSha256": "e6e9ae5b92353dd465e85a651389941f3bad0ea6b7aa5dbd807cdce213119a17",
+    "guid": "07da78045541c9e489ec41a50317dd1a",
+    "newSprites": [
+      "facility_022"
+    ],
+    "definitionIds": [
+      "reserve_002"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_003.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg",
+    "sha256": "ad364c7168f0b52764cd956d13b41297a53c4e5007203671d361e63cbec954b0",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_003.jpg.meta",
+    "metaSha256": "6e0a9423d891242abb0a8e545dffdbbbb2ac5167bdb3e63cbf337b5cd47e91cf",
+    "guid": "ae50253e86a45b643948e421a44d11df",
+    "newSprites": [
+      "facility_033"
+    ],
+    "definitionIds": [
+      "reserve_003"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_004.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg",
+    "sha256": "06c4aec5c523328faa094a7e6d823fd8e1ff23f89890f2ff877eb8d0a6f095dd",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\reserve_004.jpg.meta",
+    "metaSha256": "41d0d936b29bbc6a93c595cc34fe42a60369ef08c205e9e978609effe000ee34",
+    "guid": "2f20fb8f65fe47c4cbbb86a80fbee5be",
+    "newSprites": [
+      "facility_044"
+    ],
+    "definitionIds": [
+      "reserve_004"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\simple_engineering_camp.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg",
+    "sha256": "b93ac60e0d0c9784a0806afa8a1bd595fd1eaea4e5a6ec47b5fb2c6f8f26f375",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\simple_engineering_camp.jpg.meta",
+    "metaSha256": "3901ec65826d9b9d39b662c7f6e415e7b8bd99d24c9311570ed7aa853c36d90c",
+    "guid": "efd9e7584564bf04a94322edd7a683ad",
+    "newSprites": [
+      "facility_010"
+    ],
+    "definitionIds": [
+      "building_010"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\source_stone_refinery.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg",
+    "sha256": "8a40b9c1781dc9e9c0e65a34bf375df728d8a2e714308b0e58da3b0be2c7b3cf",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\source_stone_refinery.jpg.meta",
+    "metaSha256": "de663dbf09ea5bab31ae392cd384a327e5ff2156fd57c278a4dbfb2796eb50b5",
+    "guid": "dc5d5141c3d2a8a479f28e4ea62fcd3e",
+    "newSprites": [
+      "facility_014"
+    ],
+    "definitionIds": [
+      "building_014"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\trade_district.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg",
+    "sha256": "86aa518f6038c4e3bd839a7d6bf42f833a5f2e9a10a5ea2cb90cf5e270ba9b2d",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\trade_district.jpg.meta",
+    "metaSha256": "a40b17a83c945eaf2896bf69922a65513211aabcf8990e3349c35d6a0ab7873b",
+    "guid": "abca998d2ddd52943be91cd3ff14387f",
+    "newSprites": [
+      "facility_019"
+    ],
+    "definitionIds": [
+      "building_019"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\urbanized_area.jpg",
+    "relativePath": "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg",
+    "sha256": "0ae1aa314afe8e5b66d1e0cf02763efc2e4730b7e30c51c9ecfc76a9ac4bb392",
+    "metaPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Resources\\CardImages\\Facilities\\urbanized_area.jpg.meta",
+    "metaSha256": "d8bcc5f0a89a478e639c3f88c7d426d4026b41cb4a08aa9192109fff3dcc1c38",
+    "guid": "5e46bb80de50a9e4ebca964ba1e5b07f",
+    "newSprites": [
+      "facility_015"
+    ],
+    "definitionIds": [
+      "building_015"
+    ],
+    "reason": "旧 Resources 正面／重复别名；不再有持久化 Catalog 正面引用"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_01_中立采石场_r01c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_01_中立采石场_r01c01.jpg",
+    "sha256": "499efa8f5ba099aee3c1326b602ec114138a9a40beb66efb5fb831283de64622",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_001"
+    ],
+    "definitionIds": [
+      "event_green_01"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_02_清理虫巢_r01c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_02_清理虫巢_r01c02.jpg",
+    "sha256": "183b0f8a1931ab6c9ff373936b27f6da9da94dd7f2b7067941b93564b2add4e3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_002"
+    ],
+    "definitionIds": [
+      "event_green_02"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_03_外露矿床_r02c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_03_外露矿床_r02c01.jpg",
+    "sha256": "bca47f6246964b5abd35dd84290e17fd5c2a354003cefdb29eebfdf5335c7734",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_003"
+    ],
+    "definitionIds": [
+      "event_green_03"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_04_富饶岩层_r02c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_04_富饶岩层_r02c02.jpg",
+    "sha256": "2e4bb1be1317f78b10185e89426b7e623a50253d734d6051756251a844f66573",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_004"
+    ],
+    "definitionIds": [
+      "event_green_04"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_05_矿业聚落_r03c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_05_矿业聚落_r03c01.jpg",
+    "sha256": "237d50d5b0622f6cb09a2edfb5b21d2c4ddcd63c964b6dab2a234f935f172e3c",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_005"
+    ],
+    "definitionIds": [
+      "event_green_05"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_green_06_废弃矿坑（4）_r03c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_green_06_废弃矿坑（4）_r03c02.jpg",
+    "sha256": "11e429759814ac3a241e5cd7fa66119c6a1ee69111af78a550a88a4e3e716902",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_green_006"
+    ],
+    "definitionIds": [
+      "event_green_06"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_07_险中净土_r01c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_07_险中净土_r01c01.jpg",
+    "sha256": "17254f2e9a845d251f55a8dee63cf4806118c4bd043e79b35ba489152d913e5c",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_001"
+    ],
+    "definitionIds": [
+      "event_red_01"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_08_裂谷矿脉_r01c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_08_裂谷矿脉_r01c02.jpg",
+    "sha256": "1999ecc0efdc7abf44ab6b9c8a88dc2ec891590a02ebcc74b725ce05677b79ff",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_002"
+    ],
+    "definitionIds": [
+      "event_red_02"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_09_采集平台残骸_r02c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_09_采集平台残骸_r02c01.jpg",
+    "sha256": "dc54f56d3f45e43772a8e3ddff14ac55aaf809d9ce309d9ba4c81c9e8e36baa6",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_003"
+    ],
+    "definitionIds": [
+      "event_red_03"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_10_高污染环境_r02c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_10_高污染环境_r02c02.jpg",
+    "sha256": "30e771d79bf9e6b25033687db6e8e0583e30305380f6fd96cb2ae5b30846dc44",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_004"
+    ],
+    "definitionIds": [
+      "event_red_04"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_11_深层矿床（4）_r03c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_11_深层矿床（4）_r03c01.jpg",
+    "sha256": "dd51faf4d0c6e04e63e5798f8502131a0066c59fba827c7c2d65f962c8a31c8d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_005"
+    ],
+    "definitionIds": [
+      "event_red_05"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_12_地质瑰宝_r03c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_12_地质瑰宝_r03c02.jpg",
+    "sha256": "d2496af76b0039a5ee5e867c6533b69c8a49bf063d294b331c17168ae740cdcb",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_006"
+    ],
+    "definitionIds": [
+      "event_red_06"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_red_13_采集平台残骸（企业选项版）_r04c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg",
+    "sha256": "b27b916baefee94430ac381c5836399aaeaf849ddd091796fe5586cf05787cf3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_red_007"
+    ],
+    "definitionIds": [],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_14_大型源岩场_r01c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_14_大型源岩场_r01c01.jpg",
+    "sha256": "beed9c8e800e38cd2820c483763e854943b7af09bbd5c68db39801dbe9002c5d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_001"
+    ],
+    "definitionIds": [
+      "event_yellow_01"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_15_洞穴遗迹_r01c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_15_洞穴遗迹_r01c02.jpg",
+    "sha256": "1e236cee77a7aed5ebf0ac7a9160089362a69fe05635600d9b4c1b8e91e2ca75",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_002"
+    ],
+    "definitionIds": [
+      "event_yellow_02"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_16_荒地人村落_r02c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_16_荒地人村落_r02c01.jpg",
+    "sha256": "b6ac6d8a20b42b1d2575c3afce6d6a0ee44fa5dafb3cc4bc4ef9c79a6bc7c2dd",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_003"
+    ],
+    "definitionIds": [
+      "event_yellow_03"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_17_锈锤领地_r02c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_17_锈锤领地_r02c02.jpg",
+    "sha256": "ff8ef29eaf227c66cb45cbd86ec3e90ba4093283813b7a7a0ce03f8327b3e286",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_004"
+    ],
+    "definitionIds": [
+      "event_yellow_04"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_18_情报交换（4）_r03c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_18_情报交换（4）_r03c01.jpg",
+    "sha256": "88ec4ea7d3ac7a4ddb24ce1b818492362fac8ce1f7f0f48d416b33517dd9ae62",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_005"
+    ],
+    "definitionIds": [
+      "event_yellow_05"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_19_风险任务_r03c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_19_风险任务_r03c02.jpg",
+    "sha256": "49b44a0ea70659139e6b287b62da21753128e4499372ccc028bacbad6aa9621b",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_006"
+    ],
+    "definitionIds": [
+      "event_yellow_06"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_20_异铁开采权_r04c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_20_异铁开采权_r04c01.jpg",
+    "sha256": "2463a1717baf4754841dbcdf1a003bc5f0c1b3ad73916aa36d40ea84769bd8d6",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_007"
+    ],
+    "definitionIds": [
+      "event_yellow_07"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_21_敌对生态圈（4）_r04c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_21_敌对生态圈（4）_r04c02.jpg",
+    "sha256": "6664fbdc73738e735ac806a0a06f424c0466a0e16c407d2ed61e636ab476a137",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_008"
+    ],
+    "definitionIds": [
+      "event_yellow_08"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_22_富异铁区_r05c01.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_22_富异铁区_r05c01.jpg",
+    "sha256": "5b64fab42e62642ddaa064d20d3a1ce24d11794fef940f0989936f3801e19771",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_009"
+    ],
+    "definitionIds": [
+      "event_yellow_09"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_23_遭弃矿场_r05c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_23_遭弃矿场_r05c02.jpg",
+    "sha256": "ad8a664592c2606d030c33bc53d025918e06fc2d7d7d7cc296d4a0e9ec221d88",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_010"
+    ],
+    "definitionIds": [
+      "event_yellow_10"
+    ],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\事件牌拆分\\event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg",
+    "relativePath": "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg",
+    "sha256": "45007d318bf51eca2c78eb8991e8859a7c1f27dc9f53687b67ab1b4becf8b5ef",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "event_yellow_012"
+    ],
+    "definitionIds": [],
+    "reason": "旧事件拆图；按原图行列核对，未使用累计编号"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_01_军工化区域.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_01_军工化区域.jpg",
+    "sha256": "8bd527748154316f8d137a7a713ec5d1c435b00dea705f0e9325a6d29a55b079",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_1_001"
+    ],
+    "definitionIds": [
+      "city_style_military_industrial_area"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_02_动员配套体系.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_02_动员配套体系.jpg",
+    "sha256": "256f4c11ae83c18ca8f7effbc4f693e82e76a73c98b1e50154f41fe740e7fb4a",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_1_002"
+    ],
+    "definitionIds": [
+      "city_style_mobilization_support_system"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_03_复合动力系统.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_03_复合动力系统.jpg",
+    "sha256": "a2fe29e90790379df59e7cdd65fcb4ba9dc84d12787ae0fe2827703f317e4401",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_1_003"
+    ],
+    "definitionIds": [
+      "city_style_composite_power_system"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_04_物资中继站.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_04_物资中继站.jpg",
+    "sha256": "6873f968b80be79cb69f82b0b700b5235bba2e2fed9d061914ef4d293714fd02",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_1_009"
+    ],
+    "definitionIds": [
+      "city_style_material_relay_station"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_05_源石工业中枢.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_05_源石工业中枢.jpg",
+    "sha256": "565b20365741d228cc3cb18afd53d29839ee5d02c2519ead875ad79bc09c8cd8",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_2_001"
+    ],
+    "definitionIds": [
+      "city_style_source_stone_industrial_hub"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\城市样式牌拆分\\city_style_06_高效移动管理体系.jpg",
+    "relativePath": "游城拓荒/素材/城市样式牌拆分/city_style_06_高效移动管理体系.jpg",
+    "sha256": "d4bca03a42ae150fc4e8ab0518ac84be127ec667f5a65fa00155e37586c3847c",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "city_style_2_002"
+    ],
+    "definitionIds": [
+      "city_style_efficient_mobile_management_system"
+    ],
+    "reason": "旧城市样式拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c01.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_001"
+    ],
+    "definitionIds": [
+      "building_001"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c02.jpg",
+    "sha256": "78bb354052d352d39c236f81ffcb46aba0ea51e7e1ceedc0f410b4de3064c2ac",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_002"
+    ],
+    "definitionIds": [
+      "building_002"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c03.jpg",
+    "sha256": "813ed5617220f402f2d6b17c798f433ab8532e3b6a18189db619595276de65da",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_003"
+    ],
+    "definitionIds": [
+      "building_003"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c04.jpg",
+    "sha256": "20339639270e7352fe8f019b6f0d06dd386f55118d982a3ad5f2eeb7cb5da98e",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_004"
+    ],
+    "definitionIds": [
+      "building_004"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c05.jpg",
+    "sha256": "e2db777887ea00f530e95a0079bd6af5b3c988de732c77acb33faa1f48a68cc8",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_005"
+    ],
+    "definitionIds": [
+      "building_005"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c06.jpg",
+    "sha256": "f8ef41da4b355842f5bb9e0f9abc4113b07eb1bb71066e4aac068f5d6265a533",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_006"
+    ],
+    "definitionIds": [
+      "building_006"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c07.jpg",
+    "sha256": "7f6bbc6996c99b09d9228c55f6a56066b1fcdde181e9a9683351fc09bcf250b2",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_007"
+    ],
+    "definitionIds": [
+      "building_007"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c08.jpg",
+    "sha256": "133f986ec4736f25969970c52f2b38faec1d74686347cea35b8d34d87102a1a0",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_008"
+    ],
+    "definitionIds": [
+      "building_008"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r01_c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r01_c09.jpg",
+    "sha256": "5211f9ac9f5f013c22c546c1206d4372611664afe9a55c5efd09540ffc87f7d4",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_009"
+    ],
+    "definitionIds": [
+      "building_009"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c01.jpg",
+    "sha256": "b93ac60e0d0c9784a0806afa8a1bd595fd1eaea4e5a6ec47b5fb2c6f8f26f375",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_010"
+    ],
+    "definitionIds": [
+      "building_010"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c02.jpg",
+    "sha256": "097c1f64c0220a08486ad8a2a0c31a796a8b3bc1400208895dcc55e4bb5e1051",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_011"
+    ],
+    "definitionIds": [
+      "building_011"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c03.jpg",
+    "sha256": "81f946f5d1501f24e08c06f65a9f38c93f87cba08d46e1a7002e917464bc844a",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_012"
+    ],
+    "definitionIds": [
+      "building_012"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c04.jpg",
+    "sha256": "4de41265019ffd8f65242d9b79676737902cc83016bf082a1e56509c2bd8c6d4",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_013"
+    ],
+    "definitionIds": [
+      "building_013"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c05.jpg",
+    "sha256": "8a40b9c1781dc9e9c0e65a34bf375df728d8a2e714308b0e58da3b0be2c7b3cf",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_014"
+    ],
+    "definitionIds": [
+      "building_014"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c06.jpg",
+    "sha256": "0ae1aa314afe8e5b66d1e0cf02763efc2e4730b7e30c51c9ecfc76a9ac4bb392",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_015"
+    ],
+    "definitionIds": [
+      "building_015"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c07.jpg",
+    "sha256": "ad9d1c54d300c6a704dea5aaf9bb3afc58ab9b8608e3580640e4bfb9502a2fdb",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_016"
+    ],
+    "definitionIds": [
+      "building_016"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c08.jpg",
+    "sha256": "27efb91cae02aa1a898cf8a8e71eb6807177b8462800b7cb780226b63f39b635",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_017"
+    ],
+    "definitionIds": [
+      "building_017"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r02_c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r02_c09.jpg",
+    "sha256": "a4533404d39be359e0c3a0e5ef4b324c90b5ec76934fa124c817089ccf161679",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_018"
+    ],
+    "definitionIds": [
+      "building_018"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c01.jpg",
+    "sha256": "86aa518f6038c4e3bd839a7d6bf42f833a5f2e9a10a5ea2cb90cf5e270ba9b2d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_019"
+    ],
+    "definitionIds": [
+      "building_019"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c02.jpg",
+    "sha256": "a7225f253c12cdedf050f50f705ed0005dcdaf46357b4f92f70cc4efb04705b3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_020"
+    ],
+    "definitionIds": [
+      "building_020"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c03.jpg",
+    "sha256": "a517239128c2f72c69eb08d7d0d3b2783911c0c5626468ddb82084e5a50cef8a",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_021"
+    ],
+    "definitionIds": [
+      "building_021"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c04.jpg",
+    "sha256": "b8cf5876dd3d36a88f8d03c45ba570babe9783674ad4c29dd20089482939b930",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_022"
+    ],
+    "definitionIds": [
+      "reserve_002"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c05.jpg",
+    "sha256": "8e83be79775c7971dbfe3c580e5af72c2bb4eedd9eda1a871c751e18a3212540",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_023"
+    ],
+    "definitionIds": [
+      "building_022"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c06.jpg",
+    "sha256": "1a660a522cb71999584f0a237c656828d5bab485d176fc098285297bbb80e74d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_024"
+    ],
+    "definitionIds": [
+      "building_023"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c07.jpg",
+    "sha256": "a77f55e8e93d56a9d66d6292ebf7cdd5720517b4679e77feebeb56eb9112b8eb",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_025"
+    ],
+    "definitionIds": [
+      "building_024"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c08.jpg",
+    "sha256": "1aaeb45778a7c8cc08c673937f2c261bb8a3e484301f39548f6888f02f709e2d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_026"
+    ],
+    "definitionIds": [
+      "building_025"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r03_c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r03_c09.jpg",
+    "sha256": "61438bb16310a522ce0d29b09890ade67b69f4a6886ccc80fa9204eea0c36196",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_027"
+    ],
+    "definitionIds": [
+      "building_026"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c01.jpg",
+    "sha256": "88c2bf566cea62b8e88c1087aa1a100a5b0fcca322ee8290a7f98d45a495690b",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_028"
+    ],
+    "definitionIds": [
+      "building_027"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c02.jpg",
+    "sha256": "d31781502b904c4bce12bbbde9695d50ef53cbd95e3807a911a2c267ff454162",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_029"
+    ],
+    "definitionIds": [
+      "building_028"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c03.jpg",
+    "sha256": "766d873d9a8e2e85a17e513de75c6d377099fa1606e3df87947ae10336ee3172",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_030"
+    ],
+    "definitionIds": [
+      "building_029"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c04.jpg",
+    "sha256": "338263150704573d52d19e4230cbaddec6fdd1bde265db3a944a40202b881e74",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_031"
+    ],
+    "definitionIds": [
+      "building_030"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c05.jpg",
+    "sha256": "f35f8b1fb5d0003280c3b23953f5f3fdc143c57507ac9c137b4689588b64d64d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_032"
+    ],
+    "definitionIds": [
+      "building_031"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c06.jpg",
+    "sha256": "ad364c7168f0b52764cd956d13b41297a53c4e5007203671d361e63cbec954b0",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_033"
+    ],
+    "definitionIds": [
+      "reserve_003"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c07.jpg",
+    "sha256": "141cbc67f7eb62484293ba0ea02b1611fd894fc8a4de891234966178c5931482",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_034"
+    ],
+    "definitionIds": [
+      "building_032"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c08.jpg",
+    "sha256": "d872754329d846ab117addf5d5a23ba6cd7aec028898edb510bc5ff7459c6621",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_035"
+    ],
+    "definitionIds": [
+      "building_033"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r04_c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r04_c09.jpg",
+    "sha256": "0f8b83c90042206a8129004ed2b971e1850db64cd4879fde35802fc97b0cf9b6",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_036"
+    ],
+    "definitionIds": [
+      "building_034"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c01.jpg",
+    "sha256": "42e323e038a4c8a661fdee9a9641ceab90ccd0eca88ec13d9e73a21441433924",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_037"
+    ],
+    "definitionIds": [
+      "building_035"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c02.jpg",
+    "sha256": "7f53aa993b7c44b244c96d2507904d05e47a64a87ed23d72d4a35abcd63ec4ab",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_038"
+    ],
+    "definitionIds": [
+      "building_036"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c03.jpg",
+    "sha256": "129e04c2a4b67c5e90f9a4c8788f52cabc06b63bd2a3c99dae7dde0309fd6480",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_039"
+    ],
+    "definitionIds": [
+      "building_037"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c04.jpg",
+    "sha256": "f074a72737c908c3d494faf0fdcbfd5237a5a5c3f04ebcbbc41e50b37d73ea51",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_040"
+    ],
+    "definitionIds": [
+      "building_038"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c05.jpg",
+    "sha256": "65ff4b1f9db35ad57bf0892bbad421938ab813bc96a0db248f2cf7c056501435",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_041"
+    ],
+    "definitionIds": [
+      "building_039"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c06.jpg",
+    "sha256": "3073abaa2317918a740cf19d2235e732c66181ee491127814403c9d049ab5e15",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_042"
+    ],
+    "definitionIds": [
+      "building_040"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c07.jpg",
+    "sha256": "91adc063c270cdd30cd6683327e67daf3a9afef95fcf4f4dba66a02180f339f3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_043"
+    ],
+    "definitionIds": [
+      "building_041"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c08.jpg",
+    "sha256": "06c4aec5c523328faa094a7e6d823fd8e1ff23f89890f2ff877eb8d0a6f095dd",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_044"
+    ],
+    "definitionIds": [
+      "reserve_004"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r05_c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r05_c09.jpg",
+    "sha256": "d0793bef19b768f6cfb329bd4196ed959c7a55f51e9e4d89a1fca6c84e77b40b",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_045"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c01.jpg",
+    "sha256": "d82cc9951cd38984bc5be47813b438cd26409999507f5d72ee5abdce3d04b774",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_046"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c02.jpg",
+    "sha256": "06202aa20d84fac9ddb00f6529d1cbf5e9b81623ae1b54f6d48a17e628510801",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_047"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c03.jpg",
+    "sha256": "596c494810a5f78b7954eec75f909abb1fb6270c04aebc1ec96c41ed4e4a2b19",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_048"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c04.jpg",
+    "sha256": "9f622137b378c5130402fee9b8cd9a1360b5d8ea0cc786d5e9be3796de1d7787",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_049"
+    ],
+    "definitionIds": [
+      "facility_enterprise_office"
+    ],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c05.jpg",
+    "sha256": "2db445685fd87845c5b48e0d28371e6f51995cfdd58a4e26aa38ccf27fe5d2d7",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_050"
+    ],
+    "definitionIds": [],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌拆分\\grid_r06_c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌拆分/grid_r06_c06.jpg",
+    "sha256": "ad7ecc0e14a03a82301b8cfe988d0272ff94fe6d027e8a1147f5565d35196876",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_051"
+    ],
+    "definitionIds": [],
+    "reason": "旧建设牌逐格正面"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\备用卡片\\core_command_tower_x4_核心指挥塔.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/备用卡片/core_command_tower_x4_核心指挥塔.jpg",
+    "sha256": "d0793bef19b768f6cfb329bd4196ed959c7a55f51e9e4d89a1fca6c84e77b40b",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_045",
+      "facility_046",
+      "facility_047",
+      "facility_048"
+    ],
+    "definitionIds": [
+      "reserve_001"
+    ],
+    "reason": "备用设施拆图；核心塔共用规则定义并登记四格"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\备用卡片\\extension_hub_blue_延伸枢纽.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_blue_延伸枢纽.jpg",
+    "sha256": "b8cf5876dd3d36a88f8d03c45ba570babe9783674ad4c29dd20089482939b930",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_022"
+    ],
+    "definitionIds": [
+      "reserve_002"
+    ],
+    "reason": "备用设施拆图；核心塔共用规则定义并登记四格"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\备用卡片\\extension_hub_red_延伸枢纽.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_red_延伸枢纽.jpg",
+    "sha256": "06c4aec5c523328faa094a7e6d823fd8e1ff23f89890f2ff877eb8d0a6f095dd",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_044"
+    ],
+    "definitionIds": [
+      "reserve_004"
+    ],
+    "reason": "备用设施拆图；核心塔共用规则定义并登记四格"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\备用卡片\\extension_hub_yellow_延伸枢纽.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_yellow_延伸枢纽.jpg",
+    "sha256": "ad364c7168f0b52764cd956d13b41297a53c4e5007203671d361e63cbec954b0",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_033"
+    ],
+    "definitionIds": [
+      "reserve_003"
+    ],
+    "reason": "备用设施拆图；核心塔共用规则定义并登记四格"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_001_城邦行政区_r01c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg",
+    "sha256": "5619c7b24e91b84fbea7b5fda77a45068ba77590b06bda6c53f6bc0d40a4e298",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_001"
+    ],
+    "definitionIds": [
+      "building_001"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_002_城邦行政区_r01c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_002_城邦行政区_r01c02.jpg",
+    "sha256": "78bb354052d352d39c236f81ffcb46aba0ea51e7e1ceedc0f410b4de3064c2ac",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_002"
+    ],
+    "definitionIds": [
+      "building_002"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_003_城邦行政区_r01c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_003_城邦行政区_r01c03.jpg",
+    "sha256": "813ed5617220f402f2d6b17c798f433ab8532e3b6a18189db619595276de65da",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_003"
+    ],
+    "definitionIds": [
+      "building_003"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_004_附属能源设施_r01c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_004_附属能源设施_r01c04.jpg",
+    "sha256": "20339639270e7352fe8f019b6f0d06dd386f55118d982a3ad5f2eeb7cb5da98e",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_004"
+    ],
+    "definitionIds": [
+      "building_004"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_005_附属能源设施_r01c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_005_附属能源设施_r01c05.jpg",
+    "sha256": "e2db777887ea00f530e95a0079bd6af5b3c988de732c77acb33faa1f48a68cc8",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_005"
+    ],
+    "definitionIds": [
+      "building_005"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_006_附属能源设施_r01c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_006_附属能源设施_r01c06.jpg",
+    "sha256": "f8ef41da4b355842f5bb9e0f9abc4113b07eb1bb71066e4aac068f5d6265a533",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_006"
+    ],
+    "definitionIds": [
+      "building_006"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_007_联邦理事处_r01c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_007_联邦理事处_r01c07.jpg",
+    "sha256": "7f6bbc6996c99b09d9228c55f6a56066b1fcdde181e9a9683351fc09bcf250b2",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_007"
+    ],
+    "definitionIds": [
+      "building_007"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_008_联邦理事处_r01c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_008_联邦理事处_r01c08.jpg",
+    "sha256": "133f986ec4736f25969970c52f2b38faec1d74686347cea35b8d34d87102a1a0",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_008"
+    ],
+    "definitionIds": [
+      "building_008"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_009_联邦理事处_r01c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_009_联邦理事处_r01c09.jpg",
+    "sha256": "5211f9ac9f5f013c22c546c1206d4372611664afe9a55c5efd09540ffc87f7d4",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_009"
+    ],
+    "definitionIds": [
+      "building_009"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_010_简陋工程营_r02c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_010_简陋工程营_r02c01.jpg",
+    "sha256": "b93ac60e0d0c9784a0806afa8a1bd595fd1eaea4e5a6ec47b5fb2c6f8f26f375",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_010"
+    ],
+    "definitionIds": [
+      "building_010"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_011_简陋工程营_r02c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_011_简陋工程营_r02c02.jpg",
+    "sha256": "097c1f64c0220a08486ad8a2a0c31a796a8b3bc1400208895dcc55e4bb5e1051",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_011"
+    ],
+    "definitionIds": [
+      "building_011"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_012_物流枢纽_r02c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_012_物流枢纽_r02c03.jpg",
+    "sha256": "81f946f5d1501f24e08c06f65a9f38c93f87cba08d46e1a7002e917464bc844a",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_012"
+    ],
+    "definitionIds": [
+      "building_012"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_013_物流枢纽_r02c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_013_物流枢纽_r02c04.jpg",
+    "sha256": "4de41265019ffd8f65242d9b79676737902cc83016bf082a1e56509c2bd8c6d4",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_013"
+    ],
+    "definitionIds": [
+      "building_013"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_014_源石精炼厂_r02c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_014_源石精炼厂_r02c05.jpg",
+    "sha256": "8a40b9c1781dc9e9c0e65a34bf375df728d8a2e714308b0e58da3b0be2c7b3cf",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_014"
+    ],
+    "definitionIds": [
+      "building_014"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_015_城市化区域_r02c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_015_城市化区域_r02c06.jpg",
+    "sha256": "0ae1aa314afe8e5b66d1e0cf02763efc2e4730b7e30c51c9ecfc76a9ac4bb392",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_015"
+    ],
+    "definitionIds": [
+      "building_015"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_016_城市化区域_r02c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_016_城市化区域_r02c07.jpg",
+    "sha256": "ad9d1c54d300c6a704dea5aaf9bb3afc58ab9b8608e3580640e4bfb9502a2fdb",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_016"
+    ],
+    "definitionIds": [
+      "building_016"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_017_城市化区域_r02c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_017_城市化区域_r02c08.jpg",
+    "sha256": "27efb91cae02aa1a898cf8a8e71eb6807177b8462800b7cb780226b63f39b635",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_017"
+    ],
+    "definitionIds": [
+      "building_017"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_018_异铁冶炼厂_r02c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_018_异铁冶炼厂_r02c09.jpg",
+    "sha256": "a4533404d39be359e0c3a0e5ef4b324c90b5ec76934fa124c817089ccf161679",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_018"
+    ],
+    "definitionIds": [
+      "building_018"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_019_贸易街区_r03c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_019_贸易街区_r03c01.jpg",
+    "sha256": "86aa518f6038c4e3bd839a7d6bf42f833a5f2e9a10a5ea2cb90cf5e270ba9b2d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_019"
+    ],
+    "definitionIds": [
+      "building_019"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_020_贸易街区_r03c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_020_贸易街区_r03c02.jpg",
+    "sha256": "a7225f253c12cdedf050f50f705ed0005dcdaf46357b4f92f70cc4efb04705b3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_020"
+    ],
+    "definitionIds": [
+      "building_020"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_021_贸易街区_r03c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_021_贸易街区_r03c03.jpg",
+    "sha256": "a517239128c2f72c69eb08d7d0d3b2783911c0c5626468ddb82084e5a50cef8a",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_021"
+    ],
+    "definitionIds": [
+      "building_021"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_022_城邦工业区_r03c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_022_城邦工业区_r03c05.jpg",
+    "sha256": "8e83be79775c7971dbfe3c580e5af72c2bb4eedd9eda1a871c751e18a3212540",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_023"
+    ],
+    "definitionIds": [
+      "building_022"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_023_城邦工业区_r03c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_023_城邦工业区_r03c06.jpg",
+    "sha256": "1a660a522cb71999584f0a237c656828d5bab485d176fc098285297bbb80e74d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_024"
+    ],
+    "definitionIds": [
+      "building_023"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_024_城邦工业区_r03c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_024_城邦工业区_r03c07.jpg",
+    "sha256": "a77f55e8e93d56a9d66d6292ebf7cdd5720517b4679e77feebeb56eb9112b8eb",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_025"
+    ],
+    "definitionIds": [
+      "building_024"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_025_高性能动力设施_r03c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_025_高性能动力设施_r03c08.jpg",
+    "sha256": "1aaeb45778a7c8cc08c673937f2c261bb8a3e484301f39548f6888f02f709e2d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_026"
+    ],
+    "definitionIds": [
+      "building_025"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_026_高性能动力设施_r03c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_026_高性能动力设施_r03c09.jpg",
+    "sha256": "61438bb16310a522ce0d29b09890ade67b69f4a6886ccc80fa9204eea0c36196",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_027"
+    ],
+    "definitionIds": [
+      "building_026"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_027_固源岩提纯厂_r04c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_027_固源岩提纯厂_r04c01.jpg",
+    "sha256": "88c2bf566cea62b8e88c1087aa1a100a5b0fcca322ee8290a7f98d45a495690b",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_028"
+    ],
+    "definitionIds": [
+      "building_027"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_028_源石精炼厂_r04c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_028_源石精炼厂_r04c02.jpg",
+    "sha256": "d31781502b904c4bce12bbbde9695d50ef53cbd95e3807a911a2c267ff454162",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_029"
+    ],
+    "definitionIds": [
+      "building_028"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_029_开采电铲_r04c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_029_开采电铲_r04c03.jpg",
+    "sha256": "766d873d9a8e2e85a17e513de75c6d377099fa1606e3df87947ae10336ee3172",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_030"
+    ],
+    "definitionIds": [
+      "building_029"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_030_开采电铲_r04c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_030_开采电铲_r04c04.jpg",
+    "sha256": "338263150704573d52d19e4230cbaddec6fdd1bde265db3a944a40202b881e74",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_031"
+    ],
+    "definitionIds": [
+      "building_030"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_031_开采电铲_r04c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_031_开采电铲_r04c05.jpg",
+    "sha256": "f35f8b1fb5d0003280c3b23953f5f3fdc143c57507ac9c137b4689588b64d64d",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_032"
+    ],
+    "definitionIds": [
+      "building_031"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_032_异铁冶炼厂_r04c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_032_异铁冶炼厂_r04c07.jpg",
+    "sha256": "141cbc67f7eb62484293ba0ea02b1611fd894fc8a4de891234966178c5931482",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_034"
+    ],
+    "definitionIds": [
+      "building_032"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_033_固源岩提纯厂_r04c08.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_033_固源岩提纯厂_r04c08.jpg",
+    "sha256": "d872754329d846ab117addf5d5a23ba6cd7aec028898edb510bc5ff7459c6621",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_035"
+    ],
+    "definitionIds": [
+      "building_033"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_034_佣兵指挥部_r04c09.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_034_佣兵指挥部_r04c09.jpg",
+    "sha256": "0f8b83c90042206a8129004ed2b971e1850db64cd4879fde35802fc97b0cf9b6",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_036"
+    ],
+    "definitionIds": [
+      "building_034"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_035_佣兵指挥部_r05c01.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_035_佣兵指挥部_r05c01.jpg",
+    "sha256": "42e323e038a4c8a661fdee9a9641ceab90ccd0eca88ec13d9e73a21441433924",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_037"
+    ],
+    "definitionIds": [
+      "building_035"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_036_佣兵指挥部_r05c02.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_036_佣兵指挥部_r05c02.jpg",
+    "sha256": "7f53aa993b7c44b244c96d2507904d05e47a64a87ed23d72d4a35abcd63ec4ab",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_038"
+    ],
+    "definitionIds": [
+      "building_036"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_037_护航调度中心_r05c03.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_037_护航调度中心_r05c03.jpg",
+    "sha256": "129e04c2a4b67c5e90f9a4c8788f52cabc06b63bd2a3c99dae7dde0309fd6480",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_039"
+    ],
+    "definitionIds": [
+      "building_037"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_038_护航调度中心_r05c04.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_038_护航调度中心_r05c04.jpg",
+    "sha256": "f074a72737c908c3d494faf0fdcbfd5237a5a5c3f04ebcbbc41e50b37d73ea51",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_040"
+    ],
+    "definitionIds": [
+      "building_038"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_039_载具仓库_r05c05.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_039_载具仓库_r05c05.jpg",
+    "sha256": "65ff4b1f9db35ad57bf0892bbad421938ab813bc96a0db248f2cf7c056501435",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_041"
+    ],
+    "definitionIds": [
+      "building_039"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_040_载具仓库_r05c06.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_040_载具仓库_r05c06.jpg",
+    "sha256": "3073abaa2317918a740cf19d2235e732c66181ee491127814403c9d049ab5e15",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_042"
+    ],
+    "definitionIds": [
+      "building_040"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\建设牌输出\\建筑卡片\\building_041_载具仓库_r05c07.jpg",
+    "relativePath": "游城拓荒/素材/建设牌输出/建筑卡片/building_041_载具仓库_r05c07.jpg",
+    "sha256": "91adc063c270cdd30cd6683327e67daf3a9afef95fcf4f4dba66a02180f339f3",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "facility_043"
+    ],
+    "definitionIds": [
+      "building_041"
+    ],
+    "reason": "普通设施旧ID到新格子保持稳定"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_01_liskarm_雷蛇.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_01_liskarm_雷蛇.jpg",
+    "sha256": "9d06e8ccecd054b8203676d8356df1a8cddd49e18168ef55ebab19f3a259ee15",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_001"
+    ],
+    "definitionIds": [
+      "liskarm"
+    ],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_02_texas_德克萨斯.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_02_texas_德克萨斯.jpg",
+    "sha256": "f57053b976becf4f4612ffe86f8c6de4e8c4a6f4f881657f07465c31ac88580c",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_002"
+    ],
+    "definitionIds": [
+      "texas"
+    ],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_03_tin_man_锡人.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_03_tin_man_锡人.jpg",
+    "sha256": "275d73511fd992871be85d2dceb2756fd5af51e1f0455361da435bea93c1e443",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_003"
+    ],
+    "definitionIds": [
+      "tin-man"
+    ],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_04_cannot_坎诺特.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_04_cannot_坎诺特.jpg",
+    "sha256": "9fea8e8804c8e9c8e58b931a6f030f725b33dd39718b9012ddb567717dd1bee7",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_004"
+    ],
+    "definitionIds": [
+      "cannot"
+    ],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_05_elysium_极境.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_05_elysium_极境.jpg",
+    "sha256": "c9d7e0645520041013428e8af7c4af1a3e3334464e603cc34d19f9c797604a89",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_005"
+    ],
+    "definitionIds": [
+      "elysium"
+    ],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_06_mlynar_玛恩纳.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_06_mlynar_玛恩纳.jpg",
+    "sha256": "e056f9353b13e2986215343440df8fdb47955a768cafc5324d594b01254fde14",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_006"
+    ],
+    "definitionIds": [],
+    "reason": "旧角色拆图"
+  },
+  {
+    "path": "G:\\NoMadCity\\游城拓荒\\素材\\角色卡拆分\\character_07_mountain_山.jpg",
+    "relativePath": "游城拓荒/素材/角色卡拆分/character_07_mountain_山.jpg",
+    "sha256": "cbdd6ec30efeebeab9d3126583a0fef58f0b936a89eb6bc38f77baafd9e9b865",
+    "metaPath": null,
+    "metaSha256": null,
+    "guid": null,
+    "newSprites": [
+      "character_007"
+    ],
+    "definitionIds": [],
+    "reason": "旧角色拆图"
+  }
+]

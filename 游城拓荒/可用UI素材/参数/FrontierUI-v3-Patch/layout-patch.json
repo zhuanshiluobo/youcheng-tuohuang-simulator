@@ -1,0 +1,215 @@
+{
+  "version": "3.0.0",
+  "baseline": "MainGameUI-v2.2",
+  "units": "logical pixels",
+  "canvas": [
+    1920,
+    1080
+  ],
+  "rectOrder": [
+    "x",
+    "y",
+    "width",
+    "height"
+  ],
+  "regions": {
+    "topbar": [
+      0,
+      0,
+      1920,
+      64
+    ],
+    "opponents": [
+      [
+        16,
+        72,
+        416,
+        108
+      ],
+      [
+        16,
+        188,
+        416,
+        108
+      ],
+      [
+        16,
+        304,
+        416,
+        108
+      ]
+    ],
+    "city": [
+      16,
+      424,
+      416,
+      554
+    ],
+    "map": [
+      444,
+      72,
+      896,
+      670
+    ],
+    "selfSummary": [
+      444,
+      750,
+      896,
+      48
+    ],
+    "entrepreneurs": [
+      444,
+      806,
+      424,
+      172
+    ],
+    "hand": [
+      880,
+      806,
+      460,
+      172
+    ],
+    "cooperation": [
+      1352,
+      72,
+      552,
+      282
+    ],
+    "discard": [
+      1352,
+      366,
+      270,
+      220
+    ],
+    "faceDown": [
+      1634,
+      366,
+      270,
+      220
+    ],
+    "rightTabs": [
+      [
+        1352,
+        598,
+        180,
+        48
+      ],
+      [
+        1538,
+        598,
+        180,
+        48
+      ],
+      [
+        1724,
+        598,
+        180,
+        48
+      ]
+    ],
+    "rightPage": [
+      1352,
+      654,
+      552,
+      324
+    ],
+    "bottomBar": [
+      16,
+      986,
+      1888,
+      82
+    ],
+    "undo": [
+      36,
+      1005,
+      132,
+      48
+    ],
+    "resolutionSummary": [
+      188,
+      999,
+      1424,
+      60
+    ],
+    "endAction": [
+      1640,
+      1003,
+      236,
+      52
+    ],
+    "resolutionDrawer": [
+      444,
+      746,
+      1448,
+      228
+    ]
+  },
+  "layerOrder": [
+    "background",
+    "map",
+    "modules",
+    "mainModal",
+    "resolutionDrawer",
+    "persistentBottomBar",
+    "nestedEffectChooser",
+    "tooltip"
+  ],
+  "rightTabOrder": [
+    "mainActions",
+    "quickActions",
+    "cityPatterns"
+  ],
+  "invariants": {
+    "originalArtworkAspectRatio": "contain",
+    "visibleEntrepreneurSlots": 5,
+    "entrepreneurSlotsAreNotRuleLimit": true,
+    "bottomBarPersistsWhenPanelsCollapse": true,
+    "hiddenControlsMustNotReceivePointerEvents": true,
+    "endActionOnlyInBottomBar": true,
+    "effectSelectionHasOneAuthoritativeScope": true,
+    "scopeProvidedByGame": true
+  },
+  "overflow": {
+    "chain": {
+      "viewport": [
+        467,
+        842,
+        276,
+        105
+      ],
+      "verticalTrack": [
+        750,
+        842,
+        4,
+        105
+      ],
+      "scrollHit": [
+        744,
+        838,
+        16,
+        113
+      ]
+    },
+    "optionalEffects": {
+      "viewport": [
+        787,
+        844,
+        502,
+        112
+      ],
+      "verticalTrack": [
+        1300,
+        844,
+        4,
+        112
+      ],
+      "scrollHit": [
+        1294,
+        840,
+        16,
+        120
+      ]
+    },
+    "visibility": "Show only when content exceeds viewport; do not bake thumb length into frame texture."
+  }
+}

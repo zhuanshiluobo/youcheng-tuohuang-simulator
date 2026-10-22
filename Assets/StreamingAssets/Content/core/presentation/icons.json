@@ -1,0 +1,418 @@
+{
+  "schemaVersion": 1,
+  "icons": [
+    {
+      "id": "core:rule.enterprise_upgrade",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.enterprise_upgrade.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.enterprise_upgrade.asset"
+    },
+    {
+      "id": "core:rule.enterprise_special",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.enterprise_special.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.enterprise_special.asset"
+    },
+    {
+      "id": "core:resource.score",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.score.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "number_overlay",
+      "valueRequired": true,
+      "assetKey": "core:resource.score.asset",
+      "valueAltTextKey": "core:resource.score.value_alt",
+      "numberOverlayStyleKey": "core:score_number_overlay"
+    },
+    {
+      "id": "core:timing.score_settlement",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.score_settlement.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.score_settlement.asset"
+    },
+    {
+      "id": "core:timing.remaining_game",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.remaining_game.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.remaining_game.asset"
+    },
+    {
+      "id": "core:rule.city_move",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.city_move.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.city_move.asset"
+    },
+    {
+      "id": "core:rule.operator_dispatch",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.operator_dispatch.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.operator_dispatch.asset"
+    },
+    {
+      "id": "core:rule.build",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.build.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.build.asset"
+    },
+    {
+      "id": "core:resource.iron",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.iron.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:resource.iron.asset"
+    },
+    {
+      "id": "core:timing.quick_action",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.quick_action.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.quick_action.asset"
+    },
+    {
+      "id": "core:timing.tactical_action",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.tactical_action.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.tactical_action.asset"
+    },
+    {
+      "id": "core:rule.replace",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.replace.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.replace.asset"
+    },
+    {
+      "id": "core:syntax.condition",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:syntax.condition.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:syntax.condition.asset"
+    },
+    {
+      "id": "core:rule.persistent_marker",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.persistent_marker.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.persistent_marker.asset"
+    },
+    {
+      "id": "core:resource.orirock",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.orirock.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:resource.orirock.asset"
+    },
+    {
+      "id": "core:resource.originium_shard",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.originium_shard.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:resource.originium_shard.asset"
+    },
+    {
+      "id": "core:timing.special_action",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.special_action.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.special_action.asset"
+    },
+    {
+      "id": "core:rule.remove",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.remove.asset"
+    },
+    {
+      "id": "core:timing.immediate",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:timing.immediate.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:timing.immediate.asset"
+    },
+    {
+      "id": "core:resource.pure_originium",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.pure_originium.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:resource.pure_originium.asset"
+    },
+    {
+      "id": "core:rule.dispatch",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.dispatch.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.dispatch.asset"
+    },
+    {
+      "id": "core:rule.deploy",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.deploy.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.deploy.asset"
+    },
+    {
+      "id": "core:resource.gold_voucher",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:resource.gold_voucher.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:resource.gold_voucher.asset"
+    },
+    {
+      "id": "core:rule.limited_marker",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.limited_marker.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.limited_marker.asset"
+    },
+    {
+      "id": "core:rule.remove_card_marker",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove_card_marker.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.remove_card_marker.asset"
+    },
+    {
+      "id": "core:rule.remove_own_influence",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.remove_own_influence.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.remove_own_influence.asset"
+    },
+    {
+      "id": "core:settlement.chain_link",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.chain_link.dark",
+      "light": "core:settlement.chain_link.light",
+      "muted": "core:settlement.chain_link.muted",
+      "altText": {
+        "key": "core:settlement.chain_link.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.substitute",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.substitute.dark",
+      "light": "core:settlement.substitute.light",
+      "muted": "core:settlement.substitute.muted",
+      "altText": {
+        "key": "core:settlement.substitute.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.trigger_ready",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.trigger_ready.dark",
+      "light": "core:settlement.trigger_ready.light",
+      "muted": "core:settlement.trigger_ready.muted",
+      "altText": {
+        "key": "core:settlement.trigger_ready.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.target_other",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.target_other.dark",
+      "light": "core:settlement.target_other.light",
+      "muted": "core:settlement.target_other.muted",
+      "altText": {
+        "key": "core:settlement.target_other.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.scope_adjacent",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.scope_adjacent.dark",
+      "light": "core:settlement.scope_adjacent.light",
+      "muted": "core:settlement.scope_adjacent.muted",
+      "altText": {
+        "key": "core:settlement.scope_adjacent.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.choose_order",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.choose_order.dark",
+      "light": "core:settlement.choose_order.light",
+      "muted": "core:settlement.choose_order.muted",
+      "altText": {
+        "key": "core:settlement.choose_order.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.chain_defer",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.chain_defer.dark",
+      "light": "core:settlement.chain_defer.light",
+      "muted": "core:settlement.chain_defer.muted",
+      "altText": {
+        "key": "core:settlement.chain_defer.alt",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    }
+  ],
+  "assets": {}
+}

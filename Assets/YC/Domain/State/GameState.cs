@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
+using YC.Domain.Items;
+using YC.Domain.Cards;
 
 namespace YC.Domain.State
 {
@@ -10,7 +12,17 @@ namespace YC.Domain.State
     public sealed class GameState
     {
         public string GameId = string.Empty;
+        public int EntitySchemaVersion = 1;
+        public ItemZoneRuntimeState ItemZones = new ItemZoneRuntimeState();
+        public List<CharacterUseRuntimeState> CharacterUses = new List<CharacterUseRuntimeState>();
+        public List<CoverSlotState> CharacterCoverSlots = new List<CoverSlotState>();
+        public List<FacilityCharacterBindingState> FacilityCharacterBindings = new List<FacilityCharacterBindingState>();
+        public List<YC.Domain.Influence.InfluenceLockState> InfluenceLocks = new List<YC.Domain.Influence.InfluenceLockState>();
+        public List<CharacterActionRoundPermission> CharacterActionRoundPermissions = new List<CharacterActionRoundPermission>();
         public string ContentPackHash = string.Empty;
+        public GameRuleConfiguration RuleConfiguration;
+        public GameSetupRecipe SetupRecipe;
+        public GameContentDefinitions ContentDefinitions;
         public GamePhase Phase = GamePhase.Setup;
         public int Round = 0;
         public int MaxRounds = 8;
@@ -19,11 +31,15 @@ namespace YC.Domain.State
         public int CurrentPlayerId = -1;
         public int ActionRound = 0;
         public bool UseSeatTurnOrder;
+        public List<int> LaunchPlayerOrder = new List<int>();
         public string MapId = string.Empty;
         public int EventDeckSeed = YC.Domain.Cards.EventDeckService.DefaultSeed;
+        // null 表示旧档没有可恢复的随机游标，不能据此重新播种或重洗。
+        public GameplayRandomState RandomRuntime;
         public List<PlayerState> Players = new List<PlayerState>();
         public MapRuntimeState Map = new MapRuntimeState();
         public DeckRuntimeState Decks = new DeckRuntimeState();
+        public GameBoxState GameBox = new GameBoxState();
         public PendingChoiceState PendingChoice;
         public PendingCardSessionState PendingCardSession;
         public PendingCharacterEffectState PendingCharacterEffect;
@@ -52,6 +68,13 @@ namespace YC.Domain.State
                      (PendingCharacterEffect != null && PendingCharacterEffect.IsValid()) ||
                      (PendingSpecialAction != null && PendingSpecialAction.IsValid(this)) ||
                      HasOpenActionableInteraction();
+        }
+
+        public bool HasPendingChoiceForCommand(OperationCommandContext context)
+        {
+            if (PendingChoice != null && PendingChoice.IsValid() || PendingCardSession != null && PendingCardSession.IsValid() ||
+                PendingCharacterEffect != null && PendingCharacterEffect.IsValid() || PendingSpecialAction != null && PendingSpecialAction.IsValid(this)) return true;
+            return EffectRuntime?.InteractionRequests?.Exists(request => YC.Domain.Effects.EffectTreeExecutor.BlocksCommand(this, request, context)) == true;
         }
 
         /// <summary>
@@ -255,35 +278,99 @@ namespace YC.Domain.State
         public string Name = string.Empty;
         public PlayerColor Color;
         public int Score;
-        public int InfluenceSupply = 30;
-        public bool HasScoreTrackMarker;
-        public string CityLocationId = string.Empty;
+        public int LegacyInfluenceSupply = 30;
+        [NonSerialized] private GameState itemZoneState;
+        public int InfluenceSupply
+        {
+            get => itemZoneState == null ? LegacyInfluenceSupply : itemZoneState.ItemZones.Items.FindAll(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == PlayerId && itemZoneState.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.player_marker_supply").Count;
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: InfluenceSupply"); LegacyInfluenceSupply = value; }
+        }
+        public bool LegacyHasScoreTrackMarker;
+        public bool HasScoreTrackMarker
+        {
+            get => itemZoneState == null ? LegacyHasScoreTrackMarker : itemZoneState.ItemZones.Items.Exists(item => item.OwnerSubject.PlayerId == PlayerId && itemZoneState.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.score_track");
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: HasScoreTrackMarker"); LegacyHasScoreTrackMarker = value; }
+        }
+        public string LegacyCityLocationId = string.Empty;
+        public string CityLocationId
+        {
+            get
+            {
+                if (itemZoneState == null) return LegacyCityLocationId;
+                var city = itemZoneState.ItemZones.Items.Find(item => item.PhysicalKind == ItemPhysicalKind.MobileCity && item.OwnerSubject.PlayerId == PlayerId);
+                var zone = city == null ? null : itemZoneState.ItemZones.Zones.Find(value => value.ZoneId == city.ZoneId);
+                var location = zone == null ? null : itemZoneState.ItemZones.Zones.Find(value => value.ZoneId == zone.ParentId);
+                return location?.TemplateId == "core.zone.map_location" ? location.LocalZoneId : string.Empty;
+            }
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: CityLocationId"); LegacyCityLocationId = value ?? string.Empty; }
+        }
         public bool HasMovedCityThisRound;
         public bool HasCollectedResourcesThisRound;
         public int ResourceCollectionStartGoldVoucher = -1;
         public bool ActedMainActionThisTurn;
         public int RemainingMainActionsThisTurn = 1;
+        public int RestrictedMainActionsThisTurn;
         public int CompletedMainActionsThisTurn;
         public bool UsedCharacterThisRound;
         public bool UsedCharacterThisTurn;
         public bool CharacterCardLockedThisTurn;
         public ResourceSet Resources = new ResourceSet();
-        public List<string> HandCardIds = new List<string>();
-        public List<string> DiscardCardIds = new List<string>();
-        public List<string> BuiltFacilityIds = new List<string>();
+        public LegacyPositionList<string> HandCardIds = new LegacyPositionList<string>();
+        public LegacyPositionList<string> DiscardCardIds = new LegacyPositionList<string>();
+        public LegacyPositionList<string> BuiltFacilityIds = new LegacyPositionList<string>();
         public List<CityStyleDeclarationState> DeclaredCityStyles = new List<CityStyleDeclarationState>();
         public List<string> UsedSpecialActionIdsThisRound = new List<string>();
-        public string CoveredCharacterCardId = string.Empty;
+        public string LegacyCoveredCharacterCardId = string.Empty;
+        public string CoveredCharacterCardId
+        {
+            get => itemZoneState == null ? LegacyCoveredCharacterCardId : ItemZoneLegacyProjection.Cards(itemZoneState, "covered", PlayerId).Find(_ => true) ?? string.Empty;
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: CoveredCharacterCardId"); LegacyCoveredCharacterCardId = value ?? string.Empty; }
+        }
+        internal void BindItemZones(GameState state, bool clearLegacy)
+        {
+            if (!clearLegacy && (LegacyInfluenceSupply != 0 || LegacyHasScoreTrackMarker || !string.IsNullOrEmpty(LegacyCityLocationId) || !string.IsNullOrEmpty(LegacyCoveredCharacterCardId)))
+                throw new InvalidOperationException("legacy_position_write_rejected: PlayerState");
+            itemZoneState = state;
+            LegacyInfluenceSupply = 0;
+            LegacyCityLocationId = string.Empty;
+            LegacyCoveredCharacterCardId = string.Empty;
+            LegacyHasScoreTrackMarker = false;
+        }
     }
 
     [Serializable]
     public sealed class CityStyleDeclarationState
     {
+        public string DeclarationId = string.Empty;
+        public string CityStyleItemId = string.Empty;
         public string InfluenceMarkerId = string.Empty;
         public string CityStyleId = string.Empty;
-        public string MarkerArea = "declared";
+        public string LegacyMarkerArea = "declared";
         public string UnlockedSpecialActionId = string.Empty;
-        public int RemainingSpecialActionUses;
+        public int LegacyRemainingSpecialActionUses;
+        [NonSerialized] private GameState itemZoneState;
+        public string MarkerArea { get => itemZoneState == null ? LegacyMarkerArea : GetActualMarkerArea();
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: city_style_marker"); LegacyMarkerArea = value; } }
+        public int RemainingSpecialActionUses { get => itemZoneState == null ? LegacyRemainingSpecialActionUses : MarkerArea == "2" || MarkerArea == "used_from_2" ? 2 : MarkerArea == "1" || MarkerArea == "unused" || MarkerArea == "used_from_1" ? 1 : 0;
+            set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: city_style_marker"); LegacyRemainingSpecialActionUses = value; } }
+        private string GetActualMarkerArea()
+        {
+            var marker = itemZoneState.ItemZones.Items.Find(i => i.ItemId == InfluenceMarkerId);
+            var zone = marker == null ? null : itemZoneState.ItemZones.Zones.Find(z => z.ZoneId == marker.ZoneId);
+            if (zone?.ParentId != CityStyleItemId || zone.TemplateId != "core.zone.board_marker_track") return "";
+            foreach (var player in itemZoneState.Players)
+            {
+                int index = 0;
+                foreach (var declaration in player.DeclaredCityStyles)
+                {
+                    if (declaration.CityStyleId != CityStyleId) continue;
+                    if (ReferenceEquals(declaration, this)) return zone.LocalZoneId == "declaration_" + player.PlayerId + "_" + index ? marker.SlotId : "";
+                    index++;
+                }
+            }
+            return "";
+        }
+        public void BindItemZones(GameState state) { if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state) && !string.IsNullOrEmpty(CityStyleItemId)) { itemZoneState = state; LegacyMarkerArea = "declared"; LegacyRemainingSpecialActionUses = 0; } }
         public List<string> UsedFacilityIds = new List<string>();
         public List<int> UsedCityBoardSlotIndexes = new List<int>();
     }
@@ -292,13 +379,13 @@ namespace YC.Domain.State
     public sealed class MapRuntimeState
     {
         public List<string> OpenLocationIds = new List<string>();
-        public List<string> RoadRouteIds = new List<string>();
-        public List<string> RemovedFromGameCardIds = new List<string>();
-        public List<InfluencePlacement> Influences = new List<InfluencePlacement>();
+        public LegacyPositionList<string> RoadRouteIds = new LegacyPositionList<string>();
+        public LegacyPositionList<string> RemovedFromGameCardIds = new LegacyPositionList<string>();
+        public LegacyPositionList<InfluencePlacement> Influences = new LegacyPositionList<InfluencePlacement>();
         public int NextInfluenceInstanceSequence;
-        public List<FacilityPlacement> Facilities = new List<FacilityPlacement>();
+        public LegacyPositionList<FacilityPlacement> Facilities = new LegacyPositionList<FacilityPlacement>();
         public List<FacilityInstanceRuntimeState> FacilityInstances = new List<FacilityInstanceRuntimeState>();
-        public List<ResourceTokenState> ResourceTokens = new List<ResourceTokenState>();
+        public LegacyPositionList<ResourceTokenState> ResourceTokens = new LegacyPositionList<ResourceTokenState>();
     }
 
     [Serializable]
@@ -368,8 +455,33 @@ namespace YC.Domain.State
         public int SchemaVersion = 1;
         public string ContentInstanceId = string.Empty;
         public string FacilityCardId = string.Empty;
-        public int OwnerPlayerId = -1;
-        public int CityBoardSlotIndex = -1;
+        public int LegacyOwnerPlayerId = -1;
+        public int LegacyCityBoardSlotIndex = -1;
+        [NonSerialized] private GameState itemZoneState;
+        public int OwnerPlayerId
+        {
+            get => itemZoneState == null ? LegacyOwnerPlayerId : itemZoneState.ItemZones.Items.Find(item => item.ItemId == ContentInstanceId)?.ControllerSubject.PlayerId ?? -1;
+            set { RejectPositionWrite(); LegacyOwnerPlayerId = value; }
+        }
+        public int CityBoardSlotIndex
+        {
+            get
+            {
+                if (itemZoneState == null) return LegacyCityBoardSlotIndex;
+                var item = itemZoneState.ItemZones.Items.Find(value => value.ItemId == ContentInstanceId);
+                var zone = itemZoneState.ItemZones.Zones.Find(value => value.ZoneId == item?.ZoneId);
+                return zone?.TemplateId == "core.zone.city_facility_cell" ? int.Parse(zone.LocalZoneId.Substring("city_cell_".Length), System.Globalization.CultureInfo.InvariantCulture) : -1;
+            }
+            set { RejectPositionWrite(); LegacyCityBoardSlotIndex = value; }
+        }
+        internal void BindItemZones(GameState state, bool clearLegacy)
+        {
+            if (!clearLegacy && (LegacyOwnerPlayerId != -1 || LegacyCityBoardSlotIndex != -1)) throw new InvalidOperationException("legacy_position_write_rejected: FacilityInstances");
+            LegacyOwnerPlayerId = -1;
+            LegacyCityBoardSlotIndex = -1;
+            itemZoneState = state;
+        }
+        private void RejectPositionWrite() { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: FacilityInstances"); }
         public int ActivationCount;
         public int LastActivatedRound = -1;
         public bool CleanupMarkerRegistered;
@@ -387,15 +499,15 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class DeckRuntimeState
     {
-        public List<string> CharacterDeck = new List<string>();
-        public List<string> CharacterDiscard = new List<string>();
-        public List<string> EventDeckGreen = new List<string>();
-        public List<string> EventDeckYellow = new List<string>();
-        public List<string> EventDeckRed = new List<string>();
+        public LegacyPositionList<string> CharacterDeck = new LegacyPositionList<string>();
+        public LegacyPositionList<string> CharacterDiscard = new LegacyPositionList<string>();
+        public LegacyPositionList<string> EventDeckGreen = new LegacyPositionList<string>();
+        public LegacyPositionList<string> EventDeckYellow = new LegacyPositionList<string>();
+        public LegacyPositionList<string> EventDeckRed = new LegacyPositionList<string>();
         public List<CardPoolState> CardPools = new List<CardPoolState>();
-        public List<string> FacilityDeck = new List<string>();
-        public List<string> FacilitySupply = new List<string>();
-        public List<string> CityStyleSupply = new List<string>();
+        public LegacyPositionList<string> FacilityDeck = new LegacyPositionList<string>();
+        public LegacyPositionList<string> FacilitySupply = new LegacyPositionList<string>();
+        public LegacyPositionList<string> CityStyleSupply = new LegacyPositionList<string>();
     }
 
     [Serializable]
@@ -423,7 +535,7 @@ namespace YC.Domain.State
     public sealed class CardPoolState
     {
         public string PoolId = string.Empty;
-        public List<string> RemainingCardIds = new List<string>();
+        public LegacyPositionList<string> RemainingCardIds = new LegacyPositionList<string>();
     }
 
     [Serializable]

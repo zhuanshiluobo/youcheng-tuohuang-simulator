@@ -7,7 +7,6 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
-using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Facilities;
 using YC.Domain.State;
@@ -19,7 +18,7 @@ namespace YC.Presentation.Editor
     public static class GameplayEventDialogCapture
     {
         private enum Case { EventArtwork, EventText, ExplorePath, ExplorePayment, ResourceRecipients,
-            ResourceBank, BuildFocus, BuildConfirmation, CharacterSecondEffect }
+            ResourceBank, CharacterSecondEffect = 8 }
         private static Vector2Int[] sizes;
         private static Case[] cases;
         private static int sizeIndex, caseIndex, stage, stableFrames, callbackCount;
@@ -66,7 +65,7 @@ namespace YC.Presentation.Editor
             new Vector2Int(1920, 1080) }, (Case[])Enum.GetValues(typeof(Case)));
 
         public static void RunNarrow() => Begin(new[] { new Vector2Int(1024, 768), new Vector2Int(900, 600) },
-            new[] { Case.EventArtwork, Case.ExplorePayment, Case.ResourceRecipients, Case.BuildFocus });
+            new[] { Case.EventArtwork, Case.ExplorePayment, Case.ResourceRecipients });
 
         public static void RunFoundationFinal() => Begin(new[] { new Vector2Int(1920, 1080), new Vector2Int(900, 600) },
             (Case[])Enum.GetValues(typeof(Case)));
@@ -182,17 +181,6 @@ namespace YC.Presentation.Editor
                 case Case.ResourceBank:
                     Invoke("ShowResourceCollectionPaymentOptions", "诊断航道", 3, new int[0], playerName, selected, clicked, clicked);
                     break;
-                case Case.BuildFocus:
-                case Case.BuildConfirmation:
-                    var facility = FacilityCardDatabase.All.FirstOrDefault(card => hud.DialogRegistry.CardVisualCatalog.GetFacility(card.FacilityId) != null);
-                    if (facility == null) { waiting = "正式设施卡图尚未就绪"; return false; }
-                    var query = new BuildFacilityOptionQueryService(BuildFacilityService.CreateForEffectTree())
-                        .Query(controller.CurrentState, controller.CurrentState.CurrentPlayerId, facility.FacilityId);
-                    var model = new BuildFacilityDraftViewModel(cases[caseIndex] == Case.BuildFocus ? BuildFacilityDraftPhase.Focused : BuildFacilityDraftPhase.Confirming,
-                        new[] { query }, query, facility, 0, BuildFacilityService.PaymentModeResources, string.Empty,
-                        new[] { 0 }, _ => callbackCount++);
-                    Invoke(cases[caseIndex] == Case.BuildFocus ? "ShowBuildFacilityFocus" : "ShowBuildFacilityConfirmation", model);
-                    break;
                 default:
                     Invoke("ShowCharacterSecondEffectDecision", "诊断角色", "计谋", clicked, clicked);
                     break;
@@ -204,7 +192,13 @@ namespace YC.Presentation.Editor
             return true;
         }
 
-        private static void Invoke(string method, params object[] args) => dialog.GetType().GetMethod(method).Invoke(dialog, args);
+        private static void Invoke(string method, params object[] args)
+        {
+            var target = dialog.GetType().GetMethod(method);
+            var values = Enumerable.Repeat<object>(Type.Missing, target.GetParameters().Length).ToArray();
+            Array.Copy(args, values, args.Length);
+            target.Invoke(dialog, values);
+        }
 
         private static bool Ready()
         {
@@ -213,7 +207,6 @@ namespace YC.Presentation.Editor
                 if (text.enabled && (text.font == null || text.font.material == null || text.font.material.mainTexture == null))
                 { waiting = "字体图集未就绪：" + text.name; return false; }
             if (cases[caseIndex] == Case.EventArtwork && view.EventCardArtworkImage.texture == null) return false;
-            if (cases[caseIndex] == Case.BuildFocus && view.FacilityPreviewImage.texture == null) return false;
             return !CanvasUpdateRegistry.IsRebuildingLayout() && !CanvasUpdateRegistry.IsRebuildingGraphics();
         }
 

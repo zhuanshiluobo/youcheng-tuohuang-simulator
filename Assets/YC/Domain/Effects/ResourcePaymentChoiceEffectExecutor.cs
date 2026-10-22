@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.State;
 using YC.Domain.Rules;
 
@@ -35,10 +36,95 @@ namespace YC.Domain.Effects
             registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0"));
         }
 
+        // 供现有付款页面预览费用；不会扣费、开新请求或自动插入异客正文。
+        public static IReadOnlyDictionary<string, ResourceSet> GetPaymentOptionsForPreview(GameState state, EffectNodeRuntimeState node)
+        {
+            if (state == null || node?.EffectTypeId != TypeId || !TryReadCosts(node.NormalizedArguments, out var costs))
+                throw new ArgumentException("invalid_payment_options");
+            return costs.Where(p => ResourceEffectExecutor.CanPayWithStoredMarkers(state, node.PlayerId, p.Value))
+                .ToDictionary(p => p.Key, p => GameStateCloneService.DeepClone(p.Value), StringComparer.Ordinal);
+        }
+
+        // 宿主在原页面选定费用草稿后调用，再为同一笔费用登记 Offer；最终确认仍使用原付款边界。
+        public static bool TryInitializeSelectedPayment(GameState state, EffectNodeRuntimeState node, string optionId, out string reason)
+        {
+            reason = "payment_choice_context_invalid";
+            if (state?.EffectRuntime == null || node?.EffectTypeId != TypeId || node.FlowStage != "awaiting_payment" ||
+                !state.EffectRuntime.InteractionRequests.Any(r => r.OwnerEffectId == node.EffectId && r.Status == "open" &&
+                    r.InteractionTypeId == InteractionTypeId && r.AnsweringPlayerId == node.PlayerId && r.CandidateIds.Contains(optionId)) ||
+                !TryReadCosts(node.NormalizedArguments, out var costs) || optionId == null || !costs.TryGetValue(optionId, out var cost) ||
+                !ResourceEffectExecutor.CanPayWithStoredMarkers(state, node.PlayerId, cost)) return false;
+            string previous = ItemTransferEffectExecutor.Text(node.ContinuationData, "selectedPaymentOptionId");
+            if (previous.Length > 0 && previous != optionId)
+            {
+                if (!ResourcePaymentSubstitutionEffectExecutor.TryUpdateUninvokedPaymentCost(state, node, cost, out reason)) return false;
+            }
+            try { ResourcePaymentSubstitutionEffectExecutor.InitializePayment(node, cost); }
+            catch (InvalidOperationException error) { reason = error.Message; return false; }
+            ItemTransferEffectExecutor.Set(node, "selectedPaymentOptionId", NormalizedValue.CreateString(optionId));
+            reason = ""; return true;
+        }
+
+        private static bool TryReadCosts(NormalizedValue args, out Dictionary<string, ResourceSet> costs)
+        {
+            costs = new Dictionary<string, ResourceSet>(StringComparer.Ordinal);
+            var values = args?.Kind == NormalizedValueKind.Object ? args.Properties.Find(e => e.Name == "options")?.Value : null;
+            if (values?.Kind != NormalizedValueKind.Array) return false;
+            foreach (var value in values.Items)
+            {
+                if (value?.Kind != NormalizedValueKind.Object) return false;
+                var cost = new ResourceSet();
+                foreach (var entry in value.Properties)
+                {
+                    if (!Enum.TryParse(entry.Name, out ResourceType type) || !Enum.IsDefined(typeof(ResourceType), type) ||
+                        entry.Value?.Kind != NormalizedValueKind.Integer || entry.Value.IntegerValue < 0 || entry.Value.IntegerValue > int.MaxValue)
+                        return false;
+                    cost.Set(type, (int)entry.Value.IntegerValue);
+                }
+                string id = "pay|" + cost.Originium + "|" + cost.Iron + "|" + cost.OriginiumShard + "|" + cost.GoldVoucher + "|" + cost.PureOriginium;
+                costs[id] = cost;
+            }
+            return true;
+        }
+
         private static EffectStepResult Execute(EffectExecutionContext context)
         {
             var player = context.State.FindPlayer(context.Node.PlayerId);
             var args = context.Node.NormalizedArguments;
+            if (context.Node.Payment != null)
+            {
+                string selected = ItemTransferEffectExecutor.Text(context.Node.ContinuationData, "selectedPaymentOptionId");
+                if (!TryReadCosts(args, out var savedCosts) || !savedCosts.TryGetValue(selected, out var frozenCost))
+                    return EffectStepResult.Failed("payment_choice_context_invalid");
+                var payment = context.Node.Payment;
+                var before = ResourcePaymentPreparationService.AwaitBeforePayment(context, frozenCost);
+                if (before != null) return before;
+                if (context.Node.FlowStage == ResourcePaymentPreparationService.BeforePaymentStage && !payment.IsCommitRequested)
+                {
+                    string previousId = ItemTransferEffectExecutor.Text(context.Node.ContinuationData, "paymentChoiceResumeInteractionId");
+                    var previous = context.State.EffectRuntime.InteractionRequests.Find(request => request.GetStableInteractionId() == previousId &&
+                        request.OwnerEffectId == context.Node.EffectId && request.Status == "invalidated");
+                    if (previous == null) return EffectStepResult.Failed("payment_choice_resume_missing");
+                    var resumed = new EffectInteractionSpec { InteractionTypeId = InteractionTypeId,
+                        AnsweringPlayerId = previous.AnsweringPlayerId, Visibility = previous.Visibility, PromptKey = previous.PromptKey,
+                        PromptParameters = previous.PromptParameters.Clone(), Presentation = previous.Presentation,
+                        AnswerSchema = previous.AnswerSchema, MinSelections = previous.MinSelections, MaxSelections = previous.MaxSelections,
+                        AllowDecline = previous.AllowDecline };
+                    resumed.CandidateIds.AddRange(previous.CandidateIds);
+                    return EffectStepResult.Continue("awaiting_payment").AddInteraction(resumed);
+                }
+                if (!payment.IsCommitted && !payment.IsCommitRequested)
+                {
+                    var savedAnswer = context.GetLatestInteractionAnswer();
+                    if (savedAnswer?.Kind == NormalizedValueKind.Boolean && !savedAnswer.BooleanValue)
+                        return EffectStepResult.Failed("player_declined");
+                    if (savedAnswer?.Kind == NormalizedValueKind.Array && savedAnswer.Items.Count == 1) savedAnswer = savedAnswer.Items[0];
+                    string answerId = savedAnswer?.Kind == NormalizedValueKind.StableReference ? savedAnswer.ReferenceId : savedAnswer?.StringValue;
+                    if (answerId != selected) return EffectStepResult.NoProgress("等待原付款页面的最终确认或替代分配。");
+                    payment.IsCommitRequested = true;
+                }
+                return ResourceEffectExecutor.ExecutePayment(context, frozenCost, NormalizedValue.CreateString(selected));
+            }
             var optionEntry = args == null || args.Kind != NormalizedValueKind.Object ? null : args.Properties.Find(e => e.Name == "options");
             if (optionEntry == null || optionEntry.Value == null || optionEntry.Value.Kind != NormalizedValueKind.Array)
                 return EffectStepResult.Failed("invalid_payment_options");
@@ -58,7 +144,8 @@ namespace YC.Domain.Effects
                 }
                 // 候选 ID 只表达支付组合，回答时以节点中保存的组合重新校验。
                 string id = "pay|" + cost.Originium + "|" + cost.Iron + "|" + cost.OriginiumShard + "|" + cost.GoldVoucher + "|" + cost.PureOriginium;
-                if (player != null && player.Resources.CanPay(cost)) costs[id] = cost;
+                // 正式请求与预览共用可支付性；这只开放选费，未点击来源不能自动消耗标记。
+                if (player != null && ResourceEffectExecutor.CanPayWithStoredMarkers(context.State, context.Node.PlayerId, cost)) costs[id] = cost;
             }
             if (context.Node.FlowStage == "awaiting_payment")
             {
@@ -68,9 +155,12 @@ namespace YC.Domain.Effects
                 if (answer.Kind == NormalizedValueKind.Array && answer.Items.Count == 1) answer = answer.Items[0];
                 string id = answer.Kind == NormalizedValueKind.StableReference ? answer.ReferenceId : answer.StringValue;
                 ResourceSet cost;
-                if (id == null || !costs.TryGetValue(id, out cost) || !player.Resources.TryPay(cost))
+                if (id == null || !costs.TryGetValue(id, out cost))
                     return EffectStepResult.Failed("insufficient_resource");
-                return EffectStepResult.Completed(NormalizedValue.CreateString(id));
+                ResourcePaymentSubstitutionEffectExecutor.InitializePayment(context.Node, cost);
+                ItemTransferEffectExecutor.Set(context.Node, "selectedPaymentOptionId", NormalizedValue.CreateString(id));
+                context.Node.Payment.IsCommitRequested = true;
+                return ResourceEffectExecutor.ExecutePayment(context, cost, NormalizedValue.CreateString(id));
             }
             if (costs.Count == 0) return EffectStepResult.Failed("insufficient_resource");
             var request = new EffectInteractionSpec

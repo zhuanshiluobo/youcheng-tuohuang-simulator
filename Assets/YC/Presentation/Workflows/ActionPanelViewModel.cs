@@ -44,11 +44,13 @@ namespace YC.Presentation.Workflows
         public string CurrentPlayerLabel { get; private set; }
         public string PhaseLabel { get; private set; }
         public string StatusText { get; private set; }
+        public bool AllCollectionLocationsSelected { get; internal set; }
         public bool HasLocalPlayer { get; private set; }
         public PlayerColor LocalPlayerColor { get; private set; }
         public int RemainingInfluence { get; private set; }
         public bool CanUseCharacter { get; private set; }
         public bool CanDeclareCityStyle { get; private set; }
+        public bool CanInspectCityStyles { get; internal set; }
         public bool CanDeploy { get; private set; }
         public bool CanDispatch { get; private set; }
         public bool CanExplore { get; private set; }

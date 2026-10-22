@@ -63,9 +63,17 @@
                       },
                       "artwork": {
                         "type": "string"
+                      },
+                      "artworkSpriteId": {
+                        "type": "string",
+                        "minLength": 1
                       }
                     }
                   }
+                },
+                "artworkSpriteId": {
+                  "type": "string",
+                  "minLength": 1
                 }
               }
             }

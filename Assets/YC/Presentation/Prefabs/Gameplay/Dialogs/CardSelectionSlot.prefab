@@ -270,7 +270,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   longPressSeconds: 0.5
-  doubleClickSeconds: 0.3
 --- !u!114 &1966707570481415305
 MonoBehaviour:
   m_ObjectHideFlags: 0

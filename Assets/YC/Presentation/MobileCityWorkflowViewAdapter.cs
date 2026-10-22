@@ -20,7 +20,6 @@ namespace YC.Presentation
         private readonly Func<RectTransform> getCanvas;
         private readonly Func<MapViewPresenter> getMapView;
         private readonly IMapQueryService mapQuery;
-        private readonly InfluenceService mapInfluenceService;
         private readonly EventChoiceDialog eventChoiceDialog;
         private readonly CityStyleDeclarationPreviewDialog cityStyleDeclarationDialog;
         private readonly DispatchDecisionView dispatchDecisionView;
@@ -37,6 +36,16 @@ namespace YC.Presentation
         private InfluenceActionPresenter influenceActionPresenter;
         private ExplorationEventPresenter explorationEventPresenter;
         private TurnActionPresenter turnActionPresenter;
+        private Action<BuildFacilityDraftViewModel> showBuildDraft;
+        private Action hideBuildDraft;
+        private bool shuttingDown;
+        public void BeginShutdown() => shuttingDown = true;
+
+        public void BindBuildDraftView(Action<BuildFacilityDraftViewModel> show, Action hide)
+        {
+            showBuildDraft = show ?? throw new ArgumentNullException(nameof(show));
+            hideBuildDraft = hide ?? throw new ArgumentNullException(nameof(hide));
+        }
 
         public MobileCityWorkflowViewAdapter(
             Func<GameState> getState,
@@ -63,16 +72,15 @@ namespace YC.Presentation
                 getCanvas ?? throw new ArgumentNullException(nameof(getCanvas)));
             this.getMapView = getMapView;
             this.mapQuery = mapQuery;
-            mapInfluenceService = new InfluenceService(mapQuery);
             this.eventChoiceDialog = eventChoiceDialog;
             dispatchDecisionView = new DispatchDecisionView(dialogRegistry, getCanvas);
-            this.showPrompt = showPrompt;
-            this.refreshAll = refreshAll;
-            this.refreshInformation = refreshInformation;
-            this.refreshActionPanel = refreshActionPanel;
-            this.refreshResource = refreshResource;
-            this.refreshInfluence = refreshInfluence;
-            this.completeActionPresentation = completeActionPresentation;
+            this.showPrompt = message => { if (!shuttingDown) showPrompt(message); };
+            this.refreshAll = () => { if (!shuttingDown) refreshAll(); };
+            this.refreshInformation = () => { if (!shuttingDown) refreshInformation(); };
+            this.refreshActionPanel = () => { if (!shuttingDown) refreshActionPanel(); };
+            this.refreshResource = () => { if (!shuttingDown) refreshResource(); };
+            this.refreshInfluence = () => { if (!shuttingDown) refreshInfluence(); };
+            this.completeActionPresentation = action => { if (!shuttingDown) completeActionPresentation(action); };
             this.getPlayerDisplayName = getPlayerDisplayName;
         }
 
@@ -94,6 +102,7 @@ namespace YC.Presentation
 
         public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights)
         {
+            if (shuttingDown) return;
             ClearHighlights();
             var mapView = getMapView();
             if (highlights == null || mapView == null) return;
@@ -102,60 +111,14 @@ namespace YC.Presentation
             {
                 var highlight = highlights[i];
                 if (highlight == null) continue;
-                if (highlight.TargetKind == WorkflowHighlightTargetKind.Location)
-                {
-                    mapView.SetHighlighted(highlight.TargetId, GetHighlightColor(highlight.Semantic));
-                }
-                else if (highlight.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot)
-                {
-                    mapView.HighlightInfluenceSlot(highlight.TargetId);
-                }
-                else if (highlight.TargetKind == WorkflowHighlightTargetKind.Route)
-                {
-                    var route = mapQuery.GetRoute(highlight.TargetId);
-                    if (highlight.Semantic == WorkflowHighlightSemantic.CollectionBankPaymentGhost)
-                    {
-                        PreviewBankPaymentInfluence(mapView, route);
-                        continue;
-                    }
-
-                    for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-                    {
-                        mapView.HighlightInfluenceSlot(InfluenceService.GetRouteSlotId(highlight.TargetId, slotIndex));
-                    }
-                }
+                mapView.ApplyHighlight(highlight);
             }
             refreshInfluence();
         }
 
-        private void PreviewBankPaymentInfluence(MapViewPresenter mapView, MapRouteDefinition route)
-        {
-            var state = getState();
-            if (state == null || route == null)
-            {
-                return;
-            }
-
-            var previewPlayerId = getLocalPlayerId();
-            if (previewPlayerId <= 0)
-            {
-                previewPlayerId = state.CurrentPlayerId;
-            }
-
-            for (var slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-            {
-                var slotId = InfluenceService.GetRouteSlotId(route.RouteId, slotIndex);
-                // 只登记展示虚影，不写入 GameState，也不会消耗玩家影响力库存。
-                if (mapInfluenceService.FindInfluence(state, slotId) == null &&
-                    mapView.PreviewInfluenceSlot(slotId, previewPlayerId, state))
-                {
-                    return;
-                }
-            }
-        }
-
         public void ClearHighlights()
         {
+            if (shuttingDown) return;
             var mapView = getMapView();
             if (mapView != null) mapView.ClearHighlights();
         }
@@ -166,16 +129,20 @@ namespace YC.Presentation
                 routeId, cost, recipientPlayerIds, getPlayerDisplayName,
                 receiver => resourceCollectionPresenter.ConfirmRoutePayment(routeId, receiver),
                 () => resourceCollectionPresenter.ConfirmRoutePayment(routeId, -1),
-                resourceCollectionPresenter.CancelRoutePayment);
+                resourceCollectionPresenter.CancelRoutePayment,
+                resourceCollectionPresenter.GetSelectedPaymentRecipient(routeId),
+                () => resourceCollectionPresenter.RemoveRoutePayment(routeId));
         }
 
         public string GetPlayerDisplayName(int playerId) => getPlayerDisplayName(playerId);
+        public void ShowRoutePaymentOptions(RoutePaymentOptionsViewModel model)
+        { if (!shuttingDown) eventChoiceDialog.ShowRoutePaymentOptions(model, getPlayerDisplayName); }
         public void RefreshSelectionView() { refreshInfluence(); refreshActionPanel(); }
         public void RefreshFromState() => refreshAll();
 
         public void SetInteractionMode(InteractionMode mode)
         {
-            if (flowCoordinator == null) return;
+            if (shuttingDown || flowCoordinator == null) return;
             var active = flowCoordinator.IsActive(influenceActionPresenter) ||
                          flowCoordinator.IsActive(explorationEventPresenter);
             if (!active) flowCoordinator.SetMode(mode);
@@ -194,16 +161,16 @@ namespace YC.Presentation
 
         public void ShowExplorePathOptions(ExplorePathOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowExplorePathOptions(model.Choices, model.SelectPath);
+            if (!shuttingDown && model != null) eventChoiceDialog.ShowExplorePathOptions(model.Choices, model.SelectPath);
         }
         public void ShowExplorePaymentOptions(ExplorePaymentOptionsViewModel model)
         {
-            if (model != null) eventChoiceDialog.ShowExplorePaymentOptions(
+            if (!shuttingDown && model != null) eventChoiceDialog.ShowExplorePaymentOptions(
                 model.Choices, model.RecipientsByRouteId, getPlayerDisplayName, model.SelectRecipient, model.Confirm);
         }
         public void ShowEventCardOptions(EventCardOptionsViewModel model)
         {
-            if (model == null)
+            if (shuttingDown || model == null)
             {
                 return;
             }
@@ -243,34 +210,21 @@ namespace YC.Presentation
         public void RefreshResourceAndInfluence() { refreshResource(); refreshInfluence(); }
 
         void ITurnActionView.RefreshInformation() => refreshInformation();
-        void ITurnActionView.ShowPendingChoice() => explorationEventPresenter.ShowPendingChoice();
+        void ITurnActionView.ShowPendingChoice() { if (!shuttingDown) explorationEventPresenter.ShowPendingChoice(); }
         void ITurnActionView.CompleteMainActionPresentation(string actionName) => completeActionPresentation(actionName);
         public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model)
         {
-            if (model == null)
-            {
-                eventChoiceDialog.Hide();
-                return;
-            }
-
-            if (model.Phase == BuildFacilityDraftPhase.Focused)
-            {
-                eventChoiceDialog.ShowBuildFacilityFocus(model);
-            }
-            else if (model.Phase == BuildFacilityDraftPhase.Confirming)
-            {
-                eventChoiceDialog.ShowBuildFacilityConfirmation(model);
-            }
-            else
-            {
-                eventChoiceDialog.Hide();
-            }
+            if (shuttingDown) return;
+            if (model == null) { HideBuildFacilityDraft(); return; }
+            if (showBuildDraft == null) throw new InvalidOperationException("原建设面板尚未绑定。");
+            showBuildDraft(model);
         }
-        public void HideBuildFacilityDraft() => eventChoiceDialog.Hide();
+        public void HideBuildFacilityDraft() { if (!shuttingDown) hideBuildDraft?.Invoke(); }
         public void RefreshCityStylePreview() => cityStyleDeclarationDialog.RefreshProjection();
 
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {
+            if (shuttingDown) return;
             if (model == null)
             {
                 cityStyleDeclarationDialog.Hide();
@@ -281,20 +235,5 @@ namespace YC.Presentation
             cityStyleDeclarationDialog.Show(model);
         }
 
-        private static Color GetHighlightColor(WorkflowHighlightSemantic semantic)
-        {
-            switch (semantic)
-            {
-                case WorkflowHighlightSemantic.CollectionSelected:
-                case WorkflowHighlightSemantic.DeployTarget:
-                    return new Color(0.25f, 0.95f, 0.45f, 0.82f);
-                case WorkflowHighlightSemantic.DispatchSource:
-                    return new Color(0.86f, 0.75f, 0.2f, 0.8f);
-                case WorkflowHighlightSemantic.DispatchTarget:
-                    return new Color(0.15f, 0.8f, 1f, 0.85f);
-                default:
-                    return new Color(0.15f, 0.8f, 1f, 0.65f);
-            }
-        }
     }
 }

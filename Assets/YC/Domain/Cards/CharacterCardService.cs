@@ -140,6 +140,9 @@ namespace YC.Domain.Cards
             {
                 return null;
             }
+            var execution = state.EffectRuntime.EffectNodes.Find(node => node.EffectId == mainNode.ExecutionEffectId);
+            if (RoundExecutionService.IsParallelCoverExecution(execution))
+                return Failure(CommandErrorCode.PendingChoiceRequired, "请通过本人正常盖放请求及准确版本提交。");
 
             var registry = new EffectRegistry();
             var round = new RoundExecutionService(registry);
@@ -764,8 +767,8 @@ namespace YC.Domain.Cards
             int playerId,
             IDictionary<string, string> parameters,
             Dictionary<int, ResourceSet> resources,
-            List<string> facilitySupply,
-            List<string> facilityDeck,
+            IList<string> facilitySupply,
+            IList<string> facilityDeck,
             ref int score)
         {
             switch (effect)
@@ -824,8 +827,8 @@ namespace YC.Domain.Cards
             int playerId,
             IDictionary<string, string> parameters,
             Dictionary<int, ResourceSet> resources,
-            List<string> facilitySupply,
-            List<string> facilityDeck)
+            IList<string> facilitySupply,
+            IList<string> facilityDeck)
         {
             var facilityCardId = GetParameter(parameters, CharacterEffectParameterKeys.FacilityCardId);
             if (string.IsNullOrEmpty(facilityCardId) || !facilitySupply.Contains(facilityCardId))

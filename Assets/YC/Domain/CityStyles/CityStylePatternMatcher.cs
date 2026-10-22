@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
@@ -164,19 +165,21 @@ namespace YC.Domain.CityStyles
         {
             var result = new List<CityStyleFacilityCandidate>();
             var usedSlots = BuildUsedSlotSet(player);
+            bool entityState = YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state);
+            var usedInstances = new HashSet<string>(player.DeclaredCityStyles.SelectMany(declaration => declaration.UsedFacilityIds), StringComparer.Ordinal);
             for (var i = 0; i < state.Map.Facilities.Count; i++)
             {
                 var placement = state.Map.Facilities[i];
                 if (placement.PlayerId != player.PlayerId ||
                     placement.CityBoardSlotIndex < 0 ||
                     placement.CityBoardSlotIndex >= BuildFacilityService.CityBoardSlotCount ||
-                    usedSlots.Contains(placement.CityBoardSlotIndex))
+                    (entityState ? usedInstances.Contains(placement.ContentInstanceId) : usedSlots.Contains(placement.CityBoardSlotIndex)))
                 {
                     continue;
                 }
 
                 FacilityCardDefinition facility;
-                if (!FacilityCardDatabase.TryGet(placement.FacilityCardId, out facility))
+                if (!FacilityCardDatabase.TryGet(state, placement.FacilityCardId, out facility))
                 {
                     continue;
                 }

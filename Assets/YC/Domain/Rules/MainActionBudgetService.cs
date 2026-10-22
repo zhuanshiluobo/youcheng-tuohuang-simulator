@@ -42,7 +42,15 @@ namespace YC.Domain.Rules
                    player.RemainingMainActionsThisTurn > 0;
         }
 
-        public void SpendCompletedMainAction(GameState state, int playerId)
+        public ValidationResult ValidateCanSpendSpecial(GameState state, int playerId)
+        {
+            var validation = ValidateCanSpend(state, playerId);
+            if (!validation.IsValid) return validation;
+            return state.FindPlayer(playerId).RemainingMainActionsThisTurn <= state.FindPlayer(playerId).RestrictedMainActionsThisTurn
+                ? ValidationResult.Failure(CommandErrorCode.InvalidTarget, "新增主要行动只能用于建设、探索或移动城市。") : ValidationResult.Success;
+        }
+
+        public void SpendCompletedMainAction(GameState state, int playerId, bool specialAction = false)
         {
             if (state == null)
             {
@@ -57,12 +65,14 @@ namespace YC.Domain.Rules
                 return;
             }
 
+            if (specialAction && player.RemainingMainActionsThisTurn <= player.RestrictedMainActionsThisTurn) return;
+            if (!specialAction && player.RestrictedMainActionsThisTurn > 0) player.RestrictedMainActionsThisTurn--;
             player.RemainingMainActionsThisTurn -= 1;
             player.CompletedMainActionsThisTurn += 1;
             player.ActedMainActionThisTurn = player.RemainingMainActionsThisTurn <= 0;
         }
 
-        public void GrantAdditionalMainActions(GameState state, int playerId, int amount)
+        public void GrantAdditionalMainActions(GameState state, int playerId, int amount, bool nonSpecialOnly = false)
         {
             if (state == null)
             {
@@ -81,6 +91,7 @@ namespace YC.Domain.Rules
             }
 
             player.RemainingMainActionsThisTurn += amount;
+            if (nonSpecialOnly) player.RestrictedMainActionsThisTurn += amount;
             player.ActedMainActionThisTurn = false;
         }
 
@@ -112,6 +123,7 @@ namespace YC.Domain.Rules
             }
 
             player.RemainingMainActionsThisTurn = DefaultMainActionsPerTurn;
+            player.RestrictedMainActionsThisTurn = 0;
             player.CompletedMainActionsThisTurn = 0;
             player.ActedMainActionThisTurn = false;
             player.UsedCharacterThisTurn = false;
@@ -132,6 +144,7 @@ namespace YC.Domain.Rules
             }
 
             player.RemainingMainActionsThisTurn = 0;
+            player.RestrictedMainActionsThisTurn = 0;
             player.ActedMainActionThisTurn = true;
             player.UsedCharacterThisTurn = false;
             player.CharacterCardLockedThisTurn = false;

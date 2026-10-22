@@ -236,7 +236,8 @@ namespace YC.Tests.EditMode
                 AssertField(controllerType, controller, "fieldOfView", 45f);
                 AssertField(controllerType, controller, "minZoom", 0.9f);
                 AssertField(controllerType, controller, "maxZoom", 2f);
-                AssertField(controllerType, controller, "wheelZoomStep", 0.1f);
+                Assert.That((float)controllerType.GetField("wheelZoomStep", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(controller), Is.GreaterThan(0f));
                 AssertField(controllerType, controller, "zoomSmoothTime", 0.12f);
                 var viewport = (Rect)controllerType
                     .GetField("tabletopViewport", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -269,7 +270,11 @@ namespace YC.Tests.EditMode
                 var renderer = mapObject.GetComponent<SpriteRenderer>();
                 renderer.sprite = sprite;
                 var camera = cameraObject.GetComponent<Camera>();
-                camera.aspect = aspect;
+                var screenAspect = (float)Screen.width / Screen.height;
+                var viewport = aspect > screenAspect
+                    ? new Rect(0f, 0f, 1f, screenAspect / aspect)
+                    : new Rect(0f, 0f, aspect / screenAspect, 1f);
+                camera.ResetAspect();
                 camera.orthographic = true;
                 var navigationBoundsType = Type.GetType(
                     "YC.Presentation.TabletopViewportNavigationBounds, Assembly-CSharp",
@@ -284,12 +289,14 @@ namespace YC.Tests.EditMode
                 controllerType.GetField("navigationBoundsSource", BindingFlags.Instance | BindingFlags.NonPublic)
                     .SetValue(controller, navigationBounds);
 
+                controllerType.GetField("cameraViewport", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(controller, viewport);
                 controllerType.GetMethod("FitCameraToMap", BindingFlags.Instance | BindingFlags.Public)
                     .Invoke(controller, null);
 
                 Assert.That(camera.orthographic, Is.False);
                 Assert.That(camera.fieldOfView, Is.EqualTo(45f).Within(0.0001f));
-                Assert.That(camera.rect, Is.EqualTo(new Rect(0f, 0f, 1f, 1f)));
+                Assert.That(camera.rect, Is.EqualTo(viewport));
                 Assert.That(Mathf.DeltaAngle(camera.transform.eulerAngles.x, 0f),
                     Is.Zero.Within(0.0001f));
                 var mapCenterViewport = camera.WorldToViewportPoint(Vector3.zero);
@@ -367,6 +374,22 @@ namespace YC.Tests.EditMode
                 Object.DestroyImmediate(cameraObject);
                 Object.DestroyImmediate(mapObject);
             }
+        }
+
+        [TestCase(3f)]
+        [TestCase(.6f)]
+        [TestCase(1f)]
+        public void ShrinkingViewport_AtWholeMapFitPreservesOneAxisAndMapAspect(float aspect)
+        {
+            var map = new Vector2(10f, 10f);
+            var fit = Mathf.Max(map.x / aspect, map.y) / (2f * Mathf.Tan(22.5f * Mathf.Deg2Rad));
+            var rect = Invoke<Rect>("CalculateContainedViewport", map, aspect, fit, 45f);
+            Assert.That(Mathf.Max(rect.width, rect.height), Is.EqualTo(1f).Within(.0001f));
+            Assert.That(rect.width * aspect / rect.height, Is.EqualTo(map.x / map.y).Within(.0001f));
+            Assert.That(rect.center, Is.EqualTo(new Vector2(.5f, .5f)));
+            var enlarged = Invoke<Rect>("CalculateContainedViewport", map, aspect, fit * .3f, 45f);
+            Assert.That(enlarged.width, Is.GreaterThanOrEqualTo(rect.width));
+            Assert.That(enlarged.height, Is.GreaterThanOrEqualTo(rect.height));
         }
 
         private static T Invoke<T>(string methodName, params object[] arguments)

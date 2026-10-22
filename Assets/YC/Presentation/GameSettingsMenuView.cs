@@ -24,9 +24,10 @@ namespace YC.Presentation
         [SerializeField] private Button rulebookButton;
         [SerializeField] private Button placeholderTabButton;
         [SerializeField] private Button returnButton;
-        [SerializeField] private Button saveGameButton;
         [SerializeField] private Button confirmReturnButton;
         [SerializeField] private Button cancelReturnButton;
+
+        [SerializeField] private Button saveGameButton;
 
         [Header("General")]
         [SerializeField] private Dropdown resolutionDropdown;

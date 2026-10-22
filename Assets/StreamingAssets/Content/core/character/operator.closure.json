@@ -1,0 +1,88 @@
+{
+  "definitionId": "operator.closure",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "可露希尔",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.closure.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [
+    {
+      "localZoneId": "orders",
+      "zoneTemplateId": "core.zone.card_facility_storage",
+      "acceptedItemKinds": [
+        "Card"
+      ],
+      "acceptedTypeIds": [
+        "core.facility_card"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.return_contents_before_exit",
+      "displayAnchorId": "orders",
+      "emptyExitPolicyId": "core.discard_carrier_when_empty",
+      "paymentPolicyId": "",
+      "maxMarkersPerPayment": 0
+    }
+  ],
+  "abilities": [
+    {
+      "abilityId": "operator.closure.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.closure.strategy",
+      "script": "lua/characters/operator.closure.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.closure.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.operator.closure.tactic",
+      "script": "lua/characters/operator.closure.tactic.lua",
+      "observedEvents": [
+        "CandidateSetBuilding"
+      ],
+      "observerSubjectPolicy": "self",
+      "candidateKindFilter": "facility.build.card",
+      "version": "2.0.0",
+      "completionHandlerId": "content.operator.closure.tactic.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": true,
+      "specialZoneId": "orders"
+    }
+  ],
+  "data": {
+    "templateId": "operator.closure",
+    "cardId": "operator.closure",
+    "name": "可露希尔",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.closure.strategy",
+    "tacticAbilityId": "operator.closure.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "operator.closure.tactic",
+        "effectText": "计谋·工程订单（持续性）：从设施供应区选择至多2张名称不同的设施置于本牌下，每取走一张立即补原供应槽。之后建设时可选择牌下设施，仍须支付正常费用；牌下无设施时，将本角色移至角色弃牌区。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [
+          "orders"
+        ],
+        "includeCoverSlots": false,
+        "displayName": "可露希尔"
+      }
+    ]
+  }
+}

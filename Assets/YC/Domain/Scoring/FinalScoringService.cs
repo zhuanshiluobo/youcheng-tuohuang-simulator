@@ -6,6 +6,7 @@ using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Effects;
 
 namespace YC.Domain.Scoring
 {
@@ -37,6 +38,9 @@ namespace YC.Domain.Scoring
                     "最终计分只能在 FinalScoring 阶段结算。"));
             }
 
+            if (EffectTreeExecutor.GetDeferredResponseDependencies(state, new DeferredDependencyQuery { DependencyKind = DeferredDependencyKind.FinalizeGame }).Count > 0)
+                return FinalScoringResult.Failure(ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "最终计分前需要本人完成尚未回答的影响力去向。"));
+
             if (state.FinalScoring != null && state.FinalScoring.IsResolved)
             {
                 return FinalScoringResult.Success(state.FinalScoring);
@@ -51,8 +55,8 @@ namespace YC.Domain.Scoring
             for (var i = 0; i < state.Players.Count; i++)
             {
                 var player = state.Players[i];
-                var facilityScore = CalculateFacilityScore(player);
-                var cityStyleScore = CalculateCityStyleScore(player);
+                var facilityScore = CalculateFacilityScore(player, state);
+                var cityStyleScore = CalculateCityStyleScore(player, state);
                 var playerScore = new FinalPlayerScoreState
                 {
                     PlayerId = player.PlayerId,
@@ -134,7 +138,7 @@ namespace YC.Domain.Scoring
                    resources.Originium / 9;
         }
 
-        public static int CalculateFacilityScore(PlayerState player)
+        public static int CalculateFacilityScore(PlayerState player, GameState state = null)
         {
             if (player == null || player.BuiltFacilityIds == null)
             {
@@ -145,7 +149,7 @@ namespace YC.Domain.Scoring
             for (var i = 0; i < player.BuiltFacilityIds.Count; i++)
             {
                 FacilityCardDefinition facility;
-                if (FacilityCardDatabase.TryGet(player.BuiltFacilityIds[i], out facility))
+                if (FacilityCardDatabase.TryGet(state, player.BuiltFacilityIds[i], out facility))
                 {
                     score += facility.Score;
                 }
@@ -154,7 +158,7 @@ namespace YC.Domain.Scoring
             return score;
         }
 
-        public static int CalculateCityStyleScore(PlayerState player)
+        public static int CalculateCityStyleScore(PlayerState player, GameState state = null)
         {
             if (player == null || player.DeclaredCityStyles == null)
             {
@@ -166,7 +170,7 @@ namespace YC.Domain.Scoring
             {
                 var declaration = player.DeclaredCityStyles[i];
                 CityStyleDefinition cityStyle;
-                if (declaration != null && CityStyleDatabase.TryGet(declaration.CityStyleId, out cityStyle))
+                if (declaration != null && CityStyleDatabase.TryGet(state, declaration.CityStyleId, out cityStyle))
                 {
                     score += cityStyle.Score;
                 }

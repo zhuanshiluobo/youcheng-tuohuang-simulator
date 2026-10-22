@@ -43,7 +43,15 @@ namespace YC.Presentation
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this; DontDestroyOnLoad(gameObject);
-            store = new MatchSaveStore(Path.Combine(UnityEngine.Application.persistentDataPath, "MatchSaves"));
+            var saveDirectory = Path.Combine(UnityEngine.Application.persistentDataPath, "MatchSaves");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 验收实例使用独立槽位目录，仍走正式存读档流程。
+            const string validationSavePrefix = "--yc-validation-save-root=";
+            foreach (var argument in Environment.GetCommandLineArgs())
+                if (argument.StartsWith(validationSavePrefix, StringComparison.Ordinal))
+                    saveDirectory = Path.GetFullPath(argument.Substring(validationSavePrefix.Length));
+#endif
+            store = new MatchSaveStore(saveDirectory);
             UnityEngine.Application.wantsToQuit += WantsToQuit;
         }
         private void OnDestroy()
@@ -132,11 +140,17 @@ namespace YC.Presentation
 
         private SimulationPublishedSnapshot ReadHostSaveSnapshot()
         {
-            var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
-            if (coordinator == null || !coordinator.TryReadPublishedSnapshot(out var snapshot) ||
-                snapshot.GameId != context.GameId || snapshot.LocalPlayerId != context.LocalPlayerId || !snapshot.CanCreateSaveCheckpoint)
+            if (!TryReadHostSaveSnapshot(out var snapshot))
                 throw new InvalidOperationException("联机正式确认保存点尚未就绪。");
             return snapshot;
+        }
+
+        private bool TryReadHostSaveSnapshot(out SimulationPublishedSnapshot snapshot)
+        {
+            snapshot = null;
+            var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
+            return coordinator != null && coordinator.TryReadPublishedSnapshot(out snapshot) &&
+                snapshot.GameId == context.GameId && snapshot.LocalPlayerId == context.LocalPlayerId && snapshot.CanCreateSaveCheckpoint;
         }
 
         private SimulationPublishedSnapshot ReadRetainedHostSnapshot()
@@ -153,8 +167,11 @@ namespace YC.Presentation
         private async void LateUpdate()
         {
             if (!CanSave || saving || leaving || dirty == saved || Time.unscaledTime < retryAt) return;
+            SimulationPublishedSnapshot snapshot = null;
+            // 自动保存保留脏标记，等待四端确认；使用此次固定点，避免写入前再次读取活动版本。
+            if (context.Mode == LaunchMode.Host && !context.IsCompletedSessionDetached && !TryReadHostSaveSnapshot(out snapshot)) return;
             int epoch = generation;
-            if (!await Save() && epoch == generation) retryAt = Time.unscaledTime + 2f;
+            if (!await SaveCore(-1, snapshot) && epoch == generation) retryAt = Time.unscaledTime + 2f;
         }
         public MatchSaveData Capture()
         {
@@ -202,7 +219,9 @@ namespace YC.Presentation
             return seats;
         }
 
-        public async Task<bool> Save(int slot = -1)
+        public Task<bool> Save(int slot = -1) => SaveCore(slot, null);
+
+        private async Task<bool> SaveCore(int slot, SimulationPublishedSnapshot confirmedSnapshot)
         {
             if (saving) { lastFailure = "正在写入存档，请稍候。"; return false; }
             var epoch = generation; int version = dirty; saving = true;
@@ -215,7 +234,7 @@ namespace YC.Presentation
                 Task write;
                 if (context?.Mode == LaunchMode.Host)
                 {
-                    var snapshot = context.IsCompletedSessionDetached ? ReadRetainedHostSnapshot() : ReadHostSaveSnapshot();
+                    var snapshot = context.IsCompletedSessionDetached ? ReadRetainedHostSnapshot() : confirmedSnapshot ?? ReadHostSaveSnapshot();
                     var header = context.IsCompletedSessionDetached ? GameStateCloneService.DeepClone(completedHostHeader) : CreateHostSaveHeader();
                     header.SavedUtcTicks = DateTime.UtcNow.Ticks;
                     using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext))

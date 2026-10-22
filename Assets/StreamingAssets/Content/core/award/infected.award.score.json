@@ -1,0 +1,44 @@
+{
+  "definitionId": "infected.award.score",
+  "contentType": "award",
+  "version": "1.0.0",
+  "displayName": "梅兰德基金会—授勋卡",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/awards/infected.award.score.jpg",
+  "artworkSpriteId": "infected_award_score",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.award.score.acquired",
+      "mode": "acquired",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.award.score.acquired",
+      "script": "lua/awards/infected.award.score.acquired.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "instanceTypeId": "core.award_card",
+    "acquisitionRole": "reward_pool",
+    "lifecycle": "immediate_retired",
+    "titleKey": "梅兰德基金会授勋",
+    "descriptionKey": "",
+    "playerDetails": [
+      {
+        "abilityId": "",
+        "effectText": "取得后立即获得1分，然后将本授勋卡回盒。",
+        "displayCategory": "Immediate",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "梅兰德基金会—授勋卡"
+      }
+    ]
+  },
+  "itemTypeId": "core.award_card"
+}

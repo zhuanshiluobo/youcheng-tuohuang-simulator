@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
+using YC.Domain.Presentation;
 
 namespace YC.Domain.State
 {
@@ -20,6 +22,24 @@ namespace YC.Domain.State
         Completed,
         Failed,
         Faulted
+    }
+
+    public enum EffectChildSchedulingMode
+    {
+        Sequential = 0,
+        Independent = 1
+    }
+
+    [Serializable]
+    public sealed class EffectChildSchedulingGroup
+    {
+        public int ProtocolVersion = 1;
+        public string GroupId = string.Empty;
+        public string OwnerEffectId = string.Empty;
+        public string StableGroupKey = string.Empty;
+        public EffectChildSchedulingMode Mode = EffectChildSchedulingMode.Sequential;
+        public int StartIndex;
+        public List<string> ChildEffectIds = new List<string>();
     }
 
     public enum EffectPendingOutcome
@@ -446,6 +466,12 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectNodeRuntimeState
     {
+        public OperationCommandContext OperationContext;
+        public OperationCommandContext ContinuationOperationContext;
+        public YC.Domain.Effects.SettlementWindowRuntimeState SettlementWindow;
+        public YC.Domain.Effects.ResourcePaymentRuntimeState Payment;
+        public SettlementEffectDefinition Settlement;
+        public EffectPresentationDefinition Presentation;
         public string EffectId = string.Empty;
         public string RoundId = string.Empty;
         public string ParentEffectId = string.Empty;
@@ -461,6 +487,8 @@ namespace YC.Domain.State
         public string FailureReason = string.Empty;
         public List<string> ChildEffectIds = new List<string>();
         public List<string> BlockerIds = new List<string>();
+        // 缺省无组即顺序执行。组归属只保存在父节点，禁止从子 spec 推断或传播。
+        public List<EffectChildSchedulingGroup> ChildSchedulingGroups = new List<EffectChildSchedulingGroup>();
         public string CompletedEventId = string.Empty;
         public string ContinuationHandlerId = string.Empty;
         public string ContinuationBindingId = string.Empty;
@@ -469,7 +497,15 @@ namespace YC.Domain.State
         public string ContinuationAbilityId = string.Empty;
         public string ContinuationDefinitionVersion = string.Empty;
         public string ContinuationContentHash = string.Empty;
+        public NormalizedValue ContinuationContext;
+        public string ContinuationScopeRootEffectId = string.Empty;
         public string FlowStage = string.Empty;
+        public NormalizedValue ContinuationData = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
+        // Host 结果明细；不挤入 NormalizedValue，也不进入玩家 DTO。
+        public List<YC.Domain.Items.ItemPositionChange> PositionChanges = new List<YC.Domain.Items.ItemPositionChange>();
+        public List<string> ShuffleInputItemIds = new List<string>();
+        public List<YC.Domain.Enterprises.EnterpriseArrivalReceipt> EnterpriseArrivalReceipts = new List<YC.Domain.Enterprises.EnterpriseArrivalReceipt>();
+        public List<YC.Domain.Enterprises.FrozenEnterpriseSpecial> FrozenEnterpriseSpecials = new List<YC.Domain.Enterprises.FrozenEnterpriseSpecial>();
         public List<TimingHandlerBinding> TimingBindings = new List<TimingHandlerBinding>();
         public List<EffectSpecRuntimeState> NestedEffects = new List<EffectSpecRuntimeState>();
         public List<int> NestedGroupSizes = new List<int>();
@@ -483,6 +519,8 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectSpecRuntimeState
     {
+        public SettlementEffectDefinition Settlement;
+        public EffectPresentationDefinition Presentation;
         public string EffectTypeId = string.Empty;
         public string DefinitionVersion = string.Empty;
         public string SourceId = string.Empty;
@@ -500,6 +538,7 @@ namespace YC.Domain.State
         public string ContinuationAbilityId = string.Empty;
         public string ContinuationDefinitionVersion = string.Empty;
         public string ContinuationContentHash = string.Empty;
+        public NormalizedValue ContinuationContext;
         public List<EffectSpecRuntimeState> NestedEffects = new List<EffectSpecRuntimeState>();
         public List<int> NestedGroupSizes = new List<int>();
 
@@ -507,6 +546,8 @@ namespace YC.Domain.State
         {
             var clone = new EffectSpecRuntimeState
             {
+                Settlement = GameStateCloneService.DeepClone(Settlement),
+                Presentation = GameplayPresentationNormalizer.Clone(Presentation),
                 EffectTypeId = EffectTypeId,
                 DefinitionVersion = DefinitionVersion,
                 SourceId = SourceId,
@@ -519,6 +560,7 @@ namespace YC.Domain.State
                 DeclinePromptKey = DeclinePromptKey,
                 UnavailablePolicy = UnavailablePolicy,
                 CompletionHandlerId = CompletionHandlerId,
+                ContinuationContext = ContinuationContext?.Clone(),
                 ContinuationContentId = ContinuationContentId,
                 ContinuationContentInstanceId = ContinuationContentInstanceId,
                 ContinuationAbilityId = ContinuationAbilityId,
@@ -581,6 +623,8 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class InteractionRequest
     {
+        public OperationCommandContext OperationContext;
+        public GameplayInteractionPresentation Presentation;
         public const string MainlineCompletionInteractionPrefix = "round.mainline.complete:";
 
         // RequestId 保留为迁移期字段；InteractionId 是对外合同名称，二者在创建时保持一致。
@@ -634,6 +678,7 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class RuleEvent
     {
+        public OperationCommandContext OperationContext;
         public string EventId = string.Empty;
         public string EventType = string.Empty;
         public string SourceEffectId = string.Empty;
@@ -654,6 +699,8 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class DispatchReceipt
     {
+        public YC.Domain.Effects.EventResponseAttachmentKind ActualAttachmentKind;
+        public List<string> DeferredResponseIds = new List<string>();
         public string ReceiptId = string.Empty;
         public string EventId = string.Empty;
         public string SubscriptionId = string.Empty;
@@ -759,18 +806,27 @@ namespace YC.Domain.State
 
         public static RuleCommit Apply(GameState state, string commandId, params RuleJournalEntry[] entries)
         {
-            return ApplyInternal(state, commandId, false, entries);
+            return ApplyInternal(state, commandId, false, false, entries);
         }
 
         public static RuleCommit ApplyFault(GameState state, string commandId, params RuleJournalEntry[] entries)
         {
-            return ApplyInternal(state, commandId, true, entries);
+            return ApplyInternal(state, commandId, true, false, entries);
+        }
+
+        // 内核专用闭合路径：完整前校验之后不调用执行器或外部回调，
+        // 只追加日志、刷新受保护响应的 revision，并在返回前复验提交尾。
+        // 不返回或缓存可跨提交使用的“已校验”凭据。
+        internal static RuleCommit ApplyPreparedEffectCommit(GameState state, string commandId, params RuleJournalEntry[] entries)
+        {
+            return ApplyInternal(state, commandId, false, true, entries);
         }
 
         private static RuleCommit ApplyInternal(
             GameState state,
             string commandId,
             bool allowPausedFault,
+            bool finalizePreparedEffect,
             params RuleJournalEntry[] entries)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
@@ -781,6 +837,16 @@ namespace YC.Domain.State
 
             EffectRuntimeState runtime = state.EffectRuntime;
             ValidateCommitPreconditions(runtime, allowPausedFault);
+            int previousJournalCount = runtime.Journal.Count;
+            int previousRevision = runtime.StateRevision;
+            int previousNextSequence = runtime.NextCommitSequence;
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+            {
+                YC.Domain.Items.ItemZoneStateFactory.BindDerivedScoreMarkers(state);
+                string entityReason;
+                if (!new YC.Domain.Items.ItemZoneQuery().TryValidate(state, out entityReason))
+                    throw new InvalidOperationException(entityReason);
+            }
 
             List<RuleJournalEntry> sourceEntries = new List<RuleJournalEntry>();
             if (entries != null)
@@ -865,7 +931,71 @@ namespace YC.Domain.State
                 result.Entries.Add(committedEntries[i].Clone());
             }
 
+            if (finalizePreparedEffect)
+            {
+                RefreshProtectedResponseRevisions(state, runtime);
+                // 旧 schema 或任何不满足快路径前提的提交沿原完整后校验。
+                // 上面的同步路径没有图结构写入或业务回调，完整前校验的旧图仍有效。
+                if (runtime.SchemaVersion != EffectRuntimeState.CurrentSchemaVersion ||
+                    runtime.Status != EffectRuntimeStatus.Active ||
+                    !HasValidCommittedTail(runtime, result, previousJournalCount, previousRevision, previousNextSequence))
+                {
+                    string reason;
+                    if (!runtime.TryValidate(out reason))
+                        throw new InvalidOperationException("运行状态校验失败：" + reason);
+                }
+            }
+
             return result;
+        }
+
+        private static void RefreshProtectedResponseRevisions(GameState state, EffectRuntimeState runtime)
+        {
+            // 停止技能的内部收尾保留原响应请求，只推进其乐观并发版本。
+            foreach (var use in state.CharacterUses.Where(value => value.SkippedModes.Count == 1 && !value.Finished))
+                foreach (var request in runtime.InteractionRequests.Where(value => value.Status == "open"))
+                {
+                    var response = runtime.EffectNodes.Find(value => value.EffectId == request.OwnerEffectId);
+                    var visited = new HashSet<string>(StringComparer.Ordinal);
+                    while (response != null && visited.Add(response.EffectId))
+                    {
+                        if (response.EffectId == use.StoppedActivationEffectId)
+                        {
+                            request.StateRevision = runtime.StateRevision;
+                            break;
+                        }
+                        response = runtime.EffectNodes.Find(value => value.EffectId == response.ParentEffectId);
+                    }
+                }
+        }
+
+        private static bool HasValidCommittedTail(
+            EffectRuntimeState runtime,
+            RuleCommit commit,
+            int previousJournalCount,
+            int previousRevision,
+            int previousNextSequence)
+        {
+            if (previousNextSequence != (long)previousJournalCount + 1 ||
+                commit.Entries.Count == 0 ||
+                runtime.Journal.Count != (long)previousJournalCount + commit.Entries.Count ||
+                runtime.StateRevision != (long)previousRevision + 1 ||
+                runtime.NextCommitSequence != (long)previousNextSequence + commit.Entries.Count ||
+                commit.StateRevision != runtime.StateRevision ||
+                commit.FirstCommitSequence != previousNextSequence ||
+                commit.LastCommitSequence != runtime.NextCommitSequence - 1 ||
+                string.IsNullOrEmpty(commit.CommitId)) return false;
+
+            for (int i = previousJournalCount; i < runtime.Journal.Count; i++)
+            {
+                RuleJournalEntry entry = runtime.Journal[i];
+                if (entry == null || entry.CommitSequence != (long)i + 1 ||
+                    entry.StateRevision != runtime.StateRevision ||
+                    !string.Equals(entry.CommitId, commit.CommitId, StringComparison.Ordinal) ||
+                    (entry.Payload != null && !entry.Payload.IsValid())) return false;
+            }
+
+            return true;
         }
 
         private static void ValidateCommitPreconditions(EffectRuntimeState runtime, bool allowPausedFault)
@@ -912,7 +1042,14 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectRuntimeState
     {
-        public const int CurrentSchemaVersion = 1;
+        public List<DeferredResponseState> DeferredResponses = new List<DeferredResponseState>();
+        // 0兼容旧档；命令作用域在发布工作副本前清空，因果保存在实际节点和事件。
+        public int OperationWindowSchemaVersion;
+        public long NextOperationWindowOrdinal = 1;
+        public List<OperationWindowState> OperationWindows = new List<OperationWindowState>();
+        public OperationCommandContext CurrentOperationContext;
+        public string ActiveSettlementWindowId = string.Empty;
+        public const int CurrentSchemaVersion = 3;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public EffectRuntimeStatus Status = EffectRuntimeStatus.Active;
@@ -953,6 +1090,8 @@ namespace YC.Domain.State
                 return false;
             }
 
+            if (!YC.Domain.Rules.OperationWindowService.TryValidateRuntime(this, out reason)) return false;
+
             if (Status != EffectRuntimeStatus.Active && Status != EffectRuntimeStatus.PausedFault)
             {
                 reason = "运行状态 status 不受支持。";
@@ -967,11 +1106,13 @@ namespace YC.Domain.State
 
             if (EffectNodes == null || MainNodes == null || Blockers == null ||
                 InteractionRequests == null || CandidateResolutions == null || RuleEvents == null ||
-                DispatchReceipts == null || ContinuationBindings == null || Journal == null || Diagnostics == null)
+                DispatchReceipts == null || ContinuationBindings == null || Journal == null || Diagnostics == null || DeferredResponses == null)
             {
                 reason = "运行状态集合不能为 null。";
                 return false;
             }
+
+            if (!TryValidateDeferredResponseStructure(out reason)) return false;
 
             int expectedSequence = 1;
             int previousRevision = 0;
@@ -1025,16 +1166,34 @@ namespace YC.Domain.State
                     return false;
                 }
 
-                if (node != null && ((node.NormalizedArguments != null && !node.NormalizedArguments.IsValid()) ||
+                if (node != null && ((node.ContinuationData == null || node.ContinuationData.Kind != NormalizedValueKind.Object || !node.ContinuationData.IsValid()) ||
+                                     (node.NormalizedArguments != null && !node.NormalizedArguments.IsValid()) ||
                                      (node.NormalizedResult != null && !node.NormalizedResult.IsValid()) ||
-                                     node.ChildEffectIds == null || node.BlockerIds == null ||
+                                     node.ChildEffectIds == null || node.BlockerIds == null || node.ChildSchedulingGroups == null ||
                                      node.NestedEffects == null || node.NestedGroupSizes == null ||
+                                     node.PositionChanges == null || node.ShuffleInputItemIds == null || node.EnterpriseArrivalReceipts == null || node.FrozenEnterpriseSpecials == null ||
                                      !TryValidateNestedSpecs(node.NestedEffects, node.NestedGroupSizes, out reason)))
                 {
                     reason = "Effect 节点包含非法归一化参数或结果。";
                     return false;
                 }
+                foreach (var change in node.PositionChanges)
+                    if (change == null || string.IsNullOrWhiteSpace(change.ItemId) || change.From == null || change.To == null || string.IsNullOrWhiteSpace(change.From.ZoneId) || string.IsNullOrWhiteSpace(change.To.ZoneId))
+                    { reason = "移牌位置结果损坏。"; return false; }
+                if (node.ShuffleInputItemIds.Exists(string.IsNullOrWhiteSpace) || new HashSet<string>(node.ShuffleInputItemIds, StringComparer.Ordinal).Count != node.ShuffleInputItemIds.Count)
+                { reason = "洗牌输入集合损坏。"; return false; }
+                if (node.EnterpriseArrivalReceipts.Any(receipt => receipt == null || string.IsNullOrWhiteSpace(receipt.EventId) || string.IsNullOrWhiteSpace(receipt.EnterpriseItemId) || receipt.PlayerId <= 0 ||
+                    receipt.OldLevel < 0 || receipt.OldLevel > 5 || receipt.NewLevel < 0 || receipt.NewLevel > 5 || Math.Abs(receipt.NewLevel - receipt.OldLevel) != 1) ||
+                    node.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId).Distinct().Count() != node.EnterpriseArrivalReceipts.Count)
+                { reason = "企业到达收据损坏。"; return false; }
+                if (node.FrozenEnterpriseSpecials.Any(selection => selection?.Candidate == null || string.IsNullOrWhiteSpace(selection.EnterpriseDefinitionId) || selection.UnlockedByPlayerId <= 0 ||
+                    string.IsNullOrWhiteSpace(selection.Candidate.CandidateId) || string.IsNullOrWhiteSpace(selection.Candidate.EnterpriseItemId) || string.IsNullOrWhiteSpace(selection.Candidate.SpecialId) ||
+                    selection.Candidate.CurrentLevel < 0 || selection.Candidate.CurrentLevel > 5 || selection.Candidate.EffectiveLevelCeiling < selection.Candidate.CurrentLevel || selection.Candidate.EffectiveLevelCeiling > 5) ||
+                    node.FrozenEnterpriseSpecials.Select(selection => selection.Candidate.CandidateId).Distinct().Count() != node.FrozenEnterpriseSpecials.Count)
+                { reason = "企业特效冻结快照损坏。"; return false; }
             }
+
+            if (!TryValidateChildScheduling(out reason)) return false;
 
             HashSet<string> mainNodeIds = new HashSet<string>(StringComparer.Ordinal);
             for (int i = 0; i < MainNodes.Count; i++)
@@ -1051,7 +1210,7 @@ namespace YC.Domain.State
                 for (int j = 0; j < node.OrderedChildEffectIds.Count; j++)
                 {
                     if (string.IsNullOrEmpty(node.OrderedChildEffectIds[j]) ||
-                        !EffectNodes.Exists(candidate => candidate != null && candidate.EffectId == node.OrderedChildEffectIds[j]))
+                        !nodeIds.Contains(node.OrderedChildEffectIds[j]))
                     {
                         reason = "主链节点的有序子任务引用不存在。";
                         return false;
@@ -1064,9 +1223,9 @@ namespace YC.Domain.State
             {
                 MainlineNodeRuntimeState node = MainNodes[i];
                 if ((!string.IsNullOrEmpty(node.PreviousNodeId) &&
-                     !MainNodes.Exists(candidate => candidate != null && candidate.NodeId == node.PreviousNodeId)) ||
+                     !mainNodeIds.Contains(node.PreviousNodeId)) ||
                     (!string.IsNullOrEmpty(node.NextNodeId) &&
-                     !MainNodes.Exists(candidate => candidate != null && candidate.NodeId == node.NextNodeId)))
+                     !mainNodeIds.Contains(node.NextNodeId)))
                 {
                     reason = "主链节点链接指向不存在的节点。";
                     return false;
@@ -1216,7 +1375,7 @@ namespace YC.Domain.State
             }
 
             reason = string.Empty;
-            return true;
+            return GameplayPresentationStateValidator.TryValidate(this, out reason);
         }
 
         private static bool HasUniqueIds(IList<string> ids)
@@ -1231,6 +1390,172 @@ namespace YC.Domain.State
             }
 
             return true;
+        }
+
+        // 装配、Created 提升、终态解锁和恢复校验共用相同屏障谓词。
+        internal bool IsChildSchedulingEligible(EffectNodeRuntimeState owner, int childIndex)
+        {
+            if (owner == null || childIndex < 0 || childIndex >= owner.ChildEffectIds.Count) return false;
+            var window = owner.SettlementWindow;
+            if (window?.Context?.Kind == YC.Domain.Effects.SettlementEntryService.PlayerCleanup)
+            {
+                string childId = owner.ChildEffectIds[childIndex];
+                var entry = window.Entries.Find(e => e.TargetEffectId == childId);
+                if (entry != null)
+                {
+                    var recorded = EffectNodes.Find(n => n.EffectId == childId);
+                    if (recorded != null && IsSchedulingTerminal(recorded.Status)) return true;
+                    if (!YC.Domain.Effects.SettlementEntryService.IsChildEligible(this, window, childId)) return false;
+                    for (int i = 0; i < childIndex; i++)
+                        if (!window.Entries.Exists(e => e.TargetEffectId == owner.ChildEffectIds[i]))
+                        { var prior = EffectNodes.Find(n => n.EffectId == owner.ChildEffectIds[i]); if (prior == null || !IsSchedulingTerminal(prior.Status)) return false; }
+                    return true;
+                }
+                if (!YC.Domain.Effects.SettlementEntryService.IsChildEligible(this, window, childId)) return false;
+            }
+            int barrier = childIndex;
+            foreach (var group in owner.ChildSchedulingGroups)
+                if (childIndex >= group.StartIndex && childIndex - group.StartIndex < group.ChildEffectIds.Count)
+                {
+                    barrier = group.StartIndex;
+                    break;
+                }
+            for (int i = 0; i < barrier; i++)
+            {
+                var previous = EffectNodes.Find(node => node != null && node.EffectId == owner.ChildEffectIds[i]);
+                if (previous == null || !IsSchedulingTerminal(previous.Status)) return false;
+            }
+            return YC.Domain.Rules.RoundExecutionService.IsEntranceSetupChildEligible(this, owner, childIndex);
+        }
+
+        private static bool IsSchedulingTerminal(EffectNodeStatus status)
+        {
+            return status == EffectNodeStatus.Completed || status == EffectNodeStatus.Failed;
+        }
+
+        private bool TryValidateDeferredResponseStructure(out string reason)
+        {
+            reason = "deferred_response_structure_invalid";
+            var ids = new HashSet<string>(StringComparer.Ordinal); var roots = new HashSet<string>(StringComparer.Ordinal);
+            if (EffectNodes.Any(n => n == null) || RuleEvents.Any(e => e == null)) return false;
+            foreach (var receipt in DispatchReceipts)
+            {
+                if (receipt == null || receipt.DeferredResponseIds == null || receipt.AttachedEffectIds == null ||
+                    !Enum.IsDefined(typeof(YC.Domain.Effects.EventResponseAttachmentKind), receipt.ActualAttachmentKind) ||
+                    receipt.DeferredResponseIds.Count != receipt.DeferredResponseIds.Distinct(StringComparer.Ordinal).Count() ||
+                    (receipt.ActualAttachmentKind == YC.Domain.Effects.EventResponseAttachmentKind.RequiredChild) != (receipt.DeferredResponseIds.Count == 0)) return false;
+            }
+            if (SchemaVersion < 3 && (DeferredResponses.Count != 0 || DispatchReceipts.Any(r => r.DeferredResponseIds.Count != 0))) return false;
+            foreach (var response in DeferredResponses)
+            {
+                if (response == null || string.IsNullOrEmpty(response.DeferredResponseId) || !ids.Add(response.DeferredResponseId) ||
+                    string.IsNullOrEmpty(response.ResponseRootEffectId) || !roots.Add(response.ResponseRootEffectId) ||
+                    !Enum.IsDefined(typeof(YC.Domain.Effects.DeferredResponseStatus), response.Status) ||
+                    response.AnsweringPlayerId < 1 || response.MainWindowPlayerIdAtCreation < 1 ||
+                    response.AnsweringPlayerId == response.MainWindowPlayerIdAtCreation ||
+                    string.IsNullOrEmpty(response.SourceCardInstanceId) || string.IsNullOrEmpty(response.AbilityId) ||
+                    string.IsNullOrEmpty(response.ReservedItemId) || string.IsNullOrEmpty(response.ReservationZoneId) ||
+                    string.IsNullOrEmpty(response.OriginalSupplyZoneId) || string.IsNullOrEmpty(response.DestinationHandlerId)) return false;
+                var root = EffectNodes.Find(n => n.EffectId == response.ResponseRootEffectId);
+                var sourceEvent = RuleEvents.Find(e => e.EventId == response.SourceEventId && e.SourceEffectId == response.SourceDepartureEffectId);
+                var cause = root?.OperationContext; var facts = cause?.WindowFacts;
+                bool pending = response.Status == YC.Domain.Effects.DeferredResponseStatus.Pending;
+                if (root == null || root.ParentEffectId != string.Empty || root.PlayerId != response.AnsweringPlayerId || sourceEvent == null ||
+                    cause == null || facts == null || facts.OperationWindowId != response.OriginMainOperationWindowId ||
+                    cause.OriginMainOperationWindowId != response.OriginMainOperationWindowId ||
+                    cause.MainWindowPlayerIdAtCreation != response.MainWindowPlayerIdAtCreation ||
+                    facts.AuthorizedPlayerIds.Count != 1 || facts.AuthorizedPlayerIds[0] != response.MainWindowPlayerIdAtCreation ||
+                    facts.WindowKind != YC.Domain.Rules.RoundMainlineNodeTypeIds.PlayerActionWindow && facts.WindowKind != YC.Domain.Rules.RoundMainlineNodeTypeIds.PlayerCleanupWindow ||
+                    pending && (root.Status == EffectNodeStatus.Completed || root.Status == EffectNodeStatus.Failed || root.Status == EffectNodeStatus.Faulted) ||
+                    !pending && root.Status != EffectNodeStatus.Completed ||
+                    pending == !string.IsNullOrEmpty(response.ResolvedDestinationZoneId) ||
+                    !DispatchReceipts.Any(r => r.EventId == response.SourceEventId && r.Succeeded &&
+                        r.DeferredResponseIds.Contains(response.DeferredResponseId) && r.AttachedEffectIds.Contains(root.EffectId))) return false;
+            }
+            foreach (var receipt in DispatchReceipts)
+                if (receipt.DeferredResponseIds.Any(id => !ids.Contains(id))) return false;
+            reason = string.Empty; return true;
+        }
+
+        private bool TryValidateChildScheduling(out string reason)
+        {
+            reason = string.Empty;
+            // 已进入新业务阶段的必需组不能被删除后退回“无组即顺序”的旧路径。
+            foreach (var owner in EffectNodes)
+            {
+                string requiredGroup = RequiredChildSchedulingGroup(owner);
+                if (requiredGroup.Length > 0 && owner.ChildSchedulingGroups.Count(group =>
+                    group != null && group.StableGroupKey == requiredGroup) != 1)
+                { reason = "并发业务阶段缺少唯一的必需子任务组。"; return false; }
+            }
+            if (!EffectNodes.Any(node => node.ChildSchedulingGroups.Count > 0)) return true;
+            var nodes = EffectNodes.ToDictionary(node => node.EffectId, StringComparer.Ordinal);
+            foreach (var owner in EffectNodes)
+            {
+                if (owner.ChildSchedulingGroups.Count == 0) continue;
+                var keys = new HashSet<string>(StringComparer.Ordinal);
+                var childIds = new HashSet<string>(StringComparer.Ordinal);
+                int previousEnd = 0;
+                foreach (var group in owner.ChildSchedulingGroups)
+                {
+                    if (group == null || group.ProtocolVersion != 1 || group.Mode != EffectChildSchedulingMode.Independent ||
+                        string.IsNullOrWhiteSpace(group.StableGroupKey) || !keys.Add(group.StableGroupKey) ||
+                        group.OwnerEffectId != owner.EffectId ||
+                        group.GroupId != StableIdFactory.Create("effect_child_group", owner.EffectId, group.StableGroupKey) ||
+                        group.ChildEffectIds == null || group.ChildEffectIds.Count == 0 || group.StartIndex < previousEnd ||
+                        group.StartIndex > owner.ChildEffectIds.Count - group.ChildEffectIds.Count)
+                    { reason = "独立子任务组版本、模式、归属或固定边界无效。"; return false; }
+                    for (int i = 0; i < group.ChildEffectIds.Count; i++)
+                        if (group.ChildEffectIds[i] != owner.ChildEffectIds[group.StartIndex + i])
+                        { reason = "独立子任务组成员不连续或已被改动。"; return false; }
+                    previousEnd = group.StartIndex + group.ChildEffectIds.Count;
+                }
+
+                for (int i = 0; i < owner.ChildEffectIds.Count; i++)
+                {
+                    string childId = owner.ChildEffectIds[i];
+                    EffectNodeRuntimeState child;
+                    if (string.IsNullOrEmpty(childId) || !childIds.Add(childId) || !nodes.TryGetValue(childId, out child) ||
+                        child.ParentEffectId != owner.EffectId)
+                    { reason = "独立子任务父节点包含缺失、重复或跨父的子节点。"; return false; }
+                    if (child.Status != EffectNodeStatus.Created && child.Status != EffectNodeStatus.Faulted &&
+                        !IsChildSchedulingEligible(owner, i))
+                    { reason = "子节点越过未完成的顺序屏障。"; return false; }
+                    var blockers = Blockers.Where(blocker => blocker != null && blocker.OwnerEffectId == owner.EffectId &&
+                        blocker.TargetEffectId == childId && owner.BlockerIds.Contains(blocker.BlockerId)).ToList();
+                    if (blockers.Count == 0 || (!IsSchedulingTerminal(child.Status) && blockers.All(blocker => blocker.IsResolved)))
+                    { reason = "子任务缺少有效的父节点阻塞关系。"; return false; }
+                    if (IsSchedulingTerminal(owner.Status) && !IsSchedulingTerminal(child.Status))
+                    { reason = "父节点在全部子任务完成前进入终态。"; return false; }
+                }
+            }
+            return true;
+        }
+
+        private string RequiredChildSchedulingGroup(EffectNodeRuntimeState owner)
+        {
+            int setupVersion = YC.Domain.Effects.ItemTransferEffectExecutor.Number(
+                owner.NormalizedArguments, "setupProtocolVersion");
+            if (owner.EffectTypeId == YC.Domain.Rules.ExpansionSetupFlow.PreparationTypeId &&
+                setupVersion == 2 && !string.IsNullOrEmpty(owner.FlowStage))
+                return "initial_enterprise_selections";
+
+            if (owner.EffectTypeId != YC.Domain.Rules.RoundExecutionService.MainlineEffectTypeId)
+                return string.Empty;
+            string nodeType = YC.Domain.Effects.ItemTransferEffectExecutor.Text(owner.NormalizedArguments, "nodeTypeId");
+            if (nodeType == YC.Domain.Rules.RoundMainlineNodeTypeIds.PlayerEntranceSetup && setupVersion == 2 &&
+                (owner.FlowStage == "awaiting_entrance_tasks" || owner.Status == EffectNodeStatus.Completed ||
+                 owner.ChildEffectIds.Any(id => EffectNodes.Exists(child => child.EffectId == id &&
+                     child.EffectTypeId == YC.Domain.Rules.RoundExecutionService.PlayerEntranceTaskTypeId))))
+                return "entrance_player_tasks";
+            if (nodeType == YC.Domain.Rules.RoundMainlineNodeTypeIds.CharacterCover &&
+                YC.Domain.Effects.ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "coverTaskSchedulingVersion") == 1 &&
+                (owner.FlowStage == "cover_tasks_created" || owner.FlowStage == "awaiting_cover_failure_resolution" ||
+                 owner.Status == EffectNodeStatus.Completed ||
+                 owner.ChildEffectIds.Any(id => EffectNodes.Exists(child => child.EffectId == id &&
+                     child.EffectTypeId == YC.Domain.Cards.CharacterCoverEffectExecutor.EffectTypeId))))
+                return "character_cover_players";
+            return string.Empty;
         }
 
         private static bool TryValidateNestedSpecs(

@@ -54,10 +54,12 @@ namespace YC.Tests.EditMode
         }
 
         [TestCase(2, 1920)]
+        [TestCase(5, 1920)]
         [TestCase(6, 1920)]
         [TestCase(7, 1920)]
         [TestCase(9, 1920)]
         [TestCase(2, 1024)]
+        [TestCase(5, 1024)]
         [TestCase(6, 1024)]
         [TestCase(7, 1024)]
         [TestCase(9, 1024)]
@@ -81,15 +83,14 @@ namespace YC.Tests.EditMode
                 Assert.That(artwork.texture, Is.Not.Null);
                 Assert.That(artwork.rectTransform.rect.height, Is.GreaterThan(0));
                 Assert.That(artwork.rectTransform.rect.width / artwork.rectTransform.rect.height,
-                    Is.EqualTo((float)artwork.texture.width / artwork.texture.height).Within(.002f));
+                    Is.EqualTo((artwork.uvRect.width * artwork.texture.width + 1f) / (artwork.uvRect.height * artwork.texture.height + 1f)).Within(.002f));
                 var face = Property<Button>(card, "Button");
                 Assert.That(face.transform, Is.Not.SameAs(card.transform),
                     "卡牌空槽不能整体充当选择按钮。");
                 AssertWithin((RectTransform)face.transform, Property<RectTransform>(card, "CardRect"));
             }
-            if (count > 7)
-                Assert.That(scroll.content.rect.width, Is.GreaterThan(scroll.viewport.rect.width),
-                    "超过七张的卡牌应可通过横向滚动访问。");
+            var row = scroll.content.GetComponent(RuntimeType("CardPickerRowLayout"));
+            Assert.That(Property<bool>(row, "FitsAvailableHeight"), Is.True);
             Call(page, "RestoreScrollPosition", 0f);
             Refresh(page);
             var last = cards[cards.Length - 1];
@@ -203,13 +204,55 @@ namespace YC.Tests.EditMode
             Assert.That(FindButton(Page(dialog), "Confirm Selection"), Is.Null);
             foreach (var card in Cards(Page(dialog)))
             {
-                Assert.That(Property<Button>(card, "Button").interactable, Is.False);
+                var previousSelection = selected;
+                Property<Button>(card, "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(previousSelection), "只读卡牌点击不得改变业务选择。");
+                Assert.That(submissions, Is.EqualTo(1));
                 OpenCardPreview(Property<Button>(card, "Button"));
                 var viewer = Field(Field(dialog, "shell"), "cardViewer");
                 Assert.That(Property<bool>(viewer, "IsShowing"), Is.True,
                     "只读卡牌仍可通过查看手势打开。");
                 Call(viewer, "Close");
             }
+        }
+
+        [Test]
+        public void ActionSelection_BackgroundClickDoesNotCancelBusinessSelection()
+        {
+            var dialog = NewDialog("CharacterCardEffectChoiceDialog");
+            var spec = NewSelection(FacilityIds(2));
+            var cancellations = 0;
+            ((InteractionRequestProjection)Field(spec, "Request")).AllowDecline = true;
+            Set(spec, "CloseOnBackgroundClick", true);
+            Set(spec, "Cancel", new Action(() => cancellations++));
+            ShowSelection(dialog, spec, false);
+            var page = Page(dialog);
+            var background = Property<Image>(page, "OverlayImage").gameObject;
+            ExecuteEvents.ExecuteHierarchy(background, new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                pointerPressRaycast = new RaycastResult { gameObject = background }
+            }, ExecuteEvents.pointerClickHandler);
+            Assert.That(cancellations, Is.Zero, "空白关闭只允许显式启用的只读列表使用。");
+            var cancel = FindButton(page, "Cancel Selection");
+            Assert.That(cancel, Is.Not.Null);
+            cancel.onClick.Invoke();
+            Assert.That(cancellations, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PageScaleClampsRequestedScaleToAvailableScreen()
+        {
+            var type = RuntimeType("CardPickerPageScale");
+            var method = type.GetMethod("CalculateScale", BindingFlags.Public | BindingFlags.Static);
+            float Scale(Vector2 baseline, Rect safe, Vector2 center) =>
+                (float)method.Invoke(null, new object[] { baseline, safe, center, 1.2f });
+            Assert.That(Scale(new Vector2(1488.1889f, 744.0944f), new Rect(0, 0, 1920, 1080), new Vector2(960, 540)),
+                Is.EqualTo(1.2f).Within(.0001f));
+            Assert.That(Scale(new Vector2(1059, 529.5f), new Rect(0, 0, 1366, 768), new Vector2(683, 384)),
+                Is.EqualTo(1.2f).Within(.0001f));
+            var clamped = Scale(new Vector2(1000, 500), new Rect(0, 0, 1024, 768), new Vector2(512, 384));
+            Assert.That(clamped, Is.EqualTo(1.024f).Within(.0001f));
         }
 
         private static void OpenCardPreview(Button card)
@@ -267,10 +310,22 @@ namespace YC.Tests.EditMode
         private static void Refresh(Component page)
         {
             Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)page.transform);
-            Canvas.ForceUpdateCanvases();
-            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)page.transform);
-            Canvas.ForceUpdateCanvases();
+            for (int pass = 0; pass < 2; pass++)
+            {
+                // 独立ILayoutSelfController可能位于没有LayoutGroup的中间层，根重建不会遍历到它。
+                foreach (var rect in page.GetComponentsInChildren<Behaviour>()
+                    .Where(component => component.isActiveAndEnabled && component is ILayoutController)
+                    .Select(component => component.transform as RectTransform).Where(rect => rect != null)
+                    .Distinct().OrderBy(rect => LayoutDepth(rect)))
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+                Canvas.ForceUpdateCanvases();
+            }
+        }
+        private static int LayoutDepth(Transform value)
+        {
+            int depth = 0;
+            for (var parent = value.parent; parent != null; parent = parent.parent) depth++;
+            return depth;
         }
         private static Rect Bounds(RectTransform rect)
         {

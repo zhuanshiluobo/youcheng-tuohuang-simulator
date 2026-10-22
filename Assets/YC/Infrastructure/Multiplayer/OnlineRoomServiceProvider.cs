@@ -3,6 +3,9 @@ namespace YC.Infrastructure.Multiplayer
     public static class OnlineRoomServiceProvider
     {
         private static IOnlineRoomService active;
+        private static IRoomContentCapabilityProvider contentCapabilities;
+        public static IRoomContentCapabilityProvider ContentCapabilities =>
+            contentCapabilities ?? (contentCapabilities = new BasicRoomContentCapabilityProvider());
 
         public static IOnlineRoomService GetOrCreate()
         {
@@ -12,7 +15,7 @@ namespace YC.Infrastructure.Multiplayer
             active?.Dispose();
             active = wantsLocal
                 ? (IOnlineRoomService)new LocalMirrorRoomService()
-                : new SteamRoomService();
+                : new RoomSessionService(ContentCapabilities, () => new SteamRoomService());
             return active;
         }
 

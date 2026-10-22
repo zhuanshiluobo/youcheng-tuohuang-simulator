@@ -14,6 +14,12 @@ namespace YC.Domain.Facilities
             PlayerState player,
             FacilityCardDefinition facility)
         {
+            return GetEffectiveResourceCost(state, player, facility, null);
+        }
+
+        internal ResourceSet GetEffectiveResourceCost(
+            GameState state, PlayerState player, FacilityCardDefinition facility, BuildFacilityService.ReadOnlyQuery query)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -30,11 +36,22 @@ namespace YC.Domain.Facilities
             }
 
             var result = facility.ResourceCost.Clone();
+            var colorCount = query == null ? CountBuiltColors(state, player, null) : query.GetBuiltColorCount(player);
+            foreach (YC.Domain.Rules.ResourceType resource in Enum.GetValues(typeof(YC.Domain.Rules.ResourceType)))
+                result.Set(resource, Math.Max(0, result.Get(resource) - (facility.CostReductionPerDistinctBuiltColor?.Get(resource) ?? 0) * colorCount));
+            return result;
+        }
+
+        internal static int CountBuiltColors(GameState state, PlayerState player, BuildFacilityService.ReadOnlyQuery query)
+        {
             var colors = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            for (var i = 0; i < player.BuiltFacilityIds.Count; i++)
+            var builtFacilityIds = query == null ? player.BuiltFacilityIds.ToArray() : query.GetBuiltFacilityIds(player);
+            for (var i = 0; i < builtFacilityIds.Length; i++)
             {
                 FacilityCardDefinition built;
-                if (!FacilityCardDatabase.TryGet(player.BuiltFacilityIds[i], out built))
+                if (!(query == null
+                    ? FacilityCardDatabase.TryGet(state, builtFacilityIds[i], out built)
+                    : query.TryGetFacility(builtFacilityIds[i], out built)))
                 {
                     continue;
                 }
@@ -42,9 +59,7 @@ namespace YC.Domain.Facilities
                 AddBaseColors(colors, built.Color);
             }
 
-            foreach (YC.Domain.Rules.ResourceType resource in Enum.GetValues(typeof(YC.Domain.Rules.ResourceType)))
-                result.Set(resource, Math.Max(0, result.Get(resource) - (facility.CostReductionPerDistinctBuiltColor?.Get(resource) ?? 0) * colors.Count));
-            return result;
+            return colors.Count;
         }
 
         private static void AddBaseColors(HashSet<string> colors, string encodedColors)

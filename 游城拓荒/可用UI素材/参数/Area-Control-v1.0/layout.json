@@ -1,0 +1,51 @@
+{
+  "window": {
+    "background": "assets/window/window-fill.png",
+    "border": "assets/window/window-frame.png",
+    "title": "区控",
+    "headerIcon": "assets/header/region-icon.png"
+  },
+  "closeInteraction": "pointer release anywhere on screen, no visible close button",
+  "columns": [
+    "region",
+    "points",
+    "...actualParticipants",
+    "emptySlots"
+  ],
+  "cellRule": "Use the participant original cooperation square and a separate numeric text node. Region colors use Region-Squares assets with no tint.",
+  "maps": {
+    "four-player": {
+      "regionOrder": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "R"
+      ],
+      "rows": 8
+    },
+    "three-player": {
+      "regionOrder": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "R"
+      ],
+      "rows": 7
+    }
+  },
+  "displayFields": [
+    "region",
+    "points",
+    "influenceByPlayer",
+    "emptySlotCount"
+  ],
+  "unknownValue": "—",
+  "textBakedIn": false
+}

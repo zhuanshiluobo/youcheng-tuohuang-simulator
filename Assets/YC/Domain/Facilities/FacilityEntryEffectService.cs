@@ -233,7 +233,7 @@ namespace YC.Domain.Facilities
                 }
 
                 FacilityCardDefinition target;
-                if (!FacilityCardDatabase.TryGet(placement.FacilityCardId, out target) ||
+                if (!FacilityCardDatabase.TryGet(state, placement.FacilityCardId, out target) ||
                     !target.HasEntryEffect ||
                     string.Equals(target.Color, "rainbow", StringComparison.OrdinalIgnoreCase))
                 {
@@ -263,8 +263,8 @@ namespace YC.Domain.Facilities
                 var facilityId = state.Decks.FacilitySupply[i];
                 FacilityCardDefinition candidate;
                 if (string.Equals(facilityId, sourceFacilityId, StringComparison.Ordinal) ||
-                    !FacilityCardDatabase.TryGet(facilityId, out candidate) ||
-                    FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, candidate))
+                    !FacilityCardDatabase.TryGet(state, facilityId, out candidate) ||
+                    FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, candidate))
                 {
                     continue;
                 }

@@ -46,7 +46,7 @@ namespace YC.Tests.EditMode
             Call(frame, "SetInteractionMessage", "支付失败", "请选择地图目标");
             Assert.That(longText.text, Does.Contain("支付失败").And.Contain("请选择地图目标"));
             Assert.That(shortText.text, Is.EqualTo(longText.text));
-            Call(frame, "Refresh", null, null, null);
+            Call(frame, "Refresh", null, null, null, null);
             Assert.That(Get<string>(frame, "InteractionMessage"), Does.Contain("支付失败"));
             frame.GetType().GetField("interactionMessageExpiresAt", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(frame, -1f);

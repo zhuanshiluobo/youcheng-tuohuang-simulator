@@ -1,0 +1,43 @@
+{
+    "scenario": "PJ-CARD-FLOW",
+    "seed": "2026091901",
+    "failureCode": "",
+    "lastVisible": "前往github | 前往wiki | 多人联机 | 官方网站 | 收藏与成就 | 断开连接 | 本地游戏",
+    "screenshot": "G:\\NoMadCity\\Logs\\CardFlowFix\\journey-build-visible\\success.png",
+    "entranceLocation": "G-01",
+    "characterScenario": "liskarm-strategy",
+    "success": true,
+    "finalScoringVisible": true,
+    "returnedToStart": true,
+    "observedRounds": 8,
+    "steps": 106,
+    "errors": 0,
+    "width": 1920,
+    "height": 1080,
+    "deployConfirmations": 16,
+    "cancelledDeployments": 0,
+    "characterActivations": 1,
+    "mapSelections": 40,
+    "cleanupRemovals": 2,
+    "requisitionSelections": 0,
+    "resourceSelections": 0,
+    "finalScores": "/ 8 回合 | ★ 玩家 1 | 0 | 10 | 19 | 3 | 8 | 主要行动 | 企业合作 | 企业家 | 分数与资源 | 区控 | 回合阶段 | 城市样式 | 城市移动 | 实时分 | 尚未轮到本机玩家结束行动。 | 已开放 | 弃牌区 | 快速行动 | 总分 | 我的城市 | 手牌 | 拓荒地图 | 探索 | 撤销 | 收起 | 暂无合作资料 | 最终计分 | 最高总分直接获胜。 | 查看 > | 查看设施供应区 | 游城拓荒 | 游戏结束 | 特殊行动 | 玩家 | 盖放角色 | 第 | 第 4 回合起 | 等待其他玩家 | 红区开放 | 结束行动 | 结算区域 | 胜者：P1 | 详情 | 详情  > | 调度 | 资源 | 返回开始页面 | 部署",
+    "settledAbilities": [
+        "liskarm:action.character.strategy"
+    ],
+    "completedMainActions": [
+        "action.deploy"
+    ],
+    "confirmedCoverRounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+    ],
+    "discardPreviewOpened": true,
+    "discardBlankClosed": true
+}

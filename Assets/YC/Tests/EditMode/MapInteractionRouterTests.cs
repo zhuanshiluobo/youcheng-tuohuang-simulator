@@ -41,7 +41,7 @@ namespace YC.Tests.EditMode
         public void Cancel_ClearsPendingMapConfirmation()
         {
             var fixture = CreateFixture(GamePhase.ActionRound1);
-            fixture.Coordinator.Activate(fixture.Turn);
+            fixture.Coordinator.Activate(fixture.Exploration);
             fixture.HighlightLocation("B");
             fixture.ClickLocation("B");
             Assert.That(fixture.HasPendingConfirmation, Is.True);
@@ -52,18 +52,24 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void OnLocationClicked_ActiveTurnMoveStage_CreatesMoveConfirmation()
+        public void OnLocationClicked_ActiveTurnMoveStage_UsesSharedConfirmationInsteadOfLegacyState()
         {
             var fixture = CreateFixture(GamePhase.ActionRound1);
             fixture.Coordinator.Activate(fixture.Turn);
             fixture.HighlightLocation("B");
 
-            fixture.ClickLocation("B");
+            var router = new InteractionRouter(fixture.View.ShowPrompt);
+            router.Register(fixture.Turn.MoveInteraction);
+            router.Register((IInteraction)fixture.Router);
+            router.OnLocationClicked("B", 1);
 
             Assert.That(fixture.Coordinator.ActiveWorkflow, Is.SameAs(fixture.Turn));
             Assert.That(fixture.Turn.Mode, Is.EqualTo(InteractionMode.Busy));
             Assert.That(fixture.Turn.IsSelectingMoveTarget, Is.True);
-            Assert.That(fixture.HasPendingConfirmation, Is.True);
+            Assert.That(fixture.HasPendingConfirmation, Is.False);
+            Assert.That(router.HasPendingMapConfirmation, Is.True);
+            Assert.That(router.BuildActivePresentation().Highlights[0].State,
+                Is.EqualTo(WorkflowHighlightState.PendingConfirmation));
             Assert.That(fixture.Influence.HasPendingConfirmation, Is.False);
         }
 
@@ -108,6 +114,8 @@ namespace YC.Tests.EditMode
             fixture.HighlightInfluenceSlot(sourceSlot);
 
             fixture.ClickInfluenceSlot(sourceSlot);
+            Assert.That(fixture.Influence.IsSelectingDispatchSource, Is.True);
+            fixture.ClickInfluenceSlot(sourceSlot);
 
             Assert.That(fixture.Coordinator.ActiveWorkflow, Is.SameAs(fixture.Influence));
             Assert.That(fixture.Influence.Mode, Is.EqualTo(InteractionMode.Busy));
@@ -131,7 +139,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void OnInfluenceSlotClicked_ActiveResourceCollection_RoutesToTollPayment()
+        public void Collection_WholeRouteInputOpensPayment_ObsoleteSlotInputDoesNothing()
         {
             var fixture = CreateFixture(GamePhase.ResourceCollection);
             var tollSlot = InfluenceService.GetRouteSlotId("R2", 0);
@@ -142,6 +150,10 @@ namespace YC.Tests.EditMode
 
             Assert.That(fixture.Coordinator.ActiveWorkflow, Is.SameAs(fixture.Collection));
             Assert.That(fixture.Collection.Mode, Is.EqualTo(InteractionMode.Busy));
+            Assert.That(fixture.View.PaymentRouteId, Is.Empty);
+            var router = new InteractionRouter(_ => { });
+            router.Register(fixture.Collection);
+            router.OnRouteClicked("R2");
             Assert.That(fixture.View.PaymentRouteId, Is.EqualTo("R2"));
         }
 

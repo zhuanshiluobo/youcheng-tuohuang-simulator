@@ -58,17 +58,19 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void ConfirmRoutePayment_ToBank_AddsVisualGhostWithoutMutatingInfluenceState()
+        public void ConfirmRoutePayment_ToBank_SelectsWholeRouteWithoutMutatingInfluenceState()
         {
             var fixture = CreateFixture();
+            fixture.Context.State.Map.Influences.RemoveAll(i => i.RouteId == "R2");
             fixture.Presenter.Begin();
             var influenceCount = fixture.Context.State.Map.Influences.Count;
             var influenceSupply = fixture.Context.State.FindPlayer(1).InfluenceSupply;
 
+            fixture.Presenter.SelectRoutePayment("R2");
             fixture.Presenter.ConfirmRoutePayment("R2", -1);
 
             Assert.That(
-                fixture.View.HasHighlight("R2", WorkflowHighlightSemantic.CollectionBankPaymentGhost),
+                fixture.View.HasHighlight("R2", WorkflowHighlightSemantic.CollectionPaymentSelected),
                 Is.True);
             Assert.That(fixture.Context.State.Map.Influences, Has.Count.EqualTo(influenceCount));
             Assert.That(fixture.Context.State.FindPlayer(1).InfluenceSupply, Is.EqualTo(influenceSupply));
@@ -82,7 +84,7 @@ namespace YC.Tests.EditMode
 
             fixture.Presenter.SelectLocation("B");
             Assert.That(fixture.Presenter.SelectedLocationIds, Is.Empty);
-            Assert.That(fixture.View.HasHighlight("B", WorkflowHighlightSemantic.CollectionCandidate), Is.False);
+            Assert.That(fixture.View.HasHighlight("B", WorkflowHighlightSemantic.CollectionCandidate), Is.True);
             Assert.That(fixture.View.HasHighlight("B", WorkflowHighlightSemantic.CollectionSelected), Is.False);
             Assert.That(fixture.View.Prompt, Does.StartWith("\u91c7\u96c6\u9636\u6bb5\uff1a"));
 
@@ -91,7 +93,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void Begin_DoesNotHighlightMobileCityLocationDuringCollection()
+        public void Begin_MobileCityLocationIsSelectedButCannotBeToggled()
         {
             var fixture = CreateFixture();
             fixture.Context.State.Map.ResourceTokens.Add(new ResourceTokenState
@@ -104,7 +106,8 @@ namespace YC.Tests.EditMode
             fixture.Presenter.Begin();
 
             Assert.That(fixture.Presenter.SelectedLocationIds, Does.Contain("A"));
-            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionSelected), Is.False);
+            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionSelected), Is.True);
+            Assert.That(fixture.Presenter.CanToggleLocation("A"), Is.False);
             Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionCandidate), Is.False);
         }
 
@@ -114,6 +117,7 @@ namespace YC.Tests.EditMode
             var fixture = CreateFixture();
             fixture.CommandPort.NextResult = Success(false);
             fixture.Presenter.Begin();
+            fixture.Presenter.SelectRoutePayment("R2");
             fixture.Presenter.ConfirmRoutePayment("R2", 2);
 
             fixture.Presenter.Submit();
@@ -200,15 +204,166 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.View.ClearHighlightsCount, Is.GreaterThan(0));
         }
 
-        private static Fixture CreateFixture()
+        [Test]
+        public void DisconnectedCandidate_IsVisibleButSilentAndNonInteractive()
+        {
+            var f = CreateFixture(); f.Presenter.Begin();
+            var highlight = f.View.Highlights.Find(h => h.TargetId == "C");
+            Assert.That(highlight, Is.Not.Null);
+            Assert.That(highlight.State, Is.EqualTo(WorkflowHighlightState.Available));
+            Assert.That(highlight.IsInteractive, Is.False);
+            var prompt = f.View.Prompt;
+            f.Presenter.SelectLocation("C");
+            Assert.That(f.View.Prompt, Is.EqualTo(prompt));
+            Assert.That(f.View.PaymentRouteId, Is.Empty);
+            Assert.That(f.Presenter.SelectedLocationIds, Is.EquivalentTo(new[] { "B" }));
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False, "尚有可支付解锁的候选");
+        }
+
+        [Test]
+        public void PaidRoute_RemainsEditableAndCancelPreservesRecipientWithoutDuplicateCost()
+        {
+            var f = CreateFixture(); f.Presenter.Begin();
+            f.Presenter.SelectRoutePayment("R2"); f.Presenter.CancelRoutePayment();
+            Assert.That(f.Presenter.PaidRouteIds, Is.Empty);
+            f.Presenter.SelectRoutePayment("R2"); f.Presenter.ConfirmRoutePayment("R2", 2);
+            var cost = f.Presenter.CurrentQuery.ConfirmedTollCost;
+            Assert.That(f.View.Highlights.Find(h => h.TargetId == "R2").State, Is.EqualTo(WorkflowHighlightState.Selected));
+            Assert.That(f.View.Highlights.Find(h => h.TargetId == "R2").IsInteractive, Is.True);
+            f.Presenter.SelectRoutePayment("R2"); f.Presenter.CancelRoutePayment();
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.EqualTo(2));
+            f.Presenter.SelectRoutePayment("R2"); f.Presenter.ConfirmRoutePayment("R2", 2);
+            Assert.That(f.Presenter.PaidRouteIds.Count, Is.EqualTo(1));
+            Assert.That(f.Presenter.CurrentQuery.ConfirmedTollCost, Is.EqualTo(cost));
+            Assert.That(f.CommandPort.LastCommand, Is.Null, "预选不提交支付");
+        }
+
+        [Test]
+        public void Coverage_TracksCancelRejoinBudgetAndStateRefresh()
+        {
+            var f = CreateFixture(); f.Presenter.Begin();
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False);
+            f.Presenter.SelectRoutePayment("R2"); f.Presenter.ConfirmRoutePayment("R2", 2);
+            Assert.That(f.Presenter.AllLocationsCovered, Is.True);
+            f.Presenter.SelectLocation("B"); f.Presenter.RefreshFromState();
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False);
+            Assert.That(f.Presenter.SelectedLocationIds, Does.Not.Contain("B"));
+            Assert.That(f.View.Highlights.Find(h => h.TargetId == "B").IsInteractive, Is.True);
+            f.Presenter.SelectLocation("B");
+            Assert.That(f.Presenter.AllLocationsCovered, Is.True);
+            f.Presenter.Submit(); f.Presenter.Submit();
+            Assert.That(f.CommandPort.SubmitCount, Is.EqualTo(1));
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False);
+            Assert.That(f.View.Highlights, Is.Empty);
+
+            var broke = CreateFixture(); broke.Context.State.FindPlayer(1).Resources.GoldVoucher = 0;
+            broke.Presenter.Begin();
+            Assert.That(broke.Presenter.AllLocationsCovered, Is.True, "预算外目标不算缺选");
+        }
+
+        [Test]
+        public void MultipleRecipients_EditSameRouteAndRevalidateOwners()
+        {
+            var f = CreateFixture();
+            f.Map.Routes[1].InfluenceSlotCount = 2;
+            f.Context.State.Players.Add(new PlayerState { PlayerId = 3 });
+            f.Context.State.Map.Influences.Add(new InfluencePlacement { PlayerId = 3,
+                RouteId = "R2", SlotId = InfluenceService.GetRouteSlotId("R2", 1) });
+            f.Presenter.Begin();
+            f.Presenter.OnRouteClicked("R2");
+            Assert.That(f.View.PaymentRecipients, Is.EquivalentTo(new[] { 2, 3 }));
+            f.Presenter.ConfirmRoutePayment("R2", 2);
+            f.Presenter.OnRouteClicked("R2");
+            f.Presenter.ConfirmRoutePayment("R2", 3);
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.EqualTo(3));
+            Assert.That(f.Presenter.PaidRouteIds.Count, Is.EqualTo(1));
+            Assert.That(f.Presenter.CurrentQuery.ConfirmedTollCost, Is.EqualTo(2));
+            Assert.That(f.Context.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
+            f.Presenter.OnRouteClicked("R2");
+            f.Context.State.Map.Influences.RemoveAll(p => p.PlayerId == 3);
+            f.Presenter.ConfirmRoutePayment("R2", 3);
+            Assert.That(f.View.Prompt, Does.Contain("不可用"));
+            f.Presenter.OnRouteClicked("R2");
+            Assert.That(f.View.PaymentRecipients, Is.EquivalentTo(new[] { 2 }));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RemoveRoutePayment_ReleasesDraftBudgetAndRemovesDependentCollection(bool payBank)
+        {
+            var f = CreateFixture();
+            if (payBank) f.Context.State.Map.Influences.RemoveAll(i => i.RouteId == "R2");
+            f.Presenter.Begin();
+            f.Presenter.SelectRoutePayment("R2");
+            f.Presenter.ConfirmRoutePayment("R2", payBank ? -1 : 2);
+            var vouchers = f.Context.State.FindPlayer(1).Resources.GoldVoucher;
+            Assert.That(f.Presenter.SelectedLocationIds, Does.Contain("C"));
+
+            f.Presenter.SelectRoutePayment("R2");
+            f.Presenter.RemoveRoutePayment("R2");
+
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.Null);
+            Assert.That(f.Presenter.PaidRouteIds, Is.Empty);
+            Assert.That(f.Presenter.SelectedLocationIds, Is.EquivalentTo(new[] { "B" }));
+            Assert.That(f.View.HasHighlight("R2", WorkflowHighlightSemantic.CollectionPaymentRequired), Is.True);
+            Assert.That(f.Context.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(vouchers));
+            f.Presenter.Submit();
+            Assert.That(f.CommandPort.LastCommand.Parameters[CollectResourceCommandHandler.LocationIdsParameter], Is.EqualTo("B"));
+            Assert.That(f.CommandPort.LastCommand.Parameters.ContainsKey(CollectResourceCommandHandler.PaymentRecipientsParameter), Is.False);
+        }
+
+        [Test]
+        public void ClosePaymentEditor_PreservesRecipient_AndRemovalRequiresTheOpenRoute()
+        {
+            var f = CreateFixture();
+            f.Presenter.Begin();
+            f.Presenter.SelectRoutePayment("R2");
+            f.Presenter.ConfirmRoutePayment("R2", 2);
+            f.Presenter.RemoveRoutePayment("R2");
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.EqualTo(2));
+            f.Presenter.SelectRoutePayment("R2");
+            f.Presenter.RemoveRoutePayment("other-route");
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.EqualTo(2));
+            f.Presenter.CancelRoutePayment();
+            Assert.That(f.Presenter.GetSelectedPaymentRecipient("R2"), Is.EqualTo(2));
+            Assert.That(f.Presenter.SelectedLocationIds, Does.Contain("C"));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Coverage_UsesRemainingBudgetForExclusiveOrLongerPaymentPlans(bool chain)
+        {
+            var f = CreateFixture(chain ? "C" : "B");
+            f.Presenter.Begin();
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False);
+            f.Presenter.OnRouteClicked("R2"); f.Presenter.ConfirmRoutePayment("R2", 2);
+            Assert.That(f.Presenter.SelectedLocationIds, Is.EquivalentTo(new[] { "B", "C" }));
+            Assert.That(f.Presenter.AllLocationsCovered, Is.True,
+                "已付计划的剩余预算不能扩展到 D，不能以全部静态候选要求互斥或超预算计划");
+            f.Context.State.Map.ResourceTokens.Clear();
+            f.Presenter.RefreshFromState();
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False, "无有效候选不显示完成");
+            f.Context.State.Phase = GamePhase.ActionRound1;
+            Assert.That(f.Presenter.AllLocationsCovered, Is.False);
+        }
+
+        private static Fixture CreateFixture(string extraRouteFrom = null)
         {
             var map = CreateMap();
             var context = new FakeContext { State = CreateState() };
+            if (extraRouteFrom != null)
+            {
+                map.Locations.Add(new MapLocationDefinition { LocationId = "D", InfluenceSlotCount = 1 });
+                map.Routes.Add(new MapRouteDefinition { RouteId = "R3", FromLocationId = extraRouteFrom, ToLocationId = "D", InfluenceSlotCount = 1 });
+                context.State.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = "D", ResourceType = ResourceType.Iron, Amount = 1 });
+                context.State.Map.Influences.Add(new InfluencePlacement { PlayerId = 1, LocationId = "D", SlotId = InfluenceService.GetLocationSlotId("D", 0) });
+            }
             var view = new FakeView();
             var commandPort = new FakeCommandPort { NextResult = Success(false) };
             var mapQuery = new MapQueryService(map);
             return new Fixture
             {
+                Map = map,
                 Context = context,
                 View = view,
                 CommandPort = commandPort,
@@ -323,6 +478,7 @@ namespace YC.Tests.EditMode
 
         private sealed class Fixture
         {
+            public GameMapDefinition Map;
             public FakeContext Context;
             public FakeView View;
             public FakeCommandPort CommandPort;
@@ -348,10 +504,12 @@ namespace YC.Tests.EditMode
         {
             public WorkflowSubmissionResult NextResult;
             public GameCommand LastCommand;
+            public int SubmitCount;
 
             public WorkflowSubmissionResult Submit(GameCommand command)
             {
                 LastCommand = command;
+                SubmitCount++;
                 return NextResult;
             }
         }

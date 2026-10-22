@@ -1,0 +1,67 @@
+{
+  "definitionId": "infected.city_style.district_management",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "城区管理中心",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/city_styles/infected.city_style.district_management.jpg",
+  "artworkSpriteId": "infected_city_style_district_management",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.city_style.district_management.declared",
+      "mode": "declared",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.city_style.district_management.declared",
+      "script": "lua/city_styles/infected.city_style.district_management.declared.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cityStyleId": "infected.city_style.district_management",
+    "name": "城区管理中心",
+    "level": 1,
+    "score": 3,
+    "description": "可将一个II级样式上的己方标记放回供应区，获得1至纯源石。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 3,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        }
+      ]
+    }
+  }
+}

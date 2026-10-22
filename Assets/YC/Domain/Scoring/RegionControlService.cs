@@ -23,6 +23,12 @@ namespace YC.Domain.Scoring
             foreach (var region in mapQuery.Map.Regions)
             {
                 var influenceCounts = influenceQuery.CountAllPlayersInRegion(state, region.RegionId, true);
+                var company = new CompanyInfluenceRules(mapQuery);
+                foreach (var player in state.Players)
+                {
+                    int contribution = company.GetControlContribution(state, region.RegionId, player.PlayerId);
+                    if (contribution > 0) influenceCounts[player.PlayerId] = (influenceCounts.TryGetValue(player.PlayerId, out int count) ? count : 0) + contribution;
+                }
 
                 int? controllerId = null;
                 var maxCount = 0;

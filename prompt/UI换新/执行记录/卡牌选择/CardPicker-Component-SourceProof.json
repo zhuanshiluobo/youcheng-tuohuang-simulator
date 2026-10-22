@@ -1,8 +1,0 @@
-{
-    "scene": "Assets/Scenes/SampleScene.unity",
-    "sceneRegistry": "GlobalObjectId_V1-2-2cda990e2423bbf4892e6590ba056729-7007614311448219973-952091510",
-    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab",
-    "prefabGuid": "6d8b51b104807394397ca905501b1166",
-    "catalog": "Assets/YC/Presentation/Content/CardVisualCatalog.asset",
-    "validatedBeforePlay": true
-}

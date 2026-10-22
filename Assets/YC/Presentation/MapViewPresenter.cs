@@ -3,16 +3,22 @@ using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Scoring;
 using YC.Domain.State;
+using YC.Domain.Items;
 using YC.Presentation.Maps;
+using YC.Presentation.Workflows;
 using UnityEngine;
 
 namespace YC.Presentation
 {
     public sealed class MapViewPresenter
     {
+        private static readonly Unity.Profiling.ProfilerMarker InfluenceRefreshMarker = new Unity.Profiling.ProfilerMarker("YC.MapInfluenceRefresh");
+        private static readonly Unity.Profiling.ProfilerMarker InfluenceSnapshotMarker = new Unity.Profiling.ProfilerMarker("YC.MapInfluenceSnapshot");
+        private static readonly Unity.Profiling.ProfilerMarker ResourceTokenRefreshMarker = new Unity.Profiling.ProfilerMarker("YC.MapResourceTokenRefresh");
+        private static readonly Unity.Profiling.ProfilerMarker ResourceTokenSnapshotMarker = new Unity.Profiling.ProfilerMarker("YC.MapResourceTokenSnapshot");
         private static readonly Vector3 ResourceTokenIconScale = Vector3.one;
         private const float MapPlaneZ = 0f;
-        private const float HotspotOverlayZ = -0.05f;
+        private const float HotspotOverlayZ = 0f;
         private const float ScoreMarkerZ = -0.62f;
         private readonly MobileCityInteractionController controller;
         private readonly MapView view;
@@ -37,12 +43,113 @@ namespace YC.Presentation
         private readonly Dictionary<string, MapPlacementFeedback> influenceSlotPlacementFeedbacks =
             new Dictionary<string, MapPlacementFeedback>();
         private readonly Dictionary<string, SpriteRenderer> resourceTokenRenderers = new Dictionary<string, SpriteRenderer>();
+        private readonly Dictionary<string, SpriteRenderer> roadRenderers = new Dictionary<string, SpriteRenderer>();
+        private readonly Stack<SpriteRenderer> availableRoadRenderers = new Stack<SpriteRenderer>();
         private readonly Dictionary<int, MapCityViewBinding> cityBindingsByPlayerId =
             new Dictionary<int, MapCityViewBinding>();
         private readonly Dictionary<int, MapScoreMarkerViewBinding> scoreMarkerBindings =
             new Dictionary<int, MapScoreMarkerViewBinding>();
         private readonly HashSet<string> highlightedLocationIds = new HashSet<string>();
         private readonly HashSet<string> highlightedInfluenceSlotIds = new HashSet<string>();
+
+        public bool IsButtonInteractive(WorkflowHighlightTargetKind kind, string id)
+        {
+            if (view == null) return false;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == kind && button.TargetId == id) return button.IsInteractive;
+            return false;
+        }
+
+        /// <summary>只消费可见区域实体；航道第零槽仅提供绘制位置，不改变物品容纳关系。</summary>
+        public void RefreshRoadDisplay(ItemZoneStateView visibleItems)
+        {
+            var zones = new Dictionary<string, ZoneInstanceState>();
+            if (visibleItems != null)
+                foreach (var projected in visibleItems.Zones)
+                    if (projected?.Zone != null) zones[projected.Zone.ZoneId] = projected.Zone;
+            var visibleIds = new HashSet<string>();
+            if (visibleItems != null)
+                foreach (var item in visibleItems.Items)
+                {
+                    if (item == null || item.PhysicalKind != ItemPhysicalKind.Token ||
+                        !zones.TryGetValue(item.ZoneId, out var roadZone) || roadZone.TemplateId != "core.zone.route_road" ||
+                        roadZone.ParentKind != ZoneParentKind.Zone ||
+                        !zones.TryGetValue(roadZone.ParentId, out var routeZone) || routeZone.TemplateId != "core.zone.map_route") continue;
+                    var route = mapDisplayLayout.Routes.Find(value => value.RouteId == routeZone.LocalZoneId);
+                    var slotId = InfluenceService.GetRouteSlotId(routeZone.LocalZoneId, 0);
+                    MapButtonView anchor = null;
+                    foreach (var button in view.Buttons)
+                        if (button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot && button.TargetId == slotId)
+                        { anchor = button; break; }
+                    if (route == null || route.InfluenceSlots.Count == 0 || anchor == null || anchor.Image == null || anchor.Image.sprite == null)
+                    {
+                        Debug.LogError("公路缺少航道第零槽的地图显示配置：" + routeZone.LocalZoneId);
+                        continue;
+                    }
+                    var sprite = ExternalContentRuntime.GetArtworkSprite("component", item.DefinitionId);
+                    if (sprite == null)
+                    {
+                        Debug.LogError("公路物品缺少已登记的正式内容图：" + item.DefinitionId);
+                        continue;
+                    }
+                    visibleIds.Add(item.ItemId);
+                    if (!roadRenderers.TryGetValue(item.ItemId, out var renderer) || renderer == null)
+                    {
+                        renderer = availableRoadRenderers.Count > 0 ? availableRoadRenderers.Pop() :
+                            Object.Instantiate(view.RoadTokenTemplate, view.RoadTokenTemplate.transform.parent, false);
+                        renderer.gameObject.name = "RoadToken";
+                        roadRenderers[item.ItemId] = renderer;
+                    }
+                    renderer.sprite = sprite;
+                    renderer.transform.position = mapCoordinateSpace.ToWorldPosition(
+                        route.NormalizedPosition + route.InfluenceSlots[0].Offset,
+                        view.RoadTokenTemplate.transform.localPosition.z);
+                    var height = anchor.Image.transform.TransformVector(Vector3.up * anchor.Image.sprite.bounds.size.y).magnitude *
+                        view.RoadTokenHeightMultiplier;
+                    var parent = renderer.transform.parent;
+                    var horizontalScale = parent.TransformVector(Vector3.right).magnitude;
+                    var verticalScale = parent.TransformVector(Vector3.up).magnitude;
+                    renderer.transform.localScale = new Vector3(height / (sprite.bounds.size.y * horizontalScale),
+                        height / (sprite.bounds.size.y * verticalScale), 1f);
+                    renderer.gameObject.SetActive(true);
+                }
+            var removed = new List<string>();
+            foreach (var pair in roadRenderers)
+                if (!visibleIds.Contains(pair.Key)) removed.Add(pair.Key);
+            foreach (var id in removed)
+            {
+                var renderer = roadRenderers[id];
+                if (renderer != null)
+                {
+                    renderer.gameObject.SetActive(false);
+                    renderer.sprite = null;
+                    availableRoadRenderers.Push(renderer);
+                }
+                roadRenderers.Remove(id);
+            }
+        }
+
+        public void ApplyHighlight(WorkflowHighlight highlight)
+        {
+            foreach (var city in cityBindingsByPlayerId.Values) city.Collider.enabled = false;
+            if (highlight.TargetKind == WorkflowHighlightTargetKind.Location)
+                highlightedLocationIds.Add(highlight.TargetId);
+            if (highlight.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot)
+                highlightedInfluenceSlotIds.Add(highlight.TargetId);
+            if (view == null) return;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == highlight.TargetKind && button.TargetId == highlight.TargetId)
+                    button.SetState(true, highlight.State != WorkflowHighlightState.Available,
+                        highlight.IsInteractive);
+        }
+
+        public void SetPendingButton(WorkflowHighlightTargetKind kind, string id)
+        {
+            if (view == null) return;
+            foreach (var button in view.Buttons)
+                if (button.TargetKind == kind && button.TargetId == id && button.IsInteractive)
+                    button.SetState(true, true, true);
+        }
 
         public MapViewPresenter(
             MobileCityInteractionController controller,
@@ -95,18 +202,14 @@ namespace YC.Presentation
 
         public void SetHighlighted(string locationId, Color color)
         {
-            highlightedLocationIds.Add(locationId);
-            MapHotspot hotspot;
-            if (hotspotsById.TryGetValue(locationId, out hotspot))
-            {
-                hotspot.SetHighlighted(true);
-            }
+            ApplyHighlight(new WorkflowHighlight(WorkflowHighlightTargetKind.Location,
+                locationId, WorkflowHighlightSemantic.MoveTarget));
         }
 
         public void HighlightInfluenceSlot(string slotId)
         {
-            highlightedInfluenceSlotIds.Add(slotId);
-            SetInfluenceSlotBorderVisible(slotId, true);
+            ApplyHighlight(new WorkflowHighlight(WorkflowHighlightTargetKind.InfluenceSlot,
+                slotId, WorkflowHighlightSemantic.DeployTarget));
         }
 
         public bool PreviewInfluenceSlot(string slotId, int playerId, GameState state)
@@ -154,6 +257,8 @@ namespace YC.Presentation
 
         public void ClearHighlights()
         {
+            if (view != null)
+                foreach (var button in view.Buttons) button.SetState(false, false, false);
             highlightedLocationIds.Clear();
             highlightedInfluenceSlotIds.Clear();
             foreach (var pair in influenceSlotPreviewPlayerIds)
@@ -182,20 +287,7 @@ namespace YC.Presentation
 
         public void ApplyDebugHotspotHighlights(bool debugClicks)
         {
-            if (!debugClicks)
-            {
-                return;
-            }
-
-            foreach (var pair in hotspotsById)
-            {
-                if (highlightedLocationIds.Contains(pair.Key))
-                {
-                    continue;
-                }
-
-                pair.Value.SetColor(new Color(1f, 0.78f, 0.18f, 0.42f));
-            }
+            // 调试模式也不能重新启用已替代的热点图像和输入。
         }
 
         public void RefreshCityViewsFromState(GameState state, int localPlayerId)
@@ -241,43 +333,60 @@ namespace YC.Presentation
             cityBinding.Renderer.enabled = false;
             cityBinding.PieceVisual.SetPlayerColor(GetPlayerColor(state, playerId, 1f));
             cityBinding.PieceVisual.SetVisible(true);
-            cityBinding.Collider.enabled = playerId == localPlayerId;
+            cityBinding.Collider.enabled = playerId == localPlayerId && !HasVisibleMapButtons();
             cityBinding.Renderer.gameObject.SetActive(true);
+        }
+
+        private bool HasVisibleMapButtons()
+        {
+            if (view == null) return false;
+            foreach (var button in view.Buttons)
+                if (button.Image.enabled) return true;
+            return false;
         }
 
         public void RefreshResourceTokenDisplay(GameState state)
         {
-            foreach (var pair in resourceTokenRenderers)
+            using (ResourceTokenRefreshMarker.Auto())
             {
-                pair.Value.enabled = false;
-                pair.Value.gameObject.SetActive(false);
-            }
-
-            if (state == null || state.Map == null)
-            {
-                return;
-            }
-
-            for (var i = 0; i < state.Map.ResourceTokens.Count; i++)
-            {
-                var token = state.Map.ResourceTokens[i];
-                SpriteRenderer renderer;
-                if (!resourceTokenRenderers.TryGetValue(token.LocationId, out renderer))
+                foreach (var pair in resourceTokenRenderers)
                 {
-                    continue;
+                    pair.Value.enabled = false;
+                    pair.Value.gameObject.SetActive(false);
                 }
 
-                Sprite sprite;
-                if (!sprites.TryGetResourceTokenSprite(token.ResourceType, token.Amount, out sprite))
+                if (state == null || state.Map == null)
                 {
-                    continue;
+                    return;
                 }
 
-                renderer.sprite = sprite;
-                renderer.color = Color.white;
-                renderer.transform.localScale = ResourceTokenIconScale;
-                renderer.enabled = true;
-                renderer.gameObject.SetActive(true);
+                ResourceTokenState[] tokens;
+                using (ResourceTokenSnapshotMarker.Auto())
+                {
+                    tokens = state.Map.ResourceTokens.ToArray();
+                }
+
+                for (var i = 0; i < tokens.Length; i++)
+                {
+                    var token = tokens[i];
+                    SpriteRenderer renderer;
+                    if (!resourceTokenRenderers.TryGetValue(token.LocationId, out renderer))
+                    {
+                        continue;
+                    }
+
+                    Sprite sprite;
+                    if (!sprites.TryGetResourceTokenSprite(token.ResourceType, token.Amount, out sprite))
+                    {
+                        continue;
+                    }
+
+                    renderer.sprite = sprite;
+                    renderer.color = Color.white;
+                    renderer.transform.localScale = ResourceTokenIconScale;
+                    renderer.enabled = true;
+                    renderer.gameObject.SetActive(true);
+                }
             }
         }
 
@@ -287,30 +396,40 @@ namespace YC.Presentation
             string pendingDispatchFirstSourceSlotId,
             string pendingDispatchFirstTargetSlotId)
         {
-            if (state == null || influenceService == null)
+            using (InfluenceRefreshMarker.Auto())
             {
-                return;
-            }
+                if (state == null || influenceService == null)
+                {
+                    return;
+                }
 
-            foreach (var pair in influenceSlotRenderers)
-            {
-                var slotId = pair.Key;
-                var placement = FindDisplayedInfluence(
-                    state,
-                    slotId,
-                    hasPendingDispatchFirstMove,
-                    pendingDispatchFirstSourceSlotId,
-                    pendingDispatchFirstTargetSlotId);
-                int previewPlayerId;
-                influenceSlotPreviewPlayerIds.TryGetValue(slotId, out previewPlayerId);
-                SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
-                RefreshInfluenceSlotRenderer(
-                    state,
-                    pair.Value,
-                    influencePieceVisuals[slotId],
-                    slotId,
-                    placement,
-                    previewPlayerId);
+                InfluencePlacement[] placements;
+                using (InfluenceSnapshotMarker.Auto())
+                {
+                    placements = state.Map.Influences.ToArray();
+                }
+
+                foreach (var pair in influenceSlotRenderers)
+                {
+                    var slotId = pair.Key;
+                    var placement = FindDisplayedInfluence(
+                        state,
+                        placements,
+                        slotId,
+                        hasPendingDispatchFirstMove,
+                        pendingDispatchFirstSourceSlotId,
+                        pendingDispatchFirstTargetSlotId);
+                    int previewPlayerId;
+                    influenceSlotPreviewPlayerIds.TryGetValue(slotId, out previewPlayerId);
+                    SetInfluenceSlotBorderVisible(slotId, highlightedInfluenceSlotIds.Contains(slotId));
+                    RefreshInfluenceSlotRenderer(
+                        state,
+                        pair.Value,
+                        influencePieceVisuals[slotId],
+                        slotId,
+                        placement,
+                        previewPlayerId);
+                }
             }
         }
 
@@ -418,9 +537,12 @@ namespace YC.Presentation
             {
                 var binding = view.Locations[i];
                 var location = locationsById[binding.LocationId];
-                binding.Hotspot.transform.position = ToWorldPosition(location.NormalizedPosition, HotspotOverlayZ);
+                binding.Hotspot.transform.position = ToWorldPosition(
+                    mapDisplayLayout.Locations.Find(item => item.LocationId == binding.LocationId).ButtonPosition,
+                    HotspotOverlayZ);
                 binding.Hotspot.Renderer.sprite = sprites.Hotspot;
                 binding.Hotspot.SetColor(new Color(0.25f, 0.95f, 0.45f, 0f));
+                foreach (var collider in binding.Hotspot.GetComponents<Collider2D>()) collider.enabled = false;
                 hotspotsById.Add(binding.LocationId, binding.Hotspot);
             }
 
@@ -459,6 +581,7 @@ namespace YC.Presentation
                 binding.Renderer.enabled = false;
                 binding.Renderer.color = new Color(0.25f, 0.95f, 0.45f, 0.65f);
                 binding.Collider.radius = definition.ColliderRadius;
+                binding.Collider.enabled = false;
                 binding.PieceVisual.SetVisible(false);
                 binding.BorderRenderer.sprite = sprites.MovableInfluenceBorder;
                 binding.BorderRenderer.color = UiTheme.CyanAccent;
@@ -581,7 +704,7 @@ namespace YC.Presentation
             else
             {
                 renderer.sprite = sprites.EmptyInfluenceSlot;
-                renderer.enabled = highlightedInfluenceSlotIds.Contains(slotId);
+                renderer.enabled = false;
                 renderer.color = GetPlayerColor(state, state.CurrentPlayerId, 1f);
                 pieceVisual.SetGhosted(false);
                 pieceVisual.SetVisible(false);
@@ -590,6 +713,7 @@ namespace YC.Presentation
 
         private InfluencePlacement FindDisplayedInfluence(
             GameState state,
+            IReadOnlyList<InfluencePlacement> placements,
             string slotId,
             bool hasPendingDispatchFirstMove,
             string pendingDispatchFirstSourceSlotId,
@@ -604,30 +728,24 @@ namespace YC.Presentation
 
                 if (slotId == pendingDispatchFirstTargetSlotId)
                 {
-                    return influenceService.FindInfluence(state, pendingDispatchFirstSourceSlotId);
+                    return influenceService.FindInfluence(state, pendingDispatchFirstSourceSlotId, placements);
                 }
             }
 
-            return influenceService.FindInfluence(state, slotId);
+            return influenceService.FindInfluence(state, slotId, placements);
         }
 
         private void SetInfluenceSlotBorderVisible(string slotId, bool visible)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (view != null)
-                foreach (var binding in view.InfluenceSlots)
-                    if (binding != null && binding.SlotId == slotId && binding.ClickTarget != null)
-                        YC.PlayerJourney.PlayerAutomationId.Attach(binding.ClickTarget.gameObject, "map.influence_slot." + slotId, visible);
-#endif
             MapHighlightPulse pulse;
             if (influenceSlotPulses.TryGetValue(slotId, out pulse) && pulse != null)
             {
-                pulse.SetHighlighted(visible);
+                pulse.SetHighlighted(false);
             }
             MapHighlightPulse emptyPulse;
             if (influenceSlotEmptyPulses.TryGetValue(slotId, out emptyPulse) && emptyPulse != null)
             {
-                emptyPulse.SetHighlighted(visible);
+                emptyPulse.SetHighlighted(false);
             }
         }
 

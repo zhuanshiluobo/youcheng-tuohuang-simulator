@@ -209,6 +209,11 @@
     "dataTemplate": {
       "type": "string",
       "description": "设施共用数据模板的包内 JSON 相对路径；data 保存本实体差异。"
+    },
+    "artworkSpriteId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "artwork_slices.json 中的稳定切片 ID，artwork 路径必须与其整图一致。"
     }
   }
 }

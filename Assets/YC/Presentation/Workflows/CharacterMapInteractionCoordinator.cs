@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -28,6 +30,12 @@ namespace YC.Presentation
         private readonly Action<string> setPrompt;
         private readonly Dictionary<string, string> draft = new Dictionary<string, string>();
         private readonly List<string> parameterKeys = new List<string>();
+
+        public Func<GameplayTextRef, GameplayTextDocument> ResolveGameplayText { private get; set; }
+        public Action<GameplayTextRef, Func<bool>> ShowGameplayPrompt { private get; set; }
+        private GameplayTextDocument currentPromptDocument;
+        private bool IsPendingSelection => kind == SelectionKind.LiskarmCleanup || kind == SelectionKind.TinManPendingMove;
+        public bool OwnsPromptDocument(GameplayTextDocument value) => IsPendingSelection && value != null && ReferenceEquals(currentPromptDocument, value);
 
         private SelectionKind kind;
         private CharacterCardEffectKind effect;
@@ -57,6 +65,22 @@ namespace YC.Presentation
         public bool IsActive
         {
             get { return kind != SelectionKind.None; }
+        }
+
+        public string MapConfirmationScope => !IsActive ? string.Empty : kind + ":" + effectMode + ":" + stepIndex + ":" +
+            getState()?.Round + ":" + getState()?.Phase + ":" + CurrentPending()?.SourceCommandId;
+
+        public InteractionPresentation BuildMapPresentation()
+        {
+            var targets = new List<WorkflowHighlight>();
+            var key = CurrentKey();
+            foreach (var option in CurrentOptions())
+                targets.Add(new WorkflowHighlight(key == CharacterEffectParameterKeys.TargetLocationId
+                    ? WorkflowHighlightTargetKind.Location : WorkflowHighlightTargetKind.InfluenceSlot,
+                    option.Id, SemanticFor(key)));
+            currentPromptDocument = IsPendingSelection ? ResolveGameplayText?.Invoke(PendingPromptFor(key)) : null;
+            return new InteractionPresentation(targets, IsPendingSelection ? string.Empty : PromptFor(key),
+                InteractionMode.Busy, true, currentPromptDocument);
         }
 
         public bool TryBeginEffect(string selectedEffectMode, CharacterCardEffectKind selectedEffect)
@@ -99,7 +123,7 @@ namespace YC.Presentation
             if (!RenderCurrentStep())
             {
                 Reset(true);
-                setPrompt("当前没有可执行的影响力移动。");
+                ShowGameplayPrompt?.Invoke(new GameplayTextRef("core:legacy.character.map.no_move"), CapturePendingPromptCurrentness(false));
             }
 
             return true;
@@ -182,7 +206,8 @@ namespace YC.Presentation
 
             if (CurrentKey() != CharacterEffectParameterKeys.TargetLocationId)
             {
-                setPrompt("当前步骤需要点击地图上高亮的影响力槽位。");
+                if (IsPendingSelection) ShowGameplayPrompt?.Invoke(new GameplayTextRef("core:legacy.character.map.click_influence"), CapturePendingPromptCurrentness());
+                else setPrompt("当前步骤需要点击地图上高亮的影响力槽位。");
                 return true;
             }
 
@@ -200,7 +225,8 @@ namespace YC.Presentation
             var key = CurrentKey();
             if (string.IsNullOrEmpty(key) || !ContainsCurrentOption(optionId))
             {
-                setPrompt("请选择地图上高亮的合法目标。");
+                if (IsPendingSelection) ShowGameplayPrompt?.Invoke(new GameplayTextRef("core:legacy.character.map.choose_legal"), CapturePendingPromptCurrentness());
+                else setPrompt("请选择地图上高亮的合法目标。");
                 return;
             }
 
@@ -210,8 +236,10 @@ namespace YC.Presentation
             {
                 if (!RenderCurrentStep())
                 {
+                    bool pendingPath = IsPendingSelection;
                     Reset(true);
-                    setPrompt("后续步骤没有合法目标，请重新选择该角色牌效果。");
+                    if (pendingPath) ShowGameplayPrompt?.Invoke(new GameplayTextRef("core:legacy.character.map.next_no_target"), CapturePendingPromptCurrentness(false));
+                    else setPrompt("后续步骤没有合法目标，请重新选择该角色牌效果。");
                 }
                 return;
             }
@@ -266,7 +294,8 @@ namespace YC.Presentation
             }
 
             setHighlights(highlights);
-            setPrompt(PromptFor(key));
+            if (IsPendingSelection) ShowGameplayPrompt?.Invoke(PendingPromptFor(key), CapturePendingPromptCurrentness());
+            else setPrompt(PromptFor(key));
             return true;
         }
 
@@ -338,6 +367,7 @@ namespace YC.Presentation
 
         private void Reset(bool clearMapHighlights)
         {
+            currentPromptDocument = null;
             kind = SelectionKind.None;
             effect = CharacterCardEffectKind.Unsupported;
             effectMode = string.Empty;
@@ -420,12 +450,40 @@ namespace YC.Presentation
             return WorkflowHighlightSemantic.EventInfluenceTarget;
         }
 
-        private string PromptFor(string key)
+        private GameplayTextRef PendingPromptFor(string key)
         {
             if (kind == SelectionKind.LiskarmCleanup)
+                return new GameplayTextRef("core:legacy.character.map.cleanup", new GameplayTextArgument
+                    { Name = "count", Kind = "integer", Value = NormalizedValue.CreateInteger(1) });
+            if (kind != SelectionKind.TinManPendingMove) return null;
+            return new GameplayTextRef(key == CharacterEffectParameterKeys.SourceInfluenceSlotId
+                ? "core:legacy.character.map.move_source" : "core:legacy.character.map.move_target");
+        }
+
+        public Func<bool> CapturePendingPromptCurrentness(bool includeStep = true)
+        {
+            var state = getState(); var pending = CurrentPending();
+            if (pending == null) return () => false;
+            var game = state.GameId; var player = getLocalPlayerId(); var revision = state.EffectRuntime?.StateRevision ?? 0;
+            var content = state.ContentPackHash; var command = pending.SourceCommandId; var card = pending.CardId; var type = pending.ChoiceType;
+            var candidates = pending.OptionIds.ToArray(); var remainingCards = pending.RemainingCardIds.ToArray();
+            var capturedKind = kind; var step = stepIndex;
+            draft.TryGetValue(CharacterEffectParameterKeys.SourceInfluenceSlotId, out var source);
+            return () =>
             {
-                return "结束阶段：雷蛇要求移除 1 个己方影响力。请点击地图上高亮的影响力；完成后才能结束本回合。";
-            }
+                var current = getState(); var currentPending = current?.PendingCharacterEffect;
+                draft.TryGetValue(CharacterEffectParameterKeys.SourceInfluenceSlotId, out var currentSource);
+                return current != null && current.GameId == game && getLocalPlayerId() == player && current.ContentPackHash == content &&
+                    (current.EffectRuntime?.StateRevision ?? 0) == revision && currentPending?.IsValid() == true && currentPending.PlayerId == player &&
+                    currentPending.SourceCommandId == command && currentPending.CardId == card && currentPending.ChoiceType == type &&
+                    currentPending.OptionIds.SequenceEqual(candidates) && currentPending.RemainingCardIds.SequenceEqual(remainingCards) &&
+                    (!includeStep || kind == capturedKind && stepIndex == step && currentSource == source);
+            };
+        }
+
+        private string PromptFor(string key)
+        {
+            if (IsPendingSelection) return ResolveGameplayText?.Invoke(PendingPromptFor(key))?.ToPlainText() ?? string.Empty;
             if (key == CharacterEffectParameterKeys.PlacementSlotId1)
             {
                 return "雷蛇策略：在地图上选择第一个放置影响力的空格。";

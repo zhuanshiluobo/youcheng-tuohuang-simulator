@@ -36,7 +36,21 @@ namespace YC.Presentation
         public RectTransform Content => content;
         public bool IsConfigured => slotPrefab != null && viewport != null && content != null;
 
-        public void Render(IReadOnlyList<string> ids, Func<string, Texture> texture, Action<string> click)
+        public void RenderSprites(IReadOnlyList<string> ids, Func<string, Sprite> sprite, Action<string> click)
+        {
+            RenderCore(ids, sprite, null, click);
+        }
+
+        public void RenderTextures(IReadOnlyList<string> ids, Func<string, Texture> texture, Action<string> click)
+        {
+            RenderCore(ids, null, texture, click);
+        }
+
+        private void RenderCore(
+            IReadOnlyList<string> ids,
+            Func<string, Sprite> sprite,
+            Func<string, Texture> texture,
+            Action<string> click)
         {
             var count = ids == null ? 0 : ids.Count;
             UpdateArrangementSeed(ids, count);
@@ -67,7 +81,8 @@ namespace YC.Presentation
                 var card = slots[i];
                 card.gameObject.name = "Card Slot: " + id;
                 card.gameObject.SetActive(true);
-                card.Bind(texture(id), click == null ? (Action)null : () => click(id));
+                if (sprite != null) card.Bind(sprite(id), click == null ? (Action)null : () => click(id));
+                else card.BindTexture(texture == null ? null : texture(id), click == null ? (Action)null : () => click(id));
                 if (kind == CardPileKind.Hand)
                     YC.PlayerJourney.PlayerAutomationId.Attach(card.gameObject, "character.hand." + id);
             }

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.UI;
+using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
 using YC.Domain.Harvest;
@@ -26,6 +28,114 @@ namespace YC.Tests.EditMode
                 UnityEngine.Object.DestroyImmediate(owner);
                 owner = null;
             }
+        }
+
+        [Test]
+        public void CharacterViewerPermitRefreshKeepsBindingRulesAndLiveClickGate()
+        {
+            var fixture = new CardViewerTests();
+            fixture.SetUp();
+            try
+            {
+                var viewer = (Component)typeof(CardViewerTests).GetField("viewer", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture);
+                var sprite = (Sprite)typeof(CardViewerTests).GetField("sprite", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture);
+                var type = viewer.GetType();
+                var effect = Type.GetType("YC.Presentation.CardViewerEffect, Assembly-CSharp", true);
+                var commands = 0; var closes = 0; var current = true; var permitted = true;
+                var bridge = new CardViewerTests.CallbackBridge { callback = () => commands++ };
+                var callback = Delegate.CreateDelegate(typeof(Action<>).MakeGenericType(effect), bridge,
+                    typeof(CardViewerTests.CallbackBridge).GetMethod("Run").MakeGenericMethod(effect));
+                var open = type.GetMethod("OpenCharacter", new[] { typeof(string), typeof(Sprite), typeof(bool), typeof(bool),
+                    typeof(string), typeof(string), typeof(Func<bool>), callback.GetType(), typeof(Action) });
+                var availability = type.GetMethod("RefreshSubmissionAvailability");
+                var update = type.GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
+                var plot = (Button)type.GetProperty("PlotButton").GetValue(viewer);
+                var strategy = (Button)type.GetProperty("StrategyButton").GetValue(viewer);
+                void Bind()
+                {
+                    open.Invoke(viewer, new object[] { "许可绑定角色", sprite, false, true, "规则禁止", string.Empty,
+                        (Func<bool>)(() => current), callback, (Action)(() => closes++) });
+                    type.GetProperty("CanSubmit").SetValue(viewer, (Func<bool>)(() => permitted));
+                }
+                Bind();
+                permitted = false;
+                availability.Invoke(viewer, new object[] { false });
+                update.Invoke(viewer, null);
+                Assert.That(viewer.gameObject.activeSelf, Is.True, "许可暂撤不得关闭仍有效的页面。");
+                Assert.That(type.GetProperty("CardId").GetValue(viewer), Is.EqualTo("许可绑定角色"));
+                Assert.That(type.GetProperty("DisplayedSprite").GetValue(viewer), Is.SameAs(sprite));
+                Assert.That(plot.interactable, Is.False); Assert.That(strategy.interactable, Is.False);
+                strategy.onClick.Invoke();
+                Assert.That(commands, Is.Zero); Assert.That(closes, Is.Zero);
+                permitted = true;
+                availability.Invoke(viewer, new object[] { true });
+                Assert.That(plot.interactable, Is.False, "规则禁用模式不得因许可恢复而启用。");
+                Assert.That(strategy.interactable, Is.True);
+                permitted = false; // 尚未刷新按钮时也必须读取当前许可，不能先Dismiss再拒绝。
+                strategy.onClick.Invoke();
+                Assert.That(commands, Is.Zero); Assert.That(viewer.gameObject.activeSelf, Is.True);
+                permitted = true;
+                strategy.onClick.Invoke(); strategy.onClick.Invoke();
+                Assert.That(commands, Is.EqualTo(1)); Assert.That(closes, Is.Zero);
+                Assert.That(viewer.gameObject.activeSelf, Is.False);
+                Bind(); permitted = false;
+                availability.Invoke(viewer, new object[] { false });
+                type.GetMethod("Close").Invoke(viewer, null);
+                Assert.That(closes, Is.EqualTo(1), "现有用户关闭仍沿原返回回调。");
+                permitted = true; Bind(); current = false;
+                update.Invoke(viewer, null);
+                Assert.That(viewer.gameObject.activeSelf, Is.False, "真实请求失效仍按原路径清理。");
+                Assert.That(commands, Is.EqualTo(1)); Assert.That(closes, Is.EqualTo(1));
+            }
+            finally { fixture.TearDown(); }
+        }
+
+        [Test]
+        public void SimulationPermissionObservationPreservesResultRootViewerAndLocalBoundaries()
+        {
+            var state = CreateState(GamePhase.ActionRound1);
+            state.GameId = "许可观察局"; state.ContentPackHash = "许可观察内容包";
+            var session = new GameSession(state);
+            session.RefreshLocalProjection(GameStateViewer.Player(1));
+            var view = session.View;
+            var commands = new RecordingCommandPort();
+            var controller = CreateController(state, commands);
+            SetPrivateField(controller, "session", session);
+            SetPrivateField(controller, "localPlayerId", 1);
+            SetPrivateField(controller, "lastSimulationUiSession", session);
+            SetPrivateField(controller, "lastSimulationUiState", session.State);
+            SetPrivateField(controller, "lastSimulationUiView", view);
+            SetPrivateField(controller, "lastSimulationUiGame", view.GameId);
+            SetPrivateField(controller, "lastSimulationUiContent", view.ContentPackHash);
+            SetPrivateField(controller, "lastSimulationUiRevision", view.StateRevision);
+            SetPrivateField(controller, "lastSimulationUiViewer", 1);
+            SetPrivateField(controller, "lastSimulationUiReady", true);
+            var same = controller.GetType().GetMethod("IsSameSimulationUiContext", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, false }), Is.True);
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, true }), Is.False,
+                "同revision准确拒绝仍必须走完整同步并重路由。");
+            Assert.That((bool)same.Invoke(controller, new object[] { view, false, false }), Is.False);
+            Assert.That((bool)same.Invoke(controller, new object[] { null, true, false }), Is.False);
+            var replacedView = GameStateViewProjector.ProjectForPlayer(state, 1);
+            Assert.That(replacedView.StateRevision, Is.EqualTo(view.StateRevision));
+            Assert.That((bool)same.Invoke(controller, new object[] { replacedView, true, false }), Is.False,
+                "相同revision的新投影不能沿用旧展示缓存。");
+            SetPrivateField(controller, "lastSimulationUiState", GameStateCloneService.DeepClone(state));
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, false }), Is.False,
+                "恢复换State根不能仅靠revision短路。");
+            SetPrivateField(controller, "lastSimulationUiState", session.State);
+            SetPrivateField(controller, "localPlayerId", 2);
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, false }), Is.False);
+            SetPrivateField(controller, "localPlayerId", 1);
+            SetPrivateField(controller, "viewerChanged", true);
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, false }), Is.False);
+            SetPrivateField(controller, "viewerChanged", false);
+            SetPrivateField(controller, "lastSimulationUiSession", new GameSession(state));
+            Assert.That((bool)same.Invoke(controller, new object[] { view, true, false }), Is.False);
+            var permissionOnly = controller.GetType().GetMethod("RefreshSimulationPermissionOnly", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That((bool)permissionOnly.Invoke(controller, null), Is.False,
+                "无新模拟提交器的旧Local入口不走许可捷径。");
+            Assert.That(commands.ReceivedCommand, Is.Null);
         }
 
         [Test]

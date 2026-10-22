@@ -1,0 +1,5276 @@
+{
+  "liveAssetReferences": [],
+  "historicalOrToolReferences": [
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 144,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 162,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_002_城邦行政区_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 180,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_003_城邦行政区_r01c03.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 198,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_004_附属能源设施_r01c04.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 216,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_005_附属能源设施_r01c05.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 234,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_006_附属能源设施_r01c06.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 252,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_007_联邦理事处_r01c07.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 270,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_008_联邦理事处_r01c08.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 288,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_009_联邦理事处_r01c09.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 306,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_010_简陋工程营_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 324,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_011_简陋工程营_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 342,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_012_物流枢纽_r02c03.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 359,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_013_物流枢纽_r02c04.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 376,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_014_源石精炼厂_r02c05.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 394,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_015_城市化区域_r02c06.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 411,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_016_城市化区域_r02c07.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 428,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_017_城市化区域_r02c08.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 445,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_018_异铁冶炼厂_r02c09.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 463,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_019_贸易街区_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 480,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_020_贸易街区_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 497,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_021_贸易街区_r03c03.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 514,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_022_城邦工业区_r03c05.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 532,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_023_城邦工业区_r03c06.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 550,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_024_城邦工业区_r03c07.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 568,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_025_高性能动力设施_r03c08.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 586,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_026_高性能动力设施_r03c09.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 604,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_027_固源岩提纯厂_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 622,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_028_源石精炼厂_r04c02.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 640,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_029_开采电铲_r04c03.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 657,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_030_开采电铲_r04c04.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 674,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_031_开采电铲_r04c05.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 691,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_032_异铁冶炼厂_r04c07.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 709,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_033_固源岩提纯厂_r04c08.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 727,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_034_佣兵指挥部_r04c09.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 746,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_035_佣兵指挥部_r05c01.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 765,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_036_佣兵指挥部_r05c02.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 784,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_037_护航调度中心_r05c03.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 803,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_038_护航调度中心_r05c04.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 822,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_039_载具仓库_r05c05.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 840,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_040_载具仓库_r05c06.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 858,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_041_载具仓库_r05c07.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 878,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/core_command_tower_x4_核心指挥塔.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 892,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_blue_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 906,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_yellow_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "Assets/YC/Editor/Data/building_cards_manifest.json",
+      "line": 920,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_red_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 935,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 936,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 937,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 938,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 939,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 940,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 941,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 942,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 943,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 944,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 945,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 946,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 947,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 948,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 949,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 950,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 951,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 952,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 953,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 954,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 955,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 956,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 957,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 958,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 959,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 960,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 961,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 962,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 963,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 964,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 965,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 966,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 967,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 968,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 969,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 970,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 971,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 972,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 973,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 974,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 975,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 976,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 977,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 978,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 979,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 980,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 981,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 982,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 983,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 984,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 985,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 986,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 987,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 988,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 989,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 990,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 991,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 992,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 993,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 994,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 995,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 996,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 997,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 998,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 999,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1000,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1001,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1002,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1003,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1004,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1005,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1006,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1007,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1008,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1009,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1010,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1011,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1013,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1014,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1015,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1016,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1017,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1018,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1019,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1020,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1021,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1022,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1023,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1024,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1025,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1026,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1027,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1028,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1029,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1030,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1031,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1032,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1033,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1034,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1035,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1036,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1037,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1038,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1039,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1040,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1041,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1042,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1043,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1044,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1045,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1046,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1047,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1048,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1049,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1050,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1051,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1052,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1053,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1054,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1055,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1056,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1057,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1058,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1059,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1060,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1061,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1062,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1063,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1064,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1065,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1066,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1067,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1068,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1069,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1070,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1071,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1072,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1073,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1074,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1075,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1076,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1077,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1078,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1079,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1080,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1081,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1082,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1083,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1084,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1085,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1086,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1087,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1088,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1089,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1090,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1091,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1092,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1093,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1094,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1095,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1096,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1097,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1098,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1099,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1100,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1101,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1102,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1103,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1104,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1105,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1106,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1107,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1108,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1109,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1110,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1111,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1112,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1113,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/企业与科室/开工资产哈希.json",
+      "line": 1114,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+      "line": 1241,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-2-Start-1920x1080-actual-1920x1080.json",
+      "line": 1360,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 1845,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 1964,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 2083,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 2202,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 2321,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-6-Start-1920x1080-actual-1920x1080.json",
+      "line": 2440,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 1996,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2115,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2234,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2353,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2472,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2591,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1080-actual-1920x1080.json",
+      "line": 2710,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 1996,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2115,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2234,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2353,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2472,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2591,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-7-Start-1920x1200-actual-1920x1200.json",
+      "line": 2710,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 275,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 305,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2298,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2417,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2536,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2655,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2774,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 2893,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 3012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 3131,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-1920x1080-actual-1920x1080.json",
+      "line": 3250,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 275,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 305,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2298,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2417,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2536,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2655,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2774,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 2893,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 3012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 3131,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-End-900x600-actual-900x600.json",
+      "line": 3250,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 65,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 95,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 125,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 155,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 275,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 305,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2298,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2417,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2536,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2655,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2774,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 2893,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 3012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 3131,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/卡牌选择/CardPicker-Component-9-Start-1920x1080-actual-1920x1080.json",
+      "line": 3250,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 932,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 933,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 934,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 935,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 936,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 937,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 938,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 939,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 940,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 941,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 942,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 943,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 944,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 945,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 946,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 947,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 948,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 949,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 950,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 951,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 952,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 953,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 954,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 955,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 956,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 957,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 958,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 959,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 960,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 961,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 962,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 963,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 964,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 965,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 966,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 967,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 968,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 969,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 970,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 971,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 972,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 973,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 974,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 975,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 976,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 977,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 978,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 979,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 980,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 981,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 982,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 983,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 984,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 985,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 986,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 987,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 988,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 989,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 990,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 991,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 992,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 993,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 994,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 995,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 996,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 997,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 998,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 999,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1000,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1001,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1002,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1003,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1004,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1005,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1006,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1007,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1008,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1009,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1010,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1011,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1013,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1014,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1015,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1016,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1017,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1018,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1019,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1020,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/完成哈希.json",
+      "line": 1021,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 924,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 925,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 926,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 927,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 928,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 929,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 930,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 931,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 932,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 933,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 934,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 935,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 936,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 937,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 938,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 939,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 940,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 941,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 942,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 943,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 944,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 945,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 946,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 947,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 948,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 949,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 950,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 951,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 952,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 953,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 954,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 955,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 956,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 957,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 958,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 959,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 960,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 961,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 962,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 963,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 964,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 965,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 966,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 967,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 968,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 969,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 970,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 971,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 972,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 973,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 974,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 975,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 976,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 977,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 978,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 979,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 980,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 981,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 982,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 983,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 984,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 985,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 986,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 987,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 988,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 989,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 990,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 991,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 992,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 993,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 994,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 995,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 996,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 997,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 998,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 999,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1000,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1001,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1002,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1003,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1004,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1005,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1006,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1007,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1008,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1009,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1010,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1011,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1012,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/开工哈希.json",
+      "line": 1013,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 12,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 30,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 48,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 66,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 84,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/城市样式接入/正式卡图与源版本映射.json",
+      "line": 102,
+      "targets": [
+        "Assets/StreamingAssets/Content/core/artwork/city_style/city_style_source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1174,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/cannot.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1175,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/elysium.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1176,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/liskarm.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1177,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/texas.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1178,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Characters/tin-man.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1179,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/composite_power_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1180,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/efficient_mobile_management_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1181,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/material_relay_station.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1182,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/military_industrial_area.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1183,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/mobilization_support_system.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1184,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/CityStyles/source_stone_industrial_hub.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1185,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1186,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1187,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1188,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1189,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1190,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_green_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1191,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1192,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1193,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1194,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1195,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1196,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_red_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1197,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_01.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1198,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_02.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1199,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_03.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1200,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_04.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1201,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_05.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1202,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_06.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1203,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_07.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1204,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_08.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1205,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_09.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1206,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Events/event_yellow_10.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1207,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/affiliated_energy_facility.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1208,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/borough_administrative_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1209,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1210,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1211,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1212,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1213,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_005.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1214,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_006.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1215,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_007.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1216,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_008.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1217,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_009.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1218,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_010.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1219,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_011.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1220,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_012.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1221,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_013.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1222,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_014.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1223,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_015.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1224,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_016.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1225,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_017.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1226,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_018.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1227,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_019.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1228,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_020.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1229,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_021.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1230,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_022.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1231,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_023.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1232,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_024.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1233,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_025.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1234,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_026.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1235,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_027.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1236,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_028.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1237,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_029.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1238,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_030.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1239,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_031.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1240,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_032.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1241,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_033.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1242,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_034.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1243,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_035.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1244,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_036.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1245,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_037.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1246,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_038.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1247,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_039.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1248,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_040.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1249,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/building_041.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1250,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/core_command_tower.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1251,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/enterprise_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1252,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/equipment_warehouse.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1253,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/federal_office.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1254,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/iron_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1255,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/originium_purification_plant.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1256,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_001.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1257,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_002.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1258,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_003.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1259,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/reserve_004.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1260,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/simple_engineering_camp.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1261,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/source_stone_refinery.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1262,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/trade_district.jpg"
+      ]
+    },
+    {
+      "file": "prompt/UI换新/执行记录/局内UI基础修正/开工资产清单.json",
+      "line": 1263,
+      "targets": [
+        "Assets/YC/Presentation/Resources/CardImages/Facilities/urbanized_area.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 14,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_01_中立采石场_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 25,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_02_清理虫巢_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 36,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_03_外露矿床_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 47,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_04_富饶岩层_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 58,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_05_矿业聚落_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 69,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_06_废弃矿坑（4）_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 80,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_07_险中净土_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 91,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_08_裂谷矿脉_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 102,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_09_采集平台残骸_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 113,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_10_高污染环境_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 124,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_11_深层矿床（4）_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 135,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_12_地质瑰宝_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 146,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 157,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_14_大型源岩场_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 168,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_15_洞穴遗迹_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 179,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_16_荒地人村落_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 190,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_17_锈锤领地_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 201,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_18_情报交换（4）_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 212,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_19_风险任务_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 223,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_20_异铁开采权_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 234,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_21_敌对生态圈（4）_r04c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 245,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_22_富异铁区_r05c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 256,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_23_遭弃矿场_r05c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 267,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 280,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.json",
+      "line": 291,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 21,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_01_中立采石场_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 22,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_02_清理虫巢_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 23,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_03_外露矿床_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 24,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_04_富饶岩层_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 25,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_05_矿业聚落_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 26,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_green_06_废弃矿坑（4）_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 27,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_07_险中净土_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 28,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_08_裂谷矿脉_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 29,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_09_采集平台残骸_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 30,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_10_高污染环境_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 31,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_11_深层矿床（4）_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 32,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_12_地质瑰宝_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 33,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_red_13_采集平台残骸（企业选项版）_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 34,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_14_大型源岩场_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 35,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_15_洞穴遗迹_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 36,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_16_荒地人村落_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 37,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_17_锈锤领地_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 38,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_18_情报交换（4）_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 39,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_19_风险任务_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 40,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_20_异铁开采权_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 41,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_21_敌对生态圈（4）_r04c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 42,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_22_富异铁区_r05c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 43,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_23_遭弃矿场_r05c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/事件牌拆分/event_cards_manifest.md",
+      "line": 44,
+      "targets": [
+        "游城拓荒/素材/事件牌拆分/event_yellow_24_洞穴遗迹（企业选项版）_r06c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 24,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 42,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_002_城邦行政区_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 60,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_003_城邦行政区_r01c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 78,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_004_附属能源设施_r01c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 96,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_005_附属能源设施_r01c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 114,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_006_附属能源设施_r01c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 132,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_007_联邦理事处_r01c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 150,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_008_联邦理事处_r01c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 168,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_009_联邦理事处_r01c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 186,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_010_简陋工程营_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 204,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_011_简陋工程营_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 222,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_012_物流枢纽_r02c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 239,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_013_物流枢纽_r02c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 256,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_014_源石精炼厂_r02c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 274,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_015_城市化区域_r02c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 291,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_016_城市化区域_r02c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 308,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_017_城市化区域_r02c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 325,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_018_异铁冶炼厂_r02c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 343,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_019_贸易街区_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 360,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_020_贸易街区_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 377,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_021_贸易街区_r03c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 394,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_022_城邦工业区_r03c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 412,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_023_城邦工业区_r03c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 430,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_024_城邦工业区_r03c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 448,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_025_高性能动力设施_r03c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 466,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_026_高性能动力设施_r03c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 484,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_027_固源岩提纯厂_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 502,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_028_源石精炼厂_r04c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 520,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_029_开采电铲_r04c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 537,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_030_开采电铲_r04c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 554,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_031_开采电铲_r04c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 571,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_032_异铁冶炼厂_r04c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 589,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_033_固源岩提纯厂_r04c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 607,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_034_佣兵指挥部_r04c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 626,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_035_佣兵指挥部_r05c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 645,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_036_佣兵指挥部_r05c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 664,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_037_护航调度中心_r05c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 683,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_038_护航调度中心_r05c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 702,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_039_载具仓库_r05c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 720,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_040_载具仓库_r05c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 738,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_041_载具仓库_r05c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 758,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/core_command_tower_x4_核心指挥塔.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 772,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_blue_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 786,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_yellow_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.json",
+      "line": 800,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_red_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 15,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_001_城邦行政区_r01c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 16,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_002_城邦行政区_r01c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 17,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_003_城邦行政区_r01c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 18,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_004_附属能源设施_r01c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 19,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_005_附属能源设施_r01c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 20,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_006_附属能源设施_r01c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 21,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_007_联邦理事处_r01c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 22,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_008_联邦理事处_r01c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 23,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_009_联邦理事处_r01c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 24,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_010_简陋工程营_r02c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 25,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_011_简陋工程营_r02c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 26,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_012_物流枢纽_r02c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 27,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_013_物流枢纽_r02c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 28,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_014_源石精炼厂_r02c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 29,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_015_城市化区域_r02c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 30,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_016_城市化区域_r02c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 31,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_017_城市化区域_r02c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 32,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_018_异铁冶炼厂_r02c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 33,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_019_贸易街区_r03c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 34,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_020_贸易街区_r03c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 35,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_021_贸易街区_r03c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 36,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_022_城邦工业区_r03c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 37,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_023_城邦工业区_r03c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 38,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_024_城邦工业区_r03c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 39,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_025_高性能动力设施_r03c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 40,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_026_高性能动力设施_r03c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 41,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_027_固源岩提纯厂_r04c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 42,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_028_源石精炼厂_r04c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 43,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_029_开采电铲_r04c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 44,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_030_开采电铲_r04c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 45,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_031_开采电铲_r04c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 46,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_032_异铁冶炼厂_r04c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 47,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_033_固源岩提纯厂_r04c08.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 48,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_034_佣兵指挥部_r04c09.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 49,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_035_佣兵指挥部_r05c01.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 50,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_036_佣兵指挥部_r05c02.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 51,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_037_护航调度中心_r05c03.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 52,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_038_护航调度中心_r05c04.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 53,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_039_载具仓库_r05c05.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 54,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_040_载具仓库_r05c06.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 55,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/建筑卡片/building_041_载具仓库_r05c07.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 61,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/core_command_tower_x4_核心指挥塔.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 62,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_blue_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 63,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_yellow_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/建设牌输出/building_cards_manifest.md",
+      "line": 64,
+      "targets": [
+        "游城拓荒/素材/建设牌输出/备用卡片/extension_hub_red_延伸枢纽.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 32,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_01_liskarm_雷蛇.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 56,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_02_texas_德克萨斯.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 80,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_03_tin_man_锡人.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 107,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_04_cannot_坎诺特.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 134,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_05_elysium_极境.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 160,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_06_mlynar_玛恩纳.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.json",
+      "line": 187,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_07_mountain_山.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 11,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_01_liskarm_雷蛇.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 12,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_02_texas_德克萨斯.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 13,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_03_tin_man_锡人.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 14,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_04_cannot_坎诺特.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 15,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_05_elysium_极境.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 16,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_06_mlynar_玛恩纳.jpg"
+      ]
+    },
+    {
+      "file": "游城拓荒/素材/角色卡拆分/character_cards_manifest.md",
+      "line": 17,
+      "targets": [
+        "游城拓荒/素材/角色卡拆分/character_07_mountain_山.jpg"
+      ]
+    }
+  ]
+}

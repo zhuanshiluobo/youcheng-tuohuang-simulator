@@ -48,11 +48,12 @@ namespace YC.Presentation
 
         public void HandleEscapePressed()
         {
-            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return;
             if (!TryInitialize())
             {
                 return;
             }
+
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return;
 
             if (CardViewer.WasEscapeConsumedThisFrame() || CardViewer.HasOpenViewer() ||
                 MobileCityInteractionController.WasInteractionEscapeConsumedThisFrame() ||
@@ -100,13 +101,12 @@ namespace YC.Presentation
 
             GameplayHudFrame.Active?.SuspendEffectForInformation();
             GameplayHudFrame.Active?.ConstrainExternalPage(view.OverlayObject.transform as RectTransform);
+            if (view.SaveGameButton != null) view.SaveGameButton.gameObject.SetActive(MatchSaveController.Instance?.CanSave == true);
             isOpen = true;
             view.CloseInputHandler.Configure(Close);
             view.ConfirmationObject.SetActive(false);
             ResetLegacyPanelPosition();
             view.OverlayObject.SetActive(true);
-            if (view.SaveGameButton != null)
-                view.SaveGameButton.gameObject.SetActive(MatchSaveController.Instance != null && MatchSaveController.Instance.CanSave);
             GameplayHudFrame.Active?.ShowPage(view.OverlayObject, false);
         }
 
@@ -208,6 +208,7 @@ namespace YC.Presentation
 
         private void BindButtons()
         {
+            if (view.SaveGameButton != null) BindButton(view.SaveGameButton, MatchSaveWindowView.OpenSave);
             BindButton(view.GearButton, Open);
             BindButton(view.ActionLogButton, OpenActionLog);
             view.OverlayCloseButton.onClick.RemoveAllListeners();
@@ -216,7 +217,6 @@ namespace YC.Presentation
             BindButton(view.RulebookButton, SelectRulebookTab);
             BindButton(view.PlaceholderTabButton, () => SelectTab(SettingsTab.Placeholder));
             BindButton(view.ReturnButton, ReturnToStartScene);
-            if (view.SaveGameButton != null) BindButton(view.SaveGameButton, MatchSaveWindowView.OpenSave);
             BindButton(view.ConfirmReturnButton, ReturnToStartScene);
             BindButton(view.CancelReturnButton, HideConfirmation);
         }

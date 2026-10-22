@@ -1,0 +1,235 @@
+{
+  "assetCount": 25,
+  "pngLoad": "PASS",
+  "manifestDimensions": "PASS",
+  "manifestHashes": "PASS",
+  "frameCentersTransparent": "PASS",
+  "componentSheetLoad": "PASS",
+  "assets": [
+    {
+      "id": "outer-frame",
+      "size": [
+        1024,
+        576
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "module-bg",
+      "size": [
+        512,
+        320
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "paper-bg",
+      "size": [
+        512,
+        128
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "header-bg",
+      "size": [
+        1024,
+        88
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "module-frame",
+      "size": [
+        512,
+        320
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "drawer-frame",
+      "size": [
+        1024,
+        240
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "card-frame",
+      "size": [
+        320,
+        456
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "card-bg",
+      "size": [
+        320,
+        456
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-bg",
+      "size": [
+        1920,
+        72
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "topbar-frame",
+      "size": [
+        1920,
+        72
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "turn-tag",
+      "size": [
+        256,
+        56
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "redzone-paper",
+      "size": [
+        256,
+        56
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "bottom-bar",
+      "size": [
+        1920,
+        96
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 249
+    },
+    {
+      "id": "bottom-frame",
+      "size": [
+        1920,
+        96
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "chain-slot-bg",
+      "size": [
+        1024,
+        64
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    },
+    {
+      "id": "chain-slot-frame",
+      "size": [
+        1024,
+        64
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "button-primary",
+      "size": [
+        320,
+        98
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 253
+    },
+    {
+      "id": "button-secondary",
+      "size": [
+        320,
+        98
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 253
+    },
+    {
+      "id": "button-disabled",
+      "size": [
+        320,
+        98
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 183
+    },
+    {
+      "id": "undo-enabled",
+      "size": [
+        200,
+        64
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 253
+    },
+    {
+      "id": "undo-disabled",
+      "size": [
+        200,
+        64
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 183
+    },
+    {
+      "id": "icon-undo-active",
+      "size": [
+        48,
+        48
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-undo-muted",
+      "size": [
+        48,
+        48
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-chevron",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 0
+    },
+    {
+      "id": "icon-close",
+      "size": [
+        32,
+        32
+      ],
+      "mode": "RGBA",
+      "centerAlpha": 255
+    }
+  ]
+}

@@ -12,6 +12,7 @@ using YC.Domain.Maps;
 using YC.Domain.Movement;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
@@ -60,6 +61,17 @@ namespace YC.Tests.EditMode
             var result = new AnswerInteractionCommandHandler(registry).Handle(state, command);
             Assert.That(result.Succeeded, Is.True, result.Validation?.Reason + state.EffectRuntime.LastFaultMessage);
             Assert.That(state.EffectRuntime.LastFaultMessage, Is.Empty, state.EffectRuntime.LastFaultMessage);
+            return command;
+        }
+        private static GameCommand AnswerRouteSelection(GameState state, EffectRegistry registry, string location, string route, string recipient = "bank")
+        {
+            var request = Open(state); Assert.That(request.InteractionTypeId, Is.EqualTo("route_resource.selection"));
+            string scope = request.PromptParameters.Properties.Single(p => p.Name == "scopeKey").Value.StringValue;
+            var ids = new[] { RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Commit),
+                RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Location, location), RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.RouteAndRecipient, route, recipient) };
+            var command = EffectInteractionCommands.Answer(InteractionRequestProjector.ProjectForPlayer(request, 1), 1, ids);
+            var result = new AnswerInteractionCommandHandler(registry).Handle(state, command);
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason); Assert.That(state.EffectRuntime.LastFaultMessage, Is.Empty);
             return command;
         }
         [Test]
@@ -149,7 +161,9 @@ namespace YC.Tests.EditMode
             string card = FacilityCardDatabase.All.First(d => d.EffectId == "remove_then_dispatch_or_explore").FacilityId;
             Activate(state, registry, card); Answer(state, registry, "vehicle.remove_move");
             Assert.That(state.Map.Influences.Any(x => x.SlotId == enemy), Is.True);
-            Answer(state, registry, enemy); Assert.That(state.Map.Influences.Any(x => x.SlotId == enemy), Is.False);
+            string enemyInstanceId = InfluenceIdentity.GetStableId(state, state.Map.Influences.Single(x => x.SlotId == enemy));
+            Assert.That(Open(state).CandidateIds, Does.Contain(enemyInstanceId));
+            Answer(state, registry, enemyInstanceId); Assert.That(state.Map.Influences.Any(x => x.SlotId == enemy), Is.False);
             state = GameStateCloneService.DeepClone(state); registry = Registry();
             Answer(state, registry, Open(state).CandidateIds[0]);
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
@@ -162,13 +176,13 @@ namespace YC.Tests.EditMode
             state.Decks.EventDeckGreen.Add("event_green_01");
             string card = FacilityCardDatabase.All.First(d => d.EffectId == "remove_then_dispatch_or_explore").FacilityId;
             Activate(state, registry, card); Answer(state, registry, "vehicle.explore");
-            string step = Open(state).CandidateIds.First(id => id.StartsWith("explore.step:") && id.EndsWith(":A-02"));
-            Answer(state, registry, step);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("route_resource.selection"));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(30));
             Assert.That(state.Decks.EventDeckGreen.Count, Is.EqualTo(1));
             state = GameStateCloneService.DeepClone(state); registry = Registry();
-            Answer(state, registry, Open(state).CandidateIds.First(id => id.StartsWith("explore.finish:")));
+            AnswerRouteSelection(state, registry, "A-02", "A1");
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.LessThan(30));
+            Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.EqualTo(2));
             Assert.That(Open(state).InteractionTypeId, Is.EqualTo(EventCardEffectExecutor.OptionInteractionTypeId));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
         }
@@ -182,18 +196,25 @@ namespace YC.Tests.EditMode
             Assert.That(new FacilityBuildCostService().GetEffectiveResourceCost(state, state.FindPlayer(1), card).Iron, Is.EqualTo(3));
         }
         [Test]
-        public void ExplorationBacktracking_UsesFreshInteractionIdsAfterRecovery()
+        public void ExplorationBacktracking_UsesLocalDraftAndKeepsTheHostRequestAfterRecovery()
         {
             var state = State(); var registry = Registry();
+            state.Map.ResourceTokens.Clear(); state.Decks.EventDeckGreen.Add("event_green_01");
             string card = FacilityCardDatabase.All.First(d => d.EffectId == "remove_then_dispatch_or_explore").FacilityId;
             Activate(state, registry, card); Answer(state, registry, "vehicle.explore");
-            var first = Open(state); string step = first.CandidateIds.First(id => id.StartsWith("explore.step:"));
-            Answer(state, registry, step); state = GameStateCloneService.DeepClone(state); registry = Registry();
-            Answer(state, registry, "explore.back");
-            Assert.That(Open(state).InteractionId, Is.Not.EqualTo(first.InteractionId));
-            Assert.That(Open(state).CandidateIds, Does.Contain(step));
-            Answer(state, registry, "choice.skip");
+            var first = Open(state); int revision = state.EffectRuntime.StateRevision;
+            var authority = new RouteSelectionSessionAuthority(); var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == first.OwnerEffectId);
+            Assert.That(authority.TryRestore(state, owner, out var session, out _).IsValid, Is.True);
+            var draft = new RouteSelectionDraft(session.SessionId, 0, new[] { "A1" }, new[] { "A-02" }, new[] { new RouteRecipientChoice("A1", "bank") });
+            var service = new RouteResourceSelectionService(); service.Query(state, session, draft, session.SelectableLocationUpperBound);
+            draft = draft.WithSelection(Array.Empty<string>(), draft.SelectedLocationIds, Array.Empty<RouteRecipientChoice>());
+            Assert.That(service.Query(state, session, draft, session.SelectableLocationUpperBound).Validation.IsValid, Is.False);
+            Assert.That(draft.SelectedLocationIds, Is.EqualTo(new[] { "A-02" })); Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision));
+            state = GameStateCloneService.DeepClone(state); registry = Registry();
+            Assert.That(Open(state).InteractionId, Is.EqualTo(first.InteractionId)); Assert.That(Open(state).CandidateIds, Is.EqualTo(first.CandidateIds));
+            Answer(state, registry, Open(state).CandidateIds.Single(id => id.EndsWith(".cancel", StringComparison.Ordinal)));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.Zero);
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1)); Assert.That(state.Decks.EventDeckGreen.Count, Is.EqualTo(1));
         }
         [Test]
         public void AllEnabledFacilityEntries_UseLuaWithoutLegacyActionAdapter()
@@ -228,24 +249,26 @@ namespace YC.Tests.EditMode
             var state = State(); var registry = Registry(); state.Map.ResourceTokens.Clear();
             state.Players.Add(new PlayerState { PlayerId = 3, InfluenceSupply = 30 });
             state.FindPlayer(1).Resources.GoldVoucher = 30; state.Decks.EventDeckGreen.Add("event_green_01");
+            state.Decks.EventDeckYellow.Add("event_yellow_01");
             var map = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()); var influence = new InfluenceService(map);
-            var route = map.FindRoute("A-01", "A-02");
-            var tolls = new YC.Domain.Travel.RouteTollService(map);
-            string key = tolls.GetRoutePaymentKey(route.RouteId, YC.Domain.Travel.RouteTollPaymentKeyMode.SharedRegion);
-            var regionRoutes = map.Map.Routes.Where(r => tolls.GetRoutePaymentKey(r.RouteId, YC.Domain.Travel.RouteTollPaymentKeyMode.SharedRegion) == key).ToList();
-            var slots = regionRoutes.SelectMany(r => Enumerable.Range(0, r.InfluenceSlotCount).Select(n => InfluenceService.GetRouteSlotId(r.RouteId, n))).Take(2).ToList();
+            state.FindPlayer(1).CityLocationId = "A-02";
+            var route = map.GetRoute("A2");
+            var slots = Enumerable.Range(0, route.InfluenceSlotCount).Select(n => InfluenceService.GetRouteSlotId(route.RouteId, n)).Take(2).ToList();
             Assert.That(slots.Count, Is.EqualTo(2));
             Assert.That(influence.Place(state, 2, slots[0]).Succeeded, Is.True);
             Assert.That(influence.Place(state, 3, slots[1]).Succeeded, Is.True);
             string card = FacilityCardDatabase.All.First(d => d.EffectId == "remove_then_dispatch_or_explore").FacilityId;
             Activate(state, registry, card); Answer(state, registry, "vehicle.explore");
-            Answer(state, registry, Open(state).CandidateIds.First(id => id.StartsWith("explore.step:") && id.EndsWith(":A-02")));
-            Answer(state, registry, Open(state).CandidateIds.First(id => id.StartsWith("explore.finish:")));
-            Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "explore.pay:2", "explore.pay:3" }));
+            string scope = Open(state).PromptParameters.Properties.Single(p => p.Name == "scopeKey").Value.StringValue;
+            Assert.That(Open(state).CandidateIds, Does.Contain(RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.RouteAndRecipient, "A2", "player:2")));
+            Assert.That(Open(state).CandidateIds, Does.Contain(RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.RouteAndRecipient, "A2", "player:3")));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(30));
             state = GameStateCloneService.DeepClone(state); registry = Registry();
-            var command = Answer(state, registry, "explore.pay:3");
-            Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(2));
+            var command = AnswerRouteSelection(state, registry, "A-03", "A2", "player:3");
+            Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.Zero); Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.EqualTo(2));
+            for (int guard = 0; state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open") && guard < 40; guard++) Answer(state, registry, Open(state).CandidateIds[0]);
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(2)); Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.Zero);
             Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.Zero);
             new AnswerInteractionCommandHandler(registry).Handle(state, command);
             Assert.That(state.FindPlayer(3).Resources.GoldVoucher, Is.EqualTo(2));

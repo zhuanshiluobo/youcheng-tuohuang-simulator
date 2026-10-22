@@ -30,21 +30,33 @@ namespace YC.Tests.PlayMode
         [TearDown]
         public void TearDown() { UnityEngine.Object.DestroyImmediate(owner); }
 
-        [UnityTest]
-        public IEnumerator SingleClickSelects_DoubleClickAndRightClickOnlyPreview()
+        [Test]
+        public void SingleClickSelectsImmediately_RepeatedClickNeverPreviews()
         {
             Click(1);
-            Assert.That(selections, Is.Zero);
-            yield return new WaitForSecondsRealtime(.35f);
             Assert.That(selections, Is.EqualTo(1));
-            Click(1);
             Click(2);
-            yield return new WaitForSecondsRealtime(.35f);
-            Assert.That(previews, Is.EqualTo(1));
-            Assert.That(selections, Is.EqualTo(1));
+            Assert.That(selections, Is.EqualTo(2), "第二次有效点击仍是单击，不等待双击窗口。");
+            Assert.That(previews, Is.Zero);
             Click(1, PointerEventData.InputButton.Right);
-            Assert.That(previews, Is.EqualTo(2));
-            Assert.That(selections, Is.EqualTo(1));
+            Assert.That(previews, Is.EqualTo(1));
+            Assert.That(selections, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void ReadOnlySingleClickPreviewsImmediately_AndStaleBindingCannotPreview()
+        {
+            var current = true;
+            button.GetType().GetMethod("ConfigureSingleClickPreview").Invoke(button,
+                new object[] { new Action(() => previews++), new Func<bool>(() => current) });
+            Click(1);
+            Assert.That(previews, Is.EqualTo(1));
+            Assert.That(selections, Is.Zero);
+            current = false;
+            Click(1);
+            Click(1, PointerEventData.InputButton.Right);
+            Assert.That(previews, Is.EqualTo(1));
+            Assert.That(selections, Is.Zero);
         }
 
         [UnityTest]
@@ -55,7 +67,6 @@ namespace YC.Tests.PlayMode
             yield return new WaitForSecondsRealtime(.55f);
             button.OnPointerUp(data);
             button.OnPointerClick(data);
-            yield return new WaitForSecondsRealtime(.35f);
             Assert.That(previews, Is.EqualTo(1));
             Assert.That(selections, Is.Zero);
             button.OnPointerDown(data);
@@ -63,17 +74,15 @@ namespace YC.Tests.PlayMode
             yield return new WaitForSecondsRealtime(.55f);
             button.OnPointerUp(data);
             button.OnPointerClick(data);
-            yield return new WaitForSecondsRealtime(.35f);
             Assert.That(previews, Is.EqualTo(1));
             Assert.That(selections, Is.Zero);
         }
 
-        [UnityTest]
-        public IEnumerator ReadOnlyCardCanPreview_ButCannotSelect()
+        [Test]
+        public void UnselectableCardCanPreview_ButCannotSelect()
         {
             button.interactable = false;
             Click(1);
-            yield return new WaitForSecondsRealtime(.35f);
             Click(1, PointerEventData.InputButton.Right);
             Assert.That(previews, Is.EqualTo(1));
             Assert.That(selections, Is.Zero);

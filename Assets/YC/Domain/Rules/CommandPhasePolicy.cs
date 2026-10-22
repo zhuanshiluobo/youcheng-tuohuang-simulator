@@ -28,6 +28,9 @@ namespace YC.Domain.Rules
                     return phase == GamePhase.ActionRound1 || phase == GamePhase.ActionRound2;
                 case GameCommandKind.CollectResource:
                     return phase == GamePhase.ResourceCollection;
+                case GameCommandKind.InvokeSettlementOption:
+                case GameCommandKind.PreparePaymentDraft:
+                    return phase == GamePhase.ActionRound1 || phase == GamePhase.ActionRound2 || phase == GamePhase.Cleanup;
                 case GameCommandKind.ResolvePendingChoice:
                 case GameCommandKind.AnswerInteraction:
                     return true;

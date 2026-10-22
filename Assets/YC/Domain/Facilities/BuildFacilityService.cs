@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -80,7 +81,7 @@ namespace YC.Domain.Facilities
             }
 
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             var effectiveResourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
             var resolvedPaymentMode = ResolvePaymentMode(player, facility, effectiveResourceCost, paymentMode);
             var cost = resolvedPaymentMode == PaymentModeGold
@@ -107,7 +108,7 @@ namespace YC.Domain.Facilities
             if (FindFirstEmptyCityBoardSlot(state, playerId) < 0)
                 return BuildFacilityResult.Failure(ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有可放置槽位。"));
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             var resourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
             var mode = ResolvePaymentMode(player, facility, resourceCost, paymentMode);
             var cost = mode == PaymentModeGold ? new ResourceSet { GoldVoucher = facility.GoldVoucherCost } : resourceCost;
@@ -121,9 +122,9 @@ namespace YC.Domain.Facilities
         public ValidationResult ValidatePaidPlacement(GameState state, int playerId, string facilityId, int slot)
         {
             var player = state.FindPlayer(playerId);
-            if (player == null || !FacilityCardDatabase.TryGet(facilityId, out var facility))
+            if (player == null || !FacilityCardDatabase.TryGet(state, facilityId, out var facility))
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "待放置设施不存在。" );
-            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, facility))
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, facility))
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。" );
             if (slot < 0 || slot >= CityBoardSlotCount || IsCityBoardSlotOccupied(state, playerId, slot))
                 return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位不可用。" );
@@ -134,7 +135,7 @@ namespace YC.Domain.Facilities
         {
             var validation = ValidatePaidPlacement(state, playerId, facilityId, slot);
             if (!validation.IsValid) return BuildFacilityResult.Failure(validation);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             PlaceAndScore(state, state.FindPlayer(playerId), facility, slot);
             return BuildFacilityResult.Success(facility, slot, paymentMode);
         }
@@ -154,7 +155,7 @@ namespace YC.Domain.Facilities
             }
 
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             var effectiveResourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
             var resolvedPaymentMode = ResolvePaymentMode(player, facility, effectiveResourceCost, paymentMode);
             var cost = resolvedPaymentMode == PaymentModeGold
@@ -184,7 +185,7 @@ namespace YC.Domain.Facilities
             }
 
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             PlaceAndScore(state, player, facility, cityBoardSlotIndex);
             return BuildFacilityResult.Success(facility, cityBoardSlotIndex, PaymentModeFree);
         }
@@ -206,7 +207,7 @@ namespace YC.Domain.Facilities
                 return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "建设玩家不存在。");
             }
 
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = FacilityCardDatabase.Get(state, facilityId);
             if (facility == null || !facility.ReserveOnly)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "所选备用设施不存在。");
@@ -321,6 +322,11 @@ namespace YC.Domain.Facilities
 
         public ValidationResult ValidateFacility(GameState state, int playerId, string facilityId)
         {
+            return ValidateFacilityCore(state, playerId, facilityId, null);
+        }
+
+        private ValidationResult ValidateFacilityCore(GameState state, int playerId, string facilityId, ReadOnlyQuery query)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
@@ -333,17 +339,24 @@ namespace YC.Domain.Facilities
             }
 
             FacilityCardDefinition facility;
-            if (!FacilityCardDatabase.TryGet(facilityId, out facility))
+            if (!(query == null
+                ? FacilityCardDatabase.TryGet(state, facilityId, out facility)
+                : query.TryGetFacility(facilityId, out facility)))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "未知设施牌。");
             }
 
-            if (!state.Decks.FacilitySupply.Contains(facility.FacilityId))
+            var selected = state.ItemZones.Items.Find(item => item.ItemId == facilityId);
+            bool stored = selected != null && FacilityBuildCandidateQuery.IsActiveStoredFacility(state, state.ItemZones.Zones.Find(z => z.ZoneId == selected.ZoneId), playerId);
+            bool inSupply = selected == null
+                ? (query == null ? state.Decks.FacilitySupply.Contains(facility.FacilityId) : query.SupplyContains(facility.FacilityId))
+                : state.ItemZones.Zones.Find(z => z.ZoneId == selected.ZoneId)?.TemplateId == "core.zone.facility_supply_slot";
+            if (!stored && !inSupply)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施供应区没有这张设施牌。");
             }
 
-            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(player, facility))
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, facility, query))
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。");
             }
@@ -357,7 +370,13 @@ namespace YC.Domain.Facilities
             string facilityId,
             int cityBoardSlotIndex)
         {
-            var facilityValidation = ValidateFacility(state, playerId, facilityId);
+            return ValidateCityBoardSlotCore(state, playerId, facilityId, cityBoardSlotIndex, null);
+        }
+
+        private ValidationResult ValidateCityBoardSlotCore(
+            GameState state, int playerId, string facilityId, int cityBoardSlotIndex, ReadOnlyQuery query)
+        {
+            var facilityValidation = ValidateFacilityCore(state, playerId, facilityId, query);
             if (!facilityValidation.IsValid)
             {
                 return facilityValidation;
@@ -368,7 +387,7 @@ namespace YC.Domain.Facilities
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "城市面板槽位无效。");
             }
 
-            if (IsCityBoardSlotOccupied(state, playerId, cityBoardSlotIndex))
+            if (HasFacilityAtCityBoardSlot(state, playerId, cityBoardSlotIndex, query))
             {
                 return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位已被占用。");
             }
@@ -382,7 +401,13 @@ namespace YC.Domain.Facilities
             string facilityId,
             string paymentMode)
         {
-            var facilityValidation = ValidateFacility(state, playerId, facilityId);
+            return ValidatePaymentModeCore(state, playerId, facilityId, paymentMode, null);
+        }
+
+        private ValidationResult ValidatePaymentModeCore(
+            GameState state, int playerId, string facilityId, string paymentMode, ReadOnlyQuery query)
+        {
+            var facilityValidation = ValidateFacilityCore(state, playerId, facilityId, query);
             if (!facilityValidation.IsValid)
             {
                 return facilityValidation;
@@ -397,10 +422,10 @@ namespace YC.Domain.Facilities
             }
 
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = query == null ? FacilityCardDatabase.Get(state, facilityId) : query.GetFacility(facilityId);
 
-            var effectiveResourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility);
-            if (string.IsNullOrEmpty(ResolvePaymentMode(player, facility, effectiveResourceCost, normalized)))
+            var effectiveResourceCost = buildCostService.GetEffectiveResourceCost(state, player, facility, query);
+            if (string.IsNullOrEmpty(ResolvePaymentMode(state, player, facility, effectiveResourceCost, normalized)))
             {
                 var reason = normalized == PaymentModeResources
                     ? "资源不足，无法按所选方式建设该设施。"
@@ -415,19 +440,24 @@ namespace YC.Domain.Facilities
 
         public ResourceSet GetEffectiveResourceCost(GameState state, int playerId, string facilityId)
         {
+            return GetEffectiveResourceCostCore(state, playerId, facilityId, null);
+        }
+
+        private ResourceSet GetEffectiveResourceCostCore(GameState state, int playerId, string facilityId, ReadOnlyQuery query)
+        {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
 
             var player = state.FindPlayer(playerId);
-            var facility = FacilityCardDatabase.Get(facilityId);
+            var facility = query == null ? FacilityCardDatabase.Get(state, facilityId) : query.GetFacility(facilityId);
             if (player == null || facility == null)
             {
                 return new ResourceSet();
             }
 
-            return buildCostService.GetEffectiveResourceCost(state, player, facility);
+            return buildCostService.GetEffectiveResourceCost(state, player, facility, query);
         }
 
         public static int FindFirstEmptyCityBoardSlot(GameState state, int playerId)
@@ -448,7 +478,13 @@ namespace YC.Domain.Facilities
             return -1;
         }
 
-        private static string ResolvePaymentMode(
+        internal static string ResolvePaymentMode(GameState state, PlayerState player, FacilityCardDefinition facility, ResourceSet effectiveResourceCost, string paymentMode)
+        {
+            string normalized = NormalizePaymentMode(paymentMode);
+            if ((normalized == PaymentModeResources || normalized == PaymentModeAuto) && YC.Domain.Effects.ResourceEffectExecutor.CanPayWithStoredMarkers(state, player.PlayerId, effectiveResourceCost)) return PaymentModeResources;
+            return ResolvePaymentMode(player, facility, effectiveResourceCost, paymentMode);
+        }
+        internal static string ResolvePaymentMode(
             PlayerState player,
             FacilityCardDefinition facility,
             ResourceSet effectiveResourceCost,
@@ -492,9 +528,15 @@ namespace YC.Domain.Facilities
 
         private static bool HasFacilityAtCityBoardSlot(GameState state, int playerId, int cityBoardSlotIndex)
         {
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            return HasFacilityAtCityBoardSlot(state, playerId, cityBoardSlotIndex, null);
+        }
+
+        private static bool HasFacilityAtCityBoardSlot(GameState state, int playerId, int cityBoardSlotIndex, ReadOnlyQuery query)
+        {
+            var facilities = query == null ? state.Map.Facilities.ToArray() : query.GetFacilities();
+            for (var i = 0; i < facilities.Length; i++)
             {
-                var placement = state.Map.Facilities[i];
+                var placement = facilities[i];
                 if (placement.PlayerId == playerId &&
                     placement.CityBoardSlotIndex == cityBoardSlotIndex)
                 {
@@ -503,6 +545,119 @@ namespace YC.Domain.Facilities
             }
 
             return false;
+        }
+
+        /// <summary>在一次同步只读查询内按首次触达顺序共享投影；回调不得修改状态，结束后门面失效。</summary>
+        public TResult WithReadOnlyQuery<TResult>(
+            GameState state, int playerId, string[] observedSupplyOrNull, Func<ReadOnlyQuery, TResult> read)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            if (read == null) throw new ArgumentNullException(nameof(read));
+            var query = new ReadOnlyQuery(this, state, playerId, observedSupplyOrNull);
+            try { return read(query); }
+            finally { query.Close(); }
+        }
+
+        public sealed class ReadOnlyQuery
+        {
+            private readonly BuildFacilityService service;
+            private readonly GameState state;
+            private readonly int playerId;
+            private readonly Dictionary<string, FacilityCardDefinition> definitions =
+                new Dictionary<string, FacilityCardDefinition>(StringComparer.Ordinal);
+            private string[] supply;
+            private FacilityPlacement[] facilities;
+            private string[] builtFacilityIds;
+            private int builtColorCount;
+            private bool hasBuiltColorCount;
+            private bool open = true;
+
+            internal ReadOnlyQuery(BuildFacilityService service, GameState state, int playerId, string[] observedSupply)
+            {
+                this.service = service;
+                this.state = state;
+                this.playerId = playerId;
+                supply = observedSupply;
+            }
+
+            public ValidationResult ValidateFacility(string rawFacilityId)
+            {
+                EnsureOpen();
+                return service.ValidateFacilityCore(state, playerId, rawFacilityId, this);
+            }
+
+            public ValidationResult ValidateCityBoardSlot(string rawFacilityId, int slotIndex)
+            {
+                EnsureOpen();
+                return service.ValidateCityBoardSlotCore(state, playerId, rawFacilityId, slotIndex, this);
+            }
+
+            public ValidationResult ValidatePaymentMode(string rawFacilityId, string paymentMode)
+            {
+                EnsureOpen();
+                return service.ValidatePaymentModeCore(state, playerId, rawFacilityId, paymentMode, this);
+            }
+
+            public ResourceSet GetEffectiveResourceCost(string rawFacilityId)
+            {
+                EnsureOpen();
+                return service.GetEffectiveResourceCostCore(state, playerId, rawFacilityId, this);
+            }
+
+            internal bool SupplyContains(string facilityId)
+            {
+                EnsureOpen();
+                if (supply == null) supply = state.Decks.FacilitySupply.ToArray();
+                return Array.IndexOf(supply, facilityId) >= 0;
+            }
+
+            internal FacilityPlacement[] GetFacilities()
+            {
+                EnsureOpen();
+                return facilities ?? (facilities = state.Map.Facilities.ToArray());
+            }
+
+            internal string[] GetBuiltFacilityIds(PlayerState player)
+            {
+                EnsureOpen();
+                return builtFacilityIds ?? (builtFacilityIds = player.BuiltFacilityIds.ToArray());
+            }
+
+            internal bool TryGetFacility(string rawFacilityId, out FacilityCardDefinition facility)
+            {
+                EnsureOpen();
+                var key = rawFacilityId ?? string.Empty;
+                if (!definitions.TryGetValue(key, out facility))
+                {
+                    FacilityCardDatabase.TryGet(state, rawFacilityId, out facility);
+                    definitions.Add(key, facility);
+                }
+                return facility != null;
+            }
+
+            internal FacilityCardDefinition GetFacility(string rawFacilityId)
+            {
+                TryGetFacility(rawFacilityId, out var facility);
+                return facility;
+            }
+
+            internal int GetBuiltColorCount(PlayerState player)
+            {
+                EnsureOpen();
+                if (!hasBuiltColorCount)
+                {
+                    builtColorCount = FacilityBuildCostService.CountBuiltColors(state, player, this);
+                    hasBuiltColorCount = true;
+                }
+                return builtColorCount;
+            }
+
+            internal void Close() { open = false; }
+
+            private void EnsureOpen()
+            {
+                if (!open) throw new InvalidOperationException("设施只读查询作用域已结束。");
+            }
         }
 
         private sealed class NoEntryEffectResolver : IFacilityEntryEffectResolver

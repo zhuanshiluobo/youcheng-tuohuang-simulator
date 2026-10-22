@@ -1,0 +1,85 @@
+{
+  "definitionId": "city_style_pioneer_outpost",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "拓荒者据点",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/city_style_level_1.jpg",
+  "artworkSpriteId": "city_style_1_006",
+  "tags": [
+    "enterprise"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "city_style_pioneer_outpost.special",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "content.city_style_pioneer_outpost.special",
+      "script": "lua/city_styles/city_style_pioneer_outpost.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cityStyleId": "city_style_pioneer_outpost",
+    "name": "拓荒者据点",
+    "level": 1,
+    "score": 2,
+    "description": "在移动城市所在资源点放置2个影响力，再移动X个自己的影响力。X为本样式上自己的标记数。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "special_action.city_style.pioneer_outpost",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 2,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "blue"
+          ]
+        }
+      ]
+    },
+    "specialAction": {
+      "specialActionId": "special_action.city_style.pioneer_outpost",
+      "cityStyleId": "city_style_pioneer_outpost",
+      "name": "拓荒者据点",
+      "description": "在移动城市所在资源点放置2个影响力，再移动X个自己的影响力。X为本样式上自己的标记数。",
+      "level": 1,
+      "effectKind": 3,
+      "fixedCost": {
+        "originium": 0,
+        "originiumShard": 0,
+        "iron": 0,
+        "pureOriginium": 0,
+        "goldVoucher": 0
+      },
+      "flexibleOriginiumAndIronCost": 0,
+      "maximumTargetCount": 0,
+      "freeMoveCount": 0,
+      "extraMainActionCount": 0,
+      "locksCharacterCard": false
+    },
+    "luaSubscriptionId": "content.city_style_pioneer_outpost.special",
+    "luaAbilityId": "city_style_pioneer_outpost.special",
+    "luaCompletionHandlerId": "",
+    "luaVersion": "1.0.0",
+    "effectScript": "lua/city_styles/city_style_pioneer_outpost.special.lua"
+  }
+}

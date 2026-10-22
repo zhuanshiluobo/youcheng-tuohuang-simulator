@@ -256,6 +256,7 @@ namespace YC.Presentation.Maps
     public sealed class MapLocationLayoutDefinition
     {
         public string LocationId = string.Empty;
+        public Vector2 ButtonPosition;
         public Vector2 NormalizedPosition;
         public Vector2 ResourceTokenOffset;
         public List<MapInfluenceSlotLayoutDefinition> InfluenceSlots =
@@ -266,6 +267,8 @@ namespace YC.Presentation.Maps
     public sealed class MapRouteLayoutDefinition
     {
         public string RouteId = string.Empty;
+        public string SourceButtonId = string.Empty;
+        public Vector2 ButtonPosition;
         public Vector2 NormalizedPosition;
         public List<MapInfluenceSlotLayoutDefinition> InfluenceSlots =
             new List<MapInfluenceSlotLayoutDefinition>();

@@ -1,0 +1,355 @@
+{
+  "date": "2026-10-18",
+  "basis": [
+    "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+    "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+  ],
+  "interpretation": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
+  "standards": [
+    {
+      "id": "A01",
+      "role": "主界面角色牌与企业家卡框",
+      "expected": "MainGameUI2.2 card-slot-frame",
+      "status": "已采用",
+      "scope": "GameplayCardSlot及当前手牌/弃牌/盖牌和企业家实例",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "0d72948250f5318e56dcd740301c932aa34d9da5476304aba60171c4305d01a9"
+      ]
+    },
+    {
+      "id": "A02",
+      "role": "企业与科室按钮",
+      "expected": "MainButtons3.2 action/primary四态",
+      "status": "已采用",
+      "scope": "EnterpriseSelectionDialog、DepartmentSelectionDialog及其现有相关按钮",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "7ebd1e07458fefd2ed54b3e31eec5bc30b5e6ac5da479f29d08cead1469ba7cb",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae",
+        "e3dae6b9ea08de870a170a84e02b6e6023d69184e78026d367af41e02360d551",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "a52a246490f12a68ade347e1e279b4d4c331c5fa9389996cfca67ec16635804d",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "9e0859ed5a9cfea8d4b49f60c737b104933d5c5f0676cb707d1b2215b7d6563e",
+        "d0c3fec299a35fa98a4ae69aa2e3800f54195032db210c257d5097579748f66b",
+        "bf895c76f23c4aa4f4485b5eee37dcfcec6b1ced21715646c7c8b23d6a8ca3f2",
+        "216defb846f79e083761e4deb17d21a2f1ec0f2d6fb638a4407708812dc571af",
+        "0757c2d70e33f6ca7f82a9edc3b7eaaec796efc1380f31a7c52a14cce90c4ac3",
+        "3cce1df77ac1219db9357de7e0c16459a2aa37545343fbbd7c6b061c1f5f2a55",
+        "4b2b62bf1ecd3933e4eabeac88a7a542f026b72ef7a751c94936dc1e90b63de2",
+        "14c625de0332e1d488f5b7744dca9c1d4a1d7c9aa27121dc6330e21dab6cd4d7",
+        "63c1612efb123f881afd770610070736d360e6672250751253b166c85705df93"
+      ]
+    },
+    {
+      "id": "U01",
+      "role": "UI-011普通页面按钮",
+      "expected": "Frontier3.1主/次/禁用按钮",
+      "status": "待修正",
+      "scope": "设置、日志、图片查看器等报告U01普通页面；不覆盖A02；不含C01条件确认/普通Pay共用模式两按钮",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "f09b0927d83dc1dfff2c0c4cde128f361709c4856ef2e7bf699d4408045dae37",
+        "27cdb7e5379b316141b3020ae93934b41eb7f540b3d28712cd8088dafab3b6e0",
+        "67530acea04e5c020ddd6c5154b6a9232762a805021a58feff2290325c1ad1f1"
+      ]
+    },
+    {
+      "id": "U02",
+      "role": "当前普通窗口外框",
+      "expected": "Frontier3.1 module-frame，逐实例沿用实际倍率",
+      "status": "当前保留",
+      "scope": "当前使用module-frame的窗口；主界面四项3.5框体不变",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52"
+      ]
+    },
+    {
+      "id": "U03",
+      "role": "主界面建设与部署图标",
+      "expected": "项目现用action-build/action-deploy，三色状态均绑定对应现用图",
+      "status": "已采用",
+      "scope": "主界面建设、部署图标；按钮底板仍为3.2 action四态",
+      "basis": [
+        "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
+        "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+        "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2"
+      ]
+    },
+    {
+      "id": "M03",
+      "role": "结算插入横条",
+      "expected": "Settlement-Effects v1.0 五态@2x整底＋Settlement-Icons-Extra v1.1指定7种三态@2x图标",
+      "status": "素材与组件已接入；2026-10-14布局/入场已修，必要组件检查和1280×720正常Player单来源截图已核；其他屏幕及多来源动画手感未验",
+      "scope": "结算条指定五态整底及用户指定7种三态图标；保留现有结算提示标题，不增两条竖线或副标题，修正位置/边距/窄槽适配/入场。备用图标不要求全部使用。",
+      "basis": [
+        "2026-10-14 用户明确不管两条竖线，修正其它已核实差异",
+        "prompt/企业扩与感染者基础实装/结算按钮布局与入场表现-修补合同.md",
+        "prompt/企业扩与感染者基础实装/执行记录/结算按钮素材说明与实际使用核查-20261014.md",
+        "prompt/企业扩与感染者基础实装/结算插入按钮-素材映射.json",
+        "prompt/企业扩与感染者基础实装/接口审查整改-分批实施与验收合同.md"
+      ],
+      "parameters": "参数/项目实际用法/结算插入横条参数.json",
+      "assetHashes": [
+        "02035b57f6a0d01a88a8786c443330bf8fc5d23297ff15960670910a7264c3bd",
+        "009f3f9f325eb53f33df19347b4b2fb9d5b4b357f59936f58a2579afd0f90a17",
+        "97b8af12648574ffeda0ab84d67855de9fc8dd8a75cd18589935cdfccac2ff0e",
+        "e1f10929409fb48e76dd49c925e3ffff1e7750f0635d8cf78d5c889f9f772521",
+        "6bf6aeadb9329fb5080d237945b34967a1f274cc496c610f9a46ce9a5024ff4d",
+        "6c5336886d840a3fabf2eb86bce8cb29ddeea4e7fcf701f40357e322d713df60",
+        "845d8883e27752e940fe00ea0c06d5e633380ba69382fcbe6dff2f7776c73d31",
+        "db484c3c06a46da0c613f6940039749e7f2ed54ed64c587d9ba29411efc201c7",
+        "1b3a586c08827afe0002d0c22f98170fdcefdf1430f934f88903ebc338f1d1e7",
+        "a1b7b84a92f7be2f5a8ac549f5455a390541b3b74f04ffa25d974a5050c1af92",
+        "0daeecd54aca51081576104f2604650bed2b432d717f21322829a3fa9613211a",
+        "5e962957f7ea2908c33c6d93aa4cdcb7553e3b21f40f89cc5e408e2259311a8d",
+        "0017f7f69babe91e2f85181d345665dcf9a20b7e7761c05be15a1deb14ec46f2",
+        "048f8a9828b8d988d578e716e4897c3e5105dbcd30196d2488679f31b8d391da",
+        "e01b9a28dc4434ed04d360df526bea3288d3612736fff925ab818b058e77c0ca",
+        "13c5e81f705b99d35d640cd65c7c934366a95b53659bfabf6070346d14ec2d27",
+        "b7241ccbb2e6f0c3615b1e1b2b064f998d2ce588a8d2354db35bdfb440326dcb",
+        "c6944cca050ab2e1e4f3b92d2b4b095b9c3df43f34cdef3ee599236c6faa87e2",
+        "fb1dc1ac3c832dfc96ee48bc44b6249730ef3dd5f041b477ddbca18ff8f3b6db",
+        "561bc32377f7e8a75efa7b71e28f5432a5072cbe661809f0792940d06889e0c8",
+        "fceca884eb979bf156ae56e54435cac7d2a8bfd244c438940eaa055360608062",
+        "f12d0f9f2d0b8f47f5ba6910a634e457d9b334ee1ced9de29534bb1e5647c157",
+        "5c0dfc98c78d5ef0a5981a2a90433c60389105f00a3872c8c383648404694add",
+        "94bf220f18330e7c991794fbc648f55ac7f681bb2d629dc700bf8f127cc75756",
+        "e1d6a28ad587b6c052bad4751d0014d3baf1807906597d4e81392de482fa71e2",
+        "8fc8597235549e1c9e6053ca5379c32d92526e55729c09c81323894186151b86"
+      ],
+      "implementationRecord": "prompt/企业扩与感染者基础实装/执行协调台账.md",
+      "standardUpdatedAt": "2026-10-16"
+    },
+    {
+      "id": "F01",
+      "role": "主HUD弃牌计数与企业合作0—5",
+      "expected": "Novecento NarrowBold，自带字重、fontStyle Normal",
+      "status": "已采用",
+      "scope": "GameplayInteractionHud的Discard Count及Cooperation Level 0—5七个Text；弃牌列表数字继续wide Normal Regular",
+      "basis": [
+        "2026-10-08 用户指定弃牌HUD计数恢复加粗、合作0—5也用加粗，替换这七项旧Regular期望"
+      ],
+      "parameters": {
+        "asset": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+        "fontGuid": "3eddf79db7bec9c4193e00ae800bfd4e",
+        "fontStyle": 0,
+        "discardCountSize": 20,
+        "cooperationLevelSize": 16
+      },
+      "assetHashes": [
+        "dd1c29c430478a2aea7b91eacfe92d37c022b3e405f34c0f57690b6a53b38568"
+      ]
+    },
+    {
+      "id": "V01",
+      "role": "游戏盒角色双面查看",
+      "expected": "CardViewer3.6.2原窗口内正背并排，角色列表单击立即进入",
+      "status": "基础角色双面实际UI验收通过；干员背面由领域验证覆盖",
+      "scope": "仅GameBoxCharacterInspect；公开归盒与本人私密归盒统一可查看集合，其他查看保持单图",
+      "basis": [
+        "2026-10-08 用户确认游戏盒角色单击具体牌同时查看正反面，根审核精确布局方案并授权源Prefab增量"
+      ],
+      "parameters": {
+        "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardViewer.prefab",
+        "windowReferenceSize": [
+          1774,
+          887
+        ],
+        "cardViewportHeight": 558,
+        "faceContainWidth": 520,
+        "faceGapWidth": 40,
+        "backContainWidth": 520,
+        "frontContainRect": [
+          347,
+          126,
+          520,
+          558
+        ],
+        "backContainRect": [
+          907,
+          126,
+          520,
+          558
+        ],
+        "newNodesDefaultActive": false,
+        "gameBoxOpeningClickGuardSeconds": 0.3,
+        "imageFit": "contain",
+        "backgroundGuid": "ba885087e081fb34fa3c8d23a8543078",
+        "backSource": "GameBoxCardState.BackVisualKey",
+        "privatePresentation": "公开与本人私密统一可查看集合，不分组或显示隐私标签",
+        "knownIdentityFaces": "三类条目有真实CardId即显示正面，FaceUp不限制查看；仅角色详情双面",
+        "cardInspectGesture": "2026-10-09：卡牌查看取消双击；选择页单击立即选择，长按/右键查看；只读卡列表单击立即查看",
+        "eventAndEnterpriseInspect": "单击立即单面查看，长按/右键也可查看",
+        "gestureValidationStatus": "本轮手势代码已实施，Unity定向验收待完成"
+      },
+      "validation": {
+        "date": "2026-10-08",
+        "status": "基础角色双面实际UI验收通过；干员背面由领域验证覆盖",
+        "owner": "EXP-013",
+        "test": "YC.Tests.PlayMode.ExpansionRules.EnterpriseDepartmentOverlayUiTests.SampleScene_PublicGameBoxPilesAndEnterpriseOverlaysUseActualInputs",
+        "result": "Passed",
+        "passed": 1,
+        "failed": 0,
+        "durationSeconds": 26.433254,
+        "xml": "Logs/UiSmallRevision/20261008/acceptance/supplement-gamebox/run-2/playmode.xml",
+        "screenshots": [
+          "Logs/UiSmallRevision/20261008/acceptance/supplement-gamebox/run-2/evidence/SampleScene_PublicGameBoxPilesAndEnterpriseOverlaysUseActualInputs-20261008-122207-586/009-小修_游戏盒角色单击双面_texas-1920x1080.png",
+          "Logs/UiSmallRevision/20261008/acceptance/supplement-gamebox/run-2/evidence/SampleScene_PublicGameBoxPilesAndEnterpriseOverlaysUseActualInputs-20261008-122207-586/015-小修_新观察者仅公开与本人私密角色列表-1920x1080.png",
+          "Logs/UiSmallRevision/20261008/acceptance/supplement-gamebox/run-2/evidence/SampleScene_PublicGameBoxPilesAndEnterpriseOverlaysUseActualInputs-20261008-122207-586/016-小修_游戏盒角色单击双面_liskarm-1920x1080.png"
+        ],
+        "visualReview": "根协调任务已查看009/015/016截图",
+        "domainEvidence": "Logs/UiSmallRevision/20261008/box/private-visibility/本人私密回盒完成交接.md",
+        "limit": "基础角色texas/liskarm双面及换viewer列表已实测；operator_back由EXP-002领域验证，未单独实测干员双面UI"
+      },
+      "assetHashes": [
+        "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469"
+      ]
+    },
+    {
+      "id": "B01",
+      "role": "干员物理牌背及匿名角色背面展示",
+      "expected": "干员及合法派生类型固定operator_back，使用用户指定罗德岛原图；基础角色保持原归属颜色背",
+      "status": "原图已在运行包；本次接线完成，实际UI待验",
+      "scope": "本人盖牌、既有游戏盒背面，以及他人手牌/盖放匿名物理背面组；不新增其他页面双面查看",
+      "basis": [
+        "2026-10-09用户明确指定罗德岛干员牌背",
+        "佣兵入场与玩家牌区查看修订：手牌与盖放公开匿名背面组，身份和顺序仍隐藏"
+      ],
+      "parameters": "参数/项目实际用法/干员牌背实际使用.json",
+      "assetHashes": [
+        "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f"
+      ]
+    },
+    {
+      "id": "B02",
+      "role": "流形物理牌背",
+      "expected": "用户指定FLOWING流形角色牌背；固定sharedArtwork.flowing_shape_back",
+      "status": "原字节已接入内容包与可用库，实际UI待验",
+      "scope": "真实流形甲/乙/丙及其授权匿名手牌/盖放背面组；不把所有生成角色默认为流形",
+      "basis": [
+        "2026-10-09用户指定感染者扩中的600×850流形牌背原图；根补充映射授权"
+      ],
+      "parameters": "参数/项目实际用法/流形牌背实际使用.json",
+      "assetHashes": [
+        "17b0b4f48ee16e8b6bab6797d1dc7972fc7c9478448f4e9a0c956c87785bdfe4"
+      ]
+    },
+    {
+      "id": "I01",
+      "role": "玩法正文内联图标",
+      "expected": "用户指定icon与自制icon的26图；分数图内叠数，宽图等比且不可拆",
+      "status": "用途与内容目录已登记，Unity导入及真实视觉待验",
+      "scope": "Lua关联玩法正文与提示；不替换库存、按钮或其他UI",
+      "basis": [
+        "2026-10-09 用户明确指定正文来源、分数图内叠数",
+        "prompt/企业扩与感染者基础实装/正文图标-素材映射.json"
+      ],
+      "parameters": "参数/项目实际用法/玩法正文图标.json",
+      "assetHashes": [
+        "c6fba1ab684a891c51143e529573e97d9477b422762ea0853e680ad605bc88ea",
+        "377d7786c5c9ccc0843398549a394247914c8bbf50520b9604f47a3fb420e0bd",
+        "1cbc9e3a6496e13ae04f2baf2d7cf804c62188ff12566b5b25f345c860fa38c8",
+        "2040cb715d58004efb1e7ea7f94e8dd37d882c6627437997fbdb8716b71f974f",
+        "7c6cd23e5a8ba44b24172f6a5ba4c4d2d3e72ab925f78e55428c93c3921927b8",
+        "76054d15af252be42b40cbcb9b30bfe81f0109254694b580244a8feac1289fc4",
+        "1ede2a3e8626649a42864d725719d679e58989033249cafbe72fd1971ca5c5f8",
+        "ebbe73dd626d08ccd895a753271321949d1f09999382300d91ef758e23c2a0cb",
+        "9b38b152b545bad3547e2e36c2ba4847e0d2928e6d6ca086fe4793610246be15",
+        "6c9fafe2d64e7747a437f3253474576891a5ebf5eb34281be0ae0fb74856edd5",
+        "922ee17d9bbcfa796ef80d96d1393e80780ad33a639ebf95d3abc706621dcbef",
+        "dc376fffbc03fdb02ca3ebd5e205fa960d99383dd137fba84ad5e20303881780",
+        "2a25a79a9eb475e71a4cc7c4f1e2cdde787b89f6eb133072e38e49c7a57031fd",
+        "6404210fbe61fae2863127addd92e450c7efb43fe5a216c72cb1aae9fb1582a5",
+        "8169788424ab3bd5a628b4fd087cb71bcf0e08f2c90561f3e5d212f5a3ac1a1b",
+        "0d42200e77c0907ffcb507c2b795908845862d53b4bbfdc315960e5b7fb71b2f",
+        "ae4557aa66f1861f8aa3457714539cc37898f869da3f363615a5a22918daa08a",
+        "01c9650c14aaf51f9eb6f455806c99834240cc4e2ad49cd7d318017275aac5f3",
+        "cca2b16c49b46b2fdb9242a93cdf52547cfd6bec729e50bca0834255e19c8f0b",
+        "01524d7c6bd1992a2aed6cb1228261e7d40c29b709057b109d0453f0689633fa",
+        "c32991529fedd1f53820d3a6c0270a8bc5ab007e3234fed2ffa97d5207255b33",
+        "5a5188d2e6bb74161f6b73267c84d7de443864d31699735dda81e5f21eb36ff2",
+        "f65b9d6946c6910ba5ad9eede7082bd208dc1af9c44c5b3e8d0f3b003524d855",
+        "6a2c92595a69e1fa5354785144fd0821946469677ec2aeeea555d5767888c521",
+        "861816c04f14c81e44d5d0a4fbd8f71b61d2c7422a45f6c536bc7d840ca50a18",
+        "c71b7ce0d47684a72020cc14eaa788b2b9e173872de4dd3fffed16ceb156b27e"
+      ]
+    },
+    {
+      "id": "E01",
+      "role": "感染者三家主HUD企业合作图标",
+      "expected": "对应正式原板顶部罗德岛塔形、梅兰德圆章、岩蹄白色斜纹；原底色、比例、原像素",
+      "status": "已登记并接入原Catalog的externalLogoCrops，实际Unity视觉待验",
+      "scope": "仅主HUD企业合作区的infected.enterprise.rhodes_island / maylander_foundation / stonehoove_security",
+      "basis": [
+        "用户本轮明确使用上述三块原板Logo",
+        "prompt/企业扩与感染者基础实装/热座顺序与企业显示-四项修补合同.md"
+      ],
+      "parameters": "参数/项目实际用法/感染者企业HUD图标.json",
+      "assetHashes": [
+        "cce8fd0218536e993ef86d25187729cff072f46326a43f642938aa7cc6468ff8",
+        "fcc493e9a49a37c31bae37dbb30e63a6b91997f10e043714cce30a4ddc19dffb",
+        "6f1921ac61014b68564211897ecea705b31bd6e969e8e6a82578a299178799bb"
+      ]
+    },
+    {
+      "id": "C01",
+      "role": "条件确认及普通Pay共用模式按钮",
+      "expected": "MainButtons-v3.2-Patch：执行primary四态，放弃action四态；UiMainButtonState唯一驱动",
+      "status": "源Prefab局部绑定已修正；原生四态及正常流程截图待验",
+      "scope": "EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮",
+      "basis": [
+        "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销",
+        "prompt/企业扩与感染者基础实装/条件确认与统一支付前-实施合同.md"
+      ],
+      "parameters": "参数/项目实际用法/实际使用参数.json",
+      "assetHashes": [
+        "d0c3fec299a35fa98a4ae69aa2e3800f54195032db210c257d5097579748f66b",
+        "3cce1df77ac1219db9357de7e0c16459a2aa37545343fbbd7c6b061c1f5f2a55",
+        "14c625de0332e1d488f5b7744dca9c1d4a1d7c9aa27121dc6330e21dab6cd4d7",
+        "216defb846f79e083761e4deb17d21a2f1ec0f2d6fb638a4407708812dc571af",
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae"
+      ]
+    },
+    {
+      "id": "G01",
+      "role": "共享设置菜单的齿轮入口",
+      "expected": "远端 629065b SettingsGear.png",
+      "status": "已接入，画面待验",
+      "scope": "GameSettingsMenu/Settings Gear Button 及其未覆盖图像的实例",
+      "basis": [
+        "2026-10-18 用户明确要求合并远端设置齿轮；采用 629065b 的图和预制体接线，仅限设置入口。"
+      ],
+      "parameters": "参数/项目实际用法/设置齿轮.json",
+      "assetHashes": [
+        "3f915e0c40d2add9b5baff3fc16dc029e8e7d73198168bb05095c76e31e08142"
+      ]
+    }
+  ]
+}

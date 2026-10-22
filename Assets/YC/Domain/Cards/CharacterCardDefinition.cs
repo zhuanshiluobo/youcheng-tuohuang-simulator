@@ -16,11 +16,14 @@ namespace YC.Domain.Cards
         External
     }
 
+    [System.Serializable]
     public sealed class CharacterCardDefinition
     {
         public string CardId = string.Empty;
         public string TemplateId = string.Empty;
         public string Name = string.Empty;
+        // 物理背面的内容配置；实例转交不改变这项配置。
+        public string BackVisualKey = string.Empty;
         public bool IsExternalDefinition;
         public string ConfiguredStrategyAbilityId = string.Empty;
         public string ConfiguredTacticAbilityId = string.Empty;

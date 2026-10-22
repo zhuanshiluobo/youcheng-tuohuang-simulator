@@ -1,0 +1,31 @@
+{
+  "definitionId": "infected.contract.lifetime_security",
+  "contentType": "contract",
+  "version": "1.0.0",
+  "displayName": "终身安保合约",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/components/infected_lifetime_security.png",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.contract_card",
+  "cardZones": [],
+  "abilities": [],
+  "data": {
+    "instanceTypeId": "core.contract_card",
+    "acquisitionRole": "reward_pool",
+    "lifecycle": "contract",
+    "playerDetails": [
+      {
+        "abilityId": "",
+        "effectText": "正常采集和终局计分时，将每个区块中岩蹄安保公司的影响力按每2个计为你的1个影响力，不足一对的余数不计。公司仍是独立主体，向公司支付的路费交给银行。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "终身安保合约"
+      }
+    ]
+  }
+}

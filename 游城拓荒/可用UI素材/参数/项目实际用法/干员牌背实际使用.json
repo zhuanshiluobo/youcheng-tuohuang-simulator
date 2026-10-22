@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-09",
+  "standard": "B01",
+  "source": "游城拓荒/企业扩/罗德岛干员牌背.jpg",
+  "catalogPath": "资产/通用控件与原画/MainGameUI-v2.2/07-originals/character-back-rhodes.jpg",
+  "unityPath": "Assets/StreamingAssets/Content/core/artwork/operator_back.jpg",
+  "unityGuid": "1d832e1f0f864fc5810aa614f90e5abf",
+  "sharedArtworkKey": "operator_back",
+  "sha256": "0361f0e12abcad6642631dff3020010afea0163ddeee33e03a8f88d5158c3b7f",
+  "bytes": 233764,
+  "width": 600,
+  "height": 850,
+  "imageFit": "contain",
+  "importer": "既有DefaultImporter，运行时ExternalContentRuntime.LoadImage；不重导入",
+  "usage": "干员及合法派生类型固定罗德岛牌背；本人盖牌和既有游戏盒按相同物理背面规则；他人手牌/盖放仅显示BackVisualKey+Count匿名组，不能查看身份",
+  "supersedes": "该索引条目旧笼统purpose不能代表当前选背规则，当前用途由B01直接定义；不允许干员回退到基础颜色背",
+  "validation": "指定源、可用库现有图、运行包图三者SHA256一致；实际Unity显示待013，未追加双面页面或改变布局"
+}

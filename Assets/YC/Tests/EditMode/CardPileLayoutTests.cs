@@ -219,6 +219,6 @@ namespace YC.Tests.EditMode
         private static object Call(object target, string name, params object[] args) =>
             target.GetType().GetMethod(name, Flags).Invoke(target, args);
         private static void Render(Component pile, string[] ids) =>
-            Call(pile, "Render", ids, new Func<string, Texture>(_ => Texture2D.whiteTexture), null);
+            Call(pile, "RenderTextures", ids, new Func<string, Texture>(_ => Texture2D.whiteTexture), null);
     }
 }

@@ -3,12 +3,20 @@ using System.Collections.Generic;
 
 namespace YC.Presentation.Workflows
 {
+    public interface IMapTargetPreparation
+    {
+        void OnMapTargetPreselected(WorkflowHighlightTargetKind kind, string targetId);
+        bool RetainsMapConfirmation(string scope, string targetId);
+    }
     public sealed class InteractionRouter
     {
         private readonly Action<string> showPrompt;
         private readonly List<Registration> registrations = new List<Registration>();
         private readonly HashSet<string> registeredIds =
             new HashSet<string>(StringComparer.Ordinal);
+        private readonly MapInteractionConfirmationController mapConfirmation = new MapInteractionConfirmationController();
+        public bool HasPendingMapConfirmation => mapConfirmation.HasPending;
+        public void ClearMapConfirmation() => mapConfirmation.Clear();
 
         public InteractionRouter(Action<string> showPrompt)
         {
@@ -66,14 +74,25 @@ namespace YC.Presentation.Workflows
             registeredIds.Add(id);
         }
 
-        public InteractionResult OnLocationClicked(string locationId)
+        public InteractionResult OnLocationClicked(string locationId, int inputFrame = -1)
         {
-            return Route(interaction => interaction.OnLocationClicked(locationId));
+            return Route(interaction => RouteMapTarget(interaction, WorkflowHighlightTargetKind.Location,
+                locationId, inputFrame, () => interaction.OnLocationClicked(locationId)));
         }
 
-        public InteractionResult OnInfluenceSlotClicked(string slotId)
+        public InteractionResult OnInfluenceSlotClicked(string slotId, int inputFrame = -1)
         {
-            return Route(interaction => interaction.OnInfluenceSlotClicked(slotId));
+            return Route(interaction => RouteMapTarget(interaction, WorkflowHighlightTargetKind.InfluenceSlot,
+                slotId, inputFrame, () => interaction.OnInfluenceSlotClicked(slotId)));
+        }
+
+        public InteractionResult OnRouteClicked(string routeId, int inputFrame = -1)
+        {
+            return Route(interaction => interaction is IRouteInteraction route
+                ? RouteMapTarget(interaction, WorkflowHighlightTargetKind.Route, routeId, inputFrame,
+                    () => route.OnRouteClicked(routeId))
+                : interaction.Priority >= InteractionPriority.ActiveAction
+                    ? InteractionResult.Consumed : InteractionResult.Passthrough);
         }
 
         public InteractionResult OnMobileCityClicked()
@@ -83,6 +102,11 @@ namespace YC.Presentation.Workflows
 
         public InteractionResult OnEscape()
         {
+            if (HasPendingMapConfirmation)
+            {
+                ClearMapConfirmation();
+                return InteractionResult.Consumed;
+            }
             return Route(interaction => interaction.OnEscape());
         }
 
@@ -100,22 +124,24 @@ namespace YC.Presentation.Workflows
 
         public InteractionPresentation BuildActivePresentation()
         {
+            RefreshPriorityOrder();
+            var currentRegistrations = registrations.ToArray();
             // 待结算弹窗的清理不能被 Busy 提前返回截断。
             // 普通动作由各自工作流结束，不能在此延迟 Cancel，误清新动作高亮。
-            for (var i = 0; i < registrations.Count; i++)
+            foreach (var registration in currentRegistrations)
             {
-                var registration = registrations[i];
+                if (!registrations.Contains(registration)) continue;
                 var active = registration.Interaction.IsActive;
-                if (registration.Priority == InteractionPriority.PendingResolution &&
-                    registration.WasActive && !active)
-                    registration.Interaction.Cancel();
+                var shouldCancel = registration.Priority == InteractionPriority.PendingResolution &&
+                    registration.WasActive && !active;
+                // Cancel可同步刷新并重入；先消费状态跃迁，不重复取消已失活的同一交互。
                 registration.WasActive = active;
+                if (shouldCancel) registration.Interaction.Cancel();
             }
 
-            for (var i = 0; i < registrations.Count; i++)
+            foreach (var registration in currentRegistrations)
             {
-                var registration = registrations[i];
-                if (!registration.Interaction.IsActive)
+                if (!registrations.Contains(registration) || !registration.Interaction.IsActive)
                 {
                     continue;
                 }
@@ -133,38 +159,35 @@ namespace YC.Presentation.Workflows
                     continue;
                 }
 
-                return presentation;
+                return WithMapConfirmation(registration.Interaction, presentation);
             }
 
+            ClearMapConfirmation();
             return InteractionPresentation.Empty;
         }
 
         public void CancelAll()
         {
+            ClearMapConfirmation();
+            var cancelledRegistrations = registrations.ToArray();
+            // 先解除这一批注册，再取消。销毁中的同步回执不能重新通知旧宿主，重入也不能再取消该批。
+            registrations.Clear();
+            registeredIds.Clear();
             List<Exception> failures = null;
-            try
+            foreach (var registration in cancelledRegistrations)
             {
-                for (var i = 0; i < registrations.Count; i++)
+                try
                 {
-                    try
-                    {
-                        registrations[i].Interaction.Cancel();
-                    }
-                    catch (Exception exception)
-                    {
-                        if (failures == null)
-                        {
-                            failures = new List<Exception>();
-                        }
-
-                        failures.Add(exception);
-                    }
+                    registration.Interaction.Cancel();
                 }
-            }
-            finally
-            {
-                registrations.Clear();
-                registeredIds.Clear();
+                catch (Exception exception)
+                {
+                    if (failures == null)
+                    {
+                        failures = new List<Exception>();
+                    }
+                    failures.Add(exception);
+                }
             }
 
             if (failures != null)
@@ -177,12 +200,14 @@ namespace YC.Presentation.Workflows
 
         public void NotifyCommandSettled(string commandId)
         {
+            if (!RetainsPreparedMapConfirmation()) ClearMapConfirmation();
             List<Exception> failures = null;
-            for (var i = 0; i < registrations.Count; i++)
+            foreach (var registration in registrations.ToArray())
             {
+                if (!registrations.Contains(registration)) continue;
                 try
                 {
-                    registrations[i].Interaction.NotifyCommandSettled(commandId);
+                    registration.Interaction.NotifyCommandSettled(commandId);
                 }
                 catch (Exception exception)
                 {
@@ -203,8 +228,79 @@ namespace YC.Presentation.Workflows
             }
         }
 
+        public void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted,
+            YC.Domain.Rules.CommandErrorCode errorCode)
+        {
+            if (string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(commandId)) return;
+            List<Exception> failures = null;
+            foreach (var registration in registrations.ToArray())
+            {
+                if (!registrations.Contains(registration)) continue;
+                try
+                {
+                    if (registration.Interaction is IInteractionCommandResultConsumer consumer)
+                        consumer.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
+                }
+                catch (Exception exception)
+                { if (failures == null) failures = new List<Exception>(); failures.Add(exception); }
+            }
+            if (failures != null) throw new AggregateException("交互命令正式结果处理失败。", failures);
+        }
+
+        private InteractionResult RouteMapTarget(IInteraction interaction, WorkflowHighlightTargetKind kind,
+            string targetId, int frame, Func<InteractionResult> dispatch)
+        {
+            if (!(interaction is IMapConfirmationScope scope)) return dispatch();
+            var presentation = interaction.BuildPresentation();
+            var confirmationScope = scope.MapConfirmationScope;
+            if (string.IsNullOrEmpty(confirmationScope) || presentation == null) return InteractionResult.Consumed;
+            var legal = false;
+            foreach (var highlight in presentation.Highlights)
+                if (highlight.TargetKind == kind && highlight.TargetId == targetId && highlight.IsInteractive)
+                { legal = true; break; }
+            if (!legal) { ClearMapConfirmation(); return InteractionResult.Consumed; }
+            Action ignored;
+            if (!mapConfirmation.Request(confirmationScope, kind + ":" + targetId,
+                    kind == WorkflowHighlightTargetKind.Location ? targetId : string.Empty,
+                    kind == WorkflowHighlightTargetKind.InfluenceSlot ? targetId : string.Empty,
+                    null, out ignored, frame))
+            {
+                (interaction as IMapTargetPreparation)?.OnMapTargetPreselected(kind, targetId);
+                if (!string.IsNullOrEmpty(presentation.PromptText)) showPrompt(presentation.PromptText);
+                return InteractionResult.Consumed;
+            }
+            return dispatch();
+        }
+
+        private InteractionPresentation WithMapConfirmation(IInteraction interaction, InteractionPresentation presentation)
+        {
+            if (!mapConfirmation.HasPending) return presentation;
+            if (!(interaction is IMapConfirmationScope scope) || mapConfirmation.ActionKey != scope.MapConfirmationScope)
+            { if (!RetainsPreparedMapConfirmation()) ClearMapConfirmation(); return presentation; }
+            var targets = new List<WorkflowHighlight>();
+            var valid = false;
+            foreach (var target in presentation.Highlights)
+            {
+                var pending = target.IsInteractive && mapConfirmation.TargetId == target.TargetKind + ":" + target.TargetId;
+                valid |= pending;
+                targets.Add(new WorkflowHighlight(target.TargetKind, target.TargetId, target.Semantic,
+                    pending ? WorkflowHighlightState.PendingConfirmation : target.State, target.IsInteractive));
+            }
+            if (!valid) ClearMapConfirmation();
+            return new InteractionPresentation(targets, presentation.PromptText, presentation.PanelMode, presentation.ReplacesHighlights, presentation.PromptDocument);
+        }
+        private bool RetainsPreparedMapConfirmation()
+        {
+            if (!mapConfirmation.HasPending) return false;
+            foreach (var registration in registrations)
+                if (registration.Interaction is IMapTargetPreparation preparation &&
+                    preparation.RetainsMapConfirmation(mapConfirmation.ActionKey, mapConfirmation.TargetId)) return true;
+            return false;
+        }
+
         private InteractionResult Route(Func<IInteraction, InteractionResult> dispatch)
         {
+            RefreshPriorityOrder();
             for (var i = 0; i < registrations.Count; i++)
             {
                 var registration = registrations[i];
@@ -240,6 +336,18 @@ namespace YC.Presentation.Workflows
             return InteractionResult.Passthrough;
         }
 
+        private void RefreshPriorityOrder()
+        {
+            for (var i = 1; i < registrations.Count; i++)
+            {
+                var current = registrations[i];
+                var position = i;
+                while (position > 0 && current.Priority > registrations[position - 1].Priority)
+                { registrations[position] = registrations[position - 1]; position--; }
+                registrations[position] = current;
+            }
+        }
+
         private sealed class Registration
         {
             public Registration(
@@ -249,7 +357,6 @@ namespace YC.Presentation.Workflows
             {
                 Interaction = interaction;
                 Id = id;
-                Priority = priority;
             }
 
             public IInteraction Interaction { get; private set; }
@@ -258,7 +365,7 @@ namespace YC.Presentation.Workflows
 
             public string Id { get; private set; }
 
-            public InteractionPriority Priority { get; private set; }
+            public InteractionPriority Priority => Interaction.Priority;
         }
     }
 }

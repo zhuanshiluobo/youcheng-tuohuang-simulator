@@ -13,7 +13,7 @@ namespace YC.Application.Interactions
     /// Host 侧唯一的通用交互回答入口。命令只携带稳定交互 ID、稳定候选 ID/选项值和
     /// 提交时看到的 stateRevision；候选正文永远不从客户端进入规则层。
     /// </summary>
-    public sealed class AnswerInteractionCommandHandler : IGameCommandHandler
+    public sealed class AnswerInteractionCommandHandler : IGameCommandHandler, IOrderedInteractionCommandHandler
     {
         public const string InteractionIdParameter = "interactionId";
         public const string ExpectedRevisionParameter = "expectedRevision";
@@ -36,6 +36,12 @@ namespace YC.Application.Interactions
         }
 
         public CommandResult Handle(GameState state, GameCommand command)
+            => HandleCore(state, command, null);
+
+        CommandResult IOrderedInteractionCommandHandler.HandleOrdered(GameState state, GameCommand command, string expectedRequestContractDigest)
+            => HandleCore(state, command, expectedRequestContractDigest);
+
+        private CommandResult HandleCore(GameState state, GameCommand command, string expectedRequestContractDigest)
         {
             if (state == null || command == null)
             {
@@ -71,6 +77,9 @@ namespace YC.Application.Interactions
                 var request = state.EffectRuntime.InteractionRequests.Find(candidate =>
                     candidate != null && candidate.Status == "open" &&
                     (candidate.RequestId == interactionId || candidate.GetStableInteractionId() == interactionId));
+                if (request != null && request.InteractionTypeId == ExpansionSetupFlow.LegacyBasicCharacterKeepInteraction)
+                    return Invalid(CommandErrorCode.InvalidTarget,
+                        "legacy_basic_character_keep_request_unsupported：此存档仍使用旧版保留牌选择，请重新开局后选择要弃掉的角色牌。");
                 isCollectionTask = request != null && request.InteractionTypeId == "collection.task";
                 if (request != null && request.InteractionTypeId == FacilityBuildEffectExecutor.PlacementInteractionType &&
                     request.PromptParameters?.Properties != null)
@@ -80,14 +89,13 @@ namespace YC.Application.Interactions
             var executor = roundExecutionService == null
                 ? new EffectTreeExecutor(state, registry)
                 : roundExecutionService.CreateCommandExecutor(state);
-            if (!executor.TrySubmitInteraction(
-                    interactionId,
-                    command.PlayerId,
-                    expectedRevision,
-                    answer,
-                    out diagnostic))
+            CommandErrorCode errorCode;
+            bool submitted = expectedRequestContractDigest == null
+                ? executor.TrySubmitInteraction(interactionId, command.PlayerId, expectedRevision, answer, out diagnostic, out errorCode)
+                : executor.TrySubmitInteractionAtRequestContract(command, answer, expectedRequestContractDigest, out diagnostic, out errorCode);
+            if (!submitted)
             {
-                return Invalid(CommandErrorCode.InvalidTarget, diagnostic);
+                return Invalid(errorCode, diagnostic);
             }
 
             EffectRunReport report = executor.RunUntilQuiescent();
@@ -121,7 +129,7 @@ namespace YC.Application.Interactions
             if (!string.IsNullOrEmpty(paidFacilityId))
             {
                 var placement = state.Map.Facilities.Find(item => item.PlayerId == command.PlayerId && item.FacilityCardId == paidFacilityId);
-                var facility = YC.Domain.Facilities.FacilityCardDatabase.Get(paidFacilityId);
+                var facility = YC.Domain.Facilities.FacilityCardDatabase.Get(state, paidFacilityId);
                 if (placement != null && facility != null)
                 {
                     events.Add(new YC.Domain.Events.GameEvent

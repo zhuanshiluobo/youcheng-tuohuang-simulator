@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.State;
+using YC.Domain.Items;
+using YC.Domain.Rules;
 
 namespace YC.Domain.CardFlows
 {
@@ -25,7 +27,16 @@ namespace YC.Domain.CardFlows
                 }
             }
 
-            Shuffle(targetPool, new Random(seed));
+            GameplayRandomRuntime.Shuffle(targetPool, GameplayRandomRuntime.CreateExplicitSeedState(seed), GameplayRandomRuntime.EventInitialization);
+        }
+
+        public void InitializePool(GameState state, string poolId, IReadOnlyList<string> cardIds)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            var pool = GetOrCreatePool(state.Decks, poolId);
+            pool.Clear();
+            if (cardIds != null) foreach (var id in cardIds) pool.Add(id);
+            GameplayRandomRuntime.Shuffle(pool, state, GameplayRandomRuntime.EventInitialization);
         }
 
         public string Peek(DeckRuntimeState decks, string poolId)
@@ -73,7 +84,7 @@ namespace YC.Domain.CardFlows
             return GetOrCreatePool(decks, poolId).Count;
         }
 
-        private static void Shuffle(List<string> list, Random random)
+        private static void Shuffle(IList<string> list, Random random)
         {
             for (var i = list.Count - 1; i > 0; i--)
             {
@@ -84,7 +95,7 @@ namespace YC.Domain.CardFlows
             }
         }
 
-        private static List<string> GetOrCreatePool(DeckRuntimeState decks, string poolId)
+        private static LegacyPositionList<string> GetOrCreatePool(DeckRuntimeState decks, string poolId)
         {
             switch (poolId)
             {

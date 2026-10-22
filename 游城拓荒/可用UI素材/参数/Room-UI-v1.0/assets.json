@@ -1,0 +1,6563 @@
+{
+  "name": "Room-UI",
+  "version": "1.0",
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "coordinateUnit": "logical-px",
+  "sliceOrder": [
+    "left",
+    "top",
+    "right",
+    "bottom"
+  ],
+  "assets": {
+    "screen-fill": {
+      "path": "assets/shell/screen-fill.png",
+      "path2x": "assets/shell/screen-fill@2x.png",
+      "svg": "assets/shell/screen-fill.svg",
+      "size": [
+        512,
+        320
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "opaque-screen-background",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/shared-v3/module-bg.png",
+      "sourceSHA256": "a869bca6b92d9fabb3849db20e11a1d63ab9437a2ffc6ff60e3a3b87e53ed8e9",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "screen-frame": {
+      "path": "assets/shell/screen-frame.png",
+      "path2x": "assets/shell/screen-frame@2x.png",
+      "svg": "assets/shell/screen-frame.svg",
+      "size": [
+        1920,
+        1080
+      ],
+      "sliceLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "role": "transparent-screen-border",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "output/main-frame-patch-v3.5/assets/outer-frame.png",
+      "sourceSHA256": "b0be0f3c369bcc92dd60e584bd127185c174b90d4b5095a02dcdf0f759a9cc54",
+      "slice2xLTRB": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "svgUsesLocalSources": false
+    },
+    "topbar-fill": {
+      "path": "assets/shell/topbar-fill.png",
+      "path2x": "assets/shell/topbar-fill@2x.png",
+      "svg": "assets/shell/topbar-fill.svg",
+      "size": [
+        1920,
+        72
+      ],
+      "sliceLTRB": [
+        16,
+        8,
+        16,
+        8
+      ],
+      "role": "topbar-fill",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/topbar-v3/topbar-bg.png",
+      "sourceSHA256": "cb1a910abc850b883e7d2fe66c22a87f5857cd5e3a8e9fbcd17d0b356446ae7c",
+      "slice2xLTRB": [
+        32,
+        16,
+        32,
+        16
+      ],
+      "svgUsesLocalSources": true
+    },
+    "topbar-frame": {
+      "path": "assets/shell/topbar-frame.png",
+      "path2x": "assets/shell/topbar-frame@2x.png",
+      "svg": "assets/shell/topbar-frame.svg",
+      "size": [
+        1920,
+        72
+      ],
+      "sliceLTRB": [
+        28,
+        8,
+        12,
+        8
+      ],
+      "role": "transparent-topbar-border",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/topbar-v3/topbar-frame.png",
+      "sourceSHA256": "3b59dd3cb8ce9ea460eb0b77811bb59bcc81fb4a4baca0e6b65bb43945e753b7",
+      "slice2xLTRB": [
+        56,
+        16,
+        24,
+        16
+      ],
+      "svgUsesLocalSources": false
+    },
+    "brand-icon": {
+      "path": "assets/icons/brand.png",
+      "path2x": "assets/icons/brand@2x.png",
+      "svg": "assets/icons/brand.svg",
+      "size": [
+        40,
+        40
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "original-brand-icon",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/topbar-v3/icon-frontier.png",
+      "sourceSHA256": "44d1231b7cbe7e4fe213e186650e90deb2b7b0ebc1306223ecc6c5ec2a964796",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false,
+      "proportionalOnly": true
+    },
+    "module-frame": {
+      "path": "assets/panels/module-frame.png",
+      "path2x": "assets/panels/module-frame@2x.png",
+      "svg": "assets/panels/module-frame.svg",
+      "size": [
+        512,
+        320
+      ],
+      "sliceLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "role": "transparent-module-border",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/shared-v3/module-frame.png",
+      "sourceSHA256": "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52",
+      "slice2xLTRB": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "svgUsesLocalSources": true
+    },
+    "avatar-frame": {
+      "path": "assets/avatars/frame.png",
+      "path2x": "assets/avatars/frame@2x.png",
+      "svg": "assets/avatars/frame.svg",
+      "size": [
+        320,
+        456
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "original-frame-adapted-to-square-with-nine-slice",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/shared-v3/card-frame.png",
+      "sourceSHA256": "7bb91c958a6ea729293d2eef619633c91bc03542738e9af2bbaeae1500280ab7",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "svgUsesLocalSources": true
+    },
+    "paper-fill": {
+      "svg": "assets/panels/paper-fill.svg",
+      "size": [
+        1024,
+        384
+      ],
+      "png": [
+        {
+          "path": "assets/panels/paper-fill.png",
+          "width": 1024,
+          "height": 384,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/paper-fill@2x.png",
+          "width": 2048,
+          "height": 768,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "opaque-paper-fill",
+      "textBakedIn": false,
+      "path": "assets/panels/paper-fill.png",
+      "path2x": "assets/panels/paper-fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "section-fill": {
+      "svg": "assets/panels/section-fill.svg",
+      "size": [
+        1024,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/panels/section-fill.png",
+          "width": 1024,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/section-fill@2x.png",
+          "width": 2048,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        10,
+        12,
+        10
+      ],
+      "role": "section-title-fill",
+      "textBakedIn": false,
+      "path": "assets/panels/section-fill.png",
+      "path2x": "assets/panels/section-fill@2x.png",
+      "slice2xLTRB": [
+        24,
+        20,
+        24,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "section-frame": {
+      "svg": "assets/panels/section-frame.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/panels/section-frame.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/section-frame@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-section-title-border",
+      "textBakedIn": false,
+      "path": "assets/panels/section-frame.png",
+      "path2x": "assets/panels/section-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "seat-header-fill": {
+      "svg": "assets/panels/seat-header-fill.svg",
+      "size": [
+        1024,
+        52
+      ],
+      "png": [
+        {
+          "path": "assets/panels/seat-header-fill.png",
+          "width": 1024,
+          "height": 52,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/seat-header-fill@2x.png",
+          "width": 2048,
+          "height": 104,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "seat-header-fill",
+      "textBakedIn": false,
+      "path": "assets/panels/seat-header-fill.png",
+      "path2x": "assets/panels/seat-header-fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "footer-fill": {
+      "svg": "assets/shell/footer-fill.svg",
+      "size": [
+        1024,
+        80
+      ],
+      "png": [
+        {
+          "path": "assets/shell/footer-fill.png",
+          "width": 1024,
+          "height": 80,
+          "scale": 1
+        },
+        {
+          "path": "assets/shell/footer-fill@2x.png",
+          "width": 2048,
+          "height": 160,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "footer-fill",
+      "textBakedIn": false,
+      "path": "assets/shell/footer-fill.png",
+      "path2x": "assets/shell/footer-fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "footer-frame": {
+      "svg": "assets/shell/footer-frame.svg",
+      "size": [
+        512,
+        80
+      ],
+      "png": [
+        {
+          "path": "assets/shell/footer-frame.png",
+          "width": 512,
+          "height": 80,
+          "scale": 1
+        },
+        {
+          "path": "assets/shell/footer-frame@2x.png",
+          "width": 1024,
+          "height": 160,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-footer-border",
+      "textBakedIn": false,
+      "path": "assets/shell/footer-frame.png",
+      "path2x": "assets/shell/footer-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "divider": {
+      "svg": "assets/panels/divider.svg",
+      "size": [
+        1024,
+        2
+      ],
+      "png": [
+        {
+          "path": "assets/panels/divider.png",
+          "width": 1024,
+          "height": 2,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/divider@2x.png",
+          "width": 2048,
+          "height": 4,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "divider",
+      "textBakedIn": false,
+      "path": "assets/panels/divider.png",
+      "path2x": "assets/panels/divider@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "accent": {
+      "svg": "assets/panels/accent.svg",
+      "size": [
+        4,
+        40
+      ],
+      "png": [
+        {
+          "path": "assets/panels/accent.png",
+          "width": 4,
+          "height": 40,
+          "scale": 1
+        },
+        {
+          "path": "assets/panels/accent@2x.png",
+          "width": 8,
+          "height": 80,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "title-accent",
+      "textBakedIn": false,
+      "path": "assets/panels/accent.png",
+      "path2x": "assets/panels/accent@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "avatar-fill": {
+      "svg": "assets/avatars/fill.svg",
+      "size": [
+        256,
+        256
+      ],
+      "png": [
+        {
+          "path": "assets/avatars/fill.png",
+          "width": 256,
+          "height": 256,
+          "scale": 1
+        },
+        {
+          "path": "assets/avatars/fill@2x.png",
+          "width": 512,
+          "height": 512,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "empty-avatar-fill",
+      "textBakedIn": false,
+      "path": "assets/avatars/fill.png",
+      "path2x": "assets/avatars/fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "seat-bar-green": {
+      "svg": "assets/seats/bar-green.svg",
+      "size": [
+        8,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/seats/bar-green.png",
+          "width": 8,
+          "height": 48,
+          "scale": 1
+        },
+        {
+          "path": "assets/seats/bar-green@2x.png",
+          "width": 16,
+          "height": 96,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "fixed-seat-color",
+      "textBakedIn": false,
+      "color": "#5FD200",
+      "path": "assets/seats/bar-green.png",
+      "path2x": "assets/seats/bar-green@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "seat-square-green": {
+      "path": "assets/seats/square-green.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "original-cooperation-square",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/preview/originals/markers/cooperation-01-64.png",
+      "sourceSHA256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "color": "#5FD200",
+      "slice2xLTRB": null,
+      "svgUsesLocalSources": false
+    },
+    "seat-bar-yellow": {
+      "svg": "assets/seats/bar-yellow.svg",
+      "size": [
+        8,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/seats/bar-yellow.png",
+          "width": 8,
+          "height": 48,
+          "scale": 1
+        },
+        {
+          "path": "assets/seats/bar-yellow@2x.png",
+          "width": 16,
+          "height": 96,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "fixed-seat-color",
+      "textBakedIn": false,
+      "color": "#FFBF00",
+      "path": "assets/seats/bar-yellow.png",
+      "path2x": "assets/seats/bar-yellow@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "seat-square-yellow": {
+      "path": "assets/seats/square-yellow.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "original-cooperation-square",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/preview/originals/markers/cooperation-02-64.png",
+      "sourceSHA256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "color": "#FFBF00",
+      "slice2xLTRB": null,
+      "svgUsesLocalSources": false
+    },
+    "seat-bar-blue": {
+      "svg": "assets/seats/bar-blue.svg",
+      "size": [
+        8,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/seats/bar-blue.png",
+          "width": 8,
+          "height": 48,
+          "scale": 1
+        },
+        {
+          "path": "assets/seats/bar-blue@2x.png",
+          "width": 16,
+          "height": 96,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "fixed-seat-color",
+      "textBakedIn": false,
+      "color": "#006CFF",
+      "path": "assets/seats/bar-blue.png",
+      "path2x": "assets/seats/bar-blue@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "seat-square-blue": {
+      "path": "assets/seats/square-blue.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "original-cooperation-square",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/preview/originals/markers/cooperation-04-64.png",
+      "sourceSHA256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "color": "#006CFF",
+      "slice2xLTRB": null,
+      "svgUsesLocalSources": false
+    },
+    "seat-bar-red": {
+      "svg": "assets/seats/bar-red.svg",
+      "size": [
+        8,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/seats/bar-red.png",
+          "width": 8,
+          "height": 48,
+          "scale": 1
+        },
+        {
+          "path": "assets/seats/bar-red@2x.png",
+          "width": 16,
+          "height": 96,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "fixed-seat-color",
+      "textBakedIn": false,
+      "color": "#EC0000",
+      "path": "assets/seats/bar-red.png",
+      "path2x": "assets/seats/bar-red@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "seat-square-red": {
+      "path": "assets/seats/square-red.png",
+      "size": [
+        64,
+        64
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "original-cooperation-square",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/preview/originals/markers/cooperation-08-64.png",
+      "sourceSHA256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "color": "#EC0000",
+      "slice2xLTRB": null,
+      "svgUsesLocalSources": false
+    },
+    "button-neutral-default-fill": {
+      "svg": "assets/buttons/neutral/default-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/default-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/default-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/default-fill.png",
+      "path2x": "assets/buttons/neutral/default-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-default-frame": {
+      "svg": "assets/buttons/neutral/default-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/default-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/default-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/default-frame.png",
+      "path2x": "assets/buttons/neutral/default-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-neutral-default": {
+      "svg": "assets/buttons/neutral/default.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/default.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/default@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/default.png",
+      "path2x": "assets/buttons/neutral/default@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-hover-fill": {
+      "svg": "assets/buttons/neutral/hover-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/hover-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/hover-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/hover-fill.png",
+      "path2x": "assets/buttons/neutral/hover-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-hover-frame": {
+      "svg": "assets/buttons/neutral/hover-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/hover-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/hover-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/hover-frame.png",
+      "path2x": "assets/buttons/neutral/hover-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-neutral-hover": {
+      "svg": "assets/buttons/neutral/hover.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/hover.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/hover@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/hover.png",
+      "path2x": "assets/buttons/neutral/hover@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-pressed-fill": {
+      "svg": "assets/buttons/neutral/pressed-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/pressed-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/pressed-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/pressed-fill.png",
+      "path2x": "assets/buttons/neutral/pressed-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-pressed-frame": {
+      "svg": "assets/buttons/neutral/pressed-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/pressed-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/pressed-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/pressed-frame.png",
+      "path2x": "assets/buttons/neutral/pressed-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-neutral-pressed": {
+      "svg": "assets/buttons/neutral/pressed.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/pressed.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/pressed@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/pressed.png",
+      "path2x": "assets/buttons/neutral/pressed@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-disabled-fill": {
+      "svg": "assets/buttons/neutral/disabled-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/disabled-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/disabled-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/disabled-fill.png",
+      "path2x": "assets/buttons/neutral/disabled-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-neutral-disabled-frame": {
+      "svg": "assets/buttons/neutral/disabled-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/disabled-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/disabled-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/disabled-frame.png",
+      "path2x": "assets/buttons/neutral/disabled-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-neutral-disabled": {
+      "svg": "assets/buttons/neutral/disabled.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/neutral/disabled.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/neutral/disabled@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "neutral",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/neutral/disabled.png",
+      "path2x": "assets/buttons/neutral/disabled@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-default-fill": {
+      "svg": "assets/buttons/accent/default-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/default-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/default-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/default-fill.png",
+      "path2x": "assets/buttons/accent/default-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-default-frame": {
+      "svg": "assets/buttons/accent/default-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/default-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/default-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/default-frame.png",
+      "path2x": "assets/buttons/accent/default-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-accent-default": {
+      "svg": "assets/buttons/accent/default.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/default.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/default@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/default.png",
+      "path2x": "assets/buttons/accent/default@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-hover-fill": {
+      "svg": "assets/buttons/accent/hover-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/hover-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/hover-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/hover-fill.png",
+      "path2x": "assets/buttons/accent/hover-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-hover-frame": {
+      "svg": "assets/buttons/accent/hover-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/hover-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/hover-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/hover-frame.png",
+      "path2x": "assets/buttons/accent/hover-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-accent-hover": {
+      "svg": "assets/buttons/accent/hover.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/hover.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/hover@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/hover.png",
+      "path2x": "assets/buttons/accent/hover@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-pressed-fill": {
+      "svg": "assets/buttons/accent/pressed-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/pressed-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/pressed-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/pressed-fill.png",
+      "path2x": "assets/buttons/accent/pressed-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-pressed-frame": {
+      "svg": "assets/buttons/accent/pressed-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/pressed-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/pressed-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/pressed-frame.png",
+      "path2x": "assets/buttons/accent/pressed-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-accent-pressed": {
+      "svg": "assets/buttons/accent/pressed.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/pressed.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/pressed@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/pressed.png",
+      "path2x": "assets/buttons/accent/pressed@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-disabled-fill": {
+      "svg": "assets/buttons/accent/disabled-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/disabled-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/disabled-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/disabled-fill.png",
+      "path2x": "assets/buttons/accent/disabled-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-accent-disabled-frame": {
+      "svg": "assets/buttons/accent/disabled-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/disabled-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/disabled-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/disabled-frame.png",
+      "path2x": "assets/buttons/accent/disabled-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-accent-disabled": {
+      "svg": "assets/buttons/accent/disabled.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/accent/disabled.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/accent/disabled@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "accent",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/accent/disabled.png",
+      "path2x": "assets/buttons/accent/disabled@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-default-fill": {
+      "svg": "assets/buttons/dark/default-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/default-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/default-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/default-fill.png",
+      "path2x": "assets/buttons/dark/default-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-default-frame": {
+      "svg": "assets/buttons/dark/default-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/default-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/default-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/default-frame.png",
+      "path2x": "assets/buttons/dark/default-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-dark-default": {
+      "svg": "assets/buttons/dark/default.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/default.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/default@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "default",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/default.png",
+      "path2x": "assets/buttons/dark/default@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-hover-fill": {
+      "svg": "assets/buttons/dark/hover-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/hover-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/hover-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/hover-fill.png",
+      "path2x": "assets/buttons/dark/hover-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-hover-frame": {
+      "svg": "assets/buttons/dark/hover-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/hover-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/hover-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/hover-frame.png",
+      "path2x": "assets/buttons/dark/hover-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-dark-hover": {
+      "svg": "assets/buttons/dark/hover.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/hover.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/hover@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "hover",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/hover.png",
+      "path2x": "assets/buttons/dark/hover@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-pressed-fill": {
+      "svg": "assets/buttons/dark/pressed-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/pressed-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/pressed-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/pressed-fill.png",
+      "path2x": "assets/buttons/dark/pressed-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-pressed-frame": {
+      "svg": "assets/buttons/dark/pressed-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/pressed-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/pressed-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/pressed-frame.png",
+      "path2x": "assets/buttons/dark/pressed-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-dark-pressed": {
+      "svg": "assets/buttons/dark/pressed.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/pressed.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/pressed@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "pressed",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/pressed.png",
+      "path2x": "assets/buttons/dark/pressed@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-disabled-fill": {
+      "svg": "assets/buttons/dark/disabled-fill.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/disabled-fill.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/disabled-fill@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "button-fill",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/disabled-fill.png",
+      "path2x": "assets/buttons/dark/disabled-fill@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "button-dark-disabled-frame": {
+      "svg": "assets/buttons/dark/disabled-frame.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/disabled-frame.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/disabled-frame@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "transparent-button-border",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/disabled-frame.png",
+      "path2x": "assets/buttons/dark/disabled-frame@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": false
+    },
+    "button-dark-disabled": {
+      "svg": "assets/buttons/dark/disabled.svg",
+      "size": [
+        256,
+        72
+      ],
+      "png": [
+        {
+          "path": "assets/buttons/dark/disabled.png",
+          "width": 256,
+          "height": 72,
+          "scale": 1
+        },
+        {
+          "path": "assets/buttons/dark/disabled@2x.png",
+          "width": 512,
+          "height": 144,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "role": "combined-button-base",
+      "textBakedIn": false,
+      "family": "dark",
+      "state": "disabled",
+      "iconBakedIn": false,
+      "path": "assets/buttons/dark/disabled.png",
+      "path2x": "assets/buttons/dark/disabled@2x.png",
+      "slice2xLTRB": [
+        20,
+        20,
+        20,
+        20
+      ],
+      "svgUsesLocalSources": true
+    },
+    "map-frame-default": {
+      "svg": "assets/maps/frame-default.svg",
+      "size": [
+        400,
+        300
+      ],
+      "png": [
+        {
+          "path": "assets/maps/frame-default.png",
+          "width": 400,
+          "height": 300,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/frame-default@2x.png",
+          "width": 800,
+          "height": 600,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "transparent-map-choice-border",
+      "textBakedIn": false,
+      "state": "default",
+      "path": "assets/maps/frame-default.png",
+      "path2x": "assets/maps/frame-default@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "svgUsesLocalSources": false
+    },
+    "map-frame-hover": {
+      "svg": "assets/maps/frame-hover.svg",
+      "size": [
+        400,
+        300
+      ],
+      "png": [
+        {
+          "path": "assets/maps/frame-hover.png",
+          "width": 400,
+          "height": 300,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/frame-hover@2x.png",
+          "width": 800,
+          "height": 600,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "transparent-map-choice-border",
+      "textBakedIn": false,
+      "state": "hover",
+      "path": "assets/maps/frame-hover.png",
+      "path2x": "assets/maps/frame-hover@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "svgUsesLocalSources": false
+    },
+    "map-frame-selected": {
+      "svg": "assets/maps/frame-selected.svg",
+      "size": [
+        400,
+        300
+      ],
+      "png": [
+        {
+          "path": "assets/maps/frame-selected.png",
+          "width": 400,
+          "height": 300,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/frame-selected@2x.png",
+          "width": 800,
+          "height": 600,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "transparent-map-choice-border",
+      "textBakedIn": false,
+      "state": "selected",
+      "path": "assets/maps/frame-selected.png",
+      "path2x": "assets/maps/frame-selected@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "svgUsesLocalSources": false
+    },
+    "map-frame-disabled": {
+      "svg": "assets/maps/frame-disabled.svg",
+      "size": [
+        400,
+        300
+      ],
+      "png": [
+        {
+          "path": "assets/maps/frame-disabled.png",
+          "width": 400,
+          "height": 300,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/frame-disabled@2x.png",
+          "width": 800,
+          "height": 600,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "role": "transparent-map-choice-border",
+      "textBakedIn": false,
+      "state": "disabled",
+      "path": "assets/maps/frame-disabled.png",
+      "path2x": "assets/maps/frame-disabled@2x.png",
+      "slice2xLTRB": [
+        24,
+        24,
+        24,
+        24
+      ],
+      "svgUsesLocalSources": false
+    },
+    "map-label-fill": {
+      "svg": "assets/maps/label-fill.svg",
+      "size": [
+        400,
+        48
+      ],
+      "png": [
+        {
+          "path": "assets/maps/label-fill.png",
+          "width": 400,
+          "height": 48,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/label-fill@2x.png",
+          "width": 800,
+          "height": 96,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "map-label-fill",
+      "textBakedIn": false,
+      "path": "assets/maps/label-fill.png",
+      "path2x": "assets/maps/label-fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "map-disabled-overlay": {
+      "svg": "assets/maps/disabled-overlay.svg",
+      "size": [
+        4,
+        4
+      ],
+      "png": [
+        {
+          "path": "assets/maps/disabled-overlay.png",
+          "width": 4,
+          "height": 4,
+          "scale": 1
+        },
+        {
+          "path": "assets/maps/disabled-overlay@2x.png",
+          "width": 8,
+          "height": 8,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "disabled-overlay",
+      "textBakedIn": false,
+      "path": "assets/maps/disabled-overlay.png",
+      "path2x": "assets/maps/disabled-overlay@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "checkbox-unchecked": {
+      "svg": "assets/forms/checkbox-unchecked.svg",
+      "size": [
+        36,
+        36
+      ],
+      "png": [
+        {
+          "path": "assets/forms/checkbox-unchecked.png",
+          "width": 36,
+          "height": 36,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/checkbox-unchecked@2x.png",
+          "width": 72,
+          "height": 72,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "checkbox-base-without-check",
+      "textBakedIn": false,
+      "state": "unchecked",
+      "path": "assets/forms/checkbox-unchecked.png",
+      "path2x": "assets/forms/checkbox-unchecked@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "checkbox-checked": {
+      "svg": "assets/forms/checkbox-checked.svg",
+      "size": [
+        36,
+        36
+      ],
+      "png": [
+        {
+          "path": "assets/forms/checkbox-checked.png",
+          "width": 36,
+          "height": 36,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/checkbox-checked@2x.png",
+          "width": 72,
+          "height": 72,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "checkbox-base-without-check",
+      "textBakedIn": false,
+      "state": "checked",
+      "path": "assets/forms/checkbox-checked.png",
+      "path2x": "assets/forms/checkbox-checked@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "checkbox-disabled": {
+      "svg": "assets/forms/checkbox-disabled.svg",
+      "size": [
+        36,
+        36
+      ],
+      "png": [
+        {
+          "path": "assets/forms/checkbox-disabled.png",
+          "width": 36,
+          "height": 36,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/checkbox-disabled@2x.png",
+          "width": 72,
+          "height": 72,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "checkbox-base-without-check",
+      "textBakedIn": false,
+      "state": "disabled",
+      "path": "assets/forms/checkbox-disabled.png",
+      "path2x": "assets/forms/checkbox-disabled@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "input-default": {
+      "svg": "assets/forms/input-default.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/forms/input-default.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/input-default@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "text-input-base",
+      "textBakedIn": false,
+      "state": "default",
+      "path": "assets/forms/input-default.png",
+      "path2x": "assets/forms/input-default@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "svgUsesLocalSources": false
+    },
+    "input-focus": {
+      "svg": "assets/forms/input-focus.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/forms/input-focus.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/input-focus@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "text-input-base",
+      "textBakedIn": false,
+      "state": "focus",
+      "path": "assets/forms/input-focus.png",
+      "path2x": "assets/forms/input-focus@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "svgUsesLocalSources": false
+    },
+    "input-error": {
+      "svg": "assets/forms/input-error.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/forms/input-error.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/input-error@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "text-input-base",
+      "textBakedIn": false,
+      "state": "error",
+      "path": "assets/forms/input-error.png",
+      "path2x": "assets/forms/input-error@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "svgUsesLocalSources": false
+    },
+    "input-disabled": {
+      "svg": "assets/forms/input-disabled.svg",
+      "size": [
+        512,
+        56
+      ],
+      "png": [
+        {
+          "path": "assets/forms/input-disabled.png",
+          "width": 512,
+          "height": 56,
+          "scale": 1
+        },
+        {
+          "path": "assets/forms/input-disabled@2x.png",
+          "width": 1024,
+          "height": 112,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "role": "text-input-base",
+      "textBakedIn": false,
+      "state": "disabled",
+      "path": "assets/forms/input-disabled.png",
+      "path2x": "assets/forms/input-disabled@2x.png",
+      "slice2xLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "svgUsesLocalSources": false
+    },
+    "reading-fill": {
+      "svg": "assets/help/reading-fill.svg",
+      "size": [
+        1024,
+        768
+      ],
+      "png": [
+        {
+          "path": "assets/help/reading-fill.png",
+          "width": 1024,
+          "height": 768,
+          "scale": 1
+        },
+        {
+          "path": "assets/help/reading-fill@2x.png",
+          "width": 2048,
+          "height": 1536,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "opaque-low-contrast-reading-surface",
+      "textBakedIn": false,
+      "path": "assets/help/reading-fill.png",
+      "path2x": "assets/help/reading-fill@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": true
+    },
+    "reading-frame": {
+      "path": "assets/panels/module-frame.png",
+      "path2x": "assets/panels/module-frame@2x.png",
+      "svg": "assets/panels/module-frame.svg",
+      "size": [
+        512,
+        320
+      ],
+      "sliceLTRB": [
+        16,
+        16,
+        16,
+        16
+      ],
+      "role": "transparent-reading-window-border",
+      "textBakedIn": false,
+      "copied1xUnchanged": true,
+      "source": "tmp/main-frame-v35/main/shared-v3/module-frame.png",
+      "sourceSHA256": "23609d9070dd3be87cc9c7146b582a6c17b648055c4e8867422d11f74ac90b52",
+      "aliasOf": "module-frame",
+      "slice2xLTRB": [
+        32,
+        32,
+        32,
+        32
+      ],
+      "svgUsesLocalSources": true
+    },
+    "dim-overlay": {
+      "svg": "assets/help/dim-overlay.svg",
+      "size": [
+        4,
+        4
+      ],
+      "png": [
+        {
+          "path": "assets/help/dim-overlay.png",
+          "width": 4,
+          "height": 4,
+          "scale": 1
+        },
+        {
+          "path": "assets/help/dim-overlay@2x.png",
+          "width": 8,
+          "height": 8,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "modal-dim",
+      "textBakedIn": false,
+      "path": "assets/help/dim-overlay.png",
+      "path2x": "assets/help/dim-overlay@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "scroll-track": {
+      "svg": "assets/scrollbar/track.svg",
+      "size": [
+        12,
+        128
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/track.png",
+          "width": 12,
+          "height": 128,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/track@2x.png",
+          "width": 24,
+          "height": 256,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "role": "vertical-scroll-track",
+      "textBakedIn": false,
+      "path": "assets/scrollbar/track.png",
+      "path2x": "assets/scrollbar/track@2x.png",
+      "slice2xLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "svgUsesLocalSources": false
+    },
+    "scroll-thumb-default": {
+      "svg": "assets/scrollbar/thumb-default.svg",
+      "size": [
+        12,
+        88
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-default.png",
+          "width": 12,
+          "height": 88,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-default@2x.png",
+          "width": 24,
+          "height": 176,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "default",
+      "path": "assets/scrollbar/thumb-default.png",
+      "path2x": "assets/scrollbar/thumb-default@2x.png",
+      "slice2xLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "svgUsesLocalSources": false
+    },
+    "scroll-thumb-hover": {
+      "svg": "assets/scrollbar/thumb-hover.svg",
+      "size": [
+        12,
+        88
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-hover.png",
+          "width": 12,
+          "height": 88,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-hover@2x.png",
+          "width": 24,
+          "height": 176,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "hover",
+      "path": "assets/scrollbar/thumb-hover.png",
+      "path2x": "assets/scrollbar/thumb-hover@2x.png",
+      "slice2xLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "svgUsesLocalSources": false
+    },
+    "scroll-thumb-drag": {
+      "svg": "assets/scrollbar/thumb-drag.svg",
+      "size": [
+        12,
+        88
+      ],
+      "png": [
+        {
+          "path": "assets/scrollbar/thumb-drag.png",
+          "width": 12,
+          "height": 88,
+          "scale": 1
+        },
+        {
+          "path": "assets/scrollbar/thumb-drag@2x.png",
+          "width": 24,
+          "height": 176,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "role": "vertical-scroll-thumb",
+      "textBakedIn": false,
+      "state": "drag",
+      "path": "assets/scrollbar/thumb-drag.png",
+      "path2x": "assets/scrollbar/thumb-drag@2x.png",
+      "slice2xLTRB": [
+        10,
+        10,
+        10,
+        10
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-players-dark": {
+      "svg": "assets/icons/players-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/players-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/players-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/players-dark.png",
+      "path2x": "assets/icons/players-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-players-light": {
+      "svg": "assets/icons/players-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/players-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/players-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/players-light.png",
+      "path2x": "assets/icons/players-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-players-muted": {
+      "svg": "assets/icons/players-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/players-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/players-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/players-muted.png",
+      "path2x": "assets/icons/players-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-hotseat-dark": {
+      "svg": "assets/icons/hotseat-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/hotseat-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/hotseat-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/hotseat-dark.png",
+      "path2x": "assets/icons/hotseat-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-hotseat-light": {
+      "svg": "assets/icons/hotseat-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/hotseat-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/hotseat-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/hotseat-light.png",
+      "path2x": "assets/icons/hotseat-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-hotseat-muted": {
+      "svg": "assets/icons/hotseat-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/hotseat-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/hotseat-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/hotseat-muted.png",
+      "path2x": "assets/icons/hotseat-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-empty-seat-dark": {
+      "svg": "assets/icons/empty-seat-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/empty-seat-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/empty-seat-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/empty-seat-dark.png",
+      "path2x": "assets/icons/empty-seat-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-empty-seat-light": {
+      "svg": "assets/icons/empty-seat-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/empty-seat-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/empty-seat-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/empty-seat-light.png",
+      "path2x": "assets/icons/empty-seat-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-empty-seat-muted": {
+      "svg": "assets/icons/empty-seat-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/empty-seat-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/empty-seat-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/empty-seat-muted.png",
+      "path2x": "assets/icons/empty-seat-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-invite-dark": {
+      "svg": "assets/icons/invite-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/invite-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/invite-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/invite-dark.png",
+      "path2x": "assets/icons/invite-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-invite-light": {
+      "svg": "assets/icons/invite-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/invite-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/invite-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/invite-light.png",
+      "path2x": "assets/icons/invite-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-invite-muted": {
+      "svg": "assets/icons/invite-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/invite-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/invite-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/invite-muted.png",
+      "path2x": "assets/icons/invite-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-remove-dark": {
+      "svg": "assets/icons/remove-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/remove-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/remove-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/remove-dark.png",
+      "path2x": "assets/icons/remove-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-remove-light": {
+      "svg": "assets/icons/remove-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/remove-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/remove-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/remove-light.png",
+      "path2x": "assets/icons/remove-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-remove-muted": {
+      "svg": "assets/icons/remove-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/remove-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/remove-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/remove-muted.png",
+      "path2x": "assets/icons/remove-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-swap-dark": {
+      "svg": "assets/icons/swap-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/swap-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/swap-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/swap-dark.png",
+      "path2x": "assets/icons/swap-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-swap-light": {
+      "svg": "assets/icons/swap-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/swap-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/swap-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/swap-light.png",
+      "path2x": "assets/icons/swap-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-swap-muted": {
+      "svg": "assets/icons/swap-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/swap-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/swap-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/swap-muted.png",
+      "path2x": "assets/icons/swap-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-bot-dark": {
+      "svg": "assets/icons/bot-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/bot-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/bot-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/bot-dark.png",
+      "path2x": "assets/icons/bot-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-bot-light": {
+      "svg": "assets/icons/bot-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/bot-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/bot-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/bot-light.png",
+      "path2x": "assets/icons/bot-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-bot-muted": {
+      "svg": "assets/icons/bot-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/bot-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/bot-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/bot-muted.png",
+      "path2x": "assets/icons/bot-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-seat-dark": {
+      "svg": "assets/icons/close-seat-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-seat-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-seat-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-seat-dark.png",
+      "path2x": "assets/icons/close-seat-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-seat-light": {
+      "svg": "assets/icons/close-seat-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-seat-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-seat-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-seat-light.png",
+      "path2x": "assets/icons/close-seat-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-seat-muted": {
+      "svg": "assets/icons/close-seat-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-seat-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-seat-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-seat-muted.png",
+      "path2x": "assets/icons/close-seat-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-copy-dark": {
+      "svg": "assets/icons/copy-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/copy-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/copy-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/copy-dark.png",
+      "path2x": "assets/icons/copy-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-copy-light": {
+      "svg": "assets/icons/copy-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/copy-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/copy-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/copy-light.png",
+      "path2x": "assets/icons/copy-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-copy-muted": {
+      "svg": "assets/icons/copy-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/copy-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/copy-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/copy-muted.png",
+      "path2x": "assets/icons/copy-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-book-dark": {
+      "svg": "assets/icons/book-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/book-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/book-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/book-dark.png",
+      "path2x": "assets/icons/book-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-book-light": {
+      "svg": "assets/icons/book-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/book-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/book-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/book-light.png",
+      "path2x": "assets/icons/book-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-book-muted": {
+      "svg": "assets/icons/book-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/book-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/book-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/book-muted.png",
+      "path2x": "assets/icons/book-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-lock-dark": {
+      "svg": "assets/icons/lock-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/lock-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/lock-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/lock-dark.png",
+      "path2x": "assets/icons/lock-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-lock-light": {
+      "svg": "assets/icons/lock-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/lock-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/lock-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/lock-light.png",
+      "path2x": "assets/icons/lock-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-lock-muted": {
+      "svg": "assets/icons/lock-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/lock-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/lock-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/lock-muted.png",
+      "path2x": "assets/icons/lock-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-unlock-dark": {
+      "svg": "assets/icons/unlock-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/unlock-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/unlock-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/unlock-dark.png",
+      "path2x": "assets/icons/unlock-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-unlock-light": {
+      "svg": "assets/icons/unlock-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/unlock-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/unlock-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/unlock-light.png",
+      "path2x": "assets/icons/unlock-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-unlock-muted": {
+      "svg": "assets/icons/unlock-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/unlock-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/unlock-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/unlock-muted.png",
+      "path2x": "assets/icons/unlock-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-dark": {
+      "svg": "assets/icons/close-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-dark.png",
+      "path2x": "assets/icons/close-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-light": {
+      "svg": "assets/icons/close-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-light.png",
+      "path2x": "assets/icons/close-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-close-muted": {
+      "svg": "assets/icons/close-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/close-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/close-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/close-muted.png",
+      "path2x": "assets/icons/close-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-check-dark": {
+      "svg": "assets/icons/check-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/check-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/check-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/check-dark.png",
+      "path2x": "assets/icons/check-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-check-light": {
+      "svg": "assets/icons/check-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/check-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/check-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/check-light.png",
+      "path2x": "assets/icons/check-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-check-muted": {
+      "svg": "assets/icons/check-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/check-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/check-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/check-muted.png",
+      "path2x": "assets/icons/check-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-start-dark": {
+      "svg": "assets/icons/start-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/start-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/start-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/start-dark.png",
+      "path2x": "assets/icons/start-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-start-light": {
+      "svg": "assets/icons/start-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/start-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/start-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/start-light.png",
+      "path2x": "assets/icons/start-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-start-muted": {
+      "svg": "assets/icons/start-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/start-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/start-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/start-muted.png",
+      "path2x": "assets/icons/start-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-back-dark": {
+      "svg": "assets/icons/back-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/back-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/back-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/back-dark.png",
+      "path2x": "assets/icons/back-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-back-light": {
+      "svg": "assets/icons/back-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/back-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/back-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/back-light.png",
+      "path2x": "assets/icons/back-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-back-muted": {
+      "svg": "assets/icons/back-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/back-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/back-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/back-muted.png",
+      "path2x": "assets/icons/back-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-chevron-down-dark": {
+      "svg": "assets/icons/chevron-down-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/chevron-down-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/chevron-down-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/chevron-down-dark.png",
+      "path2x": "assets/icons/chevron-down-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-chevron-down-light": {
+      "svg": "assets/icons/chevron-down-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/chevron-down-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/chevron-down-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/chevron-down-light.png",
+      "path2x": "assets/icons/chevron-down-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-chevron-down-muted": {
+      "svg": "assets/icons/chevron-down-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/chevron-down-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/chevron-down-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/chevron-down-muted.png",
+      "path2x": "assets/icons/chevron-down-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-crown-dark": {
+      "svg": "assets/icons/crown-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/crown-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/crown-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/crown-dark.png",
+      "path2x": "assets/icons/crown-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-crown-light": {
+      "svg": "assets/icons/crown-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/crown-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/crown-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/crown-light.png",
+      "path2x": "assets/icons/crown-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-crown-muted": {
+      "svg": "assets/icons/crown-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/crown-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/crown-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/crown-muted.png",
+      "path2x": "assets/icons/crown-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-info-dark": {
+      "svg": "assets/icons/info-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/info-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/info-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/info-dark.png",
+      "path2x": "assets/icons/info-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-info-light": {
+      "svg": "assets/icons/info-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/info-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/info-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/info-light.png",
+      "path2x": "assets/icons/info-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-info-muted": {
+      "svg": "assets/icons/info-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/info-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/info-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/info-muted.png",
+      "path2x": "assets/icons/info-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-map-dark": {
+      "svg": "assets/icons/map-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/map-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/map-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/map-dark.png",
+      "path2x": "assets/icons/map-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-map-light": {
+      "svg": "assets/icons/map-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/map-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/map-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/map-light.png",
+      "path2x": "assets/icons/map-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-map-muted": {
+      "svg": "assets/icons/map-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/map-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/map-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/map-muted.png",
+      "path2x": "assets/icons/map-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-settings-dark": {
+      "svg": "assets/icons/settings-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/settings-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/settings-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/settings-dark.png",
+      "path2x": "assets/icons/settings-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-settings-light": {
+      "svg": "assets/icons/settings-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/settings-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/settings-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/settings-light.png",
+      "path2x": "assets/icons/settings-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-settings-muted": {
+      "svg": "assets/icons/settings-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/settings-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/settings-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/settings-muted.png",
+      "path2x": "assets/icons/settings-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-expansion-dark": {
+      "svg": "assets/icons/expansion-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/expansion-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/expansion-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/expansion-dark.png",
+      "path2x": "assets/icons/expansion-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-expansion-light": {
+      "svg": "assets/icons/expansion-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/expansion-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/expansion-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/expansion-light.png",
+      "path2x": "assets/icons/expansion-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-expansion-muted": {
+      "svg": "assets/icons/expansion-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/expansion-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/expansion-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/expansion-muted.png",
+      "path2x": "assets/icons/expansion-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-summary-dark": {
+      "svg": "assets/icons/summary-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/summary-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/summary-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/summary-dark.png",
+      "path2x": "assets/icons/summary-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-summary-light": {
+      "svg": "assets/icons/summary-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/summary-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/summary-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/summary-light.png",
+      "path2x": "assets/icons/summary-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-summary-muted": {
+      "svg": "assets/icons/summary-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/summary-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/summary-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/summary-muted.png",
+      "path2x": "assets/icons/summary-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-dark": {
+      "svg": "assets/icons/eye-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-dark.png",
+      "path2x": "assets/icons/eye-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-light": {
+      "svg": "assets/icons/eye-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-light.png",
+      "path2x": "assets/icons/eye-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-muted": {
+      "svg": "assets/icons/eye-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-muted.png",
+      "path2x": "assets/icons/eye-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-off-dark": {
+      "svg": "assets/icons/eye-off-dark.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-off-dark.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-off-dark@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#242B2C",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-off-dark.png",
+      "path2x": "assets/icons/eye-off-dark@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-off-light": {
+      "svg": "assets/icons/eye-off-light.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-off-light.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-off-light@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#F0E8D8",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-off-light.png",
+      "path2x": "assets/icons/eye-off-light@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-eye-off-muted": {
+      "svg": "assets/icons/eye-off-muted.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/eye-off-muted.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/eye-off-muted@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#989487",
+      "safeArea": [
+        5,
+        5,
+        55,
+        54
+      ],
+      "path": "assets/icons/eye-off-muted.png",
+      "path2x": "assets/icons/eye-off-muted@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-remove-danger": {
+      "svg": "assets/icons/remove-danger.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/remove-danger.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/remove-danger@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#A63F38",
+      "path": "assets/icons/remove-danger.png",
+      "path2x": "assets/icons/remove-danger@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    },
+    "icon-crown-gold": {
+      "svg": "assets/icons/crown-gold.svg",
+      "size": [
+        64,
+        64
+      ],
+      "png": [
+        {
+          "path": "assets/icons/crown-gold.png",
+          "width": 64,
+          "height": 64,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons/crown-gold@2x.png",
+          "width": 128,
+          "height": 128,
+          "scale": 2
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "icon",
+      "textBakedIn": false,
+      "proportionalOnly": true,
+      "ink": "#D9B04F",
+      "path": "assets/icons/crown-gold.png",
+      "path2x": "assets/icons/crown-gold@2x.png",
+      "slice2xLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "svgUsesLocalSources": false
+    }
+  },
+  "svgSourcesDirectory": "sources",
+  "pngFilesAreStandalone": true
+}

@@ -1,0 +1,53 @@
+{
+  "definitionId": "infected.character.flowing_shape_beta",
+  "contentType": "character",
+  "version": "2.0.0",
+  "displayName": "流形乙",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/characters/infected.character.flowing_shape_beta.jpg",
+  "artworkSpriteId": "",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.generated_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.character.flowing_shape_beta.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.character.flowing_shape_beta.strategy",
+      "script": "lua/characters/infected.character.flowing_shape_beta.strategy.lua",
+      "version": "2.0.0",
+      "completionHandlerId": "content.infected.character.flowing_shape_beta.strategy.completed",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "infected.character.flowing_shape_beta.tactic",
+      "mode": "tactic",
+      "skillType": "one_shot",
+      "subscriptionId": "content.infected.character.flowing_shape_beta.tactic",
+      "script": "lua/characters/infected.character.flowing_shape_beta.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "infected.character.flowing_shape_beta",
+    "cardId": "infected.character.flowing_shape_beta",
+    "name": "流形乙",
+    "acquisitionRole": "generated",
+    "backVisualKey": "flowing_shape_back",
+    "instanceTypeId": "core.generated_character_card",
+    "strategyAbilityId": "infected.character.flowing_shape_beta.strategy",
+    "tacticAbilityId": "infected.character.flowing_shape_beta.tactic",
+    "strategyName": "洞悉",
+    "tacticName": "沟通",
+    "sourceReference": "I13"
+  }
+}

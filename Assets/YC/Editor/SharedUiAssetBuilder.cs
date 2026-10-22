@@ -344,9 +344,10 @@ namespace YC.Presentation.Editor
             theme.drawerFrame = Sprite("drawer-frame");
             theme.cardBackground = Sprite("card-bg");
             theme.cardFrame = Sprite("card-frame");
-            theme.primaryButton = Sprite("button-primary");
-            theme.secondaryButton = Sprite("button-secondary");
-            theme.disabledButton = Sprite("button-disabled");
+            const string buttonRoot = "Assets/YC/Presentation/GameplayHud/Sprites/Bases/";
+            theme.primaryButton = AssetDatabase.LoadAssetAtPath<Sprite>(buttonRoot + "primary-default.png");
+            theme.secondaryButton = AssetDatabase.LoadAssetAtPath<Sprite>(buttonRoot + "action-default.png");
+            theme.disabledButton = AssetDatabase.LoadAssetAtPath<Sprite>(buttonRoot + "action-disabled.png");
             theme.selectedOverlay = AssetDatabase.LoadAssetAtPath<Sprite>(SpriteRoot + "/SelectionStates/frame-selected.png");
             theme.scrollbarTrack = AssetDatabase.LoadAssetAtPath<Sprite>(SpriteRoot + "/LegacyControls/scrollbar-track-v.png");
             theme.scrollbarThumb = AssetDatabase.LoadAssetAtPath<Sprite>(SpriteRoot + "/LegacyControls/scrollbar-thumb-v.png");

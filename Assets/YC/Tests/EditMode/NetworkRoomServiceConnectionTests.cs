@@ -17,7 +17,7 @@ namespace YC.Tests.EditMode
         {
             using (var service = CreateHost(3))
             {
-                var reader = new ControlledDisconnectReader("JOIN|Client 2");
+                var reader = new ControlledDisconnectReader("JOIN|2|Client 2|network-test-content|expansion-rules.v1");
                 var connection = new NetworkRoomService.ClientConnection(reader, new RecordingWriter());
                 var clientLoop = Task.Run(() => service.HostClientLoop(connection));
                 Assert.IsTrue(reader.WaitingForDisconnect.Wait(2000), "客户端读取循环没有进入等待断线状态。");
@@ -53,7 +53,7 @@ namespace YC.Tests.EditMode
         {
             using (var service = CreateHost(3))
             {
-                var reader = new ControlledDisconnectReader("JOIN|Client 2");
+                var reader = new ControlledDisconnectReader("JOIN|2|Client 2|network-test-content|expansion-rules.v1");
                 var writer = new BlockingThrowWriter(new IOException("simulated concurrent failure"));
                 var connection = new NetworkRoomService.ClientConnection(reader, writer);
                 var clientLoop = Task.Run(() => service.HostClientLoop(connection));
@@ -89,6 +89,7 @@ namespace YC.Tests.EditMode
             {
                 AddClient(service, "Client 2");
                 var disconnected = AddClient(service, "Client 3");
+                PrepareUsers(service);
                 service.RemoveClientConnection(disconnected);
                 string error = null;
                 service.ErrorOccurred += message => error = message;
@@ -96,8 +97,36 @@ namespace YC.Tests.EditMode
                 service.StartGame();
 
                 Assert.IsNotEmpty(error);
-                StringAssert.Contains("等待", error);
+                Assert.AreEqual("player_not_ready", error);
                 Assert.IsFalse(service.GetCurrentRoom().HasStarted);
+            }
+        }
+
+        [Test]
+        public void StartedRoomRebindsTransportWithoutChangingFrozenConfigurationOrIdentity()
+        {
+            using (var service = CreateHost(2))
+            {
+                var connection = AddClient(service, "Client 2");
+                PrepareUsers(service);
+                Assert.That(service.TryStartGame(out string reason), Is.True, reason);
+                var before = service.GetCurrentRoom();
+                string configuration = Newtonsoft.Json.JsonConvert.SerializeObject(before.Configuration);
+                ulong identity = before.Seats.Single(s => s.PlayerId == connection.PlayerId).SteamId;
+                service.SetTransportReadiness(connection.PlayerId, false, false, 0);
+                Assert.That(service.GetCurrentRoom().Seats.Single(s => s.PlayerId == connection.PlayerId).TransportConnected, Is.False);
+                service.SetTransportReadiness(connection.PlayerId, true, true, 17);
+                var after = service.GetCurrentRoom();
+                var seat = after.Seats.Single(s => s.PlayerId == connection.PlayerId);
+                Assert.That(after.HasStarted, Is.True);
+                Assert.That(after.PlayerCount, Is.EqualTo(2));
+                Assert.That(seat.SteamId, Is.EqualTo(identity));
+                Assert.That(seat.NetworkClientId, Is.EqualTo(17));
+                Assert.That(seat.IdentityVerified, Is.True);
+                Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(after.Configuration), Is.EqualTo(configuration));
+                Assert.That(service.TryResolveIdentityTicket(connection.IdentityTicket, out var recoveredPlayer), Is.True);
+                Assert.That(recoveredPlayer, Is.EqualTo(connection.PlayerId));
+                Assert.That(service.TryResolveIdentityTicket("forged-ticket", out _), Is.False);
             }
         }
 
@@ -112,6 +141,7 @@ namespace YC.Tests.EditMode
                 RoomState startedRoom = null;
                 service.GameStarted += room => startedRoom = room;
 
+                PrepareUsers(service);
                 var started = service.TryStartGame(out var error);
 
                 Assert.IsTrue(started);
@@ -123,7 +153,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void RejoinReusesSeat_AndLateOldCleanupDoesNotClearNewOwner()
+        public void RejoinReusesOpenSlotWithNewIdentity_AndLateOldCleanupDoesNotClearNewOwner()
         {
             using (var service = CreateHost(4))
             {
@@ -133,11 +163,12 @@ namespace YC.Tests.EditMode
                 service.RemoveClientConnection(oldConnection);
 
                 var newConnection = AddClient(service, "New Client");
-                Assert.AreEqual(2, newConnection.PlayerId);
+                Assert.AreEqual(3, newConnection.PlayerId);
                 var updatesBeforeLateCleanup = updateCount;
                 service.RemoveClientConnection(oldConnection);
 
-                AssertSeat(service, 2, "New Client", true);
+                AssertSeat(service, 3, "New Client", true);
+                Assert.AreEqual(3, service.GetCurrentRoom().SeatSlots[1].Occupant.PlayerId);
                 Assert.AreEqual(1, service.HostClientCount);
                 Assert.AreEqual(updatesBeforeLateCleanup, updateCount);
                 Assert.IsFalse(newConnection.IsDisposed);
@@ -167,10 +198,10 @@ namespace YC.Tests.EditMode
                 var reconnected = new NetworkRoomService.ClientConnection(
                     new StringReader(string.Empty),
                     new RecordingWriter());
-                Assert.AreEqual(2, service.AssignSeat("Client 2 Reconnected", reconnected));
+                Assert.AreEqual(3, service.AssignSeat("Client 2 Reconnected", reconnected));
                 Assert.AreNotEqual(firstTicket, reconnected.IdentityTicket);
                 Assert.IsTrue(service.TryResolveIdentityTicket(reconnected.IdentityTicket, out playerId));
-                Assert.AreEqual(2, playerId);
+                Assert.AreEqual(3, playerId);
             }
         }
 
@@ -211,6 +242,7 @@ namespace YC.Tests.EditMode
             {
                 var connection = AddClient(service, "Client 2");
                 AddClient(service, "Client 3");
+                PrepareUsers(service);
                 service.StartGame();
                 var updateCount = 0;
                 service.RoomUpdated += _ => updateCount++;
@@ -247,17 +279,17 @@ namespace YC.Tests.EditMode
 
                 var latestMessage = remainingWriter.Messages.Last(message => message.StartsWith("ROOM|", StringComparison.Ordinal));
                 var latestRoom = NetworkRoomService.DeserializeRoom(latestMessage.Substring("ROOM|".Length));
-                var releasedSeat = latestRoom.Seats.Single(seat => seat.PlayerId == 2);
+                var releasedSeat = latestRoom.SeatSlots[1];
                 var remainingSeat = latestRoom.Seats.Single(seat => seat.PlayerId == 3);
-                Assert.IsFalse(releasedSeat.IsReady);
-                Assert.AreEqual("Player 2", releasedSeat.PlayerName);
+                Assert.IsNull(releasedSeat.Occupant);
+                Assert.AreEqual("open", releasedSeat.Status);
                 Assert.IsTrue(remainingSeat.IsReady);
             }
         }
 
         private static NetworkRoomService CreateHost(int playerCount)
         {
-            var service = new NetworkRoomService(false);
+            var service = new NetworkRoomService(false, new TestCapabilities());
             service.CreateRoom("Host", playerCount);
             service.SetTransportReadiness(1, true, true, 0);
             return service;
@@ -279,9 +311,33 @@ namespace YC.Tests.EditMode
 
         private static void AssertSeat(NetworkRoomService service, int playerId, string playerName, bool isReady)
         {
-            var seat = service.GetCurrentRoom().Seats.Single(candidate => candidate.PlayerId == playerId);
+            var seat = service.GetCurrentRoom().Seats.SingleOrDefault(candidate => candidate.PlayerId == playerId);
+            if (!isReady) { Assert.IsNull(seat, "离座后不得留下占位玩家"); return; }
+            Assert.NotNull(seat);
             Assert.AreEqual(playerName, seat.PlayerName);
             Assert.AreEqual(isReady, seat.IsReady);
+        }
+
+        private sealed class TestCapabilities : IRoomContentCapabilityProvider
+        {
+            public string GetContentPackHash(YC.Domain.Rules.GameRuleConfiguration configuration) => "network-test-content";
+            public bool TryValidate(YC.Domain.Rules.GameRuleConfiguration configuration, out string reasonCode)
+            { reasonCode = string.Empty; return true; }
+        }
+        private static void PrepareUsers(NetworkRoomService service)
+        {
+            var room = service.GetCurrentRoom();
+            foreach (var player in room.Seats)
+            {
+                if (player.PlayerId == room.HostPlayerId) continue;
+                var request = new SetRoomReadyRequest
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), RoomId = room.RoomId, RequestingPlayerId = player.PlayerId,
+                    ExpectedConfigurationRevision = room.Configuration.ConfigurationRevision, IsUserReady = true
+                };
+                var result = service.ExecuteAuthenticatedConfiguration(RoomConfigurationMessage.Create(request, new TestCapabilities(), room.Configuration), player.PlayerId);
+                Assert.IsTrue(result.Success, result.ReasonCode);
+            }
         }
 
         private sealed class RecordingWriter : TextWriter

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
@@ -25,11 +25,14 @@ namespace YC.Infrastructure.Lua
             if (!string.IsNullOrEmpty(registry.ContentPackHash) && registry.ContentPackHash != pack.ContentHash)
                 throw new InvalidOperationException("同一 Registry 不能混用不同内容包快照。");
             registry.ContentPackHash = pack.ContentHash;
-            var dispatcher = new LuaEffectEventDispatcher(registry);
+            SettlementHostProtocol.Register(registry);
+            var settlements = SettlementHostCatalog.Register(registry, pack);
+            var dispatcher = new LuaEffectEventDispatcher(registry, compiler: new LuaEffectSpecCompiler(presentationPack: pack));
             foreach (var card in pack.ActiveDefinitions.Where(d => d.ContentType == "character"))
             foreach (var ability in card.Abilities)
             {
                 registry.CharacterActivationSubscriptions[ability.AbilityId] = ability.SubscriptionId;
+                registry.CharacterAbilityContracts[ability.AbilityId] = new CharacterModeContract { Mode = ability.Mode, AbilityId = ability.AbilityId, SkillType = ability.SkillType, SettlementActionId = ability.SettlementActionId, TitleKey = ability.TitleKey, DescriptionKey = ability.DescriptionKey };
                 if (registry.HasEventHandler(ability.SubscriptionId)) continue;
                 string source = pack.GetScript(ability.Script);
                 string hash = LuaContentHasher.ComputeSha256(source);
@@ -42,17 +45,52 @@ namespace YC.Infrastructure.Lua
                 dispatcher.Register(new LuaHandlerDefinition(ability.SubscriptionId,
                     CharacterAbilityEffectExecutor.CharacterEffectActivatedEventType, ability.AbilityId,
                     script, EffectHandlerRole.Primary, 0, ContentInstanceId, ability.AbilityId, ability.CompletionHandlerId));
+                foreach (string eventType in ability.ObservedEvents)
+                {
+                    if (eventType == "CandidateSetBuilding")
+                    {
+                        var candidate = new LuaHandlerDefinition(ability.SubscriptionId + ".candidates", eventType, ability.CandidateKindFilter,
+                            script, EffectHandlerRole.Observer, abilityId: ability.AbilityId, responseKind: "candidatePatches");
+                        registry.FacilityBuildCandidates.RegisterPersistentPolicy(candidate.SubscriptionId, ability.AbilityId, ability.CandidateKindFilter,
+                            (state, draft, itemId) => dispatcher.InvokePersistentCandidatePatches(candidate, state, draft, itemId));
+                        continue;
+                    }
+                    var observer = new LuaHandlerDefinition(ability.SubscriptionId + ".observe." + eventType, eventType, "*", script,
+                        EffectHandlerRole.Observer, 0, ContentInstanceId, ability.AbilityId);
+                    var attachment = ability.EventResponseAttachments.TryGetValue(eventType, out var declaredAttachment)
+                        ? declaredAttachment : EventResponseAttachmentKind.RequiredChild;
+                    if (attachment == EventResponseAttachmentKind.DeferredPlayerResponse)
+                        InfluenceEffectExecutor.RegisterDeferredDestination(registry, ability.AbilityId);
+                    registry.TryGetDeferredResponseDestinationForAbility(ability.AbilityId, out var destination);
+                    CharacterLifecycleService.RegisterPersistentObserver(registry, ability.AbilityId, eventType, script.DefinitionVersion, hash,
+                        context => dispatcher.Invoke(observer, context), ability.ObserverSubjectPolicy, attachment,
+                        attachment == EventResponseAttachmentKind.DeferredPlayerResponse ? destination.DescribeDeferredResponse :
+                            (Func<EffectEventHandlerContext, EffectSpec, DeferredEventResponseDescriptor>)null);
+                }
                 if (!string.IsNullOrEmpty(ability.CleanupScript))
                 {
                     string cleanupSource = pack.GetScript(ability.CleanupScript);
                     string cleanupId = ability.SubscriptionId + ".cleanup";
-                    var cleanupScript = new LuaScriptDefinition("content." + cleanupId, ability.AbilityId, cleanupId,
+                    var cleanupScript = new LuaScriptDefinition(ability.CleanupScript == ability.Script ? script.ContentId : "content." + cleanupId, ability.AbilityId, cleanupId,
                         ability.Version, cleanupSource, LuaContentHasher.ComputeSha256(cleanupSource));
                     var handler = new LuaHandlerDefinition(cleanupId, "PlayerCleanupStarted", "*", cleanupScript,
                         EffectHandlerRole.Observer, 0, ContentInstanceId, ability.AbilityId);
-                    TimingHandlerRegistry.RegisterPlayerCleanupAfterResolveOnce(registry,
-                        CharacterAbilityEffectExecutor.ActivationEffectTypeId, ability.AbilityId, cleanupScript.DefinitionVersion,
-                        cleanupScript.ContentHash, context => dispatcher.Invoke(handler, context));
+                    if (ability.SkillType == "persistent")
+                        CharacterLifecycleService.RegisterPersistentObserver(registry, ability.AbilityId, "PlayerCleanupStarted", cleanupScript.DefinitionVersion,
+                            cleanupScript.ContentHash, context => ability.Settlement?.EntryKind == SettlementEntryService.CleanupOrder
+                                ? settlements.CreateCleanupResponse(context, ability.AbilityId, dispatcher.Invoke(handler, context),
+                                    ItemTransferEffectExecutor.Value(context.OwnerNode.NormalizedArguments, "cardInstanceId").ReferenceId, context.OwnerNode.EffectId)
+                                : ability.SettlementActionId == CharacterContentEffectExecutor.CleanupActionId
+                                ? CharacterContentEffectExecutor.WrapCleanupOffer(context, ability.AbilityId, dispatcher.Invoke(handler, context))
+                                : dispatcher.Invoke(handler, context));
+                    else
+                        TimingHandlerRegistry.RegisterPlayerCleanupAfterResolveOnce(registry,
+                            CharacterAbilityEffectExecutor.ActivationEffectTypeId, ability.AbilityId, cleanupScript.DefinitionVersion,
+                            cleanupScript.ContentHash, context => dispatcher.Invoke(handler, context),
+                            ability.Settlement?.EntryKind == SettlementEntryService.CleanupOrder
+                                ? (root, sourceNode, binding) => settlements.DecorateCleanupRoot(root, ability.AbilityId,
+                                    ItemTransferEffectExecutor.Value(sourceNode.NormalizedArguments, "cardInstanceId").ReferenceId, sourceNode.EffectId)
+                                : (Action<EffectSpec, YC.Domain.State.EffectNodeRuntimeState, YC.Domain.State.TimingHandlerBinding>)null);
                 }
             }
         }

@@ -50,11 +50,10 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(guard);
             }
 
-            var placementValidation = string.IsNullOrEmpty(command.TargetId)
-                ? (influenceService.GetLegalPlacementSlotIds(state, command.PlayerId).Count > 0
-                    ? ValidationResult.Success
-                    : ValidationResult.Failure(CommandErrorCode.InvalidTarget, "当前没有合法的影响力放置位置。"))
-                : influenceService.CanPlace(state, command.PlayerId, command.TargetId);
+            if (string.IsNullOrWhiteSpace(command.TargetId))
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget,
+                    "deploy_target_required"));
+            var placementValidation = influenceService.CanPlace(state, command.PlayerId, command.TargetId);
             if (!placementValidation.IsValid)
             {
                 return CommandResult.Invalid(placementValidation);

@@ -38,7 +38,7 @@ namespace YC.Tests.PlayMode
         [UnityTest]
         public IEnumerator SlidersUseFrontViewAngles_ResetRestoresPreset_AndSwitchRefreshesAngles()
         {
-            foreach (var itemId in new[] { "02", "06", "11" })
+            foreach (var itemId in new[] { "05", "06", "11" })
             {
                 var item = FindItem(itemId);
                 Call(room, "SelectItem", item);
@@ -98,6 +98,30 @@ namespace YC.Tests.PlayMode
                 Assert.That(Property<float>(view, "ZoomMultiplier"), Is.EqualTo(1f).Within(.001f));
                 if (itemId == "11") yield return CaptureReview("收藏室_复位验收.png");
             }
+        }
+
+        [UnityTest]
+        public IEnumerator ItemWithoutModelKeepsDetailsAndDisablesModelControls()
+        {
+            var item = FindItem("02");
+            Assert.That(Property<GameObject>(item, "DisplayPrefab"), Is.Null, "源岩当前只有资料，不能伪造模型引用");
+            Call(room, "SelectItem", item);
+            var deadline = Time.realtimeSinceStartup + 6f;
+            while (Time.realtimeSinceStartup < deadline && (Property<bool>(room, "IsSwitching") ||
+                !ReferenceEquals(Property<object>(room, "CurrentItem"), item))) yield return null;
+            Assert.That(Property<object>(room, "CurrentItem"), Is.SameAs(item));
+            Assert.That(Property<bool>(room, "IsSwitching"), Is.False);
+            Assert.That(Property<GameObject>(room, "CurrentModel"), Is.Null);
+            Assert.That(horizontal.interactable || vertical.interactable || roll.interactable, Is.False);
+            Assert.That(Field<Behaviour>(room, "dragController").enabled, Is.False);
+            Assert.That(Field<Button>(room, "resetViewButton").interactable, Is.False);
+            Assert.That(Field<Text>(room, "nameLabel").text, Is.EqualTo(Property<string>(item, "DisplayName")));
+            Assert.That(Field<Text>(room, "previewStatusLabel").gameObject.activeSelf, Is.True);
+            Assert.That(Field<Text>(room, "previewStatusLabel").text, Is.Not.Empty);
+            var modeled = FindItem("05");
+            Call(room, "SelectItem", modeled);
+            yield return WaitForSelection(modeled);
+            Assert.That(horizontal.interactable && vertical.interactable && roll.interactable, Is.True);
         }
 
         [UnityTest]
@@ -232,9 +256,11 @@ namespace YC.Tests.PlayMode
 
         private static IEnumerator CaptureReview(string fileName)
         {
+            // 批处理只检查交互；画面留给可见程序的正常流程验收。
+            if (UnityEngine.Application.isBatchMode) yield break;
             yield return new WaitForEndOfFrame();
-            var directory = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,
-                "../ArtSource/UI/CollectionRoomControlsReview"));
+            var directory = System.IO.Path.GetFullPath(System.IO.Path.Combine(UnityEngine.Application.dataPath,
+                "../Logs/GitMergeValidation/UiMerge-20261018/collection-captures"));
             System.IO.Directory.CreateDirectory(directory);
             var screenshot = ScreenCapture.CaptureScreenshotAsTexture();
             System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory, fileName), screenshot.EncodeToPNG());

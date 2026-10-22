@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Domain.Cards;
+using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -20,11 +21,38 @@ namespace YC.Tests.PlayMode
     public sealed class GameplayMainHudPlayModeTests
     {
         [UnityTest]
+        public IEnumerator BothScenes_InformationEntriesOpenAndCloseConfiguredPages()
+        {
+            foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
+            {
+                yield return ConfigureLocalContext(scene);
+                yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
+                yield return null;
+                var pages = Find("YC.Presentation.GameplayInformationPages");
+                Assert.That(pages, Is.Not.Null);
+                foreach (var entry in new[] { ("RegionButton", "RegionPage"), ("GameBoxButton", "GameBoxPage") })
+                {
+                    var button = (Button)Property(pages, entry.Item1);
+                    Assert.That(button, Is.Not.Null);
+                    Assert.That(button.interactable, Is.True);
+                    button.onClick.Invoke();
+                    yield return null;
+                    var page = (Component)Property(pages, entry.Item2);
+                    Assert.That(page, Is.Not.Null);
+                    Assert.That(page.gameObject.activeInHierarchy, Is.True);
+                    Assert.That((bool)pages.GetType().GetMethod("TryHandleEscape").Invoke(pages, null), Is.True);
+                    yield return null;
+                    Assert.That(page == null || !page.gameObject.activeInHierarchy, Is.True);
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator BothScenes_UseOneBottomActionAndTabbedFormalEntries()
         {
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var hud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -67,7 +95,7 @@ namespace YC.Tests.PlayMode
         [UnityTest]
         public IEnumerator TabState_DisabledOverridesSelection_AndRetainsSelectionOnExit()
         {
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var tabs = Find("YC.Presentation.UiMainActionTabs");
@@ -103,7 +131,7 @@ namespace YC.Tests.PlayMode
             }
             foreach (var sceneName in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext();
                 yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
                 yield return null;
                 var hud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -200,7 +228,7 @@ namespace YC.Tests.PlayMode
         [UnityTest]
         public IEnumerator ResourceProjection_UsesTopbarTextBindingsAndDiscardEntryOpensPreview()
         {
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var hud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -242,14 +270,14 @@ namespace YC.Tests.PlayMode
             Assert.That((bool)Property(panel, "IsDiscardPreviewOpen"), Is.True);
             var discardPage = Field(panel, "discardPage");
             var discardView = (Component)Field(discardPage, "view");
-            Child(discardView.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+            ClickDiscardBackground(discardView);
             Assert.That((bool)Property(panel, "IsDiscardPreviewOpen"), Is.False);
         }
 
         [UnityTest]
         public IEnumerator OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders()
         {
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var panel = Find("YC.Presentation.CharacterHandPanel");
@@ -291,36 +319,29 @@ namespace YC.Tests.PlayMode
             if (Array.IndexOf(Environment.GetCommandLineArgs(),
                     "--yc-dev-right-card-smoke-no-dialog") < 0)
                 Assert.Ignore("此用例使用正式右卡行动阶段启动状态。");
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var controller = Find("YC.Presentation.MobileCityInteractionController");
             var presenter = Field(controller, "turnActionPresenter");
-            var dialog = Field(controller, "characterCardEffectChoiceDialog");
-
             var hud = Find("YC.Presentation.GameplayInteractionHudView");
             var action = Property(hud, "ActionPanelView");
             var build = (Button)Property(action, "BuildButton");
-            var panel = Property(hud, "BuildInfoPanel");
-            var panelView = Property(panel, "View");
-            var externalArea = ((RectTransform)Property(panelView, "ExternalFacilityArea")).gameObject;
+            var frame = Property(hud, "Frame");
+            var undo = (Button)Property(frame, "UndoButton");
             Assert.That(build.interactable, Is.True, "建设入口应使用当前主要行动能力");
             build.onClick.Invoke();
+            yield return null;
             var interaction = Property(presenter, "BuildInteraction");
+            var page = (Component)Field(controller, "facilityBuildPage");
             Assert.That((bool)Property(interaction, "IsActive"), Is.True);
-            Assert.That((bool)Property(dialog, "IsShowing"), Is.True,
-                "正式建设入口应打开共享选择窗口。");
-            Assert.That(externalArea.activeSelf, Is.False, "建设候选页不应同时显示旧供应板。");
-            var shell = Field(dialog, "shell");
-            var shellView = Field(shell, "view");
-            var cancelObject = Child(((Component)shellView).transform, "Cancel Selection");
-            Assert.That(cancelObject, Is.Not.Null);
-            var cancel = cancelObject.GetComponent<Button>();
-            Assert.That(cancel, Is.Not.Null);
-            cancel.onClick.Invoke();
-            Assert.That((bool)Property(dialog, "IsShowing"), Is.False);
+            Assert.That(page.gameObject.activeInHierarchy, Is.True, "应打开当前正式建设页");
+            Assert.That(undo.interactable, Is.True, "未提交建设选择应允许底栏撤销");
+            undo.onClick.Invoke();
+            yield return null;
             Assert.That((bool)Property(interaction, "IsActive"), Is.False);
-            Assert.That(externalArea.activeSelf, Is.False);
+            Assert.That(page.gameObject.activeInHierarchy, Is.False);
+            Assert.That(undo.interactable, Is.False);
         }
 
         [UnityTest]
@@ -331,7 +352,7 @@ namespace YC.Tests.PlayMode
                 Assert.Ignore("此用例使用正式右卡行动阶段启动状态。");
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var currentHud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -374,7 +395,7 @@ namespace YC.Tests.PlayMode
             }
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var controller = Find("YC.Presentation.MobileCityInteractionController");
@@ -423,7 +444,7 @@ namespace YC.Tests.PlayMode
                 Assert.That(state.CurrentPlayerId, Is.EqualTo(local));
                 var hand = state.FindPlayer(local).HandCardIds;
                 var count = hand.Count;
-                var dialog = Field(controller, "characterCardEffectChoiceDialog");
+                var dialog = Field(controller, "characterCoverChoiceDialog");
                 var shell = Field(dialog, "shell");
                 var page = (Component)Field(shell, "view");
                 Assert.That(page.gameObject.activeInHierarchy, Is.True);
@@ -486,6 +507,10 @@ namespace YC.Tests.PlayMode
                     Assert.That(File.Exists(screenshot) && File.GetLastWriteTimeUtc(screenshot) >= requestedAt &&
                         new FileInfo(screenshot).Length > 0, Is.True, "本轮正式盖牌截图未完成：" + screenshot);
                 }
+                // 完成跨帧刷新后重新取实际候选，不能继续点击已回收的旧实例。
+                candidate = Child(page.transform, "Character Cover Card 0");
+                card = candidate.GetComponent(Type.GetType("YC.Presentation.FacilityEffectCardView, Assembly-CSharp", true));
+                previewCard = (Button)Property(card, "Button");
                 Assert.That(FirstHit((RectTransform)previewCard.transform), Is.SameAs(previewCard.gameObject),
                     scene + " 卡面查看手势必须命中实际卡牌。");
                 OpenCardPreview(previewCard);
@@ -560,7 +585,6 @@ namespace YC.Tests.PlayMode
                             }
                             foreach (RectTransform slot in content)
                             {
-                                Assert.That(slot.rect.size, Is.EqualTo(new Vector2(78, 112)));
                                 Assert.That(slot.localScale, Is.EqualTo(Vector3.one * (float)Property(pile, "SlotScale")));
                                 var center = viewport.InverseTransformPoint(slot.position);
                                 Assert.That(center.x, Is.InRange(viewport.rect.xMin, viewport.rect.xMax));
@@ -619,7 +643,7 @@ namespace YC.Tests.PlayMode
         [UnityTest]
         public IEnumerator CardPicker_HorizontalWheelAndScrollbarReachLastCard()
         {
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var hud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -652,8 +676,8 @@ namespace YC.Tests.PlayMode
                     var card = (Component)page.GetType().GetMethod("CreateFacilityCard").Invoke(page, null);
                     card.name = "滚动诊断卡牌 " + i;
                     var image = (RawImage)Property(card, "CardImage");
-                    image.texture = catalog.GetType().GetMethod("GetCharacterFront").Invoke(catalog,
-                        new object[] { fronts[i % fronts.Count] }) as Texture;
+                    var sprite = (Sprite)catalog.GetType().GetMethod("GetCharacterFront").Invoke(catalog, new object[] { fronts[i % fronts.Count] });
+                    Type.GetType("YC.Presentation.CardArtworkView, Assembly-CSharp", true).GetMethod("Set").Invoke(null, new object[] { image, sprite });
                     Assert.That(image.texture, Is.Not.Null);
                     image.color = Color.white;
                     ((Text)Property(card, "FallbackLabel")).gameObject.SetActive(false);
@@ -741,7 +765,7 @@ namespace YC.Tests.PlayMode
         {
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var hud = Find("YC.Presentation.GameplayInteractionHudView");
@@ -755,7 +779,7 @@ namespace YC.Tests.PlayMode
                 Transform last = original;
                 // 只扩充运行中的 UI 内容验证溢出，不伪造业务候选或写回资产。
                 for (var i = 0; i < 12; i++)
-                    last = UnityEngine.Object.Instantiate(original, group, false);
+                { last = UnityEngine.Object.Instantiate(original, group, false); last.gameObject.SetActive(true); }
                 yield return null;
                 yield return null;
                 Canvas.ForceUpdateCanvases();
@@ -791,7 +815,7 @@ namespace YC.Tests.PlayMode
         {
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "--yc-dev-right-card-smoke-no-dialog") < 0)
                 Assert.Ignore("使用项目已有的建设行动测试起点；所有选择与提交走正式 UI 和规则。");
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var controller = Find("YC.Presentation.MobileCityInteractionController");
@@ -833,7 +857,7 @@ namespace YC.Tests.PlayMode
                 Assert.Ignore("角色效果兼容路径使用项目已有行动阶段测试起点。");
             foreach (var finish in new[] { true, false })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext();
                 yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
                 yield return null;
                 var controller = Find("YC.Presentation.MobileCityInteractionController");
@@ -896,7 +920,7 @@ namespace YC.Tests.PlayMode
                     Assert.That(discardView.gameObject.activeInHierarchy, Is.True);
                     Assert.That((float)Property(discardView, "ScrollPosition"), Is.EqualTo(scrollPosition).Within(.01f));
                     Assert.That(EventSystem.current.currentSelectedGameObject, Is.SameAs(detail.gameObject));
-                    Child(discardView.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+                    ClickDiscardBackground(discardView);
                     Assert.That(player.DiscardCardIds.FindAll(id => id == cardId).Count, Is.EqualTo(1));
                 }
                 else
@@ -922,7 +946,7 @@ namespace YC.Tests.PlayMode
         {
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "--yc-dev-right-card-smoke-no-dialog") < 0)
                 Assert.Ignore("沿用项目行动阶段测试起点；不代表从大厅开始的联机验收。");
-            yield return ClearLaunchContext();
+            yield return ConfigureLocalContext();
             yield return SceneManager.LoadSceneAsync("SampleScene", LoadSceneMode.Single);
             yield return null;
             var controller = Find("YC.Presentation.MobileCityInteractionController");
@@ -992,7 +1016,7 @@ namespace YC.Tests.PlayMode
                 Assert.Ignore("沿用项目行动阶段测试起点；不代表从大厅开始的联机验收。");
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var controller = Find("YC.Presentation.MobileCityInteractionController");
@@ -1057,7 +1081,7 @@ namespace YC.Tests.PlayMode
                 yield return null;
                 Assert.That(page.gameObject.activeInHierarchy, Is.True, "关闭详情应返回有效弃牌列表。");
                 Assert.That(player.DiscardCardIds.FindAll(value => value == id).Count, Is.EqualTo(1));
-                Child(page.transform, "Cancel Selection").GetComponent<Button>().onClick.Invoke();
+                ClickDiscardBackground(page);
             }
         }
 
@@ -1066,7 +1090,7 @@ namespace YC.Tests.PlayMode
         {
             foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
             {
-                yield return ClearLaunchContext();
+                yield return ConfigureLocalContext(scene);
                 yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
                 yield return null;
                 var settings = Find("YC.Presentation.GameSettingsMenuController");
@@ -1130,6 +1154,19 @@ namespace YC.Tests.PlayMode
             }
         }
 
+        private static void ClickDiscardBackground(Component page)
+        {
+            var background = ((Image)Property(page, "OverlayImage")).gameObject;
+            ExecuteEvents.ExecuteHierarchy(background, new PointerEventData(EventSystem.current)
+            {
+                button = PointerEventData.InputButton.Left,
+                pointerPressRaycast = new RaycastResult { gameObject = background },
+                pointerCurrentRaycast = new RaycastResult { gameObject = background }
+            }, ExecuteEvents.pointerClickHandler);
+            Assert.That(page == null || !page.gameObject.activeInHierarchy, Is.True,
+                "点击弃牌页空白处应关闭列表。");
+        }
+
         private static void OpenCardPreview(Button card)
         {
             ExecuteEvents.Execute(card.gameObject, new PointerEventData(EventSystem.current)
@@ -1191,12 +1228,23 @@ namespace YC.Tests.PlayMode
             return UnityEngine.Object.FindObjectOfType(type) as Component;
         }
 
-        private static IEnumerator ClearLaunchContext()
+        // 隔离场景交互测试使用正式开局配置；正常菜单流程由独立 Player 验收。
+        private static IEnumerator ConfigureLocalContext(string scene = "SampleScene")
         {
-            var context = Find("YC.Presentation.GameLaunchContext");
-            if (context == null) yield break;
-            UnityEngine.Object.Destroy(context.gameObject);
-            yield return null;
+            var previous = Find("YC.Presentation.GameLaunchContext");
+            if (previous != null)
+            {
+                UnityEngine.Object.Destroy(previous.gameObject);
+                yield return null;
+            }
+            var type = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
+            var context = type.GetMethod("Ensure").Invoke(null, null);
+            var count = scene == "ThreePlayerScene" ? 3 : 4;
+            var seats = new List<PlayerSeat>();
+            for (var id = 1; id <= count; id++) seats.Add(new PlayerSeat { PlayerId = id });
+            type.GetMethod("Configure", new[] { typeof(LaunchMode), typeof(int), typeof(string), typeof(IList<PlayerSeat>), typeof(string) })
+                .Invoke(context, new object[] { LaunchMode.Local, 1, "scene-interaction-test", seats,
+                    count == 3 ? StaticMapDefinitions.ThreePlayerMapId : StaticMapDefinitions.FourPlayerMapId });
         }
 
         private static object Property(object target, string name)

@@ -7,6 +7,8 @@ using YC.Domain.Commands;
 using YC.Domain.Events;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Items;
+using YC.Domain.Effects;
 
 namespace YC.Application.Gameplay
 {
@@ -16,15 +18,17 @@ namespace YC.Application.Gameplay
         public const string UsedCityBoardSlotIndexesParameter = "usedCityBoardSlotIndexes";
 
         private readonly DeclareCityStyleService declareCityStyleService;
+        private readonly EffectRegistry effectRegistry;
 
         public DeclareCityStyleCommandHandler()
             : this(new DeclareCityStyleService())
         {
         }
 
-        public DeclareCityStyleCommandHandler(DeclareCityStyleService declareCityStyleService)
+        public DeclareCityStyleCommandHandler(DeclareCityStyleService declareCityStyleService, EffectRegistry effectRegistry = null)
         {
             this.declareCityStyleService = declareCityStyleService;
+            this.effectRegistry = effectRegistry;
         }
 
         public bool CanHandle(GameCommand command)
@@ -61,6 +65,17 @@ namespace YC.Application.Gameplay
                     "用于宣告的建设槽位参数无效。"));
             }
 
+            if (ItemZoneLegacyProjection.IsActive(state))
+            {
+                var validation = declareCityStyleService.Validate(state, command.PlayerId, cityStyleId, selectedSlotIndexes);
+                if (!validation.IsValid) return CommandResult.Invalid(validation);
+                var registry = effectRegistry ?? new EffectRegistry(); CityStyleDeclarationEffectExecutor.Register(registry);
+                var engine = new EffectTreeExecutor(state, registry); string id = engine.CreateRoot(CityStyleDeclarationEffectExecutor.Create(command.PlayerId, cityStyleId, selectedSlotIndexes));
+                var execution = engine.RunUntilQuiescent();
+                if (execution.Faulted || engine.GetNode(id).Status == EffectNodeStatus.Failed)
+                    return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, execution.Faulted ? state.EffectRuntime.LastFaultMessage : engine.GetNode(id).FailureReason));
+                return CommandResult.SuccessResult(new List<GameEvent> { new GameEvent { Kind = GameEventKind.ScoreChanged, PlayerId = command.PlayerId, SubjectId = cityStyleId, Message = "城市样式宣告已结算。" } }, "城市样式宣告已结算。");
+            }
             var result = declareCityStyleService.Declare(
                 state,
                 command.PlayerId,

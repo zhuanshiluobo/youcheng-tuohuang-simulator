@@ -1,0 +1,50 @@
+{
+  "enabled": true,
+  "definitionId": "mlynar",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "玛恩纳",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/character_faces.jpg",
+  "artworkSpriteId": "character_006",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.basic_character_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "mlynar.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.mlynar.strategy",
+      "script": "lua/characters/mlynar.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "mlynar.tactic",
+      "mode": "tactic",
+      "skillType": "normal",
+      "subscriptionId": "content.mlynar.tactic",
+      "script": "lua/characters/mlynar.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    }
+  ],
+  "data": {
+    "templateId": "mlynar",
+    "cardId": "mlynar",
+    "name": "玛恩纳",
+    "acquisitionRole": "initial",
+    "instanceTypeId": "core.basic_character_card",
+    "strategyAbilityId": "mlynar.strategy",
+    "tacticAbilityId": "mlynar.tactic"
+  }
+}

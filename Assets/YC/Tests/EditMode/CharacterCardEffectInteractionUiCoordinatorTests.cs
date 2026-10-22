@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
+using Newtonsoft.Json;
+using YC.Domain.Interactions;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -19,6 +22,69 @@ namespace YC.Tests.EditMode
     public sealed class CharacterCardEffectInteractionUiCoordinatorTests
     {
         private GameObject canvasObject;
+        [TestCase("setup.basic_character.discard")]
+        [TestCase("operator.dispatch.choose")]
+        public void CharacterCandidateDisplayCopyKeepsOriginalAnswerIdentityAndVersion(string interactionType)
+        {
+            var state = CreateState();
+            state.ContentDefinitions = new GameContentDefinitions();
+            state.ContentDefinitions.Characters.Add(new CharacterCardDefinition { TemplateId = "operator-z" });
+            state.ContentDefinitions.Characters.Add(new CharacterCardDefinition { TemplateId = "operator-a" });
+            var request = new InteractionRequestProjection {
+                VisibleToViewer = true, InteractionId = "visible-character-request", InteractionTypeId = interactionType,
+                AnsweringPlayerId = 1, CandidateSetId = "visible-characters", CandidateSetVersion = 9,
+                StateRevision = 14, MinSelections = 1, MaxSelections = 2, Status = "open",
+                CandidateIds = new List<string> { "instance-a", "liskarm-b", "instance-z", "liskarm-a" } };
+            var definitions = new Dictionary<string, string> { { "instance-a", "operator-a" }, { "instance-z", "operator-z" },
+                { "liskarm-b", "liskarm" }, { "liskarm-a", "liskarm" } };
+            request.PromptParameters.Properties.Add(new NormalizedValueEntry { Name = "candidateDefinitionIds",
+                Value = NormalizedValue.CreateArray(request.CandidateIds.Select(id => NormalizedValue.CreateString(definitions[id])).ToList()) });
+            var before = JsonConvert.SerializeObject(request);
+            var display = CharacterCardDisplayOrder.ForDisplay(state, request, id => definitions[id]);
+            Assert.That(display, Is.Not.SameAs(request));
+            Assert.That(display.CandidateIds, Is.EqualTo(new[] { "liskarm-a", "liskarm-b", "instance-z", "instance-a" }));
+            Assert.That(display.PromptParameters.Properties.Single(value => value.Name == "candidateDefinitionIds").Value.Items.Select(value => value.StringValue),
+                Is.EqualTo(display.CandidateIds.Select(id => definitions[id])));
+            var command = YC.Application.Interactions.EffectInteractionCommands.Answer(request, 1,
+                request.CandidateIds.FindAll(id => id == display.CandidateIds[0] || id == display.CandidateIds[2]));
+            Assert.That(command.OptionIds, Is.EqualTo(new[] { "instance-z", "liskarm-a" }), "答复保持原请求顺序和真实实例 ID。");
+            Assert.That(display.CandidateSetVersion, Is.EqualTo(request.CandidateSetVersion));
+            Assert.That(JsonConvert.SerializeObject(request), Is.EqualTo(before));
+            request.CandidateIds.Add("resource-iron");
+            Assert.That(CharacterCardDisplayOrder.ForDisplay(state, request,
+                id => definitions.TryGetValue(id, out var definition) ? definition : id), Is.SameAs(request));
+            request.VisibleToViewer = false;
+            Assert.That(CharacterCardDisplayOrder.ForDisplay(state, request, id => throw new Exception("不得读取隐藏身份")), Is.SameAs(request));
+        }
+
+        [TestCase("setup.basic_character.discard")]
+        [TestCase("operator.dispatch.choose")]
+        public void CharacterCandidateButtonsUseDisplayOrderButSubmitRealOriginalId(string interactionType)
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest {
+                InteractionId = "character-display-order", InteractionTypeId = interactionType, Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 8, CandidateSetId = "character-order", CandidateSetVersion = 3,
+                CandidateIds = new List<string> { "opaque-texas", "opaque-liskarm" }, MinSelections = 1, MaxSelections = 1,
+                PromptKey = "operator.dispatch.choose" };
+            request.PromptParameters.Properties.Add(new NormalizedValueEntry { Name = "candidateDefinitionIds",
+                Value = NormalizedValue.CreateArray(new List<NormalizedValue> {
+                    NormalizedValue.CreateString("texas"), NormalizedValue.CreateString("liskarm") }) });
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var before = JsonConvert.SerializeObject(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var renderer = CreateGenericRenderer(state, fixture.Dialog, commands);
+            renderer.Render(InteractionRequestProjector.ProjectForPlayer(request, 1));
+            ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
+            Assert.That(commands, Is.Empty);
+            ClickButton(GetOverlay(fixture.Dialog), "Confirm Selection");
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "opaque-liskarm" }));
+            Assert.That(JsonConvert.SerializeObject(request), Is.EqualTo(before));
+            renderer.Clear();
+        }
+
         [Test]
         public void ActiveCharacterRequest_ReopensLostSelectionWithoutSubmittingOrLosingDraft()
         {
@@ -304,7 +370,7 @@ namespace YC.Tests.EditMode
             {
                 settled.Invoke(renderer, new object[] { id });
                 Assert.That(router.RouteOpen(source(), 1), Is.True);
-                Assert.That(GetOverlay(fixture.Dialog), Is.Null, "非本命令回包不能释放pending并重建可提交页。");
+                Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "非本命令回包不能释放pending并重建可提交页。");
             }
             settled.Invoke(renderer, new object[] { commands[0].CommandId });
             Assert.That(router.RouteOpen(source(), 1), Is.True);
@@ -342,12 +408,12 @@ namespace YC.Tests.EditMode
             Assert.That(commands, Has.Count.EqualTo(1));
             Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "originium" }));
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null, "pending 不能重建可提交页。");
+            Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "pending 不能重建可提交页。");
             renderer.GetType().GetMethod("NotifyCommandSettled").Invoke(renderer, new object[] { commands[0].CommandId });
             var olderProjection = YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1);
             olderProjection.StateRevision--;
             renderer.Render(olderProjection);
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null, "拒绝释放锁后也不得复活低版本投影。");
+            Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "拒绝释放锁后也不得复活低版本投影。");
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
             Assert.That(FindChild(GetOverlay(fixture.Dialog), "Confirm Selection").GetComponent<Button>().interactable, Is.True,
                 "拒绝后保留同一请求的有效草稿。");
@@ -365,7 +431,7 @@ namespace YC.Tests.EditMode
             Assert.That(commands[1].OptionIds, Is.EqualTo(new[] { "iron" }));
             renderer.GetType().GetMethod("NotifyCommandSettled").Invoke(renderer, new object[] { commands[0].CommandId });
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null, "旧回包不能释放新请求的 pending 锁。");
+            Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "旧回包不能释放新请求的 pending 锁。");
             renderer.Clear();
         }
 
@@ -711,7 +777,7 @@ namespace YC.Tests.EditMode
 
             Assert.That(fixture.PendingMapBegun, Is.True);
             Assert.That(fixture.SubmittedPending, Is.Null);
-            Assert.That(GetOverlay(fixture.Dialog), Is.Null);
+            Assert.That(IsDialogShowing(fixture.Dialog), Is.False);
         }
 
         private CoordinatorFixture CreateCoordinator(
@@ -850,6 +916,10 @@ namespace YC.Tests.EditMode
                 .GetMethod("SynchronizePending", BindingFlags.Instance | BindingFlags.Public)
                 .Invoke(coordinator, null);
         }
+
+        // 正式弹窗保留实例复用；是否可见才是pending/转地图时的行为约束。
+        private static bool IsDialogShowing(object dialog) => (bool)dialog.GetType()
+            .GetProperty("IsShowing", BindingFlags.Instance | BindingFlags.Public).GetValue(dialog);
 
         private static GameObject GetOverlay(object dialog)
         {

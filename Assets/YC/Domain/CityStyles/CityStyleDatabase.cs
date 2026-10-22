@@ -9,6 +9,13 @@ namespace YC.Domain.CityStyles
 {
     public static class CityStyleDatabase
     {
+        public static CityStyleDefinition Get(GameState state, string id) => state?.ContentDefinitions == null ? Get(id) :
+            GameStateCloneService.DeepClone(state.ContentDefinitions.CityStyles.Find(value => value.CityStyleId == YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id)));
+        public static bool TryGet(GameState state, string id, out CityStyleDefinition definition)
+        {
+            if (state?.ContentDefinitions == null) return TryGet(id, out definition);
+            definition = GameStateCloneService.DeepClone(state.ContentDefinitions.CityStyles.Find(value => value.CityStyleId == YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(state, id))); return definition != null;
+        }
         public const string MilitaryIndustrialArea = "city_style_military_industrial_area";
         public const string MobilizationSupportSystem = "city_style_mobilization_support_system";
         public const string CompositePowerSystem = "city_style_composite_power_system";

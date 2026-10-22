@@ -47,6 +47,7 @@ namespace YC.Presentation.Workflows
         private string additionalExploreOptionId = string.Empty;
         private int lastInfluenceInputFrame = -1;
         private int syntheticInputFrame = int.MinValue;
+        public Action BeginRouteSelection { private get; set; }
 
         public ExplorationEventPresenter(
             IGameplayContext context,
@@ -195,6 +196,12 @@ namespace YC.Presentation.Workflows
         {
             ClearWorkflowState();
             view.HideEventOptions();
+            if (BeginRouteSelection != null && additionalExplorePending == null)
+            {
+                SetStage(ExplorationStage.Inactive);
+                BeginRouteSelection();
+                return;
+            }
             SetStage(ExplorationStage.SelectingTarget);
 
             var highlights = BuildExplorableLocationHighlights();
@@ -430,8 +437,11 @@ namespace YC.Presentation.Workflows
 
         public void Cancel()
         {
+            var ownedPresentation = IsActive;
             ClearWorkflowState();
             ClearAdditionalExploreSource();
+            // 同步会清理无关的探索页；未活动的探索不能清别的行动高亮或切换其工作流。
+            if (!ownedPresentation) return;
             view.HideEventOptions();
             view.ClearHighlights();
             SetStage(ExplorationStage.Inactive);
@@ -535,6 +545,11 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
+            if (!influenceTargetSelection.ConfirmSelection(slotId))
+            {
+                PresentInfluenceTargets();
+                return true;
+            }
             bool completed;
             if (!influenceTargetSelection.TrySelectSlot(card, slotId, out completed))
             {
@@ -1046,6 +1061,14 @@ namespace YC.Presentation.Workflows
             return recipientNames.Count == 0 ? "\u65e0" : string.Join("\u3001", recipientNames);
         }
 
+        public bool HasPendingInfluenceConfirmation => !string.IsNullOrEmpty(influenceTargetSelection.PendingSlotId);
+
+        public void CancelPendingInfluenceConfirmation(bool restore)
+        {
+            influenceTargetSelection.ClearPendingSelection();
+            if (restore && IsSelectingInfluenceTarget) PresentInfluenceTargets();
+        }
+
         private int PresentInfluenceTargets()
         {
             selectableInfluenceSlotIds.Clear();
@@ -1073,7 +1096,9 @@ namespace YC.Presentation.Workflows
                 highlights.Add(new WorkflowHighlight(
                     WorkflowHighlightTargetKind.InfluenceSlot,
                     slotId,
-                    WorkflowHighlightSemantic.EventInfluenceTarget));
+                    WorkflowHighlightSemantic.EventInfluenceTarget,
+                    influenceTargetSelection.PendingSlotId == slotId
+                        ? WorkflowHighlightState.PendingConfirmation : WorkflowHighlightState.Available));
             }
 
             view.SetHighlights(highlights);
@@ -1221,7 +1246,8 @@ namespace YC.Presentation.Workflows
                 return EventCardDatabase.Get(pendingChoice.CardId);
             }
 
-            return PeekExploreEventCard(pathSelection.TargetLocationId) ?? optionSelection.PendingEventCard;
+            // 多步地图选择必须使用当前已展示的卡牌，不能被牌堆顶部另一张牌改变所需槽数。
+            return optionSelection.PendingEventCard ?? PeekExploreEventCard(pathSelection.TargetLocationId);
         }
 
         private EventCardDefinition PeekExploreEventCard(string locationId)

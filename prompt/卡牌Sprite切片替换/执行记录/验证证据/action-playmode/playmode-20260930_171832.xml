@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="6" result="Failed(Child)" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.9295053">
+  <test-suite type="TestSuite" id="1062" name="游城拓荒模拟器" fullname="游城拓荒模拟器" runstate="Runnable" testcasecount="43" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.929505" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties />
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1120" name="YC.Tests.PlayMode.dll" fullname="G:/NoMadCity/Library/ScriptAssemblies/YC.Tests.PlayMode.dll" runstate="Runnable" testcasecount="43" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.925719" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="46008" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1121" name="YC" fullname="YC" runstate="Runnable" testcasecount="43" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.925023" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1122" name="Tests" fullname="YC.Tests" runstate="Runnable" testcasecount="43" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.924506" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1123" name="PlayMode" fullname="YC.Tests.PlayMode" runstate="Runnable" testcasecount="43" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.923972" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1084" name="GameplayMainHudPlayModeTests" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" testcasecount="15" result="Failed" site="Child" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:56Z" duration="4.920414" total="6" passed="5" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1095" name="BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" methodname="BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="933789305" result="Failed" start-time="2026-09-30 09:18:51Z" end-time="2026-09-30 09:18:53Z" duration="1.922667" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  正式报价必须至少存在一个合法建设候选。
+  Expected: not null
+  But was:  null
+]]></message>
+                  <stack-trace><![CDATA[at YC.Tests.PlayMode.GameplayMainHudPlayModeTests+<BuildFlow_CandidateSlotPaymentAndSubmitCommitsOnce>d__10.MoveNext () [0x001e0] in G:\NoMadCity\Assets\YC\Tests\PlayMode\FacilityCatalog\GameplayMainHudPlayModeTests.cs:813
+at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0003a] in .\Library\PackageCache\com.unity.test-framework@1.1.33\UnityEngine.TestRunner\NUnitExtensions\Attributes\TestEnumerator.cs:46
+]]></stack-trace>
+                </failure>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1093" name="CardPicker_HorizontalWheelAndScrollbarReachLastCard" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardPicker_HorizontalWheelAndScrollbarReachLastCard" methodname="CardPicker_HorizontalWheelAndScrollbarReachLastCard" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="302036059" result="Passed" start-time="2026-09-30 09:18:53Z" end-time="2026-09-30 09:18:53Z" duration="0.413633" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1097" name="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" methodname="CardViewer_FormalQuickActionCancelsWithoutCommandThenUsesPlotOnce" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="1284028544" result="Passed" start-time="2026-09-30 09:18:53Z" end-time="2026-09-30 09:18:54Z" duration="0.516109" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1098" name="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" methodname="CardViewer_HandFacilityAndDiscardDetailsStayReadOnlyAndReturn" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="42044535" result="Passed" start-time="2026-09-30 09:18:54Z" end-time="2026-09-30 09:18:55Z" duration="0.746481" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1091" name="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" methodname="CityStyleTab_OpensAndClosesTheFormalQuickActionPreview" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="182642266" result="Passed" start-time="2026-09-30 09:18:55Z" end-time="2026-09-30 09:18:56Z" duration="0.939791" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+              <test-case id="1089" name="OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" fullname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests.OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" methodname="OverflowHand_KeepsAllCardsWithoutScrollingAcrossRenders" classname="YC.Tests.PlayMode.GameplayMainHudPlayModeTests" runstate="Runnable" seed="515293038" result="Passed" start-time="2026-09-30 09:18:56Z" end-time="2026-09-30 09:18:56Z" duration="0.371582" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                </properties>
+                <output><![CDATA[Right card smoke setup ready. Dialog=None, PlayerId=1.
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

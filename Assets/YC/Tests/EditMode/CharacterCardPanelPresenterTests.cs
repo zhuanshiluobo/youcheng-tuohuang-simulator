@@ -1,5 +1,17 @@
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using YC.Infrastructure.Lua;
 using YC.Application.Gameplay;
+using YC.Application.Interactions;
+using YC.Application.Sessions;
+using YC.Domain.Commands;
+using YC.Domain.Effects;
+using YC.Domain.Interactions;
+using YC.Domain.Maps;
 using YC.Domain.Cards;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -9,6 +21,229 @@ namespace YC.Tests.EditMode
 {
     public sealed class CharacterCardPanelPresenterTests
     {
+        [Test, Category("角色详情投影")]
+        public void MemberActiveUseDetailsReadAuthorizedModelAndRefreshWithoutRuntime()
+        {
+            var host = CreateActiveUseDetailState();
+            var visible = GameStateViewProjector.ProjectForPlayer(host, 1);
+            var member = GameStateViewProjector.ToClientState(visible);
+            Assert.That(member.EffectRuntime, Is.Null);
+            Assert.That(member.CharacterUses.Any(use => !use.Finished && use.ExecutingPlayerId == 1), Is.True);
+            var presenter = new CharacterCardPanelPresenter();
+            var model = presenter.BuildProjectedView(member, 1, visible);
+            Assert.That(model.CanUse, Is.True);
+            Assert.That(model.CurrentUseSelection, Is.Not.Null);
+            Assert.That(model.CurrentUseSelection.InteractionTypeId, Is.EqualTo(CharacterLifecycleService.ModeInteractionTypeId));
+            Assert.That(model.CanUseStrategy, Is.True);
+            Assert.That(model.CanUseTactic, Is.True);
+            var beforeMember = JsonConvert.SerializeObject(member);
+            var beforeVisible = JsonConvert.SerializeObject(visible);
+            for (var refresh = 0; refresh < 3; refresh++)
+            {
+                Assert.That(presenter.GetEffectUnavailableReason(model, false), Is.Empty);
+                Assert.That(presenter.GetEffectUnavailableReason(model, true), Is.Empty);
+                model = presenter.BuildProjectedView(member, 1, visible);
+                Assert.That(model.CurrentUseSelection.InteractionTypeId, Is.EqualTo(CharacterLifecycleService.ModeInteractionTypeId));
+            }
+            Assert.That(JsonConvert.SerializeObject(member), Is.EqualTo(beforeMember));
+            Assert.That(JsonConvert.SerializeObject(visible), Is.EqualTo(beforeVisible));
+            Assert.That(member.EffectRuntime, Is.Null);
+        }
+
+        [Test, Category("角色详情投影")]
+        public void MemberUnavailableModeAndOtherViewerDetailsKeepAuthorizedBoundaries()
+        {
+            var host = CreateActiveUseDetailState(out var registry);
+            var request = host.EffectRuntime.InteractionRequests.Single(value => value.Status == "open" &&
+                value.AnsweringPlayerId == 1 && value.InteractionTypeId == CharacterLifecycleService.ModeInteractionTypeId);
+            Assert.That(request.CandidateIds, Does.Contain("strategy"));
+            var answered = new AnswerInteractionCommandHandler(registry).Handle(host,
+                EffectInteractionCommands.Answer(InteractionRequestProjector.ProjectForPlayer(request, 1), 1, new[] { "strategy" }));
+            Assert.That(answered.Succeeded, Is.True, answered.Validation?.Reason);
+            var visible = GameStateViewProjector.ProjectForPlayer(host, 1);
+            var member = GameStateViewProjector.ToClientState(visible);
+            Assert.That(member.EffectRuntime, Is.Null);
+            var presenter = new CharacterCardPanelPresenter();
+            var model = presenter.BuildProjectedView(member, 1, visible);
+            Assert.That(model.CanUseStrategy, Is.False);
+            var beforeMember = JsonConvert.SerializeObject(member);
+            var before = JsonConvert.SerializeObject(visible);
+            for (var refresh = 0; refresh < 3; refresh++)
+            {
+                Assert.That(presenter.GetEffectUnavailableReason(model, true), Is.Not.Empty);
+                Assert.That(presenter.GetEffectUnavailableReason(model, false).Length == 0, Is.EqualTo(model.CanUseTactic));
+                model = presenter.BuildProjectedView(member, 1, visible);
+            }
+            Assert.That(JsonConvert.SerializeObject(visible), Is.EqualTo(before));
+            Assert.That(JsonConvert.SerializeObject(member), Is.EqualTo(beforeMember));
+            Assert.That(member.EffectRuntime, Is.Null);
+            foreach (var restricted in new[] { GameStateViewProjector.ProjectForPlayer(host, 2),
+                GameStateViewProjector.ProjectForSpectator(host) })
+            {
+                var client = GameStateViewProjector.ToClientState(restricted);
+                Assert.That(client.EffectRuntime, Is.Null);
+                var hidden = presenter.BuildProjectedView(client, 1, restricted);
+                Assert.That(hidden.CanUse, Is.False);
+                Assert.That(hidden.CurrentUseSelection, Is.Null);
+                Assert.That(hidden.CoveredCards, Is.Empty);
+                Assert.That(hidden.CardDefinitionIds, Is.Empty);
+                Assert.That(presenter.GetEffectUnavailableReason(hidden, false), Is.Empty);
+                Assert.That(presenter.GetEffectUnavailableReason(hidden, true), Is.Empty);
+            }
+        }
+
+        private static GameState CreateActiveUseDetailState() => CreateActiveUseDetailState(out _);
+        private static GameState CreateActiveUseDetailState(out EffectRegistry registry)
+        {
+            var seats = new List<PlayerSeat> {
+                new PlayerSeat { PlayerId = 1, Color = PlayerColor.Red },
+                new PlayerSeat { PlayerId = 2, Color = PlayerColor.Blue },
+                new PlayerSeat { PlayerId = 3, Color = PlayerColor.Green } };
+            var configuration = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.ThreePlayerMapId };
+            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentPack.Current, configuration);
+            configuration.ContentPackHash = catalog.ContentPackHash;
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, configuration, 71, catalog.SetupRecipe, catalog.ContentDefinitions);
+            registry = new EffectRegistry();
+            LuaContentCatalog.Register(registry, catalog);
+            var started = new RoundExecutionService(registry).CreateRound(state, 1, 1);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            var cover = new CoverCharacterCardCommandHandler(new CharacterCardService(), registry);
+            string usedCard = null;
+            foreach (var seat in seats)
+            {
+                var card = state.ItemZones.Items.First(item => item.ControllerSubject.PlayerId == seat.PlayerId &&
+                    item.DefinitionId == (seat.PlayerId == 1 ? CharacterCardDatabase.Elysium : CharacterCardDatabase.Liskarm) &&
+                    state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.character_hand"));
+                var result = cover.Handle(state, new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = seat.PlayerId, TargetId = card.ItemId });
+                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+                if (seat.PlayerId == 1) usedCard = card.ItemId;
+            }
+            var used = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state,
+                new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = usedCard });
+            Assert.That(used.Succeeded, Is.True, used.Validation?.Reason);
+            return state;
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public void EntityDisplayOrderIsStableAcrossExpansionsAndClientViewsWithoutChangingInstances(int expansions)
+        {
+            var configuration = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.ThreePlayerMapId };
+            if (expansions >= 1) configuration.EnabledExpansionIds.Add("enterprise");
+            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentPack.Current, configuration);
+            configuration.ContentPackHash = catalog.ContentPackHash;
+            var seats = new List<PlayerSeat> {
+                new PlayerSeat { PlayerId = 1, Color = PlayerColor.Red },
+                new PlayerSeat { PlayerId = 2, Color = PlayerColor.Blue },
+                new PlayerSeat { PlayerId = 3, Color = PlayerColor.Green } };
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, configuration, 71,
+                catalog.SetupRecipe, catalog.ContentDefinitions);
+            state.Phase = GamePhase.CharacterCover;
+            state.CurrentPlayerId = 1;
+            var handZone = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.character_hand" && zone.OwnerPlayerId == 1);
+            var hand = state.ItemZones.Items.Where(item => item.ZoneId == handZone.ZoneId).ToList();
+            if (expansions == 2)
+            {
+                // 正式感染者包尚未登记：只用真实定义的受控可见实例验证显示排序，不冒充开局集成。
+                var json = JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(Environment.CurrentDirectory,
+                    "Assets/StreamingAssets/Content/core/character/infected.character.amiya.json")));
+                var definition = json["data"].ToObject<CharacterCardDefinition>();
+                definition.TemplateId = definition.CardId = (string)json["definitionId"];
+                definition.Name = (string)json["displayName"];
+                state.ContentDefinitions.Characters.Add(definition);
+                var infected = GameStateCloneService.DeepClone(hand[0]);
+                infected.ItemId = "visible-infected-character-instance";
+                infected.DefinitionId = definition.TemplateId;
+                state.ItemZones.Items.Add(infected);
+                hand.Add(infected);
+            }
+            var duplicate = GameStateCloneService.DeepClone(hand.Single(item => item.DefinitionId == CharacterCardDatabase.Liskarm));
+            duplicate.ItemId = "second-visible-liskarm-instance";
+            state.ItemZones.Items.Add(duplicate);
+            hand.Add(duplicate);
+            var expected = hand.Where(item => item.DefinitionId == CharacterCardDatabase.Liskarm)
+                .OrderBy(item => item.ItemId, StringComparer.Ordinal).Select(item => item.ItemId)
+                .Concat(hand.Where(item => item.DefinitionId != CharacterCardDatabase.Liskarm).Select(item => item.ItemId)).ToArray();
+            state.ItemZones.Items.Reverse(); // 模拟不同合法序列化枚举顺序，不把此顺序当显示合同。
+            var before = JsonConvert.SerializeObject(state.ItemZones);
+            var presenter = new CharacterCardPanelPresenter();
+            var host = presenter.BuildView(state, 1);
+            Assert.That(host.HandCards.Select(card => card.CardId), Is.EqualTo(expected));
+            Assert.That(host.HandCards.Count, Is.EqualTo(expansions == 0 ? 6 : expansions == 1 ? 8 : 9));
+            Assert.That(host.HandCards.All(card => card.CanCover), Is.True);
+            var client = new GameSession(GameStateCloneService.DeepClone(state));
+            var clientState = SimulationUiTestShell.ReadState(client.State, client.RefreshLocalProjection(GameStateViewer.Player(1)), 1);
+            Assert.That(presenter.BuildView(clientState, 1).HandCards.Select(card => card.CardId), Is.EqualTo(expected));
+            Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(before));
+            foreach (var template in new[] { "core.zone.character_discard", "core.zone.character_covered" })
+            {
+                var target = state.ItemZones.Zones.Single(zone => zone.TemplateId == template && zone.OwnerPlayerId == 1);
+                foreach (var card in hand) card.ZoneId = target.ZoneId;
+                state.Phase = GamePhase.ActionRound1;
+                before = JsonConvert.SerializeObject(state.ItemZones);
+                var model = presenter.BuildView(state, 1);
+                var displayed = template.EndsWith("discard", StringComparison.Ordinal) ? model.DiscardCards : model.CoveredCards;
+                Assert.That(displayed.Select(card => card.CardId), Is.EqualTo(expected));
+                Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(before));
+            }
+        }
+
+        [Test]
+        public void DisplayOrderUsesFrozenExtensionsAndKeepsUnknownAndDuplicateInstances()
+        {
+            var definitions = new GameContentDefinitions { Characters = new List<CharacterCardDefinition> {
+                new CharacterCardDefinition { TemplateId = "extension-z" },
+                new CharacterCardDefinition { TemplateId = "extension-a" } } };
+            var cards = new[] { ("unknown", "u"), ("extension-a", "a"), ("liskarm", "2"),
+                ("extension-z", "z"), ("liskarm", "1"), ("tin-man", "t") };
+            var ordered = new CharacterCardDisplayOrder(definitions).Sort(cards, card => card.Item1, card => card.Item2);
+            Assert.That(ordered.Select(card => card.Item2), Is.EqualTo(new[] { "1", "2", "t", "z", "a", "u" }));
+            Assert.That(cards[0].Item2, Is.EqualTo("u"));
+        }
+
+        [Test]
+        public void EntityOpeningUsesFrozenDefinitionsAndRealCoverOrderInHostAndClientViews()
+        {
+            var seats = new System.Collections.Generic.List<PlayerSeat>
+            {
+                new PlayerSeat { PlayerId = 1, Color = PlayerColor.Red },
+                new PlayerSeat { PlayerId = 2, Color = PlayerColor.Blue },
+                new PlayerSeat { PlayerId = 3, Color = PlayerColor.Green }
+            };
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, StaticMapDefinitions.ThreePlayerMapId, 71);
+            state.ContentDefinitions.Characters.Find(card => card.TemplateId == CharacterCardDatabase.Liskarm).Name = "本局角色标题";
+            var registry = new EffectRegistry();
+            var started = new RoundExecutionService(registry).CreateRound(state, 1, 1);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            var presenter = new CharacterCardPanelPresenter();
+            var firstView = presenter.BuildView(state, 1);
+            Assert.That(firstView.CanCover, Is.True, "其他玩家的独立盖牌请求不能阻塞本人。");
+            Assert.That(firstView.HandCards[0].DisplayName, Is.EqualTo("本局角色标题"));
+            Assert.That(presenter.BuildView(state, 2).CanCover, Is.False);
+            var handler = new CoverCharacterCardCommandHandler(new CharacterCardService(), registry);
+            string firstCard = state.FindPlayer(1).HandCardIds[0];
+            Assert.That(handler.Handle(state, new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = 1, TargetId = firstCard }).Succeeded, Is.True);
+            var client = new GameSession(GameStateCloneService.DeepClone(state));
+            var clientState = SimulationUiTestShell.ReadState(client.State, client.RefreshLocalProjection(GameStateViewer.Player(2)), 2);
+            Assert.That(client.State.EffectRuntime, Is.Not.Null);
+            Assert.That(clientState.EffectRuntime.EffectNodes, Is.Empty, "UI 读取壳不包含完整效果执行树。");
+            Assert.That(clientState.EffectRuntime.InteractionRequests.All(request => request.AnsweringPlayerId == 2), Is.True);
+            var clientView = presenter.BuildView(clientState, 2);
+            Assert.That(clientView.CanCover, Is.True);
+            Assert.That(clientView.HandCards[0].DisplayName, Is.EqualTo("本局角色标题"));
+            foreach (var seat in seats)
+            {
+                if (seat.PlayerId == 1) continue;
+                string cardId = state.FindPlayer(seat.PlayerId).HandCardIds[0];
+                var covered = handler.Handle(state, new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = seat.PlayerId, TargetId = cardId });
+                Assert.That(covered.Succeeded, Is.True, covered.Validation?.Reason);
+            }
+            var actionView = presenter.BuildView(state, 1);
+            Assert.That(actionView.CanUseStrategy, Is.True);
+            Assert.That(actionView.StrategyEffect, Is.EqualTo(state.ContentDefinitions.Characters.Find(card => card.TemplateId == CharacterCardDatabase.Liskarm).StrategyEffect));
+        }
+
         [Test]
         public void BuildView_ShowsKnownHandNamesAndSafelyFallsBackForUnknownCard()
         {

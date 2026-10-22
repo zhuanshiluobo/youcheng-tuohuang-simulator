@@ -1,0 +1,287 @@
+{
+  "referenceCanvas": [
+    1920,
+    1080
+  ],
+  "coordinateOrigin": "top-left",
+  "rectFormat": [
+    "x",
+    "y",
+    "width",
+    "height"
+  ],
+  "topbar": [
+    0,
+    0,
+    1920,
+    72
+  ],
+  "passwordButton": [
+    1276,
+    9,
+    216,
+    54
+  ],
+  "roomNumber": [
+    1520,
+    16,
+    190,
+    42
+  ],
+  "copyButton": [
+    1726,
+    9,
+    68,
+    54
+  ],
+  "helpButton": [
+    1826,
+    9,
+    68,
+    54
+  ],
+  "members": [
+    16,
+    84,
+    1004,
+    912
+  ],
+  "settings": [
+    1032,
+    84,
+    872,
+    912
+  ],
+  "memberHeader": [
+    28,
+    94,
+    980,
+    50
+  ],
+  "settingsHeader": [
+    1044,
+    94,
+    848,
+    50
+  ],
+  "seats": [
+    [
+      28,
+      154,
+      980,
+      202
+    ],
+    [
+      28,
+      364,
+      980,
+      202
+    ],
+    [
+      28,
+      574,
+      980,
+      202
+    ],
+    [
+      28,
+      784,
+      980,
+      202
+    ]
+  ],
+  "avatarInset": [
+    20,
+    60,
+    136,
+    136
+  ],
+  "mapsPanel": [
+    1044,
+    154,
+    414,
+    832
+  ],
+  "mapChoices": [
+    [
+      1072,
+      208,
+      358,
+      374
+    ],
+    [
+      1072,
+      594,
+      358,
+      374
+    ]
+  ],
+  "modePanel": [
+    1470,
+    154,
+    422,
+    130
+  ],
+  "expansionPanel": [
+    1470,
+    296,
+    422,
+    374
+  ],
+  "summaryPanel": [
+    1470,
+    682,
+    422,
+    304
+  ],
+  "footer": [
+    16,
+    1008,
+    1888,
+    64
+  ],
+  "backButton": [
+    28,
+    1017,
+    224,
+    48
+  ],
+  "primaryButton": [
+    1594,
+    1015,
+    298,
+    52
+  ],
+  "helpDialog": [
+    300,
+    98,
+    1320,
+    884
+  ],
+  "helpTitle": [
+    340,
+    122,
+    1160,
+    64
+  ],
+  "helpClose": [
+    1524,
+    120,
+    64,
+    64
+  ],
+  "helpViewport": [
+    354,
+    220,
+    1172,
+    704
+  ],
+  "helpTrack": [
+    1564,
+    220,
+    12,
+    704
+  ],
+  "helpScrollHit": [
+    1556,
+    220,
+    28,
+    704
+  ],
+  "passwordDialog": [
+    590,
+    308,
+    740,
+    464
+  ],
+  "passwordClose": [
+    1244,
+    328,
+    56,
+    56
+  ],
+  "passwordInput": [
+    636,
+    458,
+    648,
+    58
+  ],
+  "seatColors": [
+    "#5FD200",
+    "#FFBF00",
+    "#006CFF",
+    "#EC0000"
+  ],
+  "noPlayerCountSelector": true,
+  "forceFourPlayerMapOnlyAtOccupiedCount": 4,
+  "autoRevertMapOnDeparture": false,
+  "seatHeaderLocal": [
+    7,
+    7,
+    966,
+    50
+  ],
+  "schemaNote": "All top-level rectangles are global x,y,width,height; Local/Inset rectangles use the corresponding module origin. mapChoices order: three-player, four-player. Maps use contain without rotation or crop.",
+  "version": "1.1",
+  "variant": "vertical-maps",
+  "mapArrangement": "vertical",
+  "mapImages": [
+    [
+      1088,
+      216,
+      326,
+      326
+    ],
+    [
+      1088,
+      602,
+      326,
+      326
+    ]
+  ],
+  "mapLabels": [
+    [
+      1076,
+      542,
+      350,
+      36
+    ],
+    [
+      1076,
+      928,
+      350,
+      36
+    ]
+  ],
+  "mapImageFit": "contain",
+  "modeField": [
+    1486,
+    215,
+    390,
+    50
+  ],
+  "expansionViewport": [
+    1494,
+    358,
+    350,
+    290
+  ],
+  "expansionTrack": [
+    1860,
+    358,
+    12,
+    290
+  ],
+  "expansionScrollHit": [
+    1852,
+    358,
+    28,
+    290
+  ],
+  "mapSelectionBadgeLocal": [
+    307,
+    335,
+    30,
+    30
+  ]
+}

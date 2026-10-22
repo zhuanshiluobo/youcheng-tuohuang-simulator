@@ -4,6 +4,7 @@ using UnityEngine;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Presentation.Maps;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -12,6 +13,10 @@ namespace YC.Presentation
     {
         [SerializeField] private MapCoordinateSpace coordinateSpace;
         [SerializeField] private MapVisualSpriteLibrary spriteLibrary;
+        [SerializeField] private MapHighlightCatalog buttonCatalog;
+        [SerializeField] private SpriteRenderer roadTokenTemplate;
+        [SerializeField, Min(0.01f)] private float roadTokenHeightMultiplier = 1f;
+        [SerializeField] private List<MapButtonView> buttons = new List<MapButtonView>();
         [SerializeField] private List<MapLocationViewBinding> locations = new List<MapLocationViewBinding>();
         [SerializeField] private List<MapResourceTokenViewBinding> resourceTokens =
             new List<MapResourceTokenViewBinding>();
@@ -23,6 +28,10 @@ namespace YC.Presentation
 
         public MapCoordinateSpace CoordinateSpace => coordinateSpace;
         public MapVisualSpriteLibrary SpriteLibrary => spriteLibrary;
+        public IReadOnlyList<MapButtonView> Buttons => buttons;
+        public MapHighlightCatalog ButtonCatalog => buttonCatalog;
+        public SpriteRenderer RoadTokenTemplate => roadTokenTemplate;
+        public float RoadTokenHeightMultiplier => roadTokenHeightMultiplier;
         public SpriteRenderer MapRenderer => coordinateSpace == null ? null : coordinateSpace.MapRenderer;
         public IReadOnlyList<MapLocationViewBinding> Locations => locations;
         public IReadOnlyList<MapResourceTokenViewBinding> ResourceTokens => resourceTokens;
@@ -70,8 +79,29 @@ namespace YC.Presentation
                 }
             }
 
+            foreach (var button in buttons)
+                button.Bind(controller, coordinateSpace, buttonCatalog, GetButtonPosition(button));
+
             reason = string.Empty;
             return true;
+        }
+
+        public Vector2 GetButtonPosition(MapButtonView button)
+        {
+            var layout = coordinateSpace.Layout;
+            if (button.TargetKind == WorkflowHighlightTargetKind.Location)
+                return layout.Locations.Find(item => item.LocationId == button.TargetId).ButtonPosition;
+            if (button.TargetKind == WorkflowHighlightTargetKind.Route)
+                return layout.Routes.Find(item => item.RouteId == button.TargetId).ButtonPosition;
+            foreach (var location in layout.Locations)
+                for (var i = 0; i < location.InfluenceSlots.Count; i++)
+                    if (InfluenceService.GetLocationSlotId(location.LocationId, i) == button.TargetId)
+                        return location.NormalizedPosition + location.InfluenceSlots[i].Offset;
+            foreach (var route in layout.Routes)
+                for (var i = 0; i < route.InfluenceSlots.Count; i++)
+                    if (InfluenceService.GetRouteSlotId(route.RouteId, i) == button.TargetId)
+                        return route.NormalizedPosition + route.InfluenceSlots[i].Offset;
+            throw new InvalidOperationException("地图按钮的槽位未登记：" + button.TargetId);
         }
 
         public bool TryValidateConfiguration(GameMapDefinition map, out string reason)
@@ -104,6 +134,15 @@ namespace YC.Presentation
                 return false;
             }
 
+            if (roadTokenTemplate == null || roadTokenTemplate.transform.parent == null ||
+                roadTokenTemplate.gameObject.activeSelf || roadTokenHeightMultiplier <= 0f ||
+                roadTokenTemplate.GetComponentInChildren<Collider2D>(true) != null ||
+                roadTokenTemplate.GetComponentInChildren<Collider>(true) != null)
+            {
+                reason = "地图需要禁用且不拦截点击的公路模板及有效高度倍率。";
+                return false;
+            }
+
             var layoutErrors = MapDisplayLayoutValidator.Validate(map, coordinateSpace.Layout);
             if (layoutErrors.Count > 0)
             {
@@ -112,6 +151,7 @@ namespace YC.Presentation
             }
 
             if (!ValidateLocationBindings(map, out reason) ||
+                !ValidateButtonBindings(map, out reason) ||
                 !ValidateResourceTokenBindings(coordinateSpace.Layout, out reason) ||
                 !ValidateInfluenceSlotBindings(map, out reason) ||
                 !ValidatePlayerPools(map, out reason))
@@ -121,6 +161,30 @@ namespace YC.Presentation
 
             reason = string.Empty;
             return true;
+        }
+
+        private bool ValidateButtonBindings(GameMapDefinition map, out string reason)
+        {
+            if (buttonCatalog == null) { reason = "地图按钮缺少素材配置。"; return false; }
+            var expected = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var location in map.Locations)
+            {
+                expected.Add("Location:" + location.LocationId);
+                for (var i = 0; i < location.InfluenceSlotCount; i++)
+                    expected.Add("InfluenceSlot:" + InfluenceService.GetLocationSlotId(location.LocationId, i));
+            }
+            foreach (var route in map.Routes)
+            {
+                expected.Add("Route:" + route.RouteId);
+                for (var i = 0; i < route.InfluenceSlotCount; i++)
+                    expected.Add("InfluenceSlot:" + InfluenceService.GetRouteSlotId(route.RouteId, i));
+            }
+            var actual = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var button in buttons)
+                if (button == null || button.Image == null || button.HitArea == null ||
+                    !actual.Add(button.TargetKind + ":" + button.TargetId))
+                { reason = "地图按钮引用缺失或目标重复。"; return false; }
+            return ValidateExactIds("轮廓按钮", expected, actual, out reason);
         }
 
         private bool ValidateLocationBindings(GameMapDefinition map, out string reason)

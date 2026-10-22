@@ -1,0 +1,72 @@
+{
+  "roomNumber": "706218",
+  "hostId": "p1",
+  "viewerId": "p1",
+  "mapId": "four-player",
+  "modeId": "default",
+  "modeLabel": "默认模式",
+  "isProtected": false,
+  "canStart": true,
+  "canReady": true,
+  "expansions": [
+    {
+      "id": "base",
+      "label": "基础内容",
+      "enabled": true,
+      "fixed": true
+    },
+    {
+      "id": "expansion-01",
+      "label": "扩展包 01",
+      "enabled": true,
+      "fixed": false
+    },
+    {
+      "id": "expansion-02",
+      "label": "扩展包 02",
+      "enabled": false,
+      "fixed": false
+    }
+  ],
+  "seats": [
+    {
+      "id": "seat-1",
+      "status": "occupied",
+      "occupant": {
+        "id": "p1",
+        "name": "玩家 1",
+        "kind": "human",
+        "ready": true,
+        "portrait": "preview/originals/portrait-host.png"
+      }
+    },
+    {
+      "id": "seat-2",
+      "status": "occupied",
+      "occupant": {
+        "id": "p2",
+        "name": "玩家 2",
+        "kind": "human",
+        "ready": true,
+        "portrait": "preview/originals/portrait-guest.png"
+      }
+    },
+    {
+      "id": "seat-3",
+      "status": "occupied",
+      "occupant": {
+        "id": "ai1",
+        "name": "人机玩家",
+        "kind": "ai",
+        "ready": true,
+        "portrait": "preview/originals/portrait-ai.png"
+      }
+    },
+    {
+      "id": "seat-4",
+      "status": "open",
+      "occupant": null
+    }
+  ],
+  "isPreviewExample": true
+}

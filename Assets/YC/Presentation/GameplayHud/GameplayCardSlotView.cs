@@ -18,16 +18,28 @@ namespace YC.Presentation
         public RectTransform Root => root;
         public RawImage Artwork => artwork;
 
-        public void Bind(Texture texture, Action onClick)
+        public void Bind(Sprite sprite, Action onClick)
         {
-            artwork.texture = texture;
+            CardArtworkView.Set(artwork, sprite);
+            artwork.enabled = sprite != null;
+            if (sprite != null) artworkAspect.aspectRatio = CardArtworkView.AspectRatio(sprite);
+            clicked = onClick;
+            button.onClick.RemoveListener(Click);
+            button.onClick.AddListener(Click);
+            button.interactable = onClick != null;
+            // 弃牌装饰层不拦截整个牌堆入口。
+            hitSurface.raycastTarget = onClick != null;
+        }
+
+        public void BindTexture(Texture texture, Action onClick)
+        {
+            CardArtworkView.SetTexture(artwork, texture);
             artwork.enabled = texture != null;
             if (texture != null) artworkAspect.aspectRatio = (float)texture.width / texture.height;
             clicked = onClick;
             button.onClick.RemoveListener(Click);
             button.onClick.AddListener(Click);
             button.interactable = onClick != null;
-            // 弃牌装饰层不拦截整个牌堆入口。
             hitSurface.raycastTarget = onClick != null;
         }
 

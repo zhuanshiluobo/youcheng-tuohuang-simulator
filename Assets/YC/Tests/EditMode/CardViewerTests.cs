@@ -13,6 +13,7 @@ namespace YC.Tests.EditMode
         private GameObject root;
         private Component viewer;
         private Texture2D texture;
+        private Sprite sprite;
         private static Type Runtime(string name) => Type.GetType("YC.Presentation." + name + ", Assembly-CSharp", true);
         private object Call(string name, params object[] args) => viewer.GetType().GetMethod(name).Invoke(viewer, args);
         private T Get<T>(string name) => (T)viewer.GetType().GetProperty(name).GetValue(viewer);
@@ -26,21 +27,23 @@ namespace YC.Tests.EditMode
                 "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardViewer.prefab");
             viewer = UnityEngine.Object.Instantiate(prefab, root.transform).GetComponent(Runtime("CardViewer"));
             viewer.GetType().GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewer, null);
-            texture = new Texture2D(600, 850);
+            texture = new Texture2D(1200, 1700);
+            sprite = Sprite.Create(texture, new Rect(600, 850, 600, 850), Vector2.one * .5f);
         }
         [TearDown] public void TearDown()
         {
             UnityEngine.Object.DestroyImmediate(root);
+            UnityEngine.Object.DestroyImmediate(sprite);
             UnityEngine.Object.DestroyImmediate(texture);
         }
-        private void Inspect(Action close = null, Func<bool> valid = null) => Call("OpenInspect", texture, close, valid);
+        private void Inspect(Action close = null, Func<bool> valid = null) => Call("OpenInspect", sprite, close, valid);
         private void Use(bool plot, bool strategy, Func<bool> valid, Action callback, Action close = null)
         {
             var callbackType = typeof(Action<>).MakeGenericType(Runtime("CardViewerEffect"));
             var bridge = new CallbackBridge { callback = callback };
             var method = typeof(CallbackBridge).GetMethod("Run").MakeGenericMethod(Runtime("CardViewerEffect"));
             var handler = Delegate.CreateDelegate(callbackType, bridge, method);
-            Call("OpenCharacter", "visible-card", texture, plot, strategy, "规则不允许", "规则不允许", valid, handler, close);
+            Call("OpenCharacter", "visible-card", sprite, plot, strategy, "规则不允许", "规则不允许", valid, handler, close);
         }
         public sealed class CallbackBridge { public Action callback; public void Run<T>(T value) => callback(); }
         private void Layout()
@@ -155,16 +158,17 @@ namespace YC.Tests.EditMode
             var after = new Vector3[4]; card.GetWorldCorners(after);
             for (var i = 0; i < 4; i++) Assert.That(Vector3.Distance(before[i], after[i]), Is.LessThan(.1f));
             Assert.That(card.rect.width / card.rect.height, Is.EqualTo(600f / 850).Within(.001f));
-            var landscape = new Texture2D(850, 600);
+            var landscape = new Texture2D(1700, 1800);
+            var landscapeSprite = Sprite.Create(landscape, new Rect(850, 600, 850, 600), Vector2.one * .5f);
             try
             {
-                Call("OpenInspect", landscape, null, null); Layout();
+                Call("OpenInspect", landscapeSprite, null, null); Layout();
                 Assert.That(card.rect.width / card.rect.height, Is.EqualTo(850f / 600).Within(.001f));
                 var parent = (RectTransform)card.parent;
                 Assert.That(card.rect.width, Is.LessThanOrEqualTo(parent.rect.width + .1f));
                 Assert.That(card.rect.height, Is.LessThanOrEqualTo(parent.rect.height + .1f));
             }
-            finally { UnityEngine.Object.DestroyImmediate(landscape); }
+            finally { UnityEngine.Object.DestroyImmediate(landscapeSprite); UnityEngine.Object.DestroyImmediate(landscape); }
         }
     }
 }

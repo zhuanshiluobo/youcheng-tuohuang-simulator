@@ -61,7 +61,7 @@ namespace YC.Domain.SpecialActions
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var definition = SpecialActionDatabase.Get(specialActionId);
+            var definition = SpecialActionDatabase.Get(state, specialActionId);
             if (definition == null)
             {
                 return Failure(CommandErrorCode.InvalidTarget, "未知的特殊行动。");
@@ -88,7 +88,7 @@ namespace YC.Domain.SpecialActions
                 return Failure(CommandErrorCode.PendingChoiceRequired, "请先完成当前待处理选择。");
             }
 
-            var budgetValidation = mainActionBudgetService.ValidateCanSpend(state, playerId);
+            var budgetValidation = mainActionBudgetService.ValidateCanSpendSpecial(state, playerId);
             if (!budgetValidation.IsValid)
             {
                 return SpecialActionOperationResult.Failure(budgetValidation);
@@ -225,7 +225,7 @@ namespace YC.Domain.SpecialActions
                     return SpecialActionOperationResult.Success(definition, false, "费用已支付，请选择免费移动的目标地点。");
 
                 case SpecialActionEffectKind.GrantExtraMainActions:
-                    mainActionBudgetService.SpendCompletedMainAction(state, playerId);
+                    mainActionBudgetService.SpendCompletedMainAction(state, playerId, true);
                     mainActionBudgetService.GrantAdditionalMainActions(state, playerId, definition.ExtraMainActionCount);
                     mainActionBudgetService.LockCharacterCard(state, playerId);
                     return SpecialActionOperationResult.Success(definition, true, "支付 6 金券并获得至多 2 次额外主要行动。");
@@ -419,7 +419,7 @@ namespace YC.Domain.SpecialActions
         private SpecialActionOperationResult AdvanceAfterSettledMove(GameState state, int playerId)
         {
             var pending = state.PendingSpecialAction;
-            var definition = SpecialActionDatabase.Get(pending.SpecialActionId);
+            var definition = SpecialActionDatabase.Get(state, pending.SpecialActionId);
             if (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove)
             {
                 var legalRouteSlots = optionQuery.GetLegalRouteInfluenceSlotIds(state, playerId, pending.TraversedRouteId);
@@ -454,15 +454,15 @@ namespace YC.Domain.SpecialActions
             SpecialActionDefinition definition,
             string summary)
         {
-            mainActionBudgetService.SpendCompletedMainAction(state, playerId);
+            mainActionBudgetService.SpendCompletedMainAction(state, playerId, true);
             return SpecialActionOperationResult.Success(definition, true, summary);
         }
 
         private SpecialActionOperationResult CompletePending(GameState state, int playerId, string summary)
         {
-            var definition = SpecialActionDatabase.Get(state.PendingSpecialAction.SpecialActionId);
+            var definition = SpecialActionDatabase.Get(state, state.PendingSpecialAction.SpecialActionId);
             state.PendingSpecialAction = null;
-            mainActionBudgetService.SpendCompletedMainAction(state, playerId);
+            mainActionBudgetService.SpendCompletedMainAction(state, playerId, true);
             return SpecialActionOperationResult.Success(definition, true, summary);
         }
 
@@ -529,7 +529,7 @@ namespace YC.Domain.SpecialActions
         {
             var definition = state.PendingSpecialAction == null
                 ? null
-                : SpecialActionDatabase.Get(state.PendingSpecialAction.SpecialActionId);
+                : SpecialActionDatabase.Get(state, state.PendingSpecialAction.SpecialActionId);
             return SpecialActionOperationResult.Success(definition, completed, summary);
         }
 

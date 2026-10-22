@@ -167,7 +167,9 @@ namespace YC.Tests.EditMode
             else
             {
                 Assert.That(request, Is.Null);
-                Assert.That(executor.GetNode(id).Status, Is.EqualTo(EffectNodeStatus.Failed));
+                Assert.That(executor.GetNode(id).Status, Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(executor.GetNode(id).NormalizedResult.ToDeterministicString(), Does.Contain("no_candidates"));
+                Assert.That(state.Map.Influences, Is.Empty, "显式空集合不能扩展成全地图放置。");
             }
         }
 
@@ -190,24 +192,24 @@ namespace YC.Tests.EditMode
         public void Texas_PaysThenCommitsEachChoiceAndExcludesMovedInstance()
         {
             var state = State(CharacterCardDatabase.Texas);
-            Place(state, 2, "A-02");
+            var removed = Place(state, 2, "A-02");
             Place(state, 1, "B-01");
             Place(state, 1, "B-02");
             var registry = Registry(state);
             Activate(state, registry, CharacterAbilityCatalog.TexasTacticAbilityId);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(27));
-            Answer(state, registry, Open(state, CharacterAbilityEffectExecutor.TargetInteractionTypeId), InfluenceService.GetLocationSlotId("A-02", 0));
+            Answer(state, registry, Open(state, CharacterAbilityEffectExecutor.TargetInteractionTypeId), removed.InfluenceId);
             Assert.That(state.Map.Influences.Exists(i => i.PlayerId == 2), Is.False, "第一次移动选项出现时，移除已经完成");
             var first = Open(state, CharacterAbilityEffectExecutor.ChoiceInteractionTypeId);
             Assert.That(first, Is.Not.Null);
             string choice = first.CandidateIds[0];
             string[] parts = choice.Split('|');
-            string movedId = state.Map.Influences.Find(i => i.SlotId == parts[1]).InfluenceId;
+            string movedId = state.Map.Influences.Find(i => i.InfluenceId == parts[1]).InfluenceId;
             Answer(state, registry, first, choice);
             Assert.That(state.Map.Influences.Find(i => i.InfluenceId == movedId).SlotId, Is.EqualTo(parts[2]));
             var second = Open(state, CharacterAbilityEffectExecutor.ChoiceInteractionTypeId);
             Assert.That(second, Is.Not.Null);
-            Assert.That(second.CandidateIds.Exists(c => c.Split('|')[1] == parts[2]), Is.False, "同一实例不能被第二次移动");
+            Assert.That(second.CandidateIds.Exists(c => c.Split('|')[1] == movedId), Is.False, "同一实例不能被第二次移动");
             state = GameStateCloneService.DeepClone(state);
             registry = Registry(state);
             second = Open(state, CharacterAbilityEffectExecutor.ChoiceInteractionTypeId);
@@ -226,7 +228,7 @@ namespace YC.Tests.EditMode
             var registry = Registry(state);
             Activate(state, registry, CharacterAbilityCatalog.LiskarmTacticAbilityId);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.Zero);
-            Answer(state, registry, Open(state, CharacterAbilityEffectExecutor.TargetInteractionTypeId), target.SlotId);
+            Answer(state, registry, Open(state, CharacterAbilityEffectExecutor.TargetInteractionTypeId), target.InfluenceId);
             Assert.That(state.Map.Influences.Exists(i => i.InfluenceId == target.InfluenceId), Is.False);
             Assert.That(state.FindPlayer(1).UsedCharacterThisRound, Is.True);
         }

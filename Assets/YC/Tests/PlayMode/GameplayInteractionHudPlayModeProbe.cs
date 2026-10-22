@@ -186,9 +186,9 @@ namespace YC.Tests.PlayMode
             }
             var catalog = hud.DialogRegistry.CardVisualCatalog;
             var firstSlot = cityStyleView.GetCityBoardSlot(0);
-            if (cityStyleView.CityStyleCardImage.texture != catalog.GetCityStyle(previewStyleId) ||
+            if (!ShowsSprite(cityStyleView.CityStyleCardImage, catalog.GetCityStyle(previewStyleId)) ||
                 cityStyleView.CityBoardImage.texture != catalog.GetCityBoard() ||
-                firstSlot.FacilityImage.texture != catalog.GetFacility(previewFacilityId))
+                !ShowsSprite(firstSlot.FacilityImage, catalog.GetFacility(previewFacilityId)))
             {
                 throw new InvalidOperationException("城市样式预览未使用 CardVisualCatalog 的样式卡、城市板或设施卡贴图。");
             }
@@ -316,33 +316,18 @@ namespace YC.Tests.PlayMode
                 throw new InvalidOperationException("SampleScene CardVisualCatalog 无效：" + reason);
             }
 
-            var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
-            facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
-            facilityIds.Add(FacilityCardDatabase.EnterpriseOffice);
-            for (var i = 0; i < facilityIds.Count; i++)
+            foreach (var definition in ExternalContentRuntime.Pack.ActiveDefinitions)
             {
-                RequireTexture(catalog.GetFacility(facilityIds[i]), "设施卡 " + facilityIds[i]);
-            }
-
-            for (var i = 0; i < CityStyleDatabase.DefaultSupplyIds.Count; i++)
-            {
-                var id = CityStyleDatabase.DefaultSupplyIds[i];
-                RequireTexture(catalog.GetCityStyle(id), "城市样式卡 " + id);
-            }
-
-            var characterTemplateIds = new[]
-            {
-                CharacterCardDatabase.Liskarm,
-                CharacterCardDatabase.Elysium,
-                CharacterCardDatabase.Texas,
-                CharacterCardDatabase.Cannot,
-                CharacterCardDatabase.TinMan
-            };
-            for (var i = 0; i < characterTemplateIds.Length; i++)
-            {
-                RequireTexture(
-                    catalog.GetCharacterFront(characterTemplateIds[i]),
-                    "角色卡正面 " + characterTemplateIds[i]);
+                Sprite sprite;
+                switch (definition.ContentType)
+                {
+                    case "facility": sprite = catalog.GetFacility(definition.RuntimeId); break;
+                    case "city_style": sprite = catalog.GetCityStyle(definition.RuntimeId); break;
+                    case "character": sprite = catalog.GetCharacterFront(definition.RuntimeId); break;
+                    case "event": sprite = catalog.GetEvent(definition.RuntimeId); break;
+                    default: continue;
+                }
+                RequireSprite(sprite, definition.RuntimeId);
             }
 
             var playerColors = new[]
@@ -366,12 +351,27 @@ namespace YC.Tests.PlayMode
             panel.SetPendingBuildGhost(true, facilityId, 0, null, null);
             var ghost = GameObject.Find("本地建设虚影");
             var ghostImage = ghost == null ? null : ghost.GetComponentInChildren<RawImage>(true);
-            if (ghostImage == null || ghostImage.texture != catalog.GetFacility(facilityId))
+            if (!ShowsSprite(ghostImage, catalog.GetFacility(facilityId)))
             {
                 throw new InvalidOperationException("SampleScene 建设虚影未使用 CardVisualCatalog 的设施贴图。");
             }
 
             panel.SetPendingBuildGhost(false, string.Empty, -1, null, null);
+        }
+
+        private static bool ShowsSprite(RawImage image, Sprite sprite)
+        {
+            if (image == null || sprite == null || image.texture != sprite.texture) return false;
+            var rect = sprite.textureRect;
+            var expected = new Rect((rect.x + .5f) / sprite.texture.width, (rect.y + .5f) / sprite.texture.height,
+                (rect.width - 1) / sprite.texture.width, (rect.height - 1) / sprite.texture.height);
+            return image.uvRect == expected;
+        }
+
+        private static void RequireSprite(Sprite sprite, string label)
+        {
+            if (sprite == null || sprite.rect.width <= 0 || sprite.rect.height <= 0)
+                throw new InvalidOperationException(label + " Sprite 切片查询为空或无效。");
         }
 
         private static void RequireTexture(Texture2D texture, string label)

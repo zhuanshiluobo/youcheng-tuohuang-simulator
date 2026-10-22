@@ -5,6 +5,8 @@ using YC.Application.Sessions;
 using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
+using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -22,14 +24,14 @@ namespace YC.Tests.EditMode
                 new PlayerSeat { PlayerId = 2, PlayerName = "乙", Color = PlayerColor.Blue }
             };
 
-            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, "test", 17);
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, StaticMapDefinitions.ThreePlayerMapId, 17);
 
             Assert.That(state.FindPlayer(1).HandCardIds, Has.Count.EqualTo(5));
             Assert.That(state.FindPlayer(2).HandCardIds, Has.Count.EqualTo(5));
             Assert.That(state.FindPlayer(1).HandCardIds, Is.Unique);
             Assert.That(state.FindPlayer(1).HandCardIds, Is.Not.EquivalentTo(state.FindPlayer(2).HandCardIds));
-            Assert.That(CharacterCardDatabase.Get(state.FindPlayer(1).HandCardIds[0]).Name, Is.EqualTo("雷蛇"));
-            var standardTemplates = state.FindPlayer(1).HandCardIds.ConvertAll(id => CharacterCardDatabase.Get(id).TemplateId);
+            Assert.That(CharacterCardDatabase.Get(state, state.FindPlayer(1).HandCardIds[0]).Name, Is.EqualTo("雷蛇"));
+            var standardTemplates = state.FindPlayer(1).HandCardIds.ConvertAll(id => CharacterCardDatabase.Get(state, id).TemplateId);
             Assert.That(standardTemplates, Is.EquivalentTo(new[]
             {
                 CharacterCardDatabase.Liskarm,
@@ -75,8 +77,18 @@ namespace YC.Tests.EditMode
             var map = StaticMapDefinitions.CreateFourPlayerMap();
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, map.MapId, 17);
             // 此测试隔离盖牌流程；无标记入场及事件交互由 PlayerEntranceMainlineTests 覆盖。
-            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = "G-01", ResourceType = ResourceType.Iron, Amount = 1 });
             var setup = PlayerEntranceMainlineTests.Handler(new MapQueryService(map));
+            setup.EffectRegistry.Register("test.cover_resource", context =>
+            {
+                var location = context.State.ItemZones.Zones.Find(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == "G-01");
+                var tokenZone = context.State.ItemZones.Zones.Find(zone => zone.ParentId == location.ZoneId && zone.TemplateId == "core.zone.resource_point_markers");
+                Assert.That(new ItemZoneStateFactory().TryCreateGrantedItem(context.State, context.Node.EffectId, "resource", "core.resource_point", "core.resource_point_token", tokenZone.ZoneId, new ItemSubjectRef(), out var tokenId, out var reason), Is.True, reason);
+                context.State.ItemZones.Items.Find(item => item.ItemId == tokenId).LocalState = ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateInteger((int)ResourceType.Iron), "amount", NormalizedValue.CreateInteger(1));
+                return EffectStepResult.Completed();
+            });
+            var preparation = new EffectTreeExecutor(state, setup.EffectRegistry);
+            preparation.CreateRoot(EffectSpec.Create("test.cover_resource", playerId: 1));
+            Assert.That(preparation.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
 
             var entrance = setup.Handle(state, new GameCommand
             {
@@ -533,6 +545,7 @@ namespace YC.Tests.EditMode
         {
             var state = new GameState
             {
+                MapId = StaticMapDefinitions.ThreePlayerMapId,
                 Phase = GamePhase.CharacterCover,
                 Round = 1,
                 StartPlayerId = 1,

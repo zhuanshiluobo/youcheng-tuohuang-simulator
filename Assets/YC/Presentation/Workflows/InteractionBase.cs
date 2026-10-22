@@ -1,6 +1,6 @@
 namespace YC.Presentation.Workflows
 {
-    public abstract class InteractionBase : IInteraction
+    public abstract class InteractionBase : IInteraction, IInteractionCommandResultConsumer
     {
         public abstract string Id { get; }
 
@@ -21,6 +21,11 @@ namespace YC.Presentation.Workflows
         public abstract void Cancel();
 
         public virtual void NotifyCommandSettled(string commandId)
+        {
+        }
+
+        public virtual void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted,
+            YC.Domain.Rules.CommandErrorCode errorCode)
         {
         }
     }

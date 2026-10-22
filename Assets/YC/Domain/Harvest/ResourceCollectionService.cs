@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
@@ -20,6 +21,7 @@ namespace YC.Domain.Harvest
         private readonly IMapQueryService mapQuery;
         private readonly ResourceTokenService resourceTokenService;
         private readonly RouteTollService routeTollService;
+        public Func<GameState, int, bool> HasCompanyContract { get; set; } = CompanyInfluenceRules.HasContract;
 
         public ResourceCollectionService(IMapQueryService mapQuery)
             : this(mapQuery, new ResourceTokenService())
@@ -31,6 +33,32 @@ namespace YC.Domain.Harvest
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
             routeTollService = new RouteTollService(this.mapQuery);
+        }
+
+        // 资格查询不寻路，也不改变阶段预算；实体状态与旧状态都沿原采集权规则。
+        public IReadOnlyList<string> GetSelectableLocationIds(GameState state, int playerId, bool extra = false)
+        {
+            if (state == null) throw new ArgumentNullException(nameof(state));
+            var player = state.FindPlayer(playerId);
+            if (player == null || (!extra && player.HasCollectedResourcesThisRound)) return Array.AsReadOnly(new string[0]);
+            HashSet<string> allowed;
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+                allowed = new HashSet<string>(new InfluenceSubjectQuery().GetCollectionLocationIds(state, playerId, extra ? "extra" : "normal",
+                    !extra && HasCompanyContract?.Invoke(state, playerId) == true), StringComparer.Ordinal);
+            else
+            {
+                allowed = new HashSet<string>(StringComparer.Ordinal);
+                if (!string.IsNullOrEmpty(player.CityLocationId)) allowed.Add(player.CityLocationId);
+                foreach (var influence in state.Map.Influences.ToArray())
+                {
+                    if (influence == null || influence.PlayerId != playerId) continue;
+                    if (!string.IsNullOrEmpty(influence.LocationId)) allowed.Add(influence.LocationId);
+                    else if (InfluenceSlotReference.TryParse(mapQuery, influence.SlotId, out var slot, out _) && slot.Kind == InfluenceSlotKind.Location)
+                        allowed.Add(slot.LocationId);
+                }
+            }
+            var tokens = new HashSet<string>(state.Map.ResourceTokens.ToArray().Select(t => t.LocationId), StringComparer.Ordinal);
+            return Array.AsReadOnly(mapQuery.Map.Locations.Where(l => allowed.Contains(l.LocationId) && tokens.Contains(l.LocationId)).Select(l => l.LocationId).ToArray());
         }
 
         public ResourceCollectionResult Collect(
@@ -48,27 +76,27 @@ namespace YC.Domain.Harvest
             IReadOnlyList<string> locationIds,
             IReadOnlyList<string> routeIds,
             IDictionary<string, int> paymentRecipientsByRouteId)
+            => CollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, "normal", -1);
+
+        public ResourceCollectionResult CollectExtra(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
+            IDictionary<string, int> paymentRecipientsByRouteId, int startGoldVoucherAmount)
+            => CollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, "extra", startGoldVoucherAmount);
+
+        private ResourceCollectionResult CollectCore(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
+            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false)
         {
-            var validation = CanCollect(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId);
+            var validation = CanCollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, scope, startGold, allowCollectionSelections);
             if (!validation.IsValid)
             {
                 return ResourceCollectionResult.Failure(validation);
             }
 
-            EnsureResourceCollectionGoldSnapshot(state);
+            if (scope == "normal") EnsureResourceCollectionGoldSnapshot(state);
 
             var player = state.FindPlayer(playerId);
             var uniqueLocationIds = NormalizeLocationIds(locationIds);
-            var collectionRouteIds = ResolveCollectionRouteIds(player.CityLocationId, uniqueLocationIds, routeIds);
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = routeTollService.TryBuildPaymentPlanWithInfluenceKeyMode(
-                state,
-                playerId,
-                collectionRouteIds,
-                paymentRecipientsByRouteId,
-                CollectionPaymentKeyMode,
-                CollectionInfluenceKeyMode,
-                out payments);
+            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments);
             if (!paymentValidation.IsValid)
             {
                 return ResourceCollectionResult.Failure(paymentValidation);
@@ -84,7 +112,7 @@ namespace YC.Domain.Harvest
             }
 
             player.Resources.Add(reward);
-            player.HasCollectedResourcesThisRound = true;
+            if (scope == "normal") player.HasCollectedResourcesThisRound = true;
 
             return ResourceCollectionResult.Success(uniqueLocationIds, payments, reward);
         }
@@ -104,13 +132,25 @@ namespace YC.Domain.Harvest
             IReadOnlyList<string> locationIds,
             IReadOnlyList<string> routeIds,
             IDictionary<string, int> paymentRecipientsByRouteId)
+            => CanCollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, "normal", -1);
+
+        public ValidationResult CanCollectExtra(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
+            IDictionary<string, int> recipients, int startGold) => CanCollectCore(state, playerId, locationIds, routeIds, recipients, "extra", startGold);
+
+        // 仅权威选择Effect使用；并行普通采集请求不阻塞另一已复验的玩家结算。
+        internal ResourceCollectionResult CollectSelection(GameState state, int playerId, IReadOnlyList<string> locations, IReadOnlyList<string> routes,
+            IDictionary<string, int> recipients, bool extra, int startGold)
+            => CollectCore(state, playerId, locations, routes, recipients, extra ? "extra" : "normal", startGold, true);
+
+        private ValidationResult CanCollectCore(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
+            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false)
         {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
 
-            var phaseValidation = CommandPhasePolicy.ValidatePhase(state, GameCommandKind.CollectResource);
+            var phaseValidation = scope == "normal" ? CommandPhasePolicy.ValidatePhase(state, GameCommandKind.CollectResource) : ValidationResult.Success;
             if (!phaseValidation.IsValid)
             {
                 return phaseValidation;
@@ -122,12 +162,12 @@ namespace YC.Domain.Harvest
                 return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "采集玩家不存在。");
             }
 
-            if (state.HasPendingChoice())
+            if (scope == "normal" && state.HasPendingChoice() && (!allowCollectionSelections || HasUnrelatedChoice(state)))
             {
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项再采集。");
             }
 
-            if (player.HasCollectedResourcesThisRound)
+            if (scope == "normal" && player.HasCollectedResourcesThisRound)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本轮采集阶段已经提交过采集。");
             }
@@ -160,35 +200,21 @@ namespace YC.Domain.Harvest
                     return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "采集目标必须已经放置资源点指示物。");
                 }
 
-                if (!CanPlayerCollectLocation(state, playerId, locationId))
+                if (!CanPlayerCollectLocation(state, playerId, locationId, scope))
                 {
                     return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "只能采集有自己影响力或自己移动城市停靠的资源点。");
                 }
             }
 
-            var collectionRouteIds = ResolveCollectionRouteIds(player.CityLocationId, uniqueLocationIds, routeIds);
-            var routeValidation = ValidateCollectionRoutes(player.CityLocationId, uniqueLocationIds, collectionRouteIds);
-            if (!routeValidation.IsValid)
-            {
-                return routeValidation;
-            }
-
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = routeTollService.TryBuildPaymentPlanWithInfluenceKeyMode(
-                state,
-                playerId,
-                collectionRouteIds,
-                paymentRecipientsByRouteId,
-                CollectionPaymentKeyMode,
-                CollectionInfluenceKeyMode,
-                out payments);
+            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments);
             if (!paymentValidation.IsValid)
             {
                 return paymentValidation;
             }
 
             var totalCost = routeTollService.SumPayments(payments);
-            var collectionStartGold = GetResourceCollectionStartGoldVoucher(player);
+            var collectionStartGold = scope == "extra" ? startGold : GetResourceCollectionStartGoldVoucher(player);
             var payableGold = Math.Min(player.Resources.GoldVoucher, collectionStartGold);
             if (payableGold < totalCost)
             {
@@ -198,6 +224,40 @@ namespace YC.Domain.Harvest
             }
 
             return ValidationResult.Success;
+        }
+
+        private ValidationResult BuildCanonicalPayments(GameState state, int playerId, IReadOnlyList<string> selectedLocations, IReadOnlyList<string> confirmedRoutes,
+            IDictionary<string, int> requestedRecipients, out List<ExplorationTravelPayment> payments)
+        {
+            payments = new List<ExplorationTravelPayment>();
+            var facts = routeTollService.ReadRouteFacts(state, playerId);
+            var graph = RouteResourceSelectionService.QueryGraph(mapQuery, facts, state.FindPlayer(playerId).CityLocationId,
+                confirmedRoutes ?? Array.AsReadOnly(new string[0]), selectedLocations, selectedLocations, selectedLocations.Count == 0);
+            if (!graph.IsValid) return ValidationResult.Failure(CommandErrorCode.InvalidTarget, graph.Diagnostic);
+            var byId = facts.ToDictionary(f => f.RouteId, StringComparer.Ordinal);
+            if (requestedRecipients != null) foreach (var pair in requestedRecipients)
+            {
+                string subject = pair.Value < 0 ? "bank" : "player:" + pair.Value;
+                if (!graph.OriginalConfirmedRouteIds.Contains(pair.Key) || !byId[pair.Key].EligibleRecipients.Any(r => r.SubjectKey == subject))
+                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "路费接收者不是本次确认航道的合法主体。");
+            }
+            foreach (string route in graph.ChargeRouteIds)
+            {
+                var fact = byId[route]; string subject = null;
+                int receiver;
+                if (requestedRecipients != null && requestedRecipients.TryGetValue(route, out receiver)) subject = receiver < 0 ? "bank" : "player:" + receiver;
+                else if (fact.EligibleRecipients.Count == 1) subject = fact.EligibleRecipients[0].SubjectKey;
+                if (subject == null) return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该航道需要明确选择路费接收者。");
+                payments.Add(new ExplorationTravelPayment { RouteId = route, Amount = fact.TollGoldVoucherAmount, ReceiverPlayerId = subject == "bank" ? -1 : int.Parse(subject.Substring(7)) });
+            }
+            return ValidationResult.Success;
+        }
+
+        private static bool HasUnrelatedChoice(GameState state)
+        {
+            if (state.PendingChoice?.IsValid() == true || state.PendingCardSession?.IsValid() == true || state.PendingCharacterEffect?.IsValid() == true || state.PendingSpecialAction?.IsValid(state) == true) return true;
+            return state.EffectRuntime != null && state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && !r.IsInternalMainlineInteraction()
+                && (r.InteractionTypeId != "route_resource.selection" || RouteSelectionSessionAuthority.Integer(r.PromptParameters, "purpose", -1) != (int)RouteSelectionPurpose.NormalHarvest));
         }
 
         public void EnsureResourceCollectionGoldSnapshot(GameState state)
@@ -565,8 +625,12 @@ namespace YC.Domain.Harvest
             return new List<string> { route.FromLocationId, route.ToLocationId };
         }
 
-        private bool CanPlayerCollectLocation(GameState state, int playerId, string locationId)
+        public IReadOnlyList<string> GetExtraRouteIds(GameState state, int playerId, IReadOnlyList<string> locationIds) => ResolveCollectionRouteIds(state.FindPlayer(playerId).CityLocationId, locationIds, null);
+
+        private bool CanPlayerCollectLocation(GameState state, int playerId, string locationId, string scope = "normal")
         {
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+                return new InfluenceSubjectQuery().GetCollectionLocationIds(state, playerId, scope, scope == "normal" && HasCompanyContract?.Invoke(state, playerId) == true).Contains(locationId);
             var player = state.FindPlayer(playerId);
             if (player != null && player.CityLocationId == locationId)
             {

@@ -28,7 +28,9 @@ namespace YC.Presentation.Workflows
             IMapQueryService mapQuery,
             ResourceCollectionPresenter resourceCollectionPresenter,
             InfluenceActionPresenter influenceActionPresenter,
-            ExplorationEventPresenter explorationEventPresenter)
+            ExplorationEventPresenter explorationEventPresenter,
+            Func<bool> canStopPendingCharacterMode = null,
+            BuildFacilityOptionQueryService buildOptions = null)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
             commandGateway = new CommandGateway(
@@ -45,7 +47,7 @@ namespace YC.Presentation.Workflows
                 this.view,
                 this.flowCoordinator,
                 CanStartMainAction,
-                CompleteAction);
+                CompleteAction, buildOptions);
             MoveInteraction = new MoveInteraction(
                 this.context,
                 commandGateway,
@@ -56,7 +58,7 @@ namespace YC.Presentation.Workflows
                 CanStartMainAction,
                 CompleteAction);
             DeployInteraction = new DeployInteraction(this.influenceActionPresenter);
-            DispatchInteraction = new DispatchInteraction(this.influenceActionPresenter);
+            DispatchInteraction = this.influenceActionPresenter;
             ExploreInteraction = new ExploreInteraction(this.explorationEventPresenter);
             ActionPanelPresenter = new TurnActionPanelPresenter(
                 this.context,
@@ -69,7 +71,8 @@ namespace YC.Presentation.Workflows
                 () => completedMainActionName,
                 CanEndCurrentAction,
                 () => this.flowCoordinator.IsActive(this) &&
-                      MoveInteraction.IsSelectingMoveTarget);
+                      MoveInteraction.IsSelectingMoveTarget,
+                canStopPendingCharacterMode);
             CityStyleInteraction = new CityStyleInteraction(
                 this.context,
                 commandGateway,
@@ -81,6 +84,9 @@ namespace YC.Presentation.Workflows
                 GetQuickActionUnavailableReason,
                 CompleteAction,
                 BuildInteraction.RestoreAfterCityStylePreviewClosed);
+            ActionPanelPresenter.HasUsableSpecialAction = () => CityStyleInteraction.QuerySpecialActions().HasUsableOption;
+            ActionPanelPresenter.HasSwitchableMainActionDraft = () => HasUnsubmittedMainActionDraft;
+            ActionPanelPresenter.HasMainActionSubmissionInFlight = () => IsMainActionSubmissionInFlight;
         }
         public InteractionMode Mode
         {
@@ -89,7 +95,7 @@ namespace YC.Presentation.Workflows
         public BuildInteraction BuildInteraction { get; private set; }
         public MoveInteraction MoveInteraction { get; private set; }
         public DeployInteraction DeployInteraction { get; private set; }
-        public DispatchInteraction DispatchInteraction { get; private set; }
+        public InfluenceActionPresenter DispatchInteraction { get; private set; }
         public ExploreInteraction ExploreInteraction { get; private set; }
         public TurnActionPanelPresenter ActionPanelPresenter { get; private set; }
         public CityStyleInteraction CityStyleInteraction { get; private set; }
@@ -107,32 +113,16 @@ namespace YC.Presentation.Workflows
 
         public void Cancel() { MoveInteraction.Cancel(); }
 
-        public bool CanCancelMainActionSelection
+        public void BeginShutdown()
         {
-            get
-            {
-                var state = context.CurrentState;
-                if (state == null || state.CurrentPlayerId != context.LocalPlayerId ||
-                    (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2) ||
-                    state.HasPendingChoice() || state.HasOpenActionableInteraction() ||
-                    !MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId)) return false;
-                return (BuildInteraction.IsActive && !BuildInteraction.IsSubmissionInFlight) ||
-                       (flowCoordinator.IsActive(this) && MoveInteraction.IsSelectingMoveTarget) ||
-                       (flowCoordinator.IsActive(influenceActionPresenter) && influenceActionPresenter.IsActive) ||
-                       (flowCoordinator.IsActive(explorationEventPresenter) &&
-                        (explorationEventPresenter.IsSelectingExploreTarget || explorationEventPresenter.IsChoosingPath ||
-                         explorationEventPresenter.IsChoosingPaymentRecipient));
-            }
+            MoveInteraction.BeginShutdown();
+            BuildInteraction.BeginShutdown();
         }
 
-        public bool TryCancelMainActionSelection()
+        public void RestorePreparedMove()
         {
-            if (!CanCancelMainActionSelection) return false;
-            if (BuildInteraction.IsActive) BuildInteraction.CancelExplicitly();
-            else flowCoordinator.ResetToChooseAction();
-            view.ClearHighlights();
-            view.RefreshActionPanel();
-            return true;
+            if (MoveInteraction.TryRestorePreparedDraft())
+                flowCoordinator.Activate(this, MoveInteraction.RestorePresentation);
         }
 
         public void SynchronizeFromState()
@@ -229,7 +219,11 @@ namespace YC.Presentation.Workflows
 
         public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights() { return MoveInteraction.BuildInitialPlacementHighlights(); }
 
-        public void BeginMoveAction() { MoveInteraction.Begin(); }
+        public void BeginMoveAction()
+        {
+            if (MoveInteraction.IsSelectingMoveTarget) { MoveInteraction.Begin(); return; }
+            if (CanStartMainAction()) RunAfterClearingMainActionDraft(MoveInteraction.Begin);
+        }
 
         public void MoveCity(string locationId) { MoveInteraction.Move(locationId); }
 
@@ -239,14 +233,14 @@ namespace YC.Presentation.Workflows
         {
             if (flowCoordinator.IsActive(explorationEventPresenter))
             {
-                CancelActiveMainActionSelection();
+                RunAfterClearingMainActionDraft(CancelActiveMainActionSelection);
                 return;
             }
 
             if (CanStartMainAction())
             {
-                explorationEventPresenter.PrepareNormalExplore();
-                flowCoordinator.Activate(explorationEventPresenter);
+                RunAfterClearingMainActionDraft(() =>
+                { explorationEventPresenter.PrepareNormalExplore(); flowCoordinator.Activate(explorationEventPresenter); });
             }
         }
 
@@ -266,6 +260,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginDeployAction()
         {
+            if (influenceActionPresenter.IsDeploySubmissionInFlight) return;
             if (flowCoordinator.IsActive(influenceActionPresenter) &&
                 influenceActionPresenter.IsSelectingDeployTarget)
             {
@@ -275,40 +270,16 @@ namespace YC.Presentation.Workflows
 
             if (CanStartMainAction())
             {
-                flowCoordinator.ResetToChooseAction();
-                commandGateway.Submit(new GameCommand
-                {
-                    Kind = GameCommandKind.DeployInfluence,
-                    PlayerId = context.LocalPlayerId
-                }, new SubmitCallbacks(view.ShowPrompt, CommandGateway.BuildWaitingForHostPrompt("部署行动"))
-                {
-                    OnAppliedLocally = result => view.RefreshFromState()
-                });
+                RunAfterClearingMainActionDraft(() =>
+                { flowCoordinator.ResetToChooseAction(); flowCoordinator.Activate(influenceActionPresenter, influenceActionPresenter.BeginDeploy); });
             }
         }
 
         public void BeginDispatchAction()
         {
-            if (flowCoordinator.IsActive(influenceActionPresenter) &&
-                (influenceActionPresenter.IsSelectingDispatchSource ||
-                 influenceActionPresenter.IsSelectingDispatchTarget ||
-                 influenceActionPresenter.IsChoosingDispatchContinuation))
-            {
-                CancelActiveMainActionSelection();
-                return;
-            }
-
-            if (!influenceActionPresenter.HasPendingFirstMove && !CanStartMainAction())
-            {
-                return;
-            }
-
-            if (!flowCoordinator.IsActive(influenceActionPresenter))
-            {
-                flowCoordinator.Activate(influenceActionPresenter);
-            }
-
-            influenceActionPresenter.BeginDispatch();
+            if (influenceActionPresenter.IsDispatchSubmissionInFlight || !CanStartMainAction()) return;
+            RunAfterClearingMainActionDraft(() =>
+            { flowCoordinator.ResetToChooseAction(); flowCoordinator.Activate(influenceActionPresenter, influenceActionPresenter.BeginDispatch); });
         }
 
         public void BeginResourceCollection()
@@ -324,9 +295,67 @@ namespace YC.Presentation.Workflows
             flowCoordinator.Activate(resourceCollectionPresenter);
         }
 
-        public void BeginBuildAction() { BuildInteraction.Begin(); }
+        public void BeginBuildAction() { if (CanStartMainAction()) RunAfterClearingMainActionDraft(BuildInteraction.Begin); }
 
-        public void BeginBuildFacilityDrag(string facilityId) { BuildInteraction.BeginDrag(facilityId); }
+        public Func<bool> HasExplorationDraft { private get; set; }
+        public Func<bool> HasExplorationSubmission { private get; set; }
+        public bool IsMainActionSubmissionInFlight => influenceActionPresenter.IsDeploySubmissionInFlight ||
+            influenceActionPresenter.IsDispatchSubmissionInFlight || MoveInteraction.IsSubmissionInFlight ||
+            BuildInteraction.IsSubmissionInFlight ||
+            HasExplorationSubmission?.Invoke() == true;
+        public bool HasUnsubmittedMainActionDraft => influenceActionPresenter.HasUnsubmittedMainActionDraft ||
+            MoveInteraction.IsSelectingMoveTarget && MoveInteraction.CanCancelPreparedPayment ||
+            BuildInteraction.IsActive && BuildInteraction.CanCancelPreparedPayment || HasExplorationDraft?.Invoke() == true ||
+            flowCoordinator.IsActive(explorationEventPresenter) &&
+                (explorationEventPresenter.IsSelectingExploreTarget || explorationEventPresenter.IsChoosingPath ||
+                 explorationEventPresenter.IsChoosingPaymentRecipient);
+        public bool CanCancelMainActionSelection
+        {
+            get
+            {
+                var state = context.CurrentState;
+                return state != null && state.CurrentPlayerId == context.LocalPlayerId &&
+                    (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
+                    MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId) &&
+                    !IsMainActionSubmissionInFlight &&
+                    !ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId) &&
+                    HasUnsubmittedMainActionDraft;
+            }
+        }
+        public bool TryCancelMainActionSelection() =>
+            CanCancelMainActionSelection && RunAfterClearingMainActionDraft(view.RefreshActionPanel);
+        public Action MainActionDraftCleared { private get; set; }
+        public bool TryClearMainActionDraft()
+        {
+            return HasUnsubmittedMainActionDraft && RunAfterClearingMainActionDraft(null);
+        }
+        public bool RunAfterClearingMainActionDraft(Action continuation)
+        {
+            var state = context.CurrentState;
+            if (state == null || IsMainActionSubmissionInFlight ||
+                ActionPaymentPreparation.HasBlockingChoice(state, context.LocalPlayerId)) return false;
+            var game = state.GameId; var player = context.LocalPlayerId;
+            var round = state.Round; var actionRound = state.ActionRound; var phase = state.Phase;
+            void Continue()
+            {
+                var latest = context.CurrentState;
+                if (latest == null || latest.GameId != game || context.LocalPlayerId != player ||
+                    latest.Round != round || latest.ActionRound != actionRound || latest.Phase != phase ||
+                    ActionPaymentPreparation.HasBlockingChoice(latest, player)) return;
+                flowCoordinator.ResetToChooseAction(); MainActionDraftCleared?.Invoke();
+                view.ClearHighlights(); continuation?.Invoke();
+            }
+            if (MoveInteraction.HasPreparedPayment) return MoveInteraction.TryCancelPreparedPayment(Continue);
+            if (BuildInteraction.HasPreparedPayment) return BuildInteraction.TryCancelPreparedPayment(Continue);
+            if (BuildInteraction.IsActive) BuildInteraction.Cancel();
+            Continue(); return true;
+        }
+
+        public void BeginBuildFacilityDrag(string facilityId)
+        {
+            if (BuildInteraction.IsActive) BuildInteraction.BeginDrag(facilityId);
+            else if (CanStartMainAction()) RunAfterClearingMainActionDraft(() => BuildInteraction.BeginDrag(facilityId));
+        }
 
         public void DropBuildFacility(int cityBoardSlotIndex)
         {
@@ -340,6 +369,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginGhostBuildFacilityDrag()
         {
+            if (!BuildInteraction.IsActive && CanStartMainAction()) TryClearMainActionDraft();
             BuildInteraction.BeginGhostDrag();
         }
 
@@ -380,7 +410,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginDeclareCityStyle(string initialCityStyleId = "")
         {
-            CityStyleInteraction.BeginDeclare(initialCityStyleId);
+            if (CanStartQuickAction()) RunAfterClearingMainActionDraft(() => CityStyleInteraction.BeginDeclare(initialCityStyleId));
         }
 
         public void SubmitDeclareCityStyle(string cityStyleId, IReadOnlyList<int> selectedSlotIndexes)
@@ -397,9 +427,7 @@ namespace YC.Presentation.Workflows
 
         public ActionPanelViewModel BuildActionPanelViewModel()
         {
-            var model = ActionPanelPresenter.BuildViewModel();
-            model.CanUseSpecialAction = CityStyleInteraction.CanUseSpecialAction;
-            return model;
+            return ActionPanelPresenter.BuildViewModel();
         }
 
         private bool CanStartMainAction() => ActionPanelPresenter.CanStartMainAction();

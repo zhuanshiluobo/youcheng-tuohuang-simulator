@@ -1194,14 +1194,13 @@ MonoBehaviour:
   payLabel: "\u786E\u8BA4\u652F\u4ED8"
   placeLabel: "\u786E\u8BA4\u653E\u7F6E"
   pendingQuote: "\u8BF7\u9009\u62E9\u8BBE\u65BD\u724C\u4EE5\u67E5\u770B\u8D39\u7528\u3002"
-  paidQuoteFormat: "\u5DF2\u652F\u4ED8\u5E76\u8865\u5145\u8BBE\u65BD\u4F9B\u5E94\u533A\uFF0C\u8BF7\u5C06
-    {0} \u653E\u5165\u57CE\u5E02\u9762\u677F\u3002"
+  paidQuoteFormat: "已支付，请将 {0} 放入城市面板。"
   legalSlotColor: {r: 0.25, g: 1, b: 0.45, a: 0.8}
   selectedSlotColor: {r: 1, g: 0.8, b: 0.3, a: 0}
   supplyDeckText: {fileID: 7540000000000000012}
   extensionHubsText: {fileID: 7540000000000000016}
   supplyDeckFormat: "\u8BBE\u65BD\u724C\u5806\xB7{0}"
-  extensionHubFormat: "<color=#{0}>\u5EF6\u7533\u67A2\u7EBD</color>"
+  extensionHubFormat: "<color=#{0}>\u5EF6\u4F38\u67A2\u7EBD</color>"
   extensionHubSeparator: "\xB7"
   ownedResources: {fileID: 7550000000000000011}
   availableHubColors:
@@ -2361,7 +2360,6 @@ GameObject:
   - component: {fileID: 2461460792894283050}
   - component: {fileID: 794268891710864921}
   - component: {fileID: 3364697420238208011}
-  - component: {fileID: 2892091521409271681}
   - component: {fileID: 8484954609177335068}
   - component: {fileID: 7451260000000000023}
   m_Layer: 5
@@ -2430,21 +2428,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &2892091521409271681
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5629224545404427541}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_EffectColor: {r: 0.78, g: 0.63, b: 0.38, a: 0.85}
-  m_EffectDistance: {x: 2, y: -2}
-  m_UseGraphicAlpha: 1
 --- !u!114 &8484954609177335068
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7986,7 +7969,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 2
+  m_PixelsPerUnitMultiplier: 2.5
 --- !u!1 &7199500000000000039
 GameObject:
   m_ObjectHideFlags: 0
@@ -8685,7 +8668,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 2
+  m_PixelsPerUnitMultiplier: 2.5
 --- !u!1 &7207392805915929464
 GameObject:
   m_ObjectHideFlags: 0
@@ -16479,7 +16462,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "<color=#E96666>\u5EF6\u7533\u67A2\u7EBD</color>\xB7<color=#F1CB53>\u5EF6\u7533\u67A2\u7EBD</color>\xB7<color=#6EA9EC>\u5EF6\u7533\u67A2\u7EBD</color>"
+  m_Text: "<color=#E96666>\u5EF6\u4F38\u67A2\u7EBD</color>\xB7<color=#F1CB53>\u5EF6\u4F38\u67A2\u7EBD</color>\xB7<color=#6EA9EC>\u5EF6\u4F38\u67A2\u7EBD</color>"
 --- !u!1 &7540000000000000017
 GameObject:
   m_ObjectHideFlags: 0
@@ -16558,7 +16541,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u67E5\u770B\u8BBE\u65BD\u4F9B\u5E94\u533A\uFF1A\u53EF\u9009\u62E9\u5361\u724C\u67E5\u770B\u8D39\u7528\uFF0C\u957F\u6309\u3001\u53CC\u51FB\u6216\u53F3\u952E\u67E5\u770B\u8BE6\u60C5\u3002"
+  m_Text: "查看设施供应区：可选择卡牌查看费用，长按或右键查看详情。"
 --- !u!1 &7550000000000000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -18743,7 +18726,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 2
+  m_PixelsPerUnitMultiplier: 2.5
 --- !u!1 &8137707031568461542
 GameObject:
   m_ObjectHideFlags: 0
@@ -18818,7 +18801,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 2
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &8465117613726480386
 GameObject:
   m_ObjectHideFlags: 0

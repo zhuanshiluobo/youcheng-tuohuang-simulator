@@ -137,8 +137,6 @@ namespace YC.Presentation
         public bool ExplorePathOverlayRaycastTarget;
         public bool ExplorePaymentOverlayRaycastTarget;
         public bool ResourcePaymentOverlayRaycastTarget;
-        public bool BuildFocusOverlayRaycastTarget;
-        public bool BuildConfirmationOverlayRaycastTarget;
         public bool CharacterOverlayRaycastTarget;
 
         public float EventCardPanelWidth;
@@ -193,37 +191,6 @@ namespace YC.Presentation
         public EventChoiceDialogRectLayout ManualCloseButtonLayout;
         public EventChoiceDialogButtonStyle ManualCloseButtonStyle;
 
-        public Vector2 BuildFacilityFocusPanelSize;
-        public Vector2 BuildFacilityFocusPanelPosition;
-        public EventChoiceDialogRectLayout BuildFocusTitleLayout;
-        public EventChoiceDialogTextStyle BuildFocusTitleTextStyle;
-        public EventChoiceDialogRectLayout FacilityPreviewContainerLayout;
-        public EventChoiceDialogRectLayout BuildFocusDetailsLayout;
-        public EventChoiceDialogTextStyle BuildFocusDetailsTextStyle;
-        public EventChoiceDialogRectLayout BuildResourceButtonLayout;
-        public EventChoiceDialogButtonStyle BuildResourceButtonStyle;
-        public EventChoiceDialogRectLayout BuildResourceReasonLayout;
-        public EventChoiceDialogTextStyle BuildResourceReasonTextStyle;
-        public EventChoiceDialogRectLayout BuildGoldButtonLayout;
-        public EventChoiceDialogButtonStyle BuildGoldButtonStyle;
-        public EventChoiceDialogRectLayout BuildGoldReasonLayout;
-        public EventChoiceDialogTextStyle BuildGoldReasonTextStyle;
-        public EventChoiceDialogRectLayout BuildFocusErrorLayout;
-        public EventChoiceDialogTextStyle BuildFocusErrorTextStyle;
-        public Vector2 BuildFacilityConfirmationPanelSize;
-        public Vector2 BuildFacilityConfirmationPanelPosition;
-        public EventChoiceDialogRectLayout BuildConfirmationTitleLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationTitleTextStyle;
-        public EventChoiceDialogRectLayout BuildConfirmationSummaryLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationSummaryTextStyle;
-        public EventChoiceDialogRectLayout BuildConfirmationErrorLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationErrorTextStyle;
-        public EventChoiceDialogRectLayout BuildBackButtonLayout;
-        public EventChoiceDialogButtonStyle BuildBackButtonStyle;
-        public EventChoiceDialogRectLayout BuildConfirmButtonLayout;
-        public EventChoiceDialogButtonStyle BuildConfirmButtonStyle;
-        public EventChoiceDialogRectLayout BuildCloseButtonLayout;
-        public EventChoiceDialogButtonStyle BuildCloseButtonStyle;
 
         public Vector2 CharacterSecondEffectPanelSize;
         public Vector2 CharacterSecondEffectPanelPosition;
@@ -279,8 +246,6 @@ namespace YC.Presentation
         public bool ExplorePathOverlayRaycastTarget => values.ExplorePathOverlayRaycastTarget;
         public bool ExplorePaymentOverlayRaycastTarget => values.ExplorePaymentOverlayRaycastTarget;
         public bool ResourcePaymentOverlayRaycastTarget => values.ResourcePaymentOverlayRaycastTarget;
-        public bool BuildFocusOverlayRaycastTarget => values.BuildFocusOverlayRaycastTarget;
-        public bool BuildConfirmationOverlayRaycastTarget => values.BuildConfirmationOverlayRaycastTarget;
         public bool CharacterOverlayRaycastTarget => values.CharacterOverlayRaycastTarget;
         public float EventCardPanelWidth => values.EventCardPanelWidth;
         public Vector2 EventCardPanelPosition => values.EventCardPanelPosition;
@@ -331,37 +296,6 @@ namespace YC.Presentation
         public EventChoiceDialogButtonStyle ResourceBankButtonStyle => values.ResourceBankButtonStyle;
         public EventChoiceDialogRectLayout ManualCloseButtonLayout => values.ManualCloseButtonLayout;
         public EventChoiceDialogButtonStyle ManualCloseButtonStyle => values.ManualCloseButtonStyle;
-        public Vector2 BuildFacilityFocusPanelSize => values.BuildFacilityFocusPanelSize;
-        public Vector2 BuildFacilityFocusPanelPosition => values.BuildFacilityFocusPanelPosition;
-        public EventChoiceDialogRectLayout BuildFocusTitleLayout => values.BuildFocusTitleLayout;
-        public EventChoiceDialogTextStyle BuildFocusTitleTextStyle => values.BuildFocusTitleTextStyle;
-        public EventChoiceDialogRectLayout FacilityPreviewContainerLayout => values.FacilityPreviewContainerLayout;
-        public EventChoiceDialogRectLayout BuildFocusDetailsLayout => values.BuildFocusDetailsLayout;
-        public EventChoiceDialogTextStyle BuildFocusDetailsTextStyle => values.BuildFocusDetailsTextStyle;
-        public EventChoiceDialogRectLayout BuildResourceButtonLayout => values.BuildResourceButtonLayout;
-        public EventChoiceDialogButtonStyle BuildResourceButtonStyle => values.BuildResourceButtonStyle;
-        public EventChoiceDialogRectLayout BuildResourceReasonLayout => values.BuildResourceReasonLayout;
-        public EventChoiceDialogTextStyle BuildResourceReasonTextStyle => values.BuildResourceReasonTextStyle;
-        public EventChoiceDialogRectLayout BuildGoldButtonLayout => values.BuildGoldButtonLayout;
-        public EventChoiceDialogButtonStyle BuildGoldButtonStyle => values.BuildGoldButtonStyle;
-        public EventChoiceDialogRectLayout BuildGoldReasonLayout => values.BuildGoldReasonLayout;
-        public EventChoiceDialogTextStyle BuildGoldReasonTextStyle => values.BuildGoldReasonTextStyle;
-        public EventChoiceDialogRectLayout BuildFocusErrorLayout => values.BuildFocusErrorLayout;
-        public EventChoiceDialogTextStyle BuildFocusErrorTextStyle => values.BuildFocusErrorTextStyle;
-        public Vector2 BuildFacilityConfirmationPanelSize => values.BuildFacilityConfirmationPanelSize;
-        public Vector2 BuildFacilityConfirmationPanelPosition => values.BuildFacilityConfirmationPanelPosition;
-        public EventChoiceDialogRectLayout BuildConfirmationTitleLayout => values.BuildConfirmationTitleLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationTitleTextStyle => values.BuildConfirmationTitleTextStyle;
-        public EventChoiceDialogRectLayout BuildConfirmationSummaryLayout => values.BuildConfirmationSummaryLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationSummaryTextStyle => values.BuildConfirmationSummaryTextStyle;
-        public EventChoiceDialogRectLayout BuildConfirmationErrorLayout => values.BuildConfirmationErrorLayout;
-        public EventChoiceDialogTextStyle BuildConfirmationErrorTextStyle => values.BuildConfirmationErrorTextStyle;
-        public EventChoiceDialogRectLayout BuildBackButtonLayout => values.BuildBackButtonLayout;
-        public EventChoiceDialogButtonStyle BuildBackButtonStyle => values.BuildBackButtonStyle;
-        public EventChoiceDialogRectLayout BuildConfirmButtonLayout => values.BuildConfirmButtonLayout;
-        public EventChoiceDialogButtonStyle BuildConfirmButtonStyle => values.BuildConfirmButtonStyle;
-        public EventChoiceDialogRectLayout BuildCloseButtonLayout => values.BuildCloseButtonLayout;
-        public EventChoiceDialogButtonStyle BuildCloseButtonStyle => values.BuildCloseButtonStyle;
         public Vector2 CharacterSecondEffectPanelSize => values.CharacterSecondEffectPanelSize;
         public Vector2 CharacterSecondEffectPanelPosition => values.CharacterSecondEffectPanelPosition;
         public EventChoiceDialogRectLayout CharacterTitleLayout => values.CharacterTitleLayout;
@@ -457,11 +391,7 @@ namespace YC.Presentation
                 !IsFinite(values.ExplorePathPanelPosition) ||
                 !IsFinite(values.ExplorePaymentPanelPosition) ||
                 !IsFinite(values.ResourcePaymentPanelPosition) ||
-                !IsPositive(values.BuildFacilityFocusPanelSize) ||
-                !IsPositive(values.BuildFacilityConfirmationPanelSize) ||
                 !IsPositive(values.CharacterSecondEffectPanelSize) ||
-                !IsFinite(values.BuildFacilityFocusPanelPosition) ||
-                !IsFinite(values.BuildFacilityConfirmationPanelPosition) ||
                 !IsFinite(values.CharacterSecondEffectPanelPosition))
             {
                 reason = "EventChoiceDialogLayoutProfile 布局标量必须为有限且在合法范围内。";
@@ -504,20 +434,6 @@ namespace YC.Presentation
                 candidate.ResourceReceiverLayout,
                 candidate.ResourceBankButtonLayout,
                 candidate.ManualCloseButtonLayout,
-                candidate.BuildFocusTitleLayout,
-                candidate.FacilityPreviewContainerLayout,
-                candidate.BuildFocusDetailsLayout,
-                candidate.BuildResourceButtonLayout,
-                candidate.BuildResourceReasonLayout,
-                candidate.BuildGoldButtonLayout,
-                candidate.BuildGoldReasonLayout,
-                candidate.BuildFocusErrorLayout,
-                candidate.BuildConfirmationTitleLayout,
-                candidate.BuildConfirmationSummaryLayout,
-                candidate.BuildConfirmationErrorLayout,
-                candidate.BuildBackButtonLayout,
-                candidate.BuildConfirmButtonLayout,
-                candidate.BuildCloseButtonLayout,
                 candidate.CharacterTitleLayout,
                 candidate.CharacterDescriptionLayout,
                 candidate.CharacterContinueButtonLayout,
@@ -556,14 +472,6 @@ namespace YC.Presentation
                 candidate.ExplorePaymentTitleTextStyle,
                 candidate.ResourcePaymentTitleTextStyle,
                 candidate.ResourceReceiverTextStyle,
-                candidate.BuildFocusTitleTextStyle,
-                candidate.BuildFocusDetailsTextStyle,
-                candidate.BuildResourceReasonTextStyle,
-                candidate.BuildGoldReasonTextStyle,
-                candidate.BuildFocusErrorTextStyle,
-                candidate.BuildConfirmationTitleTextStyle,
-                candidate.BuildConfirmationSummaryTextStyle,
-                candidate.BuildConfirmationErrorTextStyle,
                 candidate.CharacterTitleTextStyle,
                 candidate.CharacterDescriptionTextStyle,
                 candidate.PaymentRouteLabelTextStyle
@@ -589,11 +497,6 @@ namespace YC.Presentation
             {
                 candidate.ResourceBankButtonStyle,
                 candidate.ManualCloseButtonStyle,
-                candidate.BuildResourceButtonStyle,
-                candidate.BuildGoldButtonStyle,
-                candidate.BuildBackButtonStyle,
-                candidate.BuildConfirmButtonStyle,
-                candidate.BuildCloseButtonStyle,
                 candidate.CharacterContinueButtonStyle,
                 candidate.CharacterFinishButtonStyle,
                 candidate.ChoiceRowButtonStyle,

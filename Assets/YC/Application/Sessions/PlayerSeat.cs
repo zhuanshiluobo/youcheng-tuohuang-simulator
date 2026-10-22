@@ -15,8 +15,8 @@ namespace YC.Application.Sessions
     {
         public int PlayerId;
         public ulong SteamId;
-        public string OperatorId = string.Empty; // 本地测试后端的稳定用户标识，不是连接票据。
         public ulong NetworkClientId;
+        public string OperatorId = string.Empty; // 本地测试后端的稳定用户标识，不是连接票据。
         public string PlayerName = string.Empty;
         public PlayerColor Color;
         public bool LobbyMemberPresent;
@@ -24,5 +24,9 @@ namespace YC.Application.Sessions
         public bool IdentityVerified;
         public bool GameStateSynchronized;
         public bool IsReady;
+        public string ContentPackHash = string.Empty;
+        public string RuleContractVersion = string.Empty;
+
+        public PlayerSeat Clone() => (PlayerSeat)MemberwiseClone();
     }
 }

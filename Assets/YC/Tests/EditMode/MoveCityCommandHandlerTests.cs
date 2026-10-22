@@ -178,7 +178,7 @@ namespace YC.Tests.EditMode
         public void MoveCity_WithPendingPlaceInfluenceEventChoice_PlacesChosenEventInfluence()
         {
             var state = CreateState();
-            state.Round = 4;
+            state.Round = 6;
             state.FindPlayer(1).CityLocationId = "D-02";
             state.FindPlayer(1).Resources.OriginiumShard = 3;
             state.FindPlayer(1).Resources.GoldVoucher = 0;
@@ -216,7 +216,7 @@ namespace YC.Tests.EditMode
         public void MoveCity_WithPendingPlaceInfluenceEventChoice_WhenSlotMissing_FailsWithoutResolvingChoice()
         {
             var state = CreateState();
-            state.Round = 4;
+            state.Round = 6;
             state.FindPlayer(1).CityLocationId = "D-02";
             state.FindPlayer(1).Resources.OriginiumShard = 3;
             RemoveResourceToken(state, "F-01");

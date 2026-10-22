@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -22,16 +24,20 @@ namespace YC.Presentation
     public sealed class BuildFacilitySelectionController
     {
         private readonly BuildFacilityOptionQueryService optionQuery;
+        private readonly FacilityBuildCandidateCache candidates;
+        private string selectedSourceZoneId = string.Empty;
         private readonly List<string> additionalBuildFacilityIds = new List<string>();
         private BuildFacilityDraftPhase dragOriginPhase = BuildFacilityDraftPhase.Selecting;
         private int dragOriginSlotIndex = -1;
         private bool isAdditionalBuild;
+        private string effectBuildOwner = string.Empty;
 
         public BuildFacilitySelectionController() : this(new BuildFacilityOptionQueryService()) { }
 
         public BuildFacilitySelectionController(BuildFacilityOptionQueryService optionQuery)
         {
             this.optionQuery = optionQuery ?? throw new ArgumentNullException(nameof(optionQuery));
+            candidates = new FacilityBuildCandidateCache(optionQuery);
         }
 
         public BuildFacilityDraftPhase Phase { get; private set; } = BuildFacilityDraftPhase.Inactive;
@@ -40,8 +46,25 @@ namespace YC.Presentation
         public int CityBoardSlotIndex { get; private set; } = -1;
         public string PaymentMode { get; private set; } = string.Empty;
         public string ErrorMessage { get; private set; } = string.Empty;
-        public bool IsSupplySource => !isAdditionalBuild;
+        public bool IsSupplySource => !isAdditionalBuild && effectBuildOwner.Length == 0 && candidates.IsDefaultSupplySet;
         public bool IsActive => Phase != BuildFacilityDraftPhase.Inactive;
+        public Func<GameStateView> GetVisibleState { private get; set; }
+        public bool IsEffectBuild => effectBuildOwner.Length != 0;
+        public EffectBuildScope ReadEffectBuildScope(GameState state) => IsEffectBuild &&
+            EffectBuildScope.TryReadEffectBuildScope(state, GetVisibleState?.Invoke(), PlayerId, effectBuildOwner, out var scope) ? scope : null;
+
+        public void BeginEffectBuild(EffectBuildScope scope)
+        {
+            if (scope == null) throw new ArgumentNullException(nameof(scope));
+            Reset(); PlayerId = scope.PlayerId; effectBuildOwner = scope.OwnerEffectId;
+            Phase = BuildFacilityDraftPhase.Selecting;
+            if (scope.Payment != null)
+            {
+                FacilityId = scope.Payment.TargetId;
+                scope.TryGetCandidateSourceZoneId(FacilityId, out selectedSourceZoneId);
+                Phase = BuildFacilityDraftPhase.Focused;
+            }
+        }
 
         public void Begin(int playerId)
         {
@@ -87,13 +110,14 @@ namespace YC.Presentation
             }
 
             var option = QueryOption(state, facilityId);
-            if (option == null || !option.CanBuild)
+            if (option == null || !(IsEffectBuild ? option.PreparationValidation.IsValid : isAdditionalBuild ? option.CanBuild : CanPrepareOption(option)))
             {
                 reason = option == null ? "设施不在公共建设牌堆中。" : option.Reason;
                 return false;
             }
 
             FacilityId = facilityId ?? string.Empty;
+            selectedSourceZoneId = option.SourceZoneId;
             CityBoardSlotIndex = -1;
             PaymentMode = string.Empty;
             ErrorMessage = string.Empty;
@@ -109,8 +133,9 @@ namespace YC.Presentation
             { reason = "设施不在本次候选中。"; return false; }
             var option = QueryOption(state, facilityId);
             reason = option == null ? "设施不在本次候选中。" : option.Reason;
-            if (!IsActive || option == null || !option.CanBuild) return false;
+            if (!IsActive || option == null || !(IsEffectBuild ? option.PreparationValidation.IsValid : isAdditionalBuild ? option.CanBuild : CanPrepareOption(option))) return false;
             FacilityId = facilityId;
+            selectedSourceZoneId = option.SourceZoneId;
             CityBoardSlotIndex = -1;
             PaymentMode = ErrorMessage = string.Empty;
             Phase = BuildFacilityDraftPhase.Focused;
@@ -171,7 +196,7 @@ namespace YC.Presentation
             return true;
         }
 
-        public bool TrySelectPayment(GameState state, string paymentMode, out string reason)
+        public bool TrySelectPayment(GameState state, string paymentMode, out string reason, bool hasPreparedPayment = false)
         {
             reason = string.Empty;
             if (Phase != BuildFacilityDraftPhase.Focused)
@@ -181,7 +206,7 @@ namespace YC.Presentation
             }
 
             var payment = FindPayment(QueryOption(state, FacilityId), paymentMode);
-            if (payment == null || !payment.IsAvailable)
+            if (payment == null || !hasPreparedPayment && !payment.IsAvailable)
             {
                 reason = payment == null ? "未知的支付方式。" : payment.Reason;
                 ErrorMessage = reason;
@@ -193,6 +218,9 @@ namespace YC.Presentation
             Phase = BuildFacilityDraftPhase.Confirming;
             return true;
         }
+
+        public static bool CanPrepareOption(BuildFacilityOptionQueryResult option) => option != null &&
+            (option.CanBuild || option.Validation.ErrorCode == CommandErrorCode.InsufficientResource);
 
         public bool BackToPayment()
         {
@@ -211,6 +239,7 @@ namespace YC.Presentation
             if (CityBoardSlotIndex >= 0) return CreateCommand(PlayerId, FacilityId, CityBoardSlotIndex, PaymentMode);
             var command = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = PlayerId, TargetId = FacilityId };
             command.Parameters[BuildFacilityCommandHandler.PaymentModeParameter] = PaymentMode;
+            command.Parameters[BuildFacilityCommandHandler.ExpectedSourceZoneIdParameter] = selectedSourceZoneId;
             return command;
         }
 
@@ -239,6 +268,7 @@ namespace YC.Presentation
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> QueryOptions(GameState state)
         {
+            if (IsEffectBuild) return optionQuery.QueryForEffectBuild(state, PlayerId, GetVisibleState?.Invoke(), effectBuildOwner);
             if (isAdditionalBuild)
             {
                 var options = new List<BuildFacilityOptionQueryResult>(additionalBuildFacilityIds.Count);
@@ -253,19 +283,32 @@ namespace YC.Presentation
                 return options.AsReadOnly();
             }
 
-            return optionQuery.Query(state, PlayerId);
+            return candidates.Query(state, PlayerId, GetVisibleState?.Invoke());
         }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> QueryOptions(GameState state, int playerId)
         {
-            return optionQuery.Query(state, playerId);
+            return candidates.Query(state, playerId, GetVisibleState?.Invoke());
         }
 
         private BuildFacilityOptionQueryResult QueryOption(GameState state, string facilityId)
         {
-            return isAdditionalBuild
-                ? optionQuery.QueryForAdditionalBuild(state, PlayerId, facilityId)
-                : optionQuery.Query(state, PlayerId, facilityId);
+            if (IsEffectBuild) return QueryOptions(state).FirstOrDefault(option => option.FacilityId == facilityId &&
+                (facilityId != FacilityId || string.IsNullOrEmpty(selectedSourceZoneId) || selectedSourceZoneId == option.SourceZoneId));
+            if (isAdditionalBuild) return optionQuery.QueryForAdditionalBuild(state, PlayerId, facilityId);
+            foreach (var option in candidates.Query(state, PlayerId, GetVisibleState?.Invoke()))
+                if (option.FacilityId == facilityId)
+                    return facilityId == FacilityId && !string.IsNullOrEmpty(selectedSourceZoneId) &&
+                        selectedSourceZoneId != option.SourceZoneId ? null : option;
+            return null;
+        }
+
+        public BuildFacilityOptionQueryResult SelectedOption(IReadOnlyList<BuildFacilityOptionQueryResult> options)
+        {
+            foreach (var option in options)
+                if (option.FacilityId == FacilityId)
+                    return !string.IsNullOrEmpty(selectedSourceZoneId) && selectedSourceZoneId != option.SourceZoneId ? null : option;
+            return null;
         }
 
         public GameCommand CreateCommand(int playerId, string facilityId, int cityBoardSlotIndex, string paymentMode)
@@ -286,7 +329,8 @@ namespace YC.Presentation
                 Parameters =
                 {
                     { BuildFacilityCommandHandler.CityBoardSlotIndexParameter, cityBoardSlotIndex.ToString() },
-                    { BuildFacilityCommandHandler.PaymentModeParameter, paymentMode }
+                    { BuildFacilityCommandHandler.PaymentModeParameter, paymentMode },
+                    { BuildFacilityCommandHandler.ExpectedSourceZoneIdParameter, facilityId == FacilityId ? selectedSourceZoneId : string.Empty }
                 }
             };
         }
@@ -327,6 +371,9 @@ namespace YC.Presentation
 
         private void Reset()
         {
+            effectBuildOwner = string.Empty;
+            candidates.Invalidate();
+            selectedSourceZoneId = string.Empty;
             Phase = BuildFacilityDraftPhase.Inactive;
             PlayerId = 0;
             FacilityId = string.Empty;

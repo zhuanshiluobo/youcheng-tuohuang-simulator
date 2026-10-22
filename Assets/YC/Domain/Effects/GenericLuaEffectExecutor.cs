@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using YC.Domain.Scoring;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 
 namespace YC.Domain.Effects
 {
@@ -13,6 +15,7 @@ namespace YC.Domain.Effects
     /// </summary>
     public static class LuaDomainEffectTypeIds
     {
+        public const string ChoiceExecutionInteraction = "effect.choice.execute";
         public const string Choice = "effect.flow.choice";
         public const string Repeat = "effect.flow.repeat";
         public const string RollDice = "effect.random.roll_dice";
@@ -55,26 +58,25 @@ namespace YC.Domain.Effects
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
             ContentPrimitiveEffectExecutor.Register(registry);
+            ResourceCollectionEffectExecutor.Register(registry);
+            RouteResourceSelectionEffectExecutor.Register(registry);
+            CityStyleDeclarationEffectExecutor.Register(registry);
+            ItemTransferEffectExecutor.Register(registry);
+            DeckShuffleEffectExecutor.Register(registry);
+            RepeatEffectExecutor.Register(registry);
+            YC.Domain.Cards.CharacterLifecycleService.Register(registry);
+            YC.Domain.Cards.CharacterContentEffectExecutor.Register(registry);
+            DiceRollEffectExecutor.Register(registry);
+            YC.Domain.Movement.MapOperationEffectExecutor.Register(registry);
+            YC.Domain.Enterprises.EnterpriseEffectExecutor.Register(registry);
             string[] effectTypeIds =
             {
                 LuaDomainEffectTypeIds.Choice,
-                LuaDomainEffectTypeIds.Repeat,
-                LuaDomainEffectTypeIds.RollDice,
                 LuaDomainEffectTypeIds.ResourceDiscount,
                 LuaDomainEffectTypeIds.ResourceSell,
                 LuaDomainEffectTypeIds.LoseScore,
-                LuaDomainEffectTypeIds.PlaceRoad,
-                LuaDomainEffectTypeIds.OperateToken,
-                LuaDomainEffectTypeIds.ShuffleFacilityDeck,
-                LuaDomainEffectTypeIds.MoveFacilityCard,
                 LuaDomainEffectTypeIds.RotateFacilityCard,
                 LuaDomainEffectTypeIds.RevealCharacterCard,
-                LuaDomainEffectTypeIds.SetCharacterDoubleUseRule,
-                LuaDomainEffectTypeIds.MoveCharacterCard,
-                LuaDomainEffectTypeIds.DispatchOperator,
-                LuaDomainEffectTypeIds.UpgradeEnterprise,
-                LuaDomainEffectTypeIds.ActivateEnterpriseSpecial,
-                LuaDomainEffectTypeIds.SwitchDepartment,
                 LuaDomainEffectTypeIds.OverrideNextStartPlayer,
                 LuaDomainEffectTypeIds.ExecuteMainAction,
                 LuaDomainEffectTypeIds.OpenPlayerTaskGroup,
@@ -133,15 +135,18 @@ namespace YC.Domain.Effects
             }
 
             if (context.Node.FlowStage == "branch_completed") return EffectStepResult.Completed(context.Node.NormalizedResult);
+            string argumentError = ValidateChoiceArguments(context.Node.NormalizedArguments);
+            if (argumentError.Length > 0) return EffectStepResult.Failed(argumentError);
+            if (ItemTransferEffectExecutor.Value(context.Node.NormalizedArguments, "amountRange") != null)
+                return ExecuteAmountChoice(context);
             List<string> candidates = ReadStringArray(context.Node.NormalizedArguments, "options");
-            if (candidates.Count == 0)
-            {
-                return EffectStepResult.Failed("lua_choice_no_candidates");
-            }
+            if (candidates.Count == 0 && ReadInteger(context.Node.NormalizedArguments, "minSelections", 1) == 0)
+                return EffectStepResult.Completed(ChoiceResult(context.Node.NormalizedArguments, NormalizedValue.CreateNull()));
+            if (candidates.Count == 0) return EffectStepResult.Failed("lua_choice_no_candidates");
 
             int minSelections = ReadInteger(context.Node.NormalizedArguments, "minSelections", 1);
             int maxSelections = ReadInteger(context.Node.NormalizedArguments, "maxSelections", minSelections);
-            if (minSelections < 1 || maxSelections < minSelections || maxSelections > candidates.Count)
+            if (minSelections < 0 || maxSelections < 1 || maxSelections < minSelections || maxSelections > candidates.Count)
             {
                 return EffectStepResult.Failed("lua_choice_selection_range_invalid");
             }
@@ -150,6 +155,8 @@ namespace YC.Domain.Effects
             {
                 NormalizedValue answer = context.GetLatestInteractionAnswer();
                 if (answer == null) return EffectStepResult.NoProgress("Lua Choice 尚未收到回答。");
+                if (minSelections == 0 && answer.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue)
+                    return EffectStepResult.Completed(ChoiceResult(context.Node.NormalizedArguments, NormalizedValue.CreateNull()));
                 // UI 使用候选引用数组，诊断/旧命令可能使用字符串或单个引用。
                 // continuation 只消费规范结果，不能依赖提交入口的编码形状。
                 var values = answer.Kind == NormalizedValueKind.Array
@@ -175,10 +182,11 @@ namespace YC.Domain.Effects
                     for (int i = 0; i < branch; i++) offset += context.Node.NestedGroupSizes[i];
                     var children = new List<EffectSpec>();
                     for (int i = 0; i < context.Node.NestedGroupSizes[branch]; i++) children.Add(EffectRegistry.FromRuntimeSpec(context.Node.NestedEffects[offset + i]));
-                    context.Node.NormalizedResult = selected[0];
+                    context.Node.NormalizedResult = ChoiceResult(context.Node.NormalizedArguments, selected[0]);
                     return EffectStepResult.Continue("branch_completed").AddChildren(children);
                 }
-                return EffectStepResult.Completed(maxSelections == 1 ? selected[0] : NormalizedValue.CreateArray(selected));
+                return EffectStepResult.Completed(ChoiceResult(context.Node.NormalizedArguments,
+                    selected.Count == 0 ? NormalizedValue.CreateNull() : maxSelections == 1 ? selected[0] : NormalizedValue.CreateArray(selected)));
             }
 
             var interaction = new EffectInteractionSpec
@@ -189,11 +197,96 @@ namespace YC.Domain.Effects
                 AnsweringPlayerId = ReadPlayerId(context.Node.NormalizedArguments, context.Node.PlayerId),
                 MinSelections = minSelections,
                 MaxSelections = maxSelections,
-                AnswerSchema = maxSelections > 1 ? "candidate_id_array" : "candidate_id"
+                AnswerSchema = maxSelections > 1 ? "candidate_id_array" : "candidate_id",
+                AllowDecline = minSelections == 0
             };
             interaction.CandidateIds.AddRange(candidates);
+            if (interaction.InteractionTypeId == LuaDomainEffectTypeIds.ChoiceExecutionInteraction || interaction.InteractionTypeId == "character.ability.choice.reward")
+                interaction.PromptParameters = ItemTransferEffectExecutor.Object("choiceIntent", NormalizedValue.CreateString("choice_execute"));
 
             return EffectStepResult.Continue("awaiting_choice").AddInteraction(interaction);
+        }
+
+        public static string ValidateChoiceArguments(NormalizedValue arguments)
+        {
+            if (arguments?.Kind != NormalizedValueKind.Object || !arguments.IsValid()) return "lua_choice_arguments_invalid";
+            var resultContext = ItemTransferEffectExecutor.Value(arguments, "resultContext");
+            if (resultContext != null && (resultContext.Kind != NormalizedValueKind.Object || !IsPlainChoiceContext(resultContext)))
+                return "lua_choice_result_context_invalid";
+            var range = ItemTransferEffectExecutor.Value(arguments, "amountRange");
+            if (range == null) return string.Empty;
+            if (range.Kind != NormalizedValueKind.Object ||
+                arguments.Properties.Any(entry => !new[] { "player", "amountRange", "resultContext", "kind", "effectTypeId" }.Contains(entry.Name)) ||
+                new[] { "options", "branches", "minSelections", "maxSelections" }.Any(key => ItemTransferEffectExecutor.Value(arguments, key) != null) ||
+                range.Properties.Any(entry => !new[] { "minAmount", "maxAmount", "sourcePlayer", "resourceType" }.Contains(entry.Name)))
+                return "lua_choice_amount_range_invalid";
+            var min = ItemTransferEffectExecutor.Value(range, "minAmount");
+            var max = ItemTransferEffectExecutor.Value(range, "maxAmount");
+            if (min?.Kind != NormalizedValueKind.Integer || max?.Kind != NormalizedValueKind.Integer ||
+                min.IntegerValue < 0 || max.IntegerValue < min.IntegerValue || max.IntegerValue > int.MaxValue)
+                return "lua_choice_amount_range_invalid";
+            var source = ItemTransferEffectExecutor.Value(range, "sourcePlayer");
+            var resource = ItemTransferEffectExecutor.Value(range, "resourceType");
+            if ((source == null) != (resource == null) || source != null &&
+                (!ResourceLossEffectExecutor.TryReadPlayer(source, out _) || !ResourceLossEffectExecutor.TryReadResourceType(resource, out _)))
+                return "lua_choice_amount_source_invalid";
+            return string.Empty;
+        }
+
+        private static bool IsPlainChoiceContext(NormalizedValue value)
+        {
+            if (value.Kind == NormalizedValueKind.Object)
+                return !value.Properties.Any(entry => entry.Name == "effectTypeId" || entry.Name == "kind" &&
+                    entry.Value.Kind == NormalizedValueKind.String && entry.Value.StringValue.Contains("effect")) &&
+                    value.Properties.All(entry => IsPlainChoiceContext(entry.Value));
+            return value.Kind != NormalizedValueKind.Array || value.Items.All(IsPlainChoiceContext);
+        }
+
+        private static NormalizedValue ChoiceResult(NormalizedValue arguments, NormalizedValue value)
+        {
+            var resultContext = ItemTransferEffectExecutor.Value(arguments, "resultContext");
+            return resultContext == null ? value : ItemTransferEffectExecutor.Object("value", value,
+                "context", resultContext.Clone());
+        }
+
+        private static EffectStepResult ExecuteAmountChoice(EffectExecutionContext context)
+        {
+            var args = context.Node.NormalizedArguments;
+            if (ReadPlayerId(args, context.Node.PlayerId) != context.Node.PlayerId)
+                return EffectStepResult.Failed("lua_choice_amount_player_invalid");
+            var range = ItemTransferEffectExecutor.Value(args, "amountRange");
+            int minimum = (int)ItemTransferEffectExecutor.Value(range, "minAmount").IntegerValue;
+            int maximum = (int)ItemTransferEffectExecutor.Value(range, "maxAmount").IntegerValue;
+            string amountKind = "amount";
+            var source = ItemTransferEffectExecutor.Value(range, "sourcePlayer");
+            if (source != null)
+            {
+                ResourceLossEffectExecutor.TryReadPlayer(source, out int sourcePlayer);
+                if (context.State.FindPlayer(sourcePlayer)?.Resources == null) return EffectStepResult.Failed("lua_choice_amount_source_invalid");
+                var resource = ItemTransferEffectExecutor.Value(range, "resourceType");
+                ResourceLossEffectExecutor.TryReadResourceType(resource, out var resourceType);
+                int available = ResourceLossEffectExecutor.AvailableAmount(context.State, sourcePlayer, resourceType);
+                if (available < 0) return EffectStepResult.Failed("lua_choice_amount_balance_invalid");
+                maximum = Math.Min(maximum, available);
+                amountKind = resource.StringValue;
+            }
+            if (maximum < minimum) return EffectStepResult.Failed("lua_choice_amount_unavailable");
+            var parameters = ItemTransferEffectExecutor.Object("minAmount", NormalizedValue.CreateInteger(minimum),
+                "maxAmount", NormalizedValue.CreateInteger(maximum), "amountKind", NormalizedValue.CreateString(amountKind),
+                "rowIds", NormalizedValue.CreateArray(new[] { NormalizedValue.CreateString(amountKind) }),
+                "rowMaximums", NormalizedValue.CreateArray(new[] { NormalizedValue.CreateInteger(maximum) }));
+            if (context.Node.FlowStage == "awaiting_amount" &&
+                ContentPrimitiveEffectExecutor.TryReadBoundedAmount(parameters, context.GetLatestInteractionAnswer(), out int amount))
+                return EffectStepResult.Completed(ChoiceResult(args, NormalizedValue.CreateInteger(amount)));
+            // 旧答案超出实际库存时重新发布准确范围，不把答案静默截断。
+            return EffectStepResult.Continue("awaiting_amount").AddInteraction(new EffectInteractionSpec
+            {
+                InteractionTypeId = ContentPrimitiveEffectExecutor.QuantityInteractionTypeId,
+                PromptKey = ContentPrimitiveEffectExecutor.QuantityInteractionTypeId,
+                AnsweringPlayerId = context.Node.PlayerId, Visibility = GameStateVisibilityPolicy.Owner,
+                AnswerSchema = ContentPrimitiveEffectExecutor.QuantityAnswerSchema, PromptParameters = parameters,
+                MinSelections = 0, MaxSelections = 0, AllowDecline = false
+            });
         }
 
         private static EffectStepResult ExecuteMainAction(EffectExecutionContext context)
@@ -204,6 +297,44 @@ namespace YC.Domain.Effects
             }
 
             string executionMode = ReadString(context.Node.NormalizedArguments, "executionMode", string.Empty);
+            if (executionMode == "immediate")
+            {
+                int playerId = ReadPlayerId(context.Node.NormalizedArguments, context.Node.PlayerId);
+                var allowed = ReadStringArray(context.Node.NormalizedArguments, "allowedActionTypes");
+                if (playerId != context.Node.PlayerId || context.State.FindPlayer(playerId) == null ||
+                    allowed.Count == 0 || allowed.Distinct().Count() != allowed.Count ||
+                    allowed.Any(action => !new[] { "build", "explore", "move_city", "deploy", "dispatch", "special" }.Contains(action)))
+                    return EffectStepResult.Failed("main_action_restriction_invalid");
+                if (context.Node.FlowStage == "executing" && context.ChildNodes.Any(child => child.Status != EffectNodeStatus.Completed && child.Status != EffectNodeStatus.Failed && child.Status != EffectNodeStatus.Faulted))
+                    return EffectStepResult.NoProgress("等待即时主要行动结算完成。");
+                if (context.Node.FlowStage == "executing")
+                    return context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed || child.Status == EffectNodeStatus.Faulted)
+                        ? EffectStepResult.Failed("immediate_main_action_failed") : EffectStepResult.Completed();
+                if (context.Node.FlowStage == "awaiting_action")
+                {
+                    var answer = context.GetLatestInteractionAnswer();
+                    if (answer?.Kind == NormalizedValueKind.Array && answer.Items.Count == 1) answer = answer.Items[0];
+                    string selected = answer?.Kind == NormalizedValueKind.StableReference ? answer.ReferenceId : answer?.StringValue;
+                    if (!allowed.Contains(selected)) return EffectStepResult.Failed("immediate_main_action_invalid");
+                    EffectSpec child = selected == "move_city" ? CityMoveEffectSpecFactory.Move(playerId, "", false, false, context.Node.SourceId) :
+                        EffectSpec.Create(selected == "build" ? FacilitySelectionEffectExecutor.TypeId : ExplorationSelectionEffectExecutor.TypeId,
+                            ItemTransferEffectExecutor.Object("player", NormalizedValue.CreateString(playerId.ToString(CultureInfo.InvariantCulture))), playerId);
+                    if (selected == "deploy") child = InfluenceEffectSpecFactory.PlaceInfluence(playerId, "", context.Node.SourceId);
+                    if (selected == "dispatch") child = EffectSpec.Create(ContentPrimitiveEffectExecutor.SelectInfluence, ItemTransferEffectExecutor.Object("player", NormalizedValue.CreateString(playerId.ToString()), "operation", NormalizedValue.CreateString("move"), "subjectFilter", NormalizedValue.CreateString("self"), "count", NormalizedValue.CreateInteger(2), "interactionType", NormalizedValue.CreateString("character.ability.choice.move"), "promptKey", NormalizedValue.CreateString("effect.influence.move.choose_target")), playerId);
+                    if (selected == "special") child = EffectSpec.Create(YC.Domain.Cards.CharacterContentEffectExecutor.Prefix + "immediate_special", playerId: playerId);
+                    return EffectStepResult.Continue("executing").AddChild(child);
+                }
+                if (!string.IsNullOrEmpty(context.Node.FlowStage)) return EffectStepResult.Failed("immediate_main_action_stage_invalid");
+                var interaction = new EffectInteractionSpec { InteractionTypeId = LuaDomainEffectTypeIds.ChoiceExecutionInteraction, Visibility = "owner",
+                    PromptKey = "main_action.choose_non_special", AnsweringPlayerId = playerId, MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id",
+                    PromptParameters = ItemTransferEffectExecutor.Object("choiceIntent", NormalizedValue.CreateString("choice_execute")),
+                    Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.main_action.choose") } };
+                interaction.CandidateIds.AddRange(allowed);
+                foreach (string action in allowed) interaction.Presentation.Options.Add(new GameplayOptionPresentation {
+                    CandidateId = action, Label = new GameplayTextRef("core:interaction.main_action." + action) });
+                if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(context.State)) interaction = ItemTransferEffectExecutor.PrepareInteraction(context, interaction);
+                return EffectStepResult.Continue("awaiting_action").AddInteraction(interaction);
+            }
             if (executionMode == "grant_budget")
             {
                 int amount = ReadInteger(context.Node.NormalizedArguments, "amount", 0);
@@ -248,12 +379,16 @@ namespace YC.Domain.Effects
                 return EffectStepResult.Failed("lua_lose_score_player_invalid");
             }
 
-            int minimumScore = ReadInteger(
-                context.Node.NormalizedArguments,
-                "minimumScore",
-                ScoreTrackService.MinimumTrackScore);
             int previousScore = player.Score;
-            int nextScore = Math.Max(minimumScore, previousScore - amount);
+            int nextScore = checked(previousScore - amount);
+            NormalizedValue minimumScore;
+            if (TryGet(context.Node.NormalizedArguments, "minimumScore", out minimumScore))
+            {
+                if (minimumScore == null || minimumScore.Kind != NormalizedValueKind.Integer ||
+                    minimumScore.IntegerValue < int.MinValue || minimumScore.IntegerValue > int.MaxValue)
+                    return EffectStepResult.Failed("lua_lose_score_minimum_invalid");
+                nextScore = Math.Max((int)minimumScore.IntegerValue, nextScore);
+            }
             player.Score = nextScore;
 
             return EffectStepResult.Completed(NormalizedValue.CreateObject(new List<NormalizedValueEntry>
@@ -261,8 +396,7 @@ namespace YC.Domain.Effects
                 new NormalizedValueEntry { Name = "playerId", Value = NormalizedValue.CreateInteger(playerId) },
                 new NormalizedValueEntry { Name = "amount", Value = NormalizedValue.CreateInteger(amount) },
                 new NormalizedValueEntry { Name = "previousScore", Value = NormalizedValue.CreateInteger(previousScore) },
-                new NormalizedValueEntry { Name = "score", Value = NormalizedValue.CreateInteger(nextScore) },
-                new NormalizedValueEntry { Name = "minimumScore", Value = NormalizedValue.CreateInteger(minimumScore) }
+                new NormalizedValueEntry { Name = "score", Value = NormalizedValue.CreateInteger(nextScore) }
             }));
         }
 
@@ -426,6 +560,7 @@ namespace YC.Domain.Effects
 
         private static string Validate(EffectSpec spec)
         {
+            if (spec?.EffectTypeId == LuaDomainEffectTypeIds.Choice) return ValidateChoiceArguments(spec.NormalizedArguments);
             return spec == null || spec.NormalizedArguments == null ||
                    spec.NormalizedArguments.Kind != NormalizedValueKind.Object
                 ? "Lua 固有 Effect 参数必须是对象。"

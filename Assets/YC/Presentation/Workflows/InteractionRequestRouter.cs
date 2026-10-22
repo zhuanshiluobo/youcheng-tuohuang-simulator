@@ -26,6 +26,8 @@ namespace YC.Presentation.Workflows
         private readonly HashSet<string> rendererIds =
             new HashSet<string>(StringComparer.Ordinal);
         private IInteractionRequestRenderer activeRenderer;
+        private int activeViewerPlayerId = -1;
+        public InteractionRequestProjection CurrentRequest { get; private set; }
 
         public void Register(IInteractionRequestRenderer renderer)
         {
@@ -61,6 +63,10 @@ namespace YC.Presentation.Workflows
 
         private bool TryRoute(InteractionRequestProjection projection, int viewerPlayerId)
         {
+            if (activeViewerPlayerId != viewerPlayerId)
+            {
+                Clear(); activeViewerPlayerId = viewerPlayerId;
+            }
             if (projection == null || !projection.VisibleToViewer || projection.Status != "open" ||
                 projection.AnsweringPlayerId != viewerPlayerId) return false;
 
@@ -69,6 +75,7 @@ namespace YC.Presentation.Workflows
                 IInteractionRequestRenderer renderer = renderers[i];
                 if (!renderer.CanRender(projection)) continue;
                 if (activeRenderer != null && activeRenderer != renderer) activeRenderer.Clear();
+                CurrentRequest = projection;
                 RequestRouted?.Invoke(projection);
                 renderer.Render(projection);
                 activeRenderer = renderer;
@@ -80,6 +87,7 @@ namespace YC.Presentation.Workflows
 
         public void Clear()
         {
+            CurrentRequest = null;
             RequestRouted?.Invoke(null);
             if (activeRenderer != null)
             {

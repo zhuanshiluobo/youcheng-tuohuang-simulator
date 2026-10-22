@@ -1,0 +1,82 @@
+{
+  "definitionId": "operator.mudrock",
+  "contentType": "character",
+  "version": "1.0.0",
+  "displayName": "泥岩",
+  "expansionId": "enterprise",
+  "replaces": null,
+  "artwork": "artwork/sheets/operator_faces.jpg",
+  "artworkSpriteId": "operator.mudrock.front",
+  "tags": [],
+  "playerMarkerZones": [],
+  "itemTypeId": "core.operator_card",
+  "cardZones": [],
+  "abilities": [
+    {
+      "abilityId": "operator.mudrock.strategy",
+      "mode": "strategy",
+      "skillType": "normal",
+      "subscriptionId": "content.operator.mudrock.strategy",
+      "script": "lua/characters/operator.mudrock.strategy.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "",
+      "hasSpecialZone": false,
+      "specialZoneId": ""
+    },
+    {
+      "abilityId": "operator.mudrock.tactic",
+      "mode": "tactic",
+      "skillType": "persistent",
+      "subscriptionId": "content.operator.mudrock.tactic",
+      "script": "lua/characters/operator.mudrock.tactic.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "cleanupScript": "lua/characters/operator.mudrock.tactic.lua",
+      "settlementActionId": "character.execute_cleanup",
+      "titleKey": "泥岩小队",
+      "descriptionKey": "支付2源岩，放置1个你的影响力。",
+      "hasSpecialZone": false,
+      "specialZoneId": "",
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "operator.mudrock.tactic.cleanup_order",
+        "availabilityHandlerId": "operator.mudrock.tactic.settlement.availability",
+        "presentation": {
+          "label": {
+            "key": "core:settlement.operator.mudrock.tactic.label"
+          },
+          "description": {
+            "key": "core:settlement.operator.mudrock.tactic.description"
+          },
+          "ariaLabel": {
+            "key": "core:settlement.operator.mudrock.tactic.label"
+          },
+          "iconKey": "core:settlement.trigger_ready",
+          "contentMode": "icon_text"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "data": {
+    "templateId": "operator.mudrock",
+    "cardId": "operator.mudrock",
+    "name": "泥岩",
+    "acquisitionRole": "operator_deck",
+    "instanceTypeId": "core.operator_card",
+    "strategyAbilityId": "operator.mudrock.strategy",
+    "tacticAbilityId": "operator.mudrock.tactic",
+    "playerDetails": [
+      {
+        "abilityId": "operator.mudrock.tactic",
+        "effectText": "计谋·泥岩小队（持续性）：留在场上，每个收尾阶段一次，可支付2源岩，放置1个你的影响力。",
+        "displayCategory": "PlayerEffect",
+        "activation": "Subscription",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "泥岩"
+      }
+    ]
+  }
+}

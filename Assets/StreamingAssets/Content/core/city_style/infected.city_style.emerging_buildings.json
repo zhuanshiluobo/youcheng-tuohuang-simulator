@@ -1,0 +1,75 @@
+{
+  "definitionId": "infected.city_style.emerging_buildings",
+  "contentType": "city_style",
+  "version": "1.0.0",
+  "displayName": "新兴建筑群",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/city_styles/infected.city_style.emerging_buildings.jpg",
+  "artworkSpriteId": "infected_city_style_emerging_buildings",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.city_style.emerging_buildings.declared",
+      "mode": "declared",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.city_style.emerging_buildings.declared",
+      "script": "lua/city_styles/infected.city_style.emerging_buildings.declared.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "cityStyleId": "infected.city_style.emerging_buildings",
+    "name": "新兴建筑群",
+    "level": 1,
+    "score": 4,
+    "description": "立即按正常费用建设一个非彩设施，必须建设在空位。",
+    "maxDeclarationsPerPlayer": 2147483647,
+    "specialActionId": "",
+    "declarationReward": {
+      "originium": 0,
+      "originiumShard": 0,
+      "iron": 0,
+      "pureOriginium": 0,
+      "goldVoucher": 0
+    },
+    "declarationRequirement": {
+      "requiredFacilityCount": 4,
+      "requiredPatternCells": [
+        {
+          "rowOffset": 0,
+          "columnOffset": 0,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "yellow"
+          ]
+        },
+        {
+          "rowOffset": 0,
+          "columnOffset": 2,
+          "allowedFacilityColors": [
+            "red"
+          ]
+        },
+        {
+          "rowOffset": 1,
+          "columnOffset": 1,
+          "allowedFacilityColors": [
+            "blue",
+            "red"
+          ]
+        }
+      ]
+    }
+  }
+}

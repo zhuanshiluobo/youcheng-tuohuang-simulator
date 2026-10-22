@@ -1,0 +1,44 @@
+{
+  "definitionId": "infected.award.roads",
+  "contentType": "award",
+  "version": "1.0.0",
+  "displayName": "梅兰德基金会—授勋卡",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "artwork/awards/infected.award.roads.jpg",
+  "artworkSpriteId": "infected_award_roads",
+  "tags": [
+    "infected"
+  ],
+  "playerMarkerZones": [],
+  "abilities": [
+    {
+      "abilityId": "infected.award.roads.acquired",
+      "mode": "acquired",
+      "skillType": "normal",
+      "subscriptionId": "content.infected.award.roads.acquired",
+      "script": "lua/awards/infected.award.roads.acquired.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "data": {
+    "instanceTypeId": "core.award_card",
+    "acquisitionRole": "reward_pool",
+    "lifecycle": "immediate_retired",
+    "titleKey": "梅兰德基金会授勋",
+    "descriptionKey": "",
+    "playerDetails": [
+      {
+        "abilityId": "",
+        "effectText": "取得后立即获得20金券，选择2条尚非公路的不同航道，按玩家顺序移除其上所有影响力，并在每条航道放置1枚公路，然后将本授勋卡回盒。可选择空航道。",
+        "displayCategory": "Immediate",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "displayName": "梅兰德基金会—授勋卡"
+      }
+    ]
+  },
+  "itemTypeId": "core.award_card"
+}

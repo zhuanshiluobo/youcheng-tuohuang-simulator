@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
+using YC.Domain.Interactions;
+using YC.Domain.Presentation;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
 
@@ -20,7 +22,12 @@ namespace YC.Presentation
         private readonly Action<IReadOnlyDictionary<string, string>> submitPending;
         private readonly Action<string> setPrompt;
 
+        public Func<GameStateView> GetVisibleState { private get; set; }
+        public Func<InteractionRequestProjection, string, bool> SubmitSelection { private get; set; }
         private string pendingPresentationKey = string.Empty;
+        public Action<string, int, int, string, GameplayTextDocument, Func<bool>> RenderLegacyMessageDocument { private get; set; }
+        private string legacyMessageGameId, legacyMessagePendingId;
+        private int legacyMessageViewer = -1, legacyMessageRevision = -1;
 
         public CharacterCardEffectInteractionUiCoordinator(
             Func<GameState> getState,
@@ -46,6 +53,15 @@ namespace YC.Presentation
 
         public bool TryBeginEffect(string effectMode, CharacterCardEffectKind effect)
         {
+            var state = getState();
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+            {
+                var view = presenter.BuildProjectedView(state, getLocalPlayerId(), GetVisibleState?.Invoke());
+                var candidate = CharacterCardPanelPresenter.ModeSelectionCandidate(view.CurrentUseSelection, effectMode);
+                if (SubmitSelection == null || view.CurrentUseSelection?.CandidateIds.Contains(candidate) != true) return false;
+                HideDialog();
+                return SubmitSelection(view.CurrentUseSelection, candidate);
+            }
             HideDialog();
             if (effect == CharacterCardEffectKind.Unsupported ||
                 !Enum.IsDefined(typeof(CharacterCardEffectKind), effect)) return false;
@@ -66,19 +82,30 @@ namespace YC.Presentation
                 return false;
             }
 
-            var presentationKey = BuildPendingPresentationKey(pending);
+            var state = getState();
+            var visible = GetVisibleState?.Invoke();
+            var visibleScope = visible == null ? "local" : visible.GameId + "|" + visible.ViewerRole + "|" +
+                visible.ViewerPlayerId + "|" + visible.ContentPackHash + "|" + visible.StateRevision;
+            var presentationKey = state.GameId + "|" + getLocalPlayerId() + "|" +
+                (state.EffectRuntime?.StateRevision ?? 0) + "|" + dialog.GameplayTextGeneration + "|" +
+                visibleScope + "|" + string.Join(",", pending.OptionIds) + "|" + BuildPendingPresentationKey(pending);
             if (presentationKey == pendingPresentationKey && dialog.IsShowing)
             {
                 return true;
             }
 
             pendingPresentationKey = presentationKey;
-            var state = getState();
             var options = presenter.QueryPendingOptions(state, getLocalPlayerId(), null);
+            var presentation = presenter.GetPendingPresentation(state, getLocalPlayerId(), options, visible);
+            if (options.Presentation != null && presentation == null)
+            {
+                HideDialog();
+                return false;
+            }
             if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase ||
                 pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase)
             {
-                ShowTinManPurchaseDecision(pending, options);
+                ShowTinManPurchaseDecision(pending, options, presentation);
                 return true;
             }
 
@@ -96,33 +123,36 @@ namespace YC.Presentation
                         {
                             [CharacterEffectParameterKeys.Choice] = CharacterEffectChoiceIds.GainGold
                         });
-                    }));
+                    }) { LabelDocument = dialog.ResolveLegacyOptionLabel(presentation, choice.Id) });
                 }
                 else if (choice.Id == CharacterEffectChoiceIds.MoveInfluence &&
                          options.Get(CharacterEffectParameterKeys.SourceInfluenceSlotId).Count > 0)
                 {
-                    dialogOptions.Add(new EffectDialogOption(choice.DisplayName + "（转到地图选点）", () =>
+                    dialogOptions.Add(new EffectDialogOption(choice.DisplayName, () =>
                     {
                         pendingPresentationKey = string.Empty;
                         if (!beginPendingInfluenceMove())
                         {
-                            setPrompt("当前没有可执行的影响力移动，请改为获得 5 金券。");
+                            PresentLegacyPrompt(new GameplayTextRef("core:legacy.character.tin_man.discard.move_unavailable",
+                                TextInteger("gold", 5)));
                             SynchronizePending();
                         }
-                    }));
+                    }) { LabelDocument = dialog.ResolveLegacyOptionLabel(presentation, choice.Id) });
                 }
             }
 
             dialog.ShowOptions(
+                dialog.ResolveLegacyOptionsPrompt(presentation),
                 "锡人计谋：人员召集",
-                "正在收回「" + CurrentTinManDiscardName(pending) + "」。请选择该牌带来的奖励。",
+                options.SummaryText,
                 dialogOptions);
-            setPrompt("请在角色牌结算弹窗中处理当前弃牌。选择移动影响力时将转到地图选点。");
+            PresentLegacyPrompt(new GameplayTextRef("core:legacy.character.tin_man.discard.hint"));
             return true;
         }
 
         public void HideDialog()
         {
+            ClearLegacyPrompt();
             pendingPresentationKey = string.Empty;
             dialog.Hide();
             endFacilityEffectSelection();
@@ -130,7 +160,8 @@ namespace YC.Presentation
 
         private void ShowTinManPurchaseDecision(
             PendingCharacterEffectState pending,
-            CharacterCardOptionQueryResult query)
+            CharacterCardOptionQueryResult query,
+            GameplayInteractionPresentation presentation)
         {
             var firstStep = pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase;
             var purchaseChoiceId = firstStep
@@ -151,10 +182,11 @@ namespace YC.Presentation
                 {
                     pendingPresentationKey = string.Empty;
                     submitPending(CreateTinManPendingChoiceParameters(pending, capturedChoiceId));
-                }));
+                }) { LabelDocument = dialog.ResolveLegacyOptionLabel(presentation, capturedChoiceId) });
             }
 
             dialog.ShowOptions(
+                dialog.ResolveLegacyOptionsPrompt(presentation),
                 firstStep
                     ? "锡人策略：建立威信（第一步）"
                     : "锡人策略：建立威信（第二步）",
@@ -167,11 +199,59 @@ namespace YC.Presentation
                         pending,
                         CharacterEffectChoiceIds.TinManFinishPurchasing));
                 });
-            setPrompt(dialogOptions.Count > 0
-                ? (firstStep
-                    ? "锡人已获得 1 分。请选择是否支付 12 金券；取消会立即结算。"
-                    : "锡人第一笔购买已完成。请选择是否再支付 15 金券；取消会按当前结果结算。")
-                : "当前金券不足以进行这笔购买，点击取消即可结算。");
+            PresentLegacyPrompt(CreatePurchaseHint(firstStep, dialogOptions.Count > 0, query));
+        }
+
+        private static GameplayTextArgument TextInteger(string name, int value) => new GameplayTextArgument
+        { Name = name, Kind = "integer", Value = NormalizedValue.CreateInteger(value) };
+
+        private static GameplayTextRef CreatePurchaseHint(bool firstStep, bool hasPurchase, CharacterCardOptionQueryResult query)
+        {
+            if (!hasPurchase) return new GameplayTextRef("core:legacy.character.tin_man.purchase.unavailable");
+            return firstStep
+                ? new GameplayTextRef("core:legacy.character.tin_man.first_purchase.hint", TextInteger("score", query.ScoreGain),
+                    TextInteger("cost", CharacterCardService.TinManFirstPureOriginiumCost))
+                : new GameplayTextRef("core:legacy.character.tin_man.second_purchase.hint",
+                    TextInteger("cost", CharacterCardService.TinManSecondPureOriginiumCost));
+        }
+
+        private void PresentLegacyPrompt(GameplayTextRef reference)
+        {
+            var state = getState();
+            var pending = CurrentTinManPending();
+            if (pending == null || RenderLegacyMessageDocument == null) return;
+            var document = dialog.ResolveGameplayText(reference);
+            if (document == null) return;
+            var gameId = state.GameId;
+            var viewer = getLocalPlayerId();
+            var revision = state.EffectRuntime?.StateRevision ?? 0;
+            var contentHash = state.ContentPackHash;
+            var fingerprint = BuildPendingPresentationKey(pending) + "|" + string.Join(",", pending.OptionIds);
+            var pendingId = StableIdFactory.Create("legacy-interaction", pending.SourceCommandId ?? string.Empty,
+                pending.ChoiceType ?? string.Empty, pending.CardId ?? string.Empty);
+            legacyMessageGameId = gameId;
+            legacyMessageViewer = viewer;
+            legacyMessageRevision = revision;
+            legacyMessagePendingId = pendingId;
+            RenderLegacyMessageDocument(gameId, viewer, revision, pendingId, document, () =>
+            {
+                var current = getState();
+                var currentPending = CurrentTinManPending();
+                return currentPending != null && current?.GameId == gameId && getLocalPlayerId() == viewer &&
+                    current.ContentPackHash == contentHash && (current.EffectRuntime?.StateRevision ?? 0) == revision &&
+                    StableIdFactory.Create("legacy-interaction", currentPending.SourceCommandId ?? string.Empty,
+                        currentPending.ChoiceType ?? string.Empty, currentPending.CardId ?? string.Empty) == pendingId &&
+                    BuildPendingPresentationKey(currentPending) + "|" + string.Join(",", currentPending.OptionIds) == fingerprint;
+            });
+        }
+
+        private void ClearLegacyPrompt()
+        {
+            if (legacyMessageGameId != null)
+                RenderLegacyMessageDocument?.Invoke(legacyMessageGameId, legacyMessageViewer, legacyMessageRevision,
+                    legacyMessagePendingId, null, null);
+            legacyMessageGameId = legacyMessagePendingId = null;
+            legacyMessageViewer = legacyMessageRevision = -1;
         }
 
         private static IReadOnlyDictionary<string, string> CreateTinManPendingChoiceParameters(
@@ -217,16 +297,6 @@ namespace YC.Presentation
                    (pending.RemainingCardIds == null ? 0 : pending.RemainingCardIds.Count) + "|" +
                    (pending.ResolvedCardIds == null ? 0 : pending.ResolvedCardIds.Count) + "|" +
                    (pending.OptionIds == null ? 0 : pending.OptionIds.Count);
-        }
-
-        private static string CurrentTinManDiscardName(PendingCharacterEffectState pending)
-        {
-            if (pending == null || pending.RemainingCardIds == null || pending.RemainingCardIds.Count == 0)
-            {
-                return "未知角色牌";
-            }
-
-            return CharacterCardPanelPresenter.ResolveCardDisplayName(pending.RemainingCardIds[0]);
         }
 
     }
