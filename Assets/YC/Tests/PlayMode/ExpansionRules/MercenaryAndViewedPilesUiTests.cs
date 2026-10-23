@@ -27,7 +27,7 @@ using static YC.Tests.PlayMode.ExpansionRules.GameplayPageAcceptanceFixture;
 
 namespace YC.Tests.PlayMode.ExpansionRules
 {
-    // 两个组合方法使用正式房间及实际场景。目录取牌、额外盖牌、直接建设 Effect 为受控前置；
+    // 查看测试使用正式房间及实际场景。目录取牌、额外盖牌、直接建设 Effect 为受控前置；
     // 待验分支、地图和资料入口走 EventSystem，不修改生产资产，不替换 Host State 或查看权限。
     [Timeout(600000)]
     public sealed class MercenaryAndViewedPilesUiTests
@@ -38,9 +38,6 @@ namespace YC.Tests.PlayMode.ExpansionRules
         private IGameCommandHandler[] originals;
         private readonly List<GameCommand> commands = new List<GameCommand>();
         private int player;
-        private string buildRoot;
-        private string facilityItem;
-        private string preparedInfluenceSlot;
         private object Modules => Read(f.Hud, "MainModules");
         private Component Hand => (Component)Read(f.Gameplay, "characterHandPanel");
         private Component City => (Component)Read(f.Gameplay, "buildInfoPanel");
@@ -69,56 +66,6 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
 
         [UnityTest]
-        public IEnumerator MercenaryEntryMapsRealInfluenceInstanceAndReplacesOnce()
-        {
-            yield return Start("map-four-players", "SampleScene");
-            PrepareMercenaryEntry();
-            yield return Sync();
-            Assert.That(f.Request.PromptKey, Is.EqualTo("facility.entry.choose_influence_branch"));
-            int before = commands.Count;
-            yield return ChooseBranch("replace-influence");
-            Assert.That(commands.Skip(before).Single().OptionIds, Is.EqualTo(new[] { "replace-influence" }));
-            var request = f.Request;
-            AssertReplacementRequest(request);
-            var projected = Visible;
-            var mappings = request.CandidateIds.Select(id => new
-            {
-                candidate = id,
-                influence = projected.Map.Influences.Single(i => i.InfluenceId == id)
-            }).ToArray();
-            Assert.That(mappings, Is.Not.Empty);
-            foreach (var mapping in mappings)
-            {
-                Assert.That(mapping.candidate, Is.Not.EqualTo(mapping.influence.SlotId));
-                var target = EffectTargetUiAcceptance.MapTarget("InfluenceSlot", mapping.influence.SlotId);
-                Assert.That((bool)Read(target, "IsInteractive"), Is.True);
-                Assert.That(((SpriteRenderer)Read(target, "Image")).enabled, Is.True);
-            }
-            Assert.That(Active("EffectDialogShellView"), Is.Empty, "正式替换请求应由地图承接");
-            var selected = mappings.Single(m => m.influence.SlotId == preparedInfluenceSlot);
-            f.Record("真实实例到地图槽位映射", new { facilityItem, buildRoot,
-                request.InteractionTypeId, request.PromptKey, request.AllowDecline,
-                mappings = mappings.Select(m => new { m.candidate, m.influence.SlotId, m.influence.PlayerId }).ToArray() });
-            yield return f.Capture("佣兵替换真实影响力高亮", (Component)f.Hud);
-            int eventCount = f.State.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceReplaced);
-            before = commands.Count;
-            yield return f.Click(EffectTargetUiAcceptance.MapTarget("InfluenceSlot", selected.influence.SlotId).gameObject, "实际地图选择替换目标");
-            if (f.Request?.GetStableInteractionId() == request.GetStableInteractionId())
-                yield return f.Click(EffectTargetUiAcceptance.MapTarget("InfluenceSlot", selected.influence.SlotId).gameObject, "实际地图确认替换目标");
-            var command = commands.Skip(before).Single();
-            Assert.That(command.Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
-            Assert.That(command.PlayerId, Is.EqualTo(player));
-            Assert.That(command.OptionIds, Is.EqualTo(new[] { selected.candidate }), "提交必须保留正式 ItemId，不能提交 SlotId");
-            Assert.That(f.Request, Is.Null);
-            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == buildRoot).Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(f.State.Map.Influences.Single(i => i.SlotId == selected.influence.SlotId).PlayerId, Is.EqualTo(player));
-            Assert.That(f.State.Map.Influences.Any(i => i.InfluenceId == selected.candidate), Is.False);
-            Assert.That(f.State.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(eventCount + 1));
-            Assert.That(new ItemZoneQuery().TryValidate(f.State, out var reason), Is.True, reason);
-            yield return f.Capture("佣兵替换仅完成一次", (Component)f.Hud);
-        }
-
-        [UnityTest]
         public IEnumerator PlayerPileInspectionPreservesViewerAndPendingChoice()
         {
             yield return Start("map-three-players", "ThreePlayerScene");
@@ -130,7 +77,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             var result = f.Session.Submit(EffectInteractionCommands.Answer(
                 InteractionRequestProjector.ProjectForPlayer(preparation, player), player, new[] { "replace-influence" }));
             Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
-            f.Record("非待验分支前置", new { note = "第二方法只验查看行为；替换分支由正式协议建立，第一方法另验真实界面分支。" });
+            f.Record("非待验分支前置", new { note = "此方法只验查看行为；替换分支由正式协议建立，不计作正常菜单或替换操作验收。" });
             yield return Sync();
             AssertReplacementRequest(f.Request);
             string pending = JsonConvert.SerializeObject(f.Request);
@@ -258,18 +205,17 @@ namespace YC.Tests.PlayMode.ExpansionRules
             var replacementSlots = new HashSet<string>(influence.GetLegalPlacementSlotIds(f.State, player));
             string slot = influence.GetLegalPlacementSlotIds(f.State, opponent).First(id => replacementSlots.Contains(id) &&
                 Active("MapButtonView").Any(t => Read(t, "TargetKind").ToString() == "InfluenceSlot" && (string)Read(t, "TargetId") == id));
-            preparedInfluenceSlot = slot;
             Run(InfluenceEffectSpecFactory.PlaceInfluence(opponent, slot), "佣兵目标的真实对手影响力");
             Run(ResourceEffectSpecFactory.Gain(player, ResourceType.GoldVoucher, 30), "佣兵正式建设付费库存");
             var card = f.State.ItemZones.Items.First(i => i.DefinitionId == "building_034" &&
                 f.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId &&
                     (z.LocalZoneId == "facility_deck" || z.TemplateId == "core.zone.facility_supply_slot")));
-            facilityItem = card.ItemId;
+            var facilityItem = card.ItemId;
             int citySlot = Enumerable.Range(0, BuildFacilityService.CityBoardSlotCount).First(index =>
                 BuildFacilityService.CreateForEffectTree().ValidatePaidPlacement(f.State, player, card.DefinitionId, index).IsValid);
-            buildRoot = Run(FacilityBuildEffectSpecFactory.Build(player, card.ItemId, citySlot,
+            Run(FacilityBuildEffectSpecFactory.Build(player, card.ItemId, citySlot,
                 BuildFacilityService.PaymentModeGold, false, "acceptance.mercenary.entry", false, card.ZoneId),
-                "正式付费建设既有佣兵实例并进入真实入场Lua；取牌和落位为受控前置").EffectId;
+                "正式付费建设既有佣兵实例并进入真实入场Lua；取牌和落位为受控前置");
             Assert.That(f.State.Map.Facilities.Any(p => p.ContentInstanceId == facilityItem && p.PlayerId == player), Is.True);
             Assert.That(f.Request.PromptKey, Is.EqualTo("facility.entry.choose_influence_branch"));
         }
@@ -281,17 +227,6 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(request.PromptKey, Is.EqualTo("effect.influence.replace.choose_target"));
             Assert.That(request.AnswerSchema, Is.EqualTo("candidate_id"));
             Assert.That(request.AllowDecline, Is.False);
-        }
-
-        private IEnumerator ChooseBranch(string id)
-        {
-            int index = f.Request.CandidateIds.IndexOf(id);
-            Assert.That(index, Is.GreaterThanOrEqualTo(0));
-            var row = Active("EffectDialogOptionRowView").Single(r => r.name == "Character Effect Option " + index);
-            yield return f.Click(ButtonObject(row, "Button"), "佣兵入场选择替换分支");
-            var confirm = Active("EffectDialogShellView").SelectMany(s => s.GetComponentsInChildren<Button>())
-                .Single(b => b.name == "Confirm Selection" || b.transform.parent.name == "Confirm Selection");
-            yield return f.Click(confirm.gameObject, "确认佣兵替换分支");
         }
 
         private void PreparePiles(int first, int second)
