@@ -1,0 +1,299 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.ability.D09",
+  "contentType": "entrepreneur_ability",
+  "version": "1.8.0",
+  "displayName": "蒂亚戈·H·罗德里格斯",
+  "artwork": "artwork/entrepreneurs/D09.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.ability_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "entrepreneur_selection.v1",
+    "ability_sources.v1",
+    "card_markers.v3",
+    "resource_payment_total.v2",
+    "cleanup_sources.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.D09.investment",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D09.investment",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D09.investment.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.investment.description"
+        }
+      },
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "entrepreneur.D09.investment.cleanup_order",
+        "availabilityHandlerId": "entrepreneur.D09.investment.availability",
+        "wholeEffectPolicy": "optional",
+        "presentation": {
+          "label": {
+            "key": "core:entrepreneur.D.investment.label"
+          },
+          "description": {
+            "key": "core:entrepreneur.D.investment.description"
+          },
+          "ariaLabel": {
+            "key": "core:entrepreneur.D.investment.label"
+          },
+          "contentMode": "icon_text",
+          "iconKey": "core:settlement.fund_invest"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D09.investment",
+      "kind": "cleanup",
+      "handlerRef": "entrepreneur.D09.investment",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.D09:reputation:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.D09:reputation:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.D09.investment",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceId": "D09",
+    "entrepreneur": {
+      "definitionId": "entrepreneur.ability.D09",
+      "version": "1.8.0",
+      "sourceId": "D09",
+      "displayName": "蒂亚戈·H·罗德里格斯",
+      "artwork": "artwork/entrepreneurs/D09.jpg",
+      "setupHandlerRefs": [],
+      "roundGroups": [
+        {
+          "groupId": "entrepreneur.group.D.1",
+          "roundNumber": 1,
+          "previewCandidateId": "entrepreneur.candidate.D01",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.D01",
+              "entityDefinitionId": "entrepreneur.round.D.1",
+              "faceId": "D01",
+              "sourceId": "D01",
+              "artwork": "artwork/entrepreneurs/D01.jpg",
+              "artworkSha256": "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.D01"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.D01.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.D02",
+              "entityDefinitionId": "entrepreneur.round.D.1",
+              "faceId": "D02",
+              "sourceId": "D02",
+              "artwork": "artwork/entrepreneurs/D02.jpg",
+              "artworkSha256": "b201439b253162f7e3b70a8b7f56f6c9578c138ad2ca8f4ac13755d8adcd3f0c",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.D02"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.D02.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.D.3",
+          "roundNumber": 3,
+          "previewCandidateId": "entrepreneur.candidate.D03",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.D03",
+              "entityDefinitionId": "entrepreneur.round.D.3",
+              "faceId": "D03",
+              "sourceId": "D03",
+              "artwork": "artwork/entrepreneurs/D03.jpg",
+              "artworkSha256": "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.D03"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.D04",
+              "entityDefinitionId": "entrepreneur.round.D.3",
+              "faceId": "D04",
+              "sourceId": "D04",
+              "artwork": "artwork/entrepreneurs/D04.jpg",
+              "artworkSha256": "4dbf5d36214ad6b0f39beda682dd9c4d47cbb21dfd0b4cd20b35032dcd2b66b8",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.D04"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.D.5",
+          "roundNumber": 5,
+          "previewCandidateId": "entrepreneur.candidate.D05",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.D05",
+              "entityDefinitionId": "entrepreneur.round.D.5",
+              "faceId": "D05",
+              "sourceId": "D05",
+              "artwork": "artwork/entrepreneurs/D05.jpg",
+              "artworkSha256": "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.D05"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.D05.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.D06",
+              "entityDefinitionId": "entrepreneur.round.D.5",
+              "faceId": "D06",
+              "sourceId": "D06",
+              "artwork": "artwork/entrepreneurs/D06.jpg",
+              "artworkSha256": "ffbe92c5a190b4aefd3086a87032512258479759e00fd2c0dc0f83a05f7e9475",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.D06"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.D06.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.D.7",
+          "roundNumber": 7,
+          "previewCandidateId": "entrepreneur.candidate.D07",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.D07",
+              "entityDefinitionId": "entrepreneur.round.D.7",
+              "faceId": "D07",
+              "sourceId": "D07",
+              "artwork": "artwork/entrepreneurs/D07.jpg",
+              "artworkSha256": "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.D07"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.D08",
+              "entityDefinitionId": "entrepreneur.round.D.7",
+              "faceId": "D08",
+              "sourceId": "D08",
+              "artwork": "artwork/entrepreneurs/D08.jpg",
+              "artworkSha256": "173c8b1b6b7fa681546cf967ee520c4ca3f3f096efe4bab34782e919333085cc",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.D08"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "entryId": "entrepreneur.dice",
+          "definitionId": "entrepreneur.component.die",
+          "typeId": "core.die",
+          "quantity": 3,
+          "destinationRole": "supply",
+          "carrierLocalZoneId": "",
+          "sourceRole": "reserve"
+        }
+      ]
+    },
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.D09.investment",
+        "displayName": "基金投资",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.investment.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [
+          "reputation"
+        ],
+        "includeCoverSlots": false
+      }
+    ]
+  },
+  "cardZones": [
+    {
+      "localZoneId": "reputation",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "carrierExitPolicyId": "core.preserve_contents",
+      "slots": []
+    }
+  ],
+  "presentation": {
+    "description": {
+      "key": "core:entrepreneur.D.D09.description"
+    }
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.D09.investment",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D09.investment.completed"
+    }
+  ]
+}

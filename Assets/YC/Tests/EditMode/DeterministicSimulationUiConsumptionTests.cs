@@ -15,6 +15,7 @@ using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Enterprises;
 using YC.Domain.Interactions;
+using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -296,6 +297,8 @@ namespace YC.Tests.EditMode
                         UseSeatTurnOrder = true, LaunchPlayerOrder = new List<int> { 1, 2 }, MapId = StaticMapDefinitions.ThreePlayerMapId };
                     foreach (int player in new[] { 1, 2 }) state.Players.Add(new PlayerState { PlayerId = player, CityLocationId = "B-01" });
                     state.RandomRuntime = GameplayRandomRuntime.Create(state.GameId);
+                    state.RuleConfiguration = new GameRuleConfiguration { MapId = state.MapId, PlayerCount = 2, ContentPackHash = state.ContentPackHash };
+                    state = new ItemZoneStateFactory().CreateForSetup(state, StaticMapDefinitions.CreateThreePlayerMap(), Array.Empty<ItemRecipeEntry>());
                     var round = new RoundExecutionService(registry);
                     Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
                     round.MarkMainActionComplete(state, 1);
@@ -317,11 +320,13 @@ namespace YC.Tests.EditMode
                     peerSession.RegisterHandler(new AnswerInteractionCommandHandler(registry, round));
                     peer = new DeterministicSimulationCoordinator(peerSession,
                         DeterministicSimulationSessionOptions.CreateInitial(false, 1, peerSession, new[] { 1, 2 }));
+                    peer.ConfigureRequestContractValidation(OperationCommandProtocol.RequestContractVersion);
+                    peer.ConfigureWindowExecution(WindowExecutionGrant.Version);
                     peer.Begin();
                     var context = contextObject.AddComponent(contextType);
                     contextType.GetMethods().Single(method => method.Name == "Configure" && method.GetParameters().Length == 9).Invoke(context,
                         new object[] { LaunchMode.Host, 2, "模拟消费检查房间", new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } },
-                            new GameRuleConfiguration { MapId = state.MapId, PlayerCount = 2 }, new[] { 1, 2 }, state.GameId, 42, state.RandomRuntime });
+                            state.RuleConfiguration.Clone(), new[] { 1, 2 }, state.GameId, 42, state.RandomRuntime });
                     var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
                     Assert.That(prefab, Is.Not.Null);
                     var hudObject = UnityEngine.Object.Instantiate(prefab, root.transform, false);
@@ -362,8 +367,12 @@ namespace YC.Tests.EditMode
                     transport = transportObject.AddComponent(transportType);
                     transportType.GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(transport, null);
                     Assert.That(transportType.GetProperty("Instance").GetValue(null), Is.SameAs(transport));
+                    var startupFaults = new List<string>();
+                    transportType.GetEvent("SimulationCheckpointTransportFailed").AddEventHandler(transport,
+                        (Action<string>)startupFaults.Add);
                     submissionType.GetMethod("Initialize", new[] { typeof(EffectRegistry) }).Invoke(submission, new object[] { registry });
                     Assert.That(transport, Is.Not.Null);
+                    Assert.That(Host, Is.Not.Null, "正式初始检查点未通过：" + string.Join(";", startupFaults));
                     AwaitPublished(() => Host.ReadBoundary(0) != null);
                     Assert.That(Host.IsBackgroundExecutionEnabled, Is.True, "正式运输入口必须显式启用执行owner");
                     Assert.That(Host.IsStopped, Is.False, Host.LastFault?.Diagnostic);

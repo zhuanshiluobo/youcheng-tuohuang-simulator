@@ -1,0 +1,26 @@
+{
+  "authority": "211",
+  "targets": [
+    {
+      "threadId": "01a15554-4d66-7523-822d-fe33da6cd2d3",
+      "hostId": "local",
+      "afterCursor": "d45de007-16af-40a8-ac0b-c5e35eb80746:707",
+      "status": "completed",
+      "turnId": "01a17977-5f26-7552-b10f-2b0255ad28db"
+    },
+    {
+      "threadId": "01a15553-0fa2-7f83-ac28-0d9a64c03f56",
+      "hostId": "local",
+      "afterCursor": "3c974977-5a29-4a1c-b10b-619434ade04d:501",
+      "status": "completed",
+      "turnId": "01a17977-6039-7350-928e-750ca4e4e567"
+    },
+    {
+      "threadId": "01a15552-6aac-70b0-9714-b8859a653c4f",
+      "hostId": "local",
+      "afterCursor": "008ca50f-29d8-40ac-804d-bce8bbe4af09:627",
+      "status": "completed",
+      "turnId": "01a17977-617a-79e3-bdf1-9369f898e50d"
+    }
+  ]
+}

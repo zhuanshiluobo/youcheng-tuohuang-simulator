@@ -1,0 +1,376 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.D.1",
+  "contentType": "entrepreneur_round",
+  "version": "1.8.0",
+  "displayName": "蒂亚戈·H·罗德里格斯·第1回合",
+  "artwork": "artwork/entrepreneurs/D01.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "entrepreneur_selection.v1",
+    "ability_sources.v1",
+    "card_markers.v3",
+    "cleanup_repeat.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.D01.exchange",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D01.exchange",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D01.exchange.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.exchange.description"
+        }
+      },
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "entrepreneur.D01.exchange.cleanup_order",
+        "availabilityHandlerId": "entrepreneur.D01.exchange.availability",
+        "wholeEffectPolicy": "optional",
+        "presentation": {
+          "label": {
+            "key": "core:entrepreneur.D.exchange.label"
+          },
+          "description": {
+            "key": "core:entrepreneur.D.exchange.description"
+          },
+          "ariaLabel": {
+            "key": "core:entrepreneur.D.exchange.label"
+          },
+          "contentMode": "icon_text",
+          "iconKey": "core:settlement.reputation_score"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D02.exchange",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D02.exchange",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D02.exchange.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.exchange.description"
+        }
+      },
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "entrepreneur.D02.exchange.cleanup_order",
+        "availabilityHandlerId": "entrepreneur.D02.exchange.availability",
+        "wholeEffectPolicy": "optional",
+        "presentation": {
+          "label": {
+            "key": "core:entrepreneur.D.exchange.label"
+          },
+          "description": {
+            "key": "core:entrepreneur.D.exchange.description"
+          },
+          "ariaLabel": {
+            "key": "core:entrepreneur.D.exchange.label"
+          },
+          "contentMode": "icon_text",
+          "iconKey": "core:settlement.reputation_score"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.D01",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D01",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D01.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D01.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D01.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D01.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D01.immediate.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.D02",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D02",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D02.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D02.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D02.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D02.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D02.immediate.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D01",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D01",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D01",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D01",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D01.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.D01.immediate.1",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D01",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.D01.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D01.exchange",
+      "kind": "cleanup",
+      "handlerRef": "entrepreneur.D01.exchange",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D01",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.transfer.original_supply:entrepreneur.ability.D09:reputation:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.D01.exchange",
+      "repeatPolicy": "unbounded",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D02",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D02",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D02",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D02",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D02.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.D02.immediate.1",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D02",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.D02.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D02.exchange",
+      "kind": "cleanup",
+      "handlerRef": "entrepreneur.D02.exchange",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D02",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.transfer.original_supply:entrepreneur.ability.D09:reputation:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.D02.exchange",
+      "repeatPolicy": "unbounded",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "D01",
+      "D02"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.D01",
+        "entityDefinitionId": "entrepreneur.round.D.1",
+        "faceId": "D01",
+        "sourceId": "D01",
+        "artwork": "artwork/entrepreneurs/D01.jpg",
+        "artworkSha256": "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.D01"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.D01.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.D02",
+        "entityDefinitionId": "entrepreneur.round.D.1",
+        "faceId": "D02",
+        "sourceId": "D02",
+        "artwork": "artwork/entrepreneurs/D02.jpg",
+        "artworkSha256": "b201439b253162f7e3b70a8b7f56f6c9578c138ad2ca8f4ac13755d8adcd3f0c",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.D02"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.D02.immediate.1"
+        ]
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.face.D01",
+        "displayName": "降本增效",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.D01.remaining"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.D01.exchange",
+        "displayName": "降本增效",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.exchange.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.D02.exchange",
+        "displayName": "巨额贷款",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.exchange.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.D01",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D01.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D01.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.D01.exchange",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D01.exchange.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.D02",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D02.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D02.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.D02.exchange",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D02.exchange.completed"
+    }
+  ]
+}

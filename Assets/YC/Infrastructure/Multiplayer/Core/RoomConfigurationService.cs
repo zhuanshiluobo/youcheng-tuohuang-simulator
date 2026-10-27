@@ -51,6 +51,9 @@ namespace YC.Infrastructure.Multiplayer
                 previous.Sort(StringComparer.Ordinal);
                 if (next.MapId == room.Configuration.MapId && next.RuleModeId == room.Configuration.RuleModeId &&
                     string.Join("|", previous) == string.Join("|", next.EnabledExpansionIds)) return string.Empty;
+                next.ContentPackHash = string.Empty;
+                if (content != null && !content.TryValidate(next, out reason)) return reason;
+                if (content == null && next.RuleModeId != "standard") return "content_not_ready";
                 next.ContentPackHash = content?.GetContentPackHash(next) ?? string.Empty;
                 room.Configuration = next;
                 var host = FindSlot(room, room.HostPlayerId)?.Occupant;

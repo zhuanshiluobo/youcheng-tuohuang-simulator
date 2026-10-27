@@ -1,0 +1,308 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.ability.A01",
+  "contentType": "entrepreneur_ability",
+  "version": "1.4.0",
+  "displayName": "艾格尼丝·史密斯",
+  "artwork": "artwork/entrepreneurs/A01.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.ability_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A01.final",
+      "kind": "event",
+      "handlerRef": "entrepreneur.A01.final",
+      "declarationVersion": "1.3.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.A01.final",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A01.cover",
+      "kind": "event",
+      "handlerRef": "entrepreneur.A01.cover",
+      "declarationVersion": "1.3.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "CharacterCoverCompleted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.A01.cover",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceId": "A01",
+    "entrepreneur": {
+      "definitionId": "entrepreneur.ability.A01",
+      "version": "1.2.4",
+      "sourceId": "A01",
+      "displayName": "艾格尼丝·史密斯",
+      "artwork": "artwork/entrepreneurs/A01.jpg",
+      "setupHandlerRefs": [],
+      "roundGroups": [
+        {
+          "groupId": "entrepreneur.group.A.1",
+          "roundNumber": 1,
+          "previewCandidateId": "entrepreneur.candidate.A09",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.A09",
+              "entityDefinitionId": "entrepreneur.round.A.1",
+              "faceId": "A09",
+              "sourceId": "A09",
+              "artwork": "artwork/entrepreneurs/A09.jpg",
+              "artworkSha256": "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.A09",
+                "entrepreneur.rule.A.cover_command"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A09.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.A08",
+              "entityDefinitionId": "entrepreneur.round.A.1",
+              "faceId": "A08",
+              "sourceId": "A08",
+              "artwork": "artwork/entrepreneurs/A08.jpg",
+              "artworkSha256": "136c278cd7a500bc00b5766b986d79ad7f3a40c7b4ab45293ebfea8934bea202",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.A08",
+                "entrepreneur.rule.A.cover_command"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A08.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.A.3",
+          "roundNumber": 3,
+          "previewCandidateId": "entrepreneur.candidate.A06",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.A06",
+              "entityDefinitionId": "entrepreneur.round.A.3",
+              "faceId": "A06",
+              "sourceId": "A06",
+              "artwork": "artwork/entrepreneurs/A06.jpg",
+              "artworkSha256": "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.A06",
+                "entrepreneur.rule.A.command_price"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A06.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.A07",
+              "entityDefinitionId": "entrepreneur.round.A.3",
+              "faceId": "A07",
+              "sourceId": "A07",
+              "artwork": "artwork/entrepreneurs/A07.jpg",
+              "artworkSha256": "b53a1b9744eb4e1d0e95d007765d669a743a692611325d9a793f686031662f1b",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.A07",
+                "entrepreneur.rule.A.command_price"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A07.immediate.1",
+                "entrepreneur.A07.immediate.2"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.A.5",
+          "roundNumber": 5,
+          "previewCandidateId": "entrepreneur.candidate.A04",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.A04",
+              "entityDefinitionId": "entrepreneur.round.A.5",
+              "faceId": "A04",
+              "sourceId": "A04",
+              "artwork": "artwork/entrepreneurs/A04.jpg",
+              "artworkSha256": "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.A04",
+                "entrepreneur.rule.A.physical_final"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A04.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.A05",
+              "entityDefinitionId": "entrepreneur.round.A.5",
+              "faceId": "A05",
+              "sourceId": "A05",
+              "artwork": "artwork/entrepreneurs/A05.jpg",
+              "artworkSha256": "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.A05",
+                "entrepreneur.rule.A.physical_final"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.A.7",
+          "roundNumber": 7,
+          "previewCandidateId": "entrepreneur.candidate.A02",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.A02",
+              "entityDefinitionId": "entrepreneur.round.A.7",
+              "faceId": "A02",
+              "sourceId": "A02",
+              "artwork": "artwork/entrepreneurs/A02.jpg",
+              "artworkSha256": "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.A02"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A02.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.A03",
+              "entityDefinitionId": "entrepreneur.round.A.7",
+              "faceId": "A03",
+              "sourceId": "A03",
+              "artwork": "artwork/entrepreneurs/A03.jpg",
+              "artworkSha256": "0a284bcbc3b72fc4ed947ba09cdba84e00bb9224e39798f72cb9e32ac4576778",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.A03"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.A03.immediate.1"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": []
+    },
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.A01.final",
+        "displayName": "艾格尼丝·史密斯·分数结算时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.detail.A01.final"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false,
+        "requiredRuleRef": "entrepreneur.rule.A.physical_final",
+        "requiredRuleBinding": "owner"
+      },
+      {
+        "abilityId": "entrepreneur.A01.cover",
+        "displayName": "艾格尼丝·史密斯·角色牌盖放阶段",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.detail.A01.cover"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [
+          "commands"
+        ],
+        "includeCoverSlots": false,
+        "requiredRuleRef": "entrepreneur.rule.A.cover_command",
+        "requiredRuleBinding": "owner"
+      }
+    ]
+  },
+  "cardZones": [
+    {
+      "localZoneId": "commands",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "carrierExitPolicyId": "core.preserve_contents",
+      "slots": []
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.A01.final",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "entrepreneur.A01.final.completed"
+    },
+    {
+      "handlerId": "entrepreneur.A01.cover",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "entrepreneur.A01.cover.completed"
+    }
+  ],
+  "actionCallPolicies": [],
+  "presentation": {
+    "name": {
+      "key": "core:entrepreneur.A.A01.name"
+    },
+    "description": {
+      "key": "core:entrepreneur.A.A01.description"
+    }
+  }
+}

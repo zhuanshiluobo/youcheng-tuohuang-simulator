@@ -30,10 +30,11 @@ namespace YC.Presentation
         private float sourceAlpha, lastWidth = -1, lastHeight = -1, lastPixelsPerUnit, lastCanvasScale;
         private Font lastHostFont;
         private Color lastHostColor;
-        private int lastSize, lastStyleRevision = -1, lastIconRevision = -1;
+        private int lastSize, lastStyleRevision = -1, lastIconRevision = -1, lastResourceRevision = -1;
         private int lastFontIdentity, lastOptionsIdentity;
         private int? fontSizeOverride;
         private bool singleLineEllipsized;
+        private bool singleLineLayout;
         private float singleLineMaximumWidth;
         private int metricStyleRevision = -1, metricFontIdentity;
         private Font metricHostFont;
@@ -42,6 +43,7 @@ namespace YC.Presentation
         private int documentVersion;
         private string boundSourceText;
         private GameplayTextHostStandard hostStandard;
+        private Func<bool> visibilityBindingIsCurrent;
         private UiSemanticLabel legacyLabel;
         private UiContentHeightLayout legacyHeight;
         private bool legacyHeightWasEnabled;
@@ -56,11 +58,42 @@ namespace YC.Presentation
         public int PooledObjectCount { get { int count = textPool.Count + iconPool.Count; foreach (var icon in iconPool) if (icon.Overlay != null) count++; return count; } }
         public int EffectiveFontSize { get; private set; }
         public bool HasDocument => document != null;
-        public string MeasurementCacheKey => document == null ? string.Empty :
-            documentVersion + "|" + document.MeasurementIdentity + "|" + document.Identity + "|" + (style != null ? style.Revision : -1) + "|" +
-            (style != null ? style.FontConfigurationIdentity : 0) + "|" + (icons != null ? icons.Revision : -1) + "|" +
-            (source != null && source.font != null ? source.font.GetInstanceID() : 0) + "|" + CanvasScale + "|" +
-            (source != null ? source.horizontalOverflow.ToString() : string.Empty);
+        public bool HasVisibleContent
+        {
+            get
+            {
+                if (document == null) return false;
+                foreach (var run in document.Runs)
+                    if (run is IconRun || !string.IsNullOrWhiteSpace(run.ToPlainText())) return true;
+                return false;
+            }
+        }
+        private (int Version, GameplayTextDocument Document, int Style, int Fonts, int Icons, int Resources,
+            int HostFont, float Scale, int Overflow, bool SingleLine)? measurementKeyIdentity;
+        private string measurementKey;
+        public string MeasurementCacheKey
+        {
+            get
+            {
+                if (document == null) { measurementKeyIdentity = null; measurementKey = null; return string.Empty; }
+                var identity = (Version: documentVersion, Document: document, Style: style != null ? style.Revision : -1,
+                    Fonts: style != null ? style.FontConfigurationIdentity : 0, Icons: icons != null ? icons.Revision : -1,
+                    Resources: GameplayIconResourceResolver.Revision, HostFont: source != null && source.font != null ? source.font.GetInstanceID() : 0,
+                    Scale: CanvasScale, Overflow: source != null ? (int)source.horizontalOverflow : -1, SingleLine: singleLineLayout);
+                if (measurementKeyIdentity.HasValue && measurementKeyIdentity.Value.Equals(identity)) return measurementKey;
+                measurementKeyIdentity = identity;
+                return measurementKey = identity.Version + "|" + document.MeasurementIdentity + "|" + document.Identity + "|" + identity.Style + "|" +
+                    identity.Fonts + "|" + identity.Icons + "|" + identity.Resources + "|" + identity.HostFont + "|" + identity.Scale + "|" +
+                    (source != null ? source.horizontalOverflow.ToString() : string.Empty) + "|" + identity.SingleLine;
+            }
+        }
+
+        /// <summary>执行标题的呈现约束；保留原文档与样式，显式换行在本宿主中作为空格测绘。</summary>
+        public void SetSingleLineLayout(bool value)
+        {
+            if (singleLineLayout == value) return;
+            singleLineLayout = value; dirty = true; RequestLayoutUpdate();
+        }
         private bool ProvidesLayoutInput => isActiveAndEnabled && document != null;
         public float minWidth => ProvidesLayoutInput ? 0 : -1;
         public float preferredWidth { get { UpdateMeasurement(); return ProvidesLayoutInput ? measuredWidth : -1; } }
@@ -108,9 +141,9 @@ namespace YC.Presentation
             ValidateConfiguration(); hostStandard?.Apply(false); RefreshMeasurementCache();
             var rect = source.rectTransform.rect;
             var measuredGroups = new List<Group>();
-            var elements = BuildElements(document, size, false, measuredGroups);
+            var elements = BuildElements(document, size, singleLineLayout, measuredGroups);
             var layout = GameplayTextLayout.Arrange(elements, Math.Max(1, rect.width), size, style.LineSpacing,
-                source.horizontalOverflow == HorizontalWrapMode.Wrap);
+                !singleLineLayout && source.horizontalOverflow == HorizontalWrapMode.Wrap);
             if (layout.Width > rect.width + .01f || layout.Height > rect.height + .01f || layout.HasOversizedAtomic) return false;
             foreach (var group in measuredGroups)
             {
@@ -135,6 +168,14 @@ namespace YC.Presentation
             return GameplayTextLayout.MeasureSingleLineWidth(BuildElements(value, fontSizeOverride ?? source.fontSize, true, measuredGroups));
         }
 
+        public float MeasureSingleLineWidthAtFontSize(int size)
+        {
+            if (size < 1) throw new ArgumentOutOfRangeException(nameof(size));
+            if (document == null) return 0;
+            ValidateConfiguration(); RefreshMeasurementCache();
+            return GameplayTextLayout.MeasureSingleLineWidth(BuildElements(document, size, true, new List<Group>()));
+        }
+
         /// <summary>按钮专用；最大宽与当前标签框共同限制，保持原字号，硬换行转成空格。</summary>
         public void BindSingleLineEllipsized(GameplayTextDocument value, float maximumWidth)
         {
@@ -156,27 +197,39 @@ namespace YC.Presentation
             if (sameDocument && singleLineEllipsized == singleLine && (!singleLine || singleLineMaximumWidth == maximumWidth)) return;
             singleLineEllipsized = singleLine; singleLineMaximumWidth = maximumWidth;
             document = value; boundSourceText = source.text; documentVersion++; BindCount++; dirty = true;
+            measurementKeyIdentity = null; measurementKey = null;
             EnsureCanvasCallback();
             // 查询阶段只测量；同帧多个 Bind 在安全回调中只应用最终文档。
             RequestLayoutUpdate();
         }
         public void ClearBinding()
         {
-            document = null; documentVersion++; dirty = false; singleLineEllipsized = false; singleLineMaximumWidth = 0;
+            document = null; documentVersion++; dirty = false; singleLineEllipsized = false; singleLineMaximumWidth = 0; singleLineLayout = false;
+            measurementKeyIdentity = null; measurementKey = null;
             groups.Clear(); pendingLayout = null; measuredHeight = measuredWidth = 0;
             RequestLayoutUpdate();
             QueueVisualApply();
             ApplyPendingVisuals();
         }
-        private void OnEnable() => EnsureCanvasCallback();
+        /// <summary>可收回的只读宿主提供原绑定守卫；默认宿主仍在停用时清空。</summary>
+        public void SetVisibilityBindingGuard(Func<bool> isCurrent) => visibilityBindingIsCurrent = isCurrent;
+        private void OnEnable()
+        {
+            if (document != null && visibilityBindingIsCurrent != null && !visibilityBindingIsCurrent()) ClearBinding();
+            if (document != null) dirty = true;
+            EnsureCanvasCallback();
+        }
         private void OnDisable()
         {
+            // 可见性不等于数据失效。只读详情仍属原作用域时保留文档，重开按实际尺寸重排。
+            if (document != null && visibilityBindingIsCurrent != null && visibilityBindingIsCurrent())
+            { dirty = true; visualsDirty = false; RemoveCanvasCallback(); return; }
             ClearBinding();
             // 布局循环中停用组件时，保留回调直到池清理能安全完成。
             if (!visualsDirty) RemoveCanvasCallback();
         }
         private void OnDestroy()
-        { RemoveCanvasCallback(); RestoreSource(); RestoreLegacy(); DisposeMeasurer(); }
+        { visibilityBindingIsCurrent = null; RemoveCanvasCallback(); RestoreSource(); RestoreLegacy(); DisposeMeasurer(); }
         private void OnRectTransformDimensionsChange() { if (document != null) dirty = true; }
         private void LateUpdate() => ApplyPendingVisuals();
         public void CalculateLayoutInputHorizontal() => UpdateMeasurement();
@@ -225,6 +278,9 @@ namespace YC.Presentation
                 RemoveCanvasCallback(); RestoreSource(); ClearVisuals(); DisposeMeasurer();
                 return;
             }
+            // 停用前的Canvas委托快照可能再回调一次；隐藏缓存不生成或启用Graphic。
+            if (!isActiveAndEnabled && document != null && visibilityBindingIsCurrent != null)
+            { RemoveCanvasCallback(); return; }
             UpdateMeasurement();
             if (visualsDirty)
             {
@@ -262,7 +318,7 @@ namespace YC.Presentation
             var rect = source.rectTransform.rect;
             if (lastWidth != rect.width || lastHeight != rect.height || lastSize != source.fontSize || lastHostFont != source.font ||
                 lastHostColor != source.color || lastPixelsPerUnit != source.pixelsPerUnit || lastCanvasScale != CanvasScale || lastStyleRevision != style.Revision || lastFontIdentity != style.FontConfigurationIdentity ||
-                lastOptionsIdentity != OptionsIdentity() || lastIconRevision != (icons != null ? icons.Revision : -1)) dirty = true;
+                lastOptionsIdentity != OptionsIdentity() || lastIconRevision != (icons != null ? icons.Revision : -1) || lastResourceRevision != GameplayIconResourceResolver.Revision) dirty = true;
         }
         private void Reflow()
         {
@@ -290,15 +346,15 @@ namespace YC.Presentation
             bool measurementChanged = measuredWidth != layout.Width || measuredHeight != layout.Height;
             measuredWidth = layout.Width; measuredHeight = layout.Height; EffectiveFontSize = size;
             lastWidth = rect.width; lastHeight = rect.height; lastSize = source.fontSize; lastHostFont = source.font; lastHostColor = source.color;
-            lastStyleRevision = style.Revision; lastIconRevision = icons != null ? icons.Revision : -1; lastPixelsPerUnit = source.pixelsPerUnit; lastCanvasScale = CanvasScale;
+            lastStyleRevision = style.Revision; lastIconRevision = icons != null ? icons.Revision : -1; lastResourceRevision = GameplayIconResourceResolver.Revision; lastPixelsPerUnit = source.pixelsPerUnit; lastCanvasScale = CanvasScale;
             lastFontIdentity = style.FontConfigurationIdentity; lastOptionsIdentity = OptionsIdentity();
             dirty = false; LayoutCount++;
             if (measurementChanged) LayoutInputChanged?.Invoke();
         }
         private GameplayTextLayout.Result Prepare(int size, float width)
         {
-            groups.Clear(); var elements = BuildElements(document, size, false, groups);
-            return GameplayTextLayout.Arrange(elements, width, size, style.LineSpacing, source.horizontalOverflow == HorizontalWrapMode.Wrap);
+            groups.Clear(); var elements = BuildElements(document, size, singleLineLayout, groups);
+            return GameplayTextLayout.Arrange(elements, width, size, style.LineSpacing, !singleLineLayout && source.horizontalOverflow == HorizontalWrapMode.Wrap);
         }
 
         private GameplayTextLayout.Result PrepareSingleLine(int size, float maximumWidth)
@@ -324,7 +380,7 @@ namespace YC.Presentation
                     continue;
                 }
                 var icon = run as IconRun; GameplayIconDefinition definition; Sprite sprite;
-                if (icon != null && catalog != null && catalog.TryGetIcon(icon.IconKey, out definition) && definition != null && icons != null && icons.TryResolve(definition, GameplayIconTone.Dark, out sprite))
+                if (icon != null && catalog != null && catalog.TryGetIcon(icon.IconKey, out definition) && definition != null && GameplayIconResourceResolver.TryResolve(catalog, icons, definition, GameplayIconTone.Dark, out sprite))
                 {
                     var height = size * style.IconHeightRatio; var imageWidth = height * sprite.rect.width / Math.Max(1f, sprite.rect.height);
                     int group = targetGroups.Count; targetGroups.Add(new Group { Icon = icon, Definition = definition, Sprite = sprite });

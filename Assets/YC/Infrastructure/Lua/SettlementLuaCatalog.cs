@@ -20,7 +20,7 @@ namespace YC.Infrastructure.Lua
 
         // Host只传这些授权快照；各入口的细字段在独立规则脚本和交接报告登记。
         private static readonly HashSet<string> FactRoots = new HashSet<string>(StringComparer.Ordinal)
-            { "sourceItems", "source", "currentUse", "payment", "binding", "cleanup" };
+            { "sourceItems", "source", "currentUse", "payment", "paymentSourceQuery", "binding", "cleanup" };
 
         public SettlementLuaCatalog(ExternalContentPack pack, MoonSharpLuaRuntimeHost host = null)
         { this.pack = pack ?? throw new ArgumentNullException(nameof(pack)); this.host = host ?? new MoonSharpLuaRuntimeHost(); }
@@ -52,6 +52,7 @@ namespace YC.Infrastructure.Lua
         }
 
         // 公共装配入口只需调用一次；事实提供者和窗口生命周期仍由 Host 注册。
+        public const string AvailabilityBindingVersion="settlement_availability_binding.v1.1.0";
         public void Register(EffectRegistry registry)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
@@ -61,11 +62,16 @@ namespace YC.Infrastructure.Lua
                 if (ability.Settlement.EntryKind == SettlementEntryService.OptionalInsertion)
                     registry.RegisterSettlementOfferProvider(ability.Settlement.OfferHandlerId,
                         (window, facts) => GetOffers(abilityId, window, facts));
-                registry.RegisterSettlementAvailabilityHandler(ability.Settlement.AvailabilityHandlerId,
-                    (window, offer, facts) => QueryAvailability(window, new SettlementEntryRuntimeState {
-                        AbilityId = abilityId, AvailabilityHandlerId = offer.AvailabilityHandlerId,
-                        OptionId = StableIdFactory.Create("settlement_query", window.Id, offer.SourceItemId, offer.LocalId)
-                    }, facts));
+
+            }
+            foreach(var group in pack.ActiveDefinitions.SelectMany(d=>d.Abilities).Where(a=>a.Settlement!=null).GroupBy(a=>a.Settlement.AvailabilityHandlerId,StringComparer.Ordinal))
+            {
+                var abilities=group.ToList();
+                if(abilities.GroupBy(a=>a.Settlement.LocalId,StringComparer.Ordinal).Any(g=>g.Count()>1)) throw new InvalidOperationException("settlement_availability_local_id_ambiguous:"+group.Key);
+                registry.RegisterSettlementAvailabilityHandler(group.Key,(window,offer,facts)=> {
+                    var ability=abilities.SingleOrDefault(a=>a.Settlement.LocalId==offer.LocalId) ?? throw new InvalidOperationException("settlement_availability_local_id_missing");
+                    return QueryAvailability(window,new SettlementEntryRuntimeState{AbilityId=ability.AbilityId,AvailabilityHandlerId=offer.AvailabilityHandlerId,OptionId=StableIdFactory.Create("settlement_query",window.Id,offer.SourceItemId,offer.LocalId)},facts);
+                });
             }
         }
 
@@ -108,7 +114,7 @@ namespace YC.Infrastructure.Lua
         }
 
         public SettlementAvailabilityResult QueryAvailability(SettlementWindowContext window, SettlementEntryRuntimeState entry,
-            NormalizedValue authorizedFacts, bool forceRefresh = false)
+            NormalizedValue authorizedFacts, bool forceRefresh = false, LuaSnapshotValue sourceFacts = null)
         {
             if (entry == null || window == null) throw new ArgumentNullException();
             var ability = FindAbility(entry.AbilityId);
@@ -118,7 +124,7 @@ namespace YC.Infrastructure.Lua
             string key = window.Id + "\u001f" + entry.OptionId + "\u001f" + pack.ContentHash;
             if (!forceRefresh && availabilityCache.TryGetValue(key, out var cached)) return Clone(cached);
             var result = Invoke(entry.AbilityId, entry.AvailabilityHandlerId, window, authorizedFacts,
-                "settlementAvailability", "SettlementAvailabilityRequested");
+                "settlementAvailability", "SettlementAvailabilityRequested", sourceFacts);
             if (!result.IsSuccess || result.SettlementAvailability == null || result.Effects.Count != 0 ||
                 result.CandidatePatches.Count != 0 || result.SettlementOffers.Count != 0)
                 throw new InvalidOperationException("settlement_availability_lua_failed:" + result.Diagnostic);
@@ -136,7 +142,7 @@ namespace YC.Infrastructure.Lua
         }
 
         private LuaInvocationResult Invoke(string abilityId, string handlerId, SettlementWindowContext window,
-            NormalizedValue facts, string responseKind, string eventType)
+            NormalizedValue facts, string responseKind, string eventType, LuaSnapshotValue sourceFacts = null)
         {
             if (window == null || window.PlayerId < 1 || string.IsNullOrEmpty(window.Id) || string.IsNullOrEmpty(window.OwnerEffectId) ||
                 facts?.Kind != NormalizedValueKind.Object || !facts.IsValid() || facts.Properties.Any(e => !FactRoots.Contains(e.Name)))
@@ -149,7 +155,8 @@ namespace YC.Infrastructure.Lua
             var context = new LuaInvocationContext(window.Id, eventType, "p" + window.PlayerId.ToString(CultureInfo.InvariantCulture),
                 window.StateRevision, handler.Version, 1, 0, 0) {
                 EntryPoint = handler.EntryPoint, ResponseKind = responseKind,
-                SettlementContext = GameStateCloneService.DeepClone(window), SettlementFacts = facts.Clone() };
+                SettlementContext = GameStateCloneService.DeepClone(window), SettlementFacts = facts.Clone(),
+                SourceFacts = sourceFacts ?? LuaSnapshotValue.Null };
             return host.Invoke(definition, context);
         }
 

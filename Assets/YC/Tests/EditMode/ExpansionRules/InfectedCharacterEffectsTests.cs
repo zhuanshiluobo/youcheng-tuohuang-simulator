@@ -81,7 +81,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 ContentDefinitions = definitions, RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = pack.ContentHash, EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } } };
             for (int player = 1; player <= players; player++) source.Players.Add(new PlayerState { PlayerId = player, Resources = new ResourceSet { GoldVoucher = 80, Originium = 20, OriginiumShard = 20, Iron = 20, PureOriginium = 3 } });
             var entries = new List<ItemRecipeEntry> {
-                new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "mobile_cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" }
             };
             foreach (var definition in active.Where(d => d.ContentType != "component" && d.ExpansionId!="core")) entries.Add(new ItemRecipeEntry {
@@ -107,7 +107,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public,
                     EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                 Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, Item(state, board.DefinitionId).ItemId, declaration, out string zone, out string reason), Is.True, reason);
-                var marker = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "player_markers", player).ZoneId);
+                var marker = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "supply", player).ZoneId);
                 SetFixturePosition(state, marker, zone); marker.SlotId = "level_1";
             }
             state.ItemZones.Relations.Add(new ItemRelationState { RelationId = StableIdFactory.Create("relation", state.GameId, "active_department"), RelationTypeId = EnterpriseStateQuery.ActiveDepartmentRelation,
@@ -304,8 +304,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             else
             {
-                for (int i = 0; i < count; i++) Answer(state, Open(state).CandidateIds.First());
-                if (count < 2) AnswerBoolean(state, false);
+                if (count == 0) AnswerBoolean(state, false);
+                else Answer(state, Enumerable.Range(2, count).Select(player => "p" + player).ToArray());
             }
             Drain(state);
         }
@@ -415,8 +415,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InteractionRequests.All(r=>r.AnsweringPlayerId==1),Is.True);state=Restore(state);
             Assert.That(StoredMarkers(state,key).Single().ItemId,Is.EqualTo(first.ItemId));
             foreach(var player in state.Players.Where(player=>player.PlayerId!=1))player.Resources.GoldVoucher=19;
-            int before=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);Answer(state,first.ItemId);Drain(state);
-            Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==first.ItemId).ZoneId,Is.EqualTo(FindZone(state,"player_markers",owner).ZoneId));
+            int before=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);if(key!="swire")Answer(state,first.ItemId);Drain(state);
+            Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==first.ItemId).ZoneId,Is.EqualTo(FindZone(state,"supply",owner).ZoneId));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(before+(key=="swire"?6:0)));
             Assert.That(Card(state,key).ZoneId,Is.EqualTo(FindZone(state,"discard",1).ZoneId));state=Restore(state);
         }
@@ -494,7 +494,7 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         private ItemInstanceState PlaceFixtureInfluence(GameState state,int player,string slot)
         {
-            var item=state.ItemZones.Items.First(i=>i.ZoneId==FindZone(state,"player_markers",player).ZoneId);
+            var item=state.ItemZones.Items.First(i=>i.ZoneId==FindZone(state,"supply",player).ZoneId);
             var zone=state.ItemZones.Zones.Single(z=>z.TemplateId=="core.zone.influence_slots" && z.LegalSlotIds.Contains(slot));SetFixturePosition(state,item,zone.ZoneId);item.SlotId=slot;Valid(state);return item;
         }
         private List<string> Slots(GameState state)=>state.ItemZones.Zones.Where(z=>z.TemplateId=="core.zone.influence_slots").SelectMany(z=>z.LegalSlotIds).ToList();
@@ -566,8 +566,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             int gold=state.FindPlayer(1).Resources.GoldVoucher,other=state.FindPlayer(2).Resources.GoldVoucher;StartCard(state,"jessica_the_liberated","strategy");
             Assert.That(Open(state).PromptKey,Is.EqualTo("core:interaction.enterprise.owner.choose"));
             Assert.That(Open(state).CandidateIds,Does.Contain("p2"));Answer(state,"p2");state=Restore(state);
-            Assert.That(Open(state).PromptKey,Is.EqualTo("core:interaction.enterprise.special.choose"));
-            string choice="2:enterprise.fussen_bank.level_1.special";Assert.That(Open(state).CandidateIds,Does.Contain(choice));Answer(state,choice);Drain(state);
+            Assert.That(Open(state).InteractionTypeId,Is.EqualTo("enterprise.special"));
+            Assert.That(Open(state).PromptKey,Is.EqualTo("enterprise.special.choose"));
+            string choice=StableIdFactory.Create("candidate",board.ItemId,"enterprise.fussen_bank.level_1.special");Assert.That(Open(state).CandidateIds,Does.Contain(choice));Answer(state,choice);Drain(state);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold+8));Assert.That(state.FindPlayer(2).Resources.GoldVoucher,Is.EqualTo(other));
             var activated=View(state).Events.Single(e=>e.EventType=="EnterpriseSpecialEffectActivated");
             Assert.That(Text(activated.Payload,"specialId"),Is.EqualTo("enterprise.fussen_bank.level_1.special"));
@@ -579,8 +580,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void SwireSelectsTwoDifferentSpecialsAndNeverRepeatsFirst()
         {
             var state=State();StartCard(state,"swire","strategy");string first=Open(state).CandidateIds.First();Answer(state,first);
-            AdvanceToCharacterPrompt(state,"core:interaction.enterprise.special.choose");
-            Assert.That(Open(state),Is.Not.Null);Assert.That(Open(state).PromptKey,Is.EqualTo("core:interaction.enterprise.special.choose"));
+            AdvanceToCharacterPrompt(state,"enterprise.special.choose");
+            Assert.That(Open(state),Is.Not.Null);Assert.That(Open(state).InteractionTypeId,Is.EqualTo("enterprise.special"));
+            Assert.That(Open(state).PromptKey,Is.EqualTo("enterprise.special.choose"));
             Assert.That(Open(state).CandidateIds,Does.Not.Contain(first));Answer(state,Open(state).CandidateIds.First());Drain(state);
             var activated=View(state).Events.Where(e=>e.EventType=="EnterpriseSpecialEffectActivated").ToList();
             Assert.That(activated.Count,Is.EqualTo(2));Assert.That(activated.Select(e=>Text(e.Payload,"specialId")).Distinct().Count(),Is.EqualTo(2));
@@ -609,7 +611,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             Drain(state);Assert.That(StoredMarkers(state,key).Count,Is.EqualTo(1));Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold+(key=="swire"?6:10)));
             Emit(state,"PlayerCleanupStarted");Assert.That(Open(state),Is.Null);Assert.That(StoredMarkers(state,key).Count,Is.EqualTo(1));state=Restore(state);
-            state.Round++;Cleanup(state);InvokeCleanup(state);Answer(state,StoredMarkers(state,key).Single().ItemId);
+            state.Round++;Cleanup(state);InvokeCleanup(state);if(key!="swire")Answer(state,StoredMarkers(state,key).Single().ItemId);
             if(key=="lin")
             {
                 Assert.That(Card(state,key).ZoneId,Is.EqualTo(FindZone(state,"discard",1).ZoneId),"末标记归还后原卡应已离场。");
@@ -622,10 +624,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             Drain(state);Assert.That(StoredMarkers(state,key),Is.Empty);Assert.That(Card(state,key).ZoneId,Is.EqualTo(FindZone(state,"discard",1).ZoneId));
         }
         [Test]
-        public void MarkerCandidatesExcludeEmptyOpponentSuppliesAndNeverRequestOpponentConsent()
+        public void PlayerCandidatesIncludeEmptyOpponentSuppliesAndNeverRequestOpponentConsent()
         {
-            var state=State(3);foreach(var marker in state.ItemZones.Items.Where(i=>i.ZoneId==FindZone(state,"player_markers",2).ZoneId).ToList())SetFixturePosition(state,marker,FindZone(state,"retired").ZoneId);
-            StartCard(state,"swire","tactic");var candidates=Open(state).CandidateIds.Where(id=>id!="decline").Select(id=>state.ItemZones.Items.Single(i=>i.ItemId==id)).ToList();Assert.That(candidates.Select(i=>i.OwnerSubject.PlayerId),Is.EqualTo(new[]{3}));Answer(state,candidates.Single().ItemId);Drain(state);Assert.That(state.EffectRuntime.InteractionRequests.All(r=>r.AnsweringPlayerId==1),Is.True);
+            var state=State(3);foreach(var marker in state.ItemZones.Items.Where(i=>i.ZoneId==FindZone(state,"supply",2).ZoneId).ToList())SetFixturePosition(state,marker,FindZone(state,"retired").ZoneId);
+            StartCard(state,"swire","tactic");Assert.That(Open(state).CandidateIds,Is.EquivalentTo(new[]{"p2","p3"}));Answer(state,"p2","p3");Drain(state);Assert.That(StoredMarkers(state,"swire").Select(i=>i.OwnerSubject.PlayerId),Is.EqualTo(new[]{3}));Assert.That(state.EffectRuntime.InteractionRequests.All(r=>r.AnsweringPlayerId==1),Is.True);
         }
         [Test]
         public void FlowingShapeBetaRefillsEachChosenSlotImmediatelyWithDistinctNames()

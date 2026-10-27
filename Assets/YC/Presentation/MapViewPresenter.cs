@@ -687,7 +687,8 @@ namespace YC.Presentation
                 renderer.sprite = sprites.EmptyInfluenceSlot;
                 renderer.enabled = false;
                 pieceVisual.SetGhosted(false);
-                pieceVisual.SetPlayerColor(GetPlayerColor(state, placement.PlayerId, 1f));
+                pieceVisual.SetPlayerColor(state.ItemZones?.Items.Exists(i => i.ItemId == placement.InfluenceId) == true
+                    ? CubeColorResolver.Resolve(state, placement.InfluenceId) : GetPlayerColor(state, placement.PlayerId, 1f));
                 pieceVisual.SetVisible(true);
             }
             else if (previewPlayerId > 0)

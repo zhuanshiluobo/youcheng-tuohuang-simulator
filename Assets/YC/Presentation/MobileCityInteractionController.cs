@@ -75,13 +75,13 @@ namespace YC.Presentation
         private bool buildDialogActive;
         private string selectedBuildFacilityId = string.Empty;
 
-        public GameState CurrentState => UiReadState();
+        public GameState CurrentState => ReadUiStateWithTrace();
         // 由共享装配提供活动目录，禁止在此构造平行目录或读取 Host 实例来补显示名。
         public void ConfigureGameplayPresentation(YC.Domain.Presentation.IGameplayTextCatalogSnapshot catalog,
             IReadOnlyDictionary<string, string> definitionNames)
             => gameplayInteractionHud.ConfigureGameplayPresentation(catalog, definitionNames);
         private PendingCardChoiceView CurrentPendingChoice =>
-            session == null ? null : CardFlowStateAdapter.GetPendingChoiceView(UiReadState());
+            session == null ? null : CardFlowStateAdapter.GetPendingChoiceView(ReadUiStateWithTrace());
         private RouteResourceSelectionInteractionUiCoordinator routeResourceSelection;
         private BuildFacilityOptionQueryService buildFacilityOptions;
         private FacilityBuildCandidateCache supplyInspectionCandidates;
@@ -98,22 +98,31 @@ namespace YC.Presentation
 
         public bool CanEndCurrentAction()
         {
-            if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId) || GameplayHudFrame.EffectInputSuspended) return false;
+            using var latency = InteractionLatencyTrace.Begin("gate.end_evaluate");
+            if (!CanSubmitGameplayCommand) return TraceEndGate(false, "submit.unavailable");
+            if (!string.IsNullOrEmpty(pendingEffectCommandId)) return TraceEndGate(false, "effect.command_pending");
+            if (GameplayHudFrame.EffectInputSuspended) return TraceEndGate(false, "effect.input_suspended");
             var view = VisibleSaleState();
             if (!string.IsNullOrEmpty(view?.ActiveSettlementWindowId))
             {
                 var end = view.SettlementEndAction;
-                return end != null && end.WindowId == view.ActiveSettlementWindowId && end.StateRevision == view.StateRevision &&
-                    (string.IsNullOrEmpty(end.CurrentNodeEffectId) ? end.CanCloseCleanupWindow : end.CanStopCurrentNode);
+                if (end == null) return TraceEndGate(false, "settlement.end_missing", view);
+                if (end.WindowId != view.ActiveSettlementWindowId) return TraceEndGate(false, "settlement.window_mismatch", view);
+                if (end.StateRevision != view.StateRevision) return TraceEndGate(false, "settlement.revision_mismatch", view);
+                return string.IsNullOrEmpty(end.CurrentNodeEffectId)
+                    ? TraceEndGate(end.CanCloseCleanupWindow, "settlement.can_close", view)
+                    : TraceEndGate(end.CanStopCurrentNode, "settlement.can_stop_node", view);
             }
-            if (CanStopCurrentEffect || CanUseSecondModeStop) return true;
-            if (routeResourceSelection?.IsActive == true) return routeResourceSelection.CanConfirm;
-            return interactionRequestRouter?.CurrentRequest == null && turnActionPresenter != null &&
-                turnActionPresenter.CanEndCurrentAction();
+            if (CanStopCurrentEffect || CanUseSecondModeStop) return TraceEndGate(true, "effect.can_stop", view);
+            if (routeResourceSelection?.IsActive == true) return TraceEndGate(routeResourceSelection.CanConfirm, "route.can_confirm", view);
+            if (interactionRequestRouter?.CurrentRequest != null) return TraceEndGate(false, "request.open", view);
+            if (turnActionPresenter == null) return TraceEndGate(false, "turn.presenter_missing", view);
+            return TraceEndGate(turnActionPresenter.CanEndCurrentAction(), "turn.can_end", view);
         }
 
         public void EndCurrentAction()
         {
+            using var latency = InteractionLatencyTrace.Begin("click.end_action");
             if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId) || GameplayHudFrame.EffectInputSuspended) return;
             var view = VisibleSaleState();
             if (!string.IsNullOrEmpty(view?.ActiveSettlementWindowId))
@@ -156,6 +165,7 @@ namespace YC.Presentation
             }
 
             var cardVisualCatalog = gameplayInteractionHud.DialogRegistry.CardVisualCatalog;
+            buildInfoPanel.DialogRegistry = gameplayInteractionHud.DialogRegistry;
             if (!buildInfoPanel.ConfigureCardVisualCatalog(cardVisualCatalog) ||
                 !buildInfoPanel.Bind(buildInfoPanel.View))
             {
@@ -205,14 +215,14 @@ namespace YC.Presentation
             if (!TabletopRuntimeBootstrap.TryConfigure(gameplayInteractionHud.TabletopCanvas, targetCamera, mapRenderer, this)) return;
             flowCoordinator = new InteractionFlowCoordinator();
             gameplayAdapter = new MobileCityGameplayAdapter(
-                () => UiReadState(),
+                () => ReadUiStateWithTrace(),
                 () => localPlayerId,
                 ShouldControlCurrentPlayerLocally,
                 SetLocalViewer,
-                () => commandSubmission, () => mapView?.RefreshScoreTrackDisplay(UiReadState()));
+                () => commandSubmission, () => mapView?.RefreshScoreTrackDisplay(ReadUiStateWithTrace()));
             commandGateway = new CommandGateway(gameplayAdapter);
             workflowView = new MobileCityWorkflowViewAdapter(
-                () => UiReadState(),
+                () => ReadUiStateWithTrace(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -289,7 +299,7 @@ namespace YC.Presentation
                 influenceActionPresenter,
                 explorationEventPresenter,
                 workflowView,
-                () => ShouldControlCurrentPlayerLocally() ? UiReadState()?.CurrentPlayerId ?? localPlayerId : localPlayerId,
+                () => ShouldControlCurrentPlayerLocally() ? ReadUiStateWithTrace()?.CurrentPlayerId ?? localPlayerId : localPlayerId,
                 IsShiftDebugClick,
                 LogPointerMapCoordinate,
                 RefreshActionPanel,
@@ -309,7 +319,7 @@ namespace YC.Presentation
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityInteraction = new FacilityInteractionUiCoordinator(
-                () => UiReadState(),
+                () => ReadUiStateWithTrace(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -320,7 +330,7 @@ namespace YC.Presentation
             facilityInteraction.GetVisibleState = VisibleSaleState;
             facilityInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
             specialActionInteraction = new SpecialActionInteractionUiCoordinator(
-                () => UiReadState(),
+                () => ReadUiStateWithTrace(),
                 () => localPlayerId,
                 GetUiCanvasTransform,
                 gameplayInteractionHud.DialogRegistry,
@@ -332,15 +342,16 @@ namespace YC.Presentation
                 SetPrompt);
             BuildEventCardInteraction();
             specialActionInteraction.ExpansionUi = gameplayInteractionHud.ExpansionUi;
+            specialActionInteraction.QueryPaymentSources = query => commandSubmission?.ReadPaymentSourcePage(query);
             specialActionInteraction.CanSubmitCommand = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
             specialActionInteraction.PaymentDraftStateChanged = gameplayInteractionHud.ExpansionUi.InvalidateSettlementAvailability;
             gameplayInteractionHud.ExpansionUi.CanInvokeSettlement = option => specialActionInteraction?.CanInvokeSettlement(option) != false;
             buildFacilityInteraction?.Dispose();
             buildFacilityInteraction = new BuildFacilityInteractionUiCoordinator(
                 buildInfoPanel, turnActionPresenter);
-            buildFacilityInteraction.Refresh(UiReadState(), localPlayerId);
+            buildFacilityInteraction.Refresh(ReadUiStateWithTrace(), localPlayerId);
             characterMapInteraction = new CharacterMapInteractionCoordinator(
-                () => UiReadState(),
+                () => ReadUiStateWithTrace(),
                 () => localPlayerId,
                 characterCardPresenter,
                 highlights => workflowView.SetHighlights(highlights),
@@ -354,6 +365,7 @@ namespace YC.Presentation
             BuildInteractionRouting();
             BuildCommandSubmission(GameLaunchContext.Instance);
             // 完成初始热座视角同步，避免把读档时的玩家切换延迟到第一笔付款准备回执。
+            StartInteractionTrace();
             SynchronizeInteractionFromState();
             turnActionPresenter.RestorePreparedMove();
             RefreshPendingChoiceOrHighlights();
@@ -362,6 +374,7 @@ namespace YC.Presentation
 
         private void Update()
         {
+            PulseInteractionTrace();
             if (UpdateEffectMapConfirmationCancellation()) return;
             workflowView?.RefreshCityStylePreview();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
@@ -388,6 +401,7 @@ namespace YC.Presentation
 
         private void OnDestroy()
         {
+            StopInteractionTrace();
             uiShuttingDown = true;
             workflowView?.BeginShutdown();
             // 场景销毁只释放 UI 意图，不能把保存中的领域付款准备当成玩家主动取消。
@@ -448,6 +462,7 @@ namespace YC.Presentation
 
         public void OnMapButtonClicked(WorkflowHighlightTargetKind kind, string targetId)
         {
+            using var latency = InteractionLatencyTrace.Begin("click.map");
             using var visibleRead = BeginVisibleRead();
             if (lastMapButtonInputFrame == Time.frameCount || interactionRouter == null ||
                 mapView == null || !mapView.IsButtonInteractive(kind, targetId)) return;
@@ -499,6 +514,7 @@ namespace YC.Presentation
         private void CompleteActionCommandUi(string actionName)
         {
             using var visibleRead = BeginVisibleRead();
+            using var characterRead = characterCardPresenter?.BeginPresentationRead();
             mapInteractionRouter.ClearConfirmation(false);
             ClearPendingDispatch();
             workflowView.ClearHighlights();
@@ -542,13 +558,13 @@ namespace YC.Presentation
         {
             using var refreshSample = LocalPlayerUiRefreshMarker.Auto();
             using var visibleRead = BeginVisibleRead();
-            var player = UiReadState()?.FindPlayer(localPlayerId);
+            var player = ReadUiStateWithTrace()?.FindPlayer(localPlayerId);
             if (player == null) return;
             gameplayInteractionHud?.MainModules?.RenderResources(player.Resources);
             gameplayInteractionHud?.MainModules?.RenderScore(player.Score);
             var characterView = characterCardPresenter == null
                 ? CharacterCardPanelViewModel.Empty("角色牌信息尚未初始化。")
-                : characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
+                : characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
             if (!characterView.CanUse)
             {
                 showCharacterUseOptions = false;
@@ -561,18 +577,18 @@ namespace YC.Presentation
         private void RefreshBuildInfoPanel(CharacterCardPanelViewModel characterView = null)
         {
             using var refreshSample = BuildInfoRefreshMarker.Auto();
-            if (buildInfoPanel == null || session == null || UiReadState() == null)
+            if (buildInfoPanel == null || session == null || ReadUiStateWithTrace() == null)
             {
                 return;
             }
 
             if (buildFacilityInteraction != null)
             {
-                buildFacilityInteraction.Refresh(UiReadState(), localPlayerId);
+                buildFacilityInteraction.Refresh(ReadUiStateWithTrace(), localPlayerId);
             }
             else
             {
-                buildInfoPanel.Refresh(UiReadState(), localPlayerId);
+                buildInfoPanel.Refresh(ReadUiStateWithTrace(), localPlayerId);
             }
             RefreshViewedCityPanel(characterView);
         }
@@ -581,6 +597,7 @@ namespace YC.Presentation
         private string cityInspectionGame;
         private void InspectCity(int playerId)
         {
+            using var latency = InteractionLatencyTrace.Begin("local.inspect_city");
             displayedCityPlayerId = playerId < 0 ? localPlayerId : playerId;
             RefreshViewedCityPanel();
         }
@@ -596,18 +613,20 @@ namespace YC.Presentation
                 buildInfoPanel?.RefreshViewedCity(null, localPlayerId);
                 gameplayInteractionHud.MainModules.RenderCityInspection(null, localPlayerId);
                 characterHandPanel?.RenderInspection(null);
+                gameplayInteractionHud.ExpansionUi.RefreshViewedEntrepreneurCards(null, localPlayerId);
                 return;
             }
             if (cityInspectionGame != visible.GameId || cityInspectionViewer != localPlayerId ||
                 !visible.Players.Exists(p => p.PlayerId == displayedCityPlayerId)) displayedCityPlayerId = localPlayerId;
             cityInspectionGame = visible.GameId;
             cityInspectionViewer = localPlayerId;
+            gameplayInteractionHud.ExpansionUi.RefreshViewedEntrepreneurCards(visible, displayedCityPlayerId);
             buildInfoPanel?.RefreshViewedCity(visible, displayedCityPlayerId);
             gameplayInteractionHud.MainModules.RenderCityInspection(visible, displayedCityPlayerId);
             var piles = ViewedCharacterPilesViewModel.BuildInspectionView(visible, displayedCityPlayerId);
             if (displayedCityPlayerId == localPlayerId)
             {
-                characterView = characterView ?? characterCardPresenter?.BuildProjectedView(UiReadState(), localPlayerId, visible);
+                characterView = characterView ?? characterCardPresenter?.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, visible);
                 characterHandPanel?.Render(localPlayerId, characterView, piles);
             }
             else characterHandPanel?.RenderInspection(piles);
@@ -677,10 +696,8 @@ namespace YC.Presentation
                 prepareSharedCityStyleSmokeState);
             session = result.Session;
             sessionEffectRegistry = result.EffectRegistry;
-            var visibleController = new System.WeakReference<MobileCityInteractionController>(this);
             gameplayInteractionHud.DialogRegistry.CardVisualCatalog.BindRuntimeDefinitions(
-                id => visibleController.TryGetTarget(out var activeController)
-                    ? YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(activeController.UiReadState(), id) : id);
+                CreateWeakRuntimeDefinitionResolver(this));
             mapQuery = result.MapQuery;
             influenceService = result.InfluenceService;
             movementService = result.MovementService;
@@ -695,9 +712,18 @@ namespace YC.Presentation
             supplyInspectionCandidates = new FacilityBuildCandidateCache(buildFacilityOptions);
             gameplayInteractionHud.ExpansionUi.Configure(VisibleSaleState, () => localPlayerId,
                 result.EnterpriseDefinitions, result.CharacterModes, SubmitPendingEffectCommand);
+            gameplayInteractionHud.ExpansionUi.BindSessionPresentation(result.ActivePresentation, () => session);
             gameplayInteractionHud.ExpansionUi.CreateSnapshotGuard = CreateVisibleSnapshotGuard;
-            gameplayInteractionHud.ExpansionUi.CharacterDefinition = id => CharacterCardDatabase.Get(UiReadState(), id);
+            gameplayInteractionHud.ExpansionUi.CharacterDefinition = id => CharacterCardDatabase.Get(ReadUiStateWithTrace(), id);
             gameplayInteractionHud.ExpansionUi.DetailDefinitions = result.PlayerDetailDefinitions;
+        }
+
+        // 单独静态作用域只捕获弱句柄，避免与BuildSession中的其它this回调共用闭包。
+        private static Func<string, string> CreateWeakRuntimeDefinitionResolver(MobileCityInteractionController owner)
+        {
+            var visibleController = new System.WeakReference<MobileCityInteractionController>(owner);
+            return id => visibleController.TryGetTarget(out var activeController)
+                ? YC.Domain.Rules.GameContentDefinitions.ResolveDefinitionId(activeController.ReadUiStateWithTrace(), id) : id;
         }
 
         private void BuildCommandSubmission(GameLaunchContext launchContext)
@@ -723,10 +749,14 @@ namespace YC.Presentation
                 {
                     // 准确拒绝可能保持同一revision，仍须让原路由重新呈现已解除等待的请求。
                     simulationUiResultRequiresSynchronization = commandSubmission?.UsesDeterministicSimulation == true;
-                    ReleaseRejectedSubmissionWait(gameId, commandId, accepted);
-                    NotifyCoverCommandResolved(gameId, commandId, accepted, errorCode);
-                    interactionRouter?.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
+                    using (InteractionLatencyTrace.Begin("callback.mobile.release_wait", commandId))
+                        ReleaseRejectedSubmissionWait(gameId, commandId, accepted);
+                    using (InteractionLatencyTrace.Begin("callback.mobile.cover_result", commandId))
+                        NotifyCoverCommandResolved(gameId, commandId, accepted, errorCode);
+                    using (InteractionLatencyTrace.Begin("callback.mobile.router_result", commandId))
+                        interactionRouter?.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
                 });
+            commandSubmission.PaymentSourceViewerPlayerId = () => localPlayerId;
             commandSubmission.Initialize(sessionEffectRegistry);
             MatchSaveController.Ensure().Bind(session, launchContext);
         }
@@ -734,7 +764,7 @@ namespace YC.Presentation
         private void ReleaseRejectedSubmissionWait(string gameId, string commandId, bool accepted)
         {
             // 共享提交账本已核验提交身份；本层只释放当前局准确失败命令的本地等待。
-            if (accepted || string.IsNullOrEmpty(gameId) || gameId != UiReadState()?.GameId ||
+            if (accepted || string.IsNullOrEmpty(gameId) || gameId != ReadUiStateWithTrace()?.GameId ||
                 string.IsNullOrEmpty(commandId)) return;
             NotifyPendingEffectSettled(commandId);
             if (commandId == characterUseCommandId) characterSettlementInProgress = false;
@@ -746,9 +776,11 @@ namespace YC.Presentation
             turnActionPresenter.ActionPanelPresenter.HasCommittedSettlement = HasCommittedSettlement;
             turnActionPresenter.HasExplorationDraft = () => routeResourceSelection?.HasUnsubmittedMainActionDraft == true;
             turnActionPresenter.HasExplorationSubmission = () => routeResourceSelection?.IsMainActionSubmissionInFlight == true;
-            influenceActionPresenter.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? UiReadState()?.EffectRuntime?.StateRevision ?? 0;
-            turnActionPresenter.MoveInteraction.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? UiReadState()?.EffectRuntime?.StateRevision ?? 0;
+            influenceActionPresenter.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? ReadUiStateWithTrace()?.EffectRuntime?.StateRevision ?? 0;
+            turnActionPresenter.MoveInteraction.ObservedStateRevision = () => VisibleSaleState()?.StateRevision ?? ReadUiStateWithTrace()?.EffectRuntime?.StateRevision ?? 0;
             turnActionPresenter.MoveInteraction.GetVisibleState = VisibleSaleState;
+            turnActionPresenter.CityStyleInteraction.GetDisplayedPlayerId = () => displayedCityPlayerId;
+            turnActionPresenter.CityStyleInteraction.GetPresentationGeneration = () => gameplayInteractionHud.Frame.PresentationGeneration;
             turnActionPresenter.BuildInteraction.GetVisibleState = VisibleSaleState;
             turnActionPresenter.MainActionDraftCleared = () => {
                 interactionRouter?.ClearMapConfirmation(); mapInteractionRouter?.ClearConfirmation(false);
@@ -768,7 +800,7 @@ namespace YC.Presentation
             influenceEffectInteraction.BindGameplayText(gameplayInteractionHud.ExpansionUi.ResolveGameplayText,
                 gameplayInteractionHud.Frame.SetInteractionDocument);
             routeResourceSelection = new RouteResourceSelectionInteractionUiCoordinator(
-                () => UiReadState(), VisibleSaleState, () => localPlayerId, GetVisibleInteractionRequests,
+                () => ReadUiStateWithTrace(), VisibleSaleState, () => localPlayerId, GetVisibleInteractionRequests,
                 new YC.Domain.Travel.RouteSelectionSessionAuthority(mapQuery),
                 new YC.Domain.Travel.RouteResourceSelectionService(mapQuery),
                 eventChoiceDialog, workflowView, SubmitPendingEffectCommand, RefreshRouteSelectionDraft);
@@ -803,7 +835,7 @@ namespace YC.Presentation
         }
         private bool HasLocalPendingCharacterResolution()
         {
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             var pending = state == null ? null : state.PendingCharacterEffect;
             return pending != null &&
                    pending.IsValid() &&
@@ -812,27 +844,35 @@ namespace YC.Presentation
 
         private void RefreshAllFromState()
         {
+            using var measurement = UiRegressionMetrics.Measure("hud.full_refresh");
             if (uiShuttingDown) return;
+            using var latency = InteractionLatencyTrace.Begin("ui.full");
             using var fullTiming = new UiExecutionTimingScope(session?.ExecutionTimings, "ui.full");
             using var uiSample = GameplayUiRefreshMarker.Auto();
             using var visibleRead = BeginVisibleRead();
-            RefreshCityViewsFromState();
-            RefreshResourceDisplay();
-            RefreshInfluenceDisplay();
-            mapView?.RefreshScoreTrackDisplay(UiReadState());
+            using var characterRead = characterCardPresenter?.BeginPresentationRead();
+            using (InteractionLatencyTrace.Begin("ui.city_views")) RefreshCityViewsFromState();
+            using (InteractionLatencyTrace.Begin("ui.resources")) RefreshResourceDisplay();
+            using (InteractionLatencyTrace.Begin("ui.influence")) RefreshInfluenceDisplay();
+            using (InteractionLatencyTrace.Begin("ui.score_track")) mapView?.RefreshScoreTrackDisplay(ReadUiStateWithTrace());
             RefreshActionPanel();
-            RefreshFinalScoreFromState();
-            gameplayInteractionHud.GetComponent<GameplayInformationPages>()?.Refresh();
+            using (InteractionLatencyTrace.Begin("ui.final_score")) RefreshFinalScoreFromState();
+            using (InteractionLatencyTrace.Begin("ui.information")) gameplayInteractionHud.GetComponent<GameplayInformationPages>()?.Refresh();
         }
 
         private void SynchronizeInteractionFromState()
         {
+            using var measurement = UiRegressionMetrics.Measure("hud.synchronize");
             if (uiShuttingDown) return;
+            using var latency = InteractionLatencyTrace.Begin("ui.sync");
             using var syncTiming = new UiExecutionTimingScope(session?.ExecutionTimings, "ui.sync");
             using var synchronizeSample = GameplaySynchronizeMarker.Auto();
             using var visibleRead = BeginVisibleRead();
             InvalidateVisibleRead();
-            if (RefreshSimulationPermissionOnly()) return;
+            gameplayInteractionHud.ExpansionUi.RebindSessionPresentation(VisibleSaleState());
+            bool permissionOnly;
+            using (InteractionLatencyTrace.Begin("ui.permission_path")) permissionOnly = RefreshSimulationPermissionOnly();
+            if (permissionOnly) { InteractionLatencyTrace.Point("ui.permission_only_return"); return; }
             turnActionPresenter.SynchronizeFromState();
             // 只在联机同一观察者的普通发表刷新中保草稿；切人清理仍走原分支。
             var preserveRequestDraft = !viewerChanged && commandSubmission?.UsesDeterministicSimulation == true;
@@ -875,13 +915,13 @@ namespace YC.Presentation
 
         private void SynchronizeCharacterSettlementPresentation()
         {
-            if (!characterSettlementInProgress || session == null || UiReadState() == null)
+            if (!characterSettlementInProgress || session == null || ReadUiStateWithTrace() == null)
             {
                 return;
             }
 
-            var player = UiReadState().FindPlayer(localPlayerId);
-            if (player == null || UiReadState().PendingCharacterEffect != null ||
+            var player = ReadUiStateWithTrace().FindPlayer(localPlayerId);
+            if (player == null || ReadUiStateWithTrace().PendingCharacterEffect != null ||
                 (!string.IsNullOrEmpty(player.CoveredCharacterCardId) && !player.UsedCharacterThisRound))
             {
                 return;
@@ -894,15 +934,15 @@ namespace YC.Presentation
 
         private void PresentLatestCharacterSettlementBroadcast()
         {
-            if (session == null || UiReadState() == null || UiReadState().Logs == null || UiReadState().Logs.Count == 0)
+            if (session == null || ReadUiStateWithTrace() == null || ReadUiStateWithTrace().Logs == null || ReadUiStateWithTrace().Logs.Count == 0)
             {
                 return;
             }
 
             string settlementMessage = null;
-            for (var i = 0; i < UiReadState().Logs.Count; i++)
+            for (var i = 0; i < ReadUiStateWithTrace().Logs.Count; i++)
             {
-                var entry = UiReadState().Logs[i];
+                var entry = ReadUiStateWithTrace().Logs[i];
                 if (entry == null || entry.Sequence <= lastPresentedGameLogSequence)
                 {
                     continue;
@@ -926,7 +966,7 @@ namespace YC.Presentation
         private void RefreshPendingChoiceOrHighlights()
         {
             using var visibleRead = BeginVisibleRead();
-            if (UiReadState() == null) return;
+            if (ReadUiStateWithTrace() == null) return;
             if (SynchronizeEventCardInteraction())
             {
                 RefreshCurrentRequestEndButton();
@@ -934,7 +974,7 @@ namespace YC.Presentation
                 return;
             }
 
-            if (UiReadState().Phase != GamePhase.ResourceCollection)
+            if (ReadUiStateWithTrace().Phase != GamePhase.ResourceCollection)
             {
                 ClearCollectionSelection();
             }
@@ -996,7 +1036,7 @@ namespace YC.Presentation
             }
 
             mapView.RefreshInfluenceDisplay(
-                UiReadState(),
+                ReadUiStateWithTrace(),
                 HasPendingDispatchFirstMove(),
                 influenceActionPresenter == null ? string.Empty : influenceActionPresenter.FirstSourceSlotId,
                 influenceActionPresenter == null ? string.Empty : influenceActionPresenter.FirstTargetSlotId);
@@ -1013,7 +1053,13 @@ namespace YC.Presentation
                 BeginDeployAction, BeginDispatchAction, BeginExploreAction, BeginMoveAction,
                 EndCurrentAction, OnBuildActionClicked, OnSpecialActionClicked);
             if (actionPanel == null) { Debug.LogError("[MobileCityInteractionController] 交互 HUD 行为绑定失败。", this); return false; }
+            actionPanel.BeginInputRead = () => BeginVisibleRead();
+            gameplayInteractionHud.DialogRegistry.BeginInputRead = () => BeginVisibleRead();
             actionPanel.CanBeginAction = () => CanBeginGameplayAction;
+            actionPanel.ResolveActionText = gameplayInteractionHud.ExpansionUi.ResolveGameplayText;
+            actionPanel.RenderActionText = gameplayInteractionHud.Frame.RenderGameplayText;
+            actionPanel.DeclaredActionRequested = option => SubmitPendingEffectCommand(YC.Application.Interactions.AbilityActionCommand.Create(localPlayerId, option));
+            turnActionPresenter.CityStyleInteraction.GetVisibleState = () => VisibleSaleState();
             actionPanel.CanSubmitCharacter = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(characterUseCommandId) &&
                 turnActionPresenter?.IsMainActionSubmissionInFlight != true &&
                 string.IsNullOrEmpty(pendingEffectCommandId);
@@ -1036,7 +1082,9 @@ namespace YC.Presentation
 
         private void RefreshActionPanel()
         {
+            using var measurement = UiRegressionMetrics.Measure("hud.action_panel");
             if (uiShuttingDown) return;
+            using var latency = InteractionLatencyTrace.Begin("ui.action_panel");
             using var refreshSample = ActionPanelRefreshMarker.Auto();
             using var visibleRead = BeginVisibleRead();
             if (specialActionUsePage != null && specialActionUsePage.IsShowing && specialActionPageIsCurrent != null && !specialActionPageIsCurrent())
@@ -1048,7 +1096,7 @@ namespace YC.Presentation
 
             var characterView = characterCardPresenter == null
                 ? null
-                : characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
+                : characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
             if (characterUsePage != null && characterUsePage.IsShowing &&
                 characterUsePageKey != CharacterUseKey(characterView))
             {
@@ -1064,16 +1112,17 @@ namespace YC.Presentation
             actionPanel.Render(actionViewModel);
             actionPanel.RenderCharacterQuickAction(characterView);
             var visibleState = VisibleSaleState();
-            gameplayInteractionHud.Frame.Refresh(UiReadState(), actionViewModel,
+            gameplayInteractionHud.Frame.Refresh(ReadUiStateWithTrace(), actionViewModel,
                 turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt(),
                 actionViewModel.AllCollectionLocationsSelected
                     ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty,
                 visibleState);
-            gameplayInteractionHud.MainModules.Render(UiReadState(), visibleState, localPlayerId,
+            gameplayInteractionHud.MainModules.Render(ReadUiStateWithTrace(), visibleState, localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
             RefreshViewedCityPanel(characterView);
             gameplayInteractionHud.ExpansionUi.Refresh();
             ApplySubmissionPermission(actionViewModel);
+            TraceVisibleBinding(visibleState);
             if (characterView != null && characterView.IsSecondEffectDecision)
             {
                 workflowView.ClearHighlights();
@@ -1097,7 +1146,7 @@ namespace YC.Presentation
             {
                 ShowCharacterUsePage(characterView);
             }
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             if (state != null && state.HasPendingChoice())
             {
                 var pendingChoice = CardFlowStateAdapter.GetPendingChoiceView(state);
@@ -1118,7 +1167,7 @@ namespace YC.Presentation
 
         private bool HasCommittedSettlement()
         {
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             var visible = VisibleSaleState();
             return TurnActionPanelPresenter.HasCommittedSettlementContext(state, visible, localPlayerId);
         }
@@ -1161,14 +1210,14 @@ namespace YC.Presentation
         private void BeginDispatchAction() { if (CanBeginGameplayAction) turnActionPresenter.BeginDispatchAction(); }
         private void SubmitCoverCharacterCard(string cardId)
         {
-            var current = characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
+            var current = characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
             var request = current.CurrentCoverSelection;
             var command = current.UsesEntityLifecycle && request != null
                 ? YC.Application.Interactions.EffectInteractionCommands.Answer(request, localPlayerId, new[] { cardId })
                 : characterCardPresenter.CreateCoverCommand(localPlayerId, cardId);
-            if (current.UsesEntityLifecycle && (request == null || !coverIntent.Begin(UiReadState().GameId, request, command, ShouldControlCurrentPlayerLocally())))
+            if (current.UsesEntityLifecycle && (request == null || !coverIntent.Begin(ReadUiStateWithTrace().GameId, request, command, ShouldControlCurrentPlayerLocally())))
             { coverSubmissionInFlight = false; return; }
-            submittedCoverGameId = UiReadState().GameId;
+            submittedCoverGameId = ReadUiStateWithTrace().GameId;
             submittedCoverCommandId = command.CommandId;
             SubmitCharacterCardCommand(command, "角色牌已盖放。", "盖放角色牌命令已发送给主机，等待确认。");
         }
@@ -1178,8 +1227,8 @@ namespace YC.Presentation
             string effectOrder,
             IReadOnlyDictionary<string, string> effectParameters)
         {
-            if (!CanSubmitGameplayCommand || UiReadState() == null) return;
-            var player = UiReadState().FindPlayer(localPlayerId);
+            if (!CanSubmitGameplayCommand || ReadUiStateWithTrace() == null) return;
+            var player = ReadUiStateWithTrace().FindPlayer(localPlayerId);
             if (player == null || string.IsNullOrEmpty(player.CoveredCharacterCardId))
             {
                 SetPrompt("当前没有可使用的盖放角色牌。");
@@ -1187,6 +1236,15 @@ namespace YC.Presentation
             }
 
             characterSettlementInProgress = true;
+            var visible = VisibleSaleState();
+            if (visible?.HasAbilityActionCatalog == true)
+            {
+                var candidate = visible.AbilityActions.FirstOrDefault(a => a.EntryKind == "quick" && a.SourceRef.ItemId == player.CoveredCharacterCardId);
+                if (candidate == null || !candidate.Enabled) { SetPrompt(candidate == null ? "当前角色没有可用行动入口。" : YC.Domain.Effects.AbilityActionReasons.Display(candidate.DisabledReason)); return; }
+                var declared = YC.Application.Interactions.AbilityActionCommand.Create(localPlayerId, candidate);
+                declared.Parameters["mode"] = effectMode ?? ""; declared.Parameters["order"] = effectOrder ?? "";
+                SubmitCharacterCardCommand(declared, "角色行动已受理。", "角色行动已发送，等待主机确认。"); return;
+            }
             var command = characterCardPresenter.CreateUseCommand(
                 localPlayerId,
                 player.CoveredCharacterCardId,
@@ -1204,16 +1262,25 @@ namespace YC.Presentation
 
         private void SubmitPendingEffectCommand(GameCommand command)
         {
+            using var visibleRead = BeginVisibleRead();
             if (command == null) return;
             var visible = VisibleSaleState();
+            var declaredOption = command.Kind == GameCommandKind.InvokeSettlementOption && command.Parameters.TryGetValue("intent", out var declaredIntent) && declaredIntent == YC.Application.Interactions.AbilityActionCommand.Intent && command.Parameters.TryGetValue("optionId", out var declaredId)
+                ? visible?.AbilityActions.Find(option => option.OptionId == declaredId) : null;
             var standaloneOption = command.Kind == GameCommandKind.InvokeSettlementOption &&
                 command.Parameters.TryGetValue("optionId", out var optionId)
                 ? visible?.CharacterSettlementOptions.Find(option => option.OptionId == optionId && string.IsNullOrEmpty(option.EntryKind)) : null;
-            if (command.Kind == GameCommandKind.UseCharacterCard || standaloneOption != null)
+            if (command.Kind == GameCommandKind.UseCharacterCard || standaloneOption != null || declaredOption != null)
             {
                 if (!CanBeginGameplayAction) { gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId); return; }
                 if (turnActionPresenter?.RunAfterClearingMainActionDraft(() =>
                 {
+                    if (declaredOption != null)
+                    {
+                        var fresh = VisibleSaleState()?.AbilityActions.Find(option => option.OptionId == declaredOption.OptionId && option.SourceRef.ItemId == declaredOption.SourceRef.ItemId && option.Enabled);
+                        if (fresh == null) { gameplayInteractionHud.ExpansionUi.NotifyCommandSettled(command.CommandId); return; }
+                        command.Parameters["requestId"] = fresh.RequestRef.InteractionId; command.Parameters["factsDigest"] = fresh.RequestRef.FactsDigest; command.Parameters["contentHash"] = fresh.VersionRef.ContentPackHash;
+                    }
                     if (standaloneOption != null)
                     {
                         var fresh = VisibleSaleState()?.CharacterSettlementOptions.Find(option =>
@@ -1230,6 +1297,8 @@ namespace YC.Presentation
         }
         private void SubmitPendingEffectCommandCore(GameCommand command)
         {
+            using var measurement = UiRegressionMetrics.Measure("command.dispatch");
+            using var visibleRead = BeginVisibleRead();
             if (!CanSubmitGameplayCommand || !string.IsNullOrEmpty(pendingEffectCommandId))
             {
                 // 交叉点击底栏与页面时，解除未送出的本地锁；不产生第二条命令。
@@ -1240,8 +1309,9 @@ namespace YC.Presentation
                 return;
             }
             var commandId = command == null ? string.Empty : command.CommandId;
-            var commandGameId = UiReadState()?.GameId;
+            var commandGameId = ReadUiStateWithTrace()?.GameId;
             pendingEffectCommandId = commandId;
+            InteractionLatencyTrace.Point("gate.effect_wait_set", commandId);
             RefreshCurrentRequestEndButton();
             try
             {
@@ -1286,7 +1356,10 @@ namespace YC.Presentation
         private void NotifyPendingEffectSettled(string commandId)
         {
             if (!string.IsNullOrEmpty(commandId) && pendingEffectCommandId == commandId)
+            {
                 pendingEffectCommandId = string.Empty;
+                InteractionLatencyTrace.Point("gate.effect_wait_cleared", commandId);
+            }
         }
 
         private void SubmitCharacterCardCommand(GameCommand command, string localSuccessPrompt, string remotePrompt)
@@ -1331,7 +1404,7 @@ namespace YC.Presentation
                 return;
             }
 
-            var pending = UiReadState().PendingCharacterEffect;
+            var pending = ReadUiStateWithTrace().PendingCharacterEffect;
             if (pending == null || !pending.IsValid())
             {
                 return;
@@ -1355,6 +1428,7 @@ namespace YC.Presentation
 
         private void OnDeclareCityStyleClicked()
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.button");
             var panel = turnActionPresenter.BuildActionPanelViewModel();
             if (!panel.CanInspectCityStyles) return;
             if (CanBeginGameplayAction && panel.CanDeclareCityStyle) turnActionPresenter.BeginDeclareCityStyle();
@@ -1378,23 +1452,28 @@ namespace YC.Presentation
             if (!CanBeginGameplayAction || !interaction.CanUseSpecialAction) return;
             var owner = session;
             var player = localPlayerId;
-            var revision = UiReadState().EffectRuntime?.StateRevision ?? 0;
+            var revision = ReadUiStateWithTrace().EffectRuntime?.StateRevision ?? 0;
             bool Current() => CanSubmitGameplayCommand && session == owner && localPlayerId == player &&
-                UiReadState() != null && (UiReadState().EffectRuntime?.StateRevision ?? 0) == revision &&
+                ReadUiStateWithTrace() != null && (ReadUiStateWithTrace().EffectRuntime?.StateRevision ?? 0) == revision &&
                 interaction.CanUseSpecialAction;
             var options = new System.Collections.Generic.List<EffectDialogOption>();
             foreach (var option in interaction.QuerySpecialActions().Options)
             {
                 var captured = option;
-                options.Add(new EffectDialogOption(option.Name + "\n" + option.Description +
+                string details = option.DeclaredAction == null ? option.Description : YC.Application.Presentation.AbilityActionTextDocuments.PlainDetails(option.DeclaredAction);
+                string suffix = option.CanUse ? option.Warning : "\n" + option.DisabledReason;
+                options.Add(new EffectDialogOption(option.Name + "\n" + details +
                     (option.CanUse ? option.Warning : "\n" + option.DisabledReason),
                     () => interaction.SubmitSpecialAction(captured.SpecialActionId, captured.DeclarationMarkerId),
                     option.CanUse) { StableId = option.DeclarationMarkerId + ":" + option.SpecialActionId,
                         SourceLabel = option.Name,
-                        DescriptionLabel = option.Description + (option.CanUse ? option.Warning : "\n" + option.DisabledReason) });
+                        DescriptionLabel = details + suffix,
+                        LabelDocument = option.DeclaredAction == null ? null : YC.Application.Presentation.AbilityActionTextDocuments.Name(option.DeclaredAction, gameplayInteractionHud.ExpansionUi.ResolveGameplayText),
+                        DescriptionDocument = option.DeclaredAction == null ? null : YC.Application.Presentation.AbilityActionTextDocuments.Details(option.DeclaredAction, gameplayInteractionHud.ExpansionUi.ResolveGameplayText, suffix) });
             }
             if (specialActionUsePage == null) specialActionUsePage = new CharacterCardEffectChoiceDialog(
                 gameplayInteractionHud.DialogRegistry, uiCanvas.transform as RectTransform);
+            specialActionUsePage.BindGameplayText(gameplayInteractionHud.ExpansionUi.ResolveGameplayText, gameplayInteractionHud.Frame.RenderGameplayText);
             specialActionPageIsCurrent = Current;
             var copy = specialActionUsePage.Copy;
             specialActionUsePage.ShowExecutionChoices(copy.SpecialActionTitle, copy.SpecialActionDescription,
@@ -1403,6 +1482,7 @@ namespace YC.Presentation
 
         private void OnBuildActionClicked()
         {
+            using var latency = InteractionLatencyTrace.Begin("local.open_build");
             var canBegin = CanBeginGameplayAction;
             var panel = turnActionPresenter.BuildActionPanelViewModel();
             if (panel.CanViewFacilitySupply && (!canBegin || !panel.CanBuild))
@@ -1441,7 +1521,7 @@ namespace YC.Presentation
             if (!buildDialogActive || turnActionPresenter == null) return;
             buildInfoPanel?.SetExternalFacilitySupplyVisible(false);
             if (turnActionPresenter.BuildInteraction.IsSubmissionInFlight) return;
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             var leaving = GameLaunchContext.Instance?.IsLeavingGameplay == true;
             // 联网核验期间的临时禁交不代表建设草稿失效，不能借刷新取消正式付款准备。
             if (state == null || leaving || state.CurrentPlayerId != localPlayerId ||
@@ -1488,7 +1568,7 @@ namespace YC.Presentation
         {
             if (uiShuttingDown || model == null || turnActionPresenter == null ||
                 !turnActionPresenter.BuildInteraction.IsActive || turnActionPresenter.BuildInteraction.DraftPlayerId != localPlayerId) return;
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             if (state == null || GameLaunchContext.Instance?.IsLeavingGameplay == true || state.CurrentPlayerId != localPlayerId ||
                 (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)) return;
             if (!buildDialogActive) { buildDialogActive = true; buildDialogGeneration++; }
@@ -1506,18 +1586,18 @@ namespace YC.Presentation
 
         private void PresentFacilitySupplyInspection()
         {
-            if (!supplyInspectionActive || UiReadState() == null) return;
+            if (!supplyInspectionActive || ReadUiStateWithTrace() == null) return;
             var owner = session;
             var player = localPlayerId;
             bool Current() => supplyInspectionActive && session == owner && localPlayerId == player &&
                 turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply;
             var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Selecting,
-                supplyInspectionCandidates.Query(UiReadState(), player), null, null, -1,
+                supplyInspectionCandidates.Query(ReadUiStateWithTrace(), player), null, null, -1,
                 string.Empty, string.Empty, null, _ => { }, supplyInspectionCandidates.IsDefaultSupplySet);
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
-            facilityBuildPage.RefreshSupplyStatus(UiReadState(), localPlayerId);
-            facilityBuildPage.Show(model, UiReadState().Map.Facilities.ToArray(), player,
+            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId);
+            facilityBuildPage.Show(model, ReadUiStateWithTrace().Map.Facilities.ToArray(), player,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
                 selectedBuildFacilityId, string.Empty, Current,
@@ -1540,7 +1620,7 @@ namespace YC.Presentation
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model == null) return;
             // 必要响应/异客分配暂用正式效果页；建设草稿留在原宿主，返回才刷新费用和按钮。
-            if (ActionPaymentPreparation.HasBlockingChoice(UiReadState(), localPlayerId)) return;
+            if (ActionPaymentPreparation.HasBlockingChoice(ReadUiStateWithTrace(), localPlayerId)) return;
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
             var owner = session;
@@ -1549,8 +1629,8 @@ namespace YC.Presentation
             gameplayInteractionHud.Frame.RegisterActionPage(facilityBuildPage.gameObject, generation.ToString(),
                 () => session == owner && localPlayerId == player && generation == buildDialogGeneration && IsCurrentBuildDialog(),
                 PresentBuildFacilityDialog);
-            facilityBuildPage.RefreshSupplyStatus(UiReadState(), localPlayerId);
-            facilityBuildPage.Show(model, UiReadState().Map.Facilities.ToArray(), localPlayerId,
+            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId);
+            facilityBuildPage.Show(model, ReadUiStateWithTrace().Map.Facilities.ToArray(), localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
                 selectedBuildFacilityId, BuildQuoteSummary(model), IsCurrentBuildDialog,
@@ -1592,7 +1672,7 @@ namespace YC.Presentation
 
         private bool IsCurrentBuildDialog()
         {
-            var state = UiReadState();
+            var state = ReadUiStateWithTrace();
             return buildDialogActive && state != null &&
                    HasLocalOperationPermission(state) &&
                    (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
@@ -1755,7 +1835,7 @@ namespace YC.Presentation
 
         private string GetPlayerDisplayName(int playerId)
         {
-            var player = UiReadState()?.FindPlayer(playerId);
+            var player = ReadUiStateWithTrace()?.FindPlayer(playerId);
             if (player == null)
             {
                 return playerId.ToString();
@@ -1772,7 +1852,7 @@ namespace YC.Presentation
         }
 
         private void RefreshResourceTokenDisplay() =>
-            mapView?.RefreshResourceTokenDisplay(UiReadState());
+            mapView?.RefreshResourceTokenDisplay(ReadUiStateWithTrace());
 
         private void ShowInitialPlacementChoices()
         {
@@ -1836,7 +1916,7 @@ namespace YC.Presentation
 
         private void RefreshCityViewsFromState()
         {
-            mapView.RefreshCityViewsFromState(UiReadState(), localPlayerId);
+            mapView.RefreshCityViewsFromState(ReadUiStateWithTrace(), localPlayerId);
         }
 
         private void RefreshFinalScoreFromState()
@@ -1844,7 +1924,7 @@ namespace YC.Presentation
             var finalScore = FindObjectOfType<FinalScoreController>();
             if (finalScore != null)
             {
-                finalScore.RefreshFromState(UiReadState());
+                finalScore.RefreshFromState(ReadUiStateWithTrace());
             }
         }
 
@@ -1890,14 +1970,14 @@ namespace YC.Presentation
         private void SetPrompt(GameplayTextDocument document, Func<bool> current)
         {
             if (uiShuttingDown) return;
-            var state = UiReadState(); var frame = gameplayInteractionHud?.Frame;
+            var state = ReadUiStateWithTrace(); var frame = gameplayInteractionHud?.Frame;
             if (state == null || frame == null || document == null) return;
             frame.BindGameplaySnapshot(VisibleSaleState());
             var game = state.GameId; var viewer = localPlayerId; var revision = state.EffectRuntime?.StateRevision ?? 0;
             var ownerSession = session; var content = state.ContentPackHash;
             frame.SetScopedInteractionMessageDocument(game, viewer, revision, document, () =>
-                session == ownerSession && UiReadState()?.GameId == game && localPlayerId == viewer &&
-                UiReadState().ContentPackHash == content && (UiReadState().EffectRuntime?.StateRevision ?? 0) == revision && current?.Invoke() != false);
+                session == ownerSession && ReadUiStateWithTrace()?.GameId == game && localPlayerId == viewer &&
+                ReadUiStateWithTrace().ContentPackHash == content && (ReadUiStateWithTrace().EffectRuntime?.StateRevision ?? 0) == revision && current?.Invoke() != false);
         }
 
         private bool uiShuttingDown;

@@ -181,7 +181,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 if (entityMode)
                     State = new ItemZoneStateFactory().CreateForSetup(source, Map, new List<ItemRecipeEntry>
                     {
-                        new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" },
+                        new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" },
                         new ItemRecipeEntry { EntryId = "companies", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = 3, InitialZoneRole = "company_markers" },
                         new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.component.city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
                         new ItemRecipeEntry { EntryId = "resource_a", DefinitionId = "core.component.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/A" },

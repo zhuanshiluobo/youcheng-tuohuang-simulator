@@ -59,5 +59,26 @@
       }
     ]
   },
-  "itemTypeId": "core.award_card"
+  "itemTypeId": "core.award_card",
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.award.permanent_support.cleanup",
+      "kind": "cleanup",
+      "handlerRef": "content.infected.award.permanent_support.cleanup",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "holder",
+      "effectiveZones": [
+        "core.zone.player_rewards"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.award.permanent_support.cleanup",
+      "actions": []
+    }
+  ]
 }

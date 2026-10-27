@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using YC.Domain.Cards;
 using YC.Domain.CardFlows;
@@ -53,6 +54,8 @@ namespace YC.Domain.Movement
             cardFlowService = new CardFlowService();
         }
 
+        public YC.Domain.Effects.EffectRegistry DestinationRegistry { get; set; }
+
         public ValidationResult CanMoveCity(
             GameState state,
             int playerId,
@@ -91,9 +94,17 @@ namespace YC.Domain.Movement
 
         /// <summary>Effect 内部校验普通移动规则；预算由外层行动支付，不把当前交互当成外部阻塞。</summary>
         public ValidationResult CanMoveCityEffect(GameState state, int playerId, string targetLocationId, bool waiveBaseCost)
-        {
-            return CanMoveCityCore(state, playerId, targetLocationId, -1, null, true, waiveBaseCost);
-        }
+            => CanMoveCityEffect(state, playerId, targetLocationId, waiveBaseCost, "");
+
+        public ValidationResult CanMoveCityEffect(GameState state, int playerId, string targetLocationId, bool waiveBaseCost,
+            string sourceEffectId, string purpose = "specified")
+            => CanMoveCityCore(state, playerId, targetLocationId, -1, null, true, waiveBaseCost, sourceEffectId, purpose);
+
+        private ValidationResult ValidateDestination(GameState state, int playerId, string target, string source, string purpose)
+            => new CityDestinationQueryService(mapQuery, DestinationRegistry).ValidateTarget(state,
+                new CityDestinationQuery(playerId, source, purpose, "standard",
+                    mapQuery.GetAdjacentLocations(state.FindPlayer(playerId).CityLocationId).Select(x => x.LocationId).ToArray()), target);
+
 
         public ValidationResult CanMoveCityForFacility(
             GameState state,
@@ -138,7 +149,7 @@ namespace YC.Domain.Movement
             int selectedOptionIndex,
             IReadOnlyList<string> eventInfluenceSlotIds,
             bool allowPendingEffect,
-            bool waiveBaseCost)
+            bool waiveBaseCost, string sourceEffectId = "", string destinationPurpose = "")
         {
             if (state == null)
             {
@@ -193,6 +204,10 @@ namespace YC.Domain.Movement
             {
                 return ValidationResult.Failure(CommandErrorCode.NoRoute, "目标地点与当前城市位置不相邻。");
             }
+
+            var admission = ValidateDestination(state, playerId, targetLocationId, sourceEffectId,
+                destinationPurpose.Length > 0 ? destinationPurpose : waiveBaseCost ? "free" : "ordinary");
+            if (!admission.IsValid) return admission;
 
             if (HasOpponentCityAtLocation(state, playerId, targetLocationId))
             {
@@ -391,7 +406,7 @@ namespace YC.Domain.Movement
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "免费突袭目标必须已有至少一个己方影响力。");
             }
 
-            return ValidationResult.Success;
+            return ValidateDestination(state, playerId, targetLocationId, "", "free");
         }
 
         public CityMovementResult RaidCityForCharacter(GameState state, int playerId, string targetLocationId)
@@ -402,6 +417,8 @@ namespace YC.Domain.Movement
                 return CityMovementResult.Failure(validation);
             }
 
+            var admission = ValidateDestination(state, playerId, targetLocationId, "", "free");
+            if (!admission.IsValid) return CityMovementResult.Failure(admission);
             var move = PerformBaseMove(state, playerId, targetLocationId, false);
             return CityMovementResult.Success(
                 move.SourceLocationId,
@@ -541,6 +558,8 @@ namespace YC.Domain.Movement
 
         private BaseMoveResult PerformBaseMove(GameState state, int playerId, string targetLocationId, bool payBaseCost = true)
         {
+            var admission = ValidateDestination(state, playerId, targetLocationId, "", payBaseCost ? "ordinary" : "free");
+            if (!admission.IsValid) throw new YC.Domain.Effects.KernelException("city_destination_commit_rejected", admission.Reason);
             var player = state.FindPlayer(playerId);
             var sourceLocationId = player.CityLocationId;
             var route = mapQuery.FindRoute(sourceLocationId, targetLocationId);

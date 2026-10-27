@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 2,
+  "locale": "zh-CN",
+  "messages": {
+    "core:entrepreneur.T.name": {
+      "parameters": {},
+      "template": "第五号企业家"
+    },
+    "core:entrepreneur.T.description": {
+      "parameters": {},
+      "template": "当你的影响力被[b]移除[/b]或[b]替换[/b]时，可将其放置在此牌上。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]收尾阶段任意次：[/b]移除此牌上3个标记[icon:core:syntax.condition][icon:core:rule.deploy]或获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.store.description": {
+      "parameters": {},
+      "template": "当你的影响力被[b]移除[/b]或[b]替换[/b]时，可将其放置在此牌上。"
+    },
+    "core:entrepreneur.T.store.prompt": {
+      "parameters": {},
+      "template": "你的影响力被移除或替换，是否将其放置在企业家能力牌上？"
+    },
+    "core:entrepreneur.T.store.accept": {
+      "parameters": {},
+      "template": "放置在此牌上"
+    },
+    "core:entrepreneur.T.store.decline": {
+      "parameters": {},
+      "template": "不放置在此牌上"
+    },
+    "core:entrepreneur.T.cleanup.label": {
+      "parameters": {},
+      "template": "企业家·[icon:core:rule.remove_card_marker][icon:core:rule.remove_card_marker][icon:core:rule.remove_card_marker]"
+    },
+    "core:entrepreneur.T.cleanup.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]收尾阶段任意次：[/b]移除此牌上3个标记[icon:core:syntax.condition][icon:core:rule.deploy]或获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.cleanup.unavailable": {
+      "parameters": {},
+      "template": "此牌上的标记不足3个。"
+    },
+    "core:entrepreneur.T.cleanup.payment.prompt": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove_card_marker][icon:core:rule.remove_card_marker][icon:core:rule.remove_card_marker][icon:core:syntax.condition][icon:core:rule.deploy]或获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.cleanup.reward.prompt": {
+      "parameters": {},
+      "template": "已移除此牌上3个标记。请选择一项：[icon:core:rule.deploy]或获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.cleanup.reward.place": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy]"
+    },
+    "core:entrepreneur.T.cleanup.reward.resource": {
+      "parameters": {},
+      "template": "获得1[icon:core:resource.pure_originium]"
+    },
+    "core:entrepreneur.T.T03.remove.prompt": {
+      "parameters": {},
+      "template": "选择并移除1个你的影响力。"
+    },
+    "core:entrepreneur.T.final.result": {
+      "parameters": {
+        "amount": "integer"
+      },
+      "template": "第五号企业家获得[icon:core:resource.score|value={amount}]。"
+    },
+    "core:entrepreneur.T.T07.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.T08.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.T.T05.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得1[icon:core:resource.pure_originium]。\n选择1家企业，[b]所有玩家[/b][icon:core:rule.enterprise_upgrade]。"
+    },
+    "core:entrepreneur.T.T06.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得18[icon:core:resource.gold_voucher]。\n选择1家企业，[b]所有玩家[/b][icon:core:rule.enterprise_upgrade]。"
+    },
+    "core:entrepreneur.T.T03.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]失去[icon:core:resource.score|value=2]，[icon:core:rule.operator_dispatch]。"
+    },
+    "core:entrepreneur.T.T03.immediate.2.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]移除1个你的影响力，获得2[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.T04.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]失去[icon:core:resource.score|value=2]，[icon:core:rule.operator_dispatch]。"
+    },
+    "core:entrepreneur.T.T04.immediate.2.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.deploy][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.T.T01.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.T.T02.immediate.1.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.deploy][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.T.T01.final.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]你每有4个[icon:core:resource.pure_originium]，额外获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.T.T02.final.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]你每控制1个区块，获得[icon:core:resource.score|value=2]。"
+    }
+  },
+  "assets": {},
+  "icons": []
+}

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using YC.Domain.Effects;
 using YC.Domain.CityStyles;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
@@ -16,6 +18,8 @@ namespace YC.Domain.SpecialActions
         private readonly CityMovementService movementService;
         private readonly SpecialActionLifecycleService lifecycleService;
         private readonly MainActionBudgetService mainActionBudgetService;
+        private EffectRegistry paymentRegistry;
+        public void BindPaymentRegistry(EffectRegistry registry) => paymentRegistry = registry ?? throw new ArgumentNullException(nameof(registry));
 
         public SpecialActionOptionQueryService(
             IMapQueryService mapQuery,
@@ -260,7 +264,7 @@ namespace YC.Domain.SpecialActions
                     break;
 
                 case SpecialActionEffectKind.CompositePowerMove:
-                    option.PaymentOptions = GetCompositePaymentOptions(player);
+                    if (!definition.BodyOwnsPayment) option.PaymentOptions = GetCompositePaymentOptions(player);
                     option.LegalMoveTargetIds = GetLegalFreeMoveTargetIds(state, player.PlayerId);
                     option.RequiredTargetCount = option.LegalMoveTargetIds.Count > 0 ? 1 : 0;
                     break;
@@ -316,7 +320,15 @@ namespace YC.Domain.SpecialActions
                 return "本玩家行动轮已使用角色牌，不能发动该特殊行动。";
             }
 
-            if (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove)
+            if (definition.BodyOwnsPayment)
+            {
+                if (paymentRegistry == null) return "付款预览尚未接入。";
+                var source = paymentRegistry.QuerySources(state, player.PlayerId, "special").FirstOrDefault(s => s.DefinitionId == definition.CityStyleId);
+                if (!ResourcePaymentCostPreview.TryDeclaredDemand(state, paymentRegistry, source, definition.SpecialActionId, out var demand, out var reason)) return reason;
+                var owner = new EffectNodeRuntimeState { EffectId = StableIdFactory.Create("style-payment-preview", source.SourceKey, definition.SpecialActionId), PlayerId = player.PlayerId, EffectTypeId = ResourceEffectTypeIds.Pay };
+                if (!ResourcePaymentCostPreview.TryFirstAllocation(state, paymentRegistry, owner, demand, out _, out _)) return "资源不足，无法支付本次完整费用。";
+            }
+            else if (definition.EffectKind == SpecialActionEffectKind.CompositePowerMove)
             {
                 if (option.PaymentOptions.Count == 0)
                 {

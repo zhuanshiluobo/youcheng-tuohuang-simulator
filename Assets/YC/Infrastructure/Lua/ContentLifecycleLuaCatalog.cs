@@ -13,8 +13,9 @@ namespace YC.Infrastructure.Lua
     public static class ContentLifecycleLuaCatalog
     {
         public static List<AwardContentDefinition> CreateAwards(ExternalContentPack pack) => pack.ActiveDefinitions.Where(d => d.ContentType == "award")
-            .Select(d => new AwardContentDefinition { DefinitionId = d.DefinitionId, Lifecycle = (string)d.Data["lifecycle"] ?? "",
-                TitleKey = (string)d.Data["titleKey"] ?? d.DisplayName, DescriptionKey = (string)d.Data["descriptionKey"] ?? "" }).ToList();
+            .Select(d => new AwardContentDefinition { DefinitionId = d.DefinitionId, Lifecycle = (string)d.Data["lifecycle"] ?? "", RandomAwardPool = (bool?)d.Data["randomAwardPool"] ?? true,
+                TitleKey = (string)d.Data["titleKey"] ?? d.DisplayName, DescriptionKey = (string)d.Data["descriptionKey"] ?? "", TypeId = d.ItemTypeId, DefinitionVersion = d.Version,
+                AcquisitionPolicy = (string)d.Data["acquisitionPolicy"] ?? "", CardZones = d.CardZones.Select(GameStateCloneService.DeepClone).ToList() }).ToList();
 
         public static void Register(EffectRegistry registry, ExternalContentPack pack)
         {
@@ -33,6 +34,7 @@ namespace YC.Infrastructure.Lua
                 registry.RegisterEventHandler(new EffectEventHandlerRegistration(ability.SubscriptionId, eventType,
                     content.ContentType == "award" ? content.DefinitionId : "", ability.SubscriptionId, context =>
                     {
+                        if (registry.HasAbilityCatalog && content.AbilitySources.Any(s => s.AbilityId == ability.AbilityId && (s.Kind == "quick" || s.Kind == "cleanup"))) return new List<EffectSpec>();
                         var ids = content.ContentType == "facility" ? Value(context.Event.Payload, "usedFacilityItemIds")?.Items.Select(v => v.StringValue).ToList() ?? new List<string>() :
                             new List<string> { Text(context.Event.Payload, content.ContentType == "city_style" ? "cityStyleItemId" : "rewardItemId") };
                         var effects = new List<EffectSpec>();
@@ -55,7 +57,8 @@ namespace YC.Infrastructure.Lua
             const string cleanupId = "content.reward.player_cleanup";
             if (!registry.HasEventHandler(cleanupId)) registry.RegisterEventHandler(new EffectEventHandlerRegistration(cleanupId, "PlayerCleanupStarted", "", cleanupId,
                 context => context.State.ItemZones.Items.Where(i => ContentLifecycleEffectExecutor.IsHeld(context.State, i, context.Event.PlayerId) &&
-                    context.State.ContentDefinitions.Awards.Any(d => d.DefinitionId == i.DefinitionId && d.Lifecycle == "persistent"))
+                    context.State.ContentDefinitions.Awards.Any(d => d.DefinitionId == i.DefinitionId && d.Lifecycle == "persistent") &&
+                    !(registry.HasAbilityCatalog && pack.ActiveDefinitions.Any(d => d.DefinitionId == i.DefinitionId && d.AbilitySources.Any(s => s.Kind == "cleanup"))))
                     .OrderBy(i => i.ItemId, StringComparer.Ordinal).Select(i =>
                     {
                         var root = ContentLifecycleEffectExecutor.AwardSpec(context.Event.PlayerId, i.ItemId, true);

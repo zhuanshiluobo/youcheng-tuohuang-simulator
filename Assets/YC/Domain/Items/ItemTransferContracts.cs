@@ -25,6 +25,7 @@ namespace YC.Domain.Items
         public string ItemId = string.Empty;
         public ItemPositionRef From = new ItemPositionRef(), To = new ItemPositionRef();
     }
+    [Serializable]
     public sealed class ItemTransferResult
     {
         public bool Changed;

@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_city_construction_frontier",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "城建开拓区",
   "expansionId": "enterprise",
   "replaces": null,
@@ -95,5 +95,109 @@
     "luaCompletionHandlerId": "city_style_city_construction_frontier.special.complete",
     "luaVersion": "1.0.0",
     "effectScript": "lua/city_styles/city_style_city_construction_frontier.special.lua"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "city_style_city_construction_frontier.special",
+      "kind": "special",
+      "handlerRef": "content.city_style_city_construction_frontier.special",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "public_declaration",
+      "effectiveZones": [
+        "core.zone.city_style_display"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "city_style_city_construction_frontier",
+      "actions": [
+        {
+          "actionId": "special_action.city_style.city_construction_frontier",
+          "entryKind": "special",
+          "bodyHandlerRef": "content.city_style_city_construction_frontier.special",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.city_style_city_construction_frontier",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "host.legacy_style.v1",
+          "sortOrder": 200,
+          "presentationRef": "city_style_city_construction_frontier"
+        }
+      ]
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "content.city_style_city_construction_frontier.special",
+      "script": "lua/city_styles/city_style_city_construction_frontier.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "city_style_city_construction_frontier.special.complete"
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.city_style_city_construction_frontier",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "public_declaration",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
 }

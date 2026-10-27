@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.hellagur",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "displayName": "赫拉格",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.hellagur.strategy",
       "script": "lua/characters/infected.character.hellagur.strategy.lua",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "completionHandlerId": "",
       "cleanupScript": "lua/characters/infected.character.hellagur.strategy.lua",
       "hasSpecialZone": false,
@@ -78,5 +78,57 @@
         "displayName": "赫拉格"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.hellagur.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.hellagur",
+      "actions": [
+        {
+          "actionId": "infected.character.hellagur.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.hellagur",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.hellagur"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

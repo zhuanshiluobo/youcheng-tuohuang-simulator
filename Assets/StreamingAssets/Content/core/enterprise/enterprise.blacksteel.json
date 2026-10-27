@@ -1,7 +1,7 @@
 {
   "definitionId": "enterprise.blacksteel",
   "contentType": "enterprise",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "displayName": "黑钢国际",
   "expansionId": "enterprise",
   "replaces": null,
@@ -72,7 +72,7 @@
       "skillType": "normal",
       "subscriptionId": "content.enterprise.blacksteel.level_4.special",
       "script": "lua/enterprises/enterprise.blacksteel.level_4.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,

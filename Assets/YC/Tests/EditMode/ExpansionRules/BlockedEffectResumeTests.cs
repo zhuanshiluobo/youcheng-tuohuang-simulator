@@ -34,7 +34,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             };
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, new List<ItemRecipeEntry>
             {
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "resource", DefinitionId = "core.component.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/A-01" }
             });
             state.Map.OpenLocationIds.Add("A-01");

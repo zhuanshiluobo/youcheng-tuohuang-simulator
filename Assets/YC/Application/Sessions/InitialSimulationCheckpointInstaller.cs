@@ -101,7 +101,8 @@ namespace YC.Application.Sessions
                     prepared = GameStateCloneService.DeepClone(initialState);
                     GameStateCloneService.CopyTo(prepared, restored);
                     GameStateViewProjector.Project(prepared, viewer, viewer.Role == GameStateViewerRole.Player
-                        ? registry.GetSettlementOptions(prepared, viewer.PlayerId) : null);
+                        ? registry.GetSettlementOptions(prepared, viewer.PlayerId) : null,
+                        registry.HasAbilityCatalog && viewer.Role == GameStateViewerRole.Player ? registry.QueryActions(prepared, viewer.PlayerId) : null, registry);
                 }
                 catch (Exception exception) when (!(exception is OutOfMemoryException))
                 { return Fail(checkpointId, digest, "checkpoint_preparation_failed", exception.Message, out result); }

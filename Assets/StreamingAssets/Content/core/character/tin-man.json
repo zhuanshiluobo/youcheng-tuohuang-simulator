@@ -43,5 +43,57 @@
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "character_003"
+  "artworkSpriteId": "character_003",
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "tin-man.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "tin-man",
+      "actions": [
+        {
+          "actionId": "tin-man.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "tin-man",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "tin-man"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

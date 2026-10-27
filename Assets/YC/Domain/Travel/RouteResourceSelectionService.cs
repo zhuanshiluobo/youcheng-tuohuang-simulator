@@ -8,6 +8,7 @@ using YC.Domain.Commands;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Influence;
+using YC.Domain.Harvest;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -17,7 +18,9 @@ namespace YC.Domain.Travel
     public sealed class RouteResourceSelectionService : IRouteResourceSelectionService
     {
         private readonly IMapQueryService configuredMap;
+        private readonly EffectRegistry queryRegistry;
         public RouteResourceSelectionService(IMapQueryService mapQuery = null) { configuredMap = mapQuery; }
+        public RouteResourceSelectionService(IMapQueryService mapQuery, EffectRegistry registry) { configuredMap = mapQuery; queryRegistry = registry; }
         internal IMapQueryService Map(GameState state) { return configuredMap ?? new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)); }
 
         /// <summary>只创建本地预览值；不安装权威会话、请求或资金占用。</summary>
@@ -104,7 +107,29 @@ namespace YC.Domain.Travel
             foreach (string id in selectableLocationIds) if (id == null || !upper.Contains(id) || !input.Add(id)) return Failed(result, "route_selection_input_outside_upper_bound");
             var map = Map(state);
             var facts = new RouteTollService(map).ReadRouteFacts(state, session.PlayerId);
-            var graph = QueryGraph(map, facts, session.StartLocationId, draft.ConfirmedRouteIds, selectableLocationIds, draft.SelectedLocationIds, draft.ConfirmEmptySelection);
+            CollectionPartition partition = null;
+            var routeEligible = selectableLocationIds;
+            var routeSelected = draft.SelectedLocationIds;
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                var valid = CollectionPlanService.ValidateCurrent(state, map, session, selectableLocationIds, session.CollectionFreeLocations);
+                if (!valid.IsValid) return Failed(result, valid.Reason);
+                try { partition = CollectionPlanService.Partition(draft.SelectedLocationIds, session.CollectionFreeLocations); }
+                catch (ArgumentException) { return Failed(result, "collection_plan_selection_invalid"); }
+                routeEligible = Array.AsReadOnly(selectableLocationIds.Where(id => !session.CollectionFreeLocations.FreeLocationIds.Contains(id)).ToArray());
+                routeSelected = partition.RouteRequiredLocationIds;
+                result.CollectionFreeLocations = session.CollectionFreeLocations;
+            }
+            var graph = QueryGraph(map, facts, session.StartLocationId, draft.ConfirmedRouteIds, routeEligible, routeSelected, draft.ConfirmEmptySelection);
+            if (partition != null && draft.SelectedLocationIds.Count > 0 && routeSelected.Count == 0 && graph.IsValid)
+            {
+                // 图的零需求不是玩家的空采集：S仍完整保留，且不改变ConfirmEmptySelection。
+                graph.HasFinalPlan = true;
+                graph.PrunedRouteIds = graph.OriginalConfirmedRouteIds;
+                graph.PrunedFreeRouteIds = graph.AutomaticallySelectedFreeRouteIds;
+                graph.EffectiveRouteIds = Array.Empty<string>(); graph.ChargeRouteIds = Array.Empty<string>();
+                graph.FinalGoldVoucherAmount = 0;
+            }
             result.ReachableLocationIds = graph.ReachableLocationIds;
             result.AutomaticallySelectedFreeRouteIds = graph.AutomaticallySelectedFreeRouteIds;
             result.ProvisionalGoldVoucherAmount = graph.ProvisionalGoldVoucherAmount;
@@ -130,7 +155,7 @@ namespace YC.Domain.Travel
             var previewReachable = new HashSet<string>(witness.Select(link => link.LocationId), StringComparer.Ordinal);
             if (graph.HasFinalPlan) previewReachable.Add(session.StartLocationId);
             var locationOptions = new List<RouteSelectionLocationOption>();
-            foreach (string id in selectableLocationIds) locationOptions.Add(new RouteSelectionLocationOption { LocationId = id, IsSelected = selected.Contains(id), IsReachableInOriginalDraft = reachable.Contains(id), IsReachableInPreview = previewReachable.Contains(id) });
+            foreach (string id in selectableLocationIds) locationOptions.Add(new RouteSelectionLocationOption { LocationId = id, IsSelected = selected.Contains(id), IsReachableInOriginalDraft = reachable.Contains(id), IsReachableInPreview = previewReachable.Contains(id), IsFreeCollection = partition != null && session.CollectionFreeLocations.FreeLocationIds.Contains(id) });
             result.LocationOptions = locationOptions.AsReadOnly();
             if (!graph.IsValid) return Failed(result, graph.Diagnostic);
             if (!graph.HasFinalPlan) return result;
@@ -157,7 +182,7 @@ namespace YC.Domain.Travel
                 lines.Add(new RouteTollPlanLine { RouteId = routeId, ReceiverSubjectKey = subject, GoldVoucherAmount = fact.TollGoldVoucherAmount });
             }
             if (available < graph.FinalGoldVoucherAmount) validation = ValidationResult.Failure(CommandErrorCode.InsufficientResource, "开始金券或当前可用金券不足。");
-            var preview = new RouteSelectionPreview { ScopeKey = session.ActiveRequestBinding?.ScopeKey ?? "", SelectedLocationIds = Copy(draft.SelectedLocationIds),
+            var preview = new RouteSelectionPreview { ScopeKey = session.ActiveRequestBinding?.ScopeKey ?? "", SelectedLocationIds = Copy(draft.SelectedLocationIds), Collection = partition,
                 OriginalConfirmedRouteIds = graph.OriginalConfirmedRouteIds, PrunedRouteIds = graph.PrunedRouteIds, EffectiveRouteIds = graph.EffectiveRouteIds,
                 ChargeRouteIds = graph.ChargeRouteIds, PrunedFreeRouteIds = graph.PrunedFreeRouteIds, ConnectivityWitness = witness,
                 PaymentPlan = new RouteTollPlan { Lines = lines.AsReadOnly(), TotalGoldVoucherAmount = graph.FinalGoldVoucherAmount }, FinalizationValidation = validation,
@@ -207,6 +232,17 @@ namespace YC.Domain.Travel
             var validation = TryValidatePlan(state, session, requestBinding, draft, selectableLocationIds, out var preview);
             if (!validation.IsValid) return validation;
             if (state.EffectRuntime == null) return Invalid("route_selection_host_runtime_required");
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                try
+                {
+                    var current = new CollectionFreeLocationQuery(queryRegistry, Map(state)).Query(state,
+                        CollectionPlanService.Context(state, session, selectableLocationIds));
+                    if (current.ResultDigest != preview.Collection.FreeLocations.ResultDigest) return Invalid("collection_free_facts_changed");
+                }
+                catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
+                { return Invalid(error.Message); }
+            }
             commitment = new RouteSelectionCommitment { CommitmentId = StableIdFactory.Create("route_selection_commitment", session.SessionId, preview.PlanDigest),
                 SessionId = session.SessionId, OwnerEffectId = session.OwnerEffectId, PlayerId = session.PlayerId, AcceptedAtStateRevision = state.EffectRuntime.StateRevision,
                 BudgetBindingId = session.BudgetBindingId, AcceptedPreview = preview };
@@ -266,6 +302,13 @@ namespace YC.Domain.Travel
                 fields.Add(influence.OwnerSubject?.SubjectType ?? ""); fields.Add(influence.OwnerSubject?.InstanceId ?? "");
             }
             fields.Add(state.FindPlayer(session.PlayerId)?.HasCollectedResourcesThisRound.ToString() ?? "");
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                fields.Add("collection.plan.v2");
+                fields.Add(CollectionFreeLocationQuery.FactsDigest(state, CollectionPlanService.Context(state, session, selectable), map,
+                    session.CollectionFreeLocations?.QuerySources.Select(s => s.SourceRef).ToArray()));
+                fields.Add(session.CollectionFreeLocations?.ResultDigest ?? "");
+            }
             return Hash(fields);
         }
 
@@ -277,13 +320,28 @@ namespace YC.Domain.Travel
         internal static string PlanDigest(RouteSelectionSession session, RouteSelectionPreview preview)
         {
             var fields = new List<string> { "route_selection.v1", preview.ScopeKey, session.SessionId, session.MapId, session.StartLocationId, session.BudgetBindingId, session.StartGoldVoucherAmount.ToString(CultureInfo.InvariantCulture) };
-            AddList(fields, "targets", preview.SelectedLocationIds); AddList(fields, "original", preview.OriginalConfirmedRouteIds); AddList(fields, "pruned", preview.PrunedRouteIds);
-            AddList(fields, "effective", preview.EffectiveRouteIds); AddList(fields, "charge", preview.ChargeRouteIds); AddList(fields, "prunedFree", preview.PrunedFreeRouteIds);
+            AddList(fields, "targets", DigestIds(session, preview.SelectedLocationIds)); AddList(fields, "original", DigestIds(session, preview.OriginalConfirmedRouteIds)); AddList(fields, "pruned", DigestIds(session, preview.PrunedRouteIds));
+            AddList(fields, "effective", DigestIds(session, preview.EffectiveRouteIds)); AddList(fields, "charge", DigestIds(session, preview.ChargeRouteIds)); AddList(fields, "prunedFree", DigestIds(session, preview.PrunedFreeRouteIds));
             fields.Add("paymentLines"); fields.Add(preview.PaymentPlan.Lines.Count.ToString(CultureInfo.InvariantCulture));
-            foreach (var line in preview.PaymentPlan.Lines) { fields.Add(line.RouteId); fields.Add(line.ReceiverSubjectKey); fields.Add(line.GoldVoucherAmount.ToString(CultureInfo.InvariantCulture)); }
+            IEnumerable<RouteTollPlanLine> paymentLines = preview.PaymentPlan.Lines;
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion) paymentLines = paymentLines.OrderBy(l => l.RouteId, StringComparer.Ordinal);
+            foreach (var line in paymentLines) { fields.Add(line.RouteId); fields.Add(line.ReceiverSubjectKey); fields.Add(line.GoldVoucherAmount.ToString(CultureInfo.InvariantCulture)); }
             fields.Add(preview.PaymentPlan.TotalGoldVoucherAmount.ToString(CultureInfo.InvariantCulture));
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                fields.Add("collection.plan.v2"); fields.Add(preview.Collection?.FreeLocations.ResultDigest ?? "");
+                if (preview.Collection != null)
+                {
+                    AddList(fields, "selectedFree", DigestIds(session, preview.Collection.SelectedFreeLocationIds));
+                    AddList(fields, "routeRequired", DigestIds(session, preview.Collection.RouteRequiredLocationIds));
+                }
+            }
             return Hash(fields);
         }
+
+        private static IReadOnlyList<string> DigestIds(RouteSelectionSession session, IReadOnlyList<string> ids)
+            => session.SchemaVersion == CollectionPlanService.ProtocolVersion
+                ? Array.AsReadOnly(ids.OrderBy(x => x, StringComparer.Ordinal).ToArray()) : ids;
 
         private static void AddList(List<string> fields, string name, IReadOnlyList<string> values)
         {

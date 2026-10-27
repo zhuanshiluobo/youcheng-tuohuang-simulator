@@ -11,6 +11,8 @@ namespace YC.Domain.Cards
     {
         public string WindowId = string.Empty, LocalId = string.Empty, EntryKind = string.Empty, TargetEffectId = string.Empty, SettlementState = string.Empty;
         public long RegistrationSequence;
+        public YC.Domain.Effects.CleanupSourceRequestRef CleanupRequest;
+        public string RepeatPolicy = "once", ActiveInvocationId = "";
         public bool CanDeclineWholeEffect;
         public YC.Domain.Presentation.SettlementPresentationDefinition Presentation;
         public string SourceDefinitionId = string.Empty;

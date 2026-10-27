@@ -106,13 +106,24 @@ namespace YC.Presentation
         private GameState UiReadState()
         {
             if (session == null) return null;
-            if (ShouldControlCurrentPlayerLocally()) return session.State;
+            if (ShouldControlCurrentPlayerLocally())
+            {
+                if (InteractionLatencyTrace.Enabled) traceUiLocalDirectHits++;
+                return session.State;
+            }
             var view = VisibleSaleState();
             var simulation = commandSubmission?.UsesDeterministicSimulation == true ? commandSubmission.PublishedState : session.State;
             if (view == null || simulation == null) return null;
             if (ReferenceEquals(uiReadView, view) && ReferenceEquals(uiReadSession, session) &&
-                ReferenceEquals(uiReadSimulationState, simulation)) return uiReadState;
-            var projected = PlayerUiReadStateFactory.Create(simulation, view, localPlayerId);
+                ReferenceEquals(uiReadSimulationState, simulation))
+            {
+                if (InteractionLatencyTrace.Enabled) traceUiCacheHits++;
+                return uiReadState;
+            }
+            GameState projected;
+            using (InteractionLatencyTrace.Begin("ui.compat_state.create"))
+                projected = PlayerUiReadStateFactory.Create(simulation, view, localPlayerId);
+            if (InteractionLatencyTrace.Enabled) traceUiCreationHits++;
             uiReadSession = session;
             uiReadView = view;
             uiReadSimulationState = simulation;
@@ -156,27 +167,37 @@ namespace YC.Presentation
 
         private Func<bool> CreateVisibleSnapshotGuard(GameStateView snapshot)
         {
+            if (snapshot == null || session == null) return () => false;
             var boundSession = session;
-            var simulated = commandSubmission?.UsesDeterministicSimulation == true;
-            var boundState = simulated ? commandSubmission.PublishedState : session?.State;
-            var boundView = simulated ? commandSubmission.PublishedView : session?.View;
+            var boundSubmission = commandSubmission;
+            var boundLaunch = GameLaunchContext.Instance;
+            var launchMode = boundLaunch?.Mode;
+            var localRead = ShouldControlCurrentPlayerLocally();
+            var simulated = boundSubmission?.UsesDeterministicSimulation == true;
+            var boundView = simulated ? boundSubmission.PublishedView : boundSession.View;
+            var boundState = simulated ? boundSubmission.PublishedState : boundSession.State;
+            if (boundState == null || simulated && boundView == null) return () => false;
             var viewer = localPlayerId;
-            var gameId = snapshot?.GameId;
-            var revision = snapshot?.StateRevision ?? -1;
-            if (!ShouldControlCurrentPlayerLocally())
-                return () => snapshot != null && ReferenceEquals(session, boundSession) &&
-                    ReferenceEquals(simulated ? commandSubmission?.PublishedState : session?.State, boundState) && viewer == localPlayerId &&
+            var gameId = snapshot.GameId;
+            var contentHash = snapshot.ContentPackHash;
+            var revision = snapshot.StateRevision;
+            return () =>
+            {
+                // 必须先核读取来源，再碰State；旧同步分支不能跨入尚未发表的后台会话。
+                if (!ReferenceEquals(session, boundSession) || !ReferenceEquals(commandSubmission, boundSubmission) ||
+                    !ReferenceEquals(GameLaunchContext.Instance, boundLaunch) || boundLaunch?.Mode != launchMode ||
+                    boundLaunch?.IsLeavingGameplay == true || localRead != ShouldControlCurrentPlayerLocally() ||
+                    simulated != (commandSubmission?.UsesDeterministicSimulation == true) || viewer != localPlayerId)
+                    return false;
+                var currentView = simulated ? boundSubmission.PublishedView : boundSession.View;
+                if (!ReferenceEquals(currentView, boundView) ||
+                    !(snapshot.GameId == gameId && snapshot.ContentPackHash == contentHash && snapshot.StateRevision == revision &&
                     snapshot.ViewerRole == GameStateViewerRole.Player && snapshot.ViewerPlayerId == viewer &&
-                    VisibleSaleState()?.GameId == gameId && VisibleSaleState()?.StateRevision == revision &&
-                    VisibleSaleState()?.ContentPackHash == snapshot.ContentPackHash;
-            return () => snapshot != null && ReferenceEquals(session, boundSession) &&
-                viewer == localPlayerId && snapshot.ViewerRole == GameStateViewerRole.Player &&
-                snapshot.ViewerPlayerId == viewer &&
-                (boundView != null
-                    ? ReferenceEquals(session?.View, boundView) && ReferenceEquals(snapshot, boundView) &&
-                        boundView.GameId == gameId && boundView.StateRevision == revision
-                    : session?.View == null && boundState != null && ReferenceEquals(session?.State, boundState) &&
-                        boundState.GameId == gameId && (boundState.EffectRuntime?.StateRevision ?? 0) == revision);
+                    (boundView != null ? ReferenceEquals(snapshot, boundView) : localRead))) return false;
+                var currentState = simulated ? boundSubmission.PublishedState : boundSession.State;
+                return ReferenceEquals(currentState, boundState) && currentState.GameId == gameId &&
+                    currentState.ContentPackHash == contentHash && (currentState.EffectRuntime?.StateRevision ?? 0) == revision;
+            };
         }
 
         private GameStateView VisibleSaleState()
@@ -193,6 +214,7 @@ namespace YC.Presentation
             if (state == null) return null;
             if (visibleReadDepth == 0)
             {
+                using var measurement = UiRegressionMetrics.Measure("hud.projection");
                 using (PlayerProjectionMarker.Auto()) return session.ProjectFor(GameStateViewer.Player(localPlayerId));
             }
             if (visibleReadProjection == null || !ReferenceEquals(visibleReadState, state) ||
@@ -201,6 +223,7 @@ namespace YC.Presentation
                 visibleReadState = state;
                 visibleReadRevision = state.EffectRuntime?.StateRevision ?? 0;
                 visibleReadPlayer = localPlayerId;
+                using var measurement = UiRegressionMetrics.Measure("hud.projection");
                 using (PlayerProjectionMarker.Auto()) visibleReadProjection = session.ProjectFor(GameStateViewer.Player(localPlayerId));
             }
             return visibleReadProjection;

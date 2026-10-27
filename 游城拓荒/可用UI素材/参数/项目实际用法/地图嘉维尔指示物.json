@@ -1,0 +1,110 @@
+{
+  "date": "2026-10-24",
+  "version": "1.0.0",
+  "usageStandard": "M05",
+  "source": "G:\\NoMadCity\\游城拓荒\\感染者扩\\httpssteamusercontentaakamaihdnetugc2411202693614576918BFE11BD2F41D145B50F2DE32A0FACEFE29542B4C.png",
+  "sha256": "f8df52b2b912393f07f8f936b1d04e9872298663ca7de158e695dd761b2f361c",
+  "image": {
+    "width": 500,
+    "height": 500,
+    "format": "RGBA8",
+    "alphaExtrema": [
+      0,
+      255
+    ],
+    "preserveOriginalBytes": true,
+    "crop": "无，完整原图",
+    "processing": "未裁切/重绘/去背"
+  },
+  "actualCatalogPath": "资产/地图指示物/嘉维尔/GavialMapToken.png",
+  "unityPath": "Assets/YC/Presentation/Sprites/Map/MapTokens/GavialMapToken.png",
+  "guid": "3805e45d28a543b19791b379c40a1ae6",
+  "fileID": 21300000,
+  "importer": {
+    "spriteMode": "Single",
+    "spriteMeshType": 0,
+    "PPU": 500,
+    "border": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "filter": "Bilinear",
+    "wrap": "Clamp",
+    "sRGB": true,
+    "mipMap": false,
+    "NPOTScale": "None",
+    "compression": "None",
+    "maxSize": 512,
+    "alpha": true
+  },
+  "actualBinding": {
+    "hud": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "field": "mapGavialTokenTemplate",
+    "prefab": "Assets/YC/Presentation/Prefabs/Map/Pieces/GavialMapToken.prefab",
+    "prefabGuid": "d19e0b7fbb504329a867182117192208",
+    "spriteRendererFileID": 3921717631760470725,
+    "wholeSpriteLocalSize": [
+      1,
+      1
+    ],
+    "localScale": [
+      1.8,
+      1.8,
+      1
+    ],
+    "localOffset": [
+      0,
+      0,
+      -0.45
+    ],
+    "sharedCityVisualOffset": [
+      1,
+      0,
+      0
+    ],
+    "anchor": "MapCoordinateSpace.Layout.Locations[真实LocationId].NormalizedPosition，和MapViewPresenter.MoveCityView相同",
+    "scaleBasis": "500像素/PPU500=1局部单位，模板等比1.8；首版1.0人物整图过小，经实际原生图改为1.8。同停靠点存在移动城市时向右1单位，仅视觉分离，避开左侧影响力槽/资源点。",
+    "renderMaterial": "现有Sprites-Default，白色、不染原图",
+    "sortingOrder": 25,
+    "renderedLocalSize": [
+      1.8,
+      1.8
+    ]
+  },
+  "companyInspectTarget": {
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/CompanyMarkerInspectTarget.prefab",
+    "prefabGuid": "f12d75a053314d7d9e562025cf75122d",
+    "buttonFileID": 825831507600009001,
+    "kind": "透明Image/Button，无Text",
+    "size": [
+      110,
+      24
+    ],
+    "anchorOffset": [
+      0,
+      24
+    ],
+    "purpose": "保持旧地图公司详情命中区域及查看处理器；可见方块仍由原地图实体层显示"
+  },
+  "nativeVerification": {
+    "status": "两实际场景有限原生检查通过；非正常对局/最终包验收",
+    "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-003-MAP-TOKEN-LABELS-AND-GAVIAL-ART-R3/原生组件/a003/原生组件结果.json",
+    "scenes": [
+      "Assets/Scenes/SampleScene.unity",
+      "Assets/Scenes/ThreePlayerScene.unity"
+    ],
+    "locationAnchors": 40,
+    "finalScale": [
+      1.8,
+      1.8,
+      1
+    ],
+    "sourceProjectionUnchanged": true,
+    "companyTextComponents": 0,
+    "gavialTextComponents": 0,
+    "lockLabelPreserved": true,
+    "scope": "内存投影输入和原生RenderTexture组件图，不是正常菜单建房/开局或永久token可移动的玩法验收"
+  }
+}

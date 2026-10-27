@@ -1,0 +1,200 @@
+{
+  "unityStarted": false,
+  "commitOrPushPerformed": false,
+  "mapping": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\历史\\20261028整理前\\原路径映射.json",
+  "rulings": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\01-依据审校与差异处置.md",
+  "integrity": {
+    "originalFiles": 246,
+    "originalMarkdown": 239,
+    "currentTopMarkdown": 10,
+    "allOriginalBytesVerified": true,
+    "integrityFailures": [],
+    "currentBrokenLinks": [],
+    "historicalMissingTargets": [],
+    "restrictedLinksNotAccessed": 0,
+    "tasks": 19,
+    "implementationRecordsMovedOrEdited": false,
+    "rawArchiveAccessed": false
+  },
+  "task": "2026-10-28 QY工作文档精简合并与Git提交前准备",
+  "authorization": {
+    "threadId": "01a15550-c884-7973-95d3-b723733059e9",
+    "userMessageId": "01a17e75-7b57-7100-bee3-49990992209f",
+    "verifiedUserRequest": "精简与合并QY工作文档、构建新安装包、上传txym、登记五类待移除",
+    "thisTaskScope": "仅文档及Git清单；根待017整轮结束后另派提交"
+  },
+  "restrictedRawUiAccessed": false,
+  "buildDirectoriesReadOrMoved": false,
+  "gitPreparation": {
+    "preparedAt": "2026-10-28T02:06:27.919327+08:00",
+    "included": 1769,
+    "excludedExplicit": 1,
+    "trackedChangesIncluded": 361,
+    "sensitiveOutputContainsValues": false,
+    "staged": false,
+    "committed": false,
+    "pushed": false,
+    "large50MiB": 0,
+    "lfsCount": 0,
+    "includedBytes": 115924844,
+    "note": "本清单只读准备，017完成后需重新核源身份与工作区新增变化；整理输出自身不锁固定SHA，避免自引用。"
+  },
+  "historicalLinkAdjustments": 43.0,
+  "evidenceDirectoriesTouched": false,
+  "taskStates": [
+    {
+      "id": "QY-001",
+      "title": "依据审校与通用合同定稿",
+      "status": "原定合同交付",
+      "summary": "依据、规则与通用合同已定稿；合同审查不代表游戏全验收。"
+    },
+    {
+      "id": "QY-002",
+      "title": "统一能力来源与声明式行动入口",
+      "status": "原定实现主体交付",
+      "summary": "统一能力来源、声明行动及部署库存边界已有源码/有限验证；正常页面缺口归019。"
+    },
+    {
+      "id": "QY-003",
+      "title": "区域命名、真实使用轨道与Cube颜色",
+      "status": "原定实现主体交付",
+      "summary": "区域、轨道、颜色及地图标记已实现；R3原生/共存截图有限，不追认所有正常页面。"
+    },
+    {
+      "id": "QY-004",
+      "title": "模式、正式定义与选人选面流程",
+      "status": "原定实现主体交付",
+      "summary": "模式、定义、选人选面已实现；R18/R22/R23有正常内存样本，R23整份测量合同并非全过。"
+    },
+    {
+      "id": "QY-005",
+      "title": "能力载体与足额标记转移",
+      "status": "原定实现主体交付",
+      "summary": "载体/标记转移已实现，LoadCardMarkers于R17/R18正式退役；R19测试初始化补正有限收口。"
+    },
+    {
+      "id": "QY-006",
+      "title": "真实离场、独立收容与挂链改写",
+      "status": "原定实现主体交付",
+      "summary": "离场、独立收容、挂链及响应时点已有有限/恢复验证；不能据此冒正常完整局通过。"
+    },
+    {
+      "id": "QY-007",
+      "title": "合计资源与多来源付款",
+      "status": "原定实现主体交付；最新增量有限验证",
+      "summary": "合计资源/多来源付款已实现；多萝西组合选择源码已交付，有限真实Lua解析/续接验证，未实跑物品移动或界面。"
+    },
+    {
+      "id": "QY-008",
+      "title": "可重复收尾来源与窗口关闭",
+      "status": "原定实现主体交付",
+      "summary": "收尾来源、窗口执行及保存改动已交付；保存内存改进经004 R18/R22/R23正常样本，联机最终验收未闭合。"
+    },
+    {
+      "id": "QY-009",
+      "title": "免费采集计划与城市目的地",
+      "status": "原定实现主体交付",
+      "summary": "免费采集、城市目的地及角色逐枚标记移动已实现；保有限验证与正常覆盖之别。"
+    },
+    {
+      "id": "QY-010",
+      "title": "设施分层、建设与执行对象",
+      "status": "原定实现主体交付",
+      "summary": "设施分层、建设对象及查询复用已实现；有限结果不能声称秒级建设卡顿已消失。"
+    },
+    {
+      "id": "QY-011",
+      "title": "终局框架、区控修正与合约Lua迁移",
+      "status": "原定实现主体交付",
+      "summary": "终局、区控与合约Lua迁移已有交付；仍需最终正常终局/联机覆盖。"
+    },
+    {
+      "id": "QY-012",
+      "title": "第五号能力与八面Lua内容",
+      "status": "原定内容主体交付",
+      "summary": "第五号能力/八面Lua及文案已交付；未覆盖正常卡面场景继续列缺口。"
+    },
+    {
+      "id": "QY-013",
+      "title": "艾格尼丝共用指令与战术Lua内容",
+      "status": "原定内容主体交付",
+      "summary": "艾格尼丝正文/战术/指令与逐枚移动已交付，有限/恢复验证；正常页面未全覆盖。"
+    },
+    {
+      "id": "QY-014",
+      "title": "蒂亚戈投资、声望与八面Lua内容",
+      "status": "原定内容主体交付",
+      "summary": "蒂亚戈投资/声望/八面Lua及沙箱补正已交付；正常页面未全覆盖。"
+    },
+    {
+      "id": "QY-015",
+      "title": "保罗帮派、分享与八面Lua内容",
+      "status": "原定内容主体交付",
+      "summary": "保罗帮派/分享/八面Lua与原主修正已交付；正常页面未全覆盖。"
+    },
+    {
+      "id": "QY-016",
+      "title": "马丁图纸、奖励与设施Lua内容",
+      "status": "原定内容主体交付",
+      "summary": "马丁图纸/奖励/设施Lua与付款插入已交付；原失败和后继核验各留证，不冒整局通过。"
+    },
+    {
+      "id": "QY-017",
+      "title": "既定页面链路、素材绑定与表现接入",
+      "status": "UI主体交付；本轮新包构建中",
+      "summary": "正常页面覆盖未闭合；2026-10-28新授权构建安装包，旧“无打包授权/不再派017”不再有效。最终包结果待017交接。"
+    },
+    {
+      "id": "QY-018",
+      "title": "版本迁移、联机恢复与交叉回归",
+      "status": "技术迁移/恢复/回归交付；最终联机未闭合",
+      "summary": "离局卡图释放有R23正常数据；技术交叉回归与019整局验收分开，不重复计通过。"
+    },
+    {
+      "id": "QY-019",
+      "title": "正常多局验收与交付核账",
+      "status": "用户暂停；整局未完成",
+      "summary": "R30四端本地联机至第5回合收尾。auto-3确认506/SourceEpoch4→目标Epoch5；保存点不等同本地末尾511。"
+    }
+  ],
+  "remote": {
+    "ahead": 0,
+    "tracking": "origin/txym",
+    "branch": "txym",
+    "mainMerged": false,
+    "head": "1bc3a5e3b3684659225cb9e255c836e8b6bd4020",
+    "fetchSucceeded": true,
+    "mainUpdatedTo": "0293d99f",
+    "writeAuthenticationTested": false,
+    "behind": 0
+  },
+  "pending": [
+    "017新安装包最终结果、包/内容身份及构建后新增变化，未读在途记录；结束后根另行安排提交",
+    "019/qy继续暂停；017正常页面、018最终联机、019完整局未闭合",
+    "秒级点击/建设/采集等待未解决，长正文容量用户暂缓",
+    "五类移除只登记，未删生产源码/资产/测试；LoadCardMarkers退役后的旧测试调用已列明",
+    "根目录-.png已有删除来源待核，未回退且未默认纳入清单"
+  ],
+  "todos": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\04-高风险语义与回归清单.md",
+  "gitScope": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\Git提交范围.md",
+  "externalEntry": "prompt/README.md增加QY入口，原字节单独保留于历史/20261028整理前/外部prompt入口原文.md",
+  "compatibility": "01/03/04/08同名现行页；02/05/06/07同名短指引；README现行总览。原任务JSON完整归档，根级JSON改为19项当前状态并保ID/标题/依赖。",
+  "completion": "本整理/提交准备职责已完成；不代表新包或推送完成",
+  "testMutationsByThisTask": [],
+  "currentTopMarkdown": 10,
+  "entry": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\README.md",
+  "currentTopMarkdownBytes": 33533.0,
+  "assetsMutatedByThisTask": [],
+  "evidenceNote": "未改实施记录、唯一存档或日志首证；原35中证据.json此前已R5封存，本次改历史浏览链接至恢复索引，原快照仍逐字节保留。",
+  "status": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\03-任务清单与依赖.md",
+  "archive": {
+    "files": 246,
+    "markdown": 239,
+    "bytes": 1973062,
+    "archive": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\历史\\20261028整理前\\原始字节快照.zip",
+    "archiveBytes": 1080755,
+    "archiveSha256": "662b89bb951977253db6a15adffa151e1363a71b26d2bb776a2f3dab67456a84",
+    "allEntriesVerified": true
+  },
+  "sourceMutationsByThisTask": []
+}

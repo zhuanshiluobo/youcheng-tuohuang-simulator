@@ -23,5 +23,5 @@ MonoBehaviour:
     FontSizeRatio: 0.8
   lineSpacing: 2
   iconSpacing: 2
-  iconHeightRatio: 1.15
+  iconHeightRatio: 1.4
   iconBaselineOffset: 0

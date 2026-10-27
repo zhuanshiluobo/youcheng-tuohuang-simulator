@@ -8,6 +8,7 @@ import json
 import re
 import struct
 from collections import Counter
+from datetime import datetime, timedelta, timezone
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 import zlib
@@ -25,6 +26,7 @@ GROUPS = {
     "FacilityBuild-UI-v1.0": "设施建设", "CityPattern-UI-v1.0": "城市样式",
     "RhineDepartment-UI-v1.0": "莱茵科室", "Room-UI-v1.1-VerticalMaps": "房间",
     "Settlement-Effects-v1.0": "结算插入按钮", "Settlement-Icons-Extra-v1.1": "结算备用图标",
+    "Settlement-Icons-EndPhase-v1.2": "收尾阶段结算图标",
     "Main-Info-Buttons-v1.0": "区控与游戏盒入口", "Region-Squares-v1.0": "区域标记",
     "Area-Control-v1.0": "区控页面", "Player-Select-v1.0": "玩家选择", "Game-Box-v1.0": "游戏盒页面",
 }
@@ -324,7 +326,7 @@ def verify():
                     errors.append("素材与当前用途标准映射不一致：" + a["path"] + "/" + standard_id)
             if a.get("actualUsage") and not (DEST / safe_relative(a["actualUsage"])).is_file():
                 errors.append("素材缺少实际使用参数：" + a["path"])
-    result = {"date": "2026-10-08", "assets": len(expected), "formats": dict(Counter(a["format"] for a in index["assets"])), "bytes": sum(a["bytes"] for a in index["assets"]), "errors": errors, "scope": "只核对可用库清单/哈希/PNG CRC与解压，不访问受限原档案，不代表Unity视觉验收"}
+    result = {"date": datetime.now(timezone(timedelta(hours=8))).date().isoformat(), "assets": len(expected), "formats": dict(Counter(a["format"] for a in index["assets"])), "bytes": sum(a["bytes"] for a in index["assets"]), "errors": errors, "scope": "只核对可用库清单/哈希/PNG CRC与解压，不访问受限原档案，不代表Unity视觉验收"}
     save(DEST / "清单/校验结果.json", result)
     print(json.dumps(result, ensure_ascii=False))
     if errors:

@@ -58,7 +58,7 @@ namespace YC.Presentation
                 if (!option.VisibleToViewer) continue;
                 if (string.IsNullOrEmpty(option.OptionId) || option.WindowId != windowId ||
                     (option.EntryKind != "optional_insertion" && option.EntryKind != "cleanup_order") ||
-                    (option.EntryKind == "cleanup_order" && string.IsNullOrEmpty(option.TargetEffectId)) ||
+                    (option.EntryKind == "cleanup_order" && !HasValidCleanupTarget(option)) ||
                     (option.EntryKind == "optional_insertion" && !HasValidInsertionTarget(option)))
                     throw new ArgumentException("结算选项的窗口、身份或入口类型不完整：" + option.OptionId);
                 if (incoming.ContainsKey(option.OptionId)) throw new ArgumentException("结算 OptionId 重复：" + option.OptionId);
@@ -101,6 +101,24 @@ namespace YC.Presentation
             if (accepted) return !string.IsNullOrEmpty(option.TargetEffectId) && !option.IsEnabled;
             // 空态仅兼容旧的未接受展示投影；不允许它携带已挂链目标。
             return (string.IsNullOrEmpty(option.SettlementState) || option.SettlementState == "available") &&
+                string.IsNullOrEmpty(option.TargetEffectId);
+        }
+
+        private static bool HasValidCleanupTarget(SettlementOptionView option)
+        {
+            // 旧的持久目标仍按原合同；新来源按完整请求创建每次调用，不拿登记锚点冒充执行目标。
+            var request = option.CleanupRequest;
+            if (request == null) return !string.IsNullOrEmpty(option.TargetEffectId);
+            if ((option.RepeatPolicy != "once" && option.RepeatPolicy != "unbounded") ||
+                request.WindowId != option.WindowId || request.OwnerEffectId != option.OwnerEffectId ||
+                string.IsNullOrEmpty(request.OwnerEffectId) || request.OptionId != option.OptionId ||
+                request.InteractionId != option.InteractionId || string.IsNullOrEmpty(request.InteractionId) ||
+                request.AnsweringPlayerId != option.AnsweringPlayerId || request.AnsweringPlayerId < 0 ||
+                request.RequestGeneration <= 0 || request.CandidateSetVersion != request.RequestGeneration ||
+                option.CandidateSetVersion != request.RequestGeneration || string.IsNullOrEmpty(request.FactsDigest)) return false;
+            if (option.SettlementState == "executing")
+                return !option.IsEnabled && !string.IsNullOrEmpty(option.ActiveInvocationId) && !string.IsNullOrEmpty(option.TargetEffectId);
+            return option.SettlementState == "available" && string.IsNullOrEmpty(option.ActiveInvocationId) &&
                 string.IsNullOrEmpty(option.TargetEffectId);
         }
 
@@ -164,6 +182,8 @@ namespace YC.Presentation
         private static SettlementOptionView Copy(SettlementOptionView s) => new SettlementOptionView {
             WindowId = s.WindowId, LocalId = s.LocalId, EntryKind = s.EntryKind, TargetEffectId = s.TargetEffectId,
             SettlementState = s.SettlementState, RegistrationSequence = s.RegistrationSequence,
+            CleanupRequest = YC.Domain.State.GameStateCloneService.DeepClone(s.CleanupRequest),
+            RepeatPolicy = s.RepeatPolicy, ActiveInvocationId = s.ActiveInvocationId,
             CanDeclineWholeEffect = s.CanDeclineWholeEffect, Presentation = GameplayPresentationNormalizer.Clone(s.Presentation),
             SourceDefinitionId = s.SourceDefinitionId, CanInspectSource = s.CanInspectSource,
             DisabledReason = GameplayPresentationNormalizer.Clone(s.DisabledReason),
@@ -188,8 +208,6 @@ namespace YC.Presentation
         [SerializeField] private RectTransform viewport, content;
         [SerializeField] private HorizontalLayoutGroup rowLayout;
         [SerializeField] private SettlementEffectChipView chipTemplate;
-        [SerializeField] private RectTransform tooltipHost;
-        [SerializeField] private Component tooltipName, tooltipDescription;
         [SerializeField] private GameObject header;
         [SerializeField, Min(0)] private float headerReservedWidth = 152f, hideHeaderBelowWidth = 520f, horizontalInset = 24f;
         [SerializeField] private bool reducedMotion;
@@ -208,7 +226,6 @@ namespace YC.Presentation
         private Action<SettlementOptionView> inspectAuthorizedSource;
         private bool followAfterLayout;
         private float lastManualScroll = float.NegativeInfinity;
-        private string tooltipOptionId = string.Empty;
         public long ScopeToken => binding.Scope;
         public string WindowId => binding.WindowId;
         public int VisibleOptionCount => binding.Entries.Count;
@@ -241,17 +258,16 @@ namespace YC.Presentation
         public bool ValidateReferences(out string reason)
         {
             reason = string.Empty;
-            if (scrollRect == null || viewport == null || content == null || rowLayout == null || chipTemplate == null ||
-                tooltipHost == null || tooltipName == null || tooltipDescription == null)
+            if (scrollRect == null || viewport == null || content == null || rowLayout == null || chipTemplate == null)
             { reason = "结算条序列化引用不完整。"; return false; }
             if (scrollRect.content != content || scrollRect.viewport != viewport || rowLayout.transform != content ||
-                !content.IsChildOf(viewport) || !viewport.IsChildOf(transform) || tooltipHost.IsChildOf(viewport) ||
+                !content.IsChildOf(viewport) || !viewport.IsChildOf(transform) ||
                 !scrollRect.horizontal || scrollRect.vertical || scrollRect.horizontalScrollbar != null ||
                 rowLayout.childForceExpandWidth || viewport.GetComponent<RectMask2D>() == null ||
                 scrollRect.transform == transform || viewport.IsChildOf(scrollRect.transform) ||
                 scrollRect.movementType != ScrollRect.MovementType.Clamped ||
                 chipTemplate.gameObject.activeSelf || (chipTemplate.transform.parent != content && chipTemplate.gameObject.scene.IsValid()))
-            { reason = "结算条的裁切、水平滚动、模板或提示宿主配置不完整。"; return false; }
+            { reason = "结算条的裁切、水平滚动或模板配置不完整。"; return false; }
             return chipTemplate.ValidateReferences(out reason);
         }
 
@@ -293,7 +309,7 @@ namespace YC.Presentation
                     chip.transform.SetSiblingIndex(++position); // 停用模板与池中实例不参与实际布局。
                     chip.Bind(entry.Option, entry.Pending, entry.Option.IsEnabled && entry.Option.AnsweringPlayerId == binding.ViewerPlayerId && onUse != null,
                         binding.Scope, entry.Identity, viewport.rect.width,
-                        resolveText, bindText, measureText, resolveIcon, Use, Inspect, ShowTooltip, HideTooltip, scrollRect, ManualScroll);
+                        resolveText, bindText, measureText, resolveIcon, Use, Inspect, scrollRect, ManualScroll);
                     chip.gameObject.SetActive(true);
                     if (isNew)
                     {
@@ -304,7 +320,6 @@ namespace YC.Presentation
             }
             catch { ClearWindow(); throw; } // 展示端口或模板失败时关闭整批，避免留半个可提交的窗口。
             if (added > 0 && (previousScope != binding.Scope || wasAtTail) && Time.unscaledTime - lastManualScroll >= manualScrollQuietTime) followAfterLayout = true;
-            HideTooltip();
             // 批量完成后只显式提交一次布局请求；没有逐项强制重建。
             LayoutRebuilder.MarkLayoutForRebuild(content);
             NotifyButtonsVisibility();
@@ -326,7 +341,7 @@ namespace YC.Presentation
         {
             if (use == null || !binding.TryBeginUse(scope, identity, revision, id, out var option)) return;
             var token = binding.CapturePending(id);
-            RefreshPending(id); HideTooltip();
+            RefreshPending(id);
             try { use(option); }
             catch { SetPending(option.WindowId, id, false, token); throw; }
         }
@@ -341,31 +356,11 @@ namespace YC.Presentation
             if (inspectSource != null && binding.TryInspect(scope, identity, revision, id, out var itemId)) inspectSource(itemId);
         }
 
-        private void ShowTooltip(string id, GameplayTextDocument label, GameplayTextDocument description)
-        {
-            if (!binding.TryGet(id, out _)) return;
-            tooltipOptionId = id;
-            bindText(tooltipName, label, false); bindText(tooltipDescription, description, false);
-            tooltipHost.gameObject.SetActive(true);
-        }
-
-        private void HideTooltip()
-        {
-            tooltipOptionId = string.Empty;
-            if (tooltipHost != null) tooltipHost.gameObject.SetActive(false);
-            if (bindText != null)
-            {
-                if (tooltipName != null) bindText(tooltipName, null, false);
-                if (tooltipDescription != null) bindText(tooltipDescription, null, false);
-            }
-        }
-
         private void Release(string id)
         {
             var chip = chips[id]; chips.Remove(id);
             pendingArrivals.Remove(chip);
             chip.ClearBinding(); chip.gameObject.SetActive(false); pool.Push(chip);
-            if (tooltipOptionId == id) HideTooltip();
         }
 
         private void ReleaseAll()
@@ -374,7 +369,7 @@ namespace YC.Presentation
             { chip.ClearBinding(); chip.gameObject.SetActive(false); pool.Push(chip); }
             chips.Clear(); use = null; inspectSource = null; inspectAuthorizedSource = null; followAfterLayout = false;
             pendingArrivals.Clear();
-            lastManualScroll = float.NegativeInfinity; HideTooltip();
+            lastManualScroll = float.NegativeInfinity;
             if (scrollRect != null) { scrollRect.StopMovement(); scrollRect.horizontalNormalizedPosition = 0; }
         }
 
@@ -389,11 +384,17 @@ namespace YC.Presentation
         {
             if (header != null) { headerWasActive = header.activeSelf; headerVisibilityCaptured = true; }
             ApplyViewportLayout();
+            if (viewport != null)
+                foreach (var chip in chips.Values) chip.FitWidth(viewport.rect.width);
+            if (content != null && chips.Count > 0) LayoutRebuilder.MarkLayoutForRebuild(content);
         }
         private void OnDisable()
         {
             Canvas.willRenderCanvases -= CompleteLayout;
-            ClearWindow();
+            // 隐藏不等于结算身份失效。保留绑定及pending租约，避免快照未变时消费者跳过刷新后丢条目。
+            // 显式ClearWindow/SetScope仍负责清理；停用中不回调祖先显隐，避免重入SetActive。
+            pendingArrivals.Clear(); followAfterLayout = false;
+            if (scrollRect != null) scrollRect.StopMovement();
             if (headerVisibilityCaptured && header != null) header.SetActive(headerWasActive);
             headerVisibilityCaptured = false;
         }
@@ -453,7 +454,7 @@ namespace YC.Presentation
         private void OnDestroy() { Canvas.willRenderCanvases -= CompleteLayout; }
         private float TailDistance() => content == null || viewport == null || scrollRect == null ? 0 :
             Mathf.Max(0, content.rect.width - viewport.rect.width) * (1 - Mathf.Clamp01(scrollRect.horizontalNormalizedPosition));
-        private void ManualScroll() { lastManualScroll = Time.unscaledTime; followAfterLayout = false; HideTooltip(); }
+        private void ManualScroll() { lastManualScroll = Time.unscaledTime; followAfterLayout = false; }
 
         public void OnScroll(PointerEventData eventData)
         {

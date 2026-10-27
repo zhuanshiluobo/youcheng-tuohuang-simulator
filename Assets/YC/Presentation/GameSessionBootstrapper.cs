@@ -31,6 +31,7 @@ namespace YC.Presentation
         public sealed class Result
         {
             public GameSession Session;
+            public SessionPresentationBinding ActivePresentation;
             public EffectRegistry EffectRegistry;
             public MapQueryService MapQuery;
             public InfluenceService InfluenceService;
@@ -81,6 +82,7 @@ namespace YC.Presentation
         private static Result BuildCore(GameLaunchContext launchContext, bool useRightCardSmokeState,
             bool prepareSharedCityStyleSmokeState, bool deferRuleInitialization, MatchSaveData restore)
         {
+            using var totalTiming = YC.Presentation.Workflows.UiRegressionMetrics.Measure("assembly.bootstrap_total");
             if (deferRuleInitialization && (launchContext == null || launchContext.Mode != LaunchMode.Client ||
                 !launchContext.RandomReady || useRightCardSmokeState || prepareSharedCityStyleSmokeState))
                 throw new System.InvalidOperationException("deferred_initialization_requires_frozen_client_start");
@@ -104,13 +106,19 @@ namespace YC.Presentation
             { MapId = mapQuery.Map.MapId, PlayerCount = players == null || players.Count == 0 ? 1 : players.Count };
             configuration.PlayerStageSchedulingMode = launchMode == LaunchMode.Local
                 ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent;
-            var activeCatalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, configuration);
+            ActiveContentCatalog activeCatalog;
+            using (YC.Presentation.Workflows.UiRegressionMetrics.Measure("assembly.active_catalog"))
+                activeCatalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, configuration);
             if (restore != null && activeCatalog.ContentPackHash != restore.ContentHash)
                 throw new System.InvalidOperationException("存档的内容版本与当前配置不一致，请使用保存时的内容包。");
             var textResolver = new GameplayTextResolver(activeCatalog.TextCatalog, cacheScopeId: "catalog:" + activeCatalog.ContentPackHash);
             try { textResolver.Precompile(); }
             catch (GameplayTextFormatException error)
-            { throw new System.IO.InvalidDataException("玩法文案目录语法错误：" + error.TextKey + "@" + error.Position + "。", error); }
+            {
+                string source = "";
+                (activeCatalog.TextCatalog as YC.Domain.Presentation.IGameplayTextSourceCatalog)?.TryGetTemplateSource(error.TextKey, out source);
+                throw new System.IO.InvalidDataException("玩法文案目录语法错误：" + source + ":" + error.TextKey + "@" + error.Position + "：" + error.Message, error);
+            }
             configuration.ContentPackHash = activeCatalog.ContentPackHash;
             var state = useRightCardSmokeState
                 ? RightCardSmokeStateFactory.CreateInitialState(
@@ -148,6 +156,7 @@ namespace YC.Presentation
             var effectRegistry = new EffectRegistry();
             RouteResourceSelectionEffectExecutor.Register(effectRegistry, mapQuery);
             activeCatalog.Register(effectRegistry);
+            session.ConfigurePaymentSourceQueries(effectRegistry);
             InfluenceEffectExecutor.Register(effectRegistry, influenceService);
             ResourceEffectExecutor.Register(effectRegistry);
 
@@ -256,7 +265,7 @@ namespace YC.Presentation
             session.RegisterHandler(new PreparePaymentDraftCommandHandler(effectRegistry, roundExecutionService));
             session.RegisterHandler(new EndActionCommandHandler(
                 roundAdvanceService,
-                new FinalScoringService(mapQuery), effectRegistry, roundExecutionService));
+                new FinalScoringService(mapQuery), effectRegistry, roundExecutionService, roundExecutionService.Advance));
             var resourceCollectionService = new ResourceCollectionService(mapQuery);
             session.RegisterHandler(new CollectResourceCommandHandler(resourceCollectionService, roundAdvanceService));
 
@@ -295,9 +304,18 @@ namespace YC.Presentation
                 NetworkGameValidationDriver.BindHostRecoverySession(session, effectRegistry);
 #endif
 
+            SessionPresentationBinding activePresentation;
+            using (YC.Presentation.Workflows.UiRegressionMetrics.Measure("assembly.presentation_bind"))
+                activePresentation = SessionPresentationBinding.Create(activeCatalog.Presentation, session, session.State.GameId,
+                    session.State.RuleConfiguration, session.State.ContentPackHash, ExternalContentRuntime.Pack.ContentHash);
+            if (activePresentation == null && !useRightCardSmokeState)
+                throw new System.InvalidOperationException("active_presentation_binding_invalid");
+            if (activePresentation == null)
+                YC.Presentation.Workflows.UiRegressionMetrics.Note("assembly.presentation_unavailable", "legacy_smoke_without_matching_configuration");
             return new Result
             {
                 Session = session,
+                ActivePresentation = activePresentation,
                 EffectRegistry = effectRegistry,
                 MapQuery = mapQuery,
                 InfluenceService = influenceService,

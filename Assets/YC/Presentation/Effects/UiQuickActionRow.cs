@@ -33,6 +33,17 @@ namespace YC.Presentation
             label.text = string.Format(characterFormat, string.IsNullOrEmpty(name) ? emptyCharacterName : name);
         }
 
+        public void BindGameplayText(YC.Domain.Presentation.GameplayTextDocument document,
+            System.Action<Component, YC.Domain.Presentation.GameplayTextDocument, bool> render)
+        {
+            var host = label.GetComponent<GameplayTextView>();
+            if (document == null) { if (host != null) host.ClearBinding(); return; }
+            if (render == null) { label.text = document.ToPlainText(); return; }
+            // 动态行只补已有文本渲染组件，不改变模板资产、文字框或交互结构。
+            if (host == null) host = label.gameObject.AddComponent<GameplayTextView>();
+            render(host, document, false);
+        }
+
         public void SetAvailable(bool available) { button.interactable = available; Refresh(); }
         public void OnPointerEnter(PointerEventData data) { hover = true; Refresh(); }
         public void OnPointerExit(PointerEventData data) { hover = false; Refresh(); }

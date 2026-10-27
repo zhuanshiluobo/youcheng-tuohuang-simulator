@@ -21,12 +21,14 @@ namespace YC.Presentation
         { bindings = new List<GameplayIconSpriteBinding>(); if (values != null) foreach (var value in values) if (value != null) bindings.Add(new GameplayIconSpriteBinding { AssetKey = value.AssetKey, Sprite = value.Sprite }); NotifyChanged(); }
         public void NotifyChanged() { index = null; unchecked { revision++; } }
         private void OnValidate() => NotifyChanged();
+        public static string AssetKeyFor(GameplayIconDefinition definition, GameplayIconTone tone) => definition == null ? null :
+            !string.IsNullOrEmpty(definition.AssetKey) ? definition.AssetKey :
+            tone == GameplayIconTone.Light ? definition.Light : tone == GameplayIconTone.Muted ? definition.Muted : definition.Dark;
         public bool TryResolve(GameplayIconDefinition definition, GameplayIconTone tone, out Sprite sprite)
         {
             sprite = null;
             if (definition == null) return false;
-            var key = !string.IsNullOrEmpty(definition.AssetKey) ? definition.AssetKey :
-                tone == GameplayIconTone.Light ? definition.Light : tone == GameplayIconTone.Muted ? definition.Muted : definition.Dark;
+            var key = AssetKeyFor(definition, tone);
             if (string.IsNullOrEmpty(key)) return false;
             if (index == null)
             {

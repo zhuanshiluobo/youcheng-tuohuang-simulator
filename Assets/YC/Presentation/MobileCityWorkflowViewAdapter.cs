@@ -39,7 +39,11 @@ namespace YC.Presentation
         private Action<BuildFacilityDraftViewModel> showBuildDraft;
         private Action hideBuildDraft;
         private bool shuttingDown;
-        public void BeginShutdown() => shuttingDown = true;
+        public void BeginShutdown()
+        {
+            shuttingDown = true;
+            cityStyleDeclarationDialog?.Dispose();
+        }
 
         public void BindBuildDraftView(Action<BuildFacilityDraftViewModel> show, Action hide)
         {

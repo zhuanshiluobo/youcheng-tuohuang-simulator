@@ -42,6 +42,7 @@ namespace YC.Presentation
 
         public void Clear()
         {
+            freeLocationIds.Clear(); explicitlySelectedFreeIds.Clear();
             candidateLocationIds.Clear();
             selectedLocationIds.Clear();
             deselectedLocationIds.Clear();
@@ -77,11 +78,17 @@ namespace YC.Presentation
             }
         }
 
+        private readonly HashSet<string> freeLocationIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> explicitlySelectedFreeIds = new HashSet<string>(StringComparer.Ordinal);
+        public bool IsFreeLocation(string id) => freeLocationIds.Contains(id);
+
         public void ApplyQuery(ResourceCollectionSelectionQuery query)
         {
+            var previous = new HashSet<string>(selectedLocationIds, StringComparer.Ordinal);
             candidateLocationIds.Clear();
             routeIds.Clear();
             pathsByLocationId.Clear();
+            freeLocationIds.Clear();
             if (query == null || !query.IsValid)
             {
                 return;
@@ -90,6 +97,11 @@ namespace YC.Presentation
             for (var i = 0; i < query.CandidateLocationIds.Count; i++)
             {
                 candidateLocationIds.Add(query.CandidateLocationIds[i]);
+                if (query.IsFreeLocation(query.CandidateLocationIds[i]))
+                {
+                    freeLocationIds.Add(query.CandidateLocationIds[i]);
+                    if (previous.Contains(query.CandidateLocationIds[i])) explicitlySelectedFreeIds.Add(query.CandidateLocationIds[i]);
+                }
             }
 
             foreach (var pair in query.PathsByLocationId)
@@ -153,31 +165,35 @@ namespace YC.Presentation
                 return CollectionToggleResult.NotCandidate;
             }
 
+            if (selectedLocationIds.Contains(locationId))
+            {
+                deselectedLocationIds.Add(locationId);
+                explicitlySelectedFreeIds.Remove(locationId);
+                RefreshSelection(isLocationAvailable);
+                return CollectionToggleResult.Removed;
+            }
+
             if (isLocationAvailable == null || !isLocationAvailable(locationId))
             {
                 return CollectionToggleResult.Unavailable;
             }
 
-            if (selectedLocationIds.Contains(locationId))
-            {
-                deselectedLocationIds.Add(locationId);
-                RefreshSelection(isLocationAvailable);
-                return CollectionToggleResult.Removed;
-            }
-
             deselectedLocationIds.Remove(locationId);
+            if (freeLocationIds.Contains(locationId)) explicitlySelectedFreeIds.Add(locationId);
             RefreshSelection(isLocationAvailable);
             return CollectionToggleResult.Added;
         }
 
         public void RefreshSelection(Func<string, bool> isLocationAvailable)
         {
+            var previous = new HashSet<string>(selectedLocationIds, StringComparer.Ordinal);
             selectedLocationIds.Clear();
             foreach (var locationId in candidateLocationIds)
             {
-                if (deselectedLocationIds.Contains(locationId) ||
+                if (freeLocationIds.Contains(locationId) && !explicitlySelectedFreeIds.Contains(locationId) ||
+                    deselectedLocationIds.Contains(locationId) ||
                     isLocationAvailable == null ||
-                    !isLocationAvailable(locationId))
+                    !isLocationAvailable(locationId) && !(previous.Contains(locationId) && explicitlySelectedFreeIds.Contains(locationId)))
                 {
                     continue;
                 }
@@ -222,7 +238,7 @@ namespace YC.Presentation
             for (var i = 0; i < locationIds.Count; i++)
             {
                 MapPath path;
-                if (!pathsByLocationId.TryGetValue(locationIds[i], out path))
+                if (freeLocationIds.Contains(locationIds[i]) || !pathsByLocationId.TryGetValue(locationIds[i], out path))
                 {
                     continue;
                 }
@@ -287,6 +303,7 @@ namespace YC.Presentation
 
         private bool IsLocationAvailableByPath(string locationId, Func<string, bool> isRoutePayable)
         {
+            if (freeLocationIds.Contains(locationId)) return true;
             MapPath path;
             if (!pathsByLocationId.TryGetValue(locationId, out path))
             {

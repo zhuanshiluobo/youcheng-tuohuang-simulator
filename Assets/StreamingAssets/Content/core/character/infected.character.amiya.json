@@ -81,5 +81,75 @@
         "displayName": "阿米娅"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.amiya.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.amiya",
+      "actions": [
+        {
+          "actionId": "infected.character.amiya.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.amiya",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.amiya"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.amiya.tactic",
+      "kind": "event",
+      "handlerRef": "content.infected.character.amiya.tactic",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.amiya.tactic",
+      "actions": []
+    }
+  ]
 }

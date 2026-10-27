@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.flowing_shape_gamma",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "流形丙",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.flowing_shape_gamma.strategy",
       "script": "lua/characters/infected.character.flowing_shape_gamma.strategy.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -49,5 +49,57 @@
     "strategyName": "滋养",
     "tacticName": "交流",
     "sourceReference": "I14"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.flowing_shape_gamma.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.flowing_shape_gamma",
+      "actions": [
+        {
+          "actionId": "infected.character.flowing_shape_gamma.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.flowing_shape_gamma",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.flowing_shape_gamma"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

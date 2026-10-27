@@ -1,0 +1,70 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.facility.M03",
+  "contentType": "facility",
+  "version": "1.1.2",
+  "displayName": "城市化区域·红",
+  "artwork": "artwork/entrepreneurs/M03.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "core.facility_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.M03.entry",
+      "mode": "entry",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M03.entry",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.1.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M03.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "abilitySources": [],
+  "data": {
+    "facilityId": "entrepreneur.facility.M03",
+    "color": "red",
+    "score": 0,
+    "resourceCost": {
+      "originium": 2,
+      "originiumShard": 1,
+      "iron": 1
+    },
+    "goldVoucherCost": 13,
+    "defaultSupply": 0,
+    "reserveOnly": false,
+    "unique": false,
+    "hasEntryEffect": true,
+    "effectType": "external",
+    "sourceId": "M03",
+    "requiredEntryHandlerRef": "entrepreneur.M03.entry",
+    "effectId": "entrepreneur.M03.entry",
+    "effectScript": "lua/entrepreneurs/martin_ability.lua"
+  },
+  "presentation": {
+    "description": {
+      "key": "core:entrepreneur.M.M03.description",
+      "arguments": []
+    }
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.M03.entry",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.1.2",
+      "completionHandlerId": ""
+    }
+  ]
+}

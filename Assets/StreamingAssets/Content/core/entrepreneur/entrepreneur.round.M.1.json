@@ -1,0 +1,233 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.M.1",
+  "contentType": "entrepreneur_round",
+  "version": "1.2.2",
+  "displayName": "马丁·费舍尔·第1回合",
+  "artwork": "artwork/entrepreneurs/M05.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.M05",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M05.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M05.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.action.M05.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.M06",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M06.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M06.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.action.M06.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M05",
+      "kind": "special",
+      "handlerRef": "entrepreneur.face.M05.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M05",
+      "actions": [
+        {
+          "actionId": "entrepreneur.face.M05.action",
+          "entryKind": "special",
+          "bodyHandlerRef": "entrepreneur.face.M05.body",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.M.1",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 505,
+          "presentationRef": "entrepreneur.face.M05",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.M.action.M05.name",
+              "arguments": []
+            },
+            "description": {
+              "key": "core:entrepreneur.M.action.M05.description",
+              "arguments": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M06",
+      "kind": "special",
+      "handlerRef": "entrepreneur.face.M06.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M06",
+      "actions": [
+        {
+          "actionId": "entrepreneur.face.M06.action",
+          "entryKind": "special",
+          "bodyHandlerRef": "entrepreneur.face.M06.body",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.M.1",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 506,
+          "presentationRef": "entrepreneur.face.M06",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.M.action.M06.name",
+              "arguments": []
+            },
+            "description": {
+              "key": "core:entrepreneur.M.action.M06.description",
+              "arguments": []
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "M05",
+      "M06"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.M05",
+        "entityDefinitionId": "entrepreneur.round.M.1",
+        "faceId": "M05",
+        "sourceId": "M05",
+        "artwork": "artwork/entrepreneurs/M05.jpg",
+        "artworkSha256": "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.M05"
+        ],
+        "immediateHandlerRefs": []
+      },
+      {
+        "candidateId": "entrepreneur.candidate.M06",
+        "entityDefinitionId": "entrepreneur.round.M.1",
+        "faceId": "M06",
+        "sourceId": "M06",
+        "artwork": "artwork/entrepreneurs/M06.jpg",
+        "artworkSha256": "e4e99e5d668c71fc2166633b871963c75452885b2acbc39ba0e937b524d7f823",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.M06"
+        ],
+        "immediateHandlerRefs": []
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.M05.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M05.body.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.M06.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M06.body.completed"
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.entrepreneur.M.1",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
+}

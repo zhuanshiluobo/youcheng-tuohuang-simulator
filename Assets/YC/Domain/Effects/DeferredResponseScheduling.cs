@@ -142,6 +142,7 @@ namespace YC.Domain.Effects
         {
             var response = work.EffectRuntime.DeferredResponses.Find(r => r.ResponseRootEffectId == node.EffectId && r.Status == DeferredResponseStatus.Pending);
             if (response == null) return;
+            if (response.ProtocolVersion == 1) { CompleteDepartureResponse(work, node, response, entries); return; }
             if (!registry.TryGetDeferredResponseDestination(response.DestinationHandlerId, out var registration))
                 throw new KernelException(EffectFaultCodes.UnknownEventHandler, "旁路去向处理器未登记。");
             var context = new EffectExecutionContext(work, node, registry, limits,
@@ -162,6 +163,7 @@ namespace YC.Domain.Effects
             var reserved = new HashSet<string>(StringComparer.Ordinal);
             foreach (var response in state.EffectRuntime.DeferredResponses)
             {
+                if (response?.ProtocolVersion == 1) { if (!ValidateDepartureResponse(state, response, registry, out diagnostic)) return false; continue; }
                 if (response == null || string.IsNullOrEmpty(response.DeferredResponseId) || !ids.Add(response.DeferredResponseId) ||
                     string.IsNullOrEmpty(response.ResponseRootEffectId) || !roots.Add(response.ResponseRootEffectId) ||
                     !Enum.IsDefined(typeof(DeferredResponseStatus), response.Status) || response.AnsweringPlayerId < 1 ||
@@ -196,7 +198,9 @@ namespace YC.Domain.Effects
             while (node != null && visited.Add(node.EffectId))
             {
                 var candidate = state.EffectRuntime.DeferredResponses.Find(r => r.ResponseRootEffectId == node.EffectId);
-                if (candidate != null && candidate.Status == DeferredResponseStatus.Pending && !IsTerminal(node.Status) &&
+                if (candidate?.ProtocolVersion == 1 && candidate.Status == DeferredResponseStatus.Pending && ValidateDepartureResponse(state, candidate, null, out _))
+                { response = candidate; return true; }
+                if (candidate != null && candidate.ProtocolVersion == 0 && candidate.Status == DeferredResponseStatus.Pending && !IsTerminal(node.Status) &&
                     string.IsNullOrEmpty(node.ParentEffectId) && candidate.AnsweringPlayerId > 0 &&
                     candidate.MainWindowPlayerIdAtCreation > 0 && candidate.AnsweringPlayerId != candidate.MainWindowPlayerIdAtCreation &&
                     !string.IsNullOrEmpty(candidate.OriginMainOperationWindowId) &&
@@ -233,15 +237,17 @@ namespace YC.Domain.Effects
             if (request == null || request.Status != "open" || request.IsInternalMainlineInteraction()) return false;
             return state?.RuleConfiguration?.PlayerStageSchedulingMode != YC.Domain.Rules.PlayerStageSchedulingMode.Concurrent ||
                 commandContext == null || !TryFindDeferredResponse(state, request.OwnerEffectId, out var response) ||
-                request.AnsweringPlayerId != response.AnsweringPlayerId;
+                request.AnsweringPlayerId != response.AnsweringPlayerId || response.ProtocolVersion == 1 && !response.IsBypass;
         }
 
         public static IReadOnlyList<DeferredResponseDependency> GetDeferredResponseDependencies(GameState state, DeferredDependencyQuery query)
         {
             if (state?.EffectRuntime?.DeferredResponses == null || query == null) return Array.Empty<DeferredResponseDependency>();
             TryFindDeferredResponse(state, query.OwnerEffectId, out var ownResponse);
+            ownResponse = ownResponse ?? InfluenceDepartureProtocol.Response(state, query.OwnerEffectId);
             return state.EffectRuntime.DeferredResponses
-                .Where(r => r.Status == DeferredResponseStatus.Pending && r.DeferredResponseId != ownResponse?.DeferredResponseId && MatchesDependency(state, r, query))
+                .Where(r => (r.Status == DeferredResponseStatus.Pending || r.ProtocolVersion == 1 && r.Status == DeferredResponseStatus.Queued) &&
+                    r.DeferredResponseId != ownResponse?.DeferredResponseId && !(ownResponse?.ProtocolVersion == 1 && ownResponse.DepartureId.Length > 0 && r.DepartureId == ownResponse.DepartureId) && MatchesDependency(state, r, query))
                 .OrderBy(r => r.DeferredResponseId, StringComparer.Ordinal).GroupBy(r => r.DeferredResponseId, StringComparer.Ordinal)
                 .Select(g => new DeferredResponseDependency { DeferredResponseId = g.Key, ResponseRootEffectId = g.First().ResponseRootEffectId,
                     Reason = "等待真实旁路去向：" + query.DependencyKind }).ToArray();
@@ -249,6 +255,27 @@ namespace YC.Domain.Effects
 
         private static bool MatchesDependency(GameState state, DeferredResponseState response, DeferredDependencyQuery query)
         {
+            if (response.ProtocolVersion == 1 && response.Kind == "optional_effect")
+            {
+                if (query.DependencyKind == DeferredDependencyKind.FinalizeGame) return true;
+                if (query.DependencyKind == DeferredDependencyKind.CarrierExit) return response.SourceCardInstanceId == query.SourceCardInstanceId;
+                if (query.DependencyKind == DeferredDependencyKind.CardMarkerConsumption && query.SourceCardInstanceId == response.SourceCardInstanceId)
+                {
+                    var definition = state.ItemZones.Items.Single(i => i.ItemId == response.SourceCardInstanceId).DefinitionId;
+                    var permissions = state.ContentDefinitions.AbilitySources.SingleOrDefault(s => s.AbilityId == response.AbilityId)?.AllowedOperations ?? new List<string>();
+                    if(query.RequiredOwnerPlayerId>=0 && query.RequiredOwnerPlayerId!=response.AnsweringPlayerId || query.ItemIds?.Count>0 || !query.ConsumesAll && query.RequiredCount<=0) return false;
+                    var types=ItemTypeRegistry.CreateBuiltIn();
+                    return permissions.Where(p => p.StartsWith("carrier.load:" + definition + ":", StringComparison.Ordinal)).Any(p =>
+                    {
+                        var fields=p.Split(':'); if(fields.Length!=4) return false;
+                        bool matches=fields[3].Split(',').Any(t=>(string.IsNullOrEmpty(query.RequiredTypeId) || types.IsAssignableTo(t,query.RequiredTypeId)) &&
+                            (query.RequiredTypeIds.Count==0 || query.RequiredTypeIds.Any(w=>types.IsAssignableTo(t,w))));
+                        return matches && state.ItemZones.Zones.Any(z => z.ParentId == response.SourceCardInstanceId && z.LocalZoneId == fields[2] &&
+                            (string.IsNullOrEmpty(query.SourceZoneId) ? z.LocalZoneId=="markers" : z.ZoneId == query.SourceZoneId));
+                    });
+                }
+                return false;
+            }
             switch (query.DependencyKind)
             {
                 case DeferredDependencyKind.FinalizeGame: return true;
@@ -256,8 +283,10 @@ namespace YC.Domain.Effects
                 case DeferredDependencyKind.ExactItemUse: return query.ItemIds?.Contains(response.ReservedItemId) == true;
                 case DeferredDependencyKind.CardMarkerConsumption:
                     if (response.SourceCardInstanceId != query.SourceCardInstanceId) return false;
+                    if (!string.IsNullOrEmpty(query.SourceZoneId) && !PendingStorageZones(state, response).Contains(query.SourceZoneId)) return false;
                     if (query.ItemIds?.Count > 0) return query.ItemIds.Contains(response.ReservedItemId);
-                    var zone = state.ItemZones.Zones.Find(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == query.SourceCardInstanceId && z.LocalZoneId == "markers");
+                    var zone = state.ItemZones.Zones.Find(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == query.SourceCardInstanceId &&
+                        (string.IsNullOrEmpty(query.SourceZoneId) ? z.LocalZoneId == "markers" : z.ZoneId == query.SourceZoneId));
                     return WouldAffectSelection(state, response, query, zone?.ZoneId);
                 case DeferredDependencyKind.SupplyRequirement:
                     return !string.IsNullOrEmpty(query.OriginalSupplyZoneId) && response.OriginalSupplyZoneId == query.OriginalSupplyZoneId &&
@@ -266,13 +295,45 @@ namespace YC.Domain.Effects
             }
         }
 
+        private static HashSet<string> PendingStorageZones(GameState state, DeferredResponseState response)
+        {
+            var result = new HashSet<string>(StringComparer.Ordinal);
+            if (response.ProtocolVersion == 1)
+            {
+                var definition = state.ItemZones.Items.Single(i => i.ItemId == response.SourceCardInstanceId).DefinitionId;
+                var permissions = state.ContentDefinitions.AbilitySources.SingleOrDefault(s => s.AbilityId == response.AbilityId)?.AllowedOperations ?? new List<string>();
+                foreach (var permission in permissions.Where(p => p.StartsWith("carrier.store:" + definition + ":", StringComparison.Ordinal)))
+                    foreach (var zone in state.ItemZones.Zones.Where(z => z.ParentId == response.SourceCardInstanceId && z.LocalZoneId == permission.Split(':')[2])) result.Add(zone.ZoneId);
+            }
+            void Add(string type, NormalizedValue args)
+            {
+                if (type != ContentPrimitiveEffectExecutor.StoreRemoved || ItemTransferEffectExecutor.Text(args, "cardInstanceId") != response.SourceCardInstanceId ||
+                    ItemTransferEffectExecutor.Text(args, "influenceItemId") != response.ReservedItemId) return;
+                string local = ItemTransferEffectExecutor.Text(args, "localZoneId");
+                foreach (var zone in state.ItemZones.Zones.Where(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == response.SourceCardInstanceId && z.LocalZoneId == local)) result.Add(zone.ZoneId);
+            }
+            void Specs(IEnumerable<EffectSpecRuntimeState> specs)
+            { foreach (var spec in specs) { Add(spec.EffectTypeId, spec.NormalizedArguments); Specs(spec.NestedEffects); } }
+            if (response.ProtocolVersion == 1) Specs(response.PendingBody);
+            var queue = new Queue<string>(); var seen = new HashSet<string>(); queue.Enqueue(response.ResponseRootEffectId);
+            while (queue.Count > 0)
+            {
+                var id = queue.Dequeue(); if (!seen.Add(id)) continue;
+                var node = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == id); if (node == null) continue;
+                Add(node.EffectTypeId, node.NormalizedArguments); Specs(node.NestedEffects);
+                foreach (string child in node.ChildEffectIds) queue.Enqueue(child);
+            }
+            return result;
+        }
         private static bool WouldAffectSelection(GameState state, DeferredResponseState response, DeferredDependencyQuery query, string zoneId)
         {
             var pending = state.ItemZones.Items.Find(i => i.ItemId == response.ReservedItemId);
             if (pending == null || pending.PhysicalKind != ItemPhysicalKind.Cube) return false;
             var types = ItemTypeRegistry.CreateBuiltIn();
             bool TypeMatches(ItemInstanceState item) => item.PhysicalKind == ItemPhysicalKind.Cube &&
-                (string.IsNullOrEmpty(query.RequiredTypeId) || types.IsAssignableTo(item.TypeId, query.RequiredTypeId));
+                (string.IsNullOrEmpty(query.RequiredTypeId) || types.IsAssignableTo(item.TypeId, query.RequiredTypeId)) &&
+                (query.RequiredTypeIds.Count == 0 || query.RequiredTypeIds.Any(t => types.IsAssignableTo(item.TypeId, t))) &&
+                (query.RequiredOwnerPlayerId < 0 || item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == query.RequiredOwnerPlayerId);
             if (!TypeMatches(pending)) return false;
             if (query.ItemIds?.Count > 0) return query.ItemIds.Contains(pending.ItemId);
             if (query.ConsumesAll) return true;
@@ -293,7 +354,7 @@ namespace YC.Domain.Effects
             {
                 var response = work.EffectRuntime.DeferredResponses.Find(r => r.DeferredResponseId == dependency.DeferredResponseId && r.ResponseRootEffectId == dependency.ResponseRootEffectId);
                 if (response == null) throw new KernelException(EffectFaultCodes.BlockerTargetMissing, "旁路依赖不属于该工作副本。");
-                if (response.Status != DeferredResponseStatus.Pending) continue;
+                if (response.Status != DeferredResponseStatus.Pending && response.Status != DeferredResponseStatus.Queued) continue;
                 string id = StableIdFactory.Create("deferred_dependency", ownerEffectId, response.DeferredResponseId);
                 bool existing = work.EffectRuntime.Blockers.Any(b => b.BlockerId == id);
                 AddBlockerOnWorking(work, ownerEffectId, response.ResponseRootEffectId, string.Empty, "deferred_response_dependency", dependency.Reason, id);

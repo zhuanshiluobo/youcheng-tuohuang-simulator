@@ -23,6 +23,8 @@ namespace YC.Domain.SpecialActions
         public SpecialActionEffectKind EffectKind;
         public ResourceSet FixedCost = new ResourceSet();
         public int FlexibleOriginiumAndIronCost;
+        public string BodyPaymentQueryKind = "";
+        public bool BodyOwnsPayment => !string.IsNullOrEmpty(BodyPaymentQueryKind);
         public int MaximumTargetCount;
         public int FreeMoveCount;
         public int ExtraMainActionCount;
@@ -40,6 +42,7 @@ namespace YC.Domain.SpecialActions
                 EffectKind = EffectKind,
                 FixedCost = FixedCost == null ? new ResourceSet() : FixedCost.Clone(),
                 FlexibleOriginiumAndIronCost = FlexibleOriginiumAndIronCost,
+                BodyPaymentQueryKind = BodyPaymentQueryKind,
                 MaximumTargetCount = MaximumTargetCount,
                 FreeMoveCount = FreeMoveCount,
                 ExtraMainActionCount = ExtraMainActionCount,

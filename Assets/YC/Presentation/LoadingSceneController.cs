@@ -40,6 +40,8 @@ namespace YC.Presentation
 
         private Vector2 progressShownPosition;
         private Coroutine tipLoop;
+        private bool hadGameplaySource;
+        private bool sourceScenesUnloaded;
 
         public CanvasGroup BlackScreen => blackScreen;
         public Camera LoadingCamera => loadingCamera;
@@ -78,6 +80,8 @@ namespace YC.Presentation
         private IEnumerator Start()
         {
             var targetScene = SceneTransitionContext.ConsumeTargetScene();
+            var releaseGameplayArtwork = targetScene == FallbackSceneName &&
+                GameLaunchContext.Instance != null && GameLaunchContext.Instance.IsLeavingGameplay;
             var showProgress = SceneTransitionContext.ConsumeShowProgress();
             var quickBlackTransition = SceneTransitionContext.ConsumeQuickBlackTransition();
             if (quickBlackTransition)
@@ -106,6 +110,7 @@ namespace YC.Presentation
             }
             catch (System.Exception ex)
             {
+                releaseGameplayArtwork = false;
                 Debug.LogError("加载目标场景失败：" + ex.Message, this);
                 targetScene = FallbackSceneName;
                 operation = SceneManager.LoadSceneAsync(targetScene, LoadSceneMode.Additive);
@@ -146,6 +151,9 @@ namespace YC.Presentation
                 yield return new WaitForSecondsRealtime(0.18f);
                 yield return AnimateProgressPanel(false);
             }
+            // 旧页已卸载、目标尚未激活；先让动态对象的Destroy在本帧结束生效，再允许新菜单取图。
+            if (TryReleaseGameplayArtworkBeforeActivation(targetScene, releaseGameplayArtwork, operation))
+                yield return null;
             operation.allowSceneActivation = true;
             while (!operation.isDone)
             {
@@ -305,6 +313,8 @@ namespace YC.Presentation
 
         private IEnumerator UnloadSourceScenes()
         {
+            hadGameplaySource = false;
+            sourceScenesUnloaded = false;
             var transitionScene = gameObject.scene;
             var scenesToUnload = new List<Scene>();
             for (var index = 0; index < SceneManager.sceneCount; index++)
@@ -313,6 +323,7 @@ namespace YC.Presentation
                 if (scene != transitionScene && scene.isLoaded)
                 {
                     scenesToUnload.Add(scene);
+                    if (scene.name == "SampleScene" || scene.name == "ThreePlayerScene") hadGameplaySource = true;
                 }
             }
 
@@ -329,6 +340,23 @@ namespace YC.Presentation
                     yield return null;
                 }
             }
+            foreach (var scene in scenesToUnload)
+                if (scene.IsValid() && scene.isLoaded) yield break;
+            sourceScenesUnloaded = true;
+        }
+
+        private bool TryReleaseGameplayArtworkBeforeActivation(string targetScene, bool requestedMenuReturn, AsyncOperation operation)
+        {
+            if (!requestedMenuReturn || targetScene != FallbackSceneName || !hadGameplaySource || !sourceScenesUnloaded ||
+                GameLaunchContext.Instance == null || !GameLaunchContext.Instance.IsLeavingGameplay ||
+                operation == null || operation.allowSceneActivation || operation.isDone || operation.progress < 0.9f) return false;
+            // 包括意外并行加载的场景；不扫描对象或猜测仍显示的页面是否使用卡图。
+            for (var index = 0; index < SceneManager.sceneCount; index++)
+            {
+                var scene = SceneManager.GetSceneAt(index);
+                if (scene != gameObject.scene && scene.isLoaded) return false;
+            }
+            return ExternalContentRuntime.ReleaseUnloadedGameplayArtwork();
         }
 
         private IEnumerator FadeBlackScreen(float from, float to, float duration)

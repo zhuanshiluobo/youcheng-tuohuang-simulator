@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.dorothy",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "2.0.4",
   "displayName": "多萝西",
   "expansionId": "enterprise",
   "replaces": null,
@@ -39,7 +39,7 @@
       "skillType": "normal",
       "subscriptionId": "content.operator.dorothy.strategy",
       "script": "lua/characters/operator.dorothy.strategy.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -51,8 +51,8 @@
       "skillType": "persistent",
       "subscriptionId": "content.operator.dorothy.tactic",
       "script": "lua/characters/operator.dorothy.tactic.lua",
-      "version": "1.0.0",
-      "completionHandlerId": "",
+      "version": "2.0.3",
+      "completionHandlerId": "content.operator.dorothy.tactic.completed",
       "cleanupScript": "lua/characters/operator.dorothy.tactic.lua",
       "settlementActionId": "character.execute_cleanup",
       "titleKey": "为了大家",
@@ -110,5 +110,79 @@
         "displayName": "多萝西"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.dorothy.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.dorothy",
+      "actions": [
+        {
+          "actionId": "operator.dorothy.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "operator.dorothy",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "operator.dorothy"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.dorothy.tactic",
+      "kind": "event",
+      "handlerRef": "content.operator.dorothy.tactic",
+      "declarationVersion": "2.0.3",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:operator.dorothy:markers:core.player_marker",
+        "carrier.store:operator.dorothy:markers:core.cube",
+        "carrier.transfer.original_supply:operator.dorothy:markers:core.cube"
+      ],
+      "presentationRef": "operator.dorothy.tactic",
+      "actions": []
+    }
+  ]
 }

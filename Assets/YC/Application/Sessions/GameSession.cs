@@ -29,6 +29,10 @@ namespace YC.Application.Sessions
                 throw new InvalidOperationException("ordered_request_contract_configuration_invalid");
             orderedRequestContractVersion = version;
         }
+        private EffectRegistry PaymentProjectionRegistry =>
+            (commandHandlers.Find(handler => handler is IPreparedActionConfirmationProvider provider && provider.PaymentRegistry != null)
+                as IPreparedActionConfirmationProvider)?.PaymentRegistry;
+
         public GameStateView ProjectFor(GameStateViewer viewer)
         {
             if (IsBackgroundReader)
@@ -37,7 +41,7 @@ namespace YC.Application.Sessions
                     throw new InvalidOperationException("published_view_not_ready_or_wrong_viewer");
                 return GameStateCloneService.DeepClone(View);
             }
-            return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer));
+            return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer), settlementProjectionProvider?.GetAbilityActions(State, viewer), PaymentProjectionRegistry);
         }
 
         /// <summary>完整模拟状态的展示入口；只更新观察者投影，不提交规则或裁剪 State。</summary>
@@ -123,6 +127,7 @@ namespace YC.Application.Sessions
 
         public HostSessionArchiveDto CreateHostArchive(string contentHash = "")
         {
+            EnsureSaveCaptureOutsideExecution();
             EnsureExecutionOwner();
             return HostRecoveryService.CreateArchive(State, contentHash);
         }
@@ -182,8 +187,10 @@ namespace YC.Application.Sessions
         private CommandResult SubmitCore(GameCommand command, string verifiedOrderedRequestDigest)
         {
             EnsureExecutionOwner();
+            using var saveCritical = new SaveCriticalScope(this);
             if (CommandsSuspended) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "正在保存对局，请稍候。"));
             using var submitSample = new ExecutionSample(ExecutionTimings, "submit.total");
+            using var allocationSample = ExecutionTimings.MeasureSubmitAllocation(command?.CommandId);
             if (command == null)
             {
                 throw new ArgumentNullException(nameof(command));
@@ -196,7 +203,8 @@ namespace YC.Application.Sessions
                 !IsCharacterModeStopCommand(State, command) &&
                 !IsLocalCharacterCoverCommand(State, command) &&
                 !IsLegalSettlementInvocation(State, command) &&
-                !MainActionCommandGuard.IsPreparedActionConfirmation(State, command) &&
+                !commandHandlers.Exists(handler => handler.CanHandle(command) && handler is IPreparedActionConfirmationProvider provider &&
+                    provider.IsPreparedActionConfirmation(State, command)) &&
                 command.Kind != GameCommandKind.PreparePaymentDraft &&
                 !(command.Kind == GameCommandKind.EndAction && !string.IsNullOrEmpty(State.EffectRuntime?.ActiveSettlementWindowId)))
             {
@@ -334,6 +342,26 @@ namespace YC.Application.Sessions
         private bool IsLegalSettlementInvocation(GameState state, GameCommand command)
         {
             if (command.Kind != GameCommandKind.InvokeSettlementOption || !CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind)) return false;
+            if (YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "intent") == YC.Application.Interactions.CleanupSourceCommand.Intent)
+            {
+                if (!YC.Application.Interactions.CleanupSourceCommand.TryRead(command, out var request, out _)) return false;
+                var owner = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == request.OwnerEffectId);
+                var entry = owner?.SettlementWindow?.Entries.Find(e => e.OptionId == request.OptionId && e.CleanupSource != null);
+                if (entry == null || owner.SettlementWindow.Context.PlayerId != command.PlayerId || owner.SettlementWindow.Context.Id != request.WindowId) return false;
+                bool Same(YC.Domain.Effects.CleanupSourceRequestRef r) => r != null && r.WindowId == request.WindowId && r.OwnerEffectId == request.OwnerEffectId &&
+                    r.OptionId == request.OptionId && r.InteractionId == request.InteractionId && r.FactsDigest == request.FactsDigest &&
+                    r.RequestGeneration == request.RequestGeneration && r.CandidateSetVersion == request.CandidateSetVersion && r.AnsweringPlayerId == command.PlayerId;
+                if (entry.CleanupSource.Invocations.Exists(i => i.CommandId == command.CommandId && Same(i.RequestRef))) return true;
+                var options = settlementProjectionProvider?.GetSettlementOptions(state, GameStateViewer.Player(command.PlayerId));
+                return options != null && System.Linq.Enumerable.Any(options, o => o.IsEnabled && Same(o.CleanupRequest) && o.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture) == command.Parameters["expectedRevision"]);
+            }
+            if (YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "intent") == YC.Application.Interactions.AbilityActionCommand.Intent)
+            {
+                if (state.EffectRuntime.AbilityActionInvocations.Exists(i => i.CommandId == command.CommandId && i.SourceRef.AuthorizedPlayerId == command.PlayerId)) return true;
+                var actions = settlementProjectionProvider?.GetAbilityActions(state, GameStateViewer.Player(command.PlayerId));
+                return actions != null && System.Linq.Enumerable.Any(actions, a => a.Enabled && a.OptionId == YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "optionId") &&
+                    a.RequestRef.InteractionId == YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "requestId") && a.RequestRef.FactsDigest == YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "factsDigest"));
+            }
             string useId = YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "useId");
             string optionId = YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "optionId");
             if (!int.TryParse(YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "expectedRevision"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int revision)) return false;
@@ -412,10 +440,9 @@ namespace YC.Application.Sessions
 
                 if (commitEntries.Count > 0)
                 {
-                    var commit = RuleCommit.Apply(
-                        workState,
-                        command.CommandId,
-                        commitEntries.ToArray());
+                    var commit = YC.Application.Interactions.AbilityActionCommand.IsNativeFault(workState)
+                        ? RuleCommit.ApplyFault(workState, command.CommandId, commitEntries.ToArray())
+                        : RuleCommit.Apply(workState, command.CommandId, commitEntries.ToArray());
                     RebaseOpenInteractionRevisions(workState, commit.StateRevision);
                     for (var i = 0; i < recordedEvents.Count; i++)
                     {

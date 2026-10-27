@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using YC.Domain.Effects;
 using YC.Domain.Items;
 using YC.Domain.Influence;
@@ -11,9 +12,31 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Domain.Cards
 {
+    // 只绑定真实持续订阅产生的响应根；不把历史激活节点或Lua载荷单独当成授权。
+    [Serializable] public sealed class PersistentSourceFactsBinding
+    {
+        public int ProtocolVersion = 1;
+        public AbilitySourceRef SourceRef;
+        public string ContentPackHash = "", TriggerEventId = "", SubscriptionId = "", HandlerId = "", HandlerHash = "", HandlerVersion = "";
+        public string ActivationEffectId = "", UseId = "";
+        public string SourceDigest = "";
+    }
     /// <summary>真实角色区域、使用上下文及结束策略。所有变更只作用于内核工作副本。</summary>
     public sealed class CharacterLifecycleService
     {
+        public const string DefinitionVersion = "2.0.0";
+        public const string ActionArgumentProtocolVersion = "1.0.0";
+        public static string NormalizeActionArguments(NormalizedValue input, out NormalizedValue normalized)
+        {
+            normalized = null;
+            if (input?.Kind != NormalizedValueKind.Object || !input.IsValid() || input.Properties.Any(p => !new[] { "mode", "order", "offerSecondEffect" }.Contains(p.Name))) return "character_arguments_invalid";
+            if (input.Properties.Any(p => p.Value.Kind != (p.Name == "offerSecondEffect" ? NormalizedValueKind.Boolean : NormalizedValueKind.String))) return "character_argument_type_invalid";
+            string mode = Text(input, "mode"), order = Text(input, "order");
+            if (mode.Length > 0 && !new[] { "strategy", "tactic", "both" }.Contains(mode)) return "character_mode_invalid";
+            if (mode == "both" ? !new[] { "strategy-first", "tactic-first" }.Contains(order) : order.Length > 0) return "character_order_invalid";
+            normalized = Object("mode", NormalizedValue.CreateString(mode), "order", NormalizedValue.CreateString(order), "offerSecondEffect", NormalizedValue.CreateBoolean(Flag(input, "offerSecondEffect")));
+            return "";
+        }
         public const string UseTypeId = "character.use", TransferTypeId = "effect.character.transfer";
         public const string QuickActionTypeId = "character.quick_action";
         public const string SecondModeInteractionTypeId = "character.use.second_mode";
@@ -99,7 +122,7 @@ namespace YC.Domain.Cards
         }
         private static void RegisterOnce(EffectRegistry registry, string id, Func<EffectExecutionContext, EffectStepResult> execute, EffectExecutorKind kind = EffectExecutorKind.Atomic)
         {
-            if (!registry.TryGet(id, out _)) registry.Register(new EffectRegistration(id, context => { ResumeDeferredDependencies(context); return execute(context); }, kind));
+            if (!registry.TryGet(id, out _)) registry.Register(new EffectRegistration(id, context => { ResumeDeferredDependencies(context); return execute(context); }, kind, DefinitionVersion));
         }
         public static int GetActionRoundSequence(GameState state)
         {
@@ -124,7 +147,7 @@ namespace YC.Domain.Cards
                 !slot.AllowedActionRounds.Contains(state.ActionRound) ? "character_window_closed" :
                 slot.BlockedActionRoundSequence >= GetActionRoundSequence(state) ? "character_instance_blocked" :
                 state.CharacterUses.Any(use => !use.Finished && !use.SelectionCancelled && use.ExecutingPlayerId == playerId) ? "character_use_in_progress" :
-                state.CharacterUses.Any(use => !use.SelectionCancelled && use.CardInstanceId == itemId && use.ActionRoundSequence == GetActionRoundSequence(state)) ? "character_already_used" : "";
+                "";
             var result = new CharacterAvailability { ItemId = itemId, DefinitionId = item?.DefinitionId ?? "", ZoneId = item?.ZoneId ?? "", SlotId = item?.SlotId ?? "",
                 ControllerPlayerId = item?.ControllerSubject.PlayerId ?? -1, BlockedActionRoundSequence = slot?.BlockedActionRoundSequence ?? 0, CanUse = reason.Length == 0, DisabledReasonCode = reason };
             var current = state.CharacterUses.LastOrDefault(use => use.CardInstanceId == itemId && use.ExecutingPlayerId == playerId && !use.Finished);
@@ -174,7 +197,8 @@ namespace YC.Domain.Cards
             var window = runtime.MainNodes.Find(value => value.NodeId == runtime.ActiveMainNodeId && value.NodeTypeId == RoundMainlineNodeTypeIds.PlayerActionWindow && value.PlayerId == playerId);
             var owner = runtime.EffectNodes.Find(value => value.EffectId == use.OwnerEffectId);
             var quick = runtime.EffectNodes.Find(value => value.EffectId == owner?.ParentEffectId && value.EffectTypeId == QuickActionTypeId);
-            if (window == null || quick == null || quick.ParentEffectId != window.ExecutionEffectId || owner.FlowStage != "resolving_modes") return false;
+            var outer = runtime.EffectNodes.Find(value => value.EffectId == quick?.ParentEffectId && value.EffectTypeId == AbilityActionExecutor.TypeId);
+            if (window == null || quick == null || (outer?.ParentEffectId ?? quick.ParentEffectId) != window.ExecutionEffectId || owner.FlowStage != "resolving_modes") return false;
             var first = runtime.EffectNodes.Find(value => value.ParentEffectId == use.OwnerEffectId && value.EffectTypeId == CharacterAbilityEffectExecutor.ActivationEffectTypeId && Text(value.NormalizedArguments, "mode") == use.ModeOrder[0]);
             if (first == null || first.Status != EffectNodeStatus.Completed && first.Status != EffectNodeStatus.Failed) return false;
             activation = runtime.EffectNodes.Find(value => value.ParentEffectId == use.OwnerEffectId && value.EffectTypeId == CharacterAbilityEffectExecutor.ActivationEffectTypeId &&
@@ -461,7 +485,7 @@ namespace YC.Domain.Cards
         public static ZoneInstanceState CubeSupply(GameState state, ItemInstanceState cube)
         {
             if (cube.OriginalSupplyZoneId.Length > 0) return state.ItemZones.Zones.Single(zone => zone.ZoneId == cube.OriginalSupplyZoneId);
-            if (cube.OwnerSubject.Kind == ItemSubjectKind.Player && cube.TypeId == "core.player_marker") return FindZone(state, "player_markers", cube.OwnerSubject.PlayerId);
+            if (cube.OwnerSubject.Kind == ItemSubjectKind.Player && cube.TypeId == "core.player_marker") return FindZone(state, "supply", cube.OwnerSubject.PlayerId);
             if (cube.OwnerSubject.Kind == ItemSubjectKind.Company) return FindZone(state, "company_markers");
             throw new InvalidOperationException("carrier_content_destination_undefined");
         }
@@ -493,6 +517,292 @@ namespace YC.Domain.Cards
         public static bool IsSubscriptionActive(GameState state, string itemId, string abilityId) =>
             state.ItemZones.Items.Any(item => item.ItemId == itemId && state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.character_persistent")) &&
             state.CharacterUses.Any(use => use.CardInstanceId == itemId && use.Modes.Any(mode => mode.AbilityId == abilityId && mode.SubscriptionActive));
+        private sealed class PersistentSourceFactsCall
+        {
+            internal EffectRegistry Registry;
+            internal EffectEventHandlerContext Trigger;
+            internal string ItemId, AbilityId, HandlerHash;
+        }
+        private static readonly ConditionalWeakTable<EffectEventHandlerContext, PersistentSourceFactsCall> PersistentSourceFactsCalls =
+            new ConditionalWeakTable<EffectEventHandlerContext, PersistentSourceFactsCall>();
+        public static bool TryResolvePersistentSourceFacts(EffectRegistry registry, EffectEventHandlerContext context,
+            string abilityId, string handlerHash, out AbilitySourceRef source)
+        {
+            source = null;
+            if (context == null || !PersistentSourceFactsCalls.TryGetValue(context, out var binding) ||
+                !ReferenceEquals(registry, binding.Registry) || binding.AbilityId != abilityId || binding.HandlerHash != handlerHash) return false;
+            var state = context.State; var owner = context.OwnerNode; var trigger = binding.Trigger;
+            var registration = context.Registration;
+            if (state?.EffectRuntime == null || state.ContentPackHash != registry.ContentPackHash || owner == null ||
+                !ReferenceEquals(state, trigger.State) || !ReferenceEquals(registration, trigger.Registration) || registration == null ||
+                !ReferenceEquals(registration, registry.FindEventHandler(registration.SubscriptionId)) ||
+                registration.AbilityId != abilityId || registration.ContentHash != handlerHash || registration.EventType != context.Event.EventType ||
+                !state.EffectRuntime.RuleEvents.Any(e => ReferenceEquals(e, trigger.Event)) ||
+                !state.EffectRuntime.EffectNodes.Any(n => ReferenceEquals(n, owner)) ||
+                owner.EffectTypeId != CharacterAbilityEffectExecutor.ActivationEffectTypeId ||
+                Text(owner.NormalizedArguments, "abilityId") != abilityId || Value(owner.NormalizedArguments, "cardInstanceId")?.ReferenceId != binding.ItemId ||
+                !IsSubscriptionActive(state, binding.ItemId, abilityId)) return false;
+            var use = state.CharacterUses.SingleOrDefault(u => u.UseId == Text(owner.NormalizedArguments, "useId") &&
+                u.CardInstanceId == binding.ItemId && u.OwnerEffectId == owner.ParentEffectId);
+            if (use == null || !use.Modes.Any(m => m.AbilityId == abilityId && m.SubscriptionActive && m.Mode == Text(owner.NormalizedArguments, "mode"))) return false;
+            source = registry.QuerySources(state, context.Event.PlayerId).SingleOrDefault(s => s.ItemId == binding.ItemId && s.AbilityId == abilityId);
+            return source != null;
+        }
+        public static EffectNodeRuntimeState PersistentSourceFactsRoot(GameState state, EffectNodeRuntimeState owner)
+        {
+            var visited = new HashSet<string>(StringComparer.Ordinal);
+            while (owner != null && visited.Add(owner.EffectId))
+            {
+                if (owner.PersistentSourceFacts != null) return owner;
+                // 外部响应有自己的执行凭据时，不能跨过它继承另一条持续订阅的来源。
+                if (state.EffectRuntime.AbilitySourceUses.Any(r => r.OwnerEffectId == owner.EffectId) ||
+                    state.EffectRuntime.AbilityActionInvocations.Any(r => r.OwnerEffectId == owner.EffectId) ||
+                    CleanupSourceService.Invocations(state).Any(r => r.TargetEffectId == owner.EffectId)) return null;
+                owner = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == owner.ParentEffectId);
+            }
+            return null;
+        }
+        public static bool TryResolvePersistentSourceFactsContinuation(EffectRegistry registry, EffectEventHandlerContext context,
+            string handlerId, string handlerHash, out AbilitySourceRef source)
+        {
+            source = null;
+            var state = context?.State; var owner = context?.OwnerNode;
+            if (state?.EffectRuntime == null || owner == null || !state.EffectRuntime.EffectNodes.Any(n => ReferenceEquals(n, owner)) ||
+                !state.EffectRuntime.RuleEvents.Any(e => ReferenceEquals(e, context.Event)) || context.Event.EventType != "EffectCompleted" ||
+                context.Event.OwnerNodeId != owner.EffectId || context.Event.SourceEffectId != owner.EffectId || context.Event.EventId != owner.CompletedEventId ||
+                owner.ContinuationHandlerId != handlerId || owner.ContinuationContentHash != handlerHash ||
+                !registry.TryGetContinuation(handlerId, "EffectCompleted", out var registration) || !ReferenceEquals(registration, context.Registration) ||
+                !registration.Matches(context.Event, owner, true) ||
+                state.EffectRuntime.DispatchReceipts.Any(r => r.EventId == context.Event.EventId && r.SubscriptionId == registration.SubscriptionId)) return false;
+            var root = PersistentSourceFactsRoot(state, owner);
+            if (root == null || !ValidatePersistentSourceFactsBinding(state, registry, root, true, out _) ||
+                root.PersistentSourceFacts.HandlerHash != handlerHash || registration.AbilityId != root.PersistentSourceFacts.SourceRef.AbilityId ||
+                registration.DefinitionVersion != root.PersistentSourceFacts.HandlerVersion || owner.ContinuationAbilityId != registration.AbilityId) return false;
+            var continuation = state.EffectRuntime.ContinuationBindings.SingleOrDefault(b => b.BindingId == owner.ContinuationBindingId);
+            if (continuation == null || continuation.SourceEffectId != owner.EffectId || continuation.HandlerId != handlerId ||
+                continuation.ContentHash != handlerHash || continuation.AbilityId != registration.AbilityId ||
+                continuation.CompletionEventId != context.Event.EventId || continuation.DefinitionVersion != registration.DefinitionVersion ||
+                continuation.Status == ContinuationBindingStatus.Cancelled) return false;
+            source = GameStateCloneService.DeepClone(root.PersistentSourceFacts.SourceRef); return true;
+        }
+        private static bool ValidatePersistentSourceFactsBinding(GameState state, EffectRegistry registry, EffectNodeRuntimeState root,
+            bool current, out string reason)
+        {
+            if (!ValidatePersistentSourceFactsHistory(state, registry, root.PersistentSourceFacts, root.SourceId, root.PlayerId, current, out var receipt, out reason)) return false;
+            if (!receipt.AttachedEffectIds.Any(id => InfluenceDepartureProtocol.IsWithin(state, root.EffectId, id)))
+            { reason = "source_facts_binding_invalid"; return false; }
+            return true;
+        }
+        // 保存的spec与实际node共用历史身份校验；调用方另证明其真实保存/附着上下文，不制造临时owner。
+        private static bool ValidatePersistentSourceFactsHistory(GameState state, EffectRegistry registry, PersistentSourceFactsBinding binding,
+            string sourceId, int player, bool current, out DispatchReceipt receipt, out string reason)
+        {
+            receipt = null; reason = "source_facts_binding_invalid";
+            var source = binding?.SourceRef;
+            if (binding == null || binding.ProtocolVersion != 1 || source == null || source.GrantingSourceRefs == null ||
+                binding.SourceDigest != PersistentSourceDigest(source) ||
+                binding.ContentPackHash != state.ContentPackHash || source.RuleOwnerItemId != source.ItemId ||
+                sourceId != "character-card:" + source.ItemId || player != source.AuthorizedPlayerId ||
+                source.SourceKey != StableIdFactory.Create("ability-source", source.ItemId, source.AbilityId, source.ActiveFaceId, source.DeclarationVersion,
+                    source.AuthorizedPlayerId.ToString(CultureInfo.InvariantCulture))) return false;
+            var trigger = state.EffectRuntime.RuleEvents.SingleOrDefault(e => e.EventId == binding.TriggerEventId);
+            var activation = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == binding.ActivationEffectId);
+            var use = state.CharacterUses.SingleOrDefault(u => u.UseId == binding.UseId);
+            if (trigger == null || binding.SubscriptionId != source.AbilityId + ".persistent." + trigger.EventType ||
+                binding.HandlerId != binding.SubscriptionId || string.IsNullOrEmpty(binding.HandlerHash) || string.IsNullOrEmpty(binding.HandlerVersion) ||
+                activation?.EffectTypeId != CharacterAbilityEffectExecutor.ActivationEffectTypeId || Text(activation.NormalizedArguments, "abilityId") != source.AbilityId ||
+                activation.Status != EffectNodeStatus.Completed || activation.LastCommitSequence > trigger.CommitSequence ||
+                Value(activation.NormalizedArguments, "cardInstanceId")?.ReferenceId != source.ItemId || Text(activation.NormalizedArguments, "useId") != binding.UseId ||
+                use == null || use.CardInstanceId != source.ItemId || use.OwnerEffectId != activation.ParentEffectId ||
+                !use.Modes.Any(m => m.AbilityId == source.AbilityId && m.Mode == Text(activation.NormalizedArguments, "mode") && m.Activated) ||
+                !state.ItemZones.Items.Any(i => i.ItemId == source.ItemId && i.DefinitionId == source.DefinitionId)) return false;
+            receipt = state.EffectRuntime.DispatchReceipts.SingleOrDefault(r => r.EventId == trigger.EventId && r.SubscriptionId == binding.SubscriptionId);
+            if (receipt == null || !receipt.Succeeded || receipt.HandlerId != binding.HandlerId || receipt.AbilityId != source.AbilityId ||
+                receipt.DefinitionVersion != binding.HandlerVersion || receipt.RouteTier != (int)EffectRouteTier.Observer) return false;
+            if (registry != null)
+            {
+                var registration = registry.FindEventHandler(binding.SubscriptionId);
+                var declaration = registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == source.AbilityId && d.DefinitionId == source.DefinitionId);
+                if (registry.ContentPackHash != binding.ContentPackHash || registration == null || registration.Role != EffectHandlerRole.Observer ||
+                    registration.HandlerId != binding.HandlerId || registration.ContentHash != binding.HandlerHash || registration.DefinitionVersion != binding.HandlerVersion ||
+                    registration.AbilityId != source.AbilityId || registration.EventType != trigger.EventType ||
+                    declaration == null || declaration.DeclarationVersion != source.DeclarationVersion) return false;
+                if (current && !registry.IsCurrentSourceFactsSource(state, source)) { reason = "source_facts_binding_source_stale"; return false; }
+            }
+            else if (current && (state.ContentDefinitions?.AbilitySources == null ||
+                !AbilitySourceService.IsCurrent(state, state.ContentDefinitions.AbilitySources, source)))
+            { reason = "source_facts_binding_source_stale"; return false; }
+            if (current && (!IsSubscriptionActive(state, source.ItemId, source.AbilityId) ||
+                !use.Modes.Any(m => m.AbilityId == source.AbilityId && m.Mode == Text(activation.NormalizedArguments, "mode") && m.SubscriptionActive)))
+            { reason = "source_facts_binding_source_stale"; return false; }
+            reason = ""; return true;
+        }
+        public static bool TryValidatePersistentSourceFacts(GameState state, EffectRegistry registry, out string reason)
+        {
+            reason = "source_facts_binding_invalid";
+            foreach (var root in state.EffectRuntime.EffectNodes.Where(n => n.PersistentSourceFacts != null))
+            {
+                // 存档验证历史来源凭据；资格在真正读取SourceData时重验。
+                // 来源后来离场不应抹掉已合法提交的费用及已经构造的后继效果。
+                if (!ValidatePersistentSourceFactsBinding(state, registry, root, false, out reason)) return false;
+            }
+            if (!ValidateStoredPersistentSourceFacts(state, registry, out reason)) return false;
+            // 旧完成历史可保留；没有来源凭据的未完成持续响应不能静默补权或降级恢复。
+            foreach (var receipt in state.EffectRuntime.DispatchReceipts.Where(r => r.Succeeded && r.RouteTier == (int)EffectRouteTier.Observer))
+            {
+                var trigger = state.EffectRuntime.RuleEvents.SingleOrDefault(e => e.EventId == receipt.EventId);
+                if (trigger == null || receipt.SubscriptionId != receipt.AbilityId + ".persistent." + trigger.EventType) continue;
+                foreach (var id in receipt.AttachedEffectIds)
+                {
+                    var root = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == id);
+                    if (root != null && root.SourceId.StartsWith("character-card:", StringComparison.Ordinal) && root.PersistentSourceFacts == null &&
+                        root.Status != EffectNodeStatus.Completed && root.Status != EffectNodeStatus.Failed && root.Status != EffectNodeStatus.Faulted &&
+                        (state.ContentDefinitions?.AbilitySources.Any(d => d.AbilityId == receipt.AbilityId) == true || registry?.HasAbilityCatalog == true))
+                    { reason = "source_facts_binding_missing"; return false; }
+                }
+            }
+            reason = ""; return true;
+        }
+        private static bool RequiresPersistentSourceFacts(GameState state, EffectRegistry registry, DispatchReceipt receipt)
+        {
+            var trigger = state.EffectRuntime.RuleEvents.SingleOrDefault(e => e.EventId == receipt?.EventId);
+            return trigger != null && receipt.Succeeded && receipt.RouteTier == (int)EffectRouteTier.Observer &&
+                receipt.SubscriptionId == receipt.AbilityId + ".persistent." + trigger.EventType &&
+                (registry?.HasAbilityCatalog == true || state.ContentDefinitions?.AbilitySources.Any(d => d.AbilityId == receipt.AbilityId) == true);
+        }
+        private static bool SamePersistentBinding(PersistentSourceFactsBinding a, PersistentSourceFactsBinding b) =>
+            a == null || b == null ? a == b : a.ProtocolVersion == b.ProtocolVersion && a.SourceDigest == b.SourceDigest &&
+            a.ContentPackHash == b.ContentPackHash && a.TriggerEventId == b.TriggerEventId && a.SubscriptionId == b.SubscriptionId &&
+            a.HandlerId == b.HandlerId && a.HandlerHash == b.HandlerHash && a.HandlerVersion == b.HandlerVersion &&
+            a.ActivationEffectId == b.ActivationEffectId && a.UseId == b.UseId;
+        private static bool HasStoredBinding(IEnumerable<EffectSpecRuntimeState> specs) =>
+            specs != null && specs.Any(s => s != null && (s.PersistentSourceFacts != null || HasStoredBinding(s.NestedEffects)));
+        private static bool SameStoredBindings(IList<EffectSpecRuntimeState> a, IList<EffectSpecRuntimeState> b)
+        {
+            if (!HasStoredBinding(a) && !HasStoredBinding(b)) return true;
+            if (a == null || b == null || a.Count != b.Count) return false;
+            for (int i = 0; i < a.Count; i++)
+                if (a[i] == null || b[i] == null || a[i].EffectTypeId != b[i].EffectTypeId || a[i].SourceId != b[i].SourceId ||
+                    a[i].StableKey != b[i].StableKey || !SamePersistentBinding(a[i].PersistentSourceFacts, b[i].PersistentSourceFacts) ||
+                    !SameStoredBindings(a[i].NestedEffects, b[i].NestedEffects)) return false;
+            return true;
+        }
+        private static bool ValidateStoredSpec(GameState state, EffectRegistry registry, EffectSpecRuntimeState spec,
+            DispatchReceipt receipt, string card, int player, bool required, out string reason)
+        {
+            reason = "source_facts_binding_invalid";
+            if (spec == null || spec.NestedEffects == null) return false;
+            if (required && spec.PersistentSourceFacts == null) { reason = "source_facts_binding_missing"; return false; }
+            if (spec.PersistentSourceFacts != null)
+            {
+                if (!ValidatePersistentSourceFactsHistory(state, registry, spec.PersistentSourceFacts, spec.SourceId, spec.PlayerId, false, out var origin, out reason)) return false;
+                if (!ReferenceEquals(origin, receipt) || spec.PersistentSourceFacts.SourceRef.ItemId != card || spec.PlayerId != player)
+                { reason = "source_facts_binding_invalid"; return false; }
+            }
+            foreach (var nested in spec.NestedEffects)
+                if (!ValidateStoredSpec(state, registry, nested, receipt, card, player, false, out reason)) return false;
+            reason = ""; return true;
+        }
+        private static bool ValidateStoredPersistentSourceFacts(GameState state, EffectRegistry registry, out string reason)
+        {
+            reason = "source_facts_binding_invalid";
+            var runtime = state.EffectRuntime;
+            // 可选结算Offer由结算目录独立编译，不经过持续observer；其保存正文不能借用observer凭据。
+            // 包括尚未物化的嵌套正文；普通无凭据结算项仍交原结算合同验证。
+            foreach (var node in runtime.EffectNodes.Where(n => n.SettlementWindow != null))
+                if (node.SettlementWindow.Entries.Any(entry => HasStoredBinding(entry.Effects))) return false;
+            foreach (var response in runtime.DeferredResponses.Where(r => r.ProtocolVersion == 1))
+            {
+                var receipt = runtime.DispatchReceipts.SingleOrDefault(r => r.EventId == response.SourceEventId && r.SubscriptionId == response.SubscriptionId);
+                bool required = RequiresPersistentSourceFacts(state, registry, receipt);
+                if (!required && !HasStoredBinding(response.PendingBody)) continue;
+                // 先核真正的响应/原事件/原收据/包装根关系；不从另一棵树借来源。
+                if (!EffectTreeExecutor.ValidateDepartureResponse(state, response, registry, out reason)) return false;
+                var root = runtime.EffectNodes.Single(n => n.EffectId == response.ResponseRootEffectId);
+                if (root.PersistentSourceFacts != null) { reason = "source_facts_binding_invalid"; return false; }
+                for (int i = 0; i < response.PendingBody.Count; i++)
+                {
+                    var spec = response.PendingBody[i];
+                    if (!ValidateStoredSpec(state, registry, spec, receipt, response.SourceCardInstanceId, response.AnsweringPlayerId, required, out reason)) return false;
+                    string id = StableIdFactory.Create("effect", root.EffectId, "event", response.SubscriptionId,
+                        i.ToString(CultureInfo.InvariantCulture), spec.EffectTypeId ?? "", spec.StableKey ?? "");
+                    var body = runtime.EffectNodes.SingleOrDefault(n => n.EffectId == id);
+                    if (body != null && (response.Status == DeferredResponseStatus.Queued || response.Status == DeferredResponseStatus.Ineligible))
+                    { reason = "source_facts_binding_invalid"; return false; }
+                    if (body == null)
+                    {
+                        if (response.Status != DeferredResponseStatus.Queued && response.Status != DeferredResponseStatus.Ineligible)
+                        { reason = "source_facts_binding_invalid"; return false; }
+                        continue;
+                    }
+                    var original = runtime.InfluencePlaceMappings.SingleOrDefault(m => m.ActualRootEffectId == id)?.OriginalSpec;
+                    if (body.ParentEffectId != root.EffectId || !root.ChildEffectIds.Contains(id) || !receipt.AttachedEffectIds.Contains(id) ||
+                        body.SourceId != spec.SourceId || body.PlayerId != spec.PlayerId || !SamePersistentBinding(body.PersistentSourceFacts, spec.PersistentSourceFacts) ||
+                        !SameStoredBindings(spec.NestedEffects, original?.NestedEffects ?? body.NestedEffects))
+                    { reason = "source_facts_binding_invalid"; return false; }
+                }
+            }
+            foreach (var batch in runtime.InfluenceDepartureBatches)
+            foreach (var offer in batch.Offers)
+            {
+                var receipt = runtime.DispatchReceipts.SingleOrDefault(r => r.EventId == offer.EventId && r.SubscriptionId == offer.SubscriptionId);
+                bool required = RequiresPersistentSourceFacts(state, registry, receipt);
+                if (!required && !HasStoredBinding(new[] { offer.Body })) continue;
+                var binding = offer.Body?.PersistentSourceFacts;
+                if (required && binding == null) { reason = "source_facts_binding_missing"; return false; }
+                if (receipt == null || binding?.SourceRef?.SourceKey != offer.SourceKey || offer.EventIds == null || !offer.EventIds.Contains(offer.EventId) ||
+                    !offer.DepartureIds.Any(id => runtime.InfluenceDepartures.Any(d => d.DepartureId == id && d.BatchId == batch.BatchId && d.EventIds.Contains(offer.EventId))))
+                { reason = "source_facts_binding_invalid"; return false; }
+                if (!ValidateStoredSpec(state, registry, offer.Body, receipt, binding.SourceRef.ItemId, binding.SourceRef.AuthorizedPlayerId, required, out reason)) return false;
+                foreach (var response in runtime.DeferredResponses.Where(r => r.ProtocolVersion == 1 && r.BatchId == batch.BatchId && r.SourceKey == offer.SourceKey))
+                    if (response.PendingBody == null || response.PendingBody.Count != 1 || response.SourceEventId != offer.EventId || response.SubscriptionId != offer.SubscriptionId ||
+                        !SamePersistentBinding(offer.Body.PersistentSourceFacts, response.PendingBody[0].PersistentSourceFacts) ||
+                        !SameStoredBindings(offer.Body.NestedEffects, response.PendingBody[0].NestedEffects))
+                    { reason = "source_facts_binding_invalid"; return false; }
+            }
+            foreach (var mapping in runtime.InfluencePlaceMappings)
+            {
+                var root = runtime.EffectNodes.SingleOrDefault(n => n.EffectId == mapping.ActualRootEffectId);
+                if (root?.PersistentSourceFacts == null && !HasStoredBinding(new[] { mapping.OriginalSpec })) continue;
+                if (root == null || mapping.OriginalSpec == null || mapping.ParentEffectId != root.ParentEffectId ||
+                    !SamePersistentBinding(root.PersistentSourceFacts, mapping.OriginalSpec.PersistentSourceFacts))
+                { reason = "source_facts_binding_invalid"; return false; }
+                var boundRoot = PersistentSourceFactsRoot(state, root);
+                var binding = boundRoot?.PersistentSourceFacts;
+                var receipt = runtime.DispatchReceipts.SingleOrDefault(r => r.EventId == binding?.TriggerEventId && r.SubscriptionId == binding.SubscriptionId);
+                if (binding == null) { reason = "source_facts_binding_invalid"; return false; }
+                if (!ValidateStoredSpec(state, registry, mapping.OriginalSpec, receipt, binding.SourceRef.ItemId,
+                    binding.SourceRef.AuthorizedPlayerId, root.PersistentSourceFacts != null, out reason)) return false;
+            }
+            foreach (var node in runtime.EffectNodes.Where(n => HasStoredBinding(n.NestedEffects) ||
+                n.NestedEffects.Count > 0 && n.ChildEffectIds.Any(id => runtime.EffectNodes.Any(child => child.EffectId == id && child.PersistentSourceFacts != null))))
+            {
+                var boundRoot = PersistentSourceFactsRoot(state, node);
+                var binding = boundRoot?.PersistentSourceFacts;
+                var receipt = runtime.DispatchReceipts.SingleOrDefault(r => r.EventId == binding?.TriggerEventId && r.SubscriptionId == binding.SubscriptionId);
+                if (HasStoredBinding(node.NestedEffects) && binding == null) { reason = "source_facts_binding_invalid"; return false; }
+                foreach (var nested in node.NestedEffects)
+                {
+                    if (HasStoredBinding(new[] { nested }) && !ValidateStoredSpec(state, registry, nested, receipt,
+                        binding.SourceRef.ItemId, binding.SourceRef.AuthorizedPlayerId, false, out reason)) return false;
+                    // 内核按实际父节点/子索引/原spec稳定键物化，不能用同名的任意后代匹配。
+                    for (int i = 0; i < node.ChildEffectIds.Count; i++)
+                    {
+                        string id = StableIdFactory.Create("effect", node.EffectId, "child", "child_effect", i.ToString(CultureInfo.InvariantCulture),
+                            nested.EffectTypeId ?? "", nested.StableKey ?? "");
+                        if (node.ChildEffectIds[i] != id) continue;
+                        var actual = runtime.EffectNodes.SingleOrDefault(n => n.EffectId == id && n.ParentEffectId == node.EffectId);
+                        if (actual == null || !SamePersistentBinding(nested.PersistentSourceFacts, actual.PersistentSourceFacts))
+                        { reason = "source_facts_binding_invalid"; return false; }
+                    }
+                }
+            }
+            reason = ""; return true;
+        }
+        private static string PersistentSourceDigest(AbilitySourceRef source) => StableIdFactory.ComputeSha256(StableIdFactory.EncodeCanonicalInput(
+            "persistent_source_facts.v1", new[] { source.SourceKey, source.ItemId, source.DefinitionId, source.AbilityId, source.ActiveFaceId,
+                source.DeclarationVersion, source.AuthorizedPlayerId.ToString(CultureInfo.InvariantCulture), source.AuthorizationRef,
+                source.EffectiveZoneId, source.RuleOwnerItemId }.Concat(source.GrantingSourceRefs).ToArray()));
         /// <summary>持续订阅按真实实例查询，每次触发使用该实例的激活上下文；源牌离场后不再挂新子树。</summary>
         public static void RegisterPersistentObserver(EffectRegistry registry, string abilityId, string eventType, string version, string contentHash, Func<EffectEventHandlerContext, IList<EffectSpec>> handler, string observerSubjectPolicy = "controller",
             EventResponseAttachmentKind responseAttachment = EventResponseAttachmentKind.RequiredChild,
@@ -502,12 +812,15 @@ namespace YC.Domain.Cards
             if (registry.HasEventHandler(id)) return;
             registry.RegisterEventHandler(new EffectEventHandlerRegistration(id, eventType, "*", id, context => {
                 var effects = new List<EffectSpec>();
-                foreach (var item in context.State.ItemZones.Items.Where(item => item.ControllerSubject.Kind == ItemSubjectKind.Player && (observerSubjectPolicy == "departed_owner" || eventType == "CollectionStarted" || item.ControllerSubject.PlayerId == context.Event.PlayerId) && IsSubscriptionActive(context.State, item.ItemId, abilityId)))
+                var activeSources = registry.HasAbilityCatalog ? new HashSet<string>(registry.QuerySources(context.State).Where(s => s.AbilityId == abilityId).Select(s => s.ItemId), StringComparer.Ordinal) : null;
+                foreach (var item in context.State.ItemZones.Items.Where(item => item.ControllerSubject.Kind == ItemSubjectKind.Player && (observerSubjectPolicy == "departed_owner" || eventType == "CollectionStarted" || item.ControllerSubject.PlayerId == context.Event.PlayerId) &&
+                    (activeSources != null ? activeSources.Contains(item.ItemId) : IsSubscriptionActive(context.State, item.ItemId, abilityId))))
                 {
                     if (observerSubjectPolicy == "departed_owner")
                     {
+                        if (Number(context.Event.Payload, "eventProtocolVersion") == 2 && eventType == InfluenceEventTypeIds.InfluenceReplaced) continue;
                         var departure = context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == context.Event.SourceEffectId);
-                        var cube = context.State.ItemZones.Items.Find(value => value.ItemId == Text(departure?.ContinuationData, "pendingItemId"));
+                        var cube = context.State.ItemZones.Items.Find(value => value.ItemId == (Text(context.Event.Payload, "departureId").Length > 0 ? Text(context.Event.Payload, "influenceId") : Text(departure?.ContinuationData, "pendingItemId")));
                         if (cube == null || cube.PhysicalKind != ItemPhysicalKind.Cube || cube.OwnerSubject.Kind == ItemSubjectKind.Player && cube.OwnerSubject.PlayerId != item.ControllerSubject.PlayerId ||
                             !context.State.ItemZones.Zones.Any(zone => zone.ParentKind == ZoneParentKind.Item && zone.ParentId == item.ItemId && zone.Configuration?.EntryPolicyId == "core.removed_owned_influence")) continue;
                     }
@@ -526,7 +839,24 @@ namespace YC.Domain.Cards
                     { ruleEvent.HostOnlyPayload.Properties.RemoveAll(existing => existing.Name == entry.Name); ruleEvent.HostOnlyPayload.Properties.Add(entry); }
                     ruleEvent.HostOnlyPayload.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
                     var scoped = new EffectEventHandlerContext(context.State, ruleEvent, source, context.Registration);
-                    var specs = handler(scoped);
+                    PersistentSourceFactsCalls.Add(scoped, new PersistentSourceFactsCall { Registry = registry, Trigger = context,
+                        ItemId = item.ItemId, AbilityId = abilityId, HandlerHash = contentHash });
+                    IList<EffectSpec> specs;
+                    try
+                    {
+                        specs = handler(scoped);
+                        if (registry.HasAbilityCatalog)
+                        {
+                            if (!TryResolvePersistentSourceFacts(registry, scoped, abilityId, contentHash, out var actualSource))
+                                throw new InvalidOperationException("source_facts_subscription_invalid");
+                            foreach (var spec in specs) spec.PersistentSourceFacts = new PersistentSourceFactsBinding {
+                                SourceRef = GameStateCloneService.DeepClone(actualSource), SourceDigest = PersistentSourceDigest(actualSource), ContentPackHash = context.State.ContentPackHash,
+                                TriggerEventId = context.Event.EventId, SubscriptionId = context.Registration.SubscriptionId,
+                                HandlerId = context.Registration.HandlerId, HandlerHash = contentHash, HandlerVersion = version,
+                                ActivationEffectId = source.EffectId, UseId = Text(source.NormalizedArguments, "useId") };
+                        }
+                    }
+                    finally { PersistentSourceFactsCalls.Remove(scoped); }
                     for (int index = 0; index < specs.Count; index++) { specs[index].SourceId = "character-card:" + item.ItemId; specs[index].StableKey = StableIdFactory.Create("persistent_trigger", item.ItemId, abilityId, context.Event.EventId, index.ToString(CultureInfo.InvariantCulture)); effects.Add(specs[index]); }
                 }
                 return effects;

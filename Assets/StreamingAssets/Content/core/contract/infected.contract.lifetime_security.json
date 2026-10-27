@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.contract.lifetime_security",
   "contentType": "contract",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "终身安保合约",
   "expansionId": "infected",
   "replaces": null,
@@ -9,16 +9,16 @@
   "artworkSpriteId": "",
   "tags": [],
   "playerMarkerZones": [],
-  "itemTypeId": "core.contract_card",
+  "itemTypeId": "core.contract_token",
   "cardZones": [],
   "abilities": [],
   "data": {
-    "instanceTypeId": "core.contract_card",
+    "instanceTypeId": "core.contract_token",
     "acquisitionRole": "reward_pool",
     "lifecycle": "contract",
     "playerDetails": [
       {
-        "abilityId": "",
+        "abilityId": "infected.contract.lifetime_security.influence",
         "effectText": "正常采集和终局计分时，将每个区块中岩蹄安保公司的影响力按每2个计为你的1个影响力，不足一对的余数不计。公司仍是独立主体，向公司支付的路费交给银行。",
         "displayCategory": "PlayerEffect",
         "activation": "Held",
@@ -27,5 +27,36 @@
         "displayName": "终身安保合约"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.contract.lifetime_security.influence",
+      "kind": "ruleQuery",
+      "handlerRef": "content.infected.contract.lifetime_security.influence",
+      "declarationVersion": "2.0.0",
+      "authorizationPolicy": "holder",
+      "effectiveZones": [
+        "core.zone.player_rewards"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "scoringModifiers.v1"
+      ],
+      "allowedOperations": [
+        "scoring.influence_delta:self"
+      ],
+      "presentationRef": "infected.contract.lifetime_security",
+      "actions": []
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "content.infected.contract.lifetime_security.influence",
+      "script": "lua/contracts/infected.contract.lifetime_security.query.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    }
+  ]
 }

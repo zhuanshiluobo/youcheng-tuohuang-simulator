@@ -6,7 +6,7 @@ using YC.Domain.State;
 namespace YC.Domain.Effects
 {
     public enum EventResponseAttachmentKind { RequiredChild, DeferredPlayerResponse }
-    public enum DeferredResponseStatus { Pending, Stored, Returned }
+    public enum DeferredResponseStatus { Pending, Stored, Returned, Queued, Declined, Ineligible, EffectCompleted }
     public enum DeferredDependencyKind { CardMarkerConsumption, CarrierExit, ExactItemUse, SupplyRequirement, FinalizeGame }
 
     public sealed class DeferredEventResponseDescriptor
@@ -27,6 +27,9 @@ namespace YC.Domain.Effects
         public string OwnerEffectId = string.Empty;
         public DeferredDependencyKind DependencyKind;
         public string SourceCardInstanceId = string.Empty;
+        public string SourceZoneId = string.Empty;
+        public List<string> RequiredTypeIds = new List<string>();
+        public int RequiredOwnerPlayerId = -1;
         public List<string> ItemIds = new List<string>();
         public string OriginalSupplyZoneId = string.Empty;
         public string RequiredTypeId = string.Empty;
@@ -84,6 +87,15 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class DeferredResponseState
     {
+        public int ProtocolVersion;
+        public string Kind = "", DepartureId = "", BatchId = "", SourceOperationEffectId = "", SourceKey = "", SubscriptionId = "", DefinitionVersion = "", HandlerHash = "";
+        public bool IsBypass;
+        public bool RequiresProducerCompletion;
+        public YC.Domain.Effects.AbilitySourceRef SourceRef;
+        public YC.Domain.Effects.AbilityVersionRef VersionRef;
+        public string RequestId = "";
+        public List<string> SourceEventIds = new List<string>();
+        public List<EffectSpecRuntimeState> PendingBody = new List<EffectSpecRuntimeState>();
         public string DeferredResponseId = string.Empty;
         public string ResponseRootEffectId = string.Empty;
         public string SourceEventId = string.Empty;

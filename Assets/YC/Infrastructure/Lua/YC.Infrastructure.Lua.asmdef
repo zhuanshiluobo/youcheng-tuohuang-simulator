@@ -3,6 +3,7 @@
   "rootNamespace": "YC.Infrastructure.Lua",
   "references": [
     "YC.Domain",
+    "YC.Application",
     "MoonSharp.Interpreter"
   ],
   "includePlatforms": [],

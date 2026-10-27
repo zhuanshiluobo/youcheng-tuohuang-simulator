@@ -79,17 +79,11 @@ namespace YC.Presentation
                 return mapCoordinator.BuildMapPresentation();
             }
 
-            if (effectCoordinator.SynchronizePending())
-            {
-                return InteractionPresentation.Busy;
-            }
-
             return InteractionPresentation.Empty;
         }
 
         public override void NotifyCommandSettled(string commandId)
         {
-            if (!hasPendingCharacterResolution()) effectCoordinator.SynchronizePending();
         }
 
         public override void Cancel()

@@ -38,7 +38,15 @@ namespace YC.Presentation
         public Sprite Logo(string key)
         {
             if (string.IsNullOrEmpty(key)) return null;
-            if (logos.TryGetValue(key, out var logo)) return logo;
+            if (logos.TryGetValue(key, out var logo))
+            {
+                if (logo != null && logo.texture != null) return logo;
+                if (logo != null)
+                {
+                    if (UnityEngine.Application.isPlaying) Destroy(logo); else DestroyImmediate(logo);
+                }
+                logos.Remove(key);
+            }
             var board = Find(key);
             if (board?.texture == null || board.logoUv.width <= 0 || board.logoUv.height <= 0) return null;
             var texture = board.texture;

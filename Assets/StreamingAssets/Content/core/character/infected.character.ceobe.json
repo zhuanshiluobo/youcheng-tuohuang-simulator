@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.ceobe",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "刻俄柏",
   "expansionId": "infected",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.ceobe.tactic",
       "script": "lua/characters/infected.character.ceobe.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.infected.character.ceobe.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -48,5 +48,57 @@
     "strategyName": "可靠伙伴",
     "tacticName": "我都想要",
     "sourceReference": "I33"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.ceobe.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.ceobe",
+      "actions": [
+        {
+          "actionId": "infected.character.ceobe.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.ceobe",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.ceobe"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

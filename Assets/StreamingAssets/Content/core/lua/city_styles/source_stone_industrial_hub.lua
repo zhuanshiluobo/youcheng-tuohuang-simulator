@@ -1,3 +1,3 @@
 return function(ctx)
-    return { Effect.GrantMainActions({ player = ctx.playerId, amount = ctx.payload.extraMainActionCount, lockCharacterCard = false }) }
+    return { Effect.GrantMainActions({ player = ctx.playerId, amount = 2, lockCharacterCard = false }) }
 end

@@ -24,7 +24,7 @@ namespace YC.Domain.Facilities
             if (slot?.TemplateId != "core.zone.facility_supply_slot" || query.GetItemIds(context.State, slotZoneId).Count > 0)
                 throw new InvalidOperationException("destination_rejected");
             var deck = ItemTransferEffectExecutor.FindZone(context.State, "facility_deck");
-            var request = new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ExpectedSource = new ItemPositionRef { ZoneId = deck.ZoneId }, Destination = new ZoneRef { ZoneId = slotZoneId }, InsertionKind = "unordered", OperationProfileId = "core.facility_card_transfer", ItemIds = query.GetTopItemIds(context.State, deck.ZoneId, 1).ToList() };
+            var request = new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ExpectedSource = new ItemPositionRef { ZoneId = deck.ZoneId }, Destination = new ZoneRef { ZoneId = slotZoneId }, InsertionKind = "top", OperationProfileId = "core.facility_card_transfer", ItemIds = query.GetTopItemIds(context.State, deck.ZoneId, 1).ToList() };
             return new ItemTransferService().RelocateItems(context, request);
         }
 

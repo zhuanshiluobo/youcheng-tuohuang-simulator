@@ -270,6 +270,8 @@ namespace YC.Infrastructure.Lua
         public List<string> TurnOrder { get; } = new List<string>();
         public List<string> EnabledDlcIds { get; } = new List<string>();
         public List<LuaPlayerSnapshot> Players { get; } = new List<LuaPlayerSnapshot>();
+        public LuaSnapshotValue GlobalFacilities { get; set; } = LuaSnapshotValue.Object(null);
+        public LuaSnapshotValue GlobalScoring { get; set; } = LuaSnapshotValue.Null;
         public LuaSnapshotValue GlobalMap { get; set; } = LuaSnapshotValue.Object(null);
         public LuaSnapshotValue GlobalContent { get; set; } = LuaSnapshotValue.Object(null);
         public LuaSnapshotValue EventPayload { get; set; } = LuaSnapshotValue.Null;
@@ -324,6 +326,7 @@ namespace YC.Infrastructure.Lua
     {
         public string EntryPoint { get; set; } = string.Empty;
         public YC.Domain.Effects.SettlementWindowContext SettlementContext { get; set; }
+        public LuaSnapshotValue SourceFacts { get; set; } = LuaSnapshotValue.Null;
         public NormalizedValue SettlementFacts { get; set; } = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
         public LuaInvocationContext(
             string eventId,
@@ -370,7 +373,11 @@ namespace YC.Infrastructure.Lua
 
         public string EventId { get; }
         public string EventType { get; }
-        public string PlayerId { get; }
+        public string PlayerId { get; private set; }
+        internal LuaInvocationContext ForEffectNormalization(string player)
+        {
+            var copy = (LuaInvocationContext)MemberwiseClone(); copy.PlayerId = player; return copy;
+        }
         public int StateRevision { get; }
         public string DefinitionVersion { get; }
         public int PlayerCount { get; }
@@ -386,6 +393,8 @@ namespace YC.Infrastructure.Lua
 
     public sealed class LuaEffectSpec
     {
+        public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome { get; set; }
+        public NormalizedValue ExecutionBindingRequest { get; set; }
         public string CompletionHandlerId { get; set; } = string.Empty;
         public NormalizedValue ContinuationContext { get; set; }
         public YC.Domain.Presentation.SettlementEffectDefinition Settlement { get; set; }
@@ -614,6 +623,8 @@ namespace YC.Infrastructure.Lua
         public string TargetInfluenceId { get; }
         public string TargetSlotId { get; }
         public string InfluenceSourceId { get; }
+        public string InfluenceItemTypeId { get; set; } = "";
+        public NormalizedValue InfluenceSupplement { get; set; }
         public string OwnerSubjectId { get; }
         public string ReplacementSourceId { get; }
         public string ReplacementOwnerId { get; }
@@ -686,6 +697,12 @@ namespace YC.Infrastructure.Lua
         public IReadOnlyList<LuaEffectSpec> Effects { get; }
         public IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> SettlementOffers { get; private set; } = Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>();
         public YC.Domain.Effects.SettlementAvailabilityResult SettlementAvailability { get; private set; }
+        public NormalizedValue AbilityQueryResult { get; private set; }
+        public string RewriteOperation { get; private set; } = "";
+        internal static LuaInvocationResult RewriteSuccess(LuaScriptDefinition definition, string operation, IReadOnlyList<LuaEffectSpec> effects)
+        { var result = Success(definition, effects); result.RewriteOperation = operation; return result; }
+        internal static LuaInvocationResult QuerySuccess(LuaScriptDefinition definition, NormalizedValue value)
+        { var result = Success(definition, Array.Empty<LuaEffectSpec>()); result.AbilityQueryResult = value; return result; }
         internal static LuaInvocationResult SettlementSuccess(LuaScriptDefinition definition, IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> offers, YC.Domain.Effects.SettlementAvailabilityResult availability)
         { var result = Success(definition, Array.Empty<LuaEffectSpec>()); result.SettlementOffers = offers ?? Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>(); result.SettlementAvailability = availability; return result; }
         public IReadOnlyList<LuaCandidatePatch> CandidatePatches { get; }

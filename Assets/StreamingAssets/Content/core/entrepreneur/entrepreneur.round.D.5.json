@@ -1,0 +1,241 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.D.5",
+  "contentType": "entrepreneur_round",
+  "version": "1.8.0",
+  "displayName": "蒂亚戈·H·罗德里格斯·第5回合",
+  "artwork": "artwork/entrepreneurs/D05.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "entrepreneur_selection.v1",
+    "ability_sources.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.D05",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D05",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D05.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D05.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D05.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D05.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.immediate.loss.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.D06",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D06",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D06.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D06.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D06.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D06.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.immediate.loss.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D05",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D05",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D05",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D05.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.D05.immediate.1",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.D05.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D06",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D06",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D06",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D06.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.D06.immediate.1",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.D06.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "D05",
+      "D06"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.D05",
+        "entityDefinitionId": "entrepreneur.round.D.5",
+        "faceId": "D05",
+        "sourceId": "D05",
+        "artwork": "artwork/entrepreneurs/D05.jpg",
+        "artworkSha256": "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.D05"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.D05.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.D06",
+        "entityDefinitionId": "entrepreneur.round.D.5",
+        "faceId": "D06",
+        "sourceId": "D06",
+        "artwork": "artwork/entrepreneurs/D06.jpg",
+        "artworkSha256": "ffbe92c5a190b4aefd3086a87032512258479759e00fd2c0dc0f83a05f7e9475",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.D06"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.D06.immediate.1"
+        ]
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.face.D05",
+        "displayName": "声名在外",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.D05.remaining"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.face.D06",
+        "displayName": "公益事业",
+        "effectTextRef": {
+          "key": "core:entrepreneur.D.D06.remaining"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.D05",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D05.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D05.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.D06",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D06.immediate.1",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D06.immediate.1.completed"
+    }
+  ]
+}

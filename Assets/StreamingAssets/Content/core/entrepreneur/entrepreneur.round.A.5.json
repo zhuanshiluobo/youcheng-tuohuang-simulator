@@ -1,0 +1,427 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.A.5",
+  "contentType": "entrepreneur_round",
+  "version": "1.5.0",
+  "displayName": "艾格尼丝·史密斯·第5回合",
+  "artwork": "artwork/entrepreneurs/A04.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.A05.cleanup",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.A05.cleanup",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.1",
+      "completionHandlerId": "entrepreneur.A05.cleanup.completed",
+      "cleanupScript": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.A.detail.A05.cleanup"
+        }
+      },
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "entrepreneur.A05.cleanup.cleanup_order",
+        "availabilityHandlerId": "entrepreneur.A05.cleanup.availability",
+        "presentation": {
+          "description": {
+            "key": "core:entrepreneur.A.detail.A05.cleanup"
+          },
+          "label": {
+            "key": "core:entrepreneur.A.A05.name"
+          },
+          "ariaLabel": {
+            "key": "core:entrepreneur.A.A05.name"
+          },
+          "contentMode": "icon_text",
+          "iconKey": "core:settlement.tactical_dispatch"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A04.immediate.1",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.A04.immediate.1",
+      "declarationVersion": "1.3.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "A04",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.A04.immediate.1",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A05.tactic",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.A05.tactic",
+      "declarationVersion": "1.3.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "A05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.A05.tactic",
+      "actions": [
+        {
+          "actionId": "entrepreneur.A05.tactic.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.A05.tactic",
+          "entryCostRef": "entrepreneur.A05.tactic.cost",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "entrepreneur.A05.track",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "entrepreneur.A05.call.A05",
+          "sortOrder": 0,
+          "presentationRef": "entrepreneur.A05.tactic",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.A.action.A05.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.A.action.A05.description"
+            },
+            "entryCost": {
+              "key": "core:entrepreneur.A.action.tactic.entryCost",
+              "arguments": [
+                {
+                  "name": "count",
+                  "kind": "integer",
+                  "value": 2
+                }
+              ]
+            }
+          }
+        },
+        {
+          "actionId": "entrepreneur.A05.tactic.special",
+          "entryKind": "special",
+          "bodyHandlerRef": "entrepreneur.A05.tactic",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "entrepreneur.A05.tactic.after",
+          "usageTrackId": "entrepreneur.A05.track",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 1,
+          "presentationRef": "entrepreneur.A05.tactic",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.A.action.A05.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.A.action.A05.description"
+            },
+            "entryAfterEffects": {
+              "key": "core:entrepreneur.A.action.tactic.entryAfter",
+              "arguments": [
+                {
+                  "name": "count",
+                  "kind": "integer",
+                  "value": 10
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A04.city_move",
+      "kind": "event",
+      "handlerRef": "entrepreneur.A04.city_move",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "A04",
+      "observedEvents": [
+        "CityMoveCompleted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.A04.city_move",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.A05.cleanup",
+      "kind": "cleanup",
+      "cleanupInjectionPolicy": "when_available",
+      "handlerRef": "entrepreneur.A05.cleanup",
+      "declarationVersion": "1.3.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "A05",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker",
+        "action.invoke:entrepreneur.A05.call.A09",
+        "action.invoke:entrepreneur.A05.call.A06",
+        "action.invoke:entrepreneur.A05.call.A07",
+        "action.invoke:entrepreneur.A05.call.A05",
+        "action.invoke:entrepreneur.A05.call.A08"
+      ],
+      "presentationRef": "entrepreneur.A05.cleanup",
+      "actions": [],
+      "repeatPolicy": "once"
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "A04",
+      "A05"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.A04",
+        "entityDefinitionId": "entrepreneur.round.A.5",
+        "faceId": "A04",
+        "sourceId": "A04",
+        "artwork": "artwork/entrepreneurs/A04.jpg",
+        "artworkSha256": "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.A04",
+          "entrepreneur.rule.A.physical_final"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.A04.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.A05",
+        "entityDefinitionId": "entrepreneur.round.A.5",
+        "faceId": "A05",
+        "sourceId": "A05",
+        "artwork": "artwork/entrepreneurs/A05.jpg",
+        "artworkSha256": "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.A05",
+          "entrepreneur.rule.A.physical_final"
+        ],
+        "immediateHandlerRefs": []
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.A04.immediate.1",
+        "displayName": "战术巡航·立即",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.detail.command2.immediate"
+        },
+        "displayCategory": "Immediate",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.A05.tactic",
+        "displayName": "战术行动：5B·特勤小组",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.action.A05.description"
+        },
+        "displayCategory": "QuickAction",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.A04.city_move",
+        "displayName": "战术巡航·剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.detail.A04.city_move"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.A05.cleanup",
+        "displayName": "特勤小组·剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.A.detail.A05.cleanup"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.A04.immediate.1",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "entrepreneur.A04.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.A05.tactic",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.0",
+      "completionHandlerId": "entrepreneur.A05.tactic.completed"
+    },
+    {
+      "handlerId": "entrepreneur.A05.tactic.cost",
+      "script": "lua/entrepreneurs/agnes.cost.lua",
+      "version": "1.4.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.A05.tactic.after",
+      "script": "lua/entrepreneurs/agnes.after.lua",
+      "version": "1.1.5",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.A04.city_move",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.1.5",
+      "completionHandlerId": "entrepreneur.A04.city_move.completed"
+    },
+    {
+      "handlerId": "entrepreneur.A05.cleanup",
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "version": "1.3.1",
+      "completionHandlerId": "entrepreneur.A05.cleanup.completed"
+    }
+  ],
+  "actionCallPolicies": [
+    {
+      "policyRef": "entrepreneur.A05.call.A09",
+      "callerAbilityId": "entrepreneur.A05.cleanup",
+      "callerHandlerRef": "entrepreneur.A05.cleanup",
+      "targetActionId": "entrepreneur.A09.tactic.quick",
+      "omitEntryCost": true,
+      "omitEntryAfterEffects": true,
+      "omitMainAction": true
+    },
+    {
+      "policyRef": "entrepreneur.A05.call.A06",
+      "callerAbilityId": "entrepreneur.A05.cleanup",
+      "callerHandlerRef": "entrepreneur.A05.cleanup",
+      "targetActionId": "entrepreneur.A06.tactic.quick",
+      "omitEntryCost": true,
+      "omitEntryAfterEffects": true,
+      "omitMainAction": true
+    },
+    {
+      "policyRef": "entrepreneur.A05.call.A07",
+      "callerAbilityId": "entrepreneur.A05.cleanup",
+      "callerHandlerRef": "entrepreneur.A05.cleanup",
+      "targetActionId": "entrepreneur.A07.tactic.quick",
+      "omitEntryCost": true,
+      "omitEntryAfterEffects": true,
+      "omitMainAction": true
+    },
+    {
+      "policyRef": "entrepreneur.A05.call.A05",
+      "callerAbilityId": "entrepreneur.A05.cleanup",
+      "callerHandlerRef": "entrepreneur.A05.cleanup",
+      "targetActionId": "entrepreneur.A05.tactic.quick",
+      "omitEntryCost": true,
+      "omitEntryAfterEffects": true,
+      "omitMainAction": true
+    },
+    {
+      "policyRef": "entrepreneur.A05.call.A08",
+      "callerAbilityId": "entrepreneur.A05.cleanup",
+      "callerHandlerRef": "entrepreneur.A05.cleanup",
+      "targetActionId": "entrepreneur.A08.tactic.quick",
+      "omitEntryCost": true,
+      "omitEntryAfterEffects": true,
+      "omitMainAction": true
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "tactic_A05",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "carrierExitPolicyId": "core.preserve_contents",
+      "slots": [
+        "unused",
+        "used"
+      ]
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "entrepreneur.A05.track",
+      "cardZoneLocalId": "tactic_A05",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    }
+  ]
+}

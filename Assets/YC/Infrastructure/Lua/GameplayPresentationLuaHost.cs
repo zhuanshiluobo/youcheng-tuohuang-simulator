@@ -58,10 +58,10 @@ namespace YC.Infrastructure.Lua
                 guard.ThrowIfTimeExceeded();
                 if (args.Count != 2 || args[0].Type != DataType.Table || args[1].Type != DataType.Table || SnapshotValues(args[0].Table).Get("kind").String != EffectSpecKind)
                     throw new ScriptRuntimeException("Effect.WithPresentation 需要已有 EffectSpec 和显示声明。");
-                var presentation = GameplayPresentationNormalizer.FromNormalized<EffectPresentationDefinition>(ReadPresentationValue(args[1], 0));
+                var presentation = GameplayPresentationNormalizer.FromStructuredValue<EffectPresentationDefinition>(ReadPresentationValue(args[1], 0));
                 var result = new Table(script);
                 foreach (var pair in SnapshotValues(args[0].Table).Pairs) result.Set(pair.Key, pair.Value);
-                result.Set("presentation", PresentationValueToLua(script, GameplayPresentationNormalizer.ToNormalized(presentation), guard));
+                result.Set("presentation", PresentationValueToLua(script, GameplayPresentationNormalizer.ToStructuredValue(presentation), guard));
                 return DynValue.NewTable(result); // 同一业务 spec 的副本，没有新节点或业务身份。
             }, "Effect.WithPresentation"));
             effect.Set("WithContext", DynValue.NewCallback((_, args) =>
@@ -71,10 +71,18 @@ namespace YC.Infrastructure.Lua
                     throw new ScriptRuntimeException("Effect.WithContext 需要已有Effect与封闭续接对象。");
                 var value = ReadPresentationValue(args[1], 0);
                 if (value.Kind == NormalizedValueKind.Array && value.Items.Count == 0) value = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
+                var required = YC.Domain.Effects.ItemTransferEffectExecutor.Value(value, "requiredOutcome");
+                var binding = YC.Domain.Effects.ItemTransferEffectExecutor.Value(value, "executionBinding");
+                YC.Domain.Effects.RequiredEffectOutcome.FromNormalized(required);
+                if (binding != null && !YC.Domain.Effects.EffectExecutionBinding.IsRequestValid(binding)) throw new ScriptRuntimeException("effect_execution_binding_request_invalid");
+                var saved = NormalizedValue.CreateObject(value.Properties.Where(p => p.Name != "requiredOutcome" && p.Name != "executionBinding").Select(p => p.Clone()).ToList());
+                value = saved.Properties.Count == 0 ? null : saved;
                 if (!YC.Domain.Effects.EffectContinuationContext.IsValid(value)) throw new ScriptRuntimeException("effect_continuation_context_invalid");
                 var result = new Table(script);
                 foreach (var pair in SnapshotValues(args[0].Table).Pairs) result.Set(pair.Key, pair.Value);
-                result.Set("continuationContext", PresentationValueToLua(script, value, guard));
+                if (value != null) result.Set("continuationContext", PresentationValueToLua(script, value, guard));
+                if (required != null) result.Set("requiredOutcome", PresentationValueToLua(script, required, guard));
+                if (binding != null) result.Set("executionBinding", PresentationValueToLua(script, binding, guard));
                 return DynValue.NewTable(result);
             }, "Effect.WithContext"));
         }
@@ -86,23 +94,29 @@ namespace YC.Infrastructure.Lua
             var presentation = input.Get("presentation");
             var settlement = input.Get("settlement");
             var continuation = input.Get("continuationContext");
-            if (presentation.IsNil() && settlement.IsNil() && continuation.IsNil()) return TryNormalizeBusinessEffect(value, context, out effect, out code, out diagnostic);
+            var requiredValue = input.Get("requiredOutcome"); var bindingValue = input.Get("executionBinding");
+            if (presentation.IsNil() && settlement.IsNil() && continuation.IsNil() && requiredValue.IsNil() && bindingValue.IsNil()) return TryNormalizeBusinessEffect(value, context, out effect, out code, out diagnostic);
             try
             {
-                var metadata = presentation.IsNil() ? null : GameplayPresentationNormalizer.FromNormalized<EffectPresentationDefinition>(ReadPresentationValue(presentation, 0));
+                var metadata = presentation.IsNil() ? null : GameplayPresentationNormalizer.FromStructuredValue<EffectPresentationDefinition>(ReadPresentationValue(presentation, 0));
                 var segment = settlement.IsNil() ? null : ReadSettlementEffect(settlement);
                 var savedContext = continuation.IsNil() ? null : ReadPresentationValue(continuation, 0);
                 if (savedContext?.Kind == NormalizedValueKind.Array && savedContext.Items.Count == 0) savedContext = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
                 if (!YC.Domain.Effects.EffectContinuationContext.IsValid(savedContext)) throw new ArgumentException("effect_continuation_context_invalid");
+                var requiredOutcome = YC.Domain.Effects.RequiredEffectOutcome.FromNormalized(requiredValue.IsNil() ? null : ReadPresentationValue(requiredValue, 0));
+                var executionRequest = bindingValue.IsNil() ? null : ReadPresentationValue(bindingValue, 0);
+                if (executionRequest != null && !YC.Domain.Effects.EffectExecutionBinding.IsRequestValid(executionRequest)) throw new ArgumentException("effect_execution_binding_request_invalid");
+                var businessContext = executionRequest == null ? context : context.ForEffectNormalization("p" + YC.Domain.Effects.ItemTransferEffectExecutor.Number(executionRequest, "playerId").ToString(CultureInfo.InvariantCulture));
                 var business = new Table(input.OwnerScript);
-                foreach (var pair in input.Pairs) if (pair.Key.Type != DataType.String || pair.Key.String != "presentation" && pair.Key.String != "settlement" && pair.Key.String != "continuationContext") business.Set(pair.Key, pair.Value);
-                if (!TryNormalizeBusinessEffect(DynValue.NewTable(business), context, out effect, out code, out diagnostic)) return false;
+                foreach (var pair in input.Pairs) if (pair.Key.Type != DataType.String || pair.Key.String != "presentation" && pair.Key.String != "settlement" && pair.Key.String != "continuationContext" && pair.Key.String != "requiredOutcome" && pair.Key.String != "executionBinding") business.Set(pair.Key, pair.Value);
+                if (!TryNormalizeBusinessEffect(DynValue.NewTable(business), businessContext, out effect, out code, out diagnostic)) return false;
                 effect.Presentation = metadata;
                 effect.Settlement = segment;
                 effect.ContinuationContext = savedContext;
+                effect.RequiredOutcome = requiredOutcome; effect.ExecutionBindingRequest = executionRequest;
                 return true;
             }
-            catch (Exception error) when (error is ArgumentException || error is OverflowException || error is ScriptRuntimeException)
+            catch (Exception error) when (error is ArgumentException || error is OverflowException || error is ScriptRuntimeException || error is InvalidOperationException)
             { code = LuaFailureCode.InvalidEffectSpec; diagnostic = SanitizeDiagnostic(error.Message); return false; }
         }
         // 显示脚本只安装 Text。没有 Effect、Flow、Query、GameData 或 PlayerData。
@@ -123,9 +137,9 @@ namespace YC.Infrastructure.Lua
                 DynValue handler = script.Globals.Get("Present");
                 if (handler.Type != DataType.Function) { code = LuaFailureCode.InvalidHandler; diagnostic = "显示脚本必须声明 Present(context)。"; return false; }
                 var raw = ResumeWithBudget(script.CreateCoroutine(handler).Coroutine,
-                    new[] { PresentationValueToLua(script, GameplayPresentationNormalizer.ToNormalized(context), guard) }, guard);
+                    new[] { PresentationValueToLua(script, GameplayPresentationNormalizer.ToStructuredValue(context), guard) }, guard);
                 if (!InspectTables(raw, 0, new HashSet<Table>(TableReferenceComparer.Instance), out code, out diagnostic)) return false;
-                result = GameplayPresentationNormalizer.FromNormalized<GameplayPresentationResult>(ReadPresentationValue(raw, 0));
+                result = GameplayPresentationNormalizer.FromStructuredValue<GameplayPresentationResult>(ReadPresentationValue(raw, 0));
                 if (result == null) throw new ArgumentException("Present 必须返回显示结果对象。");
                 ValidatePresentationResultScope(result, context.Facts);
                 return true;

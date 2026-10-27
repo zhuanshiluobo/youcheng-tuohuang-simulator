@@ -4,7 +4,7 @@
   "messages": {
     "core:interaction.map.initial_influence": {
       "parameters": {},
-      "template": "可在高亮位置放置一个初始影响力，也可跳过。"
+      "template": "可在高亮位置放置1个影响力，或放弃本次放置。"
     },
     "core:interaction.map.influence.place": {
       "parameters": {},
@@ -12,7 +12,7 @@
     },
     "core:interaction.map.influence.place.optional": {
       "parameters": {},
-      "template": "选择高亮位置放置影响力，或取消本次放置。"
+      "template": "选择高亮位置放置影响力，或放弃本次放置。"
     },
     "core:interaction.map.influence.remove": {
       "parameters": {},
@@ -20,7 +20,7 @@
     },
     "core:interaction.map.influence.remove.optional": {
       "parameters": {},
-      "template": "选择高亮影响力进行移除，或取消本次移除。"
+      "template": "选择高亮影响力进行移除，或放弃本次移除。"
     },
     "core:interaction.map.influence.replace": {
       "parameters": {},
@@ -28,11 +28,11 @@
     },
     "core:interaction.map.city_move": {
       "parameters": {},
-      "template": "选择高亮的城市移动目标。"
+      "template": "选择高亮资源点移动城市。"
     },
     "core:interaction.map.entrance": {
       "parameters": {},
-      "template": "选择高亮入场点。"
+      "template": "选择高亮资源点入场。"
     },
     "core:interaction.map.route": {
       "parameters": {},
@@ -44,13 +44,13 @@
     },
     "core:interaction.character.cannot.tactic.resource.prompt": {
       "parameters": {},
-      "template": "坎诺特计谋：选择一种基础资源进行征收。"
+      "template": "从[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]中选择1种\n[b]所有玩家[/b]以2[icon:core:resource.gold_voucher]的单价[b]出售[/b]所有所选资源"
     },
     "core:interaction.tin_man.purchase": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]"
     },
     "core:interaction.facility.build.choose": {
       "parameters": {},
@@ -66,27 +66,27 @@
     },
     "core:interaction.facility.build.resources": {
       "parameters": {},
-      "template": "支付资源"
+      "template": "支付该牌的资源费用"
     },
     "core:interaction.facility.build.gold": {
       "parameters": {},
-      "template": "支付金券"
+      "template": "支付该牌的金券费用"
     },
     "core:interaction.facility.vehicle.prompt": {
       "parameters": {},
-      "template": "选择[icon:core:rule.remove]后[icon:core:rule.dispatch]，或执行 1 次探索。"
+      "template": "选择[b]载具仓库入场效果[/b]。"
     },
     "core:interaction.facility.vehicle.remove_move": {
       "parameters": {},
-      "template": "[icon:core:rule.remove]，然后[icon:core:rule.dispatch]"
+      "template": "[icon:core:rule.remove][icon:core:rule.dispatch]"
     },
     "core:interaction.facility.vehicle.explore": {
       "parameters": {},
-      "template": "执行探索"
+      "template": "执行1次[b]探索[/b]"
     },
     "core:interaction.facility.adjacent.prompt": {
       "parameters": {},
-      "template": "选择十字相邻的非彩色设施，结算其入场效果。"
+      "template": "选择一个[b]十字相邻[/b]的非彩色设施，结算其[b]入场效果[/b]。"
     },
     "core:interaction.entity.item": {
       "parameters": {
@@ -98,53 +98,53 @@
       "parameters": {
         "slot": "integer"
       },
-      "template": "城市面板位置 {slot}"
+      "template": "城市面板位置{slot}"
     },
     "core:interaction.resource.choose.prompt": {
       "parameters": {
         "total": "integer"
       },
-      "template": "分配总计 {total} 点资源。"
+      "template": "分配合计{total}个[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]"
     },
     "core:interaction.enterprise.maylander.resources.prompt": {
       "parameters": {
         "total": "integer"
       },
-      "template": "梅兰德基金会1级奖励：分配合计{total}个基础资源，可任意组合[icon:core:resource.orirock]、[icon:core:resource.originium_shard]与[icon:core:resource.iron]。"
+      "template": "梅兰德基金会1级奖励：分配合计{total}个基础资源，可任意组合[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]"
     },
     "core:interaction.award.permanent_support.resources.prompt": {
       "parameters": {
         "total": "integer"
       },
-      "template": "梅兰德基金会—授勋卡收尾奖励：分配合计{total}个基础资源，可任选[icon:core:resource.orirock]、[icon:core:resource.originium_shard]或[icon:core:resource.iron]。"
+      "template": "梅兰德基金会—授勋卡收尾奖励：分配合计{total}个基础资源，可任选[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]"
     },
     "core:interaction.facility.rhodes_office.entry.prompt": {
       "parameters": {},
-      "template": "罗德岛办事处入场效果：选择一项当前可用效果进行结算。"
+      "template": "选择[b]罗德岛办事处入场效果[/b]。"
     },
     "core:interaction.facility.rhodes_office.entry.dispatch": {
       "parameters": {},
-      "template": "[icon:core:rule.operator_dispatch]调度干员：查看3张候选，按规则选择或放弃。"
+      "template": "[icon:core:rule.operator_dispatch]"
     },
     "core:interaction.facility.rhodes_office.entry.upgrade_two": {
       "parameters": {},
-      "template": "[icon:core:rule.enterprise_upgrade]升级两家不同企业：各升级1级。"
+      "template": "选择2家不同企业，[icon:core:rule.enterprise_upgrade]"
     },
     "core:interaction.resource.originium": {
       "parameters": {},
-      "template": "[icon:core:resource.orirock] 源岩"
+      "template": "[icon:core:resource.orirock]"
     },
     "core:interaction.resource.originium_shard": {
       "parameters": {},
-      "template": "[icon:core:resource.originium_shard] 源石碎片"
+      "template": "[icon:core:resource.originium_shard]"
     },
     "core:interaction.resource.iron": {
       "parameters": {},
-      "template": "[icon:core:resource.iron] 异铁"
+      "template": "[icon:core:resource.iron]"
     },
     "core:resource.payment.choice.prompt": {
       "parameters": {},
-      "template": "选择本笔完整费用；可在最终确认前使用付款替代来源。"
+      "template": "选择本次支付方式；确认付款前可设置替代来源。"
     },
     "core:resource.payment.confirmation.prompt": {
       "parameters": {
@@ -154,7 +154,18 @@
         "pureOriginium": "integer",
         "goldVoucher": "integer"
       },
-      "template": "本笔费用：源岩 {originium}，源石碎片 {originiumShard}，异铁 {iron}，至纯源石 {pureOriginium}，金券 {goldVoucher}。"
+      "template": "本笔费用：{originium}[icon:core:resource.orirock]{originiumShard}[icon:core:resource.originium_shard]{iron}[icon:core:resource.iron]{pureOriginium}[icon:core:resource.pure_originium]{goldVoucher}[icon:core:resource.gold_voucher]"
+    },
+    "core:resource.payment.fixed.prompt": {
+      "parameters": {},
+      "template": "本笔固定费用："
+    },
+    "core:resource.payment.amount": {
+      "parameters": {
+        "amount": "integer",
+        "resource": "resource"
+      },
+      "template": "{amount}{resource}"
     },
     "core:resource.payment.condition.prompt": {
       "parameters": {
@@ -164,11 +175,11 @@
         "pureOriginium": "integer",
         "goldVoucher": "integer"
       },
-      "template": "本笔原价：源岩 {originium}，源石碎片 {originiumShard}，异铁 {iron}，至纯源石 {pureOriginium}，金券 {goldVoucher}。执行按当前支付方案结算并继续本次效果；放弃不支付，也不执行该条件的后续效果。"
+      "template": "原费用：{originium}[icon:core:resource.orirock]，{originiumShard}[icon:core:resource.originium_shard]，{iron}[icon:core:resource.iron]，{pureOriginium}[icon:core:resource.pure_originium]，{goldVoucher}[icon:core:resource.gold_voucher]。执行时按当前支付方案付款，再继续本次效果；放弃则不支付，也不执行该条件的后续效果。"
     },
     "core:resource.payment.confirmation.pay": {
       "parameters": {},
-      "template": "按完整费用付款"
+      "template": "确认付款"
     },
     "core:presentation.unavailable": {
       "parameters": {},
@@ -178,16 +189,12 @@
       "parameters": {},
       "template": "未知对象"
     },
-    "core:quantity.player_marker.row": {
-      "parameters": {},
-      "template": "玩家标记"
-    },
     "core:effect.repeat.progress": {
       "parameters": {
         "completed": "integer",
         "total": "integer"
       },
-      "template": "已完成 {completed} / {total} 次。"
+      "template": "已完成{completed}/{total}次。"
     },
     "core:effect.repeat.continue.prompt": {
       "parameters": {},
@@ -201,30 +208,23 @@
       "parameters": {},
       "template": "停止重复"
     },
-    "core:character.store_markers.prompt": {
-      "parameters": {
-        "maximum": "integer",
-        "source": "definition"
-      },
-      "template": "选择在{source}上放置的玩家标记数量，至多 {maximum} 个。"
-    },
     "core:operator.passenger.payment.prompt": {
       "parameters": {
         "maximum": "integer"
       },
-      "template": "分配替代数量，合计至多 {maximum} 个。仅可替代[icon:core:resource.orirock]、[icon:core:resource.originium_shard]或[icon:core:resource.iron]。"
+      "template": "分配用于替代资源的标记数量，合计至多{maximum}个；仅可替代[icon:core:resource.orirock][icon:core:resource.originium_shard]或[icon:core:resource.iron]。"
     },
     "core:resource.pay.waiting": {
       "parameters": {
         "amount": "integer"
       },
-      "template": "支付 {amount}[icon:core:resource.gold_voucher]。"
+      "template": "支付{amount}[icon:core:resource.gold_voucher]"
     },
     "core:score.gain.result": {
       "parameters": {
         "amount": "integer"
       },
-      "template": "获得[icon:core:resource.score|value={amount}]。"
+      "template": "获得[icon:core:resource.score|value={amount}]"
     },
     "core:resource.score.value_alt": {
       "parameters": {
@@ -294,7 +294,7 @@
     },
     "core:rule.replace.alt": {
       "parameters": {},
-      "template": "替换"
+      "template": "替换1个影响力"
     },
     "core:syntax.condition.alt": {
       "parameters": {},
@@ -318,11 +318,11 @@
     },
     "core:rule.remove.alt": {
       "parameters": {},
-      "template": "移除"
+      "template": "移除1个影响力"
     },
     "core:timing.immediate.alt": {
       "parameters": {},
-      "template": "立刻"
+      "template": "立即"
     },
     "core:resource.pure_originium.alt": {
       "parameters": {},
@@ -330,11 +330,11 @@
     },
     "core:rule.dispatch.alt": {
       "parameters": {},
-      "template": "调度"
+      "template": "调度1个影响力"
     },
     "core:rule.deploy.alt": {
       "parameters": {},
-      "template": "部署"
+      "template": "部署1个影响力"
     },
     "core:resource.gold_voucher.alt": {
       "parameters": {},
@@ -346,11 +346,11 @@
     },
     "core:rule.remove_card_marker.alt": {
       "parameters": {},
-      "template": "移除卡片标记"
+      "template": "移除1个卡牌标记"
     },
     "core:rule.remove_own_influence.alt": {
       "parameters": {},
-      "template": "移除自己的影响力"
+      "template": "移除1个自己的影响力"
     },
     "core:settlement.infected.character.amiya.tactic.label": {
       "parameters": {},
@@ -366,7 +366,7 @@
     },
     "core:settlement.operator.passenger.tactic.description": {
       "parameters": {},
-      "template": "当前整笔资源支付尚未提交时，分配异客牌上的标记，合计至多替代2个源岩、源石碎片或异铁。"
+      "template": "本笔资源费用确认前，可用此牌上的标记合计替代至多2个[icon:core:resource.orirock]、[icon:core:resource.originium_shard]或[icon:core:resource.iron]。"
     },
     "core:settlement.operator.dorothy.tactic.label": {
       "parameters": {},
@@ -374,7 +374,7 @@
     },
     "core:settlement.operator.dorothy.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，移除此牌上2个标记，然后[icon:core:rule.deploy]。"
+      "template": "[b]每个收尾阶段一次：[/b]移除此牌上2个标记[icon:core:syntax.condition][icon:core:rule.deploy]"
     },
     "core:settlement.operator.mudrock.tactic.label": {
       "parameters": {},
@@ -382,7 +382,7 @@
     },
     "core:settlement.operator.mudrock.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，支付2个源岩，[icon:core:rule.deploy]。"
+      "template": "[b]每个收尾阶段一次：[/b]支付2[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.deploy]"
     },
     "core:settlement.infected.character.jessica_the_liberated.tactic.label": {
       "parameters": {},
@@ -390,7 +390,7 @@
     },
     "core:settlement.infected.character.jessica_the_liberated.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，支付绑定设施卡面金券费用加2的金券，获得2分后将本角色移至角色弃牌区；金券不足时不可执行。"
+      "template": "[b]每个收尾阶段一次：[/b]支付所绑定设施卡面金券费用加2的[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]，然后将[b]涤火杰西卡[/b]放回角色弃牌区。"
     },
     "core:settlement.infected.character.swire.tactic.label": {
       "parameters": {},
@@ -398,7 +398,7 @@
     },
     "core:settlement.infected.character.swire.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，归还本牌上1枚玩家标记，获得6金券；选择同一家企业，你与该标记所有者各提升1级合作等级。"
+      "template": "[b]每个收尾阶段一次：[/b][icon:core:rule.remove_card_marker][icon:core:syntax.condition]获得6[icon:core:resource.gold_voucher]，选择1家企业，你与该标记原主各[icon:core:rule.enterprise_upgrade]。"
     },
     "core:settlement.infected.character.lin.tactic.label": {
       "parameters": {},
@@ -406,7 +406,7 @@
     },
     "core:settlement.infected.character.lin.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，移除本牌上1个标记，从当前至少拥有20金券的对手处获得10金券；没有合格对手时仍可移除标记，随后不获得金券。"
+      "template": "[b]每个收尾阶段一次：[/b][icon:core:rule.remove_card_marker][icon:core:syntax.condition]从当前至少拥有20[icon:core:resource.gold_voucher]的对手处获得10[icon:core:resource.gold_voucher]；没有合格对手时仍可移除标记，随后不获得金券。"
     },
     "core:settlement.infected.character.gavial_the_invincible.tactic.label": {
       "parameters": {},
@@ -414,7 +414,7 @@
     },
     "core:settlement.infected.character.gavial_the_invincible.tactic.description": {
       "parameters": {},
-      "template": "每个收尾阶段一次，将嘉维尔指示物移到相邻资源点，再移动该资源点上的1个影响力，保留其所有者和放置限制。"
+      "template": "[b]每个收尾阶段一次：[/b]将[b]嘉维尔指示物[/b]转移至相邻资源点，移动该资源点上的1个影响力，由你执行。"
     },
     "core:settlement.infected.award.permanent_support.cleanup.label": {
       "parameters": {},
@@ -422,7 +422,7 @@
     },
     "core:settlement.infected.award.permanent_support.cleanup.description": {
       "parameters": {},
-      "template": "梅兰德基金会—授勋卡：每个收尾阶段一次，获得3金券和1个任选基础资源，并[icon:core:rule.dispatch]。"
+      "template": "梅兰德基金会—授勋卡：[b]每个收尾阶段一次：[/b]获得3[icon:core:resource.gold_voucher]、合计1个[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]，[icon:core:rule.dispatch]"
     },
     "core:settlement.infected.character.muelsyse.strategy.label": {
       "parameters": {},
@@ -430,7 +430,7 @@
     },
     "core:settlement.infected.character.muelsyse.strategy.description": {
       "parameters": {},
-      "template": "本回合已使用策略产生的收尾段：[icon:core:rule.deploy][icon:core:rule.dispatch]。"
+      "template": "本回合已使用策略产生的收尾段：[icon:core:rule.deploy][icon:core:rule.dispatch]"
     },
     "core:settlement.operator.w.strategy.label": {
       "parameters": {},
@@ -438,7 +438,7 @@
     },
     "core:settlement.operator.w.strategy.description": {
       "parameters": {},
-      "template": "本回合已使用策略产生的收尾义务：移除自己的2个影响力。不能结束收尾来放弃此义务。"
+      "template": "本回合已使用策略产生的收尾义务：[icon:core:rule.remove_own_influence][icon:core:rule.remove_own_influence]。不能结束收尾来放弃此义务。"
     },
     "core:settlement.character.liskarm.strategy.label": {
       "parameters": {},
@@ -446,7 +446,7 @@
     },
     "core:settlement.character.liskarm.strategy.description": {
       "parameters": {},
-      "template": "本回合已使用策略产生的收尾义务：移除自己的1个影响力。不能结束收尾来放弃此义务。"
+      "template": "本回合已使用策略产生的收尾义务：[icon:core:rule.remove_own_influence]。不能结束收尾来放弃此义务。"
     },
     "core:settlement.infected.character.hellagur.strategy.label": {
       "parameters": {},
@@ -454,7 +454,7 @@
     },
     "core:settlement.infected.character.hellagur.strategy.description": {
       "parameters": {},
-      "template": "本回合已使用策略产生的收尾义务：移除自己的2个影响力。不能结束收尾来放弃此义务。"
+      "template": "本回合使用策略产生的收尾义务：[icon:core:rule.remove_own_influence][icon:core:rule.remove_own_influence]。不能结束收尾来放弃此义务。"
     },
     "core:settlement.chain_link.alt": {
       "parameters": {},
@@ -486,27 +486,27 @@
     },
     "core:enterprise.blacksteel.level_1.description": {
       "parameters": {},
-      "template": "1级：选择一项：[icon:core:rule.deploy]，或至多[icon:core:rule.remove]。"
+      "template": "1级：[icon:core:rule.deploy]或[icon:core:rule.remove]"
     },
     "core:enterprise.blacksteel.level_2.description": {
       "parameters": {},
-      "template": "2级：至多[icon:core:rule.dispatch][icon:core:rule.dispatch]。"
+      "template": "2级：至多[icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:enterprise.blacksteel.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.blacksteel.level_4.description": {
       "parameters": {},
-      "template": "4级：依次执行两次选择：[icon:core:rule.deploy]，或至多[icon:core:rule.remove]。"
+      "template": "4级：依次执行两次选择：[icon:core:rule.deploy]，或至多[icon:core:rule.remove]"
     },
     "core:enterprise.blacksteel.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=1]。"
+      "template": "5级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.fussen_bank.level_1.description": {
       "parameters": {},
-      "template": "1级：获得8[icon:core:resource.gold_voucher]。"
+      "template": "1级：获得8[icon:core:resource.gold_voucher]"
     },
     "core:enterprise.fussen_bank.level_2.description": {
       "parameters": {},
@@ -514,35 +514,35 @@
     },
     "core:enterprise.fussen_bank.level_3.description": {
       "parameters": {},
-      "template": "3级：本人获得20[icon:core:resource.gold_voucher]，每名对手获得4[icon:core:resource.gold_voucher]。"
+      "template": "3级：本人获得20[icon:core:resource.gold_voucher]，每名对手获得4[icon:core:resource.gold_voucher]"
     },
     "core:enterprise.fussen_bank.level_4.description": {
       "parameters": {},
-      "template": "4级：本人先获得[icon:core:resource.score|value=1]，再选择一名对手失去[icon:core:resource.score|value=1]。"
+      "template": "4级：本人先获得[icon:core:resource.score|value=1]，再选择一名对手失去[icon:core:resource.score|value=1]"
     },
     "core:enterprise.fussen_bank.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=3]。"
+      "template": "5级：获得[icon:core:resource.score|value=3]"
     },
     "core:enterprise.hyde_brothers.level_1.description": {
       "parameters": {},
-      "template": "1级：获得4[icon:core:resource.orirock]。"
+      "template": "1级：获得4[icon:core:resource.orirock]"
     },
     "core:enterprise.hyde_brothers.level_2.description": {
       "parameters": {},
-      "template": "2级：支付2[icon:core:resource.orirock][icon:core:syntax.condition]获得15[icon:core:resource.gold_voucher]。"
+      "template": "2级：支付2[icon:core:resource.orirock][icon:core:syntax.condition]获得15[icon:core:resource.gold_voucher]"
     },
     "core:enterprise.hyde_brothers.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.hyde_brothers.level_4.description": {
       "parameters": {},
-      "template": "4级：支付6[icon:core:resource.orirock][icon:core:syntax.condition]刷新公共设施，再免费[icon:core:rule.build]建设其中一张设施；不含存储设施，可放弃建设。"
+      "template": "4级：支付6[icon:core:resource.orirock][icon:core:syntax.condition]将设施供应区中所有设施牌洗回设施牌堆，之后补充公共供应区，然后你可以执行1次[b]免费[/b]建造。"
     },
     "core:enterprise.hyde_brothers.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=2]。"
+      "template": "5级：获得[icon:core:resource.score|value=2]"
     },
     "core:enterprise.mama_johns.level_1.description": {
       "parameters": {},
@@ -550,35 +550,35 @@
     },
     "core:enterprise.mama_johns.level_2.description": {
       "parameters": {},
-      "template": "2级：失去[icon:core:resource.score|value=1][icon:core:syntax.condition]获得20[icon:core:resource.gold_voucher]。"
+      "template": "2级：失去[icon:core:resource.score|value=1][icon:core:syntax.condition]获得20[icon:core:resource.gold_voucher]"
     },
     "core:enterprise.mama_johns.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.mama_johns.level_4.description": {
       "parameters": {},
-      "template": "4级：支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=3]。"
+      "template": "4级：支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=3]"
     },
     "core:enterprise.mama_johns.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=3]。"
+      "template": "5级：获得[icon:core:resource.score|value=3]"
     },
     "core:enterprise.raythean.level_1.description": {
       "parameters": {},
-      "template": "1级：获得3[icon:core:resource.originium_shard]。"
+      "template": "1级：获得3[icon:core:resource.originium_shard]"
     },
     "core:enterprise.raythean.level_2.description": {
       "parameters": {},
-      "template": "2级：获得[icon:core:resource.score|value=1]。"
+      "template": "2级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.raythean.level_3.description": {
       "parameters": {},
-      "template": "3级：支付2[icon:core:resource.originium_shard][icon:core:syntax.condition]从公共设施中[icon:core:rule.build]建设一张设施，按原建设费用自动付款，可放弃建设。"
+      "template": "3级：支付2[icon:core:resource.originium_shard][icon:core:syntax.condition][icon:core:rule.build]"
     },
     "core:enterprise.raythean.level_4.description": {
       "parameters": {},
-      "template": "4级：获得[icon:core:resource.score|value=1]。"
+      "template": "4级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.raythean.level_5.description": {
       "parameters": {},
@@ -606,23 +606,23 @@
     },
     "core:enterprise.rim_billiton.level_1.description": {
       "parameters": {},
-      "template": "1级：获得1[icon:core:resource.orirock]、1[icon:core:resource.originium_shard]和1[icon:core:resource.iron]。"
+      "template": "1级：获得1[icon:core:resource.orirock]、1[icon:core:resource.originium_shard]和1[icon:core:resource.iron]"
     },
     "core:enterprise.rim_billiton.level_2.description": {
       "parameters": {},
-      "template": "2级：支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]替换资源点上任意玩家至多1个影响力。"
+      "template": "2级：支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]替换1个在资源点上的影响力"
     },
     "core:enterprise.rim_billiton.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.rim_billiton.level_4.description": {
       "parameters": {},
-      "template": "4级：失去[icon:core:resource.score|value=1][icon:core:syntax.condition]进行一次额外收获。"
+      "template": "4级：失去[icon:core:resource.score|value=1][icon:core:syntax.condition]你进行一次采集"
     },
     "core:enterprise.rim_billiton.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=2]。"
+      "template": "5级：获得[icon:core:resource.score|value=2]"
     },
     "core:enterprise.rhine_lab.level_1.description": {
       "parameters": {},
@@ -630,47 +630,47 @@
     },
     "core:enterprise.department.defense.level_2.description": {
       "parameters": {},
-      "template": "2级：获得7[icon:core:resource.gold_voucher]。"
+      "template": "2级：获得7[icon:core:resource.gold_voucher]"
     },
     "core:enterprise.department.defense.level_3.description": {
       "parameters": {},
-      "template": "3级：支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition]选择[icon:core:rule.deploy]，或至多[icon:core:rule.dispatch][icon:core:rule.dispatch]。"
+      "template": "3级：支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.deploy]或[icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:enterprise.department.defense.level_4.description": {
       "parameters": {},
-      "template": "4级：支付12[icon:core:resource.gold_voucher][icon:core:syntax.condition]依次执行两次选择：[icon:core:rule.deploy]，或至多[icon:core:rule.remove]。"
+      "template": "4级：支付12[icon:core:resource.gold_voucher][icon:core:syntax.condition]执行2次：[icon:core:rule.deploy]或[icon:core:rule.remove]"
     },
     "core:enterprise.department.defense.level_5.description": {
       "parameters": {},
-      "template": "5级：支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得3[icon:core:resource.pure_originium]。"
+      "template": "5级：支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得3[icon:core:resource.pure_originium]"
     },
     "core:enterprise.department.engineering.level_2.description": {
       "parameters": {},
-      "template": "2级：获得3[icon:core:resource.orirock]。"
+      "template": "2级：获得3[icon:core:resource.orirock]"
     },
     "core:enterprise.department.engineering.level_3.description": {
       "parameters": {},
-      "template": "3级：获得2[icon:core:resource.iron]。"
+      "template": "3级：获得2[icon:core:resource.iron]"
     },
     "core:enterprise.department.engineering.level_4.description": {
       "parameters": {},
-      "template": "4级：支付3[icon:core:resource.orirock][icon:core:syntax.condition]从公共设施中[icon:core:rule.build]建设一张设施，按原建设费用自动付款，可放弃建设。"
+      "template": "4级：支付3[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.build]"
     },
     "core:enterprise.department.engineering.level_5.description": {
       "parameters": {},
-      "template": "5级：支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]从公共设施中免费[icon:core:rule.build]建设一张金券费用至多23的设施，不含存储设施。"
+      "template": "5级：支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]从设施供应区中选择1张金券价值23或以下的设施进行[b]免费[/b]建造"
     },
     "core:enterprise.department.structural.level_2.description": {
       "parameters": {},
-      "template": "2级：获得3[icon:core:resource.originium_shard]。"
+      "template": "2级：获得3[icon:core:resource.originium_shard]"
     },
     "core:enterprise.department.structural.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:enterprise.department.structural.level_4.description": {
       "parameters": {},
-      "template": "4级：支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
+      "template": "4级：支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]"
     },
     "core:enterprise.department.structural.level_5.description": {
       "parameters": {},
@@ -705,11 +705,11 @@
     },
     "core:infected.enterprise.rhodes_island.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=2]。"
+      "template": "5级：获得[icon:core:resource.score|value=2]"
     },
     "core:infected.enterprise.maylander_foundation.level_1.description": {
       "parameters": {},
-      "template": "1级：先获得4[icon:core:resource.gold_voucher]，再一次分配合计2个基础资源，可任意组合[icon:core:resource.orirock]、[icon:core:resource.originium_shard]与[icon:core:resource.iron]。"
+      "template": "1级：先获得4[icon:core:resource.gold_voucher]，再一次分配合计2个基础资源，可任意组合[icon:core:resource.orirock]、[icon:core:resource.originium_shard]与[icon:core:resource.iron]"
     },
     "core:infected.enterprise.maylander_foundation.level_2.description": {
       "parameters": {},
@@ -717,7 +717,7 @@
     },
     "core:infected.enterprise.maylander_foundation.level_3.description": {
       "parameters": {},
-      "template": "3级：支付4[icon:core:resource.iron][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]。"
+      "template": "3级：支付4[icon:core:resource.iron][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]"
     },
     "core:infected.enterprise.maylander_foundation.level_4.description": {
       "parameters": {},
@@ -725,31 +725,31 @@
     },
     "core:infected.enterprise.maylander_foundation.level_5.description": {
       "parameters": {},
-      "template": "5级：获得[icon:core:resource.score|value=2]。"
+      "template": "5级：获得[icon:core:resource.score|value=2]"
     },
     "core:infected.enterprise.stonehoove_security.level_1.description": {
       "parameters": {},
-      "template": "1级：至多[icon:core:rule.remove]，然后选择放置1个岩蹄安保公司影响力，或移动至多2个公司影响力。"
+      "template": "1级：[icon:core:rule.remove]，之后[icon:core:rule.stonehoove_security_place]或[icon:core:rule.stonehoove_security_move][icon:core:rule.stonehoove_security_move]"
     },
     "core:infected.enterprise.stonehoove_security.level_2.description": {
       "parameters": {},
-      "template": "2级：依次放置2个岩蹄安保公司影响力；再移除自己的1个影响力[icon:core:syntax.condition]将岩蹄安保[icon:core:rule.enterprise_upgrade]升级1级。"
+      "template": "2级：[icon:core:rule.stonehoove_security_place][icon:core:rule.stonehoove_security_place]。移除自己的1个影响力[icon:core:syntax.condition]提升该企业1合作等级"
     },
     "core:infected.enterprise.stonehoove_security.level_3.description": {
       "parameters": {},
-      "template": "3级：获得[icon:core:resource.score|value=1]。"
+      "template": "3级：获得[icon:core:resource.score|value=1]"
     },
     "core:infected.enterprise.stonehoove_security.level_4.description": {
       "parameters": {},
-      "template": "4级：以本人影响力正常替换至多1个对手影响力，再由本人移动至多1个岩蹄安保公司影响力。"
+      "template": "4级：[icon:core:rule.replace][icon:core:rule.stonehoove_security_move]"
     },
     "core:infected.enterprise.stonehoove_security.level_5.description": {
       "parameters": {},
-      "template": "5级：获得1[icon:core:resource.pure_originium]，放置1个岩蹄安保公司影响力，再取得1份终身安保合约；每人至多持有1份合约，合约来自本局剩余供应。"
+      "template": "5级：获得1[icon:core:resource.pure_originium][icon:core:rule.stonehoove_security_place]获得[b]终身安保合约[/b]。"
     },
     "core:enterprise.blacksteel.level_1.choice.prompt": {
       "parameters": {},
-      "template": "选择[icon:core:rule.deploy]，或至多[icon:core:rule.remove]。"
+      "template": "[icon:core:rule.deploy]或[icon:core:rule.remove]"
     },
     "core:enterprise.blacksteel.level_1.choice.place": {
       "parameters": {},
@@ -757,11 +757,11 @@
     },
     "core:enterprise.blacksteel.level_1.choice.remove": {
       "parameters": {},
-      "template": "至多[icon:core:rule.remove]"
+      "template": "[icon:core:rule.remove]"
     },
     "core:enterprise.department.defense.level_3.choice.prompt": {
       "parameters": {},
-      "template": "已支付3[icon:core:resource.gold_voucher]，选择[icon:core:rule.deploy]或至多[icon:core:rule.dispatch][icon:core:rule.dispatch]。"
+      "template": "[icon:core:rule.deploy]或[icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:enterprise.department.defense.level_3.choice.place": {
       "parameters": {},
@@ -769,93 +769,7 @@
     },
     "core:enterprise.department.defense.level_3.choice.move": {
       "parameters": {},
-      "template": "至多[icon:core:rule.dispatch][icon:core:rule.dispatch]"
-    },
-    "core:legacy.character.tin_man.discard.prompt": {
-      "parameters": {
-        "card": "definition"
-      },
-      "template": "正在收回「{card}」。请选择该牌带来的奖励。"
-    },
-    "core:legacy.character.tin_man.discard.prompt_without_card": {
-      "parameters": {},
-      "template": "正在收回角色牌。请选择该牌带来的奖励。"
-    },
-    "core:legacy.character.tin_man.discard.gain_gold": {
-      "parameters": {
-        "gold": "integer"
-      },
-      "template": "获得{gold}[icon:core:resource.gold_voucher]"
-    },
-    "core:legacy.character.tin_man.discard.move_influence": {
-      "parameters": {
-        "count": "integer"
-      },
-      "template": "{count}[icon:core:rule.dispatch]（转到地图选点）"
-    },
-    "core:legacy.character.tin_man.discard.hint": {
-      "parameters": {},
-      "template": "请在角色牌结算弹窗中处理当前弃牌。选择移动影响力时将转到地图选点。"
-    },
-    "core:legacy.character.tin_man.discard.move_unavailable": {
-      "parameters": {
-        "gold": "integer"
-      },
-      "template": "当前没有可执行的影响力移动，请改为获得{gold}[icon:core:resource.gold_voucher]。"
-    },
-    "core:legacy.character.tin_man.first_purchase.prompt": {
-      "parameters": {
-        "score": "integer",
-        "cost": "integer"
-      },
-      "template": "已固定获得[icon:core:resource.score|value={score}]。现在可以支付{cost}[icon:core:resource.gold_voucher]获得第一个[icon:core:resource.pure_originium]；取消则立即结束本次策略结算。"
-    },
-    "core:legacy.character.tin_man.first_purchase.buy": {
-      "parameters": {
-        "cost": "integer",
-        "amount": "integer"
-      },
-      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得{amount}个[icon:core:resource.pure_originium]"
-    },
-    "core:legacy.character.tin_man.first_purchase.finish": {
-      "parameters": {},
-      "template": "取消购买并结算"
-    },
-    "core:legacy.character.tin_man.first_purchase.hint": {
-      "parameters": {
-        "score": "integer",
-        "cost": "integer"
-      },
-      "template": "锡人已获得[icon:core:resource.score|value={score}]。请选择是否支付{cost}[icon:core:resource.gold_voucher]；取消会立即结算。"
-    },
-    "core:legacy.character.tin_man.second_purchase.prompt": {
-      "parameters": {
-        "paid": "integer",
-        "amount": "integer",
-        "cost": "integer"
-      },
-      "template": "第一笔{paid}[icon:core:resource.gold_voucher]已支付并获得{amount}个[icon:core:resource.pure_originium]。现在可以再支付{cost}[icon:core:resource.gold_voucher]获得第二个；取消则按当前结果结算。"
-    },
-    "core:legacy.character.tin_man.second_purchase.buy": {
-      "parameters": {
-        "cost": "integer",
-        "amount": "integer"
-      },
-      "template": "再支付{cost}[icon:core:resource.gold_voucher]，再获得{amount}个[icon:core:resource.pure_originium]"
-    },
-    "core:legacy.character.tin_man.second_purchase.finish": {
-      "parameters": {},
-      "template": "取消第二笔购买并结算"
-    },
-    "core:legacy.character.tin_man.second_purchase.hint": {
-      "parameters": {
-        "cost": "integer"
-      },
-      "template": "锡人第一笔购买已完成。请选择是否再支付{cost}[icon:core:resource.gold_voucher]；取消会按当前结果结算。"
-    },
-    "core:legacy.character.tin_man.purchase.unavailable": {
-      "parameters": {},
-      "template": "当前金券不足以进行这笔购买，点击取消即可结算。"
+      "template": "[icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:legacy.character.status.used": {
       "parameters": {},
@@ -880,14 +794,6 @@
     "core:legacy.character.status.cover_select": {
       "parameters": {},
       "template": "查看手牌，单选后确认"
-    },
-    "core:legacy.character.status.second_available": {
-      "parameters": {},
-      "template": "可继续使用第二个效果，也可结束角色牌使用。"
-    },
-    "core:legacy.character.status.second_no_targets": {
-      "parameters": {},
-      "template": "当前角色牌效果没有合法的地图目标，请使用结束操作完成结算。"
     },
     "core:legacy.character.status.effect_not_integrated": {
       "parameters": {},
@@ -933,71 +839,41 @@
       "parameters": {},
       "template": "该角色牌效果尚未接入结算流程。"
     },
-    "core:legacy.character.map.cleanup": {
-      "parameters": {
-        "count": "integer"
-      },
-      "template": "结束阶段：雷蛇要求移除自己的{count}个影响力。请点击地图上高亮的影响力；完成后才能结束本回合。"
-    },
-    "core:legacy.character.map.move_source": {
-      "parameters": {},
-      "template": "请点击地图上高亮的己方影响力作为移动来源。"
-    },
-    "core:legacy.character.map.move_target": {
-      "parameters": {},
-      "template": "请点击地图上高亮的空格作为影响力移动目标。"
-    },
-    "core:legacy.character.map.no_move": {
-      "parameters": {},
-      "template": "当前没有可执行的影响力移动。"
-    },
-    "core:legacy.character.map.click_influence": {
-      "parameters": {},
-      "template": "当前步骤需要点击地图上高亮的影响力槽位。"
-    },
-    "core:legacy.character.map.choose_legal": {
-      "parameters": {},
-      "template": "请选择地图上高亮的合法目标。"
-    },
-    "core:legacy.character.map.next_no_target": {
-      "parameters": {},
-      "template": "后续步骤没有合法目标，请重新选择该角色牌效果。"
-    },
     "core:condition.elysium.tactic": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]免费[icon:core:rule.city_move]至有自己影响力的已探索地点。"
+      "template": "支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]选择1个与你移动城市相邻且具有你影响力的资源点，以此资源点为移动目标，[b]免费[/b][icon:core:rule.city_move]"
     },
     "core:condition.infected.character.ceobe.strategy": {
       "parameters": {},
-      "template": "支付1[icon:core:resource.originium_shard][icon:core:syntax.condition]立即执行一次部署、调度、探索、移城或建设主要行动。"
+      "template": "支付1[icon:core:resource.originium_shard][icon:core:syntax.condition]执行1项[b]非特殊行动[/b]的主要行动。"
     },
     "core:condition.infected.character.jessica_the_liberated.tactic": {
       "parameters": {},
-      "template": "失去[icon:core:resource.score|value=2][icon:core:syntax.condition]从公共设施中免费[icon:core:rule.build]建设一张设施，并将涤火杰西卡绑定到该设施；不含存储设施。"
+      "template": "失去[icon:core:resource.score|value=2][icon:core:syntax.condition][b]免费[/b][icon:core:rule.build]，并将[b]涤火杰西卡[/b]放在建设的设施之中。"
     },
     "core:condition.liskarm.tactic": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.replace]替换对手的1个影响力。"
+      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.replace]"
     },
     "core:condition.mountain.tactic": {
       "parameters": {},
-      "template": "支付2[icon:core:resource.gold_voucher][icon:core:syntax.condition]将自己的企业[icon:core:rule.enterprise_upgrade]升级1级，然后执行升级奖励及升级后的[icon:core:rule.enterprise_special]企业特殊行动。"
+      "template": "支付2[icon:core:resource.gold_voucher][icon:core:syntax.condition]选择1家企业[icon:core:rule.enterprise_upgrade][icon:core:rule.enterprise_special]"
     },
     "core:condition.operator.dorothy.strategy": {
       "parameters": {},
-      "template": "移除自己的2个影响力[icon:core:syntax.condition][icon:core:rule.deploy][icon:core:rule.deploy][icon:core:rule.deploy]。"
+      "template": "[icon:core:rule.remove_own_influence][icon:core:rule.remove_own_influence][icon:core:syntax.condition][icon:core:rule.deploy][icon:core:rule.deploy][icon:core:rule.deploy]"
     },
     "core:condition.operator.dorothy.tactic": {
       "parameters": {},
-      "template": "移除本角色牌上的2个影响力标记[icon:core:syntax.condition][icon:core:rule.deploy]。"
+      "template": "[icon:core:rule.remove_card_marker][icon:core:rule.remove_card_marker][icon:core:syntax.condition][icon:core:rule.deploy]"
     },
     "core:condition.operator.mudrock.strategy": {
       "parameters": {},
-      "template": "支付1[icon:core:resource.orirock][icon:core:syntax.condition]从公共设施中[icon:core:rule.build]建设一张设施，按原建设费用自动付款，可放弃建设。"
+      "template": "支付1[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.build]"
     },
     "core:condition.operator.mudrock.tactic": {
       "parameters": {},
-      "template": "支付2[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.deploy]。"
+      "template": "支付2[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.deploy]"
     },
     "core:condition.operator.w.tactic": {
       "parameters": {},
@@ -1005,95 +881,95 @@
     },
     "core:condition.texas.tactic": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.remove]，然后移动自己的至多2个不同影响力。"
+      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.remove][icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:condition.enterprise.department.defense.level_3.reward": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition]选择[icon:core:rule.deploy]，或至多[icon:core:rule.dispatch][icon:core:rule.dispatch]。"
+      "template": "支付3[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.deploy]或[icon:core:rule.dispatch][icon:core:rule.dispatch]"
     },
     "core:condition.enterprise.department.defense.level_4.reward": {
       "parameters": {},
-      "template": "支付12[icon:core:resource.gold_voucher][icon:core:syntax.condition]依次执行两次选择：[icon:core:rule.deploy]，或至多[icon:core:rule.remove]。"
+      "template": "支付12[icon:core:resource.gold_voucher][icon:core:syntax.condition]执行2次：[icon:core:rule.deploy]或[icon:core:rule.remove]"
     },
     "core:condition.enterprise.department.defense.level_5.reward": {
       "parameters": {},
-      "template": "支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得3[icon:core:resource.pure_originium]。"
+      "template": "支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得3[icon:core:resource.pure_originium]"
     },
     "core:condition.enterprise.department.engineering.level_4.reward": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.orirock][icon:core:syntax.condition]从公共设施中[icon:core:rule.build]建设一张设施，按原建设费用自动付款，可放弃建设。"
+      "template": "支付3[icon:core:resource.orirock][icon:core:syntax.condition][icon:core:rule.build]"
     },
     "core:condition.enterprise.department.engineering.level_5.reward": {
       "parameters": {},
-      "template": "支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]从公共设施中免费[icon:core:rule.build]建设一张金券费用至多23的设施，不含存储设施。"
+      "template": "支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]从设施供应区中选择1张金券价值23或以下的设施进行[b]免费[/b]建造"
     },
     "core:condition.enterprise.department.structural.level_4.reward": {
       "parameters": {},
-      "template": "支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
+      "template": "支付3[icon:core:resource.originium_shard][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]"
     },
     "core:condition.enterprise.hyde_brothers.level_2.special": {
       "parameters": {},
-      "template": "支付2[icon:core:resource.orirock][icon:core:syntax.condition]获得15[icon:core:resource.gold_voucher]。"
+      "template": "支付2[icon:core:resource.orirock][icon:core:syntax.condition]获得15[icon:core:resource.gold_voucher]"
     },
     "core:condition.enterprise.hyde_brothers.level_4.special": {
       "parameters": {},
-      "template": "支付6[icon:core:resource.orirock][icon:core:syntax.condition]刷新公共设施，再免费[icon:core:rule.build]建设其中一张设施；不含存储设施，可放弃建设。"
+      "template": "支付6[icon:core:resource.orirock][icon:core:syntax.condition]将设施供应区中所有设施牌洗回设施牌堆，之后补充公共供应区，然后你可以执行1次[b]免费[/b]建造。"
     },
     "core:condition.enterprise.mama_johns.level_2.special": {
       "parameters": {},
-      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]获得20[icon:core:resource.gold_voucher]。"
+      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]获得20[icon:core:resource.gold_voucher]"
     },
     "core:condition.enterprise.mama_johns.level_4.special": {
       "parameters": {},
-      "template": "支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=3]。"
+      "template": "支付25[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=3]"
     },
     "core:condition.enterprise.raythean.level_3.special": {
       "parameters": {},
-      "template": "支付2[icon:core:resource.originium_shard][icon:core:syntax.condition]从公共设施中[icon:core:rule.build]建设一张设施，按原建设费用自动付款，可放弃建设。"
+      "template": "支付2[icon:core:resource.originium_shard][icon:core:syntax.condition][icon:core:rule.build]"
     },
     "core:condition.enterprise.rhodes_island.level_4.special": {
       "parameters": {},
-      "template": "从本人弃牌区公开回收1张角色牌到手牌，再公开弃置该牌以外的其余手牌[icon:core:syntax.condition]获得10[icon:core:resource.gold_voucher]；没有可回收弃牌时不能使用。"
+      "template": "从你的弃牌区1张角色牌加入手牌[icon:core:syntax.condition]将该角色牌以外的手牌[icon:core:syntax.condition]放入弃牌区，获得10[icon:core:resource.gold_voucher]"
     },
     "core:condition.enterprise.rim_billiton.level_2.special": {
       "parameters": {},
-      "template": "支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.replace]至多替换资源点上的任意1个影响力。"
+      "template": "支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]替换1个在资源点上的影响力"
     },
     "core:condition.enterprise.rim_billiton.level_4.special": {
       "parameters": {},
-      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]进行一次额外收获。"
+      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]你进行一次采集"
     },
     "core:condition.infected.enterprise.rhodes_island.level_3.special": {
       "parameters": {},
-      "template": "从本人弃牌区公开回收1张角色牌到手牌，再公开弃置该牌以外的其余手牌[icon:core:syntax.condition]获得10[icon:core:resource.gold_voucher]；没有可回收弃牌时不能使用。"
+      "template": "从角色牌弃牌区选择1张角色牌加入手牌[icon:core:syntax.condition]将该角色牌以外的手牌[icon:core:syntax.condition]放入弃牌区，获得10[icon:core:resource.gold_voucher]"
     },
     "core:condition.infected.enterprise.maylander_foundation.level_3.special": {
       "parameters": {},
-      "template": "支付4[icon:core:resource.iron][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]。"
+      "template": "支付4[icon:core:resource.iron][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]"
     },
     "core:condition.infected.enterprise.stonehoove_security.level_2.special": {
       "parameters": {},
-      "template": "移除自己的1个影响力[icon:core:syntax.condition]将岩蹄安保[icon:core:rule.enterprise_upgrade]升级1级。"
+      "template": "[icon:core:rule.remove_own_influence][icon:core:syntax.condition]提升该企业1合作等级"
     },
     "core:condition.enterprise.event.collection_platform.resolve": {
       "parameters": {},
-      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]将自己的企业[icon:core:rule.enterprise_upgrade]升级1级，然后执行升级奖励及升级后的[icon:core:rule.enterprise_special]企业特殊行动。"
+      "template": "失去[icon:core:resource.score|value=1][icon:core:syntax.condition]选择1家企业[icon:core:rule.enterprise_upgrade][icon:core:rule.enterprise_special]"
     },
     "core:condition.enterprise.event.cave_ruins.resolve": {
       "parameters": {},
-      "template": "支付1[icon:core:resource.iron][icon:core:syntax.condition]将任意玩家的一家企业[icon:core:rule.enterprise_upgrade]升级1级。"
+      "template": "支付1[icon:core:resource.iron][icon:core:syntax.condition]选择1家企业[icon:core:rule.enterprise_upgrade]"
     },
     "core:condition.city_style_security_district.special": {
       "parameters": {},
-      "template": "支付2[icon:core:resource.orirock]和1[icon:core:resource.iron][icon:core:syntax.condition][icon:core:rule.replace]替换任意1个影响力。"
+      "template": "支付2[icon:core:resource.orirock]1[icon:core:resource.iron][icon:core:syntax.condition][icon:core:rule.replace]"
     },
     "core:condition.infected.city_style.district_management.declared": {
       "parameters": {},
-      "template": "返还自己的一个二级城市样式声明标记[icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
+      "template": "将1个[b]II[/b]级样式上你的标记放回供应区[icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
     },
     "core:condition.infected.facility.temporary_settlement.declared": {
       "parameters": {},
-      "template": "退役当前临时聚居点[icon:core:syntax.condition]获得12[icon:core:resource.gold_voucher]。"
+      "template": "将[b]临时聚集点[/b]从城市面板放回游戏盒[icon:core:syntax.condition]获得12[icon:core:resource.gold_voucher]"
     },
     "core:interaction.character.tin_man.tactic.reward.prompt": {
       "parameters": {},
@@ -1111,68 +987,68 @@
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.orirock]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.orirock]"
     },
     "core:condition.character.lin.buy.originium_shard": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.originium_shard]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.originium_shard]"
     },
     "core:condition.character.lin.buy.iron": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.iron]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.iron]"
     },
     "core:condition.character.lin.buy.pure_originium": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得1[icon:core:resource.pure_originium]"
     },
     "core:condition.character.jessica.binding_settlement": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得[icon:core:resource.score|value=2]，之后将本角色移至角色弃牌区。"
     },
     "core:condition.city_style.composite_power_system": {
       "parameters": {
         "shards": "integer",
         "flexibleCost": "integer"
       },
-      "template": "支付{shards}[icon:core:resource.originium_shard]及合计{flexibleCost}个[icon:core:resource.orirock]/[icon:core:resource.iron][icon:core:syntax.condition]免费[icon:core:rule.city_move]一次，再在经过的航道放置自己的1个影响力。"
+      "template": "支付{shards}[icon:core:resource.originium_shard]及合计{flexibleCost}个[icon:core:resource.orirock][icon:core:resource.iron][icon:core:syntax.condition]执行1次[b]免费[/b][icon:core:rule.city_move]，并在通过航道放置1影响力。"
     },
     "core:condition.city_style.source_stone_industrial_hub": {
       "parameters": {
         "cost": "integer",
         "count": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]本玩家行动轮获得至多{count}次额外主要行动。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]本轮中，你可以额外执行{count}次[b]主要行动[/b]"
     },
     "core:condition.city_style.efficient_mobile_management_system": {
       "parameters": {
         "cost": "integer",
         "count": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.originium_shard][icon:core:syntax.condition]依次执行至多{count}次免费[icon:core:rule.city_move]。"
+      "template": "支付{cost}[icon:core:resource.originium_shard][icon:core:syntax.condition]连续执行{count}次[b]免费[/b][icon:core:rule.city_move]"
     },
     "core:condition.event.event_yellow_04.payment": {
       "parameters": {},
-      "template": "支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.deploy]。"
+      "template": "支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition][icon:core:rule.deploy]"
     },
     "core:interaction.map.influence.move": {
       "parameters": {},
-      "template": "选择要移动的影响力，再选择其高亮目标。"
+      "template": "[icon:core:rule.dispatch]：选择影响力，再选择地图上其他影响力空格。"
     },
     "core:interaction.elysium.least_resource": {
       "parameters": {},
-      "template": "选择你当前数量最少的一种基础资源，获得4个该资源。"
+      "template": "从[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]选择你拥有数量最少的1种，获得4个所选资源。"
     },
     "core:interaction.reward.choose": {
       "parameters": {},
-      "template": "选择本次获得的奖励。"
+      "template": "选择获得的奖励。"
     },
     "core:interaction.reward.one_originium": {
       "parameters": {},
@@ -1192,7 +1068,7 @@
     },
     "core:interaction.influence.place_or_remove": {
       "parameters": {},
-      "template": "选择[icon:core:rule.deploy]或[icon:core:rule.remove]。"
+      "template": "[icon:core:rule.deploy]或[icon:core:rule.remove]"
     },
     "core:interaction.influence.place": {
       "parameters": {},
@@ -1204,19 +1080,19 @@
     },
     "core:interaction.company.place_or_move": {
       "parameters": {},
-      "template": "选择放置1个或移动至多2个岩蹄安保影响力。"
+      "template": "[icon:core:rule.stonehoove_security_place]或[icon:core:rule.stonehoove_security_move][icon:core:rule.stonehoove_security_move]"
     },
     "core:interaction.company.place": {
       "parameters": {},
-      "template": "放置1个岩蹄安保影响力"
+      "template": "[icon:core:rule.stonehoove_security_place]"
     },
     "core:interaction.company.move_two": {
       "parameters": {},
-      "template": "移动至多2个岩蹄安保影响力"
+      "template": "[icon:core:rule.stonehoove_security_move]至多2个"
     },
     "core:interaction.dorothy.store.prompt": {
       "parameters": {},
-      "template": "是否将刚离场的影响力放在此牌上？"
+      "template": "是否将被移除或替换的影响力放在[b]多萝西[/b]上？"
     },
     "core:interaction.dorothy.store": {
       "parameters": {},
@@ -1228,7 +1104,7 @@
     },
     "core:interaction.security_district.choose": {
       "parameters": {},
-      "template": "选择本次执行的效果。"
+      "template": "选择本次执行选项。"
     },
     "core:interaction.security_district.place": {
       "parameters": {},
@@ -1238,25 +1114,9 @@
       "parameters": {},
       "template": "[icon:core:rule.remove]，获得2[icon:core:resource.iron]"
     },
-    "core:interaction.district_management.choose": {
-      "parameters": {},
-      "template": "选择是否返还二级城市样式声明标记。"
-    },
-    "core:interaction.district_management.keep": {
-      "parameters": {},
-      "template": "保留二级城市样式声明标记"
-    },
-    "core:interaction.temporary_settlement.choose": {
-      "parameters": {},
-      "template": "选择是否退役当前临时聚居点。"
-    },
-    "core:interaction.temporary_settlement.keep": {
-      "parameters": {},
-      "template": "保留临时聚居点"
-    },
     "core:interaction.silverash.sale.choose": {
       "parameters": {},
-      "template": "选择一种基础资源和一位玩家。该玩家以每个4[icon:core:resource.gold_voucher]出售其全部该资源，你获得[icon:core:resource.score|value=1]。"
+      "template": "从[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]选择1种，选择1位玩家，该玩家以每个4[icon:core:resource.gold_voucher]的单价[b]出售[/b]所有所选资源，你获得[icon:core:resource.score|value=1]"
     },
     "core:interaction.silverash.sale.originium": {
       "parameters": {
@@ -1316,19 +1176,19 @@
     },
     "core:interaction.card.destination.choose": {
       "parameters": {},
-      "template": "选择将当前流形角色牌移至手牌或弃牌区。"
+      "template": "选择将当前流形角色牌加入手牌或弃牌区。"
     },
     "core:interaction.card.destination.hand": {
       "parameters": {},
-      "template": "移至手牌"
+      "template": "加入手牌"
     },
     "core:interaction.card.destination.discard": {
       "parameters": {},
-      "template": "移至弃牌区"
+      "template": "加入弃牌区"
     },
     "core:interaction.ceobe.transfer.choose": {
       "parameters": {},
-      "template": "选择接收此角色牌的对手。"
+      "template": "选择获得[b]刻俄柏[/b]的对手。"
     },
     "core:interaction.character.recover.choose": {
       "parameters": {},
@@ -1336,7 +1196,7 @@
     },
     "core:interaction.enterprise.special.choose": {
       "parameters": {},
-      "template": "选择要执行的企业特殊行动。"
+      "template": "选择企业特效。"
     },
     "core:interaction.facility.influence_branch.choose": {
       "parameters": {},
@@ -1348,19 +1208,19 @@
     },
     "core:interaction.facility.take.choose": {
       "parameters": {},
-      "template": "选择一张不同名称的公共设施，或结束此次获取。"
+      "template": "从设施供应区选择1张[b]名称不同[/b]的设施牌，或结束行动。"
     },
     "core:interaction.hellagur.cover": {
       "parameters": {},
-      "template": "从手牌或弃牌区选择一张角色牌额外盖放。"
+      "template": "选择你的手牌或弃牌区的1张角色牌盖放。"
     },
     "core:interaction.hellagur.discard_optional": {
       "parameters": {},
-      "template": "可以先弃置一张手牌；结束此步后仍须额外盖放。"
+      "template": "可以将手牌中1张角色牌置于弃牌区；结束此步后仍须额外盖放。"
     },
     "core:interaction.lin.transfer.choose": {
       "parameters": {},
-      "template": "选择当前至少拥有20金券的对手，从其处获取10金券。"
+      "template": "选择1名有20或以上[icon:core:resource.gold_voucher]的对手，你从该对手处获取10[icon:core:resource.gold_voucher]"
     },
     "core:interaction.marker.return.choose": {
       "parameters": {},
@@ -1368,39 +1228,35 @@
     },
     "core:interaction.muelsyse.cover": {
       "parameters": {},
-      "template": "可以额外盖放一张手牌中的流形角色牌。"
-    },
-    "core:interaction.muelsyse.keep": {
-      "parameters": {},
-      "template": "保留盖放"
+      "template": "可以额外盖放1张流形角色牌。"
     },
     "core:interaction.muelsyse.recycle": {
       "parameters": {},
-      "template": "回收盖放的流形角色牌"
+      "template": "盖放的流形角色牌放回手牌"
     },
     "core:interaction.muelsyse.recycle.choose": {
       "parameters": {},
-      "template": "选择是否回收盖放的流形角色牌。"
+      "template": "将盖放的流形角色牌放回手牌，或放弃本次回手。"
     },
     "core:interaction.public_style.choose": {
       "parameters": {},
-      "template": "选择公共区的一项一级城市样式特殊行动。"
+      "template": "选择场上1个I级样式牌[b]特殊行动[/b]执行。"
     },
     "core:interaction.swire.take_marker": {
       "parameters": {},
-      "template": "可以从尚未选择的对手供应拿取一个玩家标记。"
+      "template": "选择至多2位不同对手，各将其供应中的1个玩家标记放到此牌上。"
     },
     "core:interaction.swire.upgrade.choose": {
       "parameters": {},
-      "template": "选择你与标记原所有者各升级一级的企业。"
+      "template": "选择1家企业，你和标记所有者[icon:core:rule.enterprise_upgrade]"
     },
     "core:interaction.token.adjacent.choose": {
       "parameters": {},
-      "template": "选择标记可以移动到的相邻资源点。"
+      "template": "选择[b]嘉维尔指示物[/b]的相邻资源点。"
     },
     "core:interaction.token.arrival.choose": {
-      "parameters": {},
-      "template": "选择到达资源点上的一个影响力进行移动。"
+      "parameters": {"resourcePoint": "text"},
+      "template": "移动{resourcePoint}上的1个影响力。"
     },
     "core:interaction.token.arrival.influence": {
       "parameters": {},
@@ -1408,7 +1264,7 @@
     },
     "core:interaction.token.initial.choose": {
       "parameters": {},
-      "template": "选择放置标记的已开放资源点。"
+      "template": "选择资源点放置[b]嘉维尔指示物[/b]。"
     },
     "core:interaction.trade.choose": {
       "parameters": {},
@@ -1436,63 +1292,63 @@
         "enterprise": "item",
         "level": "integer"
       },
-      "template": "{player}：{enterprise}的{level}级特殊行动"
+      "template": "{player}：{enterprise}的{level}级企业特效"
     },
     "core:interaction.trade.sell.originium": {
       "parameters": {
         "price": "integer"
       },
-      "template": "支付1[icon:core:resource.orirock]，获得{price}[icon:core:resource.gold_voucher]。"
+      "template": "支付1[icon:core:resource.orirock]，获得{price}[icon:core:resource.gold_voucher]"
     },
     "core:interaction.trade.buy.originium": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.orirock]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.orirock]"
     },
     "core:interaction.trade.sell.originium_shard": {
       "parameters": {
         "price": "integer"
       },
-      "template": "支付1[icon:core:resource.originium_shard]，获得{price}[icon:core:resource.gold_voucher]。"
+      "template": "支付1[icon:core:resource.originium_shard]，获得{price}[icon:core:resource.gold_voucher]"
     },
     "core:interaction.trade.buy.originium_shard": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.originium_shard]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.originium_shard]"
     },
     "core:interaction.trade.sell.iron": {
       "parameters": {
         "price": "integer"
       },
-      "template": "支付1[icon:core:resource.iron]，获得{price}[icon:core:resource.gold_voucher]。"
+      "template": "支付1[icon:core:resource.iron]，获得{price}[icon:core:resource.gold_voucher]"
     },
     "core:interaction.trade.buy.iron": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.iron]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.iron]"
     },
     "core:interaction.trade.sell.pure_originium": {
       "parameters": {
         "price": "integer"
       },
-      "template": "支付1[icon:core:resource.pure_originium]，获得{price}[icon:core:resource.gold_voucher]。"
+      "template": "支付1[icon:core:resource.pure_originium]，获得{price}[icon:core:resource.gold_voucher]"
     },
     "core:interaction.trade.buy.pure_originium": {
       "parameters": {
         "cost": "integer"
       },
-      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.pure_originium]。"
+      "template": "支付{cost}[icon:core:resource.gold_voucher]，获得1[icon:core:resource.pure_originium]"
     },
     "core:interaction.enterprise.owner.choose": {
       "parameters": {},
-      "template": "选择要借用企业特殊行动的对手。"
+      "template": "选择1名对手：触发1个其已解锁的企业特效。"
     },
     "core:interaction.map.influence.move.destination": {
       "parameters": {},
-      "template": "选择高亮槽位，移动已选影响力。"
+      "template": "选择高亮影响力空格，移动已选影响力。"
     },
     "core:interaction.sale.batch": {
       "parameters": {
@@ -1500,6 +1356,161 @@
         "revenue": "integer"
       },
       "template": "已出售{soldCount}份资源，累计获得{revenue}[icon:core:resource.gold_voucher]。选择本批出售数量，或以0结束。"
+    },
+    "core:action.character.use.name": {
+      "parameters": {
+        "card": "definition"
+      },
+      "template": "使用角色牌：{card}"
+    },
+    "core:action.character.use.description": {
+      "parameters": {},
+      "template": "使用角色牌的效果"
+    },
+    "core:interaction.influence.sequence.two.prompt": {
+      "parameters": {},
+      "template": "选择执行"
+    },
+    "core:interaction.influence.sequence.place_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.place_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.remove]"
+    },
+    "core:interaction.influence.sequence.remove_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.remove_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.remove]"
+    },
+    "core:interaction.influence.sequence.three.prompt": {
+      "parameters": {},
+      "template": "选择执行"
+    },
+    "core:interaction.influence.sequence.place_place_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.deploy][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.place_place_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.deploy][icon:core:rule.remove]"
+    },
+    "core:interaction.influence.sequence.place_remove_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.remove][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.place_remove_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.remove][icon:core:rule.remove]"
+    },
+    "core:interaction.influence.sequence.remove_place_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.deploy][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.remove_place_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.deploy][icon:core:rule.remove]"
+    },
+    "core:interaction.influence.sequence.remove_remove_place": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.remove][icon:core:rule.deploy]"
+    },
+    "core:interaction.influence.sequence.remove_remove_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove][icon:core:rule.remove][icon:core:rule.remove]"
+    },
+    "core:interaction.lin.initial_markers.prompt": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "从你的供应在林的计谋牌上放置玩家标记，至多{count}个。"
+    },
+    "core:interaction.lin.initial_markers.count": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "在本牌上放置{count}个你的玩家标记"
+    },
+    "core:interaction.lin.initial_markers.none": {
+        "parameters": {},
+        "template": "不放置玩家标记"
+    },
+    "core:interaction.dorothy.removal.prompt": {
+        "parameters": {},
+        "template": "选择要移除的两枚标记组合，点选后直接执行。"
+    },
+    "core:interaction.dorothy.removal.pair": {
+        "parameters": {
+            "first": "item",
+            "second": "item"
+        },
+        "template": "移除{first}与{second}"
+    },
+    "core:interaction.dorothy.initial_markers.prompt": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "从你的供应在多萝西的计谋牌上放置玩家标记，至多{count}个。"
+    },
+    "core:interaction.dorothy.initial_markers.count": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "在本牌上放置{count}个你的玩家标记"
+    },
+    "core:interaction.dorothy.initial_markers.none": {
+        "parameters": {},
+        "template": "不放置玩家标记"
+    },
+    "core:interaction.passenger.initial_markers.prompt": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "从你的供应在异客的计谋牌上放置玩家标记，至多{count}个。"
+    },
+    "core:interaction.passenger.initial_markers.count": {
+        "parameters": {
+            "count": "integer"
+        },
+        "template": "在本牌上放置{count}个你的玩家标记"
+    },
+    "core:interaction.passenger.initial_markers.none": {
+        "parameters": {},
+        "template": "不放置玩家标记"
+    },
+    "core:payment.sources.loading": {
+      "parameters": {},
+      "template": "正在读取付款替代来源，请稍候。"
+    },
+    "core:payment.sources.back": {
+      "parameters": {},
+      "template": "返回付款页"
+    },
+    "core:payment.sources.withdraw": {
+      "parameters": {
+        "source": "text"
+      },
+      "template": "撤回{source}的替代方案"
+    },
+    "core:payment.sources.reselect": {
+      "parameters": {},
+      "template": "此来源的替代方案需重新选择；其他来源的方案保留。"
+    },
+    "core:payment.sources.summary": {
+      "parameters": {
+        "units": "integer",
+        "selected": "integer",
+        "required": "integer"
+      },
+      "template": "替代合计{units}份；已选标记{selected}／需要{required}枚"
+    },
+    "core:payment.sources.save": {
+      "parameters": {},
+      "template": "保存此来源的替代方案"
     }
   }
 }

@@ -11,6 +11,8 @@ namespace YC.Presentation
         [SerializeField] private Image fillImage;
         [SerializeField] private Text valueText;
 
+        public Color TemplateFillColor => fillImage.color;
+
         public void Bind(string scoreKey, string label, int value, int maxMagnitude, Color fillColor)
         {
             gameObject.name = "Final Score Detail " + scoreKey + " Row";

@@ -7,7 +7,7 @@ using YC.Domain.State;
 namespace YC.Domain.Items
 {
     /// <summary>只在 Host 工作副本内提交。先整组校验，后发布唯一位置和有序成员。</summary>
-    public sealed class ItemTransferService
+    public sealed partial class ItemTransferService
     {
         private readonly ItemTypeRegistry types;
         private readonly ZoneTemplateRegistry templates;
@@ -18,18 +18,40 @@ namespace YC.Domain.Items
             this.templates = templates ?? ZoneTemplateRegistry.CreateBuiltIn(this.types);
             query = new ItemZoneQuery(this.types, this.templates);
         }
-        public ItemTransferValidationResult Validate(GameState state, ItemTransferRequest request)
+        public ItemTransferValidationResult Validate(GameState state, ItemTransferRequest request) =>
+            ValidateCore(state, request, true, true, false);
+
+        private ItemTransferValidationResult ValidateCore(GameState state, ItemTransferRequest request,
+            bool checkCapacity, bool checkPreview, bool allowLayerMovement) =>
+            ValidateCoreWithRewardAcquisition(state, request, checkCapacity, checkPreview, allowLayerMovement, false);
+
+        private ItemTransferValidationResult ValidateCoreWithRewardAcquisition(GameState state, ItemTransferRequest request,
+            bool checkCapacity, bool checkPreview, bool allowLayerMovement, bool allowRewardTokenAcquisition)
         {
             if (!query.TryValidate(state, out var reason)) throw new InvalidOperationException("item_state_invalid: " + reason);
             if (request == null || request.ItemIds == null || request.ExpectedSource == null || request.Destination == null || request.RequiredCount < 0)
                 return Invalid("invalid_transfer_request");
             if (state.FindPlayer(request.ExecutingPlayerId) == null) return Invalid("invalid_player");
-            if (!new[] { "core.cube_storage", "core.player_marker_storage", "core.influence_cube", "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", "core.mobile_city_move", "core.adjacent_location_token_move" }.Contains(request.OperationProfileId)) return Invalid("operation_profile_rejected");
+            if (request.OperationProfileId == ItemTypeRegistry.RewardTokenAcquisitionProfileId && !allowRewardTokenAcquisition) return Invalid("reward_acquisition_context_required");
+            if (!new[] { "core.entrepreneur_card_transfer", "core.cube_storage", "core.player_marker_storage", "core.token_storage", "core.influence_cube", "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", ItemTypeRegistry.RewardTokenAcquisitionProfileId, "core.mobile_city_move", "core.adjacent_location_token_move" }.Contains(request.OperationProfileId)) return Invalid("operation_profile_rejected");
             if (request.CarrierPolicyId != "preserve") return Invalid("carrier_policy_rejected");
             var source = query.FindZone(state, request.ExpectedSource.ZoneId);
             var destination = query.FindZone(state, request.Destination.ZoneId);
             if (source == null) return Invalid("source_zone_changed");
             if (destination == null) return Invalid("destination_rejected");
+            if (request.OperationProfileId == ItemTypeRegistry.RewardTokenAcquisitionProfileId &&
+                (source.TemplateId != "core.zone.reward_pool" || source.LocalZoneId != "contracts" || destination.TemplateId != "core.zone.player_rewards" ||
+                 destination.OwnerPlayerId != request.ExecutingPlayerId || request.ItemIds.Count != 1 || request.RequiredCount != 1))
+                return Invalid("reward_token_acquisition_endpoint_rejected");
+            // 非方块token的普通库存操作不开放地图放置、相邻移动、持约取得或轨道操作。
+            // 在共同预检层约束，api1和api3都不能借新配置绕过专用生命周期。
+            if (request.OperationProfileId == "core.token_storage" &&
+                new[] { source, destination }.Any(z => !new[] { "core.zone.box_reserve", "core.zone.box_retired", "core.zone.effect_staging" }.Contains(z.TemplateId)))
+                return Invalid("token_storage_requires_lifecycle");
+            if (!allowLayerMovement && (source.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.CoveredTemplate ||
+                destination.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.CoveredTemplate)) return Invalid("facility_layer_batch_required");
+            if (source.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.SupplyTemplate &&
+                request.ItemIds.Any(id => !YC.Domain.Facilities.FacilityLayerQuery.IsSupplyTop(state, id))) return Invalid("facility_supply_top_required");
             if (request.ItemIds.Distinct(StringComparer.Ordinal).Count() != request.ItemIds.Count) return Invalid("duplicate_item_id");
             if (request.ItemIds.Count < request.RequiredCount) return Invalid("insufficient_items");
             var targetTemplate = templates.Find(destination.TemplateId);
@@ -39,8 +61,8 @@ namespace YC.Domain.Items
                 return Invalid("insertion_rejected");
             if (slotted && (request.ItemIds.Count > 1 || !destination.LegalSlotIds.Contains(request.DestinationSlotId))) return Invalid("destination_rejected");
             if (!slotted && !string.IsNullOrEmpty(request.DestinationSlotId)) return Invalid("insertion_rejected");
-            bool recipientDestination = destination.TemplateId == "core.zone.player_marker_supply" || destination.TemplateId == "core.zone.character_hand" && request.OperationProfileId == "core.character_card_transfer";
-            bool departedOwner = IsPendingDepartureCapture(state, source, destination, request) || YC.Domain.Effects.ContentTransactionEffectExecutor.AllowsMarkerTransfer(state, request);
+            bool recipientDestination = destination.TemplateId == "core.zone.player_supply" || destination.TemplateId == "core.zone.character_hand" && request.OperationProfileId == "core.character_card_transfer";
+            bool departedOwner = InfluenceDepartureProtocol.CanTransfer(state, request) || IsPendingDepartureCapture(state, source, destination, request) || YC.Domain.Effects.ContentTransactionEffectExecutor.AllowsMarkerTransfer(state, request);
             if (!departedOwner && !CanAccess(state, source, request.ExecutingPlayerId, true) || !recipientDestination && !CanAccess(state, destination, request.ExecutingPlayerId, false))
                 return Invalid("transfer_permission_denied");
             int destinationPlayer = AccessPlayer(state, destination);
@@ -53,17 +75,24 @@ namespace YC.Domain.Items
                 if (item == null) return Invalid("unknown_item");
                 if (item.ZoneId != source.ZoneId || (!string.IsNullOrEmpty(request.ExpectedSource.SlotId) && item.SlotId != request.ExpectedSource.SlotId)) return Invalid("source_zone_changed");
                 if (!types.HasOperationProfile(item.TypeId, request.OperationProfileId)) return Invalid("operation_profile_rejected");
+                if (request.OperationProfileId == "core.token_storage" && types.IsAssignableTo(item.TypeId, ItemTypeRegistry.ContractTokenTypeId))
+                    return Invalid("reward_token_requires_acquisition_lifecycle");
+                if (request.OperationProfileId == "core.token_storage" &&
+                    (item.PhysicalKind != ItemPhysicalKind.Token || item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId != request.ExecutingPlayerId ||
+                     state.InfluenceLocks.Any(binding => binding.Active && binding.SourceItemId == id)))
+                    return Invalid("token_storage_permission_denied");
                 if (request.OperationProfileId == "core.deck_shuffle" || request.OperationProfileId == "core.character_card_use") return Invalid("operation_profile_rejected");
                 if (!query.Accepts(destination, item)) return Invalid("destination_rejected");
-                if (destination.TemplateId == "core.zone.player_marker_supply" && (item.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != destination.OwnerPlayerId)) return Invalid("destination_rejected");
+                if (destination.TemplateId == "core.zone.player_supply" && (item.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != destination.OwnerPlayerId)) return Invalid("destination_rejected");
                 if (destination.Configuration?.EntryPolicyId == "core.owned_player_marker" && (!query.IsPlayerMarker(state, id) || item.OwnerSubject.PlayerId != request.ExecutingPlayerId)) return Invalid("transfer_permission_denied");
                 if (destination.Configuration?.EntryPolicyId == "core.removed_owned_influence")
                 {
                     var departure = state.EffectRuntime.EffectNodes.Find(node => node.EffectId == source.OwnerEffectId);
-                    bool initial = source.TemplateId == "core.zone.player_marker_supply" && query.IsPlayerMarker(state, id) && item.OwnerSubject.PlayerId == request.ExecutingPlayerId;
+                    bool initial = source.TemplateId == "core.zone.player_supply" && query.IsPlayerMarker(state, id) && item.OwnerSubject.PlayerId == request.ExecutingPlayerId;
                     bool pending = source.TemplateId == "core.zone.effect_staging" && item.PhysicalKind == ItemPhysicalKind.Cube &&
                         YC.Domain.Effects.ItemTransferEffectExecutor.Text(departure?.ContinuationData, "pendingItemId") == id &&
                         new[] { "remove", "replace" }.Contains(YC.Domain.Effects.ItemTransferEffectExecutor.Text(departure?.ContinuationData, "pendingDepartureKind"));
+                    pending |= InfluenceDepartureProtocol.CanTransfer(state, request);
                     pending |= IsPendingDepartureCapture(state, source, destination, request);
                     if (!initial && !pending) return Invalid("transfer_permission_denied");
                 }
@@ -72,9 +101,10 @@ namespace YC.Domain.Items
                         !(request.OperationProfileId == "core.character_card_transfer" && (destination.TemplateId == "core.zone.character_covered" || destination.TemplateId == "core.zone.character_persistent") && destination.OwnerPlayerId == item.ControllerSubject.PlayerId)) return Invalid("carrier_contents_not_returned");
             }
             var outside = state.ItemZones.Items.Where(item => item.ZoneId == destination.ZoneId && !request.ItemIds.Contains(item.ItemId)).ToList();
-            if (destination.TemplateId == "core.zone.player_awards" && outside.Count(i => types.IsAssignableTo(i.TypeId, "core.contract_card")) + request.ItemIds.Count(id => types.IsAssignableTo(query.FindItem(state, id).TypeId, "core.contract_card")) > 1) return Invalid("contract_limit_reached");
+            if (destination.TemplateId == "core.zone.player_rewards" && outside.Count(i => types.IsAssignableTo(i.TypeId, ItemTypeRegistry.ContractTokenTypeId)) + request.ItemIds.Count(id => types.IsAssignableTo(query.FindItem(state, id).TypeId, ItemTypeRegistry.ContractTokenTypeId)) > 1) return Invalid("contract_limit_reached");
             int capacity = destination.Configuration?.CapacityPolicy == "bounded" ? destination.Configuration.Capacity.Value : targetTemplate.Capacity;
-            if (capacity >= 0 && outside.Count + request.ItemIds.Count > capacity || slotted && outside.Any(item => item.SlotId == request.DestinationSlotId)) return Invalid("destination_rejected");
+            if (checkCapacity && (capacity >= 0 && outside.Count + request.ItemIds.Count > capacity || slotted && outside.Any(item => item.SlotId == request.DestinationSlotId))) return Invalid("destination_rejected");
+            if (!checkPreview) return new ItemTransferValidationResult { IsValid = true };
             // 工作预览捕获载体环等结构约束；不触碰原成员或 OrderRevision。
             var preview = GameStateCloneService.DeepClone(state);
             var moved = Apply(preview, request);
@@ -120,9 +150,14 @@ namespace YC.Domain.Items
             return result;
         }
 
-        public ItemTransferResult RelocateItems(EffectExecutionContext context, ItemTransferRequest request)
+        private void ValidateExecutionGuards(EffectExecutionContext context, ItemTransferRequest request, bool requireCarrierAuthority = false)
         {
             if (context == null || request == null || context.Node.PlayerId != request.ExecutingPlayerId) throw new InvalidOperationException("transfer_permission_denied");
+            foreach (var d in context.State.EffectRuntime.InfluenceDepartures.Where(d => d.Status == "open" && request.ItemIds.Contains(d.ItemId)))
+                if (!InfluenceDepartureProtocol.IsWithin(context.State, context.Node.EffectId, d.CustodyRootId)) throw new InvalidOperationException("departure_custody_permission_denied");
+            if (!UsageTracks.AllowsTrackTransfer(context, request)) throw new InvalidOperationException("usage_track_host_managed");
+            string carrierReason = CardMarkerCarrier.ValidatePublicTransfer(context, request, requireCarrierAuthority);
+            if (carrierReason.Length > 0) throw new InvalidOperationException(carrierReason);
             if (YC.Domain.Effects.ContentTransactionEffectExecutor.AllowsMarkerTransfer(context.State, request) &&
                 (!new[] { YC.Domain.Effects.ContentTransactionEffectExecutor.Prefix + "store_marker", YC.Domain.Effects.ContentTransactionEffectExecutor.Prefix + "return_marker" }.Contains(context.Node.EffectTypeId) ||
                  YC.Domain.Effects.ItemTransferEffectExecutor.Text(context.Node.ContinuationData, "selectedMarkerItemId") != request.ItemIds[0]))
@@ -135,7 +170,16 @@ namespace YC.Domain.Items
                 while (node != null && node.EffectId != zone.OwnerEffectId) node = context.State.EffectRuntime.EffectNodes.Find(value => value.EffectId == node.ParentEffectId);
                 if (node == null) throw new InvalidOperationException("transfer_permission_denied");
             }
-            var validation = Validate(context.State, request);
+        }
+        public ItemTransferResult RelocateItems(EffectExecutionContext context, ItemTransferRequest request)
+        {
+            ValidateExecutionGuards(context, request);
+            bool rewardToken = request?.OperationProfileId == ItemTypeRegistry.RewardTokenAcquisitionProfileId;
+            bool acquisition = rewardToken && context.Node.EffectTypeId == YC.Domain.Influence.RewardAcquisitionFlow.TypeId &&
+                context.Node.PlayerId == request.ExecutingPlayerId && YC.Domain.Effects.ItemTransferEffectExecutor.Text(context.Node.NormalizedArguments, "poolRole") == "contracts" &&
+                context.Node.FlowStage.Length == 0 && context.Node.PositionChanges.Count == 0 &&
+                !YC.Domain.Effects.ItemTransferEffectExecutor.Flag(context.Node.ContinuationData, "acquisitionCompleted");
+            var validation = rewardToken ? ValidateCoreWithRewardAcquisition(context.State, request, true, true, false, acquisition) : Validate(context.State, request);
             if (!validation.IsValid) throw new InvalidOperationException(validation.ReasonCode);
             var result = Apply(context.State, request);
             context.Node.PositionChanges.AddRange(GameStateCloneService.DeepClone(result.PositionChanges));
@@ -157,7 +201,7 @@ namespace YC.Domain.Items
             if(!query.TryValidate(state,out string reason))throw new InvalidOperationException(reason);
             return result;
         }
-        private static ItemTransferResult Apply(GameState state, ItemTransferRequest request)
+        private static ItemTransferResult Apply(GameState state, ItemTransferRequest request, bool updateOrders = true)
         {
             var result = new ItemTransferResult();
             var destination = state.ItemZones.Zones.Single(zone => zone.ZoneId == request.Destination.ZoneId);
@@ -167,14 +211,14 @@ namespace YC.Domain.Items
                 if (item.ZoneId == destination.ZoneId && item.SlotId == request.DestinationSlotId && request.InsertionKind == "unordered") continue;
                 result.PositionChanges.Add(new ItemPositionChange { ItemId = id, From = new ItemPositionRef { ZoneId = item.ZoneId, SlotId = item.SlotId }, To = new ItemPositionRef { ZoneId = destination.ZoneId, SlotId = request.DestinationSlotId } });
                 item.ZoneId = destination.ZoneId; item.SlotId = request.DestinationSlotId;
-                if (destination.TemplateId.StartsWith("core.zone.character_", StringComparison.Ordinal) || destination.TemplateId == "core.zone.city_facility_cell" || destination.TemplateId == "core.zone.player_awards") item.ControllerSubject = ItemSubjectRef.Player(destination.OwnerPlayerId);
+                if (destination.TemplateId.StartsWith("core.zone.character_", StringComparison.Ordinal) || destination.TemplateId == "core.zone.city_facility_cell" || destination.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.CoveredTemplate || destination.TemplateId == "core.zone.player_rewards" || destination.TemplateId == "core.zone.entrepreneur_active" || destination.TemplateId == "core.zone.entrepreneur_pending") item.ControllerSubject = ItemSubjectRef.Player(destination.OwnerPlayerId);
                 if (SourceWasPersistent(result.PositionChanges, id, state)) YC.Domain.Cards.CharacterLifecycleService.DetachExitedSubscriptions(state, id);
                 foreach (var slot in state.CharacterCoverSlots.Where(slot => slot.CardInstanceId == id && (item.ZoneId != result.PositionChanges.Last().From.ZoneId || item.SlotId != slot.SlotId))) slot.CardInstanceId = "";
                 foreach (var binding in state.FacilityCharacterBindings.Where(binding => binding.Active && binding.FacilityItemId == id))
-                    if (destination.TemplateId != "core.zone.city_facility_cell" || destination.OwnerPlayerId != binding.ControllerPlayerId) binding.Active = false;
+                    if (!YC.Domain.Facilities.FacilityLayerQuery.IsInCity(state, id, binding.ControllerPlayerId)) binding.Active = false;
                 result.MovedItemIds.Add(id);
             }
-            foreach (var order in state.ItemZones.Orders)
+            if (updateOrders) foreach (var order in state.ItemZones.Orders)
             {
                 var removed = order.ItemIds.RemoveAll(result.MovedItemIds.Contains);
                 if (order.ZoneId == destination.ZoneId && result.MovedItemIds.Count > 0)

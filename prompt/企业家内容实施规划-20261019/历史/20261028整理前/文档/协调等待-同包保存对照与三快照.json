@@ -1,0 +1,12 @@
+{
+  "authority": "212",
+  "targets": [
+    {
+      "threadId": "01a15552-6aac-70b0-9714-b8859a653c4f",
+      "hostId": "local",
+      "afterCursor": "008ca50f-29d8-40ac-804d-bce8bbe4af09:725",
+      "status": "completed",
+      "turnId": "01a179b1-9dce-7f90-9859-3ff74c939a93"
+    }
+  ]
+}

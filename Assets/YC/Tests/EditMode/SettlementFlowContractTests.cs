@@ -23,6 +23,25 @@ namespace YC.Tests.EditMode
     // 定向协议/业务夹具；不加载Unity、界面生成器或正式对局驱动，不计完整局覆盖。
     public sealed class SettlementFlowContractTests
     {
+        [Test] public void RepeatedSourceCannotTurnACompletedCleanupWindowIntoANewWindow()
+        {
+            var artifacts = YC.Tests.EditMode.ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            YC.Tests.EditMode.ExpansionRules.CleanupSourceTestFixture fixture = null;
+            try
+            {
+                fixture = new YC.Tests.EditMode.ExpansionRules.CleanupSourceTestFixture(artifacts, initialMarkers: 0);
+                string window = fixture.Window.Context.Id;
+                var request = fixture.Options.Single().CleanupRequest;
+                Assert.That(fixture.Engine.TryEndSettlementAction(1, window, "", "", fixture.State.EffectRuntime.StateRevision,
+                    "008.contract.close", out string reason), Is.True, reason);
+                fixture.Drain(); fixture.Restore("008封窗后主线合同");
+                Assert.That(fixture.Window.Context.Id, Is.EqualTo(window)); Assert.That(fixture.Window.IsClosed, Is.True);
+                Assert.That(fixture.Engine.TryInvokeCleanupSource(1, "008.contract.late", request, out _, out _, out _), Is.False);
+                Assert.That(fixture.Source.Invocations, Is.Empty);
+            }
+            finally { fixture?.Snapshot("008封窗合同原状态"); artifacts.Finish(); }
+        }
+
         private GameState cleanupCommandState;
         private GameCommand cleanupCommand;
 
@@ -30,7 +49,7 @@ namespace YC.Tests.EditMode
         private Tuple<GameState, EffectRegistry, RoundExecutionService> CleanupCommandFixture(int round, bool lastPlayer,
             SettlementWholeEffectPolicy policy = SettlementWholeEffectPolicy.Optional)
         {
-            var state = State(); cleanupCommandState = state;
+            var state = State(); state.MapId = StaticMapDefinitions.FourPlayerMapId; cleanupCommandState = state;
             foreach (var player in state.Players) player.HandCardIds.Add("liskarm");
             state.Round = round; state.MaxRounds = 8; state.Phase = GamePhase.Cleanup;
             state.StartPlayerId = state.CurrentPlayerId = 1;
@@ -357,7 +376,8 @@ namespace YC.Tests.EditMode
             Assert.That(ResourceAllocationAnswer.TryParse("Iron=1", ids, 2, out _, out _), Is.False);
         }
 
-        private static GameState PaymentState(bool withBuildSupply = false)
+        private static GameState PaymentState(bool withBuildSupply = false) => PaymentStateCore(withBuildSupply, false);
+        private static GameState PaymentStateCore(bool withBuildSupply, bool withAward)
         {
             var map = StaticMapDefinitions.CreateThreePlayerMap(); var source = State(); source.MapId = map.MapId;
             source.ContentPackHash = "settlement.fixture"; source.Round = source.ActionRound = 1;
@@ -371,7 +391,7 @@ namespace YC.Tests.EditMode
                 PaymentPolicyId = "core.basic_resource_substitution", MaxMarkersPerPayment = 2 };
             var recipes = new List<ItemRecipeEntry> {
                 new ItemRecipeEntry { EntryId = "carrier", DefinitionId = "operator.passenger", TypeId = "core.operator_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "persistent" },
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", PerPlayer = true, Quantity = 3, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", PerPlayer = true, Quantity = 3, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "generated.hand", DefinitionId = "fixture.generated.hand", TypeId = "core.generated_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "generated.discard", DefinitionId = "fixture.generated.discard", TypeId = "core.generated_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "discard" },
                 new ItemRecipeEntry { EntryId = "normal.hand", DefinitionId = "liskarm", TypeId = "core.basic_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "hand" }
@@ -383,6 +403,7 @@ namespace YC.Tests.EditMode
                 recipes.Add(new ItemRecipeEntry { EntryId = "build.supply", DefinitionId = "fixture.mixed.facility", TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_supply_0" });
                 recipes.Add(new ItemRecipeEntry { EntryId = "build.refill", DefinitionId = "fixture.mixed.facility", TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" });
             }
+            if (withAward) recipes.Add(new ItemRecipeEntry { EntryId = "payment.award", DefinitionId = "entrepreneur.award.M01", TypeId = "core.award_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "rewards" });
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, recipes,
                 new[] { new ItemCardZoneDeclaration { DefinitionId = "operator.passenger", CardZones = new List<CardZoneDefinition> { declaration } } });
             var card = state.ItemZones.Items.First(i => i.DefinitionId == "operator.passenger" && i.ControllerSubject.PlayerId == 1);
@@ -477,6 +498,7 @@ namespace YC.Tests.EditMode
             foreach (bool construction in new[] { false, true })
             {
                 var state = PaymentState(construction); var registry = PaymentRegistry();
+                ExpansionRules.PaymentInsertionContractR11Tests.AuthorizeLegacyFixture(state, registry);
                 ItemTransferEffectExecutor.Register(registry);
                 var supply = construction ? state.ItemZones.Items.Single(i => i.ZoneId == FindZone(state, "facility_supply_0").ZoneId) : null;
                 var spec = construction ? FacilityBuildEffectSpecFactory.Build(1, supply.ItemId, -1, "resources", false, "fixture.build", consumeMainAction: false, expectedSourceZoneId: supply.ZoneId)
@@ -503,6 +525,13 @@ namespace YC.Tests.EditMode
                 Assert.That(engine.TrySubmitInteraction(allocation.GetStableInteractionId(), 1, allocation.StateRevision,
                     NormalizedValue.CreateString("Originium=1,Iron=1"), out reason), Is.True, reason);
                 Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(owner.EffectId).Payment.IsCommitted, Is.False, "插入只准备来源；仍须回原付款确认。");
+                var resumedPayment = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+                Assert.That(resumedPayment.OwnerEffectId, Is.EqualTo(original.OwnerEffectId));
+                Assert.That(Text(resumedPayment.PromptParameters, "paymentId"), Is.EqualTo(paymentId));
+                Assert.That(engine.TrySubmitInteraction(resumedPayment.GetStableInteractionId(), 1, resumedPayment.StateRevision,
+                    NormalizedValue.CreateString(ResourceEffectExecutor.PaymentConfirmationCandidateId), out reason), Is.True, reason);
+                Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
                 Assert.That(engine.GetNode(owner.EffectId).Payment.IsCommitted, Is.True);
                 Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
                 Assert.That(state.FindPlayer(1).Resources.Originium, Is.Zero); Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
@@ -521,7 +550,7 @@ namespace YC.Tests.EditMode
                 }
                 Assert.That(engine.GetNode(rootId).Status, Is.EqualTo(EffectNodeStatus.Completed));
                 Assert.That(state.FindPlayer(1).Score, Is.EqualTo(construction ? 2 : 1));
-                Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), Is.EqualTo(1));
+                Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), Is.EqualTo(2));
                 Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId), Is.EqualTo(1));
             }
         }
@@ -529,13 +558,17 @@ namespace YC.Tests.EditMode
         [Test]
         public void UninvokedPaymentChoiceCanChangeCostWithoutResettingIdentityOrScope()
         {
-            var state = PaymentState(); var engine = new EffectTreeExecutor(state, PaymentRegistry());
+            var state = PaymentState(); var registry = PaymentRegistry();
+            ExpansionRules.PaymentInsertionContractR11Tests.AuthorizeLegacyFixture(state, registry);
+            var engine = new EffectTreeExecutor(state, registry);
             string ownerId = engine.CreateRoot(ResourcePaymentChoiceEffectExecutor.Create(1, new List<ResourceSet> { Cost(), new ResourceSet { GoldVoucher = 4 } }, "fixture.payment"));
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
             var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             var options = ResourcePaymentChoiceEffectExecutor.GetPaymentOptionsForPreview(state, engine.GetNode(ownerId));
             string mixed = options.Single(p => p.Value.Originium == 2).Key, gold = options.Single(p => p.Value.GoldVoucher == 4).Key;
             Assert.That(engine.TryPreparePaymentDraft(1, ownerId, request.GetStableInteractionId(), mixed, state.EffectRuntime.StateRevision, "fixture.draft.1", out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             var owner = engine.GetNode(ownerId); string paymentId = owner.Payment.PaymentId, windowId = owner.SettlementWindow.Context.Id;
             var entry = owner.SettlementWindow.Entries.Single(); string optionId = entry.OptionId; long sequence = entry.RegistrationSequence;
             var candidates = request.CandidateIds.ToArray();
@@ -685,7 +718,7 @@ namespace YC.Tests.EditMode
             Assert.That(node.Payment.IsCommitRequested, Is.False); Assert.That(state.FindPlayer(1).Resources.Originium, Is.Zero);
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
             Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == PaymentZone(state)), Is.EqualTo(1));
-            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == FindZone(state, "player_markers", 1).ZoneId), Is.EqualTo(2));
+            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == FindZone(state, "supply", 1).ZoneId), Is.EqualTo(2));
             Assert.That(node.PositionChanges.Count, Is.EqualTo(2));
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.TryValidatePaymentRecords(state, out string reason), Is.True, reason);
         }
@@ -922,6 +955,36 @@ namespace YC.Tests.EditMode
             Assert.That(invalidEngine.GetNode(invalidId).FailureReason, Is.EqualTo("insufficient_resource"));
             Assert.That(invalid.EffectRuntime.InteractionRequests, Is.Empty);
             Assert.That(invalid.ItemZones.Items.Count(i => i.ZoneId == PaymentZone(invalid)), Is.EqualTo(3));
+        }
+
+        [TestCase(0)][TestCase(1)][TestCase(2)]
+        public void StoredSettlementOffersRejectPersistentObserverCredentials(int bindingDepth)
+        {
+            // 67有限typed DTO门禁对照；复用结算合同的普通Offer注册，不计完整Host恢复或正式内容。
+            var state = State(); var registry = new EffectRegistry();
+            var window = Window(state, SettlementEntryService.CharacterUse);
+            state.EffectRuntime.EffectNodes.Single(n => n.EffectId == window.Context.OwnerEffectId).SettlementWindow = window;
+            var entry = SettlementEntryService.RegisterOffer(window, new SettlementOfferDefinition {
+                PlayerId = 1, WindowId = window.Context.Id, OwnerEffectId = window.Context.OwnerEffectId,
+                SourceItemId = "fixture.source", LocalId = "fixture.stored", AvailabilityHandlerId = "fixture.available", Presentation = Presentation(),
+                Effects = new List<EffectSpecRuntimeState> { EffectSpec.Create("fixture.body", playerId: 1).ToPersistentDefinition() }
+            });
+            var stored = entry.Effects.Single();
+            Assert.That(CharacterLifecycleService.TryValidatePersistentSourceFacts(state, registry, out string reason), Is.True, reason);
+            if (bindingDepth == 1) stored.PersistentSourceFacts = new PersistentSourceFactsBinding();
+            if (bindingDepth == 2)
+            {
+                var nested = stored.Clone(); nested.PersistentSourceFacts = new PersistentSourceFactsBinding();
+                stored.NestedEffects.Add(nested);
+            }
+            var evidence = ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                evidence.WriteLabeledText("017结算保存正文typed边界", JsonConvert.SerializeObject(state, Formatting.Indented));
+                Assert.That(CharacterLifecycleService.TryValidatePersistentSourceFacts(state, registry, out reason), Is.EqualTo(bindingDepth == 0), reason);
+                if (bindingDepth != 0) Assert.That(reason, Is.EqualTo("source_facts_binding_invalid"));
+            }
+            finally { evidence.Finish(); }
         }
 
         [Test]

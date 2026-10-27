@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_pioneer_outpost",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "displayName": "拓荒者据点",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.city_style_pioneer_outpost.special",
       "script": "lua/city_styles/city_style_pioneer_outpost.special.lua",
-      "version": "1.0.0",
+      "version": "1.1.1",
       "completionHandlerId": ""
     }
   ],
@@ -79,7 +79,111 @@
     "luaSubscriptionId": "content.city_style_pioneer_outpost.special",
     "luaAbilityId": "city_style_pioneer_outpost.special",
     "luaCompletionHandlerId": "",
-    "luaVersion": "1.0.0",
+    "luaVersion": "1.0.1",
     "effectScript": "lua/city_styles/city_style_pioneer_outpost.special.lua"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "city_style_pioneer_outpost.special",
+      "kind": "special",
+      "handlerRef": "content.city_style_pioneer_outpost.special",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "public_declaration",
+      "effectiveZones": [
+        "core.zone.city_style_display"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "city_style_pioneer_outpost",
+      "actions": [
+        {
+          "actionId": "special_action.city_style.pioneer_outpost",
+          "entryKind": "special",
+          "bodyHandlerRef": "content.city_style_pioneer_outpost.special",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.city_style_pioneer_outpost",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "host.legacy_style.v1",
+          "sortOrder": 200,
+          "presentationRef": "city_style_pioneer_outpost"
+        }
+      ]
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "content.city_style_pioneer_outpost.special",
+      "script": "lua/city_styles/city_style_pioneer_outpost.special.lua",
+      "version": "1.1.1",
+      "completionHandlerId": ""
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.city_style_pioneer_outpost",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "public_declaration",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
 }

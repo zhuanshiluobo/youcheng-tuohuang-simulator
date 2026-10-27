@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
@@ -45,6 +46,11 @@ namespace YC.Presentation
         public Func<bool> CanSubmitCommand { private get; set; }
         private string PaymentScope => (getState()?.GameId ?? string.Empty) + ":" + (getState()?.ContentPackHash ?? string.Empty) + ":" + getLocalPlayerId();
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        // 由会话/联机只读投影提供当前本人明细；仅作受权威约束的只读消费，不提供来源编辑入口或在UI重算价格。
+        public Func<PaymentSourceQuery, PaymentSourceProjection> QueryPaymentSources { private get; set; }
+        public string LastPaymentSourceQueryFailure { get; private set; }
+        private bool RejectPaymentSourceQuery(string reason)
+        { LastPaymentSourceQueryFailure = reason; return false; }
         public string Id => "effect.city-style.special-action";
         public int Priority => 300;
         public bool CanRender(InteractionRequestProjection request) => request != null &&
@@ -168,8 +174,24 @@ namespace YC.Presentation
                     genericInteractionId = generic.GetStableInteractionId();
                     genericInteractionRevision = generic.StateRevision;
                     clearHighlights();
-                    var prompt = ExpansionUi?.ResolveGameplayText(generic.Presentation?.Prompt);
+                    var prompt = EffectDialogTextDocuments.ResolvePrompt(
+                        new InteractionRequestProjection { Presentation = generic.Presentation },
+                        reference => ExpansionUi?.ResolveGameplayText(reference));
                     if (prompt == null) throw new InvalidOperationException("付款选择请求缺少正式提示引用。");
+                    var promptRuns = new List<GameplayTextRun>(prompt.Runs);
+                    var demandFacts = PaymentPageDraftBinding.Read(generic.PromptParameters, "paymentDemand");
+                    var fixedFacts = PaymentPageDraftBinding.Read(demandFacts, "fixedCost");
+                    if (fixedFacts?.Kind == NormalizedValueKind.Object &&
+                        fixedFacts.Properties.Any(e => e.Value.Kind == NormalizedValueKind.Integer && e.Value.IntegerValue > 0))
+                    {
+                        promptRuns.Add(new LineBreak());
+                        foreach (var reference in PaymentPageDraftBinding.FixedCostPresentation(fixedFacts))
+                        {
+                            var fixedText = ExpansionUi?.ResolveGameplayText(reference);
+                            if (fixedText == null) throw new InvalidOperationException("付款固定费用缺少正式动态投影。");
+                            promptRuns.AddRange(fixedText.Runs);
+                        }
+                    }
                     var labels = new List<string>();
                     foreach (var key in PaymentPageDraftBinding.ResourceLabelKeys)
                     {
@@ -177,10 +199,18 @@ namespace YC.Presentation
                         if (label == null) throw new InvalidOperationException("付款资源行缺少正式文案引用：" + key);
                         labels.Add(label.ToPlainText());
                     }
+                    if (paymentDraft.TotalDemand != null)
+                    {
+                        promptRuns.Add(new LineBreak());
+                        promptRuns.Add(new TextRun(dialog.DescribeTotalPayment(paymentDraft.TotalDemand.TotalCount,
+                            paymentDraft.TotalDemand.AllowedResourceTypes.Select(type => labels[Array.IndexOf(PaymentPageDraftBinding.PaymentTypes, type)]))));
+                    }
+                    var promptDocument = new GameplayTextDocument(promptRuns);
+                    var promptText = promptDocument.ToPlainText();
                     buildingPaymentPage = true;
                     try
                     {
-                        dialog.ShowPaymentDraft(prompt.ToPlainText(), labels, paymentDraft.Maximums, paymentValues,
+                        dialog.ShowPaymentDraft(promptText, labels, paymentDraft.Maximums, paymentValues,
                             values =>
                             {
                                 if (!PaymentRequestCurrent(generic)) return;
@@ -198,10 +228,13 @@ namespace YC.Presentation
                                 if (!PaymentRequestCurrent(generic) || !paymentDraft.CanConfirm) return;
                                 var candidate = paymentDraft.Match(values);
                                 if (candidate == paymentDraft.PreparedCandidate) SubmitGenericCandidate(generic, candidate);
-                            }, generic.AllowDecline ? (Action)(() => SubmitGenericAnswer(generic, null, true)) : null);
+                            }, generic.AllowDecline ? (Action)(() => SubmitGenericAnswer(generic, null, true)) : null,
+                            generic.GetStableInteractionId(), promptDocument,
+                            (component, document, singleLine) => ExpansionUi.RenderEnterpriseDetails(component, document, singleLine),
+                            paymentDraft.VisibleRows, paymentDraft.TotalDemand?.TotalCount ?? -1);
                     }
                     finally { buildingPaymentPage = false; }
-                    setPrompt(prompt.ToPlainText());
+                    setPrompt(promptText);
                     PaymentDraftStateChanged?.Invoke();
                     TrySubmitPaymentDraft(generic);
                     return true;
@@ -404,7 +437,76 @@ namespace YC.Presentation
         }
 
         public bool CanInvokeSettlement(SettlementOptionView option) =>
-            option == null || option.OwnerEffectId != paymentDraft.OwnerEffectId || paymentDraft.CanConfirm;
+            option == null || option.OwnerEffectId != paymentDraft.OwnerEffectId || paymentDraft.CanInvokePaymentInsertion;
+
+        public bool TryGetPaymentSources(string interactionId, out PaymentSourceProjection projection)
+        {
+            LastPaymentSourceQueryFailure = null;
+            projection = null;
+            var request = GetVisibleRequests?.Invoke()?.SingleOrDefault(r => r.GetStableInteractionId() == interactionId && r.Status == "open" && r.AnsweringPlayerId == getLocalPlayerId());
+            var state = getState();
+            if (request == null) return RejectPaymentSourceQuery("payment_source_request_not_visible_for_current_viewer");
+            if (request.StateRevision != state?.EffectRuntime?.StateRevision) return RejectPaymentSourceQuery("payment_source_request_revision_mismatch");
+            if (QueryPaymentSources == null) return RejectPaymentSourceQuery("payment_source_query_not_bound");
+            var descriptor = PaymentPageDraftBinding.Read(request.PromptParameters, "paymentSourceQuery");
+            var generation = PaymentPageDraftBinding.Read(request.PromptParameters, "paymentGeneration");
+            if (PaymentPageDraftBinding.Read(descriptor, "protocolVersion")?.IntegerValue != ResourcePaymentDraftHost.SourceQueryProtocolVersion || generation?.Kind != NormalizedValueKind.Integer)
+                return RejectPaymentSourceQuery("payment_source_descriptor_or_generation_invalid");
+            string snapshot = PaymentPageDraftBinding.Read(descriptor, "snapshotId")?.StringValue;
+            if (string.IsNullOrEmpty(snapshot)) return RejectPaymentSourceQuery("payment_source_snapshot_missing");
+            var query = new PaymentSourceQuery { PlayerId = getLocalPlayerId(), OwnerEffectId = request.OwnerEffectId, InteractionId = interactionId,
+                StateRevision = request.StateRevision, PaymentGeneration = (int)generation.IntegerValue, SnapshotId = snapshot };
+            PaymentSourceProjection complete = null;
+            while (true)
+            {
+                var page = QueryPaymentSources(query);
+                if (page == null) return RejectPaymentSourceQuery("payment_source_page_missing");
+                if (page.ProtocolVersion != ResourcePaymentDraftHost.SourceQueryProtocolVersion || page.PlayerId != getLocalPlayerId() || page.GameId != state.GameId || page.ContentPackHash != state.ContentPackHash ||
+                    page.OwnerEffectId != request.OwnerEffectId || page.PaymentId != PaymentPageDraftBinding.Read(request.PromptParameters, "paymentId")?.StringValue || page.InteractionId != interactionId ||
+                    page.StateRevision != request.StateRevision || page.PaymentGeneration != generation.IntegerValue || page.SnapshotId != snapshot || page.Sources == null ||
+                    page.SourceCount < 0 || page.SourceIndex != query.SourceIndex || page.ItemOffset != query.ItemOffset)
+                    return RejectPaymentSourceQuery("payment_source_page_identity_or_cursor_mismatch");
+                if (complete == null)
+                {
+                    complete = GameStateCloneService.DeepClone(page); complete.Sources.Clear(); complete.NextSourceIndex = -1; complete.NextItemOffset = 0;
+                }
+                if (page.SourceCount != complete.SourceCount) return RejectPaymentSourceQuery("payment_source_count_changed_between_pages");
+                if (page.SourceCount == 0)
+                {
+                    if (page.Sources.Count != 0 || page.NextSourceIndex != -1 || page.NextItemOffset != 0) return RejectPaymentSourceQuery("payment_source_empty_page_not_terminal");
+                    break;
+                }
+                if (page.Sources.Count != 1) return RejectPaymentSourceQuery("payment_source_row_count_invalid");
+                var row = page.Sources[0];
+                if (row == null || row.Rule == null || row.AvailableItems == null || row.AvailableItems.Any(i => i == null || string.IsNullOrEmpty(i.ItemId)) || row.AvailableItems.Count > ResourcePaymentDraftHost.SourceQueryItemPageSize ||
+                    row.AvailableItemCount < query.ItemOffset + row.AvailableItems.Count ||
+                    row.AvailableItemCount > 0 && row.AvailableItems.Count == 0) return RejectPaymentSourceQuery("payment_source_item_page_invalid");
+                if (query.ItemOffset == 0)
+                {
+                    if (complete.Sources.Count != query.SourceIndex) return RejectPaymentSourceQuery("payment_source_index_discontinuous");
+                    complete.Sources.Add(GameStateCloneService.DeepClone(row));
+                }
+                else
+                {
+                    var current = complete.Sources.LastOrDefault();
+                    if (current == null || current.AvailableItems.Count != query.ItemOffset || current.AvailableItemCount != row.AvailableItemCount ||
+                        current.DraftRevision != row.DraftRevision || ResourcePaymentSourceService.Fingerprint(current.Rule) != ResourcePaymentSourceService.Fingerprint(row.Rule))
+                        return RejectPaymentSourceQuery("payment_source_row_changed_between_pages");
+                    current.AvailableItems.AddRange(GameStateCloneService.DeepClone(row.AvailableItems));
+                }
+                int after = query.ItemOffset + row.AvailableItems.Count;
+                int nextSource = after < row.AvailableItemCount ? query.SourceIndex : query.SourceIndex + 1 < page.SourceCount ? query.SourceIndex + 1 : -1;
+                int nextItem = after < row.AvailableItemCount ? after : 0;
+                if (page.NextSourceIndex != nextSource || page.NextItemOffset != nextItem) return RejectPaymentSourceQuery("payment_source_next_cursor_invalid");
+                if (nextSource == -1) break;
+                query.SourceIndex = nextSource; query.ItemOffset = nextItem;
+            }
+            // 分页只用于数据传输，不增加页面。缺页/旧修订时不把部分候选交给分配组件。
+            if (complete.Sources.Count != complete.SourceCount || complete.Sources.Any(r => r.AvailableItems.Count != r.AvailableItemCount ||
+                r.AvailableItems.Select(i => i.ItemId).Distinct(StringComparer.Ordinal).Count() != r.AvailableItemCount) ||
+                getState()?.EffectRuntime?.StateRevision != request.StateRevision) return RejectPaymentSourceQuery("payment_source_final_completeness_or_revision_mismatch");
+            projection = complete; return true;
+        }
 
         private bool PaymentRequestCurrent(InteractionRequest request) =>
             !GameplayHudFrame.EffectInputSuspended && paymentDraft.IsScopeCurrent(PaymentScope) && TryGetGenericInteraction(out var current) &&
@@ -757,16 +859,24 @@ namespace YC.Presentation
         private int candidateVersion, revision = -1, submittedRevision;
         private string desired, attempted, pendingCommand, pendingCandidate, observedCandidate;
         private bool inputValid = true, receiptApplied, canChange;
+        private ResourcePaymentDemandState totalDemand;
+        private ResourceSet desiredAllocation;
+        private int paymentGeneration;
+        private bool authoritativeCanPay = true;
+        internal static readonly YC.Domain.Rules.ResourceType[] PaymentTypes = { YC.Domain.Rules.ResourceType.Originium, YC.Domain.Rules.ResourceType.OriginiumShard,
+            YC.Domain.Rules.ResourceType.Iron, YC.Domain.Rules.ResourceType.PureOriginium, YC.Domain.Rules.ResourceType.GoldVoucher };
         public string OwnerEffectId { get; private set; }
         public string PreparedCandidate { get; private set; }
         public int[] InitialCost { get; private set; } = new int[5];
         public int[] Maximums { get; private set; } = new int[5];
-        public bool CanConfirm => inputValid && pendingCommand == null && desired != null &&
+        public bool CanConfirm => authoritativeCanPay && inputValid && pendingCommand == null && desired != null &&
             desired == PreparedCandidate && desired == observedCandidate;
         public bool CanChange => canChange;
+        public bool CanInvokePaymentInsertion => inputValid && pendingCommand == null && desired != null && desired == PreparedCandidate && desired == observedCandidate;
         public int Revision => revision;
         public bool IsScopeCurrent(string currentScope) => scope == currentScope;
-        public IReadOnlyList<int> AuthoritativeCost => observedCandidate != null && options.TryGetValue(observedCandidate, out var cost) ? cost : null;
+        public IReadOnlyList<int> AuthoritativeCost => observedCandidate != null && options.TryGetValue(observedCandidate, out var cost) ? EditableValues(cost) : null;
+        private int[] EditableValues(int[] gross) => gross.Select((n,i) => checked(n - (totalDemand?.FixedCost.Get(PaymentTypes[i]) ?? 0))).ToArray();
 
         internal static NormalizedValue Read(NormalizedValue value, string name) => value?.Kind == NormalizedValueKind.Object
             ? value.Properties.Find(entry => entry.Name == name)?.Value : null;
@@ -775,6 +885,26 @@ namespace YC.Presentation
         public bool IsIdentityCurrent(InteractionRequest request) => request != null &&
             request.GetStableInteractionId() == interaction && request.OwnerEffectId == OwnerEffectId &&
             request.CandidateSetId == candidateSet && request.CandidateSetVersion == candidateVersion;
+
+        internal ResourcePaymentDemandState TotalDemand => totalDemand;
+
+        // 允许集合决定行的存在；库存、当前选择及替代来源只影响编辑/结算，不改变资源身份。
+        internal IReadOnlyList<bool> VisibleRows => PaymentTypes.Select(type =>
+            totalDemand == null || totalDemand.AllowedResourceTypes.Contains(type)).ToArray();
+
+        internal static IEnumerable<GameplayTextRef> FixedCostPresentation(NormalizedValue fixedCost)
+        {
+            yield return new GameplayTextRef("core:resource.payment.fixed.prompt");
+            for (int i = 0; i < CostFields.Length; i++)
+            {
+                var amount = Read(fixedCost, CostFields[i]);
+                if (amount?.Kind != NormalizedValueKind.Integer || amount.IntegerValue <= 0) continue;
+                yield return new GameplayTextRef("core:resource.payment.amount",
+                    new GameplayTextArgument { Name = "amount", Kind = "integer", Value = amount.Clone() },
+                    new GameplayTextArgument { Name = "resource", Kind = "resource",
+                        Value = NormalizedValue.CreateStableReference("resource", PaymentTypes[i].ToString()) });
+            }
+        }
 
         public bool Bind(string nextScope, InteractionRequest request)
         {
@@ -790,6 +920,29 @@ namespace YC.Presentation
                 OwnerEffectId = request.OwnerEffectId; candidateSet = request.CandidateSetId; candidateVersion = request.CandidateSetVersion;
             }
             var projected = Read(request.PromptParameters, "paymentOptions");
+            totalDemand = null;
+            var demand = Read(request.PromptParameters, "paymentDemand");
+            if (Text(Read(demand, "mode")) == "total")
+            {
+                var n = Read(demand, "totalCount"); var fixedCost = Read(demand, "fixedCost"); var types = Read(demand, "allowedResourceTypes"); var generation = Read(demand, "generation");
+                if (n?.Kind != NormalizedValueKind.Integer || n.IntegerValue < 0 || n.IntegerValue > ResourcePaymentDemandParser.MaximumTotal || types?.Kind != NormalizedValueKind.Array ||
+                    generation?.Kind != NormalizedValueKind.Integer || generation.IntegerValue < 1 || generation.IntegerValue > int.MaxValue) throw new InvalidOperationException("付款需求投影无效。");
+                totalDemand = new ResourcePaymentDemandState { Mode = "total", TotalCount = (int)n.IntegerValue };
+                foreach (var type in types.Items)
+                {
+                    if (type.Kind != NormalizedValueKind.String || !Enum.TryParse(type.StringValue, false, out YC.Domain.Rules.ResourceType parsed) || !Enum.IsDefined(typeof(YC.Domain.Rules.ResourceType), parsed) || parsed.ToString() != type.StringValue) throw new InvalidOperationException("付款需求资源类型无效。");
+                    totalDemand.AllowedResourceTypes.Add(parsed);
+                }
+                for (int i = 0; i < CostFields.Length; i++)
+                {
+                    var v = Read(fixedCost, CostFields[i]);
+                    if (v?.Kind != NormalizedValueKind.Integer || v.IntegerValue < 0 || v.IntegerValue > int.MaxValue) throw new InvalidOperationException("付款固定费用投影无效。");
+                    totalDemand.FixedCost.Set(PaymentTypes[i], (int)v.IntegerValue);
+                }
+                if (!ResourcePaymentAllocationService.ValidDemand(totalDemand)) throw new InvalidOperationException("付款需求投影无效。");
+                paymentGeneration = (int)generation.IntegerValue;
+            }
+            var canPay = Read(request.PromptParameters, "canPay"); authoritativeCanPay = canPay?.Kind == NormalizedValueKind.Boolean ? canPay.BooleanValue : totalDemand == null;
             if (projected?.Kind != NormalizedValueKind.Array || projected.Items.Count == 0)
                 throw new InvalidOperationException("付款选择投影缺少结构化费用选项。");
             options.Clear(); Maximums = new int[5];
@@ -809,6 +962,8 @@ namespace YC.Presentation
                 options.Add(id, amounts);
             }
             if (options.Count != request.CandidateIds.Count) throw new InvalidOperationException("付款候选缺少完整结构化费用。");
+            if (totalDemand != null)
+                for (int i = 0; i < Maximums.Length; i++) Maximums[i] = totalDemand.AllowedResourceTypes.Contains(PaymentTypes[i]) ? totalDemand.TotalCount : 0;
             var change = Read(host, "canChange"); observedCandidate = Text(Read(host, "candidateId"));
             if (change?.Kind != NormalizedValueKind.Boolean || observedCandidate == null ||
                 (observedCandidate.Length > 0 && (!options.ContainsKey(observedCandidate) ||
@@ -820,7 +975,7 @@ namespace YC.Presentation
             if (pendingCommand == null) PreparedCandidate = observedCandidate.Length == 0 ? null : observedCandidate;
             if (changed)
             {
-                InitialCost = (int[])options[PreparedCandidate ?? Text(Read(projected.Items[0], "candidateId"))].Clone();
+                InitialCost = EditableValues(options[PreparedCandidate ?? Text(Read(projected.Items[0], "candidateId"))]);
             }
             CompleteAcceptedDraft();
             return changed;
@@ -829,6 +984,11 @@ namespace YC.Presentation
         public string Match(IReadOnlyList<int> values)
         {
             if (values == null || values.Count != 5) return null;
+            if (totalDemand != null)
+            {
+                var allocation = new ResourceSet(); for (int i = 0; i < 5; i++) allocation.Set(PaymentTypes[i], values[i]);
+                return ResourcePaymentAllocationService.TryValidate(totalDemand, allocation, out var gross, out _) ? PaymentResources.Candidate(gross) : null;
+            }
             string result = null;
             foreach (var option in options)
             {
@@ -846,6 +1006,8 @@ namespace YC.Presentation
             var next = Match(values);
             if (next == desired) return;
             desired = next; attempted = null;
+            if (totalDemand != null && next != null)
+            { desiredAllocation = new ResourceSet(); for (int i = 0; i < 5; i++) desiredAllocation.Set(PaymentTypes[i], values[i]); }
         }
         public bool SetInputValid(bool value) { if (inputValid == value) return false; inputValid = value; return true; }
 
@@ -855,7 +1017,14 @@ namespace YC.Presentation
                 pendingCommand != null || desired == null || (desired == PreparedCandidate && desired == observedCandidate) || desired == attempted) return null;
             var command = new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = playerId };
             command.Parameters["ownerEffectId"] = OwnerEffectId; command.Parameters["interactionId"] = interaction;
-            command.Parameters["candidateId"] = desired; command.Parameters["expectedRevision"] = revision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (totalDemand == null) command.Parameters["candidateId"] = desired;
+            else
+            {
+                if (desiredAllocation == null) return null;
+                command.Parameters["operation"] = "select_total"; command.Parameters["paymentGeneration"] = paymentGeneration.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                command.Parameters["allocation"] = string.Join(",", PaymentResources.Types.Where(t => desiredAllocation.Get(t) > 0).Select(t => t + "=" + desiredAllocation.Get(t).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+            }
+            command.Parameters["expectedRevision"] = revision.ToString(System.Globalization.CultureInfo.InvariantCulture);
             pendingCommand = command.CommandId; pendingCandidate = desired; attempted = desired; submittedRevision = revision; receiptApplied = false;
             return command;
         }
@@ -877,6 +1046,7 @@ namespace YC.Presentation
             scope = interaction = candidateSet = paymentId = windowId = OwnerEffectId = null; candidateVersion = 0; revision = -1;
             desired = attempted = pendingCommand = pendingCandidate = observedCandidate = PreparedCandidate = null;
             inputValid = true; canChange = receiptApplied = false; options.Clear(); InitialCost = new int[5]; Maximums = new int[5];
+            totalDemand = null; desiredAllocation = null; paymentGeneration = 0; authoritativeCanPay = true;
         }
     }
 }

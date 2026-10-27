@@ -91,7 +91,9 @@ namespace YC.Domain.Rules
                     break;
 
                 case RoundMainlineNodeTypeIds.RoundEnded:
-                    state.Phase = GamePhase.RoundStart;
+                    var finalExecution = state.EffectRuntime.EffectNodes.Find(effect => effect.EffectId == node.ExecutionEffectId);
+                    state.Phase = node.RoundNumber >= state.MaxRounds && YC.Domain.Scoring.FinalScoringSessionService.IsFinalStage(finalExecution?.FlowStage)
+                        ? GamePhase.FinalScoring : GamePhase.RoundStart;
                     state.ActionRound = 0;
                     state.CurrentPlayerId = -1;
                     break;

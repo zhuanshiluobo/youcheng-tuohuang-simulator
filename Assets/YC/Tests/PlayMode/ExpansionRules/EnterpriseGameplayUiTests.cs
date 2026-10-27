@@ -172,7 +172,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                         CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track, EntryPolicyId = "core.owned_player_marker",
                         ExitPolicyId = "core.explicit_transfer", VisibilityPolicyId = ItemZoneVisibility.Public, CarrierExitPolicyId = "core.preserve_contents" };
                     Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, board.ItemId, declaration, out string zone, out string reason), Is.True, reason);
-                    var marker = state.ItemZones.Items.First(value => value.ZoneId == FindZone(state, "player_markers", player.PlayerId).ZoneId);
+                    var marker = state.ItemZones.Items.First(value => value.ZoneId == FindZone(state, "supply", player.PlayerId).ZoneId);
                     Place(marker, zone); marker.SlotId = "level_" + (id == "enterprise.rhine_lab" ? 1 : player.PlayerId + 1);
                 }
             }
@@ -343,7 +343,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 Players = state.Players.Take(2).ToList(), Phase = GamePhase.ActionRound1, Round = 1, ActionRound = 1, CurrentPlayerId = 1, StartPlayerId = 1 };
             state = new ItemZoneStateFactory().CreateForSetup(source, StaticMapDefinitions.CreateThreePlayerMap(), new[] {
                 new ItemRecipeEntry { EntryId = "enterprise_contract", DefinitionId = enterpriseIds[0], TypeId = "core.board_card", Quantity = 1, InitialZoneRole = "reserve" },
-                new ItemRecipeEntry { EntryId = "markers_contract", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" } });
+                new ItemRecipeEntry { EntryId = "markers_contract", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } });
             AddBoardItems();
             state.SetupRecipe.EnterpriseEntrance = true; state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
             Run(ExpansionSetupFlow.PreparationSpec(1)); Route(); var request = Open();
@@ -406,7 +406,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             string cubes = Storage("stored_cubes", "core.zone.card_cube_storage", ItemPhysicalKind.Cube);
             string facilities = Storage("stored_facilities", "core.zone.card_facility_storage", ItemPhysicalKind.Card);
             Storage("empty_facilities", "core.zone.card_facility_storage", ItemPhysicalKind.Card);
-            var components = new[] { Cards("player_markers", 1)[0], Cards("player_markers", 2)[0], Cards("facility_deck")[0] };
+            var components = new[] { Cards("supply", 1)[0], Cards("supply", 2)[0], Cards("facility_deck")[0] };
             Place(components[0], cubes); Place(components[1], cubes); Place(components[2], facilities);
             state.CharacterUses.Add(new CharacterUseRuntimeState { UseId = "use.ui_contract", CardInstanceId = carrier.ItemId, ExecutingPlayerId = 1,
                 ModeOrder = new List<string> { "strategy", "tactic" }, CompletedModes = new List<string> { "strategy" },

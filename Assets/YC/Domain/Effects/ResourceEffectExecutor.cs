@@ -80,7 +80,7 @@ namespace YC.Domain.Effects
             {
                 PlayerId = playerId,
                 SourceId = sourceId ?? string.Empty,
-                DefinitionVersion = ResourceEffectExecutor.DefinitionVersion
+                DefinitionVersion = typeId == ResourceEffectTypeIds.Pay ? ResourceEffectExecutor.PaymentDefinitionVersion : ResourceEffectExecutor.DefinitionVersion
             };
         }
 
@@ -98,6 +98,7 @@ namespace YC.Domain.Effects
     public sealed class ResourceEffectExecutor
     {
         public const string DefinitionVersion = "1.0.0";
+        public const string PaymentDefinitionVersion = "3.1.0";
         public const string PaymentConfirmationStage = "awaiting_payment_confirmation";
         public const string PaymentConfirmationInteractionTypeId = "effect.resource.payment_confirmation";
         public const string PaymentConfirmationCandidateId = "pay";
@@ -127,7 +128,7 @@ namespace YC.Domain.Effects
         {
             EffectRegistration ignored;
             if (registry.TryGet(typeId, out ignored)) return;
-            registry.Register(new EffectRegistration(typeId, executor.Execute, executor.isPaymentExecutor ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic, DefinitionVersion)
+            registry.Register(new EffectRegistration(typeId, executor.Execute, executor.isPaymentExecutor ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic, executor.isPaymentExecutor ? PaymentDefinitionVersion : DefinitionVersion)
             {
                 Validator = executor.ValidateSpec
             });
@@ -142,6 +143,7 @@ namespace YC.Domain.Effects
                     : context.Node.NormalizedResult.Clone());
             }
 
+            if (isPaymentExecutor && ResourcePaymentDemandParser.IsTotal(context.Node.NormalizedArguments)) return ResourcePaymentDraftHost.ExecuteTotal(context);
             if (isPaymentExecutor && ItemTransferEffectExecutor.Value(context.Node.NormalizedArguments, "cost") != null)
             {
                 var args = context.Node.NormalizedArguments;
@@ -203,46 +205,27 @@ namespace YC.Domain.Effects
             return EffectStepResult.Completed(Result(playerId, ResourceEffectTypeIds.Gain, amount, resourceType));
         }
 
-        private static readonly ResourceType[] BasicPaymentTypes = { ResourceType.Originium, ResourceType.OriginiumShard, ResourceType.Iron };
-        private static List<ZoneInstanceState> PaymentZones(GameState state, int player)
+        // 兼容尚不传Registry的建设/移动只读消费者；来源来自同一状态的实际执行上下文绑定。
+        public static bool CanPayWithStoredMarkers(GameState state, int player, ResourceSet cost)
         {
-            return state.ItemZones.Zones.Where(zone => zone.ParentKind == ZoneParentKind.Item && zone.Configuration?.PaymentPolicyId == "core.basic_resource_substitution" &&
-                zone.Configuration.MaxMarkersPerPayment == 2 && state.ItemZones.Items.Any(card => card.ItemId == zone.ParentId && card.ControllerSubject.PlayerId == player &&
-                    state.ItemZones.Zones.Any(parent => parent.ZoneId == card.ZoneId && parent.TemplateId == "core.zone.character_persistent")) &&
-                state.CharacterUses.Any(use => use.CardInstanceId == zone.ParentId && use.Modes.Any(mode => mode.SkillType == "persistent" && mode.Activated && mode.SubscriptionActive))).ToList();
+            if (!PaymentResources.Valid(cost)) return false;
+            if (state?.FindPlayer(player)?.Resources.CanPay(cost) == true) return true;
+            var registry = ResourcePaymentSourceService.CostQueryRegistry(state);
+            if (registry == null) return false;
+            return ResourcePaymentCostPreview.CanPay(state, registry, new EffectNodeRuntimeState {
+                EffectId = StableIdFactory.Create("resource-feasibility", state.GameId, player.ToString(CultureInfo.InvariantCulture)),
+                EffectTypeId = ResourceEffectTypeIds.Pay, PlayerId = player }, cost);
         }
-        private static List<string> PaymentMarkers(GameState state, ZoneInstanceState zone, int player) => state.ItemZones.Items.Where(item => item.ZoneId == zone.ZoneId && item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player).Select(item => item.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList();
-        private static ResourceSet RemainingCost(ResourceSet original, int[] allocation)
-        {
-            var remaining = GameStateCloneService.DeepClone(original);
-            for (int i = 0; i < 3; i++) remaining.Set(BasicPaymentTypes[i], remaining.Get(BasicPaymentTypes[i]) - allocation[i]);
-            return remaining;
-        }
-        private static List<string> PaymentCandidates(GameState state, int player, ResourceSet cost)
-        {
-            var candidates = new List<string>(); var stock = state.FindPlayer(player).Resources;
-            if (stock.CanPay(cost)) candidates.Add("pay|0|0|0|0");
-            foreach (var zone in PaymentZones(state, player))
-            {
-                int maximum = Math.Min(2, PaymentMarkers(state, zone, player).Count);
-                for (int rock = 0; rock <= Math.Min(maximum, cost.Originium); rock++)
-                for (int shard = 0; shard <= Math.Min(maximum - rock, cost.OriginiumShard); shard++)
-                for (int iron = 0; iron <= Math.Min(maximum - rock - shard, cost.Iron); iron++)
-                {
-                    if (rock + shard + iron == 0) continue;
-                    if (stock.CanPay(RemainingCost(cost, new[] { rock, shard, iron }))) candidates.Add("pay|" + zone.ZoneId + "|" + rock + "|" + shard + "|" + iron);
-                }
-            }
-            return candidates;
-        }
-        public static bool CanPayWithStoredMarkers(GameState state, int player, ResourceSet cost) => state.FindPlayer(player) != null && PaymentCandidates(state, player, cost).Count > 0;
-        private static NormalizedValue CostValue(ResourceSet cost) => Object("Originium", NormalizedValue.CreateInteger(cost.Originium), "OriginiumShard", NormalizedValue.CreateInteger(cost.OriginiumShard), "Iron", NormalizedValue.CreateInteger(cost.Iron), "PureOriginium", NormalizedValue.CreateInteger(cost.PureOriginium), "GoldVoucher", NormalizedValue.CreateInteger(cost.GoldVoucher));
+        public static bool CanPay(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner, ResourceSet cost) =>
+            ResourcePaymentCostPreview.CanPay(state, registry, owner, cost);
         public static EffectStepResult ExecutePayment(EffectExecutionContext context, ResourceSet requested, NormalizedValue result)
         {
             var node = context.Node; var player = context.State.FindPlayer(node.PlayerId);
-            bool legacy = node.FlowStage == "choose_substitution" || Value(node.ContinuationData, "paymentPlayerId") != null;
-            if (!legacy)
+            if (node.FlowStage == "choose_substitution" || Value(node.ContinuationData, "paymentPlayerId") != null)
+                return EffectStepResult.Failed("payment_legacy_substitution_requires_migration");
+            if (node.Payment == null || node.Payment.PaymentProtocolVersion <= 2)
             {
+                if (node.Payment == null) ResourcePaymentSubstitutionEffectExecutor.InitializePayment(node, requested);
                 var parent = context.State.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == node.ParentEffectId);
                 if (parent?.EffectTypeId == EffectTypeIds.Condition &&
                     Flag(parent.NormalizedArguments, "ruleCondition") && parent.FlowStage == "left:0" && parent.NestedGroupSizes[0] == 1 &&
@@ -260,14 +243,13 @@ namespace YC.Domain.Effects
                 if (node.FlowStage == ResourcePaymentPreparationService.BeforePaymentStage)
                 {
                     bool requireConfirmation = node.Payment.SourceKind == "condition" || node.Payment.Preparation != null ||
-                        node.Payment.AllowsSubstitution && PaymentZones(context.State, node.PlayerId).Any(zone => PaymentMarkers(context.State, zone, node.PlayerId).Count > 0) &&
-                        BasicPaymentTypes.Any(type => requested.Get(type) > 0);
+                        node.Payment.PaymentProtocolVersion == 2 && node.Payment.AllowsSubstitution && ResourcePaymentSourceService.Query(context.State, context.Registry, node, requested).Count > 0;
                     if (!requireConfirmation)
                     {
                         node.Payment.IsCommitRequested = true;
                         return ResourcePaymentSubstitutionEffectExecutor.CommitPayment(context, requested, result);
                     }
-                    var facts = ResourcePaymentPreparationService.Facts(context.State, node);
+                    var facts = ResourcePaymentPreparationService.Facts(context.State, node, context.Registry);
                     facts.Properties.Add(new NormalizedValueEntry { Name = "cost", Value = ResourcePaymentPreparationService.Cost(requested) });
                     facts.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
                     bool condition = node.Payment.SourceKind == "condition";
@@ -315,95 +297,36 @@ namespace YC.Domain.Effects
                 }
                 return EffectStepResult.NoProgress("等待当前付款宿主提交或完成替代分配。");
             }
-            if (player == null) return EffectStepResult.Failed("invalid_player");
-            if (node.FlowStage.Length == 0 && (!BasicPaymentTypes.Any(type => requested.Get(type) > 0) || PaymentZones(context.State, node.PlayerId).All(zone => PaymentMarkers(context.State, zone, node.PlayerId).Count == 0)))
-                return player.Resources.TryPay(requested) ? EffectStepResult.Completed(result) : EffectStepResult.Failed("insufficient_resource");
-            if (node.FlowStage.Length == 0)
-            {
-                if (!CanPayWithStoredMarkers(context.State, node.PlayerId, requested)) return EffectStepResult.Failed("insufficient_resource");
-                var payment = ResourcePaymentSubstitutionEffectExecutor.InitializePayment(node, requested);
-                var cost = Object("originium", NormalizedValue.CreateInteger(requested.Originium),
-                    "originiumShard", NormalizedValue.CreateInteger(requested.OriginiumShard), "iron", NormalizedValue.CreateInteger(requested.Iron),
-                    "pureOriginium", NormalizedValue.CreateInteger(requested.PureOriginium), "goldVoucher", NormalizedValue.CreateInteger(requested.GoldVoucher));
-                var request = new EffectInteractionSpec { InteractionTypeId = PaymentConfirmationInteractionTypeId,
-                    AnsweringPlayerId = node.PlayerId, Visibility = "owner", PromptKey = "resource.payment.confirmation",
-                    AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1, AllowDecline = false,
-                    PromptParameters = Object("paymentId", NormalizedValue.CreateString(payment.PaymentId),
-                        "ownerEffectId", NormalizedValue.CreateString(node.EffectId), "cost", cost,
-                        "paymentOptions", NormalizedValue.CreateArray(new[] { Object("candidateId", NormalizedValue.CreateString(PaymentConfirmationCandidateId), "cost", cost.Clone()) })),
-                    Presentation = new GameplayInteractionPresentation {
-                        Prompt = new GameplayTextRef("core:resource.payment.confirmation.prompt", cost.Properties.Select(entry =>
-                            new GameplayTextArgument { Name = entry.Name, Kind = "integer", Value = entry.Value.Clone() }).ToArray()),
-                        Options = new List<GameplayOptionPresentation> { new GameplayOptionPresentation {
-                            CandidateId = PaymentConfirmationCandidateId, Label = new GameplayTextRef("core:resource.payment.confirmation.pay") } }
-                    } };
-                request.CandidateIds.Add(PaymentConfirmationCandidateId);
-                return EffectStepResult.Continue(PaymentConfirmationStage).AddInteraction(PrepareInteraction(context, request));
-            }
-            // 已持久化旧组合请求只由原协议继续，不能改成新typed付款或改变候选范围。
-            if (Number(node.ContinuationData, "paymentPlayerId", -1) != node.PlayerId || Value(node.ContinuationData, "paymentCost")?.ToDeterministicString() != CostValue(requested).ToDeterministicString())
-                return EffectStepResult.Failed("payment_cost_changed");
-            var candidates = PaymentCandidates(context.State, node.PlayerId, requested);
-            if (candidates.Count == 0) return EffectStepResult.Failed("insufficient_resource");
-            if (node.FlowStage == "choose_substitution")
-            {
-                string answer = Answer(context);
-                if (candidates.Contains(answer))
-                {
-                    var parts = answer.Split('|'); var allocation = parts.Skip(2).Select(int.Parse).ToArray(); int total = allocation.Sum();
-                    var zone = total > 0 ? context.State.ItemZones.Zones.Single(value => value.ZoneId == parts[1]) : null;
-                    var ids = total > 0 ? PaymentMarkers(context.State, zone, node.PlayerId).Take(total).ToList() : new List<string>();
-                    ItemTransferRequest transfer = total > 0 ? new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = ids, ExpectedSource = new ItemPositionRef { ZoneId = zone.ZoneId },
-                        Destination = new ZoneRef { ZoneId = FindZone(context.State, "player_markers", node.PlayerId).ZoneId }, InsertionKind = "unordered", OperationProfileId = "core.cube_storage", RequiredCount = total } : null;
-                    if (transfer != null) { var valid = new ItemTransferService().Validate(context.State, transfer); if (!valid.IsValid) return EffectStepResult.Failed(valid.ReasonCode); }
-                    var remaining = RemainingCost(requested, allocation);
-                    if (!player.Resources.CanPay(remaining)) return EffectStepResult.Failed("insufficient_resource");
-                    Set(node, "paymentZoneId", NormalizedValue.CreateString(zone?.ZoneId ?? "")); Set(node, "selectedSubstitution", NormalizedValue.CreateArray(allocation.Select(value => NormalizedValue.CreateInteger(value)).ToList()));
-                    if (transfer != null) new ItemTransferService().RelocateItems(context, transfer);
-                    if (!player.Resources.TryPay(remaining)) throw new InvalidOperationException("payment_balance_changed_during_commit");
-                    if (zone != null) CharacterLifecycleService.ExitEmptyCarriers(context, new[] { zone.ZoneId });
-                    return EffectStepResult.Completed(result).WithFlowStage("finished");
-                }
-            }
-            var interaction = new EffectInteractionSpec { InteractionTypeId = "lua.choice", AnsweringPlayerId = node.PlayerId, Visibility = "owner", PromptKey = "resource.payment.substitution", MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id" };
-            interaction.CandidateIds.AddRange(candidates);
-            interaction.PromptParameters = Object("cost", CostValue(requested), "maxMarkers", NormalizedValue.CreateInteger(2));
-            return EffectStepResult.Continue("choose_substitution").AddInteraction(PrepareInteraction(context, interaction));
+            return EffectStepResult.Failed("payment_context_invalid");
         }
 
         private static GameplayInteractionPresentation CreatePaymentPresentation(EffectNodeRuntimeState node,
             EffectNodeRuntimeState parent, ResourceSet cost, bool condition)
         {
-            if (condition) return GameplayPresentationNormalizer.Clone(parent?.Presentation?.Interaction) ?? new GameplayInteractionPresentation();
-            var source = node.Presentation?.Interaction;
-            var presentation = GameplayPresentationNormalizer.Clone(source) ?? new GameplayInteractionPresentation();
-            var costText = new GameplayTextRef("core:resource.payment.confirmation.prompt",
+            var source = condition ? parent?.Presentation?.Interaction : node.Presentation?.Interaction;
+            var costText = new GameplayTextRef(condition ? "core:resource.payment.condition.prompt" : "core:resource.payment.confirmation.prompt",
                 ResourcePaymentPreparationService.Cost(cost).Properties.Select(entry => new GameplayTextArgument {
                     Name = entry.Name, Kind = "integer", Value = entry.Value.Clone() }).ToArray());
-            // 来源正文仍作主文档；现有付款宿主会把Prompt/Progress合并渲染。
-            if (presentation.Prompt == null) presentation.Prompt = costText;
-            else if (presentation.Progress == null) presentation.Progress = costText;
+            var presentation = MergePaymentPresentation(source, costText);
             if (!condition && !presentation.Options.Any(option => option.CandidateId == PaymentConfirmationCandidateId))
                 presentation.Options.Add(new GameplayOptionPresentation { CandidateId = PaymentConfirmationCandidateId,
                     Label = new GameplayTextRef("core:resource.payment.confirmation.pay") });
             return presentation;
         }
+        internal static GameplayInteractionPresentation MergePaymentPresentation(GameplayInteractionPresentation source,
+            GameplayTextRef paymentPrompt)
+        {
+            // 来源正文优先；既有来源进度不覆盖。费用/配比事实仍随原请求单独投影。
+            var presentation = GameplayPresentationNormalizer.Clone(source) ?? new GameplayInteractionPresentation();
+            if (presentation.Prompt == null) presentation.Prompt = paymentPrompt;
+            else if (presentation.Progress == null) presentation.Progress = paymentPrompt;
+            return presentation;
+        }
         public static bool TryValidatePendingPayments(GameState state, out string reason)
         {
             if (!ResourcePaymentSubstitutionEffectExecutor.TryValidatePaymentRecords(state, out reason)) return false;
-            reason = "payment_substitution_state_invalid";
-            foreach (var node in state.EffectRuntime.EffectNodes.Where(node => node.FlowStage == "choose_substitution" || Value(node.ContinuationData, "paymentCost") != null))
-            {
-                if (node.EffectTypeId != ResourceEffectTypeIds.Pay && node.EffectTypeId != FacilityBuildEffectExecutor.PaymentTypeId || !new[] { "choose_substitution", "finished" }.Contains(node.FlowStage)) return false;
-                var cost = Value(node.ContinuationData, "paymentCost"); var player = Value(node.ContinuationData, "paymentPlayerId");
-                string[] keys = { "Originium", "OriginiumShard", "Iron", "PureOriginium", "GoldVoucher" };
-                if (cost?.Kind != NormalizedValueKind.Object || cost.Properties.Count != 5 || cost.Properties.Any(entry => !keys.Contains(entry.Name) || entry.Value.Kind != NormalizedValueKind.Integer || entry.Value.IntegerValue < 0 || entry.Value.IntegerValue > int.MaxValue) ||
-                    player?.Kind != NormalizedValueKind.Integer || player.IntegerValue != node.PlayerId || state.FindPlayer(node.PlayerId) == null) return false;
-                var selected = Value(node.ContinuationData, "selectedSubstitution");
-                if (selected != null && (selected.Kind != NormalizedValueKind.Array || selected.Items.Count != 3 || selected.Items.Any(value => value.Kind != NormalizedValueKind.Integer || value.IntegerValue < 0 || value.IntegerValue > 2) || selected.Items.Sum(value => value.IntegerValue) > 2 || Enumerable.Range(0, 3).Any(i => selected.Items[i].IntegerValue > Number(cost, keys[i])))) return false;
-                var selectedZone = Value(node.ContinuationData, "paymentZoneId");
-                if (node.FlowStage == "finished" && (selected == null || selectedZone?.Kind != NormalizedValueKind.String || selected.Items.Sum(v => v.IntegerValue) > 0 && !state.ItemZones.Zones.Any(z => z.ZoneId == selectedZone.StringValue && z.Configuration?.PaymentPolicyId == "core.basic_resource_substitution"))) return false;
-            }
+            if (state.EffectRuntime.EffectNodes.Any(node => node.FlowStage == "choose_substitution" || Value(node.ContinuationData, "paymentCost") != null))
+            { reason = "payment_legacy_substitution_requires_migration"; return false; }
             reason = ""; return true;
         }
 
@@ -445,6 +368,8 @@ namespace YC.Domain.Effects
                 return "资源 Effect 参数必须是对象。";
             }
 
+            if (isPaymentExecutor && ResourcePaymentDemandParser.IsTotal(spec.NormalizedArguments))
+                return ResourcePaymentDemandParser.TryParse(spec.NormalizedArguments, out _, out _);
             if (isPaymentExecutor && ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "cost") != null)
                 return ValidateCompositePayment(spec.NormalizedArguments);
             NormalizedValue player;

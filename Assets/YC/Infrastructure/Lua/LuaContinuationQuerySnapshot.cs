@@ -18,15 +18,18 @@ namespace YC.Infrastructure.Lua
             if (state.FindPlayer(viewer) == null) return;
             var query = new EnterpriseStateQuery(definitions);
             var specials = new List<LuaSnapshotValue>();
-            foreach (var value in definitions == null ? Array.Empty<EnterpriseSpecialCandidate>() : query.GetSpecialCandidates(state, viewer, playerId, 0, null))
+            var candidates = new List<LuaSnapshotValue>();
+            foreach (var value in definitions == null ? Array.Empty<EnterpriseSpecialCandidate>() : query.GetSpecialCandidates(state, viewer, playerId, 5, null))
             {
                 var enterprise = state.ItemZones.Items.Single(i => i.ItemId == value.EnterpriseItemId);
-                var definition = definitions.FindEnterprise(enterprise.DefinitionId);
-                int level = definition.Levels.Single(l => l.AbilityId == value.SpecialId).Level;
-                specials.Add(O(E("id", S(playerId + ":" + value.SpecialId)), E("specialId", S(value.SpecialId)),
-                    E("enterpriseItemId", S(value.EnterpriseItemId)), E("unlockedByPlayer", S(Player(playerId))), E("level", N(level))));
+                int level = definitions.GetSpecialAbilityLevel(enterprise.DefinitionId, value.SpecialId);
+                var entry = O(E("id", S(playerId + ":" + value.SpecialId)), E("candidateId", S(value.CandidateId)), E("specialId", S(value.SpecialId)),
+                    E("enterpriseItemId", S(value.EnterpriseItemId)), E("unlockedByPlayer", S(Player(playerId))), E("level", N(level)));
+                candidates.Add(entry);
+                if (level <= value.CurrentLevel) specials.Add(entry);
             }
-            var fields = new List<LuaSnapshotEntry> { E("enterpriseSpecials", A(specials)) };
+            // 原已解锁集合不变；公开卡面全集供Lua按本次文字规则生成显式候选集合。
+            var fields = new List<LuaSnapshotEntry> { E("enterpriseSpecials", A(specials)), E("enterpriseSpecialCandidates", A(candidates)) };
             // 合法非动作轮没有当前动作轮序号；非法轮号仍由原函数严格拒绝。
             if (state.Round < 1 || state.ActionRound != 0)
                 fields.Add(E("actionRoundSequence", N(CharacterLifecycleService.GetActionRoundSequence(state))));
@@ -50,7 +53,17 @@ namespace YC.Infrastructure.Lua
             fields["relations"] = A(state.ItemZones.Relations.Where(r => r.SourceItemId == itemId && visible.Contains(r.TargetItemId))
                 .Select(r => O(E("relationTypeId", S(r.RelationTypeId)), E("targetItemId", S(r.TargetItemId)))));
             var item = state.ItemZones.Items.Single(i => i.ItemId == itemId);
+            var entrepreneur = state.EntrepreneurSetup?.Players.SingleOrDefault(p => p.AbilityItemId == itemId || p.RoundGroups.Any(g => g.Candidates.Any(c => c.EntityItemId == itemId)));
+            if (entrepreneur != null)
+            {
+                fields["entrepreneurAbilityItemId"] = S(entrepreneur.AbilityItemId);
+                fields["entrepreneurDefinitionId"] = S(entrepreneur.DefinitionId);
+                fields["roundChoices"] = A(entrepreneur.RoundGroups.OrderBy(g => g.RoundNumber).Select(g => O(
+                    E("groupId", S(g.GroupId)), E("roundNumber", N(g.RoundNumber)), E("selectedCandidateId", S(g.SelectedCandidateId)), E("activeFaceId", S(g.ActiveFaceId)),
+                    E("candidates", A(g.Candidates.OrderBy(c => c.DisplayOrder).Select(c => O(E("candidateId", S(c.CandidateId)), E("entityItemId", S(c.EntityItemId)), E("definitionId", S(c.DefinitionId)), E("faceId", S(c.FaceId)), E("displayOrder", N(c.DisplayOrder)))))))));
+            }
             if (item.PhysicalKind != ItemPhysicalKind.Token) return;
+            if (item.TypeId == "core.die") return;
             fields["locationId"] = S(TokenMovementProfileRegistry.GetLocationId(state, itemId));
             if (!state.ItemZones.Relations.Any(r => r.SourceItemId == itemId && r.RelationTypeId == "core.persistent_token_source")) return;
             fields["adjacentDestinations"] = Strings(new TokenMovementProfileRegistry().GetDestinationLocationIds(state, itemId, "core.adjacent_location_token_move"));

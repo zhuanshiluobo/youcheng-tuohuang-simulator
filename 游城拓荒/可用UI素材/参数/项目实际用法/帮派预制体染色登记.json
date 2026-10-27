@@ -1,0 +1,286 @@
+{
+  "schemaVersion": 1,
+  "standardId": "E05",
+  "registrationVersion": "1.0.1",
+  "date": "2026-10-22",
+  "round": 3,
+  "basis": [
+    "2026-10-20 用户在协调聊天后续直接答复：“地图沿用立方体，UI使用通用的影响力方格预制体，对其中的贴图组件染色。”",
+    "Purple/#A020F0、4枚、独立帮派类型/所有者/真实数量已确认；第3轮仅登记，不接线。",
+    "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md：J-Q01-02当前裁定",
+    "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md：帮派当前唯一表现",
+    "COMMON-UI-INTEGRATION-R2实际接线：不改原方格Prefab、立方体和贴图，仅把正式固定色投影传给现有消费者。"
+  ],
+  "status": "CubeColorView/CubeColorResolver到地图和U07详情标记的通用消费者已接线；真实库存按供应区/类型/所有者计数；正常视觉及联机恢复未验收",
+  "authorizedPurpose": "仅帮派地图现有立方体和UI通用影响力方格预制体的贴图组件染Purple；保留独立类型/所有者/库存数量，不另找专用图",
+  "replaces": "撤销帮派UI待用户澄清、禁止复用通用方格、必须另找专用帮派图形的旧现行要求；第1/2轮历史证据保持",
+  "fixedColor": {
+    "mode": "fixed",
+    "name": "Purple",
+    "rgb": "A020F0",
+    "displayHex": "#A020F0",
+    "rgbNormalized": [
+      0.6274509803921569,
+      0.12549019607843137,
+      0.9411764705882353
+    ],
+    "alphaPolicy": "保留目标组件及既有状态的alpha/opacity",
+    "authority": "用户已确认值；不从玩家/企业/观看者颜色推导"
+  },
+  "uiPrefabSources": [
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+      "prefabGuid": "21fcabf0e5b1419a936d56f1cc1e8df4",
+      "sourceSha256": "3247866e9914a6ce4a6ed4dc01639651fa1fb0c82eb71ff745963062c2d2eec8",
+      "rootObjectName": "Influence Marker 2D",
+      "rootGameObjectFileId": 100100,
+      "rootImageComponent": {
+        "type": "UnityEngine.UI.Image",
+        "fileId": 100103,
+        "scriptGuid": "fe87c0e1cc204ed48ad3b37840f39efc",
+        "boundBy": "InfluenceMarker2DView/face",
+        "viewComponentFileId": 100104,
+        "currentSerializedTint": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "imageType": "Simple",
+        "preserveAspect": true,
+        "pixelsPerUnitMultiplier": 1,
+        "raycastTarget": false,
+        "sprite": {
+          "fileId": 21300000,
+          "guid": "d2a36eaffcff7c64c80b212aed5e18bb",
+          "asset": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/cooperation-01-64.png",
+          "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+          "catalogPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-01-64.png",
+          "pixelSize": [
+            64,
+            64
+          ],
+          "importer": {
+            "spriteMode": "Single",
+            "pixelsPerUnit": 100,
+            "borderLeftBottomRightTop": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "filter": "Bilinear",
+            "wrap": "Clamp",
+            "mipmap": false,
+            "sRGB": true,
+            "alphaIsTransparency": true
+          }
+        }
+      },
+      "catalogReference": {
+        "asset": "Assets/YC/Presentation/Content/InfluenceMarker2DCatalog.asset",
+        "guid": "b7e6c8d62aa742498956577c0414f452",
+        "currentTemplateColorEntry": 1
+      },
+      "numberText": {
+        "path": "数字",
+        "fileId": 100203,
+        "currentShowNumber": false,
+        "bindingRequirement": "帮派类型＋真实所有者＋规定库存区域独立计数，0仍显示0；不把初始4当剩余数"
+      },
+      "stateOverlay": {
+        "path": "状态叠层",
+        "imageFileId": 100303,
+        "role": "现有状态层；不在本轮染色/更换或另授贴图用途"
+      },
+      "layoutSnapshot": {
+        "rootSize": [
+          32,
+          32
+        ],
+        "snapshotOnly": true,
+        "mayNotBeMadeImmutableByTests": true
+      },
+      "bindingStatus": "UiEffectRowView.Marker.FixedColor → InfluenceMarker2DView.RenderFixed；原face贴图组件消费固定色，原Prefab未修改"
+    },
+    {
+      "asset": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2DNumbered.prefab",
+      "prefabGuid": "2c6e5bb1f8a94c0cb821cda8cffdae8a",
+      "sourceSha256": "4195b78c3c1f7e9aa628869d82e00b06d2f3cdcfe93f7e0cf454a1206a088931",
+      "rootObjectName": "Influence Marker 2D Numbered",
+      "rootGameObjectFileId": 100100,
+      "rootImageComponent": {
+        "type": "UnityEngine.UI.Image",
+        "fileId": 100103,
+        "scriptGuid": "fe87c0e1cc204ed48ad3b37840f39efc",
+        "boundBy": "InfluenceMarker2DView/face",
+        "viewComponentFileId": 100104,
+        "currentSerializedTint": [
+          1,
+          1,
+          1,
+          1
+        ],
+        "imageType": "Simple",
+        "preserveAspect": true,
+        "pixelsPerUnitMultiplier": 1,
+        "raycastTarget": false,
+        "sprite": {
+          "fileId": 21300000,
+          "guid": "43a115ab64a44905b6e59942a40cab0e",
+          "asset": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/digit-base-green-64.png",
+          "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+          "catalogPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-01-64.png",
+          "pixelSize": [
+            64,
+            64
+          ],
+          "importer": {
+            "spriteMode": "Single",
+            "pixelsPerUnit": 100,
+            "borderLeftBottomRightTop": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "filter": "Bilinear",
+            "wrap": "Clamp",
+            "mipmap": false,
+            "sRGB": true,
+            "alphaIsTransparency": true
+          }
+        }
+      },
+      "catalogReference": {
+        "asset": "Assets/YC/Presentation/Content/InfluenceMarker2DCatalog.asset",
+        "guid": "b7e6c8d62aa742498956577c0414f452",
+        "currentTemplateColorEntry": 1
+      },
+      "numberText": {
+        "path": "数字",
+        "fileId": 100203,
+        "currentShowNumber": true,
+        "bindingRequirement": "帮派类型＋真实所有者＋规定库存区域独立计数，0仍显示0；不把初始4当剩余数"
+      },
+      "stateOverlay": {
+        "path": "状态叠层",
+        "imageFileId": 100303,
+        "role": "现有状态层；不在本轮染色/更换或另授贴图用途"
+      },
+      "layoutSnapshot": {
+        "rootSize": [
+          32,
+          32
+        ],
+        "snapshotOnly": true,
+        "mayNotBeMadeImmutableByTests": true
+      },
+      "bindingStatus": "UiEffectRowView.Marker.FixedColor → InfluenceMarker2DView.RenderFixed；原face贴图组件消费固定色，原Prefab未修改"
+    }
+  ],
+  "actualUiReference": {
+    "asset": "Assets/YC/Presentation/Effects/Prefabs/EffectRow.prefab",
+    "sourceSha256": "26af1c87b990b0f071a0c235bf604007994691cca362d8c5793217a2dbf5af9b",
+    "instances": [
+      {
+        "instanceId": "7510102026100100068",
+        "name": "Marker 1"
+      },
+      {
+        "instanceId": "7510102026100100069",
+        "name": "Marker 2"
+      }
+    ],
+    "sourcePrefabGuid": "21fcabf0e5b1419a936d56f1cc1e8df4",
+    "sourceFaceFileId": 100103,
+    "currentFaceSpriteGuid": "d2a36eaffcff7c64c80b212aed5e18bb",
+    "currentTint": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "note": "GameplayExpansionUi.DetailMarkers从真实供应区/类型/所有者投影计数并消费固定色；通用EffectRow原两槽及face贴图组件保持"
+  },
+  "uiTintScope": {
+    "target": "仅各通用方格根节点Image fileID100103（View.face）的RGB",
+    "newSprite": false,
+    "newImageFile": false,
+    "tintTextureBytes": false,
+    "useOtherNeutralOrRegionSprite": false,
+    "stateLayerOrTextRecoloring": "不将此许可扩大到数字文字、状态叠层、区域图或其他控件",
+    "currentSpriteIsGreenTemplate": true,
+    "visualStatus": "运行时消费者已接线；本登记只说明实际代码和源资产，不声明正常视觉验收通过"
+  },
+  "mapCube": {
+    "prefab": "Assets/YC/Presentation/Prefabs/Map/Pieces/InfluencePiece.prefab",
+    "prefabGuid": "350e29242a600bb47bf45ece04c3d7f9",
+    "rootGameObjectFileId": "6517906077051129128",
+    "rendererFileId": "4933625111999437532",
+    "viewRenderersFieldFileId": "8196362352663826544",
+    "model": "Assets/YC/Presentation/Models/MapPieces/InfluenceCube.fbx",
+    "modelGuid": "be017c2103156eb418b91fd41fe25f55",
+    "modelRendererSourceFileId": "-7511558181221131132",
+    "material": "Assets/YC/Presentation/Materials/MapPiecePlayerColor.mat",
+    "materialGuid": "dc74d40d0598d9f4db8aa3190c68dab6",
+    "materialCurrentColor": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "materialMainTexture": null,
+    "actualMapReferences": [
+      {
+        "path": "Assets/YC/Presentation/Prefabs/Map/MapView.prefab",
+        "influencePieceSourceCount": 81
+      },
+      {
+        "path": "Assets/Resources/MapViews/map-three-players.prefab",
+        "influencePieceSourceCount": 68
+      }
+    ],
+    "fixedColorQueryContract": {
+      "input": "真实帮派实例及冻结组件定义",
+      "declaration": {
+        "cubeAppearance": {
+          "color": {
+            "mode": "fixed",
+            "name": "Purple",
+            "rgb": "A020F0"
+          }
+        }
+      },
+      "output": "同一通用颜色查询返回固定Purple，地图现有立方体与UI贴图共同消费；不借观看者/执行者/所有者玩家色替代",
+      "implementationOwner": "003提供通用颜色查询；015独立帮派类型和规则；017正式显示接线",
+      "currentCodeApiName": null,
+      "apiStatus": "本轮不审读或评价运行中的002代码；实际接口名待前置交付核验"
+    },
+    "bindingStatus": "已定位静态来源，未改FBX/材质/Prefab或进行渲染器接线",
+    "runtimeBinding": "MapViewPresenter按真实placement.InfluenceId调用CubeColorResolver.Resolve(state,id)，传入MapPieceVisual.SetPlayerColor；原地图立方体不更换"
+  },
+  "inventorySemantics": {
+    "initialComponents": 4,
+    "actualRemainingCount": "本人玩家供应区＋帮派独立类型＋真实所有者；不计地图/暂存/已回盒，也不混普通玩家标记",
+    "ownershipUnchanged": true,
+    "typeRemainsIndependent": true,
+    "colorDoesNotDetermineOwnership": true
+  },
+  "gameCodeOrAssetsEdited": true,
+  "normalGameplayVisualValidation": "未运行；无GameId、游戏截图或恢复/联机验收",
+  "actualImplementation": {
+    "round": "COMMON-UI-INTEGRATION-R2",
+    "changed": [
+      "GameplayExpansionUi.cs",
+      "MapViewPresenter.cs"
+    ],
+    "retainedEarlierImplementations": [
+      "CubeColorResolver.cs",
+      "InfluenceMarker2DView.cs",
+      "UiEffectRowView.cs"
+    ],
+    "sourcePrefabOrImageChanged": false,
+    "normalCoverage": 0
+  }
+}

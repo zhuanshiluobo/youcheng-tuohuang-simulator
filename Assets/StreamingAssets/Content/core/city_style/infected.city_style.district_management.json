@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.city_style.district_management",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "城区管理中心",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.city_style.district_management.declared",
       "script": "lua/city_styles/infected.city_style.district_management.declared.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],

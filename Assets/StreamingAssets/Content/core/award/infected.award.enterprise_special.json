@@ -40,5 +40,38 @@
       }
     ]
   },
-  "itemTypeId": "core.award_card"
+  "itemTypeId": "core.award_card",
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.award.enterprise_special.quick",
+      "kind": "quick",
+      "handlerRef": "content.infected.award.enterprise_special.quick",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "holder",
+      "effectiveZones": [
+        "core.zone.player_rewards"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.award.enterprise_special.quick",
+      "actions": [
+        {
+          "actionId": "infected.award.enterprise_special.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "content.infected.award.enterprise_special.quick",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "once",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 100,
+          "presentationRef": "infected.award.enterprise_special"
+        }
+      ]
+    }
+  ]
 }

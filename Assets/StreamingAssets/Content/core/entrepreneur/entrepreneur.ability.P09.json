@@ -1,0 +1,337 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.ability.P09",
+  "contentType": "entrepreneur_ability",
+  "version": "1.2.0",
+  "displayName": "保罗·蒂尔曼",
+  "artwork": "artwork/entrepreneurs/P09.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.ability_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.P09.place",
+      "mode": "ruleQuery",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P09.place.handler",
+      "script": "lua/entrepreneurs/paul.place_rewrite.lua",
+      "version": "1.2.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.place.type"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P09.departure",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P09.departure.handler",
+      "script": "lua/entrepreneurs/paul.departure_replenish.lua",
+      "version": "1.2.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P01.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P09.place",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.P09.place.handler",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "owner",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "influence_place_attaching.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.P09.place",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P09.departure",
+      "kind": "event",
+      "handlerRef": "entrepreneur.P09.departure.handler",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "owner",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "InfluenceRemoved"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "response.required_effect"
+      ],
+      "presentationRef": "entrepreneur.P09.departure",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceId": "P09",
+    "entrepreneur": {
+      "definitionId": "entrepreneur.ability.P09",
+      "version": "1.2.0",
+      "sourceId": "P09",
+      "displayName": "保罗·蒂尔曼",
+      "artwork": "artwork/entrepreneurs/P09.jpg",
+      "setupHandlerRefs": [],
+      "roundGroups": [
+        {
+          "groupId": "entrepreneur.group.P.1",
+          "roundNumber": 1,
+          "previewCandidateId": "entrepreneur.candidate.P01",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.P01",
+              "entityDefinitionId": "entrepreneur.round.P.1",
+              "faceId": "P01",
+              "sourceId": "P01",
+              "artwork": "artwork/entrepreneurs/P01.jpg",
+              "artworkSha256": "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.P01"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.P02",
+              "entityDefinitionId": "entrepreneur.round.P.1",
+              "faceId": "P02",
+              "sourceId": "P02",
+              "artwork": "artwork/entrepreneurs/P02.jpg",
+              "artworkSha256": "6e7cca4f1147e0450f487e40a2b1000b3dcd85de4b78ff0ebdb99e4ebcc36142",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.P02"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.P.3",
+          "roundNumber": 3,
+          "previewCandidateId": "entrepreneur.candidate.P03",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.P03",
+              "entityDefinitionId": "entrepreneur.round.P.3",
+              "faceId": "P03",
+              "sourceId": "P03",
+              "artwork": "artwork/entrepreneurs/P03.jpg",
+              "artworkSha256": "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.P03"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.P03.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.P04",
+              "entityDefinitionId": "entrepreneur.round.P.3",
+              "faceId": "P04",
+              "sourceId": "P04",
+              "artwork": "artwork/entrepreneurs/P04.jpg",
+              "artworkSha256": "128b2c46219ee05d7e61b00699634ecbcf0ce2c20e90a8afe1da515ed4f80f76",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.P04"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.P04.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.P.5",
+          "roundNumber": 5,
+          "previewCandidateId": "entrepreneur.candidate.P05",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.P05",
+              "entityDefinitionId": "entrepreneur.round.P.5",
+              "faceId": "P05",
+              "sourceId": "P05",
+              "artwork": "artwork/entrepreneurs/P05.jpg",
+              "artworkSha256": "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.P05"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.P05.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.P06",
+              "entityDefinitionId": "entrepreneur.round.P.5",
+              "faceId": "P06",
+              "sourceId": "P06",
+              "artwork": "artwork/entrepreneurs/P06.jpg",
+              "artworkSha256": "575463b1387c419a4de9f260b39a17e5e4e8afe4bcfcc87e38ed0b5461463445",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.P06"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.P06.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.P.7",
+          "roundNumber": 7,
+          "previewCandidateId": "entrepreneur.candidate.P07",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.P07",
+              "entityDefinitionId": "entrepreneur.round.P.7",
+              "faceId": "P07",
+              "sourceId": "P07",
+              "artwork": "artwork/entrepreneurs/P07.jpg",
+              "artworkSha256": "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.P07"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.P08",
+              "entityDefinitionId": "entrepreneur.round.P.7",
+              "faceId": "P08",
+              "sourceId": "P08",
+              "artwork": "artwork/entrepreneurs/P08.jpg",
+              "artworkSha256": "00010f344c98ae5f2f0e1323ac268c7918c3b4437832b594824fd68896ffc319",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.P08"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "entryId": "entrepreneur.gang",
+          "definitionId": "entrepreneur.component.gang_marker",
+          "typeId": "entrepreneur.gang_marker",
+          "quantity": 4,
+          "destinationRole": "supply",
+          "carrierLocalZoneId": "",
+          "sourceRole": "reserve"
+        }
+      ]
+    },
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.P09.place",
+        "displayName": "保罗·蒂尔曼：放置影响力时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.place.type"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      },
+      {
+        "abilityId": "entrepreneur.P09.departure",
+        "displayName": "1A·宣扬平等：剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P01.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "requiredRuleRef": "entrepreneur.face.P01",
+        "requiredRuleBinding": "grant"
+      },
+      {
+        "abilityId": "entrepreneur.P09.departure",
+        "displayName": "1B·广纳人才：剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P01.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "requiredRuleRef": "entrepreneur.face.P02",
+        "requiredRuleBinding": "grant"
+      },
+      {
+        "abilityId": "entrepreneur.P09.place",
+        "displayName": "3A·建设据点：剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.detail.P03_P04.gang_only"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "requiredRuleRef": "entrepreneur.face.P03",
+        "requiredRuleBinding": "grant"
+      },
+      {
+        "abilityId": "entrepreneur.P09.place",
+        "displayName": "3B·隐蔽运输：剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.detail.P03_P04.gang_only"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "requiredRuleRef": "entrepreneur.face.P04",
+        "requiredRuleBinding": "grant"
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.P09.place.handler",
+      "script": "lua/entrepreneurs/paul.place_rewrite.lua",
+      "version": "1.2.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.P09.departure.handler",
+      "script": "lua/entrepreneurs/paul.departure_replenish.lua",
+      "version": "1.2.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "presentation": {
+    "name": {
+      "key": "core:entrepreneur.P.P09.title"
+    },
+    "description": {
+      "key": "core:entrepreneur.P.P09.description"
+    }
+  }
+}

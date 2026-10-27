@@ -46,41 +46,16 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void LoadExplicitRealDefinitionsAndStageOriginalArtwork()
         {
             core = ExternalContentPack.Load(ContentRoot);
-            string root = Path.Combine(Directory.GetCurrentDirectory(), "Logs/ExpansionValidation/EnterpriseBoardAndCharacterContent/content", Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(root);
-            foreach (string path in DefinitionPaths)
-            {
-                Copy(Path.Combine(ContentRoot, path), Path.Combine(root, path));
-                var json = JObject.Parse(File.ReadAllText(Path.Combine(ContentRoot, path)));
-                foreach (var ability in (JArray)json["abilities"])
-                foreach (string key in new[] { "script", "cleanupScript" })
-                    if (!string.IsNullOrEmpty((string)ability[key])) Copy(Path.Combine(ContentRoot, (string)ability[key]), Path.Combine(root, (string)ability[key]));
-            }
-            string originals = Path.Combine(Directory.GetCurrentDirectory(), "游城拓荒/企业扩");
-            Copy(Path.Combine(originals, "企业合作板 2行4列.jpg"), Path.Combine(root, "artwork/sheets/enterprise_boards.jpg"));
-            Copy(Path.Combine(originals, "罗德岛干员牌.jpg"), Path.Combine(root, "artwork/sheets/operator_faces.jpg"));
-            Copy(Path.Combine(originals, "工程科.png"), Path.Combine(root, "artwork/departments/engineering.png"));
-            Copy(Path.Combine(originals, "防卫科.png"), Path.Combine(root, "artwork/departments/defense.png"));
-            Copy(Path.Combine(originals, "结构科.png"), Path.Combine(root, "artwork/departments/structural.png"));
-            Copy(Path.Combine(originals, "公路.jpg"), Path.Combine(root, "artwork/enterprise_road.jpg"));
-            Copy(Path.Combine(Directory.GetCurrentDirectory(), "游城拓荒/素材/角色卡.jpg"), Path.Combine(root, "artwork/sheets/character_faces.jpg"));
-            var originalSlices = JObject.Parse(File.ReadAllText(Path.Combine(ContentRoot, "artwork_slices.json")));
-            var spriteIds = DefinitionPaths.Select(path => (string)JObject.Parse(File.ReadAllText(Path.Combine(ContentRoot, path)))["artworkSpriteId"]).ToHashSet();
-            var slices = ((JArray)originalSlices["slices"]).Where(s => spriteIds.Contains((string)s["id"])).ToList();
-            var sheets = ((JArray)originalSlices["sheets"]).Where(s => slices.Any(slice => (string)slice["sheetId"] == (string)s["id"])).ToList();
-            foreach (var sheet in sheets) Copy(Path.Combine(ContentRoot, (string)sheet["artwork"]), Path.Combine(root, (string)sheet["artwork"]));
-            File.WriteAllText(Path.Combine(root, "artwork_slices.json"), new JObject {
-                ["schemaVersion"] = originalSlices["schemaVersion"].DeepClone(), ["coordinateOrigin"] = originalSlices["coordinateOrigin"].DeepClone(),
-                ["sheets"] = new JArray(sheets.Select(s => s.DeepClone())),
-                ["slices"] = new JArray(slices.Select(s => s.DeepClone()))
-            }.ToString());
-            File.WriteAllText(Path.Combine(root, "pack.json"), new JObject {
-                ["schemaVersion"] = 3, ["packId"] = "core", ["version"] = "1.0.0", ["definitions"] = new JArray(DefinitionPaths),
-                ["enabledExpansionIds"] = new JArray("enterprise"), ["requiredCapabilities"] = new JArray(),
-                ["expansionDependencies"] = new JArray(new JObject { ["expansionId"] = "enterprise", ["requires"] = new JArray("core") }),
-                ["setupRecipes"] = new JArray(), ["artworkSlices"] = "artwork_slices.json"
-            }.ToString());
-            pack = ExternalContentPack.Load(root);
+            // 以已载正式包的不可变快照选取原22项定义；保留当前展示、共享Lua和注册依赖。
+            // 不再拼装缺少展示文案的旧包，也不另行回读图片原档案。
+            var manifest = core.Manifest;
+            manifest["definitions"] = new JArray(DefinitionPaths);
+            manifest["enabledExpansionIds"] = new JArray("core", "enterprise");
+            manifest["setupRecipes"] = new JArray();
+            // 当前6项共享模块绑定均属于未选取的企业家定义，不能残留不存在的目标脚本。
+            manifest["scriptDependencies"] = new JArray();
+            manifest["luaModules"] = new JArray();
+            pack = core.CreateWithOverrides(new Dictionary<string, string> { ["pack.json"] = manifest.ToString() });
         }
         private static void Copy(string source, string destination)
         {
@@ -104,7 +79,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             EnterpriseEffectExecutor.Register(registry, LuaContentCatalog.CreateEnterpriseDefinitions(registry, pack.ActiveDefinitions, pack.GetScript));
             var definitions = new GameContentDefinitions {
                 Components = pack.ActiveDefinitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition { DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"] }).ToList(),
-                Characters = core.CreateCharacters().Concat(pack.CreateCharacters()).ToList(), Facilities = core.CreateFacilities().ToList(),
+                Characters = core.CreateCharacters().Concat(pack.CreateCharacters()).GroupBy(c => c.CardId).Select(g => g.Last()).ToList(), Facilities = core.CreateFacilities().ToList(),
                 Events = core.CreateEvents().ToList(), CityStyles = core.CreateCityStyles().ToList()
             };
             var source = new GameState { GameId = "game.enterprise_content", MapId = map.MapId, ContentPackHash = pack.ContentHash,
@@ -112,10 +87,11 @@ namespace YC.Tests.EditMode.ExpansionRules
                 ContentDefinitions = definitions, RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = pack.ContentHash } };
             for (int player = 1; player <= players; player++) source.Players.Add(new PlayerState { PlayerId = player, Resources = new ResourceSet { GoldVoucher = 80, Originium = 20, OriginiumShard = 20, Iron = 20, PureOriginium = 3 } });
             var entries = new List<ItemRecipeEntry> {
-                new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "mobile_cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" }
             };
-            foreach (var definition in pack.ActiveDefinitions.Where(d => d.ContentType != "component")) entries.Add(new ItemRecipeEntry {
+            foreach (var definition in pack.ActiveDefinitions.Where(d => d.ContentType != "component" &&
+                DefinitionPaths.Any(path => Path.GetFileNameWithoutExtension(path) == d.DefinitionId))) entries.Add(new ItemRecipeEntry {
                 EntryId = definition.DefinitionId, DefinitionId = definition.DefinitionId, TypeId = definition.ItemTypeId, Quantity = 1,
                 PerPlayer = definition.ContentType == "character" && (string)definition.Data["acquisitionRole"] == "initial",
                 InitialZoneRole = definition.ContentType == "character" ? (string)definition.Data["acquisitionRole"] == "initial" ? "hand" : "operator_deck" : definition.ContentType == "department" ? "departments" : "enterprises"
@@ -136,7 +112,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public,
                     EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                 Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, Item(state, board.DefinitionId).ItemId, declaration, out string zone, out string reason), Is.True, reason);
-                var marker = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "player_markers", player).ZoneId);
+                var marker = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "supply", player).ZoneId);
                 SetFixturePosition(state, marker, zone); marker.SlotId = "level_1";
             }
             state.ItemZones.Relations.Add(new ItemRelationState { RelationId = StableIdFactory.Create("relation", state.GameId, "active_department"), RelationTypeId = EnterpriseStateQuery.ActiveDepartmentRelation,
@@ -183,6 +159,14 @@ namespace YC.Tests.EditMode.ExpansionRules
                 if (request.MinSelections > 1) Answer(state, request.CandidateIds.Take(request.MinSelections).ToArray()); else Answer(state, choice);
             }
             Assert.Fail("内容交互未在业务步数上限内完成。");
+        }
+        private void AcceptResourcePayment(GameState state)
+        {
+            var request = CurrentRequest(state);
+            Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId).Payment, Is.Not.Null);
+            Assert.That(request.CandidateIds, Does.Contain("continue"));
+            Answer(state, "continue");
         }
         private GameState Restore(GameState state)
         {
@@ -338,17 +322,75 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void MudrockPersistentCleanupCanActivateOnceAndStopsAfterRealExit()
         {
-            var state = State(); UseCard(state, "operator.mudrock", "tactic");
-            Assert.That(Item(state, "operator.mudrock").ZoneId, Is.EqualTo(FindZone(state, "persistent", 1).ZoneId));
-            var cleanup = EventSpec("PlayerCleanupStarted"); Run(state, cleanup); Answer(state, "activate"); Drain(state);
-            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(18));
-            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluencePlaced), Is.EqualTo(1));
-            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
-            var card = Item(state, "operator.mudrock");
-            Run(state, MoveSpec(1, new[] { card.ItemId }, card.ZoneId, FindZone(state, "discard", 1).ZoneId, "unordered", 1, "core.character_card_transfer"));
-            state = Restore(state); Run(state, cleanup);
-            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
-            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluencePlaced), Is.EqualTo(1));
+            // 与当前多萝西Host用例相同的正式装配入口，避免旧企业板夹具和合成收尾事件。
+            map = StaticMapDefinitions.CreateThreePlayerMap();
+            var configuration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2,
+                EnabledExpansionIds = new List<string> { "core", "enterprise" } };
+            var active = core.CreateActiveSnapshot(configuration); configuration.ContentPackHash = active.ContentHash;
+            registry = new EffectRegistry { ContentPackHash = active.ContentHash };
+            ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
+            ItemTransferEffectExecutor.Register(registry); CharacterCoverEffectExecutor.Register(registry); CharacterLifecycleService.Register(registry);
+            var query = new MapQueryService(map); var influence = new InfluenceService(query);
+            InfluenceEffectExecutor.Register(registry, influence); ContentPrimitiveEffectExecutor.Register(registry, query, influence);
+            CharacterCardLuaCatalog.Register(registry, active); CityStyleLuaCatalog.Register(registry, active);
+            ContentLifecycleLuaCatalog.Register(registry, active); AbilitySourceLuaCatalog.Register(registry, active);
+            var state = new ItemZoneStateFactory().CreateForSetup(new GameState {
+                GameId = "qy017.r6.mudrock.isolated", MapId = map.MapId, ContentPackHash = active.ContentHash, RuleConfiguration = configuration,
+                Round = 1, ActionRound = 1, Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, StartPlayerId = 1,
+                LaunchPlayerOrder = new List<int> { 1, 2 }, Players = new List<PlayerState> {
+                    new PlayerState { PlayerId = 1, Name = "隔离甲", Resources = new ResourceSet { Originium = 20 } },
+                    new PlayerState { PlayerId = 2, Name = "隔离乙" } },
+                ContentDefinitions = new GameContentDefinitions { Characters = active.CreateCharacters().ToList(), Facilities = active.CreateFacilities().ToList(),
+                    AbilitySources = registry.AbilityDeclarations.ToList(), UsageTracks = active.ActiveDefinitions.SelectMany(d => d.UsageTracks).ToList(),
+                    CityStyles = active.CreateCityStyles().ToList(), SpecialActions = active.CreateSpecialActions().ToList(), Awards = ContentLifecycleLuaCatalog.CreateAwards(active) }
+            }, map, new[] {
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" },
+                new ItemRecipeEntry { EntryId = "mudrock", DefinitionId = "operator.mudrock", TypeId = "core.operator_card", Quantity = 1, InitialZoneRole = "operator_deck" }
+            }, new[] { new ItemCardZoneDeclaration { DefinitionId = "operator.mudrock", CardZones = active.Definitions.Single(d => d.DefinitionId == "operator.mudrock").CardZones } });
+            var evidence = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                EffectTreeExecutor Engine() => new EffectTreeExecutor(state, registry);
+                void OpenCleanup(int round)
+                {
+                    state.Round = round; state.ActionRound = round; state.Phase = GamePhase.Cleanup;
+                    var chain = new RoundMainChainBuilder().Build(state.GameId, "", round, new[] { 1, 2 }, 1);
+                    var main = chain.Nodes.Single(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow && n.PlayerId == 1);
+                    state.EffectRuntime.MainNodes.AddRange(chain.Nodes);
+                    foreach (var previous in chain.Nodes.Where(n => n.MainlineIndex < main.MainlineIndex)) previous.Status = EffectNodeStatus.Completed;
+                    state.EffectRuntime.ActiveMainNodeId = main.NodeId; state.EffectRuntime.FirstMainNodeId = chain.FirstNodeId;
+                    state.EffectRuntime.CurrentRoundExecutionId = chain.RoundExecutionId; state.EffectRuntime.CurrentRoundNumber = round;
+                    state.EffectRuntime.CurrentRoundStartPlayerId = 1; state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
+                    var rounds = new RoundExecutionService(registry);
+                    string root = rounds.CreateCommandExecutor(state).CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId,
+                        Object("mainNodeId", NormalizedValue.CreateString(main.NodeId)), 1));
+                    main = state.EffectRuntime.MainNodes.Single(n => n.NodeId == main.NodeId); main.ExecutionEffectId = root; main.Status = EffectNodeStatus.Running;
+                    Assert.That(Engine().RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                }
+                UseCard(state, "operator.mudrock", "tactic");
+                var card = Item(state, "operator.mudrock"); string cardId = card.ItemId;
+                Assert.That(card.ZoneId, Is.EqualTo(FindZone(state, "persistent", 1).ZoneId));
+                OpenCleanup(1);
+                var option = registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == cardId);
+                Assert.That(Engine().TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out _, out string reason), Is.True, reason);
+                Assert.That(Engine().RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                Answer(state, "continue");
+                var target = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+                Assert.That(target.InteractionTypeId, Is.EqualTo("effect.influence.place.target"));
+                Answer(state, target.CandidateIds.First());
+                Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(18));
+                Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluencePlaced), Is.EqualTo(1));
+                Assert.That(registry.GetSettlementOptions(state, 1).Any(o => o.SourceItemId == cardId), Is.False, "本收尾不能重复发动");
+                state = Restore(state);
+                Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(18));
+                card = Item(state, "operator.mudrock");
+                Run(state, MoveSpec(1, new[] { cardId }, card.ZoneId, FindZone(state, "discard", 1).ZoneId, "unordered", 1, "core.character_card_transfer"));
+                state = Restore(state); OpenCleanup(2);
+                Assert.That(registry.GetSettlementOptions(state, 1).Any(o => o.SourceItemId == cardId), Is.False, "真实离场后不再产生持续收尾入口");
+                Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(18));
+                Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluencePlaced), Is.EqualTo(1));
+            }
+            finally { evidence.WriteLabeledText("泥岩正式Host状态", JsonConvert.SerializeObject(state)); evidence.Finish(); }
         }
         [Test] public void WRegisteredCleanupSurvivesOperatorReplacementAndRecovery()
         {
@@ -498,9 +540,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(); var point = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0); var route = map.Routes.First(r => r.InfluenceSlotCount > 0);
             Place(state, 2, InfluenceService.GetLocationSlotId(point.LocationId, 0)); Place(state, 2, InfluenceService.GetRouteSlotId(route.RouteId, 0));
             string id = state.Map.Influences.Single(i => i.LocationId == point.LocationId).InfluenceId;
-            Invoke(state, "lua/enterprises/enterprise.rim_billiton.level_2.special.lua"); Assert.That(CurrentRequest(state).CandidateIds, Is.EqualTo(new[] { id })); Answer(state, id); Drain(state);
+            Invoke(state, "lua/enterprises/enterprise.rim_billiton.level_2.special.lua"); AcceptResourcePayment(state);
+            Assert.That(CurrentRequest(state).CandidateIds, Is.EqualTo(new[] { id })); Answer(state, id); Drain(state);
             Assert.That(state.Map.Influences.Single(i => i.LocationId == point.LocationId).PlayerId, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(76));
             FillSupply(state); Invoke(state, "lua/departments/enterprise.department.engineering.level_5.reward.lua");
+            AcceptResourcePayment(state);
             Assert.That(CurrentRequest(state).CandidateIds.All(item => FacilityCardDatabase.Get(state, new ItemZoneQuery().FindItem(state, item).DefinitionId).GoldVoucherCost <= 23), Is.True);
             Answer(state, CurrentRequest(state).CandidateIds[0]); Drain(state);
             Assert.That(state.FindPlayer(1).Resources.PureOriginium, Is.EqualTo(2)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(76));
@@ -641,6 +685,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(); string target = Item(state, "enterprise.fussen_bank").ItemId;
             int before = new EnterpriseStateQuery().GetLevel(state, 1, target), other = new EnterpriseStateQuery().GetLevel(state, 2, target), iron = state.FindPlayer(1).Resources.Iron;
             Invoke(state, script, Object("optionIndex", NormalizedValue.CreateInteger(2)));
+            if (CurrentRequest(state).InteractionTypeId == "action.decline_effect") AcceptResourcePayment(state);
             Assert.That(CurrentRequest(state).InteractionTypeId, Is.EqualTo("enterprise.upgrade"));
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(iron - (script.Contains("cave_ruins") ? 1 : 0)));
             state = Restore(state); Answer(state, target); Drain(state);
@@ -652,7 +697,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(); state.FindPlayer(1).Resources.Iron = 0; string target = Item(state, "enterprise.fussen_bank").ItemId;
             int before = new EnterpriseStateQuery().GetLevel(state, 1, target);
             Invoke(state, "lua/events/enterprise.event.cave_ruins.resolve.lua", Object("optionIndex", NormalizedValue.CreateInteger(2)));
-            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.InteractionTypeId == "enterprise.upgrade"), Is.False);
             Assert.That(new EnterpriseStateQuery().GetLevel(state, 1, target), Is.EqualTo(before)); Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero); Restore(state);
         }
         [TestCase("capacity")][TestCase("type")][TestCase("influence_zone")]

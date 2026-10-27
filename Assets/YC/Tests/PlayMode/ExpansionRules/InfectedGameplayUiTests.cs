@@ -235,7 +235,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             var region = map.Regions.Single(value => value.RegionId == map.Locations.First(location => location.LocationId == "B-01").RegionId);
             AddMapToken("permanent-token", "infected.gavial_token", "infected.component.gavial_token", region.LocationIds[0]);
             AddMapToken("lock-token", "infected.influence_lock_token", "infected.component.influence_lock_token", region.LocationIds[1]);
-            var contractZone = State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_awards" && zone.OwnerPlayerId == 1);
+            var contractZone = State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_rewards" && zone.OwnerPlayerId == 1);
             State.ItemZones.Items.Add(new ItemInstanceState { ItemId = "contract-card", DefinitionId = CompanyInfluenceRules.ContractDefinitionId, TypeId = "core.contract_card",
                 PhysicalKind = ItemPhysicalKind.Card, ZoneId = contractZone.ZoneId, ControllerSubject = new ItemSubjectRef { Kind = ItemSubjectKind.Player, PlayerId = 1 } });
             foreach (var location in region.LocationIds.Take(3))

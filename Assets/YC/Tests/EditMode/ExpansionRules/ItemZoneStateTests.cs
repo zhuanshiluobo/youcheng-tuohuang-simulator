@@ -27,7 +27,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         };
         private static List<ItemRecipeEntry> Recipe() => new List<ItemRecipeEntry>
         {
-            new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "component.player_marker", TypeId = "core.player_marker", Quantity = 3, PerPlayer = true, InitialZoneRole = "player_markers" },
+            new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.player_marker", TypeId = "core.player_marker", Quantity = 3, PerPlayer = true, InitialZoneRole = "supply" },
             new ItemRecipeEntry { EntryId = "initial_character", DefinitionId = "character.example", TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" },
             new ItemRecipeEntry { EntryId = "mobile_city", DefinitionId = "component.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
             new ItemRecipeEntry { EntryId = "facility_cards", DefinitionId = "facility.example", TypeId = "core.facility_card", Quantity = 3, InitialZoneRole = "facility_deck" },
@@ -139,7 +139,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void CubeRejectsOriginalSupplyWithoutMatchingItsTypeAndOwner()
         {
             var state = State(); string storage = Attach(state); var cube = Cube(state);
-            Position(state, cube, storage); cube.OriginalSupplyZoneId = Zone(state, "player_markers", 2).ZoneId;
+            Position(state, cube, storage); cube.OriginalSupplyZoneId = Zone(state, "supply", 2).ZoneId;
             Assert.That(new ItemZoneQuery().TryValidate(state, out string reason), Is.False); Assert.That(reason, Is.EqualTo("OriginalSupplyZoneId_invalid"));
         }
 

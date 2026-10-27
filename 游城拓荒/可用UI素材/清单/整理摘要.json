@@ -1,22 +1,22 @@
 {
-  "date": "2026-10-08",
-  "packages": 23,
-  "sourceMembers": 3941,
-  "allowedSourceImageMembers": 1849,
-  "uniqueFiles": 1276,
+  "date": "2026-10-24",
+  "packages": 24,
+  "sourceMembers": 4008,
+  "allowedSourceImageMembers": 1894,
+  "uniqueFiles": 1396,
   "sourceReadPolicy": "后续未经用户明确授权不得读取原档案",
   "notSelectedCounts": {
     "旧主屏框与底图已被Frontier3.1按角色替换": 2,
-    "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材": 1120,
+    "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材": 1136,
     "旧顶栏含红旗、标题组合层已淘汰": 11,
-    "文档、参数或生产工具，非贴图": 309,
+    "文档、参数或生产工具，非贴图": 314,
     "此目录PNG均为已明确映射或停绘的旧模块层": 8,
     "主次按钮旧外观被Frontier替代；不得作为3.2行动按钮回退": 7,
     "拼装预览或样例牌，不是正式 UI 素材": 11,
     "生成原料、旧皮肤与参考图；不是缺失素材替代品": 11,
     "顶栏及撤销对应语义已有指定新版图标": 3,
     "企业家演示原画未核准为当前正式来源": 6,
-    "预览、示例或生产原料不得作为运行时替代图": 164,
+    "预览、示例或生产原料不得作为运行时替代图": 165,
     "独立历史顶栏不进入当前可用库": 11,
     "3.5干净底图替换白角旧底图": 1,
     "3.5细框替代": 2,
@@ -35,5 +35,11 @@
     "用户已明确删除城市样式锁图标；其他窗口许可另列": 1,
     "1.1是完整独立包，当前只提供最新布局与其皮肤": 308
   },
-  "currentStandards": "清单/当前用途标准.json"
+  "currentStandards": "清单/当前用途标准.json",
+  "initialDate": "2026-10-08",
+  "latestIncrement": {
+    "projectSource": "G:\\NoMadCity\\游城拓荒\\感染者扩\\httpssteamusercontentaakamaihdnetugc2411202693614576918BFE11BD2F41D145B50F2DE32A0FACEFE29542B4C.png",
+    "newFiles": 1,
+    "basis": "2026-10-24 用户129单张PNG精确地图许可；ZIP包数及成员数不变"
+  }
 }

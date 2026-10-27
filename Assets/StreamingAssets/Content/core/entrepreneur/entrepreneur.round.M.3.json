@@ -1,0 +1,240 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.M.3",
+  "contentType": "entrepreneur_round",
+  "version": "1.2.2",
+  "displayName": "马丁·费舍尔·第3回合",
+  "artwork": "artwork/entrepreneurs/M07.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.M07",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M07.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M07.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M07.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M07.setup",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M07.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M07.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M07.immediate.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.M08",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M08.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M08.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M08.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M08.setup",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M08.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M08.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M08.immediate.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M07",
+      "kind": "event",
+      "handlerRef": "entrepreneur.face.M07.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M07",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M07",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M07.setup",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.M07.immediate.1",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M07",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M07.setup",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M08",
+      "kind": "event",
+      "handlerRef": "entrepreneur.face.M08.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M08",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M08",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M08.setup",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.M08.immediate.1",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M08",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M08.setup",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "M07",
+      "M08"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.M07",
+        "entityDefinitionId": "entrepreneur.round.M.3",
+        "faceId": "M07",
+        "sourceId": "M07",
+        "artwork": "artwork/entrepreneurs/M07.jpg",
+        "artworkSha256": "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.M07"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.M07.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.M08",
+        "entityDefinitionId": "entrepreneur.round.M.3",
+        "faceId": "M08",
+        "sourceId": "M08",
+        "artwork": "artwork/entrepreneurs/M08.jpg",
+        "artworkSha256": "0b8187c72f75e5e0e2fe20d067b245cda1e33191967f1ec6083a3209add76f40",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.M08"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.M08.immediate.1"
+        ]
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.face.M07",
+        "displayName": "3A·复合设施",
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M07.description",
+          "arguments": []
+        },
+        "activation": "Held",
+        "displayCategory": "PlayerEffect"
+      },
+      {
+        "abilityId": "entrepreneur.face.M08",
+        "displayName": "3B·拥挤城区",
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M08.description",
+          "arguments": []
+        },
+        "activation": "Held",
+        "displayCategory": "PlayerEffect"
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.M07.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M07.body.completed"
+    },
+    {
+      "handlerId": "entrepreneur.M07.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M07.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.M08.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M08.body.completed"
+    },
+    {
+      "handlerId": "entrepreneur.M08.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M08.immediate.1.completed"
+    }
+  ]
+}

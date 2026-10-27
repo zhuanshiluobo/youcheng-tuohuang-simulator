@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -113,6 +114,29 @@ namespace YC.Presentation
         public Text ResourceSummaryText => resourceSummaryText;
         public FacilityEffectCardView FacilityCardTemplate => facilityCardTemplate;
 
+        private string allocationInteractionId;
+        private Button allocationConfirm;
+        private IReadOnlyList<EffectDialogResourceRowView> allocationRows;
+        private Func<bool> allocationIsCurrent;
+
+        // 运行时绑定实际视图，不依赖用户可编辑的对象名称或文案。
+        internal void BindResourceAllocation(string interactionId, Button confirm,
+            IReadOnlyList<EffectDialogResourceRowView> rows, Func<bool> isCurrent)
+        {
+            allocationInteractionId = interactionId; allocationConfirm = confirm;
+            allocationRows = rows; allocationIsCurrent = isCurrent;
+        }
+
+        internal bool TryGetResourceAllocation(string interactionId, out Button confirm,
+            out IReadOnlyList<EffectDialogResourceRowView> rows)
+        {
+            confirm = null; rows = null;
+            if (string.IsNullOrEmpty(interactionId) || allocationInteractionId != interactionId ||
+                !isActiveAndEnabled || !gameObject.activeInHierarchy || allocationConfirm == null ||
+                allocationIsCurrent?.Invoke() == false) return false;
+            confirm = allocationConfirm; rows = allocationRows; return true;
+        }
+
         public void ConfigureSelectionMode(bool readOnly, string hintOverride = null)
         {
             if (IsCardPicker && cardPickerHint != null)
@@ -131,9 +155,11 @@ namespace YC.Presentation
                 eventData.button != PointerEventData.InputButton.Left || eventData.dragging) return;
             var threshold = EventSystem.current == null ? 10 : EventSystem.current.pixelDragThreshold;
             if ((eventData.position - eventData.pressPosition).sqrMagnitude > threshold * threshold) return;
-            var hit = eventData.pointerPressRaycast.gameObject ?? eventData.pointerCurrentRaycast.gameObject;
-            if (hit != null && (hit.GetComponentInParent<FacilityEffectCardView>() != null ||
-                hit.GetComponentInParent<Selectable>() != null)) return;
+            bool IsCardOrControl(GameObject hit) => hit != null && (hit.GetComponentInParent<FacilityEffectCardView>() != null ||
+                hit.GetComponentInParent<Selectable>() != null);
+            if (IsCardOrControl(eventData.pointerPressRaycast.gameObject) ||
+                IsCardOrControl(eventData.pointerCurrentRaycast.gameObject)) return;
+            eventData.Use();
             dismissOnBackgroundClick();
         }
 
@@ -392,6 +418,8 @@ namespace YC.Presentation
 
         public void ClearDynamicContent()
         {
+            allocationInteractionId = null; allocationConfirm = null;
+            allocationRows = null; allocationIsCurrent = null;
             ResetCountedHeading();
             foreach (var item in dynamicRows)
             {

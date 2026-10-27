@@ -21,6 +21,8 @@ namespace YC.Presentation
         [InspectorName("区域色使用平色版")][SerializeField] private bool flatRegion;
         [InspectorName("状态")][SerializeField] private InfluenceMarker2DState state;
         [Range(0, 1)][InspectorName("透明度")][SerializeField] private float opacity = 1f;
+        private bool useFixedTint;
+        private Color fixedTint = Color.white;
 
         public InfluenceMarker2DCatalog Catalog => catalog;
         public InfluenceMarker2DColor ColorPreset => color;
@@ -33,6 +35,7 @@ namespace YC.Presentation
 
         public void SetAppearance(InfluenceMarker2DColor preset, bool numbered, int value, bool flat = false)
         {
+            useFixedTint = false;
             color = preset; showNumber = numbered; number = Mathf.Max(0, value); flatRegion = flat;
             Refresh();
         }
@@ -46,6 +49,7 @@ namespace YC.Presentation
 
         public void RenderMask(int mask, int count, bool numbered)
         {
+            useFixedTint = false;
             color = (InfluenceMarker2DColor)Mathf.Clamp(mask, 0, 15);
             showNumber = numbered; number = Mathf.Max(0, count); opacity = 1f;
             Refresh();
@@ -53,10 +57,19 @@ namespace YC.Presentation
 
         public void RenderPlayer(PlayerColor player, int count)
         {
+            useFixedTint = false;
             color = player == PlayerColor.Red ? InfluenceMarker2DColor.Red :
                 player == PlayerColor.Blue ? InfluenceMarker2DColor.Blue :
                 player == PlayerColor.Green ? InfluenceMarker2DColor.Green : InfluenceMarker2DColor.Yellow;
             number = Mathf.Max(0, count); opacity = 1f; Refresh();
+        }
+
+        /// <summary>固定色只作用于现有通用绿版face；数字及状态仍由各自组件显示。</summary>
+        public void RenderFixed(Color tint, int count)
+        {
+            color = InfluenceMarker2DColor.Green; flatRegion = false; showNumber = true;
+            useFixedTint = true; fixedTint = tint; opacity = Mathf.Clamp01(tint.a);
+            number = Mathf.Max(0, count); Refresh();
         }
 
         public void Refresh()
@@ -66,7 +79,7 @@ namespace YC.Presentation
             face.sprite = flatRegion && entry.flat != null ? entry.flat : showNumber ? entry.numbered : entry.plain;
             face.type = Image.Type.Simple;
             face.preserveAspect = true;
-            face.color = new Color(1, 1, 1, opacity);
+            face.color = useFixedTint ? new Color(fixedTint.r, fixedTint.g, fixedTint.b, opacity) : new Color(1, 1, 1, opacity);
             if (numberText != null)
             {
                 numberText.gameObject.SetActive(showNumber);

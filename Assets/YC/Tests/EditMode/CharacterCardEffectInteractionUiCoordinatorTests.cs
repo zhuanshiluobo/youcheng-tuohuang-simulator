@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Linq;
 using Newtonsoft.Json;
@@ -305,21 +306,38 @@ namespace YC.Tests.EditMode
         {
             var state = CreateState();
             var fixture = CreateCoordinator(state);
+            string source = maxSelections == 1 ? "resource-effect" : "inventory-effect";
             var request = new InteractionRequest
             {
-                InteractionId = "lua.choice.test", InteractionTypeId = "lua.choice", Status = "open",
+                InteractionId = "lua.choice." + source, OwnerEffectId = source, InteractionTypeId = "lua.choice", Status = "open",
                 Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 8,
                 CandidateIds = new List<string> { "originium", "iron" }, MinSelections = 1, MaxSelections = maxSelections,
-                PromptKey = "character.elysium.strategy.choose_resource"
+                PromptKey = maxSelections == 1 ? "character.elysium.strategy.choose_resource" : "fixture.inventory.choice"
             };
             state.EffectRuntime.InteractionRequests.Add(request);
             var commands = new List<YC.Domain.Commands.GameCommand>();
+            string prompt = string.Empty;
             var type = Type.GetType("YC.Presentation.CharacterAbilityInteractionUiCoordinator, Assembly-CSharp", true);
             var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
                 new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
                     new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
-                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(_ => { }) });
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(value => prompt = value) });
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            var overlay = GetOverlay(fixture.Dialog);
+            var shellView = overlay.GetComponent(Type.GetType("YC.Presentation.EffectDialogShellView, Assembly-CSharp", true));
+            var heading = (Text)shellView.GetType().GetProperty("TitleText").GetValue(shellView);
+            var description = (Text)shellView.GetType().GetProperty("DescriptionText").GetValue(shellView);
+            Assert.That(heading.text, Is.EqualTo("请选择"), "普通Choice默认标题由当前文案资产提供。");
+            Assert.That(prompt, Is.Not.Empty); Assert.That(description.text, Is.EqualTo(prompt));
+            string originalPrompt = description.text;
+            var copy = fixture.Dialog.GetType().GetProperty("Copy", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture.Dialog);
+            string CopyText(string property) => (string)copy.GetType().GetProperty(property).GetValue(copy);
+            if(maxSelections==2)Assert.That(originalPrompt,Is.EqualTo(CopyText("CompleteCurrentSelectionPrompt")));
+            CaptureChoiceTitle(source, overlay, heading);
+            type.GetMethod("OnLocationClicked").Invoke(renderer,new object[]{"fixture.unrelated-location"}); Assert.That(prompt,Is.EqualTo(CopyText("FinishCurrentSelectionPrompt")));
+            type.GetMethod("OnInfluenceSlotClicked").Invoke(renderer,new object[]{"fixture.unrelated-slot"}); Assert.That(prompt,Is.EqualTo(CopyText("SelectionPagePrompt")));
+            type.GetMethod("OnMobileCityClicked").Invoke(renderer,null); Assert.That(prompt,Is.EqualTo(CopyText("FinishCurrentSelectionPrompt")));
+            type.GetMethod("OnEscape").Invoke(renderer,null); Assert.That(prompt,Is.EqualTo(CopyText("SelectionCannotCancelPrompt"))); Assert.That(commands,Is.Empty);
             var before = state.FindPlayer(1).Resources.Originium;
             ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
             if (maxSelections == 2)
@@ -334,7 +352,90 @@ namespace YC.Tests.EditMode
             Assert.That(commands[0].OptionIds, Is.EqualTo(maxSelections == 1 ? new[] { "originium" } : new[] { "originium", "iron" }));
             Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.ExpectedRevisionParameter], Is.EqualTo("8"));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(before), "UI 不能修改权威资源。");
+            var requestTitle = type.GetMethod("RequestTitle", BindingFlags.Instance | BindingFlags.NonPublic);
+            var playerTarget = (string)requestTitle.Invoke(renderer, new object[] { new InteractionRequestProjection { PromptKey = "effect.player.choose_target" } });
+            Assert.That(playerTarget, Is.EqualTo(copy.GetType().GetProperty("PlayerTargetSelectionTitle").GetValue(copy)));
+            var hudAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var expansion = hudAsset.GetComponent(Type.GetType("YC.Presentation.GameplayInteractionHudView, Assembly-CSharp", true)).GetType().GetProperty("ExpansionUi")
+                .GetValue(hudAsset.GetComponent(Type.GetType("YC.Presentation.GameplayInteractionHudView, Assembly-CSharp", true)));
+            type.GetProperty("ExpansionUi").SetValue(renderer, expansion);
+            var expansionCopy = expansion.GetType().GetProperty("Copy").GetValue(expansion);
+            Assert.That(requestTitle.Invoke(renderer, new object[] { new InteractionRequestProjection { InteractionTypeId = "character.use.mode" } }),
+                Is.EqualTo(expansionCopy.GetType().GetField("CharacterTitle").GetValue(expansionCopy)));
+            foreach(string name in new[]{"DispatchPrompt","DispatchReturnPrompt","ReplacePrompt"})
+            {var text=(string)expansionCopy.GetType().GetField(name).GetValue(expansionCopy);Assert.That(text,Is.Not.Empty);Assert.That(text,Does.Not.Contain("主机").And.Not.Contain("原子"));}
+            type.GetProperty("ExpansionUi").SetValue(renderer, null);
+            var optionsType = Type.GetType("YC.Presentation.EffectDialogOption, Assembly-CSharp", true);
+            fixture.Dialog.GetType().GetMethods().Single(m => m.Name == "ShowOptions" && m.GetParameters().Length == 5).Invoke(fixture.Dialog,
+                new object[] { "来源明确提供的标题（隔离）", originalPrompt, Array.CreateInstance(optionsType, 0), null, null });
+            Assert.That(heading.text, Is.EqualTo("来源明确提供的标题（隔离）"), "显式标题不能被通用默认值覆盖。");
+            RecordChoiceTitle(source, request, originalPrompt, commands[0], shellView, copy);
             renderer.Clear();
+        }
+
+        private void CaptureChoiceTitle(string source, GameObject overlay, Text title)
+        {
+            string output = Environment.GetEnvironmentVariable("QY017_CHOICE_TITLE_OUTPUT");
+            if (string.IsNullOrEmpty(output)) return;
+            var canvas = canvasObject.GetComponent<Canvas>(); var previousMode = canvas.renderMode; var previousCamera = canvas.worldCamera;
+            var cameraObject = new GameObject("选择标题隔离截图相机", typeof(Camera)); var camera = cameraObject.GetComponent<Camera>();
+            var target = new RenderTexture(1600,1000,24); var previousTarget = RenderTexture.active; Texture2D pixels = null;
+            var captionObject = new GameObject("隔离组件标识",typeof(RectTransform),typeof(CanvasRenderer),typeof(Text));
+            try
+            {
+                camera.transform.position = new Vector3(0,0,-10); camera.orthographic = true; camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(.14f,.15f,.18f); target.Create(); camera.targetTexture = target;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera; canvas.worldCamera = camera; canvas.planeDistance = 1;
+                var caption = captionObject.GetComponent<Text>(); var rect = (RectTransform)captionObject.transform;
+                rect.SetParent(canvas.transform,false); rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(0,1);rect.anchoredPosition=new Vector2(8,-4);rect.sizeDelta=new Vector2(800,32);
+                caption.font=title.font;caption.fontSize=20;caption.text="隔离组件｜通用选择标题｜"+source;caption.color=new Color(1,.85f,.35f);caption.raycastTarget=false;
+                Canvas.ForceUpdateCanvases(); LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)overlay.transform); Canvas.ForceUpdateCanvases(); camera.Render();
+                RenderTexture.active=target;pixels=new Texture2D(target.width,target.height,TextureFormat.RGBA32,false);
+                pixels.ReadPixels(new Rect(0,0,target.width,target.height),0,0);pixels.Apply();
+                File.WriteAllBytes(Path.Combine(output,"隔离-通用Choice-"+source+".png"),pixels.EncodeToPNG());
+            }
+            finally
+            {
+                RenderTexture.active=previousTarget;canvas.renderMode=previousMode;canvas.worldCamera=previousCamera;camera.targetTexture=null;target.Release();
+                UnityEngine.Object.DestroyImmediate(target);if(pixels!=null)UnityEngine.Object.DestroyImmediate(pixels);
+                UnityEngine.Object.DestroyImmediate(captionObject);UnityEngine.Object.DestroyImmediate(cameraObject);
+            }
+        }
+        private static void RecordChoiceTitle(string source, InteractionRequest request, string prompt, YC.Domain.Commands.GameCommand command, Component shell, object profile)
+        {
+            string output=Environment.GetEnvironmentVariable("QY017_CHOICE_TITLE_OUTPUT");if(string.IsNullOrEmpty(output))return;
+            var registryType=Type.GetType("YC.Presentation.GameplayDialogRegistry, Assembly-CSharp",true);
+            var hud=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var registry=hud.GetComponentInChildren(registryType,true);
+            Assert.That(registryType.GetProperty("EffectDialogLayoutProfile",BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic).GetValue(registry),Is.SameAs(profile));
+            var profilePath=AssetDatabase.GetAssetPath((UnityEngine.Object)profile);Assert.That(profilePath,Is.EqualTo("Assets/YC/Presentation/Content/EffectDialogLayoutProfile.asset"));
+            var scenes=new List<object>();
+            if(request.MaxSelections==1)
+                foreach(string path in new[]{"Assets/Scenes/SampleScene.unity","Assets/Scenes/ThreePlayerScene.unity"})
+                {
+                    var scene=UnityEditor.SceneManagement.EditorSceneManager.OpenScene(path,UnityEditor.SceneManagement.OpenSceneMode.Additive);
+                    try
+                    {
+                        foreach(var actual in scene.GetRootGameObjects().SelectMany(root=>root.GetComponentsInChildren(registryType,true)))
+                        {
+                            var actualProfile=registryType.GetProperty("EffectDialogLayoutProfile",BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic).GetValue(actual);
+                            Assert.That(AssetDatabase.GetAssetPath((UnityEngine.Object)actualProfile),Is.EqualTo(profilePath));
+                            scenes.Add(new{scene=path,profile=profilePath});
+                        }
+                    }
+                    finally{UnityEditor.SceneManagement.EditorSceneManager.CloseScene(scene,true);}
+                }
+            var files=new[]{profilePath,"Assets/YC/Presentation/EffectDialogLayoutProfile.cs","Assets/YC/Presentation/CharacterAbilityInteractionUiCoordinator.cs",
+                "Assets/YC/Presentation/GameplayExpansionUi.cs","Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+                "Assets/YC/Tests/EditMode/CharacterCardEffectInteractionUiCoordinatorTests.cs"};
+            string Hash(string path){using var sha=System.Security.Cryptography.SHA256.Create();using var stream=File.OpenRead(path);return string.Concat(sha.ComputeHash(stream).Select(b=>b.ToString("x2")));}
+            File.WriteAllText(Path.Combine(output,source+"-选择标题验证.json"),JsonConvert.SerializeObject(new{source,request.OwnerEffectId,request.InteractionTypeId,request.PromptKey,prompt,
+                request.CandidateIds,request.MinSelections,request.MaxSelections,submitted=command.OptionIds,revision=command.Parameters["expectedRevision"],profilePath,
+                files=files.Select(path=>new{path,sha256=Hash(path)}),scenes,
+                neutralPrompts=new[]{"FinishCurrentSelectionPrompt","SelectionPagePrompt","SelectionCannotCancelPrompt","CompleteCurrentSelectionPrompt"}
+                    .ToDictionary(name=>name,name=>(string)profile.GetType().GetProperty(name).GetValue(profile)),
+                assemblies=new[]{typeof(CharacterCardEffectInteractionUiCoordinatorTests).Assembly,shell.GetType().Assembly}.Select(a=>new{a.Location,mvid=a.ManifestModule.ModuleVersionId,sha256=Hash(a.Location)}),
+                scope="两个匿名来源的公开请求/单双选，实际通用协调器与原弹窗资产；不执行规则Host或计正常对局。显式标题及玩家专用标题保持配置值。"},Formatting.Indented));
         }
 
         [Test]
@@ -662,124 +763,6 @@ namespace YC.Tests.EditMode
             Assert.That(GetOverlay(fixture.Dialog), Is.Null);
         }
 
-        [Test]
-        public void TinManFirstPurchase_CancelSubmitsFinishChoice()
-        {
-            var state = CreateState();
-            state.PendingCharacterEffect = TinManPurchasePending(
-                CharacterPendingChoiceTypes.TinManFirstPurchase,
-                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(SynchronizePending(fixture.Coordinator), Is.True);
-            var overlay = GetOverlay(fixture.Dialog);
-            Assert.That(GetText(overlay, "Character Effect Title"), Does.Contain("第一步"));
-            Assert.That(FindChild(overlay, "Character Effect Option 0"), Is.Not.Null);
-            ClickButton(overlay, "Cancel Character Effect");
-
-            Assert.That(
-                fixture.SubmittedPending[CharacterEffectParameterKeys.Choice],
-                Is.EqualTo(CharacterEffectChoiceIds.TinManFinishPurchasing));
-            Assert.That(
-                fixture.SubmittedPending[
-                    CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                Is.EqualTo(state.PendingCharacterEffect.SourceCommandId));
-        }
-
-        [Test]
-        public void TinManFirstPurchase_PaySubmitsOnlyCurrentStepChoice()
-        {
-            var state = CreateState();
-            state.PendingCharacterEffect = TinManPurchasePending(
-                CharacterPendingChoiceTypes.TinManFirstPurchase,
-                CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(SynchronizePending(fixture.Coordinator), Is.True);
-            ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
-
-            Assert.That(
-                fixture.SubmittedPending[CharacterEffectParameterKeys.Choice],
-                Is.EqualTo(CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium));
-            Assert.That(
-                fixture.SubmittedPending[
-                    CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                Is.EqualTo(state.PendingCharacterEffect.SourceCommandId));
-        }
-
-        [Test]
-        public void TinManSecondPurchase_UsesDistinctChoiceAndInsufficientStateOnlyAllowsCancel()
-        {
-            var state = CreateState();
-            state.PendingCharacterEffect = TinManPurchasePending(
-                CharacterPendingChoiceTypes.TinManSecondPurchase,
-                CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium);
-            state.PendingCharacterEffect.TinManPurchasePureOriginium12 = true;
-            var fixture = CreateCoordinator(state);
-
-            Assert.That(SynchronizePending(fixture.Coordinator), Is.True);
-            var overlay = GetOverlay(fixture.Dialog);
-            Assert.That(GetText(overlay, "Character Effect Title"), Does.Contain("第二步"));
-            ClickButton(overlay, "Character Effect Option 0");
-            Assert.That(
-                fixture.SubmittedPending[CharacterEffectParameterKeys.Choice],
-                Is.EqualTo(CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium));
-            Assert.That(
-                fixture.SubmittedPending[
-                    CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                Is.EqualTo(state.PendingCharacterEffect.SourceCommandId));
-
-            state.PendingCharacterEffect = TinManPurchasePending(
-                CharacterPendingChoiceTypes.TinManSecondPurchase,
-                null);
-            state.PendingCharacterEffect.TinManPurchasePureOriginium12 = true;
-            fixture.SubmittedPending = null;
-            Assert.That(SynchronizePending(fixture.Coordinator), Is.True);
-            overlay = GetOverlay(fixture.Dialog);
-            Assert.That(FindChild(overlay, "Character Effect Option 0"), Is.Null);
-            ClickButton(overlay, "Cancel Character Effect");
-            Assert.That(
-                fixture.SubmittedPending[CharacterEffectParameterKeys.Choice],
-                Is.EqualTo(CharacterEffectChoiceIds.TinManFinishPurchasing));
-            Assert.That(
-                fixture.SubmittedPending[
-                    CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                Is.EqualTo(state.PendingCharacterEffect.SourceCommandId));
-        }
-
-        [Test]
-        public void TinManPendingMove_UsesDialogForBranchThenTransfersToMap()
-        {
-            var state = CreateState();
-            var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var sourceLocation = map.Locations[0];
-            state.Map.Influences.Add(new InfluencePlacement
-            {
-                PlayerId = 1,
-                LocationId = sourceLocation.LocationId,
-                SlotId = InfluenceService.GetLocationSlotId(sourceLocation.LocationId, 0)
-            });
-            state.PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = CharacterPendingChoiceTypes.TinManDiscard,
-                PlayerId = 1,
-                CardId = "character.red.p1.tin-man",
-                SourceCommandId = "tin-man-test",
-                RemainingCardIds = { "character.red.p1.liskarm" },
-                OptionIds = { CharacterEffectChoiceIds.GainGold, CharacterEffectChoiceIds.MoveInfluence }
-            };
-            var fixture = CreateCoordinator(state, pendingMapResult: true);
-
-            Assert.That(SynchronizePending(fixture.Coordinator), Is.True);
-            var overlay = GetOverlay(fixture.Dialog);
-            Assert.That(GetText(overlay, "Character Effect Description"), Does.Contain("雷蛇"));
-            ClickButton(overlay, "Character Effect Option 1");
-
-            Assert.That(fixture.PendingMapBegun, Is.True);
-            Assert.That(fixture.SubmittedPending, Is.Null);
-            Assert.That(IsDialogShowing(fixture.Dialog), Is.False);
-        }
-
         private CoordinatorFixture CreateCoordinator(
             GameState state,
             bool mapEffectResult = false,
@@ -910,13 +893,6 @@ namespace YC.Tests.EditMode
                 .Invoke(coordinator, new object[] { mode, effect });
         }
 
-        private static bool SynchronizePending(object coordinator)
-        {
-            return (bool)coordinator.GetType()
-                .GetMethod("SynchronizePending", BindingFlags.Instance | BindingFlags.Public)
-                .Invoke(coordinator, null);
-        }
-
         // 正式弹窗保留实例复用；是否可见才是pending/转地图时的行为约束。
         private static bool IsDialogShowing(object dialog) => (bool)dialog.GetType()
             .GetProperty("IsShowing", BindingFlags.Instance | BindingFlags.Public).GetValue(dialog);
@@ -977,6 +953,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                GameId = "character-ui-contract-test",
                 Phase = GamePhase.ActionRound1,
                 CurrentPlayerId = 1,
                 StartPlayerId = 1,
@@ -990,26 +967,6 @@ namespace YC.Tests.EditMode
                     }
                 }
             };
-        }
-
-        private static PendingCharacterEffectState TinManPurchasePending(
-            string choiceType,
-            string purchaseChoiceId)
-        {
-            var pending = new PendingCharacterEffectState
-            {
-                ChoiceType = choiceType,
-                PlayerId = 1,
-                CardId = "character.red.p1.tin-man",
-                SourceCommandId = "tin-man-purchase-test"
-            };
-            pending.OptionIds.Add(CharacterEffectChoiceIds.TinManFinishPurchasing);
-            if (!string.IsNullOrEmpty(purchaseChoiceId))
-            {
-                pending.OptionIds.Add(purchaseChoiceId);
-            }
-
-            return pending;
         }
 
         private sealed class CoordinatorFixture

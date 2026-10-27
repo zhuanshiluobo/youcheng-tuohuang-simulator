@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "date": "2026-10-09",
-  "implementationStatus": "2026-10-14逐项核对：26张指定图片已导入，21图标键绑定一致；布局/入场已修，必要组件和正常Player单来源截图已核。其他屏幕/多来源动画手感未验；各来源业务通过另查交付，不由此映射推定。",
+  "date": "2026-10-25",
+  "implementationStatus": "2026-10-25按用户最新澄清仅取消本控件悬停弹出的Tooltip文字及专用接线，保五态26图、hover背景/图标色/文字颜色和布局入场。无障碍名称及右键/长按独立详情保留；本轮未编译/原生或正常画面验收，2026-10-14既有有限结论不扩大。",
   "catalogStandard": "M03",
   "mode": "完整整底；禁止与fill/frame重复叠加",
   "sourceReadScope": [
@@ -1242,5 +1242,11 @@
   "unresolvedIconKeyCount": 0,
   "unresolvedIcons": [],
   "currentVisualContract": "结算按钮布局与入场表现-修补合同.md",
-  "decorativeVerticalLinesIncluded": false
+  "decorativeVerticalLinesIncluded": false,
+  "hoverTextPolicy": {
+    "enabled": false,
+    "scope": "仅本控件鼠标悬停弹出的完整名称/正文/禁用原因Tooltip；保hover外观、无障碍名称及独立详情，不增改键盘逻辑",
+    "authority": "2026-10-25用户最新澄清，规划154",
+    "originalRequirement": "游城拓荒/可用UI素材/文档/原始说明/独立说明/Settlement-Effects-v1.0-Guide.md:71；原文保留"
+  }
 }

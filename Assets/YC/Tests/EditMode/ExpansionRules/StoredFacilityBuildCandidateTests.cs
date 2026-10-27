@@ -25,23 +25,20 @@ namespace YC.Tests.EditMode.ExpansionRules
         private ExternalContentPack core, pack;
         private EffectRegistry registry;
         private string facilityDefinitionId;
+        private IsolatedTestArtifacts artifacts;
+        [TearDown] public void RecordCase() => artifacts?.Finish();
 
-        [OneTimeSetUp]
+        [SetUp]
         public void LoadInstalledDefinitionAndActualLua()
         {
             string content = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
-            string root = Path.Combine(Directory.GetCurrentDirectory(), "Logs/StoredFacilityBuildReview/20261009/test-content", Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(root);
+            artifacts = IsolatedTestArtifacts.BeginCase();
+            content=artifacts.CopyContent(content,"旧设施候选完整未修改基线");
+            var patches = new Dictionary<string, string>();
             var card = JObject.Parse(File.ReadAllText(Path.Combine(content, "character/operator.closure.json")));
             // 本夹具验规则，不借原UI档案，也不把裁切校验冒称画面验收。
             card.Remove("artworkSpriteId");
-            foreach (string path in new[] { (string)card["artwork"], "lua/characters/operator.closure.strategy.lua", "lua/characters/operator.closure.tactic.lua" })
-            {
-                string target = Path.Combine(root, path); Directory.CreateDirectory(Path.GetDirectoryName(target));
-                File.Copy(Path.Combine(content, path), target);
-            }
-            Directory.CreateDirectory(Path.Combine(root, "character"));
-            File.WriteAllText(Path.Combine(root, "character/operator.closure.json"), card.ToString());
+            patches["character/operator.closure.json"] = card.ToString();
             var inventory = JObject.Parse(File.ReadAllText(Path.Combine(content, "facility_inventory.json")));
             var group = ((JArray)inventory["groups"]).Single(value => (string)value["definition"]["dataTemplate"] == "templates/facilities/discount_originium_by_facility_color.json");
             var variant = group["variants"][0]; var instance = variant["instances"][0];
@@ -49,13 +46,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             facility["definitionId"] = instance["id"].DeepClone(); facility["artwork"] = variant["artwork"].DeepClone();
             facility.Remove("artworkSpriteId");
             facility["data"] = new JObject { ["facilityId"] = instance["id"].DeepClone(), ["color"] = variant["color"].DeepClone() };
-            foreach (string path in new[] { (string)facility["dataTemplate"], (string)facility["artwork"], "lua/facilities/no_entry.lua" })
-            { string target = Path.Combine(root, path); Directory.CreateDirectory(Path.GetDirectoryName(target)); File.Copy(Path.Combine(content, path), target); }
-            Directory.CreateDirectory(Path.Combine(root, "facility")); File.WriteAllText(Path.Combine(root, "facility/source.json"), facility.ToString());
-            File.WriteAllText(Path.Combine(root, "pack.json"), new JObject { ["schemaVersion"] = 3, ["packId"] = "core", ["version"] = "1.0.0",
+            patches["facility/source.json"] = facility.ToString();
+            patches["pack.json"] = new JObject { ["schemaVersion"] = 3, ["packId"] = "core", ["version"] = "1.0.0",
                 ["definitions"] = new JArray("character/operator.closure.json", "facility/source.json"), ["enabledExpansionIds"] = new JArray("core", "enterprise"), ["requiredCapabilities"] = new JArray(),
-                ["expansionDependencies"] = new JArray(new JObject { ["expansionId"] = "enterprise", ["requires"] = new JArray("core") }), ["setupRecipes"] = new JArray() }.ToString());
+                ["expansionDependencies"] = new JArray(new JObject { ["expansionId"] = "enterprise", ["requires"] = new JArray("core") }), ["setupRecipes"] = new JArray(),
+                // 实际Closure Lua沿正式显示声明解析；最小定义清单不能丢掉显示来源登记。
+                ["presentation"] = JObject.Parse(File.ReadAllText(Path.Combine(content, "pack.json")))["presentation"].DeepClone() }.ToString();
+            string root = artifacts.CopyContent(content, "旧设施候选独占私有输入", patches);
             pack = ExternalContentPack.Load(root); core = pack;
+            artifacts.RecordContent("旧设施候选实际装载", root, pack.ContentHash);
             facilityDefinitionId = core.CreateFacilities().First(facility => !facility.Unique && !facility.HasEntryEffect && facility.GoldVoucherCost > 0).FacilityId;
         }
 
@@ -73,7 +72,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Events = core.CreateEvents().ToList(), CityStyles = core.CreateCityStyles().ToList() } };
             for (int id = 1; id <= 2; id++) source.Players.Add(new PlayerState { PlayerId = id, Resources = new ResourceSet { GoldVoucher = 80, Originium = 20, OriginiumShard = 20, Iron = 20 } });
             var entries = new List<ItemRecipeEntry> {
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
                 new ItemRecipeEntry { EntryId = "closure", DefinitionId = "operator.closure", TypeId = "core.operator_card", Quantity = 1, InitialZoneRole = "hand", PerPlayer = true },
                 new ItemRecipeEntry { EntryId = "facilities", DefinitionId = facilityDefinitionId, TypeId = "core.facility_card", Quantity = 9, InitialZoneRole = "facility_deck" } };
@@ -109,10 +108,24 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private GameState Restore(GameState state)
         {
-            var recovered = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
+            var recovered = artifacts.Recover(state, "旧设施候选真实恢复", registry);
             Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic); return recovered.State;
         }
         private BuildFacilityOptionQueryService Query() => new BuildFacilityOptionQueryService(new BuildFacilityService(), registry.FacilityBuildCandidates);
+        private void PrepareStoredBuildPayment(GameState state, EffectNodeRuntimeState selection, string itemId)
+        {
+            var request = Open(state); var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(request.InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
+            Assert.That(request.CandidateIds, Does.Contain(itemId));
+            string source = state.ItemZones.Items.Single(i => i.ItemId == itemId).ZoneId;
+            Assert.That(engine.TryPrepareEffectBuildPayment(1, selection.EffectId, request.GetStableInteractionId(),
+                request.CandidateSetId, request.CandidateSetVersion, itemId,
+                Object("paymentMode", NormalizedValue.CreateString("gold"), "expectedSourceZoneId", NormalizedValue.CreateString(source)),
+                state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(Open(state).CandidateIds, Does.Contain("pay"));
+            artifacts.WriteLabeledText("正式库存设施付款准备待答", JsonConvert.SerializeObject(state));
+        }
 
         [Test]
         public void PurePreviewMatchesChooseBuildAndRetainsSameDefinitionInstances()
@@ -177,8 +190,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void ChooseBuildRestoresPaymentAndPaidStagingWithoutRepeatingPayment()
         {
             var state = State(); string held = Store(state);
-            Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
-            Answer(state, held); state = Restore(state); Answer(state, "gold");
+            var selection = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            PrepareStoredBuildPayment(state, selection, held); state = Restore(state); Answer(state, "pay");
             int gold = state.FindPlayer(1).Resources.GoldVoucher;
             state = Restore(state); Answer(state, Open(state).CandidateIds[0]); state = Restore(state);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold));
@@ -200,8 +213,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void TamperedFrozenSelectionSourceIsRejectedOnRecovery()
         {
             var state = State(); string held = Store(state);
-            var node = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1)); Answer(state, held);
+            var node = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            PrepareStoredBuildPayment(state, node, held); Answer(state, "pay");
             var archive = HostRecoveryService.CreateArchive(state);
+            string original = HostRecoveryService.SerializeArchive(archive);
+            var control = HostRecoveryService.RecoverJson(original, registry);
+            Assert.That(control.Succeeded, Is.True, control.Diagnostic);
+            artifacts.WriteLabeledText("库存建设冻结来源合法归档对照", original);
             Set(archive.Snapshot.State.EffectRuntime.EffectNodes.Single(value => value.EffectId == node.EffectId), "selectedSourceZoneId", NormalizedValue.CreateString(FindZone(state, "facility_supply_0").ZoneId));
             var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(archive), registry);
             Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Does.Contain("build_source_restore_invalid"));

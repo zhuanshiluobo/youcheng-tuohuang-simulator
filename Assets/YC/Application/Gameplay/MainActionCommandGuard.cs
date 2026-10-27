@@ -8,11 +8,17 @@ using System.Globalization;
 
 namespace YC.Application.Gameplay
 {
+    internal interface IPreparedActionConfirmationProvider
+    {
+        EffectRegistry PaymentRegistry { get; }
+        bool IsPreparedActionConfirmation(GameState state, GameCommand command);
+    }
+
     internal static class MainActionCommandGuard
     {
         private static readonly MainActionBudgetService MainActionBudgetService = new MainActionBudgetService();
 
-        public static ValidationResult Validate(GameState state, GameCommand command)
+        public static ValidationResult Validate(GameState state, GameCommand command, EffectRegistry registry = null)
         {
             if (state == null)
             {
@@ -41,7 +47,7 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "命令玩家不是当前玩家。");
             }
 
-            if (state.HasPendingChoice() && !IsPreparedActionConfirmation(state, command))
+            if (state.HasPendingChoiceForActiveOperation() && !IsPreparedActionConfirmation(state, command, registry))
             {
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
             }
@@ -53,7 +59,7 @@ namespace YC.Application.Gameplay
         {
             var command = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = playerId, TargetId = facilityItemId ?? "" };
             if (visibleState != null) return ValidateVisibleBuildQuote(state, command, visibleState);
-            if (state?.EffectRuntime == null || !state.HasPendingChoice()) return Validate(state, command);
+            if (state?.EffectRuntime == null || !state.HasPendingChoiceForActiveOperation()) return Validate(state, command);
             if (!CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind) || state.CurrentPlayerId != playerId ||
                 !MainActionBudgetService.ValidateCanSpend(state, playerId).IsValid || state.PendingChoice != null || state.PendingCardSession != null ||
                 state.PendingCharacterEffect != null || state.PendingSpecialAction != null) return Validate(state, command);
@@ -137,7 +143,7 @@ namespace YC.Application.Gameplay
         }
 
         // Session与处理器共用只读资格；实际挂链、复验和扣款仍由领域入口执行。
-        internal static bool IsPreparedActionConfirmation(GameState state, GameCommand command)
+        internal static bool IsPreparedActionConfirmation(GameState state, GameCommand command, EffectRegistry registry = null)
         {
             string Read(string key) => command?.Parameters != null && command.Parameters.TryGetValue(key, out var value) ? value ?? "" : "";
             if (state?.EffectRuntime == null || command == null || string.IsNullOrEmpty(command.CommandId) ||
@@ -149,7 +155,7 @@ namespace YC.Application.Gameplay
             if (string.IsNullOrEmpty(preparationId) || !ResourcePaymentPreparationService.IsCurrentPreparation(state, owner, command.PlayerId) ||
                 owner.Payment.Preparation.PreparationOwnerEffectId != preparationId || owner.Payment.OwnerEffectId != preparationId || owner.Payment.PaymentId != preparationId ||
                 owner.Status != EffectNodeStatus.Blocked || owner.FlowStage != ResourceEffectExecutor.PaymentConfirmationStage ||
-                !ResourcePaymentPreparationService.CanConfirm(state, owner) || ResourcePaymentPreparationService.HasPendingResponse(state, owner) ||
+                !ResourcePaymentPreparationService.CanConfirm(state, owner, registry) || ResourcePaymentPreparationService.HasPendingResponse(state, owner) ||
                 state.PendingChoice != null || state.PendingCardSession != null || state.PendingCharacterEffect != null || state.PendingSpecialAction != null ||
                 state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" && !request.IsInternalMainlineInteraction() && request.OwnerEffectId != preparationId)) return false;
             var input = state.EffectRuntime.InteractionRequests.SingleOrDefault(request => request.Status == "open" &&
@@ -187,7 +193,7 @@ namespace YC.Application.Gameplay
                 if (preparation.ActionKind != "city_move" || preparation.TargetId.Length == 0 || preparation.TargetId != target ||
                     !preparation.BusinessBeforeReady || preparation.SourceLocationId != state.FindPlayer(command.PlayerId).CityLocationId) return false;
             }
-            return ResourcePaymentPreparationService.TryQuote(state, command.PlayerId, preparation.ActionKind, target, arguments, out var cost, out _) &&
+            return ResourcePaymentPreparationService.TryQuote(state, command.PlayerId, preparation.ActionKind, target, arguments, out var cost, out _, registry, owner.EffectId) &&
                 ResourcePaymentPreparationService.SameCost(cost, owner.Payment.PaymentCost);
         }
     }

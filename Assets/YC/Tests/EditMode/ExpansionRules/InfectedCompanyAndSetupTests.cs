@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -149,7 +149,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                             AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track,
                             VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                         Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, board.ItemId, declaration, out string zone, out string reason), Is.True, reason);
-                        Position(state, state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "player_markers", player).ZoneId), zone, "level_0");
+                        Position(state, state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "supply", player).ZoneId), zone, "level_0");
                     }
                 }
                 foreach (var entry in state.SetupRecipe.Entries.Where(e => e.Condition.Kind == "enterprise_selected" && new[] { Company, Foundation }.Contains(e.Condition.RuntimeId)))
@@ -507,7 +507,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var node = archive.Snapshot.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == RewardAcquisitionFlow.TypeId);
             Set(node, "acquisitionCompleted", NormalizedValue.CreateBoolean(false));
             Assert.That(HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(archive), registry).Succeeded, Is.False);
-            Position(state, state.ItemZones.Items.Single(i => In(state, "contracts").Contains(i.ItemId)), state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_awards" && z.OwnerPlayerId == 1).ZoneId);
+            Position(state, state.ItemZones.Items.Single(i => In(state, "contracts").Contains(i.ItemId)), state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == 1).ZoneId);
             Assert.That(new ItemZoneQuery().TryValidate(state, out _), Is.False);
         }
         [Test]

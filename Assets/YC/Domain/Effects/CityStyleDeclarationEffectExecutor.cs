@@ -31,17 +31,20 @@ namespace YC.Domain.Effects
             if (!ItemZoneLegacyProjection.IsActive(state)) return EffectStepResult.Failed("item_zones_required");
             var styleItem = state.ItemZones.Items.Single(i => i.DefinitionId == style.CityStyleId && i.ZoneId == FindZone(state, "city_styles").ZoneId);
             int previous = player.DeclaredCityStyles.Count(d => d.CityStyleId == style.CityStyleId);
-            int active = player.DeclaredCityStyles.Count(d => d.CityStyleId == style.CityStyleId && d.MarkerArea.Length > 0);
-            var declaration = DeclareCityStyleService.CreateDeclarationState(style, player.PlayerId, active);
+            var usage = state.ContentDefinitions?.UsageTracks.SingleOrDefault(t => t.DefinitionId == style.CityStyleId);
+            var declaration = DeclareCityStyleService.CreateDeclarationState(style, player.PlayerId, previous);
+            if (previous == 0 && declaration.UnlockedSpecialActionId.Length > 0 && usage != null) declaration.MarkerArea = usage.InitialSlotId;
             string area = declaration.MarkerArea;
-            var marker = state.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player.PlayerId && i.ZoneId == FindZone(state, "player_markers", player.PlayerId).ZoneId);
+            var marker = state.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player.PlayerId && i.ZoneId == FindZone(state, "supply", player.PlayerId).ZoneId);
             if (marker == null) return EffectStepResult.Failed("insufficient_items");
             string markerId = marker.ItemId, source = marker.ZoneId;
             var zoneDefinition = new CardZoneDefinition { LocalZoneId = "declaration_" + player.PlayerId + "_" + previous, ZoneTemplateId = "core.zone.board_marker_track",
                 AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" }, OrderingKind = ZoneOrderingKind.Track,
+                Slots = new List<string> { "declared", "unused", "used", "2", "1", "0", "used_from_2", "used_from_1" },
                 CapacityPolicy = "bounded", Capacity = 1, VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
+            if (usage != null) zoneDefinition.Slots = new List<string>(usage.Slots);
             if (!new ItemZoneStateFactory().TryCreateCardZone(state, styleItem.ItemId, zoneDefinition, out string zoneId, out string reason)) return EffectStepResult.Failed(reason);
-            state.ItemZones.Zones.Single(z => z.ZoneId == zoneId).LegalSlotIds = new List<string> { "declared", "unused", "used", "2", "1", "0", "used_from_2", "used_from_1" };
+            state.ItemZones.Zones.Single(z => z.ZoneId == zoneId).OwnerPlayerId = player.PlayerId;
             var transfer = new ItemTransferRequest { ExecutingPlayerId = player.PlayerId, ItemIds = new List<string> { markerId }, ExpectedSource = new ItemPositionRef { ZoneId = source }, Destination = new ZoneRef { ZoneId = zoneId }, DestinationSlotId = area,
                 InsertionKind = "slot", RequiredCount = 1, CarrierPolicyId = "preserve", OperationProfileId = "core.player_marker_storage" };
             var service = new ItemTransferService(); var transferValid = service.Validate(state, transfer);
@@ -54,6 +57,7 @@ namespace YC.Domain.Effects
             declaration.UsedFacilityIds.AddRange(match.UsedCityBoardSlotIndexes.Select(index => state.Map.Facilities.Single(f => f.PlayerId == player.PlayerId && f.CityBoardSlotIndex == index).ContentInstanceId));
             declaration.UsedCityBoardSlotIndexes.AddRange(match.UsedCityBoardSlotIndexes);
             player.DeclaredCityStyles.Add(declaration); declaration.BindItemZones(state);
+            if (previous == 0 && declaration.UnlockedSpecialActionId.Length > 0 && usage != null) UsageTracks.Bind(context, usage, styleItem.ItemId, declaration.DeclarationId, zoneId, markerId);
             player.Score += style.Score; player.Resources.Add(style.DeclarationReward ?? new ResourceSet());
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "declarationId", NormalizedValue.CreateString(declaration.DeclarationId))).AddEvent(new EffectEventRequest {
                 EventType = "CityStyleDeclared", PlayerId = player.PlayerId, Payload = Object("declarationId", NormalizedValue.CreateString(declaration.DeclarationId), "cityStyleItemId", NormalizedValue.CreateString(declaration.CityStyleItemId),

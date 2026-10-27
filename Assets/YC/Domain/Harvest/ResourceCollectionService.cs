@@ -4,6 +4,7 @@ using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
+using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -22,6 +23,7 @@ namespace YC.Domain.Harvest
         private readonly ResourceTokenService resourceTokenService;
         private readonly RouteTollService routeTollService;
         public Func<GameState, int, bool> HasCompanyContract { get; set; } = CompanyInfluenceRules.HasContract;
+        public EffectRegistry RuleRegistry { get; set; }
 
         public ResourceCollectionService(IMapQueryService mapQuery)
             : this(mapQuery, new ResourceTokenService())
@@ -83,9 +85,17 @@ namespace YC.Domain.Harvest
             => CollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, "extra", startGoldVoucherAmount);
 
         private ResourceCollectionResult CollectCore(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
-            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false)
+            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false,
+            CollectionFreeLocationResult preparedFree = null, bool legacyPlan = false)
         {
-            var validation = CanCollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, scope, startGold, allowCollectionSelections);
+            CollectionFreeLocationResult free = preparedFree;
+            if (!legacyPlan && free == null && state?.FindPlayer(playerId) != null)
+            {
+                try { free = QueryFree(state, playerId, scope); }
+                catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
+                { return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, error.Message)); }
+            }
+            var validation = CanCollectCore(state, playerId, locationIds, routeIds, paymentRecipientsByRouteId, scope, startGold, allowCollectionSelections, free, legacyPlan);
             if (!validation.IsValid)
             {
                 return ResourceCollectionResult.Failure(validation);
@@ -96,7 +106,7 @@ namespace YC.Domain.Harvest
             var player = state.FindPlayer(playerId);
             var uniqueLocationIds = NormalizeLocationIds(locationIds);
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments);
+            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments, scope, free, legacyPlan);
             if (!paymentValidation.IsValid)
             {
                 return ResourceCollectionResult.Failure(paymentValidation);
@@ -142,8 +152,69 @@ namespace YC.Domain.Harvest
             IDictionary<string, int> recipients, bool extra, int startGold)
             => CollectCore(state, playerId, locations, routes, recipients, extra ? "extra" : "normal", startGold, true);
 
+        private CollectionFreeLocationResult QueryFree(GameState state, int playerId, string scope)
+        {
+            var query = new CollectionQueryContext(playerId, scope, "", "direct.collection",
+                state.FindPlayer(playerId).CityLocationId, state.ContentPackHash,
+                GetSelectableLocationIds(state, playerId, scope == "extra"));
+            return new CollectionFreeLocationQuery(RuleRegistry, mapQuery).Query(state, query);
+        }
+
+        internal ResourceCollectionResult CollectPlan(GameState state, RouteSelectionSession session, RouteSelectionCommitment commitment)
+        {
+            if (state == null || session == null || commitment?.AcceptedPreview == null || commitment.SessionId != session.SessionId ||
+                commitment.OwnerEffectId != session.OwnerEffectId || commitment.PlayerId != session.PlayerId ||
+                commitment.BudgetBindingId != session.BudgetBindingId)
+                return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_plan_context_invalid"));
+            var owner = state.EffectRuntime?.EffectNodes.Find(n => n.EffectId == session.OwnerEffectId);
+            if (owner == null || owner.PlayerId != session.PlayerId)
+                return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_plan_owner_missing"));
+            if (RouteSelectionSessionAuthority.Value(owner.ContinuationData, "collectionCommitmentId") != null)
+                return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_already_committed"));
+            var preview = commitment.AcceptedPreview;
+            if (RouteResourceSelectionService.PlanDigest(session, preview) != preview.PlanDigest)
+                return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_plan_digest_invalid"));
+            CollectionFreeLocationResult free = null;
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                var saved = CollectionPlanService.ValidateSaved(session, preview);
+                if (!saved.IsValid) return ResourceCollectionResult.Failure(saved);
+                var legal = GetSelectableLocationIds(state, session.PlayerId, session.Purpose == RouteSelectionPurpose.ExtraHarvest)
+                    .Where(id => session.SelectableLocationUpperBound.Contains(id)).ToArray();
+                var current = CollectionPlanService.ValidateCurrent(state, mapQuery, session, legal, preview.Collection.FreeLocations);
+                if (!current.IsValid) return ResourceCollectionResult.Failure(current);
+                try
+                {
+                    free = new CollectionFreeLocationQuery(RuleRegistry, mapQuery).Query(state, CollectionPlanService.Context(state, session, legal));
+                    if (free.ResultDigest != preview.Collection.FreeLocations.ResultDigest)
+                        return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_free_facts_changed"));
+                }
+                catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
+                { return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, error.Message)); }
+            }
+            var recipients = preview.PaymentPlan.Lines.ToDictionary(l => l.RouteId,
+                l => l.ReceiverSubjectKey == "bank" ? -1 : int.Parse(l.ReceiverSubjectKey.Substring(7), System.Globalization.CultureInfo.InvariantCulture));
+            string scope = session.Purpose == RouteSelectionPurpose.ExtraHarvest ? "extra" : "normal";
+            var checkedPayments = BuildCanonicalPayments(state, session.PlayerId, preview.SelectedLocationIds,
+                preview.OriginalConfirmedRouteIds, recipients, out var payments, scope, free, session.SchemaVersion == 1);
+            if (!checkedPayments.IsValid || payments.Count != preview.PaymentPlan.Lines.Count ||
+                payments.Any(p => !preview.PaymentPlan.Lines.Any(l => l.RouteId == p.RouteId && l.GoldVoucherAmount == p.Amount &&
+                    l.ReceiverSubjectKey == (p.ReceiverPlayerId < 0 ? "bank" : "player:" + p.ReceiverPlayerId))))
+                return ResourceCollectionResult.Failure(checkedPayments.IsValid ?
+                    ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_payment_plan_changed") : checkedPayments);
+            // 防重字段先在克隆值上验证容量，所有付费、收益和收据仍在调用Effect的同一步工作提交。
+            var receipt = owner.ContinuationData.Clone();
+            RouteSelectionSessionAuthority.Set(receipt, "collectionCommitmentId", NormalizedValue.CreateString(commitment.CommitmentId));
+            if (!receipt.IsValid()) return ResourceCollectionResult.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_receipt_too_large"));
+            var result = CollectCore(state, session.PlayerId, preview.SelectedLocationIds, preview.OriginalConfirmedRouteIds,
+                recipients, scope, session.StartGoldVoucherAmount, true, free, session.SchemaVersion == 1);
+            if (result.Succeeded) owner.ContinuationData = receipt;
+            return result;
+        }
+
         private ValidationResult CanCollectCore(GameState state, int playerId, IReadOnlyList<string> locationIds, IReadOnlyList<string> routeIds,
-            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false)
+            IDictionary<string, int> paymentRecipientsByRouteId, string scope, int startGold, bool allowCollectionSelections = false,
+            CollectionFreeLocationResult free = null, bool legacyPlan = false)
         {
             if (state == null)
             {
@@ -207,7 +278,7 @@ namespace YC.Domain.Harvest
             }
 
             List<ExplorationTravelPayment> payments;
-            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments);
+            var paymentValidation = BuildCanonicalPayments(state, playerId, uniqueLocationIds, routeIds, paymentRecipientsByRouteId, out payments, scope, free, legacyPlan);
             if (!paymentValidation.IsValid)
             {
                 return paymentValidation;
@@ -227,12 +298,21 @@ namespace YC.Domain.Harvest
         }
 
         private ValidationResult BuildCanonicalPayments(GameState state, int playerId, IReadOnlyList<string> selectedLocations, IReadOnlyList<string> confirmedRoutes,
-            IDictionary<string, int> requestedRecipients, out List<ExplorationTravelPayment> payments)
+            IDictionary<string, int> requestedRecipients, out List<ExplorationTravelPayment> payments, string scope = "normal",
+            CollectionFreeLocationResult free = null, bool legacyPlan = false)
         {
             payments = new List<ExplorationTravelPayment>();
+            if (!legacyPlan && free == null)
+            {
+                try { free = QueryFree(state, playerId, scope); }
+                catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
+                { return ValidationResult.Failure(CommandErrorCode.InvalidTarget, error.Message); }
+            }
+            var routeTargets = legacyPlan ? selectedLocations : selectedLocations.Where(id => !free.FreeLocationIds.Contains(id)).ToArray();
+            var routeEligible = legacyPlan ? selectedLocations : free.LegalLocationIds.Where(id => !free.FreeLocationIds.Contains(id)).ToArray();
             var facts = routeTollService.ReadRouteFacts(state, playerId);
             var graph = RouteResourceSelectionService.QueryGraph(mapQuery, facts, state.FindPlayer(playerId).CityLocationId,
-                confirmedRoutes ?? Array.AsReadOnly(new string[0]), selectedLocations, selectedLocations, selectedLocations.Count == 0);
+                confirmedRoutes ?? Array.AsReadOnly(new string[0]), routeEligible, routeTargets, selectedLocations.Count == 0);
             if (!graph.IsValid) return ValidationResult.Failure(CommandErrorCode.InvalidTarget, graph.Diagnostic);
             var byId = facts.ToDictionary(f => f.RouteId, StringComparer.Ordinal);
             if (requestedRecipients != null) foreach (var pair in requestedRecipients)
@@ -346,6 +426,9 @@ namespace YC.Domain.Harvest
                 ConfirmedTollCost = confirmedPaymentKeys.Count * RouteTollService.RouteCostGoldVoucher
             };
 
+            try { result.FreeLocations = QueryFree(state, playerId, "normal"); }
+            catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
+            { return ResourceCollectionSelectionQuery.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, error.Message)); }
             var pathSearch = new MapPathSearchService(mapQuery);
             var reachablePaths = pathSearch.FindReachablePaths(
                 player.CityLocationId,
@@ -362,7 +445,7 @@ namespace YC.Domain.Harvest
 
                 result.CandidateLocationIds.Add(locationId);
                 MapPath path;
-                if (reachablePaths.TryGetValue(locationId, out path))
+                if (!result.IsFreeLocation(locationId) && reachablePaths.TryGetValue(locationId, out path))
                 {
                     result.AddPath(locationId, path);
                 }
@@ -383,7 +466,7 @@ namespace YC.Domain.Harvest
 
             foreach (var locationId in result.CandidateLocationIds)
             {
-                if (!reachablePaths.ContainsKey(locationId))
+                if (!result.IsFreeLocation(locationId) && !reachablePaths.ContainsKey(locationId))
                 {
                     pendingTargetLocations.UnionWith(BuildReachableLocations(locationId, remainingRouteIds));
                 }

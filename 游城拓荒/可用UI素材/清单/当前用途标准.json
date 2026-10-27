@@ -1,8 +1,9 @@
 {
-  "date": "2026-10-18",
+  "date": "2026-10-25",
   "basis": [
     "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
-    "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
+    "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
+    "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材"
   ],
   "interpretation": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
   "standards": [
@@ -102,10 +103,11 @@
     {
       "id": "M03",
       "role": "结算插入横条",
-      "expected": "Settlement-Effects v1.0 五态@2x整底＋Settlement-Icons-Extra v1.1指定7种三态@2x图标",
-      "status": "素材与组件已接入；2026-10-14布局/入场已修，必要组件检查和1280×720正常Player单来源截图已核；其他屏幕及多来源动画手感未验",
-      "scope": "结算条指定五态整底及用户指定7种三态图标；保留现有结算提示标题，不增两条竖线或副标题，修正位置/边距/窄槽适配/入场。备用图标不要求全部使用。",
+      "expected": "Settlement-Effects v1.0 五态@2x整底＋Settlement-Icons-Extra v1.1指定7种三态@2x图标；保留悬停外观，不显示悬停文字",
+      "status": "2026-10-25按用户最新澄清仅移除本控件悬停Tooltip及专用接线；五态26图保持。本轮未编译/原生或正常画面验收，2026-10-14有限验证只保原范围。",
+      "scope": "结算条指定五态整底及用户指定7种三态图标保持；鼠标进入保留hover底图、图标色及文字颜色，不弹出完整名称、正文或禁用原因Tooltip。无障碍名称、右键/长按独立详情、业务禁用理由来源、规则/权限/回执、横滚/布局/入场/队尾均保留；不新增或扩改键盘逻辑，不影响其它控件提示。保留现有结算提示标题，不增两条竖线或副标题。",
       "basis": [
+        "2026-10-25用户最新澄清：核Guide要求后只移除悬停文字，保留按钮悬停外观；见规划154。Guide第71行完整名称提示为原要求，当前标准直接以本次用户指示覆盖该悬停文字要求，原始Guide不改。",
         "2026-10-14 用户明确不管两条竖线，修正其它已核实差异",
         "prompt/企业扩与感染者基础实装/结算按钮布局与入场表现-修补合同.md",
         "prompt/企业扩与感染者基础实装/执行记录/结算按钮素材说明与实际使用核查-20261014.md",
@@ -142,7 +144,7 @@
         "8fc8597235549e1c9e6053ca5379c32d92526e55729c09c81323894186151b86"
       ],
       "implementationRecord": "prompt/企业扩与感染者基础实装/执行协调台账.md",
-      "standardUpdatedAt": "2026-10-16"
+      "standardUpdatedAt": "2026-10-25"
     },
     {
       "id": "F01",
@@ -349,6 +351,257 @@
       "parameters": "参数/项目实际用法/设置齿轮.json",
       "assetHashes": [
         "3f915e0c40d2add9b5baff3fc16dc029e8e7d73198168bb05095c76e31e08142"
+      ]
+    },
+    {
+      "id": "E02",
+      "version": "1.0.0",
+      "date": "2026-10-20",
+      "role": "企业家49张完整正面图",
+      "expected": "现行49张完整原图；A05仅1指令更新图",
+      "status": "COMMON-UI-INTEGRATION-R2已核正式声明及必要通用消费接线；G0，正常视觉未验收",
+      "scope": "仅对应卡正面、已授权只读放大及真实候选显示；U05未抉择A面另按E04",
+      "basis": [
+        "2026-10-20 用户在协调聊天直接批准J-Q01-01/03并明确J-Q01-04；第2轮派发要求登记，未授权游戏接线。",
+        "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md#2026-10-20-本轮实施协调的素材与U05确认",
+        "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md"
+      ],
+      "parameters": "参数/项目实际用法/企业家素材登记.json",
+      "assetHashes": [
+        "bd87abf97aeb37682a9d4eb03d1f4fd9986e81d32c6a9782ed64165cd8afc67f",
+        "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+        "0a284bcbc3b72fc4ed947ba09cdba84e00bb9224e39798f72cb9e32ac4576778",
+        "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+        "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+        "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+        "b53a1b9744eb4e1d0e95d007765d669a743a692611325d9a793f686031662f1b",
+        "136c278cd7a500bc00b5766b986d79ad7f3a40c7b4ab45293ebfea8934bea202",
+        "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+        "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+        "b201439b253162f7e3b70a8b7f56f6c9578c138ad2ca8f4ac13755d8adcd3f0c",
+        "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+        "4dbf5d36214ad6b0f39beda682dd9c4d47cbb21dfd0b4cd20b35032dcd2b66b8",
+        "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+        "ffbe92c5a190b4aefd3086a87032512258479759e00fd2c0dc0f83a05f7e9475",
+        "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+        "173c8b1b6b7fa681546cf967ee520c4ca3f3f096efe4bab34782e919333085cc",
+        "49d9eb43a29d85b41cd4cf133bf9a10c345ba47357f9e3af4e467ef46c4cdb00",
+        "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+        "6e7cca4f1147e0450f487e40a2b1000b3dcd85de4b78ff0ebdb99e4ebcc36142",
+        "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+        "128b2c46219ee05d7e61b00699634ecbcf0ce2c20e90a8afe1da515ed4f80f76",
+        "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+        "575463b1387c419a4de9f260b39a17e5e4e8afe4bcfcc87e38ed0b5461463445",
+        "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+        "00010f344c98ae5f2f0e1323ac268c7918c3b4437832b594824fd68896ffc319",
+        "624e51aa5016d679754f7546c21f8cd0cdb7f0d18705cffdc0e72dd26a5f75f0",
+        "986f979322aa75a05732c0513b74493b4713fadafad6830e06dbc04e4422ce82",
+        "2a321bbe9726c65fe990688350ee41a89532d33fb86df557c03f9b73c45b2510",
+        "41afb7bf6c9fb2893942f685756c27e63b109585eeca8e1bd4cd7d504ef850dd",
+        "719ed854fb8e7d72c455534d7ce8ff4129ad914745ee963e81a65e43df1e0530",
+        "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+        "e4e99e5d668c71fc2166633b871963c75452885b2acbc39ba0e937b524d7f823",
+        "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+        "0b8187c72f75e5e0e2fe20d067b245cda1e33191967f1ec6083a3209add76f40",
+        "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+        "8a0e2b33dfa68ac5f568b25de191f74fe2b347f8cff439ff45f8ec205d3fb7ac",
+        "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+        "9f077308f8bea63d7ab711999be01b826b9c3eed724f7c617e1b6db722a7baeb",
+        "a3466b5f3db77199e7d14a5e24b2e33906472728e4a4f2017fd5dda926e78707",
+        "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+        "fd40ffe77a57caccfe8d88d6d33e016b732833f84d8df4404687bdf3f964a2e1",
+        "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+        "c2ab90bbc5a8e37e03d4e60030051522c05bc96893e9af70e9fa4b893554d8b5",
+        "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+        "2f21cf11aa1fa6957514a449037461608ee5ce4a2b8650feb3d1ec7148046503",
+        "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a",
+        "b74d9e659e602c69da8f6504592a7e81b49f7ec8e6053f2337fb7e5ac315e169",
+        "81bc83928af9c4174c29ad55ee4f661eadd6d9579e4faca2f031ae82e6d29bf1"
+      ]
+    },
+    {
+      "id": "E03",
+      "version": "1.0.0",
+      "date": "2026-10-20",
+      "role": "追加非唯一核心塔的完整Sprite复用",
+      "expected": "现有facility_045完整图；新定义非唯一、0费0分无入场；基础塔不变",
+      "status": "COMMON-UI-INTEGRATION-R2已核正式声明及必要通用消费接线；G0，正常视觉未验收",
+      "scope": "仅追加普通非唯一定义复用既有facility_045（原reserve_001）；不另存切图或改印刷内容",
+      "basis": [
+        "2026-10-20 用户在协调聊天直接批准J-Q01-01/03并明确J-Q01-04；第2轮派发要求登记，未授权游戏接线。",
+        "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md#2026-10-20-本轮实施协调的素材与U05确认",
+        "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md"
+      ],
+      "parameters": "参数/项目实际用法/企业家素材登记.json",
+      "assetHashes": [
+        "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269"
+      ]
+    },
+    {
+      "id": "E04",
+      "version": "1.0.0",
+      "date": "2026-10-20",
+      "role": "U05未抉择对应回合A面预览",
+      "expected": "对应回合抉择卡A面只作预览；正式选后显示实际面",
+      "status": "COMMON-UI-INTEGRATION-R2已核正式声明及必要通用消费接线；G0，正常视觉未验收",
+      "scope": "既有U05四回合槽；点击U04全部N候选；不选中/启用/创建真实实例；DIY缺A标识不取第一张",
+      "basis": [
+        "2026-10-20 用户在协调聊天直接批准J-Q01-01/03并明确J-Q01-04；第2轮派发要求登记，未授权游戏接线。",
+        "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md#2026-10-20-本轮实施协调的素材与U05确认",
+        "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md"
+      ],
+      "parameters": "参数/项目实际用法/企业家素材登记.json",
+      "assetHashes": [
+        "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+        "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+        "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+        "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+        "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+        "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+        "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+        "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+        "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+        "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+        "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+        "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+        "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+        "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+        "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+        "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+        "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+        "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+        "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+        "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a"
+      ]
+    },
+    {
+      "id": "E05",
+      "version": "1.0.0",
+      "date": "2026-10-20",
+      "role": "帮派现有立方体与通用影响力方格贴图染色",
+      "expected": "地图沿用InfluencePiece/InfluenceCube；UI复用InfluenceMarker2D通用方格及其带数字形式，根Image贴图组件染为Purple/#A020F0",
+      "scope": "仅帮派U07库存/详情及U12地图等既定来源显示；保持独立类型、真实所有者与数量；不另找专用图、不改静态布局",
+      "status": "COMMON-UI-INTEGRATION-R2已核正式声明及必要通用消费接线；G0，正常视觉未验收",
+      "basis": [
+        "2026-10-20 用户在协调聊天后续直接答复：“地图沿用立方体，UI使用通用的影响力方格预制体，对其中的贴图组件染色。”",
+        "Purple/#A020F0、4枚、独立帮派类型/所有者/真实数量已确认；第3轮仅登记，不接线。",
+        "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md：J-Q01-02当前裁定",
+        "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md：帮派当前唯一表现"
+      ],
+      "parameters": "参数/项目实际用法/帮派预制体染色登记.json",
+      "assetHashes": [
+        "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef"
+      ]
+    },
+    {
+      "id": "M04",
+      "role": "收尾阶段五种结算入口图标",
+      "expected": "Settlement-Icons-EndPhase-v1.2五种图标，dark/light/muted三色，1x/2x/4x；现有结算条优先@2x",
+      "status": "R17阶段B完成：15张@2x实际Unity导入、七来源三色及五态组件画面与原命令链已核验；有限隔离9/9，008另批26/26；正常独立程序视觉与多局验收未覆盖。",
+      "scope": "仅建设据点、第五号企业家、蒂亚戈基金投资、降本增效声望兑分、特勤小组对应收尾阶段入口",
+      "basis": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/收尾阶段结算图标登记.md"
+      ],
+      "parameters": "参数/项目实际用法/收尾阶段结算图标参数.json",
+      "assetHashes": [
+        "f1569aac19d4273f9dca7f9ebab918e3c87c7f04182b84effb3e985773a4726c",
+        "33bef96a6a77906b2d3e174d1133324f7462dd3c55374202fafc96869f28e05e",
+        "e0148baaf62f6d91b4b0e2c743a41e3c983f8f733508c17e6699bd6a4035cca9",
+        "622ec13a73382e7b71b4fb6f82fbf655d2a6e3d81905bea83badc32f5736d102",
+        "9da31b814eda0e823cfa9bbd590b11c90ce5cf36cb5994fa3c56004e9f015bd7",
+        "7a6693fdb7dbce8aa5a98601458fe6770bc0e94d910d39c5b3370c1c82cc1a15",
+        "64d67e323f3d0baf71c0358a419362ba0f604ad01acf553f9933431707951f76",
+        "87fd3d7af3acc35c75fa2125c4ab0c7efa0b9b91dd3fd293a7f998ea3030a1f6",
+        "f15e15cbfe639a35dced3b1b053d820a6c55ece71846c756b13621de7ba104ff",
+        "65e1ca1b06b3a17b21bf581bd82f05cc7fa682d34670b8f831297cd06687b82b",
+        "38fd4a49a213ab3b188e4208d9505824fc473b7abfdec11585ea98c0429abd1c",
+        "5fdfc87160032ede429fb2423db7acfcc509786a5974ca23ba814468e45c66ee",
+        "1d832dceaa5dea6fb26633e503090b0c07c2fd4179b56cc09128e481e37b7a1b",
+        "b9564d1e43427fb90e52d56f2a13752be97ec81e93d0ebb7a55e3cbaea9a6c14",
+        "811be81fb11a0662d3b71c6beec218ee85a4a2ebce6e2ef00ee80afe9332cdfc",
+        "562bccb8bff17b1e4014fdbf7555462e123aa4f8fd5a47015c971c9f87936f87",
+        "d0a25de0c733a0a352b0cea63ee0430f0da056f1d9b07293734182133f51ef94",
+        "3fa551a5490878081e971f604b678e80bf22042cd3ee1b4be17046530aefe327",
+        "22adce7ec37048944299ebc9325e534644823fd046ad852c9844744d466a2b3c",
+        "6a4588f7de7223664bfc6c5f8f6961268a1e6d28dc67d6f08a59ea2376475ab9",
+        "a3cb95aa3615bc9b315858d2d41aceb943fc7e0dc81ad47a55f6f0ad59256804",
+        "d954786c9f5b329015b0253f535daa020e88157d953fa50efa3b8552491e63ab",
+        "ec96ea4182a431693ce2cb7c71aef0a4db877333a7145231a257b6ca5ec0f279",
+        "856cbb2aa9aab8af91f559f0f766f398770c814af0c0b53b5a65792c31f207db",
+        "f4d2f6a13d6fee73fba73e4ac4c49fd6b246717f78528ea43f098a56ae8e68c3",
+        "ce480e16d1ce886a2f4a539d56d07dbc3d564a8581db4b22367d71e4ecb9ada7",
+        "504bb9db2735f7b6e11d734868948a53e4cbd4aef5ca84cfd12a56c32adfbdd6",
+        "92de68e211e0328709d74290da1f6038ec27218c3b08e1c9c4d1e0b086d25e03",
+        "c4abeccfb400f2338032aaf035540f45c137b9bdfd4d4a019643d78238969e7f",
+        "8cb7d746173b42b1e32fe54fdb2597ea50b7ce57952bf365f7fff612b89b4ca3",
+        "1a021aa2b6bef60599f6835905939bb2ddc9ae005749b6c86dbd18de32799fe8",
+        "c463623effa2b0c6aae7f427bf8a506492016a5dc8e6390911bbda7ea61806ea",
+        "2beca58bd66940e232f33394b07fb58b1a99d9f561ba7b0503838b8d2fdf7f6f",
+        "80d5c656fcaa44baee66c9063b45ef0ef043809579da5bf37bad4286a25c8518",
+        "62a61141ff8140331b073d20cb9827ae07bae65fce204606b56b7a30bc875aba",
+        "6f366bce08f30b598aa09bc810c27051da6845c85be144ce697f581146051cda",
+        "f7d18c39bad8c840b740b1ecc46ba354f6ccbe55786a4ebbc32658a59032adf6",
+        "fc3e4e24c5e08619fb056a01e9825b3436d24a37ab9628e2800aa9c442ea321b",
+        "2cc8b464388dd2c1baac3c3a64591c8598eba84d9234ba3182e2f1d1b6d6865a",
+        "9d7085d9f727de879f40a51f6b14a97eb830c0a2227f2d22bcaaa1aa3d2436d9",
+        "f0c801431eea9259fe12b5ce7bb01ae7e51aae946eab6b4648c2bebec1ecb27d",
+        "c87c63c1aec5cd61d31b019a2a6150f36ace9654bc899ee65c7ad04c736e64a4",
+        "b0f42e8ac48f2e682f7cb0eeabff7e6d6193d86773864483f1982cdbdb832f58",
+        "c4df797a66cb8eab629f98fb09ed1f6036999354839a81b4e1d659a615e34946",
+        "41d7c26938a9b7dce31b14ba9d45db1127c9708188a9fe371bbbbf09e963b6e3"
+      ],
+      "relationship": "新增五种收尾阶段结算入口图标，与1.0按钮及1.1图标兼容，不构成整包换版或删除旧有效用途。",
+      "sourceRegistration": "参数/Settlement-Icons-EndPhase-v1.2/可用库登记.json"
+    },
+    {
+      "id": "I02",
+      "version": "1.0.0",
+      "role": "岩蹄安保正文移动/放置图标",
+      "expected": "用户指定两张165×161透明PNG原字节；单图全色，正文随字号1.4倍等比显示",
+      "status": "可用库/正式外部icon/序列化Sprite绑定已登记；Unity实际导入、渲染及正常视觉待验",
+      "scope": "仅core:interaction.company.place_or_move、core:interaction.company.place、core:interaction.company.move_two；不扩大E01、I01其他语义或M04用途",
+      "basis": [
+        "2026-10-23用户直接给出移动岩蹄安保影响力.png、放置岩蹄安保影响力.png及正文用途授权"
+      ],
+      "parameters": "参数/项目实际用法/岩蹄安保正文图标.json",
+      "assetHashes": [
+        "aa27c274307c1d446379a98ae7d2c1582ef24a5e84b0ed42797520ae613bef03",
+        "c2c68a4cc7b873b6131729d1679bb0e0db09d74b479bef260e8583252423b76c"
+      ]
+    },
+    {
+      "id": "M05",
+      "role": "地图嘉维尔人物指示物",
+      "version": "1.0.0",
+      "expected": "用户指定500×500完整PNG，沿真实token的移动城市位置锚点显示，不叠加名称",
+      "status": "已绑定并完成有限原生组件检查；正常程序待验",
+      "scope": "仅地图嘉维尔；公司只去地图叠字并保留查看入口，影响力锁定token不变",
+      "basis": [
+        "2026-10-24 用户129精确来源及显示要求"
+      ],
+      "parameters": "参数/项目实际用法/地图嘉维尔指示物.json",
+      "assetHashes": [
+        "f8df52b2b912393f07f8f936b1d04e9872298663ca7de158e695dd761b2f361c"
+      ]
+    },
+    {
+      "id": "H01",
+      "version": "1.0.0",
+      "date": "2026-10-25",
+      "role": "主界面顶栏本回合玩家行动顺序",
+      "expected": "静态说明后水平排列本回合冻结顺序对应的2/3/4个真实玩家色InfluenceMarker2D平面方格，无数字、只读",
+      "status": "R52源码及源Prefab局部接线；有限隔离/结构核查，Unity原生与正常画面待验",
+      "scope": "仅GameplayInteractionHud顶栏红区开放与回合显示间；包括本人；无游戏库存/实体/点击/悬停说明",
+      "basis": [
+        "2026-10-25 用户授权：主界面红区开放与回合之间显示本回合玩家行动顺序及真实玩家色平面方格；166/R52。"
+      ],
+      "parameters": "参数/项目实际用法/顶栏本回合行动顺序.json",
+      "assetHashes": [
+        "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+        "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+        "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+        "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b"
       ]
     }
   ]

@@ -113,7 +113,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string id in new[] { Business, Logistics }) foreach (int player in Enumerable.Range(1, 3))
             {
                 var track = state.ItemZones.Zones.Single(zone => zone.ParentId == Item(state, id) && zone.LocalZoneId == "cooperation_" + player);
-                var marker = state.ItemZones.Items.First(value => value.TypeId == "core.player_marker" && value.OwnerSubject.PlayerId == player && value.ZoneId == FindZone(state, "player_markers", player).ZoneId);
+                var marker = state.ItemZones.Items.First(value => value.TypeId == "core.player_marker" && value.OwnerSubject.PlayerId == player && value.ZoneId == FindZone(state, "supply", player).ZoneId);
                 SetPosition(state, marker, track.ZoneId); marker.SlotId = "level_" + level;
             }
             var map = new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)); var influence = new InfluenceService(map);

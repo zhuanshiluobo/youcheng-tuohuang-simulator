@@ -136,6 +136,7 @@ namespace YC.Tests.EditMode
         {
             var context = CreateContext();
             var state = CreateState();
+            state.MapId = StaticMapDefinitions.FourPlayerMapId;
             var player = state.FindPlayer(1);
             player.Resources.OriginiumShard = 1;
             player.Resources.Originium = 2;

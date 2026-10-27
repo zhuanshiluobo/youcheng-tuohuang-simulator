@@ -1,0 +1,577 @@
+{
+  "alpha": "straight",
+  "colorSpace": "sRGB",
+  "nineSlice": false,
+  "assets": {
+    "ui-outpost-payout-dark": {
+      "svg": "assets/icons-endphase/ui-outpost-payout-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-outpost-payout"
+    },
+    "ui-outpost-payout-light": {
+      "svg": "assets/icons-endphase/ui-outpost-payout-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-outpost-payout"
+    },
+    "ui-outpost-payout-muted": {
+      "svg": "assets/icons-endphase/ui-outpost-payout-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-outpost-payout-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-outpost-payout"
+    },
+    "ui-marker-redeem-dark": {
+      "svg": "assets/icons-endphase/ui-marker-redeem-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-marker-redeem"
+    },
+    "ui-marker-redeem-light": {
+      "svg": "assets/icons-endphase/ui-marker-redeem-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-marker-redeem"
+    },
+    "ui-marker-redeem-muted": {
+      "svg": "assets/icons-endphase/ui-marker-redeem-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-marker-redeem-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-marker-redeem"
+    },
+    "ui-fund-invest-dark": {
+      "svg": "assets/icons-endphase/ui-fund-invest-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-fund-invest"
+    },
+    "ui-fund-invest-light": {
+      "svg": "assets/icons-endphase/ui-fund-invest-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-fund-invest"
+    },
+    "ui-fund-invest-muted": {
+      "svg": "assets/icons-endphase/ui-fund-invest-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-fund-invest-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-fund-invest"
+    },
+    "ui-reputation-score-dark": {
+      "svg": "assets/icons-endphase/ui-reputation-score-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-reputation-score"
+    },
+    "ui-reputation-score-light": {
+      "svg": "assets/icons-endphase/ui-reputation-score-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-reputation-score"
+    },
+    "ui-reputation-score-muted": {
+      "svg": "assets/icons-endphase/ui-reputation-score-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-reputation-score-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-reputation-score"
+    },
+    "ui-tactical-dispatch-dark": {
+      "svg": "assets/icons-endphase/ui-tactical-dispatch-dark.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-dark.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-dark@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-dark@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "dark",
+      "iconId": "ui-tactical-dispatch"
+    },
+    "ui-tactical-dispatch-light": {
+      "svg": "assets/icons-endphase/ui-tactical-dispatch-light.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-light.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-light@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-light@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "light",
+      "iconId": "ui-tactical-dispatch"
+    },
+    "ui-tactical-dispatch-muted": {
+      "svg": "assets/icons-endphase/ui-tactical-dispatch-muted.svg",
+      "size": [
+        24,
+        24
+      ],
+      "png": [
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-muted.png",
+          "width": 24,
+          "height": 24,
+          "scale": 1
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-muted@2x.png",
+          "width": 48,
+          "height": 48,
+          "scale": 2
+        },
+        {
+          "path": "assets/icons-endphase/ui-tactical-dispatch-muted@4x.png",
+          "width": 96,
+          "height": 96,
+          "scale": 4
+        }
+      ],
+      "sliceLTRB": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "role": "settlement-icon",
+      "textBakedIn": false,
+      "preserveAspectRatio": true,
+      "tone": "muted",
+      "iconId": "ui-tactical-dispatch"
+    }
+  }
+}

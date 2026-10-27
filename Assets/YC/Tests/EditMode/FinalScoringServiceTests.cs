@@ -148,6 +148,18 @@ namespace YC.Tests.EditMode
             return new FinalScoringService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
         }
 
+        [Test]
+        public void ResourceProfile_ReplacesDefaultAndKeepsActualResources()
+        {
+            var resources = new ResourceSet { Iron = 11, PureOriginium = 3 };
+            var profile = new PlayerResourceScoreProfile { PlayerId = 1, ProfileId = "test.profile" };
+            profile.Entries.Add(new ResourceScoreEntry { ResourceType = "Iron", Units = 4, Points = 1 });
+            Assert.That(FinalScoringService.CalculateResourceScore(resources), Is.EqualTo(4));
+            Assert.That(FinalScoringService.CalculateResourceScore(resources, profile), Is.EqualTo(2));
+            Assert.That(resources.Iron, Is.EqualTo(11));
+            Assert.That(resources.PureOriginium, Is.EqualTo(3));
+        }
+
         private static GameState CreateFinalState()
         {
             return new GameState

@@ -21,128 +21,6 @@ namespace YC.Tests.EditMode
     public sealed class LegacyCharacterGameplayTextUiTests
     {
         [Test]
-        public void PendingPresentationRequiresMatchingVisibleOwnerAndSnapshot()
-        {
-            var state = State(CharacterPendingChoiceTypes.TinManFirstPurchase);
-            var before = JsonConvert.SerializeObject(state);
-            var presenter = new CharacterCardPanelPresenter();
-            var query = presenter.QueryPendingOptions(state, 1, null);
-            var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
-            var presentation = presenter.GetPendingPresentation(state, 1, query, visible);
-            Assert.That(presentation, Is.Not.Null);
-            Assert.That(presentation, Is.Not.SameAs(query.Presentation));
-            presentation.Prompt.Arguments.Find(argument => argument.Name == "cost").Value = NormalizedValue.CreateInteger(99);
-            Assert.That(query.Presentation.Prompt.Arguments.Find(argument => argument.Name == "cost").Value.IntegerValue,
-                Is.EqualTo(CharacterCardService.TinManFirstPureOriginiumCost));
-
-            foreach (var invalid in new[] { GameStateViewProjector.ProjectForPlayer(state, 2),
-                GameStateViewProjector.ProjectForHost(state), GameStateViewProjector.ProjectForSpectator(state) })
-                Assert.That(presenter.GetPendingPresentation(state, 1, query, invalid), Is.Null);
-            var wrongGame = GameStateCloneService.DeepClone(visible); wrongGame.GameId = "other-match";
-            var wrongContent = GameStateCloneService.DeepClone(visible); wrongContent.ContentPackHash = "other-content";
-            var oldRevision = GameStateCloneService.DeepClone(visible); oldRevision.StateRevision--;
-            var wrongCandidates = GameStateCloneService.DeepClone(visible);
-            wrongCandidates.Interactions.Single().CandidateIds.Reverse();
-            var duplicate = GameStateCloneService.DeepClone(visible);
-            duplicate.Interactions.Add(GameStateCloneService.DeepClone(duplicate.Interactions.Single()));
-            foreach (var invalid in new[] { wrongGame, wrongContent, oldRevision, wrongCandidates, duplicate })
-                Assert.That(presenter.GetPendingPresentation(state, 1, query, invalid), Is.Null);
-            Assert.That(presenter.GetPendingPresentation(state, 2, query, null), Is.Null);
-            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
-        }
-
-        [Test]
-        public void LegacyDialogPreservesResolvedPromptAndCandidateDocuments()
-        {
-            var core = Environment.GetEnvironmentVariable("YC_LEGACY_TEXT_CORE") ??
-                Path.Combine(TestContext.CurrentContext.WorkDirectory, "Assets", "StreamingAssets", "Content", "core");
-            var pack = ExternalContentPack.Load(core);
-            var type = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
-            foreach (var pendingType in new[] { CharacterPendingChoiceTypes.TinManDiscard,
-                CharacterPendingChoiceTypes.TinManFirstPurchase, CharacterPendingChoiceTypes.TinManSecondPurchase })
-            {
-                var state = State(pendingType);
-                var presenter = new CharacterCardPanelPresenter();
-                var query = presenter.QueryPendingOptions(state, 1, null);
-                var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
-                var presentation = presenter.GetPendingPresentation(state, 1, query, visible);
-                var context = new GameplayTextContext { Catalog = pack.Presentation,
-                    ContentHash = pack.Presentation.ContentHash, Locale = pack.Presentation.Locale,
-                    VisibilityScopeId = visible.GameId + ":" + visible.ViewerPlayerId,
-                    ViewerPlayerId = visible.ViewerPlayerId, StateRevision = visible.StateRevision,
-                    DefinitionNames = visible.Players.Single(player => player.PlayerId == 1).DiscardCardIds
-                        .ToDictionary(id => id, id => "已可见来源[b]007[icon:core:resource.gold_voucher]") };
-                var resolver = new GameplayTextResolver(pack.Presentation);
-                var dialog = FormatterServices.GetUninitializedObject(type);
-                var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-                type.GetField("resolveText", flags).SetValue(dialog,
-                    (Func<GameplayTextRef, GameplayTextDocument>)(text => resolver.Resolve(text, context)));
-                var prompt = (GameplayTextDocument)type.GetMethod("ResolveLegacyOptionsPrompt", flags)
-                    .Invoke(dialog, new object[] { presentation });
-                Assert.That(prompt, Is.SameAs(resolver.Resolve(presentation.Prompt, context)));
-                Assert.That(prompt.Identity, Is.Not.Empty);
-                Assert.That(type.GetMethod("ResolveLegacyOptionsPrompt", flags).Invoke(dialog, new object[] { presentation }),
-                    Is.SameAs(prompt));
-                foreach (var option in query.Get(CharacterEffectParameterKeys.Choice))
-                {
-                    var label = presentation.Options.Single(value => value.CandidateId == option.Id).Label;
-                    var document = (GameplayTextDocument)type.GetMethod("ResolveLegacyOptionLabel", flags)
-                        .Invoke(dialog, new object[] { presentation, option.Id });
-                    Assert.That(document, Is.SameAs(resolver.Resolve(label, context)));
-                    Assert.That(document.Runs, Is.Not.Empty);
-                    if (option.Id == CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium ||
-                        option.Id == CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium)
-                    {
-                        var cost = pendingType == CharacterPendingChoiceTypes.TinManFirstPurchase
-                            ? CharacterCardService.TinManFirstPureOriginiumCost : CharacterCardService.TinManSecondPureOriginiumCost;
-                        Assert.That(document.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain((long)cost));
-                        Assert.That(document.Runs.OfType<IconRun>().Any(), Is.True);
-                    }
-                }
-                Assert.That(type.GetMethod("ResolveLegacyOptionLabel", flags)
-                    .Invoke(dialog, new object[] { presentation, "continue" }), Is.Null);
-                if (pendingType == CharacterPendingChoiceTypes.TinManDiscard)
-                {
-                    Assert.That(prompt.ToPlainText(), Does.Contain(context.DefinitionNames.Values.Single()));
-                    Assert.That(prompt.Runs.OfType<IconRun>(), Is.Empty);
-                }
-                if (pendingType == CharacterPendingChoiceTypes.TinManSecondPurchase)
-                {
-                    Assert.That(prompt.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(12L));
-                    Assert.That(prompt.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(15L));
-                    Assert.That(query.GoldVoucherCost, Is.EqualTo(12));
-                }
-            }
-        }
-
-        [Test]
-        public void LegacyPurchaseParametersKeepChoiceAndSourceCommand()
-        {
-            var type = Type.GetType("YC.Presentation.CharacterCardEffectInteractionUiCoordinator, Assembly-CSharp", true);
-            var parameters = type.GetMethod("CreateTinManPendingChoiceParameters", BindingFlags.Static | BindingFlags.NonPublic);
-            var presenter = new CharacterCardPanelPresenter();
-            foreach (var pendingType in new[] { CharacterPendingChoiceTypes.TinManFirstPurchase,
-                CharacterPendingChoiceTypes.TinManSecondPurchase })
-            {
-                var state = State(pendingType);
-                foreach (var choice in state.PendingCharacterEffect.OptionIds)
-                {
-                    var values = (IReadOnlyDictionary<string, string>)parameters.Invoke(null,
-                        new object[] { state.PendingCharacterEffect, choice });
-                    var command = presenter.CreateResolvePendingCommand(1, values);
-                    Assert.That(command.Kind, Is.EqualTo(GameCommandKind.ResolvePendingChoice));
-                    Assert.That(command.PlayerId, Is.EqualTo(1));
-                    Assert.That(command.Parameters.Count, Is.EqualTo(2));
-                    Assert.That(command.Parameters[CharacterEffectParameterKeys.Choice], Is.EqualTo(choice));
-                    Assert.That(command.Parameters[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                        Is.EqualTo(state.PendingCharacterEffect.SourceCommandId));
-                    Assert.That(command.Parameters[CharacterEffectParameterKeys.Choice], Is.Not.EqualTo("continue"));
-                    Assert.That(command.Parameters[CharacterEffectParameterKeys.Choice], Is.Not.EqualTo("decline"));
-                }
-            }
-        }
-
-        [Test]
         public void LegacyHudDocumentRequiresRealOwnerAndClearsStaleScope()
         {
             var type = Type.GetType("YC.Presentation.GameplayHudFrame, Assembly-CSharp", true);
@@ -270,103 +148,13 @@ namespace YC.Tests.EditMode
             var core = Environment.GetEnvironmentVariable("YC_LEGACY_TEXT_CORE") ??
                 Path.Combine(TestContext.CurrentContext.WorkDirectory, "Assets", "StreamingAssets", "Content", "core");
             var pack = ExternalContentPack.Load(core);
-            var query = new CharacterCardPanelPresenter().QueryPendingOptions(state, 1, null);
-            var document = new GameplayTextResolver(pack.Presentation).Resolve(query.Presentation.Prompt,
+            var reference = new GameplayTextRef("core:action.character.use.name", new GameplayTextArgument {
+                Name = "card", Kind = "definition", Value = NormalizedValue.CreateStableReference("definition", "visible-discard") });
+            var document = new GameplayTextResolver(pack.Presentation).Resolve(reference,
                 new GameplayTextContext { Catalog = pack.Presentation, ContentHash = pack.Presentation.ContentHash,
                     Locale = pack.Presentation.Locale, DefinitionNames = names });
             Assert.That(document.ToPlainText(), Does.Contain(literalName));
             Assert.That(document.Runs.OfType<IconRun>(), Is.Empty, "来源名称作为字面参数，不再次解析标记");
-        }
-
-        [Test]
-        public void LegacyBottomHintsPreserveDocumentsAndInvalidateChangedPending()
-        {
-            var core = Environment.GetEnvironmentVariable("YC_LEGACY_TEXT_CORE") ??
-                Path.Combine(TestContext.CurrentContext.WorkDirectory, "Assets", "StreamingAssets", "Content", "core");
-            var pack = ExternalContentPack.Load(core);
-            var resolver = new GameplayTextResolver(pack.Presentation);
-            var context = new GameplayTextContext { Catalog = pack.Presentation, ContentHash = pack.Presentation.ContentHash,
-                Locale = pack.Presentation.Locale, ViewerPlayerId = 1, VisibilityScopeId = "legacy-bottom" };
-            var dialogType = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
-            var dialog = FormatterServices.GetUninitializedObject(dialogType);
-            dialogType.GetField("resolveText", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(dialog,
-                (Func<GameplayTextRef, GameplayTextDocument>)(text => resolver.Resolve(text, context)));
-            var type = Type.GetType("YC.Presentation.CharacterCardEffectInteractionUiCoordinator, Assembly-CSharp", true);
-            var state = State(CharacterPendingChoiceTypes.TinManFirstPurchase);
-            int viewer = 1, stringFallbackCalls = 0, submissions = 0;
-            var before = JsonConvert.SerializeObject(state);
-            var coordinator = Activator.CreateInstance(type, new object[]
-            {
-                (Func<GameState>)(() => state), (Func<int>)(() => viewer), new CharacterCardPanelPresenter(), dialog,
-                (Func<bool>)(() => false), (Action)(() => { }),
-                (Action<string, IReadOnlyDictionary<string, string>>)((mode, values) => submissions++),
-                (Action<IReadOnlyDictionary<string, string>>)(values => submissions++),
-                (Action<string>)(value => stringFallbackCalls++)
-            });
-            var deliveries = new List<Tuple<string, int, int, string, GameplayTextDocument, Func<bool>>>();
-            type.GetProperty("RenderLegacyMessageDocument").SetValue(coordinator,
-                (Action<string, int, int, string, GameplayTextDocument, Func<bool>>)((game, player, revision, pending, document, current) =>
-                    deliveries.Add(Tuple.Create(game, player, revision, pending, document, current))));
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-            var present = type.GetMethod("PresentLegacyPrompt", flags);
-            var create = type.GetMethod("CreatePurchaseHint", BindingFlags.Static | BindingFlags.NonPublic);
-            var query = new CharacterCardPanelPresenter().QueryPendingOptions(state, 1, null);
-            var references = new[]
-            {
-                new GameplayTextRef("core:legacy.character.tin_man.discard.hint"),
-                new GameplayTextRef("core:legacy.character.tin_man.discard.move_unavailable",
-                    new GameplayTextArgument { Name = "gold", Kind = "integer", Value = NormalizedValue.CreateInteger(5) }),
-                (GameplayTextRef)create.Invoke(null, new object[] { true, true, query }),
-                (GameplayTextRef)create.Invoke(null, new object[] { false, true, query }),
-                (GameplayTextRef)create.Invoke(null, new object[] { false, false, query })
-            };
-            foreach (var reference in references)
-            {
-                present.Invoke(coordinator, new object[] { reference });
-                var delivery = deliveries.Last();
-                Assert.That(delivery.Item1, Is.EqualTo(state.GameId));
-                Assert.That(delivery.Item2, Is.EqualTo(viewer));
-                Assert.That(delivery.Item3, Is.EqualTo(state.EffectRuntime?.StateRevision ?? 0));
-                Assert.That(delivery.Item4, Is.EqualTo(GameStateViewProjector.ProjectForPlayer(state, 1).Interactions.Single().InteractionId));
-                Assert.That(delivery.Item5, Is.SameAs(resolver.Resolve(reference, context)));
-                Assert.That(delivery.Item6(), Is.True);
-            }
-            Assert.That(deliveries[1].Item5.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(5L));
-            Assert.That(deliveries[2].Item5.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(12L));
-            Assert.That(deliveries[2].Item5.Runs.OfType<IconRun>().Select(run => run.NumberValue), Does.Contain(1));
-            Assert.That(deliveries[3].Item5.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(15L));
-            Assert.That(deliveries[3].Item5.Runs.OfType<NumberRun>().Any(run => run.Value == 12L), Is.False);
-            Assert.That(deliveries[2].Item5.Runs.OfType<IconRun>().Any(), Is.True);
-            Assert.That(deliveries[3].Item5.Runs.OfType<IconRun>().Any(), Is.True);
-            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
-            var original = state;
-            var isCurrent = deliveries.Last().Item6;
-            foreach (var change in new Action<GameState>[]
-            {
-                value => value.GameId = "other-game", value => value.ContentPackHash = "other-content",
-                value => value.PendingCharacterEffect.SourceCommandId = "other-command",
-                value => value.PendingCharacterEffect.CardId = "other-card",
-                value => value.PendingCharacterEffect.ChoiceType = CharacterPendingChoiceTypes.TinManSecondPurchase,
-                value => value.PendingCharacterEffect.OptionIds.Reverse(),
-                value => value.PendingCharacterEffect.RemainingCardIds[0] = "other-source",
-                value => value.PendingCharacterEffect.PlayerId = 2, value => value.PendingCharacterEffect = null
-            })
-            {
-                state = GameStateCloneService.DeepClone(original); change(state);
-                Assert.That(isCurrent(), Is.False);
-            }
-            state = original; viewer = 2; Assert.That(isCurrent(), Is.False); viewer = 1;
-            Assert.That(isCurrent(), Is.True);
-            var last = deliveries.Last();
-            type.GetMethod("ClearLegacyPrompt", flags).Invoke(coordinator, null);
-            var cleared = deliveries.Last();
-            Assert.That(cleared.Item1, Is.EqualTo(last.Item1)); Assert.That(cleared.Item2, Is.EqualTo(last.Item2));
-            Assert.That(cleared.Item3, Is.EqualTo(last.Item3)); Assert.That(cleared.Item4, Is.EqualTo(last.Item4));
-            Assert.That(cleared.Item5, Is.Null); Assert.That(cleared.Item6, Is.Null);
-            var count = deliveries.Count;
-            type.GetMethod("ClearLegacyPrompt", flags).Invoke(coordinator, null);
-            Assert.That(deliveries.Count, Is.EqualTo(count));
-            Assert.That(submissions, Is.Zero); Assert.That(stringFallbackCalls, Is.Zero);
         }
 
         [Test]
@@ -397,17 +185,14 @@ namespace YC.Tests.EditMode
             var references = new[]
             {
                 "status.used", "status.locked", "status.covered", "status.not_covered", "status.pending_choice",
-                "status.cover_select", "status.second_available", "status.second_no_targets", "status.effect_not_integrated",
+                "status.cover_select", "status.effect_not_integrated",
                 "status.can_use", "status.inspect_only", "status.player_missing", "unavailable.effect_not_integrated",
                 "unavailable.effect_currently_unavailable", "unavailable.cover_none", "unavailable.cover_selection_stale",
-                "unavailable.not_initialized", "unavailable.cannot_activate", "unavailable.effect_not_registered",
-                "map.move_source", "map.move_target", "map.no_move", "map.click_influence", "map.choose_legal", "map.next_no_target"
+                "unavailable.not_initialized", "unavailable.cannot_activate", "unavailable.effect_not_registered"
             };
             foreach (var key in references)
                 Assert.That(resolve(new GameplayTextRef("core:legacy.character." + key)).Runs, Is.Not.Empty);
-            var cleanup = resolve(new GameplayTextRef("core:legacy.character.map.cleanup", new GameplayTextArgument
-                { Name = "count", Kind = "integer", Value = NormalizedValue.CreateInteger(1) }));
-            Assert.That(cleanup.Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(1L));
+            Assert.That(resolve(new GameplayTextRef("core:interaction.map.influence.remove")).Runs, Is.Not.Empty);
         }
 
         [Test]
@@ -489,106 +274,6 @@ namespace YC.Tests.EditMode
             current = false;
             Assert.That(read.Invoke(frame, null), Is.Null);
             Assert.That(type.GetField("scopedInteractionMessageDocument", flags).GetValue(frame), Is.Null);
-        }
-
-        [Test]
-        public void PendingMapDocumentsSurviveRealRouterConfirmationAndKeepSubmission()
-        {
-            var resolve = BusinessTextResolver();
-            foreach (var pendingType in new[] { CharacterPendingChoiceTypes.LiskarmCleanupRemoval, CharacterPendingChoiceTypes.TinManDiscard })
-            {
-                var state = State(pendingType);
-                state.MapId = StaticMapDefinitions.FourPlayerMapId;
-                state.Phase = pendingType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval ? GamePhase.Cleanup : GamePhase.ActionRound1;
-                state.FindPlayer(1).Color = PlayerColor.Red;
-                state.FindPlayer(1).InfluenceSupply = 30;
-                var source = YC.Domain.Influence.InfluenceService.GetRouteSlotId("A1", 0);
-                state.Map.Influences.Add(new InfluencePlacement { PlayerId = 1, SlotId = source, RouteId = "A1" });
-                if (pendingType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval)
-                    state.PendingCharacterEffect.OptionIds = new List<string> { source };
-                var before = JsonConvert.SerializeObject(state);
-                int submissions = 0, oldStringCalls = 0;
-                IReadOnlyDictionary<string, string> submitted = null;
-                var coordinator = new YC.Presentation.CharacterMapInteractionCoordinator(() => state, () => 1,
-                    new CharacterCardPanelPresenter(), values => { }, () => { }, (mode, values) => Assert.Fail("不得走普通角色效果提交"),
-                    values => { submissions++; submitted = values; }, value => oldStringCalls++);
-                coordinator.ResolveGameplayText = resolve;
-                coordinator.ShowGameplayPrompt = (reference, check) => { Assert.That(resolve(reference), Is.Not.Null); Assert.That(check(), Is.True); };
-                Assert.That(pendingType == CharacterPendingChoiceTypes.LiskarmCleanupRemoval ? coordinator.Synchronize() :
-                    coordinator.TryBeginTinManPendingMove(), Is.True);
-                var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-                var adapterType = Type.GetType("YC.Presentation.CharacterCardInteraction, Assembly-CSharp", true);
-                var adapter = FormatterServices.GetUninitializedObject(adapterType);
-                adapterType.GetField("mapCoordinator", flags).SetValue(adapter, coordinator);
-                adapterType.GetField("hasPendingCharacterResolution", flags).SetValue(adapter, (Func<bool>)(() => state.PendingCharacterEffect != null));
-                adapterType.GetField("hasFacilitySelection", flags).SetValue(adapter, (Func<bool>)(() => false));
-                adapterType.GetField("tryCancelFacilitySelection", flags).SetValue(adapter, (Func<bool>)(() => false));
-                var router = new InteractionRouter(value => oldStringCalls++);
-                router.Register((IInteraction)adapter);
-                var original = router.BuildActivePresentation();
-                Assert.That(original.Highlights.Any(value => value.TargetId == source), Is.True);
-                var prompt = original.PromptDocument;
-                Assert.That(prompt, Is.Not.Null);
-                var current = coordinator.CapturePendingPromptCurrentness();
-                router.OnInfluenceSlotClicked(source, 100);
-                Assert.That(submissions, Is.Zero);
-                Assert.That(router.HasPendingMapConfirmation, Is.True);
-                var confirmed = router.BuildActivePresentation();
-                Assert.That(confirmed.PromptDocument, Is.SameAs(prompt));
-                Assert.That(coordinator.OwnsPromptDocument(confirmed.PromptDocument), Is.True);
-                Assert.That(confirmed.Highlights.Count, Is.EqualTo(original.Highlights.Count));
-                Assert.That(confirmed.Highlights.Single(value => value.TargetId == source).State,
-                    Is.EqualTo(WorkflowHighlightState.PendingConfirmation));
-                var frameType = Type.GetType("YC.Presentation.GameplayHudFrame, Assembly-CSharp", true);
-                var frame = FormatterServices.GetUninitializedObject(frameType);
-                var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
-                frameType.GetField("gameplaySnapshot", flags).SetValue(frame, visible);
-                var bind = frameType.GetMethod("BindScopedInteractionMessageDocument", flags);
-                var read = frameType.GetMethod("GetScopedInteractionMessageDocument", flags);
-                Assert.That(bind.Invoke(frame, new object[] { state.GameId, 1, visible.StateRevision, confirmed.PromptDocument, current }), Is.EqualTo(true));
-                Assert.That(read.Invoke(frame, null), Is.SameAs(prompt));
-                Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
-                var unchanged = state;
-                foreach (var change in new Action<GameState>[]
-                {
-                    value => value.PendingCharacterEffect.CardId = "other-card",
-                    value => value.PendingCharacterEffect.SourceCommandId = "other-command",
-                    value => value.PendingCharacterEffect.OptionIds.Add("other-option"),
-                    value => value.PendingCharacterEffect.RemainingCardIds[0] = "other-discard",
-                    value => value.PendingCharacterEffect.PlayerId = 2
-                })
-                {
-                    state = GameStateCloneService.DeepClone(unchanged); change(state);
-                    Assert.That(current(), Is.False);
-                }
-                state = unchanged;
-                Assert.That(current(), Is.True);
-                router.OnInfluenceSlotClicked(source, 100);
-                Assert.That(submissions, Is.Zero, "同帧重复输入不得提交");
-                router.OnInfluenceSlotClicked(source, 101);
-                if (pendingType == CharacterPendingChoiceTypes.TinManDiscard)
-                {
-                    Assert.That(submissions, Is.Zero);
-                    Assert.That(current(), Is.False, "进入目标步骤应撤销来源提示的当前性");
-                    Assert.That(read.Invoke(frame, null), Is.Null);
-                    var targetPresentation = router.BuildActivePresentation();
-                    Assert.That(targetPresentation.PromptDocument, Is.Not.SameAs(prompt));
-                    var target = targetPresentation.Highlights[0].TargetId;
-                    router.OnInfluenceSlotClicked(target, 102);
-                    Assert.That(submissions, Is.Zero);
-                    Assert.That(router.BuildActivePresentation().PromptDocument, Is.SameAs(targetPresentation.PromptDocument));
-                    router.OnInfluenceSlotClicked(target, 103);
-                    Assert.That(submitted[CharacterEffectParameterKeys.Choice], Is.EqualTo(CharacterEffectChoiceIds.MoveInfluence));
-                    Assert.That(submitted[CharacterEffectParameterKeys.SourceInfluenceSlotId], Is.EqualTo(source));
-                    Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(target));
-                }
-                else Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(source));
-                Assert.That(submissions, Is.EqualTo(1));
-                Assert.That(submitted[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId], Is.EqualTo("original-pending-command"));
-                Assert.That(oldStringCalls, Is.Zero);
-                Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
-                Assert.That(current(), Is.False);
-            }
         }
 
         private static Func<GameplayTextRef, GameplayTextDocument> BusinessTextResolver()

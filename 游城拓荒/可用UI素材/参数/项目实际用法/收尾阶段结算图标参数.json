@@ -1,0 +1,2082 @@
+{
+  "schemaVersion": 1,
+  "standardId": "M04",
+  "date": "2026-10-23",
+  "owner": "QY-017 END-PHASE-ICONS-R17",
+  "status": "R17阶段B完成：15张@2x实际Unity导入、七来源三色及五态组件画面与原命令链已核验；有限隔离9/9，008另批26/26；正常独立程序视觉与多局验收未覆盖。",
+  "phase": "B",
+  "authorization": "81-M04收尾阶段五种图标接入.md，用户明确新增15张@2x并更新七个正式收尾入口图标。",
+  "exactAssetIndex": "清单/可用素材索引.json",
+  "sourceRegistration": "参数/Settlement-Icons-EndPhase-v1.2/可用库登记.json",
+  "sourceDocuments": [
+    {
+      "path": "文档\\原始说明\\Settlement-Icons-EndPhase-v1.2\\README.md",
+      "sha256": "eceffd6172493f71d9e7ee8941bdb02e3b2898de05ca90eacc907d73d1e70390"
+    },
+    {
+      "path": "参数\\Settlement-Icons-EndPhase-v1.2\\assets.json",
+      "sha256": "259c4ae6badd3c9817b303f532194371345f63c1c70eeaec4744d02c41de40ba"
+    },
+    {
+      "path": "参数\\Settlement-Icons-EndPhase-v1.2\\icons.json",
+      "sha256": "c32e8560403ab345831a269cf288b402510966c52fdbd3a25825eaab0c912877"
+    },
+    {
+      "path": "参数\\Settlement-Icons-EndPhase-v1.2\\可用库登记.json",
+      "sha256": "0a024329ba3facfeb9ee6d934f28e8b851899c512440be6cd087bd20fbfc3913"
+    }
+  ],
+  "assetCount": 15,
+  "semanticCount": 5,
+  "buttonSourceCount": 7,
+  "originalLibraryPngCount": 45,
+  "stateIconTone": {
+    "available": "dark",
+    "hover": "dark",
+    "pressed": "dark",
+    "pending": "light",
+    "disabled": "muted"
+  },
+  "imageDisplay": {
+    "width": 22,
+    "height": 22,
+    "imageType": "Simple",
+    "preserveAspect": true,
+    "tint": "white/alpha1",
+    "sourcePrefab": "Assets/YC/Presentation/Settlement/Prefabs/SettlementEffectChip.prefab",
+    "sourcePrefabGuid": "21dbd3eeddc15ef5848cef1a5bc7bf64",
+    "sourcePrefabModified": false,
+    "sceneOverridesAdded": false
+  },
+  "runtimeChain": [
+    "Content/core/entrepreneur/*.json settlement.presentation",
+    "通用正式投影",
+    "SettlementEffectChipView",
+    "GameplayHudFrame.ResolveGameplayIcon",
+    "GameplayIconResourceResolver",
+    "GameplayIconCatalog.asset精确三色AssetKey绑定"
+  ],
+  "iconCatalog": "Assets/YC/Presentation/Text/Content/GameplayIconCatalog.asset",
+  "assets": [
+    {
+      "resourceKey": "core:settlement.outpost_payout.dark",
+      "iconKey": "core:settlement.outpost_payout",
+      "assetId": "ui-outpost-payout",
+      "tone": "dark",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-dark@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-dark@2x.png",
+      "guid": "1a3a57b00a084a0185f8d4e68b9635cf",
+      "spriteFileId": 21300000,
+      "sha256": "33bef96a6a77906b2d3e174d1133324f7462dd3c55374202fafc96869f28e05e",
+      "bytes": 598,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1564,
+      "visiblePixels": 740,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        56,
+        55,
+        46
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            56,
+            55,
+            46
+          ],
+          "count": 356
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次；色版dark用于米色可用/悬停/按下；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-dark@2x.png",
+        "guid": "1a3a57b00a084a0185f8d4e68b9635cf",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "2ec7484cb60e2c09d1427fbc0d9e079fdc8b9ead4db538fb4d1c58af3fecd9a4"
+    },
+    {
+      "resourceKey": "core:settlement.outpost_payout.light",
+      "iconKey": "core:settlement.outpost_payout",
+      "assetId": "ui-outpost-payout",
+      "tone": "light",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-light@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-light@2x.png",
+      "guid": "c13d747159644d44a17e203188112e0c",
+      "spriteFileId": 21300000,
+      "sha256": "9da31b814eda0e823cfa9bbd590b11c90ce5cf36cb5994fa3c56004e9f015bd7",
+      "bytes": 610,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1564,
+      "visiblePixels": 740,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        240,
+        228,
+        199
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            240,
+            228,
+            199
+          ],
+          "count": 356
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次；色版light用于深色或处理中；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-light@2x.png",
+        "guid": "c13d747159644d44a17e203188112e0c",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "84b249e575da9a94000bed6ff41dec7aae44af119f9596ba4bd09a4cc9b5c5dc"
+    },
+    {
+      "resourceKey": "core:settlement.outpost_payout.muted",
+      "iconKey": "core:settlement.outpost_payout",
+      "assetId": "ui-outpost-payout",
+      "tone": "muted",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-muted@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-muted@2x.png",
+      "guid": "79742e8e42c2480f84c3b2e341079517",
+      "spriteFileId": 21300000,
+      "sha256": "87fd3d7af3acc35c75fa2125c4ab0c7efa0b9b91dd3fd293a7f998ea3030a1f6",
+      "bytes": 616,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1564,
+      "visiblePixels": 740,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        169,
+        163,
+        146
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            169,
+            163,
+            146
+          ],
+          "count": 356
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次；色版muted用于深灰不可用；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-outpost-payout-muted@2x.png",
+        "guid": "79742e8e42c2480f84c3b2e341079517",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "db87ac25a26a518ba944457007b276b87806b2a69b10f272040adc8e1b5c21cf"
+    },
+    {
+      "resourceKey": "core:settlement.marker_redeem.dark",
+      "iconKey": "core:settlement.marker_redeem",
+      "assetId": "ui-marker-redeem",
+      "tone": "dark",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-dark@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-dark@2x.png",
+      "guid": "d48728f7a7b644b0abc140e58291c45c",
+      "spriteFileId": 21300000,
+      "sha256": "38fd4a49a213ab3b188e4208d9505824fc473b7abfdec11585ea98c0429abd1c",
+      "bytes": 606,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1624,
+      "visiblePixels": 680,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        56,
+        55,
+        46
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            56,
+            55,
+            46
+          ],
+          "count": 327
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次；色版dark用于米色可用/悬停/按下；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-dark@2x.png",
+        "guid": "d48728f7a7b644b0abc140e58291c45c",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "441bf8f8e4b76d06bab0d844080d5f2fd876914846530a2630125ca2c2779c4f"
+    },
+    {
+      "resourceKey": "core:settlement.marker_redeem.light",
+      "iconKey": "core:settlement.marker_redeem",
+      "assetId": "ui-marker-redeem",
+      "tone": "light",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-light@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-light@2x.png",
+      "guid": "656c8ea653d447a59ac9797fe3c6e31e",
+      "spriteFileId": 21300000,
+      "sha256": "b9564d1e43427fb90e52d56f2a13752be97ec81e93d0ebb7a55e3cbaea9a6c14",
+      "bytes": 626,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1624,
+      "visiblePixels": 680,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        240,
+        228,
+        199
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            240,
+            228,
+            199
+          ],
+          "count": 327
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次；色版light用于深色或处理中；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-light@2x.png",
+        "guid": "656c8ea653d447a59ac9797fe3c6e31e",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "3733eeead17ec7e23f458c17981c9a23fc538e58f66a62ac60934e789346e965"
+    },
+    {
+      "resourceKey": "core:settlement.marker_redeem.muted",
+      "iconKey": "core:settlement.marker_redeem",
+      "assetId": "ui-marker-redeem",
+      "tone": "muted",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-muted@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-muted@2x.png",
+      "guid": "51b2830bce2d4015a8b1c6bbce7f47a9",
+      "spriteFileId": 21300000,
+      "sha256": "d0a25de0c733a0a352b0cea63ee0430f0da056f1d9b07293734182133f51ef94",
+      "bytes": 621,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1624,
+      "visiblePixels": 680,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        169,
+        163,
+        146
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            169,
+            163,
+            146
+          ],
+          "count": 327
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次；色版muted用于深灰不可用；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-marker-redeem-muted@2x.png",
+        "guid": "51b2830bce2d4015a8b1c6bbce7f47a9",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "c17b53e6862a7a244c65d28325b647b399b4e95a2cc6522edccbe4b29ec69093"
+    },
+    {
+      "resourceKey": "core:settlement.fund_invest.dark",
+      "iconKey": "core:settlement.fund_invest",
+      "assetId": "ui-fund-invest",
+      "tone": "dark",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-dark@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-dark@2x.png",
+      "guid": "741c8b6a80ed4f11a122f7998ea102fb",
+      "spriteFileId": 21300000,
+      "sha256": "6a4588f7de7223664bfc6c5f8f6961268a1e6d28dc67d6f08a59ea2376475ab9",
+      "bytes": 735,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1588,
+      "visiblePixels": 716,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        56,
+        55,
+        46
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            56,
+            55,
+            46
+          ],
+          "count": 338
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次；色版dark用于米色可用/悬停/按下；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-dark@2x.png",
+        "guid": "741c8b6a80ed4f11a122f7998ea102fb",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "b2659bdd1341be3fb15d6df6a07e18656a31608b22929f43fb5c1ac172c40747"
+    },
+    {
+      "resourceKey": "core:settlement.fund_invest.light",
+      "iconKey": "core:settlement.fund_invest",
+      "assetId": "ui-fund-invest",
+      "tone": "light",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-light@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-light@2x.png",
+      "guid": "4a4eb640b2b948e893f036e097fd34e7",
+      "spriteFileId": 21300000,
+      "sha256": "ec96ea4182a431693ce2cb7c71aef0a4db877333a7145231a257b6ca5ec0f279",
+      "bytes": 748,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1588,
+      "visiblePixels": 716,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        240,
+        228,
+        199
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            240,
+            228,
+            199
+          ],
+          "count": 338
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次；色版light用于深色或处理中；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-light@2x.png",
+        "guid": "4a4eb640b2b948e893f036e097fd34e7",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "59d64c6f1c42543bd02fbd5ebf2bb7c445c5c8b96f21848719d61562a284b119"
+    },
+    {
+      "resourceKey": "core:settlement.fund_invest.muted",
+      "iconKey": "core:settlement.fund_invest",
+      "assetId": "ui-fund-invest",
+      "tone": "muted",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-muted@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-muted@2x.png",
+      "guid": "11c93c0ce7b7429c877f825f3e030ccb",
+      "spriteFileId": 21300000,
+      "sha256": "ce480e16d1ce886a2f4a539d56d07dbc3d564a8581db4b22367d71e4ecb9ada7",
+      "bytes": 750,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1588,
+      "visiblePixels": 716,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        169,
+        163,
+        146
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            169,
+            163,
+            146
+          ],
+          "count": 338
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次；色版muted用于深灰不可用；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-fund-invest-muted@2x.png",
+        "guid": "11c93c0ce7b7429c877f825f3e030ccb",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "138c0bbe3cf6715937e6b7829f7f06f4387b15f0c8cac6debcf939342f63c3ad"
+    },
+    {
+      "resourceKey": "core:settlement.reputation_score.dark",
+      "iconKey": "core:settlement.reputation_score",
+      "assetId": "ui-reputation-score",
+      "tone": "dark",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-dark@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-dark@2x.png",
+      "guid": "cccc391462d24a5c9bb32565cb59007a",
+      "spriteFileId": 21300000,
+      "sha256": "c4abeccfb400f2338032aaf035540f45c137b9bdfd4d4a019643d78238969e7f",
+      "bytes": 1193,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1503,
+      "visiblePixels": 801,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        56,
+        55,
+        46
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            56,
+            55,
+            46
+          ],
+          "count": 389
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次；色版dark用于米色可用/悬停/按下；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-dark@2x.png",
+        "guid": "cccc391462d24a5c9bb32565cb59007a",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "7d12339469cb767ff4cb875842f5c52b3a558d5af51986897920582272c61767"
+    },
+    {
+      "resourceKey": "core:settlement.reputation_score.light",
+      "iconKey": "core:settlement.reputation_score",
+      "assetId": "ui-reputation-score",
+      "tone": "light",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-light@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-light@2x.png",
+      "guid": "8ddd29c19e9a4badba1b6af1d7b98265",
+      "spriteFileId": 21300000,
+      "sha256": "c463623effa2b0c6aae7f427bf8a506492016a5dc8e6390911bbda7ea61806ea",
+      "bytes": 1209,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1503,
+      "visiblePixels": 801,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        240,
+        228,
+        199
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            240,
+            228,
+            199
+          ],
+          "count": 389
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次；色版light用于深色或处理中；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-light@2x.png",
+        "guid": "8ddd29c19e9a4badba1b6af1d7b98265",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "5b3aa6cdb68d58337f24fbca37e5b0010bda4e2398bf5ad3fe04a79afdbc9989"
+    },
+    {
+      "resourceKey": "core:settlement.reputation_score.muted",
+      "iconKey": "core:settlement.reputation_score",
+      "assetId": "ui-reputation-score",
+      "tone": "muted",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-muted@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-muted@2x.png",
+      "guid": "61ac4a050ea64b63ba8b852f58d2bef9",
+      "spriteFileId": 21300000,
+      "sha256": "62a61141ff8140331b073d20cb9827ae07bae65fce204606b56b7a30bc875aba",
+      "bytes": 1213,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1503,
+      "visiblePixels": 801,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        169,
+        163,
+        146
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            168,
+            163,
+            146
+          ],
+          "count": 1
+        },
+        {
+          "rgb": [
+            169,
+            163,
+            146
+          ],
+          "count": 388
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次；色版muted用于深灰不可用；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-reputation-score-muted@2x.png",
+        "guid": "61ac4a050ea64b63ba8b852f58d2bef9",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "5fd85b6e80f5b2dca6f105b1d04e356ab95b46c5c7a7b91455302337a9afe31a"
+    },
+    {
+      "resourceKey": "core:settlement.tactical_dispatch.dark",
+      "iconKey": "core:settlement.tactical_dispatch",
+      "assetId": "ui-tactical-dispatch",
+      "tone": "dark",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-dark@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-dark@2x.png",
+      "guid": "ab4c4de7263c4365ac6a39e688b44c5d",
+      "spriteFileId": 21300000,
+      "sha256": "fc3e4e24c5e08619fb056a01e9825b3436d24a37ab9628e2800aa9c442ea321b",
+      "bytes": 1156,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1598,
+      "visiblePixels": 706,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        56,
+        55,
+        46
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            56,
+            55,
+            46
+          ],
+          "count": 331
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次；色版dark用于米色可用/悬停/按下；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-dark@2x.png",
+        "guid": "ab4c4de7263c4365ac6a39e688b44c5d",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "02b71fed01c744bd729e06c881bc1a40d167bd81c6d03387ecb55bc8072d9f24"
+    },
+    {
+      "resourceKey": "core:settlement.tactical_dispatch.light",
+      "iconKey": "core:settlement.tactical_dispatch",
+      "assetId": "ui-tactical-dispatch",
+      "tone": "light",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-light@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-light@2x.png",
+      "guid": "dccc37083a3d40d481559cda7dd5d899",
+      "spriteFileId": 21300000,
+      "sha256": "f0c801431eea9259fe12b5ce7bb01ae7e51aae946eab6b4648c2bebec1ecb27d",
+      "bytes": 1192,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1598,
+      "visiblePixels": 706,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        240,
+        228,
+        199
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            240,
+            228,
+            199
+          ],
+          "count": 331
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次；色版light用于深色或处理中；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-light@2x.png",
+        "guid": "dccc37083a3d40d481559cda7dd5d899",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "eeedb31f739772332008ad490215b3e7f33d782c12ed356b8e0bfea85beb3fe1"
+    },
+    {
+      "resourceKey": "core:settlement.tactical_dispatch.muted",
+      "iconKey": "core:settlement.tactical_dispatch",
+      "assetId": "ui-tactical-dispatch",
+      "tone": "muted",
+      "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-muted@2x.png",
+      "unityAsset": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-muted@2x.png",
+      "guid": "0523da17e97a484c994a9cabacda8314",
+      "spriteFileId": 21300000,
+      "sha256": "c4df797a66cb8eab629f98fb09ed1f6036999354839a81b4e1d659a615e34946",
+      "bytes": 1195,
+      "image": {
+        "width": 48,
+        "height": 48
+      },
+      "mode": "RGBA",
+      "transparentPixels": 1598,
+      "visiblePixels": 706,
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "paletteRgb": [
+        169,
+        163,
+        146
+      ],
+      "actualOpaqueRgb": [
+        {
+          "rgb": [
+            169,
+            163,
+            146
+          ],
+          "count": 331
+        }
+      ],
+      "uses": [
+        {
+          "purpose": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+          "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次；色版muted用于深灰不可用；2×仅分辨率变体"
+        }
+      ],
+      "importSettings": {
+        "textureType": "Sprite",
+        "spriteMode": "Single",
+        "spritePixelsPerUnit": 200,
+        "borderLTRB": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "sRGB": true,
+        "alphaIsTransparency": true,
+        "mipmaps": false,
+        "spriteMeshType": "FullRect",
+        "filterMode": "Bilinear",
+        "wrapMode": "Clamp",
+        "textureCompression": "None"
+      },
+      "unityImportVerified": true,
+      "actualUnityImport": {
+        "path": "Assets/YC/Presentation/Settlement/Sprites/Icons/ui-tactical-dispatch-muted@2x.png",
+        "guid": "0523da17e97a484c994a9cabacda8314",
+        "rect": [
+          0.0,
+          0.0,
+          48.0,
+          48.0
+        ],
+        "pixelsPerUnit": 200.0,
+        "border": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "textureType": 8,
+        "spriteImportMode": 1,
+        "spritePixelsPerUnit": 200.0,
+        "sRGBTexture": true,
+        "alphaIsTransparency": true,
+        "mipmapEnabled": false,
+        "filterMode": 1,
+        "wrapMode": 1,
+        "textureCompression": 0,
+        "spriteMeshType": 0,
+        "platform": {
+          "name": "DefaultTexturePlatform",
+          "overridden": false,
+          "ignorePlatformSupport": false,
+          "maxTextureSize": 1024,
+          "resizeAlgorithm": 0,
+          "format": -1,
+          "textureCompression": 0,
+          "compressionQuality": 50,
+          "crunchedCompression": false,
+          "allowsAlphaSplitting": false,
+          "androidETC2FallbackOverride": 0
+        }
+      },
+      "metaSha256": "35e21d60446aaa0d3c6fcb7cd7fcccb063358afb5fd7b5a06a383357a14b0951"
+    }
+  ],
+  "icons": [
+    {
+      "id": "core:settlement.outpost_payout",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.outpost_payout.dark",
+      "light": "core:settlement.outpost_payout.light",
+      "muted": "core:settlement.outpost_payout.muted",
+      "altText": {
+        "key": "core:entrepreneur.P.share.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.marker_redeem",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.marker_redeem.dark",
+      "light": "core:settlement.marker_redeem.light",
+      "muted": "core:settlement.marker_redeem.muted",
+      "altText": {
+        "key": "core:entrepreneur.T.cleanup.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.fund_invest",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.fund_invest.dark",
+      "light": "core:settlement.fund_invest.light",
+      "muted": "core:settlement.fund_invest.muted",
+      "altText": {
+        "key": "core:entrepreneur.D.investment.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.reputation_score",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.reputation_score.dark",
+      "light": "core:settlement.reputation_score.light",
+      "muted": "core:settlement.reputation_score.muted",
+      "altText": {
+        "key": "core:entrepreneur.D.exchange.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.tactical_dispatch",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.tactical_dispatch.dark",
+      "light": "core:settlement.tactical_dispatch.light",
+      "muted": "core:settlement.tactical_dispatch.muted",
+      "altText": {
+        "key": "core:entrepreneur.A.A05.name",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    }
+  ],
+  "buttons": [
+    {
+      "abilityId": "entrepreneur.P03.cleanup",
+      "definitionId": "entrepreneur.round.P.3",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.round.P.3.json",
+      "presentationPointer": "/abilities/1/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.outpost_payout",
+      "assetId": "ui-outpost-payout",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "P03",
+        "P04"
+      ],
+      "sourceScript": "lua/entrepreneurs/paul.p03_p04.cleanup.lua",
+      "label": {
+        "key": "core:entrepreneur.P.share.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.P.share.condition"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.P.share.label"
+      },
+      "actualLabelTemplate": "帮派资源分享",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.P.share.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.P.share.condition"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.P.share.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P04.cleanup",
+      "definitionId": "entrepreneur.round.P.3",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.round.P.3.json",
+      "presentationPointer": "/abilities/2/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.outpost_payout",
+      "assetId": "ui-outpost-payout",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "P03",
+        "P04"
+      ],
+      "sourceScript": "lua/entrepreneurs/paul.p03_p04.cleanup.lua",
+      "label": {
+        "key": "core:entrepreneur.P.share.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.P.share.condition"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.P.share.label"
+      },
+      "actualLabelTemplate": "帮派资源分享",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.P.share.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.P.share.condition"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.P.share.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.T09.cleanup",
+      "definitionId": "entrepreneur.ability.T09",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.ability.T09.json",
+      "presentationPointer": "/abilities/1/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.marker_redeem",
+      "assetId": "ui-marker-redeem",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "T09"
+      ],
+      "sourceScript": "lua/entrepreneurs/fifth_number_cleanup.lua",
+      "label": {
+        "key": "core:entrepreneur.T.cleanup.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.T.cleanup.description"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.T.cleanup.label"
+      },
+      "actualLabelTemplate": "兑换收容标记",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.T.cleanup.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.T.cleanup.description"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.T.cleanup.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D09.investment",
+      "definitionId": "entrepreneur.ability.D09",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.ability.D09.json",
+      "presentationPointer": "/abilities/0/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.fund_invest",
+      "assetId": "ui-fund-invest",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "D09"
+      ],
+      "sourceScript": "lua/entrepreneurs/tiago.lua",
+      "label": {
+        "key": "core:entrepreneur.D.investment.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.D.investment.description"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.D.investment.label"
+      },
+      "actualLabelTemplate": "基金投资",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.D.investment.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.D.investment.description"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.D.investment.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D01.exchange",
+      "definitionId": "entrepreneur.round.D.1",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.round.D.1.json",
+      "presentationPointer": "/abilities/0/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.reputation_score",
+      "assetId": "ui-reputation-score",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "D01",
+        "D02"
+      ],
+      "sourceScript": "lua/entrepreneurs/tiago.lua",
+      "label": {
+        "key": "core:entrepreneur.D.exchange.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.D.exchange.description"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.D.exchange.label"
+      },
+      "actualLabelTemplate": "声望换分",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.D.exchange.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.D.exchange.description"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.D.exchange.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D02.exchange",
+      "definitionId": "entrepreneur.round.D.1",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.round.D.1.json",
+      "presentationPointer": "/abilities/1/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.reputation_score",
+      "assetId": "ui-reputation-score",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "D01",
+        "D02"
+      ],
+      "sourceScript": "lua/entrepreneurs/tiago.lua",
+      "label": {
+        "key": "core:entrepreneur.D.exchange.label"
+      },
+      "description": {
+        "key": "core:entrepreneur.D.exchange.description"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.D.exchange.label"
+      },
+      "actualLabelTemplate": "声望换分",
+      "previousPresentation": {
+        "label": {
+          "key": "core:entrepreneur.D.exchange.label"
+        },
+        "description": {
+          "key": "core:entrepreneur.D.exchange.description"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.D.exchange.label"
+        },
+        "contentMode": "text"
+      }
+    },
+    {
+      "abilityId": "entrepreneur.A05.cleanup",
+      "definitionId": "entrepreneur.round.A.5",
+      "definitionPath": "Assets/StreamingAssets/Content/core/entrepreneur/entrepreneur.round.A.5.json",
+      "presentationPointer": "/abilities/0/settlement/presentation",
+      "entryKind": "cleanup_order",
+      "iconKey": "core:settlement.tactical_dispatch",
+      "assetId": "ui-tactical-dispatch",
+      "contentMode": "icon_text",
+      "sourceCards": [
+        "A05"
+      ],
+      "sourceScript": "lua/entrepreneurs/agnes.invoke.lua",
+      "label": {
+        "key": "core:entrepreneur.A.A05.name"
+      },
+      "description": {
+        "key": "core:entrepreneur.A.A05.description"
+      },
+      "ariaLabel": {
+        "key": "core:entrepreneur.A.A05.name"
+      },
+      "actualLabelTemplate": "特勤小组",
+      "previousPresentation": {
+        "description": {
+          "key": "core:entrepreneur.A.A05.description"
+        },
+        "label": {
+          "key": "core:entrepreneur.A.A05.name"
+        },
+        "ariaLabel": {
+          "key": "core:entrepreneur.A.A05.name"
+        }
+      }
+    }
+  ],
+  "m03Preservation": {
+    "originalAssetCount": 26,
+    "originalSourceCount": 13,
+    "changed": false
+  },
+  "boundary": {
+    "unityLaunched": true,
+    "formalContentLoaderExecuted": true,
+    "componentScreenshots": [
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/P03-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/P04-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/T09-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D09-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D01-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D02-五态.png",
+      "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/A05-五态.png"
+    ],
+    "normalGame": false,
+    "playerBuilt": false,
+    "cppOrLuaRuleChanges": false,
+    "originalDocumentationUnchanged": true
+  },
+  "unityValidation": {
+    "attempt": "a006",
+    "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006",
+    "ownCases": 9,
+    "passed": 9,
+    "sources": [
+      {
+        "source": "P03",
+        "optionId": "settlement_order_2841b4ac748c8876bd6885e1e23f366d0ba43fb8e2d2da521c7ec23d4cb85a70",
+        "localId": "entrepreneur.P03.cleanup.cleanup_order",
+        "iconKey": "core:settlement.outpost_payout",
+        "contentHash": "a7d4f745b43b236839a4551e04bde02c774f57b4550ee6e245c12929ede776b8",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/P03-五态.png",
+        "imageSha256": "76a66e3c38712c0dc5ebdf8ea45504c335474c09acd50f8c1f4785ad7faa1e2b",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "P04",
+        "optionId": "settlement_order_953a8e8fa49699bea1c09da020d5612cb09bf051e6b401972d43c0c36583d205",
+        "localId": "entrepreneur.P04.cleanup.cleanup_order",
+        "iconKey": "core:settlement.outpost_payout",
+        "contentHash": "a7d4f745b43b236839a4551e04bde02c774f57b4550ee6e245c12929ede776b8",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/P04-五态.png",
+        "imageSha256": "76a66e3c38712c0dc5ebdf8ea45504c335474c09acd50f8c1f4785ad7faa1e2b",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "T09",
+        "optionId": "cleanup-source_f9db2b599651afcc544aa1babcaf3b07793f51eef3aace1e4bbbcdcb4b8e2a7b",
+        "localId": "entrepreneur.T09.cleanup.cleanup_order",
+        "iconKey": "core:settlement.marker_redeem",
+        "contentHash": "43595c3386f0937b59796987aceb1c75edf115d8232e5c5cba2575c2fecf3eb2",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/T09-五态.png",
+        "imageSha256": "c781a91ce1331ba03b0ce30b0988101a6ad5069c17a340ae26bf513809a45967",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "D09",
+        "optionId": "settlement_order_7202f97d1e8a2e57935eceacd5f293258d32815c5c3959e9278c58e45cef600c",
+        "localId": "entrepreneur.D09.investment.cleanup_order",
+        "iconKey": "core:settlement.fund_invest",
+        "contentHash": "448f78965721c9a237f8977ac3b650947d9a1f17172af4d4b1f22dd382687794",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D09-五态.png",
+        "imageSha256": "213d73e26d690330af981f4a2e2181d8901747b397671170c0979dd9a7d98eea",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "D01",
+        "optionId": "cleanup-source_a727680299f85452e47e747972bc96beb5f059a5d44c71a12e432ab2f864a7a0",
+        "localId": "entrepreneur.D01.exchange.cleanup_order",
+        "iconKey": "core:settlement.reputation_score",
+        "contentHash": "448f78965721c9a237f8977ac3b650947d9a1f17172af4d4b1f22dd382687794",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D01-五态.png",
+        "imageSha256": "b22bbe5563b0cb470cb609150ecc4ca72e2f5f12ebf32737c92494f7575d5a60",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "D02",
+        "optionId": "cleanup-source_b41da84875191c4f13fefcd5e96eb530a3a57e020c29527992b058a44c98f0f4",
+        "localId": "entrepreneur.D02.exchange.cleanup_order",
+        "iconKey": "core:settlement.reputation_score",
+        "contentHash": "448f78965721c9a237f8977ac3b650947d9a1f17172af4d4b1f22dd382687794",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/D02-五态.png",
+        "imageSha256": "b22bbe5563b0cb470cb609150ecc4ca72e2f5f12ebf32737c92494f7575d5a60",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      },
+      {
+        "source": "A05",
+        "optionId": "settlement_order_3c6b820ec90de1f5145d33c2ae277cecd2d20877a3f891ce0878d190fd8c30d5",
+        "localId": "entrepreneur.A05.cleanup.cleanup_order",
+        "iconKey": "core:settlement.tactical_dispatch",
+        "contentHash": "4fc6254e32977f3acedec56a348732fb6bebbec761d7e0ad2f2fb94077732ec1",
+        "screenshot": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-END-PHASE-ICONS-R17/阶段B/a006/A05-五态.png",
+        "imageSha256": "1899dba843447fa57049daad96677ff74dde232275b6d12adbae3b9a7f037e7f",
+        "stateCount": 5,
+        "acceptedCommandKind": 16,
+        "commandAccepted": true
+      }
+    ],
+    "a08RequiredEntry": "A08原通用条目调用成功，待移除请求均不允许放弃；不套M04图标",
+    "importCorrection": "15份meta spriteMeshType由1(Tight)补正为0(FullRect)，PNG原字节保持",
+    "other008Validation": {
+      "attempt": "a001",
+      "found": 26,
+      "passed": 26,
+      "sameInputAsFinal": false
+    },
+    "scope": "所有前提和事件派发均为隔离组件/规则检查；实际读取内容版本逐case保存，外部并行文案改动不计作本轮修改"
+  }
+}

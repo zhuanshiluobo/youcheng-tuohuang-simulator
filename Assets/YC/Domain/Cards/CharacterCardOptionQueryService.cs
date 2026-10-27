@@ -143,21 +143,8 @@ namespace YC.Domain.Cards
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManDiscard)
             {
-                result.SetPresentation(new GameplayInteractionPresentation
-                {
-                    Prompt = string.IsNullOrEmpty(pending.RemainingCardIds[0])
-                        ? new GameplayTextRef("core:legacy.character.tin_man.discard.prompt_without_card")
-                        : new GameplayTextRef("core:legacy.character.tin_man.discard.prompt",
-                        new GameplayTextArgument
-                        {
-                            Name = "card", Kind = "definition",
-                            Value = NormalizedValue.CreateStableReference("definition", pending.RemainingCardIds[0])
-                        })
-                });
-                AddPresentedChoice(result, CharacterEffectChoiceIds.GainGold,
-                    new GameplayTextRef("core:legacy.character.tin_man.discard.gain_gold", Integer("gold", 5)));
-                AddPresentedChoice(result, CharacterEffectChoiceIds.MoveInfluence,
-                    new GameplayTextRef("core:legacy.character.tin_man.discard.move_influence", Integer("count", 1)));
+                result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.GainGold, string.Empty);
+                result.Add(CharacterEffectParameterKeys.Choice, CharacterEffectChoiceIds.MoveInfluence, string.Empty);
                 QuerySingleInfluenceMove(state, playerId, selectedParameters, result);
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManFirstPurchase)
@@ -167,23 +154,14 @@ namespace YC.Domain.Cards
                     0,
                     1,
                     0);
-                result.SetPresentation(new GameplayInteractionPresentation
-                {
-                    Prompt = new GameplayTextRef("core:legacy.character.tin_man.first_purchase.prompt",
-                        Integer("score", result.ScoreGain),
-                        Integer("cost", CharacterCardService.TinManFirstPureOriginiumCost))
-                });
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
-                    CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium,
-                    new GameplayTextRef("core:legacy.character.tin_man.first_purchase.buy",
-                        Integer("cost", CharacterCardService.TinManFirstPureOriginiumCost), Integer("amount", 1)));
+                    CharacterEffectChoiceIds.TinManPurchaseFirstPureOriginium);
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
-                    CharacterEffectChoiceIds.TinManFinishPurchasing,
-                    new GameplayTextRef("core:legacy.character.tin_man.first_purchase.finish"));
+                    CharacterEffectChoiceIds.TinManFinishPurchasing);
             }
             else if (pending.ChoiceType == CharacterPendingChoiceTypes.TinManSecondPurchase)
             {
@@ -192,23 +170,14 @@ namespace YC.Domain.Cards
                     CharacterCardService.TinManFirstPureOriginiumCost,
                     1,
                     1);
-                result.SetPresentation(new GameplayInteractionPresentation
-                {
-                    Prompt = new GameplayTextRef("core:legacy.character.tin_man.second_purchase.prompt",
-                        Integer("paid", result.GoldVoucherCost), Integer("amount", result.PureOriginiumGain),
-                        Integer("cost", CharacterCardService.TinManSecondPureOriginiumCost))
-                });
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
-                    CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium,
-                    new GameplayTextRef("core:legacy.character.tin_man.second_purchase.buy",
-                        Integer("cost", CharacterCardService.TinManSecondPureOriginiumCost), Integer("amount", 1)));
+                    CharacterEffectChoiceIds.TinManPurchaseSecondPureOriginium);
                 AddPendingChoiceIfPresent(
                     pending,
                     result,
-                    CharacterEffectChoiceIds.TinManFinishPurchasing,
-                    new GameplayTextRef("core:legacy.character.tin_man.second_purchase.finish"));
+                    CharacterEffectChoiceIds.TinManFinishPurchasing);
             }
 
             return result;
@@ -217,25 +186,13 @@ namespace YC.Domain.Cards
         private static void AddPendingChoiceIfPresent(
             PendingCharacterEffectState pending,
             CharacterCardOptionQueryResult result,
-            string choiceId,
-            GameplayTextRef label)
+            string choiceId)
         {
             if (pending.OptionIds != null && pending.OptionIds.Contains(choiceId))
             {
-                AddPresentedChoice(result, choiceId, label);
+                result.Add(CharacterEffectParameterKeys.Choice, choiceId, string.Empty);
             }
         }
-
-        private static void AddPresentedChoice(CharacterCardOptionQueryResult result, string choiceId, GameplayTextRef label)
-        {
-            result.Add(CharacterEffectParameterKeys.Choice, choiceId, string.Empty);
-            result.Presentation.Options.Add(new GameplayOptionPresentation { CandidateId = choiceId, Label = label });
-        }
-
-        private static GameplayTextArgument Integer(string name, int value) => new GameplayTextArgument
-        {
-            Name = name, Kind = "integer", Value = NormalizedValue.CreateInteger(value)
-        };
 
         private bool HasCompleteLiskarmPlacement(GameState state, int playerId)
         {

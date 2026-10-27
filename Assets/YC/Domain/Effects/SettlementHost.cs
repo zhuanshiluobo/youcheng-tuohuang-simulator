@@ -87,9 +87,12 @@ namespace YC.Domain.Effects
         {
             reason = "settlement_origin_invalid";
             var runtime = state.EffectRuntime;
+            if (!CleanupSourceRecovery.TryValidate(state, registry, out reason)) return false;
+            reason = "settlement_origin_invalid";
             var registeredTargets = new HashSet<string>(StringComparer.Ordinal);
             foreach (var owner in runtime.EffectNodes.Where(n => n.SettlementWindow != null))
             {
+                reason = "settlement_origin_invalid:" + owner.EffectId;
                 var window = owner.SettlementWindow;
                 var context = window.Context;
                 var trigger = context.Kind == SettlementEntryService.PlayerCleanup ? runtime.RuleEvents.Find(e =>
@@ -99,6 +102,25 @@ namespace YC.Domain.Effects
                     u.UseId == context.TargetUseId && u.OwnerEffectId == owner.EffectId && u.ExecutingPlayerId == context.PlayerId)) return false;
                 foreach (var entry in window.Entries)
                 {
+                    if (entry.PaymentInsertion != null)
+                    {
+                        if (!ResourcePaymentInsertionService.ValidateEntry(state, window, entry, registry)) return false;
+                        continue;
+                    }
+                    reason = "settlement_origin_invalid:" + entry.TargetEffectId;
+                    if (runtime.EffectNodes.Any(n => n.EffectId == entry.TargetEffectId && n.EffectTypeId == CleanupObligation.InvokeType))
+                    {
+                        if (!CleanupObligation.ValidateSettlementEntry(state, window, entry) || !registeredTargets.Add(entry.TargetEffectId))
+                        { reason = "cleanup_obligation_settlement_origin_invalid"; return false; }
+                        continue;
+                    }
+                    if (entry.CleanupSource != null)
+                    {
+                        if (!CleanupSourceRecovery.TryValidateEntry(state, window, entry, registry, out reason)) return false;
+                        if (!registeredTargets.Add(entry.TargetEffectId))
+                        { reason = "settlement_target_duplicate:" + entry.TargetEffectId; return false; }
+                        continue;
+                    }
                     if (registry != null && (!registry.TryGetSettlementSourceContract(entry.AbilityId, out var contract) ||
                         contract.DefinitionId != entry.SourceDefinitionId || contract.LocalId != entry.LocalId ||
                         contract.EntryKind != entry.EntryKind || contract.AvailabilityHandlerId != entry.AvailabilityHandlerId ||
@@ -115,7 +137,14 @@ namespace YC.Domain.Effects
                     bool award = item.TypeId == "core.award_card" && ReferenceEquals(source, ContentLifecycleEffectExecutor.Acquisition(state, entry.SourceItemId)) &&
                         ItemTransferEffectExecutor.Flag(source.ContinuationData, "acquisitionCompleted") &&
                         ItemTransferEffectExecutor.Text(source.ContinuationData, "selectedRewardItemId") == entry.SourceItemId;
-                    if (!activation && !award) return false;
+                    var unifiedTarget = runtime.EffectNodes.Find(n => n.EffectId == entry.TargetEffectId && n.EffectTypeId == AbilitySourceEffectExecutor.TypeId);
+                    bool unified = unifiedTarget != null && ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "itemId") == entry.SourceItemId &&
+                        ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "abilityId") == entry.AbilityId &&
+                        ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "definitionId") == item.DefinitionId &&
+                        ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "triggerEventId") == context.TriggerId &&
+                        (registry?.AbilityDeclarations ?? state.ContentDefinitions?.AbilitySources)?.Any(d => d.DefinitionId == item.DefinitionId && d.AbilityId == entry.AbilityId && d.Kind == "cleanup" &&
+                            d.DeclarationVersion == ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "declarationVersion")) == true;
+                    if (!activation && !award && !unified) return false;
                     if (entry.EntryKind != SettlementEntryService.CleanupOrder) continue;
                     var target = runtime.EffectNodes.Find(n => n.EffectId == entry.TargetEffectId);
                     var declaration = target?.Settlement;
@@ -123,7 +152,8 @@ namespace YC.Domain.Effects
                         declaration.LocalId != entry.LocalId || declaration.EntryKind != entry.EntryKind || declaration.SourceItemId != entry.SourceItemId ||
                         declaration.SourceEffectId != entry.SourceEffectId || declaration.WholeEffectPolicy != entry.WholeEffectPolicy ||
                         !runtime.DispatchReceipts.Any(r => r.EventId == trigger.EventId && r.Succeeded && r.AttachedEffectIds.Contains(target.EffectId) &&
-                            (r.AbilityId == entry.AbilityId || award && r.HandlerId == "content.reward.player_cleanup"))) return false;
+                            (r.AbilityId == entry.AbilityId || award && r.HandlerId == "content.reward.player_cleanup" ||
+                                unified && r.HandlerId == "ability-source.event.PlayerCleanupStarted"))) return false;
                     if (target.EffectTypeId.StartsWith("timing.handler.", StringComparison.Ordinal))
                     {
                         var binding = source.TimingBindings.Find(b => b.BindingId == ItemTransferEffectExecutor.Text(target.NormalizedArguments, "bindingId") &&
@@ -132,11 +162,14 @@ namespace YC.Domain.Effects
                             !string.IsNullOrEmpty(binding.AttachedEffectId) && binding.AttachedEffectId != target.EffectId ||
                             binding.Status != "attached" && binding.Status != "completed" && binding.Status != "cancelled") return false;
                     }
-                    else if (award && (target.EffectTypeId != ContentLifecycleEffectExecutor.AwardCleanupTypeId ||
-                        ItemTransferEffectExecutor.Text(target.NormalizedArguments, "rewardItemId") != entry.SourceItemId)) return false;
+                    // 统一能力来源已由声明、目标参数和派发收据证明；旧奖励路由另验其专属目标。
+                    else if (award && !unified && (target.EffectTypeId != ContentLifecycleEffectExecutor.AwardCleanupTypeId ||
+                        ItemTransferEffectExecutor.Text(target.NormalizedArguments, "rewardItemId") != entry.SourceItemId))
+                    { reason = "settlement_award_cleanup_target_invalid:" + entry.TargetEffectId; return false; }
                 }
             }
-            if (runtime.EffectNodes.Any(n => n.Settlement != null && !registeredTargets.Contains(n.EffectId))) return false;
+            var unregistered = runtime.EffectNodes.FirstOrDefault(n => n.Settlement != null && !registeredTargets.Contains(n.EffectId));
+            if (unregistered != null) { reason = "settlement_target_unregistered:" + unregistered.EffectId; return false; }
             reason = string.Empty; return true;
         }
         public static void Register(EffectRegistry registry)
@@ -164,12 +197,12 @@ namespace YC.Domain.Effects
     }
     public partial class EffectTreeExecutor
     {
-        private static void AddResourcePaymentFacts(GameState work, EffectNodeRuntimeState owner, InteractionRequest request)
+        private void AddResourcePaymentFacts(GameState work, EffectNodeRuntimeState owner, InteractionRequest request)
         {
             if (owner.Payment == null || request.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId) return;
             var parameters = request.PromptParameters?.Kind == NormalizedValueKind.Object ? request.PromptParameters.Clone() :
                 NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
-            foreach (var entry in ResourcePaymentPreparationService.Facts(work, owner).Properties)
+            foreach (var entry in ResourcePaymentPreparationService.Facts(work, owner, registry).Properties)
             {
                 parameters.Properties.RemoveAll(value => value.Name == entry.Name); parameters.Properties.Add(entry);
             }
@@ -250,7 +283,7 @@ namespace YC.Domain.Effects
             { diagnostic = "settlement_window_not_active"; return false; }
             var work = GameStateCloneService.DeepClone(state);
             var owner = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == ownerEffectId);
-            if (!ResourcePaymentChoiceEffectExecutor.TryInitializeSelectedPayment(work, owner, candidateId, out diagnostic)) return false;
+            if (!ResourcePaymentChoiceEffectExecutor.TryInitializeSelectedPayment(work, owner, candidateId, out diagnostic, registry)) return false;
             var workRequest = work.EffectRuntime.InteractionRequests.Find(r => r.GetStableInteractionId() == interactionId);
             if (!owner.Payment.BeforePaymentReady)
             {
@@ -290,6 +323,10 @@ namespace YC.Domain.Effects
                     !registry.TryGetSettlementSourceContract(declaration.AbilityId, out var contract) || contract.EntryKind != declaration.EntryKind ||
                     contract.LocalId != declaration.LocalId || contract.WholeEffectPolicy != declaration.WholeEffectPolicy)
                     throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "settlement_source_contract_mismatch");
+                if (target.EffectTypeId == CleanupSourceInvocationExecutor.RegistrationTypeId)
+                { registry.RegisterAttachedCleanupSource(work, owner, target, contract); continue; }
+                if (target.EffectTypeId == CleanupObligation.InvokeType)
+                { CleanupObligation.RegisterSettlementEntry(work, owner, target); continue; }
                 var entry = SettlementEntryService.RegisterCleanup(work, window, target.EffectId, declaration.LocalId, declaration.AbilityId,
                     declaration.SourceItemId, declaration.SourceEffectId, declaration.WholeEffectPolicy, declaration.Presentation, contract.AvailabilityHandlerId);
                 entry.SourceDefinitionId = contract.DefinitionId;
@@ -331,7 +368,8 @@ namespace YC.Domain.Effects
             {
                 var work = GameStateCloneService.DeepClone(state);
                 var owner = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == source.EffectId);
-                if (!SettlementEntryService.TryCloseCleanup(owner.SettlementWindow, out var declined, out diagnostic)) return false;
+                if (!CleanupSourceService.CanClose(work, owner.SettlementWindow, out diagnostic) ||
+                    !SettlementEntryService.TryCloseCleanup(owner.SettlementWindow, out var declined, out diagnostic)) return false;
                 var targets = declined.Select(id => work.EffectRuntime.EffectNodes.Find(n => n.EffectId == id)).ToList();
                 if (targets.Any(n => n == null || n.Status != EffectNodeStatus.Created || n.ChildEffectIds.Count != 0)) { diagnostic = "settlement_cleanup_target_invalid"; return false; }
                 var entries = new List<RuleJournalEntry>();

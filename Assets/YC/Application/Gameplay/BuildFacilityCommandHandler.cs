@@ -12,13 +12,15 @@ using System.Linq;
 
 namespace YC.Application.Gameplay
 {
-    public sealed class BuildFacilityCommandHandler : IGameCommandHandler
+    public sealed class BuildFacilityCommandHandler : IGameCommandHandler, IPreparedActionConfirmationProvider
     {
         public const string FacilityIdParameter = "facilityId";
         public const string CityBoardSlotIndexParameter = "cityBoardSlotIndex";
         public const string PaymentModeParameter = "paymentMode";
         public const string ExpectedSourceZoneIdParameter = "expectedSourceZoneId";
         public const string PaymentPreparationOwnerEffectIdParameter = "paymentPreparationOwnerEffectId";
+        public const string ExpectedTopItemIdParameter = "expectedTopItemId";
+        public const string ExpectedLayerDigestParameter = "expectedLayerDigest";
 
         private readonly BuildFacilityService buildFacilityService;
         private readonly RoundAdvanceService roundAdvanceService;
@@ -42,7 +44,17 @@ namespace YC.Application.Gameplay
             this.buildFacilityService = buildFacilityService ?? throw new ArgumentNullException(nameof(buildFacilityService));
             this.roundAdvanceService = roundAdvanceService ?? throw new ArgumentNullException(nameof(roundAdvanceService));
             this.effectRegistry = effectRegistry;
+            if (effectRegistry != null)
+            {
+                effectRegistry.FacilityBuildCandidates.UseQueries(effectRegistry.FacilityBuildQueries);
+                this.buildFacilityService.UseQueries(effectRegistry.FacilityBuildQueries);
+            }
         }
+
+        EffectRegistry IPreparedActionConfirmationProvider.PaymentRegistry => effectRegistry;
+
+        bool IPreparedActionConfirmationProvider.IsPreparedActionConfirmation(GameState state, GameCommand command) =>
+            effectRegistry != null && MainActionCommandGuard.IsPreparedActionConfirmation(state, command, effectRegistry);
 
         public bool CanHandle(GameCommand command)
         {
@@ -51,7 +63,9 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
-            var guard = MainActionCommandGuard.Validate(state, command);
+            if (ItemZoneLegacyProjection.IsActive(state) && effectRegistry == null)
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "实体建设需要正式效果宿主。"));
+            var guard = MainActionCommandGuard.Validate(state, command, effectRegistry);
             if (!guard.IsValid)
             {
                 return CommandResult.Invalid(guard);
@@ -72,7 +86,7 @@ namespace YC.Application.Gameplay
                 return CommandResult.Invalid(paymentModeValidation);
             }
 
-            string expectedSourceZoneId = "";
+            string expectedSourceZoneId = "", sourceKey = "";
             if (effectRegistry != null && ItemZoneLegacyProjection.IsActive(state))
             {
                 var snapshot = effectRegistry.FacilityBuildCandidates.Resolve(state, command.PlayerId, stateRevision: state.EffectRuntime.StateRevision);
@@ -85,6 +99,7 @@ namespace YC.Application.Gameplay
                 }
                 if (candidate == null) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该设施不在本人当前可选建设范围内。"));
                 expectedSourceZoneId = candidate.SourceZoneId;
+                sourceKey = candidate.Authorization?.SourceKey ?? "";
                 string declaredSource = GetParameter(command, ExpectedSourceZoneIdParameter);
                 if (declaredSource.Length > 0 && declaredSource != expectedSourceZoneId)
                     return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施来源已变化，请重新选择。"));
@@ -114,7 +129,18 @@ namespace YC.Application.Gameplay
                     cityBoardSlotIndex,
                     paymentMode,
                     false,
-                    command.CommandId ?? string.Empty, true, expectedSourceZoneId);
+                    command.CommandId ?? string.Empty, true, expectedSourceZoneId, "supply", sourceKey);
+                if (ItemZoneLegacyProjection.IsActive(state) && cityBoardSlotIndex >= 0)
+                {
+                    var observed = effectRegistry.FacilityBuildQueries.ResolveSlots(state, command.PlayerId, facilityId, command.CommandId)
+                        .SingleOrDefault(c => c.SlotIndex == cityBoardSlotIndex);
+                    if (observed == null || observed.IsOverlay &&
+                        (GetParameter(command, ExpectedTopItemIdParameter) != observed.ExpectedTopItemId ||
+                         GetParameter(command, ExpectedLayerDigestParameter) != observed.OrderDigest))
+                        return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "设施格候选已变化，请重新选择。"));
+                    buildSpec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "slotObservation", Value = FacilityBuildJournal.EncodeSlot(observed) });
+                    buildSpec.NormalizedArguments.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
+                }
                 string buildEffectId;
                 string preparationId = GetParameter(command, PaymentPreparationOwnerEffectIdParameter);
                 string preparationDiagnostic = "";

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using YC.Application.Sessions;
 using YC.Domain.Presentation;
 using UnityEngine;
@@ -88,13 +87,11 @@ namespace YC.Presentation
         private long scope, identity;
         private bool pending, hovered, executionAllowed;
         private Action<long, long, int, string> use, inspect;
-        private Action<string, GameplayTextDocument, GameplayTextDocument> showTooltip;
-        private Action hideTooltip, manualScroll;
+        private Action manualScroll;
         private Func<string, string, Sprite> resolveIcon;
         private Action<Component, GameplayTextDocument, bool> renderText;
         private ScrollRect scroll;
         private GameplayTextDocument labelDocument, descriptionDocument, ariaDocument;
-        private GameplayTextDocument disabledReasonDocument, tooltipDocument;
         private string cachedOptionId, cachedMode, cachedIconKey;
         private int cachedRevision = -1;
         private Vector2 visualOrigin;
@@ -133,7 +130,6 @@ namespace YC.Presentation
             Func<GameplayTextRef, GameplayTextDocument> resolver, Action<Component, GameplayTextDocument, bool> renderer,
             Func<Component, GameplayTextDocument, float> measurement, Func<string, string, Sprite> iconResolver,
             Action<long, long, int, string> onUse, Action<long, long, int, string> onInspect,
-            Action<string, GameplayTextDocument, GameplayTextDocument> onTooltip, Action onHideTooltip,
             ScrollRect scrollRect, Action onManualScroll)
         {
             if (!ValidateReferences(out var reason)) throw new InvalidOperationException(reason);
@@ -141,14 +137,13 @@ namespace YC.Presentation
             if (option == null || option.OptionId != value.OptionId || scope != scopeToken || identity != entryIdentity ||
                 option.StateRevision != value.StateRevision) { gesture.Reset(); hovered = false; }
             option = value; scope = scopeToken; identity = entryIdentity; pending = isPending; executionAllowed = canExecute;
-            use = onUse; inspect = onInspect; showTooltip = onTooltip; hideTooltip = onHideTooltip;
+            use = onUse; inspect = onInspect;
             scroll = scrollRect; manualScroll = onManualScroll; resolveIcon = iconResolver; renderText = renderer;
             var p = value.Presentation;
             if (cachedOptionId != value.OptionId || cachedRevision != value.StateRevision || cachedMode != p.ContentMode || cachedIconKey != p.IconKey)
             {
                 labelDocument = p.Label == null ? null : resolver(p.Label);
                 descriptionDocument = p.Description == null ? null : resolver(p.Description);
-                disabledReasonDocument = value.DisabledReason == null ? null : resolver(value.DisabledReason);
                 ariaDocument = p.AriaLabel == null ? labelDocument : resolver(p.AriaLabel);
                 if (descriptionDocument == null || ariaDocument == null ||
                     (p.ContentMode != "icon" && labelDocument == null) ||
@@ -161,16 +156,6 @@ namespace YC.Presentation
                         throw new InvalidOperationException("结算按钮图标缺少登记资源或状态版本：" + p.IconKey);
                 }
                 cachedOptionId = value.OptionId; cachedRevision = value.StateRevision; cachedMode = p.ContentMode; cachedIconKey = p.IconKey;
-            }
-            tooltipDocument = descriptionDocument;
-            if (!executionAllowed && disabledReasonDocument != null)
-            {
-                var runs = new List<GameplayTextRun>(descriptionDocument.Runs) { new LineBreak() };
-                runs.AddRange(disabledReasonDocument.Runs);
-                var tooltipIdentity = string.IsNullOrEmpty(descriptionDocument.Identity) || string.IsNullOrEmpty(disabledReasonDocument.Identity)
-                    ? string.Empty : descriptionDocument.Identity.Length + ":" + descriptionDocument.Identity + "|" + disabledReasonDocument.Identity;
-                tooltipDocument = new GameplayTextDocument(runs,
-                    tooltipIdentity);
             }
             var hasText = p.ContentMode != "icon";
             labelView.gameObject.SetActive(hasText); icon.gameObject.SetActive(p.ContentMode != "text");
@@ -189,8 +174,10 @@ namespace YC.Presentation
         {
             if (option == null) return;
             if (option.Presentation.ContentMode == "icon") { layout.preferredWidth = iconOnlyWidth; return; }
-            var cap = Mathf.Floor(Mathf.Min(maximumTextWidth, availableWidth) / 2) * 2;
-            if (cap < minimumTextWidth) throw new InvalidOperationException("结算按钮的可用视口宽度不足。");
+            if (maximumTextWidth < minimumTextWidth)
+                throw new InvalidOperationException("结算按钮的文字宽度配置无效：最大宽度小于最小宽度。");
+            // 首次绑定可能早于父级布局；窄视口只负责裁切和横向滚动，不能把条目最小宽度当作视口门槛。
+            var cap = Mathf.Max(minimumTextWidth, Mathf.Floor(Mathf.Min(maximumTextWidth, Mathf.Max(0, availableWidth)) / 2) * 2);
             layout.preferredWidth = Mathf.Min(cap, Mathf.Ceil(Mathf.Max(minimumTextWidth,
                 measuredLabelWidth + (option.Presentation.ContentMode == "icon_text" ? iconTextPadding : textPadding)) / 2) * 2);
         }
@@ -214,10 +201,9 @@ namespace YC.Presentation
         public void ClearBinding()
         {
             if (renderText != null && labelView != null) renderText(labelView, null, true);
-            option = null; use = inspect = null; showTooltip = null; hideTooltip = manualScroll = null; scroll = null;
+            option = null; use = inspect = null; manualScroll = null; scroll = null;
             resolveIcon = null; renderText = null; pending = hovered = executionAllowed = false; gesture.Reset(); InvalidatePresentation();
             labelDocument = descriptionDocument = ariaDocument = null; darkIcon = lightIcon = mutedIcon = null;
-            disabledReasonDocument = tooltipDocument = null;
             animating = false; if (capturedOrigin) RestoreVisual();
         }
 
@@ -226,7 +212,7 @@ namespace YC.Presentation
         {
             if (option == null) return;
             if (pressedButton == PointerEventData.InputButton.Left && gesture.TryLongPress(Time.unscaledTime, longPressDelay))
-            { hideTooltip?.Invoke(); Inspect(); RefreshState(); }
+            { Inspect(); RefreshState(); }
             if (!animating) return;
             var elapsed = Time.unscaledTime - arrivalStart;
             var t = Mathf.Clamp01(elapsed / arrivalDuration);
@@ -264,9 +250,9 @@ namespace YC.Presentation
                 use?.Invoke(scope, identity, option.StateRevision, option.OptionId);
         }
         public void OnPointerEnter(PointerEventData e)
-        { hovered = true; if (option != null) showTooltip?.Invoke(option.OptionId, ariaDocument, tooltipDocument); RefreshState(); }
+        { hovered = true; RefreshState(); }
         public void OnPointerExit(PointerEventData e)
-        { hovered = false; gesture.Cancel(e.pointerId); hideTooltip?.Invoke(); RefreshState(); }
+        { hovered = false; gesture.Cancel(e.pointerId); RefreshState(); }
         private void Inspect() { if (option != null) inspect?.Invoke(scope, identity, option.StateRevision, option.OptionId); }
         private Vector2 LocalPoint(PointerEventData e)
         {
@@ -279,11 +265,12 @@ namespace YC.Presentation
         public void OnInitializePotentialDrag(PointerEventData e)
         { e.useDragThreshold = false; scroll?.OnInitializePotentialDrag(e); }
         public void OnBeginDrag(PointerEventData e)
-        { Move(e); hideTooltip?.Invoke(); if (e.button == PointerEventData.InputButton.Left) scroll?.OnBeginDrag(e); }
+        { Move(e); if (e.button == PointerEventData.InputButton.Left) scroll?.OnBeginDrag(e); }
         public void OnDrag(PointerEventData e)
         { Move(e); if (e.button == PointerEventData.InputButton.Left) { manualScroll?.Invoke(); scroll?.OnDrag(e); } RefreshState(); }
         public void OnEndDrag(PointerEventData e)
         { Move(e); if (e.button == PointerEventData.InputButton.Left) scroll?.OnEndDrag(e); RefreshState(); }
+        private void OnEnable() { RefreshState(); }
         private void OnDisable() { gesture.Reset(); hovered = false; animating = false; if (capturedOrigin) RestoreVisual(); }
     }
 }

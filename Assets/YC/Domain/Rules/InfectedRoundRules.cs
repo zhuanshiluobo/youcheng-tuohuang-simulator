@@ -9,7 +9,7 @@ namespace YC.Domain.Rules
     /// <summary>感染者仅提供主链策略；不持有回合状态或重复推进。</summary>
     public static class InfectedRoundRules
     {
-        public static bool IsEnabled(GameState state) => state.RuleConfiguration.RuleModeId == "standard" && state.RuleConfiguration.EnabledExpansionIds.Contains("infected");
+        public static bool IsEnabled(GameState state) => state?.RuleConfiguration?.EnabledExpansionIds?.Contains("infected") == true && (state.RuleConfiguration.RuleModeId == "standard" || state.RuleConfiguration.RuleModeId == "entrepreneur");
         public static int GetSupplyRetirementCount(GameState state, int playerCount) => playerCount == 2 ? 2 : IsEnabled(state) && playerCount == 3 ? 1 : 0;
         public static EffectStepResult RecycleCharacters(EffectExecutionContext context, int playerId)
         {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
@@ -7,6 +8,7 @@ using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Influence;
+using YC.Domain.Interactions;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -210,10 +212,13 @@ namespace YC.Tests.EditMode
         [TestCase(true)]
         public void LiskarmCleanup_PersistsBindingAndRemovesOwnInfluenceExactlyOnce(bool noRemainingInfluence)
         {
-            var state = CreateActionStateWithTemplate(CharacterCardDatabase.Liskarm);
-            var registry = CreateCharacterAbilityRegistry();
-            var use = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state,
-                UseCommand(1, state.FindPlayer(1).CoveredCharacterCardId, CharacterEffectModes.Strategy));
+            var state = CreateCurrentLiskarmState(out var registry, out var cardId);
+            var action = registry.QueryActions(state, 1).Single(option => option.SourceRef.ItemId == cardId);
+            var useCommand = AbilityActionCommand.Create(1, action);
+            useCommand.CommandId = "liskarm-current-strategy";
+            useCommand.Parameters["mode"] = "strategy";
+            useCommand.Parameters["offerSecondEffect"] = "false";
+            var use = AbilityActionCommand.Handle(state, registry, useCommand);
             Assert.That(use.Succeeded, Is.True);
             for (int i = 0; i < 2; i++)
             {
@@ -233,13 +238,25 @@ namespace YC.Tests.EditMode
             var missingHandler = GameStateCloneService.DeepClone(state);
             Assert.That(new EffectTreeExecutor(missingHandler, new EffectRegistry()).RunUntilQuiescent().Faulted, Is.True);
             Assert.That(missingHandler.EffectRuntime.LastFaultCode, Is.EqualTo("timing_binding_invalid"));
-            if (noRemainingInfluence) state.Map.Influences.Clear();
-            state.Map.Influences.Add(new InfluencePlacement
+            var preparation = new EffectTreeExecutor(state, registry);
+            if (noRemainingInfluence)
             {
-                InfluenceId = "opponent-marker", PlayerId = 2, SlotId = "opponent-slot"
-            });
+                foreach (var own in state.Map.Influences.Where(value => value.PlayerId == 1).ToArray())
+                {
+                    preparation.CreateRoot(InfluenceEffectSpecFactory.RemoveInfluence(1, own.InfluenceId));
+                    Assert.That(preparation.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                }
+            }
+            preparation.CreateRoot(InfluenceEffectSpecFactory.PlaceInfluence(2, string.Empty));
+            Assert.That(preparation.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var opponentPlacement = FindOpenInteraction(state, "effect.influence.place.target");
+            var opponentAnswer = EffectInteractionCommands.Answer(InteractionRequestProjector.ProjectForPlayer(opponentPlacement, 2), 2,
+                new[] { opponentPlacement.CandidateIds[0] });
+            Assert.That(new AnswerInteractionCommandHandler(registry).Handle(state, opponentAnswer).Succeeded, Is.True);
+            string opponentMarker = state.Map.Influences.Single(value => value.PlayerId == 2).InfluenceId;
             state = GameStateCloneService.DeepClone(state);
-            registry = CreateCharacterAbilityRegistry();
+            registry = CreateCurrentCharacterRegistry(state);
+            state.Phase = GamePhase.Cleanup;
             registry.Register(new EffectRegistration("test.cleanup", context =>
                 EffectStepResult.Completed().AddEvent(new EffectEventRequest
                 {
@@ -249,13 +266,23 @@ namespace YC.Tests.EditMode
             var executor = new EffectTreeExecutor(state, registry);
             executor.CreateRoot(new EffectSpec("test.cleanup") { PlayerId = 1 });
             Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(FindOpenInteraction(state, "effect.influence.remove.target"), Is.Null, "收尾正文必须等待结算条目，不能自动执行。");
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(noRemainingInfluence ? 1 : 3));
+            var cleanup = registry.GetSettlementOptions(state, 1).Single(option => option.LocalId == "character.liskarm.strategy.cleanup_order");
+            Assert.That(cleanup.IsEnabled, Is.True, cleanup.DisabledReasonCode);
+            var invoke = new GameCommand { Kind = GameCommandKind.InvokeSettlementOption, PlayerId = 1, CommandId = "liskarm-cleanup-contract" };
+            invoke.Parameters["optionId"] = cleanup.OptionId;
+            invoke.Parameters["useId"] = cleanup.TargetUseId;
+            invoke.Parameters["expectedRevision"] = cleanup.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var invoked = new InvokeSettlementOptionCommandHandler(registry).Handle(state, invoke);
+            Assert.That(invoked.Succeeded, Is.True, invoked.Validation?.Reason);
             var removal = FindOpenInteraction(state, "effect.influence.remove.target");
             if (noRemainingInfluence) Assert.That(removal, Is.Null);
             else
             {
                 Assert.That(removal, Is.Not.Null);
                 Assert.That(removal.CandidateIds, Has.Count.EqualTo(2));
-                Assert.That(removal.CandidateIds, Does.Not.Contain("opponent-marker"));
+                Assert.That(removal.CandidateIds, Does.Not.Contain(opponentMarker));
                 // 在玩家尚未回答时恢复，再推进不得重复运行 Lua 或复制移除请求。
                 state = GameStateCloneService.DeepClone(state);
                 executor = new EffectTreeExecutor(state, registry);
@@ -429,6 +456,49 @@ namespace YC.Tests.EditMode
             state.ActionRound = 1;
             state.CurrentPlayerId = 1;
             return state;
+        }
+
+        private static GameState CreateCurrentLiskarmState(out EffectRegistry registry, out string cardId)
+        {
+            var seats = new List<PlayerSeat> {
+                new PlayerSeat { PlayerId = 1, Color = PlayerColor.Red },
+                new PlayerSeat { PlayerId = 2, Color = PlayerColor.Blue },
+                new PlayerSeat { PlayerId = 3, Color = PlayerColor.Green } };
+            var configuration = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.ThreePlayerMapId };
+            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentPack.Current, configuration);
+            configuration.ContentPackHash = catalog.ContentPackHash;
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, configuration, 71,
+                catalog.SetupRecipe, catalog.ContentDefinitions);
+            registry = CreateCurrentCharacterRegistry(state);
+            var started = new RoundExecutionService(registry).CreateRound(state, 1, 1);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            var cover = new CoverCharacterCardCommandHandler(new CharacterCardService(), registry);
+            cardId = null;
+            foreach (var seat in seats)
+            {
+                var card = state.ItemZones.Items.First(item => item.ControllerSubject.PlayerId == seat.PlayerId &&
+                    item.DefinitionId == CharacterCardDatabase.Liskarm && state.ItemZones.Zones.Any(zone =>
+                        zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.character_hand"));
+                var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open" &&
+                    value.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId && value.AnsweringPlayerId == seat.PlayerId);
+                var command = new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = seat.PlayerId, TargetId = card.ItemId };
+                command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
+                command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var covered = cover.Handle(state, command);
+                Assert.That(covered.Succeeded, Is.True, covered.Validation?.Reason);
+                if (seat.PlayerId == 1) cardId = card.ItemId;
+            }
+            return state;
+        }
+
+        private static EffectRegistry CreateCurrentCharacterRegistry(GameState state)
+        {
+            var registry = new EffectRegistry();
+            InfluenceEffectExecutor.Register(registry, new InfluenceService(new MapQueryService(StaticMapDefinitions.Resolve(state.MapId))));
+            new RoundExecutionService(registry);
+            ResourceEffectExecutor.Register(registry);
+            LuaContentCatalog.Register(registry, ActiveContentCatalogBuilder.Build(ExternalContentPack.Current, state.RuleConfiguration));
+            return registry;
         }
 
         private static EffectRegistry CreateCharacterAbilityRegistry()

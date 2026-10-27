@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 2,
+  "locale": "zh-CN",
+  "messages": {
+    "core:entrepreneur.P.P09.title": {
+      "parameters": {},
+      "template": "保罗·蒂尔曼"
+    },
+    "core:entrepreneur.P.P09.description": {
+      "parameters": {},
+      "template": "你拥有4个[b]帮派标记[/b]。帮派标记作为影响力时被称为[b]帮派影响力[/b]，帮派影响力是你的影响力。你[b]放置影响力时[/b]，可以用帮派标记代替玩家标记进行放置。"
+    },
+    "core:entrepreneur.P.P01.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]帮派影响力被[b]移除[/b]或[b]替换[/b]后：在你的移动城市所在资源点放置1个[b]非[/b]帮派影响力。"
+    },
+    "core:entrepreneur.P.P03.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]放置1个[b]非帮派影响力[/b]。"
+    },
+    "core:entrepreneur.P.P04.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]你采集有帮派影响力的资源点时：[/b]无需支付路费。"
+    },
+    "core:entrepreneur.P.P05.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement][b]结算区块控制时：[/b]你在有帮派影响力的区块视为有1额外影响力。"
+    },
+    "core:entrepreneur.P.P06.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]同时有你的帮派和非帮派影响力的资源点不能作为[b]城市移动[/b]的目的地。"
+    },
+    "core:entrepreneur.P.P07.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]你结算剩余资源时，改为：6[icon:core:resource.orirock]→[icon:core:resource.score|value=1]（三人地图时，为7[icon:core:resource.orirock]→[icon:core:resource.score|value=1]）4[icon:core:resource.iron]→[icon:core:resource.score|value=1]（三人地图时，为5[icon:core:resource.iron]→[icon:core:resource.score|value=1]）1[icon:core:resource.pure_originium]→[icon:core:resource.score|value=1]25[icon:core:resource.gold_voucher]→[icon:core:resource.score|value=1]（三人地图时，为30[icon:core:resource.gold_voucher]→[icon:core:resource.score|value=1]）剩余[icon:core:resource.originium_shard]将不计入分数结算。"
+    },
+    "core:entrepreneur.P.P08.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement][b]结算区块控制时：[/b]有帮派影响力的区块的分数[b]+[/b]1。"
+    },
+    "core:entrepreneur.P.round.1.title": {
+      "parameters": {},
+      "template": "保罗·第1回合抉择"
+    },
+    "core:entrepreneur.P.round.3.title": {
+      "parameters": {},
+      "template": "保罗·第3回合抉择"
+    },
+    "core:entrepreneur.P.round.5.title": {
+      "parameters": {},
+      "template": "保罗·第5回合抉择"
+    },
+    "core:entrepreneur.P.round.7.title": {
+      "parameters": {},
+      "template": "保罗·第7回合抉择"
+    },
+    "core:entrepreneur.P.place.type": {
+      "parameters": {},
+      "template": "你[b]放置影响力时[/b]，可以用帮派标记代替玩家标记进行放置。"
+    },
+    "core:entrepreneur.P.place.ordinary": {
+      "parameters": {},
+      "template": "放置非帮派影响力"
+    },
+    "core:entrepreneur.P.place.gang": {
+      "parameters": {},
+      "template": "放置帮派影响力"
+    },
+    "core:entrepreneur.P.P01.first_move": {
+      "parameters": {},
+      "template": "可[icon:core:rule.dispatch]"
+    },
+    "core:entrepreneur.P.P02.condition": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]替换1个你的影响力，[icon:core:rule.dispatch]。"
+    },
+    "core:entrepreneur.P.share.choose": {
+      "parameters": {},
+      "template": "选择资源点上的1个帮派影响力移除。"
+    },
+    "core:entrepreneur.P.share.target": {
+      "parameters": {
+        "piece": "item",
+        "point": "location"
+      },
+      "template": "{point}：{piece}"
+    },
+    "core:entrepreneur.P.share.condition": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]每收尾阶段一次：[/b]移除1个资源点上的帮派影响力[icon:core:syntax.condition]你和该资源点上有影响力的对手获得1次该资源点对应的资源。"
+    },
+    "core:entrepreneur.P.share.label": {
+      "parameters": {},
+      "template": "保罗·分享资源"
+    },
+    "core:entrepreneur.P.P03.condition": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]支付合计2个[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron][icon:core:syntax.condition][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.P.P05_P06.condition": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]移除你移动城市所在资源点2个影响力[icon:core:syntax.condition]获得1次所有帮派影响力所在资源点对应资源。"
+    },
+    "core:entrepreneur.P.P08.bonus": {
+      "parameters": {
+        "region": "text"
+      },
+      "template": "{region}：你获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.P.action.P01.name": {
+      "parameters": {},
+      "template": "1A·宣扬平等"
+    },
+    "core:entrepreneur.P.action.P01.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]可[icon:core:rule.dispatch]，移除1个你的影响力，[icon:core:rule.dispatch]。"
+    },
+    "core:entrepreneur.P.action.P02.name": {
+      "parameters": {},
+      "template": "1B·广纳人才"
+    },
+    "core:entrepreneur.P.action.P03.name": {
+      "parameters": {},
+      "template": "3A·建设据点"
+    },
+    "core:entrepreneur.P.action.P05.name": {
+      "parameters": {},
+      "template": "5A·强大领袖"
+    },
+    "core:entrepreneur.P.action.P06.name": {
+      "parameters": {},
+      "template": "5B·民心所向"
+    },
+    "core:entrepreneur.P.effect.P05.immediate": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]失去[icon:core:resource.score|value=2]，获得1[icon:core:resource.pure_originium]和15[icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.P.effect.P06.immediate": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]失去[icon:core:resource.score|value=2]，获得1[icon:core:resource.pure_originium]和15[icon:core:resource.gold_voucher]，[icon:core:rule.operator_dispatch]。"
+    },
+    "core:entrepreneur.P.effect.P08.bonus": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement][b]结算区块控制时：[/b]每个有帮派影响力的区块：你获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.P.detail.P03_P04.gang_only": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]放置或替换影响力时：[/b]若非特殊说明，你只能放置[b]帮派影响力[/b]。"
+    }
+  },
+  "assets": {},
+  "icons": []
+}

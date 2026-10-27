@@ -82,7 +82,7 @@ namespace YC.Tests.EditMode
                         AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Track,
                         VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                     Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, board.ItemId, definition, out var zone, out var reason), Is.True, reason);
-                    var supply = state.ItemZones.Zones.Single(z => z.LocalZoneId == "player_markers" && z.OwnerPlayerId == playerId);
+                    var supply = state.ItemZones.Zones.Single(z => z.LocalZoneId == "supply" && z.OwnerPlayerId == playerId);
                     var marker = state.ItemZones.Items.First(i => i.ZoneId == supply.ZoneId && i.TypeId == "core.player_marker");
                     Position(state, marker, zone); marker.SlotId = "level_0";
                 }
@@ -239,7 +239,7 @@ namespace YC.Tests.EditMode
             {
                 var parent = state.ItemZones.Zones.Single(z => z.TemplateId == target.Item1 && z.LocalZoneId == target.Item2);
                 var zone = state.ItemZones.Zones.Single(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.influence_slots");
-                var supply = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_marker_supply" && z.OwnerPlayerId == 1);
+                var supply = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == 1);
                 var marker = state.ItemZones.Items.First(i => i.ZoneId == supply.ZoneId && i.OwnerSubject.PlayerId == 1 && i.PhysicalKind == ItemPhysicalKind.Cube);
                 var slot = zone.LegalSlotIds.First(id => !state.ItemZones.Items.Any(i => i.ZoneId == zone.ZoneId && i.SlotId == id));
                 Position(state, marker, zone.ZoneId); marker.SlotId = slot;
@@ -831,6 +831,16 @@ namespace YC.Tests.EditMode
             (InteractionRequestProjection)Read(Read(native.Mobile, "interactionRequestRouter"), "CurrentRequest");
         private static object PaymentWindow(Native native) => Read(Read(native.Mobile, "eventChoiceDialog"), "view");
         private static GameStateView Visible(Native native) => (GameStateView)Call(native.Mobile, "VisibleSaleState");
+        private static void AssertNoPaymentSourceEditor(Native native)
+        {
+            var ids = ((Component)native.Mobile).gameObject.scene.GetRootGameObjects()
+                .SelectMany(root => root.GetComponentsInChildren<MonoBehaviour>(true))
+                .Where(component => component != null && component.GetType().FullName == "YC.PlayerJourney.PlayerAutomationId")
+                .Select(component => (string)Read(component, "Id"));
+            Assert.That(ids.Any(id => id != null && (id.StartsWith("payment.sources.", StringComparison.Ordinal) ||
+                id.StartsWith("payment.source.edit.", StringComparison.Ordinal))), Is.False,
+                "实际原付款页不得创建来源编辑入口或独立来源编辑页。");
+        }
         private static string Balances(Native native) => JsonConvert.SerializeObject(native.State.FindPlayer(1).Resources);
         private static int Markers(GameState state) => state.ItemZones.Zones.Where(zone =>
             ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, 1, zone.ZoneId) != null)
@@ -973,6 +983,22 @@ namespace YC.Tests.EditMode
                 var before = Balances(native); var request = UiRequest(native); var owner = request.OwnerEffectId;
                 var payment = native.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == owner).Payment;
                 var paymentId = payment.PaymentId; var window = PaymentWindow(native);
+                AssertNoPaymentSourceEditor(native);
+                Evidence("R36-真实异客插入投影与当前付款首次诊断", native, new {
+                    IsolatedSeam = true, NormalGameAcceptance = false,
+                    Projection = Visible(native).CharacterSettlementOptions,
+                    ActiveWindow = SettlementHostProtocol.FindActiveWindow(native.State), Payment = payment,
+                    OriginalRequest = request, AvailableMarkers = Markers(native.State) });
+                var insertion = Visible(native).CharacterSettlementOptions.SingleOrDefault(option =>
+                    option.SourceDefinitionId == "operator.passenger" && option.EntryKind == SettlementEntryService.OptionalInsertion);
+                Assert.That(insertion, Is.Not.Null, "真实异客来源未投影为正式付款插入，保留当前Host与原付款现场，不以编辑器代替。");
+                var guardedEngine = new EffectTreeExecutor(native.State, (EffectRegistry)Read(prepared, "Registry"));
+                string guardedState = JsonConvert.SerializeObject(native.State);
+                Assert.That(guardedEngine.TryInvokeCharacterSettlementOption(2, insertion.OptionId, "",
+                    native.State.EffectRuntime.StateRevision, out _, out _), Is.False, "其他玩家不能使用本人的付款插入来源。");
+                Assert.That(guardedEngine.TryInvokeCharacterSettlementOption(1, insertion.OptionId, "",
+                    native.State.EffectRuntime.StateRevision - 1, out _, out _), Is.False, "旧修订不能重放插入。");
+                Assert.That(JsonConvert.SerializeObject(native.State), Is.EqualTo(guardedState));
                 Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
                 Assert.That(((Button)Read(window, "ConditionPaymentExecuteButton")).interactable, Is.False);
                 Assert.That(((Button)Read(window, "ConditionPaymentDeclineButton")).gameObject.activeInHierarchy, Is.True);
@@ -996,6 +1022,7 @@ namespace YC.Tests.EditMode
                 Assert.That(payment.PaymentId, Is.EqualTo(paymentId)); Assert.That(payment.IsCommitRequested || payment.IsCommitted, Is.False);
                 Assert.That(Balances(native), Is.EqualTo(before)); Assert.That(Markers(native.State), Is.EqualTo(3));
                 Assert.That(UiRequest(native).OwnerEffectId, Is.EqualTo(owner));
+                AssertNoPaymentSourceEditor(native);
                 window = PaymentWindow(native); var execute = (Button)Read(window, "ConditionPaymentExecuteButton");
                 Assert.That(execute.IsInteractable(), Is.True);
                 yield return CaptureUi("统一支付-分配返回条件原宿主", native);
@@ -1469,6 +1496,9 @@ namespace YC.Tests.EditMode
             Native native = null; yield return Native.CreatePlayScene(prepared, value => native = value);
             using (native)
             {
+                AssertNoPaymentSourceEditor(native);
+                Assert.That(Visible(native).CharacterSettlementOptions, Is.Empty, "没有合法插入来源时不得生成占位效果。");
+                Assert.That(ActiveComponents(native, "SettlementEffectChipView").Any(chip => Read(chip, "option") != null), Is.False);
                 var view = PaymentWindow(native);
                 var buttons = new[] { (Button)Read(view, "ConditionPaymentExecuteButton"),
                     (Button)Read(view, "ConditionPaymentDeclineButton") };

@@ -10,7 +10,7 @@ using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
-    internal sealed class CityStyleDeclarationPreviewDialog
+    internal sealed class CityStyleDeclarationPreviewDialog : IDisposable
     {
         private static readonly Color SelectableSlotBackground = new Color(0.9f, 0.68f, 0.16f, 0.18f);
         private static readonly Color SelectedSlotBackground = new Color(0.18f, 0.78f, 0.28f, 0.42f);
@@ -32,6 +32,9 @@ namespace YC.Presentation
 
         private CityStyleOptionsViewModel model;
         private CityStyleDeclarationPreviewView view;
+        private CityStyleDeclarationPreviewView reusableView, reusablePrefab;
+        private object pageBinding;
+        private bool CurrentPage(object binding) => ReferenceEquals(pageBinding, binding) && IsShowing;
         private GameObject previewCanvasObject;
         private GameObject overlayObject;
         private RawImage cityStyleCardImage;
@@ -116,6 +119,7 @@ namespace YC.Presentation
 
         public void Show(CityStyleOptionsViewModel viewModel)
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.show");
             HideInternal(false, model != null && viewModel != null && model.ContextKey == viewModel.ContextKey);
             var canvasTransform = getCanvas();
             if (canvasTransform == null || viewModel == null)
@@ -124,6 +128,7 @@ namespace YC.Presentation
             }
 
             model = viewModel;
+            pageBinding = new object();
             currentCityStyleIndex = ResolveInitialCityStyleIndex(viewModel);
             var initialOption = GetCurrentOption();
             selectingFacilities = model.DeclareMode && initialOption != null && initialOption.CanDeclare;
@@ -143,10 +148,13 @@ namespace YC.Presentation
             {
                 ValidateCurrentSelection();
             }
+            lastVisible = IsShowing;
+            nextRefresh = Time.unscaledTime + .25f;
         }
 
         public void RefreshProjection(bool force = false)
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.refresh");
             if (model == null || view == null) return;
             if (submitting)
             {
@@ -161,11 +169,12 @@ namespace YC.Presentation
             nextRefresh = Time.unscaledTime + .25f;
             var next = model.Refresh();
             if (next == null || next.ContextKey != model.ContextKey) { HideInternal(false); return; }
-            var signature = Signature(next);
             if (!IsShowing) { EndLeftPointerGesture(); CancelSpecialActionDrag(); }
             var visibilityChanged = lastVisible != IsShowing;
             lastVisible = IsShowing;
-            if (!force && !visibilityChanged && signature == projectionSignature) return;
+            if (!force && !visibilityChanged && ReferenceEquals(next, model)) return;
+            var signature = Signature(next);
+            // 生产模型只在正式上下文改变时换对象；同签名也须接纳恢复/内容/配置的新身份。
             var id = CurrentCityStyleId;
             model = next;
             projectionSignature = signature;
@@ -193,11 +202,18 @@ namespace YC.Presentation
 
         private void BuildUi()
         {
-            view = dialogRegistry.InstantiateCityStyleDeclarationPreview(getCanvas());
+            var canvas = getCanvas();
+            var frame = GameplayHudFrame.Active;
+            var parent = frame == null || frame.ContentRect == null ? canvas : frame.ContentRect;
+            if (reusableView != null && (reusableView.transform.parent != parent ||
+                reusablePrefab != dialogRegistry.CityStyleDeclarationPreviewPrefab)) ReleaseReusableView();
+            view = dialogRegistry.InstantiateCityStyleDeclarationPreview(canvas, reusableView);
             if (view == null)
             {
                 return;
             }
+            reusableView = view;
+            reusablePrefab = dialogRegistry.CityStyleDeclarationPreviewPrefab;
 
             view.PrepareForUse();
             previewCanvasObject = view.gameObject;
@@ -213,14 +229,19 @@ namespace YC.Presentation
             confirmDeclarationButton = view.ConfirmDeclarationButton;
             boardOutline = view.BoardOutline;
 
-            view.CloseButton.onClick.AddListener(Hide);
+            var page = pageBinding;
+            view.CloseButton.onClick.AddListener(() => { if (CurrentPage(page)) Hide(); });
             view.RenderMode(model);
-            confirmDeclarationButton.onClick.AddListener(() => { if (model.DeclareMode) ConfirmDeclaration(); else Hide(); });
-            view.InputHandler.Configure(ClearCurrentSelection, HandleBackNavigation);
+            confirmDeclarationButton.onClick.AddListener(() => {
+                if (!CurrentPage(page)) return;
+                if (model.DeclareMode) ConfirmDeclaration(); else Hide();
+            });
+            view.InputHandler.Configure(() => { if (CurrentPage(page)) ClearCurrentSelection(); },
+                () => { if (CurrentPage(page)) HandleBackNavigation(); });
             view.BoardPointerHandler.Configure(
-                OnBoardLeftPointerDown,
-                OnLeftPointerDrag,
-                EndLeftPointerGesture);
+                point => { if (CurrentPage(page)) OnBoardLeftPointerDown(point); },
+                point => { if (CurrentPage(page)) OnLeftPointerDrag(point); },
+                () => { if (CurrentPage(page)) EndLeftPointerGesture(); });
 
             var boardTexture = dialogRegistry.CardVisualCatalog.GetCityBoard();
             view.CityBoardImage.texture = boardTexture;
@@ -229,6 +250,7 @@ namespace YC.Presentation
 
         private void BuildCityBoard()
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.board_bind");
             slotBindings.Clear();
             if (cityBoardRect == null || view == null)
             {
@@ -276,19 +298,21 @@ namespace YC.Presentation
                     Used = used
                 };
                 slotBindings.Add(binding);
+                var page = pageBinding;
                 slot.PointerHandler.Configure(
                     slotIndex,
-                    () => leftPointerHeld,
-                    OnSlotLeftPointerDown,
-                    OnSlotLeftPointerEnter,
-                    OnLeftPointerDrag,
-                    EndLeftPointerGesture,
-                    OnSlotLeftClick);
+                    () => CurrentPage(page) && leftPointerHeld,
+                    (index, point) => { if (CurrentPage(page)) OnSlotLeftPointerDown(index, point); },
+                    (index, point) => { if (CurrentPage(page)) OnSlotLeftPointerEnter(index, point); },
+                    point => { if (CurrentPage(page)) OnLeftPointerDrag(point); },
+                    () => { if (CurrentPage(page)) EndLeftPointerGesture(); },
+                    index => { if (CurrentPage(page)) OnSlotLeftClick(index); });
             }
         }
 
         private void RenderCurrentCityStyle()
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.current_bind");
             var option = GetCurrentOption();
             if (option == null)
             {
@@ -376,15 +400,16 @@ namespace YC.Presentation
             var markerButton = marker.GetComponent<Button>();
             markerButton.transition = Selectable.Transition.None;
             markerButton.interactable = markerModel.CanDragForSpecialAction;
+            var page = pageBinding;
             marker.GetComponent<CardPointerInteraction>().ConfigureDrag(
-                () => markerModel.CanDragForSpecialAction &&
-                      IsShowing && model != null &&
+                () => CurrentPage(page) && markerModel.CanDragForSpecialAction &&
+                      model != null &&
                       model.TryUseSpecialAction != null &&
                       !IsSpecialActionModalOpen(),
-                eventData => BeginSpecialActionDrag(markerModel, marker, eventData),
-                eventData => FacilityCardDragUtility.MoveDragGhost(specialActionDragGhost, eventData),
-                eventData => EndSpecialActionDrag(markerModel, eventData),
-                CancelSpecialActionDrag);
+                eventData => { if (CurrentPage(page)) BeginSpecialActionDrag(markerModel, marker, eventData); },
+                eventData => { if (CurrentPage(page)) FacilityCardDragUtility.MoveDragGhost(specialActionDragGhost, eventData); },
+                eventData => { if (CurrentPage(page)) EndSpecialActionDrag(markerModel, eventData); },
+                () => { if (CurrentPage(page)) CancelSpecialActionDrag(); });
         }
 
         private Image EnsureCityStyleInfluenceMarker(int markerIndex)
@@ -776,7 +801,7 @@ namespace YC.Presentation
             for (var i = 0; i < specialActionDropTargets.Count; i++)
             {
                 var binding = specialActionDropTargets[i];
-                if (binding.Rect.gameObject.activeInHierarchy &&
+                if (binding.Rect != null && binding.Rect.gameObject.activeInHierarchy &&
                     RectTransformUtility.RectangleContainsScreenPoint(
                         binding.Rect,
                         eventData.position,
@@ -794,7 +819,7 @@ namespace YC.Presentation
             for (var i = 0; i < specialActionDropTargets.Count; i++)
             {
                 var binding = specialActionDropTargets[i];
-                binding.Rect.gameObject.SetActive(visible && binding.MarkerArea == legalArea);
+                if (binding.Rect != null) binding.Rect.gameObject.SetActive(visible && binding.MarkerArea == legalArea);
             }
         }
 
@@ -1273,6 +1298,7 @@ namespace YC.Presentation
 
         private void HideInternal(bool invokeCancel, bool preserveInformation = false)
         {
+            pageBinding = null;
             var cancel = invokeCancel && model != null ? model.Cancel : null;
             CancelSpecialActionDrag();
             specialActionPaymentDialog.Hide();
@@ -1302,18 +1328,9 @@ namespace YC.Presentation
 
             if (previewCanvasObject != null)
             {
-                var canvasObject = previewCanvasObject;
                 previewCanvasObject = null;
                 overlayObject = null;
                 cityBoardRect = null;
-                if (UnityEngine.Application.isPlaying)
-                {
-                    UnityEngine.Object.Destroy(canvasObject);
-                }
-                else
-                {
-                    UnityEngine.Object.DestroyImmediate(canvasObject);
-                }
             }
 
             view = null;
@@ -1327,6 +1344,24 @@ namespace YC.Presentation
             boardOutline = null;
 
             cancel?.Invoke();
+        }
+
+        public void Dispose()
+        {
+            HideInternal(false);
+            ReleaseReusableView();
+        }
+
+        private void ReleaseReusableView()
+        {
+            if (reusableView != null)
+            {
+                reusableView.ClearCallbacks();
+                reusableView.gameObject.SetActive(false);
+                if (UnityEngine.Application.isPlaying) UnityEngine.Object.Destroy(reusableView.gameObject);
+                else UnityEngine.Object.DestroyImmediate(reusableView.gameObject);
+            }
+            reusableView = reusablePrefab = null;
         }
 
         private CityBoardSlotViewModel FindCityBoardSlot(int slotIndex)

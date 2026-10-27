@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using YC.Domain.Commands;
+using YC.Domain.Harvest;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -143,6 +144,7 @@ namespace YC.Domain.Travel
         public bool AllowCancelBeforeCommit { get; internal set; }
         public RouteSelectionStage Stage { get; internal set; }
         public RouteSelectionRequestBinding ActiveRequestBinding { get; internal set; }
+        public CollectionFreeLocationResult CollectionFreeLocations { get; internal set; }
     }
 
     public sealed class RouteSelectionRequestBinding
@@ -269,6 +271,8 @@ namespace YC.Domain.Travel
         public bool IsReachableInOriginalDraft { get; internal set; }
         public bool IsReachableInPreview { get; internal set; }
         public bool IsSelected { get; internal set; }
+        public bool IsFreeCollection { get; internal set; }
+        public bool CanSelect => IsFreeCollection || IsReachableInOriginalDraft;
     }
 
     // 一个共享父链接树，只证明连通，不用它挑收费路线。
@@ -296,6 +300,7 @@ namespace YC.Domain.Travel
     {
         public string ScopeKey { get; internal set; }
         public string PlanDigest { get; internal set; } // Host可由同一答案+冻结事实确定重算
+        public CollectionPartition Collection { get; internal set; }
         public IReadOnlyList<string> SelectedLocationIds { get; internal set; }
         public IReadOnlyList<string> OriginalConfirmedRouteIds { get; internal set; }
         public IReadOnlyList<string> PrunedRouteIds { get; internal set; }
@@ -321,6 +326,7 @@ namespace YC.Domain.Travel
         public IReadOnlyList<RouteSelectionLocationOption> LocationOptions { get; internal set; }
         public int ProvisionalGoldVoucherAmount { get; internal set; } // 未定目标时按草案确认路暂估
         public RouteSelectionPreview Preview { get; internal set; } // 没目标且非明确0点完成时null
+        public CollectionFreeLocationResult CollectionFreeLocations { get; internal set; }
     }
 
     public sealed class RouteSelectionCommitment

@@ -10,6 +10,21 @@ namespace YC.Domain.Items
     /// <summary>每次查询从持久 DTO 构造索引；不缓存局状态，不创建或修改实例。</summary>
     public sealed class ItemZoneQuery
     {
+        // 可选整次校验计时；默认路径没有时钟、采样分配或规则状态写入。
+        [ThreadStatic] public static Action<long> ValidationTimingSample;
+        private readonly struct ValidationSample : IDisposable
+        {
+            private readonly Action<long> record;
+            private readonly long started;
+            internal ValidationSample(Action<long> record)
+            { this.record = record; started = record == null ? 0 : System.Diagnostics.Stopwatch.GetTimestamp(); }
+            public void Dispose()
+            {
+                if (record == null) return;
+                try { record(System.Diagnostics.Stopwatch.GetTimestamp() - started); }
+                catch (Exception) { }
+            }
+        }
         // 内建Schema从不依赖对局。仅复用冻结注册表，任何局状态/玩家可见性都不放入静态缓存。
         private sealed class BuiltInSchema
         {
@@ -45,7 +60,7 @@ namespace YC.Domain.Items
             if (count < 0) throw new ArgumentOutOfRangeException(nameof(count));
             var zone = state?.ItemZones?.Zones?.Find(value => value != null && value.ZoneId == zoneId);
             if (zone == null) throw new InvalidOperationException("unknown_zone: ZoneId");
-            if (templates.Find(zone.TemplateId).OrderingKind != ZoneOrderingKind.Deck) throw new InvalidOperationException("orderingKind_not_deck");
+            if (templates.FindRules(zone.TemplateId).OrderingKind != ZoneOrderingKind.Deck) throw new InvalidOperationException("orderingKind_not_deck");
             return GetItemIds(state, zoneId).Take(count).ToList().AsReadOnly();
         }
         public bool IsPlayerMarker(GameState state, string itemId)
@@ -64,23 +79,26 @@ namespace YC.Domain.Items
 
         public bool TryValidate(GameState state, out string reasonCode)
         {
+            using var sample = new ValidationSample(ValidationTimingSample);
             reasonCode = string.Empty;
-            if (state == null || state.EntitySchemaVersion != 1 || state.ItemZones == null) return Reject("EntitySchemaVersion_unsupported", out reasonCode);
+            if (state == null || state.EntitySchemaVersion != GameProtocolVersions.Entity || state.ItemZones == null) return Reject("EntitySchemaVersion_unsupported", out reasonCode);
             var runtime = state.ItemZones;
+            if (runtime.NamingVersion != PlayerAreaPolicy.NamingVersion) return Reject("item_zone_naming_version_unsupported", out reasonCode);
+            if (!PlayerAreaPolicy.Validate(state, out reasonCode)) return false;
             if (runtime.Items == null || runtime.Zones == null || runtime.Orders == null || runtime.Relations == null) return Reject("ItemZones_required", out reasonCode);
             // 仅限这一次完整校验。下一次调用重建，工作副本即使revision尚未提交也不会读旧位置。
-            var templateDefinitions = new Dictionary<string, ZoneTemplateDefinition>(StringComparer.Ordinal);
-            var typeDefinitions = new Dictionary<string, ItemTypeDefinition>(StringComparer.Ordinal);
-            ZoneTemplateDefinition Template(string id)
+            var templateDefinitions = new Dictionary<string, ZoneTemplateRules>(StringComparer.Ordinal);
+            var typeDefinitions = new Dictionary<string, ItemPhysicalKind?>(StringComparer.Ordinal);
+            ZoneTemplateRules Template(string id)
             {
                 if (id == null) return null;
-                if (!templateDefinitions.TryGetValue(id, out var definition)) templateDefinitions.Add(id, definition = templates.Find(id));
+                if (!templateDefinitions.TryGetValue(id, out var definition)) templateDefinitions.Add(id, definition = templates.FindRules(id));
                 return definition;
             }
-            ItemTypeDefinition Type(string id)
+            ItemPhysicalKind? Type(string id)
             {
                 if (id == null) return null;
-                if (!typeDefinitions.TryGetValue(id, out var definition)) typeDefinitions.Add(id, definition = types.Find(id));
+                if (!typeDefinitions.TryGetValue(id, out var definition)) typeDefinitions.Add(id, definition = types.FindPhysicalKind(id));
                 return definition;
             }
             if (runtime.Zones.Count > 0 && (state.Players.Any(player => player.HandCardIds.Values.Count > 0 || player.DiscardCardIds.Values.Count > 0 || player.BuiltFacilityIds.Values.Count > 0 ||
@@ -131,7 +149,7 @@ namespace YC.Domain.Items
                         if (zone.Configuration != null && !ValidateHostConfiguration(template, zone.Configuration, Type, out reasonCode)) return false;
                         break;
                     case ZoneParentKind.Item:
-                        if (!items.TryGetValue(zone.ParentId, out var carrier) || !template.AllowedCarrierTypeIds.Exists(id => types.IsAssignableTo(carrier.TypeId, id))) return Reject("ParentId_carrier_rejected", out reasonCode);
+                        if (!items.TryGetValue(zone.ParentId, out var carrier) || !template.AllowedCarrierTypeIds.Any(id => types.IsAssignableTo(carrier.TypeId, id))) return Reject("ParentId_carrier_rejected", out reasonCode);
                         if (zone.Configuration == null) return Reject("Configuration_required", out reasonCode);
                         if (!templates.ValidateCardZoneDeclaration(carrier.TypeId, zone.Configuration, out reasonCode)) return false;
                         break;
@@ -141,23 +159,37 @@ namespace YC.Domain.Items
             }
             if (roots.Count != 4) return Reject("root_zones_required", out reasonCode);
             var occupiedSlots = new HashSet<string>(StringComparer.Ordinal);
-            var localFields = new HashSet<string>(new[] { "faceUp", "orientation", "resourceType", "amount", "backColor", "backVisualKey" }, StringComparer.Ordinal);
+            var localFields = new HashSet<string>(new[] { "faceUp", "orientation", "resourceType", "amount", "backColor", "backVisualKey",
+                "activeFaceId", "activationAuthorizationRef", "sourceSelectionReceipt", "grantingSourceRefs" }, StringComparer.Ordinal);
             foreach (var item in items.Values)
             {
+                if (item.DefinitionId == YC.Domain.Influence.CompanyInfluenceRules.ContractDefinitionId && item.TypeId != ItemTypeRegistry.ContractTokenTypeId)
+                    return Reject("legacy_lifetime_security_card_requires_original_version", out reasonCode);
                 var type = Type(item.TypeId);
-                if (type == null || type.PhysicalKind != item.PhysicalKind) return Reject("PhysicalKind_type_mismatch", out reasonCode);
+                if (type == null || type.Value != item.PhysicalKind) return Reject("PhysicalKind_type_mismatch", out reasonCode);
                 if (string.IsNullOrWhiteSpace(item.DefinitionId) || !zones.TryGetValue(item.ZoneId, out var zone)) return Reject("ZoneId_unknown", out reasonCode);
                 if (!ValidSubject(item.OwnerSubject) || !ValidSubject(item.ControllerSubject)) return Reject("OwnerSubject_ControllerSubject_invalid", out reasonCode);
                 if (item.OwnerSubject.Kind == ItemSubjectKind.Player && state.FindPlayer(item.OwnerSubject.PlayerId) == null ||
                     item.ControllerSubject.Kind == ItemSubjectKind.Player && state.FindPlayer(item.ControllerSubject.PlayerId) == null) return Reject("OwnerSubject_ControllerSubject_unknown_player", out reasonCode);
                 if (types.IsAssignableTo(item.TypeId, "infected.company_marker") && (item.OwnerSubject.Kind != ItemSubjectKind.Company || item.OwnerSubject.CompanyId != "stonehoove_security")) return Reject("OwnerSubject_company_required", out reasonCode);
+                if (types.IsAssignableTo(item.TypeId, "entrepreneur.gang_marker") && item.OwnerSubject.Kind != ItemSubjectKind.Player) return Reject("OwnerSubject_gang_player_required", out reasonCode);
                 if (item.LocalState == null || item.LocalState.Kind != NormalizedValueKind.Object || !item.LocalState.IsValid()) return Reject("LocalState_invalid", out reasonCode);
                 if (item.LocalState.Properties.Any(field => !localFields.Contains(field.Name))) return Reject("LocalState_field_rejected", out reasonCode);
+                if (!YC.Domain.Effects.AbilitySourceSelection.ValidateLocalState(state, item, out reasonCode)) return false;
                 if (!Accepts(zone, item, Template(zone.TemplateId))) return Reject("acceptedItemKinds_acceptedTypeIds_rejected", out reasonCode);
+                if (zone.TemplateId == "core.zone.reward_pool" && state.ContentDefinitions?.Awards.Any(a => a.DefinitionId == item.DefinitionId && !a.RandomAwardPool) == true)
+                    return Reject("content_granted_award_not_random_pool", out reasonCode);
                 if (item.OriginalSupplyZoneId == null) return Reject("OriginalSupplyZoneId_invalid", out reasonCode);
-                if (item.OriginalSupplyZoneId.Length > 0 && (item.PhysicalKind != ItemPhysicalKind.Cube || !zones.TryGetValue(item.OriginalSupplyZoneId, out var supply) ||
-                    !new[] { "core.zone.player_marker_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(supply.TemplateId) || !Accepts(supply, item, Template(supply.TemplateId)) ||
-                    supply.TemplateId == "core.zone.player_marker_supply" && item.OwnerSubject.PlayerId != supply.OwnerPlayerId)) return Reject("OriginalSupplyZoneId_invalid", out reasonCode);
+                if (item.OriginalSupplyZoneId.Length > 0 && ((!ItemTransferService.IsTokenKind(item.PhysicalKind) && !types.IsAssignableTo(item.TypeId, "core.facility_card")) || !zones.TryGetValue(item.OriginalSupplyZoneId, out var supply) ||
+                    !new[] { "core.zone.player_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(supply.TemplateId) || !Accepts(supply, item, Template(supply.TemplateId)) ||
+                    item.PhysicalKind == ItemPhysicalKind.Token && supply.TemplateId != "core.zone.box_reserve" &&
+                        !(types.IsAssignableTo(item.TypeId, ItemTypeRegistry.ContractTokenTypeId) && supply.TemplateId == "core.zone.reward_pool" && supply.LocalZoneId == "contracts") ||
+                    supply.TemplateId == "core.zone.player_supply" && item.OwnerSubject.PlayerId != supply.OwnerPlayerId)) return Reject("OriginalSupplyZoneId_invalid", out reasonCode);
+                if (types.IsAssignableTo(item.TypeId, ItemTypeRegistry.ContractTokenTypeId) &&
+                    (!zones.TryGetValue(item.OriginalSupplyZoneId, out var contractPool) ||
+                     contractPool.TemplateId != "core.zone.box_reserve" && (contractPool.TemplateId != "core.zone.reward_pool" || contractPool.LocalZoneId != "contracts") ||
+                     zone.TemplateId == "core.zone.player_rewards" && (item.ControllerSubject.Kind != ItemSubjectKind.Player || item.ControllerSubject.PlayerId != zone.OwnerPlayerId)))
+                    return Reject("contract_token_origin_or_holder_invalid", out reasonCode);
                 var template = Template(zone.TemplateId);
                 if (template.OrderingKind == ZoneOrderingKind.FixedSlots || template.OrderingKind == ZoneOrderingKind.Track)
                 {
@@ -170,14 +202,14 @@ namespace YC.Domain.Items
                 }
                 else if (!string.IsNullOrEmpty(item.SlotId) && !zone.LegalSlotIds.Contains(item.SlotId)) return Reject("SlotId_rejected", out reasonCode);
                 if (zone.TemplateId == "core.zone.influence_slots" && !types.HasOperationProfile(item.TypeId, "core.influence_cube")) return Reject("operation_profile_rejected", out reasonCode);
-                if (zone.TemplateId == "core.zone.player_marker_supply" && (item.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != zone.OwnerPlayerId)) return Reject("OwnerSubject_supply_mismatch", out reasonCode);
+                if (zone.TemplateId == "core.zone.player_supply" && (item.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != zone.OwnerPlayerId)) return Reject("OwnerSubject_supply_mismatch", out reasonCode);
                 if (zone.TemplateId.StartsWith("core.zone.character_", StringComparison.Ordinal) && (item.ControllerSubject.Kind != ItemSubjectKind.Player || item.ControllerSubject.PlayerId != zone.OwnerPlayerId)) return Reject("ControllerSubject_zone_mismatch", out reasonCode);
                 if (zone.TemplateId == "core.zone.board_marker_track" && zone.OwnerPlayerId > 0 && item.OwnerSubject.PlayerId != zone.OwnerPlayerId) return Reject("OwnerSubject_track_mismatch", out reasonCode);
             }
             foreach (var zone in zones.Values)
             {
                 membersByZone.TryGetValue(zone.ZoneId, out var members);
-                if (zone.TemplateId == "core.zone.player_awards" && members != null && members.Count(item => types.IsAssignableTo(item.TypeId, "core.contract_card")) > 1) return Reject("contract_limit_reached", out reasonCode);
+                if (zone.TemplateId == "core.zone.player_rewards" && members != null && members.Count(item => types.IsAssignableTo(item.TypeId, ItemTypeRegistry.ContractTokenTypeId)) > 1) return Reject("contract_limit_reached", out reasonCode);
                 var visited = new HashSet<string>(StringComparer.Ordinal);
                 var current = zone;
                 while (current.ParentKind != ZoneParentKind.Root)
@@ -205,6 +237,11 @@ namespace YC.Domain.Items
             }
             foreach (var zone in zones.Values)
                 if (Template(zone.TemplateId).OrderingKind != ZoneOrderingKind.Unordered && !ordered.Contains(zone.ZoneId)) return Reject("Orders_required", out reasonCode);
+            foreach (var cityCell in runtime.Zones.Where(z => z.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.CellTemplate))
+            {
+                try { YC.Domain.Facilities.FacilityLayerQuery.ResolveCell(state, cityCell.OwnerPlayerId, YC.Domain.Facilities.FacilityLayerQuery.Slot(cityCell)); }
+                catch (InvalidOperationException) { return Reject("facility_layer_structure_invalid", out reasonCode); }
+            }
             var facilityIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var facility in state.Map.FacilityInstances)
                 if (facility == null || !facilityIds.Add(facility.ContentInstanceId) || !items.TryGetValue(facility.ContentInstanceId, out var facilityItem) ||
@@ -220,12 +257,12 @@ namespace YC.Domain.Items
 
         public bool Accepts(ZoneInstanceState zone, ItemInstanceState item)
         {
-            return Accepts(zone, item, templates.Find(zone.TemplateId));
+            return Accepts(zone, item, templates.FindRules(zone.TemplateId));
         }
-        private bool Accepts(ZoneInstanceState zone, ItemInstanceState item, ZoneTemplateDefinition template)
+        private bool Accepts(ZoneInstanceState zone, ItemInstanceState item, ZoneTemplateRules template)
         {
             if (template == null || !template.AcceptedItemKinds.Contains(item.PhysicalKind) ||
-                (template.AcceptedTypeIds.Count > 0 && !template.AcceptedTypeIds.Exists(id => types.IsAssignableTo(item.TypeId, id)))) return false;
+                (template.AcceptedTypeIds.Count > 0 && !template.AcceptedTypeIds.Any(id => types.IsAssignableTo(item.TypeId, id)))) return false;
             var config = zone.Configuration;
             return config == null || (config.AcceptedItemKinds.Contains(item.PhysicalKind) && (config.AcceptedTypeIds.Count == 0 || config.AcceptedTypeIds.Exists(id => types.IsAssignableTo(item.TypeId, id))));
         }
@@ -370,12 +407,12 @@ namespace YC.Domain.Items
             return definitionId == "infected.character.flowing_shape_alpha" || definitionId == "infected.character.flowing_shape_beta" ||
                 definitionId == "infected.character.flowing_shape_gamma" ? "flowing_shape_back" : string.Empty;
         }
-        private bool ValidateHostConfiguration(ZoneTemplateDefinition template, CardZoneDefinition config, Func<string, ItemTypeDefinition> findType, out string reason)
+        private bool ValidateHostConfiguration(ZoneTemplateRules template, CardZoneDefinition config, Func<string, ItemPhysicalKind?> findType, out string reason)
         {
             reason = string.Empty;
             if (config.AcceptedItemKinds == null || config.AcceptedItemKinds.Count == 0 || config.AcceptedTypeIds == null || config.OrderingKind != template.OrderingKind ||
                 config.AcceptedItemKinds.Any(kind => !template.AcceptedItemKinds.Contains(kind)) || config.AcceptedTypeIds.Any(id => findType(id) == null ||
-                    !config.AcceptedItemKinds.Contains(findType(id).PhysicalKind) || (template.AcceptedTypeIds.Count > 0 && !template.AcceptedTypeIds.Exists(parent => types.IsAssignableTo(id, parent)))) ||
+                    !config.AcceptedItemKinds.Contains(findType(id).Value) || (template.AcceptedTypeIds.Count > 0 && !template.AcceptedTypeIds.Any(parent => types.IsAssignableTo(id, parent)))) ||
                 (template.AcceptedTypeIds.Count > 0 && config.AcceptedTypeIds.Count == 0)) return Reject("Configuration_acceptedTypeIds_rejected", out reason);
             if (config.CapacityPolicy != "bounded" && config.CapacityPolicy != "unbounded" ||
                 config.CapacityPolicy == "bounded" && (!config.Capacity.HasValue || config.Capacity < 0) || config.CapacityPolicy == "unbounded" && config.Capacity.HasValue ||

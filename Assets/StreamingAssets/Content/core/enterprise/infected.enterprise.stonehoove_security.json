@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.enterprise.stonehoove_security",
   "contentType": "enterprise",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "岩蹄安保",
   "expansionId": "infected",
   "replaces": null,
@@ -36,7 +36,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.enterprise.stonehoove_security.level_2.special",
       "script": "lua/enterprises/infected.enterprise.stonehoove_security.level_2.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,

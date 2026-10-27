@@ -52,7 +52,7 @@ namespace YC.Domain.Effects
             int player = context.Node.PlayerId;
             if (Text(context.Node.NormalizedArguments, "player") != player.ToString(CultureInfo.InvariantCulture) || context.State.FindPlayer(player) == null) return EffectStepResult.Failed("invalid_player");
             var node = context.Node; var map = new MapQueryService(StaticMapDefinitions.Resolve(context.State.MapId));
-            var service = new ResourceCollectionService(map); var toll = new RouteTollService(map);
+            var service = new ResourceCollectionService(map) { RuleRegistry = context.Registry }; var toll = new RouteTollService(map);
             if (node.FlowStage == string.Empty)
             {
                 Set(node, "collectionStartGoldVoucherAmounts", NormalizedValue.CreateArray(context.State.Players.Select(p => Object("playerId", NormalizedValue.CreateInteger(p.PlayerId), "amount", NormalizedValue.CreateInteger(p.Resources.GoldVoucher))).ToList()));

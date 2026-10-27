@@ -22,7 +22,7 @@ using YC.Infrastructure.Lua;
 namespace YC.Presentation
 {
     /// <summary>局内扩展只读适配器。所有实例、资格、候选和等级来自当前观察者的 Host 投影。</summary>
-    public sealed class GameplayExpansionUi : MonoBehaviour
+    public sealed partial class GameplayExpansionUi : MonoBehaviour
     {
         [Serializable] public sealed class BoardCopy
         {
@@ -51,9 +51,9 @@ namespace YC.Presentation
             public string OrderPrompt = "请选择两个模式的结算顺序。";
             public string Strategy = "策略", Tactic = "战术", Both = "双模式";
             public string StrategyFirst = "先策略，后战术", TacticFirst = "先战术，后策略";
-            public string DispatchTitle = "干员特派", DispatchPrompt = "候选仅本人可见；接受或放弃由主机确认。";
-            public string DispatchReturnPrompt = "请选择主机给出的合法换出牌；换出牌将公开回盒。";
-            public string ReplacePrompt = "选择干员及手牌，由主机原子复验交换。";
+            public string DispatchTitle = "干员特派", DispatchPrompt = "候选仅本人可见；请选择接受或放弃。";
+            public string DispatchReturnPrompt = "选择要换出的牌；换出的牌将公开放回游戏盒。";
+            public string ReplacePrompt = "选择干员和要交换的手牌。";
             public string RetainTitle = "保留基础角色", RetainPrompt = "只保留5张基础角色；未保留的牌秘密回盒。干员与流形不占此限额。";
             public string DiscardTitle, DiscardPrompt, DiscardConfirmLabel, LegacyKeepUnsupported;
             public string OptionalInfluenceTitle, OptionalInfluencePrompt, SkipInitialInfluenceLabel;
@@ -98,7 +98,7 @@ namespace YC.Presentation
             public string MainCoverType = "角色", GeneratedCoverType = "流形";
             public string CompactSettlementFormat = "{0} · {1}", PendingSettlement = "等待主机确认";
             public string CurrentCharacterFormat = "当前角色：{0}", ModeOrderPending = "等待选择模式或顺序";
-            public string MapLockLabel = "影响力锁定", MapPermanentLabel = "嘉维尔", CompactCurrentUseFormat = "{0} → {1}";
+            public string MapLockLabel = "影响力锁定", CompactCurrentUseFormat = "{0} → {1}";
             public string MapCandidateFormat = "{0} · 所属区块 {1}";
             public string RetiredArea = "公开回盒区", ReserveArea = "预备区", RewardPoolArea = "公共奖励区", PlayerRewardArea = "持有奖励区";
         }
@@ -108,11 +108,13 @@ namespace YC.Presentation
         [SerializeField] private BoardCopy[] boards = Array.Empty<BoardCopy>();
         [SerializeField] private ContentCopy[] content = Array.Empty<ContentCopy>();
         [SerializeField] private RectTransform settlementHost;
-        [SerializeField] private UiEffectRowView settlementRowTemplate;
         [SerializeField] private SettlementEffectStripView settlementStrip;
         [SerializeField] private RectTransform mapTokenHost;
         [SerializeField] private RectTransform mapTokenViewport;
         [SerializeField] private Text mapTokenTemplate;
+        [SerializeField] private Button mapCompanyTokenTemplate;
+        [SerializeField] private SpriteRenderer mapGavialTokenTemplate;
+        [SerializeField] private Vector3 gavialSharedCityOffset;
         [SerializeField] private Vector2 mapTokenOffset = new Vector2(0, 24);
         // 原板各等级的查看/点击范围是资产配置，不用等级算法生成布局。
         [SerializeField] private Rect[] levelAreas = {
@@ -131,6 +133,8 @@ namespace YC.Presentation
         private int departmentBrowseViewer;
         private CardViewer cardViewer;
         private string inspectedSourceId, inspectedDefinitionId, inspectedGameId;
+        private string inspectedFaceId;
+        private PlayerDetailEntry inspectedDetailEntry;
         private string inspectedSettlementOptionId, inspectedSettlementWindowId;
         private int inspectedPlayer;
         private Func<bool> inspectedSnapshotIsCurrent;
@@ -142,6 +146,8 @@ namespace YC.Presentation
         public void BeginShutdown()
         {
             shuttingDown = true;
+            assembledPresentation = null; sessionPresentation = null; currentPresentationSession = null;
+            enterpriseDetails.Clear(); enterpriseDetailsSnapshot = null;
             if (settlementStrip != null) settlementStrip.ButtonsVisibilityChanged -= OnSettlementButtonsVisibilityChanged;
             InteractionRequestRouter.RequestRouted -= OnRequestRouted;
         }
@@ -156,11 +162,8 @@ namespace YC.Presentation
             public SettlementSubmissionToken Token;
         }
         private readonly Dictionary<string, PendingSettlementSubmission> pendingSubmissions = new Dictionary<string, PendingSettlementSubmission>();
-        private UiEffectRowView optionalInfluenceSkipRow;
-        private InteractionRequestProjection optionalInfluenceRequest;
-        private Func<bool> optionalInfluenceIsCurrent;
-        private bool optionalInfluencePending;
-        private readonly Dictionary<string, Text> mapTokens = new Dictionary<string, Text>();
+        private readonly Dictionary<string, RectTransform> mapTokens = new Dictionary<string, RectTransform>();
+        private readonly Dictionary<string, SpriteRenderer> gavialMapTokens = new Dictionary<string, SpriteRenderer>();
         private readonly List<MapTokenView> mapTokenGeometry = new List<MapTokenView>();
         private InteractionRequestProjection routedRequest;
         private MapView mapView;
@@ -169,11 +172,13 @@ namespace YC.Presentation
         private GameStateView renderedSnapshot;
         private int stripPresentationGeneration = -1;
         private GameStateView detailSnapshot;
-        private readonly Dictionary<Tuple<string, string, string, int, int, string, string>, GameplayTextRef[]> enterpriseDetails =
-            new Dictionary<Tuple<string, string, string, int, int, string, string>, GameplayTextRef[]>();
+        private readonly Dictionary<(string Game, string Definition, string Item, int Viewer, int Revision, string Department, int? Level, string Presentation), GameplayTextRef[]> enterpriseDetails =
+            new Dictionary<(string, string, string, int, int, string, int?, string), GameplayTextRef[]>();
         private Tuple<string, int, int, string> enterpriseDetailsSnapshot;
-        private ExternalContentPack enterpriseDetailPack, enterpriseDetailInstalledPack;
-        private string enterpriseDetailPackGameId, enterpriseDetailPackHash;
+        private IActiveContentPresentation assembledPresentation;
+        private SessionPresentationBinding sessionPresentation;
+        private Func<YC.Application.Sessions.GameSession> currentPresentationSession;
+        private string presentationDiagnostic;
         private IReadOnlyList<PlayerDetailEntry> detailEntries = Array.Empty<PlayerDetailEntry>();
         public GameplayCopy Copy => copy;
         public Func<string, CharacterCardDefinition> CharacterDefinition { private get; set; }
@@ -187,7 +192,30 @@ namespace YC.Presentation
             if (!ReferenceEquals(detailSnapshot, view))
             {
                 detailSnapshot = view;
-                detailEntries = PlayerDetailEntryProjector.Project(view, DetailDefinitions);
+                var entries = PlayerDetailEntryProjector.Project(view, DetailDefinitions).ToList();
+                // 配件来源没有持续订阅时也有真实库存；只使用本人/公开投影中的来源与声明的区域。
+                foreach (var player in view?.Entrepreneurs?.Players ?? Enumerable.Empty<YC.Domain.Rules.EntrepreneurPlayerView>())
+                {
+                    if (entries.Any(e => e.SourceItemId == player.AbilityItemId)) continue;
+                    var item = view.ItemZones.Items.FirstOrDefault(i => i.ItemId == player.AbilityItemId);
+                    var definition = item == null ? null : EntrepreneurCardPresentation.Definition(item.DefinitionId);
+                    var metadata = item == null ? null : ExternalContentRuntime.Pack.Definitions.FirstOrDefault(d => d.DefinitionId == item.DefinitionId);
+                    if (definition == null || metadata == null) continue;
+                    var zones = view.ItemZones.Zones.Where(z => z.Zone.ParentId == item.ItemId &&
+                        metadata.CardZones.Any(c => c.LocalZoneId == z.Zone.LocalZoneId &&
+                            (c.ZoneTemplateId == "core.zone.card_cube_storage" || c.ZoneTemplateId == "core.zone.card_facility_storage"))).ToArray();
+                    var hasSupply = definition.Components.Any(c => c.DestinationRole == "supply" && view.CubeColors.Any(color => color.TypeId == c.TypeId));
+                    if (!hasSupply && zones.Length == 0) continue;
+                    entries.Add(new PlayerDetailEntry { EntryId = "source-inventory:" + item.ItemId, SourceItemId = item.ItemId,
+                        InspectionSourceItemId = item.ItemId, InspectionDefinitionId = item.DefinitionId,
+                        InspectionFaceId = PlayerDetailEntryProjector.SourceFaceId(item),
+                        // 此兜底只显示真实库存；效果正文由playerDetails及对应效果事实提供，不能借整卡说明。
+                        DetailPlayerId = player.PlayerId, DisplayName = metadata.DisplayName,
+                        EntryKind = zones.Any(z => metadata.CardZones.Any(c => c.LocalZoneId == z.Zone.LocalZoneId && c.AcceptedItemKinds.Contains(ItemPhysicalKind.Card)))
+                            ? PlayerDetailEntryKind.StorageArea : PlayerDetailEntryKind.Effect,
+                        StorageZoneIds = zones.Select(z => z.Zone.ZoneId).ToList() });
+                }
+                detailEntries = entries;
             }
             return detailEntries;
         }
@@ -203,20 +231,22 @@ namespace YC.Presentation
         [SerializeField] private GameObject cooperationEmpty;
         private readonly Dictionary<string, UiQuickActionRow> quickRows = new Dictionary<string, UiQuickActionRow>();
         private EffectDialogShell detailViewer;
+        private CardCollectionBrowser storageBrowser;
+        private Func<bool> storageBrowserCurrent;
         public IReadOnlyList<string> InspectedItemIds { get; private set; } = Array.Empty<string>();
 
         public bool TryValidateConfiguration(out string reason)
         {
             reason = "局内企业与持续区适配引用不完整。";
             return enterpriseArtwork != null && copy != null && boards != null && content != null &&
-                settlementHost != null && settlementRowTemplate != null && settlementStrip != null && settlementStrip.transform.IsChildOf(settlementHost) &&
+                settlementHost != null && settlementStrip != null && settlementStrip.transform.IsChildOf(settlementHost) &&
                 settlementStrip.ValidateReferences(out reason) && mapTokenHost != null && mapTokenViewport != null && mapTokenTemplate != null && mapTokenTemplate.GetComponent<Button>() != null &&
+                mapCompanyTokenTemplate != null && mapCompanyTokenTemplate.targetGraphic != null && mapGavialTokenTemplate != null && mapGavialTokenTemplate.sprite != null &&
                 quickActionHost != null && quickActionTemplate != null && cooperationNames.Length == 4 && cooperationOpenButton != null && cooperationGrades.Length == 24 &&
                 cooperationNames.All(value => value != null) && cooperationGrades.All(value => value != null) &&
                 cooperationLogos.Length == 4 && cooperationLogos.All(value => value != null) && cooperationLevelHeaders != null &&
                 cooperationEmptySlots.Length == 24 && cooperationEmptySlots.All(value => value != null) &&
                 cooperationMasks.Length == 16 && cooperationMasks.Skip(1).All(value => value != null) &&
-                settlementRowTemplate.TryValidateConfiguration(out reason) &&
                 levelAreas != null && levelAreas.Length == 6 && enterpriseArtwork.TryValidateConfiguration(out reason);
         }
 
@@ -225,6 +255,7 @@ namespace YC.Presentation
         {
             shuttingDown = false;
             Clear();
+            assembledPresentation = null; sessionPresentation = null; currentPresentationSession = null;
             hud = GetComponent<GameplayInteractionHudView>();
             getView = visible; getPlayer = player; definitions = enterpriseDefinitions;
             modes = characterModes; submit = send;
@@ -237,8 +268,6 @@ namespace YC.Presentation
 
         private void OnRequestRouted(InteractionRequestProjection request)
         {
-            if (optionalInfluenceRequest != null && !SameOptionalInfluenceRequest(optionalInfluenceRequest, request))
-                ReleaseOptionalInfluenceSkip();
             if (routedRequest?.InteractionId == request?.InteractionId && routedRequest?.StateRevision == request?.StateRevision &&
                 routedRequest?.CandidateSetId == request?.CandidateSetId && routedRequest?.CandidateSetVersion == request?.CandidateSetVersion &&
                 routedRequest?.AnsweringPlayerId == request?.AnsweringPlayerId) return;
@@ -331,6 +360,7 @@ namespace YC.Presentation
         private GameplayTextRef[] BoardDetails(GameStateView view, string itemId, string definitionId, int? level = null,
             InteractionRequestProjection request = null)
         {
+            using var detailTiming = UiRegressionMetrics.Measure("enterprise.detail.binding");
             var item = view?.ItemZones.Items.Find(value => value.ItemId == itemId && value.DefinitionId == definitionId);
             if (item == null && !IsAuthorizedEnterpriseDefinitionCandidate(view, request, itemId, definitionId))
                 return Array.Empty<GameplayTextRef>();
@@ -339,12 +369,12 @@ namespace YC.Presentation
             var relation = item == null ? null : view.ItemZones.Relations.Find(value => value.SourceItemId == itemId &&
                 value.RelationTypeId == EnterpriseStateQuery.ActiveDepartmentRelation);
             var department = relation == null ? null : view.ItemZones.Items.Find(value => value.ItemId == relation.TargetItemId);
-            var pack = EnterpriseDetailPack(view);
+            var pack = EnterprisePresentation(view);
             if (pack == null) return Array.Empty<GameplayTextRef>();
             var snapshot = Tuple.Create(view.GameId, view.ViewerPlayerId, view.StateRevision, pack.PresentationContentHash);
             if (!snapshot.Equals(enterpriseDetailsSnapshot)) { enterpriseDetails.Clear(); enterpriseDetailsSnapshot = snapshot; }
-            var key = Tuple.Create(view.GameId, definitionId, itemId, view.ViewerPlayerId, view.StateRevision,
-                department?.DefinitionId ?? string.Empty, pack.PresentationContentHash);
+            var key = (view.GameId, definitionId, itemId, view.ViewerPlayerId, view.StateRevision,
+                department?.DefinitionId ?? string.Empty, level, pack.PresentationContentHash);
             if (!enterpriseDetails.TryGetValue(key, out var details))
             {
                 var facts = new List<NormalizedValueEntry>();
@@ -353,7 +383,7 @@ namespace YC.Presentation
                 var context = new GameplayPresentationContext { Purpose = "enterprise_detail", SourceDefinitionId = definitionId,
                     SourceItemId = item?.ItemId ?? string.Empty, ViewerPlayerId = view.ViewerPlayerId, StateRevision = view.StateRevision,
                     Facts = NormalizedValue.CreateObject(facts) };
-                if (pack.TryPresent(presentation.DetailScript, context, out var result, out var code, out var diagnostic))
+                if (pack.TryPresentEnterprise(presentation.DetailScript, context, out var result, out var code, out var diagnostic))
                     details = result.Details.Select(value => value.Clone()).ToArray();
                 else
                 {
@@ -368,6 +398,16 @@ namespace YC.Presentation
         internal static bool IsAuthorizedEnterpriseDefinitionCandidate(GameStateView view, InteractionRequestProjection request,
             string candidateId, string definitionId)
         {
+            if ((request?.InteractionTypeId == EntrepreneurFlow.PreviewInteraction || request?.InteractionTypeId == EntrepreneurFlow.ChooseInteraction) &&
+                GameplayHudFrame.MatchesSummaryRequest(request, view))
+            {
+                var ids = view.Entrepreneurs?.OwnEnterpriseCandidateItemIds;
+                var candidates = view.Entrepreneurs?.OwnEnterpriseCandidates;
+                return ids != null && candidates != null && ids.Count > 0 && ids.Count == candidates.Count &&
+                    ids.Distinct(StringComparer.Ordinal).Count() == ids.Count &&
+                    ids.SequenceEqual(candidates.Select(c => c?.ItemId), StringComparer.Ordinal) &&
+                    candidates.Any(c => c != null && c.ItemId == candidateId && c.DefinitionId == definitionId);
+            }
             if (request?.InteractionTypeId != "setup.enterprise.choose" || string.IsNullOrEmpty(definitionId) ||
                 !GameplayHudFrame.MatchesSummaryRequest(request, view)) return false;
             var current = view.Interactions.Single(value => value.InteractionId == request.InteractionId);
@@ -378,27 +418,34 @@ namespace YC.Presentation
                 CandidateDefinition(request, candidateId) == definitionId;
         }
 
-        private ExternalContentPack EnterpriseDetailPack(GameStateView view)
+        internal void BindSessionPresentation(SessionPresentationBinding binding, Func<YC.Application.Sessions.GameSession> current)
         {
-            var installed = ExternalContentRuntime.Pack;
-            if (view.RuleConfiguration == null || string.IsNullOrEmpty(view.ContentPackHash)) return null;
-            if (ReferenceEquals(enterpriseDetailInstalledPack, installed) &&
-                enterpriseDetailPackGameId == view.GameId && enterpriseDetailPackHash == view.ContentPackHash) return enterpriseDetailPack;
-            enterpriseDetailPack = null; enterpriseDetailInstalledPack = installed;
-            enterpriseDetailPackGameId = view.GameId; enterpriseDetailPackHash = view.ContentPackHash;
+            assembledPresentation = binding?.Content; sessionPresentation = binding; currentPresentationSession = current;
+            presentationDiagnostic = null;
             enterpriseDetails.Clear(); enterpriseDetailsSnapshot = null;
-            try
+        }
+        // 仅由正式会话发表入口显式重绑；详情消费本身不接纳另一个局/会话，也不创建活动包。
+        internal void RebindSessionPresentation(GameStateView view)
+        {
+            var session = currentPresentationSession?.Invoke(); var installedHash = ExternalContentRuntime.Pack.ContentHash;
+            if (sessionPresentation?.Matches(session, view, installedHash) == true) return;
+            sessionPresentation = view == null ? null : SessionPresentationBinding.Create(assembledPresentation, session,
+                view.GameId, view.RuleConfiguration, view.ContentPackHash, installedHash);
+            enterpriseDetails.Clear(); enterpriseDetailsSnapshot = null; presentationDiagnostic = null;
+        }
+        private IActiveContentPresentation EnterprisePresentation(GameStateView view)
+        {
+            using var timing = UiRegressionMetrics.Measure("enterprise.detail.bound_snapshot");
+            if (sessionPresentation?.Matches(currentPresentationSession?.Invoke(), view, ExternalContentRuntime.Pack.ContentHash) == true)
+                return sessionPresentation.Content;
+            enterpriseDetails.Clear(); enterpriseDetailsSnapshot = null;
+            var diagnostic = (view?.GameId ?? "") + ":" + (view?.ContentPackHash ?? "") + ":" + ExternalContentRuntime.Pack.ContentHash;
+            if (presentationDiagnostic != diagnostic)
             {
-                var snapshot = installed.CreateActiveSnapshot(view.RuleConfiguration);
-                if (!string.Equals(snapshot.ContentHash, view.ContentPackHash, StringComparison.Ordinal))
-                    throw new InvalidOperationException("企业／科室详情活动内容与当前局的 ContentPackHash 不一致。");
-                enterpriseDetailPack = snapshot;
+                presentationDiagnostic = diagnostic;
+                Debug.LogWarning("企业／科室正式详情暂不可用：活动展示未绑定或与当前会话/配置身份不符。", this);
             }
-            catch (InvalidOperationException exception)
-            {
-                Debug.LogWarning("企业／科室正式详情暂不可用：" + exception.Message, this);
-            }
-            return enterpriseDetailPack;
+            return null;
         }
 
         public GameplayTextRef[] SpecialDetails(GameStateView view, string itemId, string definitionId, string abilityId, int currentLevel, int ceiling)
@@ -478,28 +525,35 @@ namespace YC.Presentation
             var key = view.GameId + ":" + player + ":" + view.StateRevision + ":" + view.ItemZones.Items.Count + ":" +
                 view.Interactions.Count + ":" + view.CharacterSettlementOptions.Count;
             // Refresh 在实际内容变化或宿主被热座清空后才更新条目，避免每帧销毁布局。
-            if (ReferenceEquals(renderedSnapshot, view) && contentKey == key && rows.Values.All(value => value != null)) return;
+            if (ReferenceEquals(renderedSnapshot, view) && contentKey == key && rows.Values.All(value => value != null) && DetailDocumentsAreBound()) return;
             renderedSnapshot = view;
             RefreshSourceInspection(view);
+            if (storageBrowser?.IsShowing == true && storageBrowserCurrent?.Invoke() != true)
+            { storageBrowser.Hide(); InspectedItemIds = Array.Empty<string>(); }
             if (detailViewer?.IsShowing == true) { detailViewer.Hide(); InspectedItemIds = Array.Empty<string>(); }
             contentKey = key;
+            RefreshEntrepreneurCards(view);
             var used = new HashSet<string>();
-            var ownHost = hud.MainModules.GetLocalDetailHost(0);
-            var characterHost = hud.MainModules.GetLocalDetailHost(1);
+            var leftHost = hud.MainModules.GetLocalDetailHost(0);
+            var rightHost = hud.MainModules.GetLocalDetailHost(1);
+            int localEntryIndex = 0;
             var entries = ProjectDetails(view);
             var snapshotIsCurrent = GuardSnapshot(view);
             foreach (var entry in entries)
             {
-                var host = entry.DetailPlayerId == player ? (entry.StorageZoneIds.Count > 0 || entry.HasCoverArea ? characterHost : ownHost)
+                var host = entry.DetailPlayerId == player ? (localEntryIndex++ % 2 == 0 ? leftHost : rightHost)
                     : hud.MainModules.GetOpponentDetailHost(entry.DetailPlayerId);
                 var row = GetRow(host, entry.EntryId);
                 if (row == null) continue;
                 used.Add(entry.EntryId);
+                if (entry.DetailPlayerId == player) row.transform.SetAsLastSibling();
                 row.Bind(new UiEffectRowView.Binding { StableItemId = entry.EntryId, RequestId = view.GameId, Revision = view.StateRevision,
                     RowMode = UiEffectRowView.Mode.PersistentDetail, Title = entry.DisplayName, Description = entry.EffectText,
                     Markers = DetailMarkers(view, entry) },
                     (request, revision) => snapshotIsCurrent() && view.GameId == request && view.StateRevision == revision,
                     _ => InspectDetail(entry), null);
+                if (entry.EffectTextRef != null)
+                    RenderEnterpriseDetails(row.DescriptionText.GetComponent<GameplayTextView>(), ResolveGameplayText(entry.EffectTextRef), false);
             }
             RefreshCooperation(view);
             RefreshQuickActions(view);
@@ -515,21 +569,77 @@ namespace YC.Presentation
             else if (publicBoards != null && publicBoards.gameObject.activeSelf) OpenPublicEnterprises();
         }
 
+        private bool DetailDocumentsAreBound()
+        {
+            foreach (var entry in detailEntries)
+            {
+                if (entry.EffectTextRef == null || !rows.TryGetValue(entry.EntryId, out var row) || row == null) continue;
+                var text = row.DescriptionText.GetComponent<GameplayTextView>();
+                if (text == null || !text.HasDocument) return false;
+            }
+            return true;
+        }
+
         private static bool IsIn(GameStateView view, ItemInstanceState item, string template) =>
             view.ItemZones.Zones.Any(value => value.Zone.ZoneId == item.ZoneId && value.Zone.TemplateId == template);
 
-        private UiEffectRowView.Marker[] DetailMarkers(GameStateView view, PlayerDetailEntry entry) => view.ItemZones.Items
-            .Where(item => entry.StorageZoneIds.Contains(item.ZoneId) && item.PhysicalKind == ItemPhysicalKind.Cube && item.OwnerSubject.Kind == ItemSubjectKind.Player)
-            .GroupBy(item => new { item.TypeId, item.OwnerSubject.PlayerId }).Take(2)
-            .Select(group => new UiEffectRowView.Marker { Mask = (int)RegionInformationPageView.PlayerColor(view.Players.Find(player => player.PlayerId == group.Key.PlayerId)?.Color ?? PlayerColor.Red), Count = group.Count() }).ToArray();
+        private UiEffectRowView.Marker[] DetailMarkers(GameStateView view, PlayerDetailEntry entry)
+        {
+            var counters = new Dictionary<Tuple<string, int>, int>();
+            var source = view.ItemZones.Items.FirstOrDefault(i => i.ItemId == entry.SourceItemId);
+            var metadata = source == null ? null : ExternalContentRuntime.Pack.Definitions.FirstOrDefault(d => d.DefinitionId == source.DefinitionId);
+            foreach (var zoneId in entry.StorageZoneIds)
+            {
+                var zone = view.ItemZones.Zones.FirstOrDefault(z => z.Zone.ZoneId == zoneId)?.Zone;
+                // 可见区域会剥离内部Configuration；零库存的类型来自该来源公开声明的附属区。
+                var acceptedTypes = metadata?.CardZones.FirstOrDefault(z => z.LocalZoneId == zone?.LocalZoneId)?.AcceptedTypeIds;
+                foreach (var type in acceptedTypes ?? new List<string>())
+                    if (view.CubeColors.Any(c => c.TypeId == type)) counters[Tuple.Create(type, entry.DetailPlayerId)] = 0;
+                foreach (var item in view.ItemZones.Items.Where(i => i.ZoneId == zoneId && i.PhysicalKind == ItemPhysicalKind.Cube))
+                {
+                    var key = Tuple.Create(item.TypeId, item.OwnerSubject.PlayerId);
+                    if (!counters.ContainsKey(key)) counters[key] = 0;
+                    counters[key]++;
+                }
+            }
+            var declared = source == null ? null : EntrepreneurCardPresentation.Definition(source.DefinitionId);
+            foreach (var component in declared?.Components.Where(c => c.DestinationRole == "supply") ?? Enumerable.Empty<EntrepreneurComponentRecipe>())
+            {
+                if (!view.CubeColors.Any(c => c.TypeId == component.TypeId)) continue;
+                var zones = view.ItemZones.Zones.Where(z => z.Zone.TemplateId == "core.zone.player_supply" && z.Zone.OwnerPlayerId == entry.DetailPlayerId).Select(z => z.Zone.ZoneId).ToArray();
+                counters[Tuple.Create(component.TypeId, entry.DetailPlayerId)] = view.ItemZones.Items.Count(i =>
+                    zones.Contains(i.ZoneId) && i.TypeId == component.TypeId && i.OwnerSubject.PlayerId == entry.DetailPlayerId);
+            }
+            return counters.Take(2).Select(counter => {
+                var color = view.CubeColors.FirstOrDefault(c => c.TypeId == counter.Key.Item1 && c.OwnerPlayerId == counter.Key.Item2) ??
+                    view.CubeColors.FirstOrDefault(c => c.TypeId == counter.Key.Item1 && c.Mode == "fixed");
+                var owner = view.Players.Find(p => p.PlayerId == counter.Key.Item2);
+                if (owner == null && color?.Mode != "fixed")
+                { Debug.LogError("玩家详情标记缺少真实所有者：" + counter.Key.Item2); return (UiEffectRowView.Marker?)null; }
+                return new UiEffectRowView.Marker { Mask = owner == null ? 1 : (int)RegionInformationPageView.PlayerColor(owner.Color),
+                    Count = counter.Value, FixedColor = color?.Mode == "fixed", Tint = color == null ? Color.white : CubeColorResolver.Resolve(color) };
+            }).Where(marker => marker.HasValue).Select(marker => marker.Value).ToArray();
+        }
 
         private void InspectDetail(PlayerDetailEntry entry)
         {
             var view = VisibleView();
             if (entry == null || view == null) return;
             var current = ProjectDetails(view).FirstOrDefault(value => value.EntryId == entry.EntryId);
-            if (current == null || current.SourceItemId != entry.SourceItemId) return;
-            OpenSourceCard(current.SourceItemId, view);
+            if (!PlayerDetailEntryProjector.SameInspectionSource(entry, current)) return;
+            if (current.EntryKind == PlayerDetailEntryKind.StorageArea)
+            {
+                var cards = view.ItemZones.Items.Where(i => current.StorageZoneIds.Contains(i.ZoneId) && i.PhysicalKind == ItemPhysicalKind.Card)
+                    .Select(i => new EntrepreneurCardPresentation { Id = i.ItemId, DefinitionId = i.DefinitionId, FaceId = "", Label = CardName(i.DefinitionId) }).ToArray();
+                if (storageBrowser == null) storageBrowser = new CardCollectionBrowser(hud.DialogRegistry, hud.Frame.ContentRect);
+                storageBrowserCurrent = GuardSnapshot(view); InspectedItemIds = cards.Select(c => c.Id).ToArray();
+                storageBrowser.Show(current.DisplayName, entrepreneurUiCopy.BrowseHint, cards, storageBrowserCurrent,
+                    () => { InspectedItemIds = Array.Empty<string>(); });
+                return;
+            }
+            OpenSourceCard(current.InspectionSourceItemId, view);
+            if (!string.IsNullOrEmpty(inspectedSourceId) && inspectedSourceId == current.InspectionSourceItemId)
+                inspectedDetailEntry = current;
         }
 
         private bool IsQuickOption(GameStateView view, string sourceItemId)
@@ -541,8 +651,14 @@ namespace YC.Presentation
         private void RefreshQuickActions(GameStateView view)
         {
             if (quickActionHost == null || quickActionTemplate == null) return;
+            if (view?.HasAbilityActionCatalog == true)
+            {
+                quickActionTemplate.gameObject.SetActive(false);
+                foreach (var row in quickRows.Values) row.gameObject.SetActive(false);
+                return;
+            }
             var options = view?.CharacterSettlementOptions.Where(option => string.IsNullOrEmpty(option.EntryKind) && option.VisibleToViewer && option.AnsweringPlayerId == getPlayer() && IsQuickOption(view, option.SourceItemId) &&
-                    view.ItemZones.Items.Any(item => item.ItemId == option.SourceItemId && item.ControllerSubject.PlayerId == getPlayer() && IsIn(view, item, "core.zone.player_awards")))
+                    view.ItemZones.Items.Any(item => item.ItemId == option.SourceItemId && item.ControllerSubject.PlayerId == getPlayer() && IsIn(view, item, "core.zone.player_rewards")))
                 .Select(SettlementOptionView.FromOption).ToList() ?? new List<SettlementOptionView>();
             foreach (var id in quickRows.Keys.Where(id => options.All(option => option.OptionId != id)).ToArray())
             { EnterpriseBoardItemView.Retire(quickRows[id].gameObject); quickRows.Remove(id); }
@@ -607,7 +723,7 @@ namespace YC.Presentation
                 template == "core.zone.character_covered" ? copy.CoveredArea : template == "core.zone.character_hand" ? copy.HandArea :
                 template == "core.zone.character_discard" ? copy.DiscardArea : template == "core.zone.box_retired" ? copy.RetiredArea :
                 template == "core.zone.box_reserve" ? copy.ReserveArea : template == "core.zone.reward_pool" ? copy.RewardPoolArea :
-                template == "core.zone.player_awards" ? copy.PlayerRewardArea : copy.StagingArea;
+                template == "core.zone.player_rewards" ? copy.PlayerRewardArea : copy.StagingArea;
             var parts = new List<string> { string.Format(copy.ZoneFormat, ZoneName(zone?.TemplateId), PlayerName(view, item.ControllerSubject)),
                 string.Format(copy.OwnerFormat, PlayerName(view, item.OwnerSubject), PlayerName(view, item.ControllerSubject)) };
             var use = view.CharacterUses.LastOrDefault(value => value.CardInstanceId == item.ItemId);
@@ -689,7 +805,9 @@ namespace YC.Presentation
             var token = settlementStrip.CapturePending(option.OptionId);
             if (!SettlementCurrent(option) || !pendingOptions.Add(option.OptionId))
             { settlementStrip.SetPending(option.WindowId, option.OptionId, false, token); return; }
-            var command = EffectInteractionCommands.InvokeSettlementOption(getPlayer(), option.OptionId, option.TargetUseId, option.StateRevision);
+            var command = option.CleanupRequest == null
+                ? EffectInteractionCommands.InvokeSettlementOption(getPlayer(), option.OptionId, option.TargetUseId, option.StateRevision)
+                : YC.Application.Interactions.CleanupSourceCommand.Create(getPlayer(), Guid.NewGuid().ToString("N"), option.CleanupRequest, option.StateRevision);
             pendingSubmissions.Add(command.CommandId, new PendingSettlementSubmission { OptionId = option.OptionId, WindowId = option.WindowId, Token = token });
             contentKey = string.Empty;
             RefreshQuickActions(VisibleView());
@@ -779,14 +897,18 @@ namespace YC.Presentation
         private void OpenSourceCard(string id, GameStateView view)
         {
             var item = view?.ItemZones.Items.Find(value => value.ItemId == id);
-            if (item == null) return;
+            inspectedDetailEntry = null;
+            if (item == null) { cardViewer?.Dismiss(); ClearSourceInspection(); return; }
             inspectedSettlementOptionId = inspectedSettlementWindowId = null;
             var sprite = hud.DialogRegistry.CardVisualCatalog.GetCharacterFront(item.DefinitionId) ?? hud.DialogRegistry.CardVisualCatalog.GetFacility(item.DefinitionId);
             if (sprite == null) sprite = ExternalContentRuntime.GetArtworkSprite("award", item.DefinitionId) ?? ExternalContentRuntime.GetArtworkSprite("contract", item.DefinitionId);
-            if (sprite == null) return;
+            if (sprite == null) sprite = ExternalContentRuntime.GetDeclaredCardArtwork(item.DefinitionId,
+                PlayerDetailEntryProjector.SourceFaceId(item));
+            if (sprite == null) { cardViewer?.Dismiss(); ClearSourceInspection(); return; }
             inspectedPlayer = getPlayer();
             inspectedSourceId = id;
             inspectedDefinitionId = item.DefinitionId;
+            inspectedFaceId = PlayerDetailEntryProjector.SourceFaceId(item);
             inspectedGameId = view.GameId;
             inspectedSnapshotIsCurrent = GuardSnapshot(view);
             InspectedItemIds = new[] { id };
@@ -808,8 +930,11 @@ namespace YC.Presentation
             }
             if (string.IsNullOrEmpty(inspectedSourceId)) return;
             var item = view?.ItemZones.Items.Find(value => value.ItemId == inspectedSourceId);
+            var detail = inspectedDetailEntry == null || view == null ? null :
+                ProjectDetails(view).FirstOrDefault(value => value.EntryId == inspectedDetailEntry.EntryId);
             if (view == null || view.GameId != inspectedGameId || getPlayer() != inspectedPlayer ||
-                item == null || item.DefinitionId != inspectedDefinitionId)
+                item == null || item.DefinitionId != inspectedDefinitionId || PlayerDetailEntryProjector.SourceFaceId(item) != inspectedFaceId ||
+                inspectedDetailEntry != null && !PlayerDetailEntryProjector.SameInspectionSource(inspectedDetailEntry, detail))
             {
                 cardViewer.Dismiss();
                 ClearSourceInspection();
@@ -830,6 +955,7 @@ namespace YC.Presentation
         {
             inspectedSnapshotIsCurrent = null;
             inspectedSourceId = inspectedDefinitionId = inspectedGameId = null;
+            inspectedFaceId = null; inspectedDetailEntry = null;
             inspectedSettlementOptionId = inspectedSettlementWindowId = null;
             InspectedItemIds = Array.Empty<string>();
         }
@@ -980,78 +1106,10 @@ namespace YC.Presentation
             (token.TypeId == "infected.company_marker" ? copy.CompanyToll : token.IsPermanent ? copy.PermanentToken : token.ExpiresBeforeActionRoundSequence < 0 ? copy.LockExpiryUnknown :
                 string.Format(copy.LockExpiryFormat, token.ExpiresBeforeActionRoundSequence));
 
-        public void ShowOptionalInfluenceSkip(InteractionRequestProjection request, Action skip, Func<bool> isCurrent)
-        {
-            if (request == null || !request.VisibleToViewer || request.Status != "open" ||
-                request.InteractionTypeId != "setup.influence.optional" || request.MinSelections != 0 ||
-                !request.AllowDecline || request.AnsweringPlayerId != getPlayer?.Invoke() || skip == null || isCurrent == null)
-                throw new ArgumentException("底部跳过入口必须绑定当前观察者的可选初始影响力请求。", nameof(request));
-            if (settlementHost == null || settlementRowTemplate == null)
-                throw new InvalidOperationException("缺少既有底部结算宿主或条目模板。");
-            ReleaseOptionalInfluenceSkip();
-            // 按值保存清理身份，调用方后续投影不能改变已绑定按钮的归属。
-            var bound = new InteractionRequestProjection { InteractionId = request.InteractionId, StateRevision = request.StateRevision,
-                CandidateSetId = request.CandidateSetId, CandidateSetVersion = request.CandidateSetVersion,
-                AnsweringPlayerId = request.AnsweringPlayerId };
-            optionalInfluenceRequest = bound;
-            optionalInfluenceIsCurrent = isCurrent;
-            optionalInfluencePending = false;
-            optionalInfluenceSkipRow = Instantiate(settlementRowTemplate, settlementHost, false);
-            optionalInfluenceSkipRow.name = "OptionalInitialInfluenceSkip";
-            optionalInfluenceSkipRow.gameObject.SetActive(true);
-            optionalInfluenceSkipRow.Bind(new UiEffectRowView.Binding
-            {
-                StableItemId = "setup.influence.skip", RequestId = bound.InteractionId, Revision = bound.StateRevision,
-                RowMode = UiEffectRowView.Mode.ChoiceExecute, RightStatus = UiEffectRowView.Status.Use,
-                Enabled = true, Title = string.Format(copy.CompactSettlementFormat, copy.OptionalInfluenceTitle, copy.SkipInitialInfluenceLabel)
-            }, (_, __) => ReferenceEquals(optionalInfluenceRequest, bound) && OptionalInfluenceSkipCurrent(), null, _ =>
-            {
-                if (!ReferenceEquals(optionalInfluenceRequest, bound) || !OptionalInfluenceSkipCurrent()) return;
-                optionalInfluencePending = true;
-                optionalInfluenceSkipRow.Refresh();
-                try { skip(); }
-                catch
-                {
-                    ClearOptionalInfluenceSkip(bound.InteractionId, bound.StateRevision, bound.CandidateSetId,
-                        bound.CandidateSetVersion, bound.AnsweringPlayerId);
-                    throw;
-                }
-            });
-            RefreshSettlementHostVisibility();
-        }
-
-        public void ClearOptionalInfluenceSkip(string interactionId, int revision, string candidateSetId, int candidateSetVersion, int playerId)
-        {
-            var bound = optionalInfluenceRequest;
-            if (bound == null || bound.InteractionId != interactionId || bound.StateRevision != revision ||
-                bound.CandidateSetId != candidateSetId || bound.CandidateSetVersion != candidateSetVersion || bound.AnsweringPlayerId != playerId) return;
-            ReleaseOptionalInfluenceSkip();
-        }
-
-        private bool OptionalInfluenceSkipCurrent() => optionalInfluenceRequest != null && !optionalInfluencePending &&
-            optionalInfluenceRequest.AnsweringPlayerId == getPlayer?.Invoke() && !GameplayHudFrame.EffectInputSuspended &&
-            optionalInfluenceIsCurrent != null && optionalInfluenceIsCurrent();
-
-        private static bool SameOptionalInfluenceRequest(InteractionRequestProjection bound, InteractionRequestProjection current) =>
-            bound != null && current != null && bound.InteractionId == current.InteractionId &&
-            bound.StateRevision == current.StateRevision && bound.CandidateSetId == current.CandidateSetId &&
-            bound.CandidateSetVersion == current.CandidateSetVersion && bound.AnsweringPlayerId == current.AnsweringPlayerId;
-
-        private void ReleaseOptionalInfluenceSkip()
-        {
-            optionalInfluenceRequest = null; optionalInfluenceIsCurrent = null; optionalInfluencePending = false;
-            if (optionalInfluenceSkipRow != null)
-            {
-                optionalInfluenceSkipRow.ClearBinding(); EnterpriseBoardItemView.Retire(optionalInfluenceSkipRow.gameObject);
-                optionalInfluenceSkipRow = null;
-            }
-            RefreshSettlementHostVisibility();
-        }
-
         private void RefreshSettlementHostVisibility()
         {
             if (shuttingDown) return;
-            bool visible = settlementStrip != null && settlementStrip.HasVisibleOptions || optionalInfluenceSkipRow != null;
+            bool visible = settlementStrip != null && settlementStrip.HasVisibleOptions;
             if (settlementHost != null && settlementHost.gameObject.activeSelf != visible) settlementHost.gameObject.SetActive(visible);
             if (hud != null) hud.Frame.SetSettlementButtonsVisible(visible);
         }
@@ -1069,7 +1127,6 @@ namespace YC.Presentation
                 presentationBinding = new object();
                 renderedSnapshot = null; contentKey = string.Empty; stripPresentationGeneration = -1;
                 settlementStrip.ClearWindow();
-                ReleaseOptionalInfluenceSkip();
                 if (!string.IsNullOrEmpty(inspectedSettlementOptionId))
                 { if (cardViewer != null) cardViewer.Dismiss(); ClearSourceInspection(); }
                 RefreshSettlementHostVisibility();
@@ -1101,7 +1158,14 @@ namespace YC.Presentation
             var view = VisibleView(); var definition = option.SourceDefinitionId;
             var sprite = hud.DialogRegistry.CardVisualCatalog.GetCharacterFront(definition) ?? hud.DialogRegistry.CardVisualCatalog.GetFacility(definition);
             if (sprite == null) sprite = ExternalContentRuntime.GetArtworkSprite("award", definition) ?? ExternalContentRuntime.GetArtworkSprite("contract", definition);
+            if (sprite == null)
+            {
+                var source = view.ItemZones.Items.FirstOrDefault(i => i.ItemId == option.SourceItemId);
+                sprite = ExternalContentRuntime.GetDeclaredCardArtwork(definition,
+                    source?.LocalState?.Properties.FirstOrDefault(p => p.Name == "activeFaceId")?.Value?.StringValue ?? "");
+            }
             if (sprite == null) return;
+            inspectedDetailEntry = null; inspectedFaceId = null;
             inspectedPlayer = view.ViewerPlayerId; inspectedGameId = view.GameId;
             inspectedSourceId = option.SourceItemId; inspectedDefinitionId = definition;
             inspectedSettlementOptionId = option.OptionId; inspectedSettlementWindowId = option.WindowId;
@@ -1118,27 +1182,61 @@ namespace YC.Presentation
         {
             mapTokenGeometry.Clear();
             if (mapTokenHost == null || mapTokenTemplate == null) return;
-            var ids = new HashSet<string>(view.MapTokens.Select(value => value.ItemId));
+            var ids = new HashSet<string>(view.MapTokens.Where(value => value.TypeId != "infected.gavial_token").Select(value => value.ItemId));
             foreach (string id in mapTokens.Keys.Where(id => !ids.Contains(id)).ToArray())
             { EnterpriseBoardItemView.Retire(mapTokens[id].gameObject); mapTokens.Remove(id); }
+            var gavialIds = new HashSet<string>(view.MapTokens.Where(value => value.TypeId == "infected.gavial_token").Select(value => value.ItemId));
+            foreach (string id in gavialMapTokens.Keys.Where(id => !gavialIds.Contains(id)).ToArray())
+            { EnterpriseBoardItemView.Retire(gavialMapTokens[id].gameObject); gavialMapTokens.Remove(id); }
             foreach (var token in view.MapTokens)
             {
+                if (token.TypeId == "infected.gavial_token")
+                {
+                    RefreshGavialMapToken(token, view);
+                    continue;
+                }
                 // 帧间只保留已绑定的公开几何，不为相机移动重新投影整局。
                 mapTokenGeometry.Add(new MapTokenView { ItemId = token.ItemId, LocationId = token.LocationId,
                     RouteId = token.RouteId, SlotId = token.SlotId });
-                if (!mapTokens.TryGetValue(token.ItemId, out var label) || label == null)
-                { label = Instantiate(mapTokenTemplate, mapTokenHost, false); label.name = token.TypeId == "infected.company_marker" ? "CompanyMarker" : token.IsPermanent ? "GavialToken" : "InfluenceLockToken"; mapTokens[token.ItemId] = label; }
-                var button = label.GetComponent<Button>();
+                bool company = token.TypeId == "infected.company_marker";
+                if (!mapTokens.TryGetValue(token.ItemId, out var target) || target == null)
+                {
+                    target = company ? (RectTransform)Instantiate(mapCompanyTokenTemplate, mapTokenHost, false).transform :
+                        Instantiate(mapTokenTemplate, mapTokenHost, false).rectTransform;
+                    target.name = company ? "CompanyMarkerInspectTarget" : "InfluenceLockToken";
+                    mapTokens[token.ItemId] = target;
+                }
+                var button = target.GetComponent<Button>();
                 button.onClick.RemoveAllListeners();
                 if (IsNonInteractiveMapToken(token))
                 {
                     button.enabled = false;
-                    label.raycastTarget = false;
+                    target.GetComponent<Text>().raycastTarget = false;
                 }
                 else button.onClick.AddListener(() => InspectMapToken(token.ItemId));
-                label.text = token.TypeId == "infected.company_marker" ? ItemName(token.DefinitionId) : token.IsPermanent ? copy.MapPermanentLabel : copy.MapLockLabel;
+                // 公司只保留原详情命中区；可见方块由地图实体层显示，不创建或更新名称文字。
+                if (!company) target.GetComponent<Text>().text = copy.MapLockLabel;
             }
             PositionMapTokens();
+        }
+
+        private void RefreshGavialMapToken(MapTokenView token, GameStateView view)
+        {
+            if (mapView == null || mapGavialTokenTemplate == null) return;
+            var location = mapView.CoordinateSpace.Layout.Locations.Find(value => value.LocationId == token.LocationId);
+            if (!gavialMapTokens.TryGetValue(token.ItemId, out var visual) || visual == null)
+            {
+                visual = Instantiate(mapGavialTokenTemplate, mapView.MapRenderer.transform, false);
+                visual.name = "GavialTokenArtwork";
+                gavialMapTokens[token.ItemId] = visual;
+            }
+            visual.gameObject.SetActive(location != null && mapView.gameObject.activeInHierarchy);
+            if (location == null) return;
+            // 与移动城市使用同一Location.NormalizedPosition；仅有共存时的资产视觉偏移，不改变占用。
+            var offset = mapGavialTokenTemplate.transform.localPosition;
+            if (view.Players.Any(player => player.CityLocationId == token.LocationId)) offset += gavialSharedCityOffset;
+            var anchor = mapView.CoordinateSpace.ToWorldPosition(location.NormalizedPosition, 0);
+            visual.transform.position = anchor + mapView.MapRenderer.transform.TransformVector(offset);
         }
 
         public void InspectMapToken(string itemId)
@@ -1177,20 +1275,20 @@ namespace YC.Presentation
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(mapTokenHost, screen,
                     canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera, out var local);
                 int stackIndex = mapTokenGeometry.TakeWhile(value => value.ItemId != token.ItemId).Count(value => value.LocationId == token.LocationId && value.RouteId == token.RouteId);
-                label.rectTransform.anchoredPosition = local + mapTokenOffset + new Vector2(0, stackIndex * label.rectTransform.rect.height);
+                label.anchoredPosition = local + mapTokenOffset + new Vector2(0, stackIndex * label.rect.height);
             }
         }
 
         public void Clear()
         {
+            ClearEntrepreneurPresentation();
+            storageBrowser?.Hide(); storageBrowserCurrent = null;
             presentationBinding = new object();
             ClearSourceInspection();
             if (cooperationOpenButton != null) cooperationOpenButton.onClick.RemoveListener(OpenPublicEnterprises);
-            ReleaseOptionalInfluenceSkip();
             renderedSnapshot = detailSnapshot = null;
             enterpriseDetails.Clear(); enterpriseDetailsSnapshot = null;
-            enterpriseDetailPack = enterpriseDetailInstalledPack = null;
-            enterpriseDetailPackGameId = enterpriseDetailPackHash = null;
+            presentationDiagnostic = null;
             detailEntries = Array.Empty<PlayerDetailEntry>();
             foreach (var row in rows.Values) if (row != null) { row.ClearBinding(); EnterpriseBoardItemView.Retire(row.gameObject); }
             rows.Clear();
@@ -1204,6 +1302,8 @@ namespace YC.Presentation
             if (settlementHost != null) settlementHost.gameObject.SetActive(false);
             foreach (var token in mapTokens.Values) if (token != null) EnterpriseBoardItemView.Retire(token.gameObject);
             mapTokens.Clear();
+            foreach (var token in gavialMapTokens.Values) if (token != null) EnterpriseBoardItemView.Retire(token.gameObject);
+            gavialMapTokens.Clear();
             mapTokenGeometry.Clear();
             if (publicBoards != null) publicBoards.ClearPresentation();
             if (publicDepartments != null) publicDepartments.ClearPresentation();
@@ -1216,6 +1316,6 @@ namespace YC.Presentation
             if (getPlayer != null && renderedPlayer != getPlayer()) Clear();
             PositionMapTokens();
         }
-        private void OnDestroy() { BeginShutdown(); Clear(); if (publicBoards != null) Destroy(publicBoards.gameObject); if (publicDepartments != null) Destroy(publicDepartments.gameObject); if (cardViewer != null) Destroy(cardViewer.gameObject); }
+        private void OnDestroy() { BeginShutdown(); Clear(); if (publicBoards != null) Destroy(publicBoards.gameObject); if (publicDepartments != null) Destroy(publicDepartments.gameObject); if (cardViewer != null) Destroy(cardViewer.gameObject); if (entrepreneurViewer != null) Destroy(entrepreneurViewer.gameObject); }
     }
 }

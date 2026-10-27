@@ -17,7 +17,7 @@ namespace YC.Domain.Influence
         public InfluenceDestinationResolver(ItemTransferService transfers = null) { this.transfers = transfers ?? new ItemTransferService(); }
         public string GetStagingZoneId(EffectExecutionContext context)
             => GetStagingZoneId(context.State, context.Node.EffectId);
-        private static string GetStagingZoneId(GameState state, string effectId)
+        public static string GetStagingZoneId(GameState state, string effectId)
         {
             var existing = state.ItemZones.Zones.Find(zone => zone.TemplateId == "core.zone.effect_staging" && zone.OwnerEffectId == effectId && zone.LocalZoneId == "removed_influence");
             if (existing != null) return existing.ZoneId;
@@ -30,6 +30,8 @@ namespace YC.Domain.Influence
         }
         public ItemTransferResult Resolve(EffectExecutionContext context, string itemId, string destinationZoneId)
         {
+            var current = InfluenceDepartureProtocol.Current(context.State, itemId, context.Node.EffectId);
+            if (current != null) return InfluenceDepartureProtocol.Resolve(context, current, destinationZoneId);
             var item = new ItemZoneQuery().FindItem(context.State, itemId);
             if (item == null) throw new InvalidOperationException("unknown_item");
             var source = context.State.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId);
@@ -203,19 +205,20 @@ namespace YC.Domain.Influence
             if (string.IsNullOrEmpty(id))
             {
                 if (cube.OwnerSubject.Kind == ItemSubjectKind.Player && types.IsAssignableTo(cube.TypeId, "core.player_marker"))
-                    id = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_marker_supply" && zone.OwnerPlayerId == cube.OwnerSubject.PlayerId).ZoneId;
+                    id = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_supply" && zone.OwnerPlayerId == cube.OwnerSubject.PlayerId).ZoneId;
                 else if (cube.OwnerSubject.Kind == ItemSubjectKind.Company && types.IsAssignableTo(cube.TypeId, "infected.company_marker"))
                     id = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "company_markers").ZoneId;
                 else throw new InvalidOperationException("influence_supply_unknown");
             }
             var supply = state.ItemZones.Zones.SingleOrDefault(zone => zone.ZoneId == id);
-            if (supply == null || !new[] { "core.zone.player_marker_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(supply.TemplateId) ||
-                supply.TemplateId == "core.zone.player_marker_supply" && (cube.OwnerSubject.Kind != ItemSubjectKind.Player || supply.OwnerPlayerId != cube.OwnerSubject.PlayerId) ||
+            if (supply == null || !new[] { "core.zone.player_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(supply.TemplateId) ||
+                supply.TemplateId == "core.zone.player_supply" && (cube.OwnerSubject.Kind != ItemSubjectKind.Player || supply.OwnerPlayerId != cube.OwnerSubject.PlayerId) ||
                 !new ItemZoneQuery().Accepts(supply, cube))
                 throw new InvalidOperationException("influence_original_supply_invalid");
             return id;
         }
 
+        public static bool HasStorageChoice(EffectSpec spec, int player, string card, string item) => TryFindStorageChoice(spec, player, card, item, out _, out _, out _, out _);
         private static bool TryFindStorageChoice(EffectSpec spec, int inheritedPlayer, string cardId, string itemId,
             out int answeringPlayer, out string localZone, out string storeOption, out string declineOption)
         {

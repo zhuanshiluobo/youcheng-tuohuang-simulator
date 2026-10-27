@@ -9,6 +9,7 @@ namespace YC.Presentation
     public sealed class FinalScoreController : MonoBehaviour
     {
         [SerializeField] private string startSceneName = "StartScene";
+        [SerializeField] private string specialScoreLabel = "特殊计分";
         [SerializeField] private FinalScoreView view;
 
         private bool initialized;
@@ -82,7 +83,7 @@ namespace YC.Presentation
             }
 
 
-            if (RoundTrackRule.GetRoundIndex(state) >= RoundTrackRule.FinalIndex)
+            if (RoundTrackRule.GetRoundIndex(state) >= RoundTrackRule.FinalIndex && state.FinalScoring?.IsResolved == true)
             {
                 ShowGameOverDialog(state);
             }
@@ -157,7 +158,7 @@ namespace YC.Presentation
                     score.PlayerId,
                     playerName,
                     playerColor,
-                    score.BaseScore + score.FacilityScore + score.CityStyleScore,
+                    score.BaseScore + score.FacilityScore + score.CityStyleScore + score.SpecialScore,
                     score.RegionScore,
                     score.ResourceScore,
                     score.TotalScore,
@@ -192,10 +193,12 @@ namespace YC.Presentation
                 Mathf.Abs(score.BaseScore),
                 Mathf.Abs(score.FacilityScore),
                 Mathf.Abs(score.CityStyleScore),
+                Mathf.Abs(score.SpecialScore),
                 Mathf.Abs(score.RegionScore),
                 Mathf.Abs(score.ResourceScore),
                 Mathf.Abs(score.TotalScore));
 
+            AddScoreBar(parent, "Special", specialScoreLabel, score.SpecialScore, maxMagnitude, view.ScoreBarTemplate.TemplateFillColor);
             AddScoreBar(parent, "Base", "基础分", score.BaseScore, maxMagnitude, new Color(0.62f, 0.43f, 0.21f, 1f));
             AddScoreBar(parent, "Facility", "设施分", score.FacilityScore, maxMagnitude, new Color(0.28f, 0.58f, 0.66f, 1f));
             AddScoreBar(parent, "CityStyle", "城市样式分", score.CityStyleScore, maxMagnitude, new Color(0.75f, 0.47f, 0.2f, 1f));
@@ -320,11 +323,12 @@ namespace YC.Presentation
 
 
 
-        private static string BuildFormula(FinalPlayerScoreState score)
+        private string BuildFormula(FinalPlayerScoreState score)
         {
             return "计分公式：基础分 " + score.BaseScore +
                    " + 设施分 " + score.FacilityScore +
                    " + 城市样式分 " + score.CityStyleScore +
+                   " + " + specialScoreLabel + " " + score.SpecialScore +
                    " + 区控分 " + score.RegionScore +
                    " + 资源分 " + score.ResourceScore +
                    " = 总分 " + score.TotalScore;

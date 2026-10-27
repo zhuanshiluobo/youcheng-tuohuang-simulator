@@ -33,7 +33,7 @@ namespace YC.Infrastructure.Multiplayer
     }
 
     [DefaultExecutionOrder(-23000)]
-    public sealed class MirrorCommandTransport : MonoBehaviour, INetworkCommandTransport
+    public sealed partial class MirrorCommandTransport : MonoBehaviour, INetworkCommandTransport
     {
         private readonly SteamIdentityBindingRegistry bindings = new SteamIdentityBindingRegistry();
         private GameSession session;
@@ -53,6 +53,7 @@ namespace YC.Infrastructure.Multiplayer
         private const int MaximumCheckpointEnvelopeCharacters = 4096;
         private DeterministicSimulationSessionOptions simulationOptions;
         private DeterministicSimulationCoordinator simulationCoordinator;
+        private NetworkPerformanceReplayCapture replayCapture;
         private long nextSimulationTransfer;
         private long transportGeneration;
         private bool initialReadyPending;
@@ -165,10 +166,15 @@ namespace YC.Infrastructure.Multiplayer
                 SimulationEpoch = 1, MembershipVersion = 1, GlobalCommandSequence = 0,
                 CheckpointId = "initial." + SimulationIdentityHash(JsonConvert.SerializeObject(new {
                     options.GameId, options.ContentPackHash, options.SimulationEpoch, options.MembershipVersion,
-                    RequestContractVersion = OperationCommandProtocol.RequestContractVersion, Players = options.FrozenPlayerIds.OrderBy(id => id).ToArray() })) };
+                    RequestContractVersion = OperationCommandProtocol.RequestContractVersion, WindowExecutionVersion = WindowExecutionGrant.Version, Players = options.FrozenPlayerIds.OrderBy(id => id).ToArray() })) };
             identity.RequestContractVersion = OperationCommandProtocol.RequestContractVersion;
-            var channel = new SimulationCheckpointChannel(identity, installer, createHostArchive, options.FrozenPlayerIds);
+            identity.WindowExecutionVersion = WindowExecutionGrant.Version;
+            identity.ProtocolVersion = savedIdentity == null ? SimulationCheckpointEnvelope.WindowInitialProtocolVersion : SimulationCheckpointEnvelope.WindowSavedProtocolVersion;
+            var replay = NetworkExecutionObservation.CreateReplayCapture(options);
+            var channel = new SimulationCheckpointChannel(identity, replay == null || installer == null ? installer : replay.WrapInstaller(installer),
+                replay == null || createHostArchive == null ? createHostArchive : replay.WrapInitialFactory(createHostArchive), options.FrozenPlayerIds);
             Shutdown();
+            replayCapture = replay;
             savedCoordinatorFactory = savedCoordinator;
             this.session = session; mode = launchMode; localPlayerId = playerId; launchSeats = seats;
             simulationOptions = options.Snapshot(); checkpointChannel = channel; initialized = true;
@@ -183,6 +189,7 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkServer.RegisterHandler<SimulationProtocolPartMessage>(OnSimulationClientPart, false);
                 foreach (var connection in NetworkServer.connections.Values) OnServerConnected(connection);
                 if (!channel.TryPrepareHostArchive(out var fault)) { PublishCheckpointFault(fault); return; }
+                replayCapture?.CaptureInitial(channel.Identity);
                 AttachSimulation(prepared);
                 prepared.Begin();
                 if (savedIdentity != null) prepared.CompleteConfirmedRecovery(true);
@@ -249,7 +256,10 @@ namespace YC.Infrastructure.Multiplayer
             if (mode == LaunchMode.Host) RefreshPendingLocalBindings();
             try
             {
-                simulationCoordinator?.DrainMainThreadNotifications(simulationOptions.PumpCommandsPerFrame);
+                using (simulationCoordinator?.BeginMainThreadWaitStage() ?? default)
+                    simulationCoordinator?.DrainMainThreadNotifications(simulationOptions.PumpCommandsPerFrame);
+                if (Time.unscaledTime >= nextWindowExecutionRetry)
+                { nextWindowExecutionRetry = Time.unscaledTime + 1f; simulationCoordinator?.RetryWindowExecutionReplication(); }
                 PublishSimulationReady();
                 PublishRecoveryCompleted();
                 ObserveBackgroundFailure();
@@ -273,6 +283,7 @@ namespace YC.Infrastructure.Multiplayer
             if (simulationOptions != null)
             {
                 if (simulationCoordinator == null || mode == LaunchMode.Client && !NetworkClient.isConnected) return Invalid("完整模拟尚未就绪。");
+                if (simulationCoordinator.TrySubmitWindowExecution(command, out var localResult)) return localResult;
                 if (!simulationCoordinator.TryCreateLocalProposal(command, out var proposal, out var validation)) return CommandResult.Invalid(validation);
                 if (mode == LaunchMode.Host)
                 {
@@ -324,6 +335,8 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkClient.UnregisterHandler<SimulationCheckpointErrorMessage>();
                 NetworkClient.UnregisterHandler<SimulationProtocolPartMessage>();
             }
+            replayCapture?.CompleteAfter(simulationCoordinator?.ExecutionStopped ?? System.Threading.Tasks.Task.CompletedTask, "transport_shutdown");
+            replayCapture = null;
             session = null;
             initialized = false;
             clientConnectionToken = null;
@@ -599,6 +612,7 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkClient.Send(new SimulationCheckpointInstalledMessage { EnvelopeJson = JsonConvert.SerializeObject(result.Envelope),
                     PlayerId = localPlayerId, ConnectionToken = clientConnectionToken }, Channels.Reliable);
                 checkpointInstallationSent = true;
+                replayCapture?.CaptureInitial(result.Envelope);
                 if (simulationOptions != null && simulationCoordinator == null)
                 {
                     var coordinator = savedCoordinatorFactory != null ? savedCoordinatorFactory() : new DeterministicSimulationCoordinator(session, simulationOptions);
@@ -668,14 +682,18 @@ namespace YC.Infrastructure.Multiplayer
                 return BitConverter.ToString(sha.ComputeHash(new System.Text.UTF8Encoding(false, true).GetBytes(text))).Replace("-", "").ToLowerInvariant();
         }
 
+        public event Action<SimulationWindowSavePoint> AutomaticSavePointConfirmed;
         private void AttachSimulation(DeterministicSimulationCoordinator coordinator, bool initialReady = true)
         {
             if (NetworkExecutionObservation.Enabled) session.ExecutionTimings.Enabled = true;
             observationOrderedThrough = 0;
             simulationCoordinator = coordinator;
+            if (replayCapture != null) coordinator.ConfigurePerformanceReplayCapture(replayCapture.RecordApply, NetworkExecutionObservation.ReplayTargetSequence);
+            if (NetworkExecutionObservation.Enabled) coordinator.ConfigureWaitStageObservation(ObserveWaitStage);
             observedExecutionFailure = null;
             initialReadyPending = initialReady;
             Action<SimulationCommandAppliedDto> applied = value => { if (simulationCoordinator == coordinator) OnSimulationApplied(value); };
+            Action<SimulationWindowSavePoint> autoSave = value => { if (simulationCoordinator == coordinator && mode == LaunchMode.Host) AutomaticSavePointConfirmed?.Invoke(value); };
             Action<CommandValidationPrefixDto> validated = value => { if (simulationCoordinator == coordinator) OnSimulationValidated(value); };
             Action<SimulationWindowPermissionDto> permission = value => { if (simulationCoordinator == coordinator) OnSimulationPermission(value); };
             Action<SimulationProtocolFaultDto> fault = value => { if (simulationCoordinator == coordinator) OnSimulationFault(value); };
@@ -686,22 +704,66 @@ namespace YC.Infrastructure.Multiplayer
             Action<SimulationWindowReadyDto> ready = value => { if (simulationCoordinator == coordinator) SendSimulationReady(value); };
             Action<SimulationWindowPermitDto> permit = value => { if (simulationCoordinator == coordinator) BroadcastSimulationPermit(value); };
             Action<SimulationMissingRangeRequestDto> missing = value => { if (simulationCoordinator == coordinator) SendSimulationMissing(value); };
+            Action<WindowExecutionGrant> streamGrant = value => { if (simulationCoordinator == coordinator) BroadcastSimulation("stream-grant", value); };
+            Action<WindowExecutionRecord> streamRecord = value => { if (simulationCoordinator == coordinator) SendWindowExecution("stream-record", value); };
+            Action<WindowExecutionSeal> streamSeal = value => { if (simulationCoordinator == coordinator) SendWindowExecution("stream-seal", value); };
+            Action<WindowExecutionReadyMessage> streamReady = value => { if (simulationCoordinator == coordinator) SendSimulationClient("stream-ready", value); };
+            Action<WindowExecutionConfirmation> streamConfirmed = value => { if (simulationCoordinator == coordinator) BroadcastSimulation("stream-confirmed", value); };
+            Action<WindowExecutionRangeMessage> streamMissing = value => { if (simulationCoordinator == coordinator) SendWindowExecutionRangeControl("stream-missing", value); };
+            Action<WindowExecutionRangeMessage> streamRange = value => { if (simulationCoordinator == coordinator) SendWindowExecutionRangeControl("stream-range", value); };
             coordinator.SimulationCommandApplied += applied; coordinator.CommandValidationPrefixAdvanced += validated;
+            coordinator.AutomaticSavePointConfirmed += autoSave;
             coordinator.OperationWindowPermissionChanged += permission; coordinator.SimulationProtocolFaulted += fault;
             coordinator.SimulationProposalRejected += rejected; coordinator.OrderedCommandProduced += ordered;
             coordinator.SimulationProposalResultProduced += finalAdmission;
             coordinator.BoundaryProduced += boundary; coordinator.WindowReadyProduced += ready;
             coordinator.WindowPermitProduced += permit; coordinator.MissingRangeRequested += missing;
+            coordinator.WindowExecutionGranted += streamGrant; coordinator.WindowExecutionRecordProduced += streamRecord;
+            coordinator.WindowExecutionSealProduced += streamSeal; coordinator.WindowExecutionReadyProduced += streamReady;
+            coordinator.WindowExecutionConfirmed += streamConfirmed; coordinator.WindowExecutionMissingRequested += streamMissing; coordinator.WindowExecutionRangeProduced += streamRange;
             detachSimulationEvents = () => {
+                coordinator.ConfigureWaitStageObservation(null);
+                coordinator.ConfigurePerformanceReplayCapture(null);
                 coordinator.SimulationCommandApplied -= applied; coordinator.CommandValidationPrefixAdvanced -= validated;
+                coordinator.AutomaticSavePointConfirmed -= autoSave;
                 coordinator.OperationWindowPermissionChanged -= permission; coordinator.SimulationProtocolFaulted -= fault;
                 coordinator.SimulationProposalRejected -= rejected; coordinator.OrderedCommandProduced -= ordered;
                 coordinator.SimulationProposalResultProduced -= finalAdmission;
                 coordinator.BoundaryProduced -= boundary; coordinator.WindowReadyProduced -= ready;
                 coordinator.WindowPermitProduced -= permit; coordinator.MissingRangeRequested -= missing;
+                coordinator.WindowExecutionGranted -= streamGrant; coordinator.WindowExecutionRecordProduced -= streamRecord;
+                coordinator.WindowExecutionSealProduced -= streamSeal; coordinator.WindowExecutionReadyProduced -= streamReady;
+                coordinator.WindowExecutionConfirmed -= streamConfirmed; coordinator.WindowExecutionMissingRequested -= streamMissing; coordinator.WindowExecutionRangeProduced -= streamRange;
             };
             coordinator.ConfigureRequestContractValidation(checkpointChannel.Identity.RequestContractVersion);
+            coordinator.ConfigureWindowExecution(checkpointChannel.Identity.WindowExecutionVersion);
             coordinator.StartBackgroundExecution();
+        }
+
+        private static void ObserveWaitStage(DeterministicSimulationCoordinator.WaitStageObservation value)
+        {
+            // worker回调只使用捕获的标量，不能读取Unity Time/主线程投影或序列化状态。
+            if (!NetworkExecutionObservation.Enabled) return;
+            var context = new NetworkExecutionObservation.Context { GameId = value.GameId,
+                Mode = value.IsHost ? "Host" : "Client", CommandId = value.CommandId, PlayerId = value.PlayerId,
+                SimulationEpoch = value.SimulationEpoch, MembershipVersion = value.MembershipVersion,
+                Sequence = value.Sequence, Frame = -1, Slot = -1 };
+            if (value.LoopGeneration != 0)
+            {
+                NetworkExecutionObservation.Event("wait." + value.Stage + "." + value.Edge, context,
+                    "sample_tick=" + value.Tick + ";frequency=" + System.Diagnostics.Stopwatch.Frequency + ";loop=" + value.LoopGeneration +
+                    ";work=" + value.WorkId + ";publication=" + value.PublicationVersion + ";commit=" + value.PublicationCommitVersion +
+                    ";incoming=" + value.IncomingCount + ";outgoing=" + value.OutgoingCount + ";action_id=" + value.ActionIdentity +
+                    ";frame_id=" + value.FrameIdentity + ";snapshot_id=" + value.SnapshotIdentity + ";ui_state_id=" + value.UiStateIdentity +
+                    ";ui_view_id=" + value.UiViewIdentity + ";notifications=" + value.NotificationCount + ";players=" + value.PlayerCount +
+                    ";wait_count=" + value.WaitCount + ";wait_ticks=" + value.WaitTicks + ";completed=" + value.Completed);
+                return;
+            }
+            NetworkExecutionObservation.Event("wait." + value.Stage + "." + value.Edge, context,
+                "tick=" + value.Tick + ";frequency=" + System.Diagnostics.Stopwatch.Frequency + ";worker=" + (value.IsWorker ? 1 : 0) +
+                ";ordered_queue=" + value.OrderedQueueCount + ";known=" + value.KnownCount + ";pending_admissions=" + value.PendingAdmissions +
+                ";published_version=" + value.PublishedVersion + ";published_sequence=" + value.PublishedSequence +
+                ";visible_version=" + value.VisibleVersion + ";visible_sequence=" + value.VisibleSequence);
         }
 
         private void PublishSimulationReady()
@@ -743,6 +805,7 @@ namespace YC.Infrastructure.Multiplayer
             coordinator.RequestStop();
             detachSimulationEvents?.Invoke(); detachSimulationEvents = null;
             simulationCoordinator = null;
+            replayCapture?.CompleteAfter(coordinator.ExecutionStopped, "session_exit");
             ObserveExecutionStop(coordinator, observedExecutionFailure);
         }
 
@@ -764,6 +827,7 @@ namespace YC.Infrastructure.Multiplayer
             using (NetworkExecutionObservation.Begin("simulation.applied_notifications",
                 ReadObservationContext(applied.Command?.CommandId, applied.GlobalCommandSequence), true, session.ExecutionTimings))
                 SimulationCommandApplied?.Invoke(applied);
+            replayCapture?.ObserveApplied(applied.GlobalCommandSequence);
         }
         private bool CurrentSimulationIdentity(string gameId, long epoch, int membership) => simulationOptions != null &&
             gameId == simulationOptions.GameId && epoch == simulationOptions.SimulationEpoch && membership == simulationOptions.MembershipVersion;
@@ -776,6 +840,8 @@ namespace YC.Infrastructure.Multiplayer
         }
         private void SendFinalSimulationProposalResult(SimulationProposalResultDto result)
         {
+            simulationCoordinator?.RecordTransportWaitStage("admission.final", result?.Proposal?.Command?.CommandId,
+                result?.OrderedCommand?.GlobalCommandSequence ?? 0);
             if (mode != LaunchMode.Host || result?.Proposal?.Command == null ||
                 result.ProtocolVersion != OperationCommandProtocol.Version || result.Proposal.GameId != result.GameId ||
                 result.Proposal.SimulationEpoch != result.SimulationEpoch || result.Proposal.MembershipVersion != result.MembershipVersion ||
@@ -800,6 +866,17 @@ namespace YC.Infrastructure.Multiplayer
         private void BroadcastSimulationPermit(SimulationWindowPermitDto permit) => BroadcastSimulation("window-permit", permit);
         private void SendSimulationReady(SimulationWindowReadyDto ready) => SendSimulationClient("window-ready", ready);
         private void SendSimulationMissing(SimulationMissingRangeRequestDto request) => SendSimulationClient("missing-range", request);
+
+        private float nextWindowExecutionRetry;
+        private void SendWindowExecution(string purpose, object value)
+        { if (mode == LaunchMode.Host) BroadcastSimulation(purpose, value); else SendSimulationClient(purpose, value); }
+        private void SendWindowExecutionRangeControl(string purpose, WindowExecutionRangeMessage value)
+        {
+            if (mode != LaunchMode.Host) { SendSimulationClient(purpose, value); return; }
+            foreach (var connection in NetworkServer.connections.Values)
+                if (!(connection is LocalConnectionToClient) && bindings.TryGetPlayer(connection.connectionId, out int player) && player == value.TargetPlayerId)
+                    SendSimulationHost(connection, purpose, value);
+        }
 
         private void ProtocolFault(string code, string diagnostic)
         {
@@ -831,7 +908,9 @@ namespace YC.Infrastructure.Multiplayer
         { foreach (var connection in NetworkServer.connections.Values) if (!(connection is LocalConnectionToClient)) SendSimulationHost(connection, purpose, payload); }
         private IEnumerable<SimulationProtocolPartMessage> ProtocolParts(string purpose, object payload, string token)
         {
-            byte[] bytes = GameStateViewTransfer.Encode(JsonConvert.SerializeObject(payload));
+            string json = JsonConvert.SerializeObject(payload);
+            byte[] bytes = GameStateViewTransfer.Encode(json);
+            replayCapture?.RecordProtocol(purpose, json, "encoded_for_send");
             long transfer = checked(++nextSimulationTransfer);
             foreach (var segment in GameStateViewTransfer.Split(bytes))
             {
@@ -850,7 +929,8 @@ namespace YC.Infrastructure.Multiplayer
             if (simulationCoordinator == null || simulationCoordinator.IsStopped || mode != LaunchMode.Host || !ValidProtocolHeader(part) ||
                 !bindings.TryGetPlayer(connection == null ? -1 : connection.connectionId, out var playerId) || !IsBoundCheckpointClient(connection, playerId) ||
                 !checkpointChannel.IsPeerInstalled(playerId) && !(recoveryFinished && recoveryInstalled.Contains(playerId)) || !checkpointConnectionTokens.TryGetValue(connection.connectionId, out var token) || token != part.ConnectionToken ||
-                part.Purpose != "proposal" && part.Purpose != "window-ready" && part.Purpose != "missing-range") return;
+                part.Purpose != "proposal" && part.Purpose != "window-ready" && part.Purpose != "missing-range" && part.Purpose != "payment-source-query" &&
+                part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-ready" && part.Purpose != "stream-missing" && part.Purpose != "stream-range") return;
             if (!protocolPeers.TryGetValue(connection.connectionId, out var assembler)) { assembler = new ProtocolAssembly(); protocolPeers.Add(connection.connectionId, assembler); }
             if (!assembler.Append(part, out var json)) { ProtocolFault("simulation_frame_invalid", "规定副本的协议分片冲突或无效。"); return; }
             if (json == null) return;
@@ -858,13 +938,24 @@ namespace YC.Infrastructure.Multiplayer
                 ReadObservationContext(), part.Purpose == "proposal");
             try
             {
-                if (part.Purpose == "proposal")
+                if (part.Purpose == "stream-record") simulationCoordinator.ReceiveWindowExecutionRecord(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRecord>(json));
+                else if (part.Purpose == "stream-seal") simulationCoordinator.ReceiveWindowExecutionSeal(playerId, false, JsonConvert.DeserializeObject<WindowExecutionSeal>(json));
+                else if (part.Purpose == "stream-ready") simulationCoordinator.ReceiveWindowExecutionReady(playerId, JsonConvert.DeserializeObject<WindowExecutionReadyMessage>(json));
+                else if (part.Purpose == "stream-missing") simulationCoordinator.ReceiveWindowExecutionMissing(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRangeMessage>(json));
+                else if (part.Purpose == "stream-range") simulationCoordinator.ReceiveWindowExecutionRange(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRangeMessage>(json));
+                else if (part.Purpose == "payment-source-query")
+                {
+                    ReceivePaymentSourceQuery(connection, playerId, token, json);
+                }
+                else if (part.Purpose == "proposal")
                 {
                     var proposal = JsonConvert.DeserializeObject<OperationCommandProposalDto>(json);
                     var admission = NetworkExecutionObservation.Begin("simulation.admission", ReadObservationContext(proposal?.Command?.CommandId), true, session.ExecutionTimings);
                     try
                     {
                         var result = simulationCoordinator.AdmitProposal(playerId, proposal);
+                        simulationCoordinator.RecordTransportWaitStage(result.Status == OperationAdmissionStatus.PendingValidation ? "admission.pending" : "admission.return",
+                            proposal?.Command?.CommandId, result.OrderedCommand?.GlobalCommandSequence ?? 0);
                         admission.Context.Sequence = result.OrderedCommand?.GlobalCommandSequence ?? 0;
                         if (NetworkExecutionObservation.Enabled) admission.Detail = result.Status.ToString();
                         SendSimulationHost(connection, "proposal-result", result);
@@ -897,13 +988,22 @@ namespace YC.Infrastructure.Multiplayer
             if (part.Purpose == "confirmed-recovery") { ReceiveRecoveryHostControl(part); return; }
             if (simulationCoordinator == null || simulationCoordinator.IsStopped || mode != LaunchMode.Client || !ValidProtocolHeader(part) || !IsBoundCheckpointHost(part.ConnectionToken) ||
                 part.Purpose != "ordered" && part.Purpose != "proposal-result" && part.Purpose != "boundary" && part.Purpose != "window-permit" &&
-                part.Purpose != "validation-prefix" && part.Purpose != "range" && part.Purpose != "stop") return;
+                part.Purpose != "validation-prefix" && part.Purpose != "range" && part.Purpose != "stop" && part.Purpose != "payment-source-page" &&
+                part.Purpose != "stream-grant" && part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-confirmed" && part.Purpose != "stream-missing" && part.Purpose != "stream-range") return;
             if (!protocolHost.Append(part, out var json)) { ProtocolFault("simulation_frame_invalid", "Host协议分片冲突或无效。"); return; }
             if (json == null) return;
+            replayCapture?.RecordProtocol(part.Purpose, json, "received");
             try
             {
                 switch (part.Purpose)
                 {
+                    case "stream-grant": simulationCoordinator.ReceiveWindowExecutionGrant(JsonConvert.DeserializeObject<WindowExecutionGrant>(json)); break;
+                    case "stream-record": simulationCoordinator.ReceiveWindowExecutionRecord(0, true, JsonConvert.DeserializeObject<WindowExecutionRecord>(json)); break;
+                    case "stream-seal": simulationCoordinator.ReceiveWindowExecutionSeal(0, true, JsonConvert.DeserializeObject<WindowExecutionSeal>(json)); break;
+                    case "stream-confirmed": simulationCoordinator.ReceiveWindowExecutionConfirmation(JsonConvert.DeserializeObject<WindowExecutionConfirmation>(json)); break;
+                    case "stream-missing": simulationCoordinator.ReceiveWindowExecutionMissing(0, true, JsonConvert.DeserializeObject<WindowExecutionRangeMessage>(json)); break;
+                    case "stream-range": simulationCoordinator.ReceiveWindowExecutionRange(0, true, JsonConvert.DeserializeObject<WindowExecutionRangeMessage>(json)); break;
+                    case "payment-source-page": ReceivePaymentSourcePage(json); break;
                     case "ordered":
                         var ordered = JsonConvert.DeserializeObject<OrderedOperationCommandDto>(json);
                         if (NetworkExecutionObservation.Enabled && ordered != null) observationOrderedThrough = Math.Max(observationOrderedThrough, ordered.GlobalCommandSequence);
@@ -1006,8 +1106,10 @@ namespace YC.Infrastructure.Multiplayer
         }
 
         private SimulationCheckpointEnvelope RecoveryEnvelope(SimulationRecoveryNoticeDto notice) => new SimulationCheckpointEnvelope {
-            ProtocolVersion = SimulationCheckpointEnvelope.RecoveryProtocolVersion, Purpose = SimulationCheckpointEnvelope.ConfirmedSimulationRecovery,
+            ProtocolVersion = checkpointChannel?.Identity.WindowExecutionVersion == WindowExecutionGrant.Version ?
+                SimulationCheckpointEnvelope.WindowRecoveryProtocolVersion : SimulationCheckpointEnvelope.RecoveryProtocolVersion, Purpose = SimulationCheckpointEnvelope.ConfirmedSimulationRecovery,
             RequestContractVersion = checkpointChannel?.Identity.RequestContractVersion ?? 0,
+            WindowExecutionVersion = checkpointChannel?.Identity.WindowExecutionVersion ?? 0,
             GameId = notice.GameId, SourceSimulationEpoch = notice.SourceSimulationEpoch, SimulationEpoch = notice.SimulationEpoch,
             MembershipVersion = notice.MembershipVersion, CheckpointId = notice.CheckpointId, GlobalCommandSequence = notice.ConfirmedGlobalSequence,
             ArchiveDigestVersion = SimulationCheckpointEnvelope.RecoveryDigestVersion };

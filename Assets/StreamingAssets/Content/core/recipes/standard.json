@@ -672,7 +672,7 @@
       "definitionId": "core.player_marker",
       "quantity": 29,
       "perPlayer": true,
-      "initialZoneRole": "player_markers",
+      "initialZoneRole": "supply",
       "condition": {
         "kind": "always",
         "runtimeId": "",

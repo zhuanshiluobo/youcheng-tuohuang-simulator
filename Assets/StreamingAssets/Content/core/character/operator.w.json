@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.w",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "W",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.operator.w.strategy",
       "script": "lua/characters/operator.w.strategy.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "lua/characters/operator.w.strategy.lua",
       "hasSpecialZone": false,
@@ -75,5 +75,57 @@
         "displayName": "W"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.w.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.w",
+      "actions": [
+        {
+          "actionId": "operator.w.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "operator.w",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "operator.w"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

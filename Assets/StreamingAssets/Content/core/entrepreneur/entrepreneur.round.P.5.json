@@ -1,0 +1,463 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.P.5",
+  "contentType": "entrepreneur_round",
+  "version": "1.1.0",
+  "displayName": "保罗·蒂尔曼·第5回合",
+  "artwork": "artwork/entrepreneurs/P05.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.P05",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.P05.handler",
+      "script": "lua/entrepreneurs/paul.p05_p06.quick.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "entrepreneur.face.P05.complete",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P05_P06.condition"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.P06",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.P06.handler",
+      "script": "lua/entrepreneurs/paul.p05_p06.quick.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "entrepreneur.face.P06.complete",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P05_P06.condition"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P05.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P05.immediate.1",
+      "script": "lua/entrepreneurs/paul.p05.immediate.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.effect.P05.immediate"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P06.immediate",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P06.immediate.1",
+      "script": "lua/entrepreneurs/paul.p06.immediate.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.effect.P06.immediate"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P05.region",
+      "mode": "ruleQuery",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P05.region.handler",
+      "script": "lua/entrepreneurs/paul.p05.influence_delta.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P05.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P06.city",
+      "mode": "ruleQuery",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P06.city.handler",
+      "script": "lua/entrepreneurs/paul.p06.city_destination.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P06.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.P05",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.face.P05.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.P05",
+      "repeatPolicy": "once",
+      "actions": [
+        {
+          "actionId": "entrepreneur.P05.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.face.P05.handler",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.P05",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 505,
+          "presentationRef": "entrepreneur.face.P05",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.P.action.P05.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.P.P05_P06.condition"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.P06",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.face.P06.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.P06",
+      "repeatPolicy": "once",
+      "actions": [
+        {
+          "actionId": "entrepreneur.P06.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.face.P06.handler",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.P06",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 506,
+          "presentationRef": "entrepreneur.face.P06",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.P.action.P06.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.P.P05_P06.condition"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P05.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.P05.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.P05.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P06.immediate",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.P06.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.P06.immediate",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P05.region",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.P05.region.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P05",
+      "observedEvents": [],
+      "queryKinds": [
+        "scoringModifiers.v1"
+      ],
+      "allowedOperations": [
+        "scoring.influence_delta:self"
+      ],
+      "presentationRef": "entrepreneur.P05.region",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P06.city",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.P06.city.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P06",
+      "observedEvents": [],
+      "queryKinds": [
+        "city_destination.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.P06.city",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "P05",
+      "P06"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.P05",
+        "entityDefinitionId": "entrepreneur.round.P.5",
+        "faceId": "P05",
+        "sourceId": "P05",
+        "artwork": "artwork/entrepreneurs/P05.jpg",
+        "artworkSha256": "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.P05"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.P05.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.P06",
+        "entityDefinitionId": "entrepreneur.round.P.5",
+        "faceId": "P06",
+        "sourceId": "P06",
+        "artwork": "artwork/entrepreneurs/P06.jpg",
+        "artworkSha256": "575463b1387c419a4de9f260b39a17e5e4e8afe4bcfcc87e38ed0b5461463445",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.P06"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.P06.immediate.1"
+        ]
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.P05.region",
+        "displayName": "5A·强大领袖：分数结算时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P05.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      },
+      {
+        "abilityId": "entrepreneur.P06.city",
+        "displayName": "5B·民心所向：剩余游戏",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P06.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.P05.handler",
+      "script": "lua/entrepreneurs/paul.p05_p06.quick.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "entrepreneur.face.P05.complete"
+    },
+    {
+      "handlerId": "entrepreneur.face.P06.handler",
+      "script": "lua/entrepreneurs/paul.p05_p06.quick.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "entrepreneur.face.P06.complete"
+    },
+    {
+      "handlerId": "entrepreneur.P05.immediate.1",
+      "script": "lua/entrepreneurs/paul.p05.immediate.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.P06.immediate.1",
+      "script": "lua/entrepreneurs/paul.p06.immediate.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.P05.region.handler",
+      "script": "lua/entrepreneurs/paul.p05.influence_delta.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.P06.city.handler",
+      "script": "lua/entrepreneurs/paul.p06.city_destination.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "presentation": {
+    "name": {
+      "key": "core:entrepreneur.P.round.5.title"
+    }
+  },
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.1.0",
+      "trackId": "usage.entrepreneur.P05",
+      "cardZoneLocalId": "quick_p05",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    },
+    {
+      "protocolVersion": 1,
+      "version": "1.1.0",
+      "trackId": "usage.entrepreneur.P06",
+      "cardZoneLocalId": "quick_p06",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "quick_p05",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    },
+    {
+      "localZoneId": "quick_p06",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
+}

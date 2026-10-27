@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.component.die",
+  "contentType": "component",
+  "version": "1.0.0",
+  "displayName": "企业家六面骰",
+  "artwork": "",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "core.die",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [],
+  "abilitySources": [],
+  "data": {
+    "quantityPolicy": "finite",
+    "physicalPresentation": "die",
+    "sides": 6
+  }
+}

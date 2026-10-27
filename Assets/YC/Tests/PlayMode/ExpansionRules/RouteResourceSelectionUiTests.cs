@@ -504,7 +504,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
         private static void PlaceScenarioInfluence(GameState state, int player, string target, bool route)
         {
-            var supply = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_marker_supply" && z.OwnerPlayerId == player);
+            var supply = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == player);
             var marker = state.ItemZones.Items.First(i => i.ZoneId == supply.ZoneId && i.OwnerSubject.PlayerId == player && i.PhysicalKind == ItemPhysicalKind.Cube);
             Relocate(state, marker, MapZone(state, route ? "core.zone.map_route" : "core.zone.map_location", target, "core.zone.influence_slots"));
         }

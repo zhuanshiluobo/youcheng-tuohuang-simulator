@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.city_style.enterprise_offices",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "综合企业办公区",
   "expansionId": "infected",
   "replaces": null,
@@ -109,5 +109,117 @@
     "luaCompletionHandlerId": "",
     "luaVersion": "1.0.0",
     "effectScript": "lua/city_styles/infected.city_style.enterprise_offices.special.lua"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.city_style.enterprise_offices.special",
+      "kind": "special",
+      "handlerRef": "content.infected.city_style.enterprise_offices.special",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "public_declaration",
+      "effectiveZones": [
+        "core.zone.city_style_display"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.city_style.enterprise_offices",
+      "actions": [
+        {
+          "actionId": "special_action.infected.city_style.enterprise_offices",
+          "entryKind": "special",
+          "bodyHandlerRef": "content.infected.city_style.enterprise_offices.special",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.infected.city_style.enterprise_offices",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "character_action_round",
+          "directCallPolicy": "host.legacy_style.v1",
+          "sortOrder": 200,
+          "presentationRef": "infected.city_style.enterprise_offices"
+        }
+      ]
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "content.infected.city_style.enterprise_offices.special",
+      "script": "lua/city_styles/infected.city_style.enterprise_offices.special.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.infected.city_style.enterprise_offices",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "initialSlotId": "2",
+      "activationTransitions": [
+        {
+          "fromSlotId": "2",
+          "toSlotId": "used_from_2"
+        },
+        {
+          "fromSlotId": "1",
+          "toSlotId": "used_from_1"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used_from_2",
+          "toSlotId": "1"
+        },
+        {
+          "fromSlotId": "used_from_1",
+          "toSlotId": "0"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "public_declaration",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
 }

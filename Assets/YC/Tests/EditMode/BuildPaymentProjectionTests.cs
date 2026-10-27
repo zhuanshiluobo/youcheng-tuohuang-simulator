@@ -66,7 +66,8 @@ namespace YC.Tests.EditMode
             workflow.GetVisibleState = () => f.Visible;
             workflow.Begin(); workflow.SelectFacility(f.Item.ItemId);
             Assert.That(f.Visible.PreparedActionPayments.Single().PaymentMode, Is.EqualTo("resources"));
-            var originalPreparation = f.Visible.PreparedActionPayments.Single().PreparationOwnerEffectId;
+            var original = f.Visible.PreparedActionPayments.Single();
+            int originalRevision = f.Visible.StateRevision;
             var model = workflow.BuildDraftViewModel();
             Assert.That(model.SelectedOption.GoldPayment.IsAvailable, Is.True, model.SelectedOption.Reason);
             Assert.That(model.SelectedOption.ResourcesPayment.IsAvailable, Is.False);
@@ -75,10 +76,19 @@ namespace YC.Tests.EditMode
             if (workflow.TryPreparePayment("gold")) workflow.Confirm();
             Assert.That(port.Commands.Count(command => command.Kind == GameCommandKind.BuildFacility), Is.EqualTo(1));
             Assert.That(port.Commands.Where(command => command.Kind == GameCommandKind.PreparePaymentDraft)
-                .Select(command => command.Parameters["operation"]), Is.EqualTo(new[] { "prepare_action", "cancel_action", "prepare_action" }));
+                .Select(command => command.Parameters["operation"]), Is.EqualTo(new[] { "prepare_action", "change_payment_mode" }));
+            var change = port.Commands.Single(command => command.Kind == GameCommandKind.PreparePaymentDraft &&
+                command.Parameters["operation"] == "change_payment_mode");
+            Assert.That(change.Parameters["ownerEffectId"], Is.EqualTo(original.PaymentOwnerEffectId));
+            Assert.That(change.Parameters["interactionId"], Is.EqualTo(original.InteractionId));
+            Assert.That(change.Parameters["paymentGeneration"], Is.EqualTo(original.PaymentGeneration.ToString()));
+            Assert.That(change.Parameters["expectedRevision"], Is.EqualTo(originalRevision.ToString()));
             var final = port.Commands.Single(command => command.Kind == GameCommandKind.BuildFacility);
             Assert.That(final.Parameters["paymentMode"], Is.EqualTo("gold"));
-            Assert.That(final.Parameters["paymentPreparationOwnerEffectId"], Is.Not.EqualTo(originalPreparation));
+            Assert.That(final.Parameters["paymentPreparationOwnerEffectId"], Is.EqualTo(original.PreparationOwnerEffectId));
+            var committed = f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == original.PaymentOwnerEffectId).Payment;
+            Assert.That(committed.PaymentId, Is.EqualTo(original.PaymentId));
+            Assert.That(committed.PaymentGeneration, Is.EqualTo(original.PaymentGeneration + 1));
             Assert.That(port.Results.All(result => result.Succeeded), Is.True, string.Join(";", port.Results.Select(result => result.LogMessage)));
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(8));
             Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == final.Parameters["paymentPreparationOwnerEffectId"]).Payment.IsCommitted, Is.True);
@@ -125,26 +135,59 @@ namespace YC.Tests.EditMode
             workflow.NotifyInteractionCommandResolved(f.State.GameId, resources.CommandId + ".other", true, default);
             Assert.That(workflow.IsSubmissionInFlight, Is.True);
             workflow.NotifyInteractionCommandResolved(f.State.GameId, resources.CommandId, true, default);
-            workflow.TryPreparePayment("gold"); var cancel = port.Commands.Last();
-            workflow.NotifyInteractionCommandResolved(f.State.GameId + ".other", cancel.CommandId, true, default);
-            Assert.That(port.Commands.Count, Is.EqualTo(2));
+            var original = f.Visible.PreparedActionPayments.Single();
+            int originalRevision = f.Visible.StateRevision;
             port.RejectNext = true;
-            workflow.NotifyInteractionCommandResolved(f.State.GameId, cancel.CommandId, true, default);
-            var gold = port.Commands.Last();
-            Assert.That(gold.Parameters["operation"], Is.EqualTo("prepare_action"));
+            workflow.TryPreparePayment("gold"); var gold = port.Commands.Last();
+            Assert.That(gold.Parameters["operation"], Is.EqualTo("change_payment_mode"));
             Assert.That(gold.Parameters["paymentMode"], Is.EqualTo("gold"));
+            Assert.That(gold.Parameters["ownerEffectId"], Is.EqualTo(original.PaymentOwnerEffectId));
+            Assert.That(gold.Parameters["interactionId"], Is.EqualTo(original.InteractionId));
+            Assert.That(gold.Parameters["paymentGeneration"], Is.EqualTo(original.PaymentGeneration.ToString()));
+            Assert.That(gold.Parameters["expectedRevision"], Is.EqualTo(originalRevision.ToString()));
+            Assert.That(port.Results.Last().Succeeded, Is.False);
+            workflow.NotifyInteractionCommandResolved(f.State.GameId + ".other", gold.CommandId, true, default);
+            Assert.That(port.Commands.Count, Is.EqualTo(2));
+            Assert.That(workflow.IsSubmissionInFlight, Is.True);
             workflow.NotifyInteractionCommandResolved(f.State.GameId, gold.CommandId, false, CommandErrorCode.InvalidTarget);
             workflow.SynchronizeFromState();
             workflow.NotifyInteractionCommandResolved(f.State.GameId, gold.CommandId, true, default);
-            Assert.That(port.Commands.Count, Is.EqualTo(3));
+            Assert.That(port.Commands.Count, Is.EqualTo(2));
+            Assert.That(f.Visible.PreparedActionPayments.Single().PaymentId, Is.EqualTo(original.PaymentId));
+            Assert.That(f.Visible.PreparedActionPayments.Single().PaymentGeneration, Is.EqualTo(original.PaymentGeneration));
+            Assert.That(f.Visible.PreparedActionPayments.Single().PaymentMode, Is.EqualTo("resources"));
             Assert.That(port.Commands.Any(command => command.Kind == GameCommandKind.BuildFacility), Is.False);
+            int cancelRevision = f.Visible.StateRevision;
+            Assert.That(workflow.TryCancelPreparedPayment(null), Is.True);
+            var cancel = port.Commands.Last();
+            Assert.That(cancel.Parameters["operation"], Is.EqualTo("cancel_action"));
+            Assert.That(cancel.Parameters["preparationOwnerEffectId"], Is.EqualTo(original.PreparationOwnerEffectId));
+            Assert.That(cancel.Parameters["expectedRevision"], Is.EqualTo(cancelRevision.ToString()));
+            workflow.NotifyInteractionCommandResolved(f.State.GameId + ".other", cancel.CommandId, true, default);
+            workflow.NotifyInteractionCommandResolved(f.State.GameId, gold.CommandId, true, default);
+            Assert.That(port.Commands.Count, Is.EqualTo(3));
+            Assert.That(workflow.IsSubmissionInFlight, Is.True);
+            workflow.NotifyInteractionCommandResolved(f.State.GameId, cancel.CommandId, true, default);
+            Assert.That(port.Commands.Count, Is.EqualTo(3), "取消准确回执只关闭原准备，不自行另签准备");
+            Assert.That(f.Visible.PreparedActionPayments, Is.Empty);
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == original.PaymentOwnerEffectId)
+                .Payment.Preparation.IsCancelled, Is.True);
+            workflow.Begin();
             var other = workflow.BuildDraftViewModel().Options.First(option => option.FacilityId != f.Item.ItemId &&
                 BuildFacilitySelectionController.CanPrepareOption(option));
             workflow.SelectFacility(other.FacilityId);
+            Assert.That(port.Commands.Last().Parameters["operation"], Is.EqualTo("prepare_action"));
             Assert.That(port.Commands.Last().TargetId, Is.EqualTo(other.FacilityId));
             Assert.That(port.Commands.Last().Parameters["paymentMode"], Is.EqualTo("resources"));
             workflow.NotifyInteractionCommandResolved(f.State.GameId, gold.CommandId, true, default);
+            workflow.NotifyInteractionCommandResolved(f.State.GameId, cancel.CommandId, true, default);
             Assert.That(port.Commands.Count, Is.EqualTo(4));
+            var next = f.Visible.PreparedActionPayments.Single();
+            Assert.That(next.TargetId, Is.EqualTo(other.FacilityId));
+            Assert.That(next.PaymentId, Is.Not.EqualTo(original.PaymentId));
+            Assert.That(next.PreparationOwnerEffectId, Is.Not.EqualTo(original.PreparationOwnerEffectId));
+            Assert.That(next.PaymentGeneration, Is.EqualTo(1));
+            Assert.That(next.CanCancel && next.IsReady, Is.True);
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(18));
         }
 

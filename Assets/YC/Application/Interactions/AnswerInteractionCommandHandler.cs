@@ -101,6 +101,7 @@ namespace YC.Application.Interactions
             EffectRunReport report = executor.RunUntilQuiescent();
             if (report.Faulted)
             {
+                if (AbilityActionCommand.IsNativeFault(state)) return AbilityActionCommand.Paused(state);
                 string faultMessage = state.EffectRuntime == null
                     ? string.Empty
                     : state.EffectRuntime.LastFaultMessage ?? string.Empty;

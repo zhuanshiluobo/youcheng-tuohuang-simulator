@@ -15,70 +15,105 @@ end
 local function tag(effect, context, stage)
     local saved = copy(context); saved.stage = stage; return Effect.WithContext(effect, saved)
 end
-local function zone(localId, player)
-    local filter = { localZoneId = localId }; if player ~= nil then filter.owner = player end
-    local values = Global.Content.FindZones(filter)
-    if #values ~= 1 then error('content_zone_missing:' .. localId) end
-    return values[1].id
-end
 local function has(values, id)
     for _, value in ipairs(values or {}) do if value == id then return true end end; return false
 end
-local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
+local function choose(ctx, context, stage, ids, labels, prompt, minimum, maximum)
     local options = {}; for _, id in ipairs(ids) do options[#options + 1] = { candidateId = id, label = labels[id] } end
     return tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = ids,
-        minSelections = minimum or 1, maxSelections = 1, interactionType = kind or 'lua.choice', promptKey = prompt }),
+        minSelections = minimum or 1, maxSelections = maximum or 1, interactionType = 'lua.choice', promptKey = prompt }),
         { interaction = { prompt = Text.Ref(prompt), options = options } }), context, stage)
+end
+local function store_next(ctx, c)
+    while c.nextOpponent <= #c.opponents do
+        local owner = c.opponents[c.nextOpponent]; c.nextOpponent = c.nextOpponent + 1
+        local supplies = Global.Content.FindZones({ templateId = 'core.zone.player_supply', owner = owner })
+        if #supplies ~= 1 then error('swire_opponent_supply_missing') end
+        local markers = {}
+        for _, item in ipairs(Global.Content.FindInstances({ zoneId = supplies[1].id, typeId = 'core.player_marker' })) do
+            if item.ownerSubject == owner then markers[#markers + 1] = item end
+        end
+        -- 选择的是对手；其供应已空就跳过，不补选、不再选择标记实例。
+        table.sort(markers, function(a, b) return a.id < b.id end)
+        if #markers > 0 then
+            return { tag(Effect.StorePlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = markers[1].id,
+                cardItemId = c.source, localZoneId = 'markers' }), c, 'stored') }
+        end
+    end
+    return {}
+end
+local function return_marker(ctx, c, id)
+    return { tag(Effect.ReturnPlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = id,
+        cardItemId = c.source, localZoneId = 'markers' }), c, 'marker_returned') }
 end
 
 return function(ctx)
     local c = state(ctx); if c == nil then return {} end
-    if c.stage == 'start' and ctx.eventType ~= 'PlayerCleanupStarted' or c.stage == 'stored' then
-        if c.stage == 'stored' then
-            if ctx.payload.outcome ~= 'completed' then return {} end
-            c.taken = (c.taken or 0) + 1; c.owners = c.owners or {}; c.owners[#c.owners + 1] = c.selectedOwner
-        end
-        if (c.taken or 0) >= 2 then return {} end
-        local ids, labels, seen = {}, {}, {}
-        for _, supply in ipairs(Global.Content.FindZones({ templateId = 'core.zone.player_marker_supply' })) do
-            if supply.owner ~= ctx.playerId and not has(c.owners, supply.owner) and not seen[supply.owner] then
-                local items = Global.Content.FindInstances({ zoneId = supply.id, typeId = 'core.player_marker' })
-                if #items > 0 then ids[#ids + 1] = items[1].id; labels[items[1].id] = Text.Ref('core:interaction.marker.owner', { player = Text.Player(items[1].ownerSubject) }); seen[supply.owner] = true end
+    if c.stage == 'start' and ctx.eventType ~= 'PlayerCleanupStarted' then
+        local ids, labels = {}, {}
+        for _, player in ipairs(GameData.GetPlayers()) do
+            if player.playerId ~= ctx.playerId then
+                ids[#ids + 1] = player.playerId
+                labels[player.playerId] = Text.Ref('core:interaction.player.name', { player = Text.Player(player.playerId) })
             end
         end
-        return { choose(ctx, c, 'store_selected', ids, labels, 'core:interaction.swire.take_marker', 0, 'lua.choice') }
-    elseif c.stage == 'store_selected' then
-        local id = ctx.payload.normalizedResult; if id == nil then return {} end
-        c.selectedOwner = Global.Content.GetInstance(id).ownerSubject
-        return { tag(Effect.StorePlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = id,
-            cardItemId = c.source, localZoneId = 'markers' }), c, 'stored') }
+        if #ids == 0 then return {} end
+        c.opponentCandidates = ids
+        local maximum = #ids; if maximum > 2 then maximum = 2 end
+        return { choose(ctx, c, 'opponents_selected', ids, labels, 'core:interaction.swire.take_marker', 0, maximum) }
+    elseif c.stage == 'opponents_selected' then
+        local selected = ctx.payload.normalizedResult; if selected == nil then return {} end
+        if type(selected) == 'string' then selected = { selected } end
+        if type(selected) ~= 'table' or #selected > 2 then error('swire_opponent_selection_invalid') end
+        local seen = {}
+        for _, id in ipairs(selected) do
+            if type(id) ~= 'string' or id == ctx.playerId or seen[id] or not has(c.opponentCandidates, id) then
+                error('swire_opponent_selection_invalid')
+            end
+            seen[id] = true
+        end
+        c.opponents = selected; c.nextOpponent = 1
+        return store_next(ctx, c)
+    elseif c.stage == 'stored' then
+        return store_next(ctx, c)
     elseif c.stage == 'marker_selected' then
         local id = ctx.payload.normalizedResult; if id == nil then return {} end
-        return { tag(Effect.ReturnPlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = id,
-            cardItemId = c.source, localZoneId = 'markers' }), c, 'marker_returned') }
+        return return_marker(ctx, c, id)
     elseif c.stage == 'marker_returned' then
         if ctx.payload.outcome ~= 'completed' then return {} end
         c.originalOwner = ctx.payload.normalizedResult.originalOwner
         return { tag(Effect.GainResource({ recipient = ctx.playerId, resourceType = 'gold_voucher', amount = 6 }), c, 'gold_received') }
     elseif c.stage == 'gold_received' then
-        local ids, labels = {}, {}
+        local ids = {}
         for _, display in ipairs(Global.Content.FindZones({ templateId = 'core.zone.enterprise_display' })) do
             for _, item in ipairs(Global.Content.FindInstances({ zoneId = display.id, contentType = 'enterprise' })) do
-                ids[#ids + 1] = item.id; labels[item.id] = Text.Ref('core:interaction.entity.item', { entity = Text.Item(item.id) })
+                ids[#ids + 1] = item.id
             end
         end
         if #ids == 0 then return {} end
-        return { choose(ctx, c, 'enterprise_selected', ids, labels, 'core:interaction.swire.upgrade.choose', 1, 'lua.choice') }
-    elseif c.stage == 'enterprise_selected' then
-        local id = ctx.payload.normalizedResult
-        return { Effect.UpgradeEnterprise({ apiVersion = 1, player = ctx.playerId, enterpriseItemId = id, levels = 1 }),
-            Effect.UpgradeEnterpriseForPlayer({ apiVersion = 1, player = ctx.playerId, targetPlayer = c.originalOwner, enterpriseItemId = id, levels = 1 }) }
+        c.upgradeCandidates = ids
+        return { tag(Effect.WithPresentation(Effect.UpgradeEnterprise({ apiVersion = 1, player = ctx.playerId,
+            enterpriseItemIds = ids, levels = 1 }), { interaction = { prompt = Text.Ref('core:interaction.swire.upgrade.choose') } }), c, 'self_upgraded') }
+    elseif c.stage == 'self_upgraded' then
+        local result = ctx.payload.normalizedResult
+        if type(result) ~= 'table' or not has(c.upgradeCandidates, result.selectedEnterpriseItemId) then
+            error('swire_upgrade_selection_missing')
+        end
+        return { Effect.UpgradeEnterpriseForPlayer({ apiVersion = 1, player = ctx.playerId, targetPlayer = c.originalOwner,
+            enterpriseItemId = result.selectedEnterpriseItemId, levels = 1 }) }
     elseif c.stage ~= 'start' then return {} end
     local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
     if #storage ~= 1 then error('marker_storage_missing') end
-    local ids, labels = {}, {}
-    for _, item in ipairs(Global.Content.FindInstances({ zoneId = storage[1].id, typeId = 'core.player_marker' })) do
+    local ids, labels, owners = {}, {}, {}
+    local markers = {}
+    for _, item in ipairs(Global.Content.FindInstances({ zoneId = storage[1].id, typeId = 'core.player_marker' })) do markers[#markers + 1] = item end
+    table.sort(markers, function(a, b) return a.id < b.id end)
+    for _, item in ipairs(markers) do
         ids[#ids + 1] = item.id; labels[item.id] = Text.Ref('core:interaction.marker.owner', { player = Text.Player(item.ownerSubject) })
+        if not has(owners, item.ownerSubject) then owners[#owners + 1] = item.ownerSubject end
     end
-    return { choose(ctx, c, 'marker_selected', ids, labels, 'core:interaction.marker.return.choose', 0, 'lua.choice') }
+    if #ids == 0 then return {} end
+    -- 本牌只容纳玩家标记，原主决定返供和升级受益人；相同原主无须按实例ID另选。
+    if #owners == 1 then return return_marker(ctx, c, ids[1]) end
+    return { choose(ctx, c, 'marker_selected', ids, labels, 'core:interaction.marker.return.choose', 0, 1) }
 end

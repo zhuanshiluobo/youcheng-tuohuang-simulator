@@ -72,7 +72,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
             if (award)
             {
-                var source = f.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_awards" && z.OwnerPlayerId == player);
+                var source = f.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == player);
                 const string grant = "acceptance.road_award.grant";
                 registry.Register(grant, context =>
                 {

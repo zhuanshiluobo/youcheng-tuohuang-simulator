@@ -32,13 +32,8 @@ local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
 end
 
 local function specials(ctx,c)
-    local ids,labels={},{}
-    for _,item in ipairs(PlayerData.Get(c.target).enterpriseSpecials) do
-        ids[#ids+1]=item.id
-        labels[item.id]=Text.Ref('core:interaction.enterprise.special',{player=Text.Player(c.target),enterprise=Text.Item(item.enterpriseItemId),level=item.level})
-    end
-    if #ids==0 then return {} end
-    return {choose(ctx,c,'selected',ids,labels,'core:interaction.enterprise.special.choose',1,'effect.choice.execute')}
+    -- 卡面明确“其已解锁”；默认原生范围以所选对手资格生成，由本人执行。
+    return {tag(Effect.ActivateEnterpriseSpecial({apiVersion=1,player=ctx.playerId,unlockedByPlayer=c.target}),c,'done')}
 end
 return function(ctx)
     local c=state(ctx);if c==nil then return {} end
@@ -52,13 +47,6 @@ return function(ctx)
         if #ids==0 then return {} end
         return {choose(ctx,c,'target_selected',ids,labels,'core:interaction.enterprise.owner.choose',1,'lua.choice')}
     elseif c.stage=='target_selected' then c.target=ctx.payload.normalizedResult;return specials(ctx,c)
-    elseif c.stage=='selected' then
-        for _,item in ipairs(PlayerData.Get(c.target).enterpriseSpecials) do
-            if item.id==ctx.payload.normalizedResult then
-                return {tag(Effect.ActivateEnterpriseSpecial({apiVersion=1,player=ctx.playerId,unlockedByPlayer=c.target,enterpriseItemIds={item.enterpriseItemId},specialId=item.specialId}),c,'done')}
-            end
-        end
-        error('enterprise_special_source_changed')
     end
     return {}
 end

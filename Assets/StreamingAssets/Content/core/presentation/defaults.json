@@ -7,9 +7,6 @@
     "effect.resource.choose_amounts": {
       "presentationScript": "lua/presentation/interaction.choose_resources.lua"
     },
-    "effect.card.load_markers": {
-      "presentationScript": "lua/presentation/interaction.store_markers.lua"
-    },
     "effect.flow.repeat": {
       "presentationScript": "lua/presentation/interaction.repeat.lua"
     }

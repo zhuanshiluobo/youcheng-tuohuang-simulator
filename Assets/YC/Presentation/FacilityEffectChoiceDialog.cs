@@ -261,7 +261,7 @@ namespace YC.Presentation
                 "Options Scroll",
                 scrollBottom,
                 layoutProfile.OptionsScrollTop);
-            EffectDialogShell.AddOptions(content, options, "Option ", Hide);
+            shell.AddOptions(content, options, "Option ", Hide);
 
             if (back != null)
             {

@@ -15,6 +15,8 @@ namespace YC.Application.Interactions
         public IReadOnlyList<YC.Domain.Cards.CharacterSettlementOption> GetSettlementOptions(GameState state, GameStateViewer viewer)
             => viewer.Role == GameStateViewerRole.Player && !string.IsNullOrEmpty(state?.EffectRuntime?.ActiveSettlementWindowId)
                 ? registry.GetSettlementOptions(state, viewer.PlayerId) : null;
+        public IReadOnlyList<AbilityActionOption> GetAbilityActions(GameState state, GameStateViewer viewer) => registry.HasAbilityCatalog && viewer.Role == GameStateViewerRole.Player
+            ? registry.QueryActions(state, viewer.PlayerId) : null;
         private readonly EffectRegistry registry;
         private readonly RoundExecutionService roundExecutionService;
         public InvokeSettlementOptionCommandHandler(EffectRegistry registry, RoundExecutionService roundExecutionService = null)
@@ -23,10 +25,17 @@ namespace YC.Application.Interactions
         public CommandResult Handle(GameState state, GameCommand command)
         {
             if (state == null || command == null || !CanHandle(command)) return Invalid("结算请求无效。");
+            if (Parameter(command, "intent") == AbilityActionCommand.Intent) return AbilityActionCommand.Handle(state, registry, command, roundExecutionService);
             var phase = CommandPhasePolicy.ValidatePhase(state, command.Kind); if (!phase.IsValid) return CommandResult.Invalid(phase);
             if (!int.TryParse(Parameter(command, "expectedRevision"), NumberStyles.None, CultureInfo.InvariantCulture, out int revision)) return Invalid("结算请求缺少有效版本。");
             var executor = roundExecutionService == null ? new EffectTreeExecutor(state, registry) : roundExecutionService.CreateCommandExecutor(state);
-            if (!executor.TryInvokeCharacterSettlementOption(command.PlayerId, Parameter(command, "optionId"), Parameter(command, "useId"), revision, out bool alreadyInvoked, out string reason)) return Invalid(reason);
+            bool alreadyInvoked; string reason;
+            if (Parameter(command, "intent") == CleanupSourceCommand.Intent)
+            {
+                if (!CleanupSourceCommand.TryRead(command, out var request, out reason) ||
+                    !executor.TryInvokeCleanupSource(command.PlayerId, command.CommandId, request, out alreadyInvoked, out _, out reason)) return Invalid("收尾来源请求无法受理：" + reason);
+            }
+            else if (!executor.TryInvokeCharacterSettlementOption(command.PlayerId, Parameter(command, "optionId"), Parameter(command, "useId"), revision, out alreadyInvoked, out reason)) return Invalid(reason);
             if (!alreadyInvoked)
             {
                 var report = executor.RunUntilQuiescent(); if (report.Faulted) return Invalid("结算效果无法继续：" + report.FaultCode);

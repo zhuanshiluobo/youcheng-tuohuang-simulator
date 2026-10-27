@@ -48252,5 +48252,1036 @@
     "bytes": 274,
     "decision": "不选用",
     "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "README.md",
+    "sha256": "eceffd6172493f71d9e7ee8941bdb02e3b2898de05ca90eacc907d73d1e70390",
+    "bytes": 3755,
+    "decision": "不选用",
+    "reason": "文档、参数或生产工具，非贴图"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets.json",
+    "sha256": "259c4ae6badd3c9817b303f532194371345f63c1c70eeaec4744d02c41de40ba",
+    "bytes": 13443,
+    "decision": "不选用",
+    "reason": "文档、参数或生产工具，非贴图"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-dark.png",
+    "sha256": "22adce7ec37048944299ebc9325e534644823fd046ad852c9844744d466a2b3c",
+    "bytes": 437,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-dark.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-dark.svg",
+    "sha256": "c5c8e9aec12d857de538e4996d97d238dacd58024edf894524908c5282307f31",
+    "bytes": 333,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-dark@2x.png",
+    "sha256": "6a4588f7de7223664bfc6c5f8f6961268a1e6d28dc67d6f08a59ea2376475ab9",
+    "bytes": 735,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-dark@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-dark@4x.png",
+    "sha256": "a3cb95aa3615bc9b315858d2d41aceb943fc7e0dc81ad47a55f6f0ad59256804",
+    "bytes": 1350,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-dark@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-light.png",
+    "sha256": "d954786c9f5b329015b0253f535daa020e88157d953fa50efa3b8552491e63ab",
+    "bytes": 443,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-light.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-light.svg",
+    "sha256": "f7fb65302e9aef2fe2e7001775295a4d042f0c6ee3f6684a878ab8fa0c461612",
+    "bytes": 333,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-light@2x.png",
+    "sha256": "ec96ea4182a431693ce2cb7c71aef0a4db877333a7145231a257b6ca5ec0f279",
+    "bytes": 748,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-light@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-light@4x.png",
+    "sha256": "856cbb2aa9aab8af91f559f0f766f398770c814af0c0b53b5a65792c31f207db",
+    "bytes": 1386,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-light@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-muted.png",
+    "sha256": "f4d2f6a13d6fee73fba73e4ac4c49fd6b246717f78528ea43f098a56ae8e68c3",
+    "bytes": 441,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-muted.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-muted.svg",
+    "sha256": "9b210b0034dac5a965c05acefa02247424a4835f549204c561ea5667ed86ef22",
+    "bytes": 333,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-muted@2x.png",
+    "sha256": "ce480e16d1ce886a2f4a539d56d07dbc3d564a8581db4b22367d71e4ecb9ada7",
+    "bytes": 750,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-muted@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-fund-invest-muted@4x.png",
+    "sha256": "504bb9db2735f7b6e11d734868948a53e4cbd4aef5ca84cfd12a56c32adfbdd6",
+    "bytes": 1398,
+    "decision": "可用",
+    "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+      "decision": "保留",
+      "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+      "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-fund-invest-muted@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-dark.png",
+    "sha256": "65e1ca1b06b3a17b21bf581bd82f05cc7fa682d34670b8f831297cd06687b82b",
+    "bytes": 374,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-dark.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-dark.svg",
+    "sha256": "29ed364c930fef6c42986bc9ac403385f78fb4a355d99ed693c61b7deda12e55",
+    "bytes": 606,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-dark@2x.png",
+    "sha256": "38fd4a49a213ab3b188e4208d9505824fc473b7abfdec11585ea98c0429abd1c",
+    "bytes": 606,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-dark@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-dark@4x.png",
+    "sha256": "5fdfc87160032ede429fb2423db7acfcc509786a5974ca23ba814468e45c66ee",
+    "bytes": 1113,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-dark@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-light.png",
+    "sha256": "1d832dceaa5dea6fb26633e503090b0c07c2fd4179b56cc09128e481e37b7a1b",
+    "bytes": 386,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-light.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-light.svg",
+    "sha256": "14313dbbcecdc14a561d04e2d70e4e51be92cce98191f5a76f3b34ed0382443f",
+    "bytes": 606,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-light@2x.png",
+    "sha256": "b9564d1e43427fb90e52d56f2a13752be97ec81e93d0ebb7a55e3cbaea9a6c14",
+    "bytes": 626,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-light@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-light@4x.png",
+    "sha256": "811be81fb11a0662d3b71c6beec218ee85a4a2ebce6e2ef00ee80afe9332cdfc",
+    "bytes": 1127,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-light@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-muted.png",
+    "sha256": "562bccb8bff17b1e4014fdbf7555462e123aa4f8fd5a47015c971c9f87936f87",
+    "bytes": 377,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-muted.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-muted.svg",
+    "sha256": "c97a181fae16ab55d8039a5ea3d41208ae7c19b8e3bda3be1850265896cab1fc",
+    "bytes": 606,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-muted@2x.png",
+    "sha256": "d0a25de0c733a0a352b0cea63ee0430f0da056f1d9b07293734182133f51ef94",
+    "bytes": 621,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-muted@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-marker-redeem-muted@4x.png",
+    "sha256": "3fa551a5490878081e971f604b678e80bf22042cd3ee1b4be17046530aefe327",
+    "bytes": 1147,
+    "decision": "可用",
+    "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+      "decision": "保留",
+      "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+      "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-marker-redeem-muted@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-dark.png",
+    "sha256": "f1569aac19d4273f9dca7f9ebab918e3c87c7f04182b84effb3e985773a4726c",
+    "bytes": 442,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-dark.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-dark.svg",
+    "sha256": "3293d63dddcd6bc0c48cd628098655278682eff5ab633a6d3b9f27ea3bacb5f5",
+    "bytes": 370,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-dark@2x.png",
+    "sha256": "33bef96a6a77906b2d3e174d1133324f7462dd3c55374202fafc96869f28e05e",
+    "bytes": 598,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-dark@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-dark@4x.png",
+    "sha256": "e0148baaf62f6d91b4b0e2c743a41e3c983f8f733508c17e6699bd6a4035cca9",
+    "bytes": 1013,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-dark@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-light.png",
+    "sha256": "622ec13a73382e7b71b4fb6f82fbf655d2a6e3d81905bea83badc32f5736d102",
+    "bytes": 448,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-light.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-light.svg",
+    "sha256": "e13c6c9cdac4309ee0b0440feef710678a8eabe2a1858ee0ac51e407c7dcc723",
+    "bytes": 370,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-light@2x.png",
+    "sha256": "9da31b814eda0e823cfa9bbd590b11c90ce5cf36cb5994fa3c56004e9f015bd7",
+    "bytes": 610,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-light@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-light@4x.png",
+    "sha256": "7a6693fdb7dbce8aa5a98601458fe6770bc0e94d910d39c5b3370c1c82cc1a15",
+    "bytes": 1026,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-light@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-muted.png",
+    "sha256": "64d67e323f3d0baf71c0358a419362ba0f604ad01acf553f9933431707951f76",
+    "bytes": 450,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-muted.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-muted.svg",
+    "sha256": "ead310b2578f092441b998c7b1a22bae138dda41ffdd9074ddbafde490deed61",
+    "bytes": 370,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-muted@2x.png",
+    "sha256": "87fd3d7af3acc35c75fa2125c4ab0c7efa0b9b91dd3fd293a7f998ea3030a1f6",
+    "bytes": 616,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-muted@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-outpost-payout-muted@4x.png",
+    "sha256": "f15e15cbfe639a35dced3b1b053d820a6c55ece71846c756b13621de7ba104ff",
+    "bytes": 1023,
+    "decision": "可用",
+    "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+      "decision": "保留",
+      "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+      "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-outpost-payout-muted@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-dark.png",
+    "sha256": "92de68e211e0328709d74290da1f6038ec27218c3b08e1c9c4d1e0b086d25e03",
+    "bytes": 631,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-dark.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-dark.svg",
+    "sha256": "ce02130c6538fdc2febc1aaa3301dea66095192d460c86e696511aa02cc7d4e5",
+    "bytes": 481,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-dark@2x.png",
+    "sha256": "c4abeccfb400f2338032aaf035540f45c137b9bdfd4d4a019643d78238969e7f",
+    "bytes": 1193,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-dark@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-dark@4x.png",
+    "sha256": "8cb7d746173b42b1e32fe54fdb2597ea50b7ce57952bf365f7fff612b89b4ca3",
+    "bytes": 2284,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-dark@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-light.png",
+    "sha256": "1a021aa2b6bef60599f6835905939bb2ddc9ae005749b6c86dbd18de32799fe8",
+    "bytes": 651,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-light.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-light.svg",
+    "sha256": "223e5176bcecf4afe2c38c3559936c96f19a1f7e65dbeb7f70cb32474c90fe40",
+    "bytes": 481,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-light@2x.png",
+    "sha256": "c463623effa2b0c6aae7f427bf8a506492016a5dc8e6390911bbda7ea61806ea",
+    "bytes": 1209,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-light@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-light@4x.png",
+    "sha256": "2beca58bd66940e232f33394b07fb58b1a99d9f561ba7b0503838b8d2fdf7f6f",
+    "bytes": 2326,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-light@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-muted.png",
+    "sha256": "80d5c656fcaa44baee66c9063b45ef0ef043809579da5bf37bad4286a25c8518",
+    "bytes": 655,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-muted.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-muted.svg",
+    "sha256": "4df77b2805e98c2bcea2905c31eb2e62e0f2a83b76d1d13b6fd3003a8862f2d3",
+    "bytes": 481,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-muted@2x.png",
+    "sha256": "62a61141ff8140331b073d20cb9827ae07bae65fce204606b56b7a30bc875aba",
+    "bytes": 1213,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-muted@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-reputation-score-muted@4x.png",
+    "sha256": "6f366bce08f30b598aa09bc810c27051da6845c85be144ce697f581146051cda",
+    "bytes": 2358,
+    "decision": "可用",
+    "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+      "decision": "保留",
+      "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+      "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-reputation-score-muted@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-dark.png",
+    "sha256": "f7d18c39bad8c840b740b1ecc46ba354f6ccbe55786a4ebbc32658a59032adf6",
+    "bytes": 649,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-dark.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-dark.svg",
+    "sha256": "839ac46174d732f469f132db7da24563a2eadabc1a30ef5771fd5ecfd120e93a",
+    "bytes": 344,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-dark@2x.png",
+    "sha256": "fc3e4e24c5e08619fb056a01e9825b3436d24a37ab9628e2800aa9c442ea321b",
+    "bytes": 1156,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-dark@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-dark@4x.png",
+    "sha256": "2cc8b464388dd2c1baac3c3a64591c8598eba84d9234ba3182e2f1d1b6d6865a",
+    "bytes": 2172,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-dark@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-light.png",
+    "sha256": "9d7085d9f727de879f40a51f6b14a97eb830c0a2227f2d22bcaaa1aa3d2436d9",
+    "bytes": 669,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-light.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-light.svg",
+    "sha256": "c32b63f2452fb2ce669fe5c79381e71b857cc7150924751f7e1931959545ab54",
+    "bytes": 344,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-light@2x.png",
+    "sha256": "f0c801431eea9259fe12b5ce7bb01ae7e51aae946eab6b4648c2bebec1ecb27d",
+    "bytes": 1192,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-light@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-light@4x.png",
+    "sha256": "c87c63c1aec5cd61d31b019a2a6150f36ace9654bc899ee65c7ad04c736e64a4",
+    "bytes": 2236,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-light@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-muted.png",
+    "sha256": "b0f42e8ac48f2e682f7cb0eeabff7e6d6193d86773864483f1982cdbdb832f58",
+    "bytes": 674,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-muted.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-muted.svg",
+    "sha256": "c8e23eb5b7383bf2152cb3852b427f9458929171a4b5fae29fafc6333dbfca7b",
+    "bytes": 344,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-muted@2x.png",
+    "sha256": "c4df797a66cb8eab629f98fb09ed1f6036999354839a81b4e1d659a615e34946",
+    "bytes": 1195,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-muted@2x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "assets/icons-endphase/ui-tactical-dispatch-muted@4x.png",
+    "sha256": "41d7c26938a9b7dce31b14ba9d45db1127c9708188a9fe371bbbbf09e963b6e3",
+    "bytes": 2246,
+    "decision": "可用",
+    "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+    "rule": {
+      "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+      "decision": "保留",
+      "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+      "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+      "evidence": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+      ]
+    },
+    "catalogPath": "资产/收尾阶段结算图标/Settlement-Icons-EndPhase-v1.2/assets/icons-endphase/ui-tactical-dispatch-muted@4x.png"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "checksums.json",
+    "sha256": "e14e2a39eb9128b5ae2ad9a612ed71bc17bca9852e0668a91b92259757479843",
+    "bytes": 11321,
+    "decision": "不选用",
+    "reason": "文档、参数或生产工具，非贴图"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "icons-sprite.svg",
+    "sha256": "e0e309da667a4a42a0ac2a6535600b0fbe71b2e42b40aa6cf843603c186d0045",
+    "bytes": 1884,
+    "decision": "不选用",
+    "reason": "生产格式不作为导入候选；独立视觉已有 PNG 覆盖，避免外链原料及重复选材"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "icons.json",
+    "sha256": "c32e8560403ab345831a269cf288b402510966c52fdbd3a25825eaab0c912877",
+    "bytes": 7314,
+    "decision": "不选用",
+    "reason": "文档、参数或生产工具，非贴图"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "preview/overview.png",
+    "sha256": "63618a623100ab061bc7d6c1a88f9002561a365135209d7e0bcef50a9aebe46f",
+    "bytes": 135576,
+    "decision": "不选用",
+    "reason": "预览、示例或生产原料不得作为运行时替代图"
+  },
+  {
+    "package": "Settlement-Icons-EndPhase-v1.2.zip",
+    "member": "verification.json",
+    "sha256": "fbdd305e9185d801c2b0181ed37c9856d482d087a8589cf590194e4c2076c872",
+    "bytes": 955,
+    "decision": "不选用",
+    "reason": "文档、参数或生产工具，非贴图"
   }
 ]

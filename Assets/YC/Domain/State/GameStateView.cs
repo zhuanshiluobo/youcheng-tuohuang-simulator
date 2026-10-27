@@ -116,6 +116,8 @@ namespace YC.Domain.State
         public int MaxRounds;
         public int StartPlayerId = -1;
         public List<int> LaunchPlayerOrder = new List<int>();
+        // 当前回合执行器冻结的公开顺序；尚未形成快照时为空，不按观看者或当前行动玩家重排。
+        public List<int> CurrentRoundPlayerOrder = new List<int>();
         public int CurrentPlayerId = -1;
         public int ActionRound;
         public string MapId = string.Empty;
@@ -127,9 +129,14 @@ namespace YC.Domain.State
         public PublicDeckStateView Decks = new PublicDeckStateView();
         public GameBoxState GameBox = new GameBoxState();
         public ItemZoneStateView ItemZones = new ItemZoneStateView();
+        public List<CubeColorView> CubeColors = new List<CubeColorView>();
+        public List<YC.Domain.Effects.UsageTrackView> UsageTracks = new List<YC.Domain.Effects.UsageTrackView>();
         public List<YC.Domain.Cards.CharacterAvailability> Characters = new List<YC.Domain.Cards.CharacterAvailability>();
         public List<YC.Domain.Cards.CharacterUseRuntimeState> CharacterUses = new List<YC.Domain.Cards.CharacterUseRuntimeState>();
         public List<YC.Domain.Cards.CharacterSettlementOption> CharacterSettlementOptions = new List<YC.Domain.Cards.CharacterSettlementOption>();
+        public YC.Domain.Rules.EntrepreneurStateView Entrepreneurs = new YC.Domain.Rules.EntrepreneurStateView();
+        public bool HasAbilityActionCatalog;
+        public List<YC.Domain.Effects.AbilityActionOption> AbilityActions = new List<YC.Domain.Effects.AbilityActionOption>();
         public List<YC.Domain.Cards.CoverSlotState> CharacterCoverSlots = new List<YC.Domain.Cards.CoverSlotState>();
         public List<YC.Domain.Cards.FacilityCharacterBindingState> FacilityCharacterBindings = new List<YC.Domain.Cards.FacilityCharacterBindingState>();
         public List<CompanyControlView> CompanyControl = new List<CompanyControlView>();
@@ -141,6 +148,7 @@ namespace YC.Domain.State
         public List<int> WaitingForPlayerIds = new List<int>();
         public List<EffectNodeView> Effects = new List<EffectNodeView>();
         public List<PlayerEffectFactView> PlayerEffects = new List<PlayerEffectFactView>();
+        public List<PlayerRuleFactView> PlayerRules = new List<PlayerRuleFactView>();
         public List<RuleEventView> Events = new List<RuleEventView>();
         public List<GameLogView> Logs = new List<GameLogView>();
         public string FaultCode = string.Empty;
@@ -349,6 +357,7 @@ namespace YC.Domain.State
     {
         public int PlayerId;
         public int BaseScore;
+        public int SpecialScore;
         public int RegionScore;
         public int ResourceScore;
         public int FacilityScore;
@@ -453,9 +462,9 @@ namespace YC.Domain.State
             return Project(state, GameStateViewer.Host);
         }
 
-        public static GameStateView ProjectForPlayer(GameState state, int playerId)
+        public static GameStateView ProjectForPlayer(GameState state, int playerId, YC.Domain.Effects.EffectRegistry paymentRegistry = null)
         {
-            return Project(state, GameStateViewer.Player(playerId));
+            return Project(state, GameStateViewer.Player(playerId), null, null, paymentRegistry);
         }
 
         public static GameStateView ProjectForSpectator(GameState state)
@@ -471,7 +480,16 @@ namespace YC.Domain.State
         public static GameStateView Project(GameState state, GameStateViewer viewer)
             => Project(state, viewer, null);
 
-        public static GameStateView Project(GameState state, GameStateViewer viewer, IReadOnlyList<YC.Domain.Cards.CharacterSettlementOption> settlementOptions)
+        private static List<int> ProjectCurrentRoundPlayerOrder(GameState state)
+        {
+            var runtime = state?.EffectRuntime;
+            if (runtime == null || runtime.CurrentRoundNumber <= 0 || runtime.CurrentRoundNumber != state.Round ||
+                string.IsNullOrEmpty(runtime.CurrentRoundExecutionId) || runtime.PlayerOrderSnapshot == null)
+                return new List<int>();
+            return new List<int>(runtime.PlayerOrderSnapshot);
+        }
+
+        public static GameStateView Project(GameState state, GameStateViewer viewer, IReadOnlyList<YC.Domain.Cards.CharacterSettlementOption> settlementOptions, IReadOnlyList<YC.Domain.Effects.AbilityActionOption> abilityActions = null, YC.Domain.Effects.EffectRegistry paymentRegistry = null)
         {
             var view = new GameStateView
             {
@@ -485,6 +503,7 @@ namespace YC.Domain.State
                 MaxRounds = state == null ? 0 : state.MaxRounds,
                 StartPlayerId = state == null ? -1 : state.StartPlayerId,
                 LaunchPlayerOrder = state == null ? new List<int>() : new List<int>(new TurnOrderService().GetLaunchPlayerOrder(state)),
+                CurrentRoundPlayerOrder = ProjectCurrentRoundPlayerOrder(state),
                 CurrentPlayerId = state == null ? -1 : state.CurrentPlayerId,
                 ActionRound = state == null ? 0 : state.ActionRound,
                 MapId = state == null ? string.Empty : state.MapId ?? string.Empty
@@ -493,6 +512,8 @@ namespace YC.Domain.State
             if (state == null) return view;
             if (ItemZoneLegacyProjection.IsActive(state)) state = GameStateCloneService.DeepClone(state);
             view.ItemZones = new ItemZoneQuery().Project(state, viewer);
+            view.CubeColors = view.ItemZones.Items.Where(i => i.PhysicalKind == ItemPhysicalKind.Cube).Select(i => CubeAppearance.Resolve(state, i.ItemId)).ToList();
+            view.UsageTracks = YC.Domain.Effects.UsageTracks.Project(state).Where(t => view.ItemZones.Items.Any(i => i.ItemId == t.Binding.SourceItemId) && view.ItemZones.Zones.Any(z => z.Zone.ZoneId == t.Binding.ZoneId && z.IdentitiesVisible)).ToList();
             if (ItemZoneLegacyProjection.IsActive(state) && viewer.Role == GameStateViewerRole.Player)
             {
                 var types = ItemTypeRegistry.CreateBuiltIn();
@@ -519,7 +540,11 @@ namespace YC.Domain.State
             ProjectPlayers(state, viewer, view.Players);
             ProjectMap(state.Map, view.Map, viewer);
             if (ItemZoneLegacyProjection.IsActive(state)) ProjectExpansionDetails(state, viewer, view);
-            if (ItemZoneLegacyProjection.IsActive(state)) view.PlayerEffects = PlayerEffectFactProjector.Project(state, view);
+            if (ItemZoneLegacyProjection.IsActive(state))
+            {
+                view.PlayerRules = PlayerRuleFactProjector.Project(state, view);
+                view.PlayerEffects = PlayerEffectFactProjector.Project(state, view);
+            }
             if (ItemZoneLegacyProjection.IsActive(state)) view.Map.FacilityInstances.RemoveAll(item => !view.ItemZones.Items.Exists(entity => entity.ItemId == item.ContentInstanceId));
             ProjectDecks(state.Decks, view.Decks);
             view.GameBox = GameBoxState.ForViewer(state.GameBox, viewer);
@@ -528,7 +553,7 @@ namespace YC.Domain.State
             ProjectInteractions(state, viewer, view);
             if (viewer.Role == GameStateViewerRole.Player && runtime != null)
                 foreach (var owner in runtime.EffectNodes.Where(node => YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentPreparation(state, node, viewer.PlayerId) ||
-                    YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, node, viewer.PlayerId)))
+                    YC.Domain.Effects.ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, node, viewer.PlayerId, false, paymentRegistry)))
                 {
                     var payment = owner.Payment; var preparation = payment.Preparation;
                     var request = runtime.InteractionRequests.LastOrDefault(value => value.OwnerEffectId == owner.EffectId && value.Status == "open" &&
@@ -543,7 +568,7 @@ namespace YC.Domain.State
                         ActionKind = preparation.ActionKind, TargetId = preparation.TargetId, InteractionId = request?.GetStableInteractionId() ?? "",
                         PaymentMode = preparation.ActionKind == "build" ? YC.Domain.Effects.ItemTransferEffectExecutor.Text(preparation.ActionArguments, "paymentMode") : "",
                         IsReady = request != null && payment.BeforePaymentReady && !pending,
-                        CanConfirm = request != null && !pending && YC.Domain.Effects.ResourcePaymentPreparationService.CanConfirm(state, owner),
+                        CanConfirm = request != null && !pending && YC.Domain.Effects.ResourcePaymentPreparationService.CanConfirm(state, owner, paymentRegistry),
                         CanCancel = !pending && !payment.IsCommitted && !payment.IsCommitRequested,
                         OriginalCost = payment.PaymentCost.Clone(), SubstitutionCost = payment.SelectedSubstitution?.Allocation.Clone() ?? new ResourceSet(),
                         RemainingCost = YC.Domain.Effects.ResourcePaymentPreparationService.Remaining(payment) });
@@ -557,6 +582,11 @@ namespace YC.Domain.State
                 if (viewer.Role == GameStateViewerRole.Player)
                     view.CharacterSettlementOptions.AddRange(settlementOptions.Where(o => o != null && o.VisibleToViewer && o.AnsweringPlayerId == viewer.PlayerId).Select(GameStateCloneService.DeepClone));
             }
+            view.HasAbilityActionCatalog = abilityActions != null || state.ContentDefinitions?.AbilitySources.Count > 0;
+            if (abilityActions != null && viewer.Role == GameStateViewerRole.Player)
+                view.AbilityActions = abilityActions.Where(a => a.SourceRef.AuthorizedPlayerId == viewer.PlayerId && view.ItemZones.Items.Any(i => i.ItemId == a.SourceRef.ItemId)).Select(GameStateCloneService.DeepClone).ToList();
+            if (view.HasAbilityActionCatalog) view.CharacterSettlementOptions.RemoveAll(o => string.IsNullOrEmpty(o.EntryKind) && string.IsNullOrEmpty(o.TargetUseId));
+            view.Entrepreneurs = YC.Domain.Rules.EntrepreneurContent.Project(state, viewer);
             ProjectGameplayPresentation(state, viewer, view);
             if (!viewer.IsHost) RedactSecretHistory(state, view);
             // 包含秘密回盒的二次过滤完成后再编号，不能暴露隐藏事件的位置或数量。
@@ -812,7 +842,7 @@ namespace YC.Domain.State
                         state.FinalScoring.PlayerScores.Add(new FinalPlayerScoreState
                         {
                             PlayerId = source.PlayerId,
-                            BaseScore = source.BaseScore,
+                            BaseScore = source.BaseScore, SpecialScore = source.SpecialScore,
                             RegionScore = source.RegionScore,
                             ResourceScore = source.ResourceScore,
                             FacilityScore = source.FacilityScore,
@@ -1084,7 +1114,7 @@ namespace YC.Domain.State
                     target.FinalScoring.PlayerScores.Add(new FinalPlayerScoreView
                     {
                         PlayerId = score.PlayerId,
-                        BaseScore = score.BaseScore,
+                        BaseScore = score.BaseScore, SpecialScore = score.SpecialScore,
                         RegionScore = score.RegionScore,
                         ResourceScore = score.ResourceScore,
                         FacilityScore = score.FacilityScore,

@@ -10,8 +10,9 @@ namespace YC.Domain.Rules
     [Serializable]
     public sealed class GameRuleConfiguration
     {
-        public const string CurrentRuleContractVersion = "expansion-rules.v1";
-        public int SchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
+        public const string CurrentRuleContractVersion = "expansion-rules.v2";
+        public int SchemaVersion = CurrentSchemaVersion;
         public string MapId = "map-three-players";
         public string RuleModeId = "standard";
         [JsonProperty(ObjectCreationHandling = ObjectCreationHandling.Replace)]
@@ -35,11 +36,12 @@ namespace YC.Domain.Rules
         public bool TryValidate(out string reasonCode)
         {
             reasonCode = string.Empty;
-            if (SchemaVersion != 1 || RuleContractVersion != CurrentRuleContractVersion)
+            if (SchemaVersion != CurrentSchemaVersion || RuleContractVersion != CurrentRuleContractVersion)
                 reasonCode = "content_version_mismatch";
             else if (!Enum.IsDefined(typeof(PlayerStageSchedulingMode), PlayerStageSchedulingMode))
                 reasonCode = "player_stage_scheduling_invalid";
-            else if (RuleModeId != "standard") reasonCode = "rule_mode_not_implemented";
+            else if (RuleModeId != "standard" && RuleModeId != "entrepreneur") reasonCode = "rule_mode_not_implemented";
+            else if (RuleModeId == "entrepreneur" && (EnabledExpansionIds == null || !EnabledExpansionIds.Contains("enterprise") || !EnabledExpansionIds.Contains("infected"))) reasonCode = "missing_entrepreneur_dependency";
             else if (PlayerCount < 0 || PlayerCount > 4) reasonCode = "unsupported_player_count";
             else if (MapId != StaticMapDefinitions.ThreePlayerMapId && MapId != StaticMapDefinitions.FourPlayerMapId)
                 reasonCode = "room_protocol_mismatch";

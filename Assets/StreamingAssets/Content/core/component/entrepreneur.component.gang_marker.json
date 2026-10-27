@@ -1,0 +1,31 @@
+{
+  "definitionId": "entrepreneur.component.gang_marker",
+  "contentType": "component",
+  "version": "1.0.0",
+  "displayName": "帮派标记",
+  "expansionId": "infected",
+  "replaces": null,
+  "artwork": "",
+  "artworkSpriteId": "",
+  "tags": [
+    "entrepreneur"
+  ],
+  "playerMarkerZones": [],
+  "itemTypeId": "entrepreneur.gang_marker",
+  "cardZones": [],
+  "abilities": [],
+  "cubeAppearance": {
+    "color": {
+      "mode": "fixed",
+      "name": "Purple",
+      "rgb": "A020F0"
+    }
+  },
+  "data": {
+    "instanceTypeId": "entrepreneur.gang_marker",
+    "quantityPolicy": "finite"
+  },
+  "applicableModes": [
+    "entrepreneur"
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.award.M01",
+  "contentType": "award",
+  "version": "1.3.0",
+  "displayName": "建设费用替代",
+  "artwork": "artwork/entrepreneurs/M01.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "core.award_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "resource_payment_sources.v2"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.award.M01.payment",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.award.M01.payment",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.player_rewards"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "resource_payment_substitution.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.award.M01",
+      "actions": []
+    }
+  ],
+  "data": {
+    "lifecycle": "held",
+    "randomAwardPool": false,
+    "acquisitionPolicy": "content_granted",
+    "quantityPolicy": "dynamic_opponents",
+    "sourceId": "M01",
+    "activationRounds": [
+      5
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.award.M01.payment",
+        "displayName": "建设费用替代",
+        "activation": "Held",
+        "displayCategory": "PlayerEffect",
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M01.description",
+          "arguments": []
+        }
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.award.M01.payment",
+      "script": "lua/payment_substitution/martin_concession.lua",
+      "version": "1.2.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "presentation": {
+    "description": {
+      "key": "core:entrepreneur.M.M01.description"
+    }
+  }
+}

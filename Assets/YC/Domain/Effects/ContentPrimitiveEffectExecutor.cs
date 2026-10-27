@@ -23,39 +23,45 @@ namespace YC.Domain.Effects
         public const string ChooseResources = "effect.resource.choose_amounts";
         public const string SelectInfluence = "effect.influence.select_action";
         public const string IncompleteEffect = "effect.content.incomplete";
-        public const string LoadMarkers = "effect.card.load_markers", PayMarkers = "effect.card.pay_markers", StoreRemoved = "effect.card.store_removed";
+        public const string RetiredMarkerLoadTypeId = "effect.card.load_markers", PayMarkers = "effect.card.pay_markers", StoreRemoved = "effect.card.store_removed";
+        public const string RetiredMarkerLoadReason = "card_marker_load_api_retired";
+        public const string RetiredFixedDeliveryReason = "fixed_marker_delivery_contract_retired";
+        // 仅保留旧ID用于诊断；不注册为当前可执行Effect。
+        public const string RetiredMarkerPaymentReason = "card_marker_payment_api_retired";
         public const string ClearRouteRoad = "effect.map.clear_route_road";
         public const string QuantityInteractionTypeId = "effect.quantity.choose";
         public const string QuantityAnswerSchema = "bounded_amount";
-        public static readonly string[] ContentFlowTypeIds = { LoadMarkers, PayMarkers, StoreRemoved, ClearRouteRoad, RewardAcquisitionFlow.TypeId };
+        public static readonly string[] ContentFlowTypeIds = { StoreRemoved, ClearRouteRoad, RewardAcquisitionFlow.TypeId };
         public static string[] ContentFlowFields(string type)
         {
             var fields = new List<string> { "apiVersion", "player" };
             if (type == RewardAcquisitionFlow.TypeId) fields.Add("poolRole");
-            if (type == LoadMarkers || type == PayMarkers || type == StoreRemoved) fields.AddRange(new[] { "cardInstanceId", "localZoneId" });
-            if (type == LoadMarkers) fields.Add("maxCount");
-            if (type == PayMarkers) fields.Add("count");
+            if (type == StoreRemoved) fields.AddRange(new[] { "cardInstanceId", "localZoneId" });
             if (type == StoreRemoved) fields.Add("influenceItemId");
             if (type == ClearRouteRoad) fields.AddRange(new[] { "scoreRemovedPlayers", "scoreExecutor" });
             return fields.ToArray();
         }
+        public static string RetiredMarkerContractReason(string type, NormalizedValue args)
+        {
+            if (type == RetiredMarkerLoadTypeId) return RetiredMarkerLoadReason;
+            return new[] { "fixedDeliveryRequirement", "deliveryRef" }.Any(k => Value(args, k) != null) ? RetiredFixedDeliveryReason : "";
+        }
         public static string ValidateContentFlow(string type, NormalizedValue args)
         {
+            if (type == PayMarkers) return RetiredMarkerPaymentReason;
+            string retired = RetiredMarkerContractReason(type, args); if (retired.Length > 0) return retired;
+            if (type == StoreRemoved && Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Number(args, "apiVersion") == 2)
+            { var copy = args.Clone(); copy.Properties.Single(p => p.Name == "apiVersion").Value = NormalizedValue.CreateInteger(1); return ValidateContentFlow(type, copy); }
             if (!ContentFlowTypeIds.Contains(type) || args?.Kind != NormalizedValueKind.Object ||
                 args.Properties.Any(entry => !ContentFlowFields(type).Concat(new[] { "kind", "effectTypeId" }).Contains(entry.Name)) ||
-                Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Number(args, "apiVersion", 0) != 1 ||
+                Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Number(args, "apiVersion") != 1 ||
                 !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1) return "content_flow_arguments_invalid";
             foreach (string key in ContentFlowFields(type).Except(new[] { "apiVersion", "player" }))
             {
                 var value = Value(args, key);
                 if (value == null) return "content_flow_arguments_incomplete";
-                if (new[] { "maxCount", "count", "scoreRemovedPlayers", "scoreExecutor" }.Contains(key))
-                {
-                    int limit = key == "maxCount" ? 16 : key == "count" ? 16 : 99;
-                    if (value.Kind != NormalizedValueKind.Integer || value.IntegerValue < (key == "count" ? 1 : 0) || value.IntegerValue > limit) return "content_flow_count_invalid";
-                }
-                else if (key == "destination")
-                { if (value.Kind != NormalizedValueKind.Object || value.Properties.Count != 1 || Text(value, "zoneId").Length == 0) return "destination_rejected"; }
+                if (new[] { "scoreRemovedPlayers", "scoreExecutor" }.Contains(key))
+                { if (value.Kind != NormalizedValueKind.Integer || value.IntegerValue < 0 || value.IntegerValue > 99) return "content_flow_count_invalid"; }
                 else if (value.Kind != NormalizedValueKind.String || value.StringValue.Length == 0) return "content_flow_reference_invalid";
             }
             if (type == RewardAcquisitionFlow.TypeId && !new[] { "awards", "contracts" }.Contains(Text(args, "poolRole"))) return "reward_pool_rejected";
@@ -78,11 +84,32 @@ namespace YC.Domain.Effects
         }
         public static bool TryValidateContentContinuations(GameState state, out string reason)
         {
+            foreach (var node in state.EffectRuntime.EffectNodes)
+            {
+                reason = RetiredMarkerContractReason(node.EffectTypeId, node.NormalizedArguments); if (reason.Length > 0) return false;
+                var pending = new Stack<EffectSpecRuntimeState>(node.NestedEffects);
+                while (pending.Count > 0)
+                {
+                    var spec = pending.Pop(); reason = RetiredMarkerContractReason(spec.EffectTypeId, spec.NormalizedArguments);
+                    if (reason.Length > 0) return false;
+                    foreach (var child in spec.NestedEffects) pending.Push(child);
+                }
+            }
+            // 不把旧选择/提交节点解释成新转移；原存档由原版本恢复，当前版本给出明确诊断。
+            if (state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == PayMarkers)) { reason = RetiredMarkerPaymentReason; return false; }
+            foreach (var node in state.EffectRuntime.EffectNodes.Where(n => n.TransferBatchRequest?.ProtocolVersion == 3 ||
+                n.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(n.NormalizedArguments, "apiVersion") == 3))
+            {
+                bool receipt = Value(node.ContinuationData, "transferBatchReceipt") != null;
+                if (receipt)
+                { if (!ItemTransferService.TryValidateTokenState(state, node, out reason)) return false; }
+                else if (node.TransferBatchRequest != null || node.PositionChanges.Count > 0 || node.Status == EffectNodeStatus.Completed)
+                { reason = "token_transfer_receipt_missing"; return false; }
+            }
             reason = "content_flow_state_invalid";
             var stages = new Dictionary<string, string[]> {
                 { RewardAcquisitionFlow.TypeId, new[] { "", "choose_reward", "finished" } },
-                { LoadMarkers, new[] { "", "choose_amount", "finished" } },
-                { PayMarkers, new[] { "" } }, { StoreRemoved, new[] { "" } }, { ClearRouteRoad, new[] { "", "choose_route", "removing", "road", "scoring", "finished" } } };
+                { StoreRemoved, new[] { "" } }, { ClearRouteRoad, new[] { "", "choose_route", "removing", "road", "scoring", "finished" } } };
             foreach (var node in state.EffectRuntime.EffectNodes.Where(n => ContentFlowTypeIds.Contains(n.EffectTypeId)))
             {
                 if (ValidateContentFlow(node.EffectTypeId, node.NormalizedArguments).Length > 0 || Text(node.NormalizedArguments, "player") != node.PlayerId.ToString(CultureInfo.InvariantCulture) || state.FindPlayer(node.PlayerId) == null || !stages[node.EffectTypeId].Contains(CharacterLifecycleService.GetResumableFlowStage(node))) return false;
@@ -91,22 +118,17 @@ namespace YC.Domain.Effects
                     bool finished = node.FlowStage == "finished";
                     string rewardId = Text(node.ContinuationData, "selectedRewardItemId"), role = Text(node.NormalizedArguments, "poolRole");
                     if (finished != Flag(node.ContinuationData, "acquisitionCompleted") || finished != (rewardId.Length > 0)) return false;
-                    if (finished && (!state.ItemZones.Items.Any(i => i.ItemId == rewardId && i.TypeId == (role == "awards" ? "core.award_card" : "core.contract_card")) ||
+                    if (finished && (!state.ItemZones.Items.Any(i => i.ItemId == rewardId && i.TypeId == (role == "awards" ? "core.award_card" : ItemTypeRegistry.ContractTokenTypeId) &&
+                            Text(node.NormalizedResult, "definitionId") == i.DefinitionId) ||
                         node.PositionChanges.Count != 1 || !node.PositionChanges.Any(change => change.ItemId == rewardId &&
                             state.ItemZones.Zones.Any(z => z.ZoneId == change.From.ZoneId && z.TemplateId == "core.zone.reward_pool" && z.LocalZoneId == role) &&
-                            state.ItemZones.Zones.Any(z => z.ZoneId == change.To.ZoneId && z.TemplateId == "core.zone.player_awards" && z.OwnerPlayerId == node.PlayerId)) ||
-                        !Flag(node.NormalizedResult, "changed") || Text(node.NormalizedResult, "rewardItemId") != rewardId)) return false;
+                            state.ItemZones.Zones.Any(z => z.ZoneId == change.To.ZoneId && z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == node.PlayerId)) ||
+                        !Flag(node.NormalizedResult, "changed") || Text(node.NormalizedResult, "rewardItemId") != rewardId ||
+                        Text(node.NormalizedResult, "poolRole") != role || Number(node.NormalizedResult, "playerId", -1) != node.PlayerId)) return false;
                     if (!finished && node.PositionChanges.Count > 0 || node.FlowStage == "choose_reward" && role != "awards") return false;
                 }
                 var selected = Value(node.ContinuationData, "selectedItemIds");
                 if (selected != null && (selected.Kind != NormalizedValueKind.Array || selected.Items.Any(v => v.Kind != NormalizedValueKind.String || !state.ItemZones.Items.Any(i => i.ItemId == v.StringValue)) || selected.Items.Select(v => v.StringValue).Distinct().Count() != selected.Items.Count)) return false;
-                if (node.EffectTypeId == LoadMarkers)
-                {
-                    var amount = Value(node.ContinuationData, "selectedAmount");
-                    string maximum = "maxCount";
-                    if (amount != null && (amount.Kind != NormalizedValueKind.Integer || amount.IntegerValue < 0 || amount.IntegerValue > Number(node.NormalizedArguments, maximum, 0))) return false;
-                    if (node.FlowStage == "finished" && amount == null) return false;
-                }
                 if (node.EffectTypeId == ClearRouteRoad && !new[] { "", "choose_route" }.Contains(node.FlowStage))
                 {
                     string route = Text(node.ContinuationData, "selectedRouteId");
@@ -137,7 +159,8 @@ namespace YC.Domain.Effects
             Register(registry, LuaDomainEffectTypeIds.ResourceSell, Sell);
             foreach (string type in ContentFlowTypeIds)
                 if (!registry.TryGet(type, out _)) registry.Register(new EffectRegistration(type, context => ExecuteContentFlow(context, mapQuery, influenceService),
-                    type == PayMarkers || type == StoreRemoved ? EffectExecutorKind.Atomic : EffectExecutorKind.IntrinsicFlow, "v1"));
+                    type == StoreRemoved ? EffectExecutorKind.Atomic : EffectExecutorKind.IntrinsicFlow,
+                    "v1"));
         }
         private static void Register(EffectRegistry registry, string type, Func<EffectExecutionContext, EffectStepResult> execute)
         {
@@ -154,8 +177,6 @@ namespace YC.Domain.Effects
             switch (context.Node.EffectTypeId)
             {
                 case RewardAcquisitionFlow.TypeId: return RewardAcquisitionFlow.Execute(context);
-                case LoadMarkers: return LoadCardMarkers(context);
-                case PayMarkers: return PayCardMarkers(context);
                 case StoreRemoved: return StoreRemovedCube(context);
                 default: return ClearAndRoad(context, mapQuery, influenceService);
             }
@@ -170,25 +191,6 @@ namespace YC.Domain.Effects
                 request.Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.map.route") };
             request.CandidateIds.AddRange(candidates.OrderBy(id => id, StringComparer.Ordinal));
             return EffectStepResult.Continue(stage).AddInteraction(PrepareInteraction(context, request));
-        }
-        private static EffectStepResult QuantityWait(EffectExecutionContext context, int maximum, string kind,
-            string rowId = "", string sourceItemId = "")
-        {
-            var parameters = Object("minAmount", NormalizedValue.CreateInteger(0),
-                "maxAmount", NormalizedValue.CreateInteger(maximum), "amountKind", NormalizedValue.CreateString(kind));
-            if (!string.IsNullOrEmpty(rowId))
-            {
-                parameters.Properties.Add(new NormalizedValueEntry { Name = "rowIds", Value = Strings(new[] { rowId }) });
-                parameters.Properties.Add(new NormalizedValueEntry { Name = "rowMaximums", Value = NormalizedValue.CreateArray(new[] { NormalizedValue.CreateInteger(maximum) }) });
-                parameters.Properties.Add(new NormalizedValueEntry { Name = "sourceItemId", Value = NormalizedValue.CreateString(sourceItemId) });
-                parameters.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
-            }
-            return EffectStepResult.Continue("choose_amount").AddInteraction(new EffectInteractionSpec {
-                InteractionTypeId = QuantityInteractionTypeId, PromptKey = QuantityInteractionTypeId,
-                AnsweringPlayerId = context.Node.PlayerId, Visibility = "owner", AnswerSchema = QuantityAnswerSchema,
-                MinSelections = 0, MaxSelections = 0, AllowDecline = true,
-                PromptParameters = parameters
-            });
         }
         public static bool TryReadBoundedAmount(NormalizedValue parameters, NormalizedValue answer, out int amount)
         {
@@ -206,51 +208,29 @@ namespace YC.Domain.Effects
             context.GetLatestInteractionAnswer()?.Kind == NormalizedValueKind.Boolean && !context.GetLatestInteractionAnswer().BooleanValue;
         private static ZoneInstanceState RequireCardZone(EffectExecutionContext context)
         {
-            var args = context.Node.NormalizedArguments; var card = context.State.ItemZones.Items.Find(item => item.ItemId == Text(args, "cardInstanceId"));
-            if (card?.ControllerSubject.Kind != ItemSubjectKind.Player || card.ControllerSubject.PlayerId != context.Node.PlayerId ||
-                !context.State.ItemZones.Zones.Any(zone => zone.ZoneId == card.ZoneId && new[] { "core.zone.character_covered", "core.zone.character_persistent" }.Contains(zone.TemplateId))) return null;
-            return context.State.ItemZones.Zones.Find(zone => zone.ParentKind == ZoneParentKind.Item && zone.ParentId == card.ItemId && zone.LocalZoneId == Text(args, "localZoneId") && zone.TemplateId == "core.zone.card_cube_storage");
-        }
-        private static EffectStepResult LoadCardMarkers(EffectExecutionContext context)
-        {
-            var zone = RequireCardZone(context); if (zone == null) return EffectStepResult.Failed("card_zone_permission_denied");
-            string supply = FindZone(context.State, "player_markers", context.Node.PlayerId).ZoneId;
-            var ids = context.State.ItemZones.Items.Where(item => item.ZoneId == supply && item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == context.Node.PlayerId).Select(item => item.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList();
-            int limit = Math.Min(Number(context.Node.NormalizedArguments, "maxCount", 0), ids.Count);
-            int requested = context.Node.FlowStage == "choose_amount" && int.TryParse(Declined(context) ? "0" : Answer(context), NumberStyles.None, CultureInfo.InvariantCulture, out int answered) ? answered : Number(context.Node.NormalizedArguments, "maxCount", 0);
-            if (requested >= 0 && CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
-                DependencyKind = DeferredDependencyKind.SupplyRequirement, OriginalSupplyZoneId = supply, RequiredTypeId = "core.player_marker", RequiredCount = requested }))
-                return CharacterLifecycleService.DeferredDependencyWait();
-            if (context.Node.FlowStage != "choose_amount" || !int.TryParse(Declined(context) ? "0" : Answer(context), NumberStyles.None, CultureInfo.InvariantCulture, out int count) || count < 0 || count > limit)
-                return QuantityWait(context, limit, "player_marker", "player_marker", Text(context.Node.NormalizedArguments, "cardInstanceId"));
-            var selected = ids.Take(count).ToList(); Set(context.Node, "selectedAmount", NormalizedValue.CreateInteger(count));
-            var moved = new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ItemIds = selected,
-                ExpectedSource = new ItemPositionRef { ZoneId = supply }, Destination = new ZoneRef { ZoneId = zone.ZoneId }, InsertionKind = "unordered", OperationProfileId = "core.cube_storage", RequiredCount = count });
-            CharacterLifecycleService.ExitEmptyCarriers(context, new[] { zone.ZoneId });
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(moved.Changed), "movedCount", NormalizedValue.CreateInteger(moved.MovedCount), "movedItemIds", Strings(moved.MovedItemIds))).WithFlowStage("finished");
-        }
-        private static EffectStepResult PayCardMarkers(EffectExecutionContext context)
-        {
-            var zone = RequireCardZone(context); if (zone == null) return EffectStepResult.Failed("card_zone_permission_denied");
-            int count = Number(context.Node.NormalizedArguments, "count", 0);
-            if (CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
-                DependencyKind = DeferredDependencyKind.CardMarkerConsumption, SourceCardInstanceId = Text(context.Node.NormalizedArguments, "cardInstanceId"), RequiredCount = count }))
-                return CharacterLifecycleService.DeferredDependencyWait();
-            var cubes = context.State.ItemZones.Items.Where(item => item.ZoneId == zone.ZoneId && item.PhysicalKind == ItemPhysicalKind.Cube).OrderBy(item => item.ItemId, StringComparer.Ordinal).Take(count).ToList();
-            if (cubes.Count < count) return EffectStepResult.Failed("insufficient_items");
-            if (CharacterLifecycleService.TryAwaitEmptyCarrierExits(context, new[] { zone.ZoneId }, cubes.Select(item => item.ItemId))) return CharacterLifecycleService.DeferredDependencyWait();
-            var requests = cubes.Select(item => new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ItemIds = new List<string> { item.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = zone.ZoneId },
-                Destination = new ZoneRef { ZoneId = CharacterLifecycleService.CubeSupply(context.State, item).ZoneId }, InsertionKind = "unordered", OperationProfileId = "core.cube_storage", RequiredCount = 1 }).ToList();
-            var service = new ItemTransferService(); foreach (var request in requests) { var validation = service.Validate(context.State, request); if (!validation.IsValid) return EffectStepResult.Failed(validation.ReasonCode); }
-            foreach (var request in requests) service.RelocateItems(context, request);
-            CharacterLifecycleService.ExitEmptyCarriers(context, new[] { zone.ZoneId });
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "movedCount", NormalizedValue.CreateInteger(count), "movedItemIds", Strings(cubes.Select(item => item.ItemId))));
+            var args = context.Node.NormalizedArguments;
+            const string operation = "store";
+            return CardMarkerCarrier.Resolve(context.State, context.Node, Text(args, "cardInstanceId"), Text(args, "localZoneId"), operation, out _, out _, context.Registry.AbilityDeclarations, Number(args, "apiVersion") == 1, context.Registry);
         }
         private static EffectStepResult StoreRemovedCube(EffectExecutionContext context)
         {
             var target = RequireCardZone(context); var item = context.State.ItemZones.Items.Find(value => value.ItemId == Text(context.Node.NormalizedArguments, "influenceItemId"));
-            if (target?.Configuration?.EntryPolicyId != "core.removed_owned_influence" || item?.PhysicalKind != ItemPhysicalKind.Cube ||
+            bool v2 = Number(context.Node.NormalizedArguments, "apiVersion") == 2;
+            if (target == null || !v2 && target.Configuration?.EntryPolicyId != "core.removed_owned_influence" || item?.PhysicalKind != ItemPhysicalKind.Cube ||
                 item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId != context.Node.PlayerId) return EffectStepResult.Failed("card_zone_permission_denied");
+            if (v2)
+            {
+                CardMarkerCarrier.Resolve(context.State, context.Node, target.ParentId, target.LocalZoneId, "store", out var types, out _, context.Registry.AbilityDeclarations, registry: context.Registry);
+                if (!CardMarkerCarrier.Accepts(context.State, target, item, context.Node.PlayerId, types)) return EffectStepResult.Failed("carrier_item_type_rejected");
+            }
+            var currentDeparture = InfluenceDepartureProtocol.Current(context.State, item.ItemId, context.Node.EffectId);
+            if (currentDeparture != null)
+            {
+                var claim = InfluenceDepartureProtocol.Response(context.State, context.Node.EffectId);
+                if (claim?.Kind != "destination" || claim.SourceCardInstanceId != target.ParentId || claim.DepartureId != currentDeparture.DepartureId) return EffectStepResult.Failed("departure_claim_permission_denied");
+                var movedV2 = InfluenceDepartureProtocol.Resolve(context, currentDeparture, target.ZoneId);
+                return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(movedV2.Changed), "movedCount", NormalizedValue.CreateInteger(movedV2.MovedCount), "movedItemIds", Strings(movedV2.MovedItemIds)));
+            }
             var source = context.State.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId);
             var owner = context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == source?.OwnerEffectId);
             if (CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery {
@@ -346,7 +326,7 @@ namespace YC.Domain.Effects
             if (args?.Properties != null) foreach (var item in args.Properties) if (item.Name == key) return item.Value?.StringValue ?? fallback;
             return fallback;
         }
-        private static int Number(NormalizedValue args, string key, int fallback)
+        private static int Number(NormalizedValue args, string key, int fallback = 0)
         {
             if (args?.Properties != null) foreach (var item in args.Properties) if (item.Name == key && item.Value.Kind == NormalizedValueKind.Integer) return (int)item.Value.IntegerValue;
             return fallback;
@@ -372,6 +352,12 @@ namespace YC.Domain.Effects
             string operation = Text(args, "operation"), filter = Text(args, "subjectFilter", Text(args, "ownerFilter", "self"));
             int count = Number(args, "count", 1), required = Number(args, "requiredCount", 0);
             if (!new[] { "move", "replace", "remove" }.Contains(operation) || !new[] { "self", "player", "opponent", "any" }.Contains(filter) || count < 1 || count > 16 || required < 0 || required > count)
+                return EffectStepResult.Failed("influence_selection_arguments_invalid");
+            var allowedIds = Value(args, "candidateIds");
+            if (allowedIds != null && (operation != "remove" || count != 1 || required != 1 || !Flag(args, "requireCompleteSelection") ||
+                    allowedIds.Kind != NormalizedValueKind.Array ||
+                    allowedIds.Items.Any(v => v.Kind != NormalizedValueKind.String || string.IsNullOrEmpty(v.StringValue)) ||
+                    allowedIds.Items.Select(v => v.StringValue).Distinct(StringComparer.Ordinal).Count() != allowedIds.Items.Count))
                 return EffectStepResult.Failed("influence_selection_arguments_invalid");
             var map = mapQuery ?? new MapQueryService(StaticMapDefinitions.Resolve(context.State.MapId));
             var service = influenceService ?? new InfluenceService(map);
@@ -460,6 +446,8 @@ namespace YC.Domain.Effects
             var selected = Value(node.ContinuationData, "selectedItemIds")?.Items.Select(v => v.StringValue).ToList() ?? new List<string>();
             int index = Number(node.ContinuationData, "nextIndex", 0), completed = Number(node.ContinuationData, "completedCount", 0);
             var candidates = new InfluenceSubjectQuery().GetCandidateItemIds(context.State, node.PlayerId, filter).Where(id => InScope(context.State, service.FindInfluence(context.State, id), scope)).OrderBy(id => id, StringComparer.Ordinal).ToList();
+            var allowedIds = Value(node.NormalizedArguments, "candidateIds");
+            if (allowedIds != null) candidates.RemoveAll(id => !allowedIds.Items.Any(v => v.StringValue == id));
             if (node.FlowStage == "")
             { if (candidates.Count < count) return EffectStepResult.Failed("insufficient_items"); }
             else if (node.FlowStage == "choose_complete")
@@ -471,6 +459,28 @@ namespace YC.Domain.Effects
                 { if (candidates.Count < count) return EffectStepResult.Failed("insufficient_items"); selected.Clear(); }
                 else Set(node, "selectedItemIds", Strings(selected));
             }
+            else if (node.FlowStage == "applied_strict")
+            {
+                var child = context.ChildNodes.Last();
+                if (child.Status != EffectNodeStatus.Completed || Number(child.NormalizedResult, "actualRemovedCount") != count) return EffectStepResult.Failed("incomplete_influence_payment");
+                var result = Object("completedCount", NormalizedValue.CreateInteger(count), "changed", NormalizedValue.CreateBoolean(true));
+                if (allowedIds != null)
+                {
+                    var departures = context.State.EffectRuntime.InfluenceDepartures.Where(d => d.SourceEffectId == child.EffectId).OrderBy(d => d.OperationIndex).ToList();
+                    if (departures.Count != count || departures.Any(d => !selected.Contains(d.ItemId) || d.Status == "open"))
+                        return EffectStepResult.Failed("incomplete_influence_payment");
+                    var origins = departures.Select(d => {
+                        var zone = context.State.ItemZones.Zones.Single(z => z.ZoneId == d.OriginalPosition.ZoneId);
+                        var parent = context.State.ItemZones.Zones.Single(z => z.ZoneId == zone.ParentId);
+                        return Object("influenceId", NormalizedValue.CreateString(d.ItemId), "departureId", NormalizedValue.CreateString(d.DepartureId),
+                            "originalPosition", Object("zoneId", NormalizedValue.CreateString(d.OriginalPosition.ZoneId), "slotId", NormalizedValue.CreateString(d.OriginalPosition.SlotId)),
+                            "locationId", NormalizedValue.CreateString(parent.TemplateId == "core.zone.map_location" ? parent.LocalZoneId : ""));
+                    }).ToList();
+                    result.Properties.Add(new NormalizedValueEntry { Name = "removedInfluences", Value = NormalizedValue.CreateArray(origins) });
+                    result.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
+                }
+                return EffectStepResult.Completed(result);
+            }
             else if (node.FlowStage == "applied_complete")
             {
                 var child = context.ChildNodes.Last();
@@ -480,9 +490,10 @@ namespace YC.Domain.Effects
             else return EffectStepResult.Failed("invalid_flow_stage");
             if (selected.Count == 0)
             {
-                var request = InfluenceSelectionInteraction(node, operation, Text(node.NormalizedArguments, "promptKey"), count, "candidate_id_array");
+                var request = InfluenceSelectionInteraction(node, operation, Text(node.NormalizedArguments, "promptKey"), count, allowedIds != null ? "candidate_id" : "candidate_id_array");
                 request.CandidateIds.AddRange(candidates); return EffectStepResult.Continue("choose_complete").AddInteraction(PrepareInteraction(context, request));
             }
+            if (operation == "remove" && index == 0) return EffectStepResult.Continue("applied_strict").AddChild(InfluenceEffectExecutor.StrictRemove(node.PlayerId, selected, count, node.SourceId));
             if (index == count) return EffectStepResult.Completed(Object("completedCount", NormalizedValue.CreateInteger(completed), "changed", NormalizedValue.CreateBoolean(completed == count)));
             if (!candidates.Contains(selected[index])) return EffectStepResult.Failed("incomplete_influence_payment");
             return EffectStepResult.Continue("applied_complete").AddChild(operation == "remove" ? InfluenceEffectSpecFactory.RemoveInfluence(node.PlayerId, selected[index], node.SourceId) : InfluenceEffectSpecFactory.ReplaceInfluence(node.PlayerId, selected[index], node.SourceId));
@@ -490,6 +501,7 @@ namespace YC.Domain.Effects
         private static EffectInteractionSpec InfluenceSelectionInteraction(EffectNodeRuntimeState node, string operation, string prompt, int count, string schema)
         {
             string type = Text(node.NormalizedArguments, "interactionType", "lua.choice");
+            if (Value(node.NormalizedArguments, "candidateIds") != null) type = "effect.influence.remove.target";
             if (operation == "move" && (type.Length == 0 || type == "lua.choice")) type = "character.ability.choice.move";
             if (prompt.Length == 0 || prompt == "effect.influence.choose") prompt = "effect.influence." + operation + ".choose_target";
             var request = new EffectInteractionSpec { InteractionTypeId = type, AnsweringPlayerId = node.PlayerId,

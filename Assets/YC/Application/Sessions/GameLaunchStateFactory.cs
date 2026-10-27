@@ -132,6 +132,9 @@ namespace YC.Application.Sessions
                 ? new List<int>(new TurnOrderService().GetLaunchPlayerOrder(state)) : new List<int>(launchPlayerOrder);
             if (launchPlayerOrder != null) startPlayerId = state.LaunchPlayerOrder[0];
             new RoundExecutionProjector().ProjectEntrance(state, startPlayerId, startPlayerId);
+            // 正式门禁读取本次活动配方；尚未装配不能拿默认基础配方判断扩展入口。
+            state.SetupRecipe = GameStateCloneService.DeepClone(recipe);
+            RuleModeReadiness.ValidateReady(state);
             if (mode == LaunchMode.Client) return state;
             return recipe.Assemble(state, YC.Domain.Maps.StaticMapDefinitions.Resolve(configuration.MapId), eventDeckSeed);
         }

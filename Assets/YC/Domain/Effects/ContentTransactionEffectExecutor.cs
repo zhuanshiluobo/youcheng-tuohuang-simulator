@@ -179,7 +179,7 @@ namespace YC.Domain.Effects
             var item = c.State.ItemZones.Items.Find(i => i.ItemId == Text(args, "markerItemId"));
             if (Text(args, "cardItemId") != source || cardZone == null || item?.TypeId != "core.player_marker" || item.OwnerSubject.Kind != ItemSubjectKind.Player)
                 return EffectStepResult.Failed("marker_storage_permission_denied");
-            var supply = c.State.ItemZones.Zones.Find(z => z.TemplateId == "core.zone.player_marker_supply" && z.OwnerPlayerId == item.OwnerSubject.PlayerId);
+            var supply = c.State.ItemZones.Zones.Find(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == item.OwnerSubject.PlayerId);
             if (supply == null || item.ZoneId != (store ? supply.ZoneId : cardZone.ZoneId)) return EffectStepResult.Failed("marker_source_changed");
             if (CharacterLifecycleService.TryAwaitDeferredDependencies(c, new DeferredDependencyQuery { DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = new List<string> { item.ItemId } }) ||
                 !store && CharacterLifecycleService.TryAwaitEmptyCarrierExits(c, new[] { cardZone.ZoneId }, new[] { item.ItemId })) return CharacterLifecycleService.DeferredDependencyWait();

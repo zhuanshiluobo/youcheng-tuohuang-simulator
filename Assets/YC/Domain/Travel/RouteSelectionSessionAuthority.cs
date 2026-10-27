@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
+using YC.Domain.Harvest;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -13,7 +15,9 @@ namespace YC.Domain.Travel
     {
         private readonly IMapQueryService configuredMap;
         public RouteSelectionSessionAuthority(IMapQueryService mapQuery = null) { configuredMap = mapQuery; }
-        private RouteResourceSelectionService Service { get { return new RouteResourceSelectionService(configuredMap); } }
+        private readonly EffectRegistry queryRegistry;
+        public RouteSelectionSessionAuthority(IMapQueryService mapQuery, EffectRegistry registry) { configuredMap = mapQuery; queryRegistry = registry; }
+        private RouteResourceSelectionService Service { get { return new RouteResourceSelectionService(configuredMap, queryRegistry); } }
 
         public ValidationResult TryOpen(GameState state, EffectNodeRuntimeState ownerNode, RouteSelectionOptions options, out RouteSelectionSession session)
         {
@@ -22,6 +26,7 @@ namespace YC.Domain.Travel
             if (options == null) throw new ArgumentNullException(nameof(options));
             session = null;
             if (!IsActualNode(state, ownerNode) || ownerNode.PlayerId != options.PlayerId
+                || options.SchemaVersion != 1 && options.SchemaVersion != CollectionPlanService.ProtocolVersion || options.SchemaVersion == CollectionPlanService.ProtocolVersion && options.Purpose == RouteSelectionPurpose.Exploration
                 || (int)options.Purpose < 0 || (int)options.Purpose > 2 || options.SelectableLocationUpperBound == null || options.MinimumLocations < 0 || options.MaximumLocations < options.MinimumLocations) return Invalid("route_selection_owner_invalid");
             var existing = Value(ownerNode.ContinuationData, "routeSelection");
             if (existing != null) return TryRestore(state, ownerNode, out session, out _);
@@ -47,7 +52,7 @@ namespace YC.Domain.Travel
             var upper = new HashSet<string>(StringComparer.Ordinal);
             foreach (string id in options.SelectableLocationUpperBound)
                 if (id == null || !map.Map.Locations.Any(l => l.LocationId == id) || !upper.Add(id)) return Invalid("route_selection_upper_bound_invalid");
-            session = new RouteSelectionSession { SessionId = StableIdFactory.Create("route_selection_session", ownerNode.EffectId, "1"), OwnerEffectId = ownerNode.EffectId,
+            session = new RouteSelectionSession { SchemaVersion = options.SchemaVersion, SessionId = StableIdFactory.Create("route_selection_session", ownerNode.EffectId, options.SchemaVersion.ToString(CultureInfo.InvariantCulture)), OwnerEffectId = ownerNode.EffectId,
                 Purpose = options.Purpose, PlayerId = player.PlayerId, MapId = state.MapId, StartLocationId = options.StartLocationId, ActionContextId = options.ActionContextId ?? "",
                 OpenedAtStateRevision = state.EffectRuntime.StateRevision, StartGoldVoucherAmount = startGold,
                 BudgetBindingId = StableIdFactory.Create("route_selection_budget", ownerNode.EffectId, options.ExistingStartBudgetBindingId ?? ""),
@@ -69,10 +74,15 @@ namespace YC.Domain.Travel
             session = null; requestBinding = null;
             if (!IsActualNode(state, ownerNode)) return Invalid("route_selection_owner_invalid");
             var record = Value(ownerNode.ContinuationData, "routeSelection");
-            if (!TryReadSession(record, out session) || session.SessionId != StableIdFactory.Create("route_selection_session", ownerNode.EffectId, "1") || session.OwnerEffectId != ownerNode.EffectId
+            if (!TryReadSession(record, out session) || session.SessionId != StableIdFactory.Create("route_selection_session", ownerNode.EffectId, session.SchemaVersion.ToString(CultureInfo.InvariantCulture)) || session.OwnerEffectId != ownerNode.EffectId
                 || session.PlayerId != ownerNode.PlayerId || state.FindPlayer(session.PlayerId) == null || session.MapId != state.MapId) { session = null; return Invalid("route_selection_restore_invalid"); }
             var locations = new HashSet<string>(Service.Map(state).Map.Locations.Select(l => l.LocationId), StringComparer.Ordinal);
-            if (!locations.Contains(session.StartLocationId) || session.SelectableLocationUpperBound.Any(id => !locations.Contains(id))) { session = null; return Invalid("route_selection_restore_location_invalid"); }
+            var restoredUpperBound = session.SelectableLocationUpperBound;
+            if (!locations.Contains(session.StartLocationId) || session.SelectableLocationUpperBound.Any(id => !locations.Contains(id)) ||
+                session.CollectionFreeLocations != null && session.CollectionFreeLocations.LegalLocationIds.Any(id => !locations.Contains(id) || !restoredUpperBound.Contains(id))) { session = null; return Invalid("route_selection_restore_location_invalid"); }
+            var protocolMarker = Value(ownerNode.NormalizedArguments, "collectionPlanProtocol");
+            if (protocolMarker != null && (protocolMarker.Kind != NormalizedValueKind.Integer || Integer(ownerNode.NormalizedArguments,"collectionPlanProtocol",-1) != session.SchemaVersion))
+                return Invalid("collection_plan_owner_protocol_mismatch");
             requestBinding = session.ActiveRequestBinding;
             return ValidationResult.Success;
         }
@@ -117,6 +127,17 @@ namespace YC.Domain.Travel
             if (selectableLocationIds.Distinct(StringComparer.Ordinal).Count() != selectableLocationIds.Count || selectableLocationIds.Any(id => id == null || !session.SelectableLocationUpperBound.Contains(id))) return Invalid("route_selection_input_outside_upper_bound");
             if ((session.ActiveRequestBinding?.CandidateSetVersion ?? 0) >= NormalizedValue.MaxInteger) return Invalid("route_selection_version_exhausted");
             int version = (session.ActiveRequestBinding?.CandidateSetVersion ?? 0) + 1;
+            var oldFree = session.CollectionFreeLocations;
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                try
+                {
+                    session.CollectionFreeLocations = new CollectionFreeLocationQuery(queryRegistry, Service.Map(state)).Query(state,
+                        CollectionPlanService.Context(state, session, selectableLocationIds));
+                }
+                catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
+                { session.CollectionFreeLocations = oldFree; return Invalid(error.Message); }
+            }
             string facts = Service.FactsDigest(state, session, selectableLocationIds);
             string scope = RouteResourceSelectionService.Hash(new[] { session.SessionId, version.ToString(CultureInfo.InvariantCulture), facts });
             requestBinding = new RouteSelectionRequestBinding { SessionId = session.SessionId, CandidateSetId = StableIdFactory.Create("route_selection_candidates", session.SessionId),
@@ -132,7 +153,7 @@ namespace YC.Domain.Travel
             ValidationResult saved;
             try { saved = PutRecord(ownerNode, SessionRecord(session)); }
             catch (ArgumentException) { saved = Invalid("route_selection_record_too_large"); }
-            if (!saved.IsValid) { requestBinding = null; session.ActiveRequestBinding = previousBinding; return saved; }
+            if (!saved.IsValid) { requestBinding = null; session.ActiveRequestBinding = previousBinding; session.CollectionFreeLocations = oldFree; return saved; }
             candidateIds = ids.AsReadOnly();
             return ValidationResult.Success;
         }
@@ -175,13 +196,25 @@ namespace YC.Domain.Travel
                     PrunedRouteIds = Array.AsReadOnly(pruned), EffectiveRouteIds = effective, ChargeRouteIds = charge, PrunedFreeRouteIds = Decode(Text(record, "prunedFreeRoutes")), ConnectivityWitness = RouteResourceSelectionService.BuildConnectivityWitness(map, effective, session.StartLocationId),
                     PaymentPlan = new RouteTollPlan { Lines = lines.AsReadOnly(), TotalGoldVoucherAmount = Integer(record, "totalCost", -1) }, FinalizationValidation = ValidationResult.Success,
                     RemainingStartGoldVoucherAmount = session.StartGoldVoucherAmount - Integer(record, "totalCost", -1), PlanDigest = Text(record, "planDigest") };
+                if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+                {
+                    if (!CollectionPlanRecordCodec.TryReadPartition(record, preview.SelectedLocationIds, out var part))
+                        return Invalid("collection_saved_evidence_invalid");
+                    preview.Collection = part;
+                    var valid = CollectionPlanService.ValidateSaved(session, preview);
+                    string sourceError = queryRegistry?.ValidateCollectionEvidence(state, part.FreeLocations) ?? "";
+                    if (sourceError.Length > 0) return Invalid(sourceError);
+                    if (!valid.IsValid || part.FreeLocations.Evidence.Any(e => e.Kind == "ability" && e.VersionRef.ContentPackHash != state.ContentPackHash))
+                        return Invalid(valid.IsValid ? "collection_saved_content_mismatch" : valid.Reason);
+                }
                 var reachable = new HashSet<string>(preview.ConnectivityWitness.Select(link => link.LocationId), StringComparer.Ordinal) { session.StartLocationId };
                 var upperBound = session.SelectableLocationUpperBound;
                 if (preview.SelectedLocationIds.Count < session.MinimumLocations || preview.SelectedLocationIds.Count > session.MaximumLocations
                     || preview.SelectedLocationIds.Distinct(StringComparer.Ordinal).Count() != preview.SelectedLocationIds.Count
                     || preview.PrunedFreeRouteIds.Distinct(StringComparer.Ordinal).Count() != preview.PrunedFreeRouteIds.Count
                     || preview.PrunedFreeRouteIds.Any(id => !knownRoutes.Contains(id) || effective.Contains(id) || charge.Contains(id))
-                    || RouteResourceSelectionService.PlanDigest(session, preview) != preview.PlanDigest || preview.SelectedLocationIds.Any(id => !upperBound.Contains(id) || !reachable.Contains(id))) return Invalid("route_selection_saved_digest_invalid");
+                    || RouteResourceSelectionService.PlanDigest(session, preview) != preview.PlanDigest || preview.SelectedLocationIds.Any(id => !upperBound.Contains(id)) ||
+                    (preview.Collection?.RouteRequiredLocationIds ?? preview.SelectedLocationIds).Any(id => !reachable.Contains(id))) return Invalid("route_selection_saved_digest_invalid");
                 commitment = new RouteSelectionCommitment { CommitmentId = Text(record, "commitmentId"), SessionId = session.SessionId, OwnerEffectId = session.OwnerEffectId, PlayerId = session.PlayerId,
                     BudgetBindingId = session.BudgetBindingId, AcceptedAtStateRevision = Integer(record, "acceptedRevision", -1), AcceptedPreview = preview };
                 if (commitment.CommitmentId != StableIdFactory.Create("route_selection_commitment", session.SessionId, preview.PlanDigest)) return Invalid("route_selection_saved_commitment_invalid");
@@ -218,6 +251,10 @@ namespace YC.Domain.Travel
         {
             var preview = commitment.AcceptedPreview;
             if (!IsActualNode(state, owner) || session.Stage != RouteSelectionStage.Selecting || commitment.OwnerEffectId != owner.EffectId || commitment.SessionId != session.SessionId) return Invalid("route_selection_seal_invalid");
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion &&
+                (!CollectionPlanService.ValidateSaved(session, preview).IsValid ||
+                 session.CollectionFreeLocations?.ResultDigest != preview.Collection?.FreeLocations.ResultDigest ||
+                 RouteResourceSelectionService.PlanDigest(session, preview) != preview.PlanDigest)) return Invalid("collection_plan_seal_invalid");
             var record = SessionRecord(session);
             Set(record, "stage", NormalizedValue.CreateInteger((int)RouteSelectionStage.Committed));
             try
@@ -227,6 +264,7 @@ namespace YC.Domain.Travel
                     Tuple.Create("paymentLines", string.Join(";", preview.PaymentPlan.Lines.Select(l => RouteSelectionAnswerCodec.EncodeField(l.RouteId) + "~" + RouteSelectionAnswerCodec.EncodeField(l.ReceiverSubjectKey) + "~" + l.GoldVoucherAmount.ToString(CultureInfo.InvariantCulture)))) })
                     Set(record, pair.Item1, NormalizedValue.CreateString(pair.Item2));
                 Set(record, "totalCost", NormalizedValue.CreateInteger(preview.PaymentPlan.TotalGoldVoucherAmount)); Set(record, "acceptedRevision", NormalizedValue.CreateInteger(commitment.AcceptedAtStateRevision));
+                if (preview.Collection != null) CollectionPlanRecordCodec.WriteFacts(record, preview.Collection.FreeLocations, preview.Collection);
                 var saved = PutRecord(owner, record);
                 if (saved.IsValid) session.Stage = RouteSelectionStage.Committed;
                 return saved;
@@ -263,27 +301,40 @@ namespace YC.Domain.Travel
             foreach (var pair in new[] { Tuple.Create("sessionId", session.SessionId), Tuple.Create("ownerEffectId", session.OwnerEffectId), Tuple.Create("mapId", session.MapId), Tuple.Create("startLocationId", session.StartLocationId),
                 Tuple.Create("actionContextId", session.ActionContextId), Tuple.Create("budgetBindingId", session.BudgetBindingId), Tuple.Create("upperBound", Encode(session.SelectableLocationUpperBound)),
                 Tuple.Create("scopeKey", session.ActiveRequestBinding?.ScopeKey ?? ""), Tuple.Create("factsDigest", session.ActiveRequestBinding?.FrozenFactsDigest ?? ""), Tuple.Create("candidateSetId", session.ActiveRequestBinding?.CandidateSetId ?? "") }) Set(record, pair.Item1, NormalizedValue.CreateString(pair.Item2));
-            foreach (var pair in new[] { Tuple.Create("schemaVersion", 1), Tuple.Create("playerId", session.PlayerId), Tuple.Create("purpose", (int)session.Purpose), Tuple.Create("stage", (int)session.Stage),
+            foreach (var pair in new[] { Tuple.Create("schemaVersion", session.SchemaVersion), Tuple.Create("playerId", session.PlayerId), Tuple.Create("purpose", (int)session.Purpose), Tuple.Create("stage", (int)session.Stage),
                 Tuple.Create("openedRevision", session.OpenedAtStateRevision), Tuple.Create("startGold", session.StartGoldVoucherAmount), Tuple.Create("minimumLocations", session.MinimumLocations), Tuple.Create("maximumLocations", session.MaximumLocations),
                 Tuple.Create("candidateSetVersion", session.ActiveRequestBinding?.CandidateSetVersion ?? 0), Tuple.Create("requestRevision", session.ActiveRequestBinding?.RequestStateRevision ?? 0) }) Set(record, pair.Item1, NormalizedValue.CreateInteger(pair.Item2));
             Set(record, "allowCancel", NormalizedValue.CreateBoolean(session.AllowCancelBeforeCommit));
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion && session.CollectionFreeLocations != null)
+                CollectionPlanRecordCodec.WriteFacts(record, session.CollectionFreeLocations);
             return record;
         }
 
         private static bool TryReadSession(NormalizedValue record, out RouteSelectionSession session)
         {
             session = null;
-            if (record?.Kind != NormalizedValueKind.Object || !record.IsValid() || Integer(record, "schemaVersion", -1) != 1 || Integer(record, "startGold", -1) < 0 || Integer(record, "playerId", -1) <= 0 || Value(record, "upperBound") == null || Value(record, "allowCancel")?.Kind != NormalizedValueKind.Boolean) return false;
+            if (record?.Kind != NormalizedValueKind.Object || !record.IsValid() || Integer(record, "schemaVersion", -1) != 1 && Integer(record, "schemaVersion", -1) != CollectionPlanService.ProtocolVersion || Integer(record, "startGold", -1) < 0 || Integer(record, "playerId", -1) <= 0 || Value(record, "upperBound") == null || Value(record, "allowCancel")?.Kind != NormalizedValueKind.Boolean) return false;
             var stringFields = new[] { "sessionId", "ownerEffectId", "mapId", "startLocationId", "actionContextId", "budgetBindingId", "upperBound", "scopeKey", "factsDigest", "candidateSetId" };
             var integerFields = new[] { "schemaVersion", "playerId", "purpose", "stage", "openedRevision", "startGold", "minimumLocations", "maximumLocations", "candidateSetVersion", "requestRevision" };
-            var savedFields = new[] { "commitmentId", "planDigest", "selectedLocations", "originalRoutes", "effectiveRoutes", "chargeRoutes", "prunedFreeRoutes", "paymentLines", "totalCost", "acceptedRevision", "consumerEffectId", "selectionDiagnostic" };
+            var savedFields = new[] { "commitmentId", "planDigest", "selectedLocations", "originalRoutes", "effectiveRoutes", "chargeRoutes", "prunedFreeRoutes", "paymentLines", "totalCost", "acceptedRevision", "consumerEffectId", "selectionDiagnostic", "collection" };
             if (stringFields.Any(key => Value(record, key)?.Kind != NormalizedValueKind.String) || integerFields.Any(key => Value(record, key)?.Kind != NormalizedValueKind.Integer)
                 || record.Properties.Any(p => p.Name != "allowCancel" && !stringFields.Contains(p.Name) && !integerFields.Contains(p.Name) && !savedFields.Contains(p.Name))) return false;
             int purpose = Integer(record, "purpose", -1), stage = Integer(record, "stage", -1);
             if (purpose < 0 || purpose > 2 || stage < 0 || stage > 3) return false;
-            session = new RouteSelectionSession { SessionId = Text(record, "sessionId"), OwnerEffectId = Text(record, "ownerEffectId"), PlayerId = Integer(record, "playerId", -1), MapId = Text(record, "mapId"), StartLocationId = Text(record, "startLocationId"),
+            session = new RouteSelectionSession { SchemaVersion = Integer(record, "schemaVersion", 1), SessionId = Text(record, "sessionId"), OwnerEffectId = Text(record, "ownerEffectId"), PlayerId = Integer(record, "playerId", -1), MapId = Text(record, "mapId"), StartLocationId = Text(record, "startLocationId"),
                 Purpose = (RouteSelectionPurpose)purpose, Stage = (RouteSelectionStage)stage, ActionContextId = Text(record, "actionContextId"), BudgetBindingId = Text(record, "budgetBindingId"), StartGoldVoucherAmount = Integer(record, "startGold", -1),
                 OpenedAtStateRevision = Integer(record, "openedRevision", -1), SelectableLocationUpperBound = Decode(Text(record, "upperBound")), MinimumLocations = Integer(record, "minimumLocations", -1), MaximumLocations = Integer(record, "maximumLocations", -1), AllowCancelBeforeCommit = Value(record, "allowCancel").BooleanValue };
+            if (session.SchemaVersion == CollectionPlanService.ProtocolVersion)
+            {
+                if (session.Purpose == RouteSelectionPurpose.Exploration) return false;
+                if (Value(record, "collection") != null)
+                {
+                    if (!CollectionPlanRecordCodec.TryReadFacts(record, out var facts)) return false;
+                    session.CollectionFreeLocations = facts;
+                }
+                else if (Text(record, "scopeKey").Length > 0) return false;
+            }
+            else if (Value(record, "collection") != null) return false;
             if (session.SessionId.Length == 0 || session.OwnerEffectId.Length == 0 || session.BudgetBindingId.Length == 0 || session.MinimumLocations < 0 || session.MaximumLocations < session.MinimumLocations || session.OpenedAtStateRevision < 0) return false;
             if (session.SelectableLocationUpperBound.Any(string.IsNullOrEmpty) || session.SelectableLocationUpperBound.Distinct(StringComparer.Ordinal).Count() != session.SelectableLocationUpperBound.Count) return false;
             if (Text(record, "scopeKey").Length > 0) session.ActiveRequestBinding = new RouteSelectionRequestBinding { SessionId = session.SessionId, ScopeKey = Text(record, "scopeKey"), FrozenFactsDigest = Text(record, "factsDigest"), CandidateSetId = Text(record, "candidateSetId"),

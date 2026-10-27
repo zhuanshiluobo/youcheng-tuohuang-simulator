@@ -1,7 +1,7 @@
 return function(ctx)
     local source, retired
     for _, zone in ipairs(Global.Content.FindZones()) do
-        if zone.templateId == 'core.zone.player_awards' and zone.owner == ctx.playerId then source = zone.id end
+        if zone.templateId == 'core.zone.player_rewards' and zone.owner == ctx.playerId then source = zone.id end
         if zone.templateId == 'core.zone.box_retired' then retired = zone.id end
     end
     local retire = Effect.MoveItem({ apiVersion = 1, player = ctx.playerId, itemRefs = { { itemId = ctx.payload.rewardItemId } },

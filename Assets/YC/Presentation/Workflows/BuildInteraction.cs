@@ -28,6 +28,8 @@ namespace YC.Presentation.Workflows
         private GamePhase finalPhase;
         private PreparedActionPaymentView finalPreparation;
         private string effectBuildOwner;
+        private int presentationBatchDepth;
+        private bool presentationPending;
         public bool IsEffectBuild => !string.IsNullOrEmpty(effectBuildOwner);
         public EffectBuildScope EffectBuildScope => IsEffectBuild ? selection.ReadEffectBuildScope(context.CurrentState) : null;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
@@ -41,6 +43,7 @@ namespace YC.Presentation.Workflows
         public bool CanCancelPreparedPayment => paymentPreparation.CanCancel;
         public bool TryCancelPreparedPayment(Action afterApplied)
         {
+            using var presentation = DeferEffectBuildPresentation();
             ClearFinalPaymentIntent();
             return paymentPreparation.Cancel(() => { CancelCore(false); afterApplied?.Invoke(); });
         }
@@ -157,6 +160,7 @@ namespace YC.Presentation.Workflows
 
         public override void Cancel()
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (paymentPreparation.IsInFlight || !string.IsNullOrEmpty(inFlightCommandId)) return;
             if (paymentPreparation.HasPreparation) { paymentPreparation.Cancel(() => CancelCore(false)); return; }
             inFlightCommandId = string.Empty;
@@ -197,6 +201,7 @@ namespace YC.Presentation.Workflows
 
         public void RefreshEffectBuild()
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (!IsEffectBuild || !selection.IsActive) return;
             ContinueFinalPaymentIntent();
             PresentDraft();
@@ -204,6 +209,7 @@ namespace YC.Presentation.Workflows
 
         public void SelectFacility(string facilityId)
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (RejectMutationWhileSubmitting()) return;
             if (IsEffectBuild && EffectBuildScope?.Input == null) return;
             ClearFinalPaymentIntent();
@@ -225,6 +231,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginDrag(string facilityId)
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (paymentPreparation.Current != null && paymentPreparation.Current.TargetId != facilityId)
             {
                 ClearFinalPaymentIntent();
@@ -343,22 +350,31 @@ namespace YC.Presentation.Workflows
 
         public void SelectPayment(string paymentMode)
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (TryPreparePayment(paymentMode)) PresentDraft();
         }
 
         // 支付按钮使用此入口准备正式命令，成功后不刷新中间“已选支付方式”页面。
         public bool TryPreparePayment(string paymentMode)
         {
+            using var presentation = DeferEffectBuildPresentation();
+            using var latency = InteractionLatencyTrace.Begin("build.try_prepare");
             if (RejectMutationWhileSubmitting()) return false;
             if (IsEffectBuild && EffectBuildScope?.Input == null) return false;
             if (!selection.IsActive || string.IsNullOrEmpty(selection.FacilityId) ||
                 (paymentMode != BuildFacilityService.PaymentModeResources && paymentMode != BuildFacilityService.PaymentModeGold)) return false;
-            if (paymentPreparation.Current == null || paymentPreparation.Current.PaymentMode != paymentMode)
+            if (paymentPreparation.Current == null || paymentPreparation.Current.PaymentMode != paymentMode || paymentPreparation.Current.TargetId != selection.FacilityId)
             {
                 finalMode = paymentMode; finalFacility = selection.FacilityId; finalGame = context.CurrentState.GameId;
                 finalPlayer = context.LocalPlayerId; finalRound = context.CurrentState.Round;
                 finalActionRound = context.CurrentState.ActionRound; finalPhase = context.CurrentState.Phase;
                 finalPreparation = null;
+                if (paymentPreparation.Current?.TargetId == selection.FacilityId)
+                {
+                    // 同一次Build改方式沿同一Payment；Host推进代数并要求重新选择失效来源。
+                    if (!paymentPreparation.ChangePaymentMode(paymentMode)) ClearFinalPaymentIntent();
+                    return false;
+                }
                 Action prepare = () =>
                 {
                     var option = selection.QuerySelectedOption(context.CurrentState);
@@ -386,14 +402,17 @@ namespace YC.Presentation.Workflows
 
         private void OnPaymentPreparationChanged()
         {
+            using var presentation = DeferEffectBuildPresentation();
+            using var latency = InteractionLatencyTrace.Begin("build.payment_changed");
             if (!paymentPreparation.LastResolvedApplied) { ClearFinalPaymentIntent(); view.RefreshFromState(); PresentDraft(); return; }
-            if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build") && !string.IsNullOrEmpty(finalMode))
+            if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build" || paymentPreparation.LastResolvedOperation == "change_payment_mode") && !string.IsNullOrEmpty(finalMode))
                 finalPreparation = paymentPreparation.Current;
             view.RefreshFromState(); PresentDraft();
             ContinueFinalPaymentIntent();
         }
         private void ContinueFinalPaymentIntent()
         {
+            using var latency = InteractionLatencyTrace.Begin("build.follow_final_intent");
             if (string.IsNullOrEmpty(finalMode) || IsSubmissionInFlight) return;
             var current = paymentPreparation.Current; var state = context.CurrentState;
             // 热座必要响应可能先切换查看者；只在原玩家的正式投影返回后接纳已准确成功的准备。
@@ -438,6 +457,7 @@ namespace YC.Presentation.Workflows
 
         public void CancelExplicitly()
         {
+            using var presentation = DeferEffectBuildPresentation();
             if (RejectMutationWhileSubmitting())
             {
                 return;
@@ -488,6 +508,7 @@ namespace YC.Presentation.Workflows
 
         private void SubmitConfirmation(GameCommand command)
         {
+            using var latency = InteractionLatencyTrace.Begin("build.submit_confirmation", command?.CommandId);
             inFlightCommandId = command.CommandId;
             var gameId = context.CurrentState.GameId;
             try { commandGateway.Submit(
@@ -522,6 +543,8 @@ namespace YC.Presentation.Workflows
 
         public override void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted, CommandErrorCode errorCode)
         {
+            using var presentation = DeferEffectBuildPresentation();
+            using var latency = InteractionLatencyTrace.Begin("build.resolved", commandId);
             if (paymentPreparation.NotifyResolved(gameId, commandId, accepted)) return;
             if (string.IsNullOrEmpty(inFlightCommandId) || commandId != inFlightCommandId || gameId != context.CurrentState?.GameId) return;
             inFlightCommandId = string.Empty;
@@ -551,13 +574,15 @@ namespace YC.Presentation.Workflows
 
         public BuildFacilityDraftViewModel BuildDraftViewModel()
         {
+            using var latency = InteractionLatencyTrace.Begin("build.draft_model");
             if (!selection.IsActive)
             {
                 return null;
             }
 
             var state = context.CurrentState;
-            var options = selection.QueryOptions(state);
+            IReadOnlyList<BuildFacilityOptionQueryResult> options;
+            using (InteractionLatencyTrace.Begin("build.query_options")) options = selection.QueryOptions(state);
             var selectedOption = selection.SelectedOption(options);
             var facility = string.IsNullOrEmpty(selection.FacilityId)
                 ? null
@@ -581,6 +606,7 @@ namespace YC.Presentation.Workflows
 
         public BuildFacilityAvailabilityViewModel BuildAvailabilityViewModel()
         {
+            using var latency = InteractionLatencyTrace.Begin("build.availability_model");
             var state = context.CurrentState;
             var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
             var draggableIds = new List<string>();
@@ -783,6 +809,12 @@ namespace YC.Presentation.Workflows
 
         private void PresentDraft()
         {
+            if (presentationBatchDepth != 0)
+            {
+                presentationPending = true;
+                return;
+            }
+            using var latency = InteractionLatencyTrace.Begin("build.present_draft");
             var model = BuildDraftViewModel();
             if (model == null)
             {
@@ -791,6 +823,27 @@ namespace YC.Presentation.Workflows
             }
 
             view.ShowBuildFacilityDraft(model);
+        }
+
+        // 只合并同一工作流当前同步操作中的展示请求；命令、回执和刷新仍立即执行。
+        // 不保留模型或候选，下次独立输入会从当时状态及本地草稿重新构造。
+        private PresentationBatch DeferEffectBuildPresentation() =>
+            IsEffectBuild ? new PresentationBatch(this) : default;
+
+        private readonly struct PresentationBatch : IDisposable
+        {
+            private readonly BuildInteraction owner;
+            public PresentationBatch(BuildInteraction owner)
+            {
+                this.owner = owner;
+                owner.presentationBatchDepth++;
+            }
+            public void Dispose()
+            {
+                if (owner == null || --owner.presentationBatchDepth != 0 || !owner.presentationPending) return;
+                owner.presentationPending = false;
+                owner.PresentDraft();
+            }
         }
 
         private void SynchronizeInteractionMode()

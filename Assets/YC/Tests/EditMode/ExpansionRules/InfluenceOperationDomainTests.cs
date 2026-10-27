@@ -24,8 +24,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         private GameMapDefinition map;
         private InfluenceService service;
         private EffectRegistry registry;
+        private IsolatedTestArtifacts artifacts;
+        private GameState current;
+        private bool legacyDestinationFixture;
+        [TearDown] public void FinishEvidence() { if(current!=null) artifacts.WriteLabeledText("最终真实状态", Newtonsoft.Json.JsonConvert.SerializeObject(current)); artifacts.Finish(); }
         [SetUp] public void SetupMapAndProductionRegistry()
         {
+            artifacts=IsolatedTestArtifacts.BeginCase(); current=null; legacyDestinationFixture=false;
             map = new GameMapDefinition { MapId = "test.influence_map", MinPlayers = 2, MaxPlayers = 4,
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor" }, new MapRegionDefinition { RegionId = "upland" } },
                 Locations = new List<MapLocationDefinition> {
@@ -47,10 +52,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         private GameState State(int players = 2)
         {
             var source = new GameState { GameId = "game.influence", MapId = map.MapId, ContentPackHash = "content.influence", Round = 1, ActionRound = 1,
-                RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = "content.influence" } };
+                RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = "content.influence" },
+                ContentDefinitions = new GameContentDefinitions { Components = new List<ComponentContentDefinition> { new ComponentContentDefinition { DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", QuantityPolicy = "finite", CubeAppearance = new CubeAppearanceDeclaration { Color = new CubeColorDeclaration { Mode = "fixed", Name = "Orange", Rgb = "D97000" } } } } } };
             for (int id = 1; id <= players; id++) source.Players.Add(new PlayerState { PlayerId = id, Resources = new ResourceSet { GoldVoucher = 10, OriginiumShard = 10 } });
             var recipe = new List<ItemRecipeEntry> {
-                new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "company_markers", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = 8, InitialZoneRole = "company_markers" },
                 new ItemRecipeEntry { EntryId = "cube_carrier", DefinitionId = "test.cube_carrier", TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.component.city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
@@ -58,14 +64,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var location in map.Locations) recipe.Add(new ItemRecipeEntry { EntryId = "resource_" + location.LocationId, DefinitionId = "core.component.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, recipe);
             state.Map.OpenLocationIds.AddRange(new[] { "quay", "pier", "mine" });
-            Valid(state);
+            Valid(state); current=state;
             return state;
         }
         private static void Valid(GameState state) => Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
         private EffectNodeRuntimeState Run(GameState state, EffectSpec spec)
         {
             var engine = new EffectTreeExecutor(state, registry); string id = engine.CreateRoot(spec);
-            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state); return engine.GetNode(id);
+            // 旧 C# 去向探针只用于原协议兼容；新版独立收容由实际 Lua 来源组合覆盖。
+            if(legacyDestinationFixture && new[]{InfluenceEffectTypeIds.RemoveInfluence,InfluenceEffectTypeIds.ReplaceInfluence}.Contains(spec.EffectTypeId))
+            { engine.GetNode(id).DefinitionVersion="v1"; artifacts.WriteLabeledText("旧协议探针说明","人工构造 v1 真实离场帧，保留旧去向回调恢复验证，不计新版来源／卡面证据。"); }
+            var run=engine.RunUntilQuiescent(); if(run.Faulted) artifacts.WriteLabeledText("首次故障状态",Newtonsoft.Json.JsonConvert.SerializeObject(state));
+            Assert.That(run.Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state); current=state; return engine.GetNode(id);
         }
         private EffectNodeRuntimeState Place(GameState state, int player, string slot) => Run(state, InfluenceEffectSpecFactory.PlaceInfluence(player, slot));
         private string PlacedId(EffectNodeRuntimeState node) => Value(node.NormalizedResult, "influenceId").ReferenceId;
@@ -90,8 +100,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private GameState Restore(GameState state)
         {
-            var restored = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
-            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); Valid(restored.State); return restored.State;
+            var restored = artifacts.Recover(state,"领域恢复",registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); Valid(restored.State); current=restored.State; return restored.State;
         }
         private EffectSpec Road(string route) => EffectSpec.Create(LuaDomainEffectTypeIds.PlaceRoad, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "routeId", NormalizedValue.CreateString(route)), 1);
         private string StoreZone(GameState state)
@@ -103,6 +113,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private void RegisterDestinationResponse(string eventType, string zone, bool wait = false)
         {
+            legacyDestinationFixture=true;
             registry.Register(new EffectRegistration("test.influence.destination", context =>
             {
                 if (wait && context.Node.FlowStage == "") return EffectStepResult.Continue("awaiting_confirm").AddInteraction(new EffectInteractionSpec { InteractionTypeId = "test.confirm", AnsweringPlayerId = 1, Visibility = "owner", PromptKey = "test.confirm", MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id", CandidateIds = { "accept" } });
@@ -236,11 +247,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(); string id = CompanyPlace(state, "mine"); var all = state.ItemZones.Items.Select(item => item.ItemId).ToArray();
             var node = Run(state, InfluenceEffectSpecFactory.ReplaceInfluence(1, id));
-            Assert.That(Value(node.NormalizedResult, "removedItemIds").Items, Is.Empty); Assert.That(Value(node.NormalizedResult, "replacedItemIds").Items.Single().StringValue, Is.EqualTo(id));
+            Assert.That(Value(node.NormalizedResult, "removedItemIds").Items.Single().StringValue, Is.EqualTo(id)); Assert.That(Value(node.NormalizedResult, "replacedItemIds").Items.Single().StringValue, Is.EqualTo(id));
             Assert.That(Value(node.NormalizedResult, "originalSubjectKeys").Items.Single().StringValue, Is.EqualTo("company:stonehoove_security"));
-            Assert.That(state.EffectRuntime.RuleEvents.Count(item => item.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.Zero); Assert.That(state.EffectRuntime.RuleEvents.Count(item => item.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(item => item.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.EqualTo(1)); Assert.That(state.EffectRuntime.RuleEvents.Count(item => item.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(1));
             Assert.That(state.ItemZones.Items.Select(item => item.ItemId), Is.EqualTo(all)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == id).OwnerSubject.Kind, Is.EqualTo(ItemSubjectKind.Company));
-            Assert.That(Value(node.NormalizedResult, "actualEventTypes").Items.Select(item => item.StringValue), Is.EqualTo(new[] { InfluenceEventTypeIds.InfluencePlaced, InfluenceEventTypeIds.InfluenceReplaced }));
+            Assert.That(Value(node.NormalizedResult, "actualEventTypes").Items.Select(item => item.StringValue), Is.EqualTo(new[] { InfluenceEventTypeIds.InfluenceRemoved, InfluenceEventTypeIds.InfluencePlaced, InfluenceEventTypeIds.InfluenceReplaced }));
         }
         [TestCase(false)][TestCase(true)] public void CardStorageReceivesRealCompanyCubeAndRecoversPendingDestination(bool replacement)
         {

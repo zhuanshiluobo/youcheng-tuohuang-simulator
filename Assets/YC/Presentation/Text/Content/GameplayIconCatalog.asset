@@ -107,3 +107,37 @@ MonoBehaviour:
     Sprite: {fileID: 21300000, guid: 31a067410832587c9ae7d678a8e824a6, type: 3}
   - AssetKey: core:rule.remove_own_influence.asset
     Sprite: {fileID: 21300000, guid: 63382e76e244548aa35ff2407f20e93a, type: 3}
+  - AssetKey: core:settlement.outpost_payout.dark
+    Sprite: {fileID: 21300000, guid: 1a3a57b00a084a0185f8d4e68b9635cf, type: 3}
+  - AssetKey: core:settlement.outpost_payout.light
+    Sprite: {fileID: 21300000, guid: c13d747159644d44a17e203188112e0c, type: 3}
+  - AssetKey: core:settlement.outpost_payout.muted
+    Sprite: {fileID: 21300000, guid: 79742e8e42c2480f84c3b2e341079517, type: 3}
+  - AssetKey: core:settlement.marker_redeem.dark
+    Sprite: {fileID: 21300000, guid: d48728f7a7b644b0abc140e58291c45c, type: 3}
+  - AssetKey: core:settlement.marker_redeem.light
+    Sprite: {fileID: 21300000, guid: 656c8ea653d447a59ac9797fe3c6e31e, type: 3}
+  - AssetKey: core:settlement.marker_redeem.muted
+    Sprite: {fileID: 21300000, guid: 51b2830bce2d4015a8b1c6bbce7f47a9, type: 3}
+  - AssetKey: core:settlement.fund_invest.dark
+    Sprite: {fileID: 21300000, guid: 741c8b6a80ed4f11a122f7998ea102fb, type: 3}
+  - AssetKey: core:settlement.fund_invest.light
+    Sprite: {fileID: 21300000, guid: 4a4eb640b2b948e893f036e097fd34e7, type: 3}
+  - AssetKey: core:settlement.fund_invest.muted
+    Sprite: {fileID: 21300000, guid: 11c93c0ce7b7429c877f825f3e030ccb, type: 3}
+  - AssetKey: core:settlement.reputation_score.dark
+    Sprite: {fileID: 21300000, guid: cccc391462d24a5c9bb32565cb59007a, type: 3}
+  - AssetKey: core:settlement.reputation_score.light
+    Sprite: {fileID: 21300000, guid: 8ddd29c19e9a4badba1b6af1d7b98265, type: 3}
+  - AssetKey: core:settlement.reputation_score.muted
+    Sprite: {fileID: 21300000, guid: 61ac4a050ea64b63ba8b852f58d2bef9, type: 3}
+  - AssetKey: core:settlement.tactical_dispatch.dark
+    Sprite: {fileID: 21300000, guid: ab4c4de7263c4365ac6a39e688b44c5d, type: 3}
+  - AssetKey: core:settlement.tactical_dispatch.light
+    Sprite: {fileID: 21300000, guid: dccc37083a3d40d481559cda7dd5d899, type: 3}
+  - AssetKey: core:settlement.tactical_dispatch.muted
+    Sprite: {fileID: 21300000, guid: 0523da17e97a484c994a9cabacda8314, type: 3}
+  - AssetKey: core:rule.stonehoove_security_place.asset
+    Sprite: {fileID: 21300000, guid: c5b87c3cfc3d485c9ff1f96cc0d5d3f3, type: 3}
+  - AssetKey: core:rule.stonehoove_security_move.asset
+    Sprite: {fileID: 21300000, guid: 60be1ed1f24c459c85ef7eb2a31bed1c, type: 3}

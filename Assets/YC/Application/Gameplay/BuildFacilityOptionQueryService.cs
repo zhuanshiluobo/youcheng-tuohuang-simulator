@@ -42,7 +42,7 @@ namespace YC.Application.Gameplay
                 sourceZoneId = ItemTransferEffectExecutor.Text(Selection.PromptParameters, "expectedSourceZoneId");
                 return sourceZoneId.Length > 0;
             }
-            if (SourceZone != "supply" || VisibleState.ItemZones?.Items == null || VisibleState.ItemZones.Zones == null) return false;
+            if (SourceZone != "supply" && SourceZone != "authorized" || VisibleState.ItemZones?.Items == null || VisibleState.ItemZones.Zones == null) return false;
             var items = VisibleState.ItemZones.Items.Where(value => value != null && value.ItemId == targetItemId).Take(2).ToArray();
             if (items.Length != 1) return false;
             var item = items[0];
@@ -52,8 +52,8 @@ namespace YC.Application.Gameplay
             var zones = VisibleState.ItemZones.Zones.Where(value => value?.Zone?.ZoneId == item.ZoneId && value.IdentitiesVisible).Take(2).ToArray();
             if (zones.Length != 1) return false;
             var zone = zones[0].Zone;
-            bool supply = zone.TemplateId == "core.zone.facility_supply_slot" && zone.OwnerPlayerId < 1 &&
-                item.OwnerSubject?.Kind == ItemSubjectKind.None && item.ControllerSubject?.Kind == ItemSubjectKind.None;
+            bool supply = SourceZone == "supply" && zone.TemplateId == "core.zone.facility_supply_slot" &&
+                VisibleState.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == zone.ZoneId)?.ItemIds.FirstOrDefault() == item.ItemId;
             bool stored = zone.TemplateId == "core.zone.card_facility_storage" && zone.ParentKind == ZoneParentKind.Item &&
                 (zone.OwnerPlayerId < 1 || zone.OwnerPlayerId == PlayerId) &&
                 item.OwnerSubject != null && item.ControllerSubject != null &&
@@ -64,7 +64,7 @@ namespace YC.Application.Gameplay
                 var carriers = VisibleState.ItemZones.Items.Where(value => value != null && value.ItemId == zone.ParentId &&
                     value.ControllerSubject?.Kind == ItemSubjectKind.Player && value.ControllerSubject.PlayerId == PlayerId).Take(2).ToArray();
                 stored = carriers.Length == 1 && VisibleState.ItemZones.Zones.Any(value => value?.Zone?.ZoneId == carriers[0].ZoneId &&
-                    value.Zone.TemplateId == "core.zone.character_persistent");
+                    (value.Zone.TemplateId == "core.zone.character_persistent" || SourceZone == "authorized" && value.Zone.TemplateId == "core.zone.entrepreneur_active"));
             }
             if (!supply && !stored) return false;
             sourceZoneId = zone.ZoneId;
@@ -105,7 +105,7 @@ namespace YC.Application.Gameplay
             if (sourceZone.Length == 0) sourceZone = "supply";
             string paymentMode = ItemTransferEffectExecutor.Text(parents[0].NormalizedArguments, "paymentMode");
             if (paymentMode.Length == 0) paymentMode = "auto";
-            if ((sourceZone != "deck" && sourceZone != "supply") ||
+            if ((sourceZone != "deck" && sourceZone != "supply" && sourceZone != "authorized") ||
                 (paymentMode != "auto" && paymentMode != "resources" && paymentMode != "gold")) return false;
             var payments = view.PreparedActionPayments.Where(value => value != null && value.AuthorizationKind == "effect_build" &&
                 value.ActionKind == "build" && value.SelectionOwnerEffectId == selectionOwnerEffectId).Take(2).ToArray();
@@ -289,7 +289,7 @@ namespace YC.Application.Gameplay
             if (!EffectBuildScope.TryReadEffectBuildScope(state, visibleState, playerId, selectionOwnerEffectId, out var scope))
                 return Array.Empty<BuildFacilityOptionQueryResult>();
             var definitions = ItemTransferEffectExecutor.Value(scope.Selection.PromptParameters, "candidateDefinitionIds");
-            return buildFacilityService.WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
+            return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
                 var options = new List<BuildFacilityOptionQueryResult>(scope.Selection.CandidateIds.Count);
                 for (int i = 0; i < scope.Selection.CandidateIds.Count; i++)
                 {
@@ -299,15 +299,15 @@ namespace YC.Application.Gameplay
                     if (!scope.TryGetCandidateSourceZoneId(id, out var sourceZoneId)) return Array.Empty<BuildFacilityOptionQueryResult>();
                     var player = state.FindPlayer(playerId);
                     var structural = player == null ? ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "建设玩家不存在。") :
-                        FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, definition) ?
+                        query.HasBuiltUnique(definition) ?
                         ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。") : ValidationResult.Success;
                     var slots = new List<BuildFacilitySlotOptionResult>();
                     for (int slot = 0; slot < BuildFacilityService.CityBoardSlotCount; slot++)
                         slots.Add(new BuildFacilitySlotOptionResult(slot, structural.IsValid ?
-                            buildFacilityService.ValidatePaidPlacement(state, playerId, definitionId, slot) : structural));
+                            query.ValidatePaidPlacement(id, slot) : structural));
                     if (structural.IsValid && !slots.Any(slot => slot.IsLegal))
-                        structural = ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法空槽位。");
-                    var cost = query.GetEffectiveResourceCost(definitionId);
+                        structural = ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法建设槽位。");
+                    var cost = query.GetEffectiveResourceCost(id);
                     ValidationResult Payment(string mode) => !structural.IsValid ? structural : !scope.AllowsPaymentMode(mode) ?
                         ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本次建设未授权该支付方式。") :
                         (mode == "gold" ? player.Resources.GoldVoucher >= definition.GoldVoucherCost :
@@ -325,6 +325,7 @@ namespace YC.Application.Gameplay
 
         public IReadOnlyList<int> GetLegalReserveBuildSlots(GameState state, int playerId, string facilityId)
         {
+            buildFacilityService.UseQueries(candidates.Queries);
             var slots = new List<int>();
             for (int i = 0; i < BuildFacilityService.CityBoardSlotCount; i++)
                 if (buildFacilityService.ValidateReserveBuild(state, playerId, facilityId, i).IsValid) slots.Add(i);
@@ -342,7 +343,7 @@ namespace YC.Application.Gameplay
                 throw new ArgumentNullException(nameof(state));
             }
 
-            return buildFacilityService.WithReadOnlyQuery(state, playerId, null,
+            return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery(state, playerId, null,
                 query => Query(state, playerId, facilityId, requireMainAction, query, visibleState: visibleState));
         }
 
@@ -419,7 +420,7 @@ namespace YC.Application.Gameplay
 
             if (ItemZoneLegacyProjection.IsActive(state)) return Query(state, playerId, QueryCandidates(state, playerId), visibleState);
             var supply = state.Decks.FacilitySupply.ToArray();
-            return buildFacilityService.WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, supply, query =>
+            return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, supply, query =>
             {
                 var options = new List<BuildFacilityOptionQueryResult>(supply.Length);
                 for (var i = 0; i < supply.Length; i++)
@@ -440,7 +441,7 @@ namespace YC.Application.Gameplay
         public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId, FacilityBuildCandidateSnapshot snapshot, GameStateView visibleState)
         {
             if (state == null || snapshot == null) throw new ArgumentNullException();
-            return buildFacilityService.WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
+            return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
                 var result = new List<BuildFacilityOptionQueryResult>(snapshot.Candidates.Count);
                 foreach (var candidate in snapshot.Candidates)
                     result.Add(Query(state, playerId, candidate.ItemId, true, query, candidate, visibleState));
@@ -463,7 +464,7 @@ namespace YC.Application.Gameplay
 
             if (!hasLegalSlot)
             {
-                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法空槽位。");
+                return ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法建设槽位。");
             }
 
             if (!resourcesValidation.IsValid && !goldValidation.IsValid)

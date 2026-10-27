@@ -25,6 +25,9 @@ namespace YC.Domain.Effects
         public void RegisterSettlementSourceContract(SettlementSourceContract contract)
         {
             if (contract == null || string.IsNullOrEmpty(contract.DefinitionId) || string.IsNullOrEmpty(contract.AbilityId) || string.IsNullOrEmpty(contract.LocalId)) throw new ArgumentException("settlement_source_contract_invalid");
+            if (abilityDeclarations.Any(d => d.AbilityId == contract.AbilityId && d.RepeatPolicy == "unbounded") &&
+                (contract.EntryKind != SettlementEntryService.CleanupOrder || contract.WholeEffectPolicy != SettlementWholeEffectPolicy.Optional))
+                throw new ArgumentException("cleanup_unbounded_requires_optional_source");
             settlementSourceContracts.Add(contract.AbilityId, contract);
         }
         public bool TryGetSettlementSourceContract(string abilityId, out SettlementSourceContract contract) => settlementSourceContracts.TryGetValue(abilityId ?? "", out contract);
@@ -35,12 +38,20 @@ namespace YC.Domain.Effects
             if (string.IsNullOrEmpty(contentHash) || offers == null || query == null || settlementQueryProvider != null) throw new ArgumentException("settlement_catalog_provider_invalid");
             SettlementCatalogContentHash = contentHash; settlementOffersProvider = offers; settlementQueryProvider = query;
         }
-        public void RefreshSettlementOffers(GameState state, SettlementWindowRuntimeState window) => settlementOffersProvider?.Invoke(state, window);
+        public void RefreshSettlementOffers(GameState state, SettlementWindowRuntimeState window)
+        {
+            settlementOffersProvider?.Invoke(state, window);
+            ResourcePaymentInsertionService.Refresh(state, this, window);
+        }
         private Func<GameState, SettlementWindowContext, SettlementEntryRuntimeState, NormalizedValue> settlementFactsProvider;
         public void RegisterSettlementFactsProvider(Func<GameState, SettlementWindowContext, SettlementEntryRuntimeState, NormalizedValue> provider)
         { if (provider == null || settlementFactsProvider != null) throw new ArgumentException("结算授权事实提供者为空或重复。"); settlementFactsProvider = provider; }
         public SettlementAvailabilityResult QuerySettlementEntry(GameState state, SettlementWindowRuntimeState window, SettlementEntryRuntimeState entry, bool forceRefresh = false)
         {
+            if (entry.PaymentInsertion != null) return ResourcePaymentInsertionService.Availability(state, this, window, entry);
+            if (entry.CleanupSource != null) return QueryCleanupSource(state, window, entry);
+            if (entry.EntryKind == SettlementEntryService.CleanupOrder && entry.WholeEffectPolicy == SettlementWholeEffectPolicy.Required && string.IsNullOrEmpty(entry.AvailabilityHandlerId))
+                return new SettlementAvailabilityResult { Enabled = true };
             if (settlementQueryProvider != null) return settlementQueryProvider(state, window, entry, forceRefresh);
             if (string.IsNullOrEmpty(entry.AvailabilityHandlerId)) return new SettlementAvailabilityResult { Enabled = entry.EntryKind == SettlementEntryService.CleanupOrder && entry.WholeEffectPolicy == SettlementWholeEffectPolicy.Required };
             if (settlementFactsProvider == null || !TryGetSettlementAvailabilityHandler(entry.AvailabilityHandlerId, out var query)) return new SettlementAvailabilityResult { Enabled = false };
@@ -59,6 +70,13 @@ namespace YC.Domain.Effects
             foreach (var option in options)
             {
                 var entry = window.Entries.Find(e => e.OptionId == option.OptionId);
+                if (entry.CleanupSource != null)
+                {
+                    option.CleanupRequest = GetCleanupSourceRequest(state, window, entry);
+                    option.RepeatPolicy = entry.CleanupSource.RepeatPolicy; option.ActiveInvocationId = entry.CleanupSource.ActiveInvocationId;
+                    option.InteractionId = option.CleanupRequest.InteractionId; option.CandidateSetVersion = option.CleanupRequest.RequestGeneration;
+                    option.TargetEffectId = entry.CleanupSource.Invocations.SingleOrDefault(i => i.InvocationId == entry.CleanupSource.ActiveInvocationId)?.TargetEffectId ?? "";
+                }
                 option.SourceDefinitionId = entry.SourceDefinitionId;
                 if (string.IsNullOrEmpty(option.SourceDefinitionId) && TryGetSettlementSourceContract(entry.AbilityId, out var contract)) option.SourceDefinitionId = contract.DefinitionId;
                 if (YC.Domain.Presentation.GameplayPresentationNormalizer.IsKey(option.DisabledReasonCode)) option.DisabledReason = new YC.Domain.Presentation.GameplayTextRef(option.DisabledReasonCode);

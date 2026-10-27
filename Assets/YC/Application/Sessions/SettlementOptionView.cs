@@ -8,6 +8,8 @@ namespace YC.Application.Sessions
     {
         public string WindowId = string.Empty, LocalId = string.Empty, EntryKind = string.Empty, TargetEffectId = string.Empty, SettlementState = string.Empty;
         public long RegistrationSequence;
+        public YC.Domain.Effects.CleanupSourceRequestRef CleanupRequest;
+        public string RepeatPolicy = "once", ActiveInvocationId = "";
         public bool CanDeclineWholeEffect;
         public YC.Domain.Presentation.SettlementPresentationDefinition Presentation;
         public string SourceDefinitionId = string.Empty;
@@ -21,6 +23,7 @@ namespace YC.Application.Sessions
             SourceDefinitionId = option.SourceDefinitionId, CanInspectSource = option.CanInspectSource, DisabledReason = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(option.DisabledReason),
             WindowId = option.WindowId, LocalId = option.LocalId, EntryKind = option.EntryKind, TargetEffectId = option.TargetEffectId, SettlementState = option.SettlementState,
             RegistrationSequence = option.RegistrationSequence, CanDeclineWholeEffect = option.CanDeclineWholeEffect,
+            CleanupRequest = YC.Domain.State.GameStateCloneService.DeepClone(option.CleanupRequest), RepeatPolicy = option.RepeatPolicy, ActiveInvocationId = option.ActiveInvocationId,
             Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(option.Presentation),
             OptionId = option.OptionId, InteractionId = option.InteractionId, OwnerEffectId = option.OwnerEffectId, SourceItemId = option.SourceItemId, TargetUseId = option.TargetUseId, CandidateId = option.CandidateId,
             AnsweringPlayerId = option.AnsweringPlayerId, StateRevision = option.StateRevision, CandidateSetVersion = option.CandidateSetVersion, RequiredGoldVoucherAmount = option.RequiredGoldVoucherAmount,

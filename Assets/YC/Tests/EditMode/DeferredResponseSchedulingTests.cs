@@ -18,7 +18,7 @@ namespace YC.Tests.EditMode
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } };
             source.RuleConfiguration = new GameRuleConfiguration { MapId = source.MapId, PlayerCount = 2, PlayerStageSchedulingMode = PlayerStageSchedulingMode.Concurrent };
             var state = new ItemZoneStateFactory().CreateForSetup(source, new YC.Domain.Maps.GameMapDefinition { MapId = source.MapId, MinPlayers = 2, MaxPlayers = 4 },
-                new[] { new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 1, PerPlayer = true, InitialZoneRole = "player_markers" } });
+                new[] { new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 1, PerPlayer = true, InitialZoneRole = "supply" } });
             string itemId = state.ItemZones.Items.Single(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 2).ItemId;
             var registry = new EffectRegistry(); SettlementEntryService.Register(registry);
             registry.Register("test.shared.departure", context => {

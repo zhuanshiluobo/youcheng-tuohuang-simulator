@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Interactions;
 using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Movement;
@@ -26,6 +27,8 @@ namespace YC.Domain.Effects
         public string BusinessBeforeEventId = "";
         public bool BusinessBeforeReady;
         public string SourceLocationId = "", PromotedActionEffectId = "";
+        public string CancellationCommandId = "", CancellationDigest = "";
+        public int CancellationPlayerId = -1, CancellationRequestRevision = -1;
     }
 
     public static class ResourcePaymentPreparationService
@@ -42,49 +45,92 @@ namespace YC.Domain.Effects
 
         public static ResourceSet Remaining(ResourcePaymentRuntimeState payment)
         {
-            var remaining = payment.PaymentCost.Clone();
-            if (payment.SelectedSubstitution != null)
-                foreach (ResourceType type in new[] { ResourceType.Originium, ResourceType.OriginiumShard, ResourceType.Iron })
-                    remaining.Set(type, remaining.Get(type) - payment.SelectedSubstitution.Allocation.Get(type));
-            return remaining;
+            if (payment.PaymentProtocolVersion == 2)
+            {
+                var value = payment.PaymentCost.Clone(); var extra = new ResourceSet();
+                foreach (var d in payment.SourceDrafts.Where(d => d.Status == "valid"))
+                {
+                    foreach (var t in PaymentResources.Types) value.Set(t, checked(value.Get(t) - d.Allocation.Get(t)));
+                    extra = PaymentResources.Add(extra, PaymentResources.Scale(d.Rule.UnitResourceCost, PaymentResources.Total(d.Allocation)));
+                }
+                return PaymentResources.Add(value, extra);
+            }
+            return payment.PaymentCost.Clone();
         }
 
-        public static bool CanConfirm(GameState state, EffectNodeRuntimeState owner)
+        public static bool TryValidateConfirmationAnswer(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner,
+            InteractionRequest request, NormalizedValue answer, out string reason)
+        {
+            reason = "";
+            var p = owner?.Payment;
+            if (p == null) return true;
+            var value = answer?.Kind == NormalizedValueKind.Array && answer.Items.Count == 1 ? answer.Items[0] : answer;
+            string id = value?.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value?.Kind == NormalizedValueKind.Boolean ?
+                (value.BooleanValue ? "continue" : "decline") : value?.StringValue;
+            bool confirm = request.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId && id == ResourceEffectExecutor.PaymentConfirmationCandidateId ||
+                request.InteractionTypeId == "action.decline_effect" && id == "continue" ||
+                request.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId && id == Text(owner.ContinuationData, "selectedPaymentOptionId");
+            if (!confirm) return true; // 配置及合法放弃仍可进行，不要求已足额。
+            if (!p.BeforePaymentReady || p.IsCommitted || p.IsCommitRequested || p.Preparation?.IsCancelled == true)
+            { reason = "payment_confirmation_host_missing"; return false; }
+            if (p.PaymentProtocolVersion == 2) return ResourcePaymentPlanService.TryBuild(state, registry, owner, out _, out reason);
+            if (CanConfirm(state, owner, registry)) return true;
+            reason = "payment_confirmation_unavailable"; return false;
+        }
+        // 仅为有真实确认记录的不足额再验恢复待答；不吞其他来源/身份/数据故障。
+        public static bool TryRetryInsufficientConfirmation(EffectExecutionContext c, out EffectStepResult step)
+        {
+            step = null;
+            var p = c.Node.Payment;
+            if (p == null || p.IsCommitted || p.Preparation?.IsCancelled == true) return false;
+            var previous = c.State.EffectRuntime.InteractionRequests.LastOrDefault(r => r.OwnerEffectId == c.Node.EffectId && r.Status == "answered" &&
+                (r.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId || r.InteractionTypeId == "action.decline_effect" || r.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId));
+            if (previous == null) return false;
+            p.IsCommitRequested = false; p.Phase = "confirmation";
+            var fresh = new EffectInteractionSpec { InteractionTypeId = previous.InteractionTypeId, AnswerSchema = previous.AnswerSchema,
+                AnsweringPlayerId = previous.AnsweringPlayerId, Visibility = previous.Visibility, PromptKey = previous.PromptKey,
+                PromptParameters = previous.PromptParameters.Clone(), Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(previous.Presentation),
+                CandidateSetId = previous.CandidateSetId, CandidateSetVersion = previous.CandidateSetVersion, CandidateResolutionId = previous.CandidateResolutionId,
+                MinSelections = previous.MinSelections, MaxSelections = previous.MaxSelections, AllowDecline = previous.AllowDecline };
+            fresh.CandidateIds.AddRange(previous.CandidateIds);
+            step = EffectStepResult.Continue(c.Node.FlowStage).AddInteraction(fresh);
+            return true;
+        }
+        public static bool CanConfirm(GameState state, EffectNodeRuntimeState owner, EffectRegistry registry = null)
         {
             var payment = owner?.Payment;
             if (payment == null || !payment.BeforePaymentReady || payment.IsCommitted || payment.IsCommitRequested ||
                 payment.Preparation?.IsCancelled == true || state.FindPlayer(payment.PlayerId) == null) return false;
-            if (payment.Preparation != null && (!TryQuotePreparation(state, owner, out var currentCost, out _) || !SameCost(currentCost, payment.PaymentCost))) return false;
+            if (payment.PaymentProtocolVersion == 2)
+                return registry != null && ResourcePaymentPlanService.TryBuild(state, registry, owner, out _, out _);
+            if (payment.Preparation != null && (!TryQuotePreparation(state, owner, out var currentCost, out _, registry) || !SameCost(currentCost, payment.PaymentCost))) return false;
             if (payment.SelectedSubstitution != null)
             {
-                var draft = payment.SelectedSubstitution;
-                var zone = ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, payment.PlayerId, draft.SourceZoneId);
-                int count = draft.Allocation.Originium + draft.Allocation.OriginiumShard + draft.Allocation.Iron;
-                if (zone == null || zone.ParentId != draft.SourceItemId || count < 0 || count > payment.SubstitutionBudget ||
-                    ResourcePaymentSubstitutionEffectExecutor.BasicTypes.Any(type => draft.Allocation.Get(type) < 0 || draft.Allocation.Get(type) > payment.PaymentCost.Get(type)) ||
-                    draft.Allocation.GoldVoucher != 0 || draft.Allocation.PureOriginium != 0 ||
-                    count > ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, zone, payment.PlayerId).Count)
-                    return false;
+                return false; // 旧替代草稿无api3逐枚证明，不能据当前库存续付。
             }
             return state.FindPlayer(payment.PlayerId).Resources.CanPay(Remaining(payment));
         }
 
-        public static NormalizedValue Facts(GameState state, EffectNodeRuntimeState owner)
+        public static NormalizedValue Facts(GameState state, EffectNodeRuntimeState owner, EffectRegistry registry = null)
         {
             var payment = owner.Payment;
-            return Object("ownerEffectId", NormalizedValue.CreateString(owner.EffectId),
+            var facts = Object("ownerEffectId", NormalizedValue.CreateString(owner.EffectId),
                 "paymentId", NormalizedValue.CreateString(payment.PaymentId), "paymentGeneration", NormalizedValue.CreateInteger(payment.PaymentGeneration),
                 "sourceKind", NormalizedValue.CreateString(payment.SourceKind),
                 "authorizationKind", NormalizedValue.CreateString(payment.Preparation?.AuthorizationKind ?? ""),
                 "preparationOwnerEffectId", NormalizedValue.CreateString(payment.Preparation?.PreparationOwnerEffectId ?? ""),
                 "originalCost", Cost(payment.PaymentCost),
                 "substitutionCost", Cost(payment.SelectedSubstitution?.Allocation ?? new ResourceSet()),
-                "remainingCost", Cost(Remaining(payment)), "canPay", NormalizedValue.CreateBoolean(CanConfirm(state, owner)),
-                "canSubstitute", NormalizedValue.CreateBoolean(payment.AllowsSubstitution && payment.BeforePaymentReady && state.ItemZones != null && state.ItemZones.Zones.Any(zone =>
-                    ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, payment.PlayerId, zone.ZoneId) != null &&
-                    ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, zone, payment.PlayerId).Count > 0) &&
-                    (long)payment.PaymentCost.Originium + payment.PaymentCost.OriginiumShard + payment.PaymentCost.Iron > 0),
+                "remainingCost", Cost(Remaining(payment)), "canPay", NormalizedValue.CreateBoolean(CanConfirm(state, owner, registry)),
+                "canSubstitute", NormalizedValue.CreateBoolean(false),
                 "isCommitRequested", NormalizedValue.CreateBoolean(payment.IsCommitRequested), "isCommitted", NormalizedValue.CreateBoolean(payment.IsCommitted));
+            if (payment.PaymentProtocolVersion == 2 && registry != null)
+            {
+                facts.Properties.Add(new NormalizedValueEntry { Name = "paymentSourceQuery", Value = ResourcePaymentDraftHost.SourceQuery(state, registry, owner) });
+                facts.Properties.Find(e => e.Name == "canSubstitute").Value = NormalizedValue.CreateBoolean(payment.AllowsSubstitution && payment.BeforePaymentReady && !payment.IsCommitted &&
+                    (ResourcePaymentSourceService.Query(state, registry, owner, payment.PaymentCost).Count > 0 || payment.SourceDrafts.Count > 0));
+            }
+            return facts;
         }
 
         // null表示前置响应已完整结束，调用者才可进入其原确认/扣款路径。
@@ -94,7 +140,7 @@ namespace YC.Domain.Effects
             ResourcePaymentRuntimeState payment;
             try { payment = ResourcePaymentSubstitutionEffectExecutor.InitializePayment(node, cost); }
             catch (InvalidOperationException error) { return EffectStepResult.Failed(error.Message); }
-            payment.PaymentProtocolVersion = 1;
+            if (payment.PaymentProtocolVersion != 2) payment.PaymentProtocolVersion = 1;
             if (payment.BeforePaymentReady || payment.IsCommitted) return null;
             var preparation = payment.Preparation;
             if (preparation?.ActionKind == "city_move" && !preparation.BusinessBeforeReady)
@@ -109,12 +155,17 @@ namespace YC.Domain.Effects
                 if (context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("before_city_move_response_failed");
                 preparation.BusinessBeforeReady = true;
                 if (!TryQuote(context.State, payment.PlayerId, preparation.ActionKind, preparation.TargetId, preparation.ActionArguments,
-                    out var revised, out var reason) || !SameCost(revised, cost)) return EffectStepResult.Failed(reason.Length > 0 ? reason : "payment_cost_changed");
+                    out var revised, out var reason,context.Registry,node.EffectId) || !SameCost(revised, cost)) return EffectStepResult.Failed(reason.Length > 0 ? reason : "payment_cost_changed");
             }
             if (payment.BeforePaymentEventId.Length == 0)
             {
                 payment.BeforePaymentEventId = StableIdFactory.Create("event", node.EffectId, BeforeResourcePayment,
                     payment.PaymentGeneration.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                if (payment.PaymentProtocolVersion == 2)
+                {
+                    payment.BeforePaymentReceipts.Add(new PaymentBeforeReceipt { EventId = payment.BeforePaymentEventId, Generation = payment.PaymentGeneration, GrossCost = cost.Clone() });
+                    payment.Phase = "before_payment";
+                }
                 return EffectStepResult.Continue(BeforePaymentStage).AddEvent(new EffectEventRequest {
                     EventId = payment.BeforePaymentEventId, EventType = BeforeResourcePayment, PlayerId = node.PlayerId,
                     SourceEffectId = node.EffectId, OwnerNodeId = node.EffectId, Visibility = "owner", SemanticKey = "payment.before",
@@ -127,6 +178,11 @@ namespace YC.Domain.Effects
                 return EffectStepResult.NoProgress("等待支付前必要响应完整结束。");
             if (context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("before_resource_payment_response_failed");
             payment.BeforePaymentReady = true;
+            if (payment.PaymentProtocolVersion == 2)
+            {
+                payment.BeforePaymentReceipts.Single(r => r.EventId == payment.BeforePaymentEventId).Ready = true;
+                payment.Phase = "confirmation";
+            }
             return null;
         }
 
@@ -173,7 +229,7 @@ namespace YC.Domain.Effects
             preparation.SelectionInteractionId == "" && preparation.SelectionCandidateSetId == "" && preparation.SelectionCandidateSetVersion == 0;
 
         internal static bool ValidateEffectBuildCandidate(GameState state, EffectNodeRuntimeState selection, InteractionRequest input,
-            string targetId, string sourceZoneId, string mode, bool requireCurrentSource)
+            string targetId, string sourceZoneId, string mode, bool requireCurrentSource, EffectRegistry registry = null)
         {
             if (selection == null || input == null || input.OwnerEffectId != selection.EffectId || input.AnsweringPlayerId != selection.PlayerId ||
                 input.InteractionTypeId != FacilitySelectionEffectExecutor.NormalBuildInteractionType ||
@@ -184,10 +240,10 @@ namespace YC.Domain.Effects
                 record.CandidateKind == FacilityBuildCandidateQuery.CandidateKind && record.FinalCandidateIds.SequenceEqual(input.CandidateIds) &&
                 Text(input.PromptParameters, "sourceZone") == source &&
                 (source != "deck" || Text(input.PromptParameters, "expectedSourceZoneId") == sourceZoneId) &&
-                FacilitySelectionEffectExecutor.ValidateEffectBuildSource(state, selection, targetId, sourceZoneId, mode, requireCurrentSource);
+                FacilitySelectionEffectExecutor.ValidateEffectBuildSource(state, selection, targetId, sourceZoneId, mode, requireCurrentSource, registry);
         }
 
-        internal static bool ValidateEffectBuildAssociation(GameState state, EffectNodeRuntimeState owner, out EffectNodeRuntimeState selection)
+        internal static bool ValidateEffectBuildAssociation(GameState state, EffectNodeRuntimeState owner, out EffectNodeRuntimeState selection, bool requireCurrentSource = true, EffectRegistry registry = null)
         {
             selection = null;
             var p = owner?.Payment?.Preparation;
@@ -208,7 +264,7 @@ namespace YC.Domain.Effects
                 input.AnsweringPlayerId == owner.PlayerId && input.CandidateSetId == p.SelectionCandidateSetId && input.CandidateSetVersion == p.SelectionCandidateSetVersion &&
                 record?.SourceEffectId == selection.EffectId && record.ExecutingPlayerId == owner.PlayerId && record.FinalCandidateIds.SequenceEqual(input.CandidateIds) &&
                 record.FinalCandidateIds.Contains(p.TargetId) &&
-                ValidateEffectBuildCandidate(state, selection, input, p.TargetId, source, Text(p.ActionArguments, "paymentMode"), !p.IsPromoted && !p.IsCancelled) &&
+                ValidateEffectBuildCandidate(state, selection, input, p.TargetId, source, Text(p.ActionArguments, "paymentMode"), requireCurrentSource && !p.IsPromoted && !p.IsCancelled, registry) &&
                 state.ItemZones.Items.Any(i => i.ItemId == p.TargetId && i.DefinitionId == Text(owner.NormalizedArguments, "facilityId")) &&
                 Text(owner.NormalizedArguments, "paymentMode") == Text(p.ActionArguments, "paymentMode") &&
                 (Text(p.ActionArguments, "paymentMode") == "resources" || Text(p.ActionArguments, "paymentMode") == "gold");
@@ -222,16 +278,24 @@ namespace YC.Domain.Effects
             return build?.EffectTypeId == FacilityEntryEffectTypeIds.Build && build.ParentEffectId == selection.EffectId && build.PlayerId == owner.PlayerId &&
                 Text(build.NormalizedArguments, "preparedPaymentOwnerEffectId") == owner.EffectId && Text(build.NormalizedArguments, "facilityId") == p.TargetId &&
                 Text(build.NormalizedArguments, "expectedSourceZoneId") == source && Text(build.NormalizedArguments, "paymentMode") == Text(p.ActionArguments, "paymentMode") &&
-                Value(build.NormalizedArguments, "consumeMainAction")?.Kind == NormalizedValueKind.Boolean && !Flag(build.NormalizedArguments, "consumeMainAction") &&
+                Text(build.NormalizedArguments,"sourceKind")==Text(selection.NormalizedArguments,"sourceZone","supply") &&
+                Text(build.NormalizedArguments,"sourceKey")==Text(selection.NormalizedArguments,"sourceKey") &&
+                Value(build.NormalizedArguments, "consumeMainAction")?.Kind == NormalizedValueKind.Boolean && Flag(build.NormalizedArguments, "consumeMainAction")==Flag(selection.NormalizedArguments,"consumeMainAction") &&
                 Value(build.NormalizedArguments, "reserveForFree")?.Kind == NormalizedValueKind.Boolean && !Flag(build.NormalizedArguments, "reserveForFree");
         }
 
-        public static bool IsCurrentEffectBuildPreparation(GameState state, EffectNodeRuntimeState owner, int playerId)
+        internal static bool ValidateEffectBuildIdentity(GameState state, EffectNodeRuntimeState owner, out EffectNodeRuntimeState selection) =>
+            ValidateEffectBuildAssociation(state, owner, out selection, false);
+
+        public static bool CanCancelEffectBuildPreparation(GameState state, EffectNodeRuntimeState owner, int playerId) =>
+            IsCurrentEffectBuildPreparation(state, owner, playerId, false) && !owner.Payment.Preparation.IsPromoted && !owner.Payment.IsCommitted && !owner.Payment.IsCommitRequested && !HasPendingResponse(state, owner);
+
+        public static bool IsCurrentEffectBuildPreparation(GameState state, EffectNodeRuntimeState owner, int playerId, bool requireCurrentSource = true, EffectRegistry registry = null)
         {
             var p = owner?.Payment?.Preparation;
             return state?.EffectRuntime?.Status == EffectRuntimeStatus.Active && owner?.PlayerId == playerId && p != null && !p.IsCancelled &&
                 owner.Status != EffectNodeStatus.Failed && owner.Status != EffectNodeStatus.Faulted &&
-                ValidateEffectBuildAssociation(state, owner, out var selection) && selection.PendingOutcome == EffectPendingOutcome.None &&
+                ValidateEffectBuildAssociation(state, owner, out var selection, requireCurrentSource, registry) && selection.PendingOutcome == EffectPendingOutcome.None &&
                 selection.Status != EffectNodeStatus.Completed && selection.Status != EffectNodeStatus.Failed && selection.Status != EffectNodeStatus.Faulted &&
                 Text(selection.ContinuationData, "effectBuildPreparationId") == owner.EffectId &&
                 (!p.IsPromoted && owner.Status != EffectNodeStatus.Completed && selection.FlowStage == "deck_preparing" ||
@@ -239,17 +303,17 @@ namespace YC.Domain.Effects
                         n.ParentEffectId == selection.EffectId && Text(n.NormalizedArguments, "preparedPaymentOwnerEffectId") == owner.EffectId));
         }
 
-        internal static bool TryQuotePreparation(GameState state, EffectNodeRuntimeState owner, out ResourceSet cost, out string reason)
+        internal static bool TryQuotePreparation(GameState state, EffectNodeRuntimeState owner, out ResourceSet cost, out string reason, EffectRegistry registry = null)
         {
             cost = null; reason = "payment_preparation_context_invalid";
             var p = owner?.Payment?.Preparation;
-            if (IsMainActionAuthorization(p)) return TryQuote(state, owner.PlayerId, p.ActionKind, p.TargetId, p.ActionArguments, out cost, out reason);
-            if (!ValidateEffectBuildAssociation(state, owner, out var selection)) return false;
-            return TryQuoteEffectBuildTarget(state, owner.PlayerId, p.TargetId, p.ActionArguments, selection, out cost, out reason);
+            if (IsMainActionAuthorization(p)) return TryQuote(state, owner.PlayerId, p.ActionKind, p.TargetId, p.ActionArguments, out cost, out reason, registry, owner.EffectId);
+            if (!ValidateEffectBuildAssociation(state, owner, out var selection, true, registry)) return false;
+            return TryQuoteEffectBuildTarget(state, owner.PlayerId, p.TargetId, p.ActionArguments, selection, out cost, out reason, registry);
         }
 
         internal static bool TryQuoteEffectBuildTarget(GameState state, int playerId, string target, NormalizedValue args,
-            EffectNodeRuntimeState selection, out ResourceSet cost, out string reason)
+            EffectNodeRuntimeState selection, out ResourceSet cost, out string reason, EffectRegistry registry = null)
         {
             cost = null; reason = "payment_preparation_arguments_invalid";
             if (args?.Kind != NormalizedValueKind.Object || !args.IsValid() || args.Properties.Count != 2 ||
@@ -258,18 +322,21 @@ namespace YC.Domain.Effects
             var player = state.FindPlayer(playerId);
             if (player == null || mode != "resources" && mode != "gold") return false;
             if (selection?.PlayerId != playerId || !FacilitySelectionEffectExecutor.ValidateEffectBuildSource(state, selection, target,
-                Text(args, "expectedSourceZoneId"), mode, true))
+                Text(args, "expectedSourceZoneId"), mode, true, registry))
             { reason = "source_zone_changed"; return false; }
             var definition = FacilityCardDatabase.Get(state, item.DefinitionId);
             if (definition == null || !ItemTypeRegistry.CreateBuiltIn().IsAssignableTo(item.TypeId, "core.facility_card")) return false;
-            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, definition) || BuildFacilityService.FindFirstEmptyCityBoardSlot(state, playerId) < 0)
+            var queries = registry?.FacilityBuildQueries ?? new FacilityBuildQueryService();
+            var built=queries.ResolveBuiltFacts(state,playerId,selection.EffectId);
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacilityForInstances(state, player, definition,built.ItemIds) || queries.ResolveSlots(state, playerId, target, selection.EffectId).Count == 0)
             { reason = "invalid_build_slot"; return false; }
-            cost = mode == "gold" ? new ResourceSet { GoldVoucher = definition.GoldVoucherCost } : new FacilityBuildCostService().GetEffectiveResourceCost(state, player, definition);
+            cost = mode == "gold" ? new ResourceSet { GoldVoucher = definition.GoldVoucherCost } : new FacilityBuildCostService().GetEffectiveResourceCostForInstances(
+                state, player, definition, built.ItemIds);
             reason = ""; return true;
         }
 
         public static bool TryQuote(GameState state, int playerId, string actionKind, string targetId, NormalizedValue arguments,
-            out ResourceSet cost, out string reason)
+            out ResourceSet cost, out string reason, EffectRegistry registry = null, string sourceEffectId = "")
         {
             cost = null; reason = "payment_preparation_arguments_invalid";
             if (arguments?.Kind != NormalizedValueKind.Object || !arguments.TryValidate(out _) || state.FindPlayer(playerId) == null) return false;
@@ -279,8 +346,8 @@ namespace YC.Domain.Effects
                 var map = new MapQueryService(StaticMapDefinitions.Resolve(state.MapId));
                 if (!string.IsNullOrEmpty(targetId))
                 {
-                    var validation = new CityMovementService(map, new InfluenceService(map), new TravelCostService(map))
-                        .CanMoveCityEffect(state, playerId, targetId, true);
+                    var validation = new CityMovementService(map, new InfluenceService(map), new TravelCostService(map)) { DestinationRegistry = registry }
+                        .CanMoveCityEffect(state, playerId, targetId, true, sourceEffectId, "specified");
                     if (!validation.IsValid) { reason = validation.Reason; return false; }
                 }
                 cost = new TravelCostService(map).GetCityMoveBaseCost(); reason = ""; return true;
@@ -299,7 +366,7 @@ namespace YC.Domain.Effects
             int slot = Number(arguments, "cityBoardSlotIndex", -1);
             if (definition == null || FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, definition) ||
                 BuildFacilityService.FindFirstEmptyCityBoardSlot(state, playerId) < 0 || slot >= 0 &&
-                !BuildFacilityService.CreateForEffectTree().ValidatePaidPlacement(state, playerId, item.DefinitionId, slot).IsValid)
+                !BuildFacilityService.CreateForEffectTree().ValidatePaidPlacement(state, playerId, item.ItemId, slot).IsValid)
             { reason = "invalid_build_slot"; return false; }
             cost = mode == BuildFacilityService.PaymentModeGold ? new ResourceSet { GoldVoucher = definition.GoldVoucherCost } :
                 new FacilityBuildCostService().GetEffectiveResourceCost(state, player, definition);
@@ -323,10 +390,10 @@ namespace YC.Domain.Effects
                 request?.OwnerEffectId != parent.EffectId || request.InteractionTypeId != FacilitySelectionEffectExecutor.NormalBuildInteractionType ||
                 request.AnsweringPlayerId != playerId || request.StateRevision != expectedRevision || request.CandidateSetId != selectionCandidateSetId ||
                 request.CandidateSetVersion != selectionCandidateSetVersion || !request.CandidateIds.Contains(targetItemId) ||
-                Runtime.EffectNodes.Any(n => n.ParentEffectId == parent.EffectId && ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, n, playerId))) return false;
+                Runtime.EffectNodes.Any(n => n.ParentEffectId == parent.EffectId && ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, n, playerId, true, registry))) return false;
             if (!ResourcePaymentPreparationService.ValidateEffectBuildCandidate(state, parent, request, targetItemId,
-                Text(actionArguments, "expectedSourceZoneId"), Text(actionArguments, "paymentMode"), true)) return false;
-            if (!ResourcePaymentPreparationService.TryQuoteEffectBuildTarget(state, playerId, targetItemId, actionArguments, parent, out var cost, out reason)) return false;
+                Text(actionArguments, "expectedSourceZoneId"), Text(actionArguments, "paymentMode"), true, registry)) return false;
+            if (!ResourcePaymentPreparationService.TryQuoteEffectBuildTarget(state, playerId, targetItemId, actionArguments, parent, out var cost, out reason, registry)) return false;
             var work = GameStateCloneService.DeepClone(state); parent = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == selectionOwnerEffectId);
             var input = FindInteraction(work.EffectRuntime, selectionInteractionId); input.Status = "invalidated";
             ResolveInteractionBlockerOnWorking(work.EffectRuntime, input.GetStableInteractionId());
@@ -337,6 +404,7 @@ namespace YC.Domain.Effects
             var ids = AppendChildEffects(work, parent, new[] { spec }, "preparation", commandId, entries);
             var owner = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == ids[0]);
             var payment = ResourcePaymentSubstitutionEffectExecutor.InitializePayment(owner, cost); payment.SourceKind = "build";
+            ResourcePaymentSubstitutionEffectExecutor.EnableV2(payment, new ResourcePaymentDemandState { FixedCost = cost.Clone() }, new ResourceSet());
             payment.Preparation = new PreparedActionPaymentContext { AuthorizationKind = "effect_build", PreparationOwnerEffectId = owner.EffectId,
                 ActionKind = "build", TargetId = targetItemId, ActionArguments = actionArguments.Clone(), SelectionOwnerEffectId = parent.EffectId,
                 SelectionInteractionId = selectionInteractionId, SelectionCandidateSetId = selectionCandidateSetId, SelectionCandidateSetVersion = selectionCandidateSetVersion };
@@ -349,14 +417,25 @@ namespace YC.Domain.Effects
         public bool TryCancelPreparedEffectBuildPayment(int playerId, string preparationOwnerEffectId, int expectedRevision, string commandId, out string reason)
         {
             reason = "effect_build_context_invalid";
-            if (expectedRevision != Runtime.StateRevision) { reason = "state_revision_mismatch"; return false; }
             var source = GetNode(preparationOwnerEffectId);
-            if (string.IsNullOrEmpty(commandId) || !ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, source, playerId) ||
-                source.Payment.IsCommitted || source.Payment.IsCommitRequested) return false;
+            var cancelled = source?.Payment?.Preparation;
+            if (cancelled?.IsCancelled == true && !string.IsNullOrEmpty(commandId) && cancelled.CancellationCommandId == commandId)
+            {
+                bool same = source.PlayerId == playerId && !source.Payment.IsCommitted && !source.Payment.IsCommitRequested && ResourcePaymentPreparationService.ValidateEffectBuildIdentity(state, source, out _) &&
+                    cancelled.CancellationPlayerId == playerId && cancelled.CancellationRequestRevision == expectedRevision &&
+                    cancelled.CancellationDigest == StableIdFactory.Create("payment-cancel", preparationOwnerEffectId, playerId.ToString(System.Globalization.CultureInfo.InvariantCulture), expectedRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                reason = same ? "" : "command_id_payload_mismatch"; return same;
+            }
+            if (expectedRevision != Runtime.StateRevision) { reason = "state_revision_mismatch"; return false; }
+            if (string.IsNullOrEmpty(commandId) || !ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, source, playerId, false) ||
+                source.PendingOutcome != EffectPendingOutcome.None || source.Payment.Preparation.IsPromoted || source.Payment.IsCommitted || source.Payment.IsCommitRequested) return false;
             if (ResourcePaymentPreparationService.HasPendingResponse(state, source)) { reason = "settlement_required_pending"; return false; }
             var work = GameStateCloneService.DeepClone(state); var owner = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == source.EffectId);
             var parent = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == owner.ParentEffectId);
             var entries = new List<RuleJournalEntry>(); CancelEffectBuildPreparationOnWorking(work, owner, parent, false, entries);
+            owner.Payment.Preparation.CancellationCommandId = commandId; owner.Payment.Preparation.CancellationPlayerId = playerId;
+            owner.Payment.Preparation.CancellationRequestRevision = expectedRevision;
+            owner.Payment.Preparation.CancellationDigest = StableIdFactory.Create("payment-cancel", preparationOwnerEffectId, playerId.ToString(System.Globalization.CultureInfo.InvariantCulture), expectedRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
             CommitPreparedWork(work, commandId, entries, -1, -1, new[] { owner.EffectId, parent.EffectId });
             var report = RunUntilQuiescent(); if (report.Faulted) { reason = report.FaultCode; return false; }
             reason = ""; return true;
@@ -374,7 +453,7 @@ namespace YC.Domain.Effects
         private bool TrySubmitEffectBuildPaymentAnswerOnWorking(InteractionRequest request, int playerId, NormalizedValue answer, out string reason)
         {
             reason = "effect_build_context_invalid"; var source = GetNode(request.OwnerEffectId);
-            if (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, source, playerId) ||
+            if (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, source, playerId, false) ||
                 source.Payment.Preparation.IsPromoted || source.Payment.IsCommitRequested || source.Payment.IsCommitted ||
                 request.InteractionTypeId != ResourceEffectExecutor.PaymentConfirmationInteractionTypeId ||
                 !source.Payment.BeforePaymentReady || ResourcePaymentPreparationService.HasPendingResponse(state, source)) return false;
@@ -383,7 +462,7 @@ namespace YC.Domain.Effects
                 value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue;
             var parentSource = GetNode(source.ParentEffectId);
             if (selected != "pay" && selected != "decline" || selected == "decline" && !Flag(parentSource.NormalizedArguments, "allowDecline")) return false;
-            if (selected == "pay" && !ResourcePaymentPreparationService.CanConfirm(state, source)) { reason = "payment_cannot_confirm"; return false; }
+            if (selected == "pay" && (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, source, playerId, true, registry) || !ResourcePaymentPreparationService.CanConfirm(state, source, registry))) { reason = "payment_cannot_confirm"; return false; }
             var work = GameStateCloneService.DeepClone(state); var owner = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == source.EffectId);
             var parent = work.EffectRuntime.EffectNodes.Find(n => n.EffectId == owner.ParentEffectId); var input = FindInteraction(work.EffectRuntime, request.GetStableInteractionId());
             owner.ContinuationOperationContext = work.EffectRuntime.CurrentOperationContext?.Clone() ?? owner.ContinuationOperationContext;
@@ -400,7 +479,8 @@ namespace YC.Domain.Effects
             {
                 var p = owner.Payment.Preparation;
                 var spec = FacilityBuildEffectSpecFactory.Build(playerId, p.TargetId, -1, Text(p.ActionArguments, "paymentMode"), false,
-                    parent.SourceId, false, Text(p.ActionArguments, "expectedSourceZoneId"));
+                    parent.SourceId, Flag(parent.NormalizedArguments,"consumeMainAction"), Text(p.ActionArguments, "expectedSourceZoneId"),
+                    Text(parent.NormalizedArguments,"sourceZone","supply"), Text(parent.NormalizedArguments,"sourceKey"));
                 spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "preparedPaymentOwnerEffectId", Value = NormalizedValue.CreateString(owner.EffectId) });
                 spec.NormalizedArguments.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
                 var ids = AppendChildEffects(work, parent, new[] { spec }, "child", input.GetStableInteractionId(), entries);
@@ -435,7 +515,7 @@ namespace YC.Domain.Effects
                     previous.Payment.Preparation.TargetId.Length != 0 || string.IsNullOrEmpty(targetId) ||
                     previous.Payment.Preparation.BusinessBeforeEventId.Length != 0)
                 { diagnostic = "payment_preparation_cancel_required"; return false; }
-                if (!ResourcePaymentPreparationService.TryQuote(state, playerId, actionKind, targetId, actionArguments, out var updatedCost, out diagnostic) ||
+                if (!ResourcePaymentPreparationService.TryQuote(state, playerId, actionKind, targetId, actionArguments, out var updatedCost, out diagnostic, registry) ||
                     !ResourcePaymentPreparationService.SameCost(updatedCost, previous.Payment.PaymentCost)) return false;
                 var updated = GameStateCloneService.DeepClone(state);
                 updated.EffectRuntime.EffectNodes.Find(node => node.EffectId == previous.EffectId).Payment.Preparation.TargetId = targetId;
@@ -447,7 +527,7 @@ namespace YC.Domain.Effects
                 diagnostic = ""; return true;
             }
             if (state.HasPendingChoiceForCommand(Runtime.CurrentOperationContext)) { diagnostic = "settlement_required_pending"; return false; }
-            if (!ResourcePaymentPreparationService.TryQuote(state, playerId, actionKind, targetId ?? "", actionArguments, out var cost, out diagnostic)) return false;
+            if (!ResourcePaymentPreparationService.TryQuote(state, playerId, actionKind, targetId ?? "", actionArguments, out var cost, out diagnostic, registry)) return false;
             var work = GameStateCloneService.DeepClone(state);
             var parent = work.EffectRuntime.EffectNodes.Find(node => node.EffectId == window.ExecutionEffectId);
             var spec = actionKind == "build" ? EffectSpec.Create(FacilityBuildEffectExecutor.PaymentTypeId,
@@ -458,6 +538,7 @@ namespace YC.Domain.Effects
             var ids = AppendChildEffects(work, parent, new[] { spec }, "preparation", commandId, entries);
             var owner = work.EffectRuntime.EffectNodes.Find(node => node.EffectId == ids[0]);
             var payment = ResourcePaymentSubstitutionEffectExecutor.InitializePayment(owner, cost);
+            ResourcePaymentSubstitutionEffectExecutor.EnableV2(payment, new ResourcePaymentDemandState { FixedCost = cost.Clone() }, new ResourceSet());
             payment.SourceKind = actionKind;
             payment.Preparation = new PreparedActionPaymentContext { PreparationOwnerEffectId = owner.EffectId,
                 ActionKind = actionKind, TargetId = targetId ?? "", ActionArguments = actionArguments.Clone(),
@@ -501,7 +582,7 @@ namespace YC.Domain.Effects
             actionEffectId = ""; diagnostic = "payment_preparation_context_invalid";
             var source = GetNode(preparationOwnerEffectId);
             if (string.IsNullOrEmpty(commandId) || !ResourcePaymentPreparationService.IsCurrentPreparation(state, source, playerId) ||
-                source.Status != EffectNodeStatus.Blocked || !ResourcePaymentPreparationService.CanConfirm(state, source) ||
+                source.Status != EffectNodeStatus.Blocked || !ResourcePaymentPreparationService.CanConfirm(state, source, registry) ||
                 ResourcePaymentPreparationService.HasPendingResponse(state, source) || !new MainActionBudgetService().ValidateCanSpend(state, playerId).IsValid) return false;
             var preparation = source.Payment.Preparation;
             string kind = actionSpec?.EffectTypeId == FacilityEntryEffectTypeIds.Build ? "build" :
@@ -520,7 +601,7 @@ namespace YC.Domain.Effects
                 finalArguments.Properties.Add(new NormalizedValueEntry { Name = "cityBoardSlotIndex", Value = NormalizedValue.CreateInteger(Number(actionSpec.NormalizedArguments, "cityBoardSlotIndex", -1)) });
                 finalArguments.Properties.Sort((first, second) => StringComparer.Ordinal.Compare(first.Name, second.Name));
             }
-            if (!ResourcePaymentPreparationService.TryQuote(state, playerId, kind, target, finalArguments, out var current, out diagnostic) ||
+            if (!ResourcePaymentPreparationService.TryQuote(state, playerId, kind, target, finalArguments, out var current, out diagnostic, registry) ||
                 !ResourcePaymentPreparationService.SameCost(current, source.Payment.PaymentCost)) { if (diagnostic.Length == 0) diagnostic = "payment_cost_changed"; return false; }
             var work = GameStateCloneService.DeepClone(state);
             var owner = work.EffectRuntime.EffectNodes.Find(node => node.EffectId == source.EffectId);

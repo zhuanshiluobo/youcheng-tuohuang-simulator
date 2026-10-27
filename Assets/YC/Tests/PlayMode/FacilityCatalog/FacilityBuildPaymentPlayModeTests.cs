@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Domain.Facilities;
+using YC.Domain.Effects;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
@@ -19,6 +20,60 @@ namespace YC.Tests.PlayMode
     {
         [UnityTest] public IEnumerator Resources_PayRefillThenPlace() => Run(false);
         [UnityTest] public IEnumerator Gold_PayRefillThenPlace() => Run(true);
+
+        [UnityTest]
+        public IEnumerator SceneAwakeAndRoutingRecreationKeepFacilityPaymentRendererRegistered()
+        {
+            foreach (var scene in new[] { "SampleScene", "ThreePlayerScene" })
+            {
+                yield return (IEnumerator)typeof(GameplayMainHudPlayModeTests)
+                    .GetMethod("ClearLaunchContext", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+                ConfigureLaunch(scene);
+                yield return SceneManager.LoadSceneAsync(scene);
+                yield return null;
+                var controller = UnityEngine.Object.FindObjectOfType(T("MobileCityInteractionController"));
+                Assert.That(controller, Is.Not.Null);
+                Assert.That(((Behaviour)controller).enabled, Is.True, "实际场景必须完成Awake，不能绕过初始化。");
+                var first = Field(controller, "facilityBuildRequest");
+                AssertFacilityPaymentBinding(controller, first);
+                Call(controller, "BuildInteractionRouting");
+                var rebuilt = Field(controller, "facilityBuildRequest");
+                Assert.That(rebuilt, Is.Not.SameAs(first));
+                Assert.That(Field(first, "disposed"), Is.True, "被替换的协调器必须释放。");
+                AssertFacilityPaymentBinding(controller, rebuilt);
+                TestContext.WriteLine(scene + "：实际Awake及重新注册均使用当前建设付款渲染器；旧协调器已释放。");
+            }
+        }
+
+        private static void AssertFacilityPaymentBinding(object controller, object facility)
+        {
+            Assert.That(facility, Is.Not.Null);
+            Assert.That(facility.GetType().GetProperty("BindPaymentSources", BindingFlags.Instance | BindingFlags.NonPublic), Is.Null, "不再绑定非法付款来源编辑入口。");
+            var router = Field(controller, "interactionRequestRouter");
+            var renderers = (IEnumerable)Field(router, "renderers");
+            Assert.That(renderers.Cast<object>().Contains(facility), Is.True, "已绑定实例必须是实际注册的渲染器。");
+        }
+
+        private static void ConfigureLaunch(string scene)
+        {
+            // 真实Awake需要正式启动上下文；使用原配置入口生成顺序，不注入局内状态。
+            var context = T("GameLaunchContext").GetMethod("Ensure").Invoke(null, null);
+            var listType = context.GetType().GetField("Players").FieldType;
+            var seats = (IList)Activator.CreateInstance(listType);
+            var seatType = listType.GetGenericArguments()[0];
+            for (var id = 1; id <= 2; id++)
+            {
+                var seat = Activator.CreateInstance(seatType);
+                seatType.GetField("PlayerId").SetValue(seat, id);
+                seatType.GetField("PlayerName").SetValue(seat, "玩家" + id);
+                seatType.GetField("IsReady").SetValue(seat, true);
+                seats.Add(seat);
+            }
+            var configuration = new GameRuleConfiguration { PlayerCount = 2,
+                MapId = scene == "ThreePlayerScene" ? "map-three-players" : "map-four-players" };
+            context.GetType().GetMethod("ConfigureNewLocal").Invoke(context,
+                new object[] { 1, "startup-lifecycle-test", seats, configuration, null, null });
+        }
 
         [UnityTest]
         public IEnumerator PaymentContent_UsesContentHeightAndFitsShortColumn()
@@ -232,6 +287,7 @@ namespace YC.Tests.PlayMode
         {
             yield return (IEnumerator)typeof(GameplayMainHudPlayModeTests)
                 .GetMethod("ClearLaunchContext", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            ConfigureLaunch("SampleScene");
             yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
             var controller = UnityEngine.Object.FindObjectOfType(T("MobileCityInteractionController"));
@@ -240,6 +296,13 @@ namespace YC.Tests.PlayMode
             var state = (GameState)Property(session, "State");
             var local = (int)Field(controller, "localPlayerId");
             PrepareBuildState(state, local);
+            // 阶段字段不能代替真实操作窗口；用既有主链夹具入口建立Host所需的行动许可。
+            var actionWindow = new RoundExecutionService((EffectRegistry)Field(controller, "sessionEffectRegistry"))
+                .PrepareActionWindowForSmoke(state, local);
+            Assert.That(actionWindow.IsValid, Is.True, actionWindow.Reason);
+            Assert.That(OperationWindowService.ReadOpenWindows(state).Any(w =>
+                w.WindowKind == RoundMainlineNodeTypeIds.PlayerActionWindow && w.AvailablePlayerIds.Contains(local)), Is.True);
+            TestContext.WriteLine("隔离付款夹具：已通过主链入口建立玩家" + local + "的真实行动窗口。");
             var player = state.FindPlayer(local);
             var facilityId = FacilityCardDatabase.BoroughAdministrativeDistrict;
             var definition = FacilityCardDatabase.Get(facilityId);

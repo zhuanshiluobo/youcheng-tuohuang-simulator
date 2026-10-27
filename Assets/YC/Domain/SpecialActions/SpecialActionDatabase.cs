@@ -200,6 +200,12 @@ namespace YC.Domain.SpecialActions
             }
 
             ValidateResourceSet(definition.FixedCost, definition.SpecialActionId + " 的固定成本");
+            if (definition.BodyOwnsPayment)
+            {
+                if (definition.BodyPaymentQueryKind != YC.Domain.Effects.ResourcePaymentCostPreview.DemandQueryKind || definition.FlexibleOriginiumAndIronCost != 0 || YC.Domain.Effects.PaymentResources.Total(definition.FixedCost) != 0)
+                    throw new InvalidOperationException("payment_body_and_legacy_cost_conflict");
+                return;
+            }
             if (!external) ValidateSemanticContract(definition);
         }
 
@@ -346,6 +352,7 @@ namespace YC.Domain.SpecialActions
                    left.Level == right.Level && left.EffectKind == right.EffectKind &&
                    ResourceSetsEqual(left.FixedCost, right.FixedCost) &&
                    left.FlexibleOriginiumAndIronCost == right.FlexibleOriginiumAndIronCost &&
+                   left.BodyPaymentQueryKind == right.BodyPaymentQueryKind &&
                    left.MaximumTargetCount == right.MaximumTargetCount &&
                    left.FreeMoveCount == right.FreeMoveCount &&
                    left.ExtraMainActionCount == right.ExtraMainActionCount &&

@@ -412,6 +412,100 @@
       },
       "renderMode": "sprite",
       "valueRequired": false
+    },
+    {
+      "id": "core:settlement.outpost_payout",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.outpost_payout.dark",
+      "light": "core:settlement.outpost_payout.light",
+      "muted": "core:settlement.outpost_payout.muted",
+      "altText": {
+        "key": "core:entrepreneur.P.share.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.marker_redeem",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.marker_redeem.dark",
+      "light": "core:settlement.marker_redeem.light",
+      "muted": "core:settlement.marker_redeem.muted",
+      "altText": {
+        "key": "core:entrepreneur.T.cleanup.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.fund_invest",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.fund_invest.dark",
+      "light": "core:settlement.fund_invest.light",
+      "muted": "core:settlement.fund_invest.muted",
+      "altText": {
+        "key": "core:entrepreneur.D.investment.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.reputation_score",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.reputation_score.dark",
+      "light": "core:settlement.reputation_score.light",
+      "muted": "core:settlement.reputation_score.muted",
+      "altText": {
+        "key": "core:entrepreneur.D.exchange.label",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:settlement.tactical_dispatch",
+      "usage": "settlement_action",
+      "monochrome": true,
+      "dark": "core:settlement.tactical_dispatch.dark",
+      "light": "core:settlement.tactical_dispatch.light",
+      "muted": "core:settlement.tactical_dispatch.muted",
+      "altText": {
+        "key": "core:entrepreneur.A.A05.name",
+        "arguments": []
+      },
+      "renderMode": "sprite",
+      "valueRequired": false
+    },
+    {
+      "id": "core:rule.stonehoove_security_place",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.stonehoove_security_place.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.stonehoove_security_place.asset"
+    },
+    {
+      "id": "core:rule.stonehoove_security_move",
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.stonehoove_security_move.alt",
+        "arguments": []
+      },
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "assetKey": "core:rule.stonehoove_security_move.asset"
     }
   ],
   "assets": {}

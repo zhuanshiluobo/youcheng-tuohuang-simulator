@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
@@ -228,7 +229,7 @@ namespace YC.Presentation.Workflows
 
         public bool CanToggleLocation(string locationId)
         {
-            if (!IsActive || !selection.HasCandidateLocation(locationId) || !IsLocationAvailable(locationId))
+            if (!IsActive || !selection.HasCandidateLocation(locationId) || !IsLocationAvailable(locationId) && !ContainsString(selection.SelectedLocationIds, locationId))
             {
                 return false;
             }
@@ -417,7 +418,7 @@ namespace YC.Presentation.Workflows
                     CanToggleLocation(locationId)));
             }
 
-            allLocationsCovered = ResourceCollectionCoverage.IsComplete(selectionQuery,
+            allLocationsCovered = HasFullCoverage(selectionQuery,
                 selection.SelectedLocationIds, selection.PaidRouteIds,
                 plan => resourceCollectionService.QuerySelection(context.CurrentState, context.LocalPlayerId, plan));
             view.SetHighlights(highlights);
@@ -481,10 +482,38 @@ namespace YC.Presentation.Workflows
             }
         }
 
+        private static bool HasFullCoverage(ResourceCollectionSelectionQuery current,
+            IEnumerable<string> selected, IEnumerable<string> paid,
+            Func<IReadOnlyCollection<string>, ResourceCollectionSelectionQuery> query)
+        {
+            if (current == null || !current.IsValid || current.ConfirmedTollCost > current.AvailableGoldVoucher) return false;
+            var chosen = new HashSet<string>(selected, StringComparer.Ordinal);
+            var free = current.FreeLocations?.FreeLocationIds ?? Array.Empty<string>();
+            if (!current.PathsByLocationId.Keys.Concat(free).Any() || current.PathsByLocationId.Keys.Concat(free).Any(id => !chosen.Contains(id)))
+                return false;
+            var queue = new Queue<KeyValuePair<HashSet<string>,ResourceCollectionSelectionQuery>>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            queue.Enqueue(new KeyValuePair<HashSet<string>,ResourceCollectionSelectionQuery>(new HashSet<string>(paid,StringComparer.Ordinal),current));
+            while (queue.Count > 0)
+            {
+                var plan = queue.Dequeue();
+                foreach (var option in plan.Value.RouteOptionsById.Values.Where(o => o.CanAfford && !plan.Key.Contains(o.RouteId)))
+                {
+                    var next = new HashSet<string>(plan.Key,StringComparer.Ordinal) { option.RouteId };
+                    if (!seen.Add(string.Join("|",next.OrderBy(x=>x,StringComparer.Ordinal)))) continue;
+                    var result = query(next);
+                    if (result == null || !result.IsValid || result.ConfirmedTollCost > result.AvailableGoldVoucher) continue;
+                    if (result.PathsByLocationId.Keys.Concat(result.FreeLocations?.FreeLocationIds ?? Array.Empty<string>()).Any(id=>!chosen.Contains(id))) return false;
+                    queue.Enqueue(new KeyValuePair<HashSet<string>,ResourceCollectionSelectionQuery>(next,result));
+                }
+            }
+            return true;
+        }
+
         private bool IsLocationAvailable(string locationId)
         {
             MapPath ignored;
-            return selection.TryGetPath(locationId, out ignored);
+            return selection.IsFreeLocation(locationId) || selection.TryGetPath(locationId, out ignored);
         }
 
         private bool IsRoutePayable(string routeId)

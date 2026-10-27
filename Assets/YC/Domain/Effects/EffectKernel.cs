@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using YC.Domain.Commands;
+using YC.Domain.Facilities;
 using YC.Domain.Travel;
 using YC.Domain.Interactions;
 using YC.Domain.Rules;
@@ -108,6 +109,9 @@ namespace YC.Domain.Effects
     [Serializable]
     public sealed class EffectSpec
     {
+        public RequiredEffectOutcome RequiredOutcome;
+        public EffectExecutionBinding ExecutionBinding;
+        public YC.Domain.Cards.PersistentSourceFactsBinding PersistentSourceFacts;
         public YC.Domain.Presentation.SettlementEffectDefinition Settlement;
         public YC.Domain.Presentation.EffectPresentationDefinition Presentation;
         public string EffectTypeId = string.Empty;
@@ -217,6 +221,9 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = DeclinePromptKey ?? string.Empty,
                 UnavailablePolicy = UnavailablePolicy ?? string.Empty,
                 CompletionHandlerId = CompletionHandlerId ?? string.Empty,
+                RequiredOutcome = GameStateCloneService.DeepClone(RequiredOutcome),
+                ExecutionBinding = GameStateCloneService.DeepClone(ExecutionBinding),
+                PersistentSourceFacts = GameStateCloneService.DeepClone(PersistentSourceFacts),
                 ContinuationContext = ContinuationContext?.Clone(),
                 ContinuationContentId = ContinuationContentId ?? string.Empty,
                 ContinuationContentInstanceId = ContinuationContentInstanceId ?? string.Empty,
@@ -288,6 +295,7 @@ namespace YC.Domain.Effects
         public EffectStepResult()
         {
             ChildEffects = new List<EffectSpec>();
+            EventsBeforeChildren = new List<EffectEventRequest>();
             Events = new List<EffectEventRequest>();
             Interactions = new List<EffectInteractionSpec>();
             Logs = new List<EffectLogEntrySpec>();
@@ -301,6 +309,7 @@ namespace YC.Domain.Effects
         public string FlowStage { get; private set; }
         public bool ExplicitNoProgress { get; private set; }
         public List<EffectSpec> ChildEffects { get; }
+        public List<EffectEventRequest> EventsBeforeChildren { get; }
         public List<EffectEventRequest> Events { get; }
         public List<EffectInteractionSpec> Interactions { get; }
         public List<EffectLogEntrySpec> Logs { get; }
@@ -354,6 +363,13 @@ namespace YC.Domain.Effects
             if (members.Exists(spec => spec == null)) throw new ArgumentException("独立子任务组成员不能为 null。", nameof(specs));
             IndependentChildGroups.Add(new IndependentChildren { Key = stableGroupKey, StartIndex = ChildEffects.Count, Members = members });
             ChildEffects.AddRange(members);
+            return this;
+        }
+
+        public EffectStepResult AddEventBeforeChildren(EffectEventRequest ruleEvent)
+        {
+            if (ruleEvent == null) throw new ArgumentNullException(nameof(ruleEvent));
+            EventsBeforeChildren.Add(ruleEvent);
             return this;
         }
 
@@ -444,6 +460,7 @@ namespace YC.Domain.Effects
     public sealed class EffectExecutionContext
     {
         private readonly Func<IReadOnlyList<DeferredResponseDependency>, bool> attachDeferredDependencies;
+        private readonly Func<IReadOnlyList<string>, string, bool> attachCompletionDependencies;
         internal EffectExecutionContext(
             GameState state,
             EffectNodeRuntimeState node,
@@ -452,19 +469,27 @@ namespace YC.Domain.Effects
             : this(state, node, registry, limits, null) { }
 
         internal EffectExecutionContext(GameState state, EffectNodeRuntimeState node, EffectRegistry registry,
-            EffectRuntimeLimits limits, Func<IReadOnlyList<DeferredResponseDependency>, bool> attachDeferredDependencies)
+            EffectRuntimeLimits limits, Func<IReadOnlyList<DeferredResponseDependency>, bool> attachDeferredDependencies,
+            Func<IReadOnlyList<string>, string, bool> attachCompletionDependencies = null)
         {
             State = state;
             contextNodeId = node.EffectId;
             Registry = registry;
+            ResourcePaymentSourceService.BindCostQueries(state, registry);
             Limits = limits ?? EffectRuntimeLimits.Default;
             this.attachDeferredDependencies = attachDeferredDependencies;
+            this.attachCompletionDependencies = attachCompletionDependencies;
         }
 
         public bool TryAttachDeferredResponseDependenciesOnWorking(IReadOnlyList<DeferredResponseDependency> dependencies)
         {
             if (attachDeferredDependencies == null) throw new InvalidOperationException("当前 Effect 没有旁路依赖的工作事务绑定。");
             return attachDeferredDependencies(dependencies);
+        }
+        public bool TryAttachCompletionDependenciesOnWorking(IReadOnlyList<string> targetIds, string reason)
+        {
+            if (attachCompletionDependencies == null) throw new InvalidOperationException("effect_completion_transaction_missing");
+            return attachCompletionDependencies(targetIds, reason);
         }
 
         public GameState State { get; }
@@ -551,6 +576,8 @@ namespace YC.Domain.Effects
         internal void Validate(EffectSpec spec)
         {
             if (spec == null) throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "EffectSpec 不能为 null。");
+            if (AbilityActionRecovery.IsRetiredMarkerPayment(spec.EffectTypeId))
+                throw new KernelException(EffectFaultCodes.InvalidEffectSpec, AbilityActionRecovery.RetiredMarkerPaymentDiagnostic);
             if (!string.IsNullOrEmpty(spec.DefinitionVersion) &&
                 !string.Equals(spec.DefinitionVersion, DefinitionVersion, StringComparison.Ordinal))
             {
@@ -678,7 +705,7 @@ namespace YC.Domain.Effects
             Register(new EffectRegistration(
                 EffectTypeIds.Condition,
                 ExecuteCondition,
-                EffectExecutorKind.IntrinsicFlow));
+                EffectExecutorKind.IntrinsicFlow, CardMarkerCarrier.Version));
         }
 
         public void Register(EffectRegistration registration)
@@ -889,9 +916,22 @@ namespace YC.Domain.Effects
             return StringComparer.Ordinal.Compare(left.SubscriptionId, right.SubscriptionId);
         }
 
+        public static string ValidateConditionArguments(NormalizedValue args)
+        {
+            string retired = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(EffectTypeIds.Condition, args);
+            if (retired.Length > 0) return retired;
+            if (args?.Kind != NormalizedValueKind.Object || !args.IsValid() || args.Properties.Any(p =>
+                    !new[] { "apiVersion", "allowDecline", "ruleCondition", "decisionPlayer", "declinePromptKey" }.Contains(p.Name)) ||
+                ItemTransferEffectExecutor.Value(args, "apiVersion") is NormalizedValue api && (api.Kind != NormalizedValueKind.Integer || api.IntegerValue != 1) ||
+                new[] { "allowDecline", "ruleCondition" }.Any(k => ItemTransferEffectExecutor.Value(args, k) is NormalizedValue v && v.Kind != NormalizedValueKind.Boolean))
+                return "condition_arguments_invalid";
+            return "";
+        }
         private static EffectStepResult ExecuteCondition(EffectExecutionContext context)
         {
             EffectNodeRuntimeState node = context.Node;
+            string deliveryError = ValidateConditionArguments(node.NormalizedArguments);
+            if (deliveryError.Length > 0) throw new KernelException(EffectFaultCodes.InvalidEffectSpec, deliveryError);
             if (node.NestedGroupSizes == null || node.NestedGroupSizes.Count < 2)
             {
                 throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "条件式缺少左右两侧 Effect式。");
@@ -921,8 +961,16 @@ namespace YC.Domain.Effects
             bool transitionedToRight = false;
             if (side == "left")
             {
+                // 足额token转移必须有真实转移证明；Completed/Choice或空结果不能冒充付款成功。
+                // 卡牌/设施转移不是token费用，不在此套用其层序结果或改变既有条件语义。
+                if (lastChild?.Status == EffectNodeStatus.Completed && new[] { lastChild }.Concat(AbilityActionExecutor.Descendants(context.State, lastChild.EffectId))
+                    .Any(child => child.Status == EffectNodeStatus.Completed && AbilityActionExecutor.TokenTransferReceiptRequired(child) &&
+                        !AbilityActionExecutor.HasCommittedTokenTransfer(context.State, child)))
+                    throw new KernelException(EffectFaultCodes.InvalidRuntimeState, "condition_token_transfer_receipt_missing");
                 if (lastChild != null && lastChild.Status == EffectNodeStatus.Failed)
                 {
+                    if (ItemTransferEffectExecutor.Flag(node.NormalizedArguments, "ruleCondition") && lastChild.FailureReason == "player_declined")
+                        return EffectStepResult.Failed("player_declined", CreateConditionResult(false, lastChild));
                     return EffectStepResult.Completed(CreateConditionResult(false, lastChild));
                 }
 
@@ -987,6 +1035,9 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = data.DeclinePromptKey,
                 UnavailablePolicy = data.UnavailablePolicy,
                 CompletionHandlerId = data.CompletionHandlerId,
+                RequiredOutcome = GameStateCloneService.DeepClone(data.RequiredOutcome),
+                ExecutionBinding = GameStateCloneService.DeepClone(data.ExecutionBinding),
+                PersistentSourceFacts = GameStateCloneService.DeepClone(data.PersistentSourceFacts),
                 ContinuationContext = data.ContinuationContext?.Clone(),
                 ContinuationContentId = data.ContinuationContentId,
                 ContinuationContentInstanceId = data.ContinuationContentInstanceId,
@@ -1044,6 +1095,9 @@ namespace YC.Domain.Effects
                 DeclinePromptKey = data.DeclinePromptKey,
                 UnavailablePolicy = data.UnavailablePolicy,
                 CompletionHandlerId = data.CompletionHandlerId,
+                RequiredOutcome = GameStateCloneService.DeepClone(data.RequiredOutcome),
+                ExecutionBinding = GameStateCloneService.DeepClone(data.ExecutionBinding),
+                PersistentSourceFacts = GameStateCloneService.DeepClone(data.PersistentSourceFacts),
                 ContinuationContext = data.ContinuationContext?.Clone(),
                 ContinuationContentId = data.ContinuationContentId,
                 ContinuationContentInstanceId = data.ContinuationContentInstanceId,
@@ -1141,6 +1195,22 @@ namespace YC.Domain.Effects
         private readonly Action<GameState, EffectNodeRuntimeState> nodeTerminalObserver;
         private string lastDiagnostic = string.Empty;
 
+        // 仅供一次同步 Run 的状态调度提交使用；执行器及终态观察器从不取得此图。
+        // 每步仍从最近成功状态完整重置，失败图不发布；不跨 Run、线程或重入共享。
+        private sealed class SchedulingWork : IDisposable
+        {
+            private GameState work;
+
+            public GameState Prepare(GameState committed)
+            {
+                if (work == null) work = GameStateCloneService.DeepClone(committed);
+                else GameStateCloneService.CopyTo(work, committed);
+                return work;
+            }
+
+            public void Dispose() { work = null; }
+        }
+
         public EffectTreeExecutor(
             GameState state,
             EffectRegistry registry,
@@ -1163,6 +1233,7 @@ namespace YC.Domain.Effects
                     throw new KernelException(EffectFaultCodes.DefinitionVersionMismatch, "当前内容包与存档绑定的内容哈希不一致，请使用原内容包恢复。");
                 state.ContentPackHash = registry.ContentPackHash;
             }
+            ResourcePaymentSourceService.BindCostQueries(state, registry);
             this.limits = limits ?? EffectRuntimeLimits.Default;
             this.nodeTerminalObserver = nodeTerminalObserver;
             if (this.state.EffectRuntime == null) this.state.EffectRuntime = new EffectRuntimeState();
@@ -1227,9 +1298,11 @@ namespace YC.Domain.Effects
                             return;
                         }
 
-                        EffectNodeRuntimeState node = CreateNode(spec, createdNodeId, normalizedRoundId, string.Empty);
+                        EffectSpec preparedSpec = PrepareInfluenceAttachment(work, spec, createdNodeId, string.Empty);
+                        EffectNodeRuntimeState node = CreateNode(preparedSpec, createdNodeId, normalizedRoundId, string.Empty);
                         node.OperationContext = runtime.CurrentOperationContext?.Clone();
                         runtime.EffectNodes.Add(node);
+                        if (node.EffectTypeId.StartsWith("effect.ability.", StringComparison.Ordinal)) runtime.AbilityActionProtocolVersion = 1;
                         AddContinuationBinding(runtime, node);
                     },
                     new[] { nodeId });
@@ -1326,6 +1399,9 @@ namespace YC.Domain.Effects
                 value.Status == "open" && value.InteractionTypeId == YC.Domain.Cards.CharacterContentEffectExecutor.CleanupInteractionTypeId);
             if (string.IsNullOrEmpty(useId) && !cleanupOption)
             {
+                if (registry.HasAbilityCatalog && registry.AbilityDeclarations.Any(d => d.Actions.Count > 0 &&
+                    state.ItemZones.Items.Any(item => item.ItemId == option.SourceItemId && item.DefinitionId == d.DefinitionId)))
+                { diagnostic = "旧快速入口已迁移，请使用最新宿主候选。"; return false; }
                 bool created = TryCreatePlayerActionEffect(playerId, ContentLifecycleEffectExecutor.AwardSpec(playerId, option.SourceItemId, false), "", option.SourceItemId, out _);
                 if (!created) diagnostic = LastDiagnostic;
                 return created;
@@ -1458,6 +1534,7 @@ namespace YC.Domain.Effects
             out string eventId,
             out string diagnostic)
         {
+            using var saveActivity = EffectSaveActivity.Enter(state);
             eventId = string.Empty;
             diagnostic = string.Empty;
             try
@@ -1524,8 +1601,11 @@ namespace YC.Domain.Effects
             }
         }
 
-        public bool Advance()
+        public bool Advance() => Advance(null);
+
+        private bool Advance(SchedulingWork schedulingWork)
         {
+            using var saveActivity = EffectSaveActivity.Enter(state);
             if (Runtime.Status != EffectRuntimeStatus.Active) return false;
             if (Runtime.EffectNodes.Count > limits.MaxNodeCount)
             {
@@ -1555,11 +1635,12 @@ namespace YC.Domain.Effects
             {
                 string nodeId;
                 if (TryMigrateCharacterSecondMode()) return true;
-                if (TryPromoteCreated(out nodeId)) return true;
-                if (TryStartReady(out nodeId)) return true;
+                if (TryPromoteCreated(out nodeId, schedulingWork)) return true;
+                if (TryStartReady(out nodeId, schedulingWork)) return true;
                 if (TryExecuteRunning(out nodeId)) return true;
                 if (Runtime.Status != EffectRuntimeStatus.Active) return false;
                 if (TryResumeBlocked(out nodeId)) return true;
+                if (TryRefreshFacilityInteractions()) return true;
 
                 if (HasNonTerminalNodes() && !HasOpenInteraction() && !SettlementEntryService.HasPendingPlayerSelection(Runtime) &&
                     !Runtime.EffectNodes.Any(node => node.Payment?.Preparation != null && !node.Payment.Preparation.IsPromoted && !node.Payment.Preparation.IsCancelled &&
@@ -1586,8 +1667,35 @@ namespace YC.Domain.Effects
             }
         }
 
+        // 正常节点已推进完后重发真实变化的选格/面板；旧答案仍拒绝，不重付/取牌或代选。
+        private bool TryRefreshFacilityInteractions()
+        {
+            foreach (var request in Runtime.InteractionRequests.Where(r => r.Status == "open" &&
+                (r.InteractionTypeId == FacilityBuildEffectExecutor.PlacementInteractionType || r.InteractionTypeId == FacilityPanelSelectionRequest.InteractionType)))
+            {
+                var build = Runtime.EffectNodes.SingleOrDefault(n => n.EffectId == request.OwnerEffectId);
+                if (build?.Status != EffectNodeStatus.Blocked) continue;
+                bool placement = request.InteractionTypeId == FacilityBuildEffectExecutor.PlacementInteractionType;
+                if (placement ? !FacilityPlacementObservations.Applies(build) || !FacilityPlacementObservations.NeedsRefresh(state, registry, build) :
+                    !FacilitySelectionEffectExecutor.NeedsPanelRefresh(state, build)) continue;
+                var work = GameStateCloneService.DeepClone(state);
+                var owner = work.EffectRuntime.EffectNodes.Single(n => n.EffectId == build.EffectId);
+                var old = FindInteraction(work.EffectRuntime, request.GetStableInteractionId());
+                old.Status = "invalidated";
+                ResolveInteractionBlockerOnWorking(work.EffectRuntime, old.GetStableInteractionId());
+                if (!HasUnresolvedBlocker(work.EffectRuntime, owner)) owner.Status = EffectNodeStatus.Ready;
+                var entries = new List<RuleJournalEntry> { new RuleJournalEntry { Kind = RuleJournalEntryKind.Interaction,
+                    EntityId = old.GetStableInteractionId(), Detail = placement ? FacilityPlacementObservations.Changed : FacilitySelectionEffectExecutor.PanelCandidatesChanged } };
+                CommitPreparedWork(work, (placement ? "facility.placement.refresh:" : "facility.panel.refresh:") + old.GetStableInteractionId(), entries, -1, -1, new[] { owner.EffectId });
+                return true;
+            }
+            return false;
+        }
+
         public EffectRunReport RunUntilQuiescent(int maxSteps = -1)
         {
+            using var saveActivity = EffectSaveActivity.Enter(state);
+            using var schedulingWork = new SchedulingWork();
             string timingDiagnostic = TimingHandlerRegistry.ValidateBindings(state, registry);
             if (Runtime.Status == EffectRuntimeStatus.Active && !string.IsNullOrEmpty(timingDiagnostic))
                 Fault("timing_binding_invalid", timingDiagnostic, string.Empty, string.Empty);
@@ -1603,7 +1711,7 @@ namespace YC.Domain.Effects
 
             while (steps < budget && Runtime.Status == EffectRuntimeStatus.Active)
             {
-                if (!Advance()) break;
+                if (!Advance(schedulingWork)) break;
                 steps++;
             }
 
@@ -1813,6 +1921,8 @@ namespace YC.Domain.Effects
                     return false;
                 }
 
+                if (!ResourcePaymentPreparationService.TryValidateConfirmationAnswer(state, registry, requestOwner, request, answer, out reason))
+                { diagnostic = reason; return false; }
                 if (requestOwner?.Payment?.Preparation?.AuthorizationKind == "effect_build")
                 {
                     bool submitted = TrySubmitEffectBuildPaymentAnswerOnWorking(request, answeringPlayerId, answer, out diagnostic);
@@ -1858,7 +1968,8 @@ namespace YC.Domain.Effects
                 if (workingRequest.InteractionTypeId == "action.decline_effect" && string.IsNullOrEmpty(owner.Payment?.RuleConditionOwnerEffectId))
                 {
                     var choice = answer.Kind == NormalizedValueKind.Array && answer.Items.Count == 1 ? answer.Items[0] : answer;
-                    string selected = choice.Kind == NormalizedValueKind.StableReference ? choice.ReferenceId : choice.StringValue;
+                    string selected = choice.Kind == NormalizedValueKind.StableReference ? choice.ReferenceId :
+                        choice.Kind == NormalizedValueKind.Boolean ? (choice.BooleanValue ? "continue" : "decline") : choice.StringValue;
                     owner.FlowStage = selected == "continue" ? "optional_accepted" : "decline_accepted";
                 }
 
@@ -2099,7 +2210,7 @@ namespace YC.Domain.Effects
             }
         }
 
-        private bool TryPromoteCreated(out string nodeId)
+        private bool TryPromoteCreated(out string nodeId, SchedulingWork schedulingWork)
         {
             nodeId = string.Empty;
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
@@ -2108,7 +2219,7 @@ namespace YC.Domain.Effects
                 if (node != null && node.Status == EffectNodeStatus.Created && IsSchedulingEligible(node))
                 {
                     nodeId = node.EffectId;
-                    CommitStatus(nodeId, EffectNodeStatus.Ready, "effect.ready");
+                    CommitStatus(nodeId, EffectNodeStatus.Ready, "effect.ready", schedulingWork);
                     return true;
                 }
             }
@@ -2116,7 +2227,7 @@ namespace YC.Domain.Effects
             return false;
         }
 
-        private bool TryStartReady(out string nodeId)
+        private bool TryStartReady(out string nodeId, SchedulingWork schedulingWork)
         {
             nodeId = string.Empty;
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
@@ -2125,7 +2236,7 @@ namespace YC.Domain.Effects
                 if (node != null && node.Status == EffectNodeStatus.Ready && IsSchedulingEligible(node))
                 {
                     nodeId = node.EffectId;
-                    CommitStatus(nodeId, EffectNodeStatus.Running, "effect.running");
+                    CommitStatus(nodeId, EffectNodeStatus.Running, "effect.running", schedulingWork);
                     return true;
                 }
             }
@@ -2199,13 +2310,15 @@ namespace YC.Domain.Effects
         private void ExecuteNode(string nodeId)
         {
             EffectNodeRuntimeState source = GetNode(nodeId);
+            if (AbilityActionRecovery.IsRetiredMarkerPayment(source.EffectTypeId))
+                throw new KernelException(EffectFaultCodes.InvalidRuntimeState, AbilityActionRecovery.RetiredMarkerPaymentDiagnostic);
             EffectRegistration registration = registry.Get(source.EffectTypeId);
             if (!string.IsNullOrEmpty(source.DefinitionVersion) && source.DefinitionVersion != registration.DefinitionVersion && !ItemTransferEffectExecutor.CanRestoreLegacy(state, source) && !InfluenceEffectExecutor.CanRestoreLegacy(state, source))
                 throw new KernelException(EffectFaultCodes.DefinitionVersionMismatch, "Effect 定义版本与存档不匹配：" + source.EffectTypeId + "。请使用原定义恢复；不支持重新解释旧节点。");
             GameState work = GameStateCloneService.DeepClone(state);
             EffectNodeRuntimeState node = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == nodeId);
 
-            if (ItemTransferEffectExecutor.CanRestoreLegacy(work, node) || InfluenceEffectExecutor.CanRestoreLegacy(work, node)) node.DefinitionVersion = registration.DefinitionVersion;
+            if (ItemTransferEffectExecutor.CanRestoreLegacy(work, node)) node.DefinitionVersion = registration.DefinitionVersion;
             if (node.EffectTypeId == EffectTypeIds.Condition && ItemTransferEffectExecutor.Flag(node.NormalizedArguments, "ruleCondition") &&
                 string.IsNullOrEmpty(node.FlowStage))
             {
@@ -2257,8 +2370,11 @@ namespace YC.Domain.Effects
             var entries = new List<RuleJournalEntry>();
             try
             {
+                EffectExecutionBinding.ValidateNode(work, registry, node, node.ExecutionBinding);
+                AbilityActionExecutor.ObserveBodyStep(work, node);
                 result = registration.Executor(new EffectExecutionContext(work, node, registry, limits,
-                    dependencies => TryAttachDeferredResponseDependenciesOnWorking(work, nodeId, dependencies, entries)));
+                    dependencies => TryAttachDeferredResponseDependenciesOnWorking(work, nodeId, dependencies, entries),
+                    (targets, reason) => AttachCompletionDependenciesOnWorking(work, nodeId, targets, reason, entries)));
             }
             catch (KernelException)
             {
@@ -2290,6 +2406,9 @@ namespace YC.Domain.Effects
             List<RuleJournalEntry> entries)
         {
             ValidateResult(result);
+            int eventStart = work.EffectRuntime.RuleEvents.Count;
+            int receiptStart = work.EffectRuntime.DispatchReceipts.Count;
+            DispatchEventsOnWorking(work, result.EventsBeforeChildren, node, entries);
             if (!string.IsNullOrEmpty(result.FlowStage)) node.FlowStage = result.FlowStage;
             if (result.HasPendingOutcome)
             {
@@ -2312,6 +2431,10 @@ namespace YC.Domain.Effects
                     result.IndependentChildGroups);
             }
 
+            DispatchEventsOnWorking(work, result.Events, node, entries);
+            CleanupObligation.RecordBodyAssembly(work,node);
+            RegisterScheduledCleanupOnWorking(work,node,entries);
+            if (node.EffectTypeId == FacilityEntryEffectTypeIds.Build) YC.Domain.Facilities.FacilityBuildJournal.RecordAssembly(work, node);
             // 主链节点只保存其运行 Effect 的顺序子任务索引，避免恢复时重新推导或重复创建。
             for (int i = 0; i < work.EffectRuntime.MainNodes.Count; i++)
             {
@@ -2323,10 +2446,6 @@ namespace YC.Domain.Effects
                     break;
                 }
             }
-
-            int eventStart = work.EffectRuntime.RuleEvents.Count;
-            int receiptStart = work.EffectRuntime.DispatchReceipts.Count;
-            DispatchEventsOnWorking(work, result.Events, node, entries);
             for (int i = 0; i < result.Interactions.Count; i++)
             {
                 AddInteractionOnWorking(work, node, result.Interactions[i], i);
@@ -2376,7 +2495,7 @@ namespace YC.Domain.Effects
                 node.Status = EffectNodeStatus.Blocked;
             }
             else if (result.ChildEffects.Count > 0 ||
-                     result.Events.Count > 0 ||
+                     result.Events.Count > 0 || result.EventsBeforeChildren.Count > 0 ||
                      result.Interactions.Count > 0 ||
                      !string.IsNullOrEmpty(result.FlowStage))
             {
@@ -2419,6 +2538,8 @@ namespace YC.Domain.Effects
                 return;
             }
 
+            ProjectLogicalPlaceResult(work, node);
+            RequiredEffectOutcome.ValidateBeforeTerminal(node, node.RequiredOutcome);
             if (string.IsNullOrEmpty(node.CompletedEventId))
             {
                 node.CompletedEventId = StableIdFactory.Create(
@@ -2461,8 +2582,16 @@ namespace YC.Domain.Effects
                         { "normalizedResult", node.NormalizedResult == null ? NormalizedValue.CreateNull() : node.NormalizedResult }
                     })
                 };
+                var logical = InfluencePlaceAttachment.LogicalProjection(work, node.EffectId);
+                if (logical.Kind != NormalizedValueKind.Null)
+                {
+                    YC.Domain.Influence.InfluenceDestinationResolver.Set(completion.Payload, "logicalOperation", logical);
+                    if (completion.HostOnlyPayload.Kind == NormalizedValueKind.Object) YC.Domain.Influence.InfluenceDestinationResolver.Set(completion.HostOnlyPayload, "logicalOperation", logical.Clone());
+                }
                 DispatchEventsOnWorking(work, new[] { completion }, node, entries);
             }
+
+            AttachCleanupCompletionDependenciesOnWorking(work, node, entries);
 
             if (HasUnresolvedBlocker(work.EffectRuntime, node))
             {
@@ -2472,6 +2601,7 @@ namespace YC.Domain.Effects
 
             if (node.ContinuationContext != null && node.PendingOutcome == EffectPendingOutcome.Completed &&
                 node.ChildEffectIds.Any(id => work.EffectRuntime.EffectNodes.Any(child => child.EffectId == id && child.Status == EffectNodeStatus.Failed &&
+                    !ItemTransferEffectExecutor.IsExpectedIndependentFailure(child) &&
                     // 条件左式失败已被本节点消费为正常未满足；不能在内容续接收口时重新升级为技术失败。
                     !(node.EffectTypeId == EffectTypeIds.Condition &&
                         ItemTransferEffectExecutor.Text(node.NormalizedResult, "outcome") == "condition_not_met" &&
@@ -2480,6 +2610,7 @@ namespace YC.Domain.Effects
                 node.PendingOutcome = EffectPendingOutcome.Failed;
                 node.FailureReason = "continuation_child_failed";
             }
+            RequiredEffectOutcome.ValidateBeforeTerminal(node, node.RequiredOutcome);
             CompleteDeferredResponseOnWorking(work, node, entries);
             node.Status = node.PendingOutcome == EffectPendingOutcome.Completed
                 ? EffectNodeStatus.Completed
@@ -2574,6 +2705,7 @@ namespace YC.Domain.Effects
                 if (owner == null) throw new KernelException(EffectFaultCodes.BlockerTargetMissing, "Event owner 节点不存在：" + ownerId);
                 DispatchOneEventOnWorking(work, ruleEvent, owner, entries);
             }
+            FlushDepartureResponses(work, entries);
         }
 
         private void DispatchOneEventOnWorking(
@@ -2670,7 +2802,7 @@ namespace YC.Domain.Effects
                         if (attachmentOwner.ContinuationContentHash != owner.ContinuationContentHash || attachmentOwner.ContinuationAbilityId != owner.ContinuationAbilityId)
                             throw new KernelException(EffectFaultCodes.ContinuationBindingMissing, "continuation_scope_mismatch");
                     }
-                    if (!TryAttachDeferredEventResponsesOnWorking(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds))
+                    if (!TryQueueDepartureResponses(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds) && !TryAttachDeferredEventResponsesOnWorking(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds))
                         attached.AddRange(AppendChildEffects(
                         work,
                         attachmentOwner,
@@ -2825,10 +2957,27 @@ namespace YC.Domain.Effects
                     throw new KernelException(EffectFaultCodes.InvalidRuntimeState, "生成了重复的 Effect 节点 ID：" + id);
                 }
 
-                EffectNodeRuntimeState child = CreateNode(spec, id, owner.RoundId, owner.EffectId);
+                if (idKind != "event" && spec.ExecutionBinding == null && owner.ExecutionBinding != null)
+                {
+                    spec = GameStateCloneService.DeepClone(spec);
+                    EffectExecutionBinding.ApplyToSpec(work, registry, spec, owner.ExecutionBinding);
+                }
+                EffectSpec preparedSpec = PrepareInfluenceAttachment(work, spec, id, owner.EffectId);
+                EffectNodeRuntimeState child = CreateNode(preparedSpec, id, owner.RoundId, owner.EffectId);
                 child.OperationContext = (operationContext ?? OperationCause(work, owner))?.Clone();
+                if (idKind != "event" && owner.DepartureBatchId.Length > 0)
+                {
+                    child.DepartureBatchId = owner.DepartureBatchId;
+                    if (new[] { InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence }.Contains(child.EffectTypeId))
+                    {
+                        var batch = runtime.InfluenceDepartureBatches.Single(b => b.BatchId == child.DepartureBatchId && !b.Sealed);
+                        batch.ProducerSteps.Add(child.EffectId);
+                    }
+                }
                 runtime.EffectNodes.Add(child);
-                if (child.ContinuationContext != null && owner.ContinuationContext != null &&
+                EffectExecutionBinding.ValidateNode(work, registry, child, child.ExecutionBinding);
+                if (child.EffectTypeId.StartsWith("effect.ability.", StringComparison.Ordinal)) runtime.AbilityActionProtocolVersion = 1;
+                if (child.PlayerId == owner.PlayerId && child.ContinuationContext != null && owner.ContinuationContext != null &&
                     child.ContinuationAbilityId == owner.ContinuationAbilityId && child.ContinuationContentHash == owner.ContinuationContentHash)
                     child.ContinuationScopeRootEffectId = owner.ContinuationScopeRootEffectId;
                 AddContinuationBinding(runtime, child);
@@ -2886,6 +3035,9 @@ namespace YC.Domain.Effects
             {
                 throw new KernelException(EffectFaultCodes.InteractionInvalid, "交互类型不能为空。");
             }
+            RequiredEffectOutcome.ValidateInteraction(spec, owner.RequiredOutcome);
+            if (owner.ExecutionBinding != null && spec.AnsweringPlayerId != owner.ExecutionBinding.PlayerId)
+                throw new KernelException(EffectFaultCodes.InteractionInvalid, "effect_execution_answerer_mismatch");
 
             EffectRuntimeState runtime = work.EffectRuntime;
             // 同一节点可连续唤起同类交互；序号来自已持久化请求，恢复后也不复用。
@@ -2982,6 +3134,8 @@ namespace YC.Domain.Effects
             }
 
             runtime.InteractionRequests.Add(request);
+            var departureResponse = InfluenceDepartureProtocol.Response(work, owner.EffectId);
+            if (departureResponse != null) departureResponse.RequestId = requestId;
             AddResourcePaymentFacts(work, owner, request);
             AddPaymentChoiceFacts(work, owner, request);
             OpenInteractionSettlementWindow(work, owner, request);
@@ -3058,7 +3212,11 @@ namespace YC.Domain.Effects
                     Purpose = "interaction", EffectId = scriptOwner.EffectId, InteractionId = request.GetStableInteractionId(),
                     AbilityId = scriptOwner.ContinuationAbilityId ?? string.Empty, SourceItemId = source?.ItemId ?? string.Empty,
                     SourceDefinitionId = source?.DefinitionId ?? string.Empty, ViewerPlayerId = request.AnsweringPlayerId,
-                    StateRevision = request.StateRevision, Facts = NormalizedValue.CreateObject(facts) };
+                    StateRevision = request.StateRevision,
+                    // 父级Repeat只补进度，不消费子请求的候选、数量行或提示参数；这些集合可大于显示facts预算。
+                    Facts = NormalizedValue.CreateObject(progressOnly
+                        ? facts.Where(fact => fact.Name == "completedCount" || fact.Name == "totalCount").ToList()
+                        : facts) };
                 string diagnostic;
                 try
                 {
@@ -3121,6 +3279,7 @@ namespace YC.Domain.Effects
             var result = GameplayPresentationNormalizer.Clone(current) ?? new GameplayInteractionPresentation();
             if (incoming.Prompt != null) result.Prompt = incoming.Prompt;
             if (incoming.Progress != null) result.Progress = incoming.Progress;
+            if (incoming.CandidateIntegerLabel != null) result.CandidateIntegerLabel = GameplayPresentationNormalizer.Clone(incoming.CandidateIntegerLabel);
             foreach (var option in incoming.Options)
             {
                 var target = result.Options.Find(value => value.CandidateId == option.CandidateId);
@@ -3142,6 +3301,26 @@ namespace YC.Domain.Effects
             return result;
         }
 
+        private bool AttachCompletionDependenciesOnWorking(GameState work, string ownerId, IReadOnlyList<string> targets,
+            string reason, List<RuleJournalEntry> entries)
+        {
+            if (targets == null || targets.Count == 0 || targets.Any(string.IsNullOrWhiteSpace))
+                throw new KernelException(EffectFaultCodes.BlockerTargetMissing, "effect_completion_targets_invalid");
+            bool waiting = false;
+            foreach (string targetId in targets.Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.Ordinal))
+            {
+                var target = work.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == targetId);
+                if (target == null || target.Status == EffectNodeStatus.Faulted)
+                    throw new KernelException(EffectFaultCodes.BlockerTargetMissing, "effect_completion_target_invalid");
+                if (target.Status == EffectNodeStatus.Completed || target.Status == EffectNodeStatus.Failed) continue;
+                string id = StableIdFactory.Create("completion-dependency", ownerId, targetId);
+                bool exists = work.EffectRuntime.Blockers.Any(b => b.BlockerId == id);
+                AddBlockerOnWorking(work, ownerId, targetId, "", "completion_dependency", reason, id);
+                if (!exists) entries.Add(new RuleJournalEntry { Kind = RuleJournalEntryKind.DomainState, EntityId = id, Detail = reason });
+                waiting = true;
+            }
+            return waiting;
+        }
         private void AddBlockerOnWorking(
             GameState work,
             string ownerEffectId,
@@ -3441,6 +3620,8 @@ namespace YC.Domain.Effects
             EffectNodeRuntimeState node,
             List<RuleJournalEntry> entries)
         {
+            CleanupObligation.ObserveTerminal(work,node);
+            AbilitySourceEffectExecutor.ObserveTerminal(work, node, registry);
             if (node.EffectTypeId.StartsWith("timing.handler.", StringComparison.Ordinal) && node.FailureReason == "whole_effect_declined")
             {
                 var source = runtime.EffectNodes.Find(n => n.EffectId == ItemTransferEffectExecutor.Text(node.NormalizedArguments, "sourceEffectId"));
@@ -3451,7 +3632,7 @@ namespace YC.Domain.Effects
             {
                 var window = windowOwner.SettlementWindow;
                 bool wasActive = window.ActiveTargetEffectId == node.EffectId;
-                SettlementEntryService.ObserveTerminal(window, node);
+                SettlementEntryService.ObserveTerminal(work, window, node);
                 if (window.Context.OwnerEffectId == node.EffectId) window.IsClosed = true;
                 if (wasActive && window.Context.Kind != SettlementEntryService.PlayerCleanup)
                 {
@@ -3465,6 +3646,7 @@ namespace YC.Domain.Effects
                     }
                 }
                 if (window.Context.Kind == SettlementEntryService.PlayerCleanup && window.Entries.Count > 0 &&
+                    !CleanupSourceService.Sources(window).Any() &&
                     window.Entries.All(e => e.SettlementState == "resolved" || e.SettlementState == "declined")) window.IsClosed = true;
                 if (window.IsClosed && runtime.ActiveSettlementWindowId == window.Context.Id)
                     runtime.ActiveSettlementWindowId = SettlementHostProtocol.FindAncestorWindowId(runtime, windowOwner.ParentEffectId);
@@ -3532,7 +3714,10 @@ namespace YC.Domain.Effects
             {
                 EffectNodeRuntimeState child = runtime.EffectNodes.Find(candidate => candidate.EffectId == owner.ChildEffectIds[i]);
                 if (child == null || IsNormalTerminal(child.Status)) continue;
-                if (owner.SettlementWindow?.Context?.Kind == SettlementEntryService.PlayerCleanup && owner.SettlementWindow.Entries.Exists(e => e.TargetEffectId == child.EffectId))
+                bool cleanupWindow = owner.SettlementWindow?.Context?.Kind == SettlementEntryService.PlayerCleanup;
+                if (cleanupWindow && !runtime.IsChildSchedulingEligible(owner, i)) continue;
+                if (cleanupWindow && (owner.SettlementWindow.Entries.Exists(e => e.TargetEffectId == child.EffectId) ||
+                    CleanupSourceService.IsInvocationTarget(owner.SettlementWindow, child.EffectId)))
                 {
                     if (!runtime.IsChildSchedulingEligible(owner, i)) continue;
                     if (child.Status == EffectNodeStatus.Created) child.Status = EffectNodeStatus.Ready;
@@ -3591,14 +3776,33 @@ namespace YC.Domain.Effects
         }
 
         private bool IsSchedulingEligible(EffectNodeRuntimeState node)
+            => IsSchedulingEligible(state, node);
+
+        private static bool IsSchedulingEligible(GameState state, EffectNodeRuntimeState node)
         {
+            var Runtime = state.EffectRuntime;
+            if (Runtime.DeferredResponses.Any(r => r.ProtocolVersion == 1 && r.Status == DeferredResponseStatus.Queued && InfluenceDepartureProtocol.IsWithin(state, node.EffectId, r.ResponseRootEffectId))) return false;
             if (node.Payment?.Preparation?.ActionKind == "city_move" && !node.Payment.Preparation.IsCancelled &&
                 !node.Payment.Preparation.IsPromoted && node.Payment.Preparation.TargetId.Length == 0) return false;
             if (string.IsNullOrEmpty(node.ParentEffectId)) return true;
-            EffectNodeRuntimeState parent = GetNode(node.ParentEffectId);
+            EffectNodeRuntimeState parent = Runtime.EffectNodes.Find(n => n.EffectId == node.ParentEffectId);
             if (parent == null || IsTerminal(parent.Status)) return false;
             int index = parent.ChildEffectIds.IndexOf(node.EffectId);
             return index >= 0 && Runtime.IsChildSchedulingEligible(parent, index);
+        }
+
+        // 查询调度停点，不推进规则；等待用户的父/子节点可以保留，仍可运行的叶子不能捕获。
+        public static bool IsStableForSave(GameState state)
+        {
+            if (state == null || EffectSaveActivity.IsExecuting(state)) return false;
+            var runtime = state.EffectRuntime; if (runtime == null) return true;
+            if (runtime.Status != EffectRuntimeStatus.Active) return false;
+            foreach (var node in runtime.EffectNodes)
+            {
+                if ((node.Status == EffectNodeStatus.Created || node.Status == EffectNodeStatus.Ready || node.Status == EffectNodeStatus.Running) && IsSchedulingEligible(state, node)) return false;
+                if (node.Status == EffectNodeStatus.Blocked && !HasUnresolvedBlocker(runtime, node)) return false;
+            }
+            return true;
         }
 
         private static int GetDepth(EffectRuntimeState runtime, string nodeId)
@@ -3624,6 +3828,10 @@ namespace YC.Domain.Effects
             string roundId,
             string parentId)
         {
+            if (string.IsNullOrEmpty(parentId) && spec.ExecutionBinding != null)
+                throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "effect_execution_binding_root_forbidden");
+            if (string.IsNullOrEmpty(parentId) && spec.PersistentSourceFacts != null)
+                throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "source_facts_binding_root_forbidden");
             EffectRegistration registration = registry.Get(spec.EffectTypeId);
             registration.Validate(spec);
             YC.Domain.Presentation.GameplayPresentationNormalizer.Validate(spec.Presentation);
@@ -3653,6 +3861,9 @@ namespace YC.Domain.Effects
                 NestedEffects = new List<EffectSpecRuntimeState>(),
                 NestedGroupSizes = new List<int>(),
                 ContinuationHandlerId = spec.CompletionHandlerId ?? string.Empty,
+                RequiredOutcome = GameStateCloneService.DeepClone(spec.RequiredOutcome),
+                ExecutionBinding = GameStateCloneService.DeepClone(spec.ExecutionBinding),
+                PersistentSourceFacts = GameStateCloneService.DeepClone(spec.PersistentSourceFacts),
                 ContinuationContext = spec.ContinuationContext?.Clone(),
                 ContinuationScopeRootEffectId = spec.ContinuationContext == null ? "" : nodeId,
                 ContinuationBindingId = string.Empty,
@@ -3750,6 +3961,8 @@ namespace YC.Domain.Effects
             }
 
             registration.Validate(spec);
+            if (!RequiredEffectOutcome.IsValid(spec.RequiredOutcome) || spec.RequiredOutcome != null && spec.AllowDecline)
+                throw new KernelException(EffectFaultCodes.InvalidEffectSpec, "required_outcome_contract_invalid");
             string reason = string.Empty;
             if (spec.NormalizedArguments == null || !spec.NormalizedArguments.TryValidate(out reason))
             {
@@ -3790,7 +4003,7 @@ namespace YC.Domain.Effects
             }
         }
 
-        private void CommitStatus(string nodeId, EffectNodeStatus status, string detail)
+        private void CommitStatus(string nodeId, EffectNodeStatus status, string detail, SchedulingWork schedulingWork)
         {
             CommitNewState(
                 detail + ":" + nodeId,
@@ -3802,16 +4015,20 @@ namespace YC.Domain.Effects
                     EnsureTransition(node.Status, status);
                     node.Status = status;
                 },
-                new[] { nodeId });
+                new[] { nodeId },
+                schedulingWork);
         }
 
         private void CommitNewState(
             string commandId,
             List<RuleJournalEntry> entries,
             Action<GameState> mutation,
-            IList<string> touchedNodeIds)
+            IList<string> touchedNodeIds,
+            SchedulingWork schedulingWork = null)
         {
-            GameState work = GameStateCloneService.DeepClone(state);
+            GameState work = schedulingWork == null
+                ? GameStateCloneService.DeepClone(state)
+                : schedulingWork.Prepare(state);
             mutation(work);
             if (entries.Count == 0)
             {
@@ -3834,9 +4051,12 @@ namespace YC.Domain.Effects
             int receiptStart,
             IList<string> touchedNodeIds)
         {
+            using var saveActivity = EffectSaveActivity.Enter(state);
             if (work == null || work.EffectRuntime == null) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, "工作状态为空。");
             if (!YC.Domain.Cards.CharacterLifecycleService.ValidateRetainedBasicCharacters(work, out string retentionReason))
                 throw new KernelException(EffectFaultCodes.InvalidRuntimeState, retentionReason);
+            if (!InfluenceDepartureProtocol.Validate(work, out var departureReason)) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, departureReason);
+            if (!InfluencePlaceAttachment.Validate(work, registry, out var attachmentReason)) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, attachmentReason);
             if (!TryValidateDeferredResponses(work, registry, out string deferredReason))
                 throw new KernelException(EffectFaultCodes.InvalidRuntimeState, deferredReason);
             var commitEntries = entries == null ? new List<RuleJournalEntry>() : new List<RuleJournalEntry>(entries);
@@ -3915,9 +4135,22 @@ namespace YC.Domain.Effects
             GameStateCloneService.CopyTo(state, work);
         }
 
+        private static string BoundFaultMessage(string message)
+        {
+            var encoding = System.Text.Encoding.UTF8;
+            if (message == null || encoding.GetByteCount(message) <= NormalizedValue.MaxStringBytes) return message;
+            string suffix = " ... [完整诊断 SHA256=" + StableIdFactory.ComputeSha256(encoding.GetBytes(message)) + "]";
+            byte[] bytes = encoding.GetBytes(message);
+            int prefix = NormalizedValue.MaxStringBytes - encoding.GetByteCount(suffix);
+            while (prefix > 0 && (bytes[prefix] & 0xc0) == 0x80) prefix--;
+            return encoding.GetString(bytes, 0, prefix) + suffix;
+        }
+
         private void Fault(string code, string message, string nodeId, string eventId)
         {
             lastDiagnostic = code + ": " + (message ?? string.Empty);
+            // 保留完整本次诊断；持久化摘要遵守既有UTF8预算，不能因日志过长丢失Fault提交。
+            message = BoundFaultMessage(message);
             if (state.EffectRuntime == null) state.EffectRuntime = new EffectRuntimeState();
             if (state.EffectRuntime.Status == EffectRuntimeStatus.PausedFault) return;
 
@@ -3935,6 +4168,13 @@ namespace YC.Domain.Effects
                     {
                         // 保管中的旁路子树保持可恢复身份；故障仍暂停整个runtime。
                         if (!TryFindDeferredResponse(work, node.EffectId, out _)) node.Status = EffectNodeStatus.Faulted;
+                        var invocation = runtime.AbilityActionInvocations.Find(value => value.OwnerEffectId == node.EffectId);
+                        if (invocation != null && invocation.Phase != "faulted")
+                        {
+                            invocation.FirstFaultPhase = invocation.Phase; invocation.Phase = "faulted"; invocation.FailureReason = message ?? code;
+                            if (!invocation.ActivationCommitted) invocation.PaymentEffectIds = node.ChildEffectIds.ToList();
+                            invocation.PaymentCommitted = AbilityActionExecutor.HasCommittedEntryPayment(work, invocation);
+                        }
                     }
                 }
 
@@ -3949,6 +4189,9 @@ namespace YC.Domain.Effects
                     EventId = eventId ?? string.Empty
                 };
                 runtime.Diagnostics.Add(diagnostic);
+                // 故障关闭失去真实输入来源的操作许可；业务窗口、已付收据和Invocation占用原样保留。
+                // 否则Faulted来源仍挂着旧open许可，故障现场会被恢复校验拒绝。
+                OperationWindowService.Synchronize(work);
                 RuleCommit commit = RuleCommit.ApplyFault(
                     work,
                     "fault:" + runtime.LastFaultCode,

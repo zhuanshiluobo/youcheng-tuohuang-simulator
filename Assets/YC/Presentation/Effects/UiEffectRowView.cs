@@ -38,6 +38,8 @@ namespace YC.Presentation
             [Range(1, 15)] public int Mask;
             public int Count;
             public string Description;
+            public bool FixedColor;
+            public Color Tint;
         }
 
         [SerializeField] private Image background;
@@ -48,6 +50,7 @@ namespace YC.Presentation
         [SerializeField] private Button statusButton;
         [SerializeField] private Image statusBackground;
         [SerializeField] private Image statusIcon;
+        [SerializeField] private RectTransform markerStack;
         [SerializeField] private RectTransform[] markerSlots;
         [SerializeField] private Image[] markerImages;
         [SerializeField] private Text[] markerCounts;
@@ -82,11 +85,15 @@ namespace YC.Presentation
         private bool hover;
         private bool focus;
         [SerializeField] private HorizontalLayoutGroup rowLayout;
+        [SerializeField] private UiChoiceExecuteTextLayout choiceTextLayout;
+        private bool hasBinding;
         private Func<string, int, bool> contextIsCurrent;
+        public Func<IDisposable> BeginInputRead { private get; set; }
         private int titleBaseSize, descriptionBaseSize;
         private int fittedTitleSize, fittedDescriptionSize;
         private GameplayTextHostStandard titleStandard, descriptionStandard;
-        private string fittedKey;
+        private (string Title, string Body, Vector2 TitleSize, Vector2 BodySize, bool Horizontal)? fittedKey;
+        private Func<bool> preserveDetailBinding;
 
         public string ItemId => itemId;
         public Button StatusButton => statusButton;
@@ -96,6 +103,7 @@ namespace YC.Presentation
         private void Awake() => RememberBaseSizes();
         private void RememberBaseSizes()
         {
+            if (preserveDetailBinding == null) preserveDetailBinding = PreserveCurrentDetailBinding;
             if (titleStandard == null && title != null) { titleStandard = new GameplayTextHostStandard(title); titleBaseSize = titleStandard.FontSize; titleStandard.AttachDocument(); }
             if (descriptionStandard == null && description != null) { descriptionStandard = new GameplayTextHostStandard(description); descriptionBaseSize = descriptionStandard.FontSize; descriptionStandard.AttachDocument(); }
         }
@@ -110,20 +118,33 @@ namespace YC.Presentation
             if (CanvasUpdateRegistry.IsRebuildingLayout() || CanvasUpdateRegistry.IsRebuildingGraphics()) return;
             RememberBaseSizes();
             titleStandard.Apply(false); descriptionStandard.Apply(false);
+            bool horizontalChoice = hasBinding && mode == Mode.ChoiceExecute && choiceTextLayout != null;
+            choiceTextLayout?.SetExecutionMode(horizontalChoice, titleBaseSize);
             var titleDocument = title.GetComponent<GameplayTextView>();
             var bodyDocument = description.GetComponent<GameplayTextView>();
-            var key = (titleDocument != null && titleDocument.HasDocument ? titleDocument.MeasurementCacheKey : title.text) + "\n" +
-                (bodyDocument != null && bodyDocument.HasDocument ? bodyDocument.MeasurementCacheKey : description.text) +
-                "|" + title.rectTransform.rect.size.ToString("R") + "|" + description.rectTransform.rect.size.ToString("R");
-            if (fittedKey == key)
+            var key = (Title: titleDocument != null && titleDocument.HasDocument ? titleDocument.MeasurementCacheKey : title.text,
+                Body: bodyDocument != null && bodyDocument.HasDocument ? bodyDocument.MeasurementCacheKey : description.text,
+                TitleSize: title.rectTransform.rect.size, BodySize: description.rectTransform.rect.size, Horizontal: horizontalChoice);
+            if (fittedKey.HasValue && fittedKey.Value.Equals(key))
             {
                 if (title.fontSize != fittedTitleSize) title.fontSize = fittedTitleSize;
                 if (description.fontSize != fittedDescriptionSize) description.fontSize = fittedDescriptionSize;
                 return;
             }
-            if (title.rectTransform.rect.width <= 0 || description.rectTransform.rect.width <= 0 ||
-                title.rectTransform.rect.height <= 0 || description.rectTransform.rect.height <= 0) return;
+            if ((!horizontalChoice || choiceTextLayout.HasTitle) &&
+                (title.rectTransform.rect.width <= 0 || title.rectTransform.rect.height <= 0) ||
+                description.rectTransform.rect.width <= 0 || description.rectTransform.rect.height <= 0) return;
             fittedKey = key;
+            if (horizontalChoice)
+            {
+                fittedTitleSize = choiceTextLayout.HasTitle ? FitIndependent(title, titleDocument, titleBaseSize) : titleBaseSize;
+                fittedDescriptionSize = FitIndependent(description, bodyDocument, descriptionBaseSize);
+                title.fontSize = fittedTitleSize; description.fontSize = fittedDescriptionSize;
+                if (choiceTextLayout.HasTitle && !Fits(title, titleDocument, fittedTitleSize, true) ||
+                    !Fits(description, bodyDocument, fittedDescriptionSize, true))
+                    Debug.LogWarning("执行条目在最小字号仍无法完整容纳文字或图标，请核对当前条目的实际框体与内容。", this);
+                return;
+            }
             int steps = Mathf.Max(titleBaseSize, descriptionBaseSize);
             int step = GameplayTextLayout.FitSharedStep(titleBaseSize, descriptionBaseSize,
                 candidate => Fits(title, titleDocument, candidate), candidate => Fits(description, bodyDocument, candidate));
@@ -134,13 +155,24 @@ namespace YC.Presentation
                 Debug.LogWarning("条目在最小字号仍无法完整容纳当前正文或分数叠数，请核对该条目的实际框体与内容。", this);
         }
 
-        private static bool Fits(Text text, GameplayTextView document, int fontSize)
+        private static int FitIndependent(Text text, GameplayTextView document, int baseSize)
+        {
+            // 图标随正文字号缩小后，叠数可能反而放不下；可容纳性不保证单调。
+            // 只在内容/框体缓存失效时从资产字号向下找，保留完整文档及叠数检查。
+            for (int candidate = Mathf.Max(1, baseSize); candidate > 1; candidate--)
+                if (Fits(text, document, candidate, true)) return candidate;
+            return 1;
+        }
+
+        private static bool Fits(Text text, GameplayTextView document, int fontSize, bool checkWidth = false)
         {
             if (document != null && document.HasDocument) return document.FitsAtFontSize(fontSize);
             if (string.IsNullOrEmpty(text.text)) return true;
             var settings = text.GetGenerationSettings(text.rectTransform.rect.size);
             settings.fontSize = fontSize; settings.resizeTextForBestFit = false;
-            return text.cachedTextGeneratorForLayout.GetPreferredHeight(text.text, settings) / text.pixelsPerUnit <= text.rectTransform.rect.height + .1f;
+            return text.cachedTextGeneratorForLayout.GetPreferredHeight(text.text, settings) / text.pixelsPerUnit <= text.rectTransform.rect.height + .1f &&
+                (!checkWidth || text.horizontalOverflow != HorizontalWrapMode.Overflow ||
+                text.cachedTextGeneratorForLayout.GetPreferredWidth(text.text, settings) / text.pixelsPerUnit <= text.rectTransform.rect.width + .1f);
         }
 
         public void Bind(Binding data, Func<string, int, bool> isCurrent,
@@ -190,6 +222,7 @@ namespace YC.Presentation
                 reason = "3.4 效果条目引用不完整。";
                 return false;
             }
+            if (choiceTextLayout != null && !choiceTextLayout.TryValidateConfiguration(out reason)) return false;
             reason = string.Empty;
             return true;
         }
@@ -205,6 +238,7 @@ namespace YC.Presentation
             bodyButton.onClick.RemoveAllListeners();
             statusButton.onClick.RemoveAllListeners();
             itemId = stableItemId;
+            hasBinding = true;
             requestId = currentRequestId;
             revision = currentRevision;
             mode = rowMode;
@@ -217,8 +251,11 @@ namespace YC.Presentation
             RememberBaseSizes(); titleStandard?.Apply(true); descriptionStandard?.Apply(true);
             title.GetComponent<GameplayTextView>()?.ClearBinding();
             description.GetComponent<GameplayTextView>()?.ClearBinding();
+            title.GetComponent<GameplayTextView>()?.SetVisibilityBindingGuard(rowMode == Mode.PersistentDetail ? preserveDetailBinding : null);
+            description.GetComponent<GameplayTextView>()?.SetVisibilityBindingGuard(rowMode == Mode.PersistentDetail ? preserveDetailBinding : null);
             fittedKey = null;
-            title.text = heading ?? string.Empty;
+            title.text = rowMode == Mode.ChoiceExecute && choiceTextLayout != null ?
+                (heading ?? string.Empty).Replace('\r', ' ').Replace('\n', ' ') : heading ?? string.Empty;
             description.text = detail ?? string.Empty;
             if (markers != null && rowMode != Mode.PersistentDetail)
             {
@@ -238,6 +275,7 @@ namespace YC.Presentation
                     if (markers[i].Mask >= 1 && markers[i].Mask <= 15 && markers[i].Count >= 0)
                         validMarkers.Add(markers[i]);
 
+            if (markerStack != null) markerStack.gameObject.SetActive(validMarkers.Count > 0);
             bodyButton.interactable = showBody != null;
             for (var i = 0; i < 2; i++)
             {
@@ -248,7 +286,10 @@ namespace YC.Presentation
                 var singleColor = (marker.Mask & (marker.Mask - 1)) == 0;
                 var square = markerImages[i].GetComponent<InfluenceMarker2DView>();
                 if (square != null)
-                    square.RenderMask(marker.Mask, marker.Count, singleColor);
+                {
+                    if (marker.FixedColor) square.RenderFixed(marker.Tint, marker.Count);
+                    else square.RenderMask(marker.Mask, marker.Count, singleColor);
+                }
                 else
                 {
                     markerImages[i].sprite = markerByMask[marker.Mask];
@@ -260,6 +301,8 @@ namespace YC.Presentation
             {
                 bodyButton.onClick.AddListener(() =>
                 {
+                    using var inputRead = BeginInputRead?.Invoke();
+                    using var input = Workflows.UiRegressionMetrics.Measure("effect_row.inspect");
                     if (IsCurrent()) showBody(itemId);
                 });
             }
@@ -267,9 +310,12 @@ namespace YC.Presentation
             {
                 statusButton.onClick.AddListener(() =>
                 {
-                    if (CanExecute() && IsCurrent()) execute(itemId);
+                    using var inputRead = BeginInputRead?.Invoke();
+                    using var input = Workflows.UiRegressionMetrics.Measure("effect_row.execute");
+                    if (HasExecutableBinding() && IsCurrent()) execute(itemId);
                 });
             }
+            choiceTextLayout?.SetExecutionMode(rowMode == Mode.ChoiceExecute, titleBaseSize);
             Refresh();
             if (rowLayout != null) LayoutRebuilder.MarkLayoutForRebuild((RectTransform)rowLayout.transform);
         }
@@ -278,17 +324,20 @@ namespace YC.Presentation
         {
             ClearListeners();
             itemId = requestId = null;
+            hasBinding = false;
             revision = 0;
             contextIsCurrent = null;
             explicitlyEnabled = pending = false;
             hasExecute = false;
             for (var i = 0; markerSlots != null && i < markerSlots.Length; i++)
                 if (markerSlots[i] != null) markerSlots[i].gameObject.SetActive(false);
+            if (markerStack != null) markerStack.gameObject.SetActive(false);
             if (title != null) title.text = string.Empty;
             if (description != null) description.text = string.Empty;
             if (title != null) title.GetComponent<GameplayTextView>()?.ClearBinding();
             if (description != null) description.GetComponent<GameplayTextView>()?.ClearBinding();
             titleStandard?.Apply(true); descriptionStandard?.Apply(true); fittedKey = null;
+            choiceTextLayout?.SetExecutionMode(false, titleBaseSize);
             Refresh();
             if (rowLayout != null) LayoutRebuilder.MarkLayoutForRebuild((RectTransform)rowLayout.transform);
         }
@@ -299,10 +348,18 @@ namespace YC.Presentation
             if (statusButton != null && !externalCommandButton) statusButton.onClick.RemoveAllListeners();
         }
 
-        private bool IsCurrent() => !string.IsNullOrEmpty(itemId) &&
-            contextIsCurrent != null && contextIsCurrent(requestId, revision);
-        private bool CanExecute() => status == Status.Use && explicitlyEnabled &&
-            !pending && hasExecute && IsCurrent();
+        private bool IsCurrent()
+        {
+            using var measurement = Workflows.UiRegressionMetrics.Measure("effect_row.guard");
+            return !string.IsNullOrEmpty(itemId) && contextIsCurrent != null && contextIsCurrent(requestId, revision);
+        }
+        private bool PreserveCurrentDetailBinding()
+        {
+            if (!hasBinding || mode != Mode.PersistentDetail) return false;
+            using var inputRead = BeginInputRead?.Invoke();
+            return IsCurrent();
+        }
+        private bool HasExecutableBinding() => status == Status.Use && explicitlyEnabled && !pending && hasExecute;
 
         private void LateUpdate() { Refresh(); FitText(); }
         public void OnPointerEnter(PointerEventData data) { hover = true; Refresh(); }
@@ -314,7 +371,8 @@ namespace YC.Presentation
         public void Refresh()
         {
             if (background == null || frame == null || statusButton == null) return;
-            var canUse = externalCommandButton ? statusButton.interactable : CanExecute();
+            // 外观使用已绑定状态；新投影由上层重新绑定，真实点击始终核验当前请求。
+            var canUse = externalCommandButton ? statusButton.interactable : HasExecutableBinding();
             if (!externalCommandButton) statusButton.interactable = canUse;
             var index = !canUse && status == Status.Use ? 3 : hover || focus ? 1 : 0;
             background.sprite = rowBackgrounds[index];

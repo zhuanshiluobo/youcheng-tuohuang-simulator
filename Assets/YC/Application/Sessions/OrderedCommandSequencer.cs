@@ -27,6 +27,18 @@ namespace YC.Application.Sessions
         private readonly string basePrefix;
         private long lastSequence;
         private string prefix;
+        private string windowExecutionGrant;
+
+        internal bool TryReserveWindowExecution(string grantId, long expectedSequence, string expectedPrefix)
+        {
+            lock (gate)
+            {
+                if (string.IsNullOrWhiteSpace(grantId) || windowExecutionGrant != null || lastSequence != expectedSequence || prefix != expectedPrefix) return false;
+                windowExecutionGrant = grantId; return true;
+            }
+        }
+        internal void ReleaseWindowExecution(string grantId)
+        { lock (gate) { if (windowExecutionGrant != grantId) throw new InvalidOperationException("window_execution_reservation_mismatch"); windowExecutionGrant = null; } }
 
         public OrderedCommandSequencer(string gameId, long simulationEpoch, int membershipVersion,
             int maximumLogCommands = 4096, long baseGlobalSequence = 0, string baseCommandPrefixDigest = null, int maximumRegisteredWindows = 256)
@@ -84,6 +96,18 @@ namespace YC.Application.Sessions
             }
         }
 
+        // 返回隔离副本；首次登记的开启位置/基线属于合同，不能由后续首次使用时间重建。
+        public bool TryReadRegisteredWindow(string operationWindowId, out OperationWindowDescriptorDto descriptor)
+        {
+            lock (gate)
+            {
+                descriptor = null;
+                if (string.IsNullOrEmpty(operationWindowId) || !windows.TryGetValue(operationWindowId, out var existing)) return false;
+                descriptor = OperationCommandCanonicalizer.SnapshotWindow(existing.Facts, gameId, epoch, membership);
+                return true;
+            }
+        }
+
         public void RegisterWindow(OperationWindowDescriptorDto descriptor)
         {
             lock (gate)
@@ -101,6 +125,12 @@ namespace YC.Application.Sessions
         }
 
         public OperationCommandAdmissionResult AdmitProposal(int verifiedSourcePlayerId, OperationCommandProposalDto proposal)
+            => AdmitProposalCore(verifiedSourcePlayerId, proposal, null);
+
+        internal OperationCommandAdmissionResult AdmitWindowExecutionProposal(string grantId, int verifiedSourcePlayerId, OperationCommandProposalDto proposal)
+            => AdmitProposalCore(verifiedSourcePlayerId, proposal, grantId);
+
+        private OperationCommandAdmissionResult AdmitProposalCore(int verifiedSourcePlayerId, OperationCommandProposalDto proposal, string grantId)
         {
             lock (gate)
             {
@@ -112,6 +142,8 @@ namespace YC.Application.Sessions
                     return Reject("proposal_identity_mismatch", "命令提案不属于当前局、模拟代次或成员集合。");
                 if (verifiedSourcePlayerId <= 0 || owned.Command.PlayerId != verifiedSourcePlayerId)
                     return Reject("proposal_source_mismatch", "命令玩家与运输已验证来源不一致。");
+                if (windowExecutionGrant != grantId)
+                    return Reject("window_execution_reserved", "本人窗口正在连续执行，等待实际边界汇合。");
                 if (!windows.TryGetValue(owned.OperationWindowId, out var window) || window.Facts.WindowGeneration != owned.WindowGeneration)
                     return Reject("window_not_registered", "命令没有匹配已登记窗口。");
                 if (!window.Facts.AuthorizedPlayerIds.Contains(verifiedSourcePlayerId)) return Reject("window_not_authorized", "该玩家无此窗口操作授权。");

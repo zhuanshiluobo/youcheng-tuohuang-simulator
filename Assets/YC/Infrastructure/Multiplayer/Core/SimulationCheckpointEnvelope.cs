@@ -13,6 +13,9 @@ namespace YC.Infrastructure.Multiplayer
         public const int SavedProtocolVersion = 3;
         public const string ConfirmedSimulationRecovery = "ConfirmedSimulationRecovery";
         public const int RecoveryProtocolVersion = 2;
+        public const int WindowInitialProtocolVersion = 4;
+        public const int WindowSavedProtocolVersion = 5;
+        public const int WindowRecoveryProtocolVersion = 6;
         public const string RecoveryDigestVersion = "yc.confirmed-checkpoint.sha256-utf8.v1";
         public const string GzipVersion = "gzip.v1";
         public const string Utf8ArchiveDigestVersion = "yc.initial-checkpoint.sha256-utf8.v1";
@@ -21,6 +24,7 @@ namespace YC.Infrastructure.Multiplayer
         public int ProtocolVersion = CurrentProtocolVersion;
         // 线上会话能力；缺字段的旧信封保持0，不能靠内容hash推断新请求语义。
         public int RequestContractVersion;
+        public int WindowExecutionVersion;
         public string Purpose = InitialSimulation;
         public string GameId = string.Empty;
         public long SimulationEpoch;
@@ -42,6 +46,7 @@ namespace YC.Infrastructure.Multiplayer
         public static bool SameIdentity(SimulationCheckpointEnvelope left, SimulationCheckpointEnvelope right) =>
             left != null && right != null && left.ProtocolVersion == right.ProtocolVersion && left.Purpose == right.Purpose &&
             left.RequestContractVersion == right.RequestContractVersion &&
+            left.WindowExecutionVersion == right.WindowExecutionVersion &&
             left.GameId == right.GameId && left.SimulationEpoch == right.SimulationEpoch && left.MembershipVersion == right.MembershipVersion &&
             left.SourceSimulationEpoch == right.SourceSimulationEpoch &&
             left.CheckpointId == right.CheckpointId && left.GlobalCommandSequence == right.GlobalCommandSequence &&
@@ -53,12 +58,13 @@ namespace YC.Infrastructure.Multiplayer
             left.EncodedByteCount == right.EncodedByteCount && left.DecodedByteCount == right.DecodedByteCount;
 
         public bool HasValidIdentity() =>
-            (ProtocolVersion == CurrentProtocolVersion && Purpose == InitialSimulation && SourceSimulationEpoch == 0 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
-             ProtocolVersion == SavedProtocolVersion && Purpose == SavedSimulation && SourceSimulationEpoch > 0 &&
+            ((ProtocolVersion == CurrentProtocolVersion && WindowExecutionVersion == 0 || ProtocolVersion == WindowInitialProtocolVersion && WindowExecutionVersion == WindowExecutionGrant.Version) && Purpose == InitialSimulation && SourceSimulationEpoch == 0 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
+             (ProtocolVersion == SavedProtocolVersion && WindowExecutionVersion == 0 || ProtocolVersion == WindowSavedProtocolVersion && WindowExecutionVersion == WindowExecutionGrant.Version) && Purpose == SavedSimulation && SourceSimulationEpoch > 0 &&
              SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == Utf8ArchiveDigestVersion ||
-             ProtocolVersion == RecoveryProtocolVersion && Purpose == ConfirmedSimulationRecovery && SourceSimulationEpoch > 0 &&
+             (ProtocolVersion == RecoveryProtocolVersion && WindowExecutionVersion == 0 || ProtocolVersion == WindowRecoveryProtocolVersion && WindowExecutionVersion == WindowExecutionGrant.Version) && Purpose == ConfirmedSimulationRecovery && SourceSimulationEpoch > 0 &&
              SourceSimulationEpoch < long.MaxValue && SimulationEpoch == SourceSimulationEpoch + 1 && ArchiveDigestVersion == RecoveryDigestVersion) &&
             (RequestContractVersion == 0 || RequestContractVersion == OperationCommandProtocol.RequestContractVersion) &&
+            (WindowExecutionVersion == 0 || WindowExecutionVersion == WindowExecutionGrant.Version) &&
             ValidText(GameId, 128) && SimulationEpoch > 0 && MembershipVersion > 0 && ValidText(CheckpointId, 128) &&
             GlobalCommandSequence >= 0 && GlobalCommandSequence < long.MaxValue && ValidText(ContentPackHash, 128) &&
             Compression == GzipVersion && EncodedDigestVersion == GzipDigestVersion;

@@ -31,10 +31,11 @@ namespace YC.Domain.Rules
         public static void Register(EffectRegistry registry, Func<int, int> hostNext = null)
         {
 
-            if (!registry.TryGet(PreparationTypeId, out _)) registry.Register(PreparationTypeId, c => PrepareEnterprises(c, hostNext ?? (max => GameplayRandomRuntime.Next(c.State, GameplayRandomRuntime.EnterprisePreparation, max))), EffectExecutorKind.IntrinsicFlow);
+            EntrepreneurFlow.Register(registry);
+            if (!registry.TryGet(PreparationTypeId, out _)) registry.Register(new EffectRegistration(PreparationTypeId, c => PrepareEnterprises(c, hostNext ?? (max => GameplayRandomRuntime.Next(c.State, GameplayRandomRuntime.EnterprisePreparation, max))), EffectExecutorKind.IntrinsicFlow, "2.0.0"));
             if (!registry.TryGet(EnterpriseSelectionTypeId, out _)) registry.Register(EnterpriseSelectionTypeId, ExecuteEnterpriseSelection, EffectExecutorKind.IntrinsicFlow);
             if (!registry.TryGet(RetentionTypeId, out _)) registry.Register(RetentionTypeId, RetainBasicCharacters, EffectExecutorKind.IntrinsicFlow);
-            if (!registry.TryGet(RoundPreparationTypeId, out _)) registry.Register(RoundPreparationTypeId, PrepareRound, EffectExecutorKind.IntrinsicFlow);
+            if (!registry.TryGet(RoundPreparationTypeId, out _)) registry.Register(new EffectRegistration(RoundPreparationTypeId, PrepareRound, EffectExecutorKind.IntrinsicFlow, "2.0.0"));
             if (!registry.TryGet(InitialInfluenceTypeId, out _)) registry.Register(InitialInfluenceTypeId, InitialInfluence, EffectExecutorKind.IntrinsicFlow);
         }
         public static EffectSpec PreparationSpec(int player, bool concurrent = true) => EffectSpec.Create(PreparationTypeId,
@@ -77,7 +78,7 @@ namespace YC.Domain.Rules
             context.Node.Visibility = GameStateVisibilityPolicy.Owner;
             var parent = context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == context.Node.ParentEffectId);
             var group = parent?.ChildSchedulingGroups.FirstOrDefault(candidate => candidate.StableGroupKey == "initial_enterprise_selections");
-            if (parent?.EffectTypeId != PreparationTypeId || Number(parent.NormalizedArguments, "setupProtocolVersion") != 2 ||
+            if (parent?.EffectTypeId != PreparationTypeId || Number(parent.NormalizedArguments, "setupProtocolVersion") != 2 && Number(parent.ContinuationData, "setupProtocolVersion") != 3 ||
                 parent.FlowStage != "awaiting_initial_enterprise_tasks" || group == null ||
                 group.OwnerEffectId != parent.EffectId || group.ProtocolVersion != 1 || group.Mode != EffectChildSchedulingMode.Independent ||
                 !parent.ChildEffectIds.Contains(context.Node.EffectId) || !group.ChildEffectIds.Contains(context.Node.EffectId))
@@ -119,6 +120,16 @@ namespace YC.Domain.Rules
                 Set(node, "unassignedEnterpriseItemIds", Strings(boards.Skip(draw * order.Count)));
                 Set(node, "selectedEnterpriseItemIds", Strings(Array.Empty<string>()));
                 Set(node, "initialEnterprisePlayerIds", NormalizedValue.CreateArray(new List<NormalizedValue>()));
+                if (EntrepreneurFlow.Enabled(context.State))
+                {
+                    Set(node, "setupProtocolVersion", NormalizedValue.CreateInteger(3));
+                    if (order.Count == 3)
+                    {
+                        var unassigned = boards.Skip(draw * order.Count).ToList();
+                        Set(node, "randomEnterpriseItemId", NormalizedValue.CreateString(unassigned[next(unassigned.Count)]));
+                    }
+                    return EffectStepResult.Continue("entrepreneur_setup").AddChild(EntrepreneurFlow.SetupSpec(node.PlayerId));
+                }
                 if (concurrent)
                 {
                     if (order.Count == 3)
@@ -134,13 +145,21 @@ namespace YC.Domain.Rules
                 Set(node, "nextIndex", NormalizedValue.CreateInteger(0));
                 return EffectStepResult.Continue("choose_initial_enterprises");
             }
+            if (node.FlowStage == "entrepreneur_setup")
+            {
+                if (Waiting(context)) return EffectStepResult.NoProgress("等待企业家设置。");
+                if (context.State.EntrepreneurSetup?.Stage != "complete") throw new InvalidOperationException("entrepreneur_setup_incomplete");
+                var original = ReadIds(Value(node.ContinuationData, "candidateEnterpriseItemIds")); int draw = order.Count == 2 ? 4 : 2;
+                return EffectStepResult.Continue("awaiting_initial_enterprise_tasks").AddIndependentChildren("initial_enterprise_selections",
+                    order.Select((player, index) => EnterpriseSelectionSpec(player, original.Skip(index * draw).Take(draw).ToList(), order.Count == 2 ? 2 : 1)).ToList());
+            }
             if (node.FlowStage == "awaiting_initial_enterprise_tasks")
             {
-                var tasks = context.ChildNodes.ToList();
+                var tasks = context.ChildNodes.Where(t => t.EffectTypeId == EnterpriseSelectionTypeId).ToList();
                 if (tasks.Any(task => task.Status == EffectNodeStatus.Failed || task.Status == EffectNodeStatus.Faulted))
                     return EffectStepResult.Failed("enterprise_selection_failed");
                 if (tasks.Any(task => task.Status != EffectNodeStatus.Completed)) return EffectStepResult.NoProgress("等待各玩家选择企业。");
-                if (Number(node.NormalizedArguments, "setupProtocolVersion") != 2 || tasks.Count != order.Count)
+                if (Number(node.NormalizedArguments, "setupProtocolVersion") != 2 && Number(node.ContinuationData, "setupProtocolVersion") != 3 || tasks.Count(t => t.EffectTypeId == EnterpriseSelectionTypeId) != order.Count)
                     return EffectStepResult.Failed("enterprise_selection_tasks_invalid");
                 var chosen = new List<string>();
                 var owners = NormalizedValue.CreateArray(new List<NormalizedValue>());
@@ -246,7 +265,7 @@ namespace YC.Domain.Rules
                         AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded",
                         OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                     if (!new ItemZoneStateFactory().TryCreateCardZone(context.State, id, declaration, out string zoneId, out string reason)) throw new InvalidOperationException(reason);
-                    var marker = context.State.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player && i.ZoneId == FindZone(context.State, "player_markers", player).ZoneId);
+                    var marker = context.State.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player && i.ZoneId == FindZone(context.State, "supply", player).ZoneId);
                     if (marker == null) throw new InvalidOperationException("insufficient_items");
                     ItemZoneStateMigrator.SetPosition(context.State, marker, zoneId); marker.SlotId = "level_0";
                 }
@@ -372,7 +391,11 @@ namespace YC.Domain.Rules
             if (node.FlowStage == "choose_supply_retirement" || node.FlowStage == "awaiting_supply_retirement" || node.FlowStage == "refilling_supply")
             {
                 int count = InfectedRoundRules.GetSupplyRetirementCount(context.State, order.Count);
-                if (index >= count) return EffectStepResult.Completed();
+                if (index >= count)
+                {
+                    Set(node, "nextIndex", NormalizedValue.CreateInteger(0));
+                    return EffectStepResult.Continue("entrepreneur_faces");
+                }
                 if (node.FlowStage == "refilling_supply") { if (Waiting(context)) return EffectStepResult.NoProgress("等待供应补牌。"); Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1)); return EffectStepResult.Continue("choose_supply_retirement"); }
                 var supply = context.State.ItemZones.Items.Where(i => context.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.facility_supply_slot")).ToList();
                 if (supply.Count == 0) { Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1)); return EffectStepResult.Continue("choose_supply_retirement"); }
@@ -380,6 +403,18 @@ namespace YC.Domain.Rules
                 var item = supply.SingleOrDefault(i => i.ItemId == Answer(context)); if (item == null) return EffectStepResult.Failed("supply_candidate_changed");
                 string slot = item.ZoneId; Set(node, "originalSupplySlotZoneId", NormalizedValue.CreateString(slot));
                 return EffectStepResult.Continue("refilling_supply").AddChild(MoveSpec(order[index], new[] { item.ItemId }, slot, FindZone(context.State, "retired").ZoneId, "unordered", 1)).AddChild(RefillSpec(order[index], slot));
+            }
+            if (node.FlowStage == "entrepreneur_faces" || node.FlowStage == "awaiting_entrepreneur_face")
+            {
+                if (!EntrepreneurFlow.Enabled(context.State) || !new[] { 1, 3, 5, 7 }.Contains(context.State.Round)) return EffectStepResult.Completed();
+                if (node.FlowStage == "awaiting_entrepreneur_face")
+                {
+                    if (Waiting(context)) return EffectStepResult.NoProgress("等待回合抉择。");
+                    Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1));
+                    return EffectStepResult.Continue("entrepreneur_faces");
+                }
+                if (index >= order.Count) return EffectStepResult.Completed();
+                return EffectStepResult.Continue("awaiting_entrepreneur_face").AddChild(EntrepreneurFlow.FaceSpec(order[index]));
             }
             throw new InvalidOperationException("round_preparation_stage_invalid");
         }

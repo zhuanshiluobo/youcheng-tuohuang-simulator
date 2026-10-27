@@ -51,6 +51,9 @@ namespace YC.Application.Sessions
         public bool RequiresRecovery { get; }
         public bool IsRecoveringConfirmedPrefix { get; }
         public bool HasPendingLocalApplication { get; }
+        public WindowExecutionFrame WindowExecution { get; }
+        public bool HasUnconfirmedWindowProgress => WindowExecution?.IsActive == true && LastAppliedSequence > ValidatedThroughSequence;
+        public bool IsCurrentBoundaryConfirmed => !IsStopped && permittedFences.Contains(ValidatedThroughSequence) && LastAppliedSequence == ValidatedThroughSequence;
         public bool CanCreateSaveCheckpoint => checkpoint != null && IsHost && !IsStopped && !IsRecoveringConfirmedPrefix &&
             !HasPendingLocalApplication && LastAppliedSequence == ValidatedThroughSequence && LastSequencedSequence == ValidatedThroughSequence;
         internal long CommitVersion { get; }
@@ -63,10 +66,17 @@ namespace YC.Application.Sessions
             IEnumerable<long> permittedFences,
             CommandValidationPrefixDto validation, SimulationProtocolFaultDto fault,
             IEnumerable<OrderedOperationCommandDto> tail, SimulationPublishedCheckpoint checkpoint, long commitVersion,
-            IDictionary<long, int> observedRevisions, IDictionary<string, RequestAuthorityStamp> requestAuthorities)
+            IDictionary<long, int> observedRevisions, IDictionary<string, RequestAuthorityStamp> requestAuthorities, WindowExecutionFrame windowExecution = null,
+            SimulationPublishedSnapshot unchangedState = null)
         {
             this.point = point ?? throw new ArgumentNullException(nameof(point));
-            this.view = GameStateCloneService.DeepClone(view ?? throw new ArgumentNullException(nameof(view)));
+            WindowExecution = windowExecution;
+            // 仅相同固定状态图复用私有视图；所有公开读取及交给展示端的视图仍复制。
+            if (unchangedState != null && unchangedState.Generation == generation && unchangedState.CommitVersion == commitVersion &&
+                ReferenceEquals(unchangedState.point.CapturedState, point.CapturedState))
+                this.view = unchangedState.view;
+            else
+                this.view = GameStateCloneService.DeepClone(view ?? throw new ArgumentNullException(nameof(view)));
             this.permissions = permissions.Select(CopyPermission).ToList();
             // Coordinator中的边界只追加且不再修改；公开读取仍复制所有嵌套字段。
             this.boundaries = new Dictionary<long, SimulationBoundaryDto>(boundaries);
@@ -91,6 +101,7 @@ namespace YC.Application.Sessions
             point = source.point; view = source.view; permissions = source.permissions; boundaries = source.boundaries; permittedFences = source.permittedFences;
             validation = source.validation; fault = CopyFault(mainFault) ?? source.fault; tail = source.tail; checkpoint = source.checkpoint;
             observedRevisions = source.observedRevisions; requestAuthorities = source.requestAuthorities;
+            WindowExecution = source.WindowExecution;
             Version = source.Version; Generation = source.Generation; GameId = source.GameId; ContentHash = source.ContentHash;
             SimulationEpoch = source.SimulationEpoch; MembershipVersion = source.MembershipVersion; LocalPlayerId = source.LocalPlayerId; IsHost = source.IsHost;
             LastAppliedSequence = source.LastAppliedSequence; LastSequencedSequence = sequenced; ValidatedThroughSequence = source.ValidatedThroughSequence;
@@ -108,7 +119,7 @@ namespace YC.Application.Sessions
         {
             var result = permissions.Select(CopyPermission).ToList();
             foreach (var item in result)
-                item.CanSubmitForLocalPlayer &= !HasPendingLocalApplication && !IsStopped && !IsRecoveringConfirmedPrefix;
+                item.CanSubmitForLocalPlayer &= !HasPendingLocalApplication && !IsStopped && !IsRecoveringConfirmedPrefix && WindowExecution?.BlocksSubmission != true;
             return result.AsReadOnly();
         }
         public SimulationBoundaryDto ReadBoundary(long sequence) => boundaries.TryGetValue(sequence, out var value)

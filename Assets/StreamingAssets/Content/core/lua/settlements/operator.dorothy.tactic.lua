@@ -1,4 +1,4 @@
--- 独立纯资格声明；正式目录未接入前不替换现有能力正文。
+-- 正式收尾资格：本来源仅声明本牌markers区的一种返供权限，计数对应同一授权库存。
 local rule = {
     entryKind = 'cleanup_order',
     localId = 'operator.dorothy.tactic.cleanup_order',
@@ -13,7 +13,7 @@ local rule = {
 }
 function rule.availability(ctx)
     local source = ctx.facts.source
-    local enabled = ctx.window.kind == 'player_cleanup' and source ~= nil and source.persistentActive == true and type(source.markerCount) == 'number' and source.markerCount >= 2
+    local enabled = ctx.window.kind == 'player_cleanup' and source ~= nil and source.persistentActive == true and type(source.transferableTokenCount) == 'number' and source.transferableTokenCount >= 2
     return { enabled = enabled, disabledReasonKey = enabled and '' or 'core:presentation.unavailable' }
 end
 return rule

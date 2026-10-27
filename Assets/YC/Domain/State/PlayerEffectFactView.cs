@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Items;
+using YC.Domain.Effects;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Domain.State
@@ -15,6 +16,7 @@ namespace YC.Domain.State
         public int DetailPlayerId = -1;
         public PlayerDetailActivation Activation;
         public List<string> CoverSlotIds = new List<string>();
+        public List<string> GrantingRuleFactIds = new List<string>();
     }
 
     public static class PlayerEffectFactProjector
@@ -63,6 +65,28 @@ namespace YC.Domain.State
                 result.Add(new PlayerEffectFactView { FactId = timing.BindingId, SourceItemId = id,
                     DefinitionId = item.DefinitionId, SourceEffectId = node.EffectId, AbilityId = timing.AbilityId,
                     DetailPlayerId = timing.ScopedPlayerId, Activation = PlayerDetailActivation.Delayed });
+            }
+            if (state.ContentDefinitions?.AbilitySources.Count > 0)
+            {
+                // 与原效果事实复用同一次合法来源查询；SourceKey仅原值关联，不拆解猜牌。
+                var sources = AbilitySourceService.QuerySources(state, state.ContentDefinitions.AbilitySources);
+                var byKey = sources.ToDictionary(s => s.SourceKey, StringComparer.Ordinal);
+                var rulesByItem = (visible.PlayerRules ?? new List<PlayerRuleFactView>()).GroupBy(r => r.SourceItemId).ToDictionary(g => g.Key, g => g.ToList(), StringComparer.Ordinal);
+                foreach (var source in sources)
+                {
+                    if (!items.ContainsKey(source.ItemId)) continue;
+                    var declaration = state.ContentDefinitions.AbilitySources.Single(d => d.AbilityId == source.AbilityId);
+                    var activation = declaration.AuthorizationPolicy == "character_subscription" ? PlayerDetailActivation.Subscription : PlayerDetailActivation.Held;
+                    if (result.Any(f => f.SourceItemId == source.ItemId && f.AbilityId == source.AbilityId && f.DetailPlayerId == source.AuthorizedPlayerId && f.Activation == activation)) continue;
+                    var fact = new PlayerEffectFactView { FactId = source.SourceKey, SourceItemId = source.ItemId, DefinitionId = source.DefinitionId,
+                        AbilityId = source.AbilityId, DetailPlayerId = source.AuthorizedPlayerId, Activation = activation };
+                    foreach (string key in source.GrantingSourceRefs)
+                        if (byKey.TryGetValue(key, out var grant) && grant.AuthorizedPlayerId == source.AuthorizedPlayerId &&
+                            items.ContainsKey(grant.ItemId) && rulesByItem.TryGetValue(grant.ItemId, out var rules))
+                            fact.GrantingRuleFactIds.AddRange(rules.Where(r => r.RuleOwnerItemId == source.ItemId && r.DetailPlayerId == source.AuthorizedPlayerId).Select(r => r.FactId));
+                    fact.GrantingRuleFactIds = fact.GrantingRuleFactIds.Distinct(StringComparer.Ordinal).ToList();
+                    result.Add(fact);
+                }
             }
             return result;
         }

@@ -21,15 +21,21 @@ namespace YC.Tests.EditMode.ExpansionRules
     {
         private EffectRegistry registry;
         private GameState state;
+        private IsolatedTestArtifacts artifacts;
+        private string contentRoot;
 
         [SetUp] public void SetUp()
         {
+            state = null; cleanupFixture = null; artifacts = IsolatedTestArtifacts.BeginCase();
+            if (TestContext.CurrentContext.Test.MethodName == nameof(CleanupOffersWaitForClickAndResumeWithoutRepeatingPayment) ||
+                TestContext.CurrentContext.Test.MethodName == nameof(CleanupInsufficientCostIsDisabledAndMandatoryRequestCannotBeSkipped)) return;
+            contentRoot = artifacts.CopyContent(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"), "R2旧收尾私有输入");
             var map = StaticMapDefinitions.CreateThreePlayerMap();
             registry = new EffectRegistry();
             ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
             ItemTransferEffectExecutor.Register(registry); ContentPrimitiveEffectExecutor.Register(registry);
             CharacterContentEffectExecutor.Register(registry);
-            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+            var pack = ExternalContentPack.Load(contentRoot); artifacts.RecordContent("R2实际收尾内容", contentRoot, pack.ContentHash);
             var definitions = pack.CreateFacilities();
             registry.ContentPackHash = pack.ContentHash;
             state = new ItemZoneStateFactory().CreateForSetup(new GameState {
@@ -38,9 +44,14 @@ namespace YC.Tests.EditMode.ExpansionRules
                 ContentDefinitions = new GameContentDefinitions { Facilities = definitions.ToList() },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Resources = new ResourceSet { Originium = 4 } }, new PlayerState { PlayerId = 2, Resources = new ResourceSet { Iron = 3 } } }
             }, map, new[] {
-                new ItemRecipeEntry { EntryId = "marker", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "marker", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "card", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" }
             }.Concat(definitions.GroupBy(d => d.Name).Select(g => g.First()).Take(8).Select((d, i) => new ItemRecipeEntry { EntryId = "facility_" + i, DefinitionId = d.FacilityId, TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" })).ToList());
+        }
+        [TearDown] public void FinishEvidence()
+        {
+            if (state != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(state));
+            artifacts.Finish();
         }
         private EffectTreeExecutor Engine() => new EffectTreeExecutor(state, registry);
         private string Run(EffectSpec spec) { string id = Engine().CreateRoot(spec); Drain(); return id; }
@@ -113,7 +124,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var map = StaticMapDefinitions.CreateThreePlayerMap();
             var configuration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2,
                 EnabledExpansionIds = new List<string> { "core", "enterprise" } };
-            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"))
+            var pack = ExternalContentPack.Load(contentRoot)
                 .CreateActiveSnapshot(configuration);
             configuration.ContentPackHash = pack.ContentHash;
             var facilities = pack.CreateFacilities();
@@ -136,75 +147,41 @@ namespace YC.Tests.EditMode.ExpansionRules
             return state.ItemZones.Items.Single(i => i.DefinitionId == "operator.eunectes" && i.ControllerSubject.PlayerId == 1);
         }
 
-        [TestCase(0)] [TestCase(3)] public void MarkerQuantityMovesRealInstancesAndHonorsEmptyCarrierExit(int amount)
-        {
-            var card = state.ItemZones.Items.Single(i => i.TypeId == "core.basic_character_card" && i.ControllerSubject.PlayerId == 1);
-            card.ZoneId = FindZone(state, "persistent", 1).ZoneId;
-            Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, card.ItemId, new CardZoneDefinition {
-                LocalZoneId = "markers", ZoneTemplateId = "core.zone.card_cube_storage", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube },
-                AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Unordered,
-                VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.owned_player_marker", ExitPolicyId = "core.card_payment",
-                CarrierExitPolicyId = "core.return_contents_before_exit", EmptyExitPolicyId = "core.discard_carrier_when_empty"
-            }, out string zone, out string error), Is.True, error);
-            var supply = state.ItemZones.Items.Where(i => i.ZoneId == FindZone(state, "player_markers", 1).ZoneId).Select(i => i.ItemId).ToHashSet();
-            Run(EffectSpec.Create(ContentPrimitiveEffectExecutor.LoadMarkers, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
-                "cardInstanceId", NormalizedValue.CreateString(card.ItemId), "localZoneId", NormalizedValue.CreateString("markers"), "maxCount", NormalizedValue.CreateInteger(4)), 1));
-            Assert.That(Number(Open().PromptParameters, "maxAmount"), Is.EqualTo(4));
-            if (amount == 0) Answer(NormalizedValue.CreateBoolean(false)); else Answer(amount.ToString());
-            var actual = state.ItemZones.Items.Where(i => i.ZoneId == zone).ToList();
-            Assert.That(actual.Count, Is.EqualTo(amount)); Assert.That(actual.All(i => supply.Contains(i.ItemId) && i.OwnerSubject.PlayerId == 1), Is.True);
-            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == card.ItemId).ZoneId, Is.EqualTo(FindZone(state, amount == 0 ? "discard" : "persistent", 1).ZoneId));
-        }
-
+        private CleanupSourceTestFixture cleanupFixture;
         private void OpenCleanup(bool mandatory = false)
         {
-            new RoundExecutionService(new TurnOrderService(), new CharacterCardService(), new MainActionBudgetService(), new SpecialActionLifecycleService(), registry);
-            state.Phase = GamePhase.Cleanup;
-            var cards = state.ItemZones.Items.Where(i => i.TypeId == "core.basic_character_card").ToList();
-            foreach (var card in cards)
+            // R2旧合成cleanup_offer现场保存在005原证据。本夹具改走实际声明、事件、统一登记。
+            cleanupFixture = new CleanupSourceTestFixture(artifacts, legacyResource: true, initialMarkers: 0, mandatory: mandatory, inMemoryInput: true);
+            state = cleanupFixture.State; registry = cleanupFixture.Registry;
+            if (mandatory)
             {
-                card.ControllerSubject = ItemSubjectRef.Player(1); card.ZoneId = FindZone(state, "persistent", 1).ZoneId;
-                state.CharacterUses.Add(new CharacterUseRuntimeState { CardInstanceId = card.ItemId, ExecutingPlayerId = 1,
-                    Modes = new List<CharacterModeContract> { new CharacterModeContract { AbilityId = "cleanup." + card.ItemId, SkillType = "persistent", Activated = true, SubscriptionActive = true,
-                        SettlementActionId = CharacterContentEffectExecutor.CleanupActionId, TitleKey = "收尾能力", DescriptionKey = "支付源岩后得分" } } });
+                var required = registry.GetSettlementOptions(state, 1).Single(o => !o.CanDeclineWholeEffect);
+                Assert.That(Engine().TryInvokeCharacterSettlementOption(1, required.OptionId, "", required.StateRevision, out _, out string reason), Is.True, reason);
+                Drain();
             }
-            registry.RegisterEventHandler(new EffectEventHandlerRegistration("test.cleanup.sources", "PlayerCleanupStarted", "*", "test.cleanup.sources", context => {
-                var offers = new List<EffectSpec>();
-                if (mandatory) offers.Add(EffectSpec.Create("test.cleanup.required", playerId: 1));
-                foreach (var card in cards)
-                {
-                    var spec = EffectSpec.Create(CharacterContentEffectExecutor.CleanupOfferTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1),
-                        "cardInstanceId", NormalizedValue.CreateString(card.ItemId), "abilityId", NormalizedValue.CreateString("cleanup." + card.ItemId),
-                        "windowEffectId", NormalizedValue.CreateString(context.Event.SourceEffectId)), 1);
-                    spec.NestedEffectGroups.Add(new List<EffectSpec> { EffectSpec.Condition(new[] { ResourceEffectSpecFactory.Pay(1, ResourceType.Originium, 2) }, new[] { ResourceEffectSpecFactory.GainScore(1, 1) }) });
-                    offers.Add(spec);
-                }
-                return offers;
-            }, EffectHandlerRole.Observer));
-            registry.Register(new EffectRegistration("test.cleanup.required", c => c.Node.FlowStage.Length > 0 ? EffectStepResult.Completed() :
-                EffectStepResult.Continue("waiting").AddInteraction(new EffectInteractionSpec { InteractionTypeId = "test.cleanup.required", AnsweringPlayerId = 1, AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1, CandidateIds = { "required" } })));
-            var main = new MainlineNodeRuntimeState { NodeId = "main.cleanup", NodeTypeId = RoundMainlineNodeTypeIds.PlayerCleanupWindow, PlayerId = 1, RoundNumber = 1, ActionRound = 1 };
-            state.EffectRuntime.MainNodes.Add(main); state.EffectRuntime.ActiveMainNodeId = main.NodeId;
-            main.ExecutionEffectId = Engine().CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId, Object("mainNodeId", NormalizedValue.CreateString(main.NodeId)), 1));
-            state.EffectRuntime.MainNodes.Single().ExecutionEffectId = main.ExecutionEffectId;
-            Drain();
         }
 
         [Test] public void CleanupOffersWaitForClickAndResumeWithoutRepeatingPayment()
         {
-            OpenCleanup(); Assert.That(Open().InteractionTypeId, Is.EqualTo(CharacterContentEffectExecutor.CleanupInteractionTypeId));
-            var options = CharacterSettlementOptionQuery.GetOptions(state, 1, ""); Assert.That(options.Count, Is.EqualTo(2));
+            OpenCleanup();
+            // 旧character.cleanup.settlement模态断言迁移为同一业务等待：U15不伪造模态请求。
+            Assert.That(SettlementEntryService.HasPendingPlayerSelection(state.EffectRuntime), Is.True);
+            var options = registry.GetSettlementOptions(state, 1); Assert.That(options.Count, Is.EqualTo(2));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(4));
             var option = options[0]; Assert.That(Engine().TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out _, out var error), Is.True, error); Drain();
+            if (state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.CandidateIds.Contains("continue"))) Answer("continue");
+            if (state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId))
+                Answer(ResourceEffectExecutor.PaymentConfirmationCandidateId);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
-            // 序列化 EffectRuntime 的模板及收据后重建内核；不替代完整 HostRecovery 验收。
-            var restoredRuntime = JsonConvert.DeserializeObject<EffectRuntimeState>(JsonConvert.SerializeObject(state.EffectRuntime));
-            state = GameStateCloneService.DeepClone(state); state.EffectRuntime = restoredRuntime;
+            // 不再仅序列化Runtime；正式Host恢复必须包含来源与付款防重证据。
+            var restored = artifacts.Recover(state, "008旧收尾实际Host恢复", registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State;
             Assert.That(Engine().TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out bool repeated, out error), Is.True, error);
             Assert.That(repeated, Is.True); Drain(); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
-            Answer(NormalizedValue.CreateBoolean(false)); Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
-            Assert.That(state.EffectRuntime.MainNodes.Single().CompletionRequested, Is.True);
-            Assert.That(CharacterSettlementOptionQuery.GetOptions(state, 1, ""), Is.Empty);
+            Assert.That(Engine().TryEndSettlementAction(1, option.WindowId, "", "", state.EffectRuntime.StateRevision, "008.once.close", out error), Is.True, error); Drain();
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            Assert.That(state.EffectRuntime.MainNodes.Single(n => n.ExecutionEffectId == cleanupFixture.RootId).CompletionRequested, Is.True);
+            Assert.That(registry.GetSettlementOptions(state, 1), Is.Empty);
         }
 
         [Test] public void CleanupInsufficientCostIsDisabledAndMandatoryRequestCannotBeSkipped()
@@ -212,11 +189,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             OpenCleanup(true); var required = Open();
             Assert.That(required.AllowDecline, Is.False);
             Assert.That(Engine().TrySubmitInteraction(required.GetStableInteractionId(), 1, required.StateRevision, NormalizedValue.CreateBoolean(false), out _), Is.False);
-            Assert.That(CharacterSettlementOptionQuery.GetOptions(state, 1, ""), Is.Empty);
+            // 正式投影保留禁用行；等价业务要求是进行中必答不能被别的条目绕过。
+            Assert.That(registry.GetSettlementOptions(state, 1).All(o => !o.IsEnabled), Is.True);
             Answer("required"); state.FindPlayer(1).Resources.Originium = 0;
-            var options = CharacterSettlementOptionQuery.GetOptions(state, 1, ""); Assert.That(options.Count, Is.EqualTo(2));
-            Assert.That(options.All(o => !o.IsEnabled && o.DisabledReasonCode == "insufficient_resource"), Is.True);
-            Answer(NormalizedValue.CreateBoolean(false)); Assert.That(state.FindPlayer(1).Score, Is.Zero);
+            var options = registry.GetSettlementOptions(state, 1); Assert.That(options.Count, Is.EqualTo(2));
+            Assert.That(options.All(o => !o.IsEnabled && o.DisabledReasonCode == "core:presentation.unavailable"), Is.True);
+            Assert.That(Engine().TryEndSettlementAction(1, options[0].WindowId, "", "", state.EffectRuntime.StateRevision, "008.once.insufficient.close", out string reason), Is.True, reason); Drain();
+            Assert.That(state.FindPlayer(1).Score, Is.Zero);
         }
 
         [Test] public void PassengerRealLuaUsesOpponentThenResourceThenQuantityAndKeepsBothScores()
@@ -225,7 +204,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var map = StaticMapDefinitions.CreateThreePlayerMap();
             var configuration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2,
                 EnabledExpansionIds = new List<string> { "core", "enterprise" } };
-            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"))
+            var pack = ExternalContentPack.Load(contentRoot)
                 .CreateActiveSnapshot(configuration);
             configuration.ContentPackHash = pack.ContentHash;
             Assert.That(pack.ActiveDefinitions.Any(definition => definition.DefinitionId == "operator.passenger"), Is.True,

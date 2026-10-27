@@ -66,7 +66,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         {
             var item = new ItemInstanceState { ItemId = StableIdFactory.Create("detail_fixture", State.GameId, source.DefinitionId, player.ToString()),
                 DefinitionId = source.DefinitionId, TypeId = source.ItemTypeId, PhysicalKind = ItemPhysicalKind.Card,
-                OwnerSubject = ItemSubjectRef.Player(player), ControllerSubject = ItemSubjectRef.Player(player), ZoneId = role == "player_awards" ? State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_awards" && zone.OwnerPlayerId == player).ZoneId : role == "reward_pool" ? State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "awards").ZoneId : FindZone(State, role, role == "flowing_shapes" ? -1 : player).ZoneId };
+                OwnerSubject = ItemSubjectRef.Player(player), ControllerSubject = ItemSubjectRef.Player(player), ZoneId = role == "player_rewards" ? State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.player_rewards" && zone.OwnerPlayerId == player).ZoneId : role == "reward_pool" ? State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "awards").ZoneId : FindZone(State, role, role == "flowing_shapes" ? -1 : player).ZoneId };
             State.ItemZones.Items.Add(item); State.ItemZones.Orders.Find(order => order.ZoneId == item.ZoneId)?.ItemIds.Add(item.ItemId);
             foreach (var zone in source.CardZones) Assert.That(new ItemZoneStateFactory().TryCreateCardZone(State, item.ItemId, zone, out _, out var reason), Is.True, reason);
             return item;
@@ -144,10 +144,10 @@ namespace YC.Tests.PlayMode.ExpansionRules
             foreach (var source in pack.ActiveDefinitions.Where(value => value.ContentType == "character")) Add(source, 1, source.DefinitionId.Contains("flowing_shape") ? "flowing_shapes" : "hand");
             Property(Ui, "CharacterDefinition", (Func<string, CharacterCardDefinition>)(id => CharacterCardDatabase.Get(State, id)));
             Use("amiya"); Use("muelsyse"); Use("swire");
-            Add(sources.Single(value => value.DefinitionId == "infected.award.permanent_support"), 1, "player_awards");
-            Add(sources.Single(value => value.DefinitionId == "infected.award.permanent_support"), 2, "player_awards");
-            Add(sources.Single(value => value.DefinitionId == "infected.contract.lifetime_security"), 1, "player_awards");
-            Add(sources.Single(value => value.DefinitionId == "infected.award.enterprise_special"), 1, "player_awards");
+            Add(sources.Single(value => value.DefinitionId == "infected.award.permanent_support"), 1, "player_rewards");
+            Add(sources.Single(value => value.DefinitionId == "infected.award.permanent_support"), 2, "player_rewards");
+            Add(sources.Single(value => value.DefinitionId == "infected.contract.lifetime_security"), 1, "player_rewards");
+            Add(sources.Single(value => value.DefinitionId == "infected.award.enterprise_special"), 1, "player_rewards");
             Add(sources.Single(value => value.DefinitionId == "infected.award.score"), 1, "reward_pool");
             Refresh();
         }

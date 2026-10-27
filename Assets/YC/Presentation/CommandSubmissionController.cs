@@ -21,6 +21,7 @@ namespace YC.Presentation
         private readonly GameSession session;
         private readonly GameLaunchContext launchContext;
         private readonly int localPlayerId;
+        internal Func<int> PaymentSourceViewerPlayerId { get; set; }
         private readonly UnityEngine.Object logContext;
         private readonly Action refreshFromState;
         private readonly Action<string> setPrompt;
@@ -79,12 +80,78 @@ namespace YC.Presentation
         internal GameState PublishedState { get { EnsureSimulationLocalProjection(); return simulationProjectionState; } }
         internal GameStateView PublishedView { get { EnsureSimulationLocalProjection(); return simulationProjectionView; } }
         public bool UsesDeterministicSimulation => usesDeterministicSimulation;
+        public string LastPaymentSourcePageFailure { get; private set; }
+        public int LastPaymentSourcePageViewer { get; private set; }
+        public PaymentSourceQuery LastPaymentSourcePageQuery { get; private set; }
+        public long PaymentSourcePageReadSequence { get; private set; }
+        private PaymentSourceProjection RejectPaymentSourcePage(string reason)
+        { LastPaymentSourcePageFailure = reason; return null; }
+        public PaymentSourceProjection ReadPaymentSourcePage(PaymentSourceQuery query)
+        {
+            PaymentSourcePageReadSequence++;
+            LastPaymentSourcePageQuery = GameStateCloneService.DeepClone(query);
+            LastPaymentSourcePageFailure = null; LastPaymentSourcePageViewer = localPlayerId;
+            if (disposed || query == null || launchContext?.IsLeavingGameplay == true)
+                return RejectPaymentSourcePage("payment_source_reader_inactive_or_query_missing");
+            if (UsesDeterministicSimulation)
+            {
+                // 联网始终认证固定本机席位，不能使用本地热座视角替换网络身份。
+                if (query.PlayerId != localPlayerId) return RejectPaymentSourcePage("payment_source_network_viewer_mismatch");
+                if (!IsSimulationReady) return RejectPaymentSourcePage("payment_source_simulation_not_ready");
+                var page = simulationTransport.ReadPaymentSourcePage(query);
+                if (page == null) LastPaymentSourcePageFailure = "payment_source_simulation_page_pending";
+                return page;
+            }
+            if (GameSessionBootstrapper.IsNetworkLaunch(launchContext)) return RejectPaymentSourcePage("payment_source_network_transport_missing");
+            // 本地热座的付款回答者会随正式交互切换；使用UI当前已解析视角，而非构造时的初始席位。
+            int viewer = PaymentSourceViewerPlayerId?.Invoke() ?? localPlayerId;
+            LastPaymentSourcePageViewer = viewer;
+            if (query.PlayerId != viewer) return RejectPaymentSourcePage("payment_source_local_viewer_mismatch");
+            var response = session.QueryPaymentSourcePage(viewer, new PaymentSourcePageRequest {
+                RequestId = PaymentSourcePageProtocol.Id(query), Query = GameStateCloneService.DeepClone(query) });
+            if (!string.IsNullOrEmpty(response.Reason)) return RejectPaymentSourcePage(response.Reason);
+            if (response.Page == null) return RejectPaymentSourcePage("payment_source_response_page_missing");
+            return response.Page;
+        }
+        private void OnPaymentSourcePageAvailable()
+        { if (!disposed && SimulationBindingIsCurrent) refreshFromState?.Invoke(); }
         public bool IsSimulationReady => !disposed && (!UsesDeterministicSimulation ||
             SimulationBindingIsCurrent && simulationCoordinator != null && !simulationCoordinator.IsStopped && !simulationCoordinator.RequiresRecovery);
-        public bool CanSubmitForLocalPlayer => !disposed && (launchContext == null || !launchContext.IsLeavingGameplay) &&
-            (UsesDeterministicSimulation
-                ? IsSimulationReady && !simulationCoordinator.HasPendingLocalApplication && simulationPermissions.Values.Any(value => value)
-                : !GameSessionBootstrapper.IsNetworkLaunch(launchContext) || commandTransport != null);
+        private int traceSubmissionFlags = -1;
+        public bool CanSubmitForLocalPlayer
+        {
+            get
+            {
+                bool result = !disposed && (launchContext == null || !launchContext.IsLeavingGameplay) &&
+                    (UsesDeterministicSimulation
+                        ? IsSimulationReady && !simulationCoordinator.HasPendingLocalApplication && simulationPermissions.Values.Any(value => value)
+                        : !GameSessionBootstrapper.IsNetworkLaunch(launchContext) || commandTransport != null);
+                if (InteractionLatencyTrace.Enabled)
+                {
+                    try { ObserveSubmissionGate(result); }
+                    catch { InteractionLatencyTrace.Stop("trace.gate_observation_failed"); }
+                }
+                return result;
+            }
+        }
+        internal NetworkExecutionObservation.Context InteractionTraceIdentity => new NetworkExecutionObservation.Context {
+            GameId = simulationGameId ?? session?.View?.GameId, Mode = launchContext?.Mode.ToString(),
+            PlayerId = localPlayerId, SimulationEpoch = simulationEpoch, MembershipVersion = simulationMembershipVersion,
+            Sequence = lastAppliedResultSequence, Revision = session?.View?.StateRevision ?? -1, Frame = -1 };
+        private void ObserveSubmissionGate(bool result)
+        {
+            // 只读事实快照；不据此再判权。具体求值仍以上面原短路表达式为准。
+            int flags = (result ? 1 : 0) | (disposed ? 2 : 0) | (launchContext?.IsLeavingGameplay == true ? 4 : 0) |
+                (UsesDeterministicSimulation ? 8 : 0) | (simulationStopped ? 16 : 0) |
+                (simulationCoordinator == null ? 32 : 0) | (simulationCoordinator?.IsStopped == true ? 64 : 0) |
+                (simulationCoordinator?.RequiresRecovery == true ? 128 : 0) |
+                (simulationCoordinator?.HasPendingLocalApplication == true ? 256 : 0) |
+                (simulationPermissions.Values.Any(value => value) ? 512 : 0) | (SimulationBindingIsCurrent ? 1024 : 0) |
+                (commandTransport != null ? 2048 : 0);
+            if (flags == traceSubmissionFlags) return;
+            traceSubmissionFlags = flags;
+            InteractionLatencyTrace.Point("submit.gate_facts", value: flags);
+        }
         public bool RequiresExplicitRefreshForCurrentResult { get; private set; }
         private bool OwnsSimulationTransport => !ReferenceEquals(simulationTransport, null) &&
             SimulationTransportOwners.TryGetValue(simulationTransport, out var owner) && ReferenceEquals(owner, this);
@@ -143,6 +210,7 @@ namespace YC.Presentation
                 if (launchContext.TryConsumeOnlineSessionNotice(out var notice)) setPrompt(notice);
                 var transport = MirrorCommandTransport.Ensure();
                 simulationTransport = transport; commandTransport = transport;
+                transport.PaymentSourcePageAvailable += OnPaymentSourcePageAvailable;
                 SimulationTransportOwners[transport] = this;
                 simulationRegistry = effectRegistry;
                 BindSimulationSubscriptions();
@@ -290,8 +358,19 @@ namespace YC.Presentation
 
         private void OnSimulationPermissionChanged(SimulationWindowPermissionDto permission)
         {
+            if (InteractionLatencyTrace.Enabled && permission?.Window != null)
+            {
+                InteractionLatencyTrace.Point("permission.arrival_unvalidated", detail: permission.Window.OperationWindowId,
+                    value: permission.Window.WindowGeneration);
+                InteractionLatencyTrace.Point("permission.header_observed", detail: permission.Window.GameId + "|" +
+                    permission.Window.SimulationEpoch + "|" + permission.Window.MembershipVersion);
+            }
             if (!SimulationBindingIsCurrent) return;
             if (!StoreSimulationPermission(permission)) return;
+            using var latency = InteractionLatencyTrace.Begin("consumer.permission");
+            InteractionLatencyTrace.Point("permission.window", detail: permission.Window.OperationWindowId,
+                value: simulationPermissions[permission.Window.OperationWindowId] ? 1 : 0);
+            InteractionLatencyTrace.Point("permission.generation", value: permission.Window.WindowGeneration);
             using var permissionSample = new ExecutionSample(session.ExecutionTimings, "consumer.permission");
             EnsureSimulationLocalProjection();
             refreshFromState();
@@ -317,11 +396,18 @@ namespace YC.Presentation
 
         private void OnSimulationCommandApplied(SimulationCommandAppliedDto applied)
         {
+            if (InteractionLatencyTrace.Enabled && applied != null)
+            {
+                InteractionLatencyTrace.Point("consumer.applied_arrival_unvalidated", applied.Command?.CommandId, value: applied.GlobalCommandSequence);
+                InteractionLatencyTrace.Point("consumer.applied_header_observed", applied.Command?.CommandId,
+                    applied.GameId + "|" + applied.SimulationEpoch + "|" + applied.MembershipVersion, applied.ProtocolVersion);
+            }
             if (!SimulationBindingIsCurrent || simulationCoordinator == null || applied?.Command == null || applied.RuleResult == null ||
                 applied.ProtocolVersion != OperationCommandProtocol.Version || !MatchesSimulation(applied.GameId, applied.SimulationEpoch, applied.MembershipVersion) ||
                 deliveredSimulationCommandIds.Contains(applied.Command.CommandId) || applied.GlobalCommandSequence <= lastAppliedResultSequence ||
                 (applied.RuleResult.Succeeded ? applied.GlobalCommandSequence > simulationCoordinator.LastAppliedSequence :
                     applied.GlobalCommandSequence != simulationCoordinator.LastAppliedSequence + 1)) return;
+            using var latency = InteractionLatencyTrace.Begin("consumer.applied", applied.Command.CommandId);
             using var appliedSample = new ExecutionSample(session.ExecutionTimings, "consumer.applied");
             lastAppliedResultSequence = applied.GlobalCommandSequence;
             deliveredSimulationCommandIds.Add(applied.Command.CommandId);
@@ -339,6 +425,16 @@ namespace YC.Presentation
 
         private void OnSimulationProposalRejected(SimulationProposalResultDto result)
         {
+            if (InteractionLatencyTrace.Enabled && result?.Proposal?.Command != null)
+            {
+                var observed = result.Proposal;
+                InteractionLatencyTrace.Point("proposal.header_observed", observed.Command.CommandId,
+                    observed.GameId + "|" + observed.SimulationEpoch + "|" + observed.MembershipVersion, observed.ProtocolVersion);
+                InteractionLatencyTrace.Point("proposal.observed_unvalidated", observed.Command.CommandId, value: (int)result.Status);
+                InteractionLatencyTrace.Point("proposal.window", observed.Command.CommandId, observed.OperationWindowId, observed.WindowGeneration);
+                InteractionLatencyTrace.Point("proposal.observed_sequence", observed.Command.CommandId, value: observed.ObservedGlobalSequence);
+                InteractionLatencyTrace.Point("proposal.observed_revision", observed.Command.CommandId, value: observed.ObservedStateRevision);
+            }
             if (result == null || result.ProtocolVersion != OperationCommandProtocol.Version ||
                 !MatchesSimulation(result.GameId, result.SimulationEpoch, result.MembershipVersion) || result.Proposal?.Command == null ||
                 result.Proposal.GameId != result.GameId || result.Proposal.SimulationEpoch != result.SimulationEpoch ||
@@ -358,6 +454,8 @@ namespace YC.Presentation
             if (prefix == null || prefix.ProtocolVersion != OperationCommandProtocol.Version ||
                 !MatchesSimulation(prefix.GameId, prefix.SimulationEpoch, prefix.MembershipVersion) || simulationCoordinator == null ||
                 prefix.ValidatedThroughSequence <= lastValidatedSequence || prefix.ValidatedThroughSequence > simulationCoordinator.ValidatedThroughSequence) return;
+            using var latency = InteractionLatencyTrace.Begin("consumer.validation");
+            InteractionLatencyTrace.Point("consumer.validated_prefix", value: prefix.ValidatedThroughSequence);
             using var validationSample = new ExecutionSample(session.ExecutionTimings, "consumer.validation");
             lastValidatedSequence = prefix.ValidatedThroughSequence;
             refreshFromState();
@@ -385,6 +483,19 @@ namespace YC.Presentation
 
         public CommandResult Submit(GameCommand command, out bool appliedLocally)
         {
+            using var latency = InteractionLatencyTrace.Begin("submit.dispatch", command?.CommandId);
+            if (InteractionLatencyTrace.Enabled)
+            {
+                InteractionLatencyTrace.Point("submit.kind", command?.CommandId, value: command == null ? -1 : (int)command.Kind);
+                if (command?.Parameters != null && command.Parameters.TryGetValue("expectedRevision", out var expected))
+                    InteractionLatencyTrace.Point("submit.expected_revision", command.CommandId, expected);
+                if (command?.Parameters != null && command.Parameters.TryGetValue("interactionId", out var interaction))
+                    InteractionLatencyTrace.Point("submit.interaction", command.CommandId, interaction);
+                if (command?.Parameters != null && command.Parameters.TryGetValue("windowId", out var window))
+                    InteractionLatencyTrace.Point("submit.window", command.CommandId, window);
+                if (command?.Parameters != null && command.Parameters.TryGetValue("requestId", out var request))
+                    InteractionLatencyTrace.Point("submit.request", command.CommandId, request);
+            }
             if (disposed || UsesDeterministicSimulation && !SimulationBindingIsCurrent)
             {
                 appliedLocally = false;
@@ -403,7 +514,9 @@ namespace YC.Presentation
             }
             if (commandTransport != null)
             {
-                var transported = commandTransport.SubmitOrSend(command, out appliedLocally);
+                CommandResult transported;
+                using (InteractionLatencyTrace.Begin("submit.transport")) transported = commandTransport.SubmitOrSend(command, out appliedLocally);
+                InteractionLatencyTrace.Point("submit.transport_return", value: appliedLocally ? 1 : 0);
                 if (transported != null && (appliedLocally || !transported.Succeeded))
                     ResolveSubmitted(command?.CommandId, command?.PlayerId ?? -1, null, transported.Succeeded,
                         transported.Validation?.ErrorCode ?? CommandErrorCode.UnknownCommand,
@@ -421,6 +534,7 @@ namespace YC.Presentation
             }
 
             CommandResult result;
+            using (InteractionLatencyTrace.Begin("submit.local"))
             using (RuleSubmitMarker.Auto()) result = session.Submit(command);
             appliedLocally = result.Succeeded;
             ResolveSubmitted(command?.CommandId, command?.PlayerId ?? -1, null, result.Succeeded,
@@ -445,6 +559,7 @@ namespace YC.Presentation
 
             if (!ReferenceEquals(simulationTransport, null))
             {
+                simulationTransport.PaymentSourcePageAvailable -= OnPaymentSourcePageAvailable;
                 bool ownsTransport = OwnsSimulationTransport;
                 simulationSubscriptionGeneration++;
                 UnbindSimulationSubscriptions();
@@ -472,14 +587,17 @@ namespace YC.Presentation
         private bool ResolveSubmitted(string commandId, int answeringPlayerId, string receivedGameId,
             bool accepted, CommandErrorCode errorCode, bool requiresRefresh = false)
         {
+            using var latency = InteractionLatencyTrace.Begin("callback.resolve_submitted", commandId);
             if (!submittedCommands.TryResolve(commandId, answeringPlayerId, receivedGameId, out var submittedGameId)) return false;
             unresolvedSimulationSubmissions.Remove(commandId);
             bool previous = RequiresExplicitRefreshForCurrentResult;
             RequiresExplicitRefreshForCurrentResult = requiresRefresh;
             try
             {
-                interactionCommandResolved?.Invoke(submittedGameId, commandId, accepted, errorCode);
-                SubmissionResolutionObserved?.Invoke(submittedGameId, commandId, accepted, errorCode, requiresRefresh);
+                using (InteractionLatencyTrace.Begin("callback.interaction_resolved", commandId))
+                    interactionCommandResolved?.Invoke(submittedGameId, commandId, accepted, errorCode);
+                using (InteractionLatencyTrace.Begin("callback.resolution_observer", commandId))
+                    SubmissionResolutionObserved?.Invoke(submittedGameId, commandId, accepted, errorCode, requiresRefresh);
             }
             finally { RequiresExplicitRefreshForCurrentResult = previous; }
             return true;

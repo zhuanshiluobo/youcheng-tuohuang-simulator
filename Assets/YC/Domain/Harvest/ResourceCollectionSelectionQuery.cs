@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -23,6 +24,8 @@ namespace YC.Domain.Harvest
 
         public ValidationResult Validation = ValidationResult.Success;
         public List<string> CandidateLocationIds = new List<string>();
+        public CollectionFreeLocationResult FreeLocations;
+        public bool IsFreeLocation(string locationId) => FreeLocations?.FreeLocationIds.Contains(locationId) == true;
         public int ConfirmedTollCost;
         public int AvailableGoldVoucher;
 

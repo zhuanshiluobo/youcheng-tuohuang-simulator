@@ -56,8 +56,8 @@ return function(ctx)
                 if slot.reusable and slot.sourceEffectId == 'character-card:' .. c.source then c.covered[#c.covered + 1] = slot.cardItemId end
             end
             if #c.covered == 0 then return {} end
-            return { choose(ctx, c, 'recycle_selected', { 'recycle', 'decline' }, {
-                recycle = Text.Ref('core:interaction.muelsyse.recycle'), decline = Text.Ref('core:interaction.muelsyse.keep') }, 'core:interaction.muelsyse.recycle.choose', 0, 'effect.choice.execute') }
+            return { choose(ctx, c, 'recycle_selected', { 'recycle' }, {
+                recycle = Text.Ref('core:interaction.muelsyse.recycle') }, 'core:interaction.muelsyse.recycle.choose', 0, 'effect.choice.execute') }
         elseif ctx.eventType == 'CharacterCardCovered' or ctx.eventType == 'CharacterUseFinished' then return cover(ctx, c) end
         c.items = {}; c.index = 1
         for _, item in ipairs(Global.Content.FindInstances({ zoneId = zone('flowing_shapes'), typeId = 'core.generated_character_card' })) do c.items[#c.items + 1] = item.id end

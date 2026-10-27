@@ -1,0 +1,235 @@
+{
+  "schemaVersion": 2,
+  "locale": "zh-CN",
+  "messages": {
+    "core:entrepreneur.M.M13.description": {
+      "parameters": {},
+      "template": "你建设[b]城市化区域[/b]时，必须选择[b]1名对手[/b]；该玩家在你发动入场效果后结算此城市化区域的入场效果。[b]建设[/b]时可以：[icon:core:rule.remove_own_influence][icon:core:syntax.condition]将一个分数更高的设施建设于你的旧设施之上。被叠放的旧设施留在你的玩家面板。你的城市面板没有空位时也可以建设。"
+    },
+    "core:entrepreneur.M.M02.description": {
+      "parameters": {},
+      "template": "每有一个[b]核心指挥塔[/b]，获得12[icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.M.M03.description": {
+      "parameters": {},
+      "template": "每有一个[b]核心指挥塔[/b]，[icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.M.M04.description": {
+      "parameters": {},
+      "template": "每有一个[b]核心指挥塔[/b]，获得1[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.M.M07.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]：每有1个有设施叠放的设施格，获得[icon:core:resource.score|value=1]，1[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.M08.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]：自动选择设施最多的[b]1[/b]个设施格；其中每有[b]1[/b]个设施，获得[icon:core:resource.score|value=2]。"
+    },
+    "core:entrepreneur.M.urban.vouchers": {
+      "parameters": {
+        "count": "integer",
+        "amount": "integer"
+      },
+      "template": "{count}个核心指挥塔，获得{amount}[icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.M.urban.place": {
+      "parameters": {
+        "index": "integer",
+        "count": "integer"
+      },
+      "template": "第{index}/{count}次：选择高亮影响力空格，[icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.M.urban.pure": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "{count}个核心指挥塔，获得{count}[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.M.award.granted": {
+      "parameters": {
+        "who": "player"
+      },
+      "template": ""
+    },
+    "core:entrepreneur.M.overlay.remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove_own_influence]"
+    },
+    "core:entrepreneur.M.M05.choice": {
+      "parameters": {},
+      "template": "选择进行1次探索或[icon:core:rule.deploy][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.M.M05.explore": {
+      "parameters": {},
+      "template": "进行1次探索"
+    },
+    "core:entrepreneur.M.M05.place_twice": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.deploy]"
+    },
+    "core:entrepreneur.M.M06.condition": {
+      "parameters": {},
+      "template": "支付1[icon:core:resource.originium_shard][icon:core:syntax.condition][b]免费[/b][icon:core:rule.city_move]。"
+    },
+    "core:entrepreneur.M.build.normal": {
+      "parameters": {},
+      "template": "[icon:core:rule.build]"
+    },
+    "core:entrepreneur.M.build.hub": {
+      "parameters": {},
+      "template": "从余下的[b]延伸枢纽[/b]中选择1张建设。"
+    },
+    "core:entrepreneur.M.blueprint.to_bottom": {
+      "parameters": {},
+      "template": "选择1张设施供应区的设施牌，将其移至设施牌堆底。"
+    },
+    "core:entrepreneur.M.M07.scored": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "有设施叠放的设施格有{count}个，获得[icon:core:resource.score|value={count}]，{count}[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.M08.scored": {
+      "parameters": {
+        "count": "integer",
+        "amount": "integer"
+      },
+      "template": "设施最多的1个设施格中有{count}个设施，获得[icon:core:resource.score|value={amount}]。"
+    },
+    "core:entrepreneur.M.M11.panel": {
+      "parameters": {},
+      "template": "选择自己城市面板上的1个设施放回游戏盒。"
+    },
+    "core:entrepreneur.M.M11.condition": {
+      "parameters": {},
+      "template": "将1个设施从城市面板放回游戏盒[icon:core:syntax.condition][icon:core:rule.deploy]，获得合计2个[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.M11.resources": {
+      "parameters": {},
+      "template": "选择要获得的资源：合计2个[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.M12.condition": {
+      "parameters": {},
+      "template": "[b]支付1[icon:core:resource.pure_originium][icon:core:syntax.condition][icon:core:rule.build]，[icon:core:rule.deploy]。[/b]"
+    },
+    "core:entrepreneur.M.blueprint.choose_supply": {
+      "parameters": {},
+      "template": "选择设施供应区中1张非彩色设施牌。"
+    },
+    "core:entrepreneur.M.blueprint.choose_card": {
+      "parameters": {},
+      "template": "从建设图纸中选择1张与所选设施牌[b]相同颜色[/b]的牌。"
+    },
+    "core:entrepreneur.M.blueprint.item": {
+      "parameters": {
+        "item": "item"
+      },
+      "template": "{item}"
+    },
+    "core:entrepreneur.M.M13.opponent.choose": {
+      "parameters": {},
+      "template": "必须选择1名对手，由其结算此城市化区域的入场效果。"
+    },
+    "core:entrepreneur.M.M13.opponent.player": {
+      "parameters": {
+        "who": "player"
+      },
+      "template": "{who}"
+    },
+    "core:entrepreneur.M.M10.condition": {
+      "parameters": {},
+      "template": "支付2[icon:core:resource.gold_voucher][icon:core:syntax.condition]从建设图纸选择1张建设。"
+    },
+    "core:entrepreneur.M.action.M05.name": {
+      "parameters": {},
+      "template": "1A·拓荒热潮"
+    },
+    "core:entrepreneur.M.action.M05.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.special_action]进行1次探索或[icon:core:rule.deploy][icon:core:rule.deploy]。选择设施供应区中1张非彩色设施牌，将建设图纸中1张[b]相同颜色[/b]的牌与其互换。"
+    },
+    "core:entrepreneur.M.action.M06.name": {
+      "parameters": {},
+      "template": "1B·改进锅炉"
+    },
+    "core:entrepreneur.M.action.M06.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.special_action]支付1[icon:core:resource.originium_shard][icon:core:syntax.condition][b]免费[/b][icon:core:rule.city_move]。选择设施供应区中1张非彩色设施牌，将建设图纸中1张[b]相同颜色[/b]的牌放置于其下。"
+    },
+    "core:entrepreneur.M.action.M09.name": {
+      "parameters": {},
+      "template": "5A·技术研发"
+    },
+    "core:entrepreneur.M.action.M09.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]选择设施供应区中1张非彩色设施牌，将建设图纸中1张[b]相同颜色[/b]的牌放置于其上。之后选择1张设施供应区的设施牌，将其移至设施牌堆底。"
+    },
+    "core:entrepreneur.M.action.M10.name": {
+      "parameters": {},
+      "template": "5B·另辟蹊径"
+    },
+    "core:entrepreneur.M.action.M10.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.special_action]支付2[icon:core:resource.gold_voucher][icon:core:syntax.condition]从建设图纸选择1张建设。"
+    },
+    "core:entrepreneur.M.action.M11.name": {
+      "parameters": {},
+      "template": "7A·紧急动员"
+    },
+    "core:entrepreneur.M.action.M11.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]将1个设施从城市面板放回游戏盒[icon:core:syntax.condition][icon:core:rule.deploy]，获得合计2个[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.action.M12.name": {
+      "parameters": {},
+      "template": "7B·源石工业"
+    },
+    "core:entrepreneur.M.action.M12.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]支付1[icon:core:resource.pure_originium][icon:core:syntax.condition][icon:core:rule.build]，[icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.M.M01.name": {
+      "parameters": {},
+      "template": "减价标识"
+    },
+    "core:entrepreneur.M.M01.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]马丁·费舍尔以外的企业家建设时可以支付1[icon:core:resource.gold_voucher]以代替1[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.M.additional_core_tower.description": {
+      "parameters": {},
+      "template": "彩色非唯一设施，[icon:core:resource.score|value=0]。"
+    },
+    "core:entrepreneur.M.M13.blueprint.description": {
+      "parameters": {},
+      "template": "你拥有[b]建设图纸[/b]，该区域初始有9张[b]企业家特殊设施[/b]。"
+    },
+    "core:entrepreneur.M.M13.urbanization.description": {
+      "parameters": {},
+      "template": "你建设[b]城市化区域[/b]时，必须选择1名对手；该玩家在你发动入场效果后结算此城市化区域的入场效果。"
+    },
+    "core:entrepreneur.M.M13.overlay.description": {
+      "parameters": {},
+      "template": "[b]建设[/b]时可以：[icon:core:rule.remove_own_influence][icon:core:syntax.condition]将一个分数更高的设施建设于你的旧设施之上。被叠放的旧设施留在你的玩家面板。你的城市面板没有空位时也可以建设。"
+    },
+    "core:entrepreneur.M.M07.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]：从你的玩家供应堆建设[b]1张核心指挥塔[/b]。"
+    },
+    "core:entrepreneur.M.M08.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]：从你的玩家供应堆建设[b]1张核心指挥塔[/b]，之后从余下的[b]延伸枢纽[/b]中选择[b]1[/b]张建设。"
+    },
+    "core:entrepreneur.M.M09.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]：[icon:core:rule.deploy]，获得[b]10[/b][icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.M.M10.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]：获得[b]10[/b][icon:core:resource.gold_voucher]。"
+    }
+  },
+  "assets": {},
+  "icons": []
+}

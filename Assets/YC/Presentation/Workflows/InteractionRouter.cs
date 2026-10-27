@@ -200,6 +200,7 @@ namespace YC.Presentation.Workflows
 
         public void NotifyCommandSettled(string commandId)
         {
+            using var latency = InteractionLatencyTrace.Begin("router.settled", commandId);
             if (!RetainsPreparedMapConfirmation()) ClearMapConfirmation();
             List<Exception> failures = null;
             foreach (var registration in registrations.ToArray())
@@ -207,7 +208,11 @@ namespace YC.Presentation.Workflows
                 if (!registrations.Contains(registration)) continue;
                 try
                 {
-                    registration.Interaction.NotifyCommandSettled(commandId);
+                    using (InteractionLatencyTrace.Begin("router.settled.consumer", commandId))
+                    {
+                        if (InteractionLatencyTrace.Enabled) InteractionLatencyTrace.Point("router.consumer", commandId, registration.Id);
+                        registration.Interaction.NotifyCommandSettled(commandId);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -231,6 +236,7 @@ namespace YC.Presentation.Workflows
         public void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted,
             YC.Domain.Rules.CommandErrorCode errorCode)
         {
+            using var latency = InteractionLatencyTrace.Begin("router.resolved", commandId);
             if (string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(commandId)) return;
             List<Exception> failures = null;
             foreach (var registration in registrations.ToArray())
@@ -239,7 +245,11 @@ namespace YC.Presentation.Workflows
                 try
                 {
                     if (registration.Interaction is IInteractionCommandResultConsumer consumer)
-                        consumer.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
+                        using (InteractionLatencyTrace.Begin("router.resolved.consumer", commandId))
+                        {
+                            if (InteractionLatencyTrace.Enabled) InteractionLatencyTrace.Point("router.consumer", commandId, registration.Id);
+                            consumer.NotifyInteractionCommandResolved(gameId, commandId, accepted, errorCode);
+                        }
                 }
                 catch (Exception exception)
                 { if (failures == null) failures = new List<Exception>(); failures.Add(exception); }

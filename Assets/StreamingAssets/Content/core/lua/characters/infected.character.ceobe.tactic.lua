@@ -38,7 +38,8 @@ return function(ctx)
         if ctx.payload.outcome ~= 'completed' then return {} end
         c.dice = ctx.payload.normalizedResult.diceResult
         if c.dice <= 2 then return { Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', subjectFilter = 'any', count = 1 }),
-            Effect.Repeat({ apiVersion = 1, count = 2, allowEarlyStop = false, effects = { Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }) } }) } end
+            Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }),
+            Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }) } end
         if c.dice <= 4 then return { Effect.GainResource({ player = ctx.playerId, resourceType = 'pure_originium', amount = 2 }) } end
         return { tag(Effect.ExecuteMainAction({ player = ctx.playerId, executionMode = 'immediate', allowedActionTypes = { 'deploy', 'dispatch', 'explore', 'move_city', 'build', 'special' } }), c, 'action_completed') }
     elseif c.stage == 'action_completed' then

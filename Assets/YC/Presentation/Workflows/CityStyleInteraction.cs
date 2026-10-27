@@ -37,6 +37,9 @@ namespace YC.Presentation.Workflows
         private readonly CityStyleSelectionController selection =
             new CityStyleSelectionController();
         private readonly SpecialActionOptionQueryService specialActionOptionQuery;
+        public Func<GameStateView> GetVisibleState { private get; set; }
+        public Func<int> GetDisplayedPlayerId { private get; set; }
+        public Func<int> GetPresentationGeneration { private get; set; }
 
         public CityStyleInteraction(
             IWritableGameplayContext context,
@@ -140,17 +143,39 @@ namespace YC.Presentation.Workflows
             var round = context.CurrentState.Round;
             var actionRound = context.CurrentState.ActionRound;
             var key = gameId + ":" + playerId + ":" + round + ":" + actionRound;
+            CityStyleOptionsViewModel cached = null;
+            GameState cachedState = null;
+            object cachedDefinitions = null;
+            string cachedContent = null, cachedUnavailable = null;
+            int cachedRevision = -1, cachedDisplayedPlayer = -1, cachedPresentation = -1;
+            InteractionMode cachedMode = InteractionMode.Hidden;
             Func<CityStyleOptionsViewModel> refresh = null;
             refresh = () =>
             {
+                using var measurement = UiRegressionMetrics.Measure("declare.model");
                 var state = context.CurrentState;
                 if (state == null || state.GameId != gameId || context.LocalPlayerId != playerId ||
                     (declare && (state.Round != round || state.ActionRound != actionRound))) return null;
                 var unavailable = getUnavailableReason();
-                var options = selection.BuildOptions(state, playerId);
+                var revision = state.EffectRuntime?.StateRevision ?? 0;
+                var displayedPlayer = GetDisplayedPlayerId?.Invoke() ?? playerId;
+                var presentation = GetPresentationGeneration?.Invoke() ?? 0;
+                if (cached != null && ReferenceEquals(cachedState, state) && cachedRevision == revision &&
+                    ReferenceEquals(cachedDefinitions, state.ContentDefinitions) && cachedContent == state.ContentPackHash &&
+                    cachedUnavailable == unavailable && cachedMode == flowCoordinator.CurrentMode &&
+                    cachedDisplayedPlayer == displayedPlayer && cachedPresentation == presentation)
+                {
+                    UiRegressionMetrics.Note("declare.cache_hit", key);
+                    return cached;
+                }
+                List<CityStyleOptionViewModel> options;
+                using (UiRegressionMetrics.Measure("declare.options")) options = selection.BuildOptions(state, playerId);
                 if (!string.IsNullOrEmpty(unavailable))
                     foreach (var option in options) { option.CanDeclare = false; option.Reason = unavailable; }
-                return new CityStyleOptionsViewModel(options.AsReadOnly(), BuildCityBoardSlots(state, playerId),
+                cachedState = state; cachedRevision = revision; cachedDefinitions = state.ContentDefinitions;
+                cachedContent = state.ContentPackHash; cachedUnavailable = unavailable; cachedMode = flowCoordinator.CurrentMode;
+                cachedDisplayedPlayer = displayedPlayer; cachedPresentation = presentation;
+                return cached = new CityStyleOptionsViewModel(options.AsReadOnly(), BuildCityBoardSlots(state, playerId),
                     BuildCityStyleMarkers(state, playerId, unavailable), initialCityStyleId,
                     (id, slots) => selection.ValidateSelection(context.CurrentState, playerId, id, slots),
                     declare ? (Func<string, IReadOnlyList<int>, bool>)((id, slots) =>
@@ -214,6 +239,18 @@ namespace YC.Presentation.Workflows
             int originiumAmount,
             int ironAmount, Receipt receipt = null)
         {
+            var declared = QuerySpecialActions().Find(specialActionId, declarationMarkerId)?.DeclaredAction;
+            if (declared != null)
+            {
+                if (!declared.Enabled || !canStartMainAction()) return false;
+                var unified = YC.Application.Interactions.AbilityActionCommand.Create(context.LocalPlayerId, declared);
+                var submitted = commandGateway.Submit(unified, new SubmitCallbacks(view.ShowPrompt, "行动已发送，等待主机确认。") {
+                    // 统一行动可在正文中产生任意已有请求；本地准确受理后走原通用同步。
+                    // 不提前完成主要行动，不从Host候选另建UI答案。
+                    OnAppliedLocally = _ => view.RefreshFromState()
+                });
+                return submitted.Kind == SubmitOutcomeKind.AppliedLocally || submitted.Kind == SubmitOutcomeKind.WaitingForHost;
+            }
             if (currentReceipt != null && currentReceipt.Status == CityStyleSubmissionStatus.Pending)
             {
                 view.ShowPrompt(CommandGateway.BuildWaitingForHostPrompt("城市样式命令"));
@@ -286,13 +323,14 @@ namespace YC.Presentation.Workflows
             int localPlayerId,
             string interactionUnavailableReason)
         {
+            using var measurement = UiRegressionMetrics.Measure("declare.markers");
             var result = new List<CityStyleMarkerViewModel>();
             if (state == null || state.Players == null)
             {
                 return result.AsReadOnly();
             }
 
-            var specialActionOptions = specialActionOptionQuery.Query(state, localPlayerId);
+            var specialActionOptions = QuerySpecialActions();
             for (var playerIndex = 0; playerIndex < state.Players.Count; playerIndex++)
             {
                 var player = state.Players[playerIndex];
@@ -361,8 +399,17 @@ namespace YC.Presentation.Workflows
             return string.IsNullOrEmpty(owner.MarkerArea) ? CityStyleMarkerAreas.Declared : owner.MarkerArea;
         }
 
-        public SpecialActionOptionQueryResult QuerySpecialActions() =>
-            specialActionOptionQuery.Query(context.CurrentState, context.LocalPlayerId);
+        public SpecialActionOptionQueryResult QuerySpecialActions()
+        {
+            var visible = GetVisibleState?.Invoke();
+            if (visible?.HasAbilityActionCatalog != true) return specialActionOptionQuery.Query(context.CurrentState, context.LocalPlayerId);
+            var result = new SpecialActionOptionQueryResult();
+            foreach (var action in visible.AbilityActions)
+                if (action.EntryKind == "special") result.Options.Add(new SpecialActionOption { DeclaredAction = action, SpecialActionId = action.ActionId,
+                    DeclarationMarkerId = visible.UsageTracks.Find(t => t.Binding.BindingId == action.TrackBindingId)?.Binding.MarkerItemId ?? action.SourceRef.ItemId, CityStyleId = action.SourceRef.DefinitionId,
+                    Name = action.DisplayName, Description = action.Description, CanUse = action.Enabled, DisabledReason = YC.Domain.Effects.AbilityActionReasons.Display(action.DisabledReason) });
+            return result;
+        }
 
         public bool CanUseSpecialAction => canStartMainAction() && QuerySpecialActions().HasUsableOption;
 

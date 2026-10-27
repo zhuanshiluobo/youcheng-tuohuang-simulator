@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using YC.Domain.Items;
+using YC.Domain.Cards;
 using YC.Domain.Interactions;
 using YC.Domain.Facilities;
 using YC.Domain.State;
@@ -12,10 +13,149 @@ namespace YC.Domain.Effects
     public static class ItemTransferEffectExecutor
     {
         public const string TypeId = "effect.item.move";
+        public const string TransferDefinitionVersion = "3.0.0";
+        public const int MaximumTokenCount = 99;
+        public const string IndependentItemFailurePolicyVersion = "single_item_expected_failure.v1";
+        // 单个显式物品的库存/区位过期是可观察的叶子失败，不让成功兄弟或调用续接升级成行动故障。
+        // 显式required outcome、权限/类型/参数错误和多枚足额操作仍由各自严格合同处理。
+        public static bool IsExpectedIndependentFailure(EffectNodeRuntimeState node) =>
+            node?.EffectTypeId == TypeId && node.Status == EffectNodeStatus.Failed && node.RequiredOutcome == null &&
+            Number(node.NormalizedArguments, "apiVersion") == 3 && Number(node.NormalizedArguments, "requiredCount") == 1 &&
+            ValidateTokenArguments(node.NormalizedArguments).Length == 0 && Value(node.NormalizedArguments, "itemIds").Items.Count <= 1 &&
+            new[] { "insufficient_items", "source_zone_changed", "unknown_item" }.Contains(node.FailureReason);
+        // v3只提交Lua已经选定的真实实例。它不解释费用、不选实例、不产生选择请求。
+        public static string ValidateTokenArguments(NormalizedValue args)
+        {
+            if (args?.Kind != NormalizedValueKind.Object || args.Properties.Select(p => p.Name).Distinct().Count() != args.Properties.Count ||
+                args.Properties.Any(p => !new[] { "kind", "effectTypeId", "apiVersion", "player", "itemIds", "expectedSource", "destination", "insertion", "operationProfileId", "requiredCount", "carrierPolicy" }.Contains(p.Name)) ||
+                Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Value(args, "apiVersion").IntegerValue != 3 ||
+                !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1)
+                return "token_transfer_arguments_invalid";
+            var ids = Value(args, "itemIds");
+            if (ids == null || ids.Kind != NormalizedValueKind.Array && !(ids.Kind == NormalizedValueKind.Object && ids.Properties.Count == 0) ||
+                ids.Items.Count > MaximumTokenCount || ids.Items.Any(i => i.Kind != NormalizedValueKind.String || string.IsNullOrEmpty(i.StringValue)) ||
+                ids.Items.Select(i => i.StringValue).Distinct(StringComparer.Ordinal).Count() != ids.Items.Count) return "token_transfer_items_invalid";
+            var count = Value(args, "requiredCount");
+            if (count?.Kind != NormalizedValueKind.Integer || count.IntegerValue < 1 || count.IntegerValue > MaximumTokenCount) return "required_count_invalid";
+            if (!Reference(Value(args, "expectedSource"), "zoneId")) return "invalid_zone_ref";
+            var destination = Value(args, "destination");
+            if (!Reference(destination, "zoneId") && !(destination?.Kind == NormalizedValueKind.Object && destination.Properties.Count == 1 && Text(destination, "kind") == "original_supply")) return "invalid_zone_ref";
+            if (Value(args, "insertion")?.Kind != NormalizedValueKind.Object || Value(args, "insertion").Properties.Count != 1 || Text(Value(args, "insertion"), "kind") != "unordered") return "insertion_rejected";
+            if (!ItemTransferService.IsTokenProfile(Text(args, "operationProfileId")) || Value(args, "carrierPolicy") != null && Text(args, "carrierPolicy") != "preserve") return "operation_profile_rejected";
+            return "";
+        }
+        public static NormalizedValue TokenArguments(int player, IEnumerable<string> ids, string source, string destination, int required, string profile = "core.cube_storage") => Object(
+            "apiVersion", NormalizedValue.CreateInteger(3), "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)),
+            "itemIds", Strings(ids), "expectedSource", Object("zoneId", NormalizedValue.CreateString(source)),
+            "destination", destination == null ? Object("kind", NormalizedValue.CreateString("original_supply")) : Object("zoneId", NormalizedValue.CreateString(destination)),
+            "insertion", Object("kind", NormalizedValue.CreateString("unordered")), "operationProfileId", NormalizedValue.CreateString(profile), "requiredCount", NormalizedValue.CreateInteger(required));
+        public static EffectSpec TokenSpec(int player, IEnumerable<string> ids, string source, string destination, int required, string profile = "core.cube_storage") =>
+            new EffectSpec(TypeId, TokenArguments(player, ids, source, destination, required, profile)) { PlayerId = player, DefinitionVersion = TransferDefinitionVersion, Visibility = "owner" };
+        private static EffectStepResult ExecuteTokens(EffectExecutionContext context)
+        {
+            var service = new ItemTransferService();
+            // 已提交节点先验证并复用原收据；不能拿移动后的来源状态重新规划或再次扣除。
+            if (Value(context.Node.ContinuationData, "transferBatchReceipt") != null)
+            {
+                if (!ItemTransferService.TryValidateTokenState(context.State, context.Node, out string invalid)) throw new InvalidOperationException(invalid);
+                return TransferCompleted(service.RelocateBatch(context, context.Node.TransferBatchRequest), "no_candidates");
+            }
+            if (Text(context.Node.NormalizedArguments, "player") != context.Node.PlayerId.ToString(CultureInfo.InvariantCulture)) return EffectStepResult.Failed("transfer_permission_denied");
+            var ids = Value(context.Node.NormalizedArguments, "itemIds").Items.Select(i => i.StringValue).ToList();
+            string sourceZone = Text(Value(context.Node.NormalizedArguments, "expectedSource"), "zoneId");
+            var source = CardMarkerCarrier.Source(context.State, context.Node, context.Registry.AbilityDeclarations, context.Registry);
+            string intent = service.ValidateTokenWaitIntent(context, source, context.Node.NormalizedArguments);
+            if (intent.Length > 0) return EffectStepResult.Failed(intent);
+            if (CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery { DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = ids }) ||
+                CharacterLifecycleService.TryAwaitEmptyCarrierExits(context, new[] { sourceZone }, ids)) return CharacterLifecycleService.DeferredDependencyWait();
+            if (!service.TryPlanTokens(context.State, source, context.Node.NormalizedArguments, context.Registry.AbilityDeclarations,
+                context.Node.EffectId + ":move", out var batch, out string reason)) return EffectStepResult.Failed(reason);
+            var moved = service.RelocateBatch(context, batch);
+            CharacterLifecycleService.ExitEmptyCarriers(context, moved.PositionChanges.Select(c => c.From.ZoneId));
+            context.Node.Visibility = GameStateVisibilityPolicy.Owner;
+            return TransferCompleted(moved, "no_candidates");
+        }
+        public static EffectSpec BatchSpec(ItemTransferBatchRequest request) => new EffectSpec(TypeId, ItemTransferService.BatchArguments(request))
+            { PlayerId = request.ExecutingPlayerId, DefinitionVersion = TransferDefinitionVersion, Visibility = "owner" };
+        private static string ValidateBatchArguments(NormalizedValue args)
+        {
+            if (args?.Kind != NormalizedValueKind.Object || args.Properties.Any(p => !new[] { "kind", "effectTypeId", "apiVersion", "player", "operationId", "transfers", "expectedOrders" }.Contains(p.Name)) ||
+                Number(args, "apiVersion", 0) != 2 || !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1 ||
+                Text(args, "operationId").Length == 0 || Value(args, "transfers")?.Kind != NormalizedValueKind.Array || Value(args, "transfers").Items.Count == 0 ||
+                Value(args, "expectedOrders")?.Kind != NormalizedValueKind.Array) return "transfer_batch_arguments_invalid";
+            foreach (var leg in Value(args, "transfers").Items)
+            {
+                if (leg.Kind != NormalizedValueKind.Object || leg.Properties.Any(p => !new[] { "itemRefs", "expectedSource", "destination", "insertion", "operationProfileId", "requiredCount", "carrierPolicy" }.Contains(p.Name)) ||
+                    Value(leg, "itemRefs")?.Kind != NormalizedValueKind.Array || Value(leg, "itemRefs").Items.Count == 0 ||
+                    Value(leg, "itemRefs").Items.Any(v => !Reference(v, "itemId")) ||
+                    !Reference(Value(leg, "expectedSource"), "zoneId") || !Reference(Value(leg, "destination"), "zoneId") ||
+                    Value(leg, "insertion")?.Kind != NormalizedValueKind.Object || Value(leg, "insertion").Properties.Count != 1 ||
+                    !new[] { "top", "bottom", "unordered" }.Contains(Text(Value(leg, "insertion"), "kind")) ||
+                    Value(leg, "requiredCount")?.Kind != NormalizedValueKind.Integer || Number(leg, "requiredCount", -1) != Value(leg, "itemRefs").Items.Count ||
+                    Text(leg, "operationProfileId") != "core.facility_card_transfer" || Text(leg, "carrierPolicy", "preserve") != "preserve")
+                    return "transfer_batch_leg_invalid";
+            }
+            foreach (var expected in Value(args, "expectedOrders").Items)
+                if (expected.Kind != NormalizedValueKind.Object || expected.Properties.Count != 4 ||
+                    expected.Properties.Any(p => !new[] { "zoneId", "digest", "orderRevision", "expectedTopItemId" }.Contains(p.Name)) ||
+                    Text(expected, "zoneId").Length == 0 || Text(expected, "digest").Length == 0 ||
+                    Value(expected, "orderRevision")?.Kind != NormalizedValueKind.Integer || Number(expected, "orderRevision", -1) < 0 ||
+                    Value(expected, "expectedTopItemId")?.Kind != NormalizedValueKind.String) return "transfer_batch_order_invalid";
+            return "";
+        }
+        public static ItemTransferBatchRequest BatchRequest(NormalizedValue args)
+        {
+            string invalid = ValidateBatchArguments(args);
+            if (invalid.Length > 0) throw new InvalidOperationException(invalid);
+            int player = int.Parse(Text(args, "player"), CultureInfo.InvariantCulture);
+            return new ItemTransferBatchRequest { OperationId = Text(args, "operationId"), ExecutingPlayerId = player,
+                Transfers = Value(args, "transfers").Items.Select(v => new ItemTransferRequest {
+                    ExecutingPlayerId = player, ItemIds = Value(v, "itemRefs").Items.Select(i => Text(i, "itemId")).ToList(),
+                    ExpectedSource = new ItemPositionRef { ZoneId = Text(Value(v, "expectedSource"), "zoneId") },
+                    Destination = new ZoneRef { ZoneId = Text(Value(v, "destination"), "zoneId") },
+                    InsertionKind = Text(Value(v, "insertion"), "kind"), OperationProfileId = Text(v, "operationProfileId"),
+                    CarrierPolicyId = Text(v, "carrierPolicy", "preserve"), RequiredCount = Number(v, "requiredCount") }).ToList(),
+                ExpectedOrders = Value(args, "expectedOrders").Items.Select(v => new ItemTransferOrderExpectation {
+                    ZoneId = Text(v, "zoneId"), Digest = Text(v, "digest"), OrderRevision = Number(v, "orderRevision"),
+                    ExpectedTopItemId = Text(v, "expectedTopItemId") }).ToList() };
+        }
+        private static EffectStepResult ExecuteBatch(EffectExecutionContext context)
+        {
+            var batch = BatchRequest(context.Node.NormalizedArguments);
+            if (batch.ExecutingPlayerId != context.Node.PlayerId) throw new InvalidOperationException("transfer_permission_denied");
+            bool city = batch.Transfers.Any(t => new[] { t.ExpectedSource.ZoneId, t.Destination.ZoneId }.Any(id =>
+                context.State.ItemZones.Zones.Any(z => z.ZoneId == id &&
+                    (z.TemplateId == FacilityLayerQuery.CellTemplate || z.TemplateId == FacilityLayerQuery.CoveredTemplate))));
+            if (city)
+            {
+                var build = context.State.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == context.Node.ParentEffectId);
+                var slot = FacilityBuildJournal.SelectedSlot(build);
+                var facts = FacilityBuildJournal.Read(build);
+                if (build?.EffectTypeId != FacilityEntryEffectTypeIds.Build || build.FlowStage != "place" || !Flag(build.ContinuationData, "paid") ||
+                    batch.OperationId != build.EffectId + ":place" || slot == null || facts == null || batch.Transfers.Count != (slot.IsOverlay ? 2 : 1) ||
+                    !batch.Transfers.Any(t => t.ItemIds.SequenceEqual(new[] { facts.ItemId }) && t.Destination.ZoneId == slot.CellZoneId &&
+                        context.State.ItemZones.Zones.Any(z => z.ZoneId == t.ExpectedSource.ZoneId && z.TemplateId == "core.zone.effect_staging" && z.OwnerEffectId == build.EffectId)) ||
+                    slot.IsOverlay && !batch.Transfers.Any(t => t.ItemIds.SequenceEqual(new[] { slot.ExpectedTopItemId }) && t.ExpectedSource.ZoneId == slot.CellZoneId &&
+                        context.State.ItemZones.Zones.Any(z => z.ZoneId == t.Destination.ZoneId && z.TemplateId == FacilityLayerQuery.CoveredTemplate && z.ParentId == slot.CellZoneId)))
+                    throw new InvalidOperationException("facility_build_transfer_authorization_invalid");
+                // 前一个提交确认过的旧顶牌与层序，在真正移位之前再次复验。
+                context.Registry.FacilityBuildQueries.RevalidateSlot(context.State, slot, build.EffectId);
+            }
+            foreach (var leg in batch.Transfers)
+                if (CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery { DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = leg.ItemIds }) ||
+                    CharacterLifecycleService.TryAwaitEmptyCarrierExits(context, new[] { leg.ExpectedSource.ZoneId }, leg.ItemIds))
+                    return CharacterLifecycleService.DeferredDependencyWait();
+            var moved = new ItemTransferService().RelocateBatch(context, batch);
+            CharacterLifecycleService.ExitEmptyCarriers(context, moved.PositionChanges.Select(c => c.From.ZoneId));
+            return TransferCompleted(moved, "no_candidates");
+        }
+
         public const string RefillTypeId = "effect.facility.refill_slot";
         public const string RefreshTypeId = "effect.facility.refresh_supply";
         public static bool CanRestoreLegacy(GameState state, EffectNodeRuntimeState node)
         {
+            if (node.EffectTypeId == TypeId && node.DefinitionVersion == "2.0.0" &&
+                new[] { 1, 2 }.Contains(Number(node.NormalizedArguments, "apiVersion"))) return ValidateArguments(TypeId, node.NormalizedArguments).Length == 0;
             if (node.DefinitionVersion != "1.0.0" || Value(node.NormalizedArguments, "apiVersion") != null) return false;
             if (node.EffectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard) return node.FlowStage.Length == 0 && Text(node.NormalizedArguments, "sourceZone") == "discard" && Text(node.NormalizedArguments, "destinationZone") == "hand";
             if (node.EffectTypeId == LuaDomainEffectTypeIds.MoveFacilityCard)
@@ -39,7 +179,12 @@ namespace YC.Domain.Effects
         public static void Register(EffectRegistry registry)
         {
             if (registry.TryGet(TypeId, out _)) return;
-            registry.Register(new EffectRegistration(TypeId, Execute));
+            registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.Atomic, TransferDefinitionVersion));
+            registry.RegisterItemTransferEntryCostPreview((state, source, spec) => {
+                if (Text(spec.NormalizedArguments, "player") != source.AuthorizedPlayerId.ToString(CultureInfo.InvariantCulture)) return "transfer_permission_denied";
+                return new ItemTransferService().TryPlanTokens(state, source, spec.NormalizedArguments, registry.AbilityDeclarations,
+                    "token-transfer-preview", out _, out string reason) ? "" : reason;
+            });
             registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.MoveFacilityCard, ExecuteFacility, EffectExecutorKind.IntrinsicFlow));
             registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.MoveCharacterCard, ExecuteCharacter));
             registry.Register(new EffectRegistration(RefillTypeId, context =>
@@ -58,11 +203,11 @@ namespace YC.Domain.Effects
         private static EffectStepResult RefreshSupply(EffectExecutionContext context)
         {
             string error = ValidateSupplyContext(context); if (error.Length > 0) return EffectStepResult.Failed(error);
-            if (context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("supply_refresh_child_failed");
+            if (context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) throw new InvalidOperationException("supply_refresh_child_failed");
             var deck = FindZone(context.State, "facility_deck");
             if (context.Node.FlowStage.Length == 0)
             {
-                var old = context.State.ItemZones.Items.Where(item => context.State.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.facility_supply_slot").ToList();
+                var old = FacilityLayerQuery.Supply(context.State).SelectMany(slot => slot.ItemIds).Select(id => context.State.ItemZones.Items.Single(item => item.ItemId == id)).ToList();
                 Set(context.Node, "selectedItemIds", Strings(old.Select(item => item.ItemId)));
                 var step = EffectStepResult.Continue("returned");
                 foreach (var item in old) step.AddChild(MoveSpec(context.Node.PlayerId, new[] { item.ItemId }, item.ZoneId, deck.ZoneId, "bottom", 1));
@@ -82,6 +227,8 @@ namespace YC.Domain.Effects
         {
             bool typed = typeId != TypeId;
             var version = Value(args, "apiVersion");
+            if (!typed && version?.Kind == NormalizedValueKind.Integer && version.IntegerValue == 3) return ValidateTokenArguments(args);
+            if (!typed && version?.Kind == NormalizedValueKind.Integer && version.IntegerValue == 2) return ValidateBatchArguments(args);
             if (typed && version == null)
             {
                 if (args?.Kind != NormalizedValueKind.Object || args.Properties.Any(entry => !new[] { "kind", "effectTypeId", "player", "sourceZone", "destinationZone", "interactionType", "promptKey" }.Contains(entry.Name))) return "invalid_transfer_arguments";
@@ -112,10 +259,13 @@ namespace YC.Domain.Effects
             if (missing.Count > 0) return SkipIncomplete(context, missing);
             string reason = ValidateArguments(context.Node.EffectTypeId, context.Node.NormalizedArguments);
             if (reason.Length > 0) return EffectStepResult.Failed(reason);
+            if (context.Node.EffectTypeId == TypeId && Number(context.Node.NormalizedArguments, "apiVersion", 0) == 3) return ExecuteTokens(context);
+            if (context.Node.EffectTypeId == TypeId && Number(context.Node.NormalizedArguments, "apiVersion", 0) == 2) return ExecuteBatch(context);
             var request = Request(context.Node.NormalizedArguments);
+            if (!UsageTracks.AllowsTrackTransfer(context, request)) return EffectStepResult.Failed("usage_track_host_managed");
             if (request.ExecutingPlayerId != context.Node.PlayerId) throw new InvalidOperationException("transfer_permission_denied");
             // 地图的拓扑、响应、等级变化必须经专门业务入口复验，不能从通用 Lua 绕过。
-            if (!new[] { "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", "core.cube_storage", "core.player_marker_storage" }.Contains(request.OperationProfileId)) return EffectStepResult.Failed("operation_profile_rejected");
+            if (!new[] { "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", "core.cube_storage", "core.player_marker_storage", "core.token_storage" }.Contains(request.OperationProfileId)) return EffectStepResult.Failed("operation_profile_rejected");
             var query = new ItemZoneQuery();
             var source = query.FindZone(context.State, request.ExpectedSource.ZoneId);
             var destination = query.FindZone(context.State, request.Destination.ZoneId);
@@ -203,11 +353,12 @@ namespace YC.Domain.Effects
             if (context.Node.FlowStage != "" && context.Node.FlowStage != "awaiting" && context.Node.FlowStage != "refill") throw new InvalidOperationException("facility_transfer_stage_invalid");
             if (context.Node.FlowStage == "refill")
             {
-                var result = FacilitySupplyService.RefillSlot(context, Text(context.Node.ContinuationData, "originalSupplySlotZoneId"));
+                string original = Text(context.Node.ContinuationData, "originalSupplySlotZoneId");
+                if (new ItemZoneQuery().GetItemIds(context.State, original).Count == 0) FacilitySupplyService.RefillSlot(context, original);
                 Set(context.Node, "refilled", NormalizedValue.CreateBoolean(true));
                 return EffectStepResult.Completed(context.Node.NormalizedResult);
             }
-            var candidates = context.State.ItemZones.Items.Where(item => context.State.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.facility_supply_slot").Select(item => item.ItemId).ToList();
+            var candidates = FacilityLayerQuery.Supply(context.State).Where(slot => slot.TopItemId.Length > 0).Select(slot => slot.TopItemId).ToList();
             if (candidates.Count == 0) return EffectStepResult.Completed(NormalizedValue.CreateString("no_target"));
             if (context.Node.FlowStage == "awaiting")
             {
@@ -272,7 +423,8 @@ namespace YC.Domain.Effects
             OperationProfileId = Text(args, "operationProfileId"), RequiredCount = Number(args, "requiredCount"), CarrierPolicyId = Text(args, "carrierPolicy", "preserve")
         };
         private static bool Reference(NormalizedValue value, string key, string optional = "") => value?.Kind == NormalizedValueKind.Object && Text(value, key).Length > 0 && value.Properties.All(entry => (entry.Name == key || entry.Name == optional) && entry.Value.Kind == NormalizedValueKind.String);
-        public static ZoneInstanceState FindZone(GameState state, string local, int player = -1) => state.ItemZones.Zones.Single(zone => zone.LocalZoneId == local && (player < 0 || zone.OwnerPlayerId == player));
+        public static ZoneInstanceState FindZone(GameState state, string local, int player = -1) => state.ItemZones.Zones.Single(zone => zone.LocalZoneId == local &&
+            (local != "covered" || zone.TemplateId == "core.zone.character_covered") && (player < 0 || zone.OwnerPlayerId == player));
         public static NormalizedValue Value(NormalizedValue value, string name) => value?.Properties?.Find(entry => entry.Name == name)?.Value;
         public static string Text(NormalizedValue value, string name, string fallback = "") => Value(value, name)?.Kind == NormalizedValueKind.String ? Value(value, name).StringValue : fallback;
         public static int Number(NormalizedValue value, string name, int fallback = 0) => Value(value, name)?.Kind == NormalizedValueKind.Integer ? (int)Value(value, name).IntegerValue : fallback;

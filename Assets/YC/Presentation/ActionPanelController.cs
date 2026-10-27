@@ -14,6 +14,10 @@ namespace YC.Presentation
         private readonly Dictionary<string, bool> characterAvailability = new Dictionary<string, bool>(StringComparer.Ordinal);
         public Func<bool> CanSubmitCharacter { private get; set; }
         public Func<bool> CanBeginAction { private get; set; }
+        public Func<IDisposable> BeginInputRead { private get; set; }
+        public Action<YC.Domain.Effects.AbilityActionOption> DeclaredActionRequested { private get; set; }
+        public Func<YC.Domain.Presentation.GameplayTextRef, YC.Domain.Presentation.GameplayTextDocument> ResolveActionText { private get; set; }
+        public Action<Component, YC.Domain.Presentation.GameplayTextDocument, bool> RenderActionText { private get; set; }
         private ActionPanelController(
             ActionPanelView view,
             CardVisualCatalog configuredCardVisualCatalog,
@@ -170,6 +174,7 @@ namespace YC.Presentation
 
         public void RenderCharacterQuickAction(CharacterCardPanelViewModel model)
         {
+            if (model?.HasAbilityActionCatalog == true) { RenderDeclaredQuickActions(model.DeclaredQuickActions); return; }
             var template = view.UseCharacterButton.GetComponent<UiQuickActionRow>();
             if (template == null) throw new InvalidOperationException("既有角色快捷行缺少UiQuickActionRow。");
             template.gameObject.SetActive(false);
@@ -184,7 +189,11 @@ namespace YC.Presentation
                     {
                         row = UnityEngine.Object.Instantiate(template, template.transform.parent, false);
                         characterRows.Add(id, row);
-                        row.Bind(string.Empty, false, () => { if (CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false) useCharacter?.Invoke(id); });
+                        row.Bind(string.Empty, false, () => {
+                            using var inputRead = BeginInputRead?.Invoke();
+                            using var input = UiRegressionMetrics.Measure("action.character.click");
+                            if (CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false) useCharacter?.Invoke(id);
+                        });
                         YC.PlayerJourney.PlayerAutomationId.Attach(row.gameObject, "action.character." + id);
                     }
                     row.SetCharacterName(card.DisplayName);
@@ -199,6 +208,32 @@ namespace YC.Presentation
             RefreshCharacterRowsPermission();
         }
 
+        private void RenderDeclaredQuickActions(IReadOnlyList<YC.Domain.Effects.AbilityActionOption> options)
+        {
+            var template = view.UseCharacterButton.GetComponent<UiQuickActionRow>(); template.gameObject.SetActive(false);
+            var present = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var option in options)
+            {
+                if (!present.Add(option.OptionId)) continue;
+                if (!characterRows.TryGetValue(option.OptionId, out var row))
+                { row = UnityEngine.Object.Instantiate(template, template.transform.parent, false); characterRows.Add(option.OptionId, row); }
+                var current = option;
+                row.Bind(option.DisplayName + (option.Enabled ? "" : "\n" + YC.Domain.Effects.AbilityActionReasons.Display(option.DisabledReason)),
+                    option.Enabled && CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false, () => {
+                        using var inputRead = BeginInputRead?.Invoke();
+                        using var input = UiRegressionMetrics.Measure("action.declared.click");
+                        DeclaredActionRequested?.Invoke(current);
+                    });
+                row.BindGameplayText(YC.Application.Presentation.AbilityActionTextDocuments.Name(option, ResolveActionText,
+                    option.Enabled ? "" : "\n" + YC.Domain.Effects.AbilityActionReasons.Display(option.DisabledReason)), RenderActionText);
+                characterAvailability[option.OptionId] = option.Enabled;
+                row.gameObject.SetActive(true); row.transform.SetSiblingIndex(template.transform.GetSiblingIndex() + present.Count);
+                YC.PlayerJourney.PlayerAutomationId.Attach(row.gameObject, "action.declared." + option.OptionId);
+            }
+            foreach (string id in new List<string>(characterRows.Keys)) if (!present.Contains(id))
+            { EnterpriseBoardItemView.Retire(characterRows[id].gameObject); characterRows.Remove(id); characterAvailability.Remove(id); }
+        }
+
         private void RefreshCharacterRowsPermission()
         {
             bool allowed = CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false;
@@ -210,12 +245,16 @@ namespace YC.Presentation
         private Action GuardAction(Action action) => action == null ? null : (Action)(() =>
         { if (CanBeginAction?.Invoke() != false) action(); });
 
-        private static void BindButton(Button button, Action action)
+        private void BindButton(Button button, Action action)
         {
             button.onClick.RemoveAllListeners();
             if (action != null)
             {
-                button.onClick.AddListener(() => action());
+                button.onClick.AddListener(() => {
+                    using var inputRead = BeginInputRead?.Invoke();
+                    using var input = UiRegressionMetrics.Measure("action.button.click");
+                    action();
+                });
             }
         }
 

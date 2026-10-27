@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,9 +47,10 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Directory.CreateDirectory(Path.GetDirectoryName(target)); File.Copy(file, target, true);
             }
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(destination, "pack.json")));
+            var installedIds = new HashSet<string>(ExternalContentPack.Load(source).Definitions.Select(d => d.DefinitionId));
             foreach (string path in StyleIds.Select(id => "city_style/" + id + ".json").Concat(OfficeIds.Concat(new[] { Settlement }).Select(id => "facility/" + id + ".json")).Concat(AwardIds.Select(id => "award/" + id + ".json")))
-                if (!((JArray)manifest["definitions"]).Values<string>().Contains(path)) ((JArray)manifest["definitions"]).Add(path);
-            ((JArray)manifest["definitions"]).Add("enterprise/" + Foundation + ".json");
+                if (!installedIds.Contains(Path.GetFileNameWithoutExtension(path)) && !((JArray)manifest["definitions"]).Values<string>().Contains(path)) ((JArray)manifest["definitions"]).Add(path);
+            if (!((JArray)manifest["definitions"]).Values<string>().Contains("enterprise/" + Foundation + ".json")) ((JArray)manifest["definitions"]).Add("enterprise/" + Foundation + ".json");
             manifest["enabledExpansionIds"] = new JArray("core", "enterprise", "infected");
             var originals = Directory.GetFiles(Path.Combine(Directory.GetCurrentDirectory(), "游城拓荒/感染者扩"));
             string foundationArt = Path.Combine(destination, "artwork/enterprises/infected_maylander_foundation.jpg");
@@ -63,6 +64,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 string artwork = Path.Combine(destination, (string)json["artwork"]);
                 Directory.CreateDirectory(Path.GetDirectoryName(artwork)); string original = originals.Single(p => Path.GetFileName(p).Contains(imageKeys[index])); File.Copy(original, artwork, true);
                 int width = index < 3 ? 930 : 600, height = index < 3 ? 600 : 850; string sprite = (string)json["artworkSpriteId"];
+                foreach (string list in new[] { "sheets", "slices" }) foreach (var old in ((JArray)slices[list]).Where(value => (string)value["id"] == sprite).ToList()) old.Remove();
                 ((JArray)slices["sheets"]).Add(new JObject { ["id"] = sprite, ["artwork"] = json["artwork"], ["width"] = width, ["height"] = height, ["rows"] = 1, ["columns"] = 1, ["cellWidth"] = width, ["cellHeight"] = height, ["skippedCells"] = new JArray() });
                 ((JArray)slices["slices"]).Add(new JObject { ["id"] = sprite, ["sheetId"] = sprite, ["cell"] = 1, ["row"] = 1, ["column"] = 1, ["name"] = json["displayName"], ["contentType"] = json["contentType"], ["definitionIds"] = new JArray((string)json["definitionId"]), ["expansionId"] = "infected", ["rect"] = new JObject { ["x"] = 0, ["y"] = 0, ["width"] = width, ["height"] = height } });
             }
@@ -131,7 +133,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string id in enterpriseIds) foreach (int player in Enumerable.Range(1, 3))
             {
                 var track = state.ItemZones.Zones.Single(zone => zone.ParentId == Item(state, id) && zone.LocalZoneId == "cooperation_" + player);
-                var marker = state.ItemZones.Items.First(value => value.TypeId == "core.player_marker" && value.OwnerSubject.PlayerId == player && value.ZoneId == FindZone(state, "player_markers", player).ZoneId);
+                var marker = state.ItemZones.Items.First(value => value.TypeId == "core.player_marker" && value.OwnerSubject.PlayerId == player && value.ZoneId == FindZone(state, "supply", player).ZoneId);
                 SetPosition(state, marker, track.ZoneId); marker.SlotId = "level_" + level;
             }
             var map = new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)); var influence = new InfluenceService(map);
@@ -288,7 +290,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(out var registry); Run(state, registry, CityStyleDeclarationEffectExecutor.Create(1, StyleIds[2], Layout(state, 2)));
             string marker = state.FindPlayer(1).DeclaredCityStyles.Single().InfluenceMarkerId;
-            Position(state, marker, "player_markers", 1);
+            Position(state, marker, "supply", 1);
             Assert.Throws<InvalidOperationException>(() => HostRecoveryService.CreateArchive(state));
             state = State(out registry); string office = Item(state, OfficeIds[0]); Position(state, office, "city_cell_0", 1);
             Run(state, registry, FacilityEntryEffectSpecFactory.Activate(1, OfficeIds[0], office, 0)); Answer(state, registry, "upgrade_two"); Answer(state, registry, Open(state).CandidateIds.First());
@@ -447,7 +449,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).UsedSpecialActionIdsThisRound, Does.Contain(original.UnlockedSpecialActionId));
             Run(state, registry, CityStyleDeclarationEffectExecutor.Create(1, StyleIds[2], Layout(state, 2)));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(12)); Assert.That(state.FindPlayer(1).DeclaredCityStyles.Count, Is.EqualTo(2));
-            Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].MarkerArea, Is.Empty); Assert.That(state.FindPlayer(1).DeclaredCityStyles[1].MarkerArea, Is.EqualTo("2"));
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles[0].MarkerArea, Is.Empty); Assert.That(state.FindPlayer(1).DeclaredCityStyles[1].MarkerArea, Is.EqualTo("declared"));
             Assert.That(state.FindPlayer(1).UsedSpecialActionIdsThisRound.Count, Is.EqualTo(1));
         }
         [TestCase(true)][TestCase(false)]

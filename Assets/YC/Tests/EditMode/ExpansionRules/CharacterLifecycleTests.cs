@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
@@ -22,9 +23,20 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class CharacterLifecycleTests
     {
-        [OneTimeSetUp] public void LoadCoreDefinitions()
+        private static IsolatedTestArtifacts artifacts;
+        private static GameState observed;
+        private static ExternalContentPack frozenPack;
+        [SetUp] public void LoadCoreDefinitions()
         {
-            if (!CharacterCardDatabase.IsInitialized) CharacterCardDatabase.Initialize(ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets", "StreamingAssets", "Content", "core")).CreateCharacters());
+            observed = null; artifacts = IsolatedTestArtifacts.BeginCase();
+            var pack = frozenPack = ExternalContentPack.Current;
+            artifacts.WriteLabeledText("只读安装角色输入", JsonConvert.SerializeObject(new { pack.RootPath, pack.ContentHash, copiedContent = false }));
+            if (!CharacterCardDatabase.IsInitialized) CharacterCardDatabase.Initialize(pack.CreateCharacters());
+        }
+        [TearDown] public void FinishEvidence()
+        {
+            if (observed != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(observed));
+            artifacts.Finish();
         }
         private static GameState State(int operators = 4, int players = 2, int companyMarkers = 0)
         {
@@ -34,15 +46,22 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = new GameState { GameId = "game.character", ContentPackHash = "content.character", MapId = map.MapId,
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = "content.character" },
                 Players = Enumerable.Range(1, players).Select(id => new PlayerState { PlayerId = id, Name = "玩家" + id, Resources = new ResourceSet { GoldVoucher = id == 1 ? 8 : 0 } }).ToList() };
+            if (companyMarkers > 0)
+            {
+                source.ContentDefinitions = new GameContentDefinitions { Characters = frozenPack.CreateCharacters().ToList(), Facilities = frozenPack.CreateFacilities().ToList() };
+                source.ContentDefinitions.Components = frozenPack.Definitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition {
+                    DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"], CubeAppearance = d.CubeAppearance }).ToList();
+            }
+            source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, new[] {
                 new ItemRecipeEntry { EntryId = "initial_characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 3, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "generated_character", DefinitionId = "texas", TypeId = "core.generated_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "operator_pool", DefinitionId = "texas", TypeId = "core.operator_card", Quantity = operators, InitialZoneRole = "operator_deck" },
-                new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "stored_facilities", DefinitionId = "facility.fixture", TypeId = "core.facility_card", Quantity = 2, InitialZoneRole = "facility_deck" },
-                new ItemRecipeEntry { EntryId = "company_components", DefinitionId = "component.company_cube", TypeId = "infected.company_marker", Quantity = companyMarkers, InitialZoneRole = "company_markers" } });
+                new ItemRecipeEntry { EntryId = "company_components", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = companyMarkers, InitialZoneRole = "company_markers" } });
             state.Round = 1; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.StartPlayerId = 1;
-            return state;
+            return observed = state;
         }
         private static EffectRegistry Registry(string strategyType = "normal", string tacticType = "normal", Func<int, int> random = null, Func<EffectEventHandlerContext, IList<EffectSpec>> tactic = null, bool settlementSource = false)
         {
@@ -83,8 +102,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static GameState Restore(GameState state, EffectRegistry registry)
         {
-            var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
-            Assert.That(result.Succeeded, Is.True, result.Diagnostic); Valid(result.State); return result.State;
+            var result = artifacts.Recover(state, "R2角色恢复", registry);
+            Assert.That(result.Succeeded, Is.True, result.Diagnostic); Valid(result.State); return observed = result.State;
         }
         private static CharacterUseRuntimeState Use(GameState state, EffectRegistry registry, string card, string mode = "strategy", string order = "")
         { Run(state, registry, CharacterLifecycleService.CreateUseSpec(1, card, mode, order)); return state.CharacterUses.Last(); }
@@ -178,12 +197,23 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void CurrentUseInsertionConsumesOnceAndInvalidatesOnlyItsModeRequest()
         {
             var registry = Registry(tacticType: "persistent", settlementSource: true); var state = State(); var cards = Ids(state, "hand", 1); Cover(state, registry, cards[0]); Use(state, registry, cards[0], "tactic"); Cover(state, registry, cards[1]);
+            // 为正式插入命令建立实际主行动窗口；不伪造CurrentOperationContext。
+            var chainBuilder = new RoundMainChainBuilder(); var order = new List<int> { 1, 2 };
+            var chain = chainBuilder.Build(state.GameId, chainBuilder.CreateRoundExecutionId(state.GameId, 1, order), 1, order, 1);
+            var window = chain.Nodes.Single(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerActionWindow && n.PlayerId == 1 && n.ActionRound == 1);
+            foreach (var node in chain.Nodes.Where(n => n.MainlineIndex < window.MainlineIndex)) node.Status = EffectNodeStatus.Completed;
+            var runtime = state.EffectRuntime; runtime.CurrentRoundExecutionId = chain.RoundExecutionId; runtime.CurrentRoundNumber = 1;
+            runtime.CurrentRoundStartPlayerId = 1; runtime.PlayerOrderSnapshot = order; runtime.FirstMainNodeId = chain.FirstNodeId;
+            runtime.MainNodes.AddRange(chain.Nodes); runtime.ActiveMainNodeId = window.NodeId; window.Status = EffectNodeStatus.Ready;
+            Assert.That(new RoundExecutionService(registry).Advance(state).IsValid, Is.True);
             var session = new GameSession(state); session.RegisterHandler(new UseCharacterCardCommandHandler(new CharacterCardService(), registry)); session.RegisterHandler(new InvokeSettlementOptionCommandHandler(registry)); session.RegisterHandler(new AnswerInteractionCommandHandler(registry));
-            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cards[1] }; Assert.That(session.Submit(command).Succeeded, Is.True);
+            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = cards[1] }; var beginResult = session.Submit(command);
+            artifacts.WriteLabeledText("R2原角色使用命令结果", JsonConvert.SerializeObject(beginResult)); Assert.That(beginResult.Succeeded, Is.True);
             var current = state.CharacterUses.Last(); var old = Open(state); var options = CharacterSettlementOptionQuery.GetOptions(state, 1, current.UseId); Assert.That(options.Count, Is.EqualTo(1)); Assert.That(CharacterSettlementOptionQuery.GetOptions(state, 2, current.UseId), Is.Empty);
             int actions = state.FindPlayer(1).RemainingMainActionsThisTurn; var invocation = EffectInteractionCommands.InvokeSettlementOption(1, options[0].OptionId, current.UseId, options[0].StateRevision);
             Assert.That(invocation.Parameters.ContainsKey("useId"), Is.True); Assert.That(invocation.Parameters.ContainsKey("currentUseId"), Is.False); Assert.That(GameCommandDto.FromCommand(invocation).ToCommand().Parameters, Is.EquivalentTo(invocation.Parameters));
-            Assert.That(session.Submit(invocation).Succeeded, Is.True); Assert.That(old.Status, Is.EqualTo("invalidated")); Assert.That(current.SourceConsumed, Is.True); Assert.That(current.DoubleUseGranted, Is.True); Assert.That(Open(state).InteractionTypeId, Is.EqualTo(CharacterLifecycleService.OrderInteractionTypeId));
+            var invokeResult = session.Submit(invocation); artifacts.WriteLabeledText("R2原插入命令结果", JsonConvert.SerializeObject(invokeResult));
+            Assert.That(invokeResult.Succeeded, Is.True); Assert.That(old.Status, Is.EqualTo("invalidated")); Assert.That(current.SourceConsumed, Is.True); Assert.That(current.DoubleUseGranted, Is.True); Assert.That(Open(state).InteractionTypeId, Is.EqualTo(CharacterLifecycleService.OrderInteractionTypeId));
             int count = state.EffectRuntime.EffectNodes.Count; Assert.That(session.Submit(invocation).Succeeded, Is.True); invocation.CommandId = "another_click"; Assert.That(session.Submit(invocation).Succeeded, Is.True); Assert.That(state.EffectRuntime.EffectNodes.Count, Is.EqualTo(count));
             Assert.That(state.CharacterUses.Last().UseId, Is.EqualTo(current.UseId)); Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(actions)); Assert.That(Ids(state, "discard", 1), Does.Contain(cards[0]));
             state = Restore(state, registry); AnswerRequest(state, registry, "tactic-first"); Assert.That(state.CharacterUses.Last().CompletedModes, Is.EqualTo(new[] { "tactic", "strategy" })); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(8));
@@ -209,11 +239,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             var declaration = new CardZoneDefinition { LocalZoneId = "stored_cubes", ZoneTemplateId = "core.zone.card_cube_storage", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Unordered,
                 EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.return_contents_before_exit", VisibilityPolicyId = ItemZoneVisibility.Public };
             Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, card, declaration, out string storage, out string reason), Is.True, reason);
-            var markers = Ids(state, "player_markers", 1).Take(5).ToArray(); Cover(state, registry, card); Use(state, registry, card, "tactic");
-            Run(state, registry, MoveSpec(1, markers, FindZone(state, "player_markers", 1).ZoneId, storage, "unordered", 5, "core.cube_storage"));
+            var markers = Ids(state, "supply", 1).Take(5).ToArray(); Cover(state, registry, card); Use(state, registry, card, "tactic");
+            Run(state, registry, MoveSpec(1, markers, FindZone(state, "supply", 1).ZoneId, storage, "unordered", 5, "core.cube_storage"));
             state = Restore(state, registry); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(5)); Assert.That(markers.All(id => state.ItemZones.Items.Single(item => item.ItemId == id).OwnerSubject.PlayerId == 1), Is.True);
             registry.Register("test.leave_source", context => { string error = CharacterLifecycleService.MoveCard(context, card, FindZone(context.State, "discard", 1).ZoneId); return error.Length == 0 ? EffectStepResult.Completed() : EffectStepResult.Failed(error); });
-            Run(state, registry, EffectSpec.Create("test.leave_source", playerId: 1)); Assert.That(new ItemZoneQuery().GetItemIds(state, storage), Is.Empty); Assert.That(Ids(state, "player_markers", 1).Count, Is.EqualTo(6)); Assert.That(CharacterLifecycleService.IsSubscriptionActive(state, card, CharacterCardDatabase.Get("texas").TacticAbilityId), Is.False);
+            Run(state, registry, EffectSpec.Create("test.leave_source", playerId: 1)); Assert.That(new ItemZoneQuery().GetItemIds(state, storage), Is.Empty); Assert.That(Ids(state, "supply", 1).Count, Is.EqualTo(6)); Assert.That(CharacterLifecycleService.IsSubscriptionActive(state, card, CharacterCardDatabase.Get("texas").TacticAbilityId), Is.False);
         }
         [Test] public void SourceRetirementDoesNotCancelAlreadyRegisteredCleanupTask()
         {
@@ -233,7 +263,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             string source = "return function(ctx) return {" + expression + "} end"; var script = new LuaScriptDefinition("content.character", "ability.character", "handler.character", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("event.character", "test.event", "1", 0, "1.0.0", 2, 0, 0)); Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic); Assert.That(specs.Single().EffectTypeId, Is.EqualTo(type));
-            var registry = Registry(); CharacterLifecycleService.Register(registry); Assert.That(registry.Get(type).DefinitionVersion, Is.EqualTo(type == CharacterCoverEffectExecutor.EffectTypeId ? "v1" : "v1"));
+            var registry = Registry(); CharacterLifecycleService.Register(registry); Assert.That(registry.Get(type).DefinitionVersion,
+                Is.EqualTo(type == CharacterLifecycleService.TransferTypeId || type == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.DefinitionVersion : "v1"));
         }
         [TestCase("drawCount=4")][TestCase("seed=11")][TestCase("player='2'")]
         public void DispatchCannotAcceptWrongCountRandomnessOrExecutingPlayer(string extra)
@@ -361,12 +392,12 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [TestCase("persistent", 5)][TestCase("normal", 0)] public void ModeDepositStaysWithPersistentCarrierAndReturnsOnlyOnRealExit(string skillType, int stored)
         {
-            var state = State(); string card = Ids(state, "hand", 1)[0]; var markers = Ids(state, "player_markers", 1).Take(5).ToArray();
+            var state = State(); string card = Ids(state, "hand", 1)[0]; var markers = Ids(state, "supply", 1).Take(5).ToArray();
             var declaration = new CardZoneDefinition { LocalZoneId = "stored_cubes", ZoneTemplateId = "core.zone.card_cube_storage", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Unordered,
                 EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.return_contents_before_exit", VisibilityPolicyId = ItemZoneVisibility.Public };
             Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, card, declaration, out string storage, out string reason), Is.True, reason);
-            var registry = Registry(tacticType: skillType, tactic: context => new List<EffectSpec> { MoveSpec(1, markers, FindZone(context.State, "player_markers", 1).ZoneId, storage, "unordered", 5, "core.cube_storage") });
-            Cover(state, registry, card); var use = Use(state, registry, card, "tactic"); Assert.That(use.Finished, Is.True); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(stored)); Assert.That(Ids(state, "player_markers", 1).Count, Is.EqualTo(6 - stored));
+            var registry = Registry(tacticType: skillType, tactic: context => new List<EffectSpec> { MoveSpec(1, markers, FindZone(context.State, "supply", 1).ZoneId, storage, "unordered", 5, "core.cube_storage") });
+            Cover(state, registry, card); var use = Use(state, registry, card, "tactic"); Assert.That(use.Finished, Is.True); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(stored)); Assert.That(Ids(state, "supply", 1).Count, Is.EqualTo(6 - stored));
             state = Restore(state, registry); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(stored));
         }
         [TestCase(2, false, 3)][TestCase(3, false, 2)][TestCase(4, false, 2)][TestCase(3, true, 3)][TestCase(4, true, 3)] public void OrdinaryDispatchCountUsesFrozenPlayersAndExpansion(int players, bool infected, int expected)
@@ -386,7 +417,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, card, declaration, out string storage, out string reason), Is.True, reason); Cover(state, registry, card); Use(state, registry, card, "tactic");
             Run(state, registry, MoveSpec(1, new[] { marker }, FindZone(state, "company_markers").ZoneId, storage, "unordered", 1, "core.cube_storage")); state = Restore(state, registry);
             registry.Register("test.company_carrier_exit", context => { string error = CharacterLifecycleService.MoveCard(context, card, FindZone(context.State, "retired").ZoneId); return error.Length == 0 ? EffectStepResult.Completed() : EffectStepResult.Failed(error); });
-            Run(state, registry, EffectSpec.Create("test.company_carrier_exit", playerId: 1)); Assert.That(Ids(state, "company_markers").Count, Is.EqualTo(2)); Assert.That(Ids(state, "company_markers"), Does.Contain(marker)); Assert.That(Ids(state, "player_markers", 1).Count, Is.EqualTo(6)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == marker).OwnerSubject.CompanyId, Is.EqualTo("stonehoove_security"));
+            Run(state, registry, EffectSpec.Create("test.company_carrier_exit", playerId: 1)); Assert.That(Ids(state, "company_markers").Count, Is.EqualTo(2)); Assert.That(Ids(state, "company_markers"), Does.Contain(marker)); Assert.That(Ids(state, "supply", 1).Count, Is.EqualTo(6)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == marker).OwnerSubject.CompanyId, Is.EqualTo("stonehoove_security"));
         }
     }
 }

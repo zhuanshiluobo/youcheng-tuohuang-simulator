@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using YC.Presentation.Workflows;
 
 namespace YC.Presentation
 {
@@ -14,6 +16,26 @@ namespace YC.Presentation
         [SerializeField] private MobileCityInteractionController cityInteractionController;
         [SerializeField] private GameplayMainModules mainModules;
         [SerializeField] private GameplayExpansionUi expansionUi;
+
+        private bool interactionTraceFramePending;
+        private WaitForEndOfFrame interactionTraceFrameEnd;
+        internal void ObserveInteractionTraceFrame()
+        {
+            if (!InteractionLatencyTrace.Enabled || interactionTraceFramePending || !isActiveAndEnabled) return;
+            interactionTraceFramePending = true;
+            try { StartCoroutine(ObserveInteractionTraceFrameEnd()); }
+            catch { interactionTraceFramePending = false; InteractionLatencyTrace.Stop("trace.frame_observation_failed"); }
+        }
+        private IEnumerator ObserveInteractionTraceFrameEnd()
+        {
+            if (interactionTraceFrameEnd == null) interactionTraceFrameEnd = new WaitForEndOfFrame();
+            yield return interactionTraceFrameEnd;
+            interactionTraceFramePending = false;
+            // 仅帧尾机会及真实按钮属性，不冒称GPU像素已经呈现。
+            InteractionLatencyTrace.Point("ui.frame_end_opportunity", value:
+                MobileCityInteractionController.ButtonTraceFlags(frame?.EndActionButton) |
+                MobileCityInteractionController.ButtonTraceFlags(actionPanelView?.EndRoundButton) << 4);
+        }
 
         public Canvas Canvas => canvas;
         public GameplayHudFrame Frame => frame;

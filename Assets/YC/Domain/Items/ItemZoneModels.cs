@@ -14,6 +14,9 @@ namespace YC.Domain.Items
     [Serializable]
     public sealed class ItemZoneRuntimeState
     {
+        public int NamingVersion = PlayerAreaPolicy.NamingVersion;
+        public int FacilityLayerVersion = 1;
+        public string FacilityLayerMigrationId = "";
         public List<ItemInstanceState> Items = new List<ItemInstanceState>();
         public List<ZoneInstanceState> Zones = new List<ZoneInstanceState>();
         public List<ZoneOrderState> Orders = new List<ZoneOrderState>();
@@ -151,7 +154,7 @@ namespace YC.Domain.Items
 
     public static class ItemZoneLegacyProjection
     {
-        public static bool IsActive(GameState state) => state?.EntitySchemaVersion == 1 && state.ItemZones?.Zones.Count > 0;
+        public static bool IsActive(GameState state) => state?.EntitySchemaVersion == GameProtocolVersions.Entity && state.ItemZones?.Zones.Count > 0;
         public static void Bind(GameState state, bool clearLegacy = false)
         {
             if (!IsActive(state)) return;
@@ -175,7 +178,7 @@ namespace YC.Domain.Items
             state.Decks.CharacterDeck.Bind(() => Cards(state, "character_deck", -1, true));
             state.Decks.CharacterDiscard.Bind(() => Cards(state, "character_discard", -1));
             state.Decks.FacilityDeck.Bind(() => Cards(state, "facility_deck", -1, true));
-            state.Decks.FacilitySupply.Bind(() => Enumerable.Range(0, 6).Select(index => Cards(state, "facility_supply_" + index, -1).FirstOrDefault() ?? string.Empty).ToList());
+state.Decks.FacilitySupply.Bind(() => Enumerable.Range(0, 6).Select(index => Cards(state, "facility_supply_" + index, -1, true).FirstOrDefault() ?? string.Empty).ToList());
             state.Decks.CityStyleSupply.Bind(() => Cards(state, "city_styles", -1));
             state.Decks.EventDeckGreen.Bind(() => Cards(state, "event_green", -1, true));
             state.Decks.EventDeckYellow.Bind(() => Cards(state, "event_yellow", -1, true));

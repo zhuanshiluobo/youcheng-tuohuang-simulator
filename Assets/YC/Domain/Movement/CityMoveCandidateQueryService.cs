@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -46,25 +47,21 @@ namespace YC.Domain.Movement
             if (player == null || string.IsNullOrEmpty(player.CityLocationId)) return result.AsReadOnly();
 
             IReadOnlyList<MapLocationDefinition> adjacent = mapQuery.GetAdjacentLocations(player.CityLocationId);
+            var admitted = new CityDestinationQueryService(mapQuery, movementService.DestinationRegistry).Query(state,
+                new CityDestinationQuery(playerId, "", waiveBaseCost ? "free" : "ordinary", "standard",
+                    adjacent.Select(x => x.LocationId).ToArray()));
+            var allowed = new HashSet<string>(admitted.AllowedLocationIds, StringComparer.Ordinal);
             for (int i = 0; i < adjacent.Count; i++)
             {
                 MapLocationDefinition target = adjacent[i];
+                if (!allowed.Contains(target.LocationId)) continue;
                 MapRouteDefinition route;
                 try { route = mapQuery.FindRoute(player.CityLocationId, target.LocationId); }
                 catch (ArgumentException) { continue; }
 
-                GameState validationState = state;
-                if (waiveBaseCost)
-                {
-                    validationState = GameStateCloneService.DeepClone(state);
-                    validationState.FindPlayer(playerId).Resources.OriginiumShard += travelCostService.GetCityMoveBaseCost().OriginiumShard;
-                }
-                ValidationResult validation = movementService.CanMoveCity(
-                    validationState,
-                    playerId,
-                    target.LocationId,
-                    -1,
-                    null);
+                ValidationResult validation = waiveBaseCost
+                    ? movementService.CanMoveCityForFacility(state, playerId, target.LocationId)
+                    : movementService.CanMoveCity(state, playerId, target.LocationId, -1, null);
 
                 result.Add(new CityMoveCandidate
                 {

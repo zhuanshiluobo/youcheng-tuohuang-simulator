@@ -1,0 +1,468 @@
+{
+  "authority": "2026-10-23用户已人工修正图标中文释义；本件记录当前读取基线，不覆盖用户修订。附图只用于规则及语义核对，不新增生产UI素材用途许可。",
+  "images": [
+    {
+      "source": "C:/Users/wzy/AppData/Local/Temp/codex-clipboard-e62eecf6-2efd-4b1a-8bc4-cae4b17cfe48.jpg",
+      "path": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\核验\\速查卡-20261023\\快速查询表-企业与操作.jpg",
+      "sha256": "13a5a35bfca79d368e407902ce9a1eacfa3839f4d4d94c34ca0c9364199fcea2"
+    },
+    {
+      "source": "C:/Users/wzy/AppData/Local/Temp/codex-clipboard-b5ff322b-0ec0-46f0-8b6a-e7376f7a6bad.jpg",
+      "path": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\核验\\速查卡-20261023\\快速查询表-图标与关键词.jpg",
+      "sha256": "9dad164d00cd5900ab3beda1686b69071110739cf67d0221fea3ca4bb69f79e3"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json",
+      "sha256": "f09f8c6027926e4bd6de06c9ba1a3cf815d6161ae131ed09a72fb393340a0a46"
+    },
+    {
+      "path": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\icons.json",
+      "sha256": "454f245b172977f882e841193d366abf50433b71d6e5a0117722a87d7251c5b3"
+    }
+  ],
+  "icons": [
+    {
+      "id": "core:rule.enterprise_upgrade",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.enterprise_upgrade.alt",
+      "template": "企业升级",
+      "reference": {
+        "key": "core:rule.enterprise_upgrade.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.enterprise_special",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.enterprise_special.alt",
+      "template": "企业特效",
+      "reference": {
+        "key": "core:rule.enterprise_special.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.score",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.score.alt",
+      "template": "分数",
+      "reference": {
+        "key": "core:resource.score.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.score_settlement",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.score_settlement.alt",
+      "template": "分数结算时",
+      "reference": {
+        "key": "core:timing.score_settlement.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.remaining_game",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.remaining_game.alt",
+      "template": "剩余游戏",
+      "reference": {
+        "key": "core:timing.remaining_game.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.city_move",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.city_move.alt",
+      "template": "城市移动",
+      "reference": {
+        "key": "core:rule.city_move.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.operator_dispatch",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.operator_dispatch.alt",
+      "template": "干员特派",
+      "reference": {
+        "key": "core:rule.operator_dispatch.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.build",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.build.alt",
+      "template": "建设",
+      "reference": {
+        "key": "core:rule.build.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.iron",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.iron.alt",
+      "template": "异铁",
+      "reference": {
+        "key": "core:resource.iron.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.quick_action",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.quick_action.alt",
+      "template": "快速行动",
+      "reference": {
+        "key": "core:timing.quick_action.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.tactical_action",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.tactical_action.alt",
+      "template": "战术行动",
+      "reference": {
+        "key": "core:timing.tactical_action.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.replace",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.replace.alt",
+      "template": "替换1个影响力",
+      "reference": {
+        "key": "core:rule.replace.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:syntax.condition",
+      "usage": "inline_rule",
+      "altTextKey": "core:syntax.condition.alt",
+      "template": "条件式",
+      "reference": {
+        "key": "core:syntax.condition.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.persistent_marker",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.persistent_marker.alt",
+      "template": "永续指示物",
+      "reference": {
+        "key": "core:rule.persistent_marker.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.orirock",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.orirock.alt",
+      "template": "源岩",
+      "reference": {
+        "key": "core:resource.orirock.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.originium_shard",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.originium_shard.alt",
+      "template": "源石碎片",
+      "reference": {
+        "key": "core:resource.originium_shard.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.special_action",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.special_action.alt",
+      "template": "特殊行动",
+      "reference": {
+        "key": "core:timing.special_action.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.remove",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.remove.alt",
+      "template": "移除1个影响力",
+      "reference": {
+        "key": "core:rule.remove.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:timing.immediate",
+      "usage": "inline_rule",
+      "altTextKey": "core:timing.immediate.alt",
+      "template": "立刻",
+      "reference": {
+        "key": "core:timing.immediate.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.pure_originium",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.pure_originium.alt",
+      "template": "至纯源石",
+      "reference": {
+        "key": "core:resource.pure_originium.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.dispatch",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.dispatch.alt",
+      "template": "调度1个影响力",
+      "reference": {
+        "key": "core:rule.dispatch.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.deploy",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.deploy.alt",
+      "template": "部署1个影响力",
+      "reference": {
+        "key": "core:rule.deploy.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:resource.gold_voucher",
+      "usage": "inline_rule",
+      "altTextKey": "core:resource.gold_voucher.alt",
+      "template": "金券",
+      "reference": {
+        "key": "core:resource.gold_voucher.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.limited_marker",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.limited_marker.alt",
+      "template": "限定指示物",
+      "reference": {
+        "key": "core:rule.limited_marker.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.remove_card_marker",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.remove_card_marker.alt",
+      "template": "移除1个卡牌标记",
+      "reference": {
+        "key": "core:rule.remove_card_marker.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:rule.remove_own_influence",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.remove_own_influence.alt",
+      "template": "移除1个自己的影响力",
+      "reference": {
+        "key": "core:rule.remove_own_influence.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.chain_link",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.chain_link.alt",
+      "template": "阿米娅·合作协议",
+      "reference": {
+        "key": "core:settlement.chain_link.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.substitute",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.substitute.alt",
+      "template": "异客·隐蔽仓库",
+      "reference": {
+        "key": "core:settlement.substitute.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.trigger_ready",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.trigger_ready.alt",
+      "template": "多萝西·为了大家",
+      "reference": {
+        "key": "core:settlement.trigger_ready.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.target_other",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.target_other.alt",
+      "template": "诗怀雅·和气生财",
+      "reference": {
+        "key": "core:settlement.target_other.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.scope_adjacent",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.scope_adjacent.alt",
+      "template": "百炼嘉维尔·撼地巨斧",
+      "reference": {
+        "key": "core:settlement.scope_adjacent.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.choose_order",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.choose_order.alt",
+      "template": "授勋卡",
+      "reference": {
+        "key": "core:settlement.choose_order.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.chain_defer",
+      "usage": "settlement_action",
+      "altTextKey": "core:settlement.chain_defer.alt",
+      "template": "缪尔赛思·生机勃发",
+      "reference": {
+        "key": "core:settlement.chain_defer.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\texts.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.outpost_payout",
+      "usage": "settlement_action",
+      "altTextKey": "core:entrepreneur.P.share.label",
+      "template": "每收尾阶段一次",
+      "reference": {
+        "key": "core:entrepreneur.P.share.label",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\entrepreneurs\\P.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.marker_redeem",
+      "usage": "settlement_action",
+      "altTextKey": "core:entrepreneur.T.cleanup.label",
+      "template": "收尾阶段任意次",
+      "reference": {
+        "key": "core:entrepreneur.T.cleanup.label",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\entrepreneurs\\T.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.fund_invest",
+      "usage": "settlement_action",
+      "altTextKey": "core:entrepreneur.D.investment.label",
+      "template": "基金投资",
+      "reference": {
+        "key": "core:entrepreneur.D.investment.label",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\entrepreneurs\\D.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.reputation_score",
+      "usage": "settlement_action",
+      "altTextKey": "core:entrepreneur.D.exchange.label",
+      "template": "支付声望获得分数",
+      "reference": {
+        "key": "core:entrepreneur.D.exchange.label",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\entrepreneurs\\D.zh-CN.json"
+    },
+    {
+      "id": "core:settlement.tactical_dispatch",
+      "usage": "settlement_action",
+      "altTextKey": "core:entrepreneur.A.A05.name",
+      "template": "特勤小组",
+      "reference": {
+        "key": "core:entrepreneur.A.A05.name",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\entrepreneurs\\A.zh-CN.json"
+    },
+    {
+      "id": "core:rule.stonehoove_security_place",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.stonehoove_security_place.alt",
+      "template": "放置岩蹄安保公司影响力",
+      "reference": {
+        "key": "core:rule.stonehoove_security_place.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\stonehoove-icons.zh-CN.json"
+    },
+    {
+      "id": "core:rule.stonehoove_security_move",
+      "usage": "inline_rule",
+      "altTextKey": "core:rule.stonehoove_security_move.alt",
+      "template": "移动岩蹄安保公司影响力",
+      "reference": {
+        "key": "core:rule.stonehoove_security_move.alt",
+        "arguments": []
+      },
+      "messageSource": "G:\\NoMadCity\\Assets\\StreamingAssets\\Content\\core\\presentation\\stonehoove-icons.zh-CN.json"
+    }
+  ],
+  "note": "企业家收尾alt与岩蹄alt来自已注册增量，null并非缺失。这里补全当前精确文本来源。后续本家文案修改允许改变本家标签。"
+}

@@ -1028,6 +1028,7 @@ namespace YC.Domain.Rules
             CharacterCoverEffectExecutor.Register(effectRegistry);
             CharacterAbilityEffectExecutor.Register(effectRegistry);
             CityStyleSpecialActionEffectExecutor.RegisterCleanup(effectRegistry);
+            if (!effectRegistry.TryGet(UsageTracks.InitializeTypeId, out _)) { UsageTracks.Register(effectRegistry); UsageTracks.RegisterResetBinding(effectRegistry); }
             GenericLuaEffectExecutor.Register(effectRegistry);
             ExpansionSetupFlow.Register(effectRegistry);
             if (!effectRegistry.TryGet(PlayerEntranceTaskTypeId, out _))
@@ -1219,13 +1220,16 @@ namespace YC.Domain.Rules
                 if (context.Node.SettlementWindow != null)
                 {
                     var window = context.Node.SettlementWindow;
-                    foreach (var child in context.ChildNodes) SettlementEntryService.ObserveTerminal(window, child);
+                    foreach (var child in context.ChildNodes) SettlementEntryService.ObserveTerminal(context.State, window, child);
                     if (!window.IsClosed && window.Entries.Count > 0 &&
                         window.Entries.Any(e => e.SettlementState == "available" || e.SettlementState == "executing"))
                         return EffectStepResult.NoProgress("等待玩家选择已挂收尾段或结束当前合法收尾窗口。");
                     if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("玩家收尾子 Effect 尚未结束。");
-                    if (!window.IsClosed && !SettlementEntryService.TryCloseCleanup(window, out _, out string closeReason))
-                        return EffectStepResult.NoProgress(closeReason);
+                    if (!window.IsClosed)
+                    {
+                        if (!CleanupSourceService.CanClose(context.State, window, out string closeReason) ||
+                            !SettlementEntryService.TryCloseCleanup(window, out _, out closeReason)) return EffectStepResult.NoProgress(closeReason);
+                    }
                     if (context.State.EffectRuntime.ActiveSettlementWindowId == window.Context.Id)
                         context.State.EffectRuntime.ActiveSettlementWindowId = "";
                     mainNode.CompletionRequested = true;
@@ -1331,8 +1335,9 @@ namespace YC.Domain.Rules
                             foreach (int player in context.State.EffectRuntime.PlayerOrderSnapshot)
                             {
                                 recycling.AddChild(EffectSpec.Create(PlayerCharacterRecyclingTypeId, playerId: player));
-                                recycling.AddChild(CityStyleSpecialActionEffectSpecFactory.Cleanup(player));
+                                if (context.State.ContentDefinitions?.UsageTracks.Count == 0 || context.State.ContentDefinitions == null) recycling.AddChild(CityStyleSpecialActionEffectSpecFactory.Cleanup(player));
                             }
+                            if (context.State.ContentDefinitions?.UsageTracks.Count > 0) recycling.AddChild(UsageTracks.CreateReset(context.State.EffectRuntime.PlayerOrderSnapshot[0]));
                             return recycling;
                         }
                         if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("等待真实角色与样式收尾。");
@@ -1352,24 +1357,22 @@ namespace YC.Domain.Rules
                     mainNode.CompletionRequested = true;
                 }
 
-                if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.RoundEnded && mainNode.RoundNumber >= context.State.MaxRounds &&
-                    CharacterLifecycleService.TryAwaitDeferredDependencies(context, new DeferredDependencyQuery { DependencyKind = DeferredDependencyKind.FinalizeGame }))
-                    return CharacterLifecycleService.DeferredDependencyWait();
+                if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.RoundEnded && mainNode.RoundNumber >= context.State.MaxRounds)
+                {
+                    if (!FinalScoringSessionService.IsFinalStage(context.Node.FlowStage))
+                    {
+                        var prepare = EffectStepResult.Continue(FinalScoringSessionService.Prepare);
+                        AppendLifecycleEvents(context.State, context.Node, mainNode, prepare);
+                        return prepare;
+                    }
+                    var queries = new ScoringModifierQueryService(new YC.Domain.Maps.MapQueryService(
+                        YC.Domain.Maps.StaticMapDefinitions.Resolve(context.State.MapId)), context.Registry);
+                    return new FinalScoringSessionService(queries, FacilityLayerEvidence.Validate).Advance(context, mainNode,
+                        () => CreateLifecycleEvent(context.State, context.Node, mainNode, "FinalScoringStarted", "final"));
+                }
 
                 var completed = EffectStepResult.Completed();
                 AppendLifecycleEvents(context.State, context.Node, mainNode, completed);
-                if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.RoundEnded &&
-                    mainNode.RoundNumber >= context.State.MaxRounds &&
-                    !mainNode.PublishedEventKeys.Contains("FinalScoringStarted"))
-                {
-                    mainNode.PublishedEventKeys.Add("FinalScoringStarted");
-                    completed.AddEvent(CreateLifecycleEvent(
-                        context.State,
-                        context.Node,
-                        mainNode,
-                        "FinalScoringStarted",
-                        "final"));
-                }
                 return completed;
             }
 
@@ -1708,7 +1711,9 @@ namespace YC.Domain.Rules
                 {
                     state.EffectRuntime.ActiveMainNodeId = string.Empty;
                     projector.ProjectFinalScoring(state);
-                    ResolveFinalScoring(state);
+                    if (state.FinalScoring?.Session == null) ResolveFinalScoring(state);
+                    else if (!state.FinalScoring.IsResolved || effectNode.FlowStage != FinalScoringSessionService.Finished)
+                        throw new InvalidOperationException("final_scoring_owner_completed_before_session");
                     return;
                 }
 
@@ -2312,9 +2317,24 @@ namespace YC.Domain.Rules
                 var owner = RuntimeNode(runtime, request.OwnerEffectId);
                 if (owner == null || owner.Status == EffectNodeStatus.Completed || owner.Status == EffectNodeStatus.Failed ||
                     owner.Status == EffectNodeStatus.Faulted || state.FindPlayer(request.AnsweringPlayerId) == null) continue;
+                if (owner.EffectTypeId == EntrepreneurFlow.PreviewTypeId && request.InteractionTypeId == EntrepreneurFlow.PreviewInteraction &&
+                    state.EntrepreneurSetup?.Stage == "preview" && request.AnsweringPlayerId == owner.PlayerId && request.CandidateIds.SequenceEqual(new[] { "continue" }))
+                {
+                    var previewParent = RuntimeNode(runtime, owner.ParentEffectId);
+                    if (previewParent?.EffectId == state.EntrepreneurSetup.OwnerEffectId && previewParent.EffectTypeId == EntrepreneurFlow.SetupTypeId &&
+                        previewParent.ChildSchedulingGroups.Any(g => g.StableGroupKey == "enterprise_candidate_previews" && g.ChildEffectIds.Contains(owner.EffectId)) &&
+                        state.EntrepreneurSetup.EnterpriseAssignments.Any(a => a.PlayerId == owner.PlayerId))
+                        request.StateRevision = runtime.StateRevision;
+                    continue;
+                }
                 if (EffectTreeExecutor.TryFindDeferredResponse(state, owner.EffectId, out var deferred) && request.AnsweringPlayerId == deferred.AnsweringPlayerId)
                 {
                     // 发布新的请求版本；已经发送的旧答案仍按原 expectedRevision 拒绝。
+                    request.StateRevision = runtime.StateRevision;
+                    continue;
+                }
+                if (IsEntrepreneurInitialEnterpriseRequest(state, request, owner))
+                {
                     request.StateRevision = runtime.StateRevision;
                     continue;
                 }
@@ -2352,6 +2372,30 @@ namespace YC.Domain.Rules
             return parent?.EffectTypeId == MainlineEffectTypeId &&
                 GetStringProperty(parent.NormalizedArguments, "nodeTypeId") == RoundMainlineNodeTypeIds.Collection &&
                 parent.ChildEffectIds.Contains(owner.EffectId) && IsActiveMainlineExecution(state.EffectRuntime, parent);
+        }
+
+        private static bool IsEntrepreneurInitialEnterpriseRequest(GameState state, InteractionRequest request, EffectNodeRuntimeState owner)
+        {
+            if (owner.EffectTypeId != ExpansionSetupFlow.EnterpriseSelectionTypeId ||
+                request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
+                request.AnsweringPlayerId != owner.PlayerId || state.EntrepreneurSetup?.Stage != "complete") return false;
+            var runtime = state.EffectRuntime;
+            var parent = RuntimeNode(runtime, owner.ParentEffectId);
+            if (parent?.EffectTypeId != ExpansionSetupFlow.PreparationTypeId ||
+                parent.FlowStage != "awaiting_initial_enterprise_tasks" ||
+                ItemTransferEffectExecutor.Number(parent.ContinuationData, "setupProtocolVersion") != 3 ||
+                parent.Status == EffectNodeStatus.Completed || parent.Status == EffectNodeStatus.Failed || parent.Status == EffectNodeStatus.Faulted ||
+                !parent.ChildEffectIds.Contains(state.EntrepreneurSetup.OwnerEffectId) ||
+                RuntimeNode(runtime, state.EntrepreneurSetup.OwnerEffectId)?.EffectTypeId != EntrepreneurFlow.SetupTypeId ||
+                !ValidatePlayerGroup(runtime, parent, "initial_enterprise_selections", runtime.PlayerOrderSnapshot,
+                    ExpansionSetupFlow.EnterpriseSelectionTypeId, out var tasks) || !tasks.Contains(owner)) return false;
+            int draw = tasks.Count == 2 ? 4 : 2, keep = tasks.Count == 2 ? 2 : 1;
+            var candidates = SetupIds(owner.NormalizedArguments, "candidateEnterpriseItemIds");
+            var frozen = SetupIds(parent.ContinuationData, "candidateEnterpriseItemIds").Skip(tasks.IndexOf(owner) * draw).Take(draw);
+            return candidates.Count == draw && candidates.SequenceEqual(frozen) &&
+                ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "keepCount") == keep &&
+                request.MinSelections == keep && request.MaxSelections == keep && !request.AllowDecline &&
+                request.CandidateIds.SequenceEqual(candidates.OrderBy(id => id, StringComparer.Ordinal));
         }
 
         private static bool IsActiveMainlineExecution(EffectRuntimeState runtime, EffectNodeRuntimeState execution) =>
@@ -2500,6 +2544,13 @@ namespace YC.Domain.Rules
                 var main = runtime.MainNodes.Find(node => node.ExecutionEffectId == parent?.EffectId);
                 if (main == null || main.NodeTypeId != RoundMainlineNodeTypeIds.PlayerEntranceSetup) return false;
                 var order = new TurnOrderService().GetTurnOrder(state, main.StartPlayerId);
+                if (preparation.FlowStage == "entrepreneur_setup")
+                {
+                    if (!EntrepreneurFlow.Enabled(state) || ItemTransferEffectExecutor.Number(preparation.ContinuationData, "setupProtocolVersion") != 3 ||
+                        preparation.ChildSchedulingGroups.Any(g => g.StableGroupKey == "initial_enterprise_selections") ||
+                        preparation.ChildEffectIds.Count != 1 || RuntimeNode(runtime, preparation.ChildEffectIds[0])?.EffectTypeId != EntrepreneurFlow.SetupTypeId) return false;
+                    continue;
+                }
                 if (!ValidatePlayerGroup(runtime, preparation, "initial_enterprise_selections", order,
                     ExpansionSetupFlow.EnterpriseSelectionTypeId, out var tasks)) return false;
                 var candidates = SetupIds(preparation.ContinuationData, "candidateEnterpriseItemIds");

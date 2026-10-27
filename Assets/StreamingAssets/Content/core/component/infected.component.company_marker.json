@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.component.company_marker",
   "contentType": "component",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "岩蹄安保公司标记",
   "expansionId": "infected",
   "replaces": null,
@@ -15,5 +15,12 @@
   "data": {
     "instanceTypeId": "infected.company_marker",
     "quantityPolicy": "finite"
+  },
+  "cubeAppearance": {
+    "color": {
+      "mode": "fixed",
+      "name": "Orange",
+      "rgb": "D97000"
+    }
   }
 }

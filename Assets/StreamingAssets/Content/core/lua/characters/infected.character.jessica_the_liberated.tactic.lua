@@ -48,7 +48,7 @@ return function(ctx)
         }), { interaction = { prompt = Text.Ref('core:condition.character.jessica.binding_settlement', { cost = c.cost }) } }), c, 'settlement_paid') }
     elseif c.stage == 'start' then
         return { Effect.WithPresentation(Effect.Condition({ leftEffects = { Effect.LoseScore({ player = ctx.playerId, amount = 2 }) },
-            rightEffects = { tag(Effect.ChooseBuild({ player = ctx.playerId, sourceZone = 'supply', paymentMode = 'free', includeStoredFacilities = false }), c, 'built') }
+            rightEffects = { tag(Effect.ChooseBuild({ player = ctx.playerId, sourceZone = 'supply', paymentMode = 'free', includeStoredFacilities = true }), c, 'built') }
         }), { interaction = { prompt = Text.Ref('core:condition.infected.character.jessica_the_liberated.tactic') } }) }
     elseif c.stage == 'built' then
         if ctx.payload.outcome ~= 'completed' or ctx.payload.normalizedResult.builtItemId == nil then return {} end

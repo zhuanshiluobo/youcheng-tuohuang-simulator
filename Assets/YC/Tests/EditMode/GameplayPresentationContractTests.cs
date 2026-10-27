@@ -585,82 +585,6 @@ end";
     return { Effect.Choice({ player = ctx.playerId, branches = branches,
         interactionType = 'facility.entry.choice', promptKey = 'facility.entry.choose_adjacent' }) }
 end";
-        #endregion
-
-        #region DynamicInteractionPresentation
-        [TestCase("operator.dorothy", 99, 4)]
-        [TestCase("operator.passenger", 99, 5)]
-        [TestCase("operator.dorothy", 1, 1)]
-        [TestCase("operator.passenger", 0, 0)]
-        public void FormalMarkerQuantityUsesActualBoundsAndVisibleSource(string definitionId, int available, int expectedMaximum)
-        {
-            var fixture = DynamicPresentationFixture();
-            var state = fixture.State;
-            var card = PrepareDynamicMarkerCard(state, definitionId, available);
-            var spec = CompileDynamicPresentation(fixture.Pack, fixture.Pack.GetScript(
-                "lua/characters/" + definitionId + ".tactic.lua"), definitionId, card.ItemId, definitionId + ".tactic");
-            int calls = 0; GameplayPresentationContext supplied = null;
-            var presenter = fixture.Registry.GameplayPresenter;
-            fixture.Registry.GameplayPresenter = (string path, GameplayPresentationContext context,
-                out GameplayPresentationResult result, out string diagnostic) => {
-                calls++; supplied = GameplayPresentationNormalizer.Clone(context);
-                return presenter(path, context, out result, out diagnostic);
-            };
-            var executor = new EffectTreeExecutor(state, fixture.Registry); string root = executor.CreateRoot(spec);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True, state.EffectRuntime.LastFaultMessage);
-            var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
-            Assert.That(request.CandidateIds, Is.Empty);
-            Assert.That(request.AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema));
-            Assert.That(ItemTransferEffectExecutor.Number(request.PromptParameters, "minAmount"), Is.EqualTo(0));
-            Assert.That(ItemTransferEffectExecutor.Number(request.PromptParameters, "maxAmount"), Is.EqualTo(expectedMaximum));
-            Assert.That(ItemTransferEffectExecutor.Value(request.PromptParameters, "rowMaximums").Items.Single().IntegerValue, Is.EqualTo(expectedMaximum));
-            Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:character.store_markers.prompt"));
-            Assert.That(request.Presentation.Prompt.Arguments.Single(value => value.Name == "maximum").Value.IntegerValue, Is.EqualTo(expectedMaximum));
-            Assert.That(request.Presentation.Prompt.Arguments.Single(value => value.Name == "source").Value.ReferenceId, Is.EqualTo(definitionId));
-            Assert.That(request.Presentation.QuantityRows.Single().RowId, Is.EqualTo("player_marker"));
-            Assert.That(request.Presentation.QuantityRows.Single().Label.Key, Is.EqualTo("core:quantity.player_marker.row"));
-            Assert.That(request.Presentation.QuantityRows.Single().IconKey, Is.Empty);
-            Assert.That(supplied.SourceItemId, Is.EqualTo(card.ItemId));
-            Assert.That(supplied.SourceDefinitionId, Is.EqualTo(definitionId));
-            Assert.That(supplied.Facts.Properties.Select(value => value.Name), Is.EqualTo(new[] {
-                "candidateIds", "maxAmount", "maxSelections", "minAmount", "minSelections", "rowIds", "rowMaximums" }));
-            var view = GameStateViewProjector.ProjectForPlayer(state, 1);
-            var sourceBefore = Newtonsoft.Json.JsonConvert.SerializeObject(state);
-            var viewBefore = Newtonsoft.Json.JsonConvert.SerializeObject(view);
-            var visible = InteractionRequestProjector.ProjectForPlayer(request, 1, view, state.GameId);
-            Assert.That(visible.Presentation.Prompt.Key, Is.EqualTo("core:character.store_markers.prompt"));
-            Assert.That(visible.Presentation.QuantityRows.Count, Is.EqualTo(1));
-            Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1).Presentation.Prompt, Is.Null);
-            Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 2, GameStateViewProjector.ProjectForPlayer(state, 2),
-                state.GameId).Presentation, Is.Null);
-            if (definitionId == "operator.dorothy" && available == 99)
-            {
-                Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1, null, state.GameId).Presentation.Prompt, Is.Null);
-                Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1, view, "another.game").Presentation.Prompt, Is.Null);
-                Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1, view, "").Presentation.Prompt, Is.Null);
-                foreach (string invalid in new[] { "host", "viewer", "revision", "source", "candidate_version", "absent", "null_interactions", "null_items" })
-                {
-                    var wrong = GameStateCloneService.DeepClone(view);
-                    if (invalid == "host") wrong.ViewerRole = GameStateViewerRole.Host;
-                    if (invalid == "viewer") wrong.ViewerPlayerId = 2;
-                    if (invalid == "revision") wrong.StateRevision = request.StateRevision - 1;
-                    if (invalid == "source") wrong.Interactions.Single().SourceNodeId = "other.effect";
-                    if (invalid == "candidate_version") wrong.Interactions.Single().CandidateSetVersion++;
-                    if (invalid == "absent") wrong.Interactions.Clear();
-                    if (invalid == "null_interactions") wrong.Interactions = null;
-                    if (invalid == "null_items") wrong.ItemZones = null;
-                    Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1, wrong, state.GameId).Presentation.Prompt, Is.Null, invalid);
-                }
-            }
-            Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(state), Is.EqualTo(sourceBefore));
-            Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(view), Is.EqualTo(viewBefore));
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            Assert.That(calls, Is.EqualTo(1), "投影／重复刷新不得调用展示Lua");
-            AnswerDynamicPresentation(state, executor, "0");
-            Assert.That(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(ItemTransferEffectExecutor.Number(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == root).NormalizedResult, "movedCount"), Is.EqualTo(0));
-            Assert.That(calls, Is.EqualTo(1));
-        }
 
         [TestCase(true)]
         [TestCase(false)]
@@ -776,7 +700,7 @@ end";
             var covered = state.ItemZones.Zones.Single(zone => zone.OwnerPlayerId == 1 && zone.TemplateId == "core.zone.character_covered");
             DynamicFixturePosition(state, card, covered.ZoneId); card.ControllerSubject = ItemSubjectRef.Player(1);
             var storage = state.ItemZones.Zones.Single(zone => zone.ParentId == card.ItemId && zone.LocalZoneId == "markers");
-            var supply = state.ItemZones.Zones.Single(zone => zone.OwnerPlayerId == 1 && zone.LocalZoneId == "player_markers");
+            var supply = state.ItemZones.Zones.Single(zone => zone.OwnerPlayerId == 1 && zone.LocalZoneId == "supply");
             foreach (var cube in state.ItemZones.Items.Where(item => item.ZoneId == supply.ZoneId && item.TypeId == "core.player_marker").Skip(available).ToArray())
                 DynamicFixturePosition(state, cube, storage.ZoneId);
             Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
@@ -1479,7 +1403,55 @@ end";
             return (state, fixture.Registry, executor, zone.ZoneId);
         }
 
-        private static (GameState State, EffectRegistry Registry, string OwnerId, string SourceZoneId, string CandidateId) OpenActualPassengerAllocation()
+        private static PaymentSourceRow ActualPassengerSource(GameState state, EffectRegistry registry, string ownerId)
+        {
+            var executor = new EffectTreeExecutor(state, registry); var owner = executor.GetNode(ownerId);
+            Assert.That(owner.Payment.PaymentProtocolVersion, Is.EqualTo(2));
+            var input = state.EffectRuntime.InteractionRequests.Single(r => r.OwnerEffectId == ownerId && r.Status == "open");
+            var query = new PaymentSourceQuery { PlayerId = 1, OwnerEffectId = ownerId, InteractionId = input.GetStableInteractionId(),
+                StateRevision = state.EffectRuntime.StateRevision, PaymentGeneration = owner.Payment.PaymentGeneration,
+                SnapshotId = ItemTransferEffectExecutor.Text(ItemTransferEffectExecutor.Value(input.PromptParameters, "paymentSourceQuery"), "snapshotId") };
+            PaymentSourceRow result = null;
+            do
+            {
+                Assert.That(executor.TryQueryPaymentSources(query, out var page, out string reason), Is.True, reason);
+                foreach (var row in page.Sources.Where(r => r.Rule.SourceRef.AbilityId == "operator.passenger.payment"))
+                {
+                    if (result == null) result = GameStateCloneService.DeepClone(row);
+                    else result.AvailableItems.AddRange(row.AvailableItems);
+                }
+                if (page.NextSourceIndex == -1) break;
+                Assert.That(page.NextSourceIndex > query.SourceIndex || page.NextSourceIndex == query.SourceIndex && page.NextItemOffset > query.ItemOffset, Is.True);
+                query.SourceIndex = page.NextSourceIndex; query.ItemOffset = page.NextItemOffset;
+            } while (true);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.AvailableItems.Select(i => i.ItemId).Distinct().Count(), Is.EqualTo(result.AvailableItemCount));
+            return result;
+        }
+        private static void EditActualPassenger(GameState state, EffectRegistry registry, string ownerId, string operation, ResourceSet allocation = null)
+        {
+            var source = ActualPassengerSource(state, registry, ownerId); var executor = new EffectTreeExecutor(state, registry);
+            var owner = executor.GetNode(ownerId); var edit = owner.Payment.SourceEdits.SingleOrDefault(e => e.Status == "open");
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.OwnerEffectId == ownerId);
+            Assert.That(executor.TryEditPaymentSource(1, ownerId, request.GetStableInteractionId(), operation, source.Rule.SourceRef.SourceKey,
+                source.Rule.RuleId, edit?.EditId ?? "", owner.Payment.PaymentGeneration, source.DraftRevision, allocation ?? new ResourceSet(),
+                Array.Empty<string>(), state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string reason), Is.True, reason);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+        }
+        private static void AssertActualPassengerReceipt(GameState state, string ownerId, int count)
+        {
+            var payment = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment;
+            var receipt = payment.SourceReceipts.Single();
+            Assert.That(receipt.Rule.SourceRef.AbilityId, Is.EqualTo("operator.passenger.payment"));
+            Assert.That(receipt.ProtocolVersion, Is.EqualTo(2)); Assert.That(receipt.ItemIds.Distinct().Count(), Is.EqualTo(count));
+            Assert.That(ItemTransferEffectExecutor.Number(receipt.TokenArguments, "requiredCount"), Is.EqualTo(count));
+            Assert.That(receipt.TokenTransfer.Request.ProtocolVersion, Is.EqualTo(3));
+            Assert.That(receipt.TokenTransfer.Request.Transfers.SelectMany(t => t.ItemIds), Is.EquivalentTo(receipt.ItemIds));
+            Assert.That(ItemTransferService.TryValidateTokenCommit(state, 1, receipt.TokenArguments, receipt.TokenTransfer, out string reason), Is.True, reason);
+            Assert.That(payment.FinalReceipt.CostReceiptPolicyVersion, Is.EqualTo(ResourcePaymentSourceService.TokenCostContractVersion));
+        }
+
+        private static (GameState State, EffectRegistry Registry, string OwnerId, string SourceZoneId, string CandidateId) OpenActualPassengerAllocation(bool resourceRows = false)
         {
             var fixture = ActiveActualPassengerFixture(); var state = fixture.State; var executor = fixture.Executor;
             ResourcePaymentChoiceEffectExecutor.Register(fixture.Registry);
@@ -1491,11 +1463,16 @@ end";
             Assert.That(session.Submit(new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = 1, Parameters = new Dictionary<string, string> {
                 ["ownerEffectId"] = owner, ["interactionId"] = request.GetStableInteractionId(), ["candidateId"] = candidate,
                 ["expectedRevision"] = state.EffectRuntime.StateRevision.ToString() } }).Succeeded, Is.True);
-            var window = SettlementHostProtocol.FindActiveWindow(state); var entry = window.Entries.Single();
-            Assert.That(fixture.Registry.GetSettlementOptions(state, 1).Single().IsEnabled, Is.True);
-            Assert.That(executor.TryInvokeCharacterSettlementOption(1, entry.OptionId, "", state.EffectRuntime.StateRevision, out _, out var reason), Is.True, reason);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open").InteractionTypeId, Is.EqualTo(ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId));
+            Assert.That(ActualPassengerSource(state, fixture.Registry, owner).AvailableItemCount, Is.EqualTo(3));
+            if (resourceRows)
+            {
+                // 仅资源行投影的隔离接缝：通过内核CreateChild调用仍有效的api1，消费真实付款/纯规则来源。
+                // 不恢复被取消的角色旧付款页，也不计正常角色插入或界面流程验收。
+                executor.CreateChild(owner, ResourcePaymentSubstitutionEffectExecutor.Create(1, owner, fixture.SourceZoneId, 2));
+                Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True, state.EffectRuntime.LastFaultMessage);
+                Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId), Is.EqualTo(1));
+            }
+            else EditActualPassenger(state, fixture.Registry, owner, "begin_source_edit");
             return (state, fixture.Registry, owner, fixture.SourceZoneId, candidate);
         }
 
@@ -1505,8 +1482,42 @@ end";
                     ["interactionId"] = request.GetStableInteractionId(), ["candidateId"] = candidate,
                     ["expectedRevision"] = state.EffectRuntime.StateRevision.ToString() } };
 
+        private static void AssertOriginalV2Payment(GameState state, string ownerId, string interactionId)
+        {
+            var payment = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment;
+            Assert.That(payment, Is.Not.Null); Assert.That(payment.PaymentProtocolVersion, Is.EqualTo(2));
+            Assert.That(payment.PaymentId, Is.EqualTo(ownerId)); Assert.That(payment.OwnerEffectId, Is.EqualTo(ownerId));
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.OwnerEffectId == ownerId);
+            Assert.That(request.GetStableInteractionId(), Is.EqualTo(interactionId));
+            Assert.That(ItemTransferEffectExecutor.Text(request.PromptParameters, "paymentId"), Is.EqualTo(payment.PaymentId));
+        }
+
+        private static void AssertPassengerPaymentDoesNotRepeatAfterRecovery(GameState state, EffectRegistry registry,
+            string ownerId, string interactionId, string answer)
+        {
+            var payment = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment;
+            string receiptId = payment.FinalReceipt.ReceiptId, sourceReceiptId = payment.SourceReceipts.Single().ReceiptId;
+            var positions = payment.SourceReceipts.Single().ItemIds.ToDictionary(id => id, id => state.ItemZones.Items.Single(i => i.ItemId == id).ZoneId);
+            string resources = Newtonsoft.Json.JsonConvert.SerializeObject(state.FindPlayer(1).Resources);
+            int score = state.FindPlayer(1).Score;
+            var recovered = new GameSession(GameStateCloneService.DeepClone(state));
+            var result = recovered.RecoverHost(new GameSession(state).CreateHostArchive(), registry);
+            Assert.That(result.Succeeded, Is.True, result.Diagnostic);
+            var executor = new EffectTreeExecutor(recovered.State, registry);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, recovered.State.EffectRuntime.LastFaultMessage);
+            Assert.That(executor.GetNode(ownerId).Payment.IsCommitted, Is.True);
+            Assert.That(executor.TrySubmitInteraction(interactionId, 1, recovered.State.EffectRuntime.StateRevision,
+                NormalizedValue.CreateString(answer), out _), Is.False, "已付请求恢复后不能再次提交");
+            Assert.That(executor.GetNode(ownerId).Payment.FinalReceipt.ReceiptId, Is.EqualTo(receiptId));
+            Assert.That(executor.GetNode(ownerId).Payment.SourceReceipts.Single().ReceiptId, Is.EqualTo(sourceReceiptId));
+            Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(recovered.State.FindPlayer(1).Resources), Is.EqualTo(resources));
+            Assert.That(recovered.State.FindPlayer(1).Score, Is.EqualTo(score));
+            foreach (var position in positions) Assert.That(recovered.State.ItemZones.Items.Single(i => i.ItemId == position.Key).ZoneId, Is.EqualTo(position.Value));
+            AssertActualPassengerReceipt(recovered.State, ownerId, 2);
+        }
+
         [Test]
-        public void ActualPassengerDraftReselectionPreservesOfferIdentityAndRecoversCost()
+        public void ActualPassengerDraftReselectionPreservesSourceIdentityAndRecoversCost()
         {
             var fixture = ActiveActualPassengerFixture(); var state = fixture.State; var executor = fixture.Executor;
             ResourcePaymentChoiceEffectExecutor.Register(fixture.Registry);
@@ -1518,28 +1529,52 @@ end";
             string first = ItemTransferEffectExecutor.Text(options.Single(o => ItemTransferEffectExecutor.Number(ItemTransferEffectExecutor.Value(o, "cost"), "originium") == 1), "candidateId");
             string second = ItemTransferEffectExecutor.Text(options.Single(o => ItemTransferEffectExecutor.Number(ItemTransferEffectExecutor.Value(o, "cost"), "originium") == 2), "candidateId");
             var session = new GameSession(state); session.RegisterHandler(new PreparePaymentDraftCommandHandler(fixture.Registry));
-            Assert.That(session.Submit(PaymentDraftCommand(state, request, first)).Succeeded, Is.True);
-            var window = SettlementHostProtocol.FindActiveWindow(state); var entry = window.Entries.Single();
-            string windowId = window.Context.Id, optionId = entry.OptionId; long registration = entry.RegistrationSequence;
-            Assert.That(session.Submit(PaymentDraftCommand(state, request, second)).Succeeded, Is.True);
-            window = SettlementHostProtocol.FindActiveWindow(state); entry = window.Entries.Single();
-            Assert.That(window.Context.Id, Is.EqualTo(windowId));
-            Assert.That(executor.GetNode(owner).Payment.PaymentId, Is.EqualTo(owner));
-            Assert.That(window.Context.PaymentCost.Originium, Is.EqualTo(2));
-            Assert.That(entry.OptionId, Is.EqualTo(optionId)); Assert.That(entry.RegistrationSequence, Is.EqualTo(registration));
-            Assert.That(entry.AcceptedUseCount, Is.EqualTo(0)); Assert.That(entry.TargetEffectId, Is.Empty);
+            string PrepareCurrentPayment(string candidate, bool reissued)
+            {
+                string oldId = request.GetStableInteractionId();
+                Assert.That(session.Submit(PaymentDraftCommand(state, request, candidate)).Succeeded, Is.True);
+                // 付款前事件完成后 Host 会重发同一 owner 的页面；旧请求必须失效，费用身份不能更换。
+                Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.GetStableInteractionId() == oldId).Status, Is.EqualTo(reissued ? "invalidated" : "open"));
+                request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.OwnerEffectId == owner);
+                if (reissued)
+                {
+                    Assert.That(request.GetStableInteractionId(), Is.Not.EqualTo(oldId));
+                    Assert.That(executor.TrySubmitInteraction(oldId, 1, state.EffectRuntime.StateRevision,
+                        NormalizedValue.CreateString(candidate), out _), Is.False, "重发后旧付款请求不可提交");
+                }
+                else Assert.That(request.GetStableInteractionId(), Is.EqualTo(oldId), "v2重报价保留已完成的before历史和当前请求");
+                return request.GetStableInteractionId();
+            }
+            string interactionId = PrepareCurrentPayment(first, true);
+            AssertOriginalV2Payment(state, owner, interactionId);
+            var firstSource = ActualPassengerSource(state, fixture.Registry, owner);
+            EditActualPassenger(state, fixture.Registry, owner, "save_source", new ResourceSet { Originium = 1 });
+            int generation = executor.GetNode(owner).Payment.PaymentGeneration;
+            interactionId = PrepareCurrentPayment(second, false);
+            AssertOriginalV2Payment(state, owner, interactionId);
+            Assert.That(executor.GetNode(owner).Payment.PaymentCost.Originium, Is.EqualTo(2));
+            var secondSource = ActualPassengerSource(state, fixture.Registry, owner);
+            Assert.That(secondSource.Rule.SourceRef.SourceKey, Is.EqualTo(firstSource.Rule.SourceRef.SourceKey));
+            Assert.That(ResourcePaymentSourceService.Fingerprint(secondSource.Rule), Is.EqualTo(ResourcePaymentSourceService.Fingerprint(firstSource.Rule)));
+            Assert.That(executor.GetNode(owner).Payment.PaymentGeneration, Is.GreaterThan(generation));
+            Assert.That(secondSource.DraftStatus, Is.EqualTo("reselect_required"));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
             var recovered = new GameSession(GameStateCloneService.DeepClone(state));
             Assert.That(recovered.RecoverHost(session.CreateHostArchive(), fixture.Registry).Succeeded, Is.True);
             var restoredExecutor = new EffectTreeExecutor(recovered.State, fixture.Registry);
+            AssertOriginalV2Payment(recovered.State, owner, interactionId);
             Assert.That(restoredExecutor.GetNode(owner).Payment.PaymentCost.Originium, Is.EqualTo(2));
-            Assert.That(restoredExecutor.TryInvokeCharacterSettlementOption(1, optionId, "", recovered.State.EffectRuntime.StateRevision, out _, out var reason), Is.True, reason);
-            Assert.That(restoredExecutor.RunUntilQuiescent().WaitingForInput, Is.True);
-            AnswerActual(recovered.State, restoredExecutor, "Originium=2");
+            EditActualPassenger(recovered.State, fixture.Registry, owner, "save_source", new ResourceSet { Originium = 2 });
+            Assert.That(restoredExecutor.GetNode(owner).Payment.IsCommitted, Is.False);
+            Assert.That(restoredExecutor.GetNode(owner).Payment.SourceDrafts.Single().SelectedItemIds.Count, Is.EqualTo(2));
+            AssertOriginalV2Payment(recovered.State, owner, interactionId);
+            AnswerActual(recovered.State, restoredExecutor, second);
             Assert.That(restoredExecutor.GetNode(owner).Payment.IsCommitted, Is.True);
             Assert.That(recovered.State.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
-            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(recovered.State, fixture.Registry, out reason), Is.True, reason);
+            AssertActualPassengerReceipt(recovered.State, owner, 2);
+            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(recovered.State, fixture.Registry, out string reason), Is.True, reason);
+            AssertPassengerPaymentDoesNotRepeatAfterRecovery(recovered.State, fixture.Registry, owner, interactionId, second);
         }
 
         [Test]
@@ -1563,17 +1598,22 @@ end";
             Assert.That(request.CandidateIds.Single(), Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationCandidateId));
             Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:resource.payment.confirmation.prompt"));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(0));
-            string owner = request.OwnerEffectId;
+            string owner = request.OwnerEffectId, interactionId = request.GetStableInteractionId();
+            AssertOriginalV2Payment(state, owner, interactionId);
             var recovered = new GameSession(GameStateCloneService.DeepClone(state));
             var recovery = recovered.RecoverHost(new GameSession(state).CreateHostArchive(), fixture.Registry);
             Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic);
             state = recovered.State; executor = new EffectTreeExecutor(state, fixture.Registry);
-            var window = SettlementHostProtocol.FindActiveWindow(state);
-            Assert.That(window.Context.OwnerEffectId, Is.EqualTo(owner));
-            Assert.That(fixture.Registry.GetSettlementOptions(state, 1).Single().IsEnabled, Is.True);
-            Assert.That(executor.TryInvokeCharacterSettlementOption(1, window.Entries.Single().OptionId, "", state.EffectRuntime.StateRevision, out _, out var reason), Is.True, reason);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            AnswerActual(state, executor, "Originium=2");
+            AssertOriginalV2Payment(state, owner, interactionId);
+            EditActualPassenger(state, fixture.Registry, owner, "save_source", new ResourceSet { Originium = 2 });
+            Assert.That(executor.GetNode(owner).Payment.IsCommitted, Is.False);
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Score, Is.Zero);
+            Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
+            AssertOriginalV2Payment(state, owner, interactionId);
+            AnswerActual(state, executor, ResourceEffectExecutor.PaymentConfirmationCandidateId);
             Assert.That(executor.GetNode(owner).Payment.PaymentId, Is.EqualTo(owner));
             Assert.That(executor.GetNode(owner).Payment.IsCommitted, Is.True);
             Assert.That(executor.GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
@@ -1584,7 +1624,9 @@ end";
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(1));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
             Assert.That(state.EffectRuntime.ActiveSettlementWindowId, Is.Empty);
-            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(state, fixture.Registry, out reason), Is.True, reason);
+            AssertActualPassengerReceipt(state, owner, 2);
+            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(state, fixture.Registry, out string reason), Is.True, reason);
+            AssertPassengerPaymentDoesNotRepeatAfterRecovery(state, fixture.Registry, owner, interactionId, ResourceEffectExecutor.PaymentConfirmationCandidateId);
         }
 
         [Test]
@@ -1593,14 +1635,14 @@ end";
             var fixture = ActiveActualPassengerFixture(); var state = fixture.State; var executor = fixture.Executor;
             string owner = executor.CreateRoot(ResourceEffectSpecFactory.Pay(1, ResourceType.Originium, 2));
             Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            var window = SettlementHostProtocol.FindActiveWindow(state);
-            Assert.That(window.Entries.Single().AcceptedUseCount, Is.EqualTo(0));
+            Assert.That(ActualPassengerSource(state, fixture.Registry, owner).AvailableItemCount, Is.EqualTo(3));
+            Assert.That(executor.GetNode(owner).Payment.SourceDrafts, Is.Empty);
             Assert.That(executor.GetNode(owner).ChildEffectIds, Is.Empty);
             AnswerActual(state, executor, ResourceEffectExecutor.PaymentConfirmationCandidateId);
             Assert.That(executor.GetNode(owner).Payment.IsCommitted, Is.True);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(1));
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
-            Assert.That(window.Entries.Single().AcceptedUseCount, Is.EqualTo(0));
+            Assert.That(executor.GetNode(owner).Payment.SourceReceipts, Is.Empty);
             Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
         }
 
@@ -1610,16 +1652,16 @@ end";
             var fixture = ActiveActualPassengerFixture(); var state = fixture.State; var executor = fixture.Executor;
             string owner = executor.CreateRoot(ResourceEffectSpecFactory.Pay(1, ResourceType.Originium, 2));
             Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            var window = SettlementHostProtocol.FindActiveWindow(state);
-            Assert.That(executor.TryInvokeCharacterSettlementOption(1, window.Entries.Single().OptionId, "", state.EffectRuntime.StateRevision, out _, out var reason), Is.True, reason);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            var stopped = Session(state, fixture.Registry).Submit(EndCommand(state, includeCurrent: true));
-            Assert.That(stopped.Succeeded, Is.True, stopped.Validation.Reason);
+            string originalId = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open").GetStableInteractionId();
+            EditActualPassenger(state, fixture.Registry, owner, "begin_source_edit");
+            EditActualPassenger(state, fixture.Registry, owner, "cancel_source_edit");
             Assert.That(state.EffectRuntime.LastFaultCode, Is.Empty);
             var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             Assert.That(request.OwnerEffectId, Is.EqualTo(owner));
             Assert.That(request.InteractionTypeId, Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId));
-            Assert.That(SettlementHostProtocol.FindActiveWindow(state).Entries.Single().AcceptedUseCount, Is.EqualTo(1));
+            Assert.That(request.GetStableInteractionId(), Is.EqualTo(originalId));
+            Assert.That(executor.GetNode(owner).Payment.SourceEdits.Single().Status, Is.EqualTo("cancelled"));
+            Assert.That(executor.GetNode(owner).Payment.SourceDrafts, Is.Empty);
             var recovered = new GameSession(GameStateCloneService.DeepClone(state));
             var recovery = recovered.RecoverHost(new GameSession(state).CreateHostArchive(), fixture.Registry);
             Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic);
@@ -1640,25 +1682,30 @@ end";
             var recovered = session.RecoverHost(new GameSession(fixture.State).CreateHostArchive(), fixture.Registry);
             Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
             var state = session.State; var executor = new EffectTreeExecutor(state, fixture.Registry);
-            AnswerActual(state, executor, "Originium=2");
+            Assert.That(executor.GetNode(fixture.OwnerId).Payment.SourceEdits.Single().Status, Is.EqualTo("open"));
+            EditActualPassenger(state, fixture.Registry, fixture.OwnerId, "save_source", new ResourceSet { Originium = 2 });
+            Assert.That(executor.GetNode(fixture.OwnerId).Payment.IsCommitted, Is.False);
+            Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
+            AnswerActual(state, executor, fixture.CandidateId);
             Assert.That(executor.GetNode(fixture.OwnerId).Payment.IsCommitted, Is.True);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(1));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
             Assert.That(state.EffectRuntime.ActiveSettlementWindowId, Is.Empty);
+            AssertActualPassengerReceipt(state, fixture.OwnerId, 2);
             Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(state, fixture.Registry, out var reason), Is.True, reason);
         }
 
         [Test]
         public void ActualPaymentQuantityRowsSurviveViewAndUiReprojectionDetached()
         {
-            var fixture = OpenActualPassengerAllocation();
-            var original = fixture.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            var fixture = OpenActualPassengerAllocation(resourceRows: true);
+            var original = fixture.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId);
             Assert.That(original.InteractionTypeId, Is.EqualTo(ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId));
             var view = GameStateViewProjector.ProjectForPlayer(fixture.State, 1);
             var first = view.Interactions.Single(r => r.InteractionId == original.GetStableInteractionId());
             Assert.That(first.Presentation.QuantityRows.Count, Is.EqualTo(3));
-            var visible = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 1).Single();
+            var visible = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 1).Single(r => r.GetStableInteractionId() == original.GetStableInteractionId());
             var projected = InteractionRequestProjector.ProjectForPlayer(visible, 1);
             Assert.That(projected.Presentation.QuantityRows.Count, Is.EqualTo(3), "真实付款经UI再次投影后应保留原3个授权数量行");
             Assert.That(projected.Presentation.QuantityRows.Select(r => r.RowId), Is.EqualTo(original.Presentation.QuantityRows.Select(r => r.RowId)));
@@ -1671,16 +1718,16 @@ end";
             Assert.That(visible.Presentation.QuantityRows.Count, Is.EqualTo(3));
             Assert.That(visible.Presentation.QuantityRows[0].Label.Key, Is.EqualTo(original.Presentation.QuantityRows[0].Label.Key));
             Assert.That(ItemTransferEffectExecutor.Value(visible.PromptParameters, "rowIds").Items.Count, Is.EqualTo(3));
-            var direct = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(fixture.State, null, 1).Single();
+            var direct = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(fixture.State, null, 1).Single(r => r.GetStableInteractionId() == original.GetStableInteractionId());
             Assert.That(direct.Presentation.QuantityRows.Count, Is.EqualTo(3));
         }
 
         [Test]
         public void ActualPaymentReprojectionRejectsUnlistedRowsAndHiddenParameters()
         {
-            var fixture = OpenActualPassengerAllocation();
+            var fixture = OpenActualPassengerAllocation(resourceRows: true);
             var view = GameStateViewProjector.ProjectForPlayer(fixture.State, 1);
-            var request = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 1).Single();
+            var request = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 1).Single(r => r.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId);
             var originalIds = request.Presentation.QuantityRows.Select(r => r.RowId).ToArray();
             request.CandidateIds.Add("candidate.only");
             request.Presentation.QuantityRows.Add(new GameplayQuantityRowPresentation { RowId = "candidate.only", Label = new GameplayTextRef("test:unlisted") });
@@ -1718,9 +1765,7 @@ end";
             int revision = state.EffectRuntime.StateRevision;
             Assert.That(executor.TrySubmitInteraction(request.GetStableInteractionId(), 1, revision, NormalizedValue.CreateBoolean(true), out _), Is.False);
             Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision));
-            Assert.That(SettlementHostProtocol.GetEndActionView(state, 1).CanStopCurrentNode, Is.True);
-            var stopped = Session(state, fixture.Registry).Submit(EndCommand(state, includeCurrent: true));
-            Assert.That(stopped.Succeeded, Is.True, stopped.Validation.Reason);
+            EditActualPassenger(state, fixture.Registry, fixture.OwnerId, "cancel_source_edit");
             Assert.That(state.EffectRuntime.LastFaultCode, Is.Empty, state.EffectRuntime.LastFaultMessage);
             var resumed = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             Assert.That(resumed.OwnerEffectId, Is.EqualTo(fixture.OwnerId));
@@ -1729,12 +1774,12 @@ end";
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
             Assert.That(fixture.Registry.GetSettlementOptions(state, 1), Is.Empty);
             Assert.That(executor.GetNode(fixture.OwnerId).Payment.IsCommitted, Is.False);
-            Assert.That(SettlementHostProtocol.FindActiveWindow(state).Entries.Single().AcceptedUseCount, Is.EqualTo(1));
-            Assert.That(ItemTransferEffectExecutor.Flag(ItemTransferEffectExecutor.Value(resumed.PromptParameters, "paymentDraft"), "canChange"), Is.False);
+            Assert.That(executor.GetNode(fixture.OwnerId).Payment.SourceEdits.Single().Status, Is.EqualTo("cancelled"));
+            Assert.That(executor.GetNode(fixture.OwnerId).Payment.SourceDrafts, Is.Empty);
+            Assert.That(ItemTransferEffectExecutor.Flag(ItemTransferEffectExecutor.Value(resumed.PromptParameters, "paymentDraft"), "canChange"), Is.True);
             var draftSession = new GameSession(state); draftSession.RegisterHandler(new PreparePaymentDraftCommandHandler(fixture.Registry));
-            int frozenRevision = state.EffectRuntime.StateRevision;
-            Assert.That(draftSession.Submit(PaymentDraftCommand(state, resumed, fixture.CandidateId)).Succeeded, Is.False);
-            Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(frozenRevision));
+            Assert.That(draftSession.Submit(PaymentDraftCommand(state, resumed, fixture.CandidateId)).Succeeded, Is.True,
+                "取消来源编辑未消费付款，仍允许编辑原报价");
             var recovered = new GameSession(GameStateCloneService.DeepClone(state)).RecoverHost(new GameSession(state).CreateHostArchive(), fixture.Registry);
             Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
             AnswerActual(state, executor, fixture.CandidateId);

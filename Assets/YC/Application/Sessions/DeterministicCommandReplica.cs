@@ -257,6 +257,32 @@ namespace YC.Application.Sessions
         public CommandValidationPrefixDto CreateValidationPrefix(long afterSequence = 0)
             => CreateValidationPrefix(afterSequence, LastAppliedSequence);
 
+        // 仅同执行owner的已许可窗口通道调用。规则已经通过原Submit执行一次，本方法只登记原收据。
+        internal OperationCommandReplicaResult RecordWindowExecution(OrderedOperationCommandDto command, CommandResult result)
+        {
+            lock (gate)
+            {
+                if (stopped || applying || command == null || result?.Succeeded != true) return Stop(command, "local_window_record_invalid", "窗口收据不完整。", result);
+                var owned = OperationCommandCanonicalizer.SnapshotOrdered(command);
+                if (owned.GameId != gameId || owned.SimulationEpoch != epoch || owned.MembershipVersion != membership ||
+                    owned.OrderedCommandDigest != OperationCommandCanonicalizer.CanonicalOrderedCommandDigest(owned) ||
+                    owned.GlobalCommandSequence != lastApplied + 1 || !windows.TryGetValue(owned.OperationWindowId, out var window) ||
+                    owned.WindowGeneration != window.Facts.WindowGeneration || !window.Facts.AuthorizedPlayerIds.Contains(owned.Command.PlayerId) ||
+                    owned.WindowCommandSequence != window.Sequence + 1 || owned.ClientSubmissionSequence != (nextSubmission.TryGetValue(owned.Command.PlayerId, out var n) ? n : 1) ||
+                    commandIds.ContainsKey(owned.Command.CommandId) || applied.Count + confirmedReceipts.Count >= historyCapacity)
+                    return Stop(owned, "local_window_receipt_conflict", "已执行窗口命令的身份或连续账本冲突，保留首现场。", result);
+                var outcome = new OperationCommandOutcomeDto { CommandId = owned.Command.CommandId, PlayerId = owned.Command.PlayerId,
+                    GlobalCommandSequence = owned.GlobalCommandSequence, OperationWindowId = owned.OperationWindowId, WindowCommandSequence = owned.WindowCommandSequence,
+                    Succeeded = true, ErrorCode = result.Validation.ErrorCode, Reason = result.Validation.Reason, StateRevision = session.State.EffectRuntime.StateRevision };
+                prefix = OperationCommandCanonicalizer.CanonicalLogPrefixDigest(prefix, owned);
+                applied.Add(owned.GlobalCommandSequence, new AppliedRecord { Command = owned, Result = result, Outcome = outcome, Prefix = prefix });
+                commandIds.Add(owned.Command.CommandId, owned.GlobalCommandSequence); nextSubmission[owned.Command.PlayerId] = owned.ClientSubmissionSequence + 1;
+                window.Prefix = OperationCommandCanonicalizer.CanonicalLogPrefixDigest(window.Prefix, owned); window.Sequence = owned.WindowCommandSequence;
+                lastApplied = owned.GlobalCommandSequence;
+                var reply = Reply(OperationReplicaStatus.Applied, "", "", result); reply.Outcomes.Add(OperationCommandCanonicalizer.SnapshotOutcome(outcome)); return reply;
+            }
+        }
+
         public CommandValidationPrefixDto CreateValidationPrefix(long afterSequence, long throughSequence)
         {
             lock (gate)

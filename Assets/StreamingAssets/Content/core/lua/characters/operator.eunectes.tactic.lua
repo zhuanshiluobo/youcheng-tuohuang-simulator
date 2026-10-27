@@ -40,7 +40,7 @@ local function next_card(ctx,c)
     for _, item in ipairs(Global.Content.FindInstances({typeId='core.facility_card'})) do
         local z=Global.Content.FindZones({id=item.zoneId})[1]
         local definition=Global.Content.GetDefinition(item.definitionId)
-        if z ~= nil and z.templateId=='core.zone.facility_supply_slot' and not has(c.names,definition.name) then
+        if z ~= nil and z.templateId=='core.zone.facility_supply_slot' and z.topItemId==item.id and not has(c.names,definition.name) then
             ids[#ids+1]=item.id;labels[item.id]=Text.Ref('core:interaction.entity.item',{entity=Text.Item(item.id)})
         end
     end
@@ -54,8 +54,12 @@ return function(ctx)
         return next_card(ctx,c)
     elseif c.stage=='selected' then
         local id=ctx.payload.normalizedResult;if id==nil then return finish(ctx) end
-        local item=Global.Content.GetInstance(id);if item==nil then error('facility_source_changed') end
-        c.names[#c.names+1]=Global.Content.GetDefinition(item.definitionId).name;c.supply=item.zoneId
+        local item=Global.Content.GetInstance(id)
+        local supply=item and Global.Content.FindZones({id=item.zoneId})[1]
+        local definition=item and Global.Content.GetDefinition(item.definitionId)
+        if item==nil or item.typeId~='core.facility_card' or supply==nil or supply.templateId~='core.zone.facility_supply_slot'
+            or supply.topItemId~=id or definition==nil or has(c.names,definition.name) then error('facility_source_changed') end
+        c.names[#c.names+1]=definition.name;c.supply=item.zoneId
         return {tag(Effect.MoveItem({apiVersion=1,player=ctx.playerId,itemRefs={{itemId=id}},expectedSource={zoneId=item.zoneId},
             destination={zoneId=c.destination},insertion={kind='unordered'},operationProfileId='core.facility_card_transfer',requiredCount=1}),c,'moved')}
     elseif c.stage=='moved' then

@@ -23,14 +23,19 @@ namespace YC.Tests.EditMode.ExpansionRules
     public sealed class CollectionMainlineSchedulingTests
     {
         private const string StartResponseType = "test.collection.started_response";
+        private IsolatedTestArtifacts artifacts;
+        private ExternalContentPack pack;
 
-        [OneTimeSetUp]
+        [SetUp]
         public void LoadDefinitions()
         {
+            artifacts = IsolatedTestArtifacts.BeginCase();
+            string root = artifacts.CopyContent(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"), "009主链独占内容");
+            pack = ExternalContentPack.Load(root); artifacts.RecordContent("009主链实际内容", root, pack.ContentHash);
             if (!CharacterCardDatabase.IsInitialized)
-                CharacterCardDatabase.Initialize(ExternalContentPack.Load(Path.Combine(
-                    Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core")).CreateCharacters());
+                CharacterCardDatabase.Initialize(pack.CreateCharacters());
         }
+        [TearDown] public void FinishEvidence() => artifacts?.Finish();
 
         [Test]
         public void NormalCollection_MainlineOpensAllPlayersAndAcceptsNonFirstPlayerBeforeFirst()
@@ -218,14 +223,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
         }
 
-        private static GameState EnterCollection(EffectRegistry registry, out RoundExecutionService round)
+        private GameState EnterCollection(EffectRegistry registry, out RoundExecutionService round)
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
             var source = new GameState
             {
-                GameId = "collection-mainline-order", MapId = map.MapId, ContentPackHash = "collection-mainline-content",
+                GameId = "collection-mainline-order", MapId = map.MapId, ContentPackHash = pack.ContentHash,
                 Phase = GamePhase.Setup, Round = 1, MaxRounds = 8, StartPlayerId = 1,
-                RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 3, ContentPackHash = "collection-mainline-content" },
+                RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 3, ContentPackHash = pack.ContentHash },
+                // 最小机械夹具冻结本case实际角色定义；未声明额外纯查询来源。
+                ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList() },
                 Players = Enumerable.Range(1, 3).Select(id => new PlayerState
                 {
                     PlayerId = id, Color = (PlayerColor)(id - 1), Resources = new ResourceSet { GoldVoucher = 20 }
@@ -235,7 +242,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "player_markers" }
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" }
             });
             var locations = new[] { "A-01", "B-01", "C-01" };
             for (var id = 1; id <= 3; id++)
@@ -278,16 +285,28 @@ namespace YC.Tests.EditMode.ExpansionRules
             .Where(r => r.Status == "open" && r.InteractionTypeId == "route_resource.selection").ToArray();
         private static string Scope(InteractionRequest request) => request.PromptParameters.Properties.Single(p => p.Name == "scopeKey").Value.StringValue;
         private static long Long(NormalizedValue value, string field) => value.Properties.Single(p => p.Name == field).Value.IntegerValue;
-        private static GameState Restore(GameState state, EffectRegistry registry, bool omitSchedulingGroups = false)
+        private GameState Restore(GameState state, EffectRegistry registry, bool omitSchedulingGroups = false)
         {
+            if (!omitSchedulingGroups)
+            {
+                var actual = artifacts.Recover(state, "009主链采集真实恢复", registry);
+                Assert.That(actual.Succeeded, Is.True, actual.Diagnostic); return actual.State;
+            }
             var json = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
             if (omitSchedulingGroups)
             {
                 var archive = JObject.Parse(json);
-                foreach (var value in archive.Descendants().OfType<JObject>()) value.Remove("ChildSchedulingGroups");
+                var collectionOwners = state.EffectRuntime.MainNodes.Where(n => n.NodeTypeId == RoundMainlineNodeTypeIds.Collection)
+                    .Select(n => n.ExecutionEffectId).ToArray();
+                // 只探测历史采集布局，不能剥除已完成的新角色覆盖阶段必需组。
+                foreach (var value in archive.Descendants().OfType<JObject>().Where(n =>
+                    (string)n["EffectTypeId"] == RoundExecutionService.MainlineEffectTypeId && collectionOwners.Contains((string)n["EffectId"])))
+                    value.Remove("ChildSchedulingGroups");
                 json = archive.ToString();
             }
+            artifacts.WriteLabeledText("旧调度组字段缺省原始归档", json);
             var restored = HostRecoveryService.RecoverJson(json, registry);
+            artifacts.WriteLabeledText("旧调度组字段缺省恢复结果", JsonConvert.SerializeObject(new { restored.Succeeded, restored.Diagnostic, restored.State }));
             Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
             return restored.State;
         }

@@ -1,0 +1,523 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.ability.M13",
+  "contentType": "entrepreneur_ability",
+  "version": "1.2.2",
+  "displayName": "马丁·费舍尔",
+  "artwork": "artwork/entrepreneurs/M13.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.ability_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.M13.built",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.built",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M13.overlay.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M13.blueprint_source",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.blueprint_source",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M13.blueprint.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M13.tower_source",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.tower_source",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.additional_core_tower.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M13.overlay_slots",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.overlay_slots",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M13.overlay.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M13.overlay_response",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.overlay_response",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.overlay.remove",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M13.urbanization_after",
+      "mode": "normal",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M13.urbanization_after",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M13.urbanization_after.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M13.urbanization.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.built",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.M13.built",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "built_facilities.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M13.built",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.blueprint_source",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.M13.blueprint_source",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "facility.build.sources.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M13.blueprint_source",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.tower_source",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.M13.tower_source",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "facility.build.sources.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M13.tower_source",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.overlay_slots",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.M13.overlay_slots",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "facility.build.slot.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M13.overlay_slots",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.overlay_response",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.M13.overlay_response",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.M13.overlay_response",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M13.urbanization_after",
+      "kind": "event",
+      "handlerRef": "entrepreneur.M13.urbanization_after",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "EffectCompleted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "execution.bind"
+      ],
+      "presentationRef": "entrepreneur.M13.urbanization_after",
+      "actions": [],
+      "completedEffectTypes": [
+        "effect.facility.build"
+      ],
+      "completionPolicy": "succeeded"
+    }
+  ],
+  "data": {
+    "sourceId": "M13",
+    "entrepreneur": {
+      "definitionId": "entrepreneur.ability.M13",
+      "version": "1.2.1",
+      "sourceId": "M13",
+      "displayName": "马丁·费舍尔",
+      "artwork": "artwork/entrepreneurs/M13.jpg",
+      "setupHandlerRefs": [],
+      "roundGroups": [
+        {
+          "groupId": "entrepreneur.group.M.1",
+          "roundNumber": 1,
+          "previewCandidateId": "entrepreneur.candidate.M05",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.M05",
+              "entityDefinitionId": "entrepreneur.round.M.1",
+              "faceId": "M05",
+              "sourceId": "M05",
+              "artwork": "artwork/entrepreneurs/M05.jpg",
+              "artworkSha256": "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.M05"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.M06",
+              "entityDefinitionId": "entrepreneur.round.M.1",
+              "faceId": "M06",
+              "sourceId": "M06",
+              "artwork": "artwork/entrepreneurs/M06.jpg",
+              "artworkSha256": "e4e99e5d668c71fc2166633b871963c75452885b2acbc39ba0e937b524d7f823",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.M06"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.M.3",
+          "roundNumber": 3,
+          "previewCandidateId": "entrepreneur.candidate.M07",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.M07",
+              "entityDefinitionId": "entrepreneur.round.M.3",
+              "faceId": "M07",
+              "sourceId": "M07",
+              "artwork": "artwork/entrepreneurs/M07.jpg",
+              "artworkSha256": "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.M07"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.M07.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.M08",
+              "entityDefinitionId": "entrepreneur.round.M.3",
+              "faceId": "M08",
+              "sourceId": "M08",
+              "artwork": "artwork/entrepreneurs/M08.jpg",
+              "artworkSha256": "0b8187c72f75e5e0e2fe20d067b245cda1e33191967f1ec6083a3209add76f40",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.M08"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.M08.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.M.5",
+          "roundNumber": 5,
+          "previewCandidateId": "entrepreneur.candidate.M09",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.M09",
+              "entityDefinitionId": "entrepreneur.round.M.5",
+              "faceId": "M09",
+              "sourceId": "M09",
+              "artwork": "artwork/entrepreneurs/M09.jpg",
+              "artworkSha256": "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.M09"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.M09.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.M10",
+              "entityDefinitionId": "entrepreneur.round.M.5",
+              "faceId": "M10",
+              "sourceId": "M10",
+              "artwork": "artwork/entrepreneurs/M10.jpg",
+              "artworkSha256": "8a0e2b33dfa68ac5f568b25de191f74fe2b347f8cff439ff45f8ec205d3fb7ac",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.M10"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.M10.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.M.7",
+          "roundNumber": 7,
+          "previewCandidateId": "entrepreneur.candidate.M11",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.M11",
+              "entityDefinitionId": "entrepreneur.round.M.7",
+              "faceId": "M11",
+              "sourceId": "M11",
+              "artwork": "artwork/entrepreneurs/M11.jpg",
+              "artworkSha256": "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.M11"
+              ],
+              "immediateHandlerRefs": []
+            },
+            {
+              "candidateId": "entrepreneur.candidate.M12",
+              "entityDefinitionId": "entrepreneur.round.M.7",
+              "faceId": "M12",
+              "sourceId": "M12",
+              "artwork": "artwork/entrepreneurs/M12.jpg",
+              "artworkSha256": "9f077308f8bea63d7ab711999be01b826b9c3eed724f7c617e1b6db722a7baeb",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.M12"
+              ],
+              "immediateHandlerRefs": []
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "entryId": "entrepreneur.blueprint.blue",
+          "definitionId": "entrepreneur.facility.M02",
+          "typeId": "core.facility_card",
+          "quantity": 3,
+          "destinationRole": "ability_card",
+          "carrierLocalZoneId": "blueprints",
+          "sourceRole": "reserve"
+        },
+        {
+          "entryId": "entrepreneur.blueprint.red",
+          "definitionId": "entrepreneur.facility.M03",
+          "typeId": "core.facility_card",
+          "quantity": 3,
+          "destinationRole": "ability_card",
+          "carrierLocalZoneId": "blueprints",
+          "sourceRole": "reserve"
+        },
+        {
+          "entryId": "entrepreneur.blueprint.yellow",
+          "definitionId": "entrepreneur.facility.M04",
+          "typeId": "core.facility_card",
+          "quantity": 3,
+          "destinationRole": "ability_card",
+          "carrierLocalZoneId": "blueprints",
+          "sourceRole": "reserve"
+        },
+        {
+          "entryId": "entrepreneur.additional_tower",
+          "definitionId": "entrepreneur.facility.additional_core_tower",
+          "typeId": "core.facility_card",
+          "quantity": 1,
+          "destinationRole": "supply",
+          "carrierLocalZoneId": "",
+          "sourceRole": "reserve"
+        }
+      ]
+    },
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.M13.blueprint_source",
+        "displayName": "建设图纸",
+        "activation": "Held",
+        "displayCategory": "StorageArea",
+        "storageLocalZoneIds": [
+          "blueprints"
+        ],
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M13.blueprint.description",
+          "arguments": []
+        }
+      },
+      {
+        "abilityId": "entrepreneur.M13.overlay_slots",
+        "displayName": "马丁·费舍尔",
+        "activation": "Held",
+        "displayCategory": "PlayerEffect",
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M13.overlay.description",
+          "arguments": []
+        }
+      },
+      {
+        "abilityId": "entrepreneur.M13.urbanization_after",
+        "displayName": "马丁·费舍尔",
+        "activation": "Held",
+        "displayCategory": "PlayerEffect",
+        "effectTextRef": {
+          "key": "core:entrepreneur.M.M13.urbanization.description",
+          "arguments": []
+        }
+      }
+    ]
+  },
+  "cardZones": [
+    {
+      "localZoneId": "blueprints",
+      "zoneTemplateId": "core.zone.card_facility_storage",
+      "acceptedItemKinds": [
+        "Card"
+      ],
+      "acceptedTypeIds": [
+        "core.facility_card"
+      ],
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "carrierExitPolicyId": "core.preserve_contents",
+      "slots": []
+    }
+  ],
+  "presentation": {
+    "description": {
+      "key": "core:entrepreneur.M.M13.description",
+      "arguments": []
+    }
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.M13.built",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.M13.blueprint_source",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.M13.tower_source",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.M13.overlay_slots",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.M13.overlay_response",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.M13.urbanization_after",
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M13.urbanization_after.completed"
+    }
+  ]
+}

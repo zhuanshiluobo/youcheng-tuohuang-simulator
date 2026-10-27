@@ -24,6 +24,7 @@ namespace YC.Presentation
         [SerializeField] private RectTransform[] opponentDetailContents;
         [SerializeField] private GameObject[] opponentDetailEmptyHints;
         [SerializeField] private RectTransform[] opponentSeats;
+        [SerializeField] private GameObject[] opponentSeatGaps;
         [SerializeField] private Button[] opponentPortraits;
         [SerializeField] private Text cityTitle;
         [SerializeField] private GameObject viewedCityReturnHint;
@@ -213,6 +214,8 @@ namespace YC.Presentation
                 opponentDetailContents == null || opponentDetailContents.Length != 3 ||
                 opponentDetailEmptyHints == null || opponentDetailEmptyHints.Length != 3 ||
                 opponentSeats == null || opponentSeats.Length != 3 ||
+                opponentSeatGaps == null || opponentSeatGaps.Length != 2 ||
+                Array.Exists(opponentSeatGaps, gap => gap == null) ||
                 opponentPortraits == null || opponentPortraits.Length != 3 || Array.Exists(opponentPortraits, button => button == null) ||
                 cityTitle == null || viewedCityReturnHint == null || cityInspectionInput == null ||
                 cityRegion == null || cityBoardArtwork == null || playerCityLayout == null ||
@@ -311,7 +314,10 @@ namespace YC.Presentation
                 opponentIds[i] = -1;
                 detailCounts[i] = 0;
                 opponentData[i].SetActive(false);
+                opponentSeats[i].gameObject.SetActive(false);
             }
+            for (var i = 0; i < opponentSeatGaps.Length; i++)
+                opponentSeatGaps[i].SetActive(i < nextOpponent - 1);
             var localScore = 0;
             var hasLocalSupply = false;
             if (visible != null && visible.Players != null)
@@ -362,6 +368,7 @@ namespace YC.Presentation
                 detailCounts[slot] = 0;
             }
             opponentIds[slot] = playerId;
+            opponentSeats[slot].gameObject.SetActive(true);
             opponentData[slot].SetActive(true);
             opponentName[slot].text = string.IsNullOrEmpty(name)
                 ? string.Format(unnamedPlayerFormat, playerId) : name;

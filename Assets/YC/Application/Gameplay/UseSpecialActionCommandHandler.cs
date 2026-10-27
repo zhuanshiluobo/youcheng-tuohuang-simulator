@@ -82,6 +82,7 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleEffectTreeBegin(GameState state, GameCommand command)
         {
+            if (effectRegistry.HasAbilityCatalog) return Invalid(CommandErrorCode.InvalidTarget, "特殊行动入口已迁移，请使用最新宿主候选。" );
             string specialActionId = GetParameter(command, SpecialActionIdParameter);
             if (string.IsNullOrEmpty(specialActionId)) specialActionId = command.TargetId;
             string markerId = GetParameter(command, DeclarationMarkerIdParameter);

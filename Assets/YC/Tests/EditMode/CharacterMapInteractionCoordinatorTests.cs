@@ -15,41 +15,6 @@ namespace YC.Tests.EditMode
     public sealed class CharacterMapInteractionCoordinatorTests
     {
         [Test]
-        public void LiskarmCleanup_HighlightsOnlyLegalInfluenceAndSubmitsAfterMapClick()
-        {
-            var state = CreateState(CharacterCardDatabase.Liskarm, GamePhase.Cleanup);
-            var slotId = InfluenceService.GetRouteSlotId("A1", 0);
-            state.Map.Influences.Add(InfluenceAt(1, slotId, "A1"));
-            state.PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = CharacterPendingChoiceTypes.LiskarmCleanupRemoval,
-                PlayerId = 1,
-                CardId = state.FindPlayer(1).CoveredCharacterCardId,
-                OptionIds = { slotId }
-            };
-
-            IReadOnlyList<WorkflowHighlight> highlights = null;
-            IReadOnlyDictionary<string, string> submitted = null;
-            var prompt = string.Empty;
-            var coordinator = CreateCoordinator(
-                state,
-                values => submitted = values,
-                (mode, values) => { },
-                values => highlights = values,
-                value => prompt = value);
-
-            Assert.That(coordinator.Synchronize(), Is.True);
-            Assert.That(highlights, Has.Count.EqualTo(1));
-            Assert.That(highlights[0].TargetId, Is.EqualTo(slotId));
-            Assert.That(prompt, Does.Contain("雷蛇").And.Contain("完成后才能结束本回合"));
-
-            coordinator.TryHandleInfluenceSlotClicked("route:invalid:0");
-            Assert.That(submitted, Is.Null);
-            coordinator.TryHandleInfluenceSlotClicked(slotId);
-            Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(slotId));
-        }
-
-        [Test]
         public void LiskarmStrategy_SelectsTwoDistinctPlacementSlotsOnMapBeforeSubmitting()
         {
             var state = CreateState(CharacterCardDatabase.Liskarm, GamePhase.ActionRound1);
@@ -104,45 +69,6 @@ namespace YC.Tests.EditMode
             Assert.That(highlights.Select(item => item.TargetId).ToArray(), Is.EqualTo(new[] { opponentSlot }));
             coordinator.TryHandleInfluenceSlotClicked(opponentSlot);
             Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(opponentSlot));
-        }
-
-        [Test]
-        public void TinManPendingMove_SelectsSourceThenTargetOnMap()
-        {
-            var state = CreateState(CharacterCardDatabase.TinMan, GamePhase.ActionRound1);
-            var source = InfluenceService.GetRouteSlotId("A1", 0);
-            state.Map.Influences.Add(InfluenceAt(1, source, "A1"));
-            state.PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = CharacterPendingChoiceTypes.TinManDiscard,
-                PlayerId = 1,
-                CardId = state.FindPlayer(1).CoveredCharacterCardId,
-                SourceCommandId = "tin-man-source-command",
-                RemainingCardIds = { "discard-a" },
-                OptionIds = { CharacterEffectChoiceIds.GainGold, CharacterEffectChoiceIds.MoveInfluence }
-            };
-            IReadOnlyList<WorkflowHighlight> highlights = null;
-            IReadOnlyDictionary<string, string> submitted = null;
-            var coordinator = CreateCoordinator(
-                state,
-                values => submitted = values,
-                (mode, values) => { },
-                values => highlights = values,
-                value => { });
-
-            Assert.That(coordinator.TryBeginTinManPendingMove(), Is.True);
-            Assert.That(highlights.Select(item => item.TargetId).ToArray(), Does.Contain(source));
-            coordinator.TryHandleInfluenceSlotClicked(source);
-            var target = highlights[0].TargetId;
-            Assert.That(target, Is.Not.EqualTo(source));
-            coordinator.TryHandleInfluenceSlotClicked(target);
-
-            Assert.That(submitted[CharacterEffectParameterKeys.Choice], Is.EqualTo(CharacterEffectChoiceIds.MoveInfluence));
-            Assert.That(submitted[CharacterEffectParameterKeys.SourceInfluenceSlotId], Is.EqualTo(source));
-            Assert.That(submitted[CharacterEffectParameterKeys.TargetInfluenceSlotId], Is.EqualTo(target));
-            Assert.That(
-                submitted[CharacterEffectParameterKeys.PendingCharacterEffectSourceCommandId],
-                Is.EqualTo("tin-man-source-command"));
         }
 
         private static CharacterMapInteractionCoordinator CreateCoordinator(

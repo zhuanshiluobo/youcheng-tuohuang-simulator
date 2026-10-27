@@ -1,0 +1,317 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.M.5",
+  "contentType": "entrepreneur_round",
+  "version": "1.2.2",
+  "displayName": "马丁·费舍尔·第5回合",
+  "artwork": "artwork/entrepreneurs/M09.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.M09",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M09.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M09.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.action.M09.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M09.setup",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M09.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M09.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M09.immediate.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.M10",
+      "mode": "special",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.M10.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M10.body.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.action.M10.description",
+          "arguments": []
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.M10.setup",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.M10.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M10.immediate.1.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.M.M10.immediate.description",
+          "arguments": []
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M09",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.face.M09.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M09",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M09",
+      "actions": [
+        {
+          "actionId": "entrepreneur.face.M09.action",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.face.M09.body",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.M.5",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 509,
+          "presentationRef": "entrepreneur.face.M09",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.M.action.M09.name",
+              "arguments": []
+            },
+            "description": {
+              "key": "core:entrepreneur.M.action.M09.description",
+              "arguments": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M09.setup",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.M09.immediate.1",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M09",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "reward.grant:entrepreneur.award.M01:core.award_card:1:other:core.zone.player_rewards"
+      ],
+      "presentationRef": "entrepreneur.M09.setup",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.M10",
+      "kind": "special",
+      "handlerRef": "entrepreneur.face.M10.body",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M10",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.M10",
+      "actions": [
+        {
+          "actionId": "entrepreneur.face.M10.action",
+          "entryKind": "special",
+          "bodyHandlerRef": "entrepreneur.face.M10.body",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.M.5",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 510,
+          "presentationRef": "entrepreneur.face.M10",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.M.action.M10.name",
+              "arguments": []
+            },
+            "description": {
+              "key": "core:entrepreneur.M.action.M10.description",
+              "arguments": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.M10.setup",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.M10.immediate.1",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "M10",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "reward.grant:entrepreneur.award.M01:core.award_card:1:other:core.zone.player_rewards"
+      ],
+      "presentationRef": "entrepreneur.M10.setup",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "M09",
+      "M10"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.M09",
+        "entityDefinitionId": "entrepreneur.round.M.5",
+        "faceId": "M09",
+        "sourceId": "M09",
+        "artwork": "artwork/entrepreneurs/M09.jpg",
+        "artworkSha256": "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.M09"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.M09.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.M10",
+        "entityDefinitionId": "entrepreneur.round.M.5",
+        "faceId": "M10",
+        "sourceId": "M10",
+        "artwork": "artwork/entrepreneurs/M10.jpg",
+        "artworkSha256": "8a0e2b33dfa68ac5f568b25de191f74fe2b347f8cff439ff45f8ec205d3fb7ac",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.M10"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.M10.immediate.1"
+        ]
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.M09.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M09.body.completed"
+    },
+    {
+      "handlerId": "entrepreneur.M09.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M09.immediate.1.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.M10.body",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.face.M10.body.completed"
+    },
+    {
+      "handlerId": "entrepreneur.M10.immediate.1",
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "version": "1.2.2",
+      "completionHandlerId": "entrepreneur.M10.immediate.1.completed"
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.entrepreneur.M.5",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
+}

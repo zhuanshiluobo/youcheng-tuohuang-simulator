@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using YC.Domain.Presentation;
 
 namespace YC.Presentation
 {
@@ -35,11 +37,17 @@ namespace YC.Presentation
             get { return shell.IsShowing; }
         }
 
+        internal string DescribeTotalPayment(int totalCount, IEnumerable<string> allowedLabels) =>
+            string.Format(layoutProfile.PaymentTotalDescriptionFormat, totalCount,
+                string.Join(layoutProfile.PaymentResourceSeparator, allowedLabels));
+
         public void ShowPaymentDraft(string description, IReadOnlyList<string> labels,
             IReadOnlyList<int> maximums, IReadOnlyList<int> initialValues,
             Action<IReadOnlyList<int>> draftChanged, Action<bool> validityChanged,
             Func<bool> isCurrent, Func<bool> canConfirm, Func<bool> canEdit, Func<IReadOnlyList<int>, bool> isValid,
-            Action<IReadOnlyList<int>> confirm, Action cancel)
+            Action<IReadOnlyList<int>> confirm, Action cancel, string paymentInteractionId = null,
+            GameplayTextDocument promptDocument = null, Action<Component, GameplayTextDocument, bool> renderText = null,
+            IReadOnlyList<bool> visibleRows = null, int exactTotal = -1)
         {
             var panel = shell.PreparePage(getCanvas(), "Special Action Choice Overlay",
                 "Special Action Choice Panel", layoutProfile.SpecialActionPaymentPanelSize,
@@ -47,11 +55,19 @@ namespace YC.Presentation
             if (panel == null) return;
             shell.AddResourceAllocation(panel, new ResourceAllocationSpec
             {
-                Title = layoutProfile.ResourceAllocationTitle, Description = description,
-                Labels = labels, Maximums = maximums, InitialValues = initialValues,
+                InteractionId = paymentInteractionId,
+                PromptDocument = promptDocument, RenderText = renderText,
+                Title = layoutProfile.PaymentAllocationTitle, Description = description,
+                Labels = labels, Maximums = maximums, InitialValues = initialValues, VisibleRows = visibleRows,
+                ExactTotal = exactTotal,
                 DraftChanged = draftChanged, DraftValidityChanged = validityChanged,
                 IsCurrent = isCurrent, CanConfirm = canConfirm, CanEdit = canEdit, IsValidAllocation = isValid,
                 ShowInventoryPreview = false,
+                SummaryName = "Payment Allocation Summary",
+                FormatSummary = values => string.Format(layoutProfile.PaymentAllocationSummaryFormat,
+                    string.Join(layoutProfile.PaymentResourceSeparator, labels.Select((label, index) => new { label, index })
+                        .Where(row => visibleRows == null || visibleRows[row.index])
+                        .Select(row => string.Format(layoutProfile.PaymentResourceAmountFormat, row.label, values[row.index])))),
                 LabelWidth = layoutProfile.ResourceLabelWidth, LabelHeight = layoutProfile.ResourceLabelHeight,
                 LabelX = layoutProfile.ResourceLabelX, DecreaseX = layoutProfile.ResourceDecreaseX,
                 ValueX = layoutProfile.ResourceValueX, IncreaseX = layoutProfile.ResourceIncreaseX,

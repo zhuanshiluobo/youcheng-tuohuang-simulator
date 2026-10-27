@@ -24,11 +24,11 @@ end
 local function has(values, id)
     for _, value in ipairs(values or {}) do if value == id then return true end end; return false
 end
-local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
+local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind, promptArguments)
     local options = {}; for _, id in ipairs(ids) do options[#options + 1] = { candidateId = id, label = labels[id] } end
     return tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = ids,
         minSelections = minimum or 1, maxSelections = 1, interactionType = kind or 'lua.choice', promptKey = prompt }),
-        { interaction = { prompt = Text.Ref(prompt), options = options } }), context, stage)
+        { interaction = { prompt = Text.Ref(prompt, promptArguments or {}), options = options } }), context, stage)
 end
 
 local function locations(ctx, c, values, stage, prompt)
@@ -69,7 +69,8 @@ return function(ctx)
             labels[item.influenceId] = Text.Ref('core:interaction.token.arrival.influence')
         end
         if #ids == 0 then return {} end
-        return { choose(ctx, c, 'influence_selected', ids, labels, 'core:interaction.token.arrival.choose', 1, 'effect.influence.move.source') }
+        return { choose(ctx, c, 'influence_selected', ids, labels, 'core:interaction.token.arrival.choose', 1,
+            'effect.influence.move.source', { resourcePoint = location }) }
     elseif c.stage == 'influence_selected' then
         return { tag(Effect.MoveInfluence({ executingPlayer = ctx.playerId, targetInfluence = ctx.payload.normalizedResult }), c, 'done') }
     end

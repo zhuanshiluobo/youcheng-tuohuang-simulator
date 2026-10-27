@@ -29,6 +29,8 @@ namespace YC.Application.Gameplay
         {
             this.resourceCollectionService = resourceCollectionService ?? throw new ArgumentNullException(nameof(resourceCollectionService));
             this.roundAdvanceService = roundAdvanceService ?? throw new ArgumentNullException(nameof(roundAdvanceService));
+            if (this.resourceCollectionService.RuleRegistry == null)
+                this.resourceCollectionService.RuleRegistry = this.roundAdvanceService.Execution.EffectRegistry;
         }
 
         public bool CanHandle(GameCommand command)

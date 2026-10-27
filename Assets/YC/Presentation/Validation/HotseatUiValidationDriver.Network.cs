@@ -45,7 +45,7 @@ namespace YC.Presentation.Validation
         private NetworkConfirmedObservation networkLastConfirmation, networkInitialConfirmation;
         private SimulationPublishedSnapshot networkLastReadablePublication;
         private int networkShortRoundLimit;
-        private int networkOriginalCommandObservationSeconds = 45;
+        private int networkOriginalCommandObservationSeconds = 120;
         private string networkPaymentRegressionTarget;
         private int networkPaymentRegressionPlayer = 3, networkPaymentRegressionRound = 6;
         private string networkPaymentRegressionMode;
@@ -162,7 +162,10 @@ namespace YC.Presentation.Validation
         private const float NetworkRecoveryStepTimeout = 120f;
         private readonly HashSet<string> networkRecoveringPeers = new HashSet<string>();
         private long networkProgressSequence = -1;
+        private long networkProgressValidated = -1, networkProgressSequenced = -1;
         private float networkLastProgressAt;
+        private bool networkStallCapturePending, networkStallObserved;
+        private int networkStallObservationNumber, networkWaitObservationNumber;
         private readonly Dictionary<string, SimulationCommandAppliedDto> networkApplied = new Dictionary<string, SimulationCommandAppliedDto>();
         private readonly List<SimulationCommandAppliedDto> networkReceivedApplied = new List<SimulationCommandAppliedDto>();
         private readonly Dictionary<string, NetworkCommandRecord> networkCommands = new Dictionary<string, NetworkCommandRecord>();
@@ -186,7 +189,7 @@ namespace YC.Presentation.Validation
             public List<SimulationCommandAppliedDto> Receipts;
             public long[] MissingSequences, DuplicateSequences;
             public string[] UnresolvedOriginalCommands, RejectedOriginalCommands;
-            public string[] NormalCompetitionRejectedCommands, UnexpectedRejectedCommands;
+            public string[] NormalCompetitionRejectedCommands, BusinessRejectedCommands, UnexpectedRejectedCommands;
             public bool CompetitionContinuationsComplete;
             public bool Complete, RecoveryObservationPending, OriginalPayloadsValid;
         }
@@ -295,6 +298,8 @@ namespace YC.Presentation.Validation
             public string StepId;
             public bool RetiredByRecovery;
             public bool RejectedByCompetition, CompetitionResolutionObserved, CompetitionOtherPlayerProgressObserved;
+            public bool ContentRejected;
+            public CommandErrorCode ContentRejectionCode;
             public long ObservedGlobalSequence, ObservedValidatedSequence;
             public string SubmittedWindowId, ReconsideredFromCommandId;
             public int SubmittedWindowGeneration;
@@ -302,7 +307,8 @@ namespace YC.Presentation.Validation
             public int[] ConcurrentPlayerIds;
             public SimulationProposalResultDto CompetitionRejection;
             public GameCommand Command;
-            public string TargetProfile;
+            public string TargetProfile, SubmittedRequestContract;
+            public int SubmittedRequestRevision = -1;
             public OperationCommandProposalDto ActualProposal;
             public WorkflowSubmissionResult Result;
         }
@@ -311,8 +317,10 @@ namespace YC.Presentation.Validation
             public string Role, GameId, ContentHash, Phase, Stage;
             public int PlayerId, Round, Revision;
             public long Applied, Validated;
+            public long AtUtcTicks;
             public bool Terminal, Exported, TerminalAuditCompleted, ShortFrozen, ShortExported;
             public bool CanSubmit;
+            public bool HasPendingLocalApplication;
             public int InteractiveCards;
             public bool RecoveryPending;
             public SimulationProtocolFaultDto ConnectionInterruption;
@@ -453,6 +461,20 @@ namespace YC.Presentation.Validation
         private bool NetworkCompetitionPageAcceptsPointer(SimulationPublishedSnapshot publication)
         {
             var request = Request;
+            if (request?.InteractionTypeId == EntrepreneurFlow.PreviewInteraction)
+            {
+                var preview = FindObjectsOfType<EnterpriseSelectionDialogView>().FirstOrDefault(value => value.IsShowing &&
+                    value.Draft.Projection?.RequestId == request.InteractionId + ":assigned-enterprise-preview" &&
+                    value.Draft.Projection.ReadOnly && value.Draft.Projection.GameId == publication.GameId &&
+                    value.Draft.Projection.ViewerPlayerId == publication.LocalPlayerId &&
+                    value.Draft.Projection.Revision == publication.StateRevision &&
+                    value.Draft.Projection.OwnerEffectId == request.OwnerEffectId &&
+                    value.Draft.Projection.CandidateSetId == request.CandidateSetId &&
+                    value.Draft.Projection.CandidateSetVersion == request.CandidateSetVersion &&
+                    value.Draft.Projection.RequestContract == InteractionCommandIntent.ContractKey(request));
+                var continuation = preview?.ReadOnlyContinueButton;
+                return continuation != null && continuation.IsInteractable() && IsUiTargetVisible(continuation.gameObject);
+            }
             if (request != null && (request.InteractionTypeId.Contains("enterprise") || request.InteractionTypeId.Contains("department")))
             {
                 var dialog = FindObjectsOfType<EnterpriseSelectionDialogView>().FirstOrDefault(value => value.Draft.Projection?.RequestId == request.InteractionId &&
@@ -466,7 +488,7 @@ namespace YC.Presentation.Validation
                 }
                 return false;
             }
-            if (State.Phase == GamePhase.CharacterCover)
+            if (State.Phase == GamePhase.CharacterCover && Request == null)
                 return FindObjectsOfType<PlayerAutomationId>().Any(value => value.Id.StartsWith("selection.card.", StringComparison.Ordinal) &&
                     value.GetComponent<Button>()?.IsInteractable() == true && IsUiTargetVisible(value.gameObject));
             return true;
@@ -693,14 +715,22 @@ namespace YC.Presentation.Validation
                         MaximumObservationSeconds = timeout, Applied = applied, Validated = validated, Sequenced = sequenced,
                         OriginalPendingCommands = networkCommands.Values.Where(record => record.Result == null && !record.RetiredByRecovery)
                             .Select(record => record.Command).ToArray(),
-                        Passed = false, Blocking = false, OriginalCommandResubmitted = false, FailureRetainedIfReceiptArrives = true };
-                    Append("原命令45秒无正式进展失败.jsonl", observation);
-                    string first = Path.Combine(output, "原命令首次45秒无正式进展失败.json");
-                    if (!File.Exists(first)) Write("原命令首次45秒无正式进展失败.json", observation);
+                        Passed = (bool?)null, Blocking = false, OriginalCommandResubmitted = false,
+                        Classification = "等待时间观察，不能单凭时长认定协议故障" };
+                    Append("原命令45秒无正式进展观察.jsonl", observation);
+                    string first = Path.Combine(output, "原命令首次45秒无正式进展观察.json");
+                    if (!File.Exists(first)) Write("原命令首次45秒无正式进展观察.json", observation);
                     checks.Add(observation);
-                    nonfatalUiFailures.Add(description + "连续45秒无正式序号推进；补充观察不撤销此失败");
                 }
-                Require(NetworkActiveTime - began < timeout, description + "超时，未调用服务API或注入状态绕过");
+                if (NetworkActiveTime - began >= timeout)
+                {
+                    Write("原等待超时实际上下文-" + (++networkWaitObservationNumber) + ".json", new {
+                        AtUtc = DateTime.UtcNow.ToString("o"), Description = description, Elapsed = NetworkActiveTime - began,
+                        Current = ObserveSafely(), PeerStates = networkRoles.Select(role => NetworkRead<NetworkPeerStatus>("状态-" + role + ".json")).ToArray(),
+                        PendingOriginalCommands = networkCommands.Values.Where(record => record.Result == null && !record.RetiredByRecovery).Select(record => record.Command).ToArray(),
+                        ProductProtocolFault = networkFault, Classification = "原等待无进展，先核实际后继，不按夹具预期改判成功" });
+                    throw new DriverContinuationPendingException(description + "持续无正式进展；已保原命令、实际控件和四端上下文，未重发");
+                }
                 if (session != null) NetworkPublish();
                 yield return new WaitForSecondsRealtime(.2f);
             }
@@ -717,19 +747,26 @@ namespace YC.Presentation.Validation
             {
                 stage = "联机房主正常菜单建房";
                 yield return Press(menu.StartGameButton, "联机房主原创建房间按钮");
-                yield return NetworkUntil(() => menu.RoomPanel.gameObject.activeInHierarchy, "原房间页面出现");
+                yield return NetworkUntil(() => menu.RoomPanel.gameObject.activeInHierarchy && menu.RoomPanel.DisplayedRoom != null, "原房间页面出现");
                 var room = menu.RoomPanel;
+                if (EntrepreneurUiMode) yield return ConfigureEntrepreneurRoom(room);
+                else
+                {
                 var options = (StartMenuRoomPanelView.ContentOption[])Read(room, "expansions");
                 foreach (string id in new[] { "enterprise", "infected" })
                 {
                     var option = options.Single(value => value.Id == id);
                     if (!option.Selection.gameObject.activeSelf) yield return Press(option.Button, "联机房间启用" + id);
                 }
+                var map = ((StartMenuRoomPanelView.ContentOption[])Read(room, "maps")).Single(value => value.Id == "map-four-players");
+                if (!map.Selection.gameObject.activeSelf) yield return Press(map.Button, "联机房间原四人地图按钮");
+                }
                 Require(room.DisplayedRoom?.Configuration.MapId == "map-four-players", "原菜单没有建立四人地图房间");
                 yield return Capture("联机房主真实房间及感染者配置");
                 File.WriteAllText(NetworkPath("正式房间号.json"), JsonConvert.SerializeObject(new NetworkRoomCode { RoomCode = room.DisplayedRoom.RoomId }));
-                yield return NetworkUntil(() => room.CanStartCurrentRoom && room.StartButton.IsInteractable(), "四名真实成员连接、身份验证及准备", 180f);
-                Require(room.DisplayedRoom.Seats.Count == 4, "房间未到齐四名真实成员");
+                yield return NetworkUntil(() => room.DisplayedRoom.PlayerCount == 4 && room.CanStartCurrentRoom && room.StartButton.IsInteractable(), "四名真实成员连接、身份验证及准备", 180f);
+                Require(room.DisplayedRoom.PlayerCount == 4 && room.DisplayedRoom.Seats.Count == 4, "房间未到齐四名真实成员");
+                Require(!EntrepreneurUiMode || room.DisplayedRoom.Configuration.RuleModeId == "entrepreneur", "联机房间企业家配置在准备时变化");
                 yield return Capture("四名联机成员原房间准备完成");
                 yield return Press(room.StartButton, "房主原开始游戏按钮");
             }
@@ -749,7 +786,11 @@ namespace YC.Presentation.Validation
                 Require(input.text == code, "原输入框字符事件未产生完整房间号");
                 Append("控件事件.jsonl", new { Stage = stage, Input = "原InputField.ProcessEvent字符输入，非直接改text", RoomCode = code });
                 yield return Press(menu.JoinPanel.JoinButton, "成员原连接房间按钮");
-                yield return NetworkUntil(() => menu.RoomPanel.gameObject.activeInHierarchy && menu.RoomPanel.StartButton.IsInteractable(), "成员正常进入并通过房间门禁");
+                yield return NetworkUntil(() => menu.RoomPanel.gameObject.activeInHierarchy && menu.RoomPanel.DisplayedRoom != null && menu.RoomPanel.StartButton.IsInteractable(), "成员正常进入并通过房间门禁");
+                Require(menu.RoomPanel.DisplayedRoom.Configuration.MapId == "map-four-players" &&
+                    (!EntrepreneurUiMode || menu.RoomPanel.DisplayedRoom.Configuration.RuleModeId == "entrepreneur") &&
+                    new[] { "core", "enterprise", "infected" }.All(menu.RoomPanel.DisplayedRoom.Configuration.EnabledExpansionIds.Contains),
+                    "成员只读房间配置未匹配四人地图、双扩及请求模式");
                 yield return Capture("联机成员原房间准备前");
                 yield return Press(menu.RoomPanel.StartButton, "成员原准备按钮");
                 yield return NetworkUntil(() => FindObjectOfType<MobileCityInteractionController>() != null, "等待房主原按钮开局", 180f);
@@ -786,6 +827,7 @@ namespace YC.Presentation.Validation
             NetworkPublish();
             yield return NetworkUntil(() => networkRoles.All(role => NetworkRead<NetworkPeerStatus>("状态-" + role + ".json")?.GameId == networkBoundGameId), "四个独立实例进入同一正式GameId");
             Write("联机运行身份.json", new { Role = networkRole, LocalPlayer, State.GameId, State.ContentPackHash,
+                RuleModeId = State.RuleConfiguration.RuleModeId, RequestedRuleMode = EntrepreneurUiMode ? "entrepreneur" : "standard",
                 Mode = GameLaunchContext.Instance.Mode.ToString(), ExpectedPlayers = 4, NormalMenuFlow = true,
                 FixtureState = false, DirectServiceCalls = false, DirectSubmission = false });
         }
@@ -807,6 +849,7 @@ namespace YC.Presentation.Validation
                 NetworkSameBoundSession(confirmation.Session) && confirmation.Revision == State.EffectRuntime.StateRevision;
             if (coordinator == null && !detachedTerminal) return;
             File.WriteAllText(NetworkPath("状态-" + networkRole + ".json"), JsonConvert.SerializeObject(new NetworkPeerStatus {
+                AtUtcTicks = DateTime.UtcNow.Ticks, HasPendingLocalApplication = coordinator?.HasPendingLocalApplication == true,
                 Role = networkRole, GameId = publication.GameId, ContentHash = publication.ContentHash, PlayerId = publication.LocalPlayerId,
                 Round = publication.Round, Phase = publication.Phase.ToString(), Stage = stage, Revision = publication.StateRevision,
                 Applied = publication.LastAppliedSequence, Validated = publication.ValidatedThroughSequence,
@@ -929,11 +972,17 @@ namespace YC.Presentation.Validation
             Require(coordinator != null, "非终局缺少正式联机协调器；不能使用缓存边界申请行动许可");
             if (!NetworkTryReadPublication(out var publication)) return false;
             long sequence = coordinator.LastAppliedSequence;
-            if (sequence != networkProgressSequence)
-            { networkProgressSequence = sequence; networkLastProgressAt = NetworkActiveTime; }
-            if (NetworkActiveTime - networkLastProgressAt > 90f)
+            long validated = coordinator.ValidatedThroughSequence, sequenced = coordinator.LastSequencedSequence;
+            if (sequence != networkProgressSequence || validated != networkProgressValidated || sequenced != networkProgressSequenced)
             {
-                Write("联机停滞原件.json", new { State, LocalPlayer, Sequence = sequence,
+                networkProgressSequence = sequence; networkProgressValidated = validated; networkProgressSequenced = sequenced;
+                networkLastProgressAt = NetworkActiveTime; networkStallObserved = false;
+            }
+            if (NetworkActiveTime - networkLastProgressAt > 90f && !networkStallObserved)
+            {
+                networkStallObserved = true; networkStallCapturePending = true;
+                Write("联机无进展实际观察-" + (++networkStallObservationNumber) + ".json", new { LocalPlayer, Sequence = sequence,
+                    Validated = validated, Sequenced = sequenced, NoProgressSeconds = NetworkActiveTime - networkLastProgressAt,
                     Boundary = coordinator.ReadBoundary(coordinator.ValidatedThroughSequence),
                     Peers = networkRoles.Select(role => NetworkRead<NetworkPeerStatus>("状态-" + role + ".json")).ToArray(),
                     CompetitionWaitReason = networkCompetitionWaitReason, CompetitionOriginal = networkCompetitionAwaitingRefresh,
@@ -944,7 +993,26 @@ namespace YC.Presentation.Validation
                         value.Id.StartsWith("selection.card.", StringComparison.Ordinal)).Take(16)
                         .Select(value => NetworkPointerTargetObservation(value.gameObject)).ToArray(),
                     CurrentUi = ObserveSafely(), Reason = "90秒无任何正式Applied命令；不绕过原控件，不强制刷新" });
-                throw new InvalidOperationException("联机90秒没有任何正式命令推进；已保存四端许可、本人实际控件及完整规则状态");
+            }
+            if (NetworkActiveTime - networkLastProgressAt > 300f)
+            {
+                var peers = networkRoles.Select(role => NetworkRead<NetworkPeerStatus>("状态-" + role + ".json")).ToArray();
+                bool allFreshAndIdle = peers.All(peer => peer != null && peer.GameId == networkBoundGameId &&
+                    peer.ContentHash == networkBoundContentHash && peer.SimulationEpoch == publication.SimulationEpoch &&
+                    peer.MembershipVersion == publication.MembershipVersion && DateTime.UtcNow.Ticks - peer.AtUtcTicks < TimeSpan.FromSeconds(15).Ticks &&
+                    !peer.CanSubmit && !peer.HasPendingLocalApplication && !peer.RecoveryPending && peer.Applied == peer.Validated);
+                if (allFreshAndIdle && !coordinator.HasPendingLocalApplication &&
+                    networkCommands.Values.All(record => record.Result != null || record.RetiredByRecovery))
+                {
+                    Write("持续无合法入口最终证据.json", new { AtUtc = DateTime.UtcNow.ToString("o"), Peers = peers,
+                        Own = ObserveSafely(), NoProgressSeconds = NetworkActiveTime - networkLastProgressAt, ForcedAdvance = false });
+                    throw new DriverContinuationPendingException("持续等待后四端各自无待决且无可提交许可；实际前缀与当前页面已保留，不能跳必答或强行推进");
+                }
+                bool stalePeer = networkRoles.Where((role, index) => peers[index] == null
+                    ? !File.Exists(NetworkPath("状态-" + role + ".json")) || DateTime.UtcNow - File.GetLastWriteTimeUtc(NetworkPath("状态-" + role + ".json")) > TimeSpan.FromSeconds(120)
+                    : DateTime.UtcNow.Ticks - peers[index].AtUtcTicks > TimeSpan.FromSeconds(120).Ticks).Any();
+                if (stalePeer && !peers.Any(peer => peer?.RecoveryPending == true))
+                    throw new DriverContinuationPendingException("持续等待后至少一端超过120秒无实际状态发布；保留四端最后事实，不猜协议根因、不操控失联端");
             }
             if (!NetworkCompetitionUiReady(publication)) return false;
             if ((Read(mobile, "commandSubmission") as CommandSubmissionController)?.CanSubmitForLocalPlayer != true) return false;
@@ -955,7 +1023,7 @@ namespace YC.Presentation.Validation
             // 同窗延续和真正换窗均由产品真实许可判定，不从页面/回合推断，也不逐命令要求Host核验追平。
             if (permissions.Length == 0) return false;
             // 盖牌由专门角色页管理，不经过通用路由；只交给实际可点的本人原牌面控件。
-            if (State.Phase == GamePhase.CharacterCover && NetworkInteractiveCardCount() == 0) return false;
+            if (State.Phase == GamePhase.CharacterCover && Request == null && NetworkInteractiveCardCount() == 0) return false;
             NetworkRequireNoPendingOriginalControl("下一步原控件操作");
             Append("原步骤正式窗口许可.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
                 Role = networkRole, Stage = stage, Session = options, Permissions = permissions,
@@ -1119,7 +1187,8 @@ namespace YC.Presentation.Validation
                 if (NetworkTryReadPublication(out var publication)) record.AfterRevision = publication.StateRevision;
                 Append("命令与准确回执.jsonl", record);
             }
-            networkFault = "正式提案被拒绝：" + rejected.Reason;
+            if (!TryDeferBusinessRejection(record, rejected.GameId, id, rejected.ErrorCode, rejected.Reason))
+                networkFault = "正式提案被拒绝：" + rejected.Reason;
         }
         private bool NetworkIsNormalCompetitionRejection(NetworkCommandRecord record, SimulationProposalResultDto rejected)
         {
@@ -1182,10 +1251,25 @@ namespace YC.Presentation.Validation
                     record.CompetitionResolutionObserved = true;
                     return;
                 }
-                networkFault = "准确回执真实拒绝，非同次正式恢复退役：" + JsonConvert.SerializeObject(callback);
+                if (!TryDeferBusinessRejection(record, gameId, commandId, errorCode, "正式UI准确拒绝回执"))
+                    networkFault = "准确回执真实拒绝，非同次正式恢复退役：" + JsonConvert.SerializeObject(callback);
             }
             catch (Exception exception) when (!(exception is OutOfMemoryException))
             { networkFault = "验收准确回执观察异常：" + exception; }
+        }
+        private int NetworkOriginalRequestRevision(InteractionRequestProjection captured, object value)
+        {
+            var record = value as NetworkCommandRecord;
+            Require(record != null && record.StepId == networkActiveStepId && !record.RetiredByRecovery &&
+                !record.RejectedByCompetition && !record.ContentRejected &&
+                record.SubmittedRequestRevision == record.BeforeRevision && record.BeforeRevision >= captured.StateRevision &&
+                record.SubmittedRequestContract == InteractionCommandIntent.ContractKey(captured),
+                "原牌确认缺少同一正式请求合同与提交瞬间准确版本");
+            if (record.SubmittedRequestRevision != captured.StateRevision)
+                Append("原牌确认实际版本.jsonl", new { State.GameId, record.StepId, record.Command.CommandId,
+                    CapturedRevision = captured.StateRevision, SubmittedRevision = record.SubmittedRequestRevision,
+                    SameRequestContract = true, OriginalCommandUnchanged = true });
+            return record.SubmittedRequestRevision;
         }
         private void NetworkBeginObserveCommand(GameCommand command, int before)
         {
@@ -1196,6 +1280,9 @@ namespace YC.Presentation.Validation
                 ObservedValidatedSequence = publication.ValidatedThroughSequence,
                 ReconsideredFromCommandId = networkCompetitionPreviousDecision?.Command.CommandId };
             record.TargetProfile = SubmissionTargetProfile(command);
+            var submittedRequest = command.Kind == GameCommandKind.AnswerInteraction ? Request : null;
+            record.SubmittedRequestRevision = submittedRequest?.StateRevision ?? -1;
+            record.SubmittedRequestContract = InteractionCommandIntent.ContractKey(submittedRequest);
             Append("原UI命令提交前.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
                 record.StepId, record.TargetProfile, OriginalUiCommand = JObject.FromObject(command), Ui = CaptureOriginalUiSubmission(command),
                 publication.LastAppliedSequence, publication.ValidatedThroughSequence, publication.StateRevision,
@@ -1244,6 +1331,8 @@ namespace YC.Presentation.Validation
             {
                 record.Result = immediate; record.AfterRevision = State.EffectRuntime.StateRevision;
                 Append("命令与准确回执.jsonl", record);
+                TryDeferBusinessRejection(record, networkBoundGameId, command.CommandId,
+                    immediate.CommandResult.Validation?.ErrorCode ?? CommandErrorCode.None, immediate.CommandResult.Validation?.Reason);
             }
             else NetworkResolve(command.CommandId);
         }
@@ -1320,13 +1409,16 @@ namespace YC.Presentation.Validation
                 yield return NetworkUntil(() => networkCommands.Values.All(record => record.Result != null || record.RetiredByRecovery), "原命令真实联机Applied或准确恢复退役回执", 45f);
             // Guarded在恢复就绪后会先弹出整个旧步骤，不能执行此处之后的旧选择断言。
             if (networkActiveStepId != null && networkRetiredSteps.Contains(networkActiveStepId)) yield break;
-            var rejected = networkCommands.Values.FirstOrDefault(record => !record.RejectedByCompetition && record.Result != null &&
+            var businessRejected = networkCommands.Values.FirstOrDefault(record => record.StepId == networkActiveStepId && record.ContentRejected);
+            if (businessRejected != null) throw new DriverContentDifferenceException("原控件收到业务拒绝，保原错误后重读实际页面：" + businessRejected.Command.CommandId);
+            var rejected = networkCommands.Values.FirstOrDefault(record => !record.RejectedByCompetition && !record.ContentRejected && record.Result != null &&
                 (!record.Result.CommandResult.Succeeded || !record.Result.AppliedLocally));
             Require(rejected == null, "原控件命令真实拒绝：" + rejected?.Result.CommandResult.Validation?.Reason);
             var last = commands.OfType<NetworkCommandRecord>().LastOrDefault(value => value.StepId == networkActiveStepId &&
-                !value.RetiredByRecovery && !value.RejectedByCompetition && value.Command.PlayerId == networkBoundPlayerId);
+                !value.RetiredByRecovery && !value.RejectedByCompetition && !value.ContentRejected && value.Command.PlayerId == networkBoundPlayerId);
             if (last == null) yield break; // 原本地草稿/浏览控件未提交命令，不虚构Applied。
-            yield return NetworkUntil(() => NetworkLocalSuccessorReadable(last), "本人原命令Applied后的完整投影与后继请求可读", 45f);
+            yield return NetworkUntil(() => NetworkLocalSuccessorReadable(last), "本人原命令Applied后的完整投影与后继请求可读", 120f,
+                resetOnFormalProgress: true);
             Append("本人原控件后继就绪.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
                 Role = networkRole, last.StepId, OriginalCommandId = last.Command.CommandId, last.GlobalCommandSequence,
                 ExactAfterRevision = last.AfterRevision, PublishedRevision = session.View.StateRevision,
@@ -1436,7 +1528,8 @@ namespace YC.Presentation.Validation
             var rejected = networkCommands.Values.Where(value => value.Result != null &&
                 (!value.Result.CommandResult.Succeeded || !value.Result.AppliedLocally)).Select(value => value.Command.CommandId).ToArray();
             var normalCompetition = networkCommands.Values.Where(value => value.RejectedByCompetition).ToArray();
-            var unexpectedRejected = rejected.Where(id => !networkCommands[id].RejectedByCompetition).ToArray();
+            var businessRejected = rejected.Where(id => networkCommands[id].ContentRejected).ToArray();
+            var unexpectedRejected = rejected.Where(id => !networkCommands[id].RejectedByCompetition && !networkCommands[id].ContentRejected).ToArray();
             bool continuationsComplete = normalCompetition.All(NetworkCompetitionHasAcceptedSuccessor);
             bool payloadsValid = receipts.All(value => value.ProtocolVersion == OperationCommandProtocol.Version && value.GameId == networkBoundGameId &&
                 value.SimulationEpoch >= networkInitialConfirmation.Session.SimulationEpoch && value.SimulationEpoch <= confirmation.Session.SimulationEpoch &&
@@ -1447,6 +1540,7 @@ namespace YC.Presentation.Validation
                 InitialSequence = initial, FinalSequence = final, Boundary = confirmation.Boundary, Receipts = receipts,
                 MissingSequences = missing.ToArray(), DuplicateSequences = duplicates, UnresolvedOriginalCommands = pending,
                 RejectedOriginalCommands = rejected, NormalCompetitionRejectedCommands = normalCompetition.Select(value => value.Command.CommandId).ToArray(),
+                BusinessRejectedCommands = businessRejected,
                 UnexpectedRejectedCommands = unexpectedRejected, CompetitionContinuationsComplete = continuationsComplete,
                 OriginalPayloadsValid = payloadsValid, RecoveryObservationPending = recoveryPending,
                 Complete = payloadsValid && missing.Count == 0 && duplicates.Length == 0 && pending.Length == 0 &&
@@ -1493,7 +1587,7 @@ namespace YC.Presentation.Validation
                 networkAdmissionObserver.OrderedCommandProduced -= NetworkObserveOrdered;
                 networkAdmissionObserver.SimulationProposalResultProduced -= NetworkObserveFinalAdmission;
             }
-            if (failure != null) NetworkPreserveFirstFailure(failure);
+            if (failure != null && !(failure is DriverDeferredTerminalIssuesException)) NetworkPreserveFirstFailure(failure);
             if (networkTransport != null)
             {
                 networkTransport.SimulationCommandApplied -= NetworkOnApplied;

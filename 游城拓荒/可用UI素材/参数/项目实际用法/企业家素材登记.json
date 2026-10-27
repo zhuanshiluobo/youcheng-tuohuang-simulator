@@ -1,0 +1,3309 @@
+{
+  "schemaVersion": 1,
+  "registrationVersion": "1.0.2",
+  "date": "2026-10-22",
+  "executor": "QY-017",
+  "basis": [
+    "2026-10-20 用户在协调聊天直接批准J-Q01-01/03并明确J-Q01-04；第2轮派发要求登记，未授权游戏接线。",
+    "prompt/企业家内容实施规划-20261019/01-依据审校与差异处置.md#2026-10-20-本轮实施协调的素材与U05确认",
+    "prompt/企业家内容实施规划-20261019/05-页面链路与素材边界.md",
+    "31-QY017剩余通用页面接线：COMMON-UI-INTEGRATION-R2明确授权通用显示、必要来源资产定点绑定与素材映射；当前登记同步实际实现，正常覆盖0。"
+  ],
+  "status": "正式声明的49原图与20预览映射已核，通用完整牌组/五槽/来源已接线；G0，正常视觉未验收",
+  "standardIds": [
+    "E02",
+    "E03",
+    "E04"
+  ],
+  "scope": "仅用户批准的49完整正面、facility_045追加非唯一塔新用途、U05未抉择对应回合A面预览；帮派后续确认按E05限定登记",
+  "cards": [
+    {
+      "sourceId": "A01",
+      "name": "艾格尼丝·史密斯",
+      "sourceKind": "能力牌",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc265593784551292798A3246D88E6882BC0B3CEE27ADF851BD6C2464B9.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A01.jpg",
+      "sha256": "bd87abf97aeb37682a9d4eb03d1f4fd9986e81d32c6a9782ed64165cd8afc67f",
+      "bytes": 531751,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A01.jpg",
+        "guid": "6f86e05461d7edb4da160e2ebb8b3aee",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.ability.A01",
+        "faceId": "",
+        "sourceSha256": "bd87abf97aeb37682a9d4eb03d1f4fd9986e81d32c6a9782ed64165cd8afc67f",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A02",
+      "name": "权威支持",
+      "sourceKind": "7A",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc26559378455130171B7112ACEB0398FE0516969DAC612FFA562BA4562.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A02.jpg",
+      "sha256": "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+      "bytes": 418349,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A02.jpg",
+        "guid": "a2538697379d2fa46b3a460f112a9305",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.7",
+        "faceId": "A02",
+        "sourceSha256": "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A03",
+      "name": "源石之力",
+      "sourceKind": "7B",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc2655937845513034540C3AF91CA8017B2D159385A098A36845B3E1682.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A03.jpg",
+      "sha256": "0a284bcbc3b72fc4ed947ba09cdba84e00bb9224e39798f72cb9e32ac4576778",
+      "bytes": 450880,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A03.jpg",
+        "guid": "26bf742cd9f0f62428804a42bc5cb7af",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.7",
+        "faceId": "A03",
+        "sourceSha256": "0a284bcbc3b72fc4ed947ba09cdba84e00bb9224e39798f72cb9e32ac4576778",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A04",
+      "name": "战术巡航",
+      "sourceKind": "5A",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc2655937845513092938CF74A5ECC6B2CF4017C1DA7F764C31278F4351.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A04.jpg",
+      "sha256": "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+      "bytes": 416376,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A04.jpg",
+        "guid": "d79e7350e2dce87409562ca5fb79fea1",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.5",
+        "faceId": "A04",
+        "sourceSha256": "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A05",
+      "name": "特勤小组",
+      "sourceKind": "5B",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/B8F4E8F52E0C80777821877B145097CC.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A05.jpg",
+      "sha256": "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+      "bytes": 449768,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A05.jpg",
+        "guid": "497d6023979c20f4a845b02f652eba49",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.5",
+        "faceId": "A05",
+        "sourceSha256": "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A06",
+      "name": "后勤保障",
+      "sourceKind": "3A",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc265593784551318025353BFB28EDFBCFB83332EAB849315C954B66600.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A06.jpg",
+      "sha256": "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+      "bytes": 467908,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A06.jpg",
+        "guid": "524a23feabdd27d4b9048256db1699b7",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.3",
+        "faceId": "A06",
+        "sourceSha256": "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A07",
+      "name": "合作战略",
+      "sourceKind": "3B",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc26559378455132268559EC61BE77ACED71AC88C1B737A38C1448F95A7.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A07.jpg",
+      "sha256": "b53a1b9744eb4e1d0e95d007765d669a743a692611325d9a793f686031662f1b",
+      "bytes": 451360,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A07.jpg",
+        "guid": "b39421cd5e50c8a49a81b1791f2862a3",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.3",
+        "faceId": "A07",
+        "sourceSha256": "b53a1b9744eb4e1d0e95d007765d669a743a692611325d9a793f686031662f1b",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A08",
+      "name": "分遣部署",
+      "sourceKind": "1B",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc26559378455133225B8E560412FE72424D4227AFEE429B5989E0AFE54.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A08.jpg",
+      "sha256": "136c278cd7a500bc00b5766b986d79ad7f3a40c7b4ab45293ebfea8934bea202",
+      "bytes": 423761,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A08.jpg",
+        "guid": "d0d992160fb2c3449b46a22f26e8e413",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.1",
+        "faceId": "A08",
+        "sourceSha256": "136c278cd7a500bc00b5766b986d79ad7f3a40c7b4ab45293ebfea8934bea202",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "A09",
+      "name": "集中驻扎",
+      "sourceKind": "1A",
+      "originalProjectPath": "游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc265593784551648727EE528C7AA0F838E0FC0CFECD21C7EF815E5B613.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/A09.jpg",
+      "sha256": "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+      "bytes": 414415,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/A09.jpg",
+        "guid": "57f90189a69229445be4d2d66647bf93",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.A.1",
+        "faceId": "A09",
+        "sourceSha256": "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D01",
+      "name": "降本增效",
+      "sourceKind": "1A",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc265562074159564137FF3C0B195081CFD1AED23959EFC1321FD1F92B7.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D01.jpg",
+      "sha256": "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+      "bytes": 407706,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D01.jpg",
+        "guid": "4f7e60a57371ab944ac7115cc9bc6088",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.1",
+        "faceId": "D01",
+        "sourceSha256": "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D02",
+      "name": "巨额贷款",
+      "sourceKind": "1B",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc26556207415956656FD5374F41610747AED3301C601FE8A4548F05D63.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D02.jpg",
+      "sha256": "b201439b253162f7e3b70a8b7f56f6c9578c138ad2ca8f4ac13755d8adcd3f0c",
+      "bytes": 393465,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D02.jpg",
+        "guid": "422bd7ffeaa8ee541978b3660fc4f6ce",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.1",
+        "faceId": "D02",
+        "sourceSha256": "b201439b253162f7e3b70a8b7f56f6c9578c138ad2ca8f4ac13755d8adcd3f0c",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D03",
+      "name": "感染者协作",
+      "sourceKind": "3A",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc26556207415957805C6EB60E8980D79090419EB8AE00708DBD3AED11A.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D03.jpg",
+      "sha256": "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+      "bytes": 431278,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D03.jpg",
+        "guid": "c5669b74882687b4c9552f054473497d",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.3",
+        "faceId": "D03",
+        "sourceSha256": "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D04",
+      "name": "企业赞助商",
+      "sourceKind": "3B",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc265562074159578882C4EFF08CF2E6AF6584432A9104B48F3785662A8.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D04.jpg",
+      "sha256": "4dbf5d36214ad6b0f39beda682dd9c4d47cbb21dfd0b4cd20b35032dcd2b66b8",
+      "bytes": 420431,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D04.jpg",
+        "guid": "16efd789ae80ca24584ccab7c126e7ed",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.3",
+        "faceId": "D04",
+        "sourceSha256": "4dbf5d36214ad6b0f39beda682dd9c4d47cbb21dfd0b4cd20b35032dcd2b66b8",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D05",
+      "name": "声名在外",
+      "sourceKind": "5A",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc265562074159587711B63EC9C7804B10F027864B61119A404428091DF.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D05.jpg",
+      "sha256": "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+      "bytes": 415953,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D05.jpg",
+        "guid": "a9fd150f01802be49bbc06bba7126bd4",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.5",
+        "faceId": "D05",
+        "sourceSha256": "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D06",
+      "name": "公益事业",
+      "sourceKind": "5B",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc265562074159589921AD52AA9E365A8C15936260B8CF9DB991FA059B1.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D06.jpg",
+      "sha256": "ffbe92c5a190b4aefd3086a87032512258479759e00fd2c0dc0f83a05f7e9475",
+      "bytes": 414616,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D06.jpg",
+        "guid": "6b2517ad91cc25b44b1865a1af695aba",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.5",
+        "faceId": "D06",
+        "sourceSha256": "ffbe92c5a190b4aefd3086a87032512258479759e00fd2c0dc0f83a05f7e9475",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D07",
+      "name": "我愿必达",
+      "sourceKind": "7A",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc26556207415959492C948742E9A647FAD7BCB7DEA340A804D59925468.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D07.jpg",
+      "sha256": "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+      "bytes": 391371,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D07.jpg",
+        "guid": "565c9ac36b07829468d3780ae151b39d",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.7",
+        "faceId": "D07",
+        "sourceSha256": "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D08",
+      "name": "孤注一掷",
+      "sourceKind": "7B",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc26556207415959662BB41F7250E02B7C756C79862826E39EAF1EFD87B.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D08.jpg",
+      "sha256": "173c8b1b6b7fa681546cf967ee520c4ca3f3f096efe4bab34782e919333085cc",
+      "bytes": 369605,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D08.jpg",
+        "guid": "b536f7c0b943aac4ba62101f41574f73",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.D.7",
+        "faceId": "D08",
+        "sourceSha256": "173c8b1b6b7fa681546cf967ee520c4ca3f3f096efe4bab34782e919333085cc",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "D09",
+      "name": "蒂亚戈·H·罗德里格斯",
+      "sourceKind": "能力牌",
+      "originalProjectPath": "游城拓荒/企业家/骰子哥/httpssteamusercontentaakamaihdnetugc265593784551353272672A6E4F4EB813E3B38585DB2CF357EECF8C7C7.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/D09.jpg",
+      "sha256": "49d9eb43a29d85b41cd4cf133bf9a10c345ba47357f9e3af4e467ef46c4cdb00",
+      "bytes": 563814,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/D09.jpg",
+        "guid": "e0f6bd7a3be59b14ea5822d460dc1d50",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.ability.D09",
+        "faceId": "",
+        "sourceSha256": "49d9eb43a29d85b41cd4cf133bf9a10c345ba47357f9e3af4e467ef46c4cdb00",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P01",
+      "name": "宣扬平等",
+      "sourceKind": "1A",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc265588349478162070D51ABE854E24166405E71F742F72752E6593665.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P01.jpg",
+      "sha256": "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+      "bytes": 422725,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P01.jpg",
+        "guid": "3fb829f623a74f245942e635d4abf3d4",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.1",
+        "faceId": "P01",
+        "sourceSha256": "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P02",
+      "name": "广纳人才",
+      "sourceKind": "1B",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947816341C44791148959E32FD6461A5FEDAD6FF34C369570.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P02.jpg",
+      "sha256": "6e7cca4f1147e0450f487e40a2b1000b3dcd85de4b78ff0ebdb99e4ebcc36142",
+      "bytes": 422446,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P02.jpg",
+        "guid": "4b665201b2d221d439b9fb2cf2204666",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.1",
+        "faceId": "P02",
+        "sourceSha256": "6e7cca4f1147e0450f487e40a2b1000b3dcd85de4b78ff0ebdb99e4ebcc36142",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P03",
+      "name": "建设据点",
+      "sourceKind": "3A",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc265588349478170771E1B994F9BFAE8E3F18E49D3E91B1771922C7341.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P03.jpg",
+      "sha256": "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+      "bytes": 499703,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P03.jpg",
+        "guid": "410e1d425b9a9ee4e82c503bf537a6eb",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.3",
+        "faceId": "P03",
+        "sourceSha256": "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P04",
+      "name": "隐蔽运输",
+      "sourceKind": "3B",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947817266635D563C136F9C5789D95DC216A7B8A969D512C6.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P04.jpg",
+      "sha256": "128b2c46219ee05d7e61b00699634ecbcf0ce2c20e90a8afe1da515ed4f80f76",
+      "bytes": 499558,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P04.jpg",
+        "guid": "1a7dda6f474948244ad77ede80469220",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.3",
+        "faceId": "P04",
+        "sourceSha256": "128b2c46219ee05d7e61b00699634ecbcf0ce2c20e90a8afe1da515ed4f80f76",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P05",
+      "name": "强大领袖",
+      "sourceKind": "5A",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947818631CE6380862CCF8A08977407ABD0511B7F96849E4E.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P05.jpg",
+      "sha256": "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+      "bytes": 466520,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P05.jpg",
+        "guid": "998d636d84b670d4db4120c43afa0457",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.5",
+        "faceId": "P05",
+        "sourceSha256": "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P06",
+      "name": "民心所向",
+      "sourceKind": "5B",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947818779D70C9D1AAD4106BB6E4819465668961E4353D560.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P06.jpg",
+      "sha256": "575463b1387c419a4de9f260b39a17e5e4e8afe4bcfcc87e38ed0b5461463445",
+      "bytes": 479740,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P06.jpg",
+        "guid": "43b6d8e590341f949b990334ab6592e2",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.5",
+        "faceId": "P06",
+        "sourceSha256": "575463b1387c419a4de9f260b39a17e5e4e8afe4bcfcc87e38ed0b5461463445",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P07",
+      "name": "兑现繁荣",
+      "sourceKind": "7A",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947819660BB18162243100004AB49398A39A9C6F481996020.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P07.jpg",
+      "sha256": "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+      "bytes": 428983,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P07.jpg",
+        "guid": "fea08eb5aef1bc1418423637a6e517ec",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.7",
+        "faceId": "P07",
+        "sourceSha256": "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P08",
+      "name": "建立秩序",
+      "sourceKind": "7B",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26558834947819851A6A31FC159D07C0710F554660901D1C4B44ACCF8.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P08.jpg",
+      "sha256": "00010f344c98ae5f2f0e1323ac268c7918c3b4437832b594824fd68896ffc319",
+      "bytes": 386023,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P08.jpg",
+        "guid": "0b0269496dfc0a643a24b8f8927f92f9",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.P.7",
+        "faceId": "P08",
+        "sourceSha256": "00010f344c98ae5f2f0e1323ac268c7918c3b4437832b594824fd68896ffc319",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "P09",
+      "name": "保罗·蒂尔曼",
+      "sourceKind": "能力牌",
+      "originalProjectPath": "游城拓荒/企业家/保罗/httpssteamusercontentaakamaihdnetugc26559378455134607F05C4199F586B18F535F8403088AA0F62DCCC67D.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/P09.jpg",
+      "sha256": "624e51aa5016d679754f7546c21f8cd0cdb7f0d18705cffdc0e72dd26a5f75f0",
+      "bytes": 477957,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/P09.jpg",
+        "guid": "b2c8a8bf6088e074da8a3e916655e152",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.ability.P09",
+        "faceId": "",
+        "sourceSha256": "624e51aa5016d679754f7546c21f8cd0cdb7f0d18705cffdc0e72dd26a5f75f0",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M01",
+      "name": "建设费用替代提示",
+      "sourceKind": "提示卡",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc2411202693633893960B7A47C7920E9EA18058A91659312C7C5EA57A2BB.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M01.jpg",
+      "sha256": "986f979322aa75a05732c0513b74493b4713fadafad6830e06dbc04e4422ce82",
+      "bytes": 242401,
+      "pixelSize": [
+        600,
+        850
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M01.jpg",
+        "guid": "30ffd662d4af06549a153f25dbcbb2f1",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.award.M01",
+        "faceId": "",
+        "sourceSha256": "986f979322aa75a05732c0513b74493b4713fadafad6830e06dbc04e4422ce82",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M02",
+      "name": "城市化区域·蓝",
+      "sourceKind": "设施",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc24112026936338964446FDED525BB3A0E426339F29E27DFC88065907149.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M02.jpg",
+      "sha256": "2a321bbe9726c65fe990688350ee41a89532d33fb86df557c03f9b73c45b2510",
+      "bytes": 225506,
+      "pixelSize": [
+        600,
+        850
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M02.jpg",
+        "guid": "66cd8bcfdf3aeac458f5611da8a52478",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.facility.M02",
+        "faceId": "",
+        "sourceSha256": "2a321bbe9726c65fe990688350ee41a89532d33fb86df557c03f9b73c45b2510",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M03",
+      "name": "城市化区域·红",
+      "sourceKind": "设施",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc2411202693633898405174518385CF6353D2F1B396C16D9F078A0F28327.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M03.jpg",
+      "sha256": "41afb7bf6c9fb2893942f685756c27e63b109585eeca8e1bd4cd7d504ef850dd",
+      "bytes": 198769,
+      "pixelSize": [
+        600,
+        850
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M03.jpg",
+        "guid": "5e5ee25f893113f4ea43559389b8b1b2",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.facility.M03",
+        "faceId": "",
+        "sourceSha256": "41afb7bf6c9fb2893942f685756c27e63b109585eeca8e1bd4cd7d504ef850dd",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M04",
+      "name": "城市化区域·黄",
+      "sourceKind": "设施",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc2411202693633899057ADE9A2154480F0F642D838DDC718FE016E866FC1.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M04.jpg",
+      "sha256": "719ed854fb8e7d72c455534d7ce8ff4129ad914745ee963e81a65e43df1e0530",
+      "bytes": 240024,
+      "pixelSize": [
+        600,
+        850
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M04.jpg",
+        "guid": "1aa4f120fc060714fb0170317a721ce5",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.facility.M04",
+        "faceId": "",
+        "sourceSha256": "719ed854fb8e7d72c455534d7ce8ff4129ad914745ee963e81a65e43df1e0530",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M05",
+      "name": "拓荒热潮",
+      "sourceKind": "1A",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc26558834948210905D5F5529ABC722701ECDD035D093629A51D2A8C2D.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M05.jpg",
+      "sha256": "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+      "bytes": 404964,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M05.jpg",
+        "guid": "168b85357a920774f9a2a5585d807c14",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.1",
+        "faceId": "M05",
+        "sourceSha256": "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M06",
+      "name": "改进锅炉",
+      "sourceKind": "1B",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc2655883494821112020DC1C74DE0C28C733E2952BDC0248CCE0FCA38E.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M06.jpg",
+      "sha256": "e4e99e5d668c71fc2166633b871963c75452885b2acbc39ba0e937b524d7f823",
+      "bytes": 403514,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M06.jpg",
+        "guid": "23e74ace9eada894492b92c433ad9e30",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.1",
+        "faceId": "M06",
+        "sourceSha256": "e4e99e5d668c71fc2166633b871963c75452885b2acbc39ba0e937b524d7f823",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M07",
+      "name": "复合设施",
+      "sourceKind": "3A",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc26558834948212812384EFEA5A2084AB4E03E0D7F9D63A37FF9044D00.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M07.jpg",
+      "sha256": "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+      "bytes": 410578,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M07.jpg",
+        "guid": "0321121ed5b14594f92a79c5d2809efd",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.3",
+        "faceId": "M07",
+        "sourceSha256": "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M08",
+      "name": "拥挤城区",
+      "sourceKind": "3B",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc26558834948213116888DBFDEAF5C26F166A2DF322965A4EFCBA76C68.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M08.jpg",
+      "sha256": "0b8187c72f75e5e0e2fe20d067b245cda1e33191967f1ec6083a3209add76f40",
+      "bytes": 423995,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M08.jpg",
+        "guid": "0ee46079ad0355f4a8a4dc358e9cb771",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.3",
+        "faceId": "M08",
+        "sourceSha256": "0b8187c72f75e5e0e2fe20d067b245cda1e33191967f1ec6083a3209add76f40",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M09",
+      "name": "技术研发",
+      "sourceKind": "5A",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc26558834948214606B58C74ABACC0C633EB514EA4850E13C7685A1437.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M09.jpg",
+      "sha256": "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+      "bytes": 504706,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M09.jpg",
+        "guid": "f5c0ff3927396cb44b385367d8921bcb",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.5",
+        "faceId": "M09",
+        "sourceSha256": "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M10",
+      "name": "另辟蹊径",
+      "sourceKind": "5B",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc265588349482148553061A8DCC7E6541324557215041B6A3AE1DE2DE8.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M10.jpg",
+      "sha256": "8a0e2b33dfa68ac5f568b25de191f74fe2b347f8cff439ff45f8ec205d3fb7ac",
+      "bytes": 471435,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M10.jpg",
+        "guid": "cc15898d552522a4e81bf3c3c4608887",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.5",
+        "faceId": "M10",
+        "sourceSha256": "8a0e2b33dfa68ac5f568b25de191f74fe2b347f8cff439ff45f8ec205d3fb7ac",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M11",
+      "name": "紧急动员",
+      "sourceKind": "7A",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc26558834948249970FCE382A5D322B6A75DF128CED053E0AA8254B06C.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M11.jpg",
+      "sha256": "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+      "bytes": 400010,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M11.jpg",
+        "guid": "7dac8c5075a2582479838c5487f95e54",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.7",
+        "faceId": "M11",
+        "sourceSha256": "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M12",
+      "name": "源石工业",
+      "sourceKind": "7B",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc265588349482501345CE68A4D74462C49628116DF4EC1A1D94206390D.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M12.jpg",
+      "sha256": "9f077308f8bea63d7ab711999be01b826b9c3eed724f7c617e1b6db722a7baeb",
+      "bytes": 380734,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M12.jpg",
+        "guid": "1eba5add7fafe8e4abeaa632f93b14d6",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.M.7",
+        "faceId": "M12",
+        "sourceSha256": "9f077308f8bea63d7ab711999be01b826b9c3eed724f7c617e1b6db722a7baeb",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "M13",
+      "name": "马丁·费舍尔",
+      "sourceKind": "能力牌",
+      "originalProjectPath": "游城拓荒/企业家/马丁/httpssteamusercontentaakamaihdnetugc2655937845513497343C39C626A900B36F3D6BFD159750EF95F2BA122.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/M13.jpg",
+      "sha256": "a3466b5f3db77199e7d14a5e24b2e33906472728e4a4f2017fd5dda926e78707",
+      "bytes": 546134,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/M13.jpg",
+        "guid": "a4df63cecd5ca4347a82f3585e516dc7",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.ability.M13",
+        "faceId": "",
+        "sourceSha256": "a3466b5f3db77199e7d14a5e24b2e33906472728e4a4f2017fd5dda926e78707",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T01",
+      "name": "源石大亨",
+      "sourceKind": "7A",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc26559378454910858C25C1A4242BBFBD437F52CED2F03ACDF42BC9E16.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T01.jpg",
+      "sha256": "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+      "bytes": 351499,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T01.jpg",
+        "guid": "3405e53a4cb3a9c438a906ac4c889497",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.7",
+        "faceId": "T01",
+        "sourceSha256": "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T02",
+      "name": "称霸荒原",
+      "sourceKind": "7B",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc26559378454911172302DF4356A510C944BD0419C65D889082F2B1FA4.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T02.jpg",
+      "sha256": "fd40ffe77a57caccfe8d88d6d33e016b732833f84d8df4404687bdf3f964a2e1",
+      "bytes": 349619,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T02.jpg",
+        "guid": "ff0477df8834dff4fb7f96576cbec480",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.7",
+        "faceId": "T02",
+        "sourceSha256": "fd40ffe77a57caccfe8d88d6d33e016b732833f84d8df4404687bdf3f964a2e1",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T03",
+      "name": "规范化开采",
+      "sourceKind": "5A",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc2655937845491203629551D48D8AA2A6FDD9AA0DAB5002226E3095C8F.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T03.jpg",
+      "sha256": "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+      "bytes": 360431,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T03.jpg",
+        "guid": "7a4b62a752508c842bf96c5fc18b3581",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.5",
+        "faceId": "T03",
+        "sourceSha256": "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T04",
+      "name": "规划安置点",
+      "sourceKind": "5B",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc265593784549122851613ACFD3975DBD59338CA6892EDF0C78E44BE15.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T04.jpg",
+      "sha256": "c2ab90bbc5a8e37e03d4e60030051522c05bc96893e9af70e9fa4b893554d8b5",
+      "bytes": 350536,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T04.jpg",
+        "guid": "7ffeacef1914f99439f65092aec1b31b",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.5",
+        "faceId": "T04",
+        "sourceSha256": "c2ab90bbc5a8e37e03d4e60030051522c05bc96893e9af70e9fa4b893554d8b5",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T05",
+      "name": "探查禁区",
+      "sourceKind": "3A",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc2655937845491288091C565817F5B4A5B34722D020CD69B51E03FFC12.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T05.jpg",
+      "sha256": "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+      "bytes": 348693,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T05.jpg",
+        "guid": "922367bdd179294498ae843be5d8de96",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.3",
+        "faceId": "T05",
+        "sourceSha256": "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T06",
+      "name": "联邦拨款",
+      "sourceKind": "3B",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc26559378454913067CA4D005774DF7D9BB6B6EAAA8CA007232E6478F1.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T06.jpg",
+      "sha256": "2f21cf11aa1fa6957514a449037461608ee5ce4a2b8650feb3d1ec7148046503",
+      "bytes": 349146,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T06.jpg",
+        "guid": "f9154839d7eedaa4bb09d7c15d69aeb0",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.3",
+        "faceId": "T06",
+        "sourceSha256": "2f21cf11aa1fa6957514a449037461608ee5ce4a2b8650feb3d1ec7148046503",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T07",
+      "name": "收购矿区",
+      "sourceKind": "1A",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc2655937845491348112C9736439CCA30E7BDFD73A20B5E33700AEB9F8.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T07.jpg",
+      "sha256": "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a",
+      "bytes": 330272,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02",
+        "E04"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        },
+        {
+          "semantic": "U05对应回合未抉择A面预览",
+          "states": [
+            "未抉择预览"
+          ],
+          "pageContract": "只预览，不视为所选面/有效能力；点击U04全部候选；正式选后显示实际面"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T07.jpg",
+        "guid": "d27ece75e10eb2a4da94cf4121c1e0e9",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.1",
+        "faceId": "T07",
+        "sourceSha256": "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T08",
+      "name": "前期勘查",
+      "sourceKind": "1B",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc2655937845491371300831BAFB9420E41E7716C0133DA6E740B071493.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T08.jpg",
+      "sha256": "b74d9e659e602c69da8f6504592a7e81b49f7ec8e6053f2337fb7e5ac315e169",
+      "bytes": 328191,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T08.jpg",
+        "guid": "8043ed22ac22d9145834c15de9996597",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.round.T.1",
+        "faceId": "T08",
+        "sourceSha256": "b74d9e659e602c69da8f6504592a7e81b49f7ec8e6053f2337fb7e5ac315e169",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    },
+    {
+      "sourceId": "T09",
+      "name": "第五号企业家",
+      "sourceKind": "能力牌",
+      "originalProjectPath": "游城拓荒/企业家/拓荒企业家/httpssteamusercontentaakamaihdnetugc265593784551340874AD19F6220AEC435F6DDE910D1D4D725D5635234.jpg",
+      "catalogPath": "资产/企业家卡图/现行49图/T09.jpg",
+      "sha256": "81bc83928af9c4174c29ad55ee4f661eadd6d9579e4faca2f031ae82e6d29bf1",
+      "bytes": 376887,
+      "pixelSize": [
+        1200,
+        1700
+      ],
+      "format": ".jpg",
+      "decision": "可用",
+      "currentUsageStandards": [
+        "E02"
+      ],
+      "permittedUses": [
+        {
+          "semantic": "对应来源卡完整正面",
+          "states": [
+            "获授权只读查看/放大",
+            "正式真实候选",
+            "实际已选面/正式来源显示"
+          ],
+          "pageContract": "U03/U04/U05/U06/U07及该真实来源的既定Effect页面；仅对应当前来源身份"
+        }
+      ],
+      "displayRequirements": {
+        "fullImage": true,
+        "preserveSourceAspect": true,
+        "crop": null,
+        "sourcePixelTransformation": "无；逐字节复制",
+        "stateFrames": "沿目标现有状态层，不生成卡图状态变体"
+      },
+      "unityActual": {
+        "status": "已安装且通用显示消费者已接线；正常视觉未验收",
+        "assetPath": "Assets/StreamingAssets/Content/core/artwork/entrepreneurs/T09.jpg",
+        "guid": "ec92bac3894b62f4185d6e14e8d1aab6",
+        "pixelsPerUnit": 100,
+        "spriteImportSettings": {
+          "loader": "ExternalContentRuntime.GetDeclaredCardArtwork → Texture2D.LoadImage → Sprite.Create",
+          "pixelsPerUnit": 100,
+          "mesh": "FullRect",
+          "crop": null,
+          "filter": "Bilinear",
+          "wrap": "Clamp",
+          "mipmap": false,
+          "spriteImporter": "不依赖Unity贴图导入器；运行时读取完整原字节"
+        },
+        "definitionId": "entrepreneur.ability.T09",
+        "faceId": "",
+        "sourceSha256": "81bc83928af9c4174c29ad55ee4f661eadd6d9579e4faca2f031ae82e6d29bf1",
+        "sceneOrPrefabChanges": "既有GameplayInteractionHud.prefab中的GameplayExpansionUi定点绑定原企业家区域和五槽；不重建布局",
+        "evidence": "prompt/企业家内容实施规划-20261019/实施记录/QY-017-COMMON-UI-INTEGRATION-R2/卡图与预览绑定核对.json"
+      }
+    }
+  ],
+  "additionalCoreTower": {
+    "standardId": "E03",
+    "catalogAtlasPath": "资产/设施建设/FacilityBuild-UI-v1.0/originals/facility-atlas.jpg",
+    "atlasSha256": "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269",
+    "runtimeSliceManifest": "Assets/StreamingAssets/Content/core/artwork_slices.json",
+    "runtimeSliceId": "facility_045",
+    "runtimeSheet": {
+      "id": "facility",
+      "artwork": "artwork/sheets/facility_faces.jpg",
+      "sourcePath": "游城拓荒/素材/建设牌堆.jpg",
+      "sourceSha256": "5025430462e59fb39e424f0ff44c30d7027fb1e04d40ed26b880ae98146eb269",
+      "width": 5400,
+      "height": 5100,
+      "rows": 6,
+      "columns": 9,
+      "cellWidth": 600,
+      "cellHeight": 850,
+      "skippedCells": [
+        52,
+        53,
+        54
+      ]
+    },
+    "rectOrigin": "bottom-left",
+    "rect": {
+      "x": 4800,
+      "y": 850,
+      "width": 600,
+      "height": 850
+    },
+    "originalDefinitionIds": [
+      "reserve_001"
+    ],
+    "newDefinitionId": "entrepreneur.facility.additional_core_tower",
+    "newDefinitionIdStatus": "当前正式定义已存在，运行时按声明的facility_045读取原完整Sprite",
+    "authorizedSemantics": {
+      "unique": false,
+      "score": 0,
+      "resourceCost": 0,
+      "goldVoucherCost": 0,
+      "entryEffect": false,
+      "color": "rainbow",
+      "baseTowerUnchanged": true
+    },
+    "displayRequirements": "只消费现有facility_045完整600×850 Sprite，不将整图集当UI，不拆图/另存/重画/改印刷内容；许可仅此新增非唯一定义",
+    "bindingStatus": "原完整600×850 Sprite声明及图集SHA已核；通用设施目录消费者使用同一声明；正常视觉未验收"
+  },
+  "unselectedRoundPreview": {
+    "standardId": "E04",
+    "officialMappings": [
+      {
+        "entrepreneurAbilitySourceId": "A01",
+        "round": 1,
+        "aFaceSourceId": "A09",
+        "catalogPath": "资产/企业家卡图/现行49图/A09.jpg",
+        "sha256": "a345c0286e3f0bdcd0da04b898f45cc19f3e3b9d3a19a60fdc23244cd5d32e6b",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "A01",
+        "round": 3,
+        "aFaceSourceId": "A06",
+        "catalogPath": "资产/企业家卡图/现行49图/A06.jpg",
+        "sha256": "e4eff292650c894a85f9c29ae3986b8894f8a99a8c1654dfaad085ede7c28885",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "A01",
+        "round": 5,
+        "aFaceSourceId": "A04",
+        "catalogPath": "资产/企业家卡图/现行49图/A04.jpg",
+        "sha256": "daeee89f3244e2204be0c5072e078b7759b720f3d2b349d0e60799203b411ccb",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "A01",
+        "round": 7,
+        "aFaceSourceId": "A02",
+        "catalogPath": "资产/企业家卡图/现行49图/A02.jpg",
+        "sha256": "277efdfee8e2bb014562482263fbda85de179764dec08d7b9478e98b7c69477c",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "D09",
+        "round": 1,
+        "aFaceSourceId": "D01",
+        "catalogPath": "资产/企业家卡图/现行49图/D01.jpg",
+        "sha256": "920aa61f0135c5cccb8b4af5bc5fe01b89c965de6d1313de1232f1e71179853c",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "D09",
+        "round": 3,
+        "aFaceSourceId": "D03",
+        "catalogPath": "资产/企业家卡图/现行49图/D03.jpg",
+        "sha256": "f12e11cf2f9dcf02bf777dcf9b94ee35c6e070dd6c2b119017066e386db9ab97",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "D09",
+        "round": 5,
+        "aFaceSourceId": "D05",
+        "catalogPath": "资产/企业家卡图/现行49图/D05.jpg",
+        "sha256": "7807ab4d09ea78244a4931171adad02ea30dac73ffa71f4cf2c4b670707cc281",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "D09",
+        "round": 7,
+        "aFaceSourceId": "D07",
+        "catalogPath": "资产/企业家卡图/现行49图/D07.jpg",
+        "sha256": "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "M13",
+        "round": 1,
+        "aFaceSourceId": "M05",
+        "catalogPath": "资产/企业家卡图/现行49图/M05.jpg",
+        "sha256": "23b1e628fc065f15dd8ece568e00d588a2104433278b733d97332526be1c551e",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "M13",
+        "round": 3,
+        "aFaceSourceId": "M07",
+        "catalogPath": "资产/企业家卡图/现行49图/M07.jpg",
+        "sha256": "0de5820abd645784c9db46042d00ae889041cc2e869d0d3acfcd155b93dbbc9d",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "M13",
+        "round": 5,
+        "aFaceSourceId": "M09",
+        "catalogPath": "资产/企业家卡图/现行49图/M09.jpg",
+        "sha256": "b8717abda6a2380e2a829c1a17f5e7e47c36f3b0eb160a4102cab7e40eeaeb62",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "M13",
+        "round": 7,
+        "aFaceSourceId": "M11",
+        "catalogPath": "资产/企业家卡图/现行49图/M11.jpg",
+        "sha256": "fd96faaca72c679cbc0f8ff31672c7bad8f0daf485cb7f6b3bd8a132d549ae90",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "P09",
+        "round": 1,
+        "aFaceSourceId": "P01",
+        "catalogPath": "资产/企业家卡图/现行49图/P01.jpg",
+        "sha256": "aa32d75a9fc1bd067bcef9e4bccfd37353ea8bba8788dc96c3128ac6cbff517e",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "P09",
+        "round": 3,
+        "aFaceSourceId": "P03",
+        "catalogPath": "资产/企业家卡图/现行49图/P03.jpg",
+        "sha256": "416fee123997af96b1209f6608ba9ced45dfec82e8441dbe5a1cc566d3131b29",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "P09",
+        "round": 5,
+        "aFaceSourceId": "P05",
+        "catalogPath": "资产/企业家卡图/现行49图/P05.jpg",
+        "sha256": "f12911a9fe8e74b91d64e949393c3f030144f74aa64851a81e60c7e36f62c92a",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "P09",
+        "round": 7,
+        "aFaceSourceId": "P07",
+        "catalogPath": "资产/企业家卡图/现行49图/P07.jpg",
+        "sha256": "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "T09",
+        "round": 1,
+        "aFaceSourceId": "T07",
+        "catalogPath": "资产/企业家卡图/现行49图/T07.jpg",
+        "sha256": "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "T09",
+        "round": 3,
+        "aFaceSourceId": "T05",
+        "catalogPath": "资产/企业家卡图/现行49图/T05.jpg",
+        "sha256": "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "T09",
+        "round": 5,
+        "aFaceSourceId": "T03",
+        "catalogPath": "资产/企业家卡图/现行49图/T03.jpg",
+        "sha256": "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      },
+      {
+        "entrepreneurAbilitySourceId": "T09",
+        "round": 7,
+        "aFaceSourceId": "T01",
+        "catalogPath": "资产/企业家卡图/现行49图/T01.jpg",
+        "sha256": "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+        "previewOnly": true,
+        "selectedCandidateId": null,
+        "createsPhysicalInstance": false,
+        "enablesRules": false,
+        "clickBehavior": "U04显示本回合全部候选；不得只显示A/B两项",
+        "afterSelection": "显示Host保存的实际所选面"
+      }
+    ],
+    "meaning": "未抉择显示对应回合抉择卡A；这是预览，完全不改变真实选择/能力启用/实例所有权",
+    "physicalInstanceCreation": false,
+    "ruleActivation": false,
+    "selectionSubmission": false,
+    "clickBehavior": "U04同列表查看该回合全部N候选",
+    "afterSelection": "显示Host已确认的实际所选面",
+    "diyPolicy": {
+      "candidateCount": "N，不收缩成A/B",
+      "requiresExplicitPreviewMapping": true,
+      "fallbackToFirstCandidate": false,
+      "whenNoAIdentifier": "记录具体企业家/回合选择组/候选和缺少的A面预览标识，再征询最小决定；不擅自取第一张",
+      "currentConcreteMissingGroup": null
+    },
+    "replaces": "撤销此前无图/仅文字方案、等待企业家牌背及禁止A面作未抉择预览的旧建议；其他牌类背面许可不变",
+    "runtimeBinding": "EntrepreneurContent.Project → DisplayCandidateId/DisplayFaceId → GameplayExpansionUi.RefreshEntrepreneurCards；无首项回退；全部候选只读列表不回答Host"
+  },
+  "validationLimits": "仅素材用途/源字节/参数登记；本轮无Unity导入、正式视觉键、场景/Prefab改动或正常游戏证据",
+  "revisionNote": "R2增量登记实际路径、GUID、PPU、运行时完整原图解码、20预览与追加塔绑定；用途版本1.0.0不变；不覆盖人工卡面文案。",
+  "gangUiResolution": {
+    "status": "用户后续确认，E05/1.0.0已登记；正式接线未实现",
+    "parameters": "参数/项目实际用法/帮派预制体染色登记.json",
+    "standardId": "E05",
+    "authorization": "2026-10-20 用户在协调聊天后续直接答复：“地图沿用立方体，UI使用通用的影响力方格预制体，对其中的贴图组件染色。”"
+  }
+}

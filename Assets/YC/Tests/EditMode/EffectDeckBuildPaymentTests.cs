@@ -25,12 +25,19 @@ namespace YC.Tests.EditMode
     public sealed class EffectDeckBuildPaymentTests
     {
         private GameState state;
+        private YC.Tests.EditMode.ExpansionRules.IsolatedTestArtifacts artifacts;
+        [SetUp] public void BeginEvidence() => artifacts = YC.Tests.EditMode.ExpansionRules.IsolatedTestArtifacts.BeginCase();
+        [TearDown] public void FinishEvidence()
+        {
+            if (state != null) artifacts.WriteLabeledText("正式Lua隔离当前状态", JsonConvert.SerializeObject(state));
+            artifacts.Finish();
+        }
         private EffectRegistry registry;
         private string root, selection;
         private void Start(bool frontier = false, bool zero = false, bool crossPlayer = false, bool passenger = false, bool mainWindow = false,
             string scriptPath = null, ResourceSet wallet = null)
         {
-            var installed = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+            var installed = ExternalContentPack.Current;
             var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 4,
                 EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
             var catalog = ActiveContentCatalogBuilder.Build(installed, config); config.ContentPackHash = catalog.ContentPackHash;
@@ -98,7 +105,7 @@ namespace YC.Tests.EditMode
         }
         private void Restore()
         {
-            var restored = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
+            var restored = artifacts.Recover(state, "正式Lua付款与建设冷恢复", registry);
             Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State;
         }
         private int Shuffles => state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck && n.Status == EffectNodeStatus.Completed);
@@ -179,7 +186,7 @@ namespace YC.Tests.EditMode
             var p = GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single(); Assert.That(p.IsReady, Is.False); Assert.That(p.InteractionId, Is.Empty); Assert.That(p.CanCancel, Is.False);
             Assert.That(new EffectTreeExecutor(state, registry).TryCancelPreparedEffectBuildPayment(1, Payment.EffectId, state.EffectRuntime.StateRevision, "cannot-cancel-required", out _), Is.False);
             Restore(); Answer(NormalizedValue.CreateString("required"));
-            Assert.That(Open().AnsweringPlayerId, Is.EqualTo(1)); Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().CanConfirm, Is.True);
+            Assert.That(Open().AnsweringPlayerId, Is.EqualTo(1)); Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().CanConfirm, Is.True);
             Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == "BeforeResourcePayment"), Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(20));
         }
 
@@ -243,7 +250,7 @@ namespace YC.Tests.EditMode
             Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(unchanged));
         }
 
-        [Test] public void SubstitutionInvalidatesAndReopensRealPayInputThenPaysAndPlacesOnlyOnce()
+        [Test] public void SubstitutionEditsOriginalPayInputThenPaysAndPlacesOnlyOnce()
         {
             Start(passenger: true);
             string target = Target;
@@ -251,35 +258,49 @@ namespace YC.Tests.EditMode
             var cost = new FacilityBuildCostService().GetEffectiveResourceCost(state, state.FindPlayer(1), definition);
             var type = ResourcePaymentSubstitutionEffectExecutor.BasicTypes.First(t => cost.Get(t) > 0);
             state.FindPlayer(1).Resources = cost.Clone(); state.FindPlayer(1).Resources.Set(type, cost.Get(type) - 1);
-            Prepare(target, "resources"); var oldPay = Open(); string ownerId = Payment.EffectId;
+            Prepare(target, "resources"); var oldPay = GameStateCloneService.DeepClone(Open()); string ownerId = Payment.EffectId;
             var zone = state.ItemZones.Zones.Single(z => ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, 1, z.ZoneId) != null);
             Func<int> markers = () => ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state,
                 state.ItemZones.Zones.Single(z => z.ZoneId == zone.ZoneId), 1).Count;
             Assert.That(markers(), Is.EqualTo(3));
             Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().CanConfirm, Is.False);
-            var entry = Payment.SettlementWindow.Entries.Single(e => e.AbilityId == "operator.passenger.tactic");
             var engine = new EffectTreeExecutor(state, registry);
-            Assert.That(engine.TryInvokeCharacterSettlementOption(1, entry.OptionId, "", state.EffectRuntime.StateRevision,
-                out bool repeated, out string reason), Is.True, reason);
-            Assert.That(repeated, Is.False); Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
-            Assert.That(state.EffectRuntime.InteractionRequests.Single(q => q.GetStableInteractionId() == oldPay.GetStableInteractionId()).Status, Is.EqualTo("invalidated"));
-            Assert.That(Open().AnswerSchema, Is.EqualTo(ResourcePaymentSubstitutionEffectExecutor.AnswerSchema));
-            Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && (q.OwnerEffectId == selection || q.OwnerEffectId == ownerId)), Is.False);
-            var pending = GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single();
-            Assert.That(pending.IsReady, Is.False); Assert.That(pending.InteractionId, Is.Empty); Assert.That(pending.CanCancel, Is.False);
-            Restore(); Answer(NormalizedValue.CreateString(type + "=1"));
+            Assert.That(Payment.Payment.PaymentProtocolVersion, Is.EqualTo(2));
+            var rule = ResourcePaymentSourceService.Query(state, registry, Payment, Payment.Payment.PaymentCost)
+                .Single(r => r.SourceRef.AbilityId == "operator.passenger.payment");
+            Assert.That(engine.TryEditPaymentSource(1, ownerId, oldPay.GetStableInteractionId(), "begin_source_edit", rule.SourceRef.SourceKey,
+                rule.RuleId, "", Payment.Payment.PaymentGeneration, 0, new ResourceSet(), Array.Empty<string>(),
+                state.EffectRuntime.StateRevision, "deck.source.begin", out string reason), Is.True, reason);
+            Assert.That(Open().OwnerEffectId, Is.EqualTo(ownerId)); Assert.That(Payment.Payment.IsCommitted, Is.False);
+            Assert.That(Payment.Payment.SourceEdits.Single(e => e.Status == "open").SourceKey, Is.EqualTo(rule.SourceRef.SourceKey));
+            Assert.That(markers(), Is.EqualTo(3));
+            Restore();
+            var allocation = new ResourceSet(); allocation.Set(type, 1);
+            var edit = Payment.Payment.SourceEdits.Single(e => e.Status == "open");
+            Assert.That(new EffectTreeExecutor(state, registry).TryEditPaymentSource(1, ownerId, Open().GetStableInteractionId(), "save_source",
+                rule.SourceRef.SourceKey, rule.RuleId, edit.EditId, Payment.Payment.PaymentGeneration, edit.EnteredDraftRevision, allocation,
+                Array.Empty<string>(), state.EffectRuntime.StateRevision, "deck.source.save", out reason), Is.True, reason);
+            var draft = Payment.Payment.SourceDrafts.Single(); Assert.That(draft.SelectedItemIds.Count, Is.EqualTo(1));
+            Assert.That(draft.Rule.SourceRef.AbilityId, Is.EqualTo("operator.passenger.payment"));
             var newPay = Open(); Assert.That(newPay.OwnerEffectId, Is.EqualTo(ownerId));
             Assert.That(newPay.InteractionTypeId, Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId));
-            Assert.That(newPay.GetStableInteractionId(), Is.Not.EqualTo(oldPay.GetStableInteractionId()));
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().CanConfirm, Is.True);
+            Assert.That(newPay.GetStableInteractionId(), Is.EqualTo(oldPay.GetStableInteractionId()));
+            Assert.That(newPay.StateRevision, Is.GreaterThan(oldPay.StateRevision));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.OwnerEffectId == ownerId && q.InteractionTypeId == ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId), Is.False);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().CanConfirm, Is.True);
             Assert.That(Payment.Payment.IsCommitRequested, Is.False); Assert.That(markers(), Is.EqualTo(3));
             int revision = state.EffectRuntime.StateRevision;
-            Assert.That(new EffectTreeExecutor(state, registry).TrySubmitInteraction(oldPay.GetStableInteractionId(), 1, revision,
+            Assert.That(new EffectTreeExecutor(state, registry).TrySubmitInteraction(oldPay.GetStableInteractionId(), 1, oldPay.StateRevision,
                 NormalizedValue.CreateString("pay"), out _), Is.False);
             Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision));
             Restore(); Answer(NormalizedValue.CreateStableReference("candidate", "pay"));
             Assert.That(Open().InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
             Assert.That(Payment.Payment.IsCommitted, Is.True); Assert.That(markers(), Is.EqualTo(2));
+            var receipt = Payment.Payment.SourceReceipts.Single();
+            Assert.That(receipt.ProtocolVersion, Is.EqualTo(2)); Assert.That(receipt.ItemIds, Is.EqualTo(draft.SelectedItemIds));
+            Assert.That(Number(receipt.TokenArguments, "requiredCount"), Is.EqualTo(1));
+            Assert.That(receipt.TokenTransfer.Request.Transfers.SelectMany(t => t.ItemIds), Is.EqualTo(receipt.ItemIds));
+            Assert.That(ItemTransferService.TryValidateTokenCommit(state, 1, receipt.TokenArguments, receipt.TokenTransfer, out reason), Is.True, reason);
             foreach (var resource in Enum.GetValues(typeof(ResourceType)).Cast<ResourceType>()) Assert.That(state.FindPlayer(1).Resources.Get(resource), Is.Zero);
             Restore(); Answer(NormalizedValue.CreateString(Open().CandidateIds.First()));
             Assert.That(markers(), Is.EqualTo(2)); Assert.That(Shuffles, Is.EqualTo(1));

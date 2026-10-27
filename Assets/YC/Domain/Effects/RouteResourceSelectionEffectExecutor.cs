@@ -37,7 +37,9 @@ namespace YC.Domain.Effects
         }
         public static EffectSpec CreateHarvest(int playerId, bool extra, string sourceId = "", string budgetOwnerEffectId = "")
         {
-            return Create(playerId, extra ? RouteSelectionPurpose.ExtraHarvest : RouteSelectionPurpose.NormalHarvest, sourceId, budgetOwnerEffectId, false);
+            var spec = Create(playerId, extra ? RouteSelectionPurpose.ExtraHarvest : RouteSelectionPurpose.NormalHarvest, sourceId, budgetOwnerEffectId, false);
+            RouteSelectionSessionAuthority.Set(spec.NormalizedArguments, "collectionPlanProtocol", NormalizedValue.CreateInteger(CollectionPlanService.ProtocolVersion));
+            return spec;
         }
         private static EffectSpec Create(int player, RouteSelectionPurpose purpose, string source, string budgetOwner, bool consume)
         {
@@ -67,6 +69,11 @@ namespace YC.Domain.Effects
                 !string.Equals(map.Map.MapId, context.State.MapId, StringComparison.Ordinal))
                 return EffectStepResult.Failed("route_selection_map_mismatch");
             var node = context.Node;
+            var marker = RouteSelectionSessionAuthority.Value(node.NormalizedArguments, "collectionPlanProtocol");
+            if (marker != null && (marker.Kind != NormalizedValueKind.Integer ||
+                RouteSelectionSessionAuthority.Integer(node.NormalizedArguments,"collectionPlanProtocol",-1) != CollectionPlanService.ProtocolVersion ||
+                RouteSelectionSessionAuthority.Integer(node.NormalizedArguments,"purpose",-1) == (int)RouteSelectionPurpose.Exploration))
+                return EffectStepResult.Failed("collection_plan_protocol_invalid");
             if (node.FlowStage == "execution")
             {
                 foreach (var child in context.ChildNodes)
@@ -76,7 +83,7 @@ namespace YC.Domain.Effects
                 }
                 return EffectStepResult.Completed();
             }
-            var authority = new RouteSelectionSessionAuthority(map);
+            var authority = new RouteSelectionSessionAuthority(map, context.Registry);
             RouteSelectionSession session;
             RouteSelectionRequestBinding binding;
             if (node.FlowStage == "")
@@ -91,10 +98,18 @@ namespace YC.Domain.Effects
                 string targetUpperBound = RouteSelectionSessionAuthority.Text(node.NormalizedArguments, "targetLocationUpperBound");
                 if (targetUpperBound.Length > 0) eligible = Array.AsReadOnly(eligible.Where(id => id == targetUpperBound).ToArray());
                 if (purpose == RouteSelectionPurpose.Exploration && eligible.Count == 0) return EffectStepResult.Completed(NormalizedValue.CreateBoolean(false));
-                var options = new RouteSelectionOptions { PlayerId = node.PlayerId, Purpose = purpose, StartLocationId = player.CityLocationId, ActionContextId = seed.ActionContextId,
+                var options = new RouteSelectionOptions { SchemaVersion = purpose != RouteSelectionPurpose.Exploration && RouteSelectionSessionAuthority.Integer(node.NormalizedArguments, "collectionPlanProtocol", 1) == CollectionPlanService.ProtocolVersion ? CollectionPlanService.ProtocolVersion : 1, PlayerId = node.PlayerId, Purpose = purpose, StartLocationId = player.CityLocationId, ActionContextId = seed.ActionContextId,
                     SelectableLocationUpperBound = eligible, MinimumLocations = purpose == RouteSelectionPurpose.Exploration ? 1 : 0,
                     MaximumLocations = purpose == RouteSelectionPurpose.Exploration ? 1 : eligible.Count, AllowCancelBeforeCommit = purpose == RouteSelectionPurpose.Exploration,
                     ExistingStartBudgetBindingId = RouteSelectionSessionAuthority.Text(node.NormalizedArguments, "budgetOwnerEffectId") };
+                if (options.SchemaVersion == CollectionPlanService.ProtocolVersion)
+                {
+                    // 本次来源边界为地图；C仍逐次按当前资格查。影响力移点后可刷新新合法点，而非锁死开页时C。
+                    options.SelectableLocationUpperBound = targetUpperBound.Length > 0
+                        ? Array.AsReadOnly(new[] { targetUpperBound })
+                        : Array.AsReadOnly(map.Map.Locations.Select(l => l.LocationId).ToArray());
+                    options.MaximumLocations = options.SelectableLocationUpperBound.Count;
+                }
                 var opened = authority.TryOpen(context.State, node, options, out session);
                 if (!opened.IsValid) return EffectStepResult.Failed(opened.Reason);
                 return Wait(context, authority, session, eligible, "", map);
@@ -114,7 +129,7 @@ namespace YC.Domain.Effects
                 var cancelled = authority.Cancel(context.State, node, session);
                 return cancelled.IsValid ? EffectStepResult.Completed(NormalizedValue.CreateBoolean(false)) : EffectStepResult.Failed(cancelled.Reason);
             }
-            var finalized = new RouteResourceSelectionService(map).TryFinalize(context.State, session, binding, answer.Draft, currentEligible, out var commitment);
+            var finalized = new RouteResourceSelectionService(map, context.Registry).TryFinalize(context.State, session, binding, answer.Draft, currentEligible, out var commitment);
             if (!finalized.IsValid) return Wait(context, authority, session, currentEligible, finalized.Reason, map);
             var sealedResult = authority.Seal(context.State, node, session, commitment);
             if (!sealedResult.IsValid) return EffectStepResult.Failed(sealedResult.Reason);
@@ -125,17 +140,8 @@ namespace YC.Domain.Effects
                     node.EffectId, session.SessionId, commitment.CommitmentId, commitment.AcceptedAtStateRevision, commitment.AcceptedPreview.SelectedLocationIds[0],
                     "", session.ActionContextId != "main_action", session.ActionContextId == "main_action", node.SourceId));
             }
-            var preview = commitment.AcceptedPreview;
-            var recipients = new Dictionary<string, int>();
-            var toll = new RouteTollService(map);
-            foreach (var line in preview.PaymentPlan.Lines)
-            {
-                if (line.ReceiverSubjectKey.StartsWith("player:", StringComparison.Ordinal)) recipients.Add(line.RouteId, int.Parse(line.ReceiverSubjectKey.Substring(7)));
-                else if (toll.GetOpponentInfluenceOwnersOnPaymentKey(context.State, line.RouteId, node.PlayerId, RouteTollPaymentKeyMode.RouteId).Contains(-1)) recipients.Add(line.RouteId, -1);
-            }
-            var collection = new ResourceCollectionService(map);
-            var result = collection.CollectSelection(context.State, node.PlayerId, preview.SelectedLocationIds, preview.EffectiveRouteIds,
-                recipients, session.Purpose == RouteSelectionPurpose.ExtraHarvest, session.StartGoldVoucherAmount);
+            var collection = new ResourceCollectionService(map) { RuleRegistry = context.Registry };
+            var result = collection.CollectPlan(context.State, session, commitment);
             if (!result.Succeeded) return EffectStepResult.Failed(result.Validation.Reason);
             var normalized = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
             RouteSelectionSessionAuthority.Set(normalized, "changed", NormalizedValue.CreateBoolean(result.LocationIds.Count > 0));

@@ -10,7 +10,7 @@ namespace YC.Infrastructure.Multiplayer
     public sealed class RoomState
     {
         public string RoomId = string.Empty;
-        public const int CurrentProtocolVersion = 5;
+        public const int CurrentProtocolVersion = YC.Domain.State.GameProtocolVersions.Room;
         public int ProtocolVersion = CurrentProtocolVersion;
         public int StateRevision;
         public int HostPlayerId = -1;

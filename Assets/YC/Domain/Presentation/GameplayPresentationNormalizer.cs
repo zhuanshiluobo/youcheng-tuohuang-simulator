@@ -14,8 +14,9 @@ namespace YC.Domain.Presentation
         private static readonly HashSet<Type> Types = new HashSet<Type>
         {
             typeof(GameplayTextRef), typeof(GameplayTextArgument), typeof(GameplayOptionPresentation),
+            typeof(GameplayCandidateIntegerLabel), typeof(GameplayCandidateIntegerArgument),
             typeof(GameplayQuantityRowPresentation), typeof(GameplayInteractionPresentation), typeof(EffectPresentationDefinition),
-            typeof(ContentPresentationDefinition), typeof(AbilityPresentationDefinition), typeof(SettlementPresentationDefinition),
+            typeof(ContentPresentationDefinition), typeof(AbilityPresentationDefinition), typeof(AbilityActionPresentationDefinition), typeof(SettlementPresentationDefinition),
             typeof(GameplayPresentationContext), typeof(GameplayPresentationResult), typeof(ResolutionMessageView),
             typeof(GameplayTextParameterDefinition), typeof(GameplayTextTemplateDefinition), typeof(GameplayIconDefinition),
             typeof(GameplayFontBindingDefinition)
@@ -41,6 +42,23 @@ namespace YC.Domain.Presentation
             if (source == null || !source.IsValid()) throw new ArgumentException("显示声明归一化值无效。");
             var result = (T)Read(source, typeof(T), 0);
             Validate(result);
+            return result;
+        }
+        // 显示集合是独立条目的封闭DTO，不是一个业务NormalizedValue。
+        // 保留每个集合的128项、每个条目的128节点及原深度/标量限制；不把兄弟条目累计到同一业务值预算。
+        // StructuredValue仅作显示编解码载体；业务参数及其摘要仍使用原ToNormalized/NormalizedValue校验。
+        public static T FromStructuredValue<T>(NormalizedValue source) where T : class, new()
+        {
+            Require(source != null, "显示声明不能为空。");
+            var result = (T)Read(source, typeof(T), 0, true);
+            Validate(result);
+            return result;
+        }
+        public static NormalizedValue ToStructuredValue<T>(T source) where T : class
+        {
+            Validate(source);
+            var result = Write(source, typeof(T), 0);
+            Read(result, typeof(T), 0, true);
             return result;
         }
         public static void Validate<T>(T source) where T : class
@@ -89,6 +107,14 @@ namespace YC.Domain.Presentation
                 Require(interaction.Options.All(o => !string.IsNullOrWhiteSpace(o.CandidateId)) && interaction.Options.Select(o => o.CandidateId).Distinct().Count() == interaction.Options.Count, "选项显示 ID 为空或重复。");
                 Require(interaction.QuantityRows.All(o => !string.IsNullOrWhiteSpace(o.RowId)) && interaction.QuantityRows.Select(o => o.RowId).Distinct().Count() == interaction.QuantityRows.Count, "数量行 ID 为空或重复。");
             }
+            var candidateLabel = source as GameplayCandidateIntegerLabel;
+            if (candidateLabel != null)
+                Require(IsKey(candidateLabel.Key) && candidateLabel.Arguments != null && candidateLabel.Arguments.Count > 0 &&
+                    candidateLabel.Arguments.Select(a => a.Name).Distinct(StringComparer.Ordinal).Count() == candidateLabel.Arguments.Count, "整数候选标签 Key 或参数无效。");
+            var candidateArgument = source as GameplayCandidateIntegerArgument;
+            if (candidateArgument != null)
+                Require(!string.IsNullOrWhiteSpace(candidateArgument.Name) && candidateArgument.Multiplier >= NormalizedValue.MinInteger &&
+                    candidateArgument.Multiplier <= NormalizedValue.MaxInteger, "整数候选标签参数名或乘数无效。");
             var settlement = source as SettlementPresentationDefinition;
             if (settlement != null) Require(new[] { "text", "icon_text", "icon" }.Contains(settlement.ContentMode) &&
                 (settlement.ContentMode == "text" || IsKey(settlement.IconKey)) && (settlement.ContentMode != "icon" || settlement.AriaLabel != null), "结算显示模式、图标或无障碍说明无效。");
@@ -120,22 +146,46 @@ namespace YC.Domain.Presentation
             { var value = field.GetValue(source); if (value != null) entries.Add(new NormalizedValueEntry { Name = Camel(field.Name), Value = Write(value, field.FieldType, depth + 1) }); }
             return NormalizedValue.CreateObject(entries);
         }
-        private static object Read(NormalizedValue source, Type type, int depth)
+        private static object Read(NormalizedValue source, Type type, int depth, bool structured = false)
         {
+            Require(source != null, "显示字段不能为空引用。");
             Require(depth <= NormalizedValue.MaxDepth, "显示声明嵌套过深。");
             if (source.Kind == NormalizedValueKind.Null) { Require(!type.IsValueType, "标量不能为 null。"); return null; }
-            if (type == typeof(NormalizedValue)) return source.Clone();
-            if (type == typeof(string)) { Require(source.Kind == NormalizedValueKind.String, "显示字段应为字符串。"); return source.StringValue; }
+            if (type == typeof(NormalizedValue)) { Require(source.IsValid() && FitsDepth(source, depth), "显示参数无效或嵌套过深。"); return source.Clone(); }
+            if (type == typeof(string)) { Require(source.Kind == NormalizedValueKind.String && source.IsValid(), "显示字段应为合法字符串。"); return source.StringValue; }
             if (type == typeof(bool)) { Require(source.Kind == NormalizedValueKind.Boolean, "显示字段应为布尔值。"); return source.BooleanValue; }
-            if (type == typeof(int) || type == typeof(long)) { Require(source.Kind == NormalizedValueKind.Integer, "显示字段应为整数。"); return type == typeof(int) ? (object)checked((int)source.IntegerValue) : source.IntegerValue; }
+            if (type == typeof(int) || type == typeof(long)) { Require(source.Kind == NormalizedValueKind.Integer && source.IsValid(), "显示字段应为合法整数。"); return type == typeof(int) ? (object)checked((int)source.IntegerValue) : source.IntegerValue; }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
-            { Require(source.Kind == NormalizedValueKind.Array, "显示字段应为数组。"); var result = (IList)Activator.CreateInstance(type); foreach (var item in source.Items) result.Add(Read(item, type.GetGenericArguments()[0], depth + 1)); return result; }
+            {
+                Require(source.Kind == NormalizedValueKind.Array && source.Items != null && source.Items.Count <= NormalizedValue.MaxElements, "显示字段应为有界数组。");
+                var result = (IList)Activator.CreateInstance(type);
+                foreach (var item in source.Items)
+                {
+                    Require(item != null && (!structured || item.IsValid()), "单个显示集合项超过归一化限制或无效。");
+                    result.Add(Read(item, type.GetGenericArguments()[0], depth + 1, structured));
+                }
+                return result;
+            }
             Require(Types.Contains(type) && source.Kind == NormalizedValueKind.Object, "显示字段应为白名单 DTO 对象。");
             var target = Activator.CreateInstance(type);
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToDictionary(f => Camel(f.Name), StringComparer.Ordinal);
+            Require(source.Properties != null && source.Properties.Count <= fields.Count, "显示对象字段集合无效。");
+            string previous = null;
             foreach (var entry in source.Properties)
-            { FieldInfo field; Require(fields.TryGetValue(entry.Name, out field), "未知显示字段：" + entry.Name); field.SetValue(target, Read(entry.Value, field.FieldType, depth + 1)); }
+            {
+                Require(entry != null && entry.Name != null && (previous == null || StringComparer.Ordinal.Compare(previous, entry.Name) < 0), "显示字段必须按Ordinal排序且唯一。");
+                FieldInfo field; Require(fields.TryGetValue(entry.Name, out field), "未知显示字段：" + entry.Name);
+                previous = entry.Name;
+                field.SetValue(target, Read(entry.Value, field.FieldType, depth + 1, structured));
+            }
             return target;
+        }
+        private static bool FitsDepth(NormalizedValue value, int depth)
+        {
+            if (depth > NormalizedValue.MaxDepth) return false;
+            if (value.Kind == NormalizedValueKind.Array) return value.Items.All(item => FitsDepth(item, depth + 1));
+            if (value.Kind == NormalizedValueKind.Object) return value.Properties.All(entry => FitsDepth(entry.Value, depth + 1));
+            return true;
         }
         public static GameplayInteractionPresentation ProjectInteraction(GameplayInteractionPresentation source, bool visible, IEnumerable<string> candidateIds, IEnumerable<string> rowIds = null,
             Func<GameplayTextArgument, bool> canSeeArgument = null)

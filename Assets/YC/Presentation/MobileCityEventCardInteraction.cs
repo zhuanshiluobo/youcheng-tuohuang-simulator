@@ -6,6 +6,9 @@ namespace YC.Presentation
         private InteractionRequestRouter interactionRequestRouter;
         private FacilityBuildPlacementUiCoordinator facilityBuildPlacement;
         private FacilityBuildRequestUiCoordinator facilityBuildRequest;
+        private FacilitySupplySelectionUiCoordinator facilitySupplySelection;
+        private EntrepreneurSelectionUiCoordinator entrepreneurSelection;
+        private FacilityPanelSelectionUiCoordinator facilityPanelSelection;
         private EventCardInteractionUiCoordinator eventCardInteraction;
         private MapEffectInteractionUiCoordinator influenceEffectInteraction;
         private EnterpriseInteractionUiCoordinator enterpriseInteraction;
@@ -46,8 +49,27 @@ namespace YC.Presentation
                 () => UiReadState(), VisibleSaleState, () => localPlayerId, gameplayInteractionHud.DialogRegistry,
                 uiCanvas.transform as UnityEngine.RectTransform, gameplayAdapter,
                 () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId), SynchronizeInteractionFromState, SetPrompt);
+            // 每次注册均在创建后绑定，确保首次Awake及重新装配使用同一付款来源入口。
             interactionRequestRouter.Register(facilityBuildRequest);
             interactionRouter.Register(facilityBuildRequest);
+            facilitySupplySelection?.Dispose();
+            facilitySupplySelection = new FacilitySupplySelectionUiCoordinator(VisibleSaleState, () => localPlayerId,
+                gameplayInteractionHud.DialogRegistry, uiCanvas.transform as UnityEngine.RectTransform,
+                SubmitPendingEffectCommand, () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId));
+            facilitySupplySelection.ExpansionUi = gameplayInteractionHud.ExpansionUi;
+            interactionRequestRouter.Register(facilitySupplySelection);
+            interactionRouter.Register(facilitySupplySelection);
+            gameplayInteractionHud.ExpansionUi.ReportEntrepreneurPreviewDiagnostic = SetPrompt;
+            entrepreneurSelection = new EntrepreneurSelectionUiCoordinator(gameplayInteractionHud.ExpansionUi,
+                gameplayInteractionHud.DialogRegistry, uiCanvas.transform as UnityEngine.RectTransform, () => localPlayerId,
+                SubmitPendingEffectCommand, () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId));
+            interactionRequestRouter.Register(entrepreneurSelection);
+            interactionRouter.Register(entrepreneurSelection);
+            facilityPanelSelection = new FacilityPanelSelectionUiCoordinator(VisibleSaleState, () => localPlayerId,
+                gameplayInteractionHud.DialogRegistry, uiCanvas.transform as UnityEngine.RectTransform, SubmitPendingEffectCommand,
+                () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId));
+            interactionRequestRouter.Register(facilityPanelSelection);
+            interactionRouter.Register(facilityPanelSelection);
             interactionRequestRouter.Register(eventCardInteraction);
             interactionRequestRouter.Register(characterAbilityInteraction);
             interactionRequestRouter.Register(facilityInteraction);
@@ -88,7 +110,10 @@ namespace YC.Presentation
             return interactionRequestRouter.RouteOpen(GetVisibleInteractionRequests(), localPlayerId);
         }
 
-        private System.Collections.Generic.IReadOnlyList<YC.Domain.State.InteractionRequest> GetVisibleInteractionRequests() =>
-            VisibleInteractionRequestSource.Read(null, VisibleSaleState(), localPlayerId);
+        private System.Collections.Generic.IReadOnlyList<YC.Domain.State.InteractionRequest> GetVisibleInteractionRequests()
+        {
+            using var measurement = UiRegressionMetrics.Measure("visible.requests");
+            return VisibleInteractionRequestSource.Read(null, VisibleSaleState(), localPlayerId);
+        }
     }
 }

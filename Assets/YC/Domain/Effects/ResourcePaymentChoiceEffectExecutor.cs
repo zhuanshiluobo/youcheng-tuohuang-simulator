@@ -10,6 +10,7 @@ namespace YC.Domain.Effects
     public static class ResourcePaymentChoiceEffectExecutor
     {
         public const string TypeId = "effect.resource.pay.choice";
+        public const string DefinitionVersion = "1.1.0";
         public const string InteractionTypeId = "effect.resource.payment_choice";
 
         public static EffectSpec Create(int playerId, IList<ResourceSet> options, string promptKey)
@@ -33,31 +34,41 @@ namespace YC.Domain.Effects
         {
             EffectRegistration existing;
             if (registry.TryGet(TypeId, out existing)) return;
-            registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0"));
+            registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, DefinitionVersion));
         }
 
         // 供现有付款页面预览费用；不会扣费、开新请求或自动插入异客正文。
         public static IReadOnlyDictionary<string, ResourceSet> GetPaymentOptionsForPreview(GameState state, EffectNodeRuntimeState node)
         {
+            if (node?.Payment?.PaymentProtocolVersion == 2 && node.Payment.Demand?.Mode == "total")
+                return new Dictionary<string, ResourceSet>(StringComparer.Ordinal) { { PaymentResources.Candidate(node.Payment.PaymentCost), node.Payment.PaymentCost.Clone() } };
             if (state == null || node?.EffectTypeId != TypeId || !TryReadCosts(node.NormalizedArguments, out var costs))
                 throw new ArgumentException("invalid_payment_options");
-            return costs.Where(p => ResourceEffectExecutor.CanPayWithStoredMarkers(state, node.PlayerId, p.Value))
-                .ToDictionary(p => p.Key, p => GameStateCloneService.DeepClone(p.Value), StringComparer.Ordinal);
+            // 可支付资格由带Registry的执行入口产生真实候选；这里只读原费用值，由Host交集候选ID。
+            return costs.ToDictionary(p => p.Key, p => GameStateCloneService.DeepClone(p.Value), StringComparer.Ordinal);
+        }
+
+        public static IEnumerable<KeyValuePair<string, ResourceSet>> EnumerateDemandOptions(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner, ResourcePaymentDemandState demand)
+        {
+            foreach (var allocation in ResourcePaymentAllocationService.EnumerateAllocations(demand))
+                if (ResourcePaymentAllocationService.TryValidate(demand, allocation, out var gross, out _) && ResourcePaymentCostPreview.CanPay(state, registry, owner, gross))
+                    yield return new KeyValuePair<string, ResourceSet>(PaymentResources.Candidate(gross), gross);
         }
 
         // 宿主在原页面选定费用草稿后调用，再为同一笔费用登记 Offer；最终确认仍使用原付款边界。
-        public static bool TryInitializeSelectedPayment(GameState state, EffectNodeRuntimeState node, string optionId, out string reason)
+        public static bool TryInitializeSelectedPayment(GameState state, EffectNodeRuntimeState node, string optionId, out string reason, EffectRegistry registry = null)
         {
             reason = "payment_choice_context_invalid";
+            registry = registry ?? ResourcePaymentSourceService.CostQueryRegistry(state);
             if (state?.EffectRuntime == null || node?.EffectTypeId != TypeId || node.FlowStage != "awaiting_payment" ||
                 !state.EffectRuntime.InteractionRequests.Any(r => r.OwnerEffectId == node.EffectId && r.Status == "open" &&
                     r.InteractionTypeId == InteractionTypeId && r.AnsweringPlayerId == node.PlayerId && r.CandidateIds.Contains(optionId)) ||
                 !TryReadCosts(node.NormalizedArguments, out var costs) || optionId == null || !costs.TryGetValue(optionId, out var cost) ||
-                !ResourceEffectExecutor.CanPayWithStoredMarkers(state, node.PlayerId, cost)) return false;
+                !(registry != null ? ResourcePaymentCostPreview.CanPay(state, registry, node, cost) : ResourceEffectExecutor.CanPayWithStoredMarkers(state, node.PlayerId, cost))) return false;
             string previous = ItemTransferEffectExecutor.Text(node.ContinuationData, "selectedPaymentOptionId");
             if (previous.Length > 0 && previous != optionId)
             {
-                if (!ResourcePaymentSubstitutionEffectExecutor.TryUpdateUninvokedPaymentCost(state, node, cost, out reason)) return false;
+                if (!ResourcePaymentSubstitutionEffectExecutor.TryUpdateUninvokedPaymentCost(state, node, cost, out reason, registry)) return false;
             }
             try { ResourcePaymentSubstitutionEffectExecutor.InitializePayment(node, cost); }
             catch (InvalidOperationException error) { reason = error.Message; return false; }
@@ -145,7 +156,7 @@ namespace YC.Domain.Effects
                 // 候选 ID 只表达支付组合，回答时以节点中保存的组合重新校验。
                 string id = "pay|" + cost.Originium + "|" + cost.Iron + "|" + cost.OriginiumShard + "|" + cost.GoldVoucher + "|" + cost.PureOriginium;
                 // 正式请求与预览共用可支付性；这只开放选费，未点击来源不能自动消耗标记。
-                if (player != null && ResourceEffectExecutor.CanPayWithStoredMarkers(context.State, context.Node.PlayerId, cost)) costs[id] = cost;
+                if (player != null && ResourcePaymentCostPreview.CanPay(context.State, context.Registry, context.Node, cost)) costs[id] = cost;
             }
             if (context.Node.FlowStage == "awaiting_payment")
             {

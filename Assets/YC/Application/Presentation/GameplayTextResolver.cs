@@ -276,7 +276,11 @@ namespace YC.Application.Presentation
                         }
                         i = end + 1; continue;
                     }
+                    if (catalog is IGameplayTextSourceCatalog policy && policy.UsesStrictTemplateSyntax(key))
+                        throw Error(key, i, "未知格式标记；字面方括号须双写转义。");
                 }
+                if (ch == ']' && catalog is IGameplayTextSourceCatalog strict && strict.UsesStrictTemplateSyntax(key))
+                    throw Error(key, i, "字面方括号必须双写转义。");
                 literal.Append(ch); i++;
             }
             flush(); if (styles.Count != 0) throw Error(key, text.Length, "格式标记未闭合。");

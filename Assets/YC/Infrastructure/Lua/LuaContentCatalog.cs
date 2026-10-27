@@ -56,6 +56,7 @@ namespace YC.Infrastructure.Lua
             FacilityLuaCatalog.Register(registry);
             CityStyleLuaCatalog.Register(registry);
             ContentLifecycleLuaCatalog.Register(registry, ExternalContentPack.Current);
+            AbilitySourceLuaCatalog.Register(registry, ExternalContentPack.Current);
             BindGameplayPresenter(registry, ExternalContentPack.Current);
         }
         public static void Register(EffectRegistry registry, ActiveContentCatalog catalog)
@@ -67,6 +68,7 @@ namespace YC.Infrastructure.Lua
             FacilityLuaCatalog.Register(registry, catalog.Pack);
             CityStyleLuaCatalog.Register(registry, catalog.Pack);
             ContentLifecycleLuaCatalog.Register(registry, catalog.Pack);
+            AbilitySourceLuaCatalog.Register(registry, catalog.Pack);
             EnterpriseEffectExecutor.Register(registry, CreateEnterpriseDefinitions(registry, catalog.Definitions, catalog.Pack.GetScript, catalog.Pack));
             YC.Domain.Rules.ExpansionSetupFlow.Register(registry);
         }

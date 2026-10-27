@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.jessica_the_liberated",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "displayName": "涤火杰西卡",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.jessica_the_liberated.strategy",
       "script": "lua/characters/infected.character.jessica_the_liberated.strategy.lua",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "completionHandlerId": "content.infected.character.jessica_the_liberated.strategy.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -30,7 +30,7 @@
       "skillType": "persistent",
       "subscriptionId": "content.infected.character.jessica_the_liberated.tactic",
       "script": "lua/characters/infected.character.jessica_the_liberated.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.infected.character.jessica_the_liberated.tactic.completed",
       "cleanupScript": "lua/characters/infected.character.jessica_the_liberated.tactic.lua",
       "hasSpecialZone": false,
@@ -80,5 +80,75 @@
         "displayName": "涤火杰西卡"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.jessica_the_liberated.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.jessica_the_liberated",
+      "actions": [
+        {
+          "actionId": "infected.character.jessica_the_liberated.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.jessica_the_liberated",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.jessica_the_liberated"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.jessica_the_liberated.tactic",
+      "kind": "event",
+      "handlerRef": "content.infected.character.jessica_the_liberated.tactic",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.jessica_the_liberated.tactic",
+      "actions": []
+    }
+  ]
 }

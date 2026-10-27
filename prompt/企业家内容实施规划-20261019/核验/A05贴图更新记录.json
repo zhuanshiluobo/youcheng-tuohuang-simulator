@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-20",
+  "source_id": "A05",
+  "user_message": "正确的贴图在指令姐的图包里更新了",
+  "previous": {
+    "path": "G:/NoMadCity/游城拓荒/企业家/指令姐/httpssteamusercontentaakamaihdnetugc265593784551310432E766A6C95A798FB1417F422BE62225839A152D1.jpg",
+    "sha256": "3c41b7b502292ef331b294ee54327c33f2785d6e16fa2468f76d2b053c55a4fc",
+    "rule": "旧版卡面收尾费用2指令，用户已确认错误",
+    "exists_at_update": false
+  },
+  "current": {
+    "path": "G:/NoMadCity/游城拓荒/企业家/指令姐/B8F4E8F52E0C80777821877B145097CC.jpg",
+    "sha256": "3f79947185dc7b038142ffc4c34a6c3ae6b031c30023be603567549b73ddd472",
+    "dimensions": [
+      1200,
+      1700
+    ],
+    "rule": "每收尾阶段一次：支付1指令，执行1项未使用的战术行动"
+  },
+  "visual_review": "已查看新图，确认第五回合B面、特勤小组、费用1指令；终局影响力比较、新战术和使用轨道保持既定语义。",
+  "catalog_update": {
+    "path": "G:/NoMadCity/游城拓荒/企业家/素材清单.md",
+    "previous_sha256": "f71db5930967fd469210844be5f52f70cfc7752789dcc239bbdfba97156ceca4",
+    "current_sha256": "e8badde1f20bebccd591939223895973e41fe15fe9359adc9790f12f2afd7d21",
+    "changed_lines": [
+      3,
+      27,
+      104
+    ],
+    "previous_snapshot": "G:/NoMadCity/prompt/企业家内容实施规划-20261019/核验/历史基线/素材清单-A05更新前-20261020.md"
+  },
+  "scope": "本轮只修正素材清单的更新说明／A05文件引用／哈希，及规划证据与有效说明。其他四份企业家源文不变；没有修改或导入图片，没有运行Unity，没有修改代码或界面资产。"
+}

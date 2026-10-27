@@ -17,21 +17,21 @@ namespace YC.Application.Sessions
     [Serializable]
     public sealed class HostSnapshotDto
     {
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = GameProtocolVersions.Host;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public bool RandomStateRequired;
         public int StateRevision;
         public int LastCommitSequence;
         public string ContentHash = string.Empty;
-        public string RuleContractVersion = "expansion-rules.v1";
+        public string RuleContractVersion = YC.Domain.Rules.GameRuleConfiguration.CurrentRuleContractVersion;
         public string ActiveMainNodeId = string.Empty;
         public List<string> ActiveBlockerIds = new List<string>();
         public GameState State = new GameState();
     }
 
     /// <summary>
-    /// Host-only append journal。schema4仅在每次完整追加的末条保存StateAfter；
+    /// Host-only append journal。schema4/5仅在每次完整追加的末条保存StateAfter；
     /// schema2/3仍按原逐条checkpoint读取。严禁进入网络或客户端投影。
     /// </summary>
     [Serializable]
@@ -57,7 +57,7 @@ namespace YC.Application.Sessions
     [Serializable]
     public sealed class HostJournalDto
     {
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = GameProtocolVersions.Journal;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public List<HostJournalEntryDto> Entries = new List<HostJournalEntryDto>();
@@ -91,7 +91,7 @@ namespace YC.Application.Sessions
     /// Host snapshot + append journal 的唯一恢复入口。它先做结构/连续性/内容版本检查，
     /// 再选择最后一个已落盘 StateAfter；任何不确定性都返回 paused_fault，不猜测补段。
     /// </summary>
-    public static class HostRecoveryService
+    public static partial class HostRecoveryService
     {
         public const string SnapshotInvalid = "snapshot_invalid";
         public const string JournalGap = "journal_gap";
@@ -142,11 +142,13 @@ namespace YC.Application.Sessions
         {
             try
             {
-                var raw = JObject.Parse(json);
+                var raw = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
                 var snapshot = raw["Snapshot"] as JObject;
                 var journal = raw["Journal"] as JObject;
                 if (snapshot == null || journal == null || snapshot["SchemaVersion"] == null || journal["SchemaVersion"] == null)
                     return Fault(null, SnapshotInvalid, "缺少原始 SchemaVersion。");
+                if (!HasCurrentProtocolEnvelope(snapshot, journal, out string protocolReason))
+                    return Fault(null, protocolReason == GlobalVersionUnsupported ? GlobalVersionUnsupported : SnapshotInvalid, protocolReason);
                 int snapshotVersion = snapshot.Value<int>("SchemaVersion");
                 int journalVersion = journal.Value<int>("SchemaVersion");
                 if ((snapshotVersion < 1 || snapshotVersion > HostSnapshotDto.CurrentSchemaVersion) || snapshotVersion != journalVersion)
@@ -155,9 +157,9 @@ namespace YC.Application.Sessions
                 if (!(journal["Entries"] is JArray entries)) return Fault(null, SnapshotInvalid, "缺少 journal Entries。");
                 foreach (var entry in entries)
                 {
-                    if (snapshotVersion == 4 && !HasRawBatchJournalFields(entry as JObject))
+                    if (snapshotVersion >= 4 && !HasRawBatchJournalFields(entry as JObject))
                         return Fault(null, SnapshotInvalid, "批次journal缺少完整原始记录字段。");
-                    if (snapshotVersion != 4 || entry["StateAfter"]?.Type != JTokenType.Null)
+                    if (snapshotVersion < 4 || entry["StateAfter"]?.Type != JTokenType.Null)
                         states.Add(entry["StateAfter"] as JObject);
                 }
                 if (snapshot["ContentHash"] == null || string.IsNullOrWhiteSpace(snapshot.Value<string>("ContentHash")) || snapshot["RuleContractVersion"] == null)
@@ -168,6 +170,16 @@ namespace YC.Application.Sessions
                 foreach (var state in states)
                 {
                     if (state == null) return Fault(null, ItemZoneStateMigrator.Unsupported, "缺少 StateAfter。");
+                    if (!TryValidateRetiredCardMarkerRawState(state, out string retiredMarkerReason)) return Fault(null, SnapshotInvalid, retiredMarkerReason);
+                    if (!HasCurrentStateProtocol(state)) return Fault(null, SnapshotInvalid, "host_state_protocol_or_required_fields_missing");
+                    if (!HasRawAbilityActionState(state)) return Fault(null, SnapshotInvalid, "ability_action.v1:raw_fields_missing");
+                    if (!HasRawPersistentSourceFacts(state, out string persistentFactsReason)) return Fault(null, SnapshotInvalid, persistentFactsReason);
+                    if (!YC.Domain.Rules.EntrepreneurRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "entrepreneur_selection.v1:raw_fields_missing");
+                    if (!UsageTrackRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "usage_tracks.v1:raw_fields_missing_or_legacy_naming");
+                    if (!CleanupObligation.HasRawFields(state)) return Fault(null,SnapshotInvalid,"cleanup_obligation.v1:raw_fields_missing");
+                    if (!CleanupSourceRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "cleanup_source.v1:raw_fields_missing");
+                    if (!RewardGrantEffectExecutor.HasRawFields(state)) return Fault(null, SnapshotInvalid, "reward_grant.v1:raw_fields_missing");
+                    if (!FinalScoringRecovery.ValidateRaw(state, out string finalRawReason)) return Fault(null, SnapshotInvalid, finalRawReason);
                     if (!HasRawRandomState(state) || snapshot.Value<bool?>("RandomStateRequired") == true &&
                         (state["RandomRuntime"] == null || state["RandomRuntime"].Type == JTokenType.Null))
                         return Fault(null, SnapshotInvalid, "random_state_invalid");
@@ -202,11 +214,11 @@ namespace YC.Application.Sessions
                             configuration["RuleModeId"] == null || configuration["EnabledExpansionIds"] == null || configuration["ConfigurationRevision"] == null ||
                             configuration["ContentPackHash"] == null || configuration["RuleContractVersion"] == null)
                             return Fault(null, ItemZoneStateMigrator.Unsupported, "新状态缺少原始 RuleConfiguration。");
-                        if (state.Value<int>("EntitySchemaVersion") != 1 || !(state["ItemZones"] is JObject entities) ||
+                        if (state.Value<int>("EntitySchemaVersion") != GameProtocolVersions.Entity || !(state["ItemZones"] is JObject entities) ||
                             entities["Items"] == null || entities["Zones"] == null || entities["Orders"] == null || entities["Relations"] == null ||
                             state["EffectRuntime"]?["SchemaVersion"]?.Type != JTokenType.Integer)
                             return Fault(null, SnapshotInvalid, "实体或 EffectRuntime 原始版本不受支持。");
-                        if (!ValidateRawDeferredResponses((JObject)state["EffectRuntime"]))
+                        if (!ValidateRawDeferredResponses((JObject)state["EffectRuntime"]) || !ValidateRawInfluenceProtocol((JObject)state["EffectRuntime"]))
                             return Fault(null, SnapshotInvalid, "旁路义务或实际挂载收据缺少原始字段。");
                         if (!HasEntityFields(entities)) return Fault(null, SnapshotInvalid, "ItemZones 缺少原始身份、主体、父区或顺序字段。");
                         if (state["EffectRuntime"]?["EffectNodes"] is JArray budgetNodes && budgetNodes.Any(node =>
@@ -237,6 +249,16 @@ namespace YC.Application.Sessions
                         if (state["EffectRuntime"]?["EffectNodes"] is JArray resultNodes && resultNodes.Any(node => (string)node["DefinitionVersion"] == "v1" && new[] { ItemTransferEffectExecutor.TypeId, LuaDomainEffectTypeIds.MoveFacilityCard, LuaDomainEffectTypeIds.MoveCharacterCard, DeckShuffleEffectExecutor.TypeId, LuaDomainEffectTypeIds.ShuffleFacilityDeck, LuaDomainEffectTypeIds.Repeat }.Contains((string)node["EffectTypeId"]) && (node["PositionChanges"] == null || node["ShuffleInputItemIds"] == null)))
                             return Fault(null, ItemZoneStateMigrator.Unsupported, "节点缺少 Host 位置或洗牌结果，不能补默认结果。");
                     }
+                    if (state["ItemZones"]?["FacilityLayerVersion"] == null)
+                    {
+                        var original = state.ToObject<GameState>(JsonSerializer.Create(ArchiveSettings));
+                        if (!FacilityLayerRecovery.TryMigrateLegacy(state, original, out var layered, out string layerMigrationReason))
+                            return Fault(null, SnapshotInvalid, layerMigrationReason);
+                        var replacement = JObject.FromObject(layered, JsonSerializer.Create(ArchiveSettings));
+                        state.RemoveAll(); foreach (var property in replacement.Properties().ToList()) state.Add(property.Name, property.Value.DeepClone());
+                    }
+                    if (!FacilityLayerRecovery.TryValidateRaw(state, out string layerRawReason))
+                        return Fault(null, SnapshotInvalid, layerRawReason);
                 }
                 // 旧实体迁移维持原有流程；玩家环序在 Recover 的旧版本分支中确定性继承。
                 snapshot["SchemaVersion"] = snapshotVersion < 3 ? 2 : snapshotVersion;
@@ -246,7 +268,7 @@ namespace YC.Application.Sessions
             }
             catch (Exception exception) when (exception is JsonException || exception is ArgumentException || exception is InvalidOperationException || exception is OverflowException)
             {
-                return Fault(null, SnapshotInvalid, "Host JSON 校验失败：" + exception.GetType().Name);
+                return Fault(null, SnapshotInvalid, "Host JSON 校验失败：" + exception.GetType().Name + ":" + exception.Message);
             }
         }
 
@@ -256,7 +278,13 @@ namespace YC.Application.Sessions
             bool Fields(JObject value, params string[] names) => value != null && names.All(name => value.Property(name) != null);
             foreach (var node in nodes)
             {
-                if (node["Payment"] is not JObject payment || (int?)payment["PaymentProtocolVersion"] != 1) continue;
+                if (node["Payment"] is not JObject payment) continue;
+                if ((int?)payment["PaymentProtocolVersion"] == 2)
+                {
+                    if (!ResourcePaymentRecovery.HasRawFields(payment, out _)) return false;
+                    continue;
+                }
+                if ((int?)payment["PaymentProtocolVersion"] != 1) return false;
                 if (!Fields(payment, "PaymentId", "OwnerEffectId", "PlayerId", "PaymentCost", "SubstitutionBudget", "SelectedSubstitution",
                     "IsCommitted", "IsCommitRequested", "BeforePaymentEventId", "BeforePaymentReady", "SourceKind", "RuleConditionOwnerEffectId",
                     "PaymentGeneration", "AllowsSubstitution", "Preparation")) return false;
@@ -353,7 +381,7 @@ namespace YC.Application.Sessions
             return properties.OfType<JObject>().FirstOrDefault(entry => (string)entry["Name"] == name)?["Value"] as JObject;
         }
 
-        private static bool HasRawNormalizedFields(JObject value, int depth)
+        internal static bool HasRawNormalizedFields(JObject value, int depth)
         {
             if (depth > NormalizedValue.MaxDepth || value?["Kind"]?.Type != JTokenType.Integer) return false;
             int kind = value["Kind"].Value<int>();
@@ -409,6 +437,33 @@ namespace YC.Application.Sessions
                 if (ItemTransferEffectExecutor.Text(record, "consumerEffectId") != owner.EffectId)
                 { diagnostic = "route_toll_claim_restore_mismatch"; return false; }
             }
+            return true;
+        }
+
+        // 只识别并拒绝已退役wire；不保留装载/付款保留/交付执行器，也不改归档或捕获图。
+        private static bool TryValidateRetiredCardMarkerRawState(JObject state, out string diagnostic)
+        {
+            diagnostic = "";
+            string NodeReason(JObject node)
+            {
+                if (node.Value<string>("EffectTypeId") == ContentPrimitiveEffectExecutor.RetiredMarkerLoadTypeId)
+                    return ContentPrimitiveEffectExecutor.RetiredMarkerLoadReason;
+                if (node["FixedDelivery"] is JToken receipt && receipt.Type != JTokenType.Null)
+                    return ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason;
+                var binding = node["Payment"] is JObject payment ? payment["FixedDeliveryReceiptId"] : null;
+                if (binding != null && binding.Type != JTokenType.Null && (binding.Type != JTokenType.String || binding.Value<string>() != ""))
+                    return ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason;
+                if (node["NormalizedArguments"]?["Properties"] is JArray properties && properties.OfType<JObject>().Any(p =>
+                    p.Value<string>("Name") == "fixedDeliveryRequirement" || p.Value<string>("Name") == "deliveryRef"))
+                    return ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason;
+                if (node["NestedEffects"] is JArray nested)
+                    foreach (var child in nested.OfType<JObject>()) { string found = NodeReason(child); if (found.Length > 0) return found; }
+                return "";
+            }
+            if (state?["EffectRuntime"]?["EffectNodes"] is JArray nodes)
+                foreach (var node in nodes.OfType<JObject>()) { diagnostic = NodeReason(node); if (diagnostic.Length > 0) return false; }
+            if (state?["ItemZones"]?["Zones"] is JArray zones && zones.OfType<JObject>().Any(z => z.Value<string>("LocalZoneId") == "fixed_delivery"))
+            { diagnostic = ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason; return false; }
             return true;
         }
 
@@ -544,8 +599,8 @@ namespace YC.Application.Sessions
         {
             if (archive == null) throw new ArgumentNullException(nameof(archive));
             if (archive.Snapshot == null) throw new InvalidOperationException("Host archive 缺少 snapshot。");
-            if (archive.Snapshot.SchemaVersion != 4 || archive.Journal?.SchemaVersion != 4)
-                throw new InvalidOperationException("旧Host归档必须先Recover成功，再显式CreateArchive(result.State)建立schema4基线后追加。");
+            if (archive.Snapshot.SchemaVersion != GameProtocolVersions.Host || archive.Journal?.SchemaVersion != GameProtocolVersions.Journal)
+                throw new InvalidOperationException("当前构建仅允许向Host5/Journal5基线追加；旧全局归档不支持自动迁移。");
             if (archive.Snapshot.State?.EffectRuntime == null ||
                 archive.Snapshot.State.EffectRuntime.StateRevision != archive.Snapshot.StateRevision ||
                 GetLastCommitSequence(archive.Snapshot.State.EffectRuntime) != archive.Snapshot.LastCommitSequence ||
@@ -624,6 +679,8 @@ namespace YC.Application.Sessions
                 return Fault(null, SnapshotInvalid, "Host archive 为空。");
             if (archive.Snapshot == null)
                 return Fault(null, SnapshotInvalid, "Host archive 缺少 snapshot。");
+            if (archive.Snapshot.SchemaVersion != GameProtocolVersions.Host || archive.Journal?.SchemaVersion != GameProtocolVersions.Journal)
+                return Fault(null, GlobalVersionUnsupported, "当前构建仅支持Host5/Journal5；旧归档须使用匹配原内容和执行器，不自动补造迁移事实。");
             // 只读预检最终恢复目标；历史已完成的旧选择不被重做，原日志/形状校验仍逐条执行。
             var recoveryTarget = archive.Snapshot.State;
             if (archive.Journal?.Entries != null)
@@ -663,7 +720,7 @@ namespace YC.Application.Sessions
                 return Fault(archive.Snapshot.State, UnknownHandler, "恢复包含 Effect/continuation，但没有提供 handler registry。");
 
             HostJournalDto journal = archive.Journal ?? new HostJournalDto();
-            if ((journal.SchemaVersion != 3 && journal.SchemaVersion != 4) ||
+            if (journal.SchemaVersion != GameProtocolVersions.Journal ||
                 journal.SchemaVersion != archive.Snapshot.SchemaVersion || journal.Entries == null)
                 return Fault(archive.Snapshot.State, SnapshotInvalid, "Host journal schemaVersion 不受支持。");
 
@@ -698,10 +755,10 @@ namespace YC.Application.Sessions
                 if (entry.StateRevision < previousRevision || entry.StateRevision > previousRevision + 1)
                     return Fault(recovered, JournalGap, "journal stateRevision 不连续。");
                 if (!string.Equals(archive.Snapshot.ContentHash ?? string.Empty,
-                    journal.SchemaVersion == 4 && string.IsNullOrEmpty(entry.ContentHash)
+                    journal.SchemaVersion >= 4 && string.IsNullOrEmpty(entry.ContentHash)
                         ? archive.Snapshot.ContentHash ?? string.Empty : entry.ContentHash ?? string.Empty, StringComparison.Ordinal))
                     return Fault(recovered, ContentHashMismatch, "journal 内容哈希与 snapshot 不一致。");
-                if (journal.SchemaVersion == 4)
+                if (journal.SchemaVersion >= 4)
                 {
                     if (!HasBatchJournalMetadata(entry))
                         return Fault(recovered, JournalConflict, "批次journal元数据无效。");
@@ -721,14 +778,14 @@ namespace YC.Application.Sessions
                 if (registry == null && ContainsHandlerState(entry.StateAfter))
                     return Fault(recovered, UnknownHandler, "恢复包含 Effect/continuation，但没有提供 handler registry。");
 
-                if (journal.SchemaVersion == 4 ?
+                if (journal.SchemaVersion >= 4 ?
                     !TryValidateBatchCheckpoint(batch, recovered, entry.StateAfter, archive.Snapshot.ContentHash, out diagnostic) ||
                     !TryValidateHostState(entry.StateAfter, registry, out diagnostic) :
                     !TryValidateJournalState(entry, registry, out diagnostic))
                     return Fault(recovered, JournalConflict, diagnostic);
 
                 recovered = GameStateCloneService.DeepClone(entry.StateAfter);
-                if (journal.SchemaVersion == 4)
+                if (journal.SchemaVersion >= 4)
                 {
                     batch.Clear();
                     continue;
@@ -933,7 +990,7 @@ namespace YC.Application.Sessions
         private static bool TryValidateSnapshot(HostSnapshotDto snapshot, EffectRegistry registry, out string diagnostic)
         {
             diagnostic = string.Empty;
-            if ((snapshot.SchemaVersion != 3 && snapshot.SchemaVersion != 4) ||
+            if (snapshot.SchemaVersion != GameProtocolVersions.Host ||
                 snapshot.State == null || snapshot.State.EffectRuntime == null || snapshot.StateRevision < 0 ||
                 snapshot.LastCommitSequence < 0)
             {
@@ -1035,7 +1092,7 @@ namespace YC.Application.Sessions
             {
                 HostJournalEntryDto entry = journal.Entries[i];
                 if (entry == null || string.IsNullOrEmpty(entry.CommitId) ||
-                    journal.SchemaVersion == 4 && !HasBatchJournalMetadata(entry))
+                    journal.SchemaVersion >= 4 && !HasBatchJournalMetadata(entry))
                 {
                     diagnostic = JournalConflict + "：Host journal 包含空记录或缺少 commitId。";
                     return false;
@@ -1063,7 +1120,7 @@ namespace YC.Application.Sessions
                     return false;
                 }
                 if (!string.Equals(snapshot.ContentHash ?? string.Empty,
-                    journal.SchemaVersion == 4 && string.IsNullOrEmpty(entry.ContentHash)
+                    journal.SchemaVersion >= 4 && string.IsNullOrEmpty(entry.ContentHash)
                         ? snapshot.ContentHash ?? string.Empty : entry.ContentHash ?? string.Empty, StringComparison.Ordinal))
                 {
                     diagnostic = ContentHashMismatch + "：journal 内容哈希与 snapshot 不一致。";
@@ -1131,6 +1188,23 @@ namespace YC.Application.Sessions
                 stream["RequestsConsumed"]?.Type == JTokenType.Integer);
         }
 
+        private static bool HasRawAbilityActionState(JToken state)
+        {
+            var runtime = state["EffectRuntime"];
+            bool usesNewNodes = runtime?["EffectNodes"] is JArray nodes && nodes.Any(n => ((string)n["EffectTypeId"] ?? "").StartsWith("effect.ability.", StringComparison.Ordinal));
+            int version = runtime?.Value<int?>("AbilityActionProtocolVersion") ?? 0;
+            if (version == 0) return !usesNewNodes;
+            if (version != 1 || runtime["AbilityActionInvocations"] is not JArray invocations || runtime["AbilitySourceUses"] is not JArray uses) return false;
+            bool Fields(JToken value, params string[] fields) => value is JObject && fields.All(field => value[field] != null && value[field].Type != JTokenType.Null);
+            return invocations.All(i => Fields(i, "ProtocolVersion", "InvocationId", "OwnerEffectId", "CommandId", "CommandDigest", "OptionId", "ActionId", "OccupancyKey", "ParentEffectId", "CallPolicyRef", "Phase", "Outcome", "FailureReason", "FirstFaultPhase", "TrackBindingId", "UsageProviderVersion", "PaymentCommitted", "ActivationCommitted", "MainActionCommitted", "SourceRef", "VersionRef", "RequestRef", "PaymentEffectIds", "BodyEffectIds", "ReceiptIds") &&
+                Fields(i["SourceRef"], "SourceKey", "ItemId", "DefinitionId", "AbilityId", "ActiveFaceId", "DeclarationVersion", "AuthorizedPlayerId", "AuthorizationRef", "EffectiveZoneId", "RuleOwnerItemId", "GrantingSourceRefs") &&
+                Fields(i["VersionRef"], "ContractVersion", "ContentPackHash", "DefinitionVersion", "HandlerHash", "ExecutorVersion") &&
+                Fields(i["RequestRef"], "InteractionId", "OwnerEffectId", "WindowId", "FactsDigest", "AnsweringPlayerId", "CandidateSetVersion", "RequestGeneration", "AllowedAnswers")) &&
+                uses.All(i => Fields(i, "ProtocolVersion", "ReceiptId", "SourceKey", "ItemId", "AbilityId", "ScopeKey", "OwnerEffectId", "Outcome", "PlayerId", "SourceRef", "VersionRef", "TriggerEventId") &&
+                    Fields(i["SourceRef"], "SourceKey", "ItemId", "DefinitionId", "AbilityId", "ActiveFaceId", "DeclarationVersion", "AuthorizedPlayerId", "AuthorizationRef", "EffectiveZoneId", "RuleOwnerItemId", "GrantingSourceRefs") &&
+                    Fields(i["VersionRef"], "ContractVersion", "ContentPackHash", "DefinitionVersion", "HandlerHash", "ExecutorVersion"));
+        }
+
         private static bool TryValidateHostState(GameState state, EffectRegistry registry, out string diagnostic,
             IReadOnlyList<int> launchOrderOverride = null, bool requireDeferredRegistry = true)
         {
@@ -1144,6 +1218,12 @@ namespace YC.Application.Sessions
             if (state.Players == null || state.Players.Any(player => player.RestrictedMainActionsThisTurn < 0 || player.RestrictedMainActionsThisTurn > player.RemainingMainActionsThisTurn))
             { diagnostic = "main_action_budget_invalid"; return false; }
             if (!state.EffectRuntime.TryValidate(out diagnostic)) return false;
+            if (!CleanupObligation.TryValidate(state,registry,out diagnostic)) return false;
+            if (!AbilityActionRecovery.TryValidateAbilityActions(state, registry, out diagnostic)) return false;
+            if (!YC.Domain.Cards.CharacterLifecycleService.TryValidatePersistentSourceFacts(state, registry, out diagnostic)) return false;
+            if (!YC.Domain.Rules.EntrepreneurRecovery.TryValidateEntrepreneurState(state, registry, out diagnostic)) return false;
+            if (!UsageTrackRecovery.Validate(state, registry, out diagnostic)) return false;
+            if (ItemZoneLegacyProjection.IsActive(state) && !CubeAppearance.ValidateFrozen(state, out diagnostic)) return false;
             if (!OperationWindowService.TryValidate(state, out diagnostic)) return false;
             foreach (var owner in state.EffectRuntime.EffectNodes.Where(n => n.SettlementWindow != null))
                 if (!SettlementEntryService.TryValidateWindow(state, owner.SettlementWindow, out diagnostic)) return false;
@@ -1154,6 +1234,11 @@ namespace YC.Application.Sessions
             if (!YC.Domain.Enterprises.EnterpriseEffectExecutor.TryValidateUpgradeSelections(state, registry?.EnterpriseDefinitions, out diagnostic)) return false;
             if (!YC.Domain.Enterprises.EnterpriseEffectExecutor.TryValidateUpgradeAuthorizations(state, out diagnostic)) return false;
             if (!YC.Domain.Effects.FacilityBuildEffectExecutor.TryValidateBuildSources(state, out diagnostic)) return false;
+            if (!FacilityLayerRecovery.TryValidateState(state, registry, out diagnostic)) return false;
+            if (!ResourcePaymentRecovery.TryValidate(state, registry, out diagnostic)) return false;
+            if (!CleanupSourceRecovery.TryValidate(state, registry, out diagnostic)) return false;
+            if (!YC.Domain.Travel.CollectionPlanRecordCodec.TryValidateRestoredPlans(state, registry, out diagnostic, requireRegistry: requireDeferredRegistry)) return false;
+            if (!FinalScoringRecovery.TryValidate(state, registry, YC.Domain.Facilities.FacilityLayerEvidence.Validate, out diagnostic)) return false;
             if (!ResourceEffectExecutor.TryValidatePendingPayments(state, out diagnostic)) return false;
             if (!TryValidateRouteTollState(state, out diagnostic)) return false;
             if (!ContentPrimitiveEffectExecutor.TryValidateContentContinuations(state, out diagnostic)) return false;
@@ -1161,14 +1246,13 @@ namespace YC.Application.Sessions
             if (!DiceRollEffectExecutor.ValidateState(state)) { diagnostic = "dice_receipt_invalid"; return false; }
             if (!YC.Domain.Influence.InfluenceLockRules.Validate(state)) { diagnostic = "influence_lock_state_invalid"; return false; }
             if (!ContentLifecycleEffectExecutor.TryValidate(state, out diagnostic)) return false;
+            if (!RewardGrantEffectExecutor.TryValidate(state, registry, out diagnostic)) return false;
             if (!YC.Domain.Enterprises.EnterpriseDistinctUpgradeFlow.TryValidate(state, out diagnostic)) return false;
             if (state.ContentDefinitions != null && (state.ContentDefinitions.Components == null || state.ContentDefinitions.Components.Any(c => c == null || string.IsNullOrEmpty(c.DefinitionId) || string.IsNullOrEmpty(c.TypeId) || c.QuantityPolicy != "infinite" && c.QuantityPolicy != "finite") || state.ContentDefinitions.Components.Select(c => c.DefinitionId).Distinct().Count() != state.ContentDefinitions.Components.Count || state.ContentDefinitions.Components.Count(c => c.TypeId == "core.road_token") > 1))
             { diagnostic = "component_content_state_invalid"; return false; }
-            if (state.EffectRuntime.SchemaVersion == 2 && state.EffectRuntime.DeferredResponses?.Count == 0 &&
-                state.EffectRuntime.DispatchReceipts.All(r => r.ActualAttachmentKind == EventResponseAttachmentKind.RequiredChild && r.DeferredResponseIds?.Count == 0))
-                state.EffectRuntime.SchemaVersion = EffectRuntimeState.CurrentSchemaVersion;
             if (state.EffectRuntime.SchemaVersion != EffectRuntimeState.CurrentSchemaVersion)
             { diagnostic = ItemZoneStateMigrator.Unsupported + ": EffectRuntime.SchemaVersion"; return false; }
+            if (!InfluenceDepartureProtocol.Validate(state, out diagnostic) || !InfluencePlaceAttachment.Validate(state, registry, out diagnostic)) return false;
             if (state.EffectRuntime.DeferredResponses.Count > 0 && (registry != null || requireDeferredRegistry) &&
                 !EffectTreeExecutor.TryValidateDeferredResponses(state, registry, out diagnostic)) return false;
             if (ItemZoneLegacyProjection.IsActive(state) && !new ItemZoneQuery().TryValidate(state, out diagnostic)) return false;
@@ -1200,7 +1284,7 @@ namespace YC.Application.Sessions
                         var track = state.ItemZones.Zones.Find(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == styleItem?.ItemId && z.LocalZoneId == "declaration_" + player.PlayerId + "_" + ordinal);
                         bool returned = track != null && state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ContentLifecycleEffectExecutor.ReturnMarkerTypeId && n.PlayerId == player.PlayerId &&
                             n.PositionChanges.Any(c => c.ItemId == declaration.InfluenceMarkerId && c.From.ZoneId == track.ZoneId &&
-                                state.ItemZones.Zones.Any(z => z.ZoneId == c.To.ZoneId && z.LocalZoneId == "player_markers" && z.OwnerPlayerId == player.PlayerId)));
+                                state.ItemZones.Zones.Any(z => z.ZoneId == c.To.ZoneId && z.LocalZoneId == "supply" && z.OwnerPlayerId == player.PlayerId)));
                         if (string.IsNullOrEmpty(declaration.DeclarationId) || styleItem?.DefinitionId != declaration.CityStyleId ||
                             marker?.TypeId != "core.player_marker" || marker.OwnerSubject.PlayerId != player.PlayerId || track == null || marker.ZoneId != track.ZoneId && !returned ||
                             declaration.UsedFacilityIds.Count != declaration.UsedCityBoardSlotIndexes.Count || declaration.UsedFacilityIds.Count != declaration.UsedFacilityIds.Distinct().Count() ||
@@ -1208,7 +1292,7 @@ namespace YC.Application.Sessions
                         { diagnostic = "city_style_declaration_restore_mismatch"; return false; }
                     }
             }
-            if ((ItemZoneLegacyProjection.IsActive(state) || state.RuleConfiguration != null) && (state.RuleConfiguration == null || state.RuleConfiguration.SchemaVersion != 1 ||
+            if ((ItemZoneLegacyProjection.IsActive(state) || state.RuleConfiguration != null) && (state.RuleConfiguration == null || state.RuleConfiguration.SchemaVersion != YC.Domain.Rules.GameRuleConfiguration.CurrentSchemaVersion ||
                 state.RuleConfiguration.MapId != state.MapId || state.RuleConfiguration.PlayerCount != state.Players.Count || state.RuleConfiguration.ContentPackHash != state.ContentPackHash ||
                 state.RuleConfiguration.ConfigurationRevision < 0 ||
                 state.RuleConfiguration.RuleContractVersion != YC.Domain.Rules.GameRuleConfiguration.CurrentRuleContractVersion))

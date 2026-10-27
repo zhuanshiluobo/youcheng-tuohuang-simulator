@@ -21,6 +21,7 @@ namespace YC.Domain.Effects
     [Serializable]
     public sealed class SettlementOfferDefinition
     {
+        public PaymentInsertionRuntimeState PaymentInsertion;
         public int ApiVersion = 1, PlayerId = -1, MaxUses = 1;
         public string LocalId = "", SourceItemId = "", WindowId = "", OwnerEffectId = "", AvailabilityHandlerId = "", Visibility = "owner";
         public SettlementPresentationDefinition Presentation;
@@ -37,9 +38,12 @@ namespace YC.Domain.Effects
     [Serializable]
     public sealed class SettlementEntryRuntimeState
     {
+        [Newtonsoft.Json.JsonProperty(NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public PaymentInsertionRuntimeState PaymentInsertion;
         public string OptionId = "", LocalId = "", EntryKind = "", SourceItemId = "", SourceDefinitionId = "", AbilityId = "", SourceEffectId = "", TriggerId = "", TargetEffectId = "";
         public long RegistrationSequence;
         public int MaxUses = 1, AcceptedUseCount;
+        public CleanupSourceEntryState CleanupSource;
         public string Visibility = "owner", AvailabilityHandlerId = "", SettlementState = "available", OutcomeCode = "";
         public SettlementWholeEffectPolicy WholeEffectPolicy;
         public SettlementPresentationDefinition Presentation;
@@ -61,6 +65,8 @@ namespace YC.Domain.Effects
     {
         public string EntryKind = "", WindowId = "", OwnerEffectId = "", OptionId = "", TargetEffectId = "", InteractionId = "";
         public IReadOnlyList<EffectSpec> Effects = Array.Empty<EffectSpec>();
+        public int PaymentAdmissionIndex = -1;
+        public bool PaymentConfigurationAllowed;
     }
 
     public enum SettlementEndActionKind { StopCurrentNode, CloseCleanupWindow }
@@ -106,7 +112,9 @@ namespace YC.Domain.Effects
         public static SettlementEntryRuntimeState RegisterOffer(SettlementWindowRuntimeState window, SettlementOfferDefinition offer)
         {
             RequireOpen(window);
-            if (window.Context.Kind == PlayerCleanup || offer == null || offer.ApiVersion != 1 || offer.MaxUses != 1 ||
+            if (window.Context.Kind == PlayerCleanup || offer == null ||
+                (offer.ApiVersion == 1 ? offer.MaxUses != 1 || offer.PaymentInsertion != null :
+                 offer.ApiVersion != 2 || window.Context.Kind != ResourcePayment || !ResourcePaymentInsertionService.ValidDeclaration(offer.PaymentInsertion?.Rule?.Insertion) || offer.MaxUses != offer.PaymentInsertion.Rule.Insertion.MaxUses) ||
                 offer.PlayerId != window.Context.PlayerId || offer.WindowId != window.Context.Id ||
                 offer.OwnerEffectId != window.Context.OwnerEffectId || string.IsNullOrEmpty(offer.LocalId) ||
                 string.IsNullOrEmpty(offer.SourceItemId) || string.IsNullOrEmpty(offer.AvailabilityHandlerId) ||
@@ -118,7 +126,8 @@ namespace YC.Domain.Effects
             if (existing != null)
             {
                 // 刷新只更新未受理的定义，不重置身份、加入顺序或使用收据。
-                if (existing.AcceptedUseCount == 0)
+                if (existing.AcceptedUseCount == 0 || existing.PaymentInsertion != null && existing.SettlementState != "executing" &&
+                    offer.PaymentInsertion != null && ResourcePaymentSourceService.Fingerprint(existing.PaymentInsertion.Rule) == ResourcePaymentSourceService.Fingerprint(offer.PaymentInsertion.Rule))
                 {
                     existing.Presentation = GameplayPresentationNormalizer.Clone(offer.Presentation);
                     existing.AvailabilityHandlerId = offer.AvailabilityHandlerId;
@@ -129,6 +138,7 @@ namespace YC.Domain.Effects
             var entry = new SettlementEntryRuntimeState { OptionId = id, LocalId = offer.LocalId,
                 EntryKind = OptionalInsertion, SourceItemId = offer.SourceItemId, AvailabilityHandlerId = offer.AvailabilityHandlerId,
                 RegistrationSequence = window.NextRegistrationSequence++, Presentation = GameplayPresentationNormalizer.Clone(offer.Presentation),
+                MaxUses = offer.MaxUses, PaymentInsertion = GameStateCloneService.DeepClone(offer.PaymentInsertion),
                 Effects = offer.Effects.Select(e => e.Clone()).ToList() };
             window.Entries.Add(entry);
             return entry;
@@ -187,11 +197,11 @@ namespace YC.Domain.Effects
                     OwnerEffectId = window.Context.OwnerEffectId, InteractionId = request?.GetStableInteractionId() ?? "",
                     SourceItemId = entry.SourceItemId, SourceDefinitionId = entry.SourceDefinitionId,
                     LocalId = entry.LocalId, EntryKind = entry.EntryKind,
-                    TargetEffectId = entry.TargetEffectId, CandidateId = entry.EntryKind == CleanupOrder ? entry.TargetEffectId : entry.SourceItemId,
+                    TargetEffectId = entry.TargetEffectId, CandidateId = entry.CleanupSource != null ? entry.OptionId : entry.EntryKind == CleanupOrder ? entry.TargetEffectId : entry.SourceItemId,
                     TargetUseId = window.Context.TargetUseId, AnsweringPlayerId = viewerPlayerId,
                     StateRevision = state.EffectRuntime.StateRevision, CandidateSetVersion = request?.CandidateSetVersion ?? 0,
                     RegistrationSequence = entry.RegistrationSequence, CanDeclineWholeEffect = entry.WholeEffectPolicy == SettlementWholeEffectPolicy.Optional,
-                    SettlementState = entry.SettlementState, Presentation = GameplayPresentationNormalizer.Clone(entry.Presentation),
+                    SettlementState = entry.PaymentInsertion != null && reason.Length == 0 ? "available" : entry.SettlementState, Presentation = GameplayPresentationNormalizer.Clone(entry.Presentation),
                     IsEnabled = reason.Length == 0, VisibleToViewer = true, DisabledReasonCode = reason });
             }
             return result;
@@ -205,13 +215,15 @@ namespace YC.Domain.Effects
             var entry = window?.Entries?.Find(e => e.OptionId == optionId);
             if (state?.EffectRuntime == null || window?.Context == null || entry == null) return false;
             if (playerId != window.Context.PlayerId || (useId ?? "") != window.Context.TargetUseId) { reason = "settlement_permission_denied"; return false; }
-            if (entry.AcceptedUseCount > 0) { alreadyInvoked = true; reason = ""; return true; }
+            if (entry.CleanupSource != null) { reason = "cleanup_source_request_required"; return false; }
+            if (entry.PaymentInsertion == null && entry.AcceptedUseCount > 0) { alreadyInvoked = true; reason = ""; return true; }
             if (expectedRevision != state.EffectRuntime.StateRevision) { reason = "state_revision_mismatch"; return false; }
             var option = GetOptions(state, window, playerId, availability).FirstOrDefault(o => o.OptionId == optionId);
             if (option?.IsEnabled != true) { reason = option?.DisabledReasonCode ?? "settlement_window_closed"; return false; }
             plan = new SettlementInvocationPlan { EntryKind = entry.EntryKind, WindowId = window.Context.Id,
                 OwnerEffectId = window.Context.OwnerEffectId, OptionId = optionId, TargetEffectId = entry.TargetEffectId,
-                InteractionId = option.InteractionId, Effects = entry.EntryKind == OptionalInsertion
+                InteractionId = option.InteractionId, PaymentAdmissionIndex = entry.AcceptedUseCount,
+                PaymentConfigurationAllowed = entry.PaymentInsertion != null && ResourcePaymentInsertionService.CanStartConfiguration(state, entry), Effects = entry.EntryKind == OptionalInsertion
                     ? entry.Effects.Select(EffectRegistry.FromRuntimeSpec).ToList() : (IReadOnlyList<EffectSpec>)Array.Empty<EffectSpec>() };
             reason = ""; return true;
         }
@@ -222,10 +234,15 @@ namespace YC.Domain.Effects
             if (plan == null || plan.WindowId != window.Context.Id || plan.OwnerEffectId != window.Context.OwnerEffectId)
                 throw new ArgumentException("settlement_invocation_plan_invalid");
             var entry = window.Entries.Single(e => e.OptionId == plan.OptionId);
-            if (entry.AcceptedUseCount > 0) return;
+            if (entry.PaymentInsertion == null && entry.AcceptedUseCount > 0) return;
+            if (entry.PaymentInsertion != null && (!plan.PaymentConfigurationAllowed || plan.PaymentAdmissionIndex != entry.AcceptedUseCount || entry.SettlementState == "executing"))
+                throw new ArgumentException("payment_insertion_uses_exhausted");
             string target = entry.EntryKind == CleanupOrder ? entry.TargetEffectId : attachedTargetEffectId;
             if (string.IsNullOrEmpty(target) || !string.IsNullOrEmpty(window.ActiveTargetEffectId)) throw new ArgumentException("settlement_execution_target_invalid");
             entry.TargetEffectId = target; entry.AcceptedUseCount++; entry.SettlementState = "executing";
+            if (entry.PaymentInsertion != null) entry.PaymentInsertion.Version = ResourcePaymentInsertionService.Version;
+            if (entry.PaymentInsertion != null) entry.PaymentInsertion.Invocations.Add(new PaymentInsertionInvocation {
+                TargetEffectId = target, Effects = entry.Effects.Select(e => e.Clone()).ToList() });
             window.ActiveTargetEffectId = target;
         }
 
@@ -233,19 +250,38 @@ namespace YC.Domain.Effects
         {
             if (runtime == null || window?.Context == null) return false;
             if (!runtime.EffectNodes.Any(n => n.EffectId == childEffectId && n.ParentEffectId == window.Context.OwnerEffectId)) return false;
+            var invocationEntry = CleanupSourceService.Sources(window).SingleOrDefault(e => e.CleanupSource.Invocations.Any(i => i.TargetEffectId == childEffectId));
+            if (invocationEntry != null) return !window.IsClosed && window.ActiveTargetEffectId == childEffectId &&
+                invocationEntry.CleanupSource.Invocations.Any(i => i.TargetEffectId == childEffectId && i.Status == "executing" && i.InvocationId == invocationEntry.CleanupSource.ActiveInvocationId);
             var entry = window.Entries.Find(e => e.TargetEffectId == childEffectId);
+            if (entry?.CleanupSource != null) return false; // 登记锚点不执行正文；封窗时同提交结清。
             if (entry != null) return !window.IsClosed && entry.SettlementState == "executing" && window.ActiveTargetEffectId == childEffectId;
             if (!string.IsNullOrEmpty(window.ActiveTargetEffectId)) return false;
             // 系统步骤不混入玩家排序集合，仍须等全部真实段结算。
-            return window.Entries.Where(e => e.EntryKind == CleanupOrder).All(e => e.SettlementState == "resolved" || e.SettlementState == "declined");
+            return window.Entries.Where(e => e.EntryKind == CleanupOrder && e.CleanupSource == null).All(e => e.SettlementState == "resolved" || e.SettlementState == "declined");
+        }
+
+        public static void ObserveTerminal(GameState work, SettlementWindowRuntimeState window, EffectNodeRuntimeState target)
+        {
+            CleanupSourceService.ObserveTerminal(work, window, target);
+            var paymentEntry = window?.Entries.Find(e => e.PaymentInsertion != null && e.TargetEffectId == target?.EffectId && e.SettlementState == "executing");
+            if (paymentEntry != null && (target.Status == EffectNodeStatus.Completed || target.Status == EffectNodeStatus.Failed))
+            {
+                paymentEntry.SettlementState = target.Status == EffectNodeStatus.Completed && ResourcePaymentInsertionService.ConfigurationBudgetAllows(work, paymentEntry) ? "available" : "resolved";
+                paymentEntry.OutcomeCode = target.Status == EffectNodeStatus.Completed ? "completed" : target.FailureReason;
+                if (window.ActiveTargetEffectId == target.EffectId) window.ActiveTargetEffectId = "";
+                return;
+            }
+            ObserveTerminal(window, target);
         }
 
         public static void ObserveTerminal(SettlementWindowRuntimeState window, EffectNodeRuntimeState target)
         {
             if (window == null || target == null || target.Status != EffectNodeStatus.Completed && target.Status != EffectNodeStatus.Failed) return;
-            var entry = window.Entries.Find(e => e.TargetEffectId == target.EffectId && e.SettlementState == "executing");
+            if (CleanupSourceService.ObserveTerminal(window, target)) return;
+            var entry = window.Entries.Find(e => e.CleanupSource == null && e.TargetEffectId == target.EffectId && e.SettlementState == "executing");
             if (entry == null) return;
-            entry.SettlementState = "resolved";
+            entry.SettlementState = entry.PaymentInsertion != null && target.Status == EffectNodeStatus.Completed && entry.AcceptedUseCount < entry.MaxUses ? "available" : "resolved";
             entry.OutcomeCode = target.Status == EffectNodeStatus.Completed ? "completed" : target.FailureReason;
             if (window.ActiveTargetEffectId == target.EffectId) window.ActiveTargetEffectId = "";
         }
@@ -260,17 +296,17 @@ namespace YC.Domain.Effects
             return window?.Context?.Kind == PlayerCleanup && !window.IsClosed &&
                 owner.EffectId == window.Context.OwnerEffectId && owner.PlayerId == window.Context.PlayerId &&
                 owner.Status != EffectNodeStatus.Completed && owner.Status != EffectNodeStatus.Failed && owner.Status != EffectNodeStatus.Faulted &&
-                string.IsNullOrEmpty(window.ActiveTargetEffectId) && window.Entries.Any(e => e.EntryKind == CleanupOrder &&
+                string.IsNullOrEmpty(window.ActiveTargetEffectId) && (CleanupSourceService.Sources(window).Any(e => !e.CleanupSource.Sealed) || window.Entries.Any(e => e.EntryKind == CleanupOrder &&
                     e.SettlementState == "available" && e.WholeEffectPolicy != SettlementWholeEffectPolicy.Unspecified &&
                     runtime.EffectNodes.Any(n => n.EffectId == e.TargetEffectId && n.ParentEffectId == owner.EffectId &&
-                        n.PlayerId == owner.PlayerId && n.Status == EffectNodeStatus.Created && owner.ChildEffectIds.Contains(n.EffectId)));
+                        n.PlayerId == owner.PlayerId && n.Status == EffectNodeStatus.Created && owner.ChildEffectIds.Contains(n.EffectId))));
         }
 
         public static bool CanCloseCleanup(SettlementWindowRuntimeState window, out string reason)
         {
             reason = "settlement_window_invalid";
             if (window?.Context == null || window.Context.Kind != PlayerCleanup || window.IsClosed) return false;
-            if (!string.IsNullOrEmpty(window.ActiveTargetEffectId)) { reason = "settlement_execution_pending"; return false; }
+            if (!string.IsNullOrEmpty(window.ActiveTargetEffectId) || CleanupSourceService.Sources(window).Any(e => e.CleanupSource.ActiveInvocationId.Length > 0)) { reason = "settlement_execution_pending"; return false; }
             if (window.Entries.Any(e => e.SettlementState == "available" && e.WholeEffectPolicy == SettlementWholeEffectPolicy.Unspecified))
             { reason = "settlement_whole_effect_policy_unresolved"; return false; }
             if (window.Entries.Any(e => e.SettlementState == "available" && e.WholeEffectPolicy == SettlementWholeEffectPolicy.Required))
@@ -307,7 +343,7 @@ namespace YC.Domain.Effects
                     (n.Status == EffectNodeStatus.Ready || n.Status == EffectNodeStatus.Running || n.Status == EffectNodeStatus.Blocked) &&
                     IsWithin(runtime, n.EffectId, window.Context.OwnerEffectId)))
             { reason = "settlement_current_node_required"; return false; }
-            if (!CanCloseCleanup(window, out reason)) return false;
+            if (!CanCloseCleanup(window, out reason) || !CleanupSourceService.CanClose(state, window, out reason)) return false;
             plan = new SettlementEndActionPlan { Kind = SettlementEndActionKind.CloseCleanupWindow,
                 WindowId = window.Context.Id, OwnerEffectId = window.Context.OwnerEffectId };
             return true;
@@ -331,16 +367,20 @@ namespace YC.Domain.Effects
         {
             declinedTargetIds = Array.Empty<string>();
             if (!CanCloseCleanup(window, out reason)) return false;
-            var declined = window.Entries.Where(e => e.SettlementState == "available" && e.WholeEffectPolicy == SettlementWholeEffectPolicy.Optional).ToList();
+            var declined = window.Entries.Where(e => e.CleanupSource == null && e.SettlementState == "available" && e.WholeEffectPolicy == SettlementWholeEffectPolicy.Optional).ToList();
+            foreach (var sourceEntry in CleanupSourceService.Sources(window))
+            { sourceEntry.CleanupSource.Sealed = true; sourceEntry.SettlementState = "declined"; sourceEntry.OutcomeCode = "window_closed"; }
             foreach (var entry in declined) { entry.SettlementState = "declined"; entry.OutcomeCode = "whole_effect_declined"; }
-            declinedTargetIds = declined.Select(e => e.TargetEffectId).ToList(); window.IsClosed = true; return true;
+            declinedTargetIds = declined.Select(e => e.TargetEffectId).Concat(CleanupSourceService.Sources(window).Select(e => e.TargetEffectId)).ToList(); window.IsClosed = true; return true;
         }
 
         private static string BoundaryReason(GameState state, SettlementWindowRuntimeState window, SettlementEntryRuntimeState entry, int playerId)
         {
+            if (entry.CleanupSource != null) return CleanupSourceService.BoundaryReason(state, window, entry);
             if (window.IsClosed) return "settlement_window_closed";
             if (window.Context.PlayerId != playerId) return "settlement_permission_denied";
-            if (entry.AcceptedUseCount >= entry.MaxUses || entry.SettlementState != "available") return "settlement_already_invoked";
+            if (entry.PaymentInsertion != null ? !ResourcePaymentInsertionService.CanStartConfiguration(state, entry) :
+                entry.AcceptedUseCount >= entry.MaxUses || entry.SettlementState != "available") return "settlement_already_invoked";
             if (!string.IsNullOrEmpty(window.ActiveTargetEffectId)) return "settlement_execution_pending";
             var owner = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == window.Context.OwnerEffectId && n.PlayerId == playerId);
             if (owner == null || owner.Status == EffectNodeStatus.Completed || owner.Status == EffectNodeStatus.Failed || owner.Status == EffectNodeStatus.Faulted) return "settlement_window_closed";
@@ -385,6 +425,17 @@ namespace YC.Domain.Effects
                 window.Entries.Select(e => e.RegistrationSequence).Distinct().Count() != window.Entries.Count) return false;
             foreach (var entry in window.Entries)
             {
+                if (entry.PaymentInsertion != null)
+                {
+                    if (!ResourcePaymentInsertionService.ValidateEntry(state, window, entry, null)) return false;
+                    continue;
+                }
+                if (entry.CleanupSource != null)
+                {
+                    if (entry.RegistrationSequence < 0 || entry.RegistrationSequence >= window.NextRegistrationSequence ||
+                        !CleanupSourceRecovery.TryValidateEntry(state, window, entry, null, out reason)) return false;
+                    continue;
+                }
                 if (entry.RegistrationSequence < 0 || entry.RegistrationSequence >= window.NextRegistrationSequence ||
                     entry.MaxUses != 1 || entry.AcceptedUseCount < 0 || entry.AcceptedUseCount > 1 || entry.Visibility != "owner" ||
                     string.IsNullOrEmpty(entry.LocalId) || entry.Effects == null || entry.Effects.Any(e => e == null) ||
@@ -411,7 +462,8 @@ namespace YC.Domain.Effects
                     entry.SettlementState == "resolved" && !terminal || entry.SettlementState == "declined" && !terminal) return false;
             }
             var active = window.Entries.Where(e => e.SettlementState == "executing").ToList();
-            if (active.Count > 1 || (active.Count == 0 ? window.ActiveTargetEffectId.Length != 0 : window.ActiveTargetEffectId != active[0].TargetEffectId)) return false;
+            if (active.Count > 1 || (active.Count == 0 ? window.ActiveTargetEffectId.Length != 0 : window.ActiveTargetEffectId !=
+                (active[0].CleanupSource == null ? active[0].TargetEffectId : active[0].CleanupSource.Invocations.Single(i => i.InvocationId == active[0].CleanupSource.ActiveInvocationId).TargetEffectId))) return false;
             if (window.IsClosed && (active.Count != 0 || window.Entries.Any(e => e.EntryKind == CleanupOrder && e.SettlementState == "available"))) return false;
             reason = ""; return true;
         }
@@ -419,6 +471,7 @@ namespace YC.Domain.Effects
         public static void Register(EffectRegistry registry)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
+            CleanupSourceInvocationExecutor.Register(registry);
             if (!registry.TryGet(SegmentTypeId, out _)) registry.Register(new EffectRegistration(SegmentTypeId, ExecuteSegment, EffectExecutorKind.IntrinsicFlow, "1.0.0"));
         }
 

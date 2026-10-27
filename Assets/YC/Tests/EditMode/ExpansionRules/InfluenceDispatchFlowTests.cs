@@ -18,6 +18,27 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class InfluenceDispatchFlowTests
     {
+        private static IsolatedTestArtifacts artifacts;
+        private static GameState observed;
+        [SetUp] public void BeginEvidence() { artifacts = IsolatedTestArtifacts.BeginCase(); observed = null; }
+        [TearDown] public void FinishEvidence() { if (observed != null) artifacts.WriteLabeledText("调度隔离完整现场", Newtonsoft.Json.JsonConvert.SerializeObject(observed)); artifacts.Finish(); }
+        [TestCase(false)] [TestCase(true)]
+        public void FormalPreselectionRejectsMissingIdentityThenRestoresSecondMoveWithoutRepeatingFirst(bool skip)
+        {
+            var f = Create(); observed = f.State;
+            var handler = new DispatchInfluenceCommandHandler(f.Service, new RoundAdvanceService(f.Round), f.Registry);
+            string before = RuleStateDigestService.Compute(f.State);
+            var missing = handler.Handle(f.State, new GameCommand { Kind = GameCommandKind.DispatchInfluence, PlayerId = 1 });
+            Assert.That(missing.Succeeded, Is.False); Assert.That(missing.Validation.Reason, Is.EqualTo("dispatch_preselection_arguments_invalid"));
+            Assert.That(RuleStateDigestService.Compute(f.State), Is.EqualTo(before));
+            var result = handler.Handle(f.State, new GameCommand { Kind = GameCommandKind.DispatchInfluence, PlayerId = 1, SourceId = f.InfluenceId, TargetId = Slot("pier") });
+            Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
+            Assert.That(Item(f).SlotId, Is.EqualTo(Slot("pier"))); Assert.That(MoveEvents(f), Is.EqualTo(1));
+            var restored = artifacts.Recover(f.State, "G1正式预选首次移动后第二次待答", f.Registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); f.State = observed = restored.State;
+            if (skip) Answer(f, null, true); else { Answer(f, f.InfluenceId); Answer(f, Slot("mine")); }
+            Assert.That(MoveEvents(f), Is.EqualTo(skip ? 1 : 2)); AssertSpentOnce(f);
+        }
         [Test]
         public void TwoIndependentMovesUseCurrentPositionsAndSpendOneBudget()
         {
@@ -167,8 +188,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "content.dispatch" },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, RemainingMainActionsThisTurn = 1 },
                     new PlayerState { PlayerId = 2, RemainingMainActionsThisTurn = 1 } } };
-            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "core.component.marker",
-                TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" } };
+            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.component.marker",
+                TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } };
             foreach (var location in map.Locations) recipe.Add(new ItemRecipeEntry { EntryId = "resource_" + location.LocationId,
                 DefinitionId = "core.component.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             var f = new Fixture { State = new ItemZoneStateFactory().CreateForSetup(source, map, recipe), Service = new InfluenceService(new MapQueryService(map)) };
@@ -188,7 +209,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             runtime.CurrentRoundStartPlayerId = 1; runtime.PlayerOrderSnapshot = order; runtime.FirstMainNodeId = chain.FirstNodeId;
             runtime.MainNodes.AddRange(chain.Nodes); runtime.ActiveMainNodeId = window.NodeId; window.Status = EffectNodeStatus.Ready;
             f.Round = new RoundExecutionService(f.Registry); var advanced = f.Round.Advance(f.State);
-            Assert.That(advanced.IsValid, Is.True, advanced.Reason); return f;
+            Assert.That(advanced.IsValid, Is.True, advanced.Reason); observed = f.State; return f;
         }
 
         private static EffectRegistry Registry(InfluenceService service)
@@ -198,9 +219,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static EffectNodeRuntimeState Start(Fixture f)
         {
-            var result = new DispatchInfluenceCommandHandler(f.Service, new RoundAdvanceService(f.Round), f.Registry).Handle(f.State,
-                new GameCommand { Kind = GameCommandKind.DispatchInfluence, PlayerId = 1 });
-            Assert.That(result.Succeeded, Is.True, result.Validation.Reason); var node = Parent(f);
+            // 旧九例验证保留两个交互式移动的通用领域链；正式命令预选在下方新例单独检查。
+            var executor = new EffectTreeExecutor(f.State, f.Registry);
+            Assert.That(executor.TryCreatePlayerActionEffect(1, InfluenceDispatchActionEffectExecutor.Create(1), "", "qy018.domain.dispatch", out _), Is.True, executor.LastDiagnostic);
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage);
+            var node = Parent(f);
             Assert.That(node.ParentEffectId, Is.EqualTo(f.State.EffectRuntime.MainNodes.Single(n => n.NodeId == f.State.EffectRuntime.ActiveMainNodeId).ExecutionEffectId));
             return node;
         }

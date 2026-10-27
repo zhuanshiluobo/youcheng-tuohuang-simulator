@@ -57,15 +57,19 @@ namespace YC.Domain.Items
         {
             if (source == null || map == null || string.IsNullOrWhiteSpace(source.GameId) || source.MapId != map.MapId || recipe == null)
                 throw new InvalidOperationException("setup_recipe_context_invalid");
-            if (source.RuleConfiguration == null || source.RuleConfiguration.SchemaVersion != 1 || source.RuleConfiguration.MapId != source.MapId ||
+            if (source.RuleConfiguration == null || source.RuleConfiguration.SchemaVersion != GameRuleConfiguration.CurrentSchemaVersion || source.RuleConfiguration.MapId != source.MapId ||
                 source.RuleConfiguration.PlayerCount != source.Players.Count || source.RuleConfiguration.ContentPackHash != source.ContentPackHash ||
                 source.RuleConfiguration.RuleContractVersion != GameRuleConfiguration.CurrentRuleContractVersion)
                 throw new InvalidOperationException("RuleConfiguration_setup_mismatch");
-            if (source.RuleConfiguration.RuleModeId != "standard") throw new InvalidOperationException("rule_mode_not_implemented");
+            if (source.RuleConfiguration.RuleModeId != "standard" && source.RuleConfiguration.RuleModeId != "entrepreneur") throw new InvalidOperationException("rule_mode_not_implemented");
+            if (source.RuleConfiguration.RuleModeId == "entrepreneur" && (!source.RuleConfiguration.EnabledExpansionIds.Contains("enterprise") || !source.RuleConfiguration.EnabledExpansionIds.Contains("infected")))
+                throw new InvalidOperationException("missing_entrepreneur_dependency");
+            RuleModeReadiness.ValidateReady(source);
             if (source.ItemZones != null && (source.ItemZones.Items.Count > 0 || source.ItemZones.Zones.Count > 0)) throw new InvalidOperationException("setup_recipe_already_created");
             var state = GameStateCloneService.DeepClone(source);
             state.ItemZones = new ItemZoneRuntimeState();
             BuildZones(state, map);
+            PlayerAreaPolicy.ConfigureSupplies(state, recipe);
             var entryIds = new HashSet<string>(StringComparer.Ordinal);
             var playerIds = state.Players.Select(player => player.PlayerId).OrderBy(id => id).ToList();
             if (playerIds.Any(id => id <= 0) || playerIds.Count != playerIds.Distinct().Count()) throw new InvalidOperationException("PlayerIds_invalid");
@@ -83,7 +87,7 @@ namespace YC.Domain.Items
                         AddItem(state, entry.DefinitionId, entry.TypeId, entry.EntryId, playerIndex * entry.Quantity + copy, zoneId, subject);
                     }
             }
-            state.EntitySchemaVersion = 1;
+            state.EntitySchemaVersion = GameProtocolVersions.Entity;
             BindDerivedScoreMarkers(state);
             ItemZoneLegacyProjection.Bind(state, true);
             if (cardZones != null)
@@ -94,7 +98,10 @@ namespace YC.Domain.Items
                     if (binding == null || !declaredDefinitions.Add(binding.DefinitionId) || binding.CardZones == null) throw new InvalidOperationException("cardZones_definition_duplicate");
                     foreach (var item in state.ItemZones.Items.Where(value => value.DefinitionId == binding.DefinitionId).ToList())
                         foreach (var declaration in binding.CardZones)
+                        {
+                            if (state.ContentDefinitions?.UsageTracks.Any(t => t.DefinitionId == item.DefinitionId && t.CardZoneLocalId == declaration.LocalZoneId && t.InitializationPolicy == "public_declaration") == true) continue;
                             if (!TryCreateCardZone(state, item.ItemId, declaration, out _, out var declarationReason)) throw new InvalidOperationException(declarationReason);
+                        }
                 }
             }
             string reason;
@@ -121,7 +128,8 @@ namespace YC.Domain.Items
                 { reasonCode = "LocalZoneId_cooperation_player_invalid"; return false; }
                 zone.OwnerPlayerId = playerId;
             }
-            if (zone.TemplateId == "core.zone.board_marker_track") for (int level = 0; level <= 5; level++) zone.LegalSlotIds.Add("level_" + level);
+            zone.LegalSlotIds.AddRange(declaration.Slots);
+            if (zone.TemplateId == "core.zone.board_marker_track" && declaration.Slots.Count == 0 && declaration.LocalZoneId.StartsWith("cooperation_", StringComparison.Ordinal)) for (int level = 0; level <= 5; level++) zone.LegalSlotIds.Add("level_" + level);
             copy.ItemZones.Zones.Add(zone);
             AddOrder(copy, zone);
             if (!new ItemZoneQuery(types, templates).TryValidate(copy, out reasonCode)) return false;
@@ -216,19 +224,26 @@ namespace YC.Domain.Items
             foreach (string pool in new[] { "awards", "contracts", "company_markers", "flowing_shapes" })
             {
                 var zone = AddZone(state, "reward_pool", pool, supply, state.GameId);
-                zone.Configuration = Configuration(zone, pool == "company_markers" ? ItemPhysicalKind.Cube : ItemPhysicalKind.Card,
-                    pool == "awards" ? "core.award_card" : pool == "contracts" ? "core.contract_card" : pool == "company_markers" ? "infected.company_marker" : "core.generated_character_card");
+                zone.Configuration = Configuration(zone, pool == "company_markers" ? ItemPhysicalKind.Cube : pool == "contracts" ? ItemPhysicalKind.Token : ItemPhysicalKind.Card,
+                    pool == "awards" ? "core.award_card" : pool == "contracts" ? ItemTypeRegistry.ContractTokenTypeId : pool == "company_markers" ? "infected.company_marker" : "core.generated_character_card");
             }
             foreach (var player in state.Players)
             {
                 string anchor = player.PlayerId.ToString(CultureInfo.InvariantCulture);
                 var panel = AddZone(state, "player_panel", "player_" + anchor, Zone(state, "players"), anchor, player.PlayerId);
                 foreach (string cards in new[] { "hand", "discard", "covered", "persistent" }) AddZone(state, "character_" + cards, cards, panel, anchor, player.PlayerId, cards == "hand" || cards == "covered" ? ItemZoneVisibility.Owner : ItemZoneVisibility.Public);
-                AddZone(state, "player_marker_supply", "player_markers", panel, anchor, player.PlayerId);
-                AddZone(state, "player_awards", "awards", panel, anchor, player.PlayerId);
+                AddZone(state, "player_supply", "supply", panel, anchor, player.PlayerId);
+                AddZone(state, "player_rewards", "rewards", panel, anchor, player.PlayerId);
+                var entrepreneur = AddZone(state, "entrepreneur_container", "entrepreneur", panel, anchor, player.PlayerId);
+                AddZone(state, "entrepreneur_pending", "entrepreneur_pending", entrepreneur, anchor, player.PlayerId);
+                AddZone(state, "entrepreneur_active", "entrepreneur_active", entrepreneur, anchor, player.PlayerId);
                 var city = AddZone(state, "city_panel", "city_panel", panel, anchor, player.PlayerId);
                 AddZone(state, "city_dock", "city_reserve", city, anchor, player.PlayerId);
-                for (int cell = 0; cell < BuildFacilityService.CityBoardSlotCount; cell++) AddZone(state, "city_facility_cell", "city_cell_" + cell, city, anchor, player.PlayerId);
+for (int cell = 0; cell < BuildFacilityService.CityBoardSlotCount; cell++)
+                {
+                    var main = AddZone(state, "city_facility_cell", "city_cell_" + cell, city, anchor, player.PlayerId);
+                    AddZone(state, "city_facility_covered", "covered", main, main.ZoneId, player.PlayerId);
+                }
             }
             foreach (string box in new[] { "reserve", "retired", "secret_retired" }) AddZone(state, "box_" + box, box, Zone(state, "game_box"), state.GameId, -1, box == "secret_retired" ? ItemZoneVisibility.SecretRetired : box == "reserve" ? ItemZoneVisibility.Hidden : ItemZoneVisibility.Public);
         }
@@ -254,7 +269,9 @@ namespace YC.Domain.Items
                 OwnerSubject = GameStateCloneService.DeepClone(owner), ControllerSubject = GameStateCloneService.DeepClone(owner) };
             if (state.ItemZones.Items.Exists(value => value.ItemId == item.ItemId)) throw new InvalidOperationException("duplicate_item_id");
             var initial = state.ItemZones.Zones.Single(zone => zone.ZoneId == zoneId);
-            if (item.PhysicalKind == ItemPhysicalKind.Cube && new[] { "core.zone.player_marker_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(initial.TemplateId)) item.OriginalSupplyZoneId = zoneId;
+            if ((item.PhysicalKind == ItemPhysicalKind.Cube || types.IsAssignableTo(item.TypeId, "core.facility_card") && initial.TemplateId == "core.zone.player_supply") && new[] { "core.zone.player_supply", "core.zone.reward_pool", "core.zone.box_reserve" }.Contains(initial.TemplateId)) item.OriginalSupplyZoneId = zoneId;
+            if (item.PhysicalKind == ItemPhysicalKind.Token && initial.TemplateId == "core.zone.box_reserve") item.OriginalSupplyZoneId = zoneId;
+            if (types.IsAssignableTo(item.TypeId, ItemTypeRegistry.ContractTokenTypeId) && initial.TemplateId == "core.zone.reward_pool" && initial.LocalZoneId == "contracts") item.OriginalSupplyZoneId = zoneId;
             state.ItemZones.Items.Add(item);
             state.ItemZones.Orders.Find(value => value.ZoneId == zoneId)?.ItemIds.Add(item.ItemId);
             return item;
@@ -308,6 +325,9 @@ namespace YC.Domain.Items
         {
             migrated = null;
             reasonCode = Unsupported;
+            if (legacy?.ItemZones?.Items?.Any(item => item.DefinitionId == YC.Domain.Influence.CompanyInfluenceRules.ContractDefinitionId && item.TypeId == "core.contract_card") == true ||
+                evidence?.Recipe?.Any(entry => entry.DefinitionId == YC.Domain.Influence.CompanyInfluenceRules.ContractDefinitionId && entry.TypeId == "core.contract_card") == true)
+            { reasonCode = "legacy_lifetime_security_card_requires_original_version"; return false; }
             if (legacy == null || map == null || evidence == null || string.IsNullOrWhiteSpace(evidence.RuleContractVersion) || string.IsNullOrWhiteSpace(evidence.ContentPackHash) ||
                 evidence.GameId != legacy.GameId || evidence.MapId != legacy.MapId || legacy.MapId != map.MapId || legacy.ContentPackHash != evidence.ContentPackHash ||
                 legacy.ItemZones?.Zones.Count > 0 || legacy.Round != 0 || legacy.ActionRound != 0 || legacy.Phase != YC.Domain.Rules.GamePhase.Setup || legacy.HasPendingChoice() ||
@@ -331,7 +351,7 @@ namespace YC.Domain.Items
                     if (!string.IsNullOrEmpty(player.CoveredCharacterCardId)) Assign(migrated, used, new[] { player.CoveredCharacterCardId }, "covered", player.PlayerId);
                     var cubes = migrated.ItemZones.Items.Where(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player.PlayerId).ToList();
                     if (cubes.Count != player.InfluenceSupply + (player.HasScoreTrackMarker ? 1 : 0)) throw new InvalidOperationException(Unsupported);
-                    foreach (var cube in cubes) { SetPosition(migrated, cube, ItemZoneStateFactory.Zone(migrated, "player_markers", null, player.PlayerId).ZoneId); used.Add(cube.ItemId); }
+                    foreach (var cube in cubes) { SetPosition(migrated, cube, ItemZoneStateFactory.Zone(migrated, "supply", null, player.PlayerId).ZoneId); used.Add(cube.ItemId); }
                     if (player.HasScoreTrackMarker) { SetPosition(migrated, cubes.Last(), ItemZoneStateFactory.Zone(migrated, "score_track").ZoneId); cubes.Last().SlotId = "score_" + player.Score.ToString(CultureInfo.InvariantCulture); }
                     foreach (var placement in legacy.Map.Facilities.Where(value => value.PlayerId == player.PlayerId))
                     {

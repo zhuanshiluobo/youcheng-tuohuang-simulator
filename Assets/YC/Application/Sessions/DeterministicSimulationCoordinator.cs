@@ -11,32 +11,227 @@ namespace YC.Application.Sessions
     /// <summary>默认同步协调；显式联机模式分离主线程编序与单owner规则执行。</summary>
     public sealed partial class DeterministicSimulationCoordinator
     {
+        // 仅开发性能诊断；完整输入在原owner上独立快照，不属于规则/网络协议。
+        public sealed class PerformanceReplayPoint
+        {
+            private readonly GameSessionRecoveryPoint point;
+            internal PerformanceReplayPoint(GameSessionRecoveryPoint point) { this.point = point; }
+            public GameSessionRecoveryExport Export() => point.ExportDetached();
+        }
+        public readonly struct PerformanceReplaySample
+        {
+            public readonly OrderedOperationCommandDto Ordered;
+            public readonly Dictionary<string, long> Before, After;
+            public readonly long StartedTick, EndedTick, Frequency, AppliedThrough;
+            public readonly int OwnerThreadId;
+            public readonly bool IsHost;
+            public readonly string DiagnosticError;
+            public readonly OperationCommandReplicaResult Result;
+            public readonly PerformanceReplayPoint BeforePoint, AfterPoint;
+            internal PerformanceReplaySample(OrderedOperationCommandDto ordered, Dictionary<string, long> before, Dictionary<string, long> after,
+                long started, long ended, long appliedThrough, bool host, OperationCommandReplicaResult result,
+                PerformanceReplayPoint beforePoint, PerformanceReplayPoint afterPoint, string diagnosticError = null)
+            {
+                Ordered = ordered; Before = before; After = after; StartedTick = started; EndedTick = ended;
+                Frequency = Stopwatch.Frequency; AppliedThrough = appliedThrough; IsHost = host;
+                OwnerThreadId = System.Threading.Thread.CurrentThread.ManagedThreadId;
+                Result = result; BeforePoint = beforePoint; AfterPoint = afterPoint; DiagnosticError = diagnosticError;
+            }
+        }
+        private Func<PerformanceReplaySample, bool> performanceReplayObserver;
+        private long performanceReplayTarget;
+        public void ConfigurePerformanceReplayCapture(Func<PerformanceReplaySample, bool> observer, long targetSequence = 32)
+        {
+            performanceReplayTarget = targetSequence;
+            if (observer != null) session.ExecutionTimings.Enabled = true;
+            System.Threading.Volatile.Write(ref performanceReplayObserver, observer);
+        }
+        private void DisablePerformanceReplayCapture() => System.Threading.Interlocked.Exchange(ref performanceReplayObserver, null);
+
         // 仅诊断累计；关闭时不读时钟，值类型作用域不分配堆对象。
         private readonly struct ProtocolExecutionSample : IDisposable
         {
             private readonly ExecutionTimingCounters counters;
             private readonly string phase;
             private readonly long started;
+            private readonly DeterministicSimulationCoordinator replayOwner;
+            private readonly Func<PerformanceReplaySample, bool> replay;
+            private readonly OrderedOperationCommandDto ordered;
+            private readonly Dictionary<string, long> before;
+            private readonly PerformanceReplayPoint beforePoint;
 
-            internal ProtocolExecutionSample(ExecutionTimingCounters counters, string phase)
+            internal ProtocolExecutionSample(ExecutionTimingCounters counters, string phase,
+                DeterministicSimulationCoordinator owner = null, OrderedOperationCommandDto command = null)
             {
+                this = default;
                 this.phase = phase;
                 this.counters = counters.Enabled ? counters : null;
+                var observer = owner == null ? null : System.Threading.Volatile.Read(ref owner.performanceReplayObserver);
+                if (observer != null)
+                {
+                    try
+                    {
+                        ordered = OperationCommandCanonicalizer.SnapshotOrdered(command);
+                        before = counters.Snapshot(); replayOwner = owner; replay = observer;
+                        if (command.GlobalCommandSequence == owner.performanceReplayTarget)
+                            beforePoint = new PerformanceReplayPoint(owner.session.ReadLatestBackgroundRecoveryPoint());
+                    }
+                    catch (Exception error)
+                    {
+                        owner.DisablePerformanceReplayCapture(); replay = null;
+                        try { observer(new PerformanceReplaySample(null, null, null, 0, 0, 0, owner.options.IsHost, null, null, null, error.Message)); } catch { }
+                    }
+                }
+                // 复用既有pump.apply时钟；诊断输入/计数准备不计入ApplyOrdered。
                 started = this.counters == null ? 0 : Stopwatch.GetTimestamp();
             }
 
-            public void Dispose()
+            public void Dispose() => Dispose(null);
+            internal void Dispose(OperationCommandReplicaResult result)
             {
-                if (counters != null && counters.Enabled)
-                    counters.AddSample(phase, Stopwatch.GetTimestamp() - started);
+                long ended = counters != null && counters.Enabled ? Stopwatch.GetTimestamp() : 0;
+                if (counters != null && counters.Enabled) counters.AddSample(phase, ended - started);
+                if (replay == null) return;
+                PerformanceReplaySample sample;
+                try
+                {
+                    var after = counters.Snapshot();
+                    var point = ordered.GlobalCommandSequence == replayOwner.performanceReplayTarget
+                        ? new PerformanceReplayPoint(replayOwner.session.ReadLatestBackgroundRecoveryPoint()) : null;
+                    var independentResult = result == null ? null : new OperationCommandReplicaResult {
+                        Status = result.Status, ErrorCode = result.ErrorCode, Reason = result.Reason, ExpectedGlobalSequence = result.ExpectedGlobalSequence,
+                        RuleResult = GameSession.CopyCommandResult(result.RuleResult), Outcomes = result.Outcomes.Select(OperationCommandCanonicalizer.SnapshotOutcome).ToList()
+                    };
+                    sample = new PerformanceReplaySample(ordered, before, after, started, ended, replayOwner.replica.LastAppliedSequence,
+                        replayOwner.options.IsHost, independentResult, beforePoint, point);
+                }
+                catch (Exception error)
+                {
+                    replayOwner.DisablePerformanceReplayCapture();
+                    try { replay(new PerformanceReplaySample(null, null, null, started, ended, 0, replayOwner.options.IsHost, null, null, null, error.Message)); } catch { }
+                    return;
+                }
+                try { if (!replay(sample)) replayOwner.DisablePerformanceReplayCapture(); }
+                catch { replayOwner.DisablePerformanceReplayCapture(); }
             }
         }
+
+        // 仅显式诊断订阅；不保存命令/状态，关闭时不读时钟或分配。
+        public readonly struct WaitStageObservation
+        {
+            public readonly string Stage, Edge, GameId, CommandId;
+            public readonly long Tick, Sequence, SimulationEpoch, PublishedVersion, PublishedSequence, VisibleVersion, VisibleSequence;
+            public readonly int MembershipVersion, PlayerId, OrderedQueueCount, KnownCount, PendingAdmissions;
+            public readonly bool IsHost, IsWorker;
+            public readonly long LoopGeneration, WorkId, PublicationVersion, PublicationSequence, PublicationCommitVersion, WaitTicks;
+            public readonly int IncomingCount, OutgoingCount, ActionIdentity, FrameIdentity, SnapshotIdentity, UiStateIdentity, UiViewIdentity, NotificationCount, PlayerCount, WaitCount, Completed;
+            internal WaitStageObservation(DeterministicSimulationCoordinator owner, string stage, string edge, string commandId, long sequence, long tick, LoopWaitStageData loop = default)
+            {
+                Stage = stage; Edge = edge; CommandId = commandId; Sequence = sequence; Tick = tick;
+                GameId = owner.options.GameId; SimulationEpoch = owner.options.SimulationEpoch;
+                MembershipVersion = owner.options.MembershipVersion; PlayerId = owner.options.LocalPlayerId; IsHost = owner.options.IsHost;
+                IsWorker = owner.background != null && owner.background.IsWorkerThread;
+                bool main = owner.background == null || owner.background.IsMainThread;
+                OrderedQueueCount = owner.background == null || IsWorker ? owner.queue.Count : -1;
+                KnownCount = main ? owner.backgroundKnown.Count : -1;
+                PendingAdmissions = main ? owner.backgroundAdmissions.Count : -1;
+                var published = owner.background?.Latest;
+                PublishedVersion = published?.Version ?? 0; PublishedSequence = published?.LastAppliedSequence ?? 0;
+                var visible = main ? owner.visibleBackground : null;
+                VisibleVersion = visible?.Version ?? 0; VisibleSequence = visible?.LastAppliedSequence ?? 0;
+                LoopGeneration = loop.Generation; WorkId = loop.WorkId; PublicationVersion = loop.Version; PublicationSequence = loop.Sequence; PublicationCommitVersion = loop.CommitVersion;
+                IncomingCount = loop.Incoming; OutgoingCount = loop.Outgoing; ActionIdentity = loop.ActionId; FrameIdentity = loop.FrameId; SnapshotIdentity = loop.SnapshotId;
+                UiStateIdentity = loop.UiStateId; UiViewIdentity = loop.UiViewId; NotificationCount = loop.Notifications; PlayerCount = loop.Players; WaitCount = loop.WaitCount; WaitTicks = loop.WaitTicks; Completed = loop.Completed;
+            }
+        }
+        internal readonly struct LoopWaitStageData
+        {
+            internal readonly long Generation, WorkId, Version, Sequence, CommitVersion, WaitTicks;
+            internal readonly int Incoming, Outgoing, ActionId, FrameId, SnapshotId, UiStateId, UiViewId, Notifications, Players, WaitCount, Completed;
+            internal LoopWaitStageData(long generation, long workId, long version, long sequence, long commitVersion,
+                int incoming, int outgoing, int actionId, int frameId, int snapshotId, int uiStateId, int uiViewId,
+                int notifications, int players, int waitCount, long waitTicks, int completed)
+            {
+                Generation = generation; WorkId = workId; Version = version; Sequence = sequence; CommitVersion = commitVersion;
+                Incoming = incoming; Outgoing = outgoing; ActionId = actionId; FrameId = frameId; SnapshotId = snapshotId;
+                UiStateId = uiStateId; UiViewId = uiViewId; Notifications = notifications; Players = players;
+                WaitCount = waitCount; WaitTicks = waitTicks; Completed = completed;
+            }
+        }
+        // gate内只调用这个无回调采样器；真正预算/格式化/observer均在锁外。
+        internal long CaptureWaitStageTick() => System.Threading.Volatile.Read(ref waitStageObserver) == null ? 0 : Stopwatch.GetTimestamp();
+        internal void DisableWaitStageObservation() => System.Threading.Interlocked.Exchange(ref waitStageObserver, null);
+        internal void RecordLoopWaitStage(string stage, string edge, long sampledTick, LoopWaitStageData loop)
+        {
+            var observer = System.Threading.Volatile.Read(ref waitStageObserver);
+            if (sampledTick == 0 || observer == null) return;
+            long now = Stopwatch.GetTimestamp();
+            if (now - waitStageStarted >= Stopwatch.Frequency * MaximumWaitStageSeconds ||
+                System.Threading.Interlocked.Increment(ref waitStageRecords) > MaximumWaitStageRecords)
+            { DisableWaitStageObservation(); return; }
+            try { observer(new WaitStageObservation(this, stage, edge, null, loop.Sequence, sampledTick, loop)); }
+            catch { DisableWaitStageObservation(); }
+        }
+
+        private Action<WaitStageObservation> waitStageObserver;
+        private long waitStageStarted;
+        private int waitStageRecords;
+        private const int MaximumWaitStageRecords = 8192;
+        private const int MaximumWaitStageSeconds = 300;
+
+        public void ConfigureWaitStageObservation(Action<WaitStageObservation> observer)
+        {
+            background?.EnsureMainThread();
+            System.Threading.Volatile.Write(ref waitStageObserver, null);
+            waitStageStarted = observer == null ? 0 : Stopwatch.GetTimestamp();
+            System.Threading.Interlocked.Exchange(ref waitStageRecords, 0);
+            System.Threading.Volatile.Write(ref waitStageObserver, observer);
+        }
+        private void RecordWaitStage(string stage, string edge, string commandId, long sequence)
+        {
+            var observer = System.Threading.Volatile.Read(ref waitStageObserver);
+            if (observer == null) return;
+            long tick = Stopwatch.GetTimestamp();
+            if (tick - waitStageStarted >= Stopwatch.Frequency * MaximumWaitStageSeconds ||
+                System.Threading.Interlocked.Increment(ref waitStageRecords) > MaximumWaitStageRecords)
+            { System.Threading.Interlocked.Exchange(ref waitStageObserver, null); return; }
+            // 诊断异常不能传播到协议/规则；不在执行队列gate中调用此方法。
+            try { observer(new WaitStageObservation(this, stage, edge, commandId, sequence, tick)); }
+            catch { System.Threading.Interlocked.Exchange(ref waitStageObserver, null); }
+        }
+        public readonly struct WaitStageScope : IDisposable
+        {
+            private readonly DeterministicSimulationCoordinator owner;
+            private readonly string stage, commandId;
+            private readonly long sequence;
+            internal WaitStageScope(DeterministicSimulationCoordinator owner, string stage, string commandId, long sequence)
+            {
+                this.owner = owner; this.stage = stage; this.commandId = commandId; this.sequence = sequence;
+                owner.RecordWaitStage(stage, "begin", commandId, sequence);
+            }
+            public void Dispose() { owner?.RecordWaitStage(stage, "end", commandId, sequence); }
+        }
+        private WaitStageScope BeginWaitStage(string stage, OrderedOperationCommandDto command)
+            => System.Threading.Volatile.Read(ref waitStageObserver) == null ? default :
+                new WaitStageScope(this, stage, command?.Command?.CommandId, command?.GlobalCommandSequence ?? 0);
+        public WaitStageScope BeginMainThreadWaitStage()
+        {
+            if (System.Threading.Volatile.Read(ref waitStageObserver) == null) return default;
+            background?.EnsureMainThread();
+            // 只观察有待交付/待准入/待本机结果的drain，避免每空闲帧写日志。
+            if (background == null || background.Latest?.Version == visibleBackground?.Version &&
+                backgroundAdmissions.Count == 0 && backgroundPendingLocal == null) return default;
+            return new WaitStageScope(this, "main.drain", null, 0);
+        }
+        public void RecordTransportWaitStage(string stage, string commandId, long sequence)
+        { if (System.Threading.Volatile.Read(ref waitStageObserver) != null) RecordWaitStage(stage, "point", commandId, sequence); }
 
         private sealed class WindowRecord
         {
             internal OperationWindowDescriptorDto Descriptor;
             internal List<int> Available;
             internal bool Open, Permitted, ClosureCaptured;
+            internal bool FormalForSave;
             internal long PermissionFence;
         }
         private readonly GameSession session;
@@ -104,6 +299,7 @@ namespace YC.Application.Sessions
             this.options = (options ?? throw new ArgumentNullException(nameof(options))).Snapshot();
             var value = this.options;
             var identityState = preparedState ?? session.State;
+            saveTerminalObserved = SaveTerminal(identityState);
             checkpointStateRevision = identityState.EffectRuntime?.StateRevision ?? 0;
             OperationCommandCanonicalizer.ValidateIdentity(value.GameId, value.SimulationEpoch, value.MembershipVersion);
             if (identityState.GameId != value.GameId || identityState.ContentPackHash != value.ContentPackHash ||
@@ -125,7 +321,8 @@ namespace YC.Application.Sessions
                 nextLocalSubmission = baseline.NextSubmissionSequences[value.LocalPlayerId];
                 foreach (var fact in baseline.Windows)
                     windows.Add(fact.Window.OperationWindowId, new WindowRecord { Descriptor = OperationCommandCanonicalizer.SnapshotRecoveryWindow(fact).Window,
-                        Available = new List<int>(fact.AvailablePlayerIds), Open = !fact.IsClosed, ClosureCaptured = fact.IsClosed, PermissionFence = validatedThrough });
+                        Available = new List<int>(fact.AvailablePlayerIds), Open = !fact.IsClosed, ClosureCaptured = fact.IsClosed, PermissionFence = validatedThrough,
+                        FormalForSave = FormalSaveWindow(identityState.EffectRuntime.OperationWindows.Find(w => w.OperationWindowId == fact.Window.OperationWindowId)) });
                 begun = true; recoveryFrozen = true;
             }
         }
@@ -231,6 +428,7 @@ namespace YC.Application.Sessions
 
         public OperationCommandReplicaResult ReceiveOrdered(OrderedOperationCommandDto command)
         {
+            using var waitOrdered = BeginWaitStage("ordered.accept", command);
             if (OnBackgroundMainThread) return ReceiveBackgroundOrdered(command);
             if (stopped || recoveryFrozen) return Reply(OperationReplicaStatus.Stopped, "simulation_stopped");
             if (!begun || command == null || !Identity(command.GameId, command.SimulationEpoch, command.MembershipVersion)) return Reply(OperationReplicaStatus.Rejected, "ordered_identity_mismatch");
@@ -271,11 +469,17 @@ namespace YC.Application.Sessions
             {
                 while (!stopped && count < maximumCommands && queue.TryGetValue(LastAppliedSequence + 1, out var command))
                 {
-                    OperationCommandReplicaResult result;
-                    using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.apply"))
-                        result = replica.ApplyOrdered(command, 1);
+                    using var waitCommand = BeginWaitStage("pump.command", command);
+                    OperationCommandReplicaResult result = null;
+                    using (BeginWaitStage("pump.apply", command))
+                    {
+                        var applySample = new ProtocolExecutionSample(session.ExecutionTimings, "pump.apply", this, command);
+                        try { result = replica.ApplyOrdered(command, 1); }
+                        finally { applySample.Dispose(result); }
+                    }
                     if (result.Status != OperationReplicaStatus.Applied)
                     {
+                        using (BeginWaitStage("pump.notifications", command))
                         using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.notifications"))
                         {
                             if (result.RuleResult != null) PublishApplied(command, result.RuleResult);
@@ -286,22 +490,26 @@ namespace YC.Application.Sessions
                     count++;
                     // 保存边界在消费者回调之前，防止回调把后续状态当旧前缀。
                     deferNotifications = true;
+                    using (BeginWaitStage("pump.windows", command))
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.windows"))
                     {
                         bool boundary = RefreshWindows(false);
                         if (boundary || announcements.ContainsKey(LastAppliedSequence)) CaptureBoundary();
                     }
                     if (stopped) throw new InvalidOperationException("confirmed_protocol_facts_failed");
+                    using (BeginWaitStage("pump.facts", command))
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.facts"))
                         CaptureConfirmedFacts(command.Command.CommandId);
                     if (options.IsHost) { validatedThrough = LastAppliedSequence; if (boundaries.ContainsKey(validatedThrough)) TryPermit(validatedThrough); }
                     queue.Remove(command.GlobalCommandSequence);
                     if (pendingLocal?.Command.CommandId == command.Command.CommandId) pendingLocal = null;
+                    using (BeginWaitStage("pump.notifications", command))
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.notifications"))
                     {
                         FlushNotifications();
                         PublishApplied(command, result.RuleResult);
                     }
+                    using (BeginWaitStage("pump.validation", command))
                     using (new ProtocolExecutionSample(session.ExecutionTimings, "pump.validation"))
                         ConsumeValidation();
                 }
@@ -323,8 +531,9 @@ namespace YC.Application.Sessions
             var actual = OperationWindowService.ReadOpenWindows(session.State);
             var openIds = new HashSet<string>(actual.Select(window => window.OperationWindowId), StringComparer.Ordinal);
             bool boundary = initial;
+            var closedForSave = new List<string>();
             foreach (var record in windows.Values.Where(record => record.Open && !openIds.Contains(record.Descriptor.OperationWindowId)))
-            { record.Open = false; record.Permitted = false; record.Available.Clear(); boundary = true; PublishPermission(record); }
+            { record.Open = false; record.Permitted = false; record.Available.Clear(); boundary = true; if (record.FormalForSave) closedForSave.Add(record.Descriptor.OperationWindowId); PublishPermission(record); }
             foreach (var window in actual)
             {
                 string contract = OperationCommandCanonicalizer.CanonicalWindowContractDigest(window);
@@ -334,7 +543,7 @@ namespace YC.Application.Sessions
                     var descriptor = OperationWindowProjection.ToDescriptor(session.State, window, options.SimulationEpoch, options.MembershipVersion, LastAppliedSequence, 0,
                         options.RequiredReplicaIds, OperationCommandCanonicalizer.EmptyPrefixDigest, contract);
                     replica.RegisterWindow(descriptor); sequencer?.RegisterWindow(descriptor);
-                    record = new WindowRecord { Descriptor = descriptor, Open = true, Available = window.AvailablePlayerIds.OrderBy(id => id).ToList(), PermissionFence = LastAppliedSequence };
+                    record = new WindowRecord { Descriptor = descriptor, Open = true, Available = window.AvailablePlayerIds.OrderBy(id => id).ToList(), PermissionFence = LastAppliedSequence, FormalForSave = FormalSaveWindow(window) };
                     windows.Add(window.OperationWindowId, record); boundary = true; PublishPermission(record);
                 }
                 else
@@ -346,7 +555,10 @@ namespace YC.Application.Sessions
                     if (!record.Available.SequenceEqual(available)) { record.Available = available; PublishPermission(record); }
                 }
             }
-            return boundary;
+            bool terminal = SaveTerminal(session.State) && !saveTerminalObserved;
+            saveTerminalObserved |= SaveTerminal(session.State);
+            if (!initial) CaptureWindowSaveCandidate(closedForSave, terminal);
+            return boundary || terminal;
         }
 
         private void CaptureBoundary()
@@ -439,7 +651,8 @@ namespace YC.Application.Sessions
             var permit = new SimulationWindowPermitDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
                 Boundary = ReadBoundary(fence), HostValidatedThroughSequence = fence, HostValidationPrefixDigest = hostPrefix,
                 ReadyReplicaIds = options.RequiredReplicaIds.OrderBy(id => id, StringComparer.Ordinal).ToList() };
-            permits.Add(fence, permit); ApplyPermit(permit); var notice = ClonePermit(permit); Emit(() => Deliver(WindowPermitProduced, notice));
+            permits.Add(fence, permit); PublishWindowSavePoints(); ApplyPermit(permit); var notice = ClonePermit(permit); Emit(() => Deliver(WindowPermitProduced, notice));
+            TryGrantWindowExecution(permit);
         }
 
         public bool ReceiveWindowPermit(SimulationWindowPermitDto permit)
@@ -539,7 +752,8 @@ namespace YC.Application.Sessions
 
         public SimulationBoundaryDto ReadBoundary(long fenceSequence) => OnBackgroundMainThread ? visibleBackground?.ReadBoundary(fenceSequence) : boundaries.TryGetValue(fenceSequence, out var boundary) ? OperationCommandCanonicalizer.SnapshotBoundary(boundary) : null;
         public IReadOnlyList<SimulationWindowPermissionDto> ReadWindowPermissions() => OnBackgroundMainThread ? TryReadPublishedSnapshot(out var snapshot) ? snapshot.ReadWindowPermissions() : new List<SimulationWindowPermissionDto>().AsReadOnly() : windows.Values.Select(Permission).ToList().AsReadOnly();
-        public IReadOnlyList<OrderedOperationCommandDto> ReadPendingTail() => OnBackgroundMainThread ? ReadBackgroundPendingTail() : queue.Values.Select(OperationCommandCanonicalizer.SnapshotOrdered).ToList().AsReadOnly();
+        public IReadOnlyList<OrderedOperationCommandDto> ReadPendingTail() => OnBackgroundMainThread ? ReadBackgroundPendingTail() :
+            queue.Values.Concat(ReadUnconfirmedWindowTail()).GroupBy(c => c.GlobalCommandSequence).Select(g => OperationCommandCanonicalizer.SnapshotOrdered(g.First())).OrderBy(c => c.GlobalCommandSequence).ToList().AsReadOnly();
         public OperationCommandProposalDto ReadPendingLocalProposal() => OnBackgroundMainThread ? backgroundPendingLocal == null ? null : OperationCommandCanonicalizer.SnapshotProposal(backgroundPendingLocal) : pendingLocal == null ? null : OperationCommandCanonicalizer.SnapshotProposal(pendingLocal);
         public CommandValidationPrefixDto ReadLocalValidationPrefix() => OnBackgroundMainThread ? visibleBackground?.ReadLocalValidationPrefix() : options.IsHost ? replica.CreateValidationPrefix(0, validatedThrough) : replica.CreateValidationPrefix();
         public bool IsBoundaryPermitted(long fence) => OnBackgroundMainThread ? visibleBackground?.IsBoundaryPermitted(fence) == true && !IsStopped : !stopped && boundaries.TryGetValue(fence, out var boundary) && permits.TryGetValue(fence, out var permit) && boundary.FactDigest == permit.Boundary.FactDigest;
@@ -640,7 +854,12 @@ namespace YC.Application.Sessions
         public void PeerDisconnected(int playerId)
         {
             if (OnBackgroundMainThread) { PostBackground(() => PeerDisconnected(playerId)); return; }
-            if (!options.IsHost || stopped) return;
+            if (!options.IsHost || stopped || !options.FrozenPlayerIds.Contains(playerId)) return;
+            if (windowExecution != null)
+            {
+                windowExecution.SetConnected(false);
+                Fault("window_execution_peer_disconnected", "窗口未汇合时规定副本断线，保留未确认尾巴并等待明确恢复。"); return;
+            }
             string id = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(playerId);
             foreach (var group in ready.Values) group.Remove(id);
         }
@@ -653,7 +872,8 @@ namespace YC.Application.Sessions
         private bool Identity(string gameId, long epoch, int membership) => gameId == options.GameId && epoch == options.SimulationEpoch && membership == options.MembershipVersion;
         private SimulationWindowPermissionDto Permission(WindowRecord record) => new SimulationWindowPermissionDto { Window = OperationCommandCanonicalizer.SnapshotWindow(record.Descriptor, options.GameId, options.SimulationEpoch, options.MembershipVersion),
             AvailablePlayerIds = new List<int>(record.Available), IsOpen = record.Open, IsPermitted = record.Permitted && !stopped && !recoveryFrozen,
-            CanSubmitForLocalPlayer = record.Open && record.Permitted && !stopped && !recoveryFrozen && record.Available.Contains(options.LocalPlayerId), GlobalFenceSequence = record.PermissionFence };
+            CanSubmitForLocalPlayer = record.Open && record.Permitted && !stopped && !recoveryFrozen &&
+                ReadWindowExecutionFrame()?.BlocksSubmission != true && record.Available.Contains(options.LocalPlayerId), GlobalFenceSequence = record.PermissionFence };
         private void PublishPermission(WindowRecord record) { var notice = Permission(record); Emit(() => Deliver(OperationWindowPermissionChanged, notice)); }
         private void Emit(Action notification)
         { if (deferNotifications) deferredNotifications.Add(notification); else if (background != null && background.IsWorkerThread) background.AddNotification(notification); else notification(); }

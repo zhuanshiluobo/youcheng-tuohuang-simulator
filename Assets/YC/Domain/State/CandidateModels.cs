@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 
@@ -89,6 +90,13 @@ namespace YC.Domain.State
     }
 
     [Serializable]
+    public sealed class FacilityCandidateSourceProof
+    {
+        public string ItemId = "", SourceZoneId = "", SourceKey = "", ContentHash = "";
+        public FacilityCandidateSourceProof Clone() => new FacilityCandidateSourceProof { ItemId = ItemId, SourceZoneId = SourceZoneId, SourceKey = SourceKey, ContentHash = ContentHash };
+    }
+
+    [Serializable]
     public sealed class CandidateResolutionRecord
     {
         public string CandidateSetId = string.Empty;
@@ -101,6 +109,7 @@ namespace YC.Domain.State
         public List<string> DefaultCandidateIds = new List<string>();
         public List<AppliedCandidatePatch> AppliedPatches = new List<AppliedCandidatePatch>();
         public List<string> FinalCandidateIds = new List<string>();
+        public List<FacilityCandidateSourceProof> FacilitySourceProofs = new List<FacilityCandidateSourceProof>();
 
         public CandidateResolutionRecord Clone()
         {
@@ -115,7 +124,8 @@ namespace YC.Domain.State
                 CandidatePoolIds = CandidatePoolIds == null ? null : new List<string>(CandidatePoolIds),
                 DefaultCandidateIds = DefaultCandidateIds == null ? null : new List<string>(DefaultCandidateIds),
                 AppliedPatches = AppliedPatches == null ? null : new List<AppliedCandidatePatch>(),
-                FinalCandidateIds = FinalCandidateIds == null ? null : new List<string>(FinalCandidateIds)
+                FinalCandidateIds = FinalCandidateIds == null ? null : new List<string>(FinalCandidateIds),
+                FacilitySourceProofs = FacilitySourceProofs == null ? null : FacilitySourceProofs.ConvertAll(p => p?.Clone())
             };
 
             if (clone.AppliedPatches != null)
@@ -139,6 +149,12 @@ namespace YC.Domain.State
                 return false;
             }
 
+            if (FacilitySourceProofs == null || FacilitySourceProofs.Count > 0 &&
+                (FacilitySourceProofs.Count != FinalCandidateIds.Count || FacilitySourceProofs.Where((p, i) => p == null || p.ItemId != FinalCandidateIds[i] || string.IsNullOrEmpty(p.SourceZoneId) || p.SourceKey == null || p.ContentHash == null).Any()))
+            {
+                reason = "设施候选来源证明与完整候选不一致。";
+                return false;
+            }
             if (!HasUniqueIds(CandidatePoolIds) || !HasUniqueIds(DefaultCandidateIds) ||
                 !HasUniqueIds(FinalCandidateIds))
             {

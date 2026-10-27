@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "locale": "zh-CN",
+  "messages": {
+    "core:rule.stonehoove_security_place.alt": {
+      "parameters": {},
+      "template": "放置岩蹄安保公司影响力"
+    },
+    "core:rule.stonehoove_security_move.alt": {
+      "parameters": {},
+      "template": "移动岩蹄安保公司影响力"
+    }
+  }
+}

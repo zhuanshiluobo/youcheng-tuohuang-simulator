@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.gavial_the_invincible",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "百炼嘉维尔",
   "expansionId": "infected",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "persistent",
       "subscriptionId": "content.infected.character.gavial_the_invincible.tactic",
       "script": "lua/characters/infected.character.gavial_the_invincible.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.infected.character.gavial_the_invincible.tactic.completed",
       "cleanupScript": "lua/characters/infected.character.gavial_the_invincible.tactic.lua",
       "hasSpecialZone": false,
@@ -78,5 +78,75 @@
         "displayName": "百炼嘉维尔"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.gavial_the_invincible.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.gavial_the_invincible",
+      "actions": [
+        {
+          "actionId": "infected.character.gavial_the_invincible.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.gavial_the_invincible",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.gavial_the_invincible"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.gavial_the_invincible.tactic",
+      "kind": "event",
+      "handlerRef": "content.infected.character.gavial_the_invincible.tactic",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.gavial_the_invincible.tactic",
+      "actions": []
+    }
+  ]
 }

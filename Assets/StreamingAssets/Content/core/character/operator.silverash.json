@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.silverash",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "银灰",
   "expansionId": "enterprise",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "one_shot",
       "subscriptionId": "content.operator.silverash.tactic",
       "script": "lua/characters/operator.silverash.tactic.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -45,5 +45,57 @@
     "instanceTypeId": "core.operator_card",
     "strategyAbilityId": "operator.silverash.strategy",
     "tacticAbilityId": "operator.silverash.tactic"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.silverash.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.silverash",
+      "actions": [
+        {
+          "actionId": "operator.silverash.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "operator.silverash",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "operator.silverash"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

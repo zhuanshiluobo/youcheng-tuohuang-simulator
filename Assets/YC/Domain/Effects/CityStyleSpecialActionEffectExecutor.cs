@@ -125,6 +125,7 @@ namespace YC.Domain.Effects
             CityMovementService movementService = null)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
+            optionQuery.BindPaymentRegistry(registry);
             var executor = new CityStyleSpecialActionEffectExecutor(
                 optionQuery, candidatePolicies, mapQuery, influenceService, movementService);
             RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.Activate,
@@ -145,6 +146,14 @@ namespace YC.Domain.Effects
             if (registry == null) throw new ArgumentNullException(nameof(registry));
             RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker,
                 ExecuteMarkerOperation, EffectExecutorKind.Atomic);
+        }
+
+        public static void RegisterPrimitives(EffectRegistry registry)
+        {
+            RegisterCleanup(registry);
+            ResourcePaymentChoiceEffectExecutor.Register(registry);
+            RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.GrantMainActions, ExecuteGrantMainActions, EffectExecutorKind.Atomic);
+            RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.Activate, AbilityLegacyStyleBridge.ExecuteActivation, EffectExecutorKind.IntrinsicFlow);
         }
 
         private static void RegisterIfMissing(
@@ -196,6 +205,17 @@ namespace YC.Domain.Effects
                     return EffectStepResult.Failed("special_action_source_invalid");
             }
 
+            if (context.Registry.HasAbilityCatalog && stage == "unified_action")
+            {
+                if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("等待统一行动调用完成。");
+                return HasFailedChild(context) ? EffectStepResult.Failed("authorized_style_action_failed") : EffectStepResult.Completed();
+            }
+            if (context.Registry.HasAbilityCatalog && string.IsNullOrEmpty(stage) && activationSource.Length > 0)
+            {
+                var validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate);
+                if (!validation.IsValid) return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
+                return EffectStepResult.Continue("unified_action").AddChild(AbilityLegacyStyleBridge.Create(context.Node.PlayerId, actionId, markerId));
+            }
             if (string.IsNullOrEmpty(stage))
             {
                 ValidationResult validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate);
@@ -203,7 +223,7 @@ namespace YC.Domain.Effects
                     return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
 
                 var left = new List<EffectSpec>();
-                if (definition.FlexibleOriginiumAndIronCost > 0)
+                if (!definition.BodyOwnsPayment && definition.FlexibleOriginiumAndIronCost > 0)
                 {
                     var options = new List<ResourceSet>();
                     for (int ore = 0; ore <= definition.FlexibleOriginiumAndIronCost; ore++)
@@ -215,7 +235,7 @@ namespace YC.Domain.Effects
                     }
                     left.Add(ResourcePaymentChoiceEffectExecutor.Create(context.Node.PlayerId, options, "city_style.composite.payment"));
                 }
-                else if (definition.FixedCost != null)
+                else if (!definition.BodyOwnsPayment && definition.FixedCost != null)
                 {
                     if (definition.FixedCost.Originium > 0 || definition.FixedCost.OriginiumShard > 0 ||
                         definition.FixedCost.Iron > 0 || definition.FixedCost.PureOriginium > 0 || definition.FixedCost.GoldVoucher > 0)
@@ -329,6 +349,8 @@ namespace YC.Domain.Effects
                 "mode",
                 ReadString(context.Node.NormalizedArguments, "operation", string.Empty));
             if (mode != "round_cleanup") return EffectStepResult.Failed("invalid_marker_operation");
+            // 正式声明轨道只在RoundEnded全体屏障后复位；保留无新目录的旧隔离适配。
+            if (context.State.ContentDefinitions?.UsageTracks.Count > 0) return EffectStepResult.Completed();
             PlayerState player = context.State.FindPlayer(context.Node.PlayerId);
             if (player == null) return EffectStepResult.Failed("invalid_player");
             if (player.UsedSpecialActionIdsThisRound != null) player.UsedSpecialActionIdsThisRound.Clear();

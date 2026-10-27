@@ -126,6 +126,11 @@ namespace YC.Presentation
         public string WarningSuffix => warningSuffix;
         public bool IsDetail => detailPage != null && detailPage.activeSelf;
         private readonly List<BuildInfoItemView> options = new List<BuildInfoItemView>();
+        private object optionBinding;
+        private bool CurrentBinding(object binding) => ReferenceEquals(optionBinding, binding) && isActiveAndEnabled;
+        private void BindDetailBack(object binding) => detailGesture.Configure(null, () => {
+            if (CurrentBinding(binding)) ShowDetail(false);
+        });
         public void ShowDetail(bool detail)
         {
             detailPage.SetActive(detail);
@@ -133,6 +138,10 @@ namespace YC.Presentation
         }
         public void RenderOptions(Workflows.CityStyleOptionsViewModel model, CardVisualCatalog catalog, Action<int> choose)
         {
+            using var measurement = Workflows.UiRegressionMetrics.Measure("declare.render_options");
+            var binding = optionBinding = new object();
+            BindDetailBack(binding);
+            var scroll = optionsContent.GetComponentInParent<ScrollRect>();
             var reusable = new List<BuildInfoItemView>(options);
             options.Clear();
             for (var i = 0; i < model.Options.Count; i++)
@@ -140,58 +149,91 @@ namespace YC.Presentation
                 var option = model.Options[i];
                 if (option == null) continue;
                 var item = reusable.Find(value => value != null && value.name == option.CityStyleId);
-                if (item != null) reusable.Remove(item);
-                else item = Instantiate(optionTemplate, optionsContent, false);
+                if (item != null)
+                {
+                    reusable.Remove(item);
+                    Workflows.UiRegressionMetrics.Note("declare.option.reused", option.CityStyleId);
+                }
+                else
+                {
+                    using (Workflows.UiRegressionMetrics.Measure("declare.option.instantiate"))
+                        item = Instantiate(optionTemplate, optionsContent, false);
+                }
                 var overlay = item.GetComponentInChildren<CityStyleTrackOverlay>(true);
-                overlay.ClearOptionMarkers();
-                item.transform.SetSiblingIndex(i);
+                overlay.BeginOptionMarkers();
                 item.gameObject.SetActive(true);
                 item.name = option.CityStyleId;
-                var sprite = catalog.GetCityStyle(option.CityStyleId);
-                CardArtworkView.Set(item.RawImage, sprite);
-                item.RawImage.gameObject.SetActive(sprite != null);
-                item.FallbackText.text = option.Name;
-                item.FallbackText.gameObject.SetActive(sprite == null);
-                int index = i;
-                item.Button.onClick.RemoveAllListeners();
-                item.PointerInteraction.ConfigureClick(item.Button, () => choose(index));
-                item.GetComponent<CityStyleCardStateView>().Bind(option.CanDeclare);
-                item.GetComponent<CityStyleCardGesture>().Configure(() => { choose(index); ShowDetail(true); });
-                var scroll = optionsContent.GetComponentInParent<ScrollRect>();
-                item.PointerInteraction.ConfigureDrag(() => scroll != null, e => scroll.OnBeginDrag(e),
-                    e => scroll.OnDrag(e), e => scroll.OnEndDrag(e), () => scroll?.StopMovement());
-                var tracker = new CityStyleMarkerLayoutTracker(cardBoardVisualLayout);
-                foreach (var marker in model.CityStyleMarkers)
-                    if (marker.CityStyleId == option.CityStyleId) tracker.Register(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
-                foreach (var marker in model.CityStyleMarkers)
+                Sprite sprite;
+                using (Workflows.UiRegressionMetrics.Measure("declare.option.artwork"))
+                    sprite = catalog.GetCityStyle(option.CityStyleId);
+                using (Workflows.UiRegressionMetrics.Measure("declare.option.visual_bind"))
                 {
-                    if (marker.CityStyleId != option.CityStyleId) continue;
-                    var placement = tracker.Next(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
-                    if (placement.PlayerMarkerIndex != 0) continue;
-                    var block = Instantiate(influenceMarkerTemplate, item.MarkerRoot, false).GetComponent<Image>();
-                    overlay.RegisterOptionMarker(block.gameObject);
-                    CityStyleMarkerRenderer.Configure(cardBoardVisualLayout, block, "Player Marker Count",
-                        cardBoardVisualLayout.CityStyleVisuals.PlayerColor((int)marker.PlayerColor, Color.white), null,
-                        cardBoardVisualLayout.BuildInfoMarkerSize, marker.CityStyleId, placement);
-                    block.GetComponent<Button>().interactable = false;
-                    block.raycastTarget = false;
+                    CardArtworkView.Set(item.RawImage, sprite);
+                    item.RawImage.gameObject.SetActive(sprite != null);
+                    item.FallbackText.text = option.Name;
+                    item.FallbackText.gameObject.SetActive(sprite == null);
                 }
-                overlay.Render(option.CityStyleId, cardBoardVisualLayout.CityStyleVisuals, model.CityStyleMarkers);
+                int index = i;
+                using (Workflows.UiRegressionMetrics.Measure("declare.option.input_bind"))
+                {
+                    item.Button.onClick.RemoveAllListeners();
+                    item.PointerInteraction.ConfigureClick(item.Button, () => {
+                        if (CurrentBinding(binding)) choose(index);
+                    });
+                    item.GetComponent<CityStyleCardStateView>().Bind(option.CanDeclare);
+                    item.GetComponent<CityStyleCardGesture>().Configure(() => {
+                        if (!CurrentBinding(binding)) return;
+                        choose(index);
+                        if (CurrentBinding(binding)) ShowDetail(true);
+                    });
+                    item.PointerInteraction.ConfigureDrag(() => CurrentBinding(binding) && scroll != null,
+                        e => { if (CurrentBinding(binding) && scroll != null) scroll.OnBeginDrag(e); },
+                        e => { if (CurrentBinding(binding) && scroll != null) scroll.OnDrag(e); },
+                        e => { if (CurrentBinding(binding) && scroll != null) scroll.OnEndDrag(e); },
+                        () => { if (CurrentBinding(binding)) scroll?.StopMovement(); });
+                }
+                using (Workflows.UiRegressionMetrics.Measure("declare.option.markers_bind"))
+                {
+                    var tracker = new CityStyleMarkerLayoutTracker(cardBoardVisualLayout);
+                    foreach (var marker in model.CityStyleMarkers)
+                        if (marker.CityStyleId == option.CityStyleId) tracker.Register(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
+                    foreach (var marker in model.CityStyleMarkers)
+                    {
+                        if (marker.CityStyleId != option.CityStyleId) continue;
+                        var placement = tracker.Next(marker.CityStyleId, marker.MarkerArea, marker.PlayerId);
+                        if (placement.PlayerMarkerIndex != 0) continue;
+                        var block = overlay.ReuseOptionMarker(() => {
+                            using var create = Workflows.UiRegressionMetrics.Measure("declare.option.marker_instantiate");
+                            return Instantiate(influenceMarkerTemplate, item.MarkerRoot, false).gameObject;
+                        }).GetComponent<Image>();
+                        // Configure根据当前卡面/颜色/轨道重新定位，不能沿用上次的父槽和数量。
+                        block.transform.SetParent(item.MarkerRoot, false);
+                        CityStyleMarkerRenderer.Configure(cardBoardVisualLayout, block, "Player Marker Count",
+                            cardBoardVisualLayout.CityStyleVisuals.PlayerColor((int)marker.PlayerColor, Color.white), null,
+                            cardBoardVisualLayout.BuildInfoMarkerSize, marker.CityStyleId, placement);
+                        block.GetComponent<Button>().interactable = false;
+                        block.raycastTarget = false;
+                    }
+                    overlay.EndOptionMarkers();
+                    overlay.Render(option.CityStyleId, cardBoardVisualLayout.CityStyleVisuals, model.CityStyleMarkers);
+                }
                 options.Add(item);
             }
             // 原生网格按列排列；先放Ⅰ级，再放Ⅱ级，正式候选索引与点击回调保持对应。
             var siblingIndex = 0;
             foreach (var item in options)
                 if (cardBoardVisualLayout.CityStyleVisuals.Find(item.name)?.trackLayout != "limited")
-                    item.transform.SetSiblingIndex(siblingIndex++);
+                { if (item.transform.GetSiblingIndex() != siblingIndex) item.transform.SetSiblingIndex(siblingIndex); siblingIndex++; }
             foreach (var item in options)
                 if (cardBoardVisualLayout.CityStyleVisuals.Find(item.name)?.trackLayout == "limited")
-                    item.transform.SetSiblingIndex(siblingIndex++);
+                { if (item.transform.GetSiblingIndex() != siblingIndex) item.transform.SetSiblingIndex(siblingIndex); siblingIndex++; }
             foreach (var item in reusable)
             {
                 if (item == null) continue;
                 item.Button.onClick.RemoveAllListeners();
                 item.PointerInteraction.ConfigureClick(null, null);
+                item.PointerInteraction.ConfigureDrag(null, null, null, null, null);
+                item.GetComponent<CityStyleCardGesture>().Configure(null);
                 item.gameObject.SetActive(false);
                 if (UnityEngine.Application.isPlaying) Destroy(item.gameObject); else DestroyImmediate(item.gameObject);
             }
@@ -370,7 +412,7 @@ namespace YC.Presentation
         public void PrepareForUse()
         {
             ClearForReuse();
-            detailGesture.Configure(null, () => ShowDetail(false));
+            BindDetailBack(optionBinding);
             gameObject.name = "City Style Declaration Preview Canvas";
             overlayCanvas.overrideSorting = true;
             overlayCanvas.sortingOrder = GameplayUiLayers.Page;
@@ -402,7 +444,16 @@ namespace YC.Presentation
 
         public void ClearCallbacks()
         {
+            optionBinding = new object();
             detailGesture.Configure(null);
+            foreach (var item in options)
+            {
+                if (item == null) continue;
+                item.Button.onClick.RemoveAllListeners();
+                item.PointerInteraction.ConfigureClick(null, null);
+                item.PointerInteraction.ConfigureDrag(null, null, null, null, null);
+                item.GetComponent<CityStyleCardGesture>().Configure(null);
+            }
             closeButton.onClick.RemoveAllListeners();
             confirmDeclarationButton.onClick.RemoveAllListeners();
             cancelSpecialActionWarningButton.onClick.RemoveAllListeners();

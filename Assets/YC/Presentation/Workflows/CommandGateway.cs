@@ -79,7 +79,9 @@ namespace YC.Presentation.Workflows
                 throw new ArgumentNullException(nameof(callbacks));
             }
 
-            var submission = commandPort.Submit(command);
+            using var latency = InteractionLatencyTrace.Begin("gateway.submit", command.CommandId);
+            WorkflowSubmissionResult submission;
+            using (InteractionLatencyTrace.Begin("gateway.port")) submission = commandPort.Submit(command);
             if (submission == null || submission.CommandResult == null)
             {
                 var failure = CommandResult.Invalid(ValidationResult.Failure(

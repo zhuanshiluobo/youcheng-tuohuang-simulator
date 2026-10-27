@@ -1,0 +1,216 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.P.7",
+  "contentType": "entrepreneur_round",
+  "version": "1.1.0",
+  "displayName": "保罗·蒂尔曼·第7回合",
+  "artwork": "artwork/entrepreneurs/P07.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.P07",
+      "mode": "ruleQuery",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.P07.handler",
+      "script": "lua/entrepreneurs/paul.p07.resource_profile.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P07.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.P08",
+      "mode": "ruleQuery",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.P08.handler",
+      "script": "lua/entrepreneurs/paul.p08.region_value.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.P08.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.P08.bonus",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.P08.bonus.handler",
+      "script": "lua/entrepreneurs/paul.p08.final_bonus.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.P.effect.P08.bonus"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.P07",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.face.P07.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P07",
+      "observedEvents": [],
+      "queryKinds": [
+        "scoringModifiers.v1"
+      ],
+      "allowedOperations": [
+        "scoring.resource_profile:self"
+      ],
+      "presentationRef": "entrepreneur.face.P07",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.P08",
+      "kind": "ruleQuery",
+      "handlerRef": "entrepreneur.face.P08.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P08",
+      "observedEvents": [],
+      "queryKinds": [
+        "scoringModifiers.v1"
+      ],
+      "allowedOperations": [
+        "scoring.region_value_delta:region"
+      ],
+      "presentationRef": "entrepreneur.face.P08",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.P08.bonus",
+      "kind": "event",
+      "handlerRef": "entrepreneur.P08.bonus.handler",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "P08",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.P08.bonus",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "P07",
+      "P08"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.P07",
+        "entityDefinitionId": "entrepreneur.round.P.7",
+        "faceId": "P07",
+        "sourceId": "P07",
+        "artwork": "artwork/entrepreneurs/P07.jpg",
+        "artworkSha256": "ce1f874b2fc99096bac4b7a0fc35e340951896f3ac94b5d1c656b5e5ef000ee4",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.P07"
+        ],
+        "immediateHandlerRefs": []
+      },
+      {
+        "candidateId": "entrepreneur.candidate.P08",
+        "entityDefinitionId": "entrepreneur.round.P.7",
+        "faceId": "P08",
+        "sourceId": "P08",
+        "artwork": "artwork/entrepreneurs/P08.jpg",
+        "artworkSha256": "00010f344c98ae5f2f0e1323ac268c7918c3b4437832b594824fd68896ffc319",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.P08"
+        ],
+        "immediateHandlerRefs": []
+      }
+    ],
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.face.P07",
+        "displayName": "7A·兑现繁荣：分数结算时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P07.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      },
+      {
+        "abilityId": "entrepreneur.face.P08",
+        "displayName": "7B·建立秩序：分数结算时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.P08.description"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      },
+      {
+        "abilityId": "entrepreneur.P08.bonus",
+        "displayName": "7B·建立秩序：分数结算时",
+        "effectTextRef": {
+          "key": "core:entrepreneur.P.effect.P08.bonus"
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held"
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.P07.handler",
+      "script": "lua/entrepreneurs/paul.p07.resource_profile.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.face.P08.handler",
+      "script": "lua/entrepreneurs/paul.p08.region_value.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.P08.bonus.handler",
+      "script": "lua/entrepreneurs/paul.p08.final_bonus.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    }
+  ],
+  "presentation": {
+    "name": {
+      "key": "core:entrepreneur.P.round.7.title"
+    }
+  }
+}

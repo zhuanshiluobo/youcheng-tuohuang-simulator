@@ -116,7 +116,7 @@ namespace YC.Application.Sessions
                 PlaceCity(state, id, SharedStyleCityLocationIds[index]);
                 var style = state.ItemZones.Items.Single(item => item.DefinitionId == SharedCityStyleId);
                 var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == id &&
-                    state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.LocalZoneId == "player_markers"));
+                    state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.LocalZoneId == "supply"));
                 string markerId = marker.ItemId;
                 var zoneDefinition = new CardZoneDefinition {
                     LocalZoneId = "declaration_" + id + "_0", ZoneTemplateId = "core.zone.board_marker_track",

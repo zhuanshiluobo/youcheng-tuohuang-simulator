@@ -153,10 +153,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var viewer in new[] { GameStateViewer.Player(1), GameStateViewer.Player(2), GameStateViewer.Spectator, GameStateViewer.Unknown })
             {
                 var view = query.Project(state, viewer);
-                Assert.That(view.Items.Any(item => item.ItemId == card.ItemId || item.ItemId == cube.ItemId), Is.False);
-                Assert.That(view.Zones.Any(zone => zone.Zone.ParentId == card.ItemId), Is.False);
+                // 2026-10-08正式05合同：最后Controller本人逐实例可见，共享秘密区仍匿名。
+                bool holder = viewer.Role == GameStateViewerRole.Player && viewer.PlayerId == card.ControllerSubject.PlayerId;
+                Assert.That(view.Items.Any(item => item.ItemId == card.ItemId), Is.EqualTo(holder));
+                Assert.That(view.Items.Any(item => item.ItemId == cube.ItemId), Is.EqualTo(holder));
+                Assert.That(view.Zones.Any(zone => zone.Zone.ParentId == card.ItemId), Is.EqualTo(holder));
                 Assert.That(view.Orders.Any(order => order.ItemIds.Contains(card.ItemId) || order.ItemIds.Contains(cube.ItemId)), Is.False);
-                Assert.That(view.Zones.Single(zone => zone.Zone.LocalZoneId == "secret_retired").ItemCount, Is.EqualTo(1));
+                var secret = view.Zones.Single(zone => zone.Zone.LocalZoneId == "secret_retired");
+                Assert.That(secret.ItemCount, Is.EqualTo(1)); Assert.That(secret.IdentitiesVisible, Is.False);
+                Assert.That(view.Orders.Any(order => order.ZoneId == secret.Zone.ZoneId), Is.False);
             }
             Assert.That(query.Project(state, GameStateViewer.Host).Items.Any(item => item.ItemId == card.ItemId), Is.True);
         }
@@ -225,7 +230,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             };
             return new ItemZoneStateFactory().CreateForSetup(source, map, new List<ItemRecipeEntry>
             {
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "component.player_marker", TypeId = "core.player_marker", Quantity = 1, PerPlayer = true, InitialZoneRole = "player_markers" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "component.player_marker", TypeId = "core.player_marker", Quantity = 1, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "characters", DefinitionId = "character.example", TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" }
             });
         }

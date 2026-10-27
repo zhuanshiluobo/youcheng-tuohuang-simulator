@@ -1,0 +1,43 @@
+{
+  "source_files": 5,
+  "source_records": 1593,
+  "unique_function_count": "未以来源条目数推定，重复表述／背景／表头已保留",
+  "primary_task_counts": {
+    "QY-001": 48,
+    "QY-004": 74,
+    "QY-002": 130,
+    "QY-003": 87,
+    "QY-017": 139,
+    "QY-006": 49,
+    "QY-005": 49,
+    "QY-007": 54,
+    "QY-010": 48,
+    "QY-011": 94,
+    "QY-009": 41,
+    "QY-008": 26,
+    "QY-018": 33,
+    "QY-013": 136,
+    "QY-014": 110,
+    "QY-016": 200,
+    "QY-015": 130,
+    "QY-012": 69,
+    "QY-019": 76
+  },
+  "images": 49,
+  "ability_cards": 5,
+  "round_faces": 40,
+  "round_entities": 20,
+  "tasks": 19,
+  "manual_assignment_refinements": 107,
+  "completed_date": "2026-10-20",
+  "latest_ruling_date": "2026-10-20",
+  "confirmed_rulings": [
+    "RK-01",
+    "RK-02",
+    "RK-03",
+    "RK-04",
+    "RK-05"
+  ],
+  "ruling_annotated_records": 47,
+  "asset_updated_date": "2026-10-20"
+}

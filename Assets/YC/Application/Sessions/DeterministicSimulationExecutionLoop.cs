@@ -38,6 +38,8 @@ namespace YC.Application.Sessions
         private bool signalDisposed;
         private int stopping, threadId;
         private long publicationVersion, lastStateCommitVersion = -1;
+        // 与原FIFO成功进/出队一一对应；仅标量，不另存Action或命令。
+        private long observationEnqueued, observationDequeued;
         internal long Generation { get; } = Interlocked.Increment(ref generations);
         internal bool IsWorkerThread => Thread.CurrentThread.ManagedThreadId == Volatile.Read(ref threadId);
         internal bool IsMainThread => Thread.CurrentThread.ManagedThreadId == mainThreadId;
@@ -54,6 +56,95 @@ namespace YC.Application.Sessions
             this.owner = owner; this.session = session; this.capacity = capacity;
             thread = new Thread(Run) { IsBackground = true, Name = "YC deterministic session " + Generation };
         }
+        private void ObserveLoop(string stage, string edge, long tick, long workId = 0, int incomingCount = -1, int outgoingCount = -1,
+            Action action = null, Publication frame = null, SimulationPublishedSnapshot snapshot = null, GameState uiState = null, GameStateView uiView = null,
+            long version = 0, long sequence = 0, int waitCount = 0, long waitTicks = 0, int completed = -1)
+        {
+            if (tick == 0) return;
+            try
+            {
+                var data = ReadLoopStageData(workId, incomingCount, outgoingCount, action, frame, snapshot, uiState, uiView,
+                    version, sequence, waitCount, waitTicks, completed);
+                owner.RecordLoopWaitStage(stage, edge, tick, data);
+            }
+            catch { owner.DisableWaitStageObservation(); }
+        }
+        private DeterministicSimulationCoordinator.LoopWaitStageData ReadLoopStageData(long workId, int incomingCount, int outgoingCount,
+            Action action, Publication frame, SimulationPublishedSnapshot snapshot, GameState uiState, GameStateView uiView,
+            long version, long sequence, int waitCount, long waitTicks, int completed)
+        {
+            snapshot = frame?.Snapshot ?? snapshot; uiState = frame?.UiState ?? uiState; uiView = frame?.UiView ?? uiView;
+            return new DeterministicSimulationCoordinator.LoopWaitStageData(Generation, workId, snapshot?.Version ?? version,
+                snapshot?.LastAppliedSequence ?? sequence, snapshot?.CommitVersion ?? -1, incomingCount, outgoingCount,
+                Identity(action), Identity(frame), Identity(snapshot), Identity(uiState), Identity(uiView), frame?.Notifications?.Length ?? -1,
+                frame == null ? uiState?.Players?.Count ?? -1 : -1, waitCount, waitTicks, completed);
+        }
+        private static int Identity(object value) => value == null ? 0 : System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(value);
+        private readonly struct LoopStageScope : IDisposable
+        {
+            private readonly DeterministicSimulationExecutionLoop loop;
+            private readonly string stage;
+            private readonly DeterministicSimulationCoordinator.LoopWaitStageData data;
+            private readonly long started;
+            internal LoopStageScope(DeterministicSimulationExecutionLoop loop, string stage, long tick, DeterministicSimulationCoordinator.LoopWaitStageData data)
+            { this.loop = loop; this.stage = stage; this.data = data; started = tick; }
+            public void Dispose()
+            {
+                if (loop == null) return;
+                long ended = loop.owner.CaptureWaitStageTick();
+                loop.owner.RecordLoopWaitStage(stage, "begin", started, data);
+                loop.owner.RecordLoopWaitStage(stage, "end", ended, data);
+            }
+        }
+        private LoopStageScope BeginLoopStage(string stage, long workId = 0, Action action = null, Publication frame = null, long sequence = 0)
+        {
+            long tick = owner.CaptureWaitStageTick();
+            if (tick == 0) return default;
+            if (stage == "loop.worker.pump") sequence = owner.LastAppliedSequence + 1;
+            try
+            {
+                var data = ReadLoopStageData(workId, -1, -1, action, frame, null, null, null, 0, sequence, 0, 0, -1);
+                return new LoopStageScope(this, stage, owner.CaptureWaitStageTick(), data);
+            }
+            catch { owner.DisableWaitStageObservation(); return default; }
+        }
+        private SimulationPublishedSnapshot CreateObservedSnapshot(long version, long generation, long workId)
+        {
+            long started = owner.CaptureWaitStageTick();
+            SimulationPublishedSnapshot snapshot = null;
+            try { snapshot = owner.CreateBackgroundSnapshot(version, generation); return snapshot; }
+            finally
+            {
+                long ended = owner.CaptureWaitStageTick();
+                ObserveLoop("loop.snapshot", "begin", started, workId, snapshot: snapshot, version: version, completed: snapshot == null ? 0 : 1);
+                ObserveLoop("loop.snapshot", "end", ended, workId, snapshot: snapshot, version: version, completed: snapshot == null ? 0 : 1);
+            }
+        }
+        private GameState CreateObservedUiState(SimulationPublishedSnapshot snapshot, long workId)
+        {
+            long started = owner.CaptureWaitStageTick();
+            GameState state = null;
+            try { state = snapshot.CreateUiReadState(); return state; }
+            finally
+            {
+                long ended = owner.CaptureWaitStageTick();
+                ObserveLoop("loop.ui_state", "begin", started, workId, snapshot: snapshot, uiState: state, completed: state == null ? 0 : 1);
+                ObserveLoop("loop.ui_state", "end", ended, workId, snapshot: snapshot, uiState: state, completed: state == null ? 0 : 1);
+            }
+        }
+        private GameStateView CreateObservedUiView(SimulationPublishedSnapshot snapshot, long workId)
+        {
+            long started = owner.CaptureWaitStageTick();
+            GameStateView view = null;
+            try { view = snapshot.ReadView(); return view; }
+            finally
+            {
+                long ended = owner.CaptureWaitStageTick();
+                ObserveLoop("loop.ui_view", "begin", started, workId, snapshot: snapshot, uiView: view, completed: view == null ? 0 : 1);
+                ObserveLoop("loop.ui_view", "end", ended, workId, snapshot: snapshot, uiView: view, completed: view == null ? 0 : 1);
+            }
+        }
+
         internal void Start() => thread.Start();
         internal void CancelStartup()
         {
@@ -63,13 +154,20 @@ namespace YC.Application.Sessions
         }
         internal bool TryEnqueue(Action action)
         {
-            lock (gate)
+            long tick = 0, workId = 0; int queued = -1, published = -1;
+            try
             {
-                if (IsStopping || Fatal != null || completion.Task.IsCompleted || incoming.Count >= capacity) return false;
-                incoming.Enqueue(action);
-                available.Set();
+                lock (gate)
+                {
+                    if (IsStopping || Fatal != null || completion.Task.IsCompleted || incoming.Count >= capacity) return false;
+                    incoming.Enqueue(action);
+                    workId = unchecked(++observationEnqueued);
+                    tick = owner.CaptureWaitStageTick(); queued = incoming.Count; published = outgoing.Count;
+                    available.Set();
+                }
+                return true;
             }
-            return true;
+            finally { ObserveLoop("loop.incoming.enqueue", "point", tick, workId, queued, published, action); }
         }
         internal void AddNotification(Action action) => notifications.Add(action);
         internal void AddConsumerError(Exception exception) => consumerErrors.Add(exception);
@@ -81,6 +179,7 @@ namespace YC.Application.Sessions
         private void Run()
         {
             Volatile.Write(ref threadId, Thread.CurrentThread.ManagedThreadId);
+            long activeWorkId = 0, pumpOrdinal = 0;
             try
             {
                 session.ClaimBackgroundOwner(Generation);
@@ -88,17 +187,33 @@ namespace YC.Application.Sessions
                 while (!IsStopping)
                 {
                     Action action = null;
-                    lock (gate) if (incoming.Count > 0) action = incoming.Dequeue();
+                    long dequeuedTick = 0, workId = 0; int queued = -1, published = -1;
+                    lock (gate) if (incoming.Count > 0)
+                    {
+                        action = incoming.Dequeue(); workId = unchecked(++observationDequeued);
+                        dequeuedTick = owner.CaptureWaitStageTick(); queued = incoming.Count; published = outgoing.Count;
+                    }
+                    ObserveLoop("loop.incoming.dequeue", "point", dequeuedTick, workId, queued, published, action);
                     bool worked = action != null;
-                    if (action != null) { action(); Publish(); }
-                    if (!IsStopping && owner.CanPumpBackground()) { owner.Pump(1); Publish(); worked = true; }
+                    if (action != null)
+                    {
+                        activeWorkId = workId;
+                        using (BeginLoopStage("loop.worker.action", workId, action)) action();
+                        Publish(activeWorkId); activeWorkId = 0;
+                    }
+                    if (!IsStopping && owner.CanPumpBackground())
+                    {
+                        activeWorkId = unchecked(-++pumpOrdinal);
+                        using (BeginLoopStage("loop.worker.pump", activeWorkId)) owner.Pump(1);
+                        Publish(activeWorkId); activeWorkId = 0; worked = true;
+                    }
                     if (!worked && !IsStopping) available.WaitOne();
                 }
             }
             catch (Exception exception)
             {
                 Volatile.Write(ref fatal, exception);
-                try { owner.BackgroundWorkerFault(exception); Publish(); } catch (Exception publishError) { Volatile.Write(ref fatal, new AggregateException(exception, publishError)); }
+                try { owner.BackgroundWorkerFault(exception); Publish(activeWorkId); } catch (Exception publishError) { Volatile.Write(ref fatal, new AggregateException(exception, publishError)); }
             }
             finally
             {
@@ -107,19 +222,44 @@ namespace YC.Application.Sessions
                 completion.TrySetResult(null);
             }
         }
-        private void Publish()
+        private void Publish(long observationWorkId = 0)
         {
-            var snapshot = owner.CreateBackgroundSnapshot(++publicationVersion, Generation);
+            var snapshot = CreateObservedSnapshot(++publicationVersion, Generation, observationWorkId);
             bool changed = lastStateCommitVersion != snapshot.CommitVersion;
             // 为原展示端口准备独立图的工作也在owner线程；snapshot私有捕获不交给UI修改。
             var frame = new Publication { Snapshot = snapshot, Notifications = notifications.ToArray(),
-                UiState = changed ? snapshot.CreateUiReadState() : null, UiView = changed ? snapshot.ReadView() : null };
+                UiState = changed ? CreateObservedUiState(snapshot, observationWorkId) : null, UiView = changed ? CreateObservedUiView(snapshot, observationWorkId) : null };
             notifications.Clear(); lastStateCommitVersion = snapshot.CommitVersion;
             Volatile.Write(ref latest, snapshot);
-            lock (gate)
+            long latestTick = owner.CaptureWaitStageTick();
+            long waitBegin = 0, waitEnd = 0, waitTicks = 0, enqueuedTick = 0;
+            int waits = 0, beginIncoming = -1, beginOutgoing = -1, endIncoming = -1, endOutgoing = -1, queued = -1, published = -1;
+            try
             {
-                while (!IsStopping && outgoing.Count >= capacity) Monitor.Wait(gate);
-                if (!IsStopping) outgoing.Enqueue(frame);
+                lock (gate)
+                {
+                    while (!IsStopping && outgoing.Count >= capacity)
+                    {
+                        long beforeWait = owner.CaptureWaitStageTick();
+                        if (waits == 0) { waitBegin = beforeWait; beginIncoming = incoming.Count; beginOutgoing = outgoing.Count; }
+                        waits++;
+                        Monitor.Wait(gate);
+                        waitEnd = owner.CaptureWaitStageTick(); endIncoming = incoming.Count; endOutgoing = outgoing.Count;
+                        if (beforeWait != 0 && waitEnd != 0) waitTicks += waitEnd - beforeWait;
+                    }
+                    if (!IsStopping)
+                    {
+                        outgoing.Enqueue(frame);
+                        enqueuedTick = owner.CaptureWaitStageTick(); queued = incoming.Count; published = outgoing.Count;
+                    }
+                }
+            }
+            finally
+            {
+                ObserveLoop("loop.latest.publish", "point", latestTick, observationWorkId, frame: frame);
+                ObserveLoop("loop.outgoing.wait", "begin", waitBegin, observationWorkId, beginIncoming, beginOutgoing, frame: frame, waitCount: waits, waitTicks: waitTicks);
+                ObserveLoop("loop.outgoing.wait", "end", waitEnd, observationWorkId, endIncoming, endOutgoing, frame: frame, waitCount: waits, waitTicks: waitTicks);
+                ObserveLoop("loop.outgoing.enqueue", "point", enqueuedTick, observationWorkId, queued, published, frame: frame);
             }
         }
         internal int Drain(int maximumCount)
@@ -130,19 +270,29 @@ namespace YC.Application.Sessions
             while (count < maximumCount)
             {
                 Publication frame;
+                long dequeuedTick = 0; int queued = -1, published = -1;
                 lock (gate)
                 {
                     if (outgoing.Count == 0) break;
-                    frame = outgoing.Dequeue(); Monitor.PulseAll(gate);
+                    frame = outgoing.Dequeue();
+                    dequeuedTick = owner.CaptureWaitStageTick(); queued = incoming.Count; published = outgoing.Count;
+                    Monitor.PulseAll(gate);
                 }
+                ObserveLoop("loop.outgoing.dequeue", "point", dequeuedTick, incomingCount: queued, outgoingCount: published, frame: frame);
                 if (IsStopping || frame.Snapshot.Generation != Generation) continue;
+                using var delivery = BeginLoopStage("loop.delivery", frame: frame);
                 owner.SetVisibleBackgroundSnapshot(frame.Snapshot);
+                ObserveLoop("loop.visible.publish", "point", owner.CaptureWaitStageTick(), frame: frame);
                 if (frame.UiState != null)
-                    consumerErrors.AddRange(session.PublishBackgroundReadState(Generation, frame.Snapshot.CommitVersion, frame.UiState, frame.UiView, () => !IsStopping));
-                foreach (var notification in frame.Notifications)
+                    using (BeginLoopStage("loop.ui_delivery", frame: frame))
+                        consumerErrors.AddRange(session.PublishBackgroundReadState(Generation, frame.Snapshot.CommitVersion, frame.UiState, frame.UiView, () => !IsStopping));
+                using (BeginLoopStage("loop.notifications", frame: frame))
                 {
-                    if (IsStopping) break;
-                    try { notification(); } catch (Exception exception) { consumerErrors.Add(exception); }
+                    foreach (var notification in frame.Notifications)
+                    {
+                        if (IsStopping) break;
+                        try { notification(); } catch (Exception exception) { consumerErrors.Add(exception); }
+                    }
                 }
                 count++;
             }
@@ -171,6 +321,10 @@ namespace YC.Application.Sessions
         private readonly SortedDictionary<long, OrderedOperationCommandDto> backgroundKnown = new SortedDictionary<long, OrderedOperationCommandDto>();
         private readonly Dictionary<long, SimulationBoundaryDto> backgroundFrozenBoundaries = new Dictionary<long, SimulationBoundaryDto>();
         private readonly Dictionary<string, RequestAuthorityStamp> backgroundRequestAuthorities = new Dictionary<string, RequestAuthorityStamp>(StringComparer.Ordinal);
+        private SimulationPublishedCheckpoint backgroundConfirmedCheckpoint;
+        private GameSessionRecoveryPoint backgroundCheckpointPoint;
+        private List<SimulationWindowFactDto> backgroundCheckpointWindows;
+        private long backgroundCheckpointSequence = -1;
         private sealed class PendingAdmission
         {
             internal int PlayerId;
@@ -187,6 +341,18 @@ namespace YC.Application.Sessions
             }
         }
         public bool IsBackgroundExecutionEnabled => background != null;
+        public bool TryQueryPaymentSourcePage(int authenticatedPlayerId, PaymentSourcePageRequest request, Action<PaymentSourcePageResponse> reply)
+        {
+            if (reply == null || request == null) return false;
+            var copy = GameStateCloneService.DeepClone(request);
+            if (background == null) { reply(session.QueryPaymentSourcePage(authenticatedPlayerId, copy)); return true; }
+            background.EnsureMainThread();
+            var loop = background;
+            return loop.TryEnqueue(() => {
+                var result = session.QueryPaymentSourcePage(authenticatedPlayerId, copy);
+                loop.AddNotification(() => reply(result));
+            });
+        }
         public Task ExecutionStopped => background?.Completion ?? Task.CompletedTask;
         public Exception BackgroundExecutionException => background?.Fatal;
 
@@ -310,8 +476,9 @@ namespace YC.Application.Sessions
         {
             var point = session.ReadLatestBackgroundRecoveryPoint();
             var previous = background.Latest;
-            GameStateView view = previous != null && previous.CommitVersion == session.BackgroundCommitVersion ?
-                previous.ReadView() : session.ProjectFor(GameStateViewer.Player(options.LocalPlayerId));
+            bool unchangedState = previous != null && previous.CommitVersion == session.BackgroundCommitVersion &&
+                ReferenceEquals(previous.Point.CapturedState, point.CapturedState);
+            GameStateView view = unchangedState ? null : session.ProjectFor(GameStateViewer.Player(options.LocalPlayerId));
             SimulationPublishedCheckpoint checkpoint = null;
             foreach (var pair in boundaries)
                 if (!backgroundFrozenBoundaries.ContainsKey(pair.Key))
@@ -319,35 +486,47 @@ namespace YC.Application.Sessions
             // 协议事实失败时实际Applied可能已越过确认前缀；恢复仍持原确认点，不能取当前State。
             if (options.IsHost && confirmedPoint != null && confirmedWindows != null)
             {
-                var prefix = replica.CreateValidationPrefix(0, validatedThrough);
-                var metadata = new SimulationRecoveryBaselineDto { GameId = options.GameId, SourceSimulationEpoch = options.SimulationEpoch,
-                    MembershipVersion = options.MembershipVersion, ConfirmedGlobalSequence = validatedThrough,
-                    CommandPrefixDigest = prefix.PrefixDigest, ContentPackHash = options.ContentPackHash,
-                    RuleDigestVersion = RuleStateDigestService.DigestVersion, FrozenPlayerIds = new List<int>(options.FrozenPlayerIds),
-                    RequiredReplicaIds = new List<string>(options.RequiredReplicaIds), ConfirmedCommands = replica.ReadConfirmedReceipts(validatedThrough) };
-                foreach (int player in options.FrozenPlayerIds) metadata.NextSubmissionSequences.Add(player, 1);
-                foreach (var receipt in metadata.ConfirmedCommands) metadata.NextSubmissionSequences[receipt.Outcome.PlayerId] = receipt.ClientSubmissionSequence + 1;
-                foreach (var fact in confirmedWindows) metadata.Windows.Add(OperationCommandCanonicalizer.SnapshotRecoveryWindow(fact));
-                checkpoint = new SimulationPublishedCheckpoint(session.FreezeBackgroundRecoveryPoint(confirmedPoint), metadata, options);
-            }
-            var openAuthorities = new Dictionary<string, RequestAuthorityStamp>(StringComparer.Ordinal);
-            if (requestContractVersion == OperationCommandProtocol.RequestContractVersion)
-                foreach (var request in point.CapturedState.EffectRuntime.InteractionRequests.Where(r => r.Status == "open"))
+                if (backgroundConfirmedCheckpoint == null || !ReferenceEquals(backgroundCheckpointPoint, confirmedPoint) ||
+                    !ReferenceEquals(backgroundCheckpointWindows, confirmedWindows) || backgroundCheckpointSequence != validatedThrough)
                 {
-                    var probe = new GameCommand { Kind = GameCommandKind.AnswerInteraction, CommandId = "request.authority.read", PlayerId = request.AnsweringPlayerId };
-                    probe.Parameters["interactionId"] = request.GetStableInteractionId();
-                    if (!InteractionRequestValidity.TryReadRequestAuthority(point.CapturedState, probe, out var authority, out _)) continue;
-                    var stamp = backgroundRequestAuthorities.TryGetValue(authority.InteractionId, out var previousStamp) && previousStamp.Digest == authority.Digest
-                        ? previousStamp : new RequestAuthorityStamp(authority.Digest, replica.LastAppliedSequence);
-                    openAuthorities[authority.InteractionId] = stamp;
+                    var prefix = replica.CreateValidationPrefix(0, validatedThrough);
+                    var metadata = new SimulationRecoveryBaselineDto { GameId = options.GameId, SourceSimulationEpoch = options.SimulationEpoch,
+                        MembershipVersion = options.MembershipVersion, ConfirmedGlobalSequence = validatedThrough,
+                        CommandPrefixDigest = prefix.PrefixDigest, ContentPackHash = options.ContentPackHash,
+                        RuleDigestVersion = RuleStateDigestService.DigestVersion, FrozenPlayerIds = new List<int>(options.FrozenPlayerIds),
+                        RequiredReplicaIds = new List<string>(options.RequiredReplicaIds), ConfirmedCommands = replica.ReadConfirmedReceipts(validatedThrough) };
+                    foreach (int player in options.FrozenPlayerIds) metadata.NextSubmissionSequences.Add(player, 1);
+                    foreach (var receipt in metadata.ConfirmedCommands) metadata.NextSubmissionSequences[receipt.Outcome.PlayerId] = receipt.ClientSubmissionSequence + 1;
+                    foreach (var fact in confirmedWindows) metadata.Windows.Add(OperationCommandCanonicalizer.SnapshotRecoveryWindow(fact));
+                    backgroundConfirmedCheckpoint = new SimulationPublishedCheckpoint(session.FreezeBackgroundRecoveryPoint(confirmedPoint), metadata, options);
+                    backgroundCheckpointPoint = confirmedPoint; backgroundCheckpointWindows = confirmedWindows; backgroundCheckpointSequence = validatedThrough;
                 }
-            backgroundRequestAuthorities.Clear();
-            foreach (var pair in openAuthorities) backgroundRequestAuthorities.Add(pair.Key, pair.Value);
+                checkpoint = backgroundConfirmedCheckpoint;
+            }
+            else { backgroundConfirmedCheckpoint = null; backgroundCheckpointPoint = null; backgroundCheckpointWindows = null; backgroundCheckpointSequence = -1; }
+            // 同一owner、commit且冻结图引用相同，开放请求及其合同不可能改变。
+            // 许可/Ready/重传仍逐次发布；只复用已有只读派生合同，不能按revision复用活动图。
+            if (!unchangedState)
+            {
+                var openAuthorities = new Dictionary<string, RequestAuthorityStamp>(StringComparer.Ordinal);
+                if (requestContractVersion == OperationCommandProtocol.RequestContractVersion)
+                    foreach (var request in point.CapturedState.EffectRuntime.InteractionRequests.Where(r => r.Status == "open"))
+                    {
+                        var probe = new GameCommand { Kind = GameCommandKind.AnswerInteraction, CommandId = "request.authority.read", PlayerId = request.AnsweringPlayerId };
+                        probe.Parameters["interactionId"] = request.GetStableInteractionId();
+                        if (!InteractionRequestValidity.TryReadRequestAuthority(point.CapturedState, probe, out var authority, out _)) continue;
+                        var stamp = backgroundRequestAuthorities.TryGetValue(authority.InteractionId, out var previousStamp) && previousStamp.Digest == authority.Digest
+                            ? previousStamp : new RequestAuthorityStamp(authority.Digest, replica.LastAppliedSequence);
+                        openAuthorities[authority.InteractionId] = stamp;
+                    }
+                backgroundRequestAuthorities.Clear();
+                foreach (var pair in openAuthorities) backgroundRequestAuthorities.Add(pair.Key, pair.Value);
+            }
             return new SimulationPublishedSnapshot(point, view, options, version, generation, replica.LastAppliedSequence,
                 sequencer?.LastSequencedSequence ?? replica.LastAppliedSequence, validatedThrough, stopped, requiresRecovery, recoveryFrozen,
                 windows.Values.Select(Permission), backgroundFrozenBoundaries, permits.Keys, options.IsHost ? replica.CreateValidationPrefix(0, validatedThrough) : replica.CreateValidationPrefix(),
-                lastFault, queue.Values, checkpoint, session.BackgroundCommitVersion,
-                replica.ReadObservedStateRevisions(checkpointStateRevision), openAuthorities);
+                lastFault, queue.Values.Concat(ReadUnconfirmedWindowTail()), checkpoint, session.BackgroundCommitVersion,
+                replica.ReadObservedStateRevisions(checkpointStateRevision), backgroundRequestAuthorities, ReadWindowExecutionFrame(), unchangedState ? previous : null);
         }
 
         private bool TryCreateBackgroundProposal(GameCommand command, out OperationCommandProposalDto proposal, out ValidationResult validation)
@@ -575,6 +754,8 @@ namespace YC.Application.Sessions
                 RuleResult = background == null ? result : GameSession.CopyCommandResult(result) };
             Emit(() =>
             {
+                if (background != null && notice.Command.PlayerId == options.LocalPlayerId && notice.RuleResult.Succeeded)
+                    backgroundNextSubmission = Math.Max(backgroundNextSubmission, command.ClientSubmissionSequence + 1);
                 if (background != null && backgroundPendingLocal?.Command.CommandId == notice.Command.CommandId)
                 { backgroundPendingLocal = null; backgroundPendingValidationLocal = false; }
                 Deliver(SimulationCommandApplied, notice);

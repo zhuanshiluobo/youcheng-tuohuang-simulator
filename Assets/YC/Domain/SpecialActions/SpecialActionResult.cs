@@ -29,6 +29,7 @@ namespace YC.Domain.SpecialActions
     [Serializable]
     public sealed class SpecialActionOption
     {
+        public YC.Domain.Effects.AbilityActionOption DeclaredAction;
         public string SpecialActionId = string.Empty;
         public string CityStyleId = string.Empty;
         public string Name = string.Empty;

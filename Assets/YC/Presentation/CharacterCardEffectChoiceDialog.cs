@@ -157,7 +157,7 @@ namespace YC.Presentation
                     ? layoutProfile.CharacterOptionsScrollBottom
                     : layoutProfile.CharacterOptionsScrollBottomWithCancel,
                 layoutProfile.CharacterOptionsScrollTop);
-            EffectDialogShell.AddOptions(content, options, "Character Effect Option ", Hide, renderText);
+            shell.AddOptions(content, options, "Character Effect Option ", Hide, renderText);
 
             if (cancel != null)
             {
@@ -350,6 +350,9 @@ namespace YC.Presentation
                 ExecuteImmediately = true,
                 Label = id => string.IsNullOrEmpty(byId[id].SourceLabel) ? byId[id].Label : byId[id].SourceLabel,
                 DescriptionLabel = id => byId[id].DescriptionLabel,
+                SourceDocument = id => byId[id].LabelDocument,
+                OptionDocument = id => byId[id].DescriptionDocument,
+                RenderText = renderText,
                 CanSelect = id => byId[id].Enabled,
                 Select = id =>
                 {

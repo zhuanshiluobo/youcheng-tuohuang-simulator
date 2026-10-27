@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.closure",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "可露希尔",
   "expansionId": "enterprise",
   "replaces": null,
@@ -56,7 +56,7 @@
       ],
       "observerSubjectPolicy": "self",
       "candidateKindFilter": "facility.build.card",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.operator.closure.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": true,
@@ -84,5 +84,75 @@
         "displayName": "可露希尔"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.closure.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.closure",
+      "actions": [
+        {
+          "actionId": "operator.closure.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "operator.closure",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "operator.closure"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.closure.tactic",
+      "kind": "event",
+      "handlerRef": "content.operator.closure.tactic",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.closure.tactic",
+      "actions": []
+    }
+  ]
 }

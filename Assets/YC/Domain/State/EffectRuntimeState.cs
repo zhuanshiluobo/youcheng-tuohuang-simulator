@@ -84,11 +84,16 @@ namespace YC.Domain.State
     public sealed class NormalizedValueEntry
     {
         public string Name = string.Empty;
-        public NormalizedValue Value = NormalizedValue.CreateNull();
+        public NormalizedValue Value;
+
+        public NormalizedValueEntry() { Value = NormalizedValue.CreateNull(); }
+        private NormalizedValueEntry(bool cloneShell) { }
+        // 仅供完整字段深拷贝；不会向外暴露尚未填完的对象。
+        internal static NormalizedValueEntry CreateCloneShell() => new NormalizedValueEntry(true);
 
         public NormalizedValueEntry Clone()
         {
-            return new NormalizedValueEntry
+            return new NormalizedValueEntry(true)
             {
                 Name = Name,
                 Value = Value == null ? null : Value.Clone()
@@ -111,8 +116,17 @@ namespace YC.Domain.State
         public string StringValue = string.Empty;
         public string ReferenceType = string.Empty;
         public string ReferenceId = string.Empty;
-        public List<NormalizedValue> Items = new List<NormalizedValue>();
-        public List<NormalizedValueEntry> Properties = new List<NormalizedValueEntry>();
+        public List<NormalizedValue> Items;
+        public List<NormalizedValueEntry> Properties;
+
+        public NormalizedValue()
+        {
+            Items = new List<NormalizedValue>();
+            Properties = new List<NormalizedValueEntry>();
+        }
+        private NormalizedValue(bool cloneShell) { }
+        // 克隆随后按元数据填入全部持久字段；不创建马上被覆盖的默认子树。
+        internal static NormalizedValue CreateCloneShell() => new NormalizedValue(true);
 
         public static NormalizedValue CreateNull()
         {
@@ -184,7 +198,7 @@ namespace YC.Domain.State
 
         public NormalizedValue Clone()
         {
-            NormalizedValue clone = new NormalizedValue
+            NormalizedValue clone = new NormalizedValue(true)
             {
                 Kind = Kind,
                 BooleanValue = BooleanValue,
@@ -192,8 +206,8 @@ namespace YC.Domain.State
                 StringValue = StringValue,
                 ReferenceType = ReferenceType,
                 ReferenceId = ReferenceId,
-                Items = Items == null ? null : new List<NormalizedValue>(),
-                Properties = Properties == null ? null : new List<NormalizedValueEntry>()
+                Items = Items == null ? null : new List<NormalizedValue>(Items.Count),
+                Properties = Properties == null ? null : new List<NormalizedValueEntry>(Properties.Count)
             };
 
             if (Items != null)
@@ -466,10 +480,16 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectNodeRuntimeState
     {
+        public string DepartureBatchId = "";
         public OperationCommandContext OperationContext;
         public OperationCommandContext ContinuationOperationContext;
         public YC.Domain.Effects.SettlementWindowRuntimeState SettlementWindow;
         public YC.Domain.Effects.ResourcePaymentRuntimeState Payment;
+        public YC.Domain.Items.ItemTransferBatchRequest TransferBatchRequest;
+        public YC.Domain.Effects.RewardGrantReceipt RewardGrant;
+        public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome;
+        public YC.Domain.Effects.EffectExecutionBinding ExecutionBinding;
+        public YC.Domain.Cards.PersistentSourceFactsBinding PersistentSourceFacts;
         public SettlementEffectDefinition Settlement;
         public EffectPresentationDefinition Presentation;
         public string EffectId = string.Empty;
@@ -519,6 +539,9 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectSpecRuntimeState
     {
+        public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome;
+        public YC.Domain.Effects.EffectExecutionBinding ExecutionBinding;
+        public YC.Domain.Cards.PersistentSourceFactsBinding PersistentSourceFacts;
         public SettlementEffectDefinition Settlement;
         public EffectPresentationDefinition Presentation;
         public string EffectTypeId = string.Empty;
@@ -546,6 +569,7 @@ namespace YC.Domain.State
         {
             var clone = new EffectSpecRuntimeState
             {
+                PersistentSourceFacts = GameStateCloneService.DeepClone(PersistentSourceFacts),
                 Settlement = GameStateCloneService.DeepClone(Settlement),
                 Presentation = GameplayPresentationNormalizer.Clone(Presentation),
                 EffectTypeId = EffectTypeId,
@@ -1040,8 +1064,17 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class EffectRuntimeState
+    public sealed partial class EffectRuntimeState
     {
+        public int UsageTrackProtocolVersion = 1;
+        public List<YC.Domain.Effects.UsageTrackBinding> UsageTrackBindings = new List<YC.Domain.Effects.UsageTrackBinding>();
+        public List<YC.Domain.Effects.UsageGroupReceipt> UsageGroupReceipts = new List<YC.Domain.Effects.UsageGroupReceipt>();
+        public List<YC.Domain.Effects.UsageTrackResetProgress> UsageTrackResets = new List<YC.Domain.Effects.UsageTrackResetProgress>();
+        public int CleanupObligationProtocolVersion;
+        public List<YC.Domain.Effects.CleanupObligationRecord> CleanupObligations=new List<YC.Domain.Effects.CleanupObligationRecord>();
+        public int AbilityActionProtocolVersion;
+        public List<YC.Domain.Effects.AbilityActionInvocation> AbilityActionInvocations = new List<YC.Domain.Effects.AbilityActionInvocation>();
+        public List<YC.Domain.Effects.AbilitySourceUseReceipt> AbilitySourceUses = new List<YC.Domain.Effects.AbilitySourceUseReceipt>();
         public List<DeferredResponseState> DeferredResponses = new List<DeferredResponseState>();
         // 0兼容旧档；命令作用域在发布工作副本前清空，因果保存在实际节点和事件。
         public int OperationWindowSchemaVersion;
@@ -1049,7 +1082,7 @@ namespace YC.Domain.State
         public List<OperationWindowState> OperationWindows = new List<OperationWindowState>();
         public OperationCommandContext CurrentOperationContext;
         public string ActiveSettlementWindowId = string.Empty;
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = GameProtocolVersions.Runtime;
 
         public int SchemaVersion = CurrentSchemaVersion;
         public EffectRuntimeStatus Status = EffectRuntimeStatus.Active;
@@ -1400,15 +1433,15 @@ namespace YC.Domain.State
             if (window?.Context?.Kind == YC.Domain.Effects.SettlementEntryService.PlayerCleanup)
             {
                 string childId = owner.ChildEffectIds[childIndex];
+                if (YC.Domain.Effects.CleanupSourceService.IsInvocationTarget(window, childId))
+                    return YC.Domain.Effects.CleanupSourceService.IsInvocationSchedulingEligible(this, window, childId);
                 var entry = window.Entries.Find(e => e.TargetEffectId == childId);
                 if (entry != null)
                 {
                     var recorded = EffectNodes.Find(n => n.EffectId == childId);
                     if (recorded != null && IsSchedulingTerminal(recorded.Status)) return true;
                     if (!YC.Domain.Effects.SettlementEntryService.IsChildEligible(this, window, childId)) return false;
-                    for (int i = 0; i < childIndex; i++)
-                        if (!window.Entries.Exists(e => e.TargetEffectId == owner.ChildEffectIds[i]))
-                        { var prior = EffectNodes.Find(n => n.EffectId == owner.ChildEffectIds[i]); if (prior == null || !IsSchedulingTerminal(prior.Status)) return false; }
+                    // once段同样由窗口串行门禁决定，不能等待本应在玩家段之后执行的系统步骤。
                     return true;
                 }
                 if (!YC.Domain.Effects.SettlementEntryService.IsChildEligible(this, window, childId)) return false;
@@ -1448,6 +1481,13 @@ namespace YC.Domain.State
             if (SchemaVersion < 3 && (DeferredResponses.Count != 0 || DispatchReceipts.Any(r => r.DeferredResponseIds.Count != 0))) return false;
             foreach (var response in DeferredResponses)
             {
+                if (response?.ProtocolVersion == 1)
+                {
+                    if (string.IsNullOrEmpty(response.DeferredResponseId) || !ids.Add(response.DeferredResponseId) || string.IsNullOrEmpty(response.ResponseRootEffectId) || !roots.Add(response.ResponseRootEffectId) ||
+                        response.PendingBody == null || response.SourceEventIds == null || !EffectNodes.Any(n => n.EffectId == response.ResponseRootEffectId) ||
+                        !DispatchReceipts.Any(r => r.DeferredResponseIds.Contains(response.DeferredResponseId))) return false;
+                    continue;
+                }
                 if (response == null || string.IsNullOrEmpty(response.DeferredResponseId) || !ids.Add(response.DeferredResponseId) ||
                     string.IsNullOrEmpty(response.ResponseRootEffectId) || !roots.Add(response.ResponseRootEffectId) ||
                     !Enum.IsDefined(typeof(YC.Domain.Effects.DeferredResponseStatus), response.Status) ||
@@ -1537,7 +1577,8 @@ namespace YC.Domain.State
             int setupVersion = YC.Domain.Effects.ItemTransferEffectExecutor.Number(
                 owner.NormalizedArguments, "setupProtocolVersion");
             if (owner.EffectTypeId == YC.Domain.Rules.ExpansionSetupFlow.PreparationTypeId &&
-                setupVersion == 2 && !string.IsNullOrEmpty(owner.FlowStage))
+                setupVersion == 2 && !string.IsNullOrEmpty(owner.FlowStage) &&
+                !(owner.FlowStage == "entrepreneur_setup" && YC.Domain.Effects.ItemTransferEffectExecutor.Number(owner.ContinuationData, "setupProtocolVersion") == 3))
                 return "initial_enterprise_selections";
 
             if (owner.EffectTypeId != YC.Domain.Rules.RoundExecutionService.MainlineEffectTypeId)

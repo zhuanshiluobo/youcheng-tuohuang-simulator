@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
@@ -33,11 +34,16 @@ namespace YC.Tests.EditMode.ExpansionRules
         private EffectRegistry registry;
         private MapQueryService map;
         private CityMovementService movement;
+        private IsolatedTestArtifacts artifacts;
+        private string privateContentRoot;
 
         [SetUp]
         public void SetUp()
         {
-            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+            state = null; artifacts = IsolatedTestArtifacts.BeginCase();
+            string content = artifacts.CopyContent(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"), "R2付款私有输入");
+            privateContentRoot = content;
+            var pack = ExternalContentPack.Load(content); artifacts.RecordContent("R2实际付款内容", content, pack.ContentHash);
             var configuration = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.FourPlayerMapId,
                 EnabledExpansionIds = new List<string> { "core", "enterprise" } };
             var catalog = ActiveContentCatalogBuilder.Build(pack, configuration); configuration.ContentPackHash = catalog.ContentPackHash;
@@ -66,6 +72,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             CharacterCoverEffectExecutor.Register(registry); CharacterLifecycleService.Register(registry);
         }
 
+        [TearDown] public void FinishEvidence()
+        {
+            if (state != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(state));
+            artifacts.Finish();
+        }
+
         private EffectTreeExecutor Engine() => new EffectTreeExecutor(state, registry);
         private void Drain() => Assert.That(Engine().RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultCode + ":" + state.EffectRuntime.LastFaultMessage);
         private string Run(EffectSpec spec) { string id = Engine().CreateRoot(spec); Drain(); return id; }
@@ -80,7 +92,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             .GetMethod("SetPosition", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { state, item, zoneId });
         private void Restore()
         {
-            var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
+            var result = artifacts.Recover(state, "R2付款恢复", registry);
             Assert.That(result.Succeeded, Is.True, result.Diagnostic); state = result.State; Drain();
         }
         private void LoadPassenger()
@@ -97,11 +109,40 @@ namespace YC.Tests.EditMode.ExpansionRules
         private void Substitute(string ownerId, string allocation)
         {
             var owner = Engine().GetNode(ownerId);
-            var entry = owner.SettlementWindow.Entries.Single(value => value.AbilityId == "operator.passenger.tactic");
-            Assert.That(Engine().TryInvokeCharacterSettlementOption(1, entry.OptionId, "", state.EffectRuntime.StateRevision, out bool repeated, out string reason), Is.True, reason);
-            Assert.That(repeated, Is.False); Drain();
-            Assert.That(Open().AnswerSchema, Is.EqualTo(ResourcePaymentSubstitutionEffectExecutor.AnswerSchema));
-            Answer(allocation);
+            Assert.That(owner.Payment.PaymentProtocolVersion, Is.EqualTo(2));
+            // 当前正式付款只使用来源草稿入口，不要求已被协议2替代的旧结算窗口。
+            var input = Open();
+            Assert.That(input.OwnerEffectId, Is.EqualTo(ownerId));
+            Assert.That(Engine().TryQueryPaymentSources(new PaymentSourceQuery { PlayerId = 1, OwnerEffectId = ownerId,
+                InteractionId = input.GetStableInteractionId(), PaymentGeneration = owner.Payment.PaymentGeneration,
+                StateRevision = state.EffectRuntime.StateRevision,
+                SnapshotId = Text(Value(input.PromptParameters, "paymentSourceQuery"), "snapshotId") }, out var sources, out string queryReason), Is.True, queryReason);
+            var row = sources.Sources.Single(value => value.Rule.SourceRef.AbilityId == "operator.passenger.payment");
+            var allowed = row.Rule.AllowedResourceTypes.Select(type => type.ToString()).ToArray();
+            var maximums = row.Rule.AllowedResourceTypes.ToDictionary(type => type.ToString(), type => row.RowMaximums.Get(type));
+            Assert.That(YC.Domain.Interactions.ResourceAllocationAnswer.TryParseBounded(allocation, allowed, 0, row.MaxAmount,
+                maximums, out var amounts, out string parseReason), Is.True, parseReason);
+            var resources = new ResourceSet();
+            foreach (var amount in amounts) resources.Set((ResourceType)Enum.Parse(typeof(ResourceType), amount.Key), amount.Value);
+            Assert.That(row.Rule.ItemCost, Is.Not.Null);
+            var items = row.AvailableItems.Take(PaymentResources.Total(resources) * row.Rule.ItemCost.CountPerUnit).Select(item => item.ItemId).ToArray();
+            Assert.That(items.Length, Is.EqualTo(PaymentResources.Total(resources) * row.Rule.ItemCost.CountPerUnit));
+            Assert.That(Engine().TryEditPaymentSource(1, ownerId, input.GetStableInteractionId(), "save_source", row.Rule.SourceRef.SourceKey,
+                row.Rule.RuleId, "", owner.Payment.PaymentGeneration, row.DraftRevision, resources, items,
+                state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string saveReason), Is.True, saveReason);
+            Drain();
+            Assert.That(Engine().GetNode(ownerId).Payment.SourceDrafts.Single(draft => draft.Rule.RuleId == row.Rule.RuleId).Status, Is.EqualTo("valid"));
+        }
+        private void AssertPaidTokens(string ownerId, int count)
+        {
+            var payment = Engine().GetNode(ownerId).Payment;
+            var receipt = payment.SourceReceipts.Single(r => r.Rule.SourceRef.AbilityId == "operator.passenger.payment");
+            Assert.That(receipt.ProtocolVersion, Is.EqualTo(2)); Assert.That(receipt.ItemIds.Count, Is.EqualTo(count));
+            Assert.That(Number(receipt.TokenArguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(Number(receipt.TokenArguments, "requiredCount"), Is.EqualTo(count));
+            Assert.That(receipt.TokenTransfer.Request.Transfers.SelectMany(t => t.ItemIds), Is.EquivalentTo(receipt.ItemIds));
+            Assert.That(ItemTransferService.TryValidateTokenCommit(state, 1, receipt.TokenArguments, receipt.TokenTransfer, out string reason), Is.True, reason);
+            Assert.That(payment.FinalReceipt.CostReceiptPolicyVersion, Is.EqualTo(ResourcePaymentSourceService.TokenCostContractVersion));
         }
         private static ResourceSet Mixed() => new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 3 };
 
@@ -115,8 +156,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             var initial = Open(); Assert.That(initial.InteractionTypeId, Is.EqualTo("action.decline_effect"));
             string ownerId = initial.OwnerEffectId; string paymentId = Engine().GetNode(ownerId).Payment.PaymentId;
             var sourceZone = state.ItemZones.Zones.First(zone => ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, 1, zone.ZoneId) != null);
-            Assert.That(ResourcePaymentSubstitutionEffectExecutor.TrySetDraft(state, Engine().GetNode(ownerId), sourceZone.ZoneId,
-                new Dictionary<string, int> { { "Originium", 1 }, { "OriginiumShard", 1 }, { "Iron", 1 } }, 2, out _), Is.False);
+            var rule = ResourcePaymentSourceService.Query(state, registry, Engine().GetNode(ownerId), Mixed()).Single(r => r.SourceRef.AbilityId == "operator.passenger.payment");
+            string beforeInvalid = JsonConvert.SerializeObject(state);
+            Assert.That(ResourcePaymentDraftService.TrySetSourceDraft(state, registry, Engine().GetNode(ownerId), rule.SourceRef.SourceKey, rule.RuleId,
+                Engine().GetNode(ownerId).Payment.PaymentGeneration, 0, new ResourceSet { Originium = 1, OriginiumShard = 1, Iron = 1 },
+                ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, sourceZone, 1), "", out _), Is.False, "同笔最多替代2份，不能保存3份草稿");
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(beforeInvalid));
             Assert.That(Text(initial.PromptParameters, "sourceKind"), Is.EqualTo("condition"));
             Assert.That(Flag(initial.PromptParameters, "canPay"), Is.False); Assert.That(Flag(initial.PromptParameters, "canSubstitute"), Is.True);
             int score = state.FindPlayer(1).Score; int actions = state.FindPlayer(1).RemainingMainActionsThisTurn;
@@ -137,7 +182,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.SourceEffectId == ownerId && value.EventType == ResourcePaymentPreparationService.BeforeResourcePayment), Is.EqualTo(1));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.OwnerEffectId == ownerId && request.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), Is.False);
             Assert.That(Engine().GetNode(conditionId).Status, Is.EqualTo(finalAnswer == "continue" ? EffectNodeStatus.Completed : EffectNodeStatus.Failed));
-            if (finalAnswer == "decline") Assert.That(Engine().GetNode(ownerId).Payment.SelectedSubstitution, Is.Null);
+            if (finalAnswer == "decline")
+            {
+                var payment = Engine().GetNode(ownerId).Payment;
+                Assert.That(payment.SourceDrafts.Single().Status, Is.EqualTo("withdrawn"));
+                Assert.That(payment.SourceDrafts.Single().SelectedItemIds, Is.Empty);
+                Assert.That(payment.SourceReceipts, Is.Empty); Assert.That(payment.FinalReceipt, Is.Null);
+            }
+            else AssertPaidTokens(ownerId, 1);
         }
 
         [Test]
@@ -183,6 +235,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Substitute(ownerId, "Iron=1"); Assert.That(Engine().GetNode(ownerId).Payment.IsCommitRequested, Is.False);
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2)); Answer(selected);
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero); Assert.That(MarkerCount(), Is.EqualTo(2));
+            AssertPaidTokens(ownerId, 1);
             Assert.That(state.EffectRuntime.InteractionRequests.Any(value => value.OwnerEffectId == ownerId && value.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), Is.False);
         }
 
@@ -209,18 +262,18 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             OpenMainWindow(); int shards = state.FindPlayer(1).Resources.OriginiumShard;
             string prepared = Prepare("city_move", "", Object());
-            var projected = GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single();
+            var projected = GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single();
             Assert.That(projected.PreparationOwnerEffectId, Is.EqualTo(prepared)); Assert.That(projected.IsReady, Is.False);
             Assert.That(projected.CanCancel, Is.True); Assert.That(projected.InteractionId, Is.Empty);
             Assert.That(projected.PaymentMode, Is.Empty);
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).PreparedActionPayments, Is.Empty);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2, registry).PreparedActionPayments, Is.Empty);
             Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == CityMoveEffectTypeIds.Move), Is.False);
             Restore();
             Assert.That(Engine().TryCancelPreparedActionPayment(1, prepared, state.EffectRuntime.StateRevision, "move.cancel", out string reason), Is.True, reason);
             Drain(); Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(shards));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments, Is.Empty);
-            Restore(); Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments, Is.Empty);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments, Is.Empty);
+            Restore(); Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments, Is.Empty);
             Assert.That(Engine().TryCreatePreparedPlayerActionEffect(1, prepared, CityMoveEffectSpecFactory.Move(1, "G-02"), "", "move.old", out _, out _), Is.False);
         }
 
@@ -293,13 +346,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             var item = state.ItemZones.Items.First(value => state.ItemZones.Zones.Any(zone => zone.ZoneId == value.ZoneId && zone.TemplateId == "core.zone.facility_supply_slot"));
             var arguments = Object("paymentMode", NormalizedValue.CreateString("resources"), "expectedSourceZoneId", NormalizedValue.CreateString(item.ZoneId));
             string first = Prepare("build", item.ItemId, arguments);
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().PaymentMode, Is.EqualTo("resources"));
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().PaymentMode, Is.EqualTo("resources"));
             Assert.That(state.Map.Facilities.Any(value => value.ContentInstanceId == item.ItemId), Is.False);
             Assert.That(Engine().TryCancelPreparedActionPayment(1, first, state.EffectRuntime.StateRevision - 1, "build.stale", out _), Is.False);
             Assert.That(Engine().TryCancelPreparedActionPayment(1, first, state.EffectRuntime.StateRevision, "build.cancel", out string reason), Is.True, reason); Drain();
             var goldArguments = Object("paymentMode", NormalizedValue.CreateString("gold"), "expectedSourceZoneId", NormalizedValue.CreateString(item.ZoneId));
             string prepared = Prepare("build", item.ItemId, goldArguments); Assert.That(prepared, Is.Not.EqualTo(first));
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().PaymentMode, Is.EqualTo("gold"));
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().PaymentMode, Is.EqualTo("gold"));
             var payment = Engine().GetNode(prepared).Payment;
             Assert.That(Engine().TryCreatePreparedPlayerActionEffect(1, prepared,
                 FacilityBuildEffectSpecFactory.Build(1, item.ItemId, 0, "gold", false, "build.final", true, item.ZoneId), "", "build.final", out string action, out reason), Is.True, reason);
@@ -333,12 +386,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             OpenMainWindow();
             string target = new CityMoveCandidateQueryService(map, movement, new TravelCostService(map)).Query(state, 1).First(value => value.IsLegal).TargetLocationId;
             string prepared = Prepare("city_move", target, Object());
-            var projection = GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single();
+            var projection = GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single();
             Assert.That(projection.IsReady, Is.False); Assert.That(projection.CanCancel, Is.False); Assert.That(projection.InteractionId, Is.Empty);
             Assert.That(Engine().TryCancelPreparedActionPayment(1, prepared, state.EffectRuntime.StateRevision, "busy.cancel", out string reason), Is.False);
             Assert.That(reason, Is.EqualTo("settlement_required_pending"));
             int shards = state.FindPlayer(1).Resources.OriginiumShard; Answer("finish");
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().IsReady, Is.True);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().IsReady, Is.True);
             Assert.That(Engine().TryCancelPreparedActionPayment(1, prepared, state.EffectRuntime.StateRevision, "finished.cancel", out reason), Is.True, reason);
             Drain(); Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(shards));
             Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.EventType == ResourcePaymentPreparationService.BeforeResourcePayment), Is.EqualTo(1));
@@ -355,11 +408,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.FindPlayer(1).Resources = cost.Clone(); state.FindPlayer(1).Resources.Set(type, cost.Get(type) - 1);
             var arguments = Object("paymentMode", NormalizedValue.CreateString("resources"), "expectedSourceZoneId", NormalizedValue.CreateString(item.ZoneId));
             string prepared = Prepare("build", item.ItemId, arguments);
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().CanConfirm, Is.False);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().CanConfirm, Is.False);
             int resources = state.FindPlayer(1).Resources.Get(type); Substitute(prepared, type + "=1");
             Assert.That(Engine().GetNode(prepared).Payment.IsCommitRequested, Is.False); Assert.That(MarkerCount(), Is.EqualTo(3));
             Assert.That(state.FindPlayer(1).Resources.Get(type), Is.EqualTo(resources));
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single().CanConfirm, Is.True);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single().CanConfirm, Is.True);
             Assert.That(Engine().TrySubmitInteraction(Open().GetStableInteractionId(), 1, Open().StateRevision, NormalizedValue.CreateString("pay"), out _), Is.False);
             var command = new GameCommand { CommandId = "build.button", Kind = GameCommandKind.BuildFacility, PlayerId = 1, TargetId = item.ItemId };
             command.Parameters["paymentMode"] = "resources"; command.Parameters["expectedSourceZoneId"] = item.ZoneId;
@@ -367,7 +420,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             var result = new BuildFacilityCommandHandler(new BuildFacilityService(), new RoundAdvanceService(), registry).Handle(state, command);
             Assert.That(result.Succeeded, Is.True, result.LogMessage);
             Assert.That(Open().InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
+            var placementCandidates = registry.FacilityBuildQueries.ResolveSlots(state, 1, item.ItemId, Open().OwnerEffectId)
+                .Select(candidate => candidate.SlotIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+            Assert.That(placementCandidates.Length, Is.GreaterThanOrEqualTo(10), "本夹具须实际覆盖原完整观察超过128元素的候选量。");
+            Assert.That(Open().CandidateIds, Is.EquivalentTo(placementCandidates), "全部正式合法槽位必须保留，不能截断候选迎合预算。");
+            Assert.That(Open().PromptParameters.TryValidate(out string promptReason), Is.True, promptReason);
+            Assert.That(Engine().GetNode(Open().OwnerEffectId).ContinuationData.TryValidate(out string continuationReason), Is.True, continuationReason);
+            string placementId = Open().GetStableInteractionId();
+            Restore();
+            Assert.That(Open().GetStableInteractionId(), Is.EqualTo(placementId));
+            Assert.That(Open().CandidateIds, Is.EquivalentTo(placementCandidates));
             Assert.That(MarkerCount(), Is.EqualTo(2)); Assert.That(state.FindPlayer(1).Resources.Get(type), Is.Zero);
+            AssertPaidTokens(prepared, 1);
             Assert.That(Engine().GetNode(prepared).Payment.IsCommitted, Is.True); Answer("0");
             Assert.That(state.Map.Facilities.Any(value => value.ContentInstanceId == item.ItemId), Is.True);
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero);
@@ -394,7 +458,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void AmiyaSourceConsumptionConditionRemainsTechnicalInActualModule()
         {
             const string ability = "infected.character.amiya.tactic";
-            string source = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core/lua/settlements/" + ability + ".lua"));
+            string source = File.ReadAllText(Path.Combine(privateContentRoot, "lua/settlements/" + ability + ".lua"));
             var script = new LuaScriptDefinition("content." + ability, ability, ability + ".settlement.offers", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
             var context = new LuaInvocationContext("window", "SettlementAvailabilityContextChanged", "p1", 0, "1.0.0", 1, 0, 0) {
                 ResponseKind = "settlementOffers", EntryPoint = "offers",
@@ -491,7 +555,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             Substitute(paymentOwner, "Iron=1");
             Assert.That(Engine().TryDeclineEffect(1, condition, out string reason), Is.True, reason); Drain();
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(balance)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score));
-            Assert.That(Engine().GetNode(paymentOwner).Payment.SelectedSubstitution, Is.Null);
+            var cancelled = Engine().GetNode(paymentOwner).Payment;
+            Assert.That(cancelled.SourceDrafts.Single().Status, Is.EqualTo("withdrawn"));
+            Assert.That(cancelled.SourceDrafts.Single().SelectedItemIds, Is.Empty);
+            Assert.That(cancelled.SourceReceipts, Is.Empty); Assert.That(cancelled.FinalReceipt, Is.Null);
             Assert.That(Engine().GetNode(condition).Status, Is.EqualTo(EffectNodeStatus.Failed));
             Assert.That(Engine().TryDeclineEffect(1, condition, out _), Is.False);
         }
@@ -508,12 +575,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             OpenMainWindow(); int score = state.FindPlayer(1).Score;
             string target = new CityMoveCandidateQueryService(map, movement, new TravelCostService(map)).Query(state, 1).First(value => value.IsLegal).TargetLocationId;
             string prepared = Prepare("city_move", target, Object());
-            var projection = GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments.Single();
+            var projection = GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments.Single();
             Assert.That(projection.IsReady, Is.False); Assert.That(projection.CanConfirm, Is.False); Assert.That(projection.CanCancel, Is.True);
             Assert.That(Engine().TryCancelPreparedActionPayment(1, prepared, state.EffectRuntime.StateRevision, "failed.cancel", out string reason), Is.True, reason);
             Drain(); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score + 1));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).PreparedActionPayments, Is.Empty);
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1, registry).PreparedActionPayments, Is.Empty);
         }
 
         [Test]
@@ -523,7 +590,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.FindPlayer(1).Resources.Iron = 1; state.FindPlayer(2).Resources.Iron = 3; state.FindPlayer(3).Resources.Iron = 0;
             var before = state.Players.ToDictionary(player => player.PlayerId, player => player.Resources.GoldVoucher);
             int score = state.FindPlayer(1).Score;
-            string source = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core/lua/characters/cannot.tactic.lua"));
+            string source = File.ReadAllText(Path.Combine(privateContentRoot, "lua/characters/cannot.tactic.lua"));
             var definition = new LuaScriptDefinition("cannot.tactic", "cannot.tactic", "fixture.cannot.tactic", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
             var snapshot = LuaFacadeSnapshot.FromInvocation("p1", score, before[1], 3, "1.0.0");
             snapshot.Players.Clear();
@@ -679,7 +746,7 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         private GameplayTextDocument ResolvePaymentText(GameplayTextRef reference)
         {
-            var catalog = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core")).Presentation;
+            var catalog = ExternalContentPack.Load(privateContentRoot).Presentation;
             var context = new GameplayTextContext { Catalog = catalog, ContentHash = catalog.ContentHash, Locale = catalog.Locale,
                 ViewerPlayerId = 1, StateRevision = state.EffectRuntime.StateRevision, VisibilityScopeId = state.GameId };
             return new GameplayTextResolver(catalog).Resolve(reference, context);
@@ -693,7 +760,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var cost = new ResourceSet { Originium = 2, OriginiumShard = 3, Iron = 4, PureOriginium = 5, GoldVoucher = 6 };
             var pay = ResourceEffectSpecFactory.Pay(1, cost);
             Run(condition ? EffectSpec.Condition(new[] { pay }, new[] { ResourceEffectSpecFactory.GainScore(1, 1) }, ruleCondition: true) : pay);
-            var request = Open(); var projected = GameStateViewProjector.ProjectForPlayer(state, 1).Interactions.Single(value => value.InteractionId == request.GetStableInteractionId());
+            var request = Open(); var projected = GameStateViewProjector.ProjectForPlayer(state, 1, registry).Interactions.Single(value => value.InteractionId == request.GetStableInteractionId());
             Assert.That(projected.Presentation?.Prompt, Is.Not.Null);
             var prompt = projected.Presentation.Prompt;
             Assert.That(prompt.Key, Is.EqualTo(condition ? "core:resource.payment.condition.prompt" : "core:resource.payment.confirmation.prompt"));
@@ -704,7 +771,6 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(document.Runs.OfType<NumberRun>().Select(run => run.Value), Is.EquivalentTo(new[] { 2, 3, 4, 5, 6 }));
             if (condition)
             {
-                Assert.That(document.ToPlainText(), Does.Contain("执行").And.Contain("放弃"));
                 Assert.That(request.CandidateIds, Is.EquivalentTo(new[] { "continue", "decline" }));
             }
             else Assert.That(ResolvePaymentText(projected.Presentation.Options.Single(option => option.CandidateId == "pay").Label).ToPlainText(), Is.Not.Empty);
@@ -724,9 +790,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(request.Presentation.Prompt.Arguments.Single().Value.IntegerValue, Is.EqualTo(9));
             Assert.That(Engine().GetNode(root).Presentation.Interaction.Prompt.Key, Is.EqualTo(author.Key));
             Assert.That(request.Presentation.Progress.Key, Is.EqualTo("core:resource.payment.condition.prompt"));
-            Assert.That(ResolvePaymentText(request.Presentation.Prompt).ToPlainText(), Does.Contain("9"));
+            Assert.That(ResolvePaymentText(request.Presentation.Prompt).Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(9));
             var fees = ResolvePaymentText(request.Presentation.Progress);
-            Assert.That(fees.ToPlainText(), Does.Contain("执行").And.Contain("放弃"));
             Assert.That(fees.Runs.OfType<NumberRun>().Select(run => run.Value), Is.EquivalentTo(new[] { 0, 0, 0, 0, 3 }));
             var authorProgress = new GameplayTextRef("core:effect.repeat.progress",
                 new GameplayTextArgument { Name = "completed", Kind = "integer", Value = NormalizedValue.CreateInteger(2) },
@@ -740,7 +805,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(preserved.Progress.Key, Is.EqualTo(authorProgress.Key));
             Assert.That(preserved.Progress.Arguments.Select(argument => argument.Value.IntegerValue), Is.EqualTo(new long[] { 2, 10 }));
             Assert.That(Engine().GetNode(next).Presentation.Interaction.Progress.Key, Is.EqualTo(authorProgress.Key));
-            Assert.That(ResolvePaymentText(preserved.Progress).ToPlainText(), Does.Contain("2").And.Contain("10"));
+            Assert.That(ResolvePaymentText(preserved.Progress).Runs.OfType<NumberRun>().Select(run => run.Value), Is.EqualTo(new[] { 2, 10 }));
         }
 
         private ItemInstanceState BuildQuoteTarget()

@@ -12,7 +12,7 @@ using YC.Domain.State;
 
 namespace YC.Application.Gameplay
 {
-    public sealed class MoveCityCommandHandler : IGameCommandHandler
+    public sealed class MoveCityCommandHandler : IGameCommandHandler, IPreparedActionConfirmationProvider
     {
         public const string EventOptionIdParameter = "eventOptionId";
         public const string EventInfluenceSlotIdParameter = "eventInfluenceSlotId";
@@ -44,8 +44,14 @@ namespace YC.Application.Gameplay
             : this(cityMovementService, roundAdvanceService)
         {
             this.effectRegistry = effectRegistry ?? throw new ArgumentNullException(nameof(effectRegistry));
+            this.cityMovementService.DestinationRegistry = this.effectRegistry;
             useEffectPipeline = true;
         }
+
+        EffectRegistry IPreparedActionConfirmationProvider.PaymentRegistry => effectRegistry;
+
+        bool IPreparedActionConfirmationProvider.IsPreparedActionConfirmation(GameState state, GameCommand command) =>
+            useEffectPipeline && MainActionCommandGuard.IsPreparedActionConfirmation(state, command, effectRegistry);
 
         public bool CanHandle(GameCommand command)
         {
@@ -138,7 +144,7 @@ namespace YC.Application.Gameplay
 
         private CommandResult HandleEffectMove(GameState state, GameCommand command)
         {
-            var guard = MainActionCommandGuard.Validate(state, command);
+            var guard = MainActionCommandGuard.Validate(state, command, effectRegistry);
             if (!guard.IsValid) return CommandResult.Invalid(guard);
             if (state == null || command == null || string.IsNullOrEmpty(command.TargetId))
             {

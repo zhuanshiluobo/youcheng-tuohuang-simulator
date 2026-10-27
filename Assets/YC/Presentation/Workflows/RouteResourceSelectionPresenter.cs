@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using YC.Domain.State;
+using YC.Domain.Harvest;
 using YC.Domain.Travel;
 
 namespace YC.Presentation.Workflows
@@ -73,10 +74,14 @@ namespace YC.Presentation.Workflows
                 Session.OpenedAtStateRevision != session.OpenedAtStateRevision || RequestBinding.SchemaVersion != binding.SchemaVersion ||
                 !Session.SelectableLocationUpperBound.SequenceEqual(session.SelectableLocationUpperBound) ||
                 RequestBinding.SessionId != binding.SessionId || RequestBinding.CandidateSetId != binding.CandidateSetId ||
-                RequestBinding.CandidateSetVersion != binding.CandidateSetVersion || RequestBinding.ScopeKey != binding.ScopeKey ||
-                RequestBinding.FrozenFactsDigest != binding.FrozenFactsDigest || binding.RequestStateRevision < RequestBinding.RequestStateRevision ||
-                !selectableLocations.SequenceEqual(selectableLocationIds)) return false;
+                binding.CandidateSetVersion < RequestBinding.CandidateSetVersion ||
+                binding.CandidateSetVersion == RequestBinding.CandidateSetVersion &&
+                    (RequestBinding.ScopeKey != binding.ScopeKey || RequestBinding.FrozenFactsDigest != binding.FrozenFactsDigest) ||
+                binding.RequestStateRevision < RequestBinding.RequestStateRevision ||
+                selectableLocationIds.Any(id => !session.SelectableLocationUpperBound.Contains(id))) return false;
             Session = session; RequestBinding = binding;
+            selectableLocations = Array.AsReadOnly(selectableLocationIds.ToArray());
+            Draft = Draft.WithSelection(Draft.ConfirmedRouteIds, Draft.SelectedLocationIds.Where(selectableLocations.Contains).ToArray(), Draft.RecipientChoices);
             RefreshFromState();
             diagnostic = Projection?.Validation.Reason ?? string.Empty;
             return true;
@@ -93,11 +98,13 @@ namespace YC.Presentation.Workflows
                 .Where(option => option.CoveredLocationIds.Any(reachable.Contains))
                 .Select(option => option.RouteId), StringComparer.Ordinal);
             var routes = Draft.ConfirmedRouteIds.Where(connectedRoutes.Contains).ToArray();
-            var locations = Draft.SelectedLocationIds.Where(reachable.Contains).ToList();
+            var locations = Session.SchemaVersion == CollectionPlanService.ProtocolVersion
+                ? Draft.SelectedLocationIds.Where(selectableLocations.Contains).ToList()
+                : Draft.SelectedLocationIds.Where(reachable.Contains).ToList();
             if (Session.Purpose != RouteSelectionPurpose.Exploration)
             {
                 foreach (var option in Projection.LocationOptions)
-                    if (option.IsReachableInOriginalDraft && !deselectedLocations.Contains(option.LocationId) &&
+                    if (option.CanSelect && !deselectedLocations.Contains(option.LocationId) &&
                         !locations.Contains(option.LocationId) && locations.Count < Session.MaximumLocations)
                         locations.Add(option.LocationId);
             }
@@ -156,7 +163,7 @@ namespace YC.Presentation.Workflows
         public bool ToggleLocation(string locationId)
         {
             if (Projection?.LocationOptions == null || !Projection.LocationOptions.Any(option =>
-                option.LocationId == locationId && option.IsReachableInOriginalDraft)) return false;
+                option.LocationId == locationId && (option.CanSelect || option.IsSelected))) return false;
             var selected = Draft.SelectedLocationIds.ToList();
             if (selected.Remove(locationId)) deselectedLocations.Add(locationId);
             else
@@ -236,7 +243,7 @@ namespace YC.Presentation.Workflows
             }
             foreach (var option in Projection.LocationOptions)
             {
-                if (!option.IsReachableInOriginalDraft) continue;
+                if (!option.CanSelect && !option.IsSelected) continue;
                 result.Add(new WorkflowHighlight(WorkflowHighlightTargetKind.Location, option.LocationId,
                     option.IsSelected ? WorkflowHighlightSemantic.CollectionSelected :
                     Session.Purpose == RouteSelectionPurpose.Exploration ? WorkflowHighlightSemantic.ExploreTarget : WorkflowHighlightSemantic.CollectionCandidate,

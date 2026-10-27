@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 2,
+  "locale": "zh-CN",
+  "messages": {
+    "core:entrepreneur.A.A01.name": {
+      "parameters": {},
+      "template": "艾格尼丝·史密斯"
+    },
+    "core:entrepreneur.A.A01.description": {
+      "parameters": {},
+      "template": "执行[b]战术行动[/b]时：支付2指令将其作为快速行动，或获得10[icon:core:resource.gold_voucher]将其作为特殊行动。"
+    },
+    "core:entrepreneur.A.A05.name": {
+      "parameters": {},
+      "template": "特勤小组[icon:core:rule.remove_card_marker]"
+    },
+    "core:entrepreneur.A.command.choose": {
+      "parameters": {},
+      "template": "选择本次获得的指令数量，也可以不获得指令。"
+    },
+    "core:entrepreneur.A.command.choose_paid": {
+      "parameters": {},
+      "template": "选择本次获得的指令数量，也可以不获得指令。每个获得的指令：支付2[icon:core:resource.gold_voucher]，否则无法获得。"
+    },
+    "core:entrepreneur.A.command.gain": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "获得{count}指令"
+    },
+    "core:entrepreneur.A.command.buy": {
+      "parameters": {
+        "cost": "integer",
+        "count": "integer"
+      },
+      "template": "支付{cost}[icon:core:resource.gold_voucher][icon:core:syntax.condition]获得{count}指令"
+    },
+    "core:entrepreneur.A.cleanup.choose": {
+      "parameters": {},
+      "template": "选择1项本回合未使用的战术行动。"
+    },
+    "core:entrepreneur.A.cleanup.pay": {
+      "parameters": {},
+      "template": "支付1指令[icon:core:syntax.condition]执行1项未使用的战术行动。"
+    },
+    "core:entrepreneur.A.cleanup.remove": {
+      "parameters": {},
+      "template": "选择1个自己的影响力移除。"
+    },
+    "core:entrepreneur.A.cleanup.insufficient": {
+      "parameters": {},
+      "template": "指令不足，无法支付1指令。"
+    },
+    "core:entrepreneur.A.cleanup.no_tactic": {
+      "parameters": {},
+      "template": "没有可执行的未使用战术行动。"
+    },
+    "core:entrepreneur.A.tactic.call": {
+      "parameters": {
+        "source": "item"
+      },
+      "template": "执行{source}的战术行动"
+    },
+    "core:entrepreneur.A.tactic.move_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.dispatch]或[icon:core:rule.remove]。"
+    },
+    "core:entrepreneur.A.tactic.place_remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy]或[icon:core:rule.remove]。"
+    },
+    "core:entrepreneur.A.tactic.choose": {
+      "parameters": {},
+      "template": "选择一项执行"
+    },
+    "core:entrepreneur.A.map.place": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy]"
+    },
+    "core:entrepreneur.A.map.move": {
+      "parameters": {},
+      "template": "[icon:core:rule.dispatch]"
+    },
+    "core:entrepreneur.A.map.remove": {
+      "parameters": {},
+      "template": "[icon:core:rule.remove]"
+    },
+    "core:entrepreneur.A.resource.choose": {
+      "parameters": {},
+      "template": "从[icon:core:resource.orirock]／[icon:core:resource.originium_shard]／[icon:core:resource.iron]中选择1个获得。"
+    },
+    "core:entrepreneur.A.resource.originium": {
+      "parameters": {},
+      "template": "获得1[icon:core:resource.orirock]"
+    },
+    "core:entrepreneur.A.resource.originium_shard": {
+      "parameters": {},
+      "template": "获得1[icon:core:resource.originium_shard]"
+    },
+    "core:entrepreneur.A.resource.iron": {
+      "parameters": {},
+      "template": "获得1[icon:core:resource.iron]"
+    },
+    "core:entrepreneur.A.tactic.cooperation": {
+      "parameters": {},
+      "template": "支付2[icon:core:resource.originium_shard][icon:core:syntax.condition][icon:core:rule.remove][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.A.special.city": {
+      "parameters": {},
+      "template": "支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]连续执行2次[b]免费[/b][icon:core:rule.city_move]。（使用此行动的轮中，不能使用角色牌）"
+    },
+    "core:entrepreneur.A.action.A09.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.tactical_action]1A·集中驻扎"
+    },
+    "core:entrepreneur.A.action.A09.description": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy]，获得5[icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.A.action.A08.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.tactical_action]1B·分遣部署"
+    },
+    "core:entrepreneur.A.action.A08.description": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy][icon:core:rule.deploy]。[b]收尾阶段：[/b]移除1个你的影响力。"
+    },
+    "core:entrepreneur.A.action.A06.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.tactical_action]3A·后勤保障"
+    },
+    "core:entrepreneur.A.action.A06.description": {
+      "parameters": {},
+      "template": "[icon:core:rule.deploy]或[icon:core:rule.remove]，之后在[icon:core:resource.orirock]／[icon:core:resource.originium_shard]／[icon:core:resource.iron]中选择1个获得。"
+    },
+    "core:entrepreneur.A.action.A07.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.tactical_action]3B·合作战略"
+    },
+    "core:entrepreneur.A.action.A07.description": {
+      "parameters": {},
+      "template": "支付2[icon:core:resource.originium_shard][icon:core:syntax.condition][icon:core:rule.remove][icon:core:rule.deploy]。"
+    },
+    "core:entrepreneur.A.action.A05.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.tactical_action]5B·特勤小组"
+    },
+    "core:entrepreneur.A.action.A05.description": {
+      "parameters": {},
+      "template": "[icon:core:rule.dispatch]或[icon:core:rule.remove]，获得1指令。"
+    },
+    "core:entrepreneur.A.action.A03.name": {
+      "parameters": {},
+      "template": "[icon:core:timing.special_action]7B·源石之力"
+    },
+    "core:entrepreneur.A.action.A03.description": {
+      "parameters": {},
+      "template": "支付1[icon:core:resource.pure_originium][icon:core:syntax.condition]连续执行2次免费[icon:core:rule.city_move]。（使用此行动的轮中，不能使用角色牌）"
+    },
+    "core:entrepreneur.A.action.tactic.entryCost": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "支付{count}指令。"
+    },
+    "core:entrepreneur.A.action.tactic.entryAfter": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "获得{count}[icon:core:resource.gold_voucher]。"
+    },
+    "core:entrepreneur.A.cleanup.obligation.name": {
+      "parameters": {},
+      "template": "分遣部署·[icon:core:rule.remove_own_influence]"
+    },
+    "core:entrepreneur.A.cleanup.obligation.description": {
+      "parameters": {},
+      "template": "[b]收尾阶段：[/b]移除1个你的影响力。"
+    },
+    "core:entrepreneur.A.quick.condition": {
+      "parameters": {
+        "tactic": "text"
+      },
+      "template": "支付2指令[icon:core:syntax.condition]{tactic}。"
+    },
+    "core:entrepreneur.A.detail.A01.cover": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]每角色牌盖放阶段一次：[/b]获得1指令。"
+    },
+    "core:entrepreneur.A.detail.A01.final": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]不计移动城市，若你在场上有最多影响力（不包括平局），获得[icon:core:resource.score|value=2]，否则失去[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.A.detail.command2.immediate": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得2指令。"
+    },
+    "core:entrepreneur.A.detail.dispatch.immediate": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]失去[icon:core:resource.score|value=1]，[icon:core:rule.operator_dispatch]。"
+    },
+    "core:entrepreneur.A.detail.A07.immediate.2": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得4指令，选择1家企业：[icon:core:rule.enterprise_upgrade][icon:core:rule.enterprise_upgrade]。"
+    },
+    "core:entrepreneur.A.detail.A02.immediate.1": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.A.detail.A03.immediate.1": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate]获得4[icon:core:resource.pure_originium]。"
+    },
+    "core:entrepreneur.A.detail.A06.departure": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]你的影响力被[b]移除[/b]或[b]替换[/b]时：获得1指令。"
+    },
+    "core:entrepreneur.A.detail.A04.city_move": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]城市移动后：获得2[icon:core:resource.originium_shard]，[icon:core:rule.dispatch]。"
+    },
+    "core:entrepreneur.A.detail.A05.cleanup": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker]每收尾阶段一次：支付1指令[icon:core:syntax.condition]执行1项未使用的战术行动。"
+    },
+    "core:entrepreneur.A.detail.A02.scoring": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement][b]结算区块控制时：[/b]若你与其他玩家在区块内同时拥有最多影响力，则由你控制这些区块，这些区块的分数−2。"
+    },
+    "core:entrepreneur.A.detail.A02.final": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement]你每控制1个区块：获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.A.detail.A03.scoring": {
+      "parameters": {},
+      "template": "[icon:core:timing.score_settlement][b]结算区块控制时：[/b]你的移动城市视为的影响力数量＋2。"
+    },
+    "core:entrepreneur.A.detail.command_price": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]每个获得的指令：[/b]支付2[icon:core:resource.gold_voucher]，否则无法获得。"
+    }
+  },
+  "assets": {},
+  "icons": []
+}

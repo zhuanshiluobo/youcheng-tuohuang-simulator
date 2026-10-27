@@ -103,7 +103,7 @@ namespace YC.Presentation.Validation
             public int PlayerId, Round, ActionRound;
             public bool TargetPreselected, FinalControlClicked;
         }
-        private sealed class DriverContinuationPendingException : InvalidOperationException
+        private class DriverContinuationPendingException : InvalidOperationException
         { public DriverContinuationPendingException(string message) : base(message) { } }
         private sealed class PaymentCannotContinueException : InvalidOperationException
         { public PaymentCannotContinueException(string message) : base(message) { } }
@@ -122,6 +122,17 @@ namespace YC.Presentation.Validation
             }
         }
         private int LocalPlayer => (int)Read(mobile, "localPlayerId");
+        private BuildFacilityOptionQueryService CurrentRegisteredBuildOptions()
+        {
+            // 每次只读当前宿主已装配服务；不缓存跨局引用，不另造缺registry的查询器。
+            Require(mobile != null && mobile.isActiveAndEnabled && session != null && registry != null &&
+                ReferenceEquals(Read(mobile, "session"), session) && ReferenceEquals(Read(mobile, "sessionEffectRegistry"), registry),
+                "驱动建设查询缺口：当前正式宿主/会话/registry尚未就绪或已更换，不能复用旧服务");
+            var current = Read(mobile, "buildFacilityOptions") as BuildFacilityOptionQueryService;
+            Require(current != null && ReferenceEquals(Read(current, "candidates"), registry.FacilityBuildCandidates),
+                "驱动建设查询缺口：当前正式建设候选服务未绑定同一现役registry");
+            return current;
+        }
         private RouteResourceSelectionPresenter Route => (RouteResourceSelectionPresenter)Read(Read(mobile, "routeResourceSelection"), "Presenter");
         private bool SalesMode => selectedCase == "resource-sales";
         private bool CampaignMode => selectedCase == "full-game" || NetworkMode;
@@ -145,6 +156,7 @@ namespace YC.Presentation.Validation
             var driver = host.AddComponent<HotseatUiValidationDriver>();
             driver.output = path;
             driver.selectedCase = Argument("--yc-hotseat-ui-validation-case=") ?? "";
+            driver.deferContentDifferencesRequested = Argument("--yc-ui-defer-content-differences=") == "true";
             driver.started = Time.realtimeSinceStartup;
             UnityEngine.Application.runInBackground = true;
             UnityEngine.Application.logMessageReceived += driver.OnLog;
@@ -153,10 +165,10 @@ namespace YC.Presentation.Validation
 
         private void OnLog(string condition, string trace, LogType type)
         {
-            if (type == LogType.Error || type == LogType.Exception || type == LogType.Assert)
+            if ((type == LogType.Error || type == LogType.Exception || type == LogType.Assert) && (!PerformanceMode || errors.Count < 32))
             {
                 errors.Add(new { Stage = stage, Type = type.ToString(), Message = condition, Trace = trace });
-                if (NetworkMode) networkFault = "Unity运行错误：" + condition;
+                // 日志先保留；只有正式协议故障、规则PausedFault或核实无后继才停止正常局。
             }
         }
         private IEnumerator Guarded(IEnumerator routine)
@@ -168,10 +180,17 @@ namespace YC.Presentation.Validation
                 object current = null; bool moved = false, recoveryPaused = false, recoveryRetired = false;
                 try
                 {
-                    recoveryPaused = NetworkMode && networkTransport != null && NetworkPauseForRecovery();
+                    if (DeferContentDifferences && errors.Count > runtimeErrorsCaptured)
+                    {
+                        runtimeErrorsCaptured = errors.Count;
+                        if (!File.Exists(Path.Combine(output, "运行错误首次原件.json"))) Write("运行错误首次原件.json", errors.ToArray());
+                        RecordDeferredDifference("运行日志错误待合并", "Unity Error/Exception原文已保留，按实际合法后继判断是否阻塞", null);
+                    }
+                    if (deferredScreenshots.Count > 0) stack.Push(CaptureDeferredDifferences());
+                    recoveryPaused = !PerformanceMode && NetworkMode && networkTransport != null && NetworkPauseForRecovery();
                     if (!recoveryPaused)
                     {
-                        recoveryRetired = NetworkMode && (NetworkStopResolvedTerminalStep(stack) || NetworkStopPlannedShortStep(stack) || NetworkRetireCompetitionStep(stack) || NetworkRetireResolvedStep(stack));
+                        recoveryRetired = !PerformanceMode && NetworkMode && (NetworkStopResolvedTerminalStep(stack) || NetworkStopPlannedShortStep(stack) || NetworkRetireCompetitionStep(stack) || NetworkRetireResolvedStep(stack));
                         if (!recoveryRetired)
                         {
                             moved = stack.Peek().MoveNext();
@@ -180,6 +199,8 @@ namespace YC.Presentation.Validation
                     }
                 }
                 catch (Exception error) { failure = error; }
+                if (failure != null && PerformanceMode && PerformanceTryDeferStep(failure, stack)) { failure = null; continue; }
+                if (failure != null && !PerformanceMode && TryDeferDriverStep(failure, stack)) { failure = null; continue; }
                 if (failure != null) break;
                 if (recoveryPaused) { yield return new WaitForSecondsRealtime(.2f); continue; }
                 if (recoveryRetired) continue;
@@ -189,12 +210,12 @@ namespace YC.Presentation.Validation
             }
             if (failure != null)
             {
-                if (NetworkMode) NetworkPreserveFirstFailure(failure);
+                if (NetworkMode && !PerformanceMode) NetworkPreserveFirstFailure(failure);
                 Write("首失败.json", new { Stage = stage, Error = failure.ToString(), State = ObserveSafely() });
                 yield return new WaitForEndOfFrame();
                 try { SaveCapture("首失败"); } catch (Exception captureError) { Write("首失败截图错误.json", captureError.ToString()); }
             }
-            Finish(failure);
+            if (PerformanceMode) PerformanceFinish(failure); else Finish(failure);
         }
 
         private readonly HashSet<string> usedAmiya = new HashSet<string>();
@@ -204,9 +225,44 @@ namespace YC.Presentation.Validation
         private bool LocalFirstHarvestStopMode => !NetworkMode && Argument("--yc-local-stop-after-first-harvest=") == "true";
         private bool localFirstHarvestStopped;
         private InteractionRequestProjection Request => (InteractionRequestProjection)Read(Read(mobile, "interactionRequestRouter"), "CurrentRequest");
+        private IEnumerator AwaitNormalGameplayEntry()
+        {
+            stage = "正常开局等待场景切换及控制器就绪";
+            var waitStarted = Time.realtimeSinceStartup;
+            const float timeoutSeconds = 90f;
+            while (Time.realtimeSinceStartup - waitStarted < timeoutSeconds)
+            {
+                mobile = FindObjectOfType<MobileCityInteractionController>();
+                // 对象出现不代表切换或启用已经完成；只观察，不主动启用或刷新控制器。
+                if (!SceneTransitionContext.IsTransitionInProgress && mobile != null && mobile.isActiveAndEnabled)
+                {
+                    yield return Settle();
+                    if (SceneTransitionContext.IsTransitionInProgress || mobile == null || !mobile.isActiveAndEnabled) continue;
+                    Write("正式场景切换完成.json", new { Frame = Time.frameCount,
+                        Scene = SceneManager.GetActiveScene().name, SceneTransitionContext.IsTransitionInProgress,
+                        WaitedSeconds = Time.realtimeSinceStartup - waitStarted });
+                    yield break;
+                }
+                yield return new WaitForSecondsRealtime(.2f);
+            }
+            Write("游戏场景进入超时原观察.json", new { Frame = Time.frameCount,
+                WaitedSeconds = Time.realtimeSinceStartup - waitStarted, TimeoutSeconds = timeoutSeconds,
+                Scene = SceneManager.GetActiveScene().name, SceneTransitionContext.IsTransitionInProgress,
+                ControllerFound = mobile != null, ControllerEnabled = mobile != null && mobile.enabled,
+                ControllerActive = mobile != null && mobile.gameObject.activeInHierarchy,
+                LoadedScenes = Enumerable.Range(0, SceneManager.sceneCount).Select(index => SceneManager.GetSceneAt(index))
+                    .Select(scene => new { scene.name, scene.isLoaded }).ToArray(),
+                RuntimeErrors = errors.ToArray(), ForcedEnable = false, ForcedRefresh = false });
+            throw new InvalidOperationException("正常游戏场景进入超时；控制器或场景切换未就绪，详见游戏场景进入超时原观察.json");
+        }
+
         private IEnumerator Run()
         {
+            if (PerformanceMode) { yield return PerformanceRun(); yield break; }
             Require(selectedCase == "normal-flow" || CoverageMode || SaveResumeMode, "验证入口必须是正常菜单流程");
+            string requestedRuleMode = Argument("--yc-ui-rule-mode=")?.ToLowerInvariant();
+            Require(string.IsNullOrEmpty(requestedRuleMode) || requestedRuleMode == "standard" || requestedRuleMode == "entrepreneur", "UI测试规则模式参数无效");
+            Require(!LocalFullGameResumeMode || !NetworkMode && selectedCase == "full-game", "本地同局恢复只允许本地full-game，不复用入场/移城专项用例");
             if (NetworkMode) NetworkConfigureShortRun();
             Write("运行身份.json", new { Case = selectedCase, ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
                 UnityVersion = UnityEngine.Application.unityVersion, Assembly = typeof(HotseatUiValidationDriver).Assembly.ManifestModule.ModuleVersionId,
@@ -226,7 +282,8 @@ namespace YC.Presentation.Validation
                 yield return SaveResumeRun();
                 yield break;
             }
-            if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")) &&
+            if (LocalFullGameResumeMode) yield return LoadLocalFullGameFromOriginalWindow(menu);
+            else if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")) &&
                 Argument("--yc-network-ui-role=") == "host") yield return NetworkResumeHostRoomFlow(menu);
             else if (NetworkMode) yield return NetworkRoomFlow(menu);
             else
@@ -235,6 +292,9 @@ namespace YC.Presentation.Validation
             var room = menu.RoomPanel;
             for (int wait = 0; wait < 30 && !room.gameObject.activeInHierarchy; wait++) yield return Settle();
             Require(room.gameObject.activeInHierarchy, "创建房间后没有正常进入房间面板");
+            if (EntrepreneurUiMode) yield return ConfigureEntrepreneurRoom(room);
+            else
+            {
             stage = "房间正常配置企业感染者与四人热座";
             var expansions = (StartMenuRoomPanelView.ContentOption[])Read(room, "expansions");
             foreach (var id in new[] { "enterprise", "infected" })
@@ -247,32 +307,37 @@ namespace YC.Presentation.Validation
             var seats = (StartMenuRoomPanelView.SeatBinding[])Read(room, "seats");
             for (int i = 1; i < 4; i++) yield return Press(seats[i].HotSeatButton, "正常添加本地玩家" + (i + 1));
             yield return Capture("四人房间与正常扩展配置");
+            }
+            if (Argument("--yc-ui-stop-after-room=") == "true")
+            {
+                Require(EntrepreneurUiMode && room.DisplayedRoom.PlayerCount == ExpectedLocalPlayerCount && room.CanStartCurrentRoom,
+                    "房间有限检查要求已形成可正常开始的企业家热座房间");
+                var mode = ((StartMenuRoomPanelView.ContentOption[])Read(room, "ruleModes")).Single(v => v.Id == "entrepreneur");
+                var captions = mode.Button.GetComponentsInChildren<Text>(true).Select(t => t.text).ToArray();
+                Require(captions.Contains("企业家") && !captions.Any(t => t.Contains("未实现")), "房间实际企业家选项文案未更新");
+                Write("菜单房间有限检查.json", new { Room = room.DisplayedRoom, Captions = captions,
+                    room.CanStartCurrentRoom, FullGameStarted = false, Boundary = "仅正常菜单/建房/原控件配置，不计完整对局" });
+                yield return Capture("正常四人企业家房间有限检查");
+                yield break;
+            }
             yield return Press((Button)Read(room, "startButton"), "房间开始游戏");
             }
-            for (int wait = 0; wait < 90 && FindObjectOfType<MobileCityInteractionController>() == null; wait++) yield return Settle();
-            mobile = FindObjectOfType<MobileCityInteractionController>();
-            Require(mobile != null && mobile.enabled, "正常房间开局没有进入游戏场景");
-            // 游戏控制器先于加载黑幕淡出就绪；正式切换完成前不得向地图输入。
-            var transitionWaitStarted = Time.realtimeSinceStartup;
-            while (SceneTransitionContext.IsTransitionInProgress &&
-                   Time.realtimeSinceStartup - transitionWaitStarted < 60f) yield return null;
-            Require(!SceneTransitionContext.IsTransitionInProgress, "正式场景切换尚未完成，不能在加载遮罩下输入");
-            yield return Settle();
-            Write("正式场景切换完成.json", new { Frame = Time.frameCount,
-                Scene = SceneManager.GetActiveScene().name, SceneTransitionContext.IsTransitionInProgress,
-                WaitedSeconds = Time.realtimeSinceStartup - transitionWaitStarted });
+            yield return AwaitNormalGameplayEntry();
             session = (GameSession)Read(mobile, "session");
             registry = (EffectRegistry)Read(mobile, "sessionEffectRegistry");
             hud = (GameplayInteractionHudView)Read(mobile, "gameplayInteractionHud");
             Require(session != null && registry != null && hud != null, "正常开局场景装配引用缺失");
-            if (!NetworkMode) Require(State.Players.Count == 4, "正常开局人数不是四人");
+            if (!NetworkMode) Require(State.Players.Count == ExpectedLocalPlayerCount, "正常开局人数与房间配置不符");
+            if (EntrepreneurUiMode && !NetworkMode) Require(State.RuleConfiguration.RuleModeId == "entrepreneur", "正式开局未采用企业家模式");
             ObserveGateway(mobile);
             ObserveGateway(Read(mobile, "turnActionPresenter"));
             ObserveGateway(Read(mobile, "influenceActionPresenter"));
+            if (LocalFullGameResumeMode) RecordLocalFullGameResumeBoundary();
             if (NetworkMode)
             {
                 yield return NetworkBindGameplay();
                 Require(State.Players.Count == 4, "正常开局人数不是四人");
+                if (EntrepreneurUiMode) Require(State.RuleConfiguration.RuleModeId == "entrepreneur", "正式联机开局未采用企业家模式");
             }
             if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")))
             {
@@ -290,12 +355,13 @@ namespace YC.Presentation.Validation
             }
             if (SalesMode) LoadCoverage();
             if (CampaignMode) LoadCampaign();
-            if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id="))) LoadResumedPlayPolicy();
+            if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")) ||
+                LocalFullGameResumeMode && !string.IsNullOrEmpty(Argument("--yc-local-resume-play-policy="))) LoadResumedPlayPolicy();
             yield return Capture("正常开局首个请求");
             if (SaveResumeMode) { yield return SaveResumeRun(); yield break; }
             for (int step = 0; CampaignMode || step < (SalesMode ? 900 : 150); step++)
             {
-                if (LocalFirstHarvestStopMode && harvestOrder.Count == 4 && State.Round > 1) break;
+                if (LocalFirstHarvestStopMode && harvestOrder.Count == ExpectedLocalPlayerCount && State.Round > 1) break;
                 if (NetworkMode && NetworkShortShouldStop()) break;
                 if (CampaignMode) Require(State.EffectRuntime.Status != EffectRuntimeStatus.PausedFault,
                     "正常效果链进入故障：" + State.EffectRuntime.LastFaultCode + ":" + State.EffectRuntime.LastFaultMessage);
@@ -303,7 +369,16 @@ namespace YC.Presentation.Validation
                 if (CampaignMode && NetworkHasResolvedTerminal()) { ObserveCampaignCompletion(); break; }
                 if (NetworkMode)
                 {
-                    while (!NetworkHasResolvedTerminal() && !NetworkShortShouldStop() && !NetworkTryBeginStep()) yield return new WaitForSecondsRealtime(.3f);
+                    while (!NetworkHasResolvedTerminal() && !NetworkShortShouldStop() && !NetworkTryBeginStep())
+                    {
+                        if (networkStallCapturePending)
+                        {
+                            networkStallCapturePending = false;
+                            yield return new WaitForEndOfFrame();
+                            SaveCapture("联机无进展首次实际观察-" + networkStallObservationNumber);
+                        }
+                        yield return new WaitForSecondsRealtime(.3f);
+                    }
                     if (NetworkShortShouldStop()) break;
                     if (NetworkHasResolvedTerminal()) { ObserveCampaignCompletion(); break; }
                 }
@@ -322,7 +397,9 @@ namespace YC.Presentation.Validation
                     UpdateCoverage();
                     if (TargetPagesCovered || State.Phase == GamePhase.FinalScoring || State.Phase == GamePhase.GameOver) break;
                 }
-                else if (harvestOrder.Count == 4 && (amiyaCovered || State.Round >= 3)) break;
+                else if (harvestOrder.Count == ExpectedLocalPlayerCount && (amiyaCovered || State.Round >= 3)) break;
+                if (UiRegressionShouldStop) { yield return UiRegressionStop(); yield break; }
+                yield return UiRegressionCheckpoint();
                 yield return NetworkMode ? NetworkWrapStep(RunActionStep(step)) : RunActionStep(step);
                 }
                 finally { if (NetworkMode) NetworkEndStep(); }
@@ -331,7 +408,7 @@ namespace YC.Presentation.Validation
             if (NetworkMode) yield return NetworkTerminalBarrier();
             if (LocalFirstHarvestStopMode)
             {
-                Require(State.Round == 2 && State.MaxRounds == 8 && harvestOrder.Count == 4 && harvestOrder.Distinct().Count() == 4 &&
+                Require(State.Round == 2 && State.MaxRounds == 8 && harvestOrder.Count == ExpectedLocalPlayerCount && harvestOrder.Distinct().Count() == ExpectedLocalPlayerCount &&
                     State.EffectRuntime.Status != EffectRuntimeStatus.PausedFault, "热座首轮采集未全员真实完成到下一回合");
                 stage = "Local四人首轮采集后的正常观察停止";
                 yield return Capture("Local首轮采集全员完成后的正常边界");
@@ -345,7 +422,7 @@ namespace YC.Presentation.Validation
             if (CampaignMode)
             {
                 Require(State.Round == State.MaxRounds && State.MaxRounds == 8 && State.FinalScoring?.IsResolved == true &&
-                    State.FinalScoring.PlayerScores.Count == 4, "尚未形成八回合正式终局及四人计分，不能算完整局");
+                    State.FinalScoring.PlayerScores.Count == ExpectedLocalPlayerCount, "尚未形成八回合正式终局及全部玩家计分，不能算完整局");
                 stage = "八回合正式终局";
                 yield return Capture("八回合正式终局");
                 Write("正式终局.json", new { State.GameId, State.ContentPackHash, State.Round, State.MaxRounds, State.Phase,
@@ -363,7 +440,7 @@ namespace YC.Presentation.Validation
                 yield return Capture("正常出售页面流程结束");
                 yield break;
             }
-            Require(harvestOrder.Count == 4 && actionChecks > 0, "正常流程未完成四位连续首次采集及部署结束");
+            Require(harvestOrder.Count == ExpectedLocalPlayerCount && actionChecks > 0, "正常流程未完成全部玩家连续首次采集及部署结束");
             checks.Add(new { Item = "阿米娅正常获取及底栏", Covered = amiyaCovered,
                 Reason = amiyaCovered ? "通过正常候选获得并使用" : "截至正常第三回合，未自然形成阿米娅来源与后继角色组合；未注入牌或状态" });
             stage = "正常流程本轮结束";
@@ -508,7 +585,7 @@ namespace YC.Presentation.Validation
             { yield return ContinuePreparedMainAction(); yield break; }
             if (Route?.IsActive == true)
             {
-                if (State.Phase == GamePhase.ResourceCollection) yield return HarvestOne(harvestOrder.Count < 4);
+                if (State.Phase == GamePhase.ResourceCollection) yield return HarvestOne(harvestOrder.Count < ExpectedLocalPlayerCount);
                 else yield return GrantedRouteSelection();
                 yield break;
             }
@@ -561,7 +638,7 @@ namespace YC.Presentation.Validation
         }
         private void LoadResumedPlayPolicy()
         {
-            string path = Argument("--yc-network-resume-play-policy=");
+            string path = Argument(LocalFullGameResumeMode ? "--yc-local-resume-play-policy=" : "--yc-network-resume-play-policy=");
             Require(Path.IsPathRooted(path ?? "") && File.Exists(path), "同局策略续接缺少已保留的原准确行动计数");
             var value = JObject.Parse(File.ReadAllText(path));
             Require((string)value["GameId"] == State.GameId && (string)value["ContentHash"] == State.ContentPackHash,
@@ -1091,7 +1168,22 @@ namespace YC.Presentation.Validation
                     throw new InvalidOperationException("本人正式付款投影canPay为true，但实际原确认按钮不可用");
                 throw new PaymentCannotContinueException("当前同笔费用没有可用确认、未尝试的合法替代来源或合法拒绝；保留真实付款不可继续状态供定位");
             }
-            string decision = canExecute ? "执行" : "放弃";
+            var conditionVisible = CurrentPaymentView();
+            string conditionSource = conditionVisible == null ? null : VisibleConditionSource(conditionVisible, request.OwnerEffectId);
+            if (string.IsNullOrEmpty(conditionSource)) conditionSource = "condition:" + (request.Presentation?.Prompt?.Key ?? request.PromptKey);
+            bool chooseDecline = sourceKind == "condition" && DeclineActionCoverageCondition(conditionSource, canExecute, canDecline);
+            bool chooseExecute = canExecute && !chooseDecline;
+            string decision = chooseExecute ? "执行" : "放弃";
+            var conditionCoverage = conditionVisible == null ? null : BeginCoverageAttempt(CoverageRow(conditionVisible, "条件式", conditionSource,
+                "", "", request.InteractionId, request.Presentation?.Prompt?.Key ?? request.PromptKey));
+            if (conditionCoverage != null)
+            {
+                conditionCoverage.Legal = chooseExecute ? canExecute : canDecline; conditionCoverage.Selected = true;
+                conditionCoverage.Choice = decision;
+                conditionCoverage.Reason = chooseDecline && canExecute ? "同来源已正常结清过，有限覆盖一次允许的放弃" :
+                    !canExecute ? "原执行不可用，使用正式允许的放弃；不记为效果完成" : "优先正常使用当前合法来源";
+                CoverageEvent(conditionCoverage, "选择", new { request.InteractionId, canExecute, canDecline });
+            }
             int beforeCommands = commands.Count, beforeRevision = State.EffectRuntime.StateRevision;
             bool recordCondition = CampaignMode && sourceKind == "condition";
             var beforeInfluenceIds = State.Map.Influences.Select(value => value.InfluenceId).ToArray();
@@ -1120,7 +1212,7 @@ namespace YC.Presentation.Validation
                 yield return new WaitForEndOfFrame();
                 SaveCapture("正常条件与付款小窗");
             }
-            yield return Press(canExecute ? execute : decline, "正常条件与付款小窗首次" + decision);
+            yield return Press(chooseExecute ? execute : decline, "正常条件与付款小窗首次" + decision);
             Require(commands.Count == beforeCommands + 1 && State.EffectRuntime.StateRevision > beforeRevision,
                 "条件/付款小窗首次选择未取得一次正式提交与revision推进，不能补点或直接代答");
             var command = Read(commands[beforeCommands], "Command") as GameCommand;
@@ -1136,7 +1228,7 @@ namespace YC.Presentation.Validation
             {
                 var afterInfluenceIds = State.Map.Influences.Select(value => value.InfluenceId).ToArray();
                 bool priorInfluencesRemain = beforeInfluenceIds.All(id => afterInfluenceIds.Contains(id));
-                Require(command.OptionIds.SequenceEqual(new[] { canExecute ? "continue" : "decline" }),
+                Require(command.OptionIds.SequenceEqual(new[] { chooseExecute ? "continue" : "decline" }),
                     "原条件按钮没有提交对应的原continue/decline答案");
                 if (decision == "放弃" && request.Presentation?.Prompt?.Key == "core:condition.event.event_yellow_04.payment")
                     Require(priorInfluencesRemain, "锈锤领地条件放弃后已放影响力丢失");
@@ -1147,6 +1239,14 @@ namespace YC.Presentation.Validation
                     AfterInfluenceIds = afterInfluenceIds, PriorInfluencesRemain = priorInfluencesRemain,
                     NextRequest = Request, After = Observe(), EndActionUsed = false });
                 yield return Capture("原条件窗口" + decision + "后正常后继");
+            }
+            if (conditionCoverage != null)
+            {
+                conditionCoverage.Confirmed = true; conditionCoverage.NextRequest = Request?.InteractionTypeId;
+                conditionCoverage.Evidence = command.CommandId; conditionCoverage.Outcome = chooseExecute ? "已确认执行，待原效果结清" : "已确认放弃";
+                CoverageEvent(conditionCoverage, "确认", new { command.CommandId, Result = result });
+                if (sourceKind == "condition") conditionCoveragePending.Add(Tuple.Create(conditionCoverage, request.OwnerEffectId));
+                if (!chooseExecute) cleanupPolicy.ConfirmDecline(conditionSource);
             }
             RecordVisiblePaymentSummary();
             checks.Add(new { Item = "条件/付款小窗实际按钮首次提交", Decision = decision,
@@ -1256,6 +1356,84 @@ namespace YC.Presentation.Validation
                 Boundary = "实际帧和原组件只读事实；不同用途不强设相同字号，不写资产、不强刷、不代替人工视觉" });
         }
 
+        private static bool EnterprisePageBelongsToRequest(EnterpriseSelectionProjection projection, string requestId)
+            => projection != null && !string.IsNullOrEmpty(requestId) && projection.RequestId == requestId;
+
+        private static bool EnterpriseChoicePageMatches(bool requestCurrent, EnterpriseSelectionProjection projection,
+            string gameId, string requestId, int revision, int actor, string requestContract)
+            => requestCurrent && EnterprisePageBelongsToRequest(projection, requestId) && !projection.ReadOnly &&
+                projection.Mode != EnterpriseSelectionMode.BrowseDepartment && !string.IsNullOrEmpty(gameId) &&
+                projection.GameId == gameId && projection.Revision == revision && projection.ViewerPlayerId == actor &&
+                !string.IsNullOrEmpty(requestContract) && projection.RequestContract == requestContract;
+
+        private bool HasEnterprisePageAwaitingRevision(InteractionRequestProjection request)
+        {
+            bool current = PerformanceRequestIsCurrent(request);
+            if (!current) return false;
+            string game = State.GameId, id = request.InteractionId, contract = InteractionCommandIntent.ContractKey(request);
+            int actor = LocalPlayer;
+            // 只等同一可交互企业合同的版本刷新；别的合同或只读页不挡当前地图请求。
+            return FindObjectsOfType<EnterpriseSelectionDialogView>().Any(page => page.isActiveAndEnabled && page.IsShowing &&
+                page.Draft.Projection != null && EnterpriseChoicePageMatches(current, page.Draft.Projection,
+                    game, id, page.Draft.Projection.Revision, actor, contract));
+        }
+
+        private EnterpriseSelectionDialogView CurrentEnterpriseChoicePage(InteractionRequestProjection request)
+        {
+            bool current = PerformanceRequestIsCurrent(request);
+            if (!current) return null;
+            string game = State.GameId, id = request.InteractionId, contract = InteractionCommandIntent.ContractKey(request);
+            int revision = request.StateRevision, actor = LocalPlayer;
+            return FindObjectsOfType<EnterpriseSelectionDialogView>().FirstOrDefault(page => page.isActiveAndEnabled && page.IsShowing &&
+                EnterpriseChoicePageMatches(current, page.Draft.Projection, game, id, revision, actor, contract));
+        }
+
+        private IEnumerator NormalEnterpriseChoice(InteractionRequestProjection request, EnterpriseSelectionDialogView enterprise)
+        {
+            if (CurrentEnterpriseChoicePage(request) != enterprise) yield break;
+            if (enterprise.Draft.IsPending || !enterprise.Draft.Projection.SubmissionAvailable) { yield return null; yield break; }
+            Append("企业选择分流.jsonl", new { State.GameId, RequestId = request.InteractionId, request.StateRevision,
+                PlayerId = LocalPlayer, PageRequestId = enterprise.Draft.Projection.RequestId,
+                PageRevision = enterprise.Draft.Projection.Revision, enterprise.Draft.Projection.Mode,
+                Route = "本人当前企业页原目标与原确认，不退回地图" });
+            var available = enterprise.Draft.Projection.Targets.Where(t => enterprise.Draft.IsAvailable(t)).ToArray();
+            var chosen = available
+                .OrderBy(t => CampaignMode ? CampaignEnterprisePriority(t, enterprise.Draft.Projection) : 0)
+                .ThenBy(t => CampaignMode ? EnterprisePlayerCoverageOrder(t, enterprise.Draft.Projection) : 0)
+                .ThenBy(t => t.BoardId).ThenBy(t => t.Id)
+                .Take(Math.Max(1, enterprise.Draft.Projection.MinSelections)).Select(t => t.Id).ToArray();
+            Require(chosen.Length == Math.Max(1, enterprise.Draft.Projection.MinSelections), "正常企业候选没有足够可用项");
+            if (CampaignMode) Append("企业覆盖决策.jsonl", new { State.GameId, State.Round, LocalPlayer,
+                Request = request?.InteractionTypeId, Chosen = chosen,
+                Candidates = available.Select(t => new { t.Id, t.CompanyId, t.BoardId, t.EffectId,
+                    Priority = CampaignEnterprisePriority(t, enterprise.Draft.Projection),
+                    PlayerCoverageOrder = EnterprisePlayerCoverageOrder(t, enterprise.Draft.Projection) }),
+                Policy = "未覆盖特效优先；升级按距下一未覆盖特效的等级差排序，同分企业按玩家分散；历史只影响选择，不迁入本版完成账" });
+            bool keepSelected = NetworkMode || PerformanceMode;
+            var targetIds = keepSelected ? enterprise.Draft.SelectedIds.Where(id => !chosen.Contains(id)).Concat(chosen).ToArray() : chosen;
+            if (NetworkMode) Append("企业当前草稿与新决策对照.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
+                StepId = networkActiveStepId, enterprise.Draft.Projection.RequestId, enterprise.Draft.Projection.Revision,
+                SelectedBefore = enterprise.Draft.SelectedIds.ToArray(), ChosenFromCurrentProjection = chosen,
+                Reason = "独立重算正式候选后保留当前已选目标；仅对未选或需要取消的项执行原控件指针，不重签旧命令" });
+            foreach (var id in targetIds)
+            {
+                if (CurrentEnterpriseChoicePage(request) != enterprise) yield break;
+                var target = enterprise.Draft.Projection.Targets.Single(t => t.Id == id);
+                if (keepSelected && chosen.Contains(id) && enterprise.Draft.IsSelected(id)) continue;
+                var boards = (IDictionary)Read(enterprise, "items");
+                var board = (EnterpriseBoardItemView)boards[target.BoardId];
+                var targets = (IDictionary)Read(board, "targets");
+                var button = (Button)Read(targets[target.Id], "button");
+                yield return PointerSequenceGuarded(button.gameObject, "正常企业/科室候选" + target.Id, () =>
+                    CurrentEnterpriseChoicePage(request) == enterprise && button.IsActive() && button.IsInteractable() &&
+                    enterprise.Draft.Projection.Targets.Any(value => value.Id == id && enterprise.Draft.IsAvailable(value)));
+            }
+            if (CurrentEnterpriseChoicePage(request) != enterprise || !enterprise.Draft.CanConfirm) yield break;
+            var confirm = (Button)Read(enterprise, "confirm");
+            yield return PointerSequenceGuarded(confirm.gameObject, "企业/科室首次确认", () =>
+                CurrentEnterpriseChoicePage(request) == enterprise && enterprise.Draft.CanConfirm);
+        }
+
         private IEnumerator NormalChoice()
         {
             if (NetworkMode)
@@ -1265,7 +1443,14 @@ namespace YC.Presentation.Validation
                 yield return new WaitForEndOfFrame();
             }
             var request = Request;
+            ObserveRequestStage(request);
+            if (request?.InteractionTypeId == FacilitySupplySelectionModel.InteractionType)
+            { yield return NormalSupplySelection(request); yield break; }
+            if (request?.InteractionTypeId == FacilityPanelSelectionRequest.InteractionType)
+            { yield return NormalFacilityPanelSelection(request); yield break; }
             bool temporaryChoice = CampaignMode && request?.PromptKey == "facility.temporary_settlement.retire";
+            if (EntrepreneurUiMode && IsEntrepreneurUiRequest(request))
+            { yield return EntrepreneurUiChoice(request); yield break; }
             bool optionalExecution = CampaignMode && request?.InteractionTypeId == "effect.choice.execute" && request.MinSelections == 0;
             int choiceCommandsBefore = commands.Count, choiceRevisionBefore = State.EffectRuntime.StateRevision;
             if (temporaryChoice || optionalExecution)
@@ -1275,23 +1460,30 @@ namespace YC.Presentation.Validation
                 Write("原执行条目-" + request.InteractionId + ".json", new { State.GameId, State.Round,
                     Request = request, Frame = Time.frameCount, State = Observe(), ForcedShow = false, ForcedRefresh = false });
             }
-            if (request?.InteractionTypeId == "character.ability.choice.move" &&
+            if (NetworkMode && request != null)
+                Require(request.VisibleToViewer && request.AnsweringPlayerId == networkBoundPlayerId &&
+                    request.StateRevision == State.EffectRuntime.StateRevision, "原页面必须匹配本人正式请求和当前版本");
+            bool rawMoveList = request?.InteractionTypeId == "character.ability.choice.move" &&
                 FindObjectsOfType<EffectDialogOptionRowView>().Any(row => row.Button.IsActive() &&
-                    row.Label?.text?.Contains("item_") == true))
-                throw new DriverContinuationPendingException("角色影响力移动错误落入raw ID文本列表；等待正式地图选择路由，不点击该页继续验收");
-            if (request?.InteractionTypeId == "character.ability.choice.move" && request.CandidateIds.All(id => id.StartsWith("move|", StringComparison.Ordinal)))
+                    row.Label?.text?.Contains("item_") == true);
+            if (rawMoveList) CheckContent(false, "角色影响力移动显示raw ID列表；记录页面错误，沿当前原合法列表继续");
+            if (!rawMoveList && request?.InteractionTypeId == "character.ability.choice.move" && request.CandidateIds.All(id => id.StartsWith("move|", StringComparison.Ordinal)))
             { yield return NormalInfluenceMove(request); yield break; }
             var identity = (request?.InteractionId ?? "") + ":" + LocalPlayer + ":" + State.EffectRuntime.StateRevision;
-            var enterprise = FindObjectsOfType<EnterpriseSelectionDialogView>().FirstOrDefault(v => v.Draft.Projection != null && !v.Draft.Projection.ReadOnly);
+            if (CampaignMode && new[] { CharacterLifecycleService.ModeInteractionTypeId, CharacterLifecycleService.OrderInteractionTypeId,
+                CharacterLifecycleService.SecondModeInteractionTypeId }.Contains(request?.InteractionTypeId) &&
+                CurrentPaymentView()?.CharacterSettlementOptions.Any(option => option.EntryKind == "optional_insertion" &&
+                    option.VisibleToViewer && option.AnsweringPlayerId == LocalPlayer && option.IsEnabled) == true)
+            {
+                yield return TryVisibleCleanupAction();
+                if (cleanupActionPerformed) yield break;
+            }
+            var enterprise = CurrentEnterpriseChoicePage(request);
+            if (enterprise == null && HasEnterprisePageAwaitingRevision(request)) { yield return null; yield break; }
             if (request?.InteractionTypeId == "character.cleanup.settlement")
             {
-                var chip = CoverageMode ? hud.GetComponentsInChildren<SettlementEffectChipView>().FirstOrDefault(c =>
-                    (bool)Read(c, "executionAllowed") && !(bool)Read(c, "pending") &&
-                    (!CampaignMode || (Read(c, "option") as SettlementOptionView)?.SourceDefinitionId != "infected.character.amiya")) : null;
-                if (chip != null && (!mobile.CanEndCurrentAction() || CampaignMode &&
-                    CampaignDefinitionMissing((Read(chip, "option") as SettlementOptionView)?.SourceDefinitionId) > 0))
-                    yield return PointerSequence(chip.gameObject, "正常收尾实际结算来源");
-                else
+                yield return TryVisibleCleanupAction();
+                if (!cleanupActionPerformed)
                 {
                     Require(mobile.CanEndCurrentAction(), "正常收尾仍有必须处理的结算，不能直接结束");
                     yield return Press(hud.Frame.EndActionButton, "正常收尾结算首次结束");
@@ -1323,7 +1515,7 @@ namespace YC.Presentation.Validation
                     "原玩家选择页未匹配当前正式请求和严格版本");
                 int before = commands.Count, revision = State.EffectRuntime.StateRevision;
                 var available = playerPage.Options.Where(option => option.isActiveAndEnabled && option.Option.Eligible &&
-                    option.Button.IsInteractable() && request.CandidateIds.Contains("player:" + option.Option.Id)).OrderBy(option => option.Option.Id).ToArray();
+                    option.Button.IsInteractable()).OrderBy(option => option.Option.Id).ToArray();
                 int wanted = Math.Max(config.Min, Math.Min(config.Max, Math.Max(playerPage.Draft.SelectedIds.Count, Math.Min(1, available.Length))));
                 Require(available.Length >= wanted, "原玩家选择页没有足够的正式可选玩家");
                 Write("玩家选择输入-" + request.InteractionId + ".json", new { State.GameId, State.Round,
@@ -1332,18 +1524,20 @@ namespace YC.Presentation.Validation
                 while (playerPage.Draft.SelectedIds.Count < wanted)
                 {
                     var next = playerPage.Options.Where(option => option.isActiveAndEnabled && option.Option.Eligible &&
-                        option.Button.IsInteractable() && !playerPage.Draft.SelectedIds.Contains(option.Option.Id) &&
-                        request.CandidateIds.Contains("player:" + option.Option.Id)).OrderBy(option => option.Option.Id).FirstOrDefault();
+                        option.Button.IsInteractable() && !playerPage.Draft.SelectedIds.Contains(option.Option.Id))
+                        .OrderBy(option => option.Option.Id).FirstOrDefault();
                     Require(next != null, "原玩家选择页缺少未选的合法玩家");
                     yield return Press(next.Button, "正常原玩家选择目标" + next.Option.Id);
+                    if (commands.Count != before)
+                        throw new DriverContentDifferenceException("玩家选择原目标点击已提交，保差异并重读实际后继，不再确认旧请求");
                     Require(commands.Count == before && State.EffectRuntime.StateRevision == revision &&
                         playerPage.Draft.SelectedIds.Contains(next.Option.Id), "玩家选择应先只更新原页面草稿");
                 }
-                var selected = playerPage.Draft.SelectedIds.Select(id => "player:" + id).ToArray();
+                var selected = PlayerSelectionRequestAdapter.CandidateIds(request, playerPage.Draft.SelectedIds.ToArray()).ToArray();
                 Require(playerPage.Draft.CanConfirm && selected.Length >= request.MinSelections && selected.Length <= request.MaxSelections &&
                     selected.All(request.CandidateIds.Contains), "原玩家选择草稿未满足正式人数与候选约束");
                 yield return Press(playerPage.ConfirmButton, "原玩家选择首次确认");
-                Require(commands.Count == before + 1, "原玩家选择首次确认未恰好提交一次命令");
+                RequireOriginalReceipt(before, "原玩家选择首次确认");
                 var answer = Read(commands[before], "Command") as GameCommand;
                 var result = Read(commands[before], "Result") as WorkflowSubmissionResult;
                 Require(answer?.Kind == GameCommandKind.AnswerInteraction && answer.PlayerId == request.AnsweringPlayerId &&
@@ -1361,40 +1555,12 @@ namespace YC.Presentation.Validation
                 yield return Press(ChoiceExecuteButton(), "正常效果页面选择一个合法分支");
             }
             else if (enterprise != null)
-            {
-                var available = enterprise.Draft.Projection.Targets.Where(t => enterprise.Draft.IsAvailable(t)).ToArray();
-                var chosen = available
-                    .OrderBy(t => CampaignMode ? CampaignEnterprisePriority(t, enterprise.Draft.Projection) : 0)
-                    .ThenBy(t => CampaignMode ? EnterprisePlayerCoverageOrder(t, enterprise.Draft.Projection) : 0)
-                    .ThenBy(t => t.BoardId).ThenBy(t => t.Id)
-                    .Take(Math.Max(1, enterprise.Draft.Projection.MinSelections)).Select(t => t.Id).ToArray();
-                Require(chosen.Length == Math.Max(1, enterprise.Draft.Projection.MinSelections), "正常企业候选没有足够可用项");
-                if (CampaignMode) Append("企业覆盖决策.jsonl", new { State.GameId, State.Round, LocalPlayer,
-                    Request = request?.InteractionTypeId, Chosen = chosen,
-                    Candidates = available.Select(t => new { t.Id, t.CompanyId, t.BoardId, t.EffectId,
-                        Priority = CampaignEnterprisePriority(t, enterprise.Draft.Projection),
-                        PlayerCoverageOrder = EnterprisePlayerCoverageOrder(t, enterprise.Draft.Projection) }),
-                    Policy = "未覆盖特效优先；升级按距下一未覆盖特效的等级差排序，同分企业按玩家分散；历史只影响选择，不迁入本版完成账" });
-                var targetIds = NetworkMode ? enterprise.Draft.SelectedIds.Where(id => !chosen.Contains(id)).Concat(chosen).ToArray() : chosen;
-                if (NetworkMode) Append("企业当前草稿与新决策对照.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
-                    StepId = networkActiveStepId, enterprise.Draft.Projection.RequestId, enterprise.Draft.Projection.Revision,
-                    SelectedBefore = enterprise.Draft.SelectedIds.ToArray(), ChosenFromCurrentProjection = chosen,
-                    Reason = "独立重算正式候选后保留当前已选目标；仅对未选或需要取消的项执行原控件指针，不重签旧命令" });
-                foreach (var id in targetIds)
-                {
-                    var target = enterprise.Draft.Projection.Targets.Single(t => t.Id == id);
-                    if (NetworkMode && chosen.Contains(id) && enterprise.Draft.IsSelected(id)) continue;
-                    var boards = (IDictionary)Read(enterprise, "items");
-                    var board = (EnterpriseBoardItemView)boards[target.BoardId];
-                    var targets = (IDictionary)Read(board, "targets");
-                    yield return Press((Button)Read(targets[target.Id], "button"), "正常企业/科室候选" + target.Id);
-                }
-                yield return Press((Button)Read(enterprise, "confirm"), "企业/科室首次确认");
-            }
+            { yield return NormalEnterpriseChoice(request, enterprise); }
             else
             {
                 var cards = FindObjectsOfType<PlayerAutomationId>().Where(v => v.Id.StartsWith("selection.card.") &&
-                    v.GetComponent<Button>()?.IsInteractable() == true).ToArray();
+                    v.GetComponent<Button>()?.IsInteractable() == true &&
+                    (request == null || request.CandidateIds.Contains(v.Id.Substring("selection.card.".Length)))).ToArray();
                 if (cards.Length > 0)
                 {
                     var ids = cards.Select(v => v.Id.Substring("selection.card.".Length)).ToArray();
@@ -1432,7 +1598,9 @@ namespace YC.Presentation.Validation
                     Require(count <= ids.Length, "正常牌候选不足");
                     foreach (var id in ids.Take(count))
                         yield return Press(FindObjectsOfType<PlayerAutomationId>().Single(v => v.Id == "selection.card." + id).GetComponent<Button>(), "正常选择牌" + id);
+                    RecordRequestSelection(request, ids.Take(count).ToArray());
                     yield return Press(FindObjectsOfType<Button>().Single(b => b.name == "Confirm Selection" && b.IsInteractable()), "正常牌选择首次确认");
+                    RecordRequestConfirmation(request, choiceCommandsBefore);
                     if (CoverageMode && request?.PromptKey == "facility.entry.choose_additional_build" && count == 1)
                     {
                         lastBuildItem = ids[0]; lastBuildDefinition = Definition(ids[0]); lastBuildRecorded = false;
@@ -1460,14 +1628,15 @@ namespace YC.Presentation.Validation
                     else
                     {
                         var candidates = FindObjectsOfType<MapButtonView>().Where(b =>
-                            (b.TargetKind == WorkflowHighlightTargetKind.Location || CoverageMode &&
+                            (b.TargetKind == WorkflowHighlightTargetKind.Location || (CoverageMode || CampaignMode) &&
                                 (b.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot ||
                                  request?.InteractionTypeId == "effect.route.choose" && b.TargetKind == WorkflowHighlightTargetKind.Route && request.CandidateIds.Contains(b.TargetId))) &&
                             b.IsInteractive).ToArray();
                         bool influenceDestination = request?.InteractionTypeId != "effect.influence.remove.target" &&
                             request?.InteractionTypeId != "effect.influence.move.source" &&
                             // Lua 的移除请求沿正式提示键识别，不能套用新增放置时避开己方影响力的策略。
-                            request?.PromptKey != "effect.influence.remove.choose_target";
+                            request?.PromptKey != "effect.influence.remove.choose_target" &&
+                            request?.PromptKey != "effect.influence.replace.choose_target";
                         var influenceTargets = candidates.Where(button => influenceDestination && button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot).ToArray();
                         bool mapArray = EffectDialogSelectionSpec.IsInfluenceMapArray(request) &&
                             request.MinSelections > 1 && request.MinSelections == request.MaxSelections;
@@ -1514,19 +1683,17 @@ namespace YC.Presentation.Validation
                         var target = influenceTargets.Length > 0
                             ? SelectInfluencePlacementTarget(request, influenceTargets)
                             : PreferVisibleMapTarget(candidates.Where(IsMapTargetVisible).Concat(candidates.OrderBy(b => b.TargetId)));
-                        Require(target != null, "当前正常请求未找到对应真实候选控件：" + request?.InteractionTypeId);
+                        if (target == null) throw new DriverContinuationPendingException("当前正常请求未找到对应真实候选控件：" + request?.InteractionTypeId);
                         string location = target.TargetId;
                         var kind = target.TargetKind;
-                        yield return MapPress(kind, location, "正常入场/地图选择");
-                        if (identity == (Request?.InteractionId ?? "") + ":" + LocalPlayer + ":" + State.EffectRuntime.StateRevision)
-                            yield return MapPress(kind, location, "正常地图二次确认");
+                        yield return MapPressWithFreshConfirmation(request, kind, location);
                         }
                     }
                 }
             }
             yield return Capture("正常选择后");
-            Require(identity != (Request?.InteractionId ?? "") + ":" + LocalPlayer + ":" + State.EffectRuntime.StateRevision,
-                "真实候选首次确认未推进正常请求，保留现场，不重试");
+            if (identity == (Request?.InteractionId ?? "") + ":" + LocalPlayer + ":" + State.EffectRuntime.StateRevision)
+                throw new DriverContinuationPendingException("真实候选首次确认未推进正常请求，重新读取原页但不重发原提交");
             if (temporaryChoice || optionalExecution)
             {
                 Require(commands.Count == choiceCommandsBefore + 1, "原执行条目未恰好提交一次命令");
@@ -1682,9 +1849,10 @@ namespace YC.Presentation.Validation
             Require(!string.IsNullOrEmpty(campaignPath) && Path.IsPathRooted(campaignPath), "整局累计路径必须明确");
             campaign = File.Exists(campaignPath) ? JsonConvert.DeserializeObject<CampaignProgress>(File.ReadAllText(campaignPath)) : new CampaignProgress();
             campaign = campaign ?? new CampaignProgress();
-            string mode = "standard:" + (Argument("--yc-campaign-expansions=") ?? "enterprise,infected");
+            string mode = State.RuleConfiguration.RuleModeId + ":" + State.RuleConfiguration.MapId + ":" + State.Players.Count + ":" +
+                string.Join(",", State.RuleConfiguration.EnabledExpansionIds.OrderBy(id => id));
             string assembly = typeof(HotseatUiValidationDriver).Assembly.ManifestModule.ModuleVersionId.ToString();
-            string versionKey = mode + ":" + State.ContentPackHash + ":" + assembly;
+            string versionKey = mode + ":" + State.ContentPackHash + ":" + assembly + ":main-action-receipts-v1";
             campaignVersion = campaign.Versions.FirstOrDefault(v => v.Key == versionKey);
             if (campaignVersion == null)
             {
@@ -1746,13 +1914,16 @@ namespace YC.Presentation.Validation
                     "缺口排序基线模式/内容hash/生产输入不匹配");
                 campaignPriorityBaselineVersion = (string)prior["Key"];
                 foreach (var entry in ((JObject)prior["Cumulative"]).Properties())
-                    campaignPriorityBaseline[entry.Name] = (int)entry.Value;
+                    if (!ReceiptRequiredCoverage(entry.Name)) campaignPriorityBaseline[entry.Name] = (int)entry.Value;
             }
+            Append("旧主行动覆盖排除.jsonl", new { Contract = "main-action-receipts-v1", NewGameStartsEmpty = true,
+                ExcludedLegacyKeys = new[] { "action:deploy", "action:dispatch", "action:explore", "action:granted-harvest", "action:harvest" },
+                HistoricalOriginalsModified = false, HistoricalCompletionImported = false });
             Write("本局正式目标全集.json", campaignVersion.Targets);
             Write("开局缺口与决策.json", new { campaignVersion.Key, State.GameId, Missing = campaignVersion.Targets.Where(t => CampaignCount(t.Key) == 0),
                 PriorityBaselinePath = campaignPriorityBaselinePath, PriorityBaselineVersion = campaignPriorityBaselineVersion,
                 NextPriorities = campaignVersion.Targets.Where(t => CampaignPriorityCount(t.Key) == 0), BaselineChangesCurrentCompleted = false,
-                Decision = "按真实缺口排序本人正式可见合法候选；未出现继续本局至八回合，不改随机、不注入；旧快照的阿米娅可选插入不使用" });
+                Decision = "按真实缺口排序本人正式可见合法候选；未出现继续本局至八回合，不改随机、不注入；可选插入沿当前本人正式来源与原控件使用" });
             PersistCampaign();
         }
         private void CampaignCompleted(string key, object evidence)
@@ -1765,6 +1936,9 @@ namespace YC.Presentation.Validation
         }
         private void ObserveCampaignCompletion()
         {
+            ObserveActionReceipts();
+            ObserveContinuationStages();
+            ObserveDriverQuickActionCompletion();
             if (campaignGame == null) return;
             var completedNodes = new HashSet<string>(State.EffectRuntime.EffectNodes
                 .Where(n => n.Status == EffectNodeStatus.Completed).Select(n => n.EffectId), StringComparer.Ordinal);
@@ -1908,11 +2082,17 @@ namespace YC.Presentation.Validation
         }
         private IEnumerator CampaignModeChoice()
         {
+            var visible = CurrentPaymentView();
+            var modeRequest = Request;
+            Require(visible != null && modeRequest?.VisibleToViewer == true && modeRequest.Status == "open" &&
+                modeRequest.AnsweringPlayerId == visible.ViewerPlayerId && modeRequest.StateRevision == visible.StateRevision,
+                "角色模式缺少本人当前正式请求，不能根据起始玩家身份强选第二模式");
             var viewer = FindObjectsOfType<CardViewer>().FirstOrDefault(v => v.gameObject.activeInHierarchy);
-            Require(viewer != null, "角色正式模式请求未显示原CardViewer，保留页面与请求");
-            string definition = State.ItemZones.Items.FirstOrDefault(i => i.ItemId == viewer.CardId)?.DefinitionId ?? viewer.CardId;
+            if (viewer == null) throw new DriverContinuationPendingException("正式角色模式请求未显示原卡面控件；保留请求交页面所有者接线，不代答或放弃");
+            string definition = visible.ItemZones.Items.FirstOrDefault(i => i.ItemId == viewer.CardId)?.DefinitionId ?? viewer.CardId;
             var choices = new[] { new { Mode = "strategy", Button = viewer.StrategyButton }, new { Mode = "tactic", Button = viewer.PlotButton } }
-                .Where(c => c.Button.IsActive() && c.Button.IsInteractable())
+                .Where(c => c.Button.IsActive() && c.Button.IsInteractable() &&
+                    modeRequest.CandidateIds.Contains(CharacterCardPanelPresenter.ModeSelectionCandidate(modeRequest, c.Mode)))
                 .OrderBy(c => CampaignPriorityCount("character:" + definition + ":" + c.Mode) == 0 ? 0 : 1)
                 .ThenBy(c => EnterpriseCharacterPriority(definition) < 0 && definition == "mountain" && c.Mode == "tactic" ? -1 : 0)
                 .ThenBy(c => CampaignCount("character:" + definition + ":" + c.Mode)).ToArray();
@@ -1920,7 +2100,24 @@ namespace YC.Presentation.Validation
             Append("决策变化.jsonl", new { State.GameId, State.Round, Action = "原角色卡模式选择", Definition = definition,
                 Request = Request, Mode = choices[0].Mode, PriorCompleted = CampaignCount("character:" + definition + ":" + choices[0].Mode),
                 PriorityCount = CampaignPriorityCount("character:" + definition + ":" + choices[0].Mode), PriorityBaselineVersion = campaignPriorityBaselineVersion });
+            var modeCoverage = BeginCoverageAttempt(CoverageRow(visible, "角色模式", viewer.CardId, definition, "", choices[0].Mode, choices[0].Mode == "strategy" ? "策略" : "计谋"));
+            modeCoverage.UseId = visible.CharacterUses.LastOrDefault(use => use.CardInstanceId == viewer.CardId &&
+                use.ExecutingPlayerId == visible.ViewerPlayerId && !use.Finished)?.UseId;
+            modeCoverage.Selected = true; modeCoverage.Legal = true; modeCoverage.Choice = choices[0].Mode;
+            CoverageEvent(modeCoverage, "选择", new { modeRequest.InteractionId, modeRequest.CandidateIds, visible.StartPlayerId,
+                Rule = "起始玩家是否可接续两者仍以当前正式候选及Host自动接续为准；其它玩家不强补第二模式" });
+            int before = commands.Count;
             yield return Press(choices[0].Button, "正常原角色卡选择" + choices[0].Mode);
+            var accepted = commands.Skip(before).Where(record => Read(record, "Command") is GameCommand c &&
+                c.Kind == GameCommandKind.AnswerInteraction && c.PlayerId == visible.ViewerPlayerId &&
+                c.Parameters.TryGetValue("interactionId", out var id) && id == modeRequest.InteractionId &&
+                c.OptionIds.SequenceEqual(new[] { CharacterCardPanelPresenter.ModeSelectionCandidate(modeRequest, choices[0].Mode) }) &&
+                Read(record, "Result") is WorkflowSubmissionResult r && r.CommandResult?.Succeeded == true && r.AppliedLocally).ToArray();
+            Require(accepted.Length == 1, "角色原模式选择未得到唯一匹配正式候选的准确受理回执");
+            modeCoverage.Confirmed = true; modeCoverage.NextRequest = Request?.InteractionTypeId;
+            modeCoverage.Evidence = (Read(accepted[0], "Command") as GameCommand)?.CommandId;
+            CoverageEvent(modeCoverage, "确认", accepted[0]);
+            ObserveActionCleanupCoverage();
         }
         private IEnumerator CampaignSale()
         {
@@ -2038,6 +2235,8 @@ namespace YC.Presentation.Validation
         }
         private void RecordPlayCommand(GameCommand command, WorkflowSubmissionResult result)
         {
+            // 部署和探索可能只受理入口；由准确效果与实际状态观察完成后再计数。
+            if (command?.Kind == GameCommandKind.DeployInfluence || command?.Kind == GameCommandKind.ExploreLocation) return;
             if (!CampaignMode || result?.CommandResult?.Succeeded != true || !result.AppliedLocally ||
                 !new[] { GameCommandKind.MoveCity, GameCommandKind.ExploreLocation,
                     GameCommandKind.DeployInfluence, GameCommandKind.UseSpecialAction }.Contains(command.Kind) ||
@@ -2131,30 +2330,15 @@ namespace YC.Presentation.Validation
         {
             int actor = LocalPlayer;
             string actionWindow = State.Round + ":" + State.ActionRound + ":" + actor;
+            yield return TryVisibleQuickAction();
+            if (driverQuickActionPerformed) yield break;
+            yield return TryVisibleSharedSpecialAction();
+            if (driverQuickActionPerformed) yield break;
             if (!new MainActionBudgetService().HasAvailableMainAction(State, actor) && mobile.CanEndCurrentAction())
             {
                 Append("决策变化.jsonl", new { State.GameId, State.Round, State.ActionRound, PlayerId = actor,
                     Action = "主行动已完成先走原HUD结束", Reason = "正式主预算已耗尽且结束控件可用；样式浏览入口可点击不代表宣告页面已打开" });
                 yield return Press(hud.Frame.EndActionButton, "正常完成主行动后先结束当前行动"); yield break;
-            }
-            yield return Press(MarkedButton("action.tab.1"), "整局正常快捷行动");
-            var rows = FindObjectsOfType<PlayerAutomationId>().Where(v => v.Id.StartsWith("action.character.") &&
-                v.GetComponent<Button>()?.IsInteractable() == true && !campaignActionAttempts.Contains(actionWindow + ":" + v.Id))
-                .OrderBy(v => EnterpriseCharacterPriority(State.ItemZones.Items.FirstOrDefault(i => "action.character." + i.ItemId == v.Id)?.DefinitionId))
-                .ThenBy(v => -CampaignDefinitionMissing(State.ItemZones.Items.FirstOrDefault(i => "action.character." + i.ItemId == v.Id)?.DefinitionId)).ToArray();
-            if (rows.Length > 0)
-            {
-                var row = rows[0]; campaignActionAttempts.Add(actionWindow + ":" + row.Id);
-                yield return Press(row.GetComponent<Button>(), "整局本人正式角色候选");
-                var optionalAmiya = hud.GetComponentsInChildren<SettlementEffectChipView>().FirstOrDefault(c =>
-                    (Read(c, "option") as SettlementOptionView)?.SourceDefinitionId == "infected.character.amiya" &&
-                    (bool)Read(c, "executionAllowed") && !(bool)Read(c, "pending"));
-                // 仅合并修补明确标记后走真实来源；旧版不回答未经批准的额外顺序页。
-                if (optionalAmiya != null && Argument("--yc-amiya-original-viewer=") == "true" &&
-                    campaignActionAttempts.Add(actionWindow + ":amiya-insertion"))
-                    yield return PointerSequence(optionalAmiya.gameObject, "正常阿米娅可选插入来源");
-                yield return CampaignModeChoice();
-                yield break;
             }
             yield return Press(MarkedButton("action.tab.2"), "整局正常城市样式页签");
             var declarationButton = hud.ActionPanelView.DeclareCityStyleButton;
@@ -2169,24 +2353,7 @@ namespace YC.Presentation.Validation
             { yield return Press(hud.Frame.EndActionButton, "整局正常主要行动完成后结束"); yield break; }
             yield return Press(MarkedButton("action.tab.0"), "整局正常主要行动");
             var progress = PlayProgress(actor);
-            string planned = PlannedMainAction(progress);
-            if (NetworkMode && planned == "explore")
-            {
-                var visible = CurrentPaymentView();
-                Require(visible != null, "正常探索决策缺少本人正式公开投影");
-                var eligibility = new RouteResourceSelectionService().TryCreateExplorationPreview(
-                    GameStateViewProjector.ToClientState(visible), visible, actor, out _, out _, out _);
-                if (!eligibility.IsValid && eligibility.Reason == "route_selection_target_unavailable")
-                {
-                    Append("决策变化.jsonl", new { State.GameId, State.Round, State.ActionRound, PlayerId = actor,
-                        Action = "正式探索无合法候选，转其他正常行动", OriginalPlan = planned,
-                        eligibility.Reason, visible.Decks.EventDeckGreenCount, visible.Decks.EventDeckYellowCount,
-                        visible.Decks.EventDeckRedCount, Progress = progress,
-                        Fallback = "沿原特殊行动、建设或部署入口继续，不把无目标计为失败或探索完成" });
-                    planned = "build";
-                }
-                else Require(eligibility.IsValid, "正常探索正式资格校验失败：" + eligibility.Reason);
-            }
+            string planned = EligibleCampaignMainAction(PlannedMainAction(progress), actor);
             Append("决策变化.jsonl", new { State.GameId, State.Round, State.ActionRound, PlayerId = actor,
                 Policy = PlayPolicyVersion, Progress = progress, Planned = planned,
                 Reason = "前三回合按玩家完成两次移城加一次探索；B-01改三次移城；第四回合优先进红区，其余建设，不能建再部署" });
@@ -2196,9 +2363,7 @@ namespace YC.Presentation.Validation
             if (planned == "explore" && hud.ActionPanelView.ExploreButton.IsInteractable() &&
                 campaignActionAttempts.Add(actionWindow + ":policy-explore"))
             {
-                yield return Press(hud.ActionPanelView.ExploreButton, "按资源计划正常探索");
-                Require(Route?.IsActive == true, "正常探索入口未形成实际地图草稿");
-                explorationPlayPlan = PlanExploration(Route.Session, Route.Projection, State.Round >= 4 && !progress.RedZoneReached);
+                yield return BeginCampaignExploration(progress);
                 yield break;
             }
             if (State.Round >= 4 && !progress.RedZoneReached)
@@ -2463,7 +2628,7 @@ namespace YC.Presentation.Validation
                 throw new DriverContinuationPendingException("效果建设原付款按钮已点击，等待同一付款意图准确受理，不重复点击");
             if (scope.CanChoose)
             {
-                var options = new BuildFacilityOptionQueryService().QueryForEffectBuild(State, LocalPlayer, scope.VisibleState, scope.OwnerEffectId);
+                var options = CurrentRegisteredBuildOptions().QueryForEffectBuild(State, LocalPlayer, scope.VisibleState, scope.OwnerEffectId);
                 var shown = CurrentBuildMarkers(page).Where(value => value.Id.StartsWith("build.candidate.")).ToArray();
                 Require(options.Select(value => value.FacilityId).OrderBy(id => id).SequenceEqual(scope.Selection.CandidateIds.OrderBy(id => id)) &&
                     shown.Select(value => value.Id.Substring("build.candidate.".Length)).OrderBy(id => id).SequenceEqual(scope.Selection.CandidateIds.OrderBy(id => id)),
@@ -2589,13 +2754,17 @@ namespace YC.Presentation.Validation
         }
         private void Covered(string key)
         {
-            if (CampaignMode) { CampaignCompleted(key, new { Boundary = "实际控件确认的附加行动", LastCommand = commands.LastOrDefault() }); return; }
+            Require(!ReceiptRequiredCoverage(key) || verifiedActionReceipts.TryGetValue(key, out var proof) && proof.Completed,
+                "该主行动没有准确回执及实际结清证据，禁止记完成：" + key);
+            if (CampaignMode) { CampaignCompleted(key, ReceiptRequiredCoverage(key) ? (object)verifiedActionReceipts[key] :
+                new { Boundary = "实际控件确认的附加行动", LastCommand = commands.LastOrDefault() }); return; }
             if (!recordedThisGame.Add(key)) return;
             coverage.Completed[key] = CoverageCount(key) + 1;
             Append("实际完成覆盖.jsonl", new { State.GameId, State.Round, LocalPlayer, Key = key, Revision = State.EffectRuntime.StateRevision });
         }
         private void UpdateCoverage()
         {
+            ObserveActionReceipts();
             foreach (var use in State.CharacterUses)
             {
                 string definition = State.ItemZones.Items.FirstOrDefault(i => i.ItemId == use.CardInstanceId)?.DefinitionId;
@@ -2699,30 +2868,14 @@ namespace YC.Presentation.Validation
         private IEnumerator SalesAction()
         {
             int actor = LocalPlayer;
+            yield return TryVisibleQuickAction();
+            if (driverQuickActionPerformed) yield break;
             if (mobile.CanEndCurrentAction())
             {
                 yield return Press(hud.Frame.EndActionButton, "正常完成主要行动后结束"); yield break;
             }
-            yield return Press(MarkedButton("action.tab.1"), "正常快捷行动页签");
-            var rows = FindObjectsOfType<PlayerAutomationId>().Where(v => v.Id.StartsWith("action.character.") && v.GetComponent<Button>()?.IsInteractable() == true)
-                .OrderBy(v => State.ItemZones.Items.FirstOrDefault(i => "action.character." + i.ItemId == v.Id)?.DefinitionId == "cannot" ? -1000 :
-                    CoverageCount("character:" + State.ItemZones.Items.FirstOrDefault(i => "action.character." + i.ItemId == v.Id)?.DefinitionId + ":strategy")).ToArray();
-            foreach (var row in rows)
-            {
-                string item = row.Id.Substring("action.character.".Length);
-                string key = State.Round + ":" + State.ActionRound + ":" + actor + ":" + item;
-                if (!attemptedCharacterUses.Add(key)) continue;
-                var definition = State.ItemZones.Items.First(i => i.ItemId == item).DefinitionId;
-                Append("决策变化.jsonl", new { State.Round, PlayerId = actor, Action = "角色策略", Definition = definition,
-                    PreviousCoverage = CoverageCount("character:" + definition + ":strategy"), Reason = definition == "cannot" ? "正常候选含待测坎诺特" : "目标未覆盖时同时补其他可达角色策略" });
-                yield return Press(row.GetComponent<Button>(), "正常使用角色" + definition);
-                var viewer = FindObjectsOfType<CardViewer>().FirstOrDefault(v => v.StrategyButton.IsActive() && v.StrategyButton.IsInteractable());
-                Require(viewer != null, "正常角色使用没有可选策略卡面");
-                yield return Press(viewer.StrategyButton, "正常选择角色策略" + definition);
-                yield break;
-            }
             yield return Press(MarkedButton("action.tab.0"), "正常主要行动页签");
-            var options = new BuildFacilityOptionQueryService().Query(State, actor);
+            var options = CurrentRegisteredBuildOptions().Query(State, actor);
             string buildWindow = State.Round + ":" + State.ActionRound + ":" + actor + ":";
             var legal = options.Where(o => BuildFacilitySelectionController.CanPrepareOption(o) && o.PaymentOptions.Any(payment => payment.IsAvailable) && o.SlotOptions.Any(slot => slot.IsLegal) &&
                 !attemptedBuildPreparations.Contains(buildWindow + o.FacilityId))
@@ -2759,25 +2912,39 @@ namespace YC.Presentation.Validation
             }
             var influence = (YC.Domain.Influence.InfluenceService)Read(mobile, "influenceService");
             var deploySlots = RankInfluencePlacementSlots(influence.GetLegalPlacementSlotIds(State, actor));
+            bool deployUnavailable = ActionUnavailableThisWindow(GameCommandKind.DeployInfluence, actor);
             Append("决策变化.jsonl", new { State.Round, PlayerId = actor, Action = "主要行动合法性复核",
-                LegalDeploySlots = deploySlots, Reason = deploySlots.Count == 0 ? "正式规则无合法部署位置，改选其他合法行动继续本局" : "按正式合法部署候选推进" });
-            if (deploySlots.Count > 0 && hud.ActionPanelView.DeployButton.IsInteractable())
+                LegalDeploySlots = deploySlots, SkippedForKnownSupplyRejection = deployUnavailable,
+                Reason = deployUnavailable ? "本窗口已有准确供应拒绝，不重复部署，复核其它正式行动" :
+                    deploySlots.Count == 0 ? "正式规则无合法部署位置，改选其他合法行动继续本局" : "按正式基础部署候选推进，最终效果仍须真实受理" });
+            if (!deployUnavailable && deploySlots.Count > 0 && hud.ActionPanelView.DeployButton.IsInteractable())
             {
+                var observed = BeginObservedAction(GameCommandKind.DeployInfluence, actor, "", "", "action:deploy");
                 yield return Press(hud.ActionPanelView.DeployButton, "正常部署推进");
                 string slot = ChooseDeploySlot(influence.GetLegalPlacementSlotIds(State, actor));
+                observed.Target = slot;
                 yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署选择");
                 yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
-                Covered("action:deploy"); yield break;
+                yield return ResolveObservedInfluenceAction(observed);
+                if (!observed.KnownSupplyRejectionHandled) yield break;
+                deployUnavailable = true;
             }
+            if (!deployUnavailable && deploySlots.Count > 0)
+                StopObservedAction(BeginObservedAction(GameCommandKind.DeployInfluence, actor, "", "", "action:deploy"),
+                    "deploy_candidates_without_original_control_permission");
+            Require(Request == null && !ActionPaymentPreparation.HasBlockingChoice(State, actor),
+                "仍有正式必答或已提交行动待结算，不能因部署不可达改选其它主行动");
             string fallbackWindow = State.Round + ":" + State.ActionRound + ":" + actor;
-            if (hud.ActionPanelView.ExploreButton.IsInteractable() && attemptedCharacterUses.Add(fallbackWindow + ":fallback-explore"))
+            if (hud.ActionPanelView.ExploreButton.IsInteractable() && EligibleCampaignMainAction("explore", actor) == "explore" &&
+                attemptedCharacterUses.Add(fallbackWindow + ":fallback-explore"))
             {
                 yield return Press(hud.ActionPanelView.ExploreButton, "建设部署不可达后正常探索");
                 Require(Route?.IsActive == true, "正常探索入口未形成正式地图草稿");
                 yield break;
             }
-            if (hud.ActionPanelView.DispatchButton.IsInteractable() && TryFindDispatch(out var source, out var target))
-            { yield return DispatchAction(source, target); yield break; }
+            if (!ActionUnavailableThisWindow(GameCommandKind.DispatchInfluence, actor) &&
+                hud.ActionPanelView.DispatchButton.IsInteractable() && TryFindDispatch(out var source, out var target))
+            { yield return DispatchAction(source, target); if (!lastInfluenceActionHandledRejection) yield break; }
             if (hud.ActionPanelView.MoveCityButton.IsInteractable() && attemptedCharacterUses.Add(fallbackWindow + ":fallback-move"))
             {
                 preparedMainAction = new PreparedMainActionContinuation { GameId = State.GameId, Kind = "city_move",
@@ -2799,20 +2966,22 @@ namespace YC.Presentation.Validation
         }
         private IEnumerator DispatchAction(string source, string target)
         {
-            int before = commands.Count;
+            lastInfluenceActionHandledRejection = false;
+            var entity = State.Map.Influences.Single(value => value.PlayerId == LocalPlayer && value.SlotId == source);
+            var observed = BeginObservedAction(GameCommandKind.DispatchInfluence, LocalPlayer,
+                InfluenceIdentity.GetStableId(State, entity), target, "action:dispatch");
             yield return Press(hud.ActionPanelView.DispatchButton, "正常调度合法影响力");
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, source, "正常调度选择正式来源");
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, target, "正常调度选择正式目标并确认");
-            Require(commands.Count == before + 1 && (Read(commands[before], "Command") as GameCommand)?.Kind == GameCommandKind.DispatchInfluence,
-                "正常调度未准确提交一次正式调度命令");
-            Covered("action:dispatch");
+            yield return ResolveObservedInfluenceAction(observed);
+            lastInfluenceActionHandledRejection = observed.KnownSupplyRejectionHandled;
         }
         private IEnumerator BuildPlacement()
         {
             var request = Request;
             var page = CurrentBuildPage();
             Require(page != null, "正式建设放置请求未显示原建设面板，保留当前层级，不切换宿主");
-            if (string.IsNullOrEmpty(lastBuildItem)) RestoreBuildObservation(request, false);
+            RestoreBuildObservation(request, false);
             if (CampaignMode)
             {
                 var facility = FacilityCardDatabase.Get(State, lastBuildItem);
@@ -2843,13 +3012,16 @@ namespace YC.Presentation.Validation
             Require(placed != null, "建设首次放置后没有实际设施实例");
             if (CampaignMode && recordedPlayCommands.Add("built:" + lastBuildItem))
                 PlayProgress(placed.PlayerId).Builds++;
-            lastBuildRecorded = true; Covered("build:" + lastBuildDefinition);
+            lastBuildRecorded = true;
+            if (PerformanceMode) { PerformanceRecordPlacedFacility(lastBuildItem); yield break; }
+            Covered("build:" + lastBuildDefinition);
             Write("建设来源-" + State.Round + "-" + LocalPlayer + "-" + lastBuildDefinition + ".json", new { ItemId = lastBuildItem, Definition = lastBuildDefinition, Placement = placed, SubmittedRequest = request });
         }
         private void RestoreBuildObservation(InteractionRequestProjection request, bool alreadyPlaced)
         {
-            Require(NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")) &&
-                request != null && request.AnsweringPlayerId == LocalPlayer, "恢复建设观察必须来自本人正常续局请求");
+            Require(request != null && request.VisibleToViewer && request.Status == "open" &&
+                request.StateRevision == State.EffectRuntime.StateRevision && request.AnsweringPlayerId == LocalPlayer,
+                "建设观察必须来自本人当前正式请求");
             var node = State.EffectRuntime.EffectNodes.FirstOrDefault(value => value.EffectId == request.OwnerEffectId);
             var ancestors = new List<string>();
             while (node != null && !ancestors.Contains(node.EffectId))
@@ -2879,7 +3051,10 @@ namespace YC.Presentation.Validation
         private IEnumerator RequiredAllocation()
         {
             var request = Request;
-            var confirm = FindObjectsOfType<Button>().FirstOrDefault(b => (b.name == "Confirm" || b.name == "Confirm Character Effect") && b.IsActive());
+            if (PerformanceMode) { yield return PerformanceAllocation(request); yield break; }
+            if (request?.InteractionTypeId == ResourcePaymentChoiceEffectExecutor.InteractionTypeId)
+            { yield return RequiredResourcePayment(request); yield break; }
+            var confirm = CurrentAllocationConfirm(request) ?? FindObjectsOfType<Button>().FirstOrDefault(b => (b.name == "Confirm" || b.name == "Confirm Character Effect") && b.IsActive());
             Require(confirm != null, "数量请求没有实际确认按钮");
             var sourceItem = PaymentField(request, "sourceItemId")?.StringValue;
             bool markerQuantity = PaymentField(request, "amountKind")?.StringValue == "player_marker";
@@ -3088,7 +3263,20 @@ namespace YC.Presentation.Validation
         private IEnumerator RunActionStep(int step)
         {
             stage = "正常流程步骤" + (step + 1) + "-回合" + State.Round + "-玩家" + LocalPlayer + "-" + (Request?.InteractionTypeId ?? State.Phase.ToString());
+            ObserveDriverQuickActionCompletion();
+            ObserveActionCleanupCoverage();
+            ObserveContinuationStages();
+            if (UiRegressionMode)
+            {
+                var hudView = Read(hud?.Frame, "gameplaySnapshot") as GameStateView;
+                var published = mobile.GetType().GetMethod("VisibleSaleState", Members)?.Invoke(mobile, null) as GameStateView;
+                object Identity(GameStateView value) => value == null ? null : new {value.GameId, value.ViewerPlayerId, value.StateRevision, value.ContentPackHash};
+                Append("行动前显示发布身份.jsonl", new {Frame = Time.frameCount, Stage = stage, Hud = Identity(hudView), Published = Identity(published),
+                    Expected = new {State.GameId, ViewerPlayerId = LocalPlayer, Revision = State.EffectRuntime.StateRevision, State.ContentPackHash},
+                    CurrentRequest = Request, PublishedRequests = published?.Interactions.Where(r => r.Status == "open").ToArray()});
+            }
             Append("正常流程轨迹.jsonl", Observe());
+            if (EntrepreneurUiMode) RecordEntrepreneurVisibleFacts();
             if (CampaignMode) ObservePlayerPlayPositions();
             RecordVisiblePaymentSummary();
             ObserveMoveCompletion();
@@ -3138,7 +3326,7 @@ namespace YC.Presentation.Validation
             }
             if (Route?.IsActive == true)
             {
-                if (State.Phase == GamePhase.ResourceCollection) yield return HarvestOne(NetworkMode ? !harvestOrder.Contains(LocalPlayer) : harvestOrder.Count < 4);
+                if (State.Phase == GamePhase.ResourceCollection) yield return HarvestOne(NetworkMode ? !harvestOrder.Contains(LocalPlayer) : harvestOrder.Count < ExpectedLocalPlayerCount);
                 else yield return GrantedRouteSelection();
                 yield break;
             }
@@ -3151,14 +3339,9 @@ namespace YC.Presentation.Validation
                     yield return new WaitForEndOfFrame();
                     if (State.Phase != GamePhase.Cleanup || Request != null) yield break;
                 }
-                var requiredChip = hud.GetComponentsInChildren<SettlementEffectChipView>().FirstOrDefault(c =>
-                    (bool)Read(c, "executionAllowed") && !(bool)Read(c, "pending") &&
-                    (Read(c, "option") as SettlementOptionView)?.EntryKind == "cleanup_order");
-                if (requiredChip != null)
-                {
-                    yield return PointerSequence(requiredChip.gameObject, "正常收尾实际结算来源，不能直接跳过");
-                    yield break;
-                }
+                yield return TryVisibleCleanupAction();
+                if (cleanupActionPerformed) yield break;
+                Require(mobile.CanEndCurrentAction(), "当前收尾仍有必做结算或响应，不可用结束替代");
                 int revision = State.EffectRuntime.StateRevision;
                 yield return Press(hud.Frame.EndActionButton, "正常收尾首次结束");
                 Require(State.EffectRuntime.StateRevision > revision, "正常收尾首次结束未推进");
@@ -3176,8 +3359,8 @@ namespace YC.Presentation.Validation
                 yield return NormalChoice();
                 yield break;
             }
-            Require(State.Phase == GamePhase.ActionRound1 || State.Phase == GamePhase.ActionRound2,
-                "尚未适配正常阶段的真实控件：" + State.Phase);
+            if (State.Phase != GamePhase.ActionRound1 && State.Phase != GamePhase.ActionRound2)
+                throw new DriverContinuationPendingException("尚未识别当前正常阶段的真实控件：" + State.Phase);
             if (CampaignMode) yield return CampaignAction();
             else if (SalesMode) yield return SalesAction(); else yield return NormalAction();
         }
@@ -3213,17 +3396,26 @@ namespace YC.Presentation.Validation
             }
             yield return Press(FindObjectsOfType<PlayerAutomationId>().Single(x => x.Id == "action.tab.0").GetComponent<Button>(), "正常主行动页签");
             Require(!mobile.CanEndCurrentAction(), "新的行动窗口未经主要行动就已经允许结束");
+            if (ActionUnavailableThisWindow(GameCommandKind.DeployInfluence, actor))
+            { yield return SalesAction(); yield break; }
             int before = commands.Count;
+            var deployObservation = BeginObservedAction(GameCommandKind.DeployInfluence, actor, "", "", "action:deploy");
             yield return Press(hud.ActionPanelView.DeployButton, "正常主要行动部署");
             var influence = (YC.Domain.Influence.InfluenceService)Read(mobile, "influenceService");
             string slot = ChooseDeploySlot(influence.GetLegalPlacementSlotIds(State, actor));
+            deployObservation.Target = slot;
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署选择");
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
+            yield return ResolveObservedInfluenceAction(deployObservation);
+            if (deployObservation.KnownSupplyRejectionHandled) { yield return SalesAction(); yield break; }
+            if (!deployObservation.Completed) yield break;
             yield return Capture("正常部署后结束按钮");
             Require(commands.Count == before + 1, "正常部署未恰好提交一次命令");
             Require(mobile.CanEndCurrentAction() && hud.Frame.EndActionButton.IsInteractable(), "正常部署后结束按钮仍不可用");
             before = commands.Count;
+            var endObservation = BeginObservedAction(GameCommandKind.EndAction, actor, "", "", "action:end");
             yield return Press(hud.Frame.EndActionButton, "正常部署后首次结束");
+            ReadObservedActionReceipt(endObservation);
             yield return Capture("正常部署首次结束后");
             Require(commands.Count == before + 1 && (State.CurrentPlayerId != actor || State.Phase == GamePhase.ResourceCollection), "正常部署首次结束没有交接");
             actionChecks++;
@@ -3254,12 +3446,18 @@ namespace YC.Presentation.Validation
                     string.Join(",", presenter.Draft.SelectedLocationIds.OrderBy(id => id)) + "|" + presenter.Draft.EditingRouteId + "|" +
                     string.Join(",", presenter.Draft.RecipientChoices.Select(choice => choice.RouteId + ":" + choice.ReceiverSubjectKey).OrderBy(id => id)) + "|" +
                     State.EffectRuntime.StateRevision + "|" + presenter.Projection.Budget.AvailableSelectionGoldVoucherAmount;
-                if (!visitedDrafts.Add(draftKey))
+                bool repeatedDraft = !visitedDrafts.Add(draftKey);
+                int budget = Math.Min(presenter.Session.StartGoldVoucherAmount, presenter.Projection.Budget.AvailableSelectionGoldVoucherAmount);
+                int currentCost = presenter.Projection.Preview?.PaymentPlan?.TotalGoldVoucherAmount ?? presenter.Projection.ProvisionalGoldVoucherAmount;
+                if (DriverRouteMustStop(repeatedDraft, currentCost, budget))
                 {
+                    string reason = repeatedDraft ? "同一权威revision重复到达相同选择与收款草稿" : "正式完整预览或暂估累计路费超过当前总预算";
                     Write("地图选择无进展-" + State.EffectRuntime.StateRevision + ".json", new { State.GameId, State.Round,
                         PlayerId = actor, Request = request, Session = presenter.Session, Draft = presenter.Draft, Projection = presenter.Projection,
-                        Plan = explorationPlayPlan, Reason = "同一权威revision重复到达相同选择与收款草稿，停止驱动，不能反复点击" });
-                    throw new DriverContinuationPendingException("地图选点返回重复草稿，无法形成可确认的合法预览；保留首次循环，不补点");
+                        Plan = explorationPlayPlan, Reason = reason, CurrentCost = currentCost, Budget = budget });
+                    if (presenter.Session.AllowCancelBeforeCommit)
+                    { yield return CancelGrantedRouteSelection(request, actor, localPreview, reason); yield break; }
+                    throw new DriverContinuationPendingException(reason + "；当前正式请求不允许取消，保留现场，不补点");
                 }
                 var locations = FindObjectsOfType<MapButtonView>().Where(b => b.TargetKind == WorkflowHighlightTargetKind.Location && b.IsInteractive &&
                     !presenter.Draft.SelectedLocationIds.Contains(b.TargetId));
@@ -3270,7 +3468,9 @@ namespace YC.Presentation.Validation
                     yield return MapPress(WorkflowHighlightTargetKind.Location, location.TargetId, "正常额外采集选择正式可达资源点");
                     continue;
                 }
+                // CanAffordIfCharged仅代表单条；正式Projection的暂估累计费用还须容纳下一条。
                 var option = presenter.Projection.RouteOptions.Where(o => o.CanAffordIfCharged && o.IsFrontier && !o.IsOriginallyConfirmed &&
+                    DriverRouteCanExtend(presenter.Projection.ProvisionalGoldVoucherAmount, o.TollGoldVoucherAmount, budget) &&
                     (!planSelection || explorationPlayPlan != null && explorationPlayPlan.Routes.Contains(o.RouteId)) &&
                     FindObjectsOfType<MapButtonView>().Any(b => b.TargetKind == WorkflowHighlightTargetKind.Route && b.TargetId == o.RouteId && b.IsInteractive))
                     .OrderBy(o => FindObjectsOfType<MapButtonView>().Any(b => b.TargetKind == WorkflowHighlightTargetKind.Route &&
@@ -3278,22 +3478,7 @@ namespace YC.Presentation.Validation
                     .ThenBy(o => o.TollGoldVoucherAmount).FirstOrDefault();
                 if (option == null && presenter.Session.AllowCancelBeforeCommit)
                 {
-                    int cancelRevision = State.EffectRuntime.StateRevision, cancelCommands = commands.Count;
-                    Write("额外采集不可达-" + cancelRevision + ".json", new { State.GameId, State.Round,
-                        PlayerId = actor, Request = request, Session = presenter.Session, Draft = presenter.Draft,
-                        Projection = presenter.Projection, Reason = "正式可见草稿没有可达资源点或可负担航道，允许取消；不计采集完成" });
-                    Append("控件事件.jsonl", new { Index = ++eventNumber, Stage = stage, Frame = Time.frameCount,
-                        Input = "内部正常Escape路由入口，非外部按键", Description = "不可达的额外采集正常取消" });
-                    if (NetworkMode) NetworkRequireNoPendingOriginalControl("不可达的额外采集正常取消");
-                    Require(mobile.TryHandleInteractionEscape(), "允许取消的额外采集未被正常Escape路由受理");
-                    if (NetworkMode) yield return AwaitOriginalControlCommandChain();
-                    yield return Settle();
-                    Require(localPreview ? State.EffectRuntime.StateRevision == cancelRevision && commands.Count == cancelCommands && Route?.IsActive != true :
-                        State.EffectRuntime.StateRevision > cancelRevision && commands.Count == cancelCommands + 1 &&
-                        Request?.InteractionId != request?.InteractionId, "地图草稿正常取消未获得对应结果");
-                    explorationPlayPlan = null;
-                    Append("未覆盖原因.jsonl", new { State.GameId, State.Round, PlayerId = actor,
-                        Source = "额外采集", Cancelled = true, Covered = false, Reason = "本人正式预算/可达性不足，正常取消并继续本局" });
+                    yield return CancelGrantedRouteSelection(request, actor, localPreview, "当前正式候选没有满足累计预算的可达资源点或下一航道");
                     yield break;
                 }
                 Require(option != null, "额外采集正式草稿不可达且不允许取消，保留实际界面");
@@ -3313,6 +3498,10 @@ namespace YC.Presentation.Validation
                 Math.Min(presenter.Session.StartGoldVoucherAmount, State.FindPlayer(actor).Resources.GoldVoucher),
                 "探索/采集完整路线仍不可付，不能进入二次确认");
             var beforeResources = State.FindPlayer(actor).Resources.Clone();
+            var routeObservation = BeginObservedAction(localPreview ? GameCommandKind.ExploreLocation : GameCommandKind.AnswerInteraction,
+                actor, "", localPreview ? selectedLocationsBefore.Single() : "", exploration ? "action:explore" : "action:granted-harvest",
+                localPreview ? null : request);
+            routeObservation.Locations = selectedLocationsBefore;
             string name = "回合" + State.Round + "-玩家" + actor + (exploration ? "-探索-" : "-额外采集-") + beforeRevision;
             Write(name + "输入.json", new { State.GameId, Request = request, Session = presenter.Session,
                 Draft = presenter.Draft, Preview = presenter.Projection.Preview, BeforeResources = beforeResources });
@@ -3328,6 +3517,7 @@ namespace YC.Presentation.Validation
                 Require(mobile.CanEndCurrentAction(), "额外采集草稿可确认但真实结束入口不可用");
                 yield return Press(hud.Frame.EndActionButton, "正常额外采集首次确认");
             }
+            bool routeSettled = FinishObservedAction(routeObservation);
             Require(State.EffectRuntime.StateRevision > beforeRevision && commands.Count == beforeCommands + 1 &&
                 (localPreview ? (Read(commands[beforeCommands], "Command") as GameCommand)?.Kind == GameCommandKind.ExploreLocation :
                 Request?.InteractionId != request?.InteractionId), "地图草稿首次确认未受理完成，不能补点或强刷");
@@ -3336,14 +3526,89 @@ namespace YC.Presentation.Validation
                 "地图首次确认没有准确成功并Applied的回执");
             Write(name + "结果.json", new { State.GameId, BeforeResources = beforeResources, AfterResources = State.FindPlayer(actor).Resources,
                 BeforeRevision = beforeRevision, AfterRevision = State.EffectRuntime.StateRevision, CommandsAdded = commands.Count - beforeCommands });
-            Covered(exploration ? "action:explore" : "action:granted-harvest");
-            if (CampaignMode && exploration && !localPreview && recordedPlayCommands.Add("explore:" + request.InteractionId))
-                PlayProgress(actor).Explorations++;
-            if (CampaignMode && exploration && StaticMapDefinitions.Resolve(State.MapId).Locations.Any(location =>
-                location.IsRedZone && selectedLocationsBefore.Contains(location.LocationId)))
-                PlayProgress(actor).RedZoneReached = true;
+            Append("地图行动受理后继.jsonl", new { routeObservation.Command.CommandId,
+                Accepted = true, EffectSettled = routeSettled, CompletionClaimed = routeSettled });
             explorationPlayPlan = null;
         }
+
+        private static bool DriverRouteCanExtend(int provisionalCost, int nextCost, int budget)
+            => provisionalCost >= 0 && nextCost >= 0 && (long)provisionalCost + nextCost <= budget;
+        private static bool DriverRouteMustStop(bool repeatedDraft, int currentCost, int budget)
+            => repeatedDraft || currentCost > budget;
+        private static bool DriverRouteCancellationPermitted(bool allowsCancel, bool current, bool owned)
+            => allowsCancel && current && owned;
+
+        private IEnumerator CancelGrantedRouteSelection(InteractionRequestProjection request, int actor, bool localPreview, string reason)
+        {
+            var presenter = Route;
+            bool current = presenter?.IsActive == true && presenter.Projection.ObservedStateRevision == State.EffectRuntime.StateRevision &&
+                (localPreview ? presenter.RequestBinding == null : Request?.InteractionId == request?.InteractionId &&
+                    request != null && Request.Status == "open" && Request.StateRevision == State.EffectRuntime.StateRevision);
+            Require(DriverRouteCancellationPermitted(presenter?.Session.AllowCancelBeforeCommit == true, current,
+                actor == LocalPlayer && presenter?.Session.PlayerId == actor && (localPreview || request?.AnsweringPlayerId == actor)),
+                "只能取消本人当前正式允许取消的路线草稿，不能替答或绕过权限");
+            int cancelRevision = State.EffectRuntime.StateRevision, cancelCommands = commands.Count;
+            string originalGame = State.GameId;
+            Write("路线计划取消前-" + cancelRevision + "-" + eventNumber + ".json", new { State.GameId, State.Round,
+                PlayerId = actor, Request = request, Session = presenter.Session, Draft = presenter.Draft, Projection = presenter.Projection,
+                Reason = reason, CancelIsCompletion = false });
+            Append("控件事件.jsonl", new { Index = ++eventNumber, Stage = stage, Frame = Time.frameCount,
+                Input = "内部正常Escape路由入口，非外部按键", Description = "当前不可完成的路线草稿正常取消" });
+            if (NetworkMode) NetworkRequireNoPendingOriginalControl("当前不可完成的路线草稿正常取消");
+            if (PerformanceMode)
+            {
+                performanceActiveInputIndex = ++performanceInputs;
+                PerformanceRecord("ui.escape_event.begin", new { Index = performanceInputs, Description = "本人正式允许取消的路线草稿" });
+            }
+            try { Require(mobile.TryHandleInteractionEscape(), "本人允许取消的路线未被原Escape路由受理"); }
+            finally { if (PerformanceMode) performanceActiveInputIndex = 0; }
+            if (NetworkMode) yield return AwaitOriginalControlCommandChain();
+            yield return Settle();
+            Require(State.GameId == originalGame && (localPreview ? State.EffectRuntime.StateRevision == cancelRevision &&
+                commands.Count == cancelCommands && Route?.IsActive != true :
+                State.EffectRuntime.StateRevision > cancelRevision && commands.Count == cancelCommands + 1 &&
+                Request?.InteractionId != request.InteractionId), "路线草稿正常取消未获得对应revision/request结果");
+            if (!localPreview)
+            {
+                var command = Read(commands[cancelCommands], "Command") as GameCommand;
+                var receipt = Read(commands[cancelCommands], "Result") as WorkflowSubmissionResult;
+                Require(command?.Kind == GameCommandKind.AnswerInteraction && command.PlayerId == actor &&
+                    command.Parameters.TryGetValue("interactionId", out var requestId) && requestId == request.InteractionId &&
+                    command.OptionIds.Count == 1 && request.CandidateIds.Contains(command.OptionIds[0]) &&
+                    command.OptionIds[0].EndsWith(".cancel", StringComparison.Ordinal) &&
+                    receipt?.CommandResult?.Succeeded == true && receipt.AppliedLocally,
+                    "路线取消没有本人原请求cancel候选的一次准确成功Applied回执");
+            }
+            explorationPlayPlan = null;
+            Append("未覆盖原因.jsonl", new { State.GameId, State.Round, PlayerId = actor, Source = "探索/额外采集路线",
+                Cancelled = true, Covered = false, CompletionClaimed = false, Reason = reason });
+            Append("决策变化.jsonl", new { State.GameId, State.Round, State.ActionRound, PlayerId = actor,
+                Action = "路线累计预算或重复草稿正常取消后继续本局", RevisionBefore = cancelRevision, RevisionAfter = State.EffectRuntime.StateRevision,
+                OriginalRequest = request?.InteractionId, NextRequest = Request?.InteractionId, LocalPreview = localPreview,
+                ExistingFallbackExploreAttempted = attemptedCharacterUses.Contains(State.Round + ":" + State.ActionRound + ":" + actor + ":fallback-explore"),
+                Reason = "不把取消计采集完成；普通探索保现有同主要行动窗口尝试标记，转原合法建设/部署/调度/移城策略，不重开相同计划" });
+        }
+#if UNITY_EDITOR
+        public static void VerifyR13RouteContinuation()
+        {
+            string destination = Environment.GetCommandLineArgs().First(value => value.StartsWith("--qy004-r13-check-output=", StringComparison.Ordinal)).Substring("--qy004-r13-check-output=".Length);
+            string failed = Environment.GetCommandLineArgs().First(value => value.StartsWith("--qy004-r13-failed-draft=", StringComparison.Ordinal)).Substring("--qy004-r13-failed-draft=".Length);
+            var actual = JObject.Parse(File.ReadAllText(failed));
+            int budget = (int)actual["Projection"]["Budget"]["AvailableSelectionGoldVoucherAmount"];
+            int total = (int)actual["Projection"]["Preview"]["PaymentPlan"]["TotalGoldVoucherAmount"];
+            bool overBudgetRejected = budget == 2 && total == 4 && !DriverRouteCanExtend(2, 2, budget) && DriverRouteMustStop(false, total, budget);
+            bool affordableContinues = DriverRouteCanExtend(2, 2, 4) && !DriverRouteMustStop(false, 4, 4);
+            bool repeatedCanCancel = DriverRouteMustStop(true, 2, 2) && DriverRouteCancellationPermitted(true, true, true) &&
+                !DriverRouteCancellationPermitted(false, true, true) && !DriverRouteCancellationPermitted(true, false, true) &&
+                !DriverRouteCancellationPermitted(true, true, false);
+            Require(overBudgetRejected && affordableContinues && repeatedCanCancel, "R13路线累计预算/重复草稿取消决策有限核查失败");
+            using (var writer = new StreamWriter(new FileStream(Path.Combine(destination, "原生路线有限核验.json"), FileMode.CreateNew)))
+                writer.Write(JsonConvert.SerializeObject(new { Passed = true, OverBudgetRejected = overBudgetRejected,
+                    AffordableContinues = affordableContinues, RepeatedCurrentOwnedCanCancel = repeatedCanCancel,
+                    MainMvid = typeof(HotseatUiValidationDriver).Assembly.ManifestModule.ModuleVersionId, Unity = UnityEngine.Application.unityVersion,
+                    Scope = "当前Unity编译及隔离驱动决策核查；没有创建游戏状态、提交命令或执行真实UI取消，不算正常UI验收" }, Formatting.Indented));
+        }
+#endif
 
         private IEnumerator HarvestOne(bool record)
         {
@@ -3351,6 +3616,34 @@ namespace YC.Presentation.Validation
             var presenter = Route;
             string harvestName = (CoverageMode ? "回合" + State.Round + "-" : "") + "正常采集玩家" + actor;
             var initial = presenter.Draft.SelectedLocationIds.ToArray();
+            var freeOptions = presenter.Projection.LocationOptions.Where(option => option.IsFreeCollection && option.CanSelect)
+                .Select(option => option.LocationId).ToArray();
+            Append("正常采集默认草稿原观察.jsonl", new { State.GameId, State.ContentPackHash, State.Round, PlayerId = actor,
+                RequestId = Request?.InteractionId, Revision = State.EffectRuntime.StateRevision,
+                DefaultSelectedLocationIds = initial, FormalFreeLocations = freeOptions, Session = presenter.Session,
+                LocationOptions = presenter.Projection.LocationOptions, BeforeAnyDriverSelection = true });
+            if (DeferContentDifferences && campaignCaptureKeys.Add("collection-default:" + presenter.Session.SessionId))
+            {
+                yield return new WaitForEndOfFrame();
+                SaveCapture(harvestName + "-原默认草稿未编辑");
+            }
+            if (DeferContentDifferences)
+            {
+                CheckContent(freeOptions.All(initial.Contains), "正常采集正式免费点没有全部默认选中；保原草稿与原图后仅沿可见合法控件补选");
+                foreach (var id in freeOptions.Where(id => !presenter.Draft.SelectedLocationIds.Contains(id)))
+                {
+                    var current = FindObjectsOfType<MapButtonView>().FirstOrDefault(button => button.TargetKind == WorkflowHighlightTargetKind.Location &&
+                        button.TargetId == id && button.IsInteractive);
+                    if (current == null || presenter.Draft.SelectedLocationIds.Count >= presenter.Session.MaximumLocations)
+                    {
+                        CheckContent(false, "正式免费点暂不可由原控件补选或已达正式上限；保缺口，当前草稿仍合法时继续");
+                        if (presenter.CanConfirm) continue;
+                        throw new DriverContinuationPendingException("当前采集没有可确认草稿，正式免费点也无可用原控件；重新读取当前实际页面，不改草稿");
+                    }
+                    yield return MapPress(WorkflowHighlightTargetKind.Location, id, "当前正常采集原控件补选正式免费点");
+                }
+                initial = presenter.Draft.SelectedLocationIds.ToArray();
+            }
             var target = PreferVisibleMapTarget(FindObjectsOfType<MapButtonView>().Where(b =>
                 b.TargetKind == WorkflowHighlightTargetKind.Location && b.IsInteractive && initial.Contains(b.TargetId)));
             bool edited = target != null;
@@ -3373,7 +3666,10 @@ namespace YC.Presentation.Validation
             expectedResources.GoldVoucher -= cost;
             var beforeRound = State.Round;
             var revision = State.EffectRuntime.StateRevision;
-            string requestId = Request?.InteractionId;
+            var harvestRequest = Request;
+            string requestId = harvestRequest?.InteractionId;
+            Require(harvestRequest != null, "正常采集没有当前正式待答请求，不能猜测确认身份");
+            var harvestObservation = BeginObservedAction(GameCommandKind.AnswerInteraction, actor, "", "", "action:harvest", harvestRequest);
             int before = commands.Count;
             Require(presenter.CanConfirm && mobile.CanEndCurrentAction(), "正常采集本人草稿不能首次确认");
             yield return Capture(harvestName + "首次结束前");
@@ -3382,6 +3678,7 @@ namespace YC.Presentation.Validation
                 Selected = selected, BeforeResources = JsonConvert.DeserializeObject(beforeResources), Preview = presenter.Projection.Preview,
                 ResourceTokens = tokens, ExpectedResources = expectedResources, Request = Request });
             yield return Press(hud.Frame.EndActionButton, "正常采集首次结束，不补点");
+            if (!FinishObservedAction(harvestObservation)) yield break;
             yield return Capture(harvestName + "首次结束后");
             Write(harvestName + "正式状态后.json", State);
             bool resourceMatch = expectedResources.Enumerate().All(pair => State.FindPlayer(actor).Resources.Get(pair.Key) == pair.Value);
@@ -3401,11 +3698,10 @@ namespace YC.Presentation.Validation
             if (finalScoringResolved) Append("决策变化.jsonl", new { State.GameId, PlayerId = actor, State.Round,
                 Action = "最后采集已进入正式终局", State.Phase, State.FinalScoring.IsResolved,
                 Note = "正式收尾已复位回合标记；沿已解析四人计分进入正常终局出口，不要求回合标记继续为真" });
-            if (CoverageMode) Covered("action:harvest");
             if (record)
             {
                 Require(!harvestOrder.Contains(actor), "正常采集首轮重复玩家"); harvestOrder.Add(actor);
-                checks.Add(new { Item = "正常连续四人首次采集", ActualSequence = harvestOrder.Count, PlayerId = actor, Passed = true, Edited = edited,
+                checks.Add(new { Item = "正常连续" + ExpectedLocalPlayerCount + "人首次采集", ActualSequence = harvestOrder.Count, PlayerId = actor, Passed = true, Edited = edited,
                     Selected = selected, RequestId = requestId, ResourcesMatch = resourceMatch, SecondAttempt = false });
             }
         }
@@ -3461,18 +3757,24 @@ namespace YC.Presentation.Validation
             Require(button != null && button.IsActive() && button.IsInteractable(), description + "：实际按钮不处于可用状态");
             yield return PointerSequence(button.gameObject, description);
         }
-        private IEnumerator PointerSequence(GameObject target, string description)
+        private IEnumerator PointerSequence(GameObject target, string description) => PointerSequenceGuarded(target, description, null);
+        private IEnumerator PointerSequenceGuarded(GameObject target, string description, Func<bool> stillCurrent)
         {
+            if (PerformanceMode) { yield return PerformancePointer(target, description, stillCurrent); yield break; }
             if (NetworkMode) NetworkRequireNoPendingOriginalControl(description);
             string automationId = target == null ? null : target.GetComponent<PlayerAutomationId>()?.Id;
             string requestId = mobile == null ? null : Request?.InteractionId;
+            var pointerRequest = mobile == null ? null : Request;
             int actor = mobile == null ? -1 : LocalPlayer, submittedBeforeScroll = commands.Count;
             GameObject CurrentScrollTarget()
             {
+                if (stillCurrent?.Invoke() == false) return null;
+                if (automationId != "supply.select.confirm" && automationId?.StartsWith("supply.select.", StringComparison.Ordinal) == true &&
+                    !SupplyCandidateMatches(pointerRequest, Request, CurrentPaymentView(), LocalPlayer, automationId)) return null;
                 if (target != null && target.activeInHierarchy) return target;
-                if (string.IsNullOrEmpty(automationId) || !automationId.StartsWith("selection.card.", StringComparison.Ordinal) ||
+                if (string.IsNullOrEmpty(automationId) || !TrySelectionCandidateId(automationId, out var pointerCandidate) ||
                     Request?.InteractionId != requestId || LocalPlayer != actor || commands.Count != submittedBeforeScroll ||
-                    Request?.CandidateIds.Contains(automationId.Substring("selection.card.".Length)) != true) return null;
+                    Request?.CandidateIds.Contains(pointerCandidate) != true) return null;
                 var matches = FindObjectsOfType<PlayerAutomationId>().Where(value => value.Id == automationId &&
                     value.gameObject.activeInHierarchy && value.GetComponent<Button>()?.IsInteractable() == true).ToArray();
                 if (matches.Length != 1) return null;
@@ -3501,6 +3803,9 @@ namespace YC.Presentation.Validation
             }
             var data = Pointer(point);
             var targetPath = ComponentPath(target.transform);
+            string originalControlKey = OriginalControlKey(targetPath);
+            CheckOriginalControlNotRepeated(originalControlKey);
+            int originalCommandsBefore = commands.Count;
             Append("控件事件.jsonl", new { Index = ++eventNumber, Frame = Time.frameCount, Stage = stage, Description = description,
                 Path = targetPath, Input = "内部真实控件PointerDown/PointerUp/PointerClick，非外部鼠标", ScreenX = point.x, ScreenY = point.y });
             void Boundary(string callback, bool returned) => Append("控件回调边界.jsonl", new { Index = eventNumber,
@@ -3515,10 +3820,16 @@ namespace YC.Presentation.Validation
             Boundary("PointerClick", false);
             ExecuteEvents.Execute(target, data, ExecuteEvents.pointerClickHandler);
             Boundary("PointerClick", true);
+            RememberSubmittedControl(originalControlKey, originalCommandsBefore);
             if (NetworkMode) yield return AwaitOriginalControlCommandChain();
             Boundary("ObserveAndSave", false);
             if (NetworkMode) NetworkObserveEnterpriseDraft("原控件PointerClick后", null);
-            Write("最近控件同步返回.json", ObserveSafely());
+            if (!NetworkMode || !DeferContentDifferences || mobile == null || session == null || networkTransport == null)
+                Write("最近控件同步返回.json", ObserveSafely());
+            else Append("本地控件返回摘要.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
+                Stage = stage, OriginalControl = targetPath, LocalPlayer, Revision = State.EffectRuntime.StateRevision,
+                RequestId = Request?.InteractionId, RequestType = Request?.InteractionTypeId,
+                FullStateDump = false, PerControlFourReplicaBarrier = false });
             Boundary("ObserveAndSave", true);
             yield return Settle();
         }
@@ -3534,7 +3845,7 @@ namespace YC.Presentation.Validation
                 Append("原控件逐命令等待.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Phase = "开始",
                     Stage = stage, pending.StepId, pending.Command.CommandId, pending.Command.Kind,
                     CommandTimeoutSeconds = networkOriginalCommandObservationSeconds, FailureThresholdSeconds = 45,
-                    TimeoutMode = "连续无正式序号推进；45秒仍记失败，显式补充观察不重发命令", OriginalCommand = true, SubmittedByDriver = false });
+                    TimeoutMode = "连续无正式序号推进；45秒只保等待观察，不据时长判协议故障，不重发命令", OriginalCommand = true, SubmittedByDriver = false });
                 // 原页面可以在准确回执回调内继续提交下一条命令；每次只等待这一条身份不变的原命令。
                 yield return NetworkUntil(() => pending.Result != null || pending.RetiredByRecovery,
                     "原控件单条命令准确回执" + pending.Command.CommandId, networkOriginalCommandObservationSeconds,
@@ -3653,11 +3964,16 @@ namespace YC.Presentation.Validation
                 InformationNavigation = Read(frame, "informationNavigation"), CurrentRequestId = Read(frame, "currentRequestId"),
                 GameplayHudFrame.EffectInputSuspended };
         }
-        private IEnumerator MapPress(WorkflowHighlightTargetKind kind, string id, string description)
+        private IEnumerator MapPress(WorkflowHighlightTargetKind kind, string id, string description,
+            MapInputContext expectedInput = null, bool confirmSelected = false)
         {
+            if (PerformanceMode) { yield return PerformanceMap(kind, id, description, expectedInput, confirmSelected); yield break; }
             if (NetworkMode) NetworkRequireNoPendingOriginalControl(description);
-            var target = FindObjectsOfType<MapButtonView>().Single(b => b.TargetKind == kind && b.TargetId == id);
-            Require(target.IsInteractive, description + "：地图控件不接收输入 " + id);
+            if (expectedInput != null && !MapContextStillCurrent(expectedInput)) yield break;
+            var target = FindObjectsOfType<MapButtonView>().SingleOrDefault(b => b.TargetKind == kind && b.TargetId == id);
+            RequireMapReadiness(target != null && target.IsInteractive && target.Image != null && target.Image.enabled &&
+                (!confirmSelected || target.IsSelected && MapConfirmationOwnerMatches(kind, id)), expectedInput, target,
+                description + "：地图控件或当前预选/输入宿主尚未就绪 " + id);
             var point = (Vector2)Camera.main.WorldToScreenPoint(target.HitArea.bounds.center);
             if (!TabletopPointerClassifier.CanRouteMapPointer(point))
             {
@@ -3668,21 +3984,28 @@ namespace YC.Presentation.Validation
                 Append("地图候选导航.jsonl", new { Stage = stage, Description = description,
                     Action = "原地图控件点击前正常显露", Before = MapInputDiagnostics(target) });
                 yield return RevealMapTarget(target, details => Append("地图候选导航.jsonl", details));
+                if (expectedInput != null && !MapContextStillCurrent(expectedInput)) yield break;
                 Require(State.GameId == gameId && State.EffectRuntime.StateRevision == revision && LocalPlayer == actor &&
                     commands.Count == commandCount && Request?.InteractionId == requestId && target.IsSelected == selected,
                     description + "：正常地图导航意外改变了对局、请求、命令或原预选");
                 point = Camera.main.WorldToScreenPoint(target.HitArea.bounds.center);
             }
-            Require(TabletopPointerClassifier.CanRouteMapPointer(point), description + "：地图控件中心被HUD遮挡或不在视口 " + id);
+            RequireMapReadiness(TabletopPointerClassifier.CanRouteMapPointer(point), expectedInput, target,
+                description + "：地图控件中心被HUD遮挡或不在视口 " + id);
             var hits = new List<RaycastResult>();
             EventSystem.current.RaycastAll(Pointer(point), hits);
             var hitHandler = hits.Count == 0 ? null : ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
-            Require(hitHandler == target.gameObject, description + "：真实首命中不是该地图候选 " + id);
+            RequireMapReadiness(hitHandler == target.gameObject, expectedInput, target,
+                description + "：真实首命中不是该地图候选 " + id);
+            string originalControlKey = OriginalControlKey("map:" + kind + ":" + id);
+            CheckOriginalControlNotRepeated(originalControlKey);
+            int originalCommandsBefore = commands.Count;
             Append("控件事件.jsonl", new { Index = ++eventNumber, Frame = Time.frameCount, Stage = stage, Description = description,
                 Input = "真实MapButtonView.OnPointerClick", Kind = kind.ToString(), Id = id, ScreenX = point.x, ScreenY = point.y });
             ExecuteEvents.Execute(target.gameObject, Pointer(point), ExecuteEvents.pointerClickHandler);
+            RememberSubmittedControl(originalControlKey, originalCommandsBefore);
             if (NetworkMode) yield return AwaitOriginalControlCommandChain();
-            Write("最近控件同步返回.json", ObserveSafely());
+            if (!DeferContentDifferences) Write("最近控件同步返回.json", ObserveSafely());
             yield return Settle();
         }
         private static object MapInputDiagnostics(MapButtonView button)
@@ -3767,6 +4090,7 @@ namespace YC.Presentation.Validation
         { yield return null; yield return null; yield return new WaitForSecondsRealtime(.65f); yield return new WaitForEndOfFrame(); }
         private IEnumerator Capture(string name)
         {
+            if (PerformanceMode) yield break; // 少量性能画面由明确里程碑采集，避免旧逐步全量取证。
             yield return Settle();
             if (CampaignMode && session != null && (!NetworkMode || NetworkTryReadPublication(out _)) && name != "八回合正式终局" &&
                 !campaignCaptureKeys.Add(State.Round + ":" + State.Phase + ":" + (Request?.InteractionTypeId ?? name))) yield break;
@@ -3783,12 +4107,13 @@ namespace YC.Presentation.Validation
             File.WriteAllBytes(Path.Combine(output, file), texture.EncodeToPNG()); Destroy(texture);
             screenshots.Add(new { File = file, Label = name, Stage = stage, Frame = Time.frameCount, Width = Screen.width, Height = Screen.height, HasPixelVariation = hasVariation });
             Write("截图索引.json", screenshots);
-            Require(hasVariation, "截图没有像素变化，不能作为真实UI画面证据");
+            CheckContent(hasVariation, "截图没有像素变化，不能作为真实UI画面证据；保原图并继续检查实际合法控件");
         }
         private object ObserveSafely()
-        { try { return mobile != null && session != null && (!NetworkMode || NetworkTryReadPublication(out _)) ? Observe() : new { Stage = stage, Scene = SceneManager.GetActiveScene().name, Buttons = FindObjectsOfType<Button>().Select(ButtonInfo).ToArray(), Text = FindObjectsOfType<Text>().Select(t => t.text).ToArray() }; } catch (Exception error) { return new { ObservationError = error.ToString() }; } }
+        { if (PerformanceMode) return new { Stage = stage, Frame = Time.frameCount, Scene = SceneManager.GetActiveScene().name, RequestId = mobile == null ? null : Request?.InteractionId, RequestType = mobile == null ? null : Request?.InteractionTypeId, Buttons = FindObjectsOfType<Button>().Take(60).Select(ButtonInfo).ToArray(), FullState = false }; try { return mobile != null && session != null && (!NetworkMode || NetworkTryReadPublication(out _)) ? Observe() : new { Stage = stage, Scene = SceneManager.GetActiveScene().name, Buttons = FindObjectsOfType<Button>().Select(ButtonInfo).ToArray(), Text = FindObjectsOfType<Text>().Select(t => t.text).ToArray() }; } catch (Exception error) { return new { ObservationError = error.ToString() }; } }
         private object Observe()
         {
+            if (PerformanceMode) return ObserveSafely();
             var route = Read(mobile, "routeResourceSelection"); var presenter = Route;
             return new { Stage = stage, Frame = Time.frameCount, Scene = SceneManager.GetActiveScene().name, State.GameId, State.Round, State.Phase,
                 State.CurrentPlayerId, LocalPlayerId = LocalPlayer, Revision = State.EffectRuntime.StateRevision,
@@ -3826,6 +4151,7 @@ namespace YC.Presentation.Validation
             public ObservationPort(IGameCommandPort inner, HotseatUiValidationDriver driver) { this.inner = inner; this.driver = driver; }
             public WorkflowSubmissionResult Submit(GameCommand command)
             {
+                if (driver.PerformanceMode) return driver.PerformanceSubmit(inner, command);
                 var before = driver.State.EffectRuntime.StateRevision;
                 if (driver.NetworkMode) driver.NetworkBeginObserveCommand(command, before);
                 var localBefore = driver.LocalFirstHarvestStopMode ? driver.CaptureOriginalUiSubmission(command) : null;
@@ -3874,8 +4200,12 @@ namespace YC.Presentation.Validation
             if (finished) return; finished = true;
             if (failure == null && NetworkMode && !string.IsNullOrEmpty(networkTerminalStrictFailure))
                 failure = new InvalidOperationException(networkTerminalStrictFailure);
-            if (failure == null && errors.Count > 0) failure = new InvalidOperationException("运行出现Unity错误，详见RuntimeErrors及Player.log");
-            if (failure == null && nonfatalUiFailures.Count > 0) failure = new InvalidOperationException("整局已推进，但存在保留的UI失败项：" + string.Join("；", nonfatalUiFailures));
+            if (failure == null && errors.Count > 0) failure = DeferContentDifferences && NetworkHasResolvedTerminal()
+                ? new DriverDeferredTerminalIssuesException("整局结束，保留Unity错误，详见RuntimeErrors及Player.log")
+                : new InvalidOperationException("运行出现Unity错误，详见RuntimeErrors及Player.log");
+            if (failure == null && nonfatalUiFailures.Count > 0) failure = DeferContentDifferences && NetworkHasResolvedTerminal()
+                ? new DriverDeferredTerminalIssuesException("整局结束，保留差异：" + string.Join("；", nonfatalUiFailures))
+                : new InvalidOperationException("整局已推进，但存在保留的UI失败项：" + string.Join("；", nonfatalUiFailures));
             if (SalesMode && session != null && !string.IsNullOrEmpty(coveragePath))
                 try { UpdateCoverage(); }
                 catch (Exception coverageError) { Write("覆盖导出错误.json", coverageError.ToString()); if (failure == null) failure = coverageError; }
@@ -3887,14 +4217,18 @@ namespace YC.Presentation.Validation
                 catch (Exception coverageError)
                 { Write("覆盖导出错误.json", coverageError.ToString()); if (failure == null) failure = coverageError; }
             }
+            if (actionCoverage.Count > 0)
+                try { ObserveActionCleanupCoverage(); PersistActionCleanupCoverage(failure == null ? "本轮结束" : "首次失败或驱动待接"); }
+                catch (Exception coverageError) { Write("行动收尾覆盖导出错误.json", coverageError.ToString()); if (failure == null) failure = coverageError; }
             foreach (var writer in appendLogs.Values) writer.Dispose();
             appendLogs.Clear();
             Write("验证结果.json", new { Case = selectedCase, Passed = failure == null, Stage = stage, Error = failure?.ToString(),
                 DriverContinuationPending = failure is DriverContinuationPendingException,
+                DeferredContentDifferences = deferredDifferenceCount, ContentDifferencesNeverCountedAsPassed = true,
                 FailureCategory = failure is DriverContinuationPendingException ? "驱动待接" :
                     failure is PaymentCannotContinueException ? "付款不可继续" : null,
                 ExitCode = failure == null ? 0 : 2, NaturalExitRequested = true, CommandCount = commands.Count, Checks = checks, NonfatalUiFailures = nonfatalUiFailures,
-                FullGameCompleted = CampaignMode && campaignGame?.Terminal == true, Campaign = CampaignMode ? campaignGame : null,
+                FullGameCompleted = CampaignMode && !UiRegressionMode && campaignGame?.Terminal == true, Campaign = CampaignMode ? campaignGame : null,
                 PlannedShortRun = NetworkMode && networkShortRoundLimit > 0,
                 ShortRunCompleted = NetworkMode && networkShortCompleted, CompletedThroughRound = NetworkMode && networkShortCompleted ? networkShortRoundLimit : 0,
                 LocalFirstHarvestStopRequested = LocalFirstHarvestStopMode, LocalFirstHarvestStopped = localFirstHarvestStopped,
@@ -3907,8 +4241,8 @@ namespace YC.Presentation.Validation
                 TargetPagesCovered = SalesMode && TargetPagesCovered, SettlementStripObserved = stripObserved, Coverage = SalesMode ? coverage : null,
                 AmiyaCovered = amiyaCovered, AmiyaSourcesByPlayer = activatedAmiyaByPlayer, NormalActionEndChecks = actionChecks,
                 ActualHarvestOrder = harvestOrder, Screenshots = screenshots, RuntimeErrors = errors,
-                Boundary = NetworkMode ? "四个可见独立Player从正常菜单创建/加入真实本地Mirror四人感染者局；每端只点本人可见原控件，真实Raycast与原指针回调；联机Applied和四端确认前缀采证，不直接提交、不注入状态或随机。" : SaveResumeMode ? "可见独立Player正常菜单建房、入场、原设置保存、原主页读取、合法移城继续；原控件内部指针事件，非外部鼠标，非物理Esc。无直接保存或恢复API、无状态注入、无随机覆盖。" :
-                    "可见独立Player从正常主菜单创建四人房间，经完整开局、行动进入采集；正式控件内部指针事件，无状态注入、无固定随机种子。非外部鼠标命中。",
+                Boundary = NetworkMode ? "四个可见独立Player从正常菜单创建/加入真实本地Mirror四人" + (EntrepreneurUiMode ? "企业家" : "标准") + "双扩局；每端只点本人可见原控件，真实Raycast与原指针回调；联机Applied和四端确认前缀采证，不直接提交、不注入状态或随机。" : SaveResumeMode ? "可见独立Player正常菜单建房、入场、原设置保存、原主页读取、合法移城继续；原控件内部指针事件，非外部鼠标，非物理Esc。无直接保存或恢复API、无状态注入、无随机覆盖。" :
+                    "可见独立Player从正常主菜单创建" + ExpectedLocalPlayerCount + "人房间；正式控件内部指针事件，无状态注入、无固定随机种子。非外部鼠标命中。",
                 SourceWrites = false, AssetsRebuilt = false, ForcedRefresh = false, StateReplacementCount = 0 });
             UnityEngine.Application.logMessageReceived -= OnLog;
             if (NetworkMode) { NetworkAfterReport(failure); return; }

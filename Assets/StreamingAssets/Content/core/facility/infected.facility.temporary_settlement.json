@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.facility.temporary_settlement",
   "contentType": "facility",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "临时聚居点",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.facility.temporary_settlement.declared",
       "script": "lua/facilities/infected.facility.temporary_settlement.declared.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],

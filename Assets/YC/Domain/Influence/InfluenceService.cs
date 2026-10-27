@@ -54,15 +54,30 @@ namespace YC.Domain.Influence
             return validation;
         }
 
-        public InfluenceOperationResult Place(EffectExecutionContext context, ItemSubjectRef owner, string slotId)
+        public static string DefaultSupplyType(ItemSubjectRef owner) => owner.Kind == ItemSubjectKind.Company ? "infected.company_marker" : "core.player_marker";
+        public IReadOnlyList<string> GetLegalPlacementSlotIds(GameState state, ItemSubjectRef owner, string itemTypeId)
+        {
+            var types = ItemTypeRegistry.CreateBuiltIn();
+            if (!types.HasOperationProfile(itemTypeId, "core.influence_cube") || owner.Kind == ItemSubjectKind.Company && itemTypeId != "infected.company_marker" ||
+                owner.Kind == ItemSubjectKind.Player && types.IsAssignableTo(itemTypeId, "infected.company_marker")) return Array.Empty<string>();
+            var supply = state.ItemZones.Zones.SingleOrDefault(z => owner.Kind == ItemSubjectKind.Player ? z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == owner.PlayerId : z.TemplateId == "core.zone.reward_pool" && z.LocalZoneId == "company_markers");
+            if (supply == null || !state.ItemZones.Items.Any(i => i.ZoneId == supply.ZoneId && i.TypeId == itemTypeId && InfluenceSubjectQuery.GetSubjectKey(i.OwnerSubject) == InfluenceSubjectQuery.GetSubjectKey(owner))) return Array.Empty<string>();
+            var snapshot = owner.Kind == ItemSubjectKind.Player ? placementRule.CreateQuerySnapshot(state, owner.PlayerId) : null;
+            return state.ItemZones.Zones.Where(z => z.TemplateId == "core.zone.influence_slots").SelectMany(z => z.LegalSlotIds).Where(slot => ValidateItemPlacement(state, owner, slot, snapshot).Succeeded).OrderBy(slot => slot, StringComparer.Ordinal).ToList();
+        }
+        public InfluenceOperationResult Place(EffectExecutionContext context, ItemSubjectRef owner, string slotId, string itemTypeId = "")
         {
             var state = context.State;
+            if (itemTypeId.Length == 0) itemTypeId = DefaultSupplyType(owner);
             var validation = ValidateItemPlacement(state, owner, slotId);
             if (!validation.Succeeded) return validation;
+            var types = ItemTypeRegistry.CreateBuiltIn();
+            if (!types.HasOperationProfile(itemTypeId, "core.influence_cube") || owner.Kind == ItemSubjectKind.Company && itemTypeId != "infected.company_marker" || owner.Kind == ItemSubjectKind.Player && types.IsAssignableTo(itemTypeId, "infected.company_marker"))
+                return Failure(InfluenceFailureCode.InsufficientSupply, "typed_supply_unavailable", owner.PlayerId, slotId, false);
             var source = state.ItemZones.Zones.Find(zone => owner.Kind == ItemSubjectKind.Player
-                ? zone.TemplateId == "core.zone.player_marker_supply" && zone.OwnerPlayerId == owner.PlayerId
+                ? zone.TemplateId == "core.zone.player_supply" && zone.OwnerPlayerId == owner.PlayerId
                 : zone.TemplateId == "core.zone.reward_pool" && zone.LocalZoneId == "company_markers");
-            var item = source == null ? null : state.ItemZones.Items.Where(value => value.ZoneId == source.ZoneId &&
+            var item = source == null ? null : state.ItemZones.Items.Where(value => value.TypeId == itemTypeId && value.ZoneId == source.ZoneId &&
                 InfluenceSubjectQuery.GetSubjectKey(value.OwnerSubject) == InfluenceSubjectQuery.GetSubjectKey(owner)).OrderBy(value => value.ItemId, StringComparer.Ordinal).FirstOrDefault();
             if (item == null) return Failure(InfluenceFailureCode.InsufficientSupply, "insufficient_supply", owner.PlayerId, slotId, false);
             var before = GameStateCloneService.DeepClone(item);

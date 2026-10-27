@@ -1,0 +1,141 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.T.3",
+  "contentType": "entrepreneur_round",
+  "version": "1.1.0",
+  "displayName": "第五号企业家·第3回合",
+  "artwork": "artwork/entrepreneurs/T05.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "ability_sources.v1",
+    "entrepreneur_selection.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.T05",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T05.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T05.immediate.1.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.T06",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T06.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T06.immediate.1.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T05",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T05.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T05",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T05",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T06",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T06.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T06",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T06",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "T05",
+      "T06"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.T05",
+        "entityDefinitionId": "entrepreneur.round.T.3",
+        "faceId": "T05",
+        "sourceId": "T05",
+        "artwork": "artwork/entrepreneurs/T05.jpg",
+        "artworkSha256": "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.T05"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T05.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.T06",
+        "entityDefinitionId": "entrepreneur.round.T.3",
+        "faceId": "T06",
+        "sourceId": "T06",
+        "artwork": "artwork/entrepreneurs/T06.jpg",
+        "artworkSha256": "2f21cf11aa1fa6957514a449037461608ee5ce4a2b8650feb3d1ec7148046503",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.T06"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T06.immediate.1"
+        ]
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.T05.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T06.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ]
+}

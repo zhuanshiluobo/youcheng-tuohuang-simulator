@@ -53,11 +53,11 @@ namespace YC.Tests.EditMode
         }
         [Test] public void HeldRewardsUseActualHolderAndLifecycleRegardlessOfDisplayName()
         {
-            Add("infected.award.permanent_support", 2, "core.zone.player_awards");
-            Add("infected.award.enterprise_special", 1, "core.zone.player_awards");
-            Add("infected.award.roads", 1, "core.zone.player_awards");
-            Add("infected.award.score", 1, "core.zone.player_awards");
-            Add("infected.contract.lifetime_security", 1, "core.zone.player_awards");
+            Add("infected.award.permanent_support", 2, "core.zone.player_rewards");
+            Add("infected.award.enterprise_special", 1, "core.zone.player_rewards");
+            Add("infected.award.roads", 1, "core.zone.player_rewards");
+            Add("infected.award.score", 1, "core.zone.player_rewards");
+            Add("infected.contract.lifetime_security", 1, "core.zone.player_rewards");
             var entries = PlayerDetailEntryProjector.Project(view, definitions);
             Assert.That(entries.Count, Is.EqualTo(2));
             Assert.That(entries.Single(entry => entry.SourceItemId.Contains("permanent_support")).DetailPlayerId, Is.EqualTo(2));

@@ -666,16 +666,39 @@ namespace YC.Infrastructure.Multiplayer
         private static long nextId;
         private static readonly int mainThreadId = Thread.CurrentThread.ManagedThreadId;
         private const double LongStageMilliseconds = 100;
+        internal static readonly bool ReplayRequested;
+        internal static readonly string ReplayOutputDirectory;
+        internal static readonly long ReplayTargetSequence = 32;
+        private static readonly string replayConfigurationError;
 
         static NetworkExecutionObservation()
         {
             bool requested = false;
             string path = null;
+            string replayOutputArgument = null, replayTargetArgument = null;
             foreach (var argument in Environment.GetCommandLineArgs())
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                if (argument == "--yc-performance-replay-capture") ReplayRequested = true;
+                if (argument.StartsWith("--yc-performance-replay-output=", StringComparison.Ordinal)) replayOutputArgument = argument;
+                if (argument.StartsWith("--yc-performance-replay-target=", StringComparison.Ordinal)) replayTargetArgument = argument;
+#endif
                 if (argument == "--yc-network-observation") requested = true;
                 const string prefix = "--yc-network-observation-output=";
                 if (argument.StartsWith(prefix, StringComparison.Ordinal)) path = argument.Substring(prefix.Length);
+            }
+            if (ReplayRequested)
+            {
+                try
+                {
+                    const string outputPrefix = "--yc-performance-replay-output=";
+                    string replayPath = replayOutputArgument == null ? null : replayOutputArgument.Substring(outputPrefix.Length);
+                    if (string.IsNullOrWhiteSpace(replayPath) || !Path.IsPathRooted(replayPath)) throw new ArgumentException("重放诊断必须提供绝对输出目录。");
+                    ReplayOutputDirectory = Path.GetFullPath(replayPath);
+                    if (replayTargetArgument != null && (!long.TryParse(replayTargetArgument.Substring("--yc-performance-replay-target=".Length), out ReplayTargetSequence) || ReplayTargetSequence <= 0))
+                        throw new ArgumentException("重放目标序号必须为正数。");
+                }
+                catch (Exception error) { replayConfigurationError = error.Message; }
             }
             if (!requested) return;
             try
@@ -685,6 +708,18 @@ namespace YC.Infrastructure.Multiplayer
                 outputPath = Path.GetFullPath(path);
             }
             catch (Exception error) { configurationError = error.Message; }
+        }
+
+        internal static NetworkPerformanceReplayCapture CreateReplayCapture(YC.Application.Sessions.DeterministicSimulationSessionOptions options)
+        {
+            if (!ReplayRequested) return null;
+            try
+            {
+                if (replayConfigurationError != null) throw new ArgumentException(replayConfigurationError);
+                if (!Enabled) throw new ArgumentException("重放捕获需同时启用有效的--yc-network-observation。");
+                return NetworkPerformanceReplayCapture.Create(ReplayOutputDirectory, options, ReplayTargetSequence);
+            }
+            catch (Exception error) { Debug.LogWarning("[PerformanceReplay] 输入捕获未启用：" + error.Message); return null; }
         }
 
         internal static bool Enabled
@@ -798,6 +833,8 @@ namespace YC.Infrastructure.Multiplayer
 
         internal static void FlushPending()
         {
+            if (ReplayRequested)
+                foreach (var error in NetworkPerformanceReplayCapture.FlushPending(2000)) Debug.LogWarning("[PerformanceReplay] " + error);
             if (outputPath != null && !Sink.Idle.Wait(1000))
                 Debug.LogWarning("[NetworkObservation] 退出时诊断队列尚未写完，末尾记录可能缺失。");
         }

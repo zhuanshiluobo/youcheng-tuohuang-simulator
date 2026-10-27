@@ -14,15 +14,22 @@ namespace YC.Domain.Rules
     public sealed class ComponentContentDefinition
     {
         public string DefinitionId = "", TypeId = "", QuantityPolicy = "";
+        public CubeAppearanceDeclaration CubeAppearance;
     }
     [Serializable]
     public sealed class AwardContentDefinition
     {
         public string DefinitionId = "", Lifecycle = "", TitleKey = "", DescriptionKey = "";
+        public bool RandomAwardPool = true;
+        public string TypeId = "", DefinitionVersion = "", AcquisitionPolicy = "";
+        public List<CardZoneDefinition> CardZones = new List<CardZoneDefinition>();
     }
     [Serializable]
     public sealed class GameContentDefinitions
     {
+        public List<EntrepreneurDefinition> Entrepreneurs = new List<EntrepreneurDefinition>();
+        public List<YC.Domain.Effects.UsageTrackDeclaration> UsageTracks = new List<YC.Domain.Effects.UsageTrackDeclaration>();
+        public List<YC.Domain.Effects.AbilitySourceDeclaration> AbilitySources = new List<YC.Domain.Effects.AbilitySourceDeclaration>();
         // 本局冻结的企业语义分类；不保存位置，旧档缺失时由匹配内容包的恢复入口补齐。
         public List<string> EnterpriseDefinitionIds = new List<string>();
         public List<AwardContentDefinition> Awards = new List<AwardContentDefinition>();
@@ -67,6 +74,8 @@ namespace YC.Domain.Rules
     {
         public int SchemaVersion = 1;
         public string RecipeId = "standard";
+        public List<string> ApplicableModes = new List<string>();
+        public List<string> RequiredCapabilities = new List<string>();
         public int InitialBasicCharacterCount = 5;
         public int BasicCharacterKeepCount = 5;
         public int MaxRetainedBasicCharacterCount = 5;
@@ -82,8 +91,8 @@ namespace YC.Domain.Rules
             if (SchemaVersion != 1 || InitialBasicCharacterCount < BasicCharacterKeepCount || BasicCharacterKeepCount != 5 ||
                 MaxRetainedBasicCharacterCount != 5 || Entries == null || Entries.Any(e => e == null || string.IsNullOrWhiteSpace(e.EntryId) ||
                 string.IsNullOrWhiteSpace(e.DefinitionId) || string.IsNullOrWhiteSpace(e.InitialZoneRole) || e.Quantity <= 0 || e.Condition == null ||
-                e.Condition.Kind == "enterprise_selected" && string.IsNullOrWhiteSpace(e.Condition.RuntimeId) || e.Condition.Kind == "ability_granted" && string.IsNullOrWhiteSpace(e.Condition.AbilityId) ||
-                !new[] { "always", "enterprise_selected", "ability_granted" }.Contains(e.Condition.Kind)) ||
+                e.Condition.Kind == "enterprise_selected" && string.IsNullOrWhiteSpace(e.Condition.RuntimeId) || (e.Condition.Kind == "ability_granted" || e.Condition.Kind == "entrepreneur_selected") && string.IsNullOrWhiteSpace(e.Condition.AbilityId) ||
+                !new[] { "always", "enterprise_selected", "ability_granted", "entrepreneur_selected" }.Contains(e.Condition.Kind)) ||
                 Entries.Select(e => e.EntryId).Distinct(StringComparer.Ordinal).Count() != Entries.Count)
                 throw new InvalidOperationException("setup_recipe_invalid");
             var types = ItemTypeRegistry.CreateBuiltIn();
@@ -95,7 +104,8 @@ namespace YC.Domain.Rules
         public GameState Assemble(GameState source, GameMapDefinition map, int hostSeed)
         {
             Validate();
-            var entries = Entries.Select(e => new ItemRecipeEntry { EntryId = e.EntryId, DefinitionId = e.DefinitionId, TypeId = e.TypeId,
+            // 选人专属组件只保留冻结配额，确定真实所有者时才按本配方创建一次。
+            var entries = Entries.Where(e => e.Condition.Kind != "entrepreneur_selected").Select(e => new ItemRecipeEntry { EntryId = e.EntryId, DefinitionId = e.DefinitionId, TypeId = e.TypeId,
                 Quantity = e.Quantity, PerPlayer = e.PerPlayer, InitialZoneRole = e.Condition.Kind == "always" ? e.InitialZoneRole : "reserve" }).ToList();
             source.SetupRecipe = GameStateCloneService.DeepClone(this);
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, entries, CardZoneDeclarations);
@@ -149,7 +159,8 @@ namespace YC.Domain.Rules
 
         public void AddAccessories()
         {
-            Add("player_markers", "core.player_marker", "core.player_marker", "player_markers", true, 29);
+            // 配方业务键保持稳定；仅区域语义迁为supply，实例ID不因业务键重命名漂移。
+            Add("player_markers", "core.player_marker", "core.player_marker", "supply", true, 29);
             Add("score_marker", "core.player_marker", "core.player_marker", "score_track", true);
             Add("mobile_city", "core.mobile_city", "core.mobile_city", "city_reserve", true);
             Add("core_command_tower", FacilityCardDatabase.CoreCommandTower, "core.facility_card", "city_cell_7", true);

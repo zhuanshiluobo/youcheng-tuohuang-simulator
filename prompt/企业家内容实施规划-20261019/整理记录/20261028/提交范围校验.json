@@ -1,0 +1,14 @@
+{
+  "preparedAt": "2026-10-28T02:06:27.919327+08:00",
+  "included": 1769,
+  "excludedExplicit": 1,
+  "trackedChangesIncluded": 361,
+  "sensitiveOutputContainsValues": false,
+  "staged": false,
+  "committed": false,
+  "pushed": false,
+  "large50MiB": 0,
+  "lfsCount": 0,
+  "includedBytes": 115924844,
+  "note": "本清单只读准备，017完成后需重新核源身份与工作区新增变化；整理输出自身不锁固定SHA，避免自引用。"
+}

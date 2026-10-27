@@ -38,8 +38,19 @@ namespace YC.Domain.Presentation
     [Serializable] public sealed class GameplayInteractionPresentation
     {
         public GameplayTextRef Prompt, Progress;
+        public GameplayCandidateIntegerLabel CandidateIntegerLabel;
         public List<GameplayOptionPresentation> Options = new List<GameplayOptionPresentation>();
         public List<GameplayQuantityRowPresentation> QuantityRows = new List<GameplayQuantityRowPresentation>();
+    }
+    [Serializable] public sealed class GameplayCandidateIntegerLabel
+    {
+        public string Key = string.Empty;
+        public List<GameplayCandidateIntegerArgument> Arguments = new List<GameplayCandidateIntegerArgument>();
+    }
+    [Serializable] public sealed class GameplayCandidateIntegerArgument
+    {
+        public string Name = string.Empty;
+        public long Multiplier = 1;
     }
     [Serializable] public sealed class EffectPresentationDefinition
     {
@@ -56,6 +67,11 @@ namespace YC.Domain.Presentation
     {
         public GameplayTextRef Description;
         public EffectPresentationDefinition Effect;
+    }
+    [Serializable] public sealed class AbilityActionPresentationDefinition
+    {
+        public const string Version = "action_presentation.v1.0.0";
+        public GameplayTextRef Name, Description, EntryCost, EntryAfterEffects;
     }
     [Serializable] public sealed class SettlementPresentationDefinition
     {

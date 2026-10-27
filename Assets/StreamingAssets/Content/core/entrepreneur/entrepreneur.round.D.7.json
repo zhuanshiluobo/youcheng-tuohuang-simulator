@@ -1,0 +1,319 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.D.7",
+  "contentType": "entrepreneur_round",
+  "version": "1.8.0",
+  "displayName": "蒂亚戈·H·罗德里格斯·第7回合",
+  "artwork": "artwork/entrepreneurs/D07.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "entrepreneur_selection.v1",
+    "ability_sources.v1",
+    "declared_actions.v1",
+    "usage_tracks.v1",
+    "card_markers.v3",
+    "resource_payment_total.v2"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.D07",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D07",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D07.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D07.quick",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D07.quick",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D07.quick.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D07.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.D08",
+      "mode": "setup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.face.D08",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D08.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.D08.quick",
+      "mode": "quick",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.D08.quick",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D08.quick.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.D.D08.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D07",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D07",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D07",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D07",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D07.quick",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.D07.quick",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D07",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.D09:reputation:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.D09:reputation:core.player_marker",
+        "carrier.transfer.retired:entrepreneur.ability.D09:reputation:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.D07.quick",
+      "repeatPolicy": "once",
+      "actions": [
+        {
+          "actionId": "entrepreneur.D07.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.D07.quick",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.D.7",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 700,
+          "presentationRef": "entrepreneur.D07.quick",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.D.action.D07.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.D.D07.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.D08",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.face.D08",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D08",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.D08",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.D08.quick",
+      "kind": "quick",
+      "handlerRef": "entrepreneur.D08.quick",
+      "declarationVersion": "1.7.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "D08",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.D09:reputation:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.D09:reputation:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.D08.quick",
+      "repeatPolicy": "once",
+      "actions": [
+        {
+          "actionId": "entrepreneur.D08.quick",
+          "entryKind": "quick",
+          "bodyHandlerRef": "entrepreneur.D08.quick",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.entrepreneur.D.7",
+          "lifecyclePolicy": "round",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 701,
+          "presentationRef": "entrepreneur.D08.quick",
+          "presentation": {
+            "name": {
+              "key": "core:entrepreneur.D.action.D08.name"
+            },
+            "description": {
+              "key": "core:entrepreneur.D.D08.description"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "D07",
+      "D08"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.D07",
+        "entityDefinitionId": "entrepreneur.round.D.7",
+        "faceId": "D07",
+        "sourceId": "D07",
+        "artwork": "artwork/entrepreneurs/D07.jpg",
+        "artworkSha256": "cc222cd212d09700086240c79db2b67fa7f0f6fb71f4947410825f82ac1bcc81",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.D07"
+        ],
+        "immediateHandlerRefs": []
+      },
+      {
+        "candidateId": "entrepreneur.candidate.D08",
+        "entityDefinitionId": "entrepreneur.round.D.7",
+        "faceId": "D08",
+        "sourceId": "D08",
+        "artwork": "artwork/entrepreneurs/D08.jpg",
+        "artworkSha256": "173c8b1b6b7fa681546cf967ee520c4ca3f3f096efe4bab34782e919333085cc",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.D08"
+        ],
+        "immediateHandlerRefs": []
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.face.D07",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D07.quick",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D07.quick.completed"
+    },
+    {
+      "handlerId": "entrepreneur.face.D08",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.D08.quick",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "version": "1.7.0",
+      "completionHandlerId": "entrepreneur.D08.quick.completed"
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.entrepreneur.D.7",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "owner_supply_or_retrieve",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "unused",
+        "used"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ]
+}

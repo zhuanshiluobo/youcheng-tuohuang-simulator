@@ -1,0 +1,248 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.T.7",
+  "contentType": "entrepreneur_round",
+  "version": "1.1.1",
+  "displayName": "第五号企业家·第7回合",
+  "artwork": "artwork/entrepreneurs/T01.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "ability_sources.v1",
+    "entrepreneur_selection.v1",
+    "final_scoring.v2"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.T01.immediate.1",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T01.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T01.immediate.1.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.T01",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T01.final",
+      "script": "lua/entrepreneurs/fifth_number_final.lua",
+      "version": "1.0.1",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T01.final.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.T02.immediate.1",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T02.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T02.immediate.1.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.T02",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T02.final",
+      "script": "lua/entrepreneurs/fifth_number_final.lua",
+      "version": "1.0.1",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T02.final.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T01.immediate.1",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T01.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T01",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.T01.immediate.1",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T01",
+      "kind": "event",
+      "handlerRef": "entrepreneur.T01.final",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T01",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T01",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T02.immediate.1",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T02.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T02",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.T02.immediate.1",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T02",
+      "kind": "event",
+      "handlerRef": "entrepreneur.T02.final",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T02",
+      "observedEvents": [
+        "FinalScoringStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T02",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.face.T01",
+        "displayName": "第七回合·源石大亨",
+        "effectTextRef": {
+          "key": "core:entrepreneur.T.T01.final.description",
+          "arguments": []
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.face.T02",
+        "displayName": "第七回合·称霸荒原",
+        "effectTextRef": {
+          "key": "core:entrepreneur.T.T02.final.description",
+          "arguments": []
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      }
+    ],
+    "sourceIds": [
+      "T01",
+      "T02"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.T01",
+        "entityDefinitionId": "entrepreneur.round.T.7",
+        "faceId": "T01",
+        "sourceId": "T01",
+        "artwork": "artwork/entrepreneurs/T01.jpg",
+        "artworkSha256": "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.T01"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T01.immediate.1"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.T02",
+        "entityDefinitionId": "entrepreneur.round.T.7",
+        "faceId": "T02",
+        "sourceId": "T02",
+        "artwork": "artwork/entrepreneurs/T02.jpg",
+        "artworkSha256": "fd40ffe77a57caccfe8d88d6d33e016b732833f84d8df4404687bdf3f964a2e1",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.T02"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T02.immediate.1"
+        ]
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.T01.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T01.final",
+      "script": "lua/entrepreneurs/fifth_number_final.lua",
+      "version": "1.0.1",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T02.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T02.final",
+      "script": "lua/entrepreneurs/fifth_number_final.lua",
+      "version": "1.0.1",
+      "completionHandlerId": ""
+    }
+  ]
+}

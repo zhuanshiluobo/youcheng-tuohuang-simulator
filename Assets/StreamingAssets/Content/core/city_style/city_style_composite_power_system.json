@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_composite_power_system",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.2.1",
   "displayName": "复合动力系统",
   "artwork": "artwork/sheets/city_style_level_1.jpg",
   "tags": [],
@@ -61,24 +61,157 @@
       "effectKind": 2,
       "fixedCost": {
         "originium": 0,
-        "originiumShard": 1,
+        "originiumShard": 0,
         "iron": 0,
         "pureOriginium": 0,
         "goldVoucher": 0
       },
-      "flexibleOriginiumAndIronCost": 3,
+      "flexibleOriginiumAndIronCost": 0,
       "maximumTargetCount": 1,
       "freeMoveCount": 1,
       "extraMainActionCount": 0,
-      "locksCharacterCard": 0
+      "locksCharacterCard": 0,
+      "bodyPaymentQueryKind": "resource_payment_demand.v1"
     },
     "effectScript": "lua/city_styles/composite_power_system.lua",
     "luaSubscriptionId": "city-styles.composite",
     "luaAbilityId": "city_styles.composite",
     "luaCompletionHandlerId": "city-styles.composite.after_move",
-    "luaVersion": "1.1.0"
+    "luaVersion": "2.0.1"
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "city_style_1_003"
+  "artworkSpriteId": "city_style_1_003",
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "city_styles.composite",
+      "kind": "special",
+      "handlerRef": "city-styles.composite",
+      "declarationVersion": "2.0.1",
+      "authorizationPolicy": "public_declaration",
+      "effectiveZones": [
+        "core.zone.city_style_display"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "city_style_composite_power_system",
+      "actions": [
+        {
+          "actionId": "special_action.city_style.composite_power_system",
+          "entryKind": "special",
+          "bodyHandlerRef": "city-styles.composite",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "usage.city_style_composite_power_system",
+          "lifecyclePolicy": "unbounded",
+          "lockPolicy": "none",
+          "directCallPolicy": "host.legacy_style.v1",
+          "sortOrder": 200,
+          "presentationRef": "city_style_composite_power_system"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "city_styles.composite.payment_demand",
+      "kind": "ruleQuery",
+      "handlerRef": "city-styles.composite.demand",
+      "declarationVersion": "1.0.1",
+      "authorizationPolicy": "public_declaration",
+      "effectiveZones": [
+        "core.zone.city_style_display"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [
+        "resource_payment_demand.v1"
+      ],
+      "allowedOperations": [],
+      "presentationRef": "city_style_composite_power_system",
+      "actions": []
+    }
+  ],
+  "abilityHandlers": [
+    {
+      "handlerId": "city-styles.composite",
+      "script": "lua/city_styles/composite_power_system.lua",
+      "version": "2.0.1",
+      "completionHandlerId": "city-styles.composite.after_move"
+    },
+    {
+      "handlerId": "city-styles.composite.demand",
+      "script": "lua/city_styles/composite_power_system.lua",
+      "version": "2.0.1",
+      "completionHandlerId": ""
+    }
+  ],
+  "usageTracks": [
+    {
+      "protocolVersion": 1,
+      "version": "1.0.0",
+      "trackId": "usage.city_style_composite_power_system",
+      "cardZoneLocalId": "usage",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "initialSlotId": "unused",
+      "activationTransitions": [
+        {
+          "fromSlotId": "unused",
+          "toSlotId": "used"
+        }
+      ],
+      "resetTransitions": [
+        {
+          "fromSlotId": "used",
+          "toSlotId": "unused"
+        }
+      ],
+      "resetBoundary": "all_cleanup_completed",
+      "initializationPolicy": "public_declaration",
+      "usageGroupScope": "source_player_round"
+    }
+  ],
+  "cardZones": [
+    {
+      "localZoneId": "usage",
+      "zoneTemplateId": "core.zone.board_marker_track",
+      "slots": [
+        "declared",
+        "unused",
+        "used",
+        "2",
+        "1",
+        "0",
+        "used_from_2",
+        "used_from_1"
+      ],
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "capacityPolicy": "bounded",
+      "capacity": 1,
+      "orderingKind": "Track",
+      "visibilityPolicyId": "core.public_items",
+      "carrierExitPolicyId": "core.preserve_contents"
+    }
+  ],
+  "requiredCapabilities": [
+    "resource_payment_total.v2"
+  ]
 }

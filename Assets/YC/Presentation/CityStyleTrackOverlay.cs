@@ -17,6 +17,7 @@ namespace YC.Presentation
         }
         [SerializeField] private Track[] tracks;
         private readonly List<GameObject> optionMarkers = new List<GameObject>();
+        private int usedOptionMarkers;
 
         public Vector2 TrackOffset(string id, string area, CityStyleVisualCatalog catalog)
         {
@@ -38,15 +39,28 @@ namespace YC.Presentation
         }
 
         public void RegisterOptionMarker(GameObject marker) => optionMarkers.Add(marker);
-        public void ClearOptionMarkers()
+        public void BeginOptionMarkers() => usedOptionMarkers = 0;
+        public GameObject ReuseOptionMarker(Func<GameObject> create)
         {
-            foreach (var marker in optionMarkers)
+            var index = usedOptionMarkers++;
+            if (index == optionMarkers.Count) optionMarkers.Add(create());
+            else if (optionMarkers[index] == null) optionMarkers[index] = create();
+            return optionMarkers[index];
+        }
+        public void EndOptionMarkers()
+        {
+            // 仅保留当前实际数量；移除的轨道不留下隐藏旧数量或旧输入对象。
+            for (var i = optionMarkers.Count - 1; i >= usedOptionMarkers; i--)
             {
+                var marker = optionMarkers[i]; optionMarkers.RemoveAt(i);
                 if (marker == null) continue;
                 marker.SetActive(false);
                 if (UnityEngine.Application.isPlaying) Destroy(marker); else DestroyImmediate(marker);
             }
-            optionMarkers.Clear();
+        }
+        public void ClearOptionMarkers()
+        {
+            BeginOptionMarkers(); EndOptionMarkers();
         }
         public void Render(string id, CityStyleVisualCatalog catalog, IReadOnlyList<CityStyleMarkerViewModel> markers)
         {

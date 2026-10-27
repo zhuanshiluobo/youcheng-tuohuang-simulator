@@ -80,6 +80,9 @@ namespace YC.Application.Gameplay
             var mode = GetParameter(command, EffectModeParameter);
             var order = GetParameter(command, EffectOrderParameter);
 
+            if (effectRegistry?.HasAbilityCatalog == true && YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "角色行动入口已迁移，请使用最新宿主候选。"));
+
             if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
             {
                 if (effectRegistry == null) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "真实角色使用缺少Effect注册表。"));
@@ -88,7 +91,7 @@ namespace YC.Application.Gameplay
                     ItemTransferEffectExecutor.Text(node.NormalizedArguments, "beginCommandId") == command.CommandId))
                     return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该角色使用命令已经处理。"));
                 var available = CharacterLifecycleService.GetAvailability(state, command.PlayerId, cardId);
-                if (!available.CanUse || state.HasPendingChoice()) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, available.CanUse ? "请先处理待选择项。" : available.DisabledReasonCode));
+                if (!available.CanUse || state.HasPendingChoiceForActiveOperation()) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, available.CanUse ? "请先处理待选择项。" : available.DisabledReasonCode));
                 if (mode.Length > 0 && mode != Strategy && mode != Tactic && mode != Both || mode != Both && order.Length > 0 || mode == Both && order != StrategyFirst && order != TacticFirst)
                     return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "角色模式或顺序无效。"));
                 if (mode == Both && state.StartPlayerId != command.PlayerId && !state.CharacterActionRoundPermissions.Exists(permission => permission.PlayerId == command.PlayerId && permission.ExpiresActionRoundSequence == CharacterLifecycleService.GetActionRoundSequence(state)))

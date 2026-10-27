@@ -50,7 +50,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = new GameState { GameId = "test.enterprise.upgrade.game", MapId = map.MapId, ContentPackHash = "test.enterprise.upgrade.content",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "test.enterprise.upgrade.content", EnabledExpansionIds = new List<string> { "core", "enterprise" } },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } };
-            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" } };
+            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } };
             recipe.AddRange(Boards.Select(id => new ItemRecipeEntry { EntryId = id, DefinitionId = id, TypeId = "core.board_card", Quantity = 1, InitialZoneRole = "enterprises" }));
             var declarations = Boards.Select(id => new ItemCardZoneDeclaration { DefinitionId = id, CardZones = Enumerable.Range(1, 2).Select(player => new CardZoneDefinition {
                 LocalZoneId = "cooperation_" + player, ZoneTemplateId = "core.zone.board_marker_track", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" },
@@ -60,7 +60,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string id in Boards) foreach (int player in new[] { 1, 2 })
             {
                 var track = state.ItemZones.Zones.Single(zone => zone.ParentId == Id(state, id) && zone.LocalZoneId == "cooperation_" + player);
-                var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player && state.ItemZones.Zones.Single(zone => zone.ZoneId == item.ZoneId).LocalZoneId == "player_markers");
+                var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player && state.ItemZones.Zones.Single(zone => zone.ZoneId == item.ZoneId).LocalZoneId == "supply");
                 marker.ZoneId = track.ZoneId; marker.SlotId = "level_" + level; state.ItemZones.Orders.Single(order => order.ZoneId == track.ZoneId).ItemIds.Add(marker.ItemId);
             }
             return state;

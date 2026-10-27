@@ -12,8 +12,56 @@ using YC.Presentation.Workflows;
 namespace YC.Presentation
 {
     /// <summary>建设面板：选择与支付、补牌后的放置共用同一资产。</summary>
-    public sealed class FacilityBuildDialogView : MonoBehaviour
+    public sealed partial class FacilityBuildDialogView : MonoBehaviour
     {
+        [SerializeField] private RectTransform verticalPagePanel;
+        private RectTransform verticalPageHost;
+        private Vector2 originalVerticalOffsets;
+        private bool verticalOffsetsCaptured;
+        private readonly Vector3[] verticalHostCorners = new Vector3[4];
+
+        private void BindVerticalPageHost(RectTransform host)
+        {
+            verticalPageHost = host;
+            if (verticalPagePanel == null) throw new InvalidOperationException("设施页面缺少竖直边界面板引用。");
+            if (!verticalOffsetsCaptured)
+            {
+                originalVerticalOffsets = new Vector2(verticalPagePanel.offsetMin.y, verticalPagePanel.offsetMax.y);
+                verticalOffsetsCaptured = true;
+            }
+            ApplyVerticalPageBounds();
+        }
+        private void OnEnable()
+        {
+            if (GameplayHudFrame.Active != null) BindVerticalPageHost(GameplayHudFrame.Active.ContentRect);
+            Canvas.willRenderCanvases += ApplyVerticalPageBounds;
+            ApplyVerticalPageBounds();
+        }
+        private void OnDisable() => Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
+        private void OnDestroy() => Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
+        private void ApplyVerticalPageBounds()
+        {
+            if (!verticalOffsetsCaptured || verticalPageHost == null || verticalPagePanel == null ||
+                !(verticalPagePanel.parent is RectTransform parent) || !gameObject.activeInHierarchy) return;
+            // 可见面板直接消费最终PageHost的竖直边界；不依赖外层嵌套Canvas的早期高度。
+            verticalPageHost.GetWorldCorners(verticalHostCorners);
+            float lower = parent.InverseTransformPoint(verticalHostCorners[0]).y;
+            float upper = parent.InverseTransformPoint(verticalHostCorners[2]).y;
+            float height = upper - lower;
+            if (!(height > 0f) || float.IsInfinity(height)) return;
+            var min = verticalPagePanel.offsetMin;
+            var max = verticalPagePanel.offsetMax;
+            float targetMin = lower + height * verticalPagePanel.anchorMin.y + originalVerticalOffsets.x -
+                (parent.rect.yMin + parent.rect.height * verticalPagePanel.anchorMin.y);
+            float targetMax = lower + height * verticalPagePanel.anchorMax.y + originalVerticalOffsets.y -
+                (parent.rect.yMin + parent.rect.height * verticalPagePanel.anchorMax.y);
+            if (Mathf.Approximately(min.y, targetMin) && Mathf.Approximately(max.y, targetMax)) return;
+            // 只写纵轴；水平锚点、位置、宽度及原三列资产不变。上下留白仍来自本预制体。
+            min.y = targetMin; max.y = targetMax;
+            verticalPagePanel.offsetMin = min; verticalPagePanel.offsetMax = max;
+            UnityEngine.UI.LayoutRebuilder.MarkLayoutForRebuild(verticalPagePanel);
+        }
+
         [SerializeField] private RectTransform candidates;
         [SerializeField] private FacilityEffectCardView cardTemplate;
         [SerializeField] private RectTransform supplySlotTemplate;
@@ -26,6 +74,7 @@ namespace YC.Presentation
         [SerializeField] private RawImage[] cityCards;
         [SerializeField] private Image[] slotSelection;
         [SerializeField] private Text quote;
+        [SerializeField] private GameplayTextView quoteDocumentView;
         [SerializeField] private Text reason;
         [SerializeField] private Button confirm;
         [SerializeField] private Button cancel;
@@ -82,12 +131,12 @@ namespace YC.Presentation
                 : string.Join(extensionHubSeparator, labels);
         }
         private bool submittingPayment;
-
         public void Show(BuildFacilityDraftViewModel model, IReadOnlyList<FacilityPlacement> facilities, int playerId, CardVisualCatalog catalog,
             EffectDialogLayoutProfile copy, string selectedId, string summary, Func<bool> isCurrent,
             Action<string> selectCard, Action<int> selectSlot, Action<string> selectPayment,
             Action commit, Action dismiss, bool inspectionOnly = false)
         {
+            quoteDocumentView.ClearBinding();
             foreach (var item in generated) { if (item == null) continue; item.SetActive(false); Destroy(item); }
             generated.Clear();
             submittingPayment = false;
@@ -156,17 +205,38 @@ namespace YC.Presentation
                     }
                     var supplySlot = fixedSupplySlots[index]; supplySlot.gameObject.SetActive(true);
                     var zone = visibleItems?.Zones.Find(value => value.Zone.LocalZoneId == "facility_supply_" + index)?.Zone;
-                    var item = visibleItems?.Items.Find(value => value.ZoneId == zone?.ZoneId);
+                    var order = visibleItems?.Orders.FirstOrDefault(value => value.ZoneId == zone?.ZoneId);
+                    var layers = order == null ? Array.Empty<ItemInstanceState>() : order.ItemIds
+                        .Select(id => visibleItems.Items.FirstOrDefault(value => value.ItemId == id && value.ZoneId == zone.ZoneId)).Where(value => value != null).ToArray();
+                    var item = layers.FirstOrDefault();
                     supplyItemIds.Add(item?.ItemId ?? string.Empty);
                     string id = item?.ItemId;
                     // 旧无实体夹具保留固定索引兼容；生产始终使用真实槽区。
                     if (visibleItems?.Zones.Count == 0 && index < model.Options.Count) id = model.Options[index].FacilityId;
                     if (string.IsNullOrEmpty(id)) continue;
                     var option = model.Options.FirstOrDefault(value => value.FacilityId == id);
-                    var card = Card(id, option?.DefinitionId ?? item?.DefinitionId, supplySlot, !placing && id == selectedId,
-                        placing || option == null ? (Action)null : () => selectCard(id));
-                    generated.Add(card.gameObject);
-                    YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "build.candidate." + (item?.ItemId ?? id));
+                    var stackObject = new GameObject("FacilitySupplyLayers", typeof(RectTransform), typeof(FacilitySupplyStackLayout));
+                    stackObject.transform.SetParent(supplySlot, false); generated.Add(stackObject);
+                    var cards = new List<FacilityEffectCardView>();
+                    if (layers.Length == 0)
+                    {
+                        cards.Add(Card(id, option?.DefinitionId, stackObject.transform, !placing && id == selectedId,
+                            placing || option == null ? (Action)null : () => selectCard(id)));
+                    }
+                    else foreach (var layer in layers)
+                    {
+                        bool top = layer.ItemId == id;
+                        cards.Add(Card(layer.ItemId, layer.DefinitionId, stackObject.transform, top && !placing && id == selectedId,
+                            !top || placing || option == null ? (Action)null : () => selectCard(id)));
+                    }
+                    foreach (var card in cards.AsEnumerable().Reverse())
+                    {
+                        card.transform.SetAsLastSibling();
+                        YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "build.candidate." +
+                            (layers.Length == 0 ? id : layers[cards.IndexOf(card)].ItemId));
+                    }
+                    var artwork = catalog.GetFacility(item?.DefinitionId ?? option?.DefinitionId ?? id);
+                    stackObject.GetComponent<FacilitySupplyStackLayout>().Configure(cards, artwork == null ? 0f : artwork.rect.width, supplySlotTemplate.rect.width);
                 }
             }
             else foreach (var option in model.Options)
@@ -209,6 +279,7 @@ namespace YC.Presentation
             for (var i = 0; i < paymentRows.Length; i++)
             {
                 var row = paymentRows[i];
+                row.gameObject.SetActive(true);
                 var mode = i == 0 ? BuildFacilityService.PaymentModeResources : BuildFacilityService.PaymentModeGold;
                 var payment = selectedOption == null ? null :
                     i == 0 ? selectedOption.ResourcesPayment : selectedOption.GoldPayment;
@@ -267,8 +338,10 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            if (this == null) return;
             if (viewer != null) viewer.Dismiss();
-            GameplayHudFrame.Active?.ReleasePage(gameObject);
+            var frame = GameplayHudFrame.Active;
+            if (frame != null) frame.ReleasePage(gameObject);
             gameObject.SetActive(false);
         }
 

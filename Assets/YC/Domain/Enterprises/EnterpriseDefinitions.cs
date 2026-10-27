@@ -107,6 +107,8 @@ namespace YC.Domain.Enterprises
         }
         public void Freeze() { frozen = true; }
         public EnterpriseDefinition FindEnterprise(string definitionId) => definitionId != null && enterprises.TryGetValue(definitionId, out var value) ? GameStateCloneService.DeepClone(value) : null;
+        public int GetSpecialAbilityLevel(string definitionId, string abilityId) =>
+            (definitionId != null && enterprises.TryGetValue(definitionId, out var value) ? value : null).Levels.Single(level => level.AbilityId == abilityId).Level;
         public DepartmentDefinition FindDepartment(string definitionId) => definitionId != null && departments.TryGetValue(definitionId, out var value) ? GameStateCloneService.DeepClone(value) : null;
         internal IList<EffectSpec> ResolveAbility(string abilityId, EffectEventHandlerContext context)
         {

@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "entrepreneur",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "entries": [
+    {
+      "entryId": "entrepreneur.round.A.1",
+      "definitionId": "entrepreneur.round.A.1",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.A.3",
+      "definitionId": "entrepreneur.round.A.3",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.A.5",
+      "definitionId": "entrepreneur.round.A.5",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.A.7",
+      "definitionId": "entrepreneur.round.A.7",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.ability.A01",
+      "definitionId": "entrepreneur.ability.A01",
+      "typeId": "entrepreneur.ability_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.D.1",
+      "definitionId": "entrepreneur.round.D.1",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.D.3",
+      "definitionId": "entrepreneur.round.D.3",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.D.5",
+      "definitionId": "entrepreneur.round.D.5",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.D.7",
+      "definitionId": "entrepreneur.round.D.7",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.dice",
+      "definitionId": "entrepreneur.component.die",
+      "typeId": "core.die",
+      "quantity": 3,
+      "perPlayer": false,
+      "initialZoneRole": "supply",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.D09"
+      }
+    },
+    {
+      "entryId": "entrepreneur.ability.D09",
+      "definitionId": "entrepreneur.ability.D09",
+      "typeId": "entrepreneur.ability_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.P.1",
+      "definitionId": "entrepreneur.round.P.1",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.P.3",
+      "definitionId": "entrepreneur.round.P.3",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.P.5",
+      "definitionId": "entrepreneur.round.P.5",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.P.7",
+      "definitionId": "entrepreneur.round.P.7",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.gang",
+      "definitionId": "entrepreneur.component.gang_marker",
+      "typeId": "entrepreneur.gang_marker",
+      "quantity": 4,
+      "perPlayer": false,
+      "initialZoneRole": "supply",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.P09"
+      }
+    },
+    {
+      "entryId": "entrepreneur.ability.P09",
+      "definitionId": "entrepreneur.ability.P09",
+      "typeId": "entrepreneur.ability_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.M.1",
+      "definitionId": "entrepreneur.round.M.1",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.M.3",
+      "definitionId": "entrepreneur.round.M.3",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.M.5",
+      "definitionId": "entrepreneur.round.M.5",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.M.7",
+      "definitionId": "entrepreneur.round.M.7",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.blueprint.blue",
+      "definitionId": "entrepreneur.facility.M02",
+      "typeId": "core.facility_card",
+      "quantity": 3,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.M13"
+      }
+    },
+    {
+      "entryId": "entrepreneur.blueprint.red",
+      "definitionId": "entrepreneur.facility.M03",
+      "typeId": "core.facility_card",
+      "quantity": 3,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.M13"
+      }
+    },
+    {
+      "entryId": "entrepreneur.blueprint.yellow",
+      "definitionId": "entrepreneur.facility.M04",
+      "typeId": "core.facility_card",
+      "quantity": 3,
+      "perPlayer": false,
+      "initialZoneRole": "reserve",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.M13"
+      }
+    },
+    {
+      "entryId": "entrepreneur.additional_tower",
+      "definitionId": "entrepreneur.facility.additional_core_tower",
+      "typeId": "core.facility_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "supply",
+      "condition": {
+        "kind": "entrepreneur_selected",
+        "abilityId": "entrepreneur.ability.M13"
+      }
+    },
+    {
+      "entryId": "entrepreneur.ability.M13",
+      "definitionId": "entrepreneur.ability.M13",
+      "typeId": "entrepreneur.ability_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.T.1",
+      "definitionId": "entrepreneur.round.T.1",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.T.3",
+      "definitionId": "entrepreneur.round.T.3",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.T.5",
+      "definitionId": "entrepreneur.round.T.5",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.round.T.7",
+      "definitionId": "entrepreneur.round.T.7",
+      "typeId": "entrepreneur.round_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    },
+    {
+      "entryId": "entrepreneur.ability.T09",
+      "definitionId": "entrepreneur.ability.T09",
+      "typeId": "entrepreneur.ability_card",
+      "quantity": 1,
+      "perPlayer": false,
+      "initialZoneRole": "reserve"
+    }
+  ]
+}

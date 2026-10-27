@@ -23,8 +23,9 @@ namespace YC.Domain.Influence
             state, map ?? new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)), slot => InfluenceLockRules.PlacementAllowed(state, slot) && placementAllowed?.Invoke(state, slot) != false);
 
         public static bool HasContract(GameState state, int playerId) => state?.FindPlayer(playerId) != null && state.ItemZones.Items.Any(item =>
-            item.DefinitionId == ContractDefinitionId && item.TypeId == "core.contract_card" &&
-            state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.player_awards" && zone.OwnerPlayerId == playerId));
+            item.DefinitionId == ContractDefinitionId && item.TypeId == ItemTypeRegistry.ContractTokenTypeId && item.PhysicalKind == ItemPhysicalKind.Token &&
+            item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId == playerId &&
+            state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.player_rewards" && zone.OwnerPlayerId == playerId));
 
         public int GetControlContribution(GameState state, string regionId, int playerId)
         {
@@ -49,10 +50,10 @@ namespace YC.Domain.Influence
             if (role != "awards" && role != "contracts") return EffectStepResult.Failed("reward_pool_rejected");
             if (Flag(node.ContinuationData, "acquisitionCompleted")) return EffectStepResult.Completed(node.NormalizedResult);
             var source = context.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.reward_pool" && z.LocalZoneId == role);
-            var destination = context.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_awards" && z.OwnerPlayerId == node.PlayerId);
-            if (role == "contracts" && context.State.ItemZones.Items.Any(i => i.ZoneId == destination.ZoneId && i.TypeId == "core.contract_card"))
+            var destination = context.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == node.PlayerId);
+            if (role == "contracts" && context.State.ItemZones.Items.Any(i => i.ZoneId == destination.ZoneId && i.TypeId == ItemTypeRegistry.ContractTokenTypeId))
                 return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("limit_reached")));
-            string type = role == "awards" ? "core.award_card" : "core.contract_card";
+            string type = role == "awards" ? "core.award_card" : ItemTypeRegistry.ContractTokenTypeId;
             var candidates = context.State.ItemZones.Items.Where(i => i.ZoneId == source.ZoneId && i.TypeId == type).OrderBy(i => i.ItemId, StringComparer.Ordinal).ToList();
             if (candidates.Count == 0) return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("no_candidates")));
             if (node.FlowStage == "" && role == "awards")
@@ -68,7 +69,7 @@ namespace YC.Domain.Influence
             new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ExecutingPlayerId = node.PlayerId,
                 ItemIds = new List<string> { selected.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = source.ZoneId },
                 Destination = new ZoneRef { ZoneId = destination.ZoneId }, InsertionKind = "unordered", RequiredCount = 1,
-                OperationProfileId = "core.reward_card_transfer", CarrierPolicyId = "preserve" });
+                OperationProfileId = role == "awards" ? "core.reward_card_transfer" : ItemTypeRegistry.RewardTokenAcquisitionProfileId, CarrierPolicyId = "preserve" });
             Set(node, "selectedRewardItemId", NormalizedValue.CreateString(selected.ItemId));
             Set(node, "acquisitionCompleted", NormalizedValue.CreateBoolean(true));
             var result = Object("changed", NormalizedValue.CreateBoolean(true), "rewardItemId", NormalizedValue.CreateString(selected.ItemId),

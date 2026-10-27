@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
@@ -18,6 +19,65 @@ namespace YC.Application.Sessions
 
         private int enabled;
         public bool Enabled { get => Volatile.Read(ref enabled) != 0; set => Volatile.Write(ref enabled, value ? 1 : 0); }
+
+        // 显式开发采样才启用；只观察同步SubmitCore的当前owner线程，不存规则图或结果。
+        public bool CaptureSubmitAllocations { get; set; }
+        public bool CurrentThreadAllocationAvailable { get; set; }
+        public event Action<SubmitAllocationObservation> SubmitAllocationObserved;
+        private long allocationOrdinal, allocationParent;
+        private int allocationDepth;
+
+        public readonly struct SubmitAllocationObservation
+        {
+            public readonly string CommandId;
+            public readonly long Id, ParentId, ElapsedTicks;
+            public readonly int Depth, OwnerThreadId, EndingThreadId, Gen0Before, Gen1Before, Gen2Before, Gen0After, Gen1After, Gen2After;
+            public readonly long? AllocatedBytes;
+            internal SubmitAllocationObservation(string command, long id, long parent, int depth, int owner, int ending,
+                long elapsed, long? allocated, int g0, int g1, int g2)
+            {
+                CommandId = command; Id = id; ParentId = parent; Depth = depth; OwnerThreadId = owner; EndingThreadId = ending;
+                ElapsedTicks = elapsed; AllocatedBytes = allocated; Gen0Before = g0; Gen1Before = g1; Gen2Before = g2;
+                Gen0After = GC.CollectionCount(0); Gen1After = GC.CollectionCount(1); Gen2After = GC.CollectionCount(2);
+            }
+        }
+
+        public SubmitAllocationScope MeasureSubmitAllocation(string commandId) =>
+            CaptureSubmitAllocations ? new SubmitAllocationScope(this, commandId) : default;
+
+        public readonly struct SubmitAllocationScope : IDisposable
+        {
+            private readonly ExecutionTimingCounters counters;
+            private readonly string command;
+            private readonly long id, parent, began, allocatedBefore;
+            private readonly int depth, owner, g0, g1, g2;
+            internal SubmitAllocationScope(ExecutionTimingCounters counters, string command)
+            {
+                this.counters = counters; this.command = command;
+                parent = counters.allocationParent; id = ++counters.allocationOrdinal;
+                counters.allocationParent = id; depth = ++counters.allocationDepth;
+                owner = Thread.CurrentThread.ManagedThreadId;
+                g0 = GC.CollectionCount(0); g1 = GC.CollectionCount(1); g2 = GC.CollectionCount(2);
+                allocatedBefore = ReadAllocated(counters.CurrentThreadAllocationAvailable);
+                began = Stopwatch.GetTimestamp();
+            }
+            private static long ReadAllocated(bool available)
+            {
+                if (!available) return -1;
+                try { return GC.GetAllocatedBytesForCurrentThread(); } catch { return -1; }
+            }
+            public void Dispose()
+            {
+                if (counters == null) return;
+                long elapsed = Stopwatch.GetTimestamp() - began;
+                int ending = Thread.CurrentThread.ManagedThreadId;
+                long after = ReadAllocated(counters.CurrentThreadAllocationAvailable);
+                long? allocated = owner == ending && allocatedBefore >= 0 && after >= allocatedBefore ? after - allocatedBefore : (long?)null;
+                counters.allocationParent = parent; counters.allocationDepth--;
+                try { counters.SubmitAllocationObserved?.Invoke(new SubmitAllocationObservation(command, id, parent, depth, owner, ending, elapsed, allocated, g0, g1, g2)); }
+                catch { counters.CaptureSubmitAllocations = false; } // 诊断失败不改变原Submit返回或异常。
+            }
+        }
 
         public void AddSample(string phase, long elapsedTicks)
         {

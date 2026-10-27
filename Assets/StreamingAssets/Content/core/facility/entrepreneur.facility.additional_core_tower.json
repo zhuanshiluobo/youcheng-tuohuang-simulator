@@ -1,0 +1,41 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.facility.additional_core_tower",
+  "contentType": "facility",
+  "version": "1.0.0",
+  "displayName": "追加核心指挥塔",
+  "artwork": "artwork/sheets/facility_faces.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "core.facility_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [],
+  "abilitySources": [],
+  "data": {
+    "facilityId": "entrepreneur.facility.additional_core_tower",
+    "color": "rainbow",
+    "score": 0,
+    "resourceCost": {},
+    "goldVoucherCost": 0,
+    "defaultSupply": 0,
+    "reserveOnly": false,
+    "unique": false,
+    "uniqueGroupId": "",
+    "hasEntryEffect": false,
+    "effectId": "setup_core_command_tower",
+    "effectType": "setup",
+    "keywords": []
+  },
+  "artworkSpriteId": "facility_045",
+  "presentation": {
+    "description": {
+      "key": "core:entrepreneur.M.additional_core_tower.description"
+    }
+  }
+}

@@ -194,6 +194,7 @@ namespace YC.Domain.Rules
                 var routeAuthority = new RouteSelectionSessionAuthority();
                 var read = routeAuthority.TryRestore(state, owner, out var session, out var binding);
                 if (!read.IsValid || session.Purpose != RouteSelectionPurpose.NormalHarvest || session.Stage != RouteSelectionStage.Selecting || binding == null ||
+                    session.SchemaVersion == YC.Domain.Harvest.CollectionPlanService.ProtocolVersion && session.CollectionFreeLocations == null ||
                     binding.CandidateSetId != request.CandidateSetId || binding.CandidateSetVersion != request.CandidateSetVersion ||
                     binding.ScopeKey != RouteSelectionSessionAuthority.Text(request.PromptParameters, "scopeKey") ||
                     binding.FrozenFactsDigest != RouteSelectionSessionAuthority.Text(request.PromptParameters, "factsDigest"))

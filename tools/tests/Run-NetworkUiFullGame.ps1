@@ -1,4 +1,6 @@
-param([Parameter(Mandatory=$true)][string]$EvidenceRoot, [string]$BuildDirectory='build', [string]$ExecutablePath='', [switch]$NetworkObservation, [string]$CampaignRequestedPriorities='')
+param([Parameter(Mandatory=$true)][string]$EvidenceRoot, [string]$BuildDirectory='build', [string]$ExecutablePath='',
+    [switch]$NetworkObservation, [string]$CampaignRequestedPriorities='',
+    [ValidateSet('standard','entrepreneur')][string]$RuleMode='standard', [string]$FrozenPackageManifest='')
 $ErrorActionPreference = 'Stop'
 $processPathValue = [Environment]::GetEnvironmentVariable('Path', [EnvironmentVariableTarget]::Process)
 [Environment]::SetEnvironmentVariable('PATH', $null, [EnvironmentVariableTarget]::Process)
@@ -6,9 +8,18 @@ $processPathValue = [Environment]::GetEnvironmentVariable('Path', [EnvironmentVa
 [Environment]::SetEnvironmentVariable('Path', $processPathValue, [EnvironmentVariableTarget]::Process)
 $project = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $evidence = (Resolve-Path -LiteralPath $EvidenceRoot).Path
+if (!$evidence.StartsWith($project+'\',[StringComparison]::OrdinalIgnoreCase) -or
+    $evidence.StartsWith((Join-Path $project '游城拓荒\UI素材')+'\',[StringComparison]::OrdinalIgnoreCase) -or
+    $evidence -eq (Join-Path $project '游城拓荒\UI素材')) { throw '运行证据必须是本项目独立子目录，禁止写入受限原档案。' }
+$RuleMode = $RuleMode.ToLowerInvariant()
+if (Get-Process -Name tuohuang -ErrorAction SilentlyContinue) { throw '已有游戏实例，保留其现场；先按交接准确核对并正常关闭本次旧测试进程。' }
+foreach ($name in @('四端正常联机','启动前存档备份','本轮冻结运行清单原件.json')) {
+    if (Test-Path -LiteralPath (Join-Path $evidence $name)) { throw "运行证据已存在，禁止覆盖：$name" }
+}
 $fixedPlayer = ![string]::IsNullOrWhiteSpace($ExecutablePath)
 $executable = if ($fixedPlayer) { (Resolve-Path -LiteralPath $ExecutablePath).Path } else { Join-Path $project 'Builds\LocalhostDevelopment\tuohuang.exe' }
 $buildEvidence = Join-Path $evidence $BuildDirectory
+if ([string]::IsNullOrWhiteSpace($FrozenPackageManifest)) {
 $receiptPath = Join-Path $buildEvidence 'build-receipt.json'
 $receipt = Get-Content -LiteralPath $receiptPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if (!$receipt.succeeded) { throw '构建输入存在漂移，不能运行。' }
@@ -26,7 +37,19 @@ if (!$fixedPlayer) { foreach ($item in $inputs.files) {
     $actual = Get-FileHash -LiteralPath (Join-Path $project $item.path) -Algorithm SHA256
     if ($actual.Hash -ne $item.sha256) { throw "构建后源文件已变化：$($item.path)" }
 } }
-if (Get-Process -Name tuohuang -ErrorAction SilentlyContinue) { throw '已有游戏实例，先保留其现场，不能混入新局。' }
+} else {
+    if (!$fixedPlayer) { throw '冻结运行清单必须配合准确ExecutablePath，不猜构建目录。' }
+    $frozen = Get-Content -LiteralPath $FrozenPackageManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+    $packageRoot = [IO.Path]::GetFullPath((Split-Path -Parent $executable))
+    if ([IO.Path]::GetFullPath($frozen.root) -ne $packageRoot -or @($frozen.files).Count -eq 0 -or
+        $frozen.fileCount -ne @($frozen.files).Count) { throw '冻结清单根目录或数量不符。' }
+    foreach ($item in $frozen.files) {
+        $path = [IO.Path]::GetFullPath((Join-Path $packageRoot $item.path))
+        if (!$path.StartsWith($packageRoot+'\',[StringComparison]::OrdinalIgnoreCase) -or
+            (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $item.sha256) { throw "冻结产物路径或SHA不符：$path" }
+    }
+    Copy-Item -LiteralPath $FrozenPackageManifest -Destination (Join-Path $evidence '本轮冻结运行清单原件.json')
+}
 $saveRoot = Join-Path $env:USERPROFILE 'AppData\LocalLow\zhuanshiluobo\游城拓荒模拟器\MatchSaves'
 $backup = Join-Path $evidence '启动前存档备份'
 New-Item -ItemType Directory -Path $backup | Out-Null
@@ -51,6 +74,7 @@ foreach ($role in @('host','client2','client3','client4')) {
     $playerArguments = @(
         '--yc-local-multiplayer-test', "--yc-local-player-name=本地验收-$role-$(Get-Date -Format 'MMddHHmmss')",
         '--yc-hotseat-ui-validation-case=network-full-game', "--yc-hotseat-ui-validation-output=$output",
+        "--yc-ui-rule-mode=$RuleMode", '--yc-hotseat-player-count=4', '--yc-ui-defer-content-differences=true',
         "--yc-network-ui-root=$cohort", "--yc-network-ui-role=$role", "--yc-ui-campaign-path=$output\coverage.json",
         '--yc-campaign-expansions=enterprise,infected', '--yc-amiya-original-viewer=true',
         '-logFile', "$output\Player.log", '-screen-fullscreen', '0', '-screen-width', '1280', '-screen-height', '720'
@@ -64,7 +88,10 @@ foreach ($role in @('host','client2','client3','client4')) {
     $line = ($playerArguments | ForEach-Object { '"' + $_ + '"' }) -join ' '
     $player = Start-Process -FilePath $executable -WorkingDirectory (Split-Path -Parent $executable) -ArgumentList $line -WindowStyle Normal -PassThru
     $players += $player
-    $launches += @{ Role=$role; ProcessId=$player.Id; StartedUtc=[DateTime]::UtcNow.ToString('o'); Arguments=$playerArguments; VisibleWindow=$true }
+    $identity = Get-CimInstance Win32_Process -Filter "ProcessId=$($player.Id)"
+    $launches += @{ Role=$role; ProcessId=$player.Id; StartedUtc=[DateTime]::UtcNow.ToString('o');
+        CreationDate=$identity.CreationDate; ExecutablePath=$identity.ExecutablePath; CommandLine=$identity.CommandLine;
+        Arguments=$playerArguments; VisibleWindow=$true; RequestedRuleMode=$RuleMode; NormalMenuFlow=$true }
     $launches | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $cohort '四实例启动记录.json') -Encoding UTF8
     Write-Host "已启动可见独立程序 $role，PID=$($player.Id)"
 }

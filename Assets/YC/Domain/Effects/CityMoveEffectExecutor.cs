@@ -107,6 +107,7 @@ namespace YC.Domain.Effects
             ResourceTokenService resourceTokenService)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
+            movementService.DestinationRegistry = registry;
             var executor = new CityMoveEffectExecutor(
                 mapQuery,
                 influenceService,
@@ -177,13 +178,20 @@ namespace YC.Domain.Effects
             }
             if (!string.IsNullOrEmpty(targetLocationId) && (string.IsNullOrEmpty(stage) || stage == "before_city_move") &&
                 !MatchesPolicy(context.State, context.Node.PlayerId, targetLocationId, policy))
+                {
+                if (prepared != null) throw new KernelException("city_destination_after_payment_invalid", "city_move_target_policy_invalid");
                 return EffectStepResult.Failed("city_move_target_policy_invalid");
+            }
             if (string.IsNullOrEmpty(stage))
             {
                 if (!string.IsNullOrEmpty(targetLocationId))
                 {
-                    ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost);
-                    if (!validation.IsValid) return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
+                    ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost, context.Node.EffectId);
+                    if (!validation.IsValid)
+                {
+                    if (prepared != null) throw new KernelException("city_destination_after_payment_invalid", validation.Reason);
+                    return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
+                }
                 }
                 return EffectStepResult.Continue("before_city_move")
                     .AddEvent(CreateLifecycleEvent(
@@ -197,8 +205,12 @@ namespace YC.Domain.Effects
             if (stage == "before_city_move")
             {
                 if (HasFailedChild(context)) return EffectStepResult.Failed("before_city_move_response_failed");
-                ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost || prepared != null);
-                if (!validation.IsValid) return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
+                ValidationResult validation = Validate(context.State, context.Node.PlayerId, targetLocationId, waiveBaseCost || prepared != null, context.Node.EffectId, waiveBaseCost ? "free" : "specified");
+                if (!validation.IsValid)
+                {
+                    if (prepared != null) throw new KernelException("city_destination_after_payment_invalid", validation.Reason);
+                    return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
+                }
 
                 PlayerState player = context.State.FindPlayer(context.Node.PlayerId);
                 MapRouteDefinition route = mapQuery.FindRoute(player.CityLocationId, targetLocationId);
@@ -249,7 +261,7 @@ namespace YC.Domain.Effects
                     context.Node.PlayerId,
                     player.CityLocationId,
                     targetLocationId,
-                    route.RouteId));
+                    route.RouteId, waiveBaseCost ? "free" : "specified", policy, context.Node.EffectId));
 
                 string sourceSlotId = FindFirstAvailableSourceSlot(context.State, context.Node.PlayerId, player.CityLocationId);
                 if (!string.IsNullOrEmpty(sourceSlotId))
@@ -317,9 +329,9 @@ namespace YC.Domain.Effects
             return EffectStepResult.Failed("invalid_flow_stage");
         }
 
-        private ValidationResult Validate(GameState state, int playerId, string targetLocationId, bool waiveBaseCost)
+        private ValidationResult Validate(GameState state, int playerId, string targetLocationId, bool waiveBaseCost, string sourceEffectId = "", string destinationPurpose = "")
         {
-            return movementService.CanMoveCityEffect(state, playerId, targetLocationId, waiveBaseCost);
+            return movementService.CanMoveCityEffect(state, playerId, targetLocationId, waiveBaseCost, sourceEffectId, destinationPurpose.Length > 0 ? destinationPurpose : waiveBaseCost ? "free" : "specified");
         }
 
         private List<string> QueryTargets(EffectExecutionContext context, bool waive, string policy)
@@ -327,20 +339,17 @@ namespace YC.Domain.Effects
             var result = new List<string>();
             var player = context.State.FindPlayer(context.Node.PlayerId);
             if (player == null || string.IsNullOrEmpty(player.CityLocationId)) return result;
-            foreach (var target in mapQuery.GetAdjacentLocations(player.CityLocationId))
-                if (MatchesPolicy(context.State, player.PlayerId, target.LocationId, policy) &&
-                    Validate(context.State, player.PlayerId, target.LocationId, waive).IsValid)
-                    result.Add(target.LocationId);
+            var query = new CityDestinationQuery(player.PlayerId, context.Node.EffectId, waive ? "free" : "specified", policy,
+                mapQuery.GetAdjacentLocations(player.CityLocationId).Select(x => x.LocationId).ToArray());
+            foreach (var target in new CityDestinationQueryService(mapQuery, context.Registry).Query(context.State, query).AllowedLocationIds)
+                if (Validate(context.State, player.PlayerId, target, waive, context.Node.EffectId).IsValid) result.Add(target);
             result.Sort(StringComparer.Ordinal);
             return result;
         }
 
         private bool MatchesPolicy(GameState state, int playerId, string locationId, string policy)
         {
-            if (policy == "standard") return true;
-            if (policy == "explored") return resourceTokenService.HasResourceToken(state.Map, locationId);
-            if (policy != "explored_own_influence" || !resourceTokenService.HasResourceToken(state.Map, locationId)) return false;
-            return state.Map.Influences.Exists(i => i.PlayerId == playerId && i.LocationId == locationId);
+            return CityDestinationQueryService.MatchesPolicy(state, playerId, locationId, policy);
         }
 
         private string FindFirstAvailableSourceSlot(GameState state, int playerId, string locationId)
@@ -486,6 +495,10 @@ namespace YC.Domain.Effects
     public static class CityPositionCommitEffectSpecFactory
     {
         public static EffectSpec Commit(int playerId, string sourceLocationId, string targetLocationId, string routeId)
+            => Commit(playerId, sourceLocationId, targetLocationId, routeId, "specified", "standard", "");
+
+        public static EffectSpec Commit(int playerId, string sourceLocationId, string targetLocationId, string routeId,
+            string destinationPurpose, string targetPolicy, string sourceOperationId)
         {
             return new EffectSpec(
                 CityMoveEffectTypeIds.CommitPosition,
@@ -494,7 +507,10 @@ namespace YC.Domain.Effects
                     Entry("playerId", NormalizedValue.CreateStableReference("player", playerId.ToString(CultureInfo.InvariantCulture))),
                     Entry("sourceLocation", NormalizedValue.CreateStableReference("location", sourceLocationId ?? string.Empty)),
                     Entry("targetLocation", NormalizedValue.CreateStableReference("location", targetLocationId ?? string.Empty)),
-                    Entry("route", NormalizedValue.CreateStableReference("route", routeId ?? string.Empty))
+                    Entry("route", NormalizedValue.CreateStableReference("route", routeId ?? string.Empty)),
+                    Entry("destinationPurpose", NormalizedValue.CreateString(destinationPurpose ?? "specified")),
+                    Entry("targetPolicy", NormalizedValue.CreateString(targetPolicy ?? "standard")),
+                    Entry("sourceOperationId", NormalizedValue.CreateString(sourceOperationId ?? ""))
                 }))
             {
                 PlayerId = playerId,
@@ -543,18 +559,54 @@ namespace YC.Domain.Effects
             string routeId = ReadStable(context.Node.NormalizedArguments, "route");
             if (player == null || player.CityLocationId != source)
             {
-                return EffectStepResult.Failed("source_changed");
+                throw new KernelException("city_position_source_changed", "城市位置提交前起点已改变，保留已执行费用及响应。");
             }
             try
             {
                 mapQuery.GetLocation(target);
                 MapRouteDefinition route = mapQuery.FindRoute(source, target);
-                if (route.RouteId != routeId) return EffectStepResult.Failed("route_changed");
+                if (route.RouteId != routeId) throw new KernelException("city_position_route_changed", "城市位置提交前路线已改变。");
             }
             catch (ArgumentException)
             {
-                return EffectStepResult.Failed("target_changed");
+                throw new KernelException("city_position_target_changed", "城市位置提交前目标已改变。");
             }
+            var parentMove = context.State.EffectRuntime.EffectNodes.Find(n => n.EffectId == context.Node.ParentEffectId && n.EffectTypeId == CityMoveEffectTypeIds.Move);
+            if (parentMove != null)
+            {
+                foreach (var id in parentMove.ChildEffectIds.TakeWhile(id => id != context.Node.EffectId))
+                {
+                    var prior = context.State.EffectRuntime.EffectNodes.Find(n => n.EffectId == id);
+                    if (prior == null || prior.Status == EffectNodeStatus.Failed || prior.Status == EffectNodeStatus.Faulted)
+                        throw new KernelException("city_position_required_step_failed", "城市位置提交前必要步骤未成功，保留已有支付和离场现场。");
+                    if (prior.Status != EffectNodeStatus.Completed)
+                    {
+                        if (!context.TryAttachCompletionDependenciesOnWorking(new[] { prior.EffectId }, "city_position_prior_step"))
+                            throw new KernelException("city_position_dependency_invalid", "城市位置提交无法绑定真实前置步骤。");
+                        return EffectStepResult.Continue(context.Node.FlowStage);
+                    }
+                }
+                // 离场本身已终止不代表其外部旁路已结束。只等待本次Move真实离场产生的响应，
+                // 待其结清后再用同一registry复验目的地，保留已付与原位置。
+                var responses=EffectTreeExecutor.GetDeferredResponseDependencies(context.State,new DeferredDependencyQuery {
+                    DependencyKind=DeferredDependencyKind.FinalizeGame,OwnerEffectId=context.Node.EffectId }).Where(d=>{
+                        var response=context.State.EffectRuntime.DeferredResponses.Single(r=>r.DeferredResponseId==d.DeferredResponseId);
+                        return InfluenceDepartureProtocol.IsWithin(context.State,response.SourceOperationEffectId,parentMove.EffectId);
+                    }).ToArray();
+                if(responses.Length>0) {
+                    if(!context.TryAttachDeferredResponseDependenciesOnWorking(responses)) throw new KernelException("city_position_response_dependency_invalid","城市位置无法绑定本次离场的真实响应。");
+                    return EffectStepResult.Continue(context.Node.FlowStage);
+                }
+            }
+            string purpose = ItemTransferEffectExecutor.Text(context.Node.NormalizedArguments, "destinationPurpose");
+            string policy = ItemTransferEffectExecutor.Text(context.Node.NormalizedArguments, "targetPolicy");
+            string operation = ItemTransferEffectExecutor.Text(context.Node.NormalizedArguments, "sourceOperationId");
+            if (purpose.Length == 0) purpose = "specified";
+            if (policy.Length == 0) policy = "standard";
+            var admission = new CityDestinationQueryService(mapQuery, context.Registry).ValidateTarget(context.State,
+                new CityDestinationQuery(player.PlayerId, operation, purpose, policy,
+                    mapQuery.GetAdjacentLocations(source).Select(x => x.LocationId).ToArray()), target);
+            if (!admission.IsValid) throw new KernelException("city_destination_commit_rejected", admission.Reason);
             if (ItemZoneLegacyProjection.IsActive(context.State))
             {
                 var city = context.State.ItemZones.Items.Single(item => item.PhysicalKind == ItemPhysicalKind.MobileCity && item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == player.PlayerId);

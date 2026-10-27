@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.eunectes",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "森蚺",
   "expansionId": "enterprise",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "normal",
       "subscriptionId": "content.operator.eunectes.tactic",
       "script": "lua/characters/operator.eunectes.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.operator.eunectes.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -45,5 +45,57 @@
     "instanceTypeId": "core.operator_card",
     "strategyAbilityId": "operator.eunectes.strategy",
     "tacticAbilityId": "operator.eunectes.tactic"
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "operator.eunectes.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "operator.eunectes",
+      "actions": [
+        {
+          "actionId": "operator.eunectes.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "operator.eunectes",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "operator.eunectes"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }

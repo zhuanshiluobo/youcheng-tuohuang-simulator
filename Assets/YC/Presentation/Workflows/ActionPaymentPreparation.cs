@@ -55,6 +55,7 @@ namespace YC.Presentation.Workflows
         }
         public bool Prepare(string targetId, string paymentMode = null, string sourceZoneId = null)
         {
+            using var latency = InteractionLatencyTrace.Begin("payment.prepare");
             if (shuttingDown || IsInFlight) return false;
             GameCommand command;
             if (GetEffectBuildScope != null)
@@ -72,6 +73,19 @@ namespace YC.Presentation.Workflows
             if (paymentMode != null) command.Parameters["paymentMode"] = paymentMode;
             if (sourceZoneId != null) command.Parameters["expectedSourceZoneId"] = sourceZoneId;
             preparationRequested = true;
+            return Send(command);
+        }
+        public bool ChangePaymentMode(string mode)
+        {
+            using var latency = InteractionLatencyTrace.Begin("payment.change_mode");
+            var payment = Current;
+            if (shuttingDown || IsInFlight || actionKind != "build" || payment == null || !payment.IsReady ||
+                mode != "resources" && mode != "gold") return false;
+            var command = NewCommand("change_payment_mode");
+            command.Parameters["ownerEffectId"] = payment.PaymentOwnerEffectId;
+            command.Parameters["interactionId"] = payment.InteractionId;
+            command.Parameters["paymentGeneration"] = payment.PaymentGeneration.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            command.Parameters["paymentMode"] = mode;
             return Send(command);
         }
         public bool Cancel(Action afterApplied)
@@ -103,6 +117,7 @@ namespace YC.Presentation.Workflows
         }
         public bool NotifyResolved(string gameId, string id, bool applied)
         {
+            using var latency = InteractionLatencyTrace.Begin("payment.notify_resolved", id);
             if (!IsInFlight || id != commandId || gameId != commandGameId ||
                 context.CurrentState?.GameId != commandGameId || context.LocalPlayerId != commandPlayerId) return false;
             commandId = commandGameId = null;
@@ -118,10 +133,10 @@ namespace YC.Presentation.Workflows
                 preparationRequested = false;
             var wasNotifyingCancellation = notifyingCancellation;
             notifyingCancellation |= cancelling;
-            try { changed?.Invoke(); }
+            try { using (InteractionLatencyTrace.Begin("payment.changed_callback", id)) changed?.Invoke(); }
             finally { notifyingCancellation = wasNotifyingCancellation; }
             if (applied && !shuttingDown && context.CurrentState?.GameId == gameId && context.LocalPlayerId == resolvedPlayer)
-                continuation?.Invoke();
+                using (InteractionLatencyTrace.Begin("payment.follow_callback", id)) continuation?.Invoke();
             return true;
         }
         public void ResetAfterCommit() { preparationRequested = false; afterCancellation = null; }
@@ -142,6 +157,7 @@ namespace YC.Presentation.Workflows
         }
         private bool Send(GameCommand command)
         {
+            using var latency = InteractionLatencyTrace.Begin("payment.send", command?.CommandId);
             commandId = command.CommandId; commandGameId = context.CurrentState.GameId; commandPlayerId = command.PlayerId;
             commandOperation = command.Parameters["operation"];
             var submittedGame = commandGameId;

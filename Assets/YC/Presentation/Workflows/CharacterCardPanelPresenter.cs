@@ -16,6 +16,38 @@ namespace YC.Presentation.Workflows
     public sealed class CharacterCardPanelPresenter
     {
         private readonly CharacterCardOptionQueryService optionQueryService;
+        private int presentationReadDepth;
+        private GameState presentationReadState;
+        private GameStateView presentationReadView;
+        private CharacterCardPanelViewModel presentationReadModel;
+        private Func<GameplayTextRef, GameplayTextDocument> presentationReadText;
+        private string presentationReadGame, presentationReadContent, presentationReadCard;
+        private int presentationReadPlayer, presentationReadRevision, presentationReadRound, presentationReadActionRound, presentationReadActor;
+        private GamePhase presentationReadPhase;
+
+        // 仅在一次同步UI绑定栈内复用本人正式投影；不跨发表版本或输入回调保留模型。
+        public IDisposable BeginPresentationRead() => new PresentationReadScope(this);
+        private sealed class PresentationReadScope : IDisposable
+        {
+            private CharacterCardPanelPresenter owner;
+            internal PresentationReadScope(CharacterCardPanelPresenter owner)
+            {
+                this.owner = owner;
+                if (owner.presentationReadDepth++ == 0) owner.ClearPresentationRead();
+            }
+            public void Dispose()
+            {
+                if (owner == null) return;
+                if (--owner.presentationReadDepth == 0) owner.ClearPresentationRead();
+                owner = null;
+            }
+        }
+        private void ClearPresentationRead()
+        {
+            presentationReadState = null; presentationReadView = null; presentationReadModel = null;
+            presentationReadText = null;
+            presentationReadGame = presentationReadContent = presentationReadCard = null;
+        }
         public Func<GameplayTextRef, GameplayTextDocument> ResolveGameplayText { private get; set; }
 
         private string StatusText(GameplayTextRef reference) => ResolveGameplayText?.Invoke(reference)?.ToPlainText() ?? string.Empty;
@@ -63,6 +95,35 @@ namespace YC.Presentation.Workflows
         }
 
         public CharacterCardPanelViewModel BuildProjectedView(GameState state, int localPlayerId, GameStateView visible, string selectedCardId = null)
+        {
+            bool scoped = presentationReadDepth > 0 && state?.EffectRuntime != null && state.ItemZones?.Zones.Count > 0 && visible != null &&
+                visible.ViewerRole == GameStateViewerRole.Player && visible.ViewerPlayerId == localPlayerId &&
+                state.GameId == visible.GameId && state.ContentPackHash == visible.ContentPackHash &&
+                (state.EffectRuntime?.StateRevision ?? 0) == visible.StateRevision;
+            if (scoped && presentationReadModel != null && ReferenceEquals(presentationReadState, state) &&
+                ReferenceEquals(presentationReadView, visible) && presentationReadGame == state.GameId &&
+                presentationReadContent == state.ContentPackHash && presentationReadPlayer == localPlayerId &&
+                ReferenceEquals(presentationReadText, ResolveGameplayText) &&
+                presentationReadRevision == visible.StateRevision && presentationReadCard == selectedCardId &&
+                presentationReadRound == state.Round && presentationReadActionRound == state.ActionRound &&
+                presentationReadActor == state.CurrentPlayerId && presentationReadPhase == state.Phase)
+                return presentationReadModel;
+            var model = BuildProjectedViewCore(state, localPlayerId, visible, selectedCardId);
+            if (scoped)
+            {
+                presentationReadState = state; presentationReadView = visible; presentationReadModel = model;
+                presentationReadText = ResolveGameplayText;
+                presentationReadGame = state.GameId; presentationReadContent = state.ContentPackHash;
+                presentationReadPlayer = localPlayerId; presentationReadRevision = visible.StateRevision;
+                presentationReadCard = selectedCardId; presentationReadRound = state.Round;
+                presentationReadActionRound = state.ActionRound; presentationReadActor = state.CurrentPlayerId;
+                presentationReadPhase = state.Phase;
+            }
+            else if (presentationReadDepth > 0) ClearPresentationRead();
+            return model;
+        }
+
+        private CharacterCardPanelViewModel BuildProjectedViewCore(GameState state, int localPlayerId, GameStateView visible, string selectedCardId)
         {
             var legacy = BuildLegacyView(state, localPlayerId);
             if (state?.ItemZones?.Zones.Count == 0 || state?.ItemZones == null)
@@ -116,6 +177,8 @@ namespace YC.Presentation.Workflows
             }).ToList();
             foreach (var item in hand.Concat(discard).Concat(coveredCards))
                 result.CardDefinitionIds[item.ItemId] = item.DefinitionId;
+            result.HasAbilityActionCatalog = visible.HasAbilityActionCatalog;
+            result.DeclaredQuickActions = visible.AbilityActions.Where(a => a.EntryKind == "quick").ToList();
             return result;
         }
 
@@ -259,11 +322,7 @@ namespace YC.Presentation.Workflows
             }
             else if (actionPhase)
             {
-                interactionStatus = isSecondEffectDecision
-                    ? (canContinueSecondEffect
-                        ? new GameplayTextRef("core:legacy.character.status.second_available")
-                        : new GameplayTextRef("core:legacy.character.status.second_no_targets"))
-                    : canUse && !hasImplementedEffect
+                interactionStatus = canUse && !hasImplementedEffect
                     ? new GameplayTextRef("core:legacy.character.status.effect_not_integrated")
                     : (canUse ? new GameplayTextRef("core:legacy.character.status.can_use") : coveredStatus);
             }
@@ -515,6 +574,8 @@ namespace YC.Presentation.Workflows
 
     public sealed class CharacterCardPanelViewModel
     {
+        public bool HasAbilityActionCatalog;
+        public IReadOnlyList<YC.Domain.Effects.AbilityActionOption> DeclaredQuickActions = Array.Empty<YC.Domain.Effects.AbilityActionOption>();
         public CharacterCardPanelViewModel(
             IReadOnlyList<CharacterCardHandItemViewModel> handCards,
             IReadOnlyList<CharacterCardHandItemViewModel> discardCards,

@@ -1,0 +1,43 @@
+{
+  "branch": "txym",
+  "upstream": "origin/txym",
+  "head": "1bc3a5e3b3684659225cb9e255c836e8b6bd4020",
+  "remoteTxym": "1bc3a5e3b3684659225cb9e255c836e8b6bd4020",
+  "aheadBehind": "0\t0",
+  "excluded": [
+    "游城拓荒/UI素材",
+    "游城拓荒/UI素材/**",
+    "**/UI素材/**",
+    "Builds/**",
+    "Build/**",
+    "Logs/**",
+    "TestResults/**",
+    "Artifacts/**",
+    "Library/**",
+    "Temp/**",
+    "obj/**",
+    "Obj/**",
+    ".codex-tmp/**",
+    "tmp/**",
+    ".git/**",
+    "**/实施记录/**",
+    "prompt/UI换新/执行记录/**",
+    "prompt/卡牌Sprite切片替换/**",
+    "**/__pycache__/**"
+  ],
+  "counts": {
+    "待逐项确认": 1,
+    "仓库配置说明": 1,
+    "生产代码资源及关联验证": 1265,
+    "工作文档": 347,
+    "工具": 5,
+    "规则及内容参考文档": 25,
+    "可用素材和许可清单": 126
+  },
+  "large50MiB": [],
+  "secretLocations": [],
+  "rows": 1770,
+  "trackedChanged": 362,
+  "untracked": 1408,
+  "note": "不读取Builds或在途实施记录，不扫描受限原档案；候选不是已暂存清单。敏感项只记录位置，未输出内容。"
+}

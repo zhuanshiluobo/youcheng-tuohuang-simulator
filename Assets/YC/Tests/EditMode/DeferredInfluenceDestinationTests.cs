@@ -4,6 +4,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using NUnit.Framework;
+using Newtonsoft.Json;
+using YC.Tests.EditMode.ExpansionRules;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
@@ -21,6 +23,23 @@ namespace YC.Tests.EditMode
 {
     public sealed class DeferredInfluenceDestinationTests
     {
+        private static IsolatedTestArtifacts artifacts;
+        private static string contentRoot;
+        private static Fixture current;
+        [SetUp] public void BeginEvidence()
+        {
+            current = null; artifacts = IsolatedTestArtifacts.BeginCase();
+            string installed = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
+            const string script = "lua/characters/operator.dorothy.tactic.lua";
+            string historical = File.ReadAllText(Path.Combine(installed,script)).Replace("StoreRemovedInfluence({ apiVersion = 2", "StoreRemovedInfluence({ apiVersion = 1");
+            contentRoot = artifacts.CopyContent(installed, "旧v1离场协议兼容输入", new Dictionary<string,string>{{script,historical}});
+            artifacts.WriteLabeledText("旧协议兼容边界", "本夹具不注册新版来源目录。隔离构造 v1 影响力帧并使用 Store v1 私有正文；只验旧协议在途恢复，不计当前内容协议验收。");
+        }
+        [TearDown] public void FinishEvidence()
+        {
+            if (current?.State != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(current.State));
+            artifacts.Finish();
+        }
         private sealed class Fixture
         {
             public GameState State;
@@ -31,11 +50,12 @@ namespace YC.Tests.EditMode
             public int Commands;
             public Fixture(int actor = 2, int stock = 2, int loaded = 1, bool sequential = false)
             {
+                current = this;
                 var configuration = new GameRuleConfiguration { MapId = Map.MapId, PlayerCount = 3,
                     EnabledExpansionIds = new List<string> { "core", "enterprise" },
                     PlayerStageSchedulingMode = sequential ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent };
-                string contentRoot = Environment.GetEnvironmentVariable("YC_DEFERRED_TEST_CONTENT_ROOT") ?? Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
                 var pack = ExternalContentPack.Load(contentRoot).CreateActiveSnapshot(configuration);
+                artifacts.RecordContent("R2实际离场内容", contentRoot, pack.ContentHash);
                 configuration.ContentPackHash = pack.ContentHash;
                 var query = new MapQueryService(Map);
                 ResourceEffectExecutor.Register(Registry); GenericLuaEffectExecutor.Register(Registry);
@@ -54,7 +74,7 @@ namespace YC.Tests.EditMode
                     CityLocationId = Map.Locations.First(location => !location.IsRedZone).LocationId, Resources = new ResourceSet { GoldVoucher = 30 } });
                 var dorothy = pack.ActiveDefinitions.Single(definition => definition.DefinitionId == "operator.dorothy");
                 var recipe = new List<ItemRecipeEntry> {
-                    new ItemRecipeEntry { EntryId = "deferred_markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = stock, PerPlayer = true, InitialZoneRole = "player_markers" },
+                    new ItemRecipeEntry { EntryId = "deferred_markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = stock, PerPlayer = true, InitialZoneRole = "supply" },
                     new ItemRecipeEntry { EntryId = "deferred_dorothy", DefinitionId = dorothy.DefinitionId, TypeId = dorothy.ItemTypeId, Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" }
                 };
                 foreach (var location in Map.Locations.Where(location => !location.IsRedZone)) recipe.Add(new ItemRecipeEntry {
@@ -76,10 +96,50 @@ namespace YC.Tests.EditMode
                 State.CurrentPlayerId = actor;
                 Assert.That(Round.PrepareActionWindowForSmoke(State, actor).IsValid, Is.True);
             }
+            private EffectSpec tokenBody;
+            public string RunTokenTransfer(int count, bool includePending = false)
+            {
+                const string ability = "qy006.deferred.token-transfer", signal = "QY006TokenConsumptionRequested", signalType = "qy006.token-consumer.signal";
+                if (!Registry.HasAbilityCatalog)
+                {
+                    // 真实规则事件消费者，不在p2行动窗口冒充p1 quick行动；来源及use收据均由正式执行器生成。
+                    var declaration = new AbilitySourceDeclaration { DefinitionId = "operator.dorothy", AbilityId = ability, Kind = "event", HandlerRef = ability,
+                        DeclarationVersion = "1.0.0", AuthorizationPolicy = "controller", PresentationRef = "operator.dorothy",
+                        EffectiveZones = new List<string> { "core.zone.character_persistent", "core.zone.character_covered" },
+                        ObservedEvents = new List<string> { signal },
+                        AllowedOperations = new List<string> { "carrier.transfer.original_supply:operator.dorothy:markers:core.cube" } };
+                    Registry.RegisterAbilityHandler(ability, "qy006.deferred.token-transfer/1", _ => new[] { tokenBody });
+                    Registry.FreezeAbilityCatalog(new[] { declaration });
+                    State.ContentDefinitions.AbilitySources = new List<AbilitySourceDeclaration> { declaration };
+                    AbilitySourceEffectExecutor.Register(Registry);
+                    Registry.RegisterEventHandler(new EffectEventHandlerRegistration(ability + ".subscription", signal, "", ability + ".dispatch", context =>
+                    {
+                        var source = Registry.QuerySources(context.State, 1, "event", signal).Single(s => s.AbilityId == ability && s.ItemId == CardId);
+                        return new[] { AbilitySourceEffectExecutor.Create(source, context.Event, ability, false, context.State.Round) };
+                    }, EffectHandlerRole.Primary));
+                    Registry.Register(signalType, context => EffectStepResult.Completed().AddEvent(new EffectEventRequest { EventType = signal, PlayerId = 1, Payload = Object() }));
+                }
+                int currentPlayer = State.CurrentPlayerId;
+                var ids = State.ItemZones.Items.Where(i => i.ZoneId == Storage.ZoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).Take(count).ToList();
+                if (includePending && ids.Count < count) ids.Add(RemovedId);
+                Assert.That(ids.Count, Is.EqualTo(count));
+                tokenBody = TokenSpec(1, ids, Storage.ZoneId, null, count, "core.cube_storage");
+                var engine = Round.CreateCommandExecutor(State);
+                string root = engine.CreateRoot(EffectSpec.Create(signalType, Object(), 1)); Pump();
+                Assert.That(State.CurrentPlayerId, Is.EqualTo(currentPlayer), "消费者不切换当前玩家或关闭p2窗口。");
+                var actualEvent = State.EffectRuntime.RuleEvents.Single(e => e.EventType == signal && e.SourceEffectId == root);
+                var use = State.EffectRuntime.AbilitySourceUses.Single(u => u.AbilityId == ability && u.TriggerEventId == actualEvent.EventId);
+                Assert.That(use.SourceRef.AuthorizedPlayerId, Is.EqualTo(1)); Assert.That(use.SourceRef.ItemId, Is.EqualTo(CardId));
+                var nodes = State.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(n.NormalizedArguments, "apiVersion") == 3 &&
+                    InfluenceDepartureProtocol.IsWithin(State, n.EffectId, use.OwnerEffectId)).ToList();
+                Assert.That(nodes.Count, Is.EqualTo(1), "必须真正到达该来源use下的api3工作节点，而非只创建消费者父节点。");
+                artifacts.WriteLabeledText("合法事件消费者与实际token工作节点", JsonConvert.SerializeObject(new { currentPlayer, actualEvent, use, node = nodes.Single() }));
+                return nodes.Single().EffectId;
+            }
             public string Slot(int index) => InfluenceService.GetLocationSlotId(Map.Locations.First(location => !location.IsRedZone && location.InfluenceSlotCount > index).LocationId, index);
             public ZoneInstanceState Storage => State.ItemZones.Zones.Single(zone => zone.ParentKind == ZoneParentKind.Item && zone.ParentId == CardId && zone.LocalZoneId == "markers");
             public DeferredResponseState Response => State.EffectRuntime.DeferredResponses.Single();
-            public InteractionRequest Open(string type = "lua.choice") => State.EffectRuntime.InteractionRequests.Last(request => request.Status == "open" && request.InteractionTypeId == type);
+            public InteractionRequest Open(string type = "effect.choice.execute") => State.EffectRuntime.InteractionRequests.Last(request => request.Status == "open" && request.InteractionTypeId == type);
             public EffectNodeRuntimeState Node(string id) => State.EffectRuntime.EffectNodes.Single(node => node.EffectId == id);
             public void Pump()
             {
@@ -88,8 +148,13 @@ namespace YC.Tests.EditMode
             }
             public string RunRoot(EffectSpec spec)
             {
-                var engine = Round.CreateCommandExecutor(State); string id = engine.CreateRoot(spec); Pump();
+                var engine = Round.CreateCommandExecutor(State); string id = engine.CreateRoot(spec); MakeHistoricalInfluenceFrame(id); Pump();
                 Assert.That(Node(id).Status, Is.Not.EqualTo(EffectNodeStatus.Failed), Node(id).FailureReason); return id;
+            }
+            private void MakeHistoricalInfluenceFrame(string id)
+            {
+                var n=Node(id);
+                if (new[]{InfluenceEffectTypeIds.RemoveInfluence,InfluenceEffectTypeIds.ReplaceInfluence,InfluenceEffectTypeIds.PlaceInfluence}.Contains(n.EffectTypeId)) n.DefinitionVersion="v1";
             }
             public EffectSpec MoveCardSpec(string destination) => EffectSpec.Create(ItemTransferEffectExecutor.TypeId,
                 Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
@@ -106,7 +171,7 @@ namespace YC.Tests.EditMode
                 {
                     var engine = Round.CreateCommandExecutor(State);
                     Assert.That(engine.TryCreatePlayerActionEffect(spec.PlayerId, spec, "1", "deferred-domain", out string id), Is.True);
-                    Pump(); return id;
+                    MakeHistoricalInfluenceFrame(id); Pump(); return id;
                 }
                 finally { State.EffectRuntime.CurrentOperationContext = null; }
             }
@@ -123,7 +188,7 @@ namespace YC.Tests.EditMode
             public void Restore()
             {
                 string before = RuleStateDigestService.Compute(State);
-                var restored = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(State)), Registry);
+                var restored = artifacts.Recover(State, "R2离场响应恢复", Registry);
                 Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
                 Assert.That(RuleStateDigestService.Compute(restored.State), Is.EqualTo(before));
                 State = restored.State;
@@ -162,8 +227,7 @@ namespace YC.Tests.EditMode
             f.Restore();
             if (answer == "store")
             {
-                f.RunRoot(EffectSpec.Create(ContentPrimitiveEffectExecutor.PayMarkers, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
-                    "cardInstanceId", NormalizedValue.CreateString(f.CardId), "localZoneId", NormalizedValue.CreateString("markers"), "count", NormalizedValue.CreateInteger(2)), 1));
+                f.RunTokenTransfer(2);
                 Assert.That(f.State.ItemZones.Items.Single(item => item.ItemId == f.RemovedId).ZoneId, Is.EqualTo(f.Response.OriginalSupplyZoneId));
                 f.Restore();
             }
@@ -178,15 +242,14 @@ namespace YC.Tests.EditMode
             Assert.That(f.Node(f.DepartureId).Status, Is.EqualTo(EffectNodeStatus.Blocked));
             f.Answer(f.Open(), "decline");
             Assert.That(f.Node(f.DepartureId).Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(f.State.ItemZones.Items.Single(item => item.ItemId == f.RemovedId).ZoneId, Is.EqualTo(FindZone(f.State, "player_markers", 1).ZoneId));
+            Assert.That(f.State.ItemZones.Items.Single(item => item.ItemId == f.RemovedId).ZoneId, Is.EqualTo(FindZone(f.State, "supply", 1).ZoneId));
         }
 
         [Test]
         public void ConsumptionWaitsOnTheRealWorkingNodeAndResumesWithoutReplayingTheAnswer()
         {
             var f = new Fixture(); f.Depart();
-            string paying = f.RunRoot(EffectSpec.Create(ContentPrimitiveEffectExecutor.PayMarkers, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
-                "cardInstanceId", NormalizedValue.CreateString(f.CardId), "localZoneId", NormalizedValue.CreateString("markers"), "count", NormalizedValue.CreateInteger(2)), 1));
+            string paying = f.RunTokenTransfer(2, includePending: true);
             Assert.That(f.Node(paying).FlowStage, Is.EqualTo(CharacterLifecycleService.DeferredDependencyStage));
             Assert.That(f.Node(paying).PendingOutcome, Is.EqualTo(EffectPendingOutcome.None)); Assert.That(f.Node(paying).PositionChanges, Is.Empty);
             Assert.That(f.State.EffectRuntime.Blockers.Any(blocker => blocker.OwnerEffectId == paying && blocker.TargetEffectId == f.Response.ResponseRootEffectId && !blocker.IsResolved), Is.True);
@@ -208,8 +271,7 @@ namespace YC.Tests.EditMode
             coverSlot.CardInstanceId = f.CardId;
             f.State.ItemZones.Items.Single(item => item.ItemId == f.CardId).SlotId = coverSlot.SlotId;
             Assert.That(CharacterLifecycleService.TryValidate(f.State, out string coverReason), Is.True, coverReason);
-            string pay = f.RunRoot(EffectSpec.Create(ContentPrimitiveEffectExecutor.PayMarkers, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
-                "cardInstanceId", NormalizedValue.CreateString(f.CardId), "localZoneId", NormalizedValue.CreateString("markers"), "count", NormalizedValue.CreateInteger(1)), 1));
+            string pay = f.RunTokenTransfer(1);
             Assert.That(f.Node(pay).Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(f.Node(pay).PositionChanges.Count, Is.EqualTo(1)); Assert.That(f.Response.Status, Is.EqualTo(DeferredResponseStatus.Pending));
             f.Answer(f.Open(), "store");
@@ -246,8 +308,12 @@ namespace YC.Tests.EditMode
                 Object("mainNodeId", NormalizedValue.CreateString(main.NodeId), "nodeTypeId", NormalizedValue.CreateString(main.NodeTypeId)), main.PlayerId));
             f.State.EffectRuntime.MainNodes.Single(node => node.NodeId == main.NodeId).ExecutionEffectId = id;
             f.Pump();
-            Assert.That(f.Node(id).FlowStage, Is.EqualTo(CharacterLifecycleService.DeferredDependencyStage));
+            Assert.That(f.Node(id).FlowStage, Is.EqualTo(FinalScoringSessionService.Prepare));
+            Assert.That(f.Node(id).Status, Is.EqualTo(EffectNodeStatus.Blocked));
             Assert.That(f.Node(id).PendingOutcome, Is.EqualTo(EffectPendingOutcome.None));
+            Assert.That(f.State.EffectRuntime.Blockers.Any(blocker => blocker.OwnerEffectId == id && blocker.TargetEffectId == f.Response.ResponseRootEffectId && !blocker.IsResolved), Is.True);
+            f.Restore();
+            Assert.That(f.Node(id).FlowStage, Is.EqualTo(FinalScoringSessionService.Prepare));
             Assert.That(f.State.EffectRuntime.RuleEvents.Any(ruleEvent => ruleEvent.EventType == "FinalScoringStarted"), Is.False);
             Assert.That(f.State.FinalScoring?.IsResolved ?? false, Is.False);
             int children = f.Node(id).ChildEffectIds.Count, pendingStart = f.State.EffectRuntime.PendingNextRoundStartPlayerId;
@@ -256,6 +322,10 @@ namespace YC.Tests.EditMode
             Assert.That(f.Node(id).ChildEffectIds.Count, Is.EqualTo(children));
             Assert.That(f.State.EffectRuntime.PendingNextRoundStartPlayerId, Is.EqualTo(pendingStart));
             Assert.That(f.State.EffectRuntime.RuleEvents.Count(ruleEvent => ruleEvent.EventType == "FinalScoringStarted"), Is.EqualTo(1));
+            f.Restore(); f.Pump();
+            Assert.That(f.State.EffectRuntime.RuleEvents.Count(ruleEvent => ruleEvent.EventType == "FinalScoringStarted"), Is.EqualTo(1));
+            Assert.That(f.Node(id).ChildEffectIds.Count, Is.EqualTo(children));
+            Assert.That(f.State.EffectRuntime.PendingNextRoundStartPlayerId, Is.EqualTo(pendingStart));
         }
 
         [Test]

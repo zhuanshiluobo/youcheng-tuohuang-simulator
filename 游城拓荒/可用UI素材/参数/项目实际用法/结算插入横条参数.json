@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
   "standardId": "M03",
-  "date": "2026-10-16",
+  "date": "2026-10-25",
   "description": "结算插入横条当前指定素材和参数；直接取代本用途的旧56项集合及不含M03的通用参数入口，不构成界面资产覆盖授权。",
   "selectionSource": {
     "path": "prompt/企业扩与感染者基础实装/结算插入按钮-素材映射.json",
-    "sha256": "266ac0bda44c9db98bdf8a46bfac5246b2dea6ab60c6c16f84cda05d09e10bb5"
+    "sha256": "9ee8a7b59e644b3de714a1087581846228f5d1ca92635e7cd66ee61f1480c67c"
   },
   "exactAssetIndex": "清单/可用素材索引.json",
   "baseVersion": "Settlement-Effects-v1.0",
@@ -1178,5 +1178,13 @@
   },
   "referenceBoundary": "原包layout.json及索引packageNotes保留来源历史；其中旧标题默认、副标题、键盘和示例选图不覆盖本参数或当前场景/Prefab。布局与静态文字继续由实际场景/Prefab负责，不据文档自动重建。",
   "supersededSelection": "M03旧56项默认集合撤销；仅此26图为本用途当前期望。未选分辨率、分层底图、焦点层和旧4种示例图标均不再由旧M03标记获得许可；其他已登记用途保持，不删除任何文件。",
-  "validationBoundary": "本次为库内字节/尺寸/用途互指校验及文档收口，不新增Unity、正常对局或视觉通过结论；历史有限验证及未覆盖项承接2026-10-14专项合同。"
+  "validationBoundary": "2026-10-25仅本控件悬停Tooltip文字与专用接线移除、当前标准同步及库内一致性核验；未编译/原生指针或正常画面验收。历史2026-10-14有限验证及未覆盖项仍按原范围使用。",
+  "hoverTextPolicy": {
+    "enabled": false,
+    "scope": "本控件悬停不弹出完整名称、正文或禁用原因；五态底图/图标色/文字颜色保持",
+    "accessibleName": "保留名称解析与完整性校验",
+    "independentDetails": "保留既有右键/长按查看来源详情与业务禁用理由来源",
+    "keyboard": "本次不新增或扩改键盘逻辑",
+    "originalRequirement": "文档/原始说明/独立说明/Settlement-Effects-v1.0-Guide.md:71；原文保留，当前悬停文字要求已由用户2026-10-25指示覆写"
+  }
 }

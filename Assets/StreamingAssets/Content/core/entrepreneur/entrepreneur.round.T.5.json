@@ -1,0 +1,219 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.round.T.5",
+  "contentType": "entrepreneur_round",
+  "version": "1.1.0",
+  "displayName": "第五号企业家·第5回合",
+  "artwork": "artwork/entrepreneurs/T03.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.round_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "ability_sources.v1",
+    "entrepreneur_selection.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.face.T03",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T03.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T03.immediate.1.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.T03.immediate.2",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T03.immediate.2",
+      "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T03.immediate.2.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.face.T04",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T04.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T04.immediate.1.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.T04.immediate.2",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T04.immediate.2",
+      "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.T04.immediate.2.description"
+        }
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T03",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T03.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T03",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T03",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T03.immediate.2",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T03.immediate.2",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T03",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.T03.immediate.2",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.face.T04",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T04.immediate.1",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T04",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.face.T04",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T04.immediate.2",
+      "kind": "setup",
+      "handlerRef": "entrepreneur.T04.immediate.2",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "active_selection",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "T04",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "entrepreneur.T04.immediate.2",
+      "repeatPolicy": "once",
+      "actions": []
+    }
+  ],
+  "data": {
+    "sourceIds": [
+      "T03",
+      "T04"
+    ],
+    "faces": [
+      {
+        "candidateId": "entrepreneur.candidate.T03",
+        "entityDefinitionId": "entrepreneur.round.T.5",
+        "faceId": "T03",
+        "sourceId": "T03",
+        "artwork": "artwork/entrepreneurs/T03.jpg",
+        "artworkSha256": "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+        "displayOrder": 0,
+        "ruleRefs": [
+          "entrepreneur.face.T03"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T03.immediate.1",
+          "entrepreneur.T03.immediate.2"
+        ]
+      },
+      {
+        "candidateId": "entrepreneur.candidate.T04",
+        "entityDefinitionId": "entrepreneur.round.T.5",
+        "faceId": "T04",
+        "sourceId": "T04",
+        "artwork": "artwork/entrepreneurs/T04.jpg",
+        "artworkSha256": "c2ab90bbc5a8e37e03d4e60030051522c05bc96893e9af70e9fa4b893554d8b5",
+        "displayOrder": 1,
+        "ruleRefs": [
+          "entrepreneur.face.T04"
+        ],
+        "immediateHandlerRefs": [
+          "entrepreneur.T04.immediate.1",
+          "entrepreneur.T04.immediate.2"
+        ]
+      }
+    ]
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.T03.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T03.immediate.2",
+      "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T04.immediate.1",
+      "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    },
+    {
+      "handlerId": "entrepreneur.T04.immediate.2",
+      "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
+      "version": "1.0.0",
+      "completionHandlerId": ""
+    }
+  ]
+}

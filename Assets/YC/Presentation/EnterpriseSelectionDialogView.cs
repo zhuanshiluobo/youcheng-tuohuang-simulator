@@ -58,6 +58,33 @@ namespace YC.Presentation
         private string enlargedBoardId;
         private Action<string> openDepartment;
         private Action returnToEnterprises;
+        private Action readOnlyContinue;
+        private Func<bool> readOnlyCurrent;
+        private string readOnlyContinueLabel, readOnlyHeading;
+        private object readOnlyNavigation;
+        private UnityEngine.Events.UnityAction readOnlyListener;
+        public bool IsShowing => gameObject.activeInHierarchy;
+        internal Func<IDisposable> BeginInputRead { get; set; }
+        public Button ReadOnlyContinueButton => confirm;
+        // 通用只读导航；不产生企业选择意图，也不改变原请求协议。
+        public void BindReadOnlyContinuation(Func<bool> current, Action continuation, string label, string heading)
+        {
+            ClearReadOnlyContinuation();
+            readOnlyCurrent = current; readOnlyContinue = continuation; readOnlyContinueLabel = label; readOnlyHeading = heading;
+            var binding = new object(); readOnlyNavigation = binding;
+            readOnlyListener = () => {
+                using var inputRead = BeginInputRead?.Invoke();
+                if (ReferenceEquals(binding, readOnlyNavigation) && draft.Projection?.ReadOnly == true &&
+                    isActiveAndEnabled && !detailPage.activeSelf && current?.Invoke() == true) continuation?.Invoke();
+            };
+            confirm.onClick.AddListener(readOnlyListener);
+        }
+        private void ClearReadOnlyContinuation()
+        {
+            readOnlyNavigation = null;
+            if (readOnlyListener != null) confirm.onClick.RemoveListener(readOnlyListener);
+            readOnlyListener = null; readOnlyContinue = null; readOnlyCurrent = null; readOnlyContinueLabel = readOnlyHeading = null;
+        }
         private Func<IReadOnlyList<GameplayTextRef>, GameplayTextDocument> resolveDetails;
         private Action<Component, GameplayTextDocument, bool> renderDetails;
         private string renderedDetailTitle;
@@ -201,6 +228,7 @@ namespace YC.Presentation
         private void ClearPresentationCore(bool preserveInformation)
         {
             latestProjection = null; submit = null; cancelRequest = null;
+            ClearReadOnlyContinuation();
             openDepartment = null; returnToEnterprises = null;
             Close(false, preserveInformation);
             foreach (var item in items.Values) EnterpriseBoardItemView.Retire(item.gameObject);
@@ -228,6 +256,7 @@ namespace YC.Presentation
 
         public void Choose(string id)
         {
+            using var inputRead = BeginInputRead?.Invoke();
             if (!isActiveAndEnabled || detailPage.activeSelf || Time.frameCount == detailsReturnedFrame) return;
             var target = draft.Projection?.Targets.FirstOrDefault(value => value.Id == id);
             if (target == null || IsCurrentDepartment(target.BoardId)) return;
@@ -236,6 +265,7 @@ namespace YC.Presentation
 
         public void Inspect(string id)
         {
+            using var inputRead = BeginInputRead?.Invoke();
             if (!isActiveAndEnabled || draft.IsPending || detailPage.activeSelf || Time.frameCount == detailsReturnedFrame) return;
             var target = draft.Projection?.Targets.FirstOrDefault(value => value.Id == id);
             if (target == null || IsCurrentDepartment(target.BoardId)) return;
@@ -353,6 +383,7 @@ namespace YC.Presentation
 
         private void Confirm()
         {
+            using var inputRead = BeginInputRead?.Invoke();
             if (!isActiveAndEnabled || detailPage.activeSelf || draft.Projection?.ReadOnly == true ||
                 draft.Projection?.Mode == EnterpriseSelectionMode.BrowseDepartment || latestProjection == null || submit == null) return;
             var current = latestProjection();
@@ -368,6 +399,7 @@ namespace YC.Presentation
 
         private void Cancel()
         {
+            using var inputRead = BeginInputRead?.Invoke();
             if (draft.Projection == null || !draft.Projection.CanCancel || draft.IsPending) return;
             if (draft.Projection.Mode == EnterpriseSelectionMode.BrowseDepartment) { ReturnToEnterprises(); return; }
             if (latestProjection != null)
@@ -422,8 +454,9 @@ namespace YC.Presentation
             var p = draft.Projection;
             if (p == null) return;
             var text = modeText[(int)p.Mode];
-            title.text = p.ReadOnly && !string.IsNullOrEmpty(browseTitle) ? browseTitle : text.title;
-            confirmLabel.text = text.confirm;
+            title.text = p.ReadOnly && !string.IsNullOrEmpty(readOnlyHeading) ? readOnlyHeading :
+                p.ReadOnly && !string.IsNullOrEmpty(browseTitle) ? browseTitle : text.title;
+            confirmLabel.text = p.ReadOnly && readOnlyContinue != null ? readOnlyContinueLabel : text.confirm;
             if (cancelLabel != null) cancelLabel.text = p.ReadOnly ? browseCloseLabel : selectionCancelLabel;
             bool departmentBrowse = p.Mode == EnterpriseSelectionMode.BrowseDepartment;
             context.text = departmentBrowse ? browseContext : p.Context ?? string.Empty;
@@ -497,19 +530,21 @@ namespace YC.Presentation
         {
             bool departmentBrowse = p.Mode == EnterpriseSelectionMode.BrowseDepartment;
             bool bound = latestProjection != null && submit != null;
-            confirm.interactable = bound && draft.CanConfirm && !detailPage.activeSelf;
-            confirm.gameObject.SetActive(!p.ReadOnly);
+            bool hasReadOnlyContinuation = p.ReadOnly && readOnlyContinue != null;
+            confirm.interactable = !detailPage.activeSelf && (hasReadOnlyContinuation
+                ? readOnlyCurrent?.Invoke() == true : bound && draft.CanConfirm);
+            confirm.gameObject.SetActive(!p.ReadOnly || hasReadOnlyContinuation);
             cancel.gameObject.SetActive(!p.ReadOnly && p.CanCancel && !detailPage.activeSelf);
             bool canClose = p.CanCancel && !draft.IsPending && (latestProjection == null || cancelRequest != null);
             cancel.interactable = canClose;
             if (closeButton != null) closeButton.interactable = canClose;
-            if (footer != null) footer.SetActive(!p.ReadOnly || departmentBrowse);
+            if (footer != null) footer.SetActive(!p.ReadOnly || departmentBrowse || hasReadOnlyContinuation);
             if (browseReturnButton != null)
             {
                 browseReturnButton.gameObject.SetActive(departmentBrowse && !detailPage.activeSelf);
                 browseReturnButton.interactable = returnToEnterprises != null && !draft.IsPending;
             }
-            summary.text = p.ReadOnly ? readOnlyText : draft.IsPending ? pendingText : !bound || !p.SubmissionAvailable
+            summary.text = p.ReadOnly ? (hasReadOnlyContinuation ? p.Context : readOnlyText) : draft.IsPending ? pendingText : !bound || !p.SubmissionAvailable
                 ? (string.IsNullOrEmpty(p.UnavailableReason) ? missingRulesText : p.UnavailableReason)
                 : draft.Selected == null ? selectPrompt : p.MaxSelections > 1
                     ? string.Format(multiSelectedFormat, draft.SelectedIds.Count, p.MinSelections, p.MaxSelections)

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Application.Interactions;
@@ -39,7 +41,7 @@ namespace YC.Tests.EditMode
             return state;
         }
 
-        private static EffectRegistry Registry(GameState state)
+        private static EffectRegistry Registry(GameState state, ExternalContentPack stylePack = null)
         {
             var map = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
             var influence = new InfluenceService(map);
@@ -56,9 +58,45 @@ namespace YC.Tests.EditMode
             CityStyleSpecialActionEffectExecutor.Register(registry, new SpecialActionOptionQueryService(
                 map, influence, movement, new SpecialActionLifecycleService(), new MainActionBudgetService()), null, map, influence, movement);
             CharacterCardLuaCatalog.Register(registry);
-            CityStyleLuaCatalog.Register(registry);
+            CityStyleLuaCatalog.Register(registry, stylePack ?? ExternalContentPack.Current);
             EventCardLuaCatalog.Register(registry);
             return registry;
+        }
+
+        private ExpansionRules.IsolatedTestArtifacts compositeArtifacts;
+        private ExternalContentPack compositeControlPack;
+        private GameState compositeControlState;
+        [SetUp] public void PrepareCompositeControl()
+        {
+            compositeArtifacts = null;
+            compositeControlPack = null;
+            compositeControlState = null;
+        }
+        private EffectRegistry CompositeControlRegistry(GameState state)
+        {
+            compositeControlState = state;
+            if (compositeControlPack == null)
+            {
+                compositeArtifacts = ExpansionRules.IsolatedTestArtifacts.BeginCase();
+                string baseline = compositeArtifacts.CopyContent(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"), "旧条件控制完整基线");
+                const string path = "lua/city_styles/composite_power_system.lua";
+                string source = File.ReadAllText(Path.Combine(baseline, path));
+                const string start = "    return {Effect.Condition({decisionPlayer = ctx.playerId, ruleCondition = true,";
+                int offset = source.LastIndexOf(start, StringComparison.Ordinal);
+                Assert.That(offset, Is.GreaterThan(0));
+                string control = source.Substring(0, offset) + "    return {Effect.MoveCity({player = ctx.playerId, waiveBaseCost = true, consumeMainAction = false})}\nend\n";
+                string root = compositeArtifacts.CopyContent(baseline, "旧条件外层收费控制", new Dictionary<string, string> { [path] = control });
+                compositeControlPack = ExternalContentPack.Load(root);
+                compositeArtifacts.RecordContent("旧条件实际私有装载", root, compositeControlPack.ContentHash);
+                compositeArtifacts.WriteLabeledText("隔离边界", "仅定位旧C#外层Condition/付款选择的兼容行为。私有Lua保留现行移动和完成续接，去掉与旧外层重复的正文收费；正式Lua和登记不变，不计正式复合动力卡面、UI或正常对局通过。");
+            }
+            return Registry(state, compositeControlPack);
+        }
+        [TearDown] public void PreserveCompositeControl()
+        {
+            if (compositeArtifacts == null) return;
+            try { compositeArtifacts.WriteLabeledText("旧条件最终实际状态", JsonConvert.SerializeObject(compositeControlState)); }
+            finally { compositeArtifacts.Finish(); }
         }
 
         private static InfluencePlacement Place(GameState state, int player, string location, int slot = 0)
@@ -405,17 +443,19 @@ namespace YC.Tests.EditMode
         {
             var state = State();
             Marker(state, CityStyleDatabase.CompositePowerSystem, SpecialActionDatabase.CompositePowerSystem);
-            var registry = Registry(state);
+            var registry = CompositeControlRegistry(state);
             var executor = new EffectTreeExecutor(state, registry);
             executor.CreateRoot(CityStyleSpecialActionEffectSpecFactory.Activate(1, SpecialActionDatabase.CompositePowerSystem, "test-marker"));
             Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, executor.LastDiagnostic);
+            Assert.That(Open(state, ResourcePaymentChoiceEffectExecutor.InteractionTypeId), Is.Null, "先确认条件，才执行左侧付款。");
+            Answer(state, registry, Open(state, "action.decline_effect"), "continue");
             var payment = Open(state, ResourcePaymentChoiceEffectExecutor.InteractionTypeId);
-            Assert.That(payment, Is.Not.Null);
+            Assert.That(payment, Is.Not.Null, string.Join("\n", state.EffectRuntime.EffectNodes.ConvertAll(n => n.EffectTypeId + ":" + n.Status + ":" + n.FlowStage + ":" + n.FailureReason)));
             Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == CityStyleSpecialActionEventTypeIds.Activated), Is.False);
             Assert.That(state.EffectRuntime.EffectNodes.Exists(n => n.EffectTypeId == CityMoveEffectTypeIds.Move), Is.False);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
             state = GameStateCloneService.DeepClone(state);
-            registry = Registry(state);
+            registry = CompositeControlRegistry(state);
             payment = Open(state, ResourcePaymentChoiceEffectExecutor.InteractionTypeId);
             Answer(state, registry, payment, "pay|1|2|1|0|0");
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
@@ -436,11 +476,14 @@ namespace YC.Tests.EditMode
         {
             var state = State();
             Marker(state, CityStyleDatabase.CompositePowerSystem, SpecialActionDatabase.CompositePowerSystem);
-            var registry = Registry(state);
+            var registry = CompositeControlRegistry(state);
             var executor = new EffectTreeExecutor(state, registry);
             executor.CreateRoot(CityStyleSpecialActionEffectSpecFactory.Activate(1, SpecialActionDatabase.CompositePowerSystem, "test-marker"));
             executor.RunUntilQuiescent();
-            Answer(state, registry, Open(state, ResourcePaymentChoiceEffectExecutor.InteractionTypeId), null, true);
+            Answer(state, registry, Open(state, "action.decline_effect"), "continue");
+            var payment = Open(state, ResourcePaymentChoiceEffectExecutor.InteractionTypeId);
+            Assert.That(payment, Is.Not.Null, string.Join("\n", state.EffectRuntime.EffectNodes.ConvertAll(n => n.EffectTypeId + ":" + n.Status + ":" + n.FlowStage + ":" + n.FailureReason)));
+            Answer(state, registry, payment, null, true);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
             Assert.That(state.FindPlayer(1).UsedSpecialActionIdsThisRound, Is.Empty);

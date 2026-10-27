@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-23",
+  "version": "1.0.0",
+  "usageStandard": "I02",
+  "scope": "岩蹄安保指定三个Choice正文键；I01原26图和E01 HUD Logo用途保持",
+  "permittedTextKeys": [
+    "core:interaction.company.place_or_move",
+    "core:interaction.company.place",
+    "core:interaction.company.move_two"
+  ],
+  "sourceAccess": "仅用户明确指定的两文件，不枚举源icon目录",
+  "entries": [
+    {
+      "id": "core:rule.stonehoove_security_place",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\放置岩蹄安保影响力.png",
+      "sha256": "aa27c274307c1d446379a98ae7d2c1582ef24a5e84b0ed42797520ae613bef03",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.stonehoove_security_place.alt",
+        "arguments": []
+      },
+      "altTextValue": "放置岩蹄安保公司影响力",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/放置岩蹄安保影响力.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\放置岩蹄安保影响力.png",
+      "assetKey": "core:rule.stonehoove_security_place.asset",
+      "guid": "c5b87c3cfc3d485c9ff1f96cc0d5d3f3",
+      "fileID": 21300000,
+      "importer": {
+        "spriteMode": "Single",
+        "spriteMeshType": 0,
+        "spriteMeshMeaning": "FullRect",
+        "PPU": 100,
+        "border": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "filter": "Bilinear",
+        "wrap": "Clamp",
+        "sRGB": true,
+        "mipmaps": false,
+        "alphaIsTransparency": true,
+        "nPOTScale": 0
+      },
+      "states": "单图；Dark/Light/Muted都由AssetKeyFor返回同一AssetKey，白色Tint保原色；无派生三态图",
+      "layout": "沿现有GameplayTextStyle资产IconHeightRatio=1.4，宽=高×165/161，保长宽比，不改布局",
+      "implementationStatus": "原字节及序列化绑定已配置，Unity实际导入/渲染待017"
+    },
+    {
+      "id": "core:rule.stonehoove_security_move",
+      "source": "G:\\NoMadCity\\游城拓荒\\icon\\移动岩蹄安保影响力.png",
+      "sha256": "c2c68a4cc7b873b6131729d1679bb0e0db09d74b479bef260e8583252423b76c",
+      "image": {
+        "width": 165,
+        "height": 161
+      },
+      "usage": "inline_rule",
+      "altText": {
+        "key": "core:rule.stonehoove_security_move.alt",
+        "arguments": []
+      },
+      "altTextValue": "移动岩蹄安保公司影响力",
+      "monochrome": false,
+      "renderMode": "sprite",
+      "valueRequired": false,
+      "preserveAspect": true,
+      "actualCatalogPath": "资产/玩法正文图标/用户指定/icon/移动岩蹄安保影响力.png",
+      "plannedUnityPath": "G:\\NoMadCity\\Assets\\YC\\Presentation\\Text\\Sprites\\InlineRules\\icon\\移动岩蹄安保影响力.png",
+      "assetKey": "core:rule.stonehoove_security_move.asset",
+      "guid": "60be1ed1f24c459c85ef7eb2a31bed1c",
+      "fileID": 21300000,
+      "importer": {
+        "spriteMode": "Single",
+        "spriteMeshType": 0,
+        "spriteMeshMeaning": "FullRect",
+        "PPU": 100,
+        "border": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "filter": "Bilinear",
+        "wrap": "Clamp",
+        "sRGB": true,
+        "mipmaps": false,
+        "alphaIsTransparency": true,
+        "nPOTScale": 0
+      },
+      "states": "单图；Dark/Light/Muted都由AssetKeyFor返回同一AssetKey，白色Tint保原色；无派生三态图",
+      "layout": "沿现有GameplayTextStyle资产IconHeightRatio=1.4，宽=高×165/161，保长宽比，不改布局",
+      "implementationStatus": "原字节及序列化绑定已配置，Unity实际导入/渲染待017"
+    }
+  ]
+}

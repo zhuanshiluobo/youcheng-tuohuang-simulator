@@ -58,8 +58,28 @@ namespace YC.Infrastructure.Lua
     /// 把稳定的 Lua 内容定义接入 Domain 的 Event handler 索引。
     /// 每次回调只产生临时 DTO；EffectSpec 编译完成后，Lua VM 和 table 都丢弃。
     /// </summary>
-    public sealed class LuaEffectEventDispatcher
+    public sealed partial class LuaEffectEventDispatcher
     {
+        // 仅当前线程显式采样；无监听时不取时钟、不创建采样对象，永不落盘或进入规则状态。
+        [ThreadStatic] public static Action<string, string, long> CpuTimingSample;
+        private readonly struct CpuSample : IDisposable
+        {
+            private readonly Action<string, string, long> record;
+            private readonly string phase, handler;
+            private readonly long started;
+            internal CpuSample(string phase, LuaHandlerDefinition definition)
+            {
+                record = CpuTimingSample; this.phase = phase;
+                handler = record == null ? null : definition?.Script?.HandlerId;
+                started = record == null ? 0 : System.Diagnostics.Stopwatch.GetTimestamp();
+            }
+            public void Dispose()
+            {
+                if (record == null) return;
+                try { record(phase, handler, System.Diagnostics.Stopwatch.GetTimestamp() - started); }
+                catch (Exception) { } // 诊断监听不得替换业务结果或原始异常。
+            }
+        }
         private readonly MoonSharpLuaRuntimeHost host;
         private readonly LuaEffectSpecCompiler compiler;
         private readonly EffectRegistry registry;
@@ -267,8 +287,10 @@ namespace YC.Infrastructure.Lua
             LuaHandlerDefinition definition,
             EffectEventHandlerContext handlerContext)
         {
-            LuaInvocationContext invocationContext = CreateInvocationContext(definition, handlerContext);
-            LuaInvocationResult invocation = host.Invoke(definition.Script, invocationContext);
+            LuaInvocationContext invocationContext;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) invocationContext = CreateInvocationContext(definition, handlerContext);
+            LuaInvocationResult invocation;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = host.Invoke(definition.Script, invocationContext);
             if (!invocation.IsSuccess)
             {
                 throw new KernelException(
@@ -278,6 +300,7 @@ namespace YC.Infrastructure.Lua
 
             var compilationContext = new LuaEffectCompilationContext
             {
+                State = handlerContext.State, Registry = registry,
                 SourceId = definition.Script.ContentId,
                 ContentInstanceId = definition.ContentInstanceId,
                 AbilityId = string.IsNullOrEmpty(definition.AbilityId)
@@ -287,9 +310,22 @@ namespace YC.Infrastructure.Lua
                 StableKeyPrefix = definition.SubscriptionId,
                 PlayerId = handlerContext.Event.PlayerId
             };
+            string abilityId = compilationContext.AbilityId;
+            if (registry.TryResolveAbilityExecutionSource(handlerContext.State, handlerContext.OwnerNode.EffectId,
+                abilityId, out var authorizedSource, out var authorizedVersion))
+            {
+                // 来自已提交调用收据及其真实祖先，不能接受Lua载荷自报的来源或版本。
+                if (authorizedVersion.HandlerHash == definition.Script.ContentHash)
+                {
+                    compilationContext.AuthorizedSource = authorizedSource;
+                    compilationContext.AuthorizedVersion = authorizedVersion;
+                }
+            }
             List<EffectSpec> specs;
             LuaEffectCompilationFault fault;
-            if (!compiler.TryCompile(invocation, compilationContext, out specs, out fault))
+            bool compiled;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.compile", definition)) compiled = compiler.TryCompile(invocation, compilationContext, out specs, out fault);
+            if (!compiled)
             {
                 throw new KernelException(
                     fault.Code == LuaFailureCode.UnknownEffectType
@@ -299,6 +335,16 @@ namespace YC.Infrastructure.Lua
             }
 
             return specs;
+        }
+        internal NormalizedValue InvokeAbilityQuery(LuaHandlerDefinition definition, EffectEventHandlerContext handlerContext)
+        {
+            LuaInvocationContext context;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) context = CreateInvocationContext(definition, handlerContext);
+            context.ResponseKind = "abilityRuleQuery";
+            LuaInvocationResult invocation;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = host.Invoke(definition.Script, context);
+            if (!invocation.IsSuccess || invocation.AbilityQueryResult == null) throw new InvalidOperationException("ability_query_lua_invalid:" + invocation.Diagnostic);
+            return invocation.AbilityQueryResult;
         }
 
         private LuaInvocationContext CreateInvocationContext(
@@ -320,10 +366,13 @@ namespace YC.Infrastructure.Lua
                 StartPlayerId = ToPlayerKey(state.StartPlayerId),
                 CurrentPlayerId = ToPlayerKey(state.CurrentPlayerId),
                 ContentVersion = definition.Script.DefinitionVersion,
-                EventPayload = ToLuaSnapshot(ResolveLuaPayload(ruleEvent))
+                EventPayload = ToLuaSnapshot(AbilityEventLuaFacts.Enrich(state, ruleEvent, ResolveLuaPayload(ruleEvent)))
             };
 
-            LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.stamp", definition)) LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision);
+            if (state.FinalScoring?.Session != null && YC.Domain.Scoring.FinalScoringSessionService.Within(
+                state, handlerContext.OwnerNode.EffectId, state.FinalScoring.Session.OwnerEffectId))
+                snapshot.GlobalScoring = FinalScoringLuaProjection.Build(state, handlerContext.OwnerNode, playerId);
             IList<int> turnOrder = state.EffectRuntime.PlayerOrderSnapshot;
             if (turnOrder != null && turnOrder.Count > 0)
             {
@@ -358,13 +407,14 @@ namespace YC.Infrastructure.Lua
                         source.Resources == null ? 0 : source.Resources.PureOriginium);
                     if (source.HandCardIds != null) playerSnapshot.HandCardIds.AddRange(source.HandCardIds.ToArray());
                     if (source.DiscardCardIds != null) playerSnapshot.DiscardCardIds.AddRange(source.DiscardCardIds.ToArray());
-                    LuaQuerySnapshotBuilder.AddContinuationFacts(state, playerSnapshot, source.PlayerId, playerId, registry.EnterpriseDefinitions);
+                    using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.player_facts", definition))
+                        LuaQuerySnapshotBuilder.AddContinuationFacts(state, playerSnapshot, source.PlayerId, playerId, registry.EnterpriseDefinitions);
                     snapshot.Players.Add(playerSnapshot);
                     playerSnapshots.Add(source.PlayerId, playerSnapshot);
                 }
             }
 
-            snapshot.GlobalMap = CreateMapSnapshot(state);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.map", definition)) snapshot.GlobalMap = CreateMapSnapshot(state);
             var facilities = new List<LuaSnapshotValue>();
             // 兼容列表的每次读取都会重新投影。索引仅属于当前调用，不能按 revision 跨调用复用。
             var placements = state.Map?.Facilities?.ToArray() ?? Array.Empty<FacilityPlacement>();
@@ -401,13 +451,15 @@ namespace YC.Infrastructure.Lua
                         new LuaSnapshotEntry("id", LuaSnapshotValue.String(item.ItemId)),
                         new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(item.DefinitionId)),
                         new LuaSnapshotEntry("contentType", LuaSnapshotValue.String("enterprise")) }));
-            var visible = new YC.Domain.Items.ItemZoneQuery().Project(state, GameStateViewer.Player(ruleEvent.PlayerId));
+            YC.Domain.Items.ItemZoneStateView visible;
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.visibility", definition))
+                visible = new YC.Domain.Items.ItemZoneQuery().Project(state, GameStateViewer.Player(ruleEvent.PlayerId));
             foreach (var item in visible.Items.Where(item => !facilityItemIds.Contains(item.ItemId) && !enterpriseZoneIds.Contains(item.ZoneId)))
                 facilities.Add(LuaSnapshotValue.Object(new[] {
                     new LuaSnapshotEntry("id", LuaSnapshotValue.String(item.ItemId)), new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(item.DefinitionId)),
                     new LuaSnapshotEntry("zoneId", LuaSnapshotValue.String(item.ZoneId)), new LuaSnapshotEntry("typeId", LuaSnapshotValue.String(item.TypeId)),
                     new LuaSnapshotEntry("owner", LuaSnapshotValue.String(ToPlayerKey(item.ControllerSubject.PlayerId))) }));
-            snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.content", definition)) snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
 
             var invocationGold = player?.Resources == null ? null : RouteTollEscrowService.QueryBalance(state, player.PlayerId);
             return new LuaInvocationContext(
@@ -426,8 +478,15 @@ namespace YC.Infrastructure.Lua
                 snapshot)
             {
                 AllowOtherPlayerReads = definition.AllowOtherPlayerReads,
-                ResponseKind = definition.ResponseKind
+                ResponseKind = definition.ResponseKind,
+                SourceFacts = ReadSourceFacts(state, definition, handlerContext, playerId)
             };
+        }
+
+        private LuaSnapshotValue ReadSourceFacts(GameState state, LuaHandlerDefinition definition, EffectEventHandlerContext context, int player)
+        {
+            using var sample = CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.source_facts", definition);
+            return SourceFactsLuaCatalog.ForInvocation(state, registry, definition, context, player);
         }
 
         private static string ToPlayerKey(int playerId)

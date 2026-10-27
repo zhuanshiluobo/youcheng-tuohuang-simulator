@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.swire",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "displayName": "诗怀雅",
   "expansionId": "infected",
   "replaces": null,
@@ -39,7 +39,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.swire.strategy",
       "script": "lua/characters/infected.character.swire.strategy.lua",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "completionHandlerId": "content.infected.character.swire.strategy.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -51,7 +51,7 @@
       "skillType": "persistent",
       "subscriptionId": "content.infected.character.swire.tactic",
       "script": "lua/characters/infected.character.swire.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "completionHandlerId": "content.infected.character.swire.tactic.completed",
       "cleanupScript": "lua/characters/infected.character.swire.tactic.lua",
       "hasSpecialZone": true,
@@ -101,5 +101,75 @@
         "displayName": "诗怀雅"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.swire.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.swire",
+      "actions": [
+        {
+          "actionId": "infected.character.swire.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.swire",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.swire"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.swire.tactic",
+      "kind": "event",
+      "handlerRef": "content.infected.character.swire.tactic",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.swire.tactic",
+      "actions": []
+    }
+  ]
 }

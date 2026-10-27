@@ -1,0 +1,12 @@
+{
+  "path": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\历史\\20261028整理前\\文档\\35-SelectInfluence受限候选合同说明.md",
+  "originalLink": "[007证据](<../../../实施记录/QY-007-ARC-CONTRACT-REVIEW-R1/证据.json>)",
+  "replacement": "[007证据恢复索引](<../../../实施记录/清理旧日志旧构建-20261027-R5/第七批压缩原件清单.json>)",
+  "reason": "原证据已在R5封存，非本次文档移动丢失",
+  "evidenceBytes": 138850,
+  "evidenceSha256": "b4445a3529261e7e15430493ddb33fee36f3865ccf212cd35ae9e8612a18a239",
+  "externalPromptOriginal": {
+    "path": "G:\\NoMadCity\\prompt\\企业家内容实施规划-20261019\\历史\\20261028整理前\\外部prompt入口原文.md",
+    "sha256": "032abb1558f8cc2f50dcf3fbd355cdf09a344f96ac41c9ecc2421291cedb3fe1"
+  }
+}

@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.lin",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "displayName": "林",
   "expansionId": "infected",
   "replaces": null,
@@ -51,7 +51,7 @@
       "skillType": "persistent",
       "subscriptionId": "content.infected.character.lin.tactic",
       "script": "lua/characters/infected.character.lin.tactic.lua",
-      "version": "2.0.0",
+      "version": "2.0.2",
       "completionHandlerId": "content.infected.character.lin.tactic.completed",
       "cleanupScript": "lua/characters/infected.character.lin.tactic.lua",
       "hasSpecialZone": true,
@@ -101,5 +101,77 @@
         "displayName": "林"
       }
     ]
-  }
+  },
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.lin.use",
+      "kind": "quick",
+      "handlerRef": "host.character.use",
+      "declarationVersion": "1.0.0",
+      "authorizationPolicy": "character_covered",
+      "effectiveZones": [
+        "core.zone.character_covered"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [],
+      "presentationRef": "infected.character.lin",
+      "actions": [
+        {
+          "actionId": "infected.character.lin.use",
+          "entryKind": "quick",
+          "bodyHandlerRef": "host.character.use",
+          "entryCostRef": "",
+          "entryAfterEffectsRef": "",
+          "usageTrackId": "",
+          "lifecyclePolicy": "position",
+          "lockPolicy": "none",
+          "directCallPolicy": "deny",
+          "sortOrder": 0,
+          "presentationRef": "infected.character.lin",
+          "presentation": {
+            "name": {
+              "key": "core:action.character.use.name",
+              "arguments": [
+                {
+                  "name": "card",
+                  "kind": "definition",
+                  "value": {
+                    "kind": "stable_reference",
+                    "referenceType": "definition",
+                    "referenceId": "infected.character.lin"
+                  }
+                }
+              ]
+            },
+            "description": {
+              "key": "core:action.character.use.description"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "infected.character.lin.tactic",
+      "kind": "event",
+      "handlerRef": "content.infected.character.lin.tactic",
+      "declarationVersion": "2.0.2",
+      "authorizationPolicy": "character_subscription",
+      "effectiveZones": [
+        "core.zone.character_covered",
+        "core.zone.character_persistent"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.load:infected.character.lin:markers:core.player_marker"
+      ],
+      "presentationRef": "infected.character.lin.tactic",
+      "actions": []
+    }
+  ]
 }

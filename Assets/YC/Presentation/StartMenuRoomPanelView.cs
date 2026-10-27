@@ -39,7 +39,6 @@ namespace YC.Presentation
             public Image Frame;
             public Sprite DefaultFrame, SelectedFrame, DisabledFrame;
             public GameObject DisabledOverlay;
-            public bool Implemented = true;
         }
         [Serializable] public sealed class ReasonCaption
         {
@@ -271,10 +270,10 @@ namespace YC.Presentation
 
         private static bool CanPrepare(RoomState room, RoomSeatSlotState local) => local?.Occupant != null &&
             (local.IsUserReady || local.Occupant.IsReady && local.Occupant.TransportConnected && local.Occupant.IdentityVerified &&
-             // 人数/组合变化后席位保留的是上次确认值；准备命令会携带当前本地目录哈希由 Host 校验。
+             // 新成员和配置变化后的席位只保存上次确认值；准备时才提交本机规则及内容声明给Host复验。
+             room.Configuration.RuleContractVersion == YC.Domain.Rules.GameRuleConfiguration.CurrentRuleContractVersion &&
              !string.IsNullOrEmpty(room.Configuration.ContentPackHash) &&
-             OnlineRoomServiceProvider.ContentCapabilities.GetContentPackHash(room.Configuration) == room.Configuration.ContentPackHash &&
-             local.Occupant.RuleContractVersion == room.Configuration.RuleContractVersion);
+             OnlineRoomServiceProvider.ContentCapabilities.GetContentPackHash(room.Configuration) == room.Configuration.ContentPackHash);
         private static void ShowButton(Button button, bool visible, bool enabled)
         { button.gameObject.SetActive(visible); button.interactable = visible && enabled; }
         private static string FindName(ContentOption[] options, string id) => Array.Find(options, o => o.Id == id)?.DisplayName ?? id;

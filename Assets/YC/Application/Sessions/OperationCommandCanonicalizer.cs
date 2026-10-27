@@ -348,6 +348,10 @@ namespace YC.Application.Sessions
             }
             if (!InteractionRequestValidity.TryReadMarker(command.ToCommand(), out _, out _, out var markerValidation))
                 throw new ArgumentException(markerValidation.Reason);
+            if (command.Kind == GameCommandKind.InvokeSettlementOption && command.Parameters != null &&
+                command.Parameters.Any(p => p.Key == "intent" && p.Value == YC.Application.Interactions.CleanupSourceCommand.Intent) &&
+                !YC.Application.Interactions.CleanupSourceCommand.TryRead(command.ToCommand(), out _, out _))
+                throw new ArgumentException("cleanup_source_command_invalid");
         }
 
         private static byte[] Encode(Action<BinaryWriter> write)

@@ -1,0 +1,85 @@
+{
+  "standardId": "H01",
+  "version": "1.0.0",
+  "basis": "2026-10-25 用户授权：主界面红区开放与回合之间显示本回合玩家行动顺序及真实玩家色平面方格；166/R52。",
+  "actualAssetSource": {
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "prefabGuid": "97d4d860d450f7247969c8aca5a9d934",
+    "scenes": [
+      "Assets/Scenes/SampleScene.unity",
+      "Assets/Scenes/ThreePlayerScene.unity"
+    ],
+    "editType": "源Prefab局部编辑；场景不改，无目标组件覆盖冲突"
+  },
+  "dataSource": "GameStateView.CurrentRoundPlayerOrder ← EffectRuntime.PlayerOrderSnapshot（同一CurrentRoundNumber/执行ID）；不按StartPlayerId、CurrentPlayerId或观看者重排",
+  "caption": "本回合玩家行动顺序：",
+  "marker": {
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Pieces/InfluenceMarker2D.prefab",
+    "prefabGuid": "21fcabf0e5b1419a936d56f1cc1e8df4",
+    "sourceFaceFileId": 100103,
+    "sourceViewFileId": 100104,
+    "nestedInstances": 4,
+    "showNumber": false,
+    "flatRegion": false,
+    "state": 0,
+    "faceType": "Simple",
+    "preserveAspect": true,
+    "colorBinding": "InfluenceMarker2DView.RenderPlayer；现有catalog对应Red/Blue/Green/Yellow的plain Sprite，face白色不叠加E05紫色",
+    "raycastTarget": false,
+    "clickHandler": false,
+    "tooltip": false,
+    "inventoryBinding": false,
+    "gameObjectsCreatedDuringRender": 0
+  },
+  "layoutSnapshot": {
+    "immutableSpecification": false,
+    "root": "HorizontalLayoutGroup，说明与方格行间距6，LayoutElement高度24",
+    "caption": "现有中文字体，12号，LayoutElement宽120、高24",
+    "squares": "HorizontalLayoutGroup，间距4；每个嵌套根LayoutElement宽高16、flexibleWidth/Height=0；inactive不占位",
+    "redZoneLayoutSlotMinWidth": 454,
+    "centerGroupMinWidth": 1008,
+    "unchanged": "红区原252首选宽、回合区域、对手席位高度、城市flexibleHeight=1"
+  },
+  "exactPlainSources": [
+    {
+      "playerColor": "Green",
+      "plainSpriteGuid": "d2a36eaffcff7c64c80b212aed5e18bb",
+      "projectSource": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/cooperation-01-64.png",
+      "libraryPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-01-64.png",
+      "sha256": "ce00c7f32b42a317316e2edc611967af04e8d7dde6738528f790ac6bca4583ef",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "playerColor": "Yellow",
+      "plainSpriteGuid": "7722385aa1bdd9f41a422730b70eabb3",
+      "projectSource": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/cooperation-02-64.png",
+      "libraryPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-02-64.png",
+      "sha256": "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "playerColor": "Blue",
+      "plainSpriteGuid": "b859f758d01777b429c6bf8ae21edaf4",
+      "projectSource": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/cooperation-04-64.png",
+      "libraryPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-04-64.png",
+      "sha256": "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "playerColor": "Red",
+      "plainSpriteGuid": "d8e9dcadd3e3fb24bb85d7f34e062e31",
+      "projectSource": "Assets/YC/Presentation/Effects/Sprites/EffectRows/markers/cooperation-08-64.png",
+      "libraryPath": "资产/通用控件与原画/MainGameUI-v2.2/04-markers/cooperation-08-64.png",
+      "sha256": "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b",
+      "width": 64,
+      "height": 64
+    }
+  ],
+  "newImages": false,
+  "restrictedArchiveContentAccess": false,
+  "restrictedArchiveEnumerationIncident": "本轮首次git status未限定路径，输出包含受限目录文件名；未读内容，后续改为明确目标路径查询。",
+  "normalVisualAcceptance": "未运行Unity/Player或构建；R50冻结包不含R52；需后续正常流程验收"
+}

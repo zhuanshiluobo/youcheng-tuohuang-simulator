@@ -49,7 +49,7 @@ namespace YC.Domain.Enterprises
             if (typeId == LuaDomainEffectTypeIds.SwitchDepartment) return new[] { "apiVersion", "player", "enterpriseItemId", "departmentItemId" };
             if (typeId == EnterpriseSpecialSelectionExecutor.UpgradeThenActivateTypeId) return new[] { "apiVersion", "player", "levels", "enterpriseItemIds" };
             if (typeId == EnterpriseSpecialSelectionExecutor.ActivateAllTypeId) return new[] { "apiVersion", "player", "unlockedByPlayer", "minLevel", "maxLevel", "enterpriseItemIds" };
-            return new[] { "apiVersion", "player", "unlockedByPlayer", "minLevel", "maxLevel", "enterpriseItemIds", "specialId" };
+            return new[] { "apiVersion", "player", "unlockedByPlayer", "minLevel", "maxLevel", "enterpriseItemIds", "specialId", "candidateIds" };
         }
         public static List<string> MissingFields(string typeId, NormalizedValue args)
         {
@@ -75,11 +75,13 @@ namespace YC.Domain.Enterprises
                     (entry.Name == "levels" ? entry.Value.IntegerValue <= 0 : entry.Name == "levelDelta" ? entry.Value.IntegerValue == 0 : entry.Value.IntegerValue < 1 || entry.Value.IntegerValue > 5))) return "invalid_enterprise_level_argument";
                 if (new[] { "enterpriseItemId", "departmentItemId", "specialId" }.Contains(entry.Name) && (entry.Value.Kind != NormalizedValueKind.String || string.IsNullOrWhiteSpace(entry.Value.StringValue))) return "invalid_enterprise_target";
                 if (entry.Name == "resolveArrivalReward" && entry.Value.Kind != NormalizedValueKind.Boolean) return "invalid_enterprise_arguments";
-                if (entry.Name == "enterpriseItemIds" && (entry.Value.Kind != NormalizedValueKind.Array || entry.Value.Items.Any(value => value.Kind != NormalizedValueKind.String || string.IsNullOrWhiteSpace(value.StringValue)) || entry.Value.Items.Select(value => value.StringValue).Distinct().Count() != entry.Value.Items.Count)) return "invalid_enterprise_target";
+                if ((entry.Name == "enterpriseItemIds" || entry.Name == "candidateIds") && (entry.Value.Kind != NormalizedValueKind.Array || entry.Value.Items.Any(value => value.Kind != NormalizedValueKind.String || string.IsNullOrWhiteSpace(value.StringValue)) || entry.Value.Items.Select(value => value.StringValue).Distinct().Count() != entry.Value.Items.Count)) return "invalid_enterprise_target";
             }
             if (Number(args, "minLevel", 1) > Number(args, "maxLevel", 5)) return "invalid_enterprise_level_range";
             if (typeId == UpgradeAllPlayersTypeId && Value(args, "levels") != null && Number(args, "levels") != 1) return "enterprise_all_players_levels_rejected";
             if (Value(args, "specialId") != null && Value(args, "enterpriseItemIds")?.Items.Count != 1) return "enterprise_special_binding_required";
+            if (Value(args, "specialId") != null && !EnterpriseSpecialSelectionExecutor.IsInCandidateScope(args,
+                StableIdFactory.Create("candidate", Value(args, "enterpriseItemIds").Items[0].StringValue, Text(args, "specialId")))) return "enterprise_special_not_in_scope";
             return "";
         }
         internal static EffectStepResult CheckArguments(EffectExecutionContext context)
@@ -283,6 +285,7 @@ namespace YC.Domain.Enterprises
 
         public static bool TryValidateUpgradeSelections(GameState state, EnterpriseDefinitions definitions, out string reason)
         {
+            if (!EnterpriseSpecialSelectionExecutor.TryValidateCandidateScopes(state, out reason)) return false;
             reason = "enterprise_upgrade_selection_restore_invalid";
             foreach (var node in state.EffectRuntime.EffectNodes.Where(value => (value.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise || value.EffectTypeId == UpgradeAllPlayersTypeId) && Value(value.NormalizedArguments, "enterpriseItemIds") != null))
             {

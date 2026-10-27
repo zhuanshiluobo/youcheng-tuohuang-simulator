@@ -691,5 +691,57 @@
     "path": "文档/原始说明/独立说明/Rhine-Department-Placement.png",
     "sha256": "f1e313ee5e392234f754db4a115561354683e2ad0b298ec80110908fcd8de0f9",
     "purpose": "科室板叠放坐标及原图修正说明图；禁止导入为运行时UI贴图"
+  },
+  {
+    "path": "参数/项目实际用法/企业家素材登记.json",
+    "sha256": "e4791de108eec9d5c7f3832078db86c73bef18b7a722e823743949e7b8ee368c",
+    "purpose": "COMMON-UI-INTEGRATION-R2同步实际绑定；E02/E03/E04/E05用途版本1.0.0保持，正常视觉未验收；修改前SHA见本轮素材登记修改前.json"
+  },
+  {
+    "path": "文档/企业家素材与未抉择预览登记.md",
+    "sha256": "6d3a2984b5d934f9059124bbb0d99f60665b88d429b8759926050e001375f5e1",
+    "purpose": "E02/E03/E04标准1.0.0保持；第3轮修订仅同步后续帮派E05确认，原第二轮文件有历史证据副本"
+  },
+  {
+    "path": "参数/项目实际用法/帮派预制体染色登记.json",
+    "sha256": "7d7424d8058591da595387b9f9e037c621d2431ab2d66ed3a3730086ef41835e",
+    "purpose": "COMMON-UI-INTEGRATION-R2同步实际绑定；E02/E03/E04/E05用途版本1.0.0保持，正常视觉未验收；修改前SHA见本轮素材登记修改前.json"
+  },
+  {
+    "path": "文档/帮派通用预制体染色登记.md",
+    "sha256": "94fa10c42a1aca83e73bad522e009bc9db1a5a1b2ca5cb4278c4d7e16424c1a9",
+    "purpose": "第3轮用户明确帮派通用预制体染色用途E05/1.0.0；正式接线/正常视觉未验收"
+  },
+  {
+    "path": "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md",
+    "sha256": "eceffd6172493f71d9e7ee8941bdb02e3b2898de05ca90eacc907d73d1e70390"
+  },
+  {
+    "path": "参数/Settlement-Icons-EndPhase-v1.2/assets.json",
+    "sha256": "259c4ae6badd3c9817b303f532194371345f63c1c70eeaec4744d02c41de40ba"
+  },
+  {
+    "path": "参数/Settlement-Icons-EndPhase-v1.2/icons.json",
+    "sha256": "c32e8560403ab345831a269cf288b402510966c52fdbd3a25825eaab0c912877"
+  },
+  {
+    "path": "参数/Settlement-Icons-EndPhase-v1.2/可用库登记.json",
+    "sha256": "0a024329ba3facfeb9ee6d934f28e8b851899c512440be6cd087bd20fbfc3913"
+  },
+  {
+    "path": "参数/项目实际用法/岩蹄安保正文图标.json",
+    "sha256": "c52448daf6d9b2cd3cac15124b4a3b7132684991d0b43c1da7e5ff2ba7cf3f0d"
+  },
+  {
+    "path": "文档/岩蹄安保正文图标登记.md",
+    "sha256": "1967bb393542692b80fa22f2a6f0e98d9e66a9fc71dcf22e3a8afc443f4451c1"
+  },
+  {
+    "path": "文档/地图嘉维尔指示物登记.md",
+    "sha256": "b9b98d83652c1d1dee09accb192bb40cdcd72129a0f3f30ab94c2406e80ccab2"
+  },
+  {
+    "path": "参数/项目实际用法/地图嘉维尔指示物.json",
+    "sha256": "7825da358c422c53e8d006297847a99ec7e09e1871fec50e368ac40c0667ac25"
   }
 ]

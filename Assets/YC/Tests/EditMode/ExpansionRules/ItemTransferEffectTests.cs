@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using YC.Application.Sessions;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
@@ -19,9 +20,19 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class ItemTransferEffectTests
     {
-        [OneTimeSetUp] public void LoadProductionFacilityDefinitions()
+        private static IsolatedTestArtifacts artifacts;
+        private static GameState observed;
+        [SetUp] public void LoadProductionFacilityDefinitions()
         {
-            if (!FacilityCardDatabase.IsInitialized) FacilityCardDatabase.InitializeExternal(ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets", "StreamingAssets", "Content", "core")).CreateFacilities());
+            observed = null; artifacts = IsolatedTestArtifacts.BeginCase();
+            var pack = ExternalContentPack.Current;
+            artifacts.WriteLabeledText("只读安装设施输入", JsonConvert.SerializeObject(new { pack.RootPath, pack.ContentHash, copiedContent = false }));
+            if (!FacilityCardDatabase.IsInitialized) FacilityCardDatabase.InitializeExternal(pack.CreateFacilities());
+        }
+        [TearDown] public void FinishEvidence()
+        {
+            if (observed != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(observed));
+            artifacts.Finish();
         }
         private static GameState State(int facilities = 9, string entryDefinition = null)
         {
@@ -30,10 +41,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true, InfluenceSlotCount = 2 } } };
             var source = new GameState { GameId = "game.transfer", MapId = map.MapId, ContentPackHash = "content.transfer", RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "content.transfer" },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Name = "甲", Resources = new ResourceSet { GoldVoucher = 100, Originium = 100, OriginiumShard = 100, Iron = 100 } }, new PlayerState { PlayerId = 2, Name = "乙" } } };
+            source.Round = 1; source.ActionRound = 1; source.Phase = GamePhase.ActionRound1; source.CurrentPlayerId = source.StartPlayerId = 1;
+            source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
             var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "initial_characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
-                new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 4, PerPlayer = true, InitialZoneRole = "player_markers" } };
+                new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 4, PerPlayer = true, InitialZoneRole = "supply" } };
             for (int index = 0; index < facilities; index++) recipe.Add(new ItemRecipeEntry { EntryId = "facility_" + index, DefinitionId = index == 0 && entryDefinition != null ? entryDefinition : "building_" + (index + 1).ToString("000"), TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" });
-            return new ItemZoneStateFactory().CreateForSetup(source, map, recipe);
+            return observed = new ItemZoneStateFactory().CreateForSetup(source, map, recipe);
         }
         private static EffectRegistry Registry(Func<int, int> next = null)
         {
@@ -48,7 +61,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static void Valid(GameState state) => Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
         private static GameState Restore(GameState state, EffectRegistry registry)
         {
-            var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry); Assert.That(result.Succeeded, Is.True, result.Diagnostic); Valid(result.State); return result.State;
+            var result = artifacts.Recover(state, "R2真实转移恢复", registry); Assert.That(result.Succeeded, Is.True, result.Diagnostic); Valid(result.State); return observed = result.State;
         }
         private static void Fill(GameState state, int count = 6) { for (int index = 0; index < count; index++) Run(state, RefillSpec(1, Zone(state, "facility_supply_" + index).ZoneId)); }
         private static InteractionRequest Open(GameState state) => state.EffectRuntime.InteractionRequests.Last(request => request.Status == "open");
@@ -176,7 +189,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void CancelledDeckBuildStillAllowsFollowingShuffleAndPrivateCandidates()
         {
             var state = State(); int rolls = 0; var registry = Registry(max => { rolls++; return 0; }); registry.Register("test.deck_action", context => EffectStepResult.Completed().AddChild(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("deck"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1)).AddChild(Shuffle(context.State)));
-            Run(state, EffectSpec.Create("test.deck_action", playerId: 1), registry); var request = Open(state); Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1).VisibleToViewer, Is.True); Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 2).CandidateIds, Is.Empty); string requestId = request.GetStableInteractionId(); state = Restore(state, registry); AnswerRequest(state, registry, "choice.skip"); Assert.That(rolls, Is.EqualTo(8)); var engine = new EffectTreeExecutor(state, registry); Assert.That(engine.TrySubmitInteraction(requestId, 1, NormalizedValue.CreateString("choice.skip"), out _), Is.False); engine.RunUntilQuiescent(); Assert.That(rolls, Is.EqualTo(8)); Assert.That(state.Map.Facilities.Count, Is.Zero);
+            Run(state, EffectSpec.Create("test.deck_action", playerId: 1), registry); var request = Open(state); Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 1).VisibleToViewer, Is.True); Assert.That(InteractionRequestProjector.ProjectForPlayer(request, 2).CandidateIds, Is.Empty); Assert.That(request.AllowDecline, Is.True);
+            string requestId = request.GetStableInteractionId(); state = Restore(state, registry); var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TrySubmitInteraction(requestId, 1, NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason); Assert.That(engine.RunUntilQuiescent().Faulted, Is.False);
+            Assert.That(rolls, Is.EqualTo(8)); Assert.That(engine.TrySubmitInteraction(requestId, 1, NormalizedValue.CreateBoolean(false), out _), Is.False); engine.RunUntilQuiescent(); Assert.That(rolls, Is.EqualTo(8)); Assert.That(state.Map.Facilities.Count, Is.Zero);
         }
         [Test] public void LuaTransferShuffleAndRepeatCompileIntoRegisteredExecutors()
         {
@@ -206,31 +222,31 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void AttachedStoragePermissionsFollowCurrentHolderAndReturnMarkerToOriginalPlayer()
         {
-            var state = State(); string card = Ids(state, "hand", 1)[0]; string marker = Ids(state, "player_markers", 1)[0];
+            var state = State(); string card = Ids(state, "hand", 1)[0]; string marker = Ids(state, "supply", 1)[0];
             var declaration = new CardZoneDefinition { LocalZoneId = "stored_markers", ZoneTemplateId = "core.zone.card_cube_storage", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Unordered, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents", VisibilityPolicyId = ItemZoneVisibility.Owner };
             Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, card, declaration, out string storage, out string reason), Is.True, reason);
-            Run(state, MoveSpec(1, new[] { marker }, Zone(state, "player_markers", 1).ZoneId, storage, "unordered", 1, "core.player_marker_storage"));
+            Run(state, MoveSpec(1, new[] { marker }, Zone(state, "supply", 1).ZoneId, storage, "unordered", 1, "core.player_marker_storage"));
             Run(state, MoveSpec(1, new[] { card }, Zone(state, "hand", 1).ZoneId, Zone(state, "hand", 2).ZoneId, "unordered", 1, "core.character_card_transfer"));
-            var oldOwner = Run(state, MoveSpec(1, new[] { marker }, storage, Zone(state, "player_markers", 1).ZoneId, "unordered", 1, "core.player_marker_storage")); Assert.That(oldOwner.FailureReason, Is.EqualTo("transfer_permission_denied"));
-            var currentHolder = Run(state, MoveSpec(2, new[] { marker }, storage, Zone(state, "player_markers", 1).ZoneId, "unordered", 1, "core.player_marker_storage"));
-            Assert.That(Number(currentHolder.NormalizedResult, "movedCount"), Is.EqualTo(1)); Assert.That(Ids(state, "player_markers", 1), Does.Contain(marker)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == marker).OwnerSubject.PlayerId, Is.EqualTo(1));
+            var oldOwner = Run(state, MoveSpec(1, new[] { marker }, storage, Zone(state, "supply", 1).ZoneId, "unordered", 1, "core.player_marker_storage")); Assert.That(oldOwner.FailureReason, Is.EqualTo("transfer_permission_denied"));
+            var currentHolder = Run(state, MoveSpec(2, new[] { marker }, storage, Zone(state, "supply", 1).ZoneId, "unordered", 1, "core.player_marker_storage"));
+            Assert.That(Number(currentHolder.NormalizedResult, "movedCount"), Is.EqualTo(1)); Assert.That(Ids(state, "supply", 1), Does.Contain(marker)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == marker).OwnerSubject.PlayerId, Is.EqualTo(1));
         }
         [Test] public void InternalBusinessTransferReturnsOpponentMarkerToItsOwnSupply()
         {
-            var state = State(); var registry = Registry(); string marker = Ids(state, "player_markers", 2)[0];
+            var state = State(); var registry = Registry(); string marker = Ids(state, "supply", 2)[0];
             var influence = state.ItemZones.Zones.First(zone => zone.TemplateId == "core.zone.influence_slots");
             registry.Register("test.marker_deployment", context =>
             {
-                var request = new ItemTransferRequest { ExecutingPlayerId = 2, ItemIds = new List<string> { marker }, ExpectedSource = new ItemPositionRef { ZoneId = Zone(context.State, "player_markers", 2).ZoneId }, Destination = new ZoneRef { ZoneId = influence.ZoneId }, InsertionKind = "slot", DestinationSlotId = influence.LegalSlotIds[0], OperationProfileId = "core.influence_cube", RequiredCount = 1 };
+                var request = new ItemTransferRequest { ExecutingPlayerId = 2, ItemIds = new List<string> { marker }, ExpectedSource = new ItemPositionRef { ZoneId = Zone(context.State, "supply", 2).ZoneId }, Destination = new ZoneRef { ZoneId = influence.ZoneId }, InsertionKind = "slot", DestinationSlotId = influence.LegalSlotIds[0], OperationProfileId = "core.influence_cube", RequiredCount = 1 };
                 return EffectStepResult.Completed(NormalizedValue.CreateInteger(new ItemTransferService().RelocateItems(context, request).MovedCount));
             });
             registry.Register("test.marker_return", context =>
             {
-                var request = new ItemTransferRequest { ExecutingPlayerId = 1, ItemIds = new List<string> { marker }, ExpectedSource = new ItemPositionRef { ZoneId = influence.ZoneId }, Destination = new ZoneRef { ZoneId = Zone(context.State, "player_markers", 2).ZoneId }, InsertionKind = "unordered", OperationProfileId = "core.influence_cube", RequiredCount = 1 };
+                var request = new ItemTransferRequest { ExecutingPlayerId = 1, ItemIds = new List<string> { marker }, ExpectedSource = new ItemPositionRef { ZoneId = influence.ZoneId }, Destination = new ZoneRef { ZoneId = Zone(context.State, "supply", 2).ZoneId }, InsertionKind = "unordered", OperationProfileId = "core.influence_cube", RequiredCount = 1 };
                 return EffectStepResult.Completed(NormalizedValue.CreateInteger(new ItemTransferService().RelocateItems(context, request).MovedCount));
             });
             Run(state, EffectSpec.Create("test.marker_deployment", playerId: 2), registry);
-            var node = Run(state, EffectSpec.Create("test.marker_return", playerId: 1), registry); Assert.That(node.NormalizedResult.IntegerValue, Is.EqualTo(1)); Assert.That(Ids(state, "player_markers", 2), Does.Contain(marker)); Assert.That(new ItemZoneQuery().GetItemIds(state, influence.ZoneId), Is.Empty);
+            var node = Run(state, EffectSpec.Create("test.marker_return", playerId: 1), registry); Assert.That(node.NormalizedResult.IntegerValue, Is.EqualTo(1)); Assert.That(Ids(state, "supply", 2), Does.Contain(marker)); Assert.That(new ItemZoneQuery().GetItemIds(state, influence.ZoneId), Is.Empty);
         }
         [Test] public void LegacyAwaitingFacilityNodeKeepsOldAnswerAndStringResult()
         {
@@ -283,13 +299,20 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void ChangedSourceRefreshesBuildChoiceWithoutPaymentOrFallback()
         {
-            var state = State(); Fill(state, 1); var registry = Registry(); string selected = Ids(state, "facility_supply_0")[0]; int gold = state.FindPlayer(1).Resources.GoldVoucher;
+            // 刷新请求的正例需保留另一真实供应候选；只有一个时移走后应合法结束。
+            var state = State(); Fill(state, 2); var registry = Registry(); registry.ContentPackHash = state.ContentPackHash; string selected = Ids(state, "facility_supply_0")[0]; int gold = state.FindPlayer(1).Resources.GoldVoucher;
             Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1), registry);
             string requestId = Open(state).GetStableInteractionId(); var engine = new EffectTreeExecutor(state, registry);
-            Assert.That(engine.TrySubmitInteraction(requestId, 1, NormalizedValue.CreateString(selected), out _), Is.True);
-            // 模拟答案到执行之间源实例变化；保持实体结构合法，随后同一父式复验。
-            state.ItemZones.Items.Single(item => item.ItemId == selected).ZoneId = Zone(state, "retired").ZoneId;
-            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var input = Open(state);
+            Assert.That(engine.TryPrepareEffectBuildPayment(1, input.OwnerEffectId, requestId, input.CandidateSetId, input.CandidateSetVersion, selected,
+                Object("expectedSourceZoneId", NormalizedValue.CreateString(Zone(state, "facility_supply_0").ZoneId), "paymentMode", NormalizedValue.CreateString("gold")), state.EffectRuntime.StateRevision, "R2正式建设付款预览", out string reason), Is.True, reason);
+            string paymentId = Open(state).OwnerEffectId;
+            // 隔离竞态：经过真实转移入口移走已选实例，再由正式付款与取消入口复验。
+            Run(state, MoveSpec(1, new[] { selected }, Zone(state, "facility_supply_0").ZoneId, Zone(state, "retired").ZoneId, "unordered", 1), registry);
+            Assert.That(ResourcePaymentPreparationService.CanConfirm(state, engine.GetNode(paymentId)), Is.False);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold)); Assert.That(state.Map.Facilities, Is.Empty); Valid(state);
+            artifacts.WriteLabeledText("R2选中来源已变化的正式付款", JsonConvert.SerializeObject(state));
+            Assert.That(engine.TryCancelPreparedEffectBuildPayment(1, paymentId, state.EffectRuntime.StateRevision, "R2返回真实建设候选", out reason), Is.True, reason);
             Assert.That(Open(state).GetStableInteractionId(), Is.Not.EqualTo(requestId)); Assert.That(Open(state).CandidateIds, Does.Not.Contain(selected));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold)); Assert.That(state.Map.Facilities, Is.Empty); Valid(state);
         }

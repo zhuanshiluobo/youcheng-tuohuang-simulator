@@ -19,8 +19,10 @@ namespace YC.Application.Sessions
         internal GameState CapturedState { get; }
         internal GameSessionLogContinuationDto CapturedContinuation { get; }
         public string CommandId { get; }
+        // CreateSnapshot 对输入只读校验，并深拷贝为外部快照；缺少旧开局顺序时也先复制再补齐。
+        // 此处再预复制一次会产生两个完整图，不能增加导出隔离。
         internal GameSessionRecoveryExport ExportDetached() => new GameSessionRecoveryExport(
-            HostRecoveryService.CreateArchive(GameStateCloneService.DeepClone(CapturedState)), GameStateCloneService.DeepClone(CapturedContinuation));
+            HostRecoveryService.CreateArchive(CapturedState), GameStateCloneService.DeepClone(CapturedContinuation));
     }
 
     public sealed class GameSessionRecoveryExport
@@ -195,7 +197,7 @@ namespace YC.Application.Sessions
 
         public GameSessionRecoveryPoint EnableConfirmedRecoveryCapture()
         {
-            EnsureExecutionOwner();
+            EnsureSaveCaptureOutsideExecution();
             if (confirmedRecoveryCaptureEnabled && latestRecoveryCapture != null) return latestRecoveryCapture.Point;
             var capture = PrepareRecoveryCapture(State, pendingActionLog, string.Empty);
             confirmedRecoveryCaptureEnabled = true;
@@ -220,7 +222,7 @@ namespace YC.Application.Sessions
 
         public GameSessionRecoveryExport ExportConfirmedRecoveryPoint(GameSessionRecoveryPoint point)
         {
-            EnsureExecutionOwner();
+            EnsureSaveCaptureOutsideExecution();
             if (point == null || !ReferenceEquals(point.Owner, this)) throw new InvalidOperationException("checkpoint_not_retained");
             var capture = ReferenceEquals(latestRecoveryCapture?.Point, point) ? latestRecoveryCapture :
                 ReferenceEquals(previousRecoveryCapture?.Point, point) ? previousRecoveryCapture :
@@ -258,7 +260,7 @@ namespace YC.Application.Sessions
                 if (detached.EffectRuntime != null && !detached.EffectRuntime.TryValidate(out string runtimeReason))
                     throw new InvalidOperationException(runtimeReason);
                 var view = viewer.HasValue ? GameStateViewProjector.Project(detached, viewer.Value,
-                    settlementProjectionProvider?.GetSettlementOptions(detached, viewer.Value)) : null;
+                    settlementProjectionProvider?.GetSettlementOptions(detached, viewer.Value), settlementProjectionProvider?.GetAbilityActions(detached, viewer.Value), PaymentProjectionRegistry) : null;
                 bool backgroundPrepared = Volatile.Read(ref backgroundBound) != 0;
                 prepared = new PreparedGameSessionRecovery(this, mutationGeneration, detached, view, detachedContinuation, backgroundPrepared,
                     backgroundPrepared ? preparedLog : null);
@@ -313,7 +315,9 @@ namespace YC.Application.Sessions
                 Kind = log.Kind, Message = log.Message, Command = GameCommandDto.FromCommand(log.Command),
                 InitialResult = CaptureResult(log.InitialResult), SettlementResult = CaptureResult(log.SettlementResult),
                 Before = CaptureSnapshot(log.Before), Commands = log.Commands.Select(GameCommandDto.FromCommand).ToList() };
-            return GameStateCloneService.DeepClone(dto);
+            // 各字段已由 CaptureResult、CaptureSnapshot、FromCommand 独立复制。
+            // 再复制整个 DTO 会把行动前的内容图重复遍历一遍。
+            return dto;
         }
 
         private static PendingActionLog RestoreContinuation(GameSessionLogContinuationDto dto, GameState state)

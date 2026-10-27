@@ -11,6 +11,8 @@ namespace YC.Domain.Rules
     /// <summary>窗口只在规则进展/命令事务内登记；读取不改变规则或窗口。</summary>
     public static class OperationWindowService
     {
+        public const string MainOwnerValidationVersion="1.0.1";
+        public const string EffectBuildAdmissionVersion="effect_build_admission.v1.0.1";
         public const int SchemaVersion = 1;
         public const int MaximumOpenWindows = 128;
         public const int MaximumClosedWindows = 256;
@@ -84,13 +86,13 @@ namespace YC.Domain.Rules
                         candidates.CandidateKind != YC.Domain.Facilities.FacilityBuildCandidateQuery.CandidateKind || !candidates.FinalCandidateIds.SequenceEqual(request.CandidateIds) ||
                         string.IsNullOrEmpty(sourceZoneId) || target?.ZoneId != sourceZoneId ||
                         !ResourcePaymentPreparationService.ValidateEffectBuildCandidate(state, commandSource, request, command.TargetId,
-                            sourceZoneId, Parameter(command, "paymentMode"), true))
+                            sourceZoneId, Parameter(command, "paymentMode"), false))
                         return Reject(CommandErrorCode.InvalidTarget, "牌堆建设准备未指向本人当前候选合同。", out validation);
                 }
                 else
                 {
                     commandSource = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == Parameter(command, "preparationOwnerEffectId"));
-                    if (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, commandSource, command.PlayerId) ||
+                    if (!ResourcePaymentPreparationService.IsCurrentEffectBuildPreparation(state, commandSource, command.PlayerId, false) ||
                         commandSource.Payment.Preparation.IsPromoted || commandSource.Payment.IsCommitted || commandSource.Payment.IsCommitRequested)
                         return Reject(CommandErrorCode.InvalidTarget, "牌堆建设取消未指向本人当前付款准备。", out validation);
                     if (ResourcePaymentPreparationService.HasPendingResponse(state, commandSource))
@@ -153,6 +155,9 @@ namespace YC.Domain.Rules
             if (mainPlayer < 1 && (window.WindowKind == RoundMainlineNodeTypeIds.CharacterCover ||
                 window.WindowKind == RoundMainlineNodeTypeIds.Collection || window.WindowKind == "enterprise_selection"))
                 mainPlayer = commandSource?.PlayerId ?? -1;
+            // 顺序入场主节点仍属于其原玩家；组内另一玩家的设置命令只改变ActingPlayer，不能改写主窗口归属。
+            var mainOwner=state.EffectRuntime.MainNodes.SingleOrDefault(n=>n.NodeId==window.SourceMainNodeId);
+            if(mainOwner?.PlayerId>0) mainPlayer=mainOwner.PlayerId;
             string origin = source.OriginId ?? window.OperationWindowId;
             context = new OperationCommandContext {
                 OperationWindowId = window.OperationWindowId, WindowGeneration = window.WindowGeneration, WindowKind = window.WindowKind,
@@ -296,7 +301,7 @@ namespace YC.Domain.Rules
             var source = runtime.EffectNodes.Find(n => n.EffectId == window.SourceEffectId);
             if (source == null) return false;
             var deferred = runtime.DeferredResponses?.Find(r => r.ResponseRootEffectId == source.EffectId);
-            if (deferred != null)
+            if (deferred != null && (deferred.ProtocolVersion == 0 || deferred.OriginMainOperationWindowId.Length > 0))
                 return window.WindowKind == RequiredResponse && string.IsNullOrEmpty(source.ParentEffectId) &&
                     window.ParentOperationWindowId == deferred.OriginMainOperationWindowId &&
                     window.AuthorizedPlayerIds.SequenceEqual(new[] { deferred.AnsweringPlayerId }) &&
@@ -409,7 +414,7 @@ namespace YC.Domain.Rules
                                 shared.Window.AvailablePlayerIds.Add(child.PlayerId);
                         }
                     }
-                foreach (var response in runtime.DeferredResponses.Where(r => r.Status == DeferredResponseStatus.Pending))
+                foreach (var response in runtime.DeferredResponses.Where(r => r.Status == DeferredResponseStatus.Pending && (r.ProtocolVersion == 0 || r.OriginMainOperationWindowId.Length > 0)))
                 {
                     var root = Node(response.ResponseRootEffectId);
                     if (root == null || Terminal(root.Status) || !EffectTreeExecutor.TryFindDeferredResponse(state, root.EffectId, out _)) continue;

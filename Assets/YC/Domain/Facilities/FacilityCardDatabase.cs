@@ -125,6 +125,22 @@ namespace YC.Domain.Facilities
             return PlayerHasBuiltUniqueFacility(state, player, facility, null);
         }
 
+        public static bool PlayerHasBuiltUniqueFacilityForInstances(GameState state, PlayerState player, FacilityCardDefinition facility, IReadOnlyList<string> itemIds)
+        {
+            if (state == null || player == null || facility == null || itemIds == null) throw new ArgumentNullException();
+            if (!facility.Unique) return false;
+            string group = GetUniqueGroupId(facility);
+            foreach (string id in itemIds)
+            {
+                var item = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == id);
+                if (!FacilityLayerQuery.IsFacility(item) || !FacilityLayerQuery.IsInCity(state, id, player.PlayerId))
+                    throw new InvalidOperationException("built_facility_fact_invalid");
+                var built = Get(state, item.DefinitionId);
+                if (built.Unique && GetUniqueGroupId(built) == group) return true;
+            }
+            return false;
+        }
+
         internal static bool PlayerHasBuiltUniqueFacility(
             GameState state, PlayerState player, FacilityCardDefinition facility, BuildFacilityService.ReadOnlyQuery query)
         {
@@ -135,6 +151,8 @@ namespace YC.Domain.Facilities
             }
 
             var uniqueGroupId = GetUniqueGroupId(facility);
+            if (query == null && YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+                return PlayerHasBuiltUniqueFacilityForInstances(state, player, facility, new FacilityBuildQueryService().ResolveBuiltFacts(state, player.PlayerId).ItemIds);
             var builtFacilityIds = query == null ? null : query.GetBuiltFacilityIds(player);
             for (var i = 0; i < (query == null ? player.BuiltFacilityIds.Count : builtFacilityIds.Length); i++)
             {

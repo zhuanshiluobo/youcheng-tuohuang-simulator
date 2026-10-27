@@ -1093,6 +1093,74 @@
       "actualZipRoots": [
         "Game-Box-v1.0"
       ]
+    },
+    "Settlement-Icons-EndPhase-v1.2.zip": {
+      "adoptedVersion": "1.2收尾阶段增补",
+      "zipRoot": "Settlement-Icons-EndPhase-v1.2",
+      "rules": [
+        {
+          "pattern": "assets/icons-endphase/ui-outpost-payout-*.png",
+          "decision": "保留",
+          "scope": "仅第三回合 · 建设据点的据点补给结算入口；时机：每收尾阶段一次",
+          "reason": "据点补给：清理帮派 · 共享资源；只表示入口，不承载费用、次数或规则符号",
+          "evidence": [
+            "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+            "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons-endphase/ui-marker-redeem-*.png",
+          "decision": "保留",
+          "scope": "仅第五号企业家的标记兑换结算入口；时机：收尾阶段任意次",
+          "reason": "标记兑换：消耗牌上标记 · 选择收益；只表示入口，不承载费用、次数或规则符号",
+          "evidence": [
+            "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+            "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons-endphase/ui-fund-invest-*.png",
+          "decision": "保留",
+          "scope": "仅蒂亚戈 · H · 罗德里格斯的基金投资结算入口；时机：每收尾阶段一次",
+          "reason": "基金投资：基金投资 · 选择骰子结果；只表示入口，不承载费用、次数或规则符号",
+          "evidence": [
+            "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+            "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons-endphase/ui-reputation-score-*.png",
+          "decision": "保留",
+          "scope": "仅第一回合 · 降本增效的声望兑分结算入口；时机：收尾阶段任意次",
+          "reason": "声望兑分：支付声望 · 获得分数；只表示入口，不承载费用、次数或规则符号",
+          "evidence": [
+            "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+            "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+          ]
+        },
+        {
+          "pattern": "assets/icons-endphase/ui-tactical-dispatch-*.png",
+          "decision": "保留",
+          "scope": "仅第五回合 · 特勤小组的特勤行动结算入口；时机：每收尾阶段一次",
+          "reason": "特勤行动：支付指令 · 执行战术；只表示入口，不承载费用、次数或规则符号",
+          "evidence": [
+            "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+            "文档/原始说明/Settlement-Icons-EndPhase-v1.2/README.md"
+          ]
+        }
+      ],
+      "notes": [
+        "新增五种收尾阶段结算入口图标，与1.0按钮及1.1图标兼容，不构成整包换版或删除旧有效用途。",
+        "仅五个指定来源/效果入口；不替代卡面资源、金券、分数、影响力规则符号或其他通用动作。",
+        "原包按钮短名为建议，规则摘要不是新增规则授权；次数、费用及合法性由正式规则/投影提供。",
+        "24/48/96源像素均等比显示22×22逻辑像素，不做九宫格；按现有结算条采用@2x，不覆盖现有布局或静态文案。",
+        "只登记可用素材与接入参数，本次未导入Unity、未改场景/Prefab、未执行游戏视觉验收。"
+      ],
+      "actualZipRoots": [
+        "Settlement-Icons-EndPhase-v1.2"
+      ],
+      "registeredAt": "2026-10-23",
+      "authorization": "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材"
     }
   },
   "explicitDevelopmentOverrides": [
@@ -1494,7 +1562,68 @@
         "ed2ba3b3e6681812838640799521c972a68dd68132bca1a662880e3c71c9e5df",
         "8f5192cf2f539d4100320cb63655af720fcf7790610e61c3dcf5e6e0bd988270"
       ]
+    },
+    {
+      "id": "M04",
+      "role": "收尾阶段五种结算入口图标",
+      "expected": "Settlement-Icons-EndPhase-v1.2五种图标，dark/light/muted三色，1x/2x/4x；现有结算条优先@2x",
+      "status": "已入库；本次未执行Unity导入/接线，项目运行绑定及正常视觉未验收",
+      "scope": "仅建设据点、第五号企业家、蒂亚戈基金投资、降本增效声望兑分、特勤小组对应收尾阶段入口",
+      "basis": [
+        "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+        "文档/收尾阶段结算图标登记.md"
+      ],
+      "parameters": "参数/Settlement-Icons-EndPhase-v1.2/可用库登记.json",
+      "assetHashes": [
+        "f1569aac19d4273f9dca7f9ebab918e3c87c7f04182b84effb3e985773a4726c",
+        "33bef96a6a77906b2d3e174d1133324f7462dd3c55374202fafc96869f28e05e",
+        "e0148baaf62f6d91b4b0e2c743a41e3c983f8f733508c17e6699bd6a4035cca9",
+        "622ec13a73382e7b71b4fb6f82fbf655d2a6e3d81905bea83badc32f5736d102",
+        "9da31b814eda0e823cfa9bbd590b11c90ce5cf36cb5994fa3c56004e9f015bd7",
+        "7a6693fdb7dbce8aa5a98601458fe6770bc0e94d910d39c5b3370c1c82cc1a15",
+        "64d67e323f3d0baf71c0358a419362ba0f604ad01acf553f9933431707951f76",
+        "87fd3d7af3acc35c75fa2125c4ab0c7efa0b9b91dd3fd293a7f998ea3030a1f6",
+        "f15e15cbfe639a35dced3b1b053d820a6c55ece71846c756b13621de7ba104ff",
+        "65e1ca1b06b3a17b21bf581bd82f05cc7fa682d34670b8f831297cd06687b82b",
+        "38fd4a49a213ab3b188e4208d9505824fc473b7abfdec11585ea98c0429abd1c",
+        "5fdfc87160032ede429fb2423db7acfcc509786a5974ca23ba814468e45c66ee",
+        "1d832dceaa5dea6fb26633e503090b0c07c2fd4179b56cc09128e481e37b7a1b",
+        "b9564d1e43427fb90e52d56f2a13752be97ec81e93d0ebb7a55e3cbaea9a6c14",
+        "811be81fb11a0662d3b71c6beec218ee85a4a2ebce6e2ef00ee80afe9332cdfc",
+        "562bccb8bff17b1e4014fdbf7555462e123aa4f8fd5a47015c971c9f87936f87",
+        "d0a25de0c733a0a352b0cea63ee0430f0da056f1d9b07293734182133f51ef94",
+        "3fa551a5490878081e971f604b678e80bf22042cd3ee1b4be17046530aefe327",
+        "22adce7ec37048944299ebc9325e534644823fd046ad852c9844744d466a2b3c",
+        "6a4588f7de7223664bfc6c5f8f6961268a1e6d28dc67d6f08a59ea2376475ab9",
+        "a3cb95aa3615bc9b315858d2d41aceb943fc7e0dc81ad47a55f6f0ad59256804",
+        "d954786c9f5b329015b0253f535daa020e88157d953fa50efa3b8552491e63ab",
+        "ec96ea4182a431693ce2cb7c71aef0a4db877333a7145231a257b6ca5ec0f279",
+        "856cbb2aa9aab8af91f559f0f766f398770c814af0c0b53b5a65792c31f207db",
+        "f4d2f6a13d6fee73fba73e4ac4c49fd6b246717f78528ea43f098a56ae8e68c3",
+        "ce480e16d1ce886a2f4a539d56d07dbc3d564a8581db4b22367d71e4ecb9ada7",
+        "504bb9db2735f7b6e11d734868948a53e4cbd4aef5ca84cfd12a56c32adfbdd6",
+        "92de68e211e0328709d74290da1f6038ec27218c3b08e1c9c4d1e0b086d25e03",
+        "c4abeccfb400f2338032aaf035540f45c137b9bdfd4d4a019643d78238969e7f",
+        "8cb7d746173b42b1e32fe54fdb2597ea50b7ce57952bf365f7fff612b89b4ca3",
+        "1a021aa2b6bef60599f6835905939bb2ddc9ae005749b6c86dbd18de32799fe8",
+        "c463623effa2b0c6aae7f427bf8a506492016a5dc8e6390911bbda7ea61806ea",
+        "2beca58bd66940e232f33394b07fb58b1a99d9f561ba7b0503838b8d2fdf7f6f",
+        "80d5c656fcaa44baee66c9063b45ef0ef043809579da5bf37bad4286a25c8518",
+        "62a61141ff8140331b073d20cb9827ae07bae65fce204606b56b7a30bc875aba",
+        "6f366bce08f30b598aa09bc810c27051da6845c85be144ce697f581146051cda",
+        "f7d18c39bad8c840b740b1ecc46ba354f6ccbe55786a4ebbc32658a59032adf6",
+        "fc3e4e24c5e08619fb056a01e9825b3436d24a37ab9628e2800aa9c442ea321b",
+        "2cc8b464388dd2c1baac3c3a64591c8598eba84d9234ba3182e2f1d1b6d6865a",
+        "9d7085d9f727de879f40a51f6b14a97eb830c0a2227f2d22bcaaa1aa3d2436d9",
+        "f0c801431eea9259fe12b5ce7bb01ae7e51aae946eab6b4648c2bebec1ecb27d",
+        "c87c63c1aec5cd61d31b019a2a6150f36ace9654bc899ee65c7ad04c736e64a4",
+        "b0f42e8ac48f2e682f7cb0eeabff7e6d6193d86773864483f1982cdbdb832f58",
+        "c4df797a66cb8eab629f98fb09ed1f6036999354839a81b4e1d659a615e34946",
+        "41d7c26938a9b7dce31b14ba9d45db1127c9708188a9fe371bbbbf09e963b6e3"
+      ],
+      "relationship": "新增五种收尾阶段结算入口图标，与1.0按钮及1.1图标兼容，不构成整包换版或删除旧有效用途。"
     }
   ],
-  "authority": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。"
+  "authority": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
+  "updatedAt": "2026-10-23"
 }

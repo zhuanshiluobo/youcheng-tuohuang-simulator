@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 2,
+  "locale": "zh-CN",
+  "messages": {
+    "core:entrepreneur.D.D09.description": {
+      "parameters": {},
+      "template": "在此牌上放置的玩家标记被称为[b]声望[/b]，玩家可以选择不获得声望；若没有玩家标记，则无法获得声望。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]每收尾阶段一次：基金投资：[/b]\n支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]掷2个骰子，获得1声望。选择其中1个骰子，发动点数对应的效果。"
+    },
+    "core:entrepreneur.D.investment.label": {
+      "parameters": {},
+      "template": "企业家·基金投资"
+    },
+    "core:entrepreneur.D.investment.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]每收尾阶段一次：基金投资：[/b]\n支付4[icon:core:resource.gold_voucher][icon:core:syntax.condition]掷2个骰子，获得1声望。选择其中1个骰子，发动点数对应的效果"
+    },
+    "core:entrepreneur.D.exchange.label": {
+      "parameters": {},
+      "template": "企业家·声望[icon:core:syntax.condition]分数"
+    },
+    "core:entrepreneur.D.exchange.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]收尾阶段任意次：[/b]支付3声望[icon:core:syntax.condition]获得[icon:core:resource.score|value=1]"
+    },
+    "core:entrepreneur.D.exchange.unavailable": {
+      "parameters": {},
+      "template": "当前无法执行此收尾效果。"
+    },
+    "core:entrepreneur.D.investment.condition": {
+      "parameters": {
+        "gold": "integer",
+        "total": "integer",
+        "dice": "integer",
+        "reputation": "integer"
+      },
+      "template": "支付{gold}[icon:core:resource.gold_voucher]合计{total}个[icon:core:resource.orirock][icon:core:resource.originium_shard][icon:core:resource.iron][icon:core:syntax.condition]掷{dice}个骰子，获得{reputation}声望。"
+    },
+    "core:entrepreneur.D.exchange.condition": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "支付{count}声望[icon:core:syntax.condition]获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.D.quick.retired": {
+      "parameters": {},
+      "template": "将3声望放回游戏盒[icon:core:syntax.condition]立即执行1次基金投资，并由你决定发动的效果（包括0-7）。"
+    },
+    "core:entrepreneur.D.quick.payment": {
+      "parameters": {},
+      "template": "支付2声望[icon:core:syntax.condition]立刻执行1次基金投资。"
+    },
+    "core:entrepreneur.D.extra.condition": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资选择骰子时：[/b]支付2声望[icon:core:syntax.condition]额外选择一个点数不同的骰子，并发动其点数对应的效果。"
+    },
+    "core:entrepreneur.D.points.prompt": {
+      "parameters": {},
+      "template": "发动点数对应的效果。"
+    },
+    "core:entrepreneur.D.sale.prompt": {
+      "parameters": {},
+      "template": "请选择各种资源的出售数量；所有出售数量均为0时结束贸易。"
+    },
+    "core:entrepreneur.D.point.0": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：选择1家企业[icon:core:rule.enterprise_special]"
+    },
+    "core:entrepreneur.D.point.1": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：[icon:core:rule.replace]"
+    },
+    "core:entrepreneur.D.point.2": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：获得15[icon:core:resource.gold_voucher]"
+    },
+    "core:entrepreneur.D.point.3": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：选择1家企业[icon:core:rule.enterprise_upgrade]"
+    },
+    "core:entrepreneur.D.point.4": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：贸易"
+    },
+    "core:entrepreneur.D.point.5": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：获得2[icon:core:resource.orirock]2[icon:core:resource.originium_shard]1[icon:core:resource.iron]"
+    },
+    "core:entrepreneur.D.point.6": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：[icon:core:rule.deploy][icon:core:rule.dispatch]"
+    },
+    "core:entrepreneur.D.point.7": {
+      "parameters": {
+        "point": "integer"
+      },
+      "template": "点数{point}：选择1家企业[icon:core:rule.enterprise_upgrade][icon:core:rule.enterprise_upgrade]"
+    },
+    "core:entrepreneur.D.D01.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.limited_marker]获得1[icon:core:resource.orirock]1[icon:core:resource.originium_shard]1[icon:core:resource.iron]。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]基金投资[/b]少支付2[icon:core:resource.gold_voucher]。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]收尾阶段任意次：[/b]\n支付3声望[icon:core:syntax.condition]获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.D.D02.description": {
+      "parameters": {},
+      "template": "[b]立即①[/b] 失去[icon:core:resource.score|value=1]，获得42[icon:core:resource.gold_voucher]。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]收尾阶段任意次：[/b]\n支付3声望[icon:core:syntax.condition]获得[icon:core:resource.score|value=1]。"
+    },
+    "core:entrepreneur.D.D03.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资选择骰子时：[/b]支付2声望[icon:core:syntax.condition]额外选择一个点数不同的骰子，并发动其点数对应的效果\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]额外支付4[icon:core:resource.gold_voucher]，额外获得2声望"
+    },
+    "core:entrepreneur.D.D04.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资时：[/b]可以发动骰子点数[b]+1或-1[/b]对应的效果\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]额外支付合计1个[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]，额外获得1声望"
+    },
+    "core:entrepreneur.D.D05.description": {
+      "parameters": {},
+      "template": "[b]立即①[/b] 失去[icon:core:resource.score|value=1]。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]支付声望获得分数时：[/b]少支付1声望。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]基金投资[/b]额外支付1个[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]。"
+    },
+    "core:entrepreneur.D.D06.description": {
+      "parameters": {},
+      "template": "[b]立即①[/b] 失去[icon:core:resource.score|value=1]。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]基金投资[/b]改为掷3个骰子。\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker] [b]基金投资[/b]额外支付4[icon:core:resource.gold_voucher]，额外获得1声望。"
+    },
+    "core:entrepreneur.D.D07.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]将3声望放回游戏盒[icon:core:syntax.condition]立即执行1次基金投资，并由你决定发动的效果（包括0-7）。"
+    },
+    "core:entrepreneur.D.D08.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.quick_action]支付2声望[icon:core:syntax.condition]立刻执行1次基金投资。"
+    },
+    "core:entrepreneur.D.action.D07.name": {
+      "parameters": {},
+      "template": "7A·我愿必达"
+    },
+    "core:entrepreneur.D.action.D08.name": {
+      "parameters": {},
+      "template": "7B·孤注一掷"
+    },
+    "core:entrepreneur.D.D01.remaining": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]少支付2[icon:core:resource.gold_voucher]"
+    },
+    "core:entrepreneur.D.D05.remaining": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]支付声望获得分数时：[/b]少支付1声望\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]额外支付1个[icon:core:resource.orirock]/[icon:core:resource.originium_shard]/[icon:core:resource.iron]"
+    },
+    "core:entrepreneur.D.D06.remaining": {
+      "parameters": {},
+      "template": "[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]改为掷3个骰子\n[icon:core:timing.remaining_game][icon:core:rule.persistent_marker][b]基金投资[/b]额外支付4[icon:core:resource.gold_voucher]，额外获得1声望"
+    },
+    "core:entrepreneur.D.D01.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.limited_marker]获得1[icon:core:resource.orirock]1[icon:core:resource.originium_shard]1[icon:core:resource.iron]"
+    },
+    "core:entrepreneur.D.D02.immediate.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.limited_marker]失去[icon:core:resource.score|value=1]，获得42[icon:core:resource.gold_voucher]"
+    },
+    "core:entrepreneur.D.immediate.loss.description": {
+      "parameters": {},
+      "template": "[icon:core:timing.immediate][icon:core:rule.limited_marker]失去[icon:core:resource.score|value=1]"
+    },
+    "core:entrepreneur.D.reputation.prompt": {
+      "parameters": {
+        "maximum": "integer"
+      },
+      "template": "请选择本次获得的声望数量，至多{maximum}声望。"
+    },
+    "core:entrepreneur.D.reputation.none": {
+      "parameters": {},
+      "template": "本次不获得声望"
+    },
+    "core:entrepreneur.D.reputation.amount": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "获得{count}声望"
+    }
+  },
+  "assets": {},
+  "icons": []
+}

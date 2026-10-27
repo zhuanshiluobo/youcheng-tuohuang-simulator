@@ -16,6 +16,7 @@ namespace YC.Infrastructure.Lua
         internal static void Stamp(GameState state, LuaFacadeSnapshot snapshot, int revision)
         {
             snapshot.StateRevision = revision;
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) snapshot.GlobalFacilities = FacilityLayerLuaCatalog.CreateProjection(state);
             var enabled = state.RuleConfiguration?.EnabledExpansionIds;
             snapshot.EnabledDlcIdsAvailable = enabled != null;
             if (enabled != null) snapshot.EnabledDlcIds.AddRange(enabled);
@@ -31,6 +32,8 @@ namespace YC.Infrastructure.Lua
             var roads = new HashSet<string>(state.Map.RoadRouteIds.ToArray(), StringComparer.Ordinal);
             var open = new HashSet<string>(state.Map.OpenLocationIds.ToArray(), StringComparer.Ordinal);
             var influences = state.Map.Influences.ToArray().Where(i => i != null).OrderBy(i => i.InfluenceId, StringComparer.Ordinal).ToArray();
+            // 兼容位置属性会读取实体投影；同次同步快照只物化一次，不跨调用保留。
+            var cityLocations = state.Players.Select(p => new { p.PlayerId, LocationId = p.CityLocationId }).ToArray();
             var influenceValues = new List<LuaSnapshotValue>();
             foreach (var value in influences)
             {
@@ -54,7 +57,7 @@ namespace YC.Infrastructure.Lua
                 AddSlots(slots, ids, location.LocationId, "", influences, state);
                 connected.Add(E(location.LocationId, A(query.GetAdjacentLocations(location.LocationId).OrderBy(l => l.LocationId, StringComparer.Ordinal)
                     .Select(l => O(E("locationId", S(l.LocationId)), E("id", S(l.LocationId)))))));
-                cities.Add(E(location.LocationId, A(state.Players.Where(p => p.CityLocationId == location.LocationId).OrderBy(p => p.PlayerId)
+                cities.Add(E(location.LocationId, A(cityLocations.Where(p => p.LocationId == location.LocationId).OrderBy(p => p.PlayerId)
                     .Select(p => O(E("playerId", S(Player(p.PlayerId))))))));
             }
             var routeValues = new List<LuaSnapshotValue>(); var between = new List<LuaSnapshotEntry>();
@@ -104,10 +107,17 @@ namespace YC.Infrastructure.Lua
             if (defs == null) return LuaSnapshotValue.Null;
             var values = new List<LuaSnapshotValue>();
             foreach (var d in defs.Characters) values.Add(Definition(d.CardId, "character", d.Name, "", null));
-            foreach (var d in defs.Facilities) values.Add(O(E("id", S(d.FacilityId)), E("definitionId", S(d.FacilityId)), E("contentType", S("facility")), E("name", S(d.Name)), E("description", S(d.Description)), E("goldVoucherCost", N(d.GoldVoucherCost)), E("tags", Strings(d.Keywords))));
+            foreach (var d in defs.Facilities) values.Add(O(E("id", S(d.FacilityId)), E("definitionId", S(d.FacilityId)), E("contentType", S("facility")), E("name", S(d.Name)), E("description", S(d.Description)), E("goldVoucherCost", N(d.GoldVoucherCost)), E("tags", Strings(d.Keywords)), E("color", S(d.Color)), E("unique", B(d.Unique)), E("uniqueGroupId", S(d.UniqueGroupId)), E("hasEntryEffect", B(d.HasEntryEffect)), E("reserveOnly", B(d.ReserveOnly))));
             foreach (var d in defs.Events) values.Add(Definition(d.CardId, "event", d.Name, d.Description, null));
             foreach (var d in defs.CityStyles) values.Add(O(E("id", S(d.CityStyleId)), E("definitionId", S(d.CityStyleId)), E("contentType", S("city_style")), E("name", S(d.Name)), E("description", S(d.Description)), E("level", N(d.Level)), E("specialActionId", S(d.SpecialActionId)), E("tags", Strings(null))));
             foreach (var d in defs.SpecialActions) values.Add(Definition(d.SpecialActionId, "special_action", d.Name, d.Description, null));
+            foreach (var d in defs.Entrepreneurs)
+            {
+                values.Add(Definition(d.DefinitionId, "entrepreneur_ability", d.DisplayName, "", null));
+                foreach (var group in d.RoundGroups)
+                    foreach (var entity in group.Candidates.Select(c => c.EntityDefinitionId).Distinct())
+                        values.Add(Definition(entity, "entrepreneur_round", d.DisplayName, "", null));
+            }
             foreach (var d in defs.Components) values.Add(Definition(d.DefinitionId, "component", "", "", null));
             foreach (var d in defs.Awards) values.Add(O(E("id", S(d.DefinitionId)), E("definitionId", S(d.DefinitionId)), E("contentType", S("award")),
                 E("titleKey", S(d.TitleKey)), E("descriptionKey", S(d.DescriptionKey)), E("lifecycle", S(d.Lifecycle)), E("tags", Strings(null))));
@@ -122,6 +132,8 @@ namespace YC.Infrastructure.Lua
             var definitions = Definitions(state);
             var byDefinition = definitions.Items.ToDictionary(d => d.Get("id").StringValue, StringComparer.Ordinal);
             var byItem = visible.Items.ToDictionary(i => i.ItemId, StringComparer.Ordinal);
+            var visibleItemIds = new HashSet<string>(byItem.Keys, StringComparer.Ordinal);
+            var authoritativeZones = state.ItemZones.Zones.ToDictionary(z=>z.ZoneId,StringComparer.Ordinal);
             var enriched = new List<LuaSnapshotValue>();
             foreach (var value in instances)
             {
@@ -132,18 +144,26 @@ namespace YC.Infrastructure.Lua
                 if (item != null)
                 {
                     fields["zoneId"] = S(item.ZoneId); fields["typeId"] = S(item.TypeId); fields["slotId"] = S(item.SlotId);
+                    fields["originalSupplyZoneId"] = S(item.OriginalSupplyZoneId);
+                    fields["localStateDigest"] = S(ItemTransferService.LocalStateDigest(item));
                     // owner保留既有实例投影的玩家控制者语义；不能因补查询悄悄改写旧Lua的筛选条件。
                     if (!fields.ContainsKey("owner")) fields["owner"] = S(Player(item.ControllerSubject.PlayerId));
                     fields["ownerSubject"] = S(Subject(item.OwnerSubject)); fields["controller"] = S(Subject(item.ControllerSubject));
-                    AddInstanceContinuationFacts(state, item.ItemId, fields, new HashSet<string>(byItem.Keys, StringComparer.Ordinal));
+                    AddInstanceContinuationFacts(state, item.ItemId, fields, visibleItemIds);
                 }
                 if (byDefinition.TryGetValue(value.Get("definitionId").StringValue, out var definition))
-                { fields["contentType"] = definition.Get("contentType"); fields["tags"] = definition.Get("tags"); }
+                { fields["contentType"] = definition.Get("contentType"); fields["tags"] = definition.Get("tags");
+                    if (definition.Get("contentType").StringValue == "facility")
+                        foreach (string name in new[] { "color", "unique", "uniqueGroupId", "hasEntryEffect", "reserveOnly" }) fields[name] = definition.Get(name); }
                 enriched.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
             }
             var zones = visible.Zones.Where(z => z.IdentitiesVisible || z.Zone.TemplateId == "core.zone.box_retired" || z.Zone.LocalZoneId == "facility_deck")
                 .Select(z => O(E("id", S(z.Zone.ZoneId)), E("templateId", S(z.Zone.TemplateId)), E("localZoneId", S(z.Zone.LocalZoneId)),
-                    E("parentId", S(z.Zone.ParentId)), E("parentKind", S(z.Zone.ParentKind.ToString())), E("owner", S(Player(z.Zone.OwnerPlayerId))), E("itemCount", N(z.ItemCount))));
+                    E("parentId", S(z.Zone.ParentId)), E("parentKind", S(z.Zone.ParentKind.ToString())), E("owner", S(Player(z.Zone.OwnerPlayerId))), E("itemCount", N(z.ItemCount)),
+                    E("orderRevision", z.IdentitiesVisible ? N(OrderRevision(state, z.Zone.ZoneId)) : LuaSnapshotValue.Null),
+                    E("orderDigest", z.IdentitiesVisible ? S(YC.Domain.Facilities.FacilityLayerQuery.Digest(state,z.Zone.ZoneId)) : LuaSnapshotValue.Null),
+                    E("topItemId", z.IdentitiesVisible ? S(VisibleTop(state,z.Zone.ZoneId,visibleItemIds)) : LuaSnapshotValue.Null),
+                    E("capacity", N(ZoneCapacity(authoritativeZones[z.Zone.ZoneId])))));
             return O(E("instances", A(enriched)), E("zones", A(zones)), E("definitions", definitions),
                 E("stateRevision", N(state.EffectRuntime?.StateRevision ?? 0)), E("contentPackHash", S(state.ContentPackHash)));
         }
@@ -165,15 +185,18 @@ namespace YC.Infrastructure.Lua
                 throw new InvalidOperationException("lua_query_candidate_zone_missing")).Distinct().ToList();
             foreach (var zone in sourceZones)
                 if (zone.ParentKind == ZoneParentKind.Item && items.TryGetValue(zone.ParentId, out var carrier)) sourceItems.Add(carrier);
+            var sourceItemIds = new HashSet<string>(sourceItems.Select(item => item.ItemId), StringComparer.Ordinal);
             var values = new List<LuaSnapshotValue>();
             foreach (var item in sourceItems.Distinct())
             {
                 var fields = new Dictionary<string, LuaSnapshotValue>(StringComparer.Ordinal) {
                     ["id"] = S(item.ItemId), ["definitionId"] = S(item.DefinitionId), ["zoneId"] = S(item.ZoneId),
                     ["typeId"] = S(item.TypeId), ["owner"] = S(Player(item.ControllerSubject.PlayerId)),
-                    ["controller"] = S(Subject(item.ControllerSubject)), ["ownerSubject"] = S(Subject(item.OwnerSubject)), ["slotId"] = S(item.SlotId) };
+                    ["controller"] = S(Subject(item.ControllerSubject)), ["ownerSubject"] = S(Subject(item.OwnerSubject)), ["slotId"] = S(item.SlotId), ["originalSupplyZoneId"] = S(item.OriginalSupplyZoneId), ["localStateDigest"] = S(ItemTransferService.LocalStateDigest(item)) };
                 if (byDefinition.TryGetValue(item.DefinitionId, out var definition))
-                { fields["contentType"] = definition.Get("contentType"); fields["tags"] = definition.Get("tags"); }
+                { fields["contentType"] = definition.Get("contentType"); fields["tags"] = definition.Get("tags");
+                    if (definition.Get("contentType").StringValue == "facility")
+                        foreach (string name in new[] { "color", "unique", "uniqueGroupId", "hasEntryEffect", "reserveOnly" }) fields[name] = definition.Get(name); }
                 values.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
             }
             var zoneValues = new List<LuaSnapshotValue>();
@@ -181,12 +204,24 @@ namespace YC.Infrastructure.Lua
             {
                 zoneValues.Add(O(E("id", S(zone.ZoneId)), E("templateId", S(zone.TemplateId)), E("localZoneId", S(zone.LocalZoneId)),
                     E("parentId", S(zone.ParentId)), E("owner", S(Player(zone.OwnerPlayerId))), E("parentKind", S(zone.ParentKind.ToString())),
-                    E("itemCount", N(sourceItems.Count(item => item.ZoneId == zone.ZoneId)))));
+                    E("itemCount", N(sourceItems.Count(item => item.ZoneId == zone.ZoneId))), E("capacity", N(ZoneCapacity(zone))),
+                    E("orderRevision",N(OrderRevision(state,zone.ZoneId))), E("orderDigest",S(YC.Domain.Facilities.FacilityLayerQuery.Digest(state,zone.ZoneId))),
+                    E("topItemId",S(VisibleTop(state,zone.ZoneId,sourceItemIds)))));
             }
             return O(E("instances", A(values)), E("zones", A(zoneValues)), E("definitions", definitions),
                 E("stateRevision", N(revision)), E("contentPackHash", S(state.ContentPackHash)));
         }
 
+        private static int OrderRevision(GameState state,string zone) => state.ItemZones.Orders.SingleOrDefault(o=>o.ZoneId==zone)?.OrderRevision ?? 0;
+        private static string VisibleTop(GameState state,string zone,HashSet<string> visible)
+        { var id=state.ItemZones.Orders.SingleOrDefault(o=>o.ZoneId==zone)?.ItemIds.FirstOrDefault() ?? ""; return visible.Contains(id) ? id : ""; }
+
+        // 与真实转移服务相同的容量定义；-1代表无界。仅查询，不预留、不扩大Load数量上限。
+        private static readonly ZoneTemplateRegistry CapacityTemplates = ZoneTemplateRegistry.CreateBuiltIn(ItemTypeRegistry.CreateBuiltIn());
+        // 仅保存私有内建模板的不变整数；每个区域的实时bounded配置仍逐次读取。
+        private static readonly Dictionary<string, int> TemplateCapacities = CapacityTemplates.Definitions.ToDictionary(t => t.TemplateId, t => t.Capacity, StringComparer.Ordinal);
+        private static int ZoneCapacity(ZoneInstanceState zone) => zone.Configuration?.CapacityPolicy == "bounded" ? zone.Configuration.Capacity.Value :
+            zone.TemplateId != null && TemplateCapacities.TryGetValue(zone.TemplateId, out int capacity) ? capacity : CapacityTemplates.Find(zone.TemplateId).Capacity;
         internal static string Subject(ItemSubjectRef subject) => subject?.Kind == ItemSubjectKind.Player ? Player(subject.PlayerId) :
             subject?.Kind == ItemSubjectKind.Company ? "company:" + subject.CompanyId : "none";
         private static string Player(int id) => id < 0 ? "none" : "p" + id.ToString(CultureInfo.InvariantCulture);

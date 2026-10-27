@@ -1,0 +1,369 @@
+{
+  "enabled": true,
+  "definitionId": "entrepreneur.ability.T09",
+  "contentType": "entrepreneur_ability",
+  "version": "1.2.0",
+  "displayName": "第五号企业家",
+  "artwork": "artwork/entrepreneurs/T09.jpg",
+  "expansionId": "infected",
+  "replaces": null,
+  "itemTypeId": "entrepreneur.ability_card",
+  "applicableModes": [
+    "entrepreneur"
+  ],
+  "requiredCapabilities": [
+    "ability_sources.v1",
+    "card_markers.v2",
+    "departure_claims.v2",
+    "cleanup_repeat.v1",
+    "cleanup_sources.v1",
+    "item_transfer.v1"
+  ],
+  "tags": [
+    "entrepreneur-official"
+  ],
+  "abilities": [
+    {
+      "abilityId": "entrepreneur.T09.departure",
+      "mode": "event",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T09.departure",
+      "script": "lua/entrepreneurs/fifth_number_response.lua",
+      "version": "1.0.1",
+      "completionHandlerId": "entrepreneur.T09.departure.completed",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.store.description"
+        }
+      }
+    },
+    {
+      "abilityId": "entrepreneur.T09.cleanup",
+      "mode": "cleanup",
+      "skillType": "normal",
+      "subscriptionId": "entrepreneur.T09.cleanup",
+      "script": "lua/entrepreneurs/fifth_number_cleanup.lua",
+      "version": "1.1.0",
+      "completionHandlerId": "",
+      "presentation": {
+        "description": {
+          "key": "core:entrepreneur.T.cleanup.description"
+        }
+      },
+      "settlement": {
+        "entryKind": "cleanup_order",
+        "localId": "entrepreneur.T09.cleanup.cleanup_order",
+        "availabilityHandlerId": "entrepreneur.T09.cleanup.availability",
+        "presentation": {
+          "label": {
+            "key": "core:entrepreneur.T.cleanup.label"
+          },
+          "description": {
+            "key": "core:entrepreneur.T.cleanup.description"
+          },
+          "ariaLabel": {
+            "key": "core:entrepreneur.T.cleanup.label"
+          },
+          "contentMode": "icon_text",
+          "iconKey": "core:settlement.marker_redeem"
+        },
+        "wholeEffectPolicy": "optional"
+      }
+    }
+  ],
+  "abilitySources": [
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T09.departure",
+      "kind": "event",
+      "handlerRef": "entrepreneur.T09.departure",
+      "declarationVersion": "1.1.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "InfluenceRemoved"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "response.destination",
+        "response.self",
+        "carrier.store:entrepreneur.ability.T09:markers:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.T09.departure",
+      "repeatPolicy": "once",
+      "actions": []
+    },
+    {
+      "protocolVersion": 1,
+      "abilityId": "entrepreneur.T09.cleanup",
+      "kind": "cleanup",
+      "handlerRef": "entrepreneur.T09.cleanup",
+      "declarationVersion": "1.2.0",
+      "authorizationPolicy": "controller",
+      "effectiveZones": [
+        "core.zone.entrepreneur_active"
+      ],
+      "activeFaceId": "",
+      "observedEvents": [
+        "PlayerCleanupStarted"
+      ],
+      "queryKinds": [],
+      "allowedOperations": [
+        "carrier.transfer.original_supply:entrepreneur.ability.T09:markers:core.player_marker"
+      ],
+      "presentationRef": "entrepreneur.T09.cleanup",
+      "repeatPolicy": "unbounded",
+      "actions": []
+    }
+  ],
+  "data": {
+    "playerDetails": [
+      {
+        "abilityId": "entrepreneur.T09.departure",
+        "displayName": "第五号企业家",
+        "effectTextRef": {
+          "key": "core:entrepreneur.T.store.description",
+          "arguments": []
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [
+          "markers"
+        ],
+        "includeCoverSlots": false
+      },
+      {
+        "abilityId": "entrepreneur.T09.cleanup",
+        "displayName": "第五号企业家",
+        "effectTextRef": {
+          "key": "core:entrepreneur.T.cleanup.description",
+          "arguments": []
+        },
+        "displayCategory": "PlayerEffect",
+        "activation": "Held",
+        "storageLocalZoneIds": [],
+        "includeCoverSlots": false
+      }
+    ],
+    "sourceId": "T09",
+    "entrepreneur": {
+      "definitionId": "entrepreneur.ability.T09",
+      "version": "1.2.0",
+      "sourceId": "T09",
+      "displayName": "第五号企业家",
+      "artwork": "artwork/entrepreneurs/T09.jpg",
+      "setupHandlerRefs": [],
+      "roundGroups": [
+        {
+          "groupId": "entrepreneur.group.T.1",
+          "roundNumber": 1,
+          "previewCandidateId": "entrepreneur.candidate.T07",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.T07",
+              "entityDefinitionId": "entrepreneur.round.T.1",
+              "faceId": "T07",
+              "sourceId": "T07",
+              "artwork": "artwork/entrepreneurs/T07.jpg",
+              "artworkSha256": "eb2f926ee2509204bf2dbcd07bf6df506f4fffe5f8c2957fac101a306d62f29a",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.T07"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T07.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.T08",
+              "entityDefinitionId": "entrepreneur.round.T.1",
+              "faceId": "T08",
+              "sourceId": "T08",
+              "artwork": "artwork/entrepreneurs/T08.jpg",
+              "artworkSha256": "b74d9e659e602c69da8f6504592a7e81b49f7ec8e6053f2337fb7e5ac315e169",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.T08"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T08.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.T.3",
+          "roundNumber": 3,
+          "previewCandidateId": "entrepreneur.candidate.T05",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.T05",
+              "entityDefinitionId": "entrepreneur.round.T.3",
+              "faceId": "T05",
+              "sourceId": "T05",
+              "artwork": "artwork/entrepreneurs/T05.jpg",
+              "artworkSha256": "24cddb727b5179a53fbc036894e78c4022d1d5217ba6dffe48836d3ab906c427",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.T05"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T05.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.T06",
+              "entityDefinitionId": "entrepreneur.round.T.3",
+              "faceId": "T06",
+              "sourceId": "T06",
+              "artwork": "artwork/entrepreneurs/T06.jpg",
+              "artworkSha256": "2f21cf11aa1fa6957514a449037461608ee5ce4a2b8650feb3d1ec7148046503",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.T06"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T06.immediate.1"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.T.5",
+          "roundNumber": 5,
+          "previewCandidateId": "entrepreneur.candidate.T03",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.T03",
+              "entityDefinitionId": "entrepreneur.round.T.5",
+              "faceId": "T03",
+              "sourceId": "T03",
+              "artwork": "artwork/entrepreneurs/T03.jpg",
+              "artworkSha256": "6323ca7338318fe210287da7fcef42a06de5edb1bc25f8ebd3b839556bbf5517",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.T03"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T03.immediate.1",
+                "entrepreneur.T03.immediate.2"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.T04",
+              "entityDefinitionId": "entrepreneur.round.T.5",
+              "faceId": "T04",
+              "sourceId": "T04",
+              "artwork": "artwork/entrepreneurs/T04.jpg",
+              "artworkSha256": "c2ab90bbc5a8e37e03d4e60030051522c05bc96893e9af70e9fa4b893554d8b5",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.T04"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T04.immediate.1",
+                "entrepreneur.T04.immediate.2"
+              ]
+            }
+          ]
+        },
+        {
+          "groupId": "entrepreneur.group.T.7",
+          "roundNumber": 7,
+          "previewCandidateId": "entrepreneur.candidate.T01",
+          "unselectedEntityDestination": "reserve",
+          "candidates": [
+            {
+              "candidateId": "entrepreneur.candidate.T01",
+              "entityDefinitionId": "entrepreneur.round.T.7",
+              "faceId": "T01",
+              "sourceId": "T01",
+              "artwork": "artwork/entrepreneurs/T01.jpg",
+              "artworkSha256": "f9809bf4b8161433c2fa7a6dad8f127085563eeae4a1a999ec126a6cb7f377cc",
+              "displayOrder": 0,
+              "ruleRefs": [
+                "entrepreneur.face.T01"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T01.immediate.1"
+              ]
+            },
+            {
+              "candidateId": "entrepreneur.candidate.T02",
+              "entityDefinitionId": "entrepreneur.round.T.7",
+              "faceId": "T02",
+              "sourceId": "T02",
+              "artwork": "artwork/entrepreneurs/T02.jpg",
+              "artworkSha256": "fd40ffe77a57caccfe8d88d6d33e016b732833f84d8df4404687bdf3f964a2e1",
+              "displayOrder": 1,
+              "ruleRefs": [
+                "entrepreneur.face.T02"
+              ],
+              "immediateHandlerRefs": [
+                "entrepreneur.T02.immediate.1"
+              ]
+            }
+          ]
+        }
+      ],
+      "components": [
+        {
+          "entryId": "entrepreneur.initial_markers",
+          "definitionId": "core.player_marker",
+          "typeId": "core.player_marker",
+          "quantity": 2,
+          "destinationRole": "ability_card",
+          "carrierLocalZoneId": "markers",
+          "sourceRole": "supply"
+        }
+      ]
+    }
+  },
+  "cardZones": [
+    {
+      "localZoneId": "markers",
+      "zoneTemplateId": "core.zone.card_cube_storage",
+      "acceptedItemKinds": [
+        "Cube"
+      ],
+      "acceptedTypeIds": [
+        "core.player_marker"
+      ],
+      "capacityPolicy": "unbounded",
+      "orderingKind": "Unordered",
+      "visibilityPolicyId": "core.public_items",
+      "entryPolicyId": "core.explicit_transfer",
+      "exitPolicyId": "core.explicit_transfer",
+      "carrierExitPolicyId": "core.preserve_contents",
+      "slots": []
+    }
+  ],
+  "presentation": {
+    "name": {
+      "key": "core:entrepreneur.T.name"
+    },
+    "description": {
+      "key": "core:entrepreneur.T.description"
+    }
+  },
+  "abilityHandlers": [
+    {
+      "handlerId": "entrepreneur.T09.departure",
+      "script": "lua/entrepreneurs/fifth_number_response.lua",
+      "version": "1.0.1",
+      "completionHandlerId": "entrepreneur.T09.departure.completed"
+    },
+    {
+      "handlerId": "entrepreneur.T09.cleanup",
+      "script": "lua/entrepreneurs/fifth_number_cleanup.lua",
+      "version": "1.1.0",
+      "completionHandlerId": ""
+    }
+  ]
+}

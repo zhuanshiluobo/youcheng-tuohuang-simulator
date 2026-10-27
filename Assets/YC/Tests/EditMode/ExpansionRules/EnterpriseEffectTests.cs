@@ -61,7 +61,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = new GameState { GameId = "test.enterprise.game", MapId = map.MapId, ContentPackHash = "test.enterprise.content",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = playerCount, ContentPackHash = "test.enterprise.content", EnabledExpansionIds = new List<string> { "core", "enterprise" } },
                 Players = Enumerable.Range(1, playerCount).Select(player => new PlayerState { PlayerId = player, Name = "玩家" + player, Resources = new ResourceSet { OriginiumShard = player == 1 ? 6 : 0 } }).ToList() };
-            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" } };
+            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } };
             foreach (string id in new[] { Business, Research }) recipe.Add(new ItemRecipeEntry { EntryId = id, DefinitionId = id, TypeId = "core.board_card", Quantity = 1, InitialZoneRole = "enterprises" });
             foreach (string id in new[] { "test.department.engineering", "test.department.structural" }) recipe.Add(new ItemRecipeEntry { EntryId = id, DefinitionId = id, TypeId = "core.board_card", Quantity = 1, InitialZoneRole = "departments" });
             var declarations = new[] { Business, Research }.Select(id => new ItemCardZoneDeclaration { DefinitionId = id, CardZones = Enumerable.Range(1, playerCount).Select(playerId => new CardZoneDefinition {
@@ -72,7 +72,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string enterprise in new[] { Business, Research }) foreach (int player in Enumerable.Range(1, playerCount))
             {
                 var track = state.ItemZones.Zones.Single(zone => zone.ParentId == ItemId(state, enterprise) && zone.LocalZoneId == "cooperation_" + player);
-                var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player && state.ItemZones.Zones.Single(zone => zone.ZoneId == item.ZoneId).LocalZoneId == "player_markers");
+                var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == player && state.ItemZones.Zones.Single(zone => zone.ZoneId == item.ZoneId).LocalZoneId == "supply");
                 int level = enterprise == Business ? player == 1 ? businessLevel : opponentBusinessLevel : player == 1 ? researchLevel : 2;
                 marker.ZoneId = track.ZoneId; marker.SlotId = "level_" + level; state.ItemZones.Orders.Single(order => order.ZoneId == track.ZoneId).ItemIds.Add(marker.ItemId);
             }
@@ -117,7 +117,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void MissingCooperationMarkerFailsInsteadOfReturningZero()
         {
             var state = State(); var track = state.ItemZones.Zones.Single(zone => zone.ParentId == ItemId(state, Business) && zone.OwnerPlayerId == 1);
-            var marker = state.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId); marker.ZoneId = FindZone(state, "player_markers", 1).ZoneId; marker.SlotId = "";
+            var marker = state.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId); marker.ZoneId = FindZone(state, "supply", 1).ZoneId; marker.SlotId = "";
             Assert.Throws<InvalidOperationException>(() => Level(state));
         }
         [Test] public void RewardUnlockAndBlankArrivalsRemainDistinct()

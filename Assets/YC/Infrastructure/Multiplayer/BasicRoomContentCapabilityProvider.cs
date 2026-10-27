@@ -41,7 +41,8 @@ namespace YC.Infrastructure.Multiplayer
         {
             using var scope = ContentValidationMarker.Auto();
             reasonCode = "content_not_ready";
-            if (configuration == null || configuration.PlayerCount < 2) return false;
+            // 房间在只有房主时也可先配置模式/扩展；实际开局人数由房间就绪策略检查。
+            if (configuration == null) return false;
             var result = Resolve(configuration);
             reasonCode = result.Reason;
             // 调用方声称的指纹不是缓存键。每次都比对，避免错误指纹污染成功缓存或绕过最终门禁。

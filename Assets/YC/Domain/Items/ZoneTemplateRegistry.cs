@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.State;
 
 namespace YC.Domain.Items
@@ -33,6 +34,7 @@ namespace YC.Domain.Items
         public string VisibilityPolicyId = string.Empty;
         public string CarrierExitPolicyId = string.Empty;
         public string DisplayAnchorId = string.Empty;
+        public List<string> Slots = new List<string>();
         public string EmptyExitPolicyId = string.Empty, PaymentPolicyId = string.Empty;
         public int MaxMarkersPerPayment;
     }
@@ -53,10 +55,32 @@ namespace YC.Domain.Items
         public static bool IsKnown(string id) => id == Public || id == Owner || id == Hidden || id == SecretRetired;
     }
 
+    // 仅查询所需的不可变规则；集合包装私有注册副本，不能取得可写List。
+    internal sealed class ZoneTemplateRules
+    {
+        internal readonly string TemplateId;
+        internal readonly System.Collections.ObjectModel.ReadOnlyCollection<string> AllowedParentTemplateIds, AllowedCarrierTypeIds, AllowedChildTemplateIds, AcceptedTypeIds;
+        internal readonly System.Collections.ObjectModel.ReadOnlyCollection<ItemPhysicalKind> AcceptedItemKinds;
+        internal readonly ZoneOrderingKind OrderingKind;
+        internal readonly int Capacity;
+        internal readonly bool AllowExternalCardBinding;
+        internal ZoneTemplateRules(ZoneTemplateDefinition value)
+        {
+            TemplateId = value.TemplateId;
+            AllowedParentTemplateIds = value.AllowedParentTemplateIds.AsReadOnly();
+            AllowedCarrierTypeIds = value.AllowedCarrierTypeIds.AsReadOnly();
+            AllowedChildTemplateIds = value.AllowedChildTemplateIds.AsReadOnly();
+            AcceptedTypeIds = value.AcceptedTypeIds.AsReadOnly();
+            AcceptedItemKinds = value.AcceptedItemKinds.AsReadOnly();
+            OrderingKind = value.OrderingKind; Capacity = value.Capacity; AllowExternalCardBinding = value.AllowExternalCardBinding;
+        }
+    }
+
     public sealed class ZoneTemplateRegistry
     {
         private readonly ItemTypeRegistry types;
         private readonly Dictionary<string, ZoneTemplateDefinition> definitions = new Dictionary<string, ZoneTemplateDefinition>(StringComparer.Ordinal);
+        private readonly Dictionary<string, ZoneTemplateRules> rules = new Dictionary<string, ZoneTemplateRules>(StringComparer.Ordinal);
         private bool frozen;
         public IReadOnlyList<ZoneTemplateDefinition> Definitions => System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(definitions.Values, value => GameStateCloneService.DeepClone(value))).AsReadOnly();
         public ZoneTemplateRegistry(ItemTypeRegistry types) { this.types = types ?? throw new ArgumentNullException(nameof(types)); }
@@ -73,7 +97,9 @@ namespace YC.Domain.Items
                 if (types.Find(typeId) == null || !definition.AcceptedItemKinds.Contains(types.Find(typeId).PhysicalKind)) throw new InvalidOperationException("acceptedTypeIds_invalid");
             foreach (ItemPhysicalKind kind in definition.AcceptedItemKinds)
                 if (!Enum.IsDefined(typeof(ItemPhysicalKind), kind)) throw new InvalidOperationException("acceptedItemKinds_invalid");
-            definitions.Add(definition.TemplateId, GameStateCloneService.DeepClone(definition));
+            var stored = GameStateCloneService.DeepClone(definition);
+            definitions.Add(definition.TemplateId, stored);
+            rules.Add(definition.TemplateId, new ZoneTemplateRules(stored));
         }
 
         public bool ValidateCardZoneDeclaration(string carrierTypeId, CardZoneDefinition declaration, out string reasonCode)
@@ -105,6 +131,7 @@ namespace YC.Domain.Items
             if (!IsPolicy(declaration.EntryPolicyId, "core.explicit_transfer", "core.owned_player_marker", "core.removed_owned_influence")) return Reject("entryPolicyId_rejected", out reasonCode);
             if (!IsPolicy(declaration.ExitPolicyId, "core.explicit_transfer", "core.card_payment")) return Reject("exitPolicyId_rejected", out reasonCode);
             if (!IsPolicy(declaration.CarrierExitPolicyId, "core.preserve_contents", "core.return_contents_before_exit")) return Reject("carrierExitPolicyId_rejected", out reasonCode);
+            if (declaration.Slots == null || declaration.Slots.Any(string.IsNullOrWhiteSpace) || declaration.Slots.Count != declaration.Slots.Distinct().Count() || declaration.Slots.Count > 0 && template.OrderingKind != ZoneOrderingKind.Track) return Reject("slots_invalid", out reasonCode);
             if (!ValidateCarrierPolicies(declaration, out reasonCode)) return false;
             return true;
         }
@@ -121,13 +148,14 @@ namespace YC.Domain.Items
 
         public bool ValidateExternalFields(IEnumerable<string> fieldNames, out string reasonCode)
         {
-            var allowed = new HashSet<string>(new[] { "localZoneId", "zoneTemplateId", "acceptedItemKinds", "acceptedTypeIds", "entryPolicyId", "exitPolicyId", "capacityPolicy", "capacity", "orderingKind", "visibilityPolicyId", "carrierExitPolicyId", "displayAnchorId", "emptyExitPolicyId", "paymentPolicyId", "maxMarkersPerPayment" }, StringComparer.Ordinal);
+            var allowed = new HashSet<string>(new[] { "localZoneId", "zoneTemplateId", "acceptedItemKinds", "acceptedTypeIds", "entryPolicyId", "exitPolicyId", "capacityPolicy", "capacity", "orderingKind", "visibilityPolicyId", "carrierExitPolicyId", "displayAnchorId", "emptyExitPolicyId", "paymentPolicyId", "maxMarkersPerPayment", "slots" }, StringComparer.Ordinal);
             foreach (string name in fieldNames)
                 if (!allowed.Contains(name)) return Reject(name + "_unsupported", out reasonCode);
             reasonCode = string.Empty;
             return true;
         }
 
+        internal ZoneTemplateRules FindRules(string id) => id != null && rules.TryGetValue(id, out var value) ? value : null;
         public ZoneTemplateDefinition Find(string templateId) => templateId != null && definitions.TryGetValue(templateId, out var value) ? GameStateCloneService.DeepClone(value) : null;
         public void Freeze()
         {
@@ -163,20 +191,23 @@ namespace YC.Domain.Items
             registry.Add("public_supply", "table", null);
             foreach (string display in new[] { "enterprise_display", "department_display", "city_style_display" }) registry.Add(display, "table", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, -1, new[] { "core.board_card" });
             registry.Add("facility_supply", "public_supply", null);
-            registry.Add("facility_supply_slot", "facility_supply", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, 1, new[] { "core.facility_card" });
-            registry.Add("reward_pool", "public_supply", new[] { ItemPhysicalKind.Card, ItemPhysicalKind.Cube }, ZoneOrderingKind.Unordered, -1, new[] { "core.award_card", "core.contract_card", "core.generated_character_card", "infected.company_marker" });
+registry.Add("facility_supply_slot", "facility_supply", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Deck, -1, new[] { "core.facility_card" });
+            registry.Add("reward_pool", "public_supply", new[] { ItemPhysicalKind.Card, ItemPhysicalKind.Cube, ItemPhysicalKind.Token }, ZoneOrderingKind.Unordered, -1, new[] { "core.award_card", ItemTypeRegistry.ContractTokenTypeId, "core.generated_character_card", "infected.company_marker" });
             registry.Add("card_deck", "public_supply", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Deck);
             registry.Add("player_panel", "players", null);
             foreach (string area in new[] { "hand", "discard", "covered", "persistent" }) registry.Add("character_" + area, "player_panel", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, -1, new[] { "core.character_card" });
-            registry.Add("player_marker_supply", "player_panel", new[] { ItemPhysicalKind.Cube }, ZoneOrderingKind.Unordered, -1, new[] { "core.player_marker" });
+            registry.Add("player_supply", "player_panel", new[] { ItemPhysicalKind.Cube, ItemPhysicalKind.Card, ItemPhysicalKind.Token }, ZoneOrderingKind.Unordered, -1, new[] { "core.player_marker", "entrepreneur.gang_marker", "core.facility_card", "core.die" });
+            registry.Add("entrepreneur_container", "player_panel", null);
+            foreach (string area in new[] { "entrepreneur_pending", "entrepreneur_active" }) registry.Add(area, "entrepreneur_container", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, -1, new[] { "entrepreneur.ability_card", "entrepreneur.round_card" });
             registry.Add("city_panel", "player_panel", null);
-            registry.Add("city_facility_cell", "city_panel", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, 1, new[] { "core.facility_card" });
-            registry.Add("player_awards", "player_panel", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, -1, new[] { "core.award_card", "core.contract_card" });
+registry.Add("city_facility_cell", "city_panel", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, 1, new[] { "core.facility_card" });
+            registry.Add("city_facility_covered", "city_facility_cell", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Deck, -1, new[] { "core.facility_card" });
+            registry.Add("player_rewards", "player_panel", new[] { ItemPhysicalKind.Card, ItemPhysicalKind.Token }, ZoneOrderingKind.Unordered, -1, new[] { "core.award_card", ItemTypeRegistry.ContractTokenTypeId });
             foreach (string box in new[] { "box_reserve", "box_retired", "box_secret_retired" }) registry.Add(box, "game_box", new[] { ItemPhysicalKind.Cube, ItemPhysicalKind.Card, ItemPhysicalKind.MobileCity, ItemPhysicalKind.Token });
             registry.Add("effect_staging", "table", new[] { ItemPhysicalKind.Cube, ItemPhysicalKind.Card, ItemPhysicalKind.MobileCity, ItemPhysicalKind.Token });
             registry.Add("card_cube_storage", "", new[] { ItemPhysicalKind.Cube }, ZoneOrderingKind.Unordered, -1, null, new[] { "core.card" }, true);
             registry.Add("card_facility_storage", "", new[] { ItemPhysicalKind.Card }, ZoneOrderingKind.Unordered, -1, new[] { "core.facility_card" }, new[] { "core.card" }, true);
-            registry.Add("board_marker_track", "", new[] { ItemPhysicalKind.Cube }, ZoneOrderingKind.Track, -1, new[] { "core.player_marker" }, new[] { "core.board_card", "core.character_card" }, true);
+            registry.Add("board_marker_track", "", new[] { ItemPhysicalKind.Cube }, ZoneOrderingKind.Track, -1, new[] { "core.player_marker" }, new[] { "core.card" }, true);
             // 根允许同时包含物品与子区；公开指示物有明确物理资格。
             registry.definitions["core.zone.table"].AcceptedItemKinds.Add(ItemPhysicalKind.Token);
             registry.definitions["core.zone.table"].AcceptedTypeIds.Add("core.start_player_token");

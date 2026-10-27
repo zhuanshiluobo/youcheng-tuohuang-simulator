@@ -208,9 +208,11 @@ namespace YC.Tests.EditMode
         }
         private static Fixture Create()
         {
+#if LEGACY_PENDING_OFFLINE
             var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
             CharacterCardDatabase.Initialize(pack.CreateCharacters()); EventCardDatabase.InitializeExternal(pack.CreateEvents()); FacilityCardDatabase.InitializeExternal(pack.CreateFacilities());
             YC.Domain.CityStyles.CityStyleDatabase.InitializeExternal(pack.CreateCityStyles()); SpecialActionDatabase.InitializeExternal(pack.CreateSpecialActions());
+#endif
             var f = new Fixture(); Type bootstrap, launchType; object launch;
 #if LEGACY_PENDING_OFFLINE
             bootstrap = typeof(YC.Presentation.GameSessionBootstrapper); launchType = typeof(YC.Presentation.GameLaunchContext); launch = Activator.CreateInstance(launchType);

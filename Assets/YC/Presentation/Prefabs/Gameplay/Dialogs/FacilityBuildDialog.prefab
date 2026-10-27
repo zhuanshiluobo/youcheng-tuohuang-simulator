@@ -1132,6 +1132,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dac1aeec5f9f40729b797430d6cf84c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  verticalPagePanel: {fileID: 2461460792894283050}
   candidates: {fileID: 7451260000000000018}
   cardTemplate: {fileID: 2503977921086796723, guid: 46fd4881553c4f5e8b6fd13d56018126, type: 3}
   supplySlotTemplate: {fileID: 7512800000000000002, guid: 3543a14455a14d3e8c03dcc2c54876c6, type: 3}
@@ -1184,6 +1185,7 @@ MonoBehaviour:
   - {fileID: 7162000000000000245}
   - {fileID: 7162000000000000258}
   quote: {fileID: 7162000000000000091}
+  quoteDocumentView: {fileID: 8800000000000000022}
   reason: {fileID: 7162000000000000095}
   confirm: {fileID: 8701496905940452432}
   cancel: {fileID: 61005566511994354}
@@ -1193,6 +1195,10 @@ MonoBehaviour:
   alternateHeading: "\u53EF\u9009\u8BBE\u65BD\u724C"
   payLabel: "\u786E\u8BA4\u652F\u4ED8"
   placeLabel: "\u786E\u8BA4\u653E\u7F6E"
+  supplySelectLabel: "确认选择"
+  supplySelectQuote: "请选择供应区顶牌，然后确认。"
+  panelSelectLabel: "确认选择"
+  panelSelectQuote: "请选择合法的设施格，然后确认。"
   pendingQuote: "\u8BF7\u9009\u62E9\u8BBE\u65BD\u724C\u4EE5\u67E5\u770B\u8D39\u7528\u3002"
   paidQuoteFormat: "已支付，请将 {0} 放入城市面板。"
   legalSlotColor: {r: 0.25, g: 1, b: 0.45, a: 0.8}
@@ -3310,6 +3316,7 @@ GameObject:
   - component: {fileID: 7162000000000000089}
   - component: {fileID: 7162000000000000090}
   - component: {fileID: 7162000000000000091}
+  - component: {fileID: 8800000000000000022}
   m_Layer: 5
   m_Name: Build Quote
   m_TagString: Untagged
@@ -19380,3 +19387,18 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: "\u53D6\u6D88"
+--- !u!114 &8800000000000000022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7162000000000000088}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c2d9c7528d44c0eb391b505524b6128, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  source: {fileID: 7162000000000000091}
+  style: {fileID: 11400000, guid: 173ee9b75d3e5523b7581c3f7affdb6a, type: 2}
+  icons: {fileID: 11400000, guid: 345e7edf9e3b5c109ffcc9fe257b3ba3, type: 2}

@@ -29,7 +29,6 @@ namespace YC.Presentation
         private int candidateVersion = -1;
         private bool ownsPresentation;
         private bool ownsDialog;
-        private InteractionRequestProjection optionalInfluencePresentation;
         public GameplayExpansionUi.GameplayCopy Copy { private get; set; }
         public GameplayExpansionUi ExpansionUi { private get; set; }
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
@@ -72,7 +71,7 @@ namespace YC.Presentation
         public override string Id => "effect.map.interaction";
         public override InteractionPriority Priority => InteractionPriority.PendingResolution;
         int IInteractionRequestRenderer.Priority => 320;
-        public override bool IsActive => Current() != null;
+        public override bool IsActive => !string.IsNullOrEmpty(inFlight) || Current() != null;
         public static bool Supports(string type) => type == "setup.influence.optional" || type == "effect.influence.place.target" || type == "effect.influence.remove.target" || type == PlayerEntranceEffectExecutor.InteractionTypeId || type == CityMoveEffectExecutor.TargetInteractionTypeId || type == "action.decline_effect" || type == "effect.route.choose";
         public bool CanRender(InteractionRequestProjection request) => request != null && request.VisibleToViewer &&
             !EffectDialogSelectionSpec.IsInfluenceMapArray(request) &&
@@ -86,13 +85,19 @@ namespace YC.Presentation
 
         private InteractionRequestProjection Current()
         {
+            // 可见请求不等于本宿主获派的展示请求；未获展示权的旁路请求不能抢地图输入。
+            if (!ownsPresentation || renderedProjection == null || string.IsNullOrEmpty(rendered) ||
+                presentationGameId != state()?.GameId || presentationPlayerId != player()) return null;
             var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
             var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(state(), visible, player()) : GetVisibleRequests();
             if (requests == null) return null;
             foreach (var request in requests)
             {
+                if (request == null || request.GetStableInteractionId() != rendered) continue;
                 var projected = InteractionRequestProjector.ProjectForPlayer(request, player());
-                if (CanRender(projected)) return ProjectForPresentation(projected);
+                if (CanRender(projected) && projected.StateRevision == revision && projected.CandidateSetVersion == candidateVersion &&
+                    InteractionCommandIntent.SameContract(presentationGameId, renderedProjection, state()?.GameId, projected))
+                    return ProjectForPresentation(projected);
             }
             return null;
         }
@@ -207,18 +212,8 @@ namespace YC.Presentation
             renderedProjection = request;
             rendered = request.InteractionId; revision = request.StateRevision;
             candidateVersion = request.CandidateSetVersion;
-            ClearOptionalInfluencePresentation();
             if (ownsDialog) { dialog.Hide(); ownsDialog = false; }
             ownsPresentation = true;
-            if (request.InteractionTypeId == "setup.influence.optional")
-            {
-                highlights(Targets(request));
-                if (ExpansionUi == null) throw new InvalidOperationException("可选初始影响力缺少底部结算宿主。");
-                optionalInfluencePresentation = request;
-                ExpansionUi.ShowOptionalInfluenceSkip(request, () => SkipInitialInfluence(request), () => IsCurrent(request));
-                PresentPrompt(request);
-                return;
-            }
             if (request.InteractionTypeId == "action.decline_effect")
             {
                 clearHighlights();
@@ -323,7 +318,6 @@ namespace YC.Presentation
             inFlight = command.CommandId;
             ClearPromptDocument();
             ownsPresentation = false;
-            ClearOptionalInfluencePresentation();
             if (ownsDialog) { dialog.Hide(); ownsDialog = false; }
             clearHighlights();
             try { submit(command); }
@@ -355,13 +349,6 @@ namespace YC.Presentation
             { inFlight = string.Empty; rendered = string.Empty; revision = -1; }
         }
         public override void Cancel() { Clear(); }
-        private void ClearOptionalInfluencePresentation()
-        {
-            var request = optionalInfluencePresentation;
-            optionalInfluencePresentation = null;
-            if (request != null) ExpansionUi?.ClearOptionalInfluenceSkip(request.InteractionId,
-                request.StateRevision, request.CandidateSetId, request.CandidateSetVersion, request.AnsweringPlayerId);
-        }
         public void Clear()
         {
             ClearPromptDocument();
@@ -369,7 +356,6 @@ namespace YC.Presentation
             presentationInput = presentationProjection = renderedProjection = null;
             presentationGameId = null;
             presentationPlayerId = -1;
-            ClearOptionalInfluencePresentation();
             rendered = string.Empty; revision = candidateVersion = -1; inFlight = string.Empty;
             if (!ownsPresentation) return;
             ownsPresentation = false;

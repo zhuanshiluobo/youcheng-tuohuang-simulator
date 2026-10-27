@@ -9,6 +9,7 @@ using YC.Domain.Commands;
 using YC.Domain.Interactions;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -141,6 +142,7 @@ namespace YC.Presentation
 
         public void Render(InteractionRequestProjection projection)
         {
+            using var measurement = UiRegressionMetrics.Measure("interaction.render");
             if (!CanRender(projection))
             {
                 Clear();
@@ -236,7 +238,7 @@ namespace YC.Presentation
                     minimum.IntegerValue < 0 || maximum.IntegerValue < minimum.IntegerValue || maximum.IntegerValue > int.MaxValue)
                     throw new InvalidOperationException("数量请求缺少有效上下限。");
                 if (ExpansionUi != null) dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
-                dialog.ShowQuantity(projection, kind == "player_marker" ? dialog.Copy.PlayerMarkerLabel : FormatResource(kind),
+                dialog.ShowQuantity(projection, FormatResource(kind),
                     (int)minimum.IntegerValue, (int)maximum.IntegerValue, saleDraft, RememberDraft,
                     () => IsCurrent(projection), amount =>
                     {
@@ -327,7 +329,7 @@ namespace YC.Presentation
                 return InteractionResult.Consumed;
             }
 
-            setPrompt("请先完成当前角色能力选择。");
+            setPrompt(dialog.Copy.FinishCurrentSelectionPrompt);
             return InteractionResult.Consumed;
         }
 
@@ -385,14 +387,14 @@ namespace YC.Presentation
             }
             setPrompt(request != null && IsInfluenceTargetInteraction(request.PromptKey)
                 ? "请点击地图上高亮的合法影响力槽位。"
-                : "请在角色能力选择界面中完成当前选择。");
+                : dialog.Copy.SelectionPagePrompt);
             return InteractionResult.Consumed;
         }
 
         public override InteractionResult OnMobileCityClicked()
         {
             if (!IsActive) return InteractionResult.Passthrough;
-            setPrompt("请先完成当前角色能力选择。");
+            setPrompt(dialog.Copy.FinishCurrentSelectionPrompt);
             return InteractionResult.Consumed;
         }
 
@@ -405,7 +407,7 @@ namespace YC.Presentation
                 SubmitDecline(InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId()));
                 return InteractionResult.Consumed;
             }
-            setPrompt("当前角色能力选择不能取消，请完成结算。");
+            setPrompt(dialog.Copy.SelectionCannotCancelPrompt);
             return InteractionResult.Consumed;
         }
 
@@ -517,6 +519,7 @@ namespace YC.Presentation
 
         private void ShowCandidateOptions(InteractionRequestProjection projection, bool preserveScroll = true)
         {
+            using var measurement = UiRegressionMetrics.Measure("selection.build");
             var state = getState();
             var requestGameId = state?.GameId;
             var optionalExecution = IsOptionalExecutionChoice(projection);
@@ -535,7 +538,7 @@ namespace YC.Presentation
                 {
                     StableId = id, RequestId = projection.InteractionId, Revision = projection.StateRevision,
                     ExecuteImmediately = true, IsCurrent = Current,
-                    LabelDocument = dialog.ResolveGameplayText(projection.Presentation?.Options.Find(value => value.CandidateId == id)?.Label),
+                    LabelDocument = dialog.ResolveGameplayText(GameplayCandidateLabelResolver.Resolve(projection, id)),
                     DescriptionDocument = dialog.ResolveGameplayText(projection.Presentation?.Options.Find(value => value.CandidateId == id)?.Description)
                 }).ToArray();
                 // 沿原执行条目与结束当前请求入口；不伪改0..1合同，也不增加确认或取消页。
@@ -547,7 +550,8 @@ namespace YC.Presentation
             {
                 return CharacterCardDisplayOrder.ResolveDefinition(state, ResolveCandidateDefinition(projection, id, visible));
             });
-            var specification = new EffectDialogSelectionSpec
+            EffectDialogSelectionSpec specification = null;
+            specification = new EffectDialogSelectionSpec
             {
                 Request = displayRequest,
                 ExecuteImmediately = EffectDialogSelectionSpec.IsExecutionChoice(projection),
@@ -555,7 +559,7 @@ namespace YC.Presentation
                 SelectedIds = selectedCandidates,
                 Players = PlayerSelectionRequestAdapter.Build(projection,getState(),getLocalPlayerId(),selectedCandidates),
                 PlayerSelectionChanged = ids =>
-                { selectedCandidates.Clear(); foreach (var id in ids) selectedCandidates.Add("player:"+id); },
+                { selectedCandidates.Clear(); foreach (var id in PlayerSelectionRequestAdapter.CandidateIds(projection,ids)) selectedCandidates.Add(id); },
                 Label = candidateId => RequestLabel(candidateId, projection),
                 CardSprite = candidateId =>
                 {
@@ -580,7 +584,7 @@ namespace YC.Presentation
                     }
                     else if (!selectedCandidates.Remove(candidateId) && selectedCandidates.Count < projection.MaxSelections)
                         selectedCandidates.Add(candidateId);
-                    ShowCandidateOptions(projection);
+                    specification.RefreshSelection?.Invoke();
                 },
                 Confirm = () => SubmitCandidates(projection,
                     projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id))),
@@ -592,6 +596,16 @@ namespace YC.Presentation
                 specification.RenderText = ExpansionUi.RenderEnterpriseDetails;
                 specification.CompatibilityPrompt = () => RequestPrompt(projection);
                 specification.PromptDocument = specification.ResolvePromptDocument();
+                if (projection.Presentation?.CandidateIntegerLabel != null)
+                    specification.OptionDocument = id =>
+                    {
+                        var references = new List<GameplayTextRef>();
+                        var label = GameplayCandidateLabelResolver.Resolve(projection, id);
+                        if (label != null) references.Add(label);
+                        var description = projection.Presentation.Options.Find(o => o.CandidateId == id)?.Description;
+                        if (description != null) references.Add(description);
+                        return GameplayExpansionUi.ResolveEnterpriseDetails(references, ExpansionUi.ResolveGameplayText);
+                    };
             }
             dialog.ShowSelection(RequestTitle(projection), specification.PromptDocument == null ? RequestPrompt(projection) : null,
                 specification, preserveScroll);
@@ -661,6 +675,7 @@ namespace YC.Presentation
 
         private bool IsCurrent(InteractionRequestProjection projection)
         {
+            using var measurement = UiRegressionMetrics.Measure("interaction.guard");
             if (projection == null || !string.IsNullOrEmpty(inFlightCommandId))
                 return false;
             if (!TryGetRequest(out var request)) return false;
@@ -745,6 +760,7 @@ namespace YC.Presentation
 
         private bool TryGetRequest(out InteractionRequest request)
         {
+            using var measurement = UiRegressionMetrics.Measure("interaction.requests");
             request = null;
             var localPlayerId = getLocalPlayerId();
             var requests = GetVisibleRequests == null ? VisibleInteractionRequestSource.Read(getState(), null, localPlayerId) : GetVisibleRequests();
@@ -768,6 +784,7 @@ namespace YC.Presentation
 
         private InteractionRequestProjection ProjectForPresentation(InteractionRequestProjection projection, string gameId)
         {
+            using var measurement = UiRegressionMetrics.Measure("interaction.presentation");
             var playerId = getLocalPlayerId();
             var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
             if (presentationGameId == gameId && presentationPlayerId == playerId && ReferenceEquals(presentationView, visible) &&
@@ -865,7 +882,7 @@ namespace YC.Presentation
         }
         private string RequestLabel(string id, InteractionRequestProjection request)
         {
-            var label = request.Presentation?.Options.Find(value => value.CandidateId == id)?.Label;
+            var label = GameplayCandidateLabelResolver.Resolve(request, id);
             var document = ExpansionUi?.ResolveGameplayText(label);
             if (document != null) return document.ToPlainText();
             if (ExpansionUi != null && (request.InteractionTypeId == CharacterLifecycleService.ModeInteractionTypeId ||
@@ -1082,7 +1099,7 @@ namespace YC.Presentation
                 case "character.tin_man.tactic.choose_discard_resolution":
                     return "锡人战术：选择弃牌带来的奖励。";
                 default:
-                    return "请完成当前角色能力选择。";
+                    return dialog.Copy.CompleteCurrentSelectionPrompt;
             }
         }
 

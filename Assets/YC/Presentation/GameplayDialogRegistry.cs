@@ -6,6 +6,8 @@ namespace YC.Presentation
     /// <summary>由编辑器序列化所有游戏流程对话框 Prefab，并提供显式实例化入口。</summary>
     public sealed class GameplayDialogRegistry : MonoBehaviour
     {
+        // 仅一次同步输入调用栈内复用可见投影；不跨帧保留权威状态。
+        public Func<IDisposable> BeginInputRead { get; set; }
         [SerializeField] private EffectDialogShellView effectDialogShellPrefab;
         [SerializeField] private EffectDialogShellView cardPickerPrefab;
         [SerializeField] private FacilityBuildDialogView facilityBuildPrefab;
@@ -67,6 +69,7 @@ namespace YC.Presentation
 
         public EnterpriseSelectionDialogView InstantiateEnterpriseSelection(RectTransform parent, bool department)
         {
+            using var timing = Workflows.UiRegressionMetrics.Measure("enterprise.view.instantiate");
             if (parent == null) return null;
             var prefab = department ? departmentSelectionPrefab : enterpriseSelectionPrefab;
             if (prefab == null) throw new InvalidOperationException("未配置企业／科室选择窗口。");
@@ -75,6 +78,7 @@ namespace YC.Presentation
             var instance = UnityEngine.Object.Instantiate(prefab,
                 frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
             instance.gameObject.SetActive(false);
+            instance.BeginInputRead = () => BeginInputRead?.Invoke();
             // 只有收到真实请求的调用方才能以 effect 身份 Present；普通组件查看不登记恢复目标。
             return instance;
         }
@@ -204,17 +208,24 @@ namespace YC.Presentation
             rect.sizeDelta = Vector2.zero;
         }
 
-        public CityStyleDeclarationPreviewView InstantiateCityStyleDeclarationPreview(RectTransform parent)
+        public CityStyleDeclarationPreviewView InstantiateCityStyleDeclarationPreview(RectTransform parent,
+            CityStyleDeclarationPreviewView reusable = null)
         {
             if (parent == null)
             {
                 return null;
             }
 
-            EnsureConfigured();
+            using (Workflows.UiRegressionMetrics.Measure("declare.config")) EnsureConfigured();
             var frame = GameplayHudFrame.Active;
-            var instance = UnityEngine.Object.Instantiate(cityStyleDeclarationPreviewPrefab,
-                frame == null || frame.ContentRect == null ? parent : frame.ContentRect, false);
+            var target = frame == null || frame.ContentRect == null ? parent : frame.ContentRect;
+            if (reusable != null && reusable.transform.parent != target)
+                throw new InvalidOperationException("宣告页复用对象不属于当前HUD。");
+            CityStyleDeclarationPreviewView instance = reusable;
+            if (instance == null)
+                using (Workflows.UiRegressionMetrics.Measure("declare.instantiate"))
+                    instance = UnityEngine.Object.Instantiate(cityStyleDeclarationPreviewPrefab, target, false);
+            else Workflows.UiRegressionMetrics.Note("declare.page_reused", instance.name);
             instance.transform.SetAsLastSibling();
             if (frame != null) frame.ShowInformationPage(instance.gameObject);
             else instance.gameObject.SetActive(true);

@@ -28,6 +28,7 @@ namespace YC.Presentation
         public int Revision;
         public Func<bool> IsCurrent;
         public bool ExecuteImmediately;
+        public bool PreserveTemplateColors;
         public string SourceLabel;
         public string DescriptionLabel;
         public GameplayTextDocument LabelDocument;
@@ -41,12 +42,14 @@ namespace YC.Presentation
         public Func<GameplayTextRef, GameplayTextDocument> ResolveText;
         public Action<Component, GameplayTextDocument, bool> RenderText;
         public Func<string, GameplayTextDocument> SourceDocument;
+        public Func<string, GameplayTextDocument> OptionDocument;
         public Func<string> CompatibilityPrompt;
         public IReadOnlyCollection<string> SelectedIds;
         public Func<string, string> Label;
         public Func<string, string> SourceLabel;
         public Func<string, string> DescriptionLabel;
         public Func<string, Sprite> CardSprite;
+        public Action<string> Inspect;
         public bool InspectGameBoxCharacter;
         public Func<string, Texture2D> CharacterBack;
         public Action<string> Select;
@@ -65,6 +68,7 @@ namespace YC.Presentation
         public bool CloseOnBackgroundClick;
         public PlayerSelectionConfig Players;
         public Action<IReadOnlyList<int>> PlayerSelectionChanged;
+        internal Action RefreshSelection;
 
         internal static bool IsExecutionChoice(InteractionRequestProjection request) =>
             request != null && request.AnswerSchema == "candidate_id" && request.MinSelections == 1 && request.MaxSelections == 1 &&
@@ -102,6 +106,7 @@ namespace YC.Presentation
 
         internal GameplayTextDocument ResolveOptionDocument(string candidateId)
         {
+            if (Request?.CandidateIds?.Contains(candidateId) == true && OptionDocument != null) return OptionDocument(candidateId);
             if (ResolveText == null || Request?.CandidateIds?.Contains(candidateId) != true) return null;
             var option = Request.Presentation?.Options.Find(value => value.CandidateId == candidateId);
             if (option == null) return null;
@@ -128,13 +133,16 @@ namespace YC.Presentation
 
     internal sealed class ResourceAllocationSpec
     {
+        public string InteractionId;
         public InteractionRequestProjection Request;
+        public GameplayTextDocument PromptDocument;
         public IReadOnlyList<string> RowIds;
         public Func<GameplayTextRef, GameplayTextDocument> ResolveText;
         public Action<Component, GameplayTextDocument, bool> RenderText;
         public string Title = string.Empty;
         public string Description = string.Empty;
         public IReadOnlyList<string> Labels;
+        public IReadOnlyList<bool> VisibleRows;
         public IReadOnlyList<int> Maximums;
         public IReadOnlyList<int> UnitPrices;
         public int ExactTotal = -1;
@@ -173,7 +181,7 @@ namespace YC.Presentation
         public Func<bool> CanEdit;
         public Func<IReadOnlyList<int>, bool> IsValidAllocation;
         public Action<bool> DraftValidityChanged;
-        internal GameplayTextDocument ResolvePromptDocument() => EffectDialogTextDocuments.ResolvePrompt(Request, ResolveText);
+        internal GameplayTextDocument ResolvePromptDocument() => PromptDocument ?? EffectDialogTextDocuments.ResolvePrompt(Request, ResolveText);
         internal GameplayTextDocument ResolveRowDocument(int index)
         {
             if (ResolveText == null || RowIds == null || index < 0 || index >= RowIds.Count) return null;
@@ -201,6 +209,7 @@ namespace YC.Presentation
         private CardViewer cardViewer;
         private float savedScrollPosition = 1f;
         private bool openingDetails;
+        private object selectionBinding;
         internal bool IsVisible => view != null && view.gameObject.activeInHierarchy;
         internal bool OwnsPage(GameObject page) => !openingDetails && view != null && view.gameObject == page;
 
@@ -276,6 +285,7 @@ namespace YC.Presentation
 
         public void Hide()
         {
+            selectionBinding = null;
             if (cardViewer != null) cardViewer.Dismiss();
             if (view == null)
             {
@@ -328,7 +338,7 @@ namespace YC.Presentation
             return shellView.ConfigureOptionScroll(name, bottom, top);
         }
 
-        public static void AddOptions(
+        public void AddOptions(
             RectTransform content,
             IReadOnlyList<EffectDialogOption> options,
             string buttonNamePrefix,
@@ -347,6 +357,7 @@ namespace YC.Presentation
                 if (option.ExecuteImmediately)
                 {
                     var effectRow = ResolveView(content).CreateEffectRow();
+                    effectRow.BeginInputRead = () => registry.BeginInputRead?.Invoke();
                     effectRow.gameObject.name = buttonNamePrefix + i;
                     if (!string.IsNullOrEmpty(option.StableId))
                         YC.PlayerJourney.PlayerAutomationId.Attach(effectRow.StatusButton.gameObject, option.StableId);
@@ -383,8 +394,8 @@ namespace YC.Presentation
                     YC.PlayerJourney.PlayerAutomationId.Attach(button.gameObject, option.StableId);
                 button.onClick.RemoveAllListeners();
                 button.interactable = option.Enabled;
-                row.Background.color = option.Enabled ? Color.white :
-                    new Color(.75f, .75f, .75f, 1f);
+                if (!option.PreserveTemplateColors)
+                    row.Background.color = option.Enabled ? Color.white : new Color(.75f, .75f, .75f, 1f);
                 if (!option.Enabled)
                 {
                     continue;
@@ -394,6 +405,8 @@ namespace YC.Presentation
                 var invoked = false;
                 button.onClick.AddListener(() =>
                 {
+                    using var inputRead = registry.BeginInputRead?.Invoke();
+                    using var input = Workflows.UiRegressionMetrics.Measure("option.click");
                     if (invoked || !button.isActiveAndEnabled || !button.IsInteractable() ||
                         (option.IsCurrent != null && !option.IsCurrent()))
                     {
@@ -409,6 +422,8 @@ namespace YC.Presentation
 
         public void AddSelection(RectTransform panel, EffectDialogSelectionSpec spec)
         {
+            using var measurement = Workflows.UiRegressionMetrics.Measure("selection.rows");
+            var currentBinding = selectionBinding = new object();
             var shellView = ResolveView(panel);
             if (!spec.IsEffectPage && !spec.ReadOnly)
                 GameplayHudFrame.Active?.ConfigureStagePageFolding(shellView.gameObject, spec.AllowStageFolding);
@@ -428,6 +443,7 @@ namespace YC.Presentation
                 : shellView.ConfigureOptionScroll("Selection Scroll", profile.OptionsScrollBottomWithBack,
                     profile.OptionsScrollTop);
             bool CanAct() => shellView != null && shellView.gameObject.activeInHierarchy &&
+                ReferenceEquals(selectionBinding, currentBinding) &&
                 (!spec.IsEffectPage || !GameplayHudFrame.EffectInputSuspended) &&
                 (spec.IsCurrent == null || spec.IsCurrent());
             if (spec.ExecuteImmediately)
@@ -448,8 +464,8 @@ namespace YC.Presentation
                         StableId = id, RequestId = request.InteractionId, Revision = request.StateRevision,
                         ExecuteImmediately = true, IsCurrent = CanAct,
                         SourceLabel = spec.SourceLabel?.Invoke(id), DescriptionLabel = spec.DescriptionLabel?.Invoke(id),
-                        LabelDocument = presentation?.Label == null ? null : spec.ResolveText?.Invoke(presentation.Label),
-                        DescriptionDocument = presentation?.Description == null ? null : spec.ResolveText?.Invoke(presentation.Description)
+                        LabelDocument = spec.SourceDocument?.Invoke(id) ?? (presentation?.Label == null ? null : spec.ResolveText?.Invoke(presentation.Label)),
+                        DescriptionDocument = spec.OptionDocument?.Invoke(id) ?? (presentation?.Description == null ? null : spec.ResolveText?.Invoke(presentation.Description))
                     });
                 }
                 AddOptions(content, options, spec.OptionNamePrefix ?? "Selection Option ", null, spec.RenderText);
@@ -464,6 +480,7 @@ namespace YC.Presentation
                 return;
             }
             var seen = new HashSet<string>(StringComparer.Ordinal);
+            var selectionBindings = new List<Action>();
             for (var i = 0; i < candidates.Count; i++)
             {
                 var id = candidates[i];
@@ -483,6 +500,11 @@ namespace YC.Presentation
                     card.FallbackLabel.gameObject.SetActive(sprite == null);
                     if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
                     else card.Outline.enabled = selected.Contains(id);
+                    selectionBindings.Add(() =>
+                    {
+                        if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
+                        else card.Outline.enabled = selected.Contains(id);
+                    });
                     card.Button.onClick.RemoveAllListeners();
                     card.PointerInteraction.ConfigureClick(card.Button, null);
                     card.PointerInteraction.ConfigureDrag(null, null, null, null);
@@ -490,11 +512,14 @@ namespace YC.Presentation
                         !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
                     card.Button.onClick.AddListener(() =>
                     {
+                        using var inputRead = registry.BeginInputRead?.Invoke();
+                        using var input = Workflows.UiRegressionMetrics.Measure("selection.click");
                         if (!spec.ReadOnly && CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
                             spec.Select?.Invoke(id);
                     });
                     void OpenDetails()
                     {
+                            if (CanAct() && spec.Inspect != null) { spec.Inspect(id); return; }
                             if (!CanAct() || sprite == null) return;
                             var gameBoxFaces = spec.ReadOnly && spec.InspectGameBoxCharacter;
                             var back = gameBoxFaces ? spec.CharacterBack?.Invoke(id) : null;
@@ -550,10 +575,13 @@ namespace YC.Presentation
                         }
                     }
                     row.SetSelected(selected.Contains(id));
+                    selectionBindings.Add(() => row.SetSelected(selected.Contains(id)));
                     row.Button.onClick.RemoveAllListeners();
                     row.Button.interactable = !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
                     row.Button.onClick.AddListener(() =>
                     {
+                        using var inputRead = registry.BeginInputRead?.Invoke();
+                        using var click = Workflows.UiRegressionMetrics.Measure("selection.click");
                         if (CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
                             spec.Select?.Invoke(id);
                     });
@@ -562,22 +590,39 @@ namespace YC.Presentation
             if (seen.Count == 0)
                 CreateText(content, "Selection Empty", profile.SelectionEmptyText, 18, TextAnchor.MiddleCenter);
             var submitted = false;
+            Button confirmSelection = null;
             if (!spec.ReadOnly)
             {
             var confirm = CreateButton(panel, "Confirm Selection",
                 string.IsNullOrEmpty(spec.ConfirmLabel) ? profile.SelectionConfirmLabel : spec.ConfirmLabel, 18);
             confirm.interactable = selected.Count >= request.MinSelections && selected.Count <= request.MaxSelections;
+            confirmSelection = confirm;
             confirm.onClick.AddListener(() =>
             {
+                using var inputRead = registry.BeginInputRead?.Invoke();
+                using var click = Workflows.UiRegressionMetrics.Measure("selection.confirm");
                 if (submitted || !confirm.IsInteractable() || !CanAct()) return;
                 submitted = true;
                 spec.Confirm?.Invoke();
             });
             }
+            spec.RefreshSelection = () =>
+            {
+                if (!ReferenceEquals(selectionBinding, currentBinding) || view != shellView || !shellView.gameObject.activeInHierarchy) return;
+                using var update = Workflows.UiRegressionMetrics.Measure("selection.update");
+                selected.Clear();
+                if (spec.SelectedIds != null) selected.UnionWith(spec.SelectedIds);
+                foreach (var binding in selectionBindings) binding();
+                shellView.ResourceSummaryText.text = string.Format(profile.SelectionSummaryFormat,
+                    selected.Count, request.MinSelections, request.MaxSelections);
+                if (confirmSelection != null)
+                    confirmSelection.interactable = selected.Count >= request.MinSelections && selected.Count <= request.MaxSelections;
+            };
             if (spec.Cancel != null && request.AllowDecline)
             {
                 void Cancel()
                 {
+                    using var inputRead = registry.BeginInputRead?.Invoke();
                     if (submitted || (!spec.ReadOnly && !CanAct())) return;
                     submitted = true;
                     spec.Cancel();
@@ -614,12 +659,19 @@ namespace YC.Presentation
             }
             shellView.ConfigureResourceScroll();
             var count = spec.Labels == null ? 0 : spec.Labels.Count;
+            if (spec.VisibleRows != null && spec.VisibleRows.Count != count)
+                throw new InvalidOperationException("资源行显示集合与原资源索引不一致。");
             var values = new int[count];
             int Maximum(int index) => Mathf.Max(0, spec.Maximums != null && index < spec.Maximums.Count
                 ? spec.Maximums[index] : (spec.ExactTotal >= 0 ? spec.ExactTotal : int.MaxValue));
             for (var i = 0; i < count; i++)
-                values[i] = Mathf.Clamp(spec.InitialValues != null && i < spec.InitialValues.Count
-                    ? spec.InitialValues[i] : (spec.ExactTotal >= 0 && i == 0 ? spec.ExactTotal : 0), 0, Maximum(i));
+            {
+                var initial = spec.InitialValues != null && i < spec.InitialValues.Count
+                    ? spec.InitialValues[i] : (spec.ExactTotal >= 0 && i == 0 ? spec.ExactTotal : 0);
+                if (spec.VisibleRows != null && !spec.VisibleRows[i] && initial != 0)
+                    throw new InvalidOperationException("隐藏资源行不能包含待编辑数量。");
+                values[i] = Mathf.Clamp(initial, 0, Maximum(i));
+            }
             var valueTexts = new Text[count];
             var rows = new EffectDialogResourceRowView[count];
             var validInputs = new bool[count];
@@ -643,6 +695,7 @@ namespace YC.Presentation
                 var total = Total();
                 for (var i = 0; i < count; i++)
                 {
+                    if (rows[i] == null) continue;
                     values[i] = Mathf.Clamp(values[i], 0, Maximum(i));
                     if (rows[i].ValueInput != null) { if (validInputs[i]) rows[i].ValueInput.SetTextWithoutNotify(values[i].ToString()); }
                     else valueTexts[i].text = values[i].ToString();
@@ -666,6 +719,7 @@ namespace YC.Presentation
             };
             for (var i = 0; i < count; i++)
             {
+                if (spec.VisibleRows != null && !spec.VisibleRows[i]) continue;
                 var index = i;
                 var row = shellView.CreateResourceRow();
                 rows[i] = row;
@@ -744,6 +798,8 @@ namespace YC.Presentation
                     spec.Cancel();
                 });
             }
+            shellView.BindResourceAllocation(spec.Request?.InteractionId ?? spec.InteractionId,
+                confirmButton, Array.AsReadOnly(rows.Where(row => row != null).ToArray()), spec.IsCurrent);
             refresh();
         }
 

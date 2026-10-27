@@ -43,9 +43,14 @@ namespace YC.Presentation
             hitSurface.raycastTarget = onClick != null;
         }
 
-        private void Click() => clicked?.Invoke();
+        private void Click()
+        {
+            Workflows.UiRegressionMetrics.Note("card_slot.click", name + ";bound=" + (clicked != null));
+            clicked?.Invoke();
+        }
         public void OnBeginDrag(PointerEventData e)
         {
+            Workflows.UiRegressionMetrics.Note("card_slot.begin_drag", name + ";eligible=" + e.eligibleForClick);
             e.eligibleForClick = false;
         }
         public void OnDrag(PointerEventData e)

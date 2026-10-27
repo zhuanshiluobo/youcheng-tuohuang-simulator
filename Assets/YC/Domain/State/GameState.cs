@@ -12,7 +12,7 @@ namespace YC.Domain.State
     public sealed class GameState
     {
         public string GameId = string.Empty;
-        public int EntitySchemaVersion = 1;
+        public int EntitySchemaVersion = GameProtocolVersions.Entity;
         public ItemZoneRuntimeState ItemZones = new ItemZoneRuntimeState();
         public List<CharacterUseRuntimeState> CharacterUses = new List<CharacterUseRuntimeState>();
         public List<CoverSlotState> CharacterCoverSlots = new List<CoverSlotState>();
@@ -22,6 +22,7 @@ namespace YC.Domain.State
         public string ContentPackHash = string.Empty;
         public GameRuleConfiguration RuleConfiguration;
         public GameSetupRecipe SetupRecipe;
+        public EntrepreneurSetupState EntrepreneurSetup;
         public GameContentDefinitions ContentDefinitions;
         public GamePhase Phase = GamePhase.Setup;
         public int Round = 0;
@@ -70,6 +71,15 @@ namespace YC.Domain.State
                      HasOpenActionableInteraction();
         }
 
+        public bool HasPendingChoiceForActiveOperation()
+        {
+            if (EffectRuntime?.CurrentOperationContext != null) return HasPendingChoiceForCommand(EffectRuntime.CurrentOperationContext);
+            if (PendingChoice != null && PendingChoice.IsValid() || PendingCardSession != null && PendingCardSession.IsValid() ||
+                PendingCharacterEffect != null && PendingCharacterEffect.IsValid() || PendingSpecialAction != null && PendingSpecialAction.IsValid(this)) return true;
+            return EffectRuntime?.InteractionRequests?.Exists(request => request.Status == "open" && !request.IsInternalMainlineInteraction() &&
+                !(RuleConfiguration?.PlayerStageSchedulingMode == YC.Domain.Rules.PlayerStageSchedulingMode.Concurrent &&
+                    YC.Domain.Effects.EffectTreeExecutor.TryFindDeferredResponse(this, request.OwnerEffectId, out var response) && (response.ProtocolVersion == 0 || response.IsBypass))) == true;
+        }
         public bool HasPendingChoiceForCommand(OperationCommandContext context)
         {
             if (PendingChoice != null && PendingChoice.IsValid() || PendingCardSession != null && PendingCardSession.IsValid() ||
@@ -282,7 +292,7 @@ namespace YC.Domain.State
         [NonSerialized] private GameState itemZoneState;
         public int InfluenceSupply
         {
-            get => itemZoneState == null ? LegacyInfluenceSupply : itemZoneState.ItemZones.Items.FindAll(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == PlayerId && itemZoneState.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.player_marker_supply").Count;
+            get => itemZoneState == null ? LegacyInfluenceSupply : itemZoneState.ItemZones.Items.FindAll(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == PlayerId && itemZoneState.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.player_supply").Count;
             set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: InfluenceSupply"); LegacyInfluenceSupply = value; }
         }
         public bool LegacyHasScoreTrackMarker;
@@ -470,7 +480,7 @@ namespace YC.Domain.State
                 if (itemZoneState == null) return LegacyCityBoardSlotIndex;
                 var item = itemZoneState.ItemZones.Items.Find(value => value.ItemId == ContentInstanceId);
                 var zone = itemZoneState.ItemZones.Zones.Find(value => value.ZoneId == item?.ZoneId);
-                return zone?.TemplateId == "core.zone.city_facility_cell" ? int.Parse(zone.LocalZoneId.Substring("city_cell_".Length), System.Globalization.CultureInfo.InvariantCulture) : -1;
+                return YC.Domain.Facilities.FacilityLayerQuery.CitySlot(itemZoneState, ContentInstanceId);
             }
             set { RejectPositionWrite(); LegacyCityBoardSlotIndex = value; }
         }
@@ -583,6 +593,7 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class FinalScoringState
     {
+        public FinalScoringSessionState Session;
         public bool IsResolved;
         public List<FinalPlayerScoreState> PlayerScores = new List<FinalPlayerScoreState>();
         public List<FinalRegionScoreState> RegionScores = new List<FinalRegionScoreState>();
@@ -595,6 +606,7 @@ namespace YC.Domain.State
     {
         public int PlayerId;
         public int BaseScore;
+        public int SpecialScore;
         public int RegionScore;
         public int ResourceScore;
         public int FacilityScore;

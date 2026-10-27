@@ -35,7 +35,7 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "命令玩家不是当前玩家。");
             }
 
-            if (state.HasPendingChoice())
+            if (state.HasPendingChoiceForActiveOperation())
             {
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
             }

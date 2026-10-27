@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "packId": "core",
-  "version": "2.0.0",
+  "version": "2.1.1",
   "definitions": [
     "character/liskarm.json",
     "character/elysium.json",
@@ -86,12 +86,44 @@
     "city_style/infected.city_style.emerging_buildings.json",
     "city_style/infected.city_style.enterprise_offices.json",
     "component/infected.component.company_marker.json",
+    "component/entrepreneur.component.gang_marker.json",
     "component/infected.component.gavial_token.json",
     "component/infected.component.influence_lock_token.json",
     "contract/infected.contract.lifetime_security.json",
     "enterprise/infected.enterprise.maylander_foundation.json",
     "enterprise/infected.enterprise.rhodes_island.json",
-    "enterprise/infected.enterprise.stonehoove_security.json"
+    "enterprise/infected.enterprise.stonehoove_security.json",
+    "entrepreneur/entrepreneur.round.A.1.json",
+    "entrepreneur/entrepreneur.round.A.3.json",
+    "entrepreneur/entrepreneur.round.A.5.json",
+    "entrepreneur/entrepreneur.round.A.7.json",
+    "entrepreneur/entrepreneur.ability.A01.json",
+    "entrepreneur/entrepreneur.round.D.1.json",
+    "entrepreneur/entrepreneur.round.D.3.json",
+    "entrepreneur/entrepreneur.round.D.5.json",
+    "entrepreneur/entrepreneur.round.D.7.json",
+    "entrepreneur/entrepreneur.ability.D09.json",
+    "entrepreneur/entrepreneur.round.P.1.json",
+    "entrepreneur/entrepreneur.round.P.3.json",
+    "entrepreneur/entrepreneur.round.P.5.json",
+    "entrepreneur/entrepreneur.round.P.7.json",
+    "entrepreneur/entrepreneur.ability.P09.json",
+    "entrepreneur/entrepreneur.round.M.1.json",
+    "entrepreneur/entrepreneur.round.M.3.json",
+    "entrepreneur/entrepreneur.round.M.5.json",
+    "entrepreneur/entrepreneur.round.M.7.json",
+    "entrepreneur/entrepreneur.ability.M13.json",
+    "entrepreneur/entrepreneur.round.T.1.json",
+    "entrepreneur/entrepreneur.round.T.3.json",
+    "entrepreneur/entrepreneur.round.T.5.json",
+    "entrepreneur/entrepreneur.round.T.7.json",
+    "entrepreneur/entrepreneur.ability.T09.json",
+    "component/entrepreneur.component.die.json",
+    "facility/entrepreneur.facility.M02.json",
+    "facility/entrepreneur.facility.M03.json",
+    "facility/entrepreneur.facility.M04.json",
+    "facility/entrepreneur.facility.additional_core_tower.json",
+    "award/entrepreneur.award.M01.json"
   ],
   "sharedArtwork": {
     "character_back_0": "artwork/character_back_0.jpg",
@@ -138,12 +170,19 @@
   "setupRecipes": [
     "recipes/standard.json",
     "recipes/enterprise.json",
-    "recipes/infected.json"
+    "recipes/infected.json",
+    "recipes/entrepreneur.json"
   ],
   "presentation": {
     "schemaVersion": 1,
     "texts": [
-      "presentation/texts.zh-CN.json"
+      "presentation/texts.zh-CN.json",
+      "presentation/entrepreneurs/T.zh-CN.json",
+      "presentation/entrepreneurs/A.zh-CN.json",
+      "presentation/entrepreneurs/D.zh-CN.json",
+      "presentation/entrepreneurs/P.zh-CN.json",
+      "presentation/entrepreneurs/M.zh-CN.json",
+      "presentation/stonehoove-icons.zh-CN.json"
     ],
     "icons": "presentation/icons.json",
     "defaults": "presentation/defaults.json"
@@ -213,7 +252,7 @@
       "handlerId": "operator.dorothy.tactic.settlement.availability",
       "script": "lua/settlements/operator.dorothy.tactic.lua",
       "entryPoint": "availability",
-      "version": "1.0.0"
+      "version": "2.0.0"
     },
     {
       "handlerId": "operator.mudrock.tactic.settlement.availability",
@@ -238,6 +277,181 @@
       "script": "lua/settlements/operator.w.strategy.lua",
       "entryPoint": "availability",
       "version": "1.0.0"
+    },
+    {
+      "handlerId": "entrepreneur.T09.cleanup.availability",
+      "script": "lua/entrepreneurs/fifth_number_cleanup.lua",
+      "entryPoint": "availability",
+      "version": "1.1.0"
+    },
+    {
+      "handlerId": "entrepreneur.A05.cleanup.availability",
+      "script": "lua/entrepreneurs/agnes.lua",
+      "entryPoint": "availability",
+      "version": "1.3.1"
+    },
+    {
+      "handlerId": "entrepreneur.D09.investment.availability",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "entryPoint": "TiagoInvestmentAvailability",
+      "version": "1.3.0"
+    },
+    {
+      "handlerId": "entrepreneur.D01.exchange.availability",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "entryPoint": "TiagoExchangeAvailability",
+      "version": "1.3.0"
+    },
+    {
+      "handlerId": "entrepreneur.D02.exchange.availability",
+      "script": "lua/entrepreneurs/tiago.lua",
+      "entryPoint": "TiagoExchangeAvailability",
+      "version": "1.3.0"
+    },
+    {
+      "handlerId": "entrepreneur.P03.cleanup.availability",
+      "script": "lua/entrepreneurs/paul.p03_p04.cleanup.lua",
+      "entryPoint": "availability",
+      "version": "1.1.3"
+    },
+    {
+      "handlerId": "entrepreneur.P04.cleanup.availability",
+      "script": "lua/entrepreneurs/paul.p03_p04.cleanup.lua",
+      "entryPoint": "availability",
+      "version": "1.1.3"
+    }
+  ],
+  "luaModules": [
+    {
+      "moduleId": "entrepreneur.agnes",
+      "version": "1.8.1",
+      "script": "lua/entrepreneurs/agnes.lua",
+      "sha256": "0bd864f5a474e98c457cd28be63c68c5cc6b83c34b375669afdce0967f370700"
+    },
+    {
+      "moduleId": "entrepreneur.M.award_grant",
+      "version": "1.0.0",
+      "script": "lua/entrepreneurs/martin_award_grant.lua",
+      "sha256": "bf8a8cbb4d15e759ed04a2059e0a9bfe2bf80c356b815a73f7ed494f5280a04e"
+    },
+    {
+      "moduleId": "entrepreneur.M.urbanization",
+      "version": "1.0.0",
+      "script": "lua/facilities/martin_urbanization.lua",
+      "sha256": "2e43f2ed2c245f89308f454493728088429937c366ce535aef35676449058f10"
+    },
+    {
+      "moduleId": "facility.urbanization.adjacency",
+      "version": "1.0.0",
+      "script": "lua/facilities/gain_gold_per_core_adjacent_facility.lua",
+      "sha256": "f4983a702b5df1651fc3a81f6b25b0751a07cf61c67132edc276a4d250f49397"
+    }
+  ],
+  "scriptDependencies": [
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/agnes.invoke.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.agnes",
+          "version": "1.8.1",
+          "sha256": "0bd864f5a474e98c457cd28be63c68c5cc6b83c34b375669afdce0967f370700",
+          "alias": "agnes"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/agnes.cost.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.agnes",
+          "version": "1.8.1",
+          "sha256": "0bd864f5a474e98c457cd28be63c68c5cc6b83c34b375669afdce0967f370700",
+          "alias": "agnes"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/agnes.after.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.agnes",
+          "version": "1.8.1",
+          "sha256": "0bd864f5a474e98c457cd28be63c68c5cc6b83c34b375669afdce0967f370700",
+          "alias": "agnes"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/martin_rounds.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.M.award_grant",
+          "version": "1.0.0",
+          "sha256": "bf8a8cbb4d15e759ed04a2059e0a9bfe2bf80c356b815a73f7ed494f5280a04e",
+          "alias": "award_grant"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/martin_ability.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.M.urbanization",
+          "version": "1.0.0",
+          "sha256": "2e43f2ed2c245f89308f454493728088429937c366ce535aef35676449058f10",
+          "alias": "urbanization"
+        },
+        {
+          "moduleId": "facility.urbanization.adjacency",
+          "version": "1.0.0",
+          "sha256": "f4983a702b5df1651fc3a81f6b25b0751a07cf61c67132edc276a4d250f49397",
+          "alias": "base_urban"
+        }
+      ]
+    },
+    {
+      "protocolVersion": 1,
+      "script": "lua/entrepreneurs/agnes.cleanup_due.lua",
+      "modules": [
+        {
+          "moduleId": "entrepreneur.agnes",
+          "version": "1.8.1",
+          "sha256": "0bd864f5a474e98c457cd28be63c68c5cc6b83c34b375669afdce0967f370700",
+          "alias": "agnes"
+        }
+      ]
+    }
+  ],
+  "ruleModes": [
+    {
+      "modeId": "entrepreneur",
+      "requires": [
+        "enterprise",
+        "infected"
+      ],
+      "requiredCapabilities": [
+        "entrepreneur_selection.v1",
+        "card_markers.v2",
+        "departure_claims.v2",
+        "resource_payment.v2",
+        "cleanup_repeat.v1",
+        "collection_queries.v1",
+        "facility_layers.v1",
+        "final_scoring.v2",
+        "entrepreneur_content.T.v1",
+        "entrepreneur_content.A.v1",
+        "entrepreneur_content.D.v1",
+        "entrepreneur_content.P.v1",
+        "entrepreneur_content.M.v1",
+        "entrepreneur_ui.v1",
+        "host_recovery.v5",
+        "room_protocol.v6"
+      ]
     }
   ]
 }

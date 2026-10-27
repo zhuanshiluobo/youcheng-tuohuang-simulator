@@ -121,9 +121,10 @@ namespace YC.Domain.Enterprises
         {
             var args = context.Node.NormalizedArguments;
             var requested = Value(args, "enterpriseItemIds")?.Items.Select(value => value.StringValue).ToList();
-            var candidates = query.GetSpecialCandidates(context.State, context.Node.PlayerId, unlockedByPlayerId, levelDelta, requested)
+            var candidates = query.GetSpecialCandidates(context.State, context.Node.PlayerId, unlockedByPlayerId,
+                Value(args, "candidateIds") == null ? levelDelta : 5, requested)
                 .Where(candidate => { var definition = query.RequireDefinition(context.State, candidate.EnterpriseItemId); int level = definition.Levels.Single(entry => entry.AbilityId == candidate.SpecialId).Level;
-                    return level >= Number(args, "minLevel", 1) && level <= Number(args, "maxLevel", 5); });
+                    return level >= Number(args, "minLevel", 1) && level <= Number(args, "maxLevel", 5) && IsInCandidateScope(args, candidate.CandidateId); });
             context.Node.FrozenEnterpriseSpecials = candidates.Select(candidate => new FrozenEnterpriseSpecial { Candidate = candidate, UnlockedByPlayerId = unlockedByPlayerId,
                 EnterpriseDefinitionId = context.State.ItemZones.Items.Single(item => item.ItemId == candidate.EnterpriseItemId).DefinitionId }).ToList();
             // 已有 all 父节点的基础子式沿冻结范围，不用中途下降或上升重新判定解锁。
@@ -136,12 +137,45 @@ namespace YC.Domain.Enterprises
         }
         private static bool StillLegal(EffectExecutionContext context, EnterpriseStateQuery query, FrozenEnterpriseSpecial selected, int levelDelta, bool frozenRange)
         {
+            if (!IsInCandidateScope(context.Node.NormalizedArguments, selected.Candidate.CandidateId)) return false;
             var item = context.State.ItemZones.Items.SingleOrDefault(value => value.ItemId == selected.Candidate.EnterpriseItemId);
             if (item?.DefinitionId != selected.EnterpriseDefinitionId || !query.GetEnterpriseItemIds(context.State).Contains(item.ItemId)) return false;
             var definition = query.RequireDefinition(context.State, item.ItemId);
             var special = definition.Levels.SingleOrDefault(level => level.Kind == "special" && level.AbilityId == selected.Candidate.SpecialId);
             if (special == null || special.Level > selected.Candidate.EffectiveLevelCeiling) return false;
-            return frozenRange || query.GetSpecialCandidates(context.State, context.Node.PlayerId, selected.UnlockedByPlayerId, levelDelta, new[] { item.ItemId }).Any(candidate => candidate.CandidateId == selected.Candidate.CandidateId);
+            return frozenRange || Value(context.Node.NormalizedArguments, "candidateIds") != null ||
+                query.GetSpecialCandidates(context.State, context.Node.PlayerId, selected.UnlockedByPlayerId, levelDelta, new[] { item.ItemId }).Any(candidate => candidate.CandidateId == selected.Candidate.CandidateId);
+        }
+        internal static bool IsInCandidateScope(NormalizedValue args, string candidateId) => Value(args, "candidateIds") == null ||
+            Value(args, "candidateIds").Items.Any(value => value.StringValue == candidateId);
+
+        // 沿Host既有企业交互恢复入口复核来源传入的候选集合；缺省调用沿原合同。
+        public static bool TryValidateCandidateScopes(GameState state, out string reason)
+        {
+            reason = "enterprise_special_candidate_scope_restore_invalid";
+            foreach (var node in state.EffectRuntime.EffectNodes.Where(value => value.EffectTypeId == LuaDomainEffectTypeIds.ActivateEnterpriseSpecial &&
+                Value(value.NormalizedArguments, "candidateIds") != null))
+            {
+                var args = node.NormalizedArguments;
+                if (EnterpriseEffectExecutor.ValidateArguments(node.EffectTypeId, args).Length > 0 ||
+                    EnterpriseEffectExecutor.MissingFields(node.EffectTypeId, args).Count > 0 ||
+                    node.FrozenEnterpriseSpecials.Any(value => value?.Candidate == null || !IsInCandidateScope(args, value.Candidate.CandidateId))) return false;
+                foreach (var selected in new[] { node.ContinuationData, node.NormalizedResult })
+                    if (Text(selected, "selectedSpecialId").Length > 0 && !IsInCandidateScope(args, StableIdFactory.Create("candidate",
+                        Text(selected, "selectedEnterpriseItemId"), Text(selected, "selectedSpecialId")))) return false;
+                foreach (var request in state.EffectRuntime.InteractionRequests.Where(value => value.OwnerEffectId == node.EffectId && value.InteractionTypeId == "enterprise.special"))
+                {
+                    var enterprises = Value(request.PromptParameters, "candidateEnterpriseItemIds");
+                    var specials = Value(request.PromptParameters, "candidateSpecialIds");
+                    if (enterprises?.Kind != NormalizedValueKind.Array || specials?.Kind != NormalizedValueKind.Array ||
+                        enterprises.Items.Count != request.CandidateIds.Count || specials.Items.Count != request.CandidateIds.Count) return false;
+                    for (int index = 0; index < request.CandidateIds.Count; index++)
+                        if (enterprises.Items[index].Kind != NormalizedValueKind.String || specials.Items[index].Kind != NormalizedValueKind.String ||
+                            !IsInCandidateScope(args, request.CandidateIds[index]) || request.CandidateIds[index] != StableIdFactory.Create("candidate",
+                                enterprises.Items[index].StringValue, specials.Items[index].StringValue)) return false;
+                }
+            }
+            reason = string.Empty; return true;
         }
         private static EffectStepResult Select(EffectExecutionContext context, FrozenEnterpriseSpecial selected, bool upgrade)
         {

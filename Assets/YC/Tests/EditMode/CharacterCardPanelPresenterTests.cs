@@ -63,7 +63,12 @@ namespace YC.Tests.EditMode
             var visible = GameStateViewProjector.ProjectForPlayer(host, 1);
             var member = GameStateViewProjector.ToClientState(visible);
             Assert.That(member.EffectRuntime, Is.Null);
-            var presenter = new CharacterCardPanelPresenter();
+            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentPack.Current, host.RuleConfiguration);
+            var resolver = new YC.Application.Presentation.GameplayTextResolver(catalog.TextCatalog);
+            var context = new YC.Domain.Presentation.GameplayTextContext {
+                Catalog = catalog.TextCatalog, ContentHash = catalog.TextCatalog.ContentHash,
+                Locale = catalog.TextCatalog.Locale, VisibilityScopeId = host.GameId + ":panel-details", ViewerPlayerId = 1 };
+            var presenter = new CharacterCardPanelPresenter { ResolveGameplayText = reference => resolver.Resolve(reference, context) };
             var model = presenter.BuildProjectedView(member, 1, visible);
             Assert.That(model.CanUseStrategy, Is.False);
             var beforeMember = JsonConvert.SerializeObject(member);
@@ -114,12 +119,19 @@ namespace YC.Tests.EditMode
                 var card = state.ItemZones.Items.First(item => item.ControllerSubject.PlayerId == seat.PlayerId &&
                     item.DefinitionId == (seat.PlayerId == 1 ? CharacterCardDatabase.Elysium : CharacterCardDatabase.Liskarm) &&
                     state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == "core.zone.character_hand"));
-                var result = cover.Handle(state, new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = seat.PlayerId, TargetId = card.ItemId });
+                var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open" &&
+                    value.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId && value.AnsweringPlayerId == seat.PlayerId);
+                var command = new GameCommand { Kind = GameCommandKind.CoverCharacterCard, PlayerId = seat.PlayerId, TargetId = card.ItemId };
+                command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
+                command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var result = cover.Handle(state, command);
                 Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
                 if (seat.PlayerId == 1) usedCard = card.ItemId;
             }
-            var used = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state,
-                new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1, TargetId = usedCard });
+            var action = registry.QueryActions(state, 1).Single(option => option.SourceRef.ItemId == usedCard);
+            var useCommand = AbilityActionCommand.Create(1, action);
+            useCommand.CommandId = "panel-details-current-role";
+            var used = AbilityActionCommand.Handle(state, registry, useCommand);
             Assert.That(used.Succeeded, Is.True, used.Validation?.Reason);
             return state;
         }
@@ -396,56 +408,6 @@ namespace YC.Tests.EditMode
             Assert.That(view.CanUseStrategy, Is.False);
             Assert.That(view.CanUseTactic, Is.True);
             Assert.That(view.IsSecondEffectExecution, Is.True);
-        }
-
-        [Test]
-        public void PendingSecondEffectDecision_ExposesRemainingSideWithoutBlockingCardPanel()
-        {
-            var state = CreateState(GamePhase.ActionRound1);
-            state.FindPlayer(1).CoveredCharacterCardId = "character.red.p1.cannot";
-            state.PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = CharacterPendingChoiceTypes.SecondEffectDecision,
-                PlayerId = 1,
-                CardId = "character.red.p1.cannot",
-                RemainingEffectMode = CharacterEffectModes.Tactic,
-                OptionIds =
-                {
-                    CharacterEffectChoiceIds.ContinueSecondEffect,
-                    CharacterEffectChoiceIds.FinishCharacterUse
-                }
-            };
-
-            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
-
-            Assert.That(view.CanUse, Is.True);
-            Assert.That(view.CanUseStrategy, Is.False);
-            Assert.That(view.CanUseTactic, Is.True);
-            Assert.That(view.IsSecondEffectDecision, Is.True);
-            Assert.That(view.InteractionStatus, Does.Contain("可继续使用第二个效果").And.Contain("结束角色牌使用"));
-        }
-
-        [Test]
-        public void PendingSecondEffectDecision_WithoutContinueOption_OnlyAllowsEndAction()
-        {
-            var state = CreateState(GamePhase.ActionRound1);
-            state.FindPlayer(1).CoveredCharacterCardId = "character.red.p1.liskarm";
-            state.PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = CharacterPendingChoiceTypes.SecondEffectDecision,
-                PlayerId = 1,
-                CardId = "character.red.p1.liskarm",
-                RemainingEffectMode = CharacterEffectModes.Tactic,
-                OptionIds = { CharacterEffectChoiceIds.FinishCharacterUse }
-            };
-
-            var view = new CharacterCardPanelPresenter().BuildView(state, 1);
-
-            Assert.That(view.IsSecondEffectDecision, Is.True);
-            Assert.That(view.CanUse, Is.True, "角色牌结算未完成时仍应允许从主界面重新打开角色牌。");
-            Assert.That(view.CanUseStrategy, Is.False);
-            Assert.That(view.CanUseTactic, Is.False);
-            Assert.That(view.InteractionStatus, Does.Contain("结束操作完成结算").And.Not.Contain("翻转"));
         }
 
         [Test]

@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using YC.Domain.Cards;
+using YC.Domain.Facilities;
 using YC.Domain.CityStyles;
 using YC.Domain.Influence;
 using YC.Domain.Items;
@@ -22,15 +23,17 @@ namespace YC.Domain.Effects
         public const string AwardActionId = "award.activate_special";
         public static readonly string[] PublicTypeIds = { RetireFacilityTypeId, ReturnMarkerTypeId };
         public static string[] Fields(string type) => type == RetireFacilityTypeId
-            ? new[] { "apiVersion", "player", "facilityItemId" } : new[] { "apiVersion", "player" };
+            ? new[] { "apiVersion", "player", "facilityItemId", "expectedCellZoneId", "expectedOrderDigest" } : new[] { "apiVersion", "player" };
         public static string ValidateArguments(string type, NormalizedValue args) =>
             args?.Kind != NormalizedValueKind.Object || args.Properties.Any(p => !Fields(type).Concat(new[] { "kind", "effectTypeId" }).Contains(p.Name)) ||
-            Number(args, "apiVersion") != 1 || Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer ||
+            (Number(args, "apiVersion") != 1 && !(type == RetireFacilityTypeId && Number(args, "apiVersion") == 2)) || Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer ||
             !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1 ||
-            type == RetireFacilityTypeId && string.IsNullOrWhiteSpace(Text(args, "facilityItemId")) ? "lifecycle_arguments_invalid" : "";
+            type == RetireFacilityTypeId && (string.IsNullOrWhiteSpace(Text(args, "facilityItemId")) ||
+                Number(args, "apiVersion") == 2 && (Text(args, "expectedCellZoneId").Length == 0 || Text(args, "expectedOrderDigest").Length == 0)) ? "lifecycle_arguments_invalid" : "";
 
         public static void Register(EffectRegistry registry)
         {
+            RewardGrantEffectExecutor.Register(registry);
             foreach (var type in PublicTypeIds)
                 if (!registry.TryGet(type, out _)) registry.Register(new EffectRegistration(type, context =>
                 {
@@ -39,7 +42,7 @@ namespace YC.Domain.Effects
                     if (error.Length > 0) return EffectStepResult.Failed(error);
                     if (Text(context.Node.NormalizedArguments, "player") != context.Node.PlayerId.ToString(CultureInfo.InvariantCulture)) return EffectStepResult.Failed("lifecycle_permission_denied");
                     return context.Node.EffectTypeId == RetireFacilityTypeId ? RetireFacility(context) : ReturnMarker(context);
-                }, EffectExecutorKind.IntrinsicFlow, "v1"));
+                }, EffectExecutorKind.IntrinsicFlow, type == RetireFacilityTypeId ? "2.0.0" : "v1"));
             foreach (var type in new[] { AwardActivateTypeId, AwardCleanupTypeId })
                 if (!registry.TryGet(type, out _)) registry.Register(new EffectRegistration(type, ResolveAward, EffectExecutorKind.IntrinsicFlow, "v1"));
         }
@@ -49,8 +52,8 @@ namespace YC.Domain.Effects
             reason = "content_lifecycle_restore_invalid";
             var awards = state.ContentDefinitions?.Awards;
             if (state.ContentDefinitions != null && (awards == null || awards.Any(d => d == null || string.IsNullOrWhiteSpace(d.DefinitionId) ||
-                !new[] { "held_quick_action", "immediate_retired", "persistent" }.Contains(d.Lifecycle)) || awards.Select(d => d.DefinitionId).Distinct().Count() != awards.Count)) return false;
-            var receipts = state.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == RewardAcquisitionFlow.TypeId && Flag(n.ContinuationData, "acquisitionCompleted")).ToList();
+                !new[] { "held_quick_action", "immediate_retired", "persistent", "held" }.Contains(d.Lifecycle)) || awards.Select(d => d.DefinitionId).Distinct().Count() != awards.Count)) return false;
+            var receipts = state.EffectRuntime.EffectNodes.Where(n => RewardGrantEffectExecutor.IsAcquisition(n.EffectTypeId) && Flag(n.ContinuationData, "acquisitionCompleted")).ToList();
             if (receipts.GroupBy(n => Text(n.ContinuationData, "selectedRewardItemId")).Any(g => g.Count() != 1)) return false;
             foreach (var node in state.EffectRuntime.EffectNodes.Where(n => PublicTypeIds.Contains(n.EffectTypeId) || n.EffectTypeId == AwardActivateTypeId || n.EffectTypeId == AwardCleanupTypeId))
             {
@@ -68,6 +71,18 @@ namespace YC.Domain.Effects
                         if (ids?.Kind != NormalizedValueKind.Array || ids.Items.Any(v => v.Kind != NormalizedValueKind.String) || ids.Items.Select(v => v.StringValue).Distinct().Count() != ids.Items.Count ||
                             next < 0 || next > ids.Items.Count || node.FlowStage == "finished" && next != ids.Items.Count ||
                             !node.PositionChanges.Any(c => c.ItemId == id && c.To.ZoneId == FindZone(state, "retired").ZoneId)) return false;
+                        if (node.DefinitionVersion == "2.0.0")
+                        {
+                            var receipt = Value(node.ContinuationData, "transferBatchReceipt");
+                            string promoted = Text(node.ContinuationData, "promotedFacilityItemId");
+                            var moved = Value(receipt, "movedItemIds");
+                            if (Text(receipt, "operationId") != node.EffectId + ":retire" || Text(node.ContinuationData, "retiredFacilityItemId") != id ||
+                                moved?.Kind != NormalizedValueKind.Array || !moved.Items.Select(v => v.StringValue).SequenceEqual(
+                                    promoted.Length == 0 ? new[] { id } : new[] { id, promoted })) return false;
+                            var exit = node.PositionChanges.SingleOrDefault(c => c.ItemId == id && c.To.ZoneId == FindZone(state, "retired").ZoneId);
+                            if (exit == null || promoted.Length > 0 && !node.PositionChanges.Any(c => c.ItemId == promoted && c.To.ZoneId == exit.From.ZoneId &&
+                                state.ItemZones.Zones.Any(z => z.ZoneId == c.From.ZoneId && z.TemplateId == FacilityLayerQuery.CoveredTemplate && z.ParentId == exit.From.ZoneId))) return false;
+                        }
                         foreach (var bound in ids.Items)
                             if (!state.FacilityCharacterBindings.Any(b => b.FacilityItemId == id && b.CharacterItemId == bound.StringValue && b.ControllerPlayerId == node.PlayerId && !b.Active)) return false;
                         for (int index = 0; index < next; index++)
@@ -75,7 +90,7 @@ namespace YC.Domain.Effects
                     }
                     else if (!new[] { "", "choose_marker" }.Contains(node.FlowStage) || node.PositionChanges.Any(c =>
                         !state.ItemZones.Zones.Any(z => z.ZoneId == c.From.ZoneId && z.TemplateId == "core.zone.board_marker_track") ||
-                        c.To.ZoneId != FindZone(state, "player_markers", node.PlayerId).ZoneId)) return false;
+                        c.To.ZoneId != FindZone(state, "supply", node.PlayerId).ZoneId)) return false;
                 }
                 else
                 {
@@ -111,9 +126,22 @@ namespace YC.Domain.Effects
                 var request = new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = new List<string> { id },
                     ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId }, Destination = new ZoneRef { ZoneId = retired.ZoneId },
                     InsertionKind = "unordered", RequiredCount = 1, OperationProfileId = "core.facility_card_transfer" };
-                var service = new ItemTransferService(); var valid = service.Validate(context.State, request);
-                if (!valid.IsValid) return EffectStepResult.Failed(valid.ReasonCode);
-                service.RelocateItems(context, request); // 这里只注销设施绑定；角色不反向触发设施离场。
+                var service = new ItemTransferService();
+                var cell = YC.Domain.Facilities.FacilityLayerQuery.ResolveCell(context.State, node.PlayerId,
+                    YC.Domain.Facilities.FacilityLayerQuery.CitySlot(context.State, id));
+                if (Number(node.NormalizedArguments, "apiVersion") == 2 &&
+                    (Text(node.NormalizedArguments, "expectedCellZoneId") != cell.CellZoneId ||
+                     Text(node.NormalizedArguments, "expectedOrderDigest") != cell.OrderDigest))
+                    return EffectStepResult.Failed("facility_retirement_source_changed");
+                var legs = new List<ItemTransferRequest> { request };
+                string promoted = cell.CoveredItemIds.FirstOrDefault() ?? "";
+                if (promoted.Length > 0) legs.Add(new ItemTransferRequest { ExecutingPlayerId = node.PlayerId,
+                    ItemIds = new List<string> { promoted }, RequiredCount = 1, ExpectedSource = new ItemPositionRef { ZoneId = cell.CoveredZoneId },
+                    Destination = new ZoneRef { ZoneId = cell.CellZoneId }, InsertionKind = "unordered", OperationProfileId = "core.facility_card_transfer" });
+                var batch = ItemTransferService.CreateBatch(context.State, node.PlayerId, node.EffectId + ":retire", legs.ToArray());
+                service.RelocateBatch(context, batch);
+                Set(context.Node, "retiredFacilityItemId", NormalizedValue.CreateString(id));
+                Set(context.Node, "promotedFacilityItemId", NormalizedValue.CreateString(promoted));
                 return EffectStepResult.Continue("retiring_bound_characters");
             }
             if (node.FlowStage != "retiring_bound_characters" && node.FlowStage != "finished") throw new InvalidOperationException("facility_retirement_stage_invalid");
@@ -149,21 +177,22 @@ namespace YC.Domain.Effects
             }
             var item = context.State.ItemZones.Items.Single(i => i.ItemId == selected);
             new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = new List<string> { selected },
-                ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId, SlotId = item.SlotId }, Destination = new ZoneRef { ZoneId = FindZone(context.State, "player_markers", node.PlayerId).ZoneId },
+                ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId, SlotId = item.SlotId }, Destination = new ZoneRef { ZoneId = FindZone(context.State, "supply", node.PlayerId).ZoneId },
                 InsertionKind = "unordered", RequiredCount = 1, OperationProfileId = "core.player_marker_storage" });
             // 分数、宣告历史、同回合已使用记录一概不写；资格只来自实际轨道。
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "markerItemId", NormalizedValue.CreateString(selected)));
         }
 
         public static EffectNodeRuntimeState Acquisition(GameState state, string itemId) => state.EffectRuntime.EffectNodes.SingleOrDefault(n =>
-            n.EffectTypeId == RewardAcquisitionFlow.TypeId && Flag(n.ContinuationData, "acquisitionCompleted") && Text(n.ContinuationData, "selectedRewardItemId") == itemId);
+            RewardGrantEffectExecutor.IsAcquisition(n.EffectTypeId) && Flag(n.ContinuationData, "acquisitionCompleted") && Text(n.ContinuationData, "selectedRewardItemId") == itemId);
         public static bool IsHeld(GameState state, ItemInstanceState item, int player) => item?.TypeId == "core.award_card" && item.ControllerSubject.PlayerId == player &&
-            state.ItemZones.Zones.Any(z => z.ZoneId == item.ZoneId && z.TemplateId == "core.zone.player_awards" && z.OwnerPlayerId == player);
+            state.ItemZones.Zones.Any(z => z.ZoneId == item.ZoneId && z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == player);
         public static IReadOnlyList<CharacterSettlementOption> GetAwardOptions(GameState state, int player)
         {
             var options = new List<CharacterSettlementOption>();
             foreach (var item in state.ItemZones.Items.Where(i => i.TypeId == "core.award_card" && i.ControllerSubject.PlayerId == player))
             {
+                if (state.ContentDefinitions?.AbilitySources.Any(d => d.DefinitionId == item.DefinitionId && d.Actions.Count > 0) == true) continue;
                 var definition = state.ContentDefinitions?.Awards.Find(d => d.DefinitionId == item.DefinitionId && d.Lifecycle == "held_quick_action");
                 var owner = Acquisition(state, item.ItemId);
                 if (definition == null || owner == null) continue;

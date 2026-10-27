@@ -8,7 +8,7 @@
 
 ## 改动范围
 
-本次规划包含通用物品能力注册、持有与生效资格、收尾及其他受支持事件的接入、次数与恢复记录，以及岩蹄安保合约的终局区控迁移。普通物品只有声明能力并满足生效条件后才提供效果；扫描到一个物品，不等于执行其全部脚本。
+本次规划包含通用物品能力注册、持有与生效资格、收尾及其他受支持事件的接入、次数与恢复记录、Cube颜色声明，以及岩蹄安保合约的终局区控迁移。普通物品只有声明能力并满足生效条件后才提供效果；扫描到一个物品，不等于执行其全部脚本。
 
 终局区控迁移应同时适用于未开启企业家的感染者基础模式和开启企业家的模式。正常采集的合约行为继续保持正确；区域信息展示暂不处理，不纳入本次交付。快速行动和特殊行动复用既定的统一注册方案，企业家或token内容不单独移动使用标记，也不新增专属UI分支。
 
@@ -29,6 +29,49 @@
 
 因此，“把扫描授勋卡改成扫描所有物品”只完成来源发现的一部分。来源校验、执行入口、次数记录和触发时机必须一起泛化，不能只删除类型过滤。
 
+## Cube颜色声明（10月19日补充）
+
+用户已确定补充通用Cube颜色定义：支持跟随所属玩家颜色和固定颜色。**岩蹄安保影响力统一改为Orange（D97000），帮派保持Purple（A020F0）**。这是当前实施规格；本节的JSON字段尚待加载器与显示链路实现，不能只写入现有JSON便宣称生效。
+
+### 当前代码与声明位置
+
+[ItemTypeDefinition](../../Assets/YC/Domain/Items/ItemTypeRegistry.cs)只登记类型、继承、物理分类和操作能力；[ComponentContentDefinition](../../Assets/YC/Domain/Rules/GameSetupRecipe.cs)及[活动内容装配](../../Assets/YC/Infrastructure/Lua/ActiveContentCatalogBuilder.cs)没有颜色字段。[MapViewPresenter](../../Assets/YC/Presentation/MapViewPresenter.cs)的普通影响力直接按placement.PlayerId取玩家颜色；[GameplayExpansionUi](../../Assets/YC/Presentation/GameplayExpansionUi.cs)的公司地图标记仍走标记标签，未读取组件颜色。[二维方块目录](../../Assets/YC/Presentation/InfluenceMarker2DCatalog.cs)目前也没有Purple／Orange项。因此需同时补声明、冻结投影和实际显示接线，不能只改一个色值或把artwork当作方块着色合同。
+
+建议在`component`定义顶层增加`cubeAppearance.color`；加载时验证该定义的`itemTypeId`确实解析为Cube。颜色属于物品定义的表现信息，不写入能力Lua，不改变`ItemTypeDefinition`的继承／操作资格，也不在每次物品转移时复制一份颜色状态。
+
+| 字段／模式 | 合同 |
+| --- | --- |
+| `mode: "owner_player"` | 从真实实例的`OwnerSubject.PlayerId`读取本局玩家颜色；不取控制者、执行者或观看者。此模式不填写固定色字段；运行时没有合法玩家所有者属于状态异常，不静默采用默认红色／白色 |
+| `mode: "fixed"` | 必须填写`name`与`rgb`。`name`是颜色标识，`rgb`为不带井号的6位十六进制RGB，加载后规范为大写。RGB决定基础色；名字不用于推断归属、类型或区控规则，也不限制只能用玩家的四种颜色 |
+| 校验与默认 | 未知模式、无效RGB、固定色缺字段或两种模式字段混填，均在内容加载时明确报错。新Cube定义提供显式声明或使用明确登记的默认；现有`core.player_marker`由内建目录登记`owner_player`默认，不能给所有Cube默认套玩家色 |
+
+以下均为新增字段片段，保留组件已有的其他字段。普通玩家标记的内建默认采用同一结构：
+
+```json
+{ "cubeAppearance": { "color": { "mode": "owner_player" } } }
+```
+
+帮派组件采用固定紫色：
+
+```json
+{ "cubeAppearance": { "color": { "mode": "fixed", "name": "Purple", "rgb": "A020F0" } } }
+```
+
+[岩蹄安保公司标记组件](../../Assets/StreamingAssets/Content/core/component/infected.component.company_marker.json)采用固定橙色：
+
+```json
+{ "cubeAppearance": { "color": { "mode": "fixed", "name": "Orange", "rgb": "D97000" } } }
+```
+
+### 冻结、取色与显示边界
+
+- 将校验后的声明纳入本局冻结内容及版本／哈希，通过定义ID供客户端查询；普通玩家标记使用同一目录中的内建默认。保存恢复沿用对应内容版本，旧档迁移接既有版本合同，不因重连读取当前最新JSON就改写旧局表现，也不改物品实例、所有者或原供应。
+- 增加通用Cube颜色解析入口，输入真实实例及其冻结定义，输出颜色模式、固定色标识／RGB或所属玩家颜色。地图、供应详情、卡上标记和数量条目共用此入口；同一帮派存入多萝西后仍保持紫色，岩蹄安保始终为橙色，普通指令／声望／第五号标记保持自身所属玩家色。预览沿用已确定的标记类型及主体，再叠加既有临时／选中状态；不得总按当前玩家取色。
+- 地图需将公司标记的正式物品身份接入Cube显示，不能以把旧文本标签染成橙色代替影响力物体适配。二维数量方块与地图物体分别复用现有显示组件，补其受控固定色接入。`artwork`、类型图形及颜色各负其责，颜色声明不授予跨用途选材或覆盖资产的权限；实际素材、场景和预制体按既有资产规范接入。
+- 显示分组仍按标记类型和实际所有者／数量来源区分，不能因颜色相同合并不同类型或不同玩家的库存。帮派仍是所属玩家的影响力，岩蹄安保仍属公司；不得从颜色反推这些规则。此项不扩大暂缓的区域信息页面范围。
+
+实施验证覆盖：JSON合法／非法声明；两位玩家的普通Cube分别取色；观看者与热座切换不改色；帮派在地图、本人供应和多萝西之间转移后保持Purple；公司影响力显示Orange；恢复后模式及颜色一致，数量分组和规则归属不受影响。用户指定的两种固定色是本项明确规格，其余可编辑界面样式不据此锁定。当前仅补规划，未修改JSON运行内容、代码或界面资产。
+
 ## 保罗帮派采用Cube组件
 
 用户已确定帮派采用Cube路线：内容仍用`contentType=component`，注册一个独立的`core.cube`子类型并赋予`core.influence_cube`操作能力，不继承`core.player_marker`，不改为物理Token。类型ID在正式内容命名时统一确定；仅新增组件JSON不会自动注册新类型，需要先接入物品类型目录。[公司标记组件](../../Assets/StreamingAssets/Content/core/component/infected.component.company_marker.json)可作为组件形态的参照，不复用其公司归属。
@@ -40,7 +83,7 @@
 | 普通标记隔离 | 不满足`core.player_marker`资格，不能因同属Cube而自动用于指令、声望、诗怀雅标记区或要求普通玩家标记的其他槽位；这些载体维持自己的许可。玩家供应需扩展为接纳帮派的受控许可，不能放开所有Cube载体 |
 | 多萝西收容与使用 | 用户明确：帮派离场可存入本人启用的多萝西计谋区域，并参与其移除牌上2枚标记的条件支付；保留帮派类型、本人所有者及原供应。该区允许合法离场Cube，不限定普通玩家标记；需具备core.cube_storage转移许可。收容不使帮派变成普通玩家标记，也不放开诗怀雅等载体的限制 |
 | 供应与去向 | 挂链将通用放置改为含明确类型放置的Choice或直接帮派放置；实际放置按执行时库存处理，挂链不锁实例。真实转移及依赖等待按类型过滤，返还按原供应；替换先结清必要响应与去向，再挂替入放置 |
-| 显示 | 使用已确定的Purple（A020F0），所有者仍是玩家；普通标记继续使用玩家色。Cube是逻辑物理分类，不代表可以省略独立的帮派地图显示或供应详情适配 |
+| 显示 | 按[Cube颜色声明](#cube颜色声明10月19日补充)使用固定Purple（A020F0），所有者仍是玩家；普通标记继续使用玩家色。Cube是逻辑物理分类，不代表可以省略独立的帮派地图显示或供应详情适配 |
 | 能力来源 | Cube／Token均可经通用物品来源合同声明能力，不因选择Cube丢失Lua资格。保罗的玩家级放置规则、第1回合共同离场补放、第3回合共同只放帮派统一挂P09；回合有效选择授权，共用处理器只登记一次，不能让四枚组件分别触发四次 |
 
 依据：[物品类型](../../Assets/YC/Domain/Items/ItemTypeRegistry.cs)、[影响力与玩家标记判定](../../Assets/YC/Domain/Items/ItemZoneQuery.cs)、[区域许可](../../Assets/YC/Domain/Items/ZoneTemplateRegistry.cs)、[实际供应转移](../../Assets/YC/Domain/Influence/InfluenceService.cs)、[离场去向](../../Assets/YC/Domain/Influence/InfluenceDestinationResolver.cs)。现有Cube影响力底座可复用，但帮派类型、供应许可、按类型放置、挂链改写及来源接入尚未实施，不能把此选择写成已完整支持。

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Text;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Domain.State
@@ -16,12 +17,37 @@ namespace YC.Domain.State
     {
         [ThreadStatic] private static CloneTimingScope currentTimingScope;
         [ThreadStatic] private static int timingOperationDepth;
+        // 每线程最多保留一个已清空的遍历工作集合；不保留任何源/目标状态引用。
+        // 超大图、同线程嵌套调用各用独立集合，超过上限的集合不进入缓存。
+        private const int MaximumRetainedComparisonPairs = 262144;
+        [ThreadStatic] private static HashSet<ReferencePair> reusableComparisonPairs;
+
+        private static HashSet<ReferencePair> RentComparisonPairs()
+        {
+            var pairs = reusableComparisonPairs;
+            reusableComparisonPairs = null;
+            return pairs ?? new HashSet<ReferencePair>(ReferencePairComparer.Instance);
+        }
+
+        private static void ReturnComparisonPairs(HashSet<ReferencePair> pairs)
+        {
+            int count = pairs.Count;
+            pairs.Clear();
+            if (count <= MaximumRetainedComparisonPairs && reusableComparisonPairs == null)
+                reusableComparisonPairs = pairs;
+        }
+
 
         /// <summary>仅诊断当前线程动态范围内的顶层 GameState 克隆/复制；不进入持久化状态。</summary>
         public static IDisposable BeginTimingScope(Action<string, long> recordSample)
+            => BeginTimingScope(recordSample, null);
+
+        // 默认不启用。诊断宿主可把完整 GameState 的 Clone/Copy 对接到正式 Profiler；
+        // Domain 保持无引擎依赖，不把游戏状态交给诊断回调。
+        public static IDisposable BeginTimingScope(Action<string, long> recordSample, Action<string, bool> traceSample)
         {
             if (recordSample == null) throw new ArgumentNullException(nameof(recordSample));
-            var scope = new CloneTimingScope(recordSample, currentTimingScope);
+            var scope = new CloneTimingScope(recordSample, currentTimingScope, traceSample);
             currentTimingScope = scope;
             return scope;
         }
@@ -30,14 +56,22 @@ namespace YC.Domain.State
         {
             private readonly Action<string, long> recordSample;
             private readonly CloneTimingScope previous;
+            private readonly Action<string, bool> traceSample;
             private readonly int ownerThreadId;
             private bool disposed;
 
-            public CloneTimingScope(Action<string, long> recordSample, CloneTimingScope previous)
+            public CloneTimingScope(Action<string, long> recordSample, CloneTimingScope previous, Action<string, bool> traceSample)
             {
                 this.recordSample = recordSample;
                 this.previous = previous;
+                this.traceSample = traceSample ?? previous?.traceSample;
                 ownerThreadId = Thread.CurrentThread.ManagedThreadId;
+            }
+
+            public void Trace(string phase, bool begin)
+            {
+                try { traceSample?.Invoke(phase, begin); }
+                catch (Exception) { }
             }
 
             public void Record(string phase, long elapsedTicks)
@@ -69,13 +103,21 @@ namespace YC.Domain.State
                 scope = isGameState && timingOperationDepth == 0 ? currentTimingScope : null;
                 this.phase = scope == null ? null : phase;
                 started = scope == null ? 0 : Stopwatch.GetTimestamp();
-                if (scope != null) timingOperationDepth++;
+                if (scope != null)
+                {
+                    timingOperationDepth++;
+                    scope.Trace(this.phase, true);
+                }
             }
 
             public void Dispose()
             {
                 if (scope == null) return;
-                try { scope.Record(phase, Stopwatch.GetTimestamp() - started); }
+                try
+                {
+                    scope.Trace(phase, false);
+                    scope.Record(phase, Stopwatch.GetTimestamp() - started);
+                }
                 finally { timingOperationDepth--; }
             }
         }
@@ -98,7 +140,7 @@ namespace YC.Domain.State
                 return null;
             }
 
-            var result = (T)CloneValue(source, typeof(T), typeof(T).Name, new HashSet<object>(ReferenceEqualityComparer.Instance));
+            var result = (T)CloneValue(source, typeof(T), new DiagnosticPath(typeof(T).Name), new HashSet<object>(ReferenceEqualityComparer.Instance));
             if (result is GameState state) YC.Domain.Items.ItemZoneLegacyProjection.Bind(state);
             return result;
         }
@@ -112,12 +154,20 @@ namespace YC.Domain.State
 
             // 成功发布时保留旧业务代码可能持有的 PlayerState、MapRuntimeState
             // 等引用；新加入的集合元素仍会被克隆，避免把工作副本重新暴露给外部。
-            CopyObjectFieldsInto(
-                target,
-                source,
-                typeof(GameState).Name,
-                new HashSet<ReferencePair>(ReferencePairComparer.Instance));
-            YC.Domain.Items.ItemZoneLegacyProjection.Bind(target);
+            // 同次 CopyTo 的新增分支复用循环检查集合，CloneValue 在 finally 中逐层移除；
+            // 集合只活到本次调用结束，不缓存状态，也不改变兄弟别名分别深克隆的语义。
+            var visited = RentComparisonPairs();
+            try
+            {
+                CopyObjectFieldsInto(
+                    target,
+                    source,
+                    new DiagnosticPath(typeof(GameState).Name),
+                    visited,
+                    new HashSet<object>(ReferenceEqualityComparer.Instance));
+                YC.Domain.Items.ItemZoneLegacyProjection.Bind(target);
+            }
+            finally { ReturnComparisonPairs(visited); }
         }
 
         public static bool AreEquivalent(GameState left, GameState right)
@@ -133,7 +183,7 @@ namespace YC.Domain.State
         private static object CloneValue(
             object value,
             Type declaredType,
-            string path,
+            DiagnosticPath path,
             HashSet<object> activeReferences)
         {
             if (value == null)
@@ -150,12 +200,12 @@ namespace YC.Domain.State
 
             if (type.IsArray)
             {
-                return CloneArray((Array)value, path, activeReferences);
+                return CloneArray((Array)value, metadata, path, activeReferences);
             }
 
-            if (IsListType(type))
+            if (metadata.IsList)
             {
-                return CloneList((IList)value, type, path, activeReferences);
+                return CloneList((IList)value, metadata, path, activeReferences);
             }
 
             if (metadata.IsDictionary)
@@ -166,7 +216,7 @@ namespace YC.Domain.State
 
             if (type.IsValueType)
             {
-                return CloneObjectFields(value, type, path, activeReferences, false);
+                return CloneObjectFields(value, metadata, path, activeReferences, false);
             }
 
             if (!metadata.IsSerializable)
@@ -175,19 +225,21 @@ namespace YC.Domain.State
                     "状态字段必须是 [Serializable] DTO：" + path + " (" + type.FullName + ")。");
             }
 
-            return CloneObjectFields(value, type, path, activeReferences, true);
+            return CloneObjectFields(value, metadata, path, activeReferences, true);
         }
 
-        private static object CloneArray(Array source, string path, HashSet<object> activeReferences)
+        private static object CloneArray(Array source, StateCopyMetadata metadata, DiagnosticPath path, HashSet<object> activeReferences)
         {
             EnterReference(source, path, activeReferences);
             try
             {
-                Type elementType = StateCopyMetadata.For(source.GetType()).ElementType;
+                if (metadata.IsScalarElement && source.Rank == 1 && source.GetLowerBound(0) == 0)
+                    return source.Clone();
+                Type elementType = metadata.ElementType;
                 Array clone = Array.CreateInstance(elementType, source.Length);
                 for (int i = 0; i < source.Length; i++)
                 {
-                    clone.SetValue(CloneValue(source.GetValue(i), elementType, path + "[" + i + "]", activeReferences), i);
+                    clone.SetValue(CloneValue(source.GetValue(i), elementType, path.AtIndex(i), activeReferences), i);
                 }
 
                 return clone;
@@ -200,20 +252,21 @@ namespace YC.Domain.State
 
         private static object CloneList(
             IList source,
-            Type listType,
-            string path,
+            StateCopyMetadata metadata,
+            DiagnosticPath path,
             HashSet<object> activeReferences)
         {
             EnterReference(source, path, activeReferences);
             try
             {
-                var metadata = StateCopyMetadata.For(listType);
-                IList clone = (IList)metadata.Create();
+                if (metadata.IsScalarElement && metadata.TryCloneScalarList(source, out object scalarClone))
+                    return scalarClone;
+                IList clone = (IList)metadata.CreateList(source.Count);
                 Type elementType = metadata.ElementType;
-                bool scalarElement = StateCopyMetadata.For(elementType).IsScalar;
+                bool scalarElement = metadata.IsScalarElement;
                 for (int i = 0; i < source.Count; i++)
                 {
-                    clone.Add(scalarElement ? source[i] : CloneValue(source[i], elementType, path + "[" + i + "]", activeReferences));
+                    clone.Add(scalarElement ? source[i] : CloneValue(source[i], elementType, path.AtIndex(i), activeReferences));
                 }
 
                 return clone;
@@ -226,8 +279,8 @@ namespace YC.Domain.State
 
         private static object CloneObjectFields(
             object source,
-            Type type,
-            string path,
+            StateCopyMetadata metadata,
+            DiagnosticPath path,
             HashSet<object> activeReferences,
             bool trackReference)
         {
@@ -238,16 +291,20 @@ namespace YC.Domain.State
 
             try
             {
-                var metadata = StateCopyMetadata.For(type);
                 object clone = metadata.Create();
                 StateCopyField[] fields = metadata.Fields;
                 for (int i = 0; i < fields.Length; i++)
                 {
                     StateCopyField field = fields[i];
+                    if (field.IsScalar)
+                    {
+                        field.CopyScalar(clone, source);
+                        continue;
+                    }
                     object fieldValue = field.GetValue(source);
                     field.SetValue(
                         clone,
-                        field.IsScalar ? fieldValue : CloneValue(fieldValue, field.FieldType, path + "." + field.Name, activeReferences));
+                        CloneValue(fieldValue, field.FieldType, path.AtField(field.Name), activeReferences));
                 }
 
                 return clone;
@@ -264,8 +321,9 @@ namespace YC.Domain.State
         private static void CopyObjectFieldsInto(
             object target,
             object source,
-            string path,
-            HashSet<ReferencePair> visited)
+            DiagnosticPath path,
+            HashSet<ReferencePair> visited,
+            HashSet<object> cloneReferences)
         {
             if (target == null || source == null)
             {
@@ -288,15 +346,21 @@ namespace YC.Domain.State
             for (int i = 0; i < fields.Length; i++)
             {
                 StateCopyField field = fields[i];
+                if (field.IsScalar)
+                {
+                    field.CopyScalar(target, source);
+                    continue;
+                }
                 object sourceValue = field.GetValue(source);
                 field.SetValue(
                     target,
-                    field.IsScalar ? sourceValue : CopyValueInto(
+                    CopyValueInto(
                         field.GetValue(target),
                         sourceValue,
                         field.FieldType,
-                        path + "." + field.Name,
-                        visited));
+                        path.AtField(field.Name),
+                        visited,
+                        cloneReferences));
             }
         }
 
@@ -304,8 +368,9 @@ namespace YC.Domain.State
             object target,
             object source,
             Type declaredType,
-            string path,
-            HashSet<ReferencePair> visited)
+            DiagnosticPath path,
+            HashSet<ReferencePair> visited,
+            HashSet<object> cloneReferences)
         {
             if (source == null)
             {
@@ -325,12 +390,17 @@ namespace YC.Domain.State
                 Array targetArray = target as Array;
                 if (targetArray == null || targetArray.GetType() != type || targetArray.Length != sourceArray.Length)
                 {
-                    return CloneValue(source, declaredType, path, new HashSet<object>(ReferenceEqualityComparer.Instance));
+                    return CloneValue(source, declaredType, path, cloneReferences);
                 }
 
                 ReferencePair pair = new ReferencePair(targetArray, sourceArray);
                 if (visited.Add(pair))
                 {
+                    if (metadata.IsScalarElement && sourceArray.Rank == 1 && sourceArray.GetLowerBound(0) == 0)
+                    {
+                        Array.Copy(sourceArray, targetArray, sourceArray.Length);
+                        return targetArray;
+                    }
                     Type elementType = metadata.ElementType;
                     for (int i = 0; i < sourceArray.Length; i++)
                     {
@@ -339,8 +409,9 @@ namespace YC.Domain.State
                                 targetArray.GetValue(i),
                                 sourceArray.GetValue(i),
                                 elementType,
-                                path + "[" + i + "]",
-                                visited),
+                                path.AtIndex(i),
+                                visited,
+                                cloneReferences),
                             i);
                     }
                 }
@@ -348,13 +419,13 @@ namespace YC.Domain.State
                 return targetArray;
             }
 
-            if (IsListType(type))
+            if (metadata.IsList)
             {
                 IList sourceList = (IList)source;
                 IList targetList = target as IList;
                 if (targetList == null || targetList.GetType() != type)
                 {
-                    return CloneValue(source, declaredType, path, new HashSet<object>(ReferenceEqualityComparer.Instance));
+                    return CloneValue(source, declaredType, path, cloneReferences);
                 }
 
                 ReferencePair pair = new ReferencePair(targetList, sourceList);
@@ -363,8 +434,11 @@ namespace YC.Domain.State
                     return targetList;
                 }
 
+                if (metadata.IsScalarElement && metadata.TryCopyScalarList(targetList, sourceList))
+                    return targetList;
+                if (sourceList.Count > targetList.Count) metadata.ReserveList(targetList, sourceList.Count);
                 Type elementType = metadata.ElementType;
-                bool scalarElement = StateCopyMetadata.For(elementType).IsScalar;
+                bool scalarElement = metadata.IsScalarElement;
                 int sharedCount = Math.Min(targetList.Count, sourceList.Count);
                 for (int i = 0; i < sharedCount; i++)
                 {
@@ -372,8 +446,9 @@ namespace YC.Domain.State
                         targetList[i],
                         sourceList[i],
                         elementType,
-                        path + "[" + i + "]",
-                        visited);
+                        path.AtIndex(i),
+                        visited,
+                        cloneReferences);
                 }
 
                 while (targetList.Count > sourceList.Count)
@@ -387,8 +462,9 @@ namespace YC.Domain.State
                         null,
                         sourceList[i],
                         elementType,
-                        path + "[" + i + "]",
-                        visited));
+                        path.AtIndex(i),
+                        visited,
+                        cloneReferences));
                 }
 
                 return targetList;
@@ -402,7 +478,7 @@ namespace YC.Domain.State
 
             if (type.IsValueType)
             {
-                return CloneValue(source, declaredType, path, new HashSet<object>(ReferenceEqualityComparer.Instance));
+                return CloneValue(source, declaredType, path, cloneReferences);
             }
 
             if (!metadata.IsSerializable)
@@ -413,22 +489,27 @@ namespace YC.Domain.State
 
             if (target != null && target.GetType() == type)
             {
-                CopyObjectFieldsInto(target, source, path, visited);
+                CopyObjectFieldsInto(target, source, path, visited, cloneReferences);
                 return target;
             }
 
-            return CloneValue(source, declaredType, path, new HashSet<object>(ReferenceEqualityComparer.Instance));
+            return CloneValue(source, declaredType, path, cloneReferences);
         }
 
         private static bool AreEquivalentInternal(GameState left, GameState right, bool ignoreEffectRuntime)
         {
-            return AreEquivalentValue(
-                left,
-                right,
-                typeof(GameState),
-                new HashSet<ReferencePair>(ReferencePairComparer.Instance),
-                ignoreEffectRuntime,
-                true);
+            var visited = RentComparisonPairs();
+            try
+            {
+                return AreEquivalentValue(
+                    left,
+                    right,
+                    typeof(GameState),
+                    visited,
+                    ignoreEffectRuntime,
+                    true);
+            }
+            finally { ReturnComparisonPairs(visited); }
         }
 
         private static bool AreEquivalentValue(
@@ -472,7 +553,7 @@ namespace YC.Domain.State
                 return true;
             }
 
-            if (IsListType(leftType))
+            if (metadata.IsList)
             {
                 IList leftList = (IList)left;
                 IList rightList = (IList)right;
@@ -510,6 +591,11 @@ namespace YC.Domain.State
                 }
 
                 StateCopyField field = fields[i];
+                if (field.IsScalar)
+                {
+                    if (!field.AreEquivalentScalar(left, right)) return false;
+                    continue;
+                }
                 if (!AreEquivalentValue(
                         field.GetValue(left),
                         field.GetValue(right),
@@ -522,16 +608,63 @@ namespace YC.Domain.State
             return true;
         }
 
-        private static bool IsListType(Type type)
-        {
-            return StateCopyMetadata.For(type).IsList;
-        }
-
-        private static void EnterReference(object value, string path, HashSet<object> activeReferences)
+        private static void EnterReference(object value, DiagnosticPath path, HashSet<object> activeReferences)
         {
             if (!activeReferences.Add(value))
             {
                 throw new InvalidOperationException("状态 DTO 不能包含循环引用：" + path + "。");
+            }
+        }
+
+        // 每次同步克隆/发布独享路径缓冲；只在拒绝时物化文本。
+        // 深度随值传递，兄弟分支覆写该深度的段，不跨调用保存状态对象或路径。
+        private readonly struct DiagnosticPath
+        {
+            private readonly string root;
+            private readonly List<PathSegment> segments;
+            private readonly int depth;
+
+            internal DiagnosticPath(string root)
+            {
+                this.root = root;
+                segments = new List<PathSegment>();
+                depth = 0;
+            }
+
+            private DiagnosticPath(string root, List<PathSegment> segments, int depth)
+            {
+                this.root = root;
+                this.segments = segments;
+                this.depth = depth;
+            }
+
+            internal DiagnosticPath AtField(string name) => Append(new PathSegment(name, 0));
+            internal DiagnosticPath AtIndex(int index) => Append(new PathSegment(null, index));
+
+            private DiagnosticPath Append(PathSegment segment)
+            {
+                if (segments.Count == depth) segments.Add(segment);
+                else segments[depth] = segment;
+                return new DiagnosticPath(root, segments, depth + 1);
+            }
+
+            public override string ToString()
+            {
+                var text = new StringBuilder(root);
+                for (int i = 0; i < depth; i++)
+                {
+                    PathSegment segment = segments[i];
+                    if (segment.Field != null) text.Append('.').Append(segment.Field);
+                    else text.Append('[').Append(segment.Index).Append(']');
+                }
+                return text.ToString();
+            }
+
+            private readonly struct PathSegment
+            {
+                internal readonly string Field;
+                internal readonly int Index;
+                internal PathSegment(string field, int index) { Field = field; Index = index; }
             }
         }
 
@@ -550,7 +683,8 @@ namespace YC.Domain.State
             }
         }
 
-        private sealed class ReferencePair
+        // visited 本身已保存这两个引用；键无需为每次访问再分配一个包装对象。
+        private readonly struct ReferencePair
         {
             public ReferencePair(object left, object right)
             {

@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using YC.Presentation.Workflows;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
 using YC.Domain.State;
@@ -42,23 +43,42 @@ namespace YC.Presentation
         private int currentPlayerId;
         private int displayedCityPlayerId = -1;
         private GameStateView cityVisibleView;
+        private GameStateView renderedCityView;
+        private int renderedCityRevision = -1;
+        private string renderedCityGame, renderedCityContent;
+        private int renderedCityViewer = -1;
+        public GameplayDialogRegistry DialogRegistry { private get; set; }
+        private CardCollectionBrowser cityLayerBrowser;
+        private CardCollectionBrowser supplyLayerBrowser;
         public bool IsOwnCityDisplayed => displayedCityPlayerId < 0 || displayedCityPlayerId == currentPlayerId;
         private int CityDisplayPlayerId => displayedCityPlayerId < 0 ? currentPlayerId : displayedCityPlayerId;
 
         public void RefreshViewedCity(GameStateView visible, int playerId)
         {
+            using var latency = InteractionLatencyTrace.Begin("city.bind_view");
             if (!initialized) return;
             var valid = visible != null && visible.ViewerPlayerId == currentPlayerId && visible.GameId == currentState?.GameId &&
                 visible.Players.Exists(p => p.PlayerId == playerId);
             var target = valid ? playerId : currentPlayerId;
+            // 同一正式快照在资源栏和行动栏绑定中会重复经过此入口；只省去第二次相同城市绘制。
+            bool alreadyRendered = valid && ReferenceEquals(renderedCityView, visible) &&
+                renderedCityRevision == visible.StateRevision && target == CityDisplayPlayerId &&
+                renderedCityGame == visible.GameId && renderedCityContent == visible.ContentPackHash &&
+                renderedCityViewer == currentPlayerId;
             if (target != CityDisplayPlayerId)
             {
+                cityLayerBrowser?.Hide();
                 facilityDragActive = false;
                 DestroyFacilityDragGhost();
             }
             displayedCityPlayerId = target;
             cityVisibleView = valid ? visible : null;
+            if (alreadyRendered) { InteractionLatencyTrace.Point("city.same_binding_reused"); return; }
             RefreshCityBoard();
+            renderedCityView = valid ? visible : null;
+            renderedCityRevision = valid ? visible.StateRevision : -1;
+            renderedCityGame = valid ? visible.GameId : null; renderedCityContent = valid ? visible.ContentPackHash : null;
+            renderedCityViewer = valid ? currentPlayerId : -1;
         }
 
         private void RefreshCityBoard()
@@ -244,8 +264,12 @@ namespace YC.Presentation
 
         public void Refresh(GameState state, int playerId)
         {
+            using var latency = InteractionLatencyTrace.Begin("city.refresh_state");
+            // 显式状态刷新仍重画，包括原地更新的本地/热座状态。
+            renderedCityView = null; renderedCityRevision = -1;
+            renderedCityGame = renderedCityContent = null; renderedCityViewer = -1;
             if (currentPlayerId != playerId || currentState?.GameId != state?.GameId)
-            { displayedCityPlayerId = playerId; cityVisibleView = null; }
+            { displayedCityPlayerId = playerId; cityVisibleView = null; cityLayerBrowser?.Hide(); supplyLayerBrowser?.Hide(); }
             currentState = state;
             currentPlayerId = playerId;
             if (!initialized)
@@ -463,6 +487,7 @@ namespace YC.Presentation
 
         private void RebuildContent()
         {
+            using var latency = InteractionLatencyTrace.Begin("city.rebind_content");
             RefreshCityBoard();
             if (RebuildExternalFacilityCards())
                 MarkContentLayoutDirty(externalFacilityArea);
@@ -496,7 +521,8 @@ namespace YC.Presentation
 
                 var facilityId = supply[i];
                 var zone = currentState.ItemZones?.Zones.Find(value => value.LocalZoneId == "facility_supply_" + i);
-                var item = currentState.ItemZones?.Items.Find(value => value.ZoneId == zone?.ZoneId);
+                var order = currentState.ItemZones?.Orders.FirstOrDefault(value => value.ZoneId == zone?.ZoneId);
+                var item = currentState.ItemZones?.Items.Find(value => value.ItemId == order?.ItemIds.FirstOrDefault());
                 binding.ZoneId = zone?.ZoneId ?? string.Empty;
                 binding.ItemId = item?.ItemId ?? string.Empty;
                 var facility = FacilityCardDatabase.Get(currentState, facilityId);
@@ -566,6 +592,22 @@ namespace YC.Presentation
 
             if (!facilityEffectSelectionActive)
             {
+                if (DialogRegistry != null && currentState != null && !string.IsNullOrEmpty(binding.ZoneId))
+                {
+                    var visible = new YC.Domain.Items.ItemZoneQuery().Project(currentState, GameStateViewer.Player(currentPlayerId));
+                    var order = visible.Orders.FirstOrDefault(o => o.ZoneId == binding.ZoneId);
+                    var cards = order?.ItemIds.Select(id => visible.Items.FirstOrDefault(i => i.ItemId == id)).Where(i => i != null).ToArray();
+                    if (cards != null && cards.Length > 0)
+                    {
+                        var game = currentState.GameId; var owner = currentPlayerId; var zoneId = binding.ZoneId; var ids = cards.Select(c => c.ItemId).ToArray();
+                        bool Current() => currentState?.GameId == game && currentPlayerId == owner &&
+                            currentState.ItemZones.Orders.FirstOrDefault(o => o.ZoneId == zoneId)?.ItemIds.SequenceEqual(ids) == true;
+                        if (supplyLayerBrowser == null) supplyLayerBrowser = new CardCollectionBrowser(DialogRegistry, transform as RectTransform);
+                        supplyLayerBrowser.Show(binding.Label, string.Empty, cards.Select(i => new EntrepreneurCardPresentation {
+                            Id = i.ItemId, DefinitionId = i.DefinitionId, FaceId = "", Label = FacilityCardDatabase.Get(currentState, i.DefinitionId)?.Name ?? i.DefinitionId }).ToArray(), Current, null);
+                        return;
+                    }
+                }
                 OpenCardImage(
                     binding.Label,
                     binding.CardSprite);
@@ -881,6 +923,25 @@ namespace YC.Presentation
                 sprite);
         }
 
+        private void OpenCityCellLayers(int index, string title, Sprite fallback)
+        {
+            var visible = cityVisibleView ?? (currentState == null ? null : GameStateViewProjector.ProjectForPlayer(currentState, currentPlayerId));
+            var cell = VisibleFacilityLayers.City(visible?.ItemZones, CityDisplayPlayerId).FirstOrDefault(c => c.Index == index);
+            if (DialogRegistry == null || visible == null || cell == null || cell.Cards.Count == 0) { OpenCardImage(title, fallback); return; }
+            var owner = CityDisplayPlayerId; var viewer = currentPlayerId; var game = visible.GameId;
+            var ids = cell.Cards.Select(i => i.ItemId).ToArray();
+            bool Current()
+            {
+                var next = cityVisibleView ?? (currentState == null ? null : GameStateViewProjector.ProjectForPlayer(currentState, currentPlayerId));
+                var fresh = VisibleFacilityLayers.City(next?.ItemZones, owner).FirstOrDefault(c => c.Index == index);
+                return next?.GameId == game && currentPlayerId == viewer && CityDisplayPlayerId == owner && fresh != null &&
+                    fresh.Cards.Select(i => i.ItemId).SequenceEqual(ids);
+            }
+            if (cityLayerBrowser == null) cityLayerBrowser = new CardCollectionBrowser(DialogRegistry, transform as RectTransform);
+            cityLayerBrowser.Show(title, string.Empty, cell.Cards.Select(i => new EntrepreneurCardPresentation {
+                Id = i.ItemId, DefinitionId = i.DefinitionId, FaceId = "", Label = FacilityCardDatabase.Get(currentState, i.DefinitionId)?.Name ?? i.DefinitionId }).ToArray(), Current, null);
+        }
+
         private IReadOnlyList<string> GetCurrentCityStyleSupplyIds()
         {
             if (currentState != null && currentState.Decks != null &&
@@ -932,7 +993,8 @@ namespace YC.Presentation
                 var definition = isEmpty ? null : FacilityCardDatabase.Get(currentState, facilityId);
                 var definitionId = definition?.FacilityId ?? facilityId;
                 var label = isEmpty ? string.Empty : definition?.Name ?? facilityId;
-                var sprite = isEmpty ? null : TryLoadFacilityCardSprite(definitionId);
+                Sprite sprite;
+                using (InteractionLatencyTrace.Begin("city.sprite_lookup")) sprite = isEmpty ? null : TryLoadFacilityCardSprite(definitionId);
                 var isUsedForDeclaration = IsCityBoardSlotUsedForDeclaration(slotIndex);
                 var detailTitle = isUsedForDeclaration ? label + "（已使用）" : label;
                 var gameId = currentState?.GameId ?? string.Empty;
@@ -989,14 +1051,15 @@ namespace YC.Presentation
                 if (presentationChanged)
                 {
                     CardArtworkView.Set(binding.Item.RawImage, sprite);
+                    InteractionLatencyTrace.Point("city.card_bound_not_presented", detail: instanceId, value: slotIndex);
                     binding.Item.RawImage.gameObject.SetActive(sprite != null);
                     binding.Item.FallbackText.text = sprite == null ? label : string.Empty;
                     binding.Item.FallbackText.gameObject.SetActive(sprite == null);
                 }
                 if (clickChanged)
                     binding.Slot.PointerInteraction.ConfigureClick(binding.Slot.Button,
-                        () => { if (IsOwnCityDisplayed && !CityBoardInspectionInput.ReturnedThisFrame)
-                            OpenCardImage(binding.DetailTitle, binding.CardSprite); });
+                        () => { if (!CityBoardInspectionInput.ReturnedThisFrame)
+                            OpenCityCellLayers(binding.SlotIndex, binding.DetailTitle, binding.CardSprite); });
             }
 
             UpdateCityBoardSlotHighlights();

@@ -90,7 +90,12 @@ namespace YC.Presentation
             }
         }
 
-        public Sprite GetFacility(string facilityId) => ExternalContentRuntime.GetArtworkSprite("facility", ResolveDefinition(facilityId));
+        public Sprite GetFacility(string facilityId)
+        {
+            var definitionId = ResolveDefinition(facilityId);
+            return ExternalContentRuntime.GetArtworkSprite("facility", definitionId) ??
+                ExternalContentRuntime.GetDeclaredArtworkSprite("facility", definitionId);
+        }
 
         public Sprite GetCityStyle(string cityStyleId) => ExternalContentRuntime.GetArtworkSprite("city_style", ResolveDefinition(cityStyleId));
 

@@ -131,7 +131,14 @@ namespace YC.Presentation
                     RouteSelectionCandidateKind.Location, location))).ToArray();
             var same = InteractionCommandIntent.SameContract(gameId, rendered, currentGame, request);
             if (same && request.StateRevision < rendered.StateRevision) return;
-            if (!same || !Presenter.TryRefreshOpenBinding(session, binding, selectable, out _))
+            var retained = (same || gameId == currentGame && Presenter.IsActive) &&
+                Presenter.TryRefreshOpenBinding(session, binding, selectable, out _);
+            if (!same && retained)
+            {
+                confirmedIntent.Reset(); // 新事实需玩家再次确认，不沿旧意图自动追加费用。
+                if (ownsDialog) { dialog.Hide(); ownsDialog = false; Presenter.CancelRouteEdit(); }
+            }
+            if (!retained)
             {
                 Clear();
                 Presenter.Begin(session, binding, selectable);

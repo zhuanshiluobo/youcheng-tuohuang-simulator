@@ -224,7 +224,7 @@ namespace YC.Presentation
                 SelectedIds = selectedCandidates,
                 Players = PlayerSelectionRequestAdapter.Build(request,getState(),getLocalPlayerId(),selectedCandidates),
                 PlayerSelectionChanged = ids =>
-                { selectedCandidates.Clear(); foreach (var id in ids) selectedCandidates.Add("player:"+id); },
+                { selectedCandidates.Clear(); foreach (var id in PlayerSelectionRequestAdapter.CandidateIds(request,ids)) selectedCandidates.Add(id); },
                 Label = candidateId => FormatCandidateLabel(candidateId, request),
                 OptionNamePrefix = "Option ",
                 IsCurrent = Current,

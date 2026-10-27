@@ -309,8 +309,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = new GameState { GameId = "main_action_preselection.dispatch", MapId = map.MapId, ContentPackHash = "preselection.dispatch",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "preselection.dispatch" },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } };
-            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "player_markers", DefinitionId = "core.component.marker",
-                TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "player_markers" } };
+            var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.component.marker",
+                TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } };
             foreach (var location in map.Locations) recipe.Add(new ItemRecipeEntry { EntryId = "resource_" + location.LocationId,
                 DefinitionId = "core.component.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             var f = new Fixture { State = new ItemZoneStateFactory().CreateForSetup(state, map, recipe), Map = new MapQueryService(map), Registry = new EffectRegistry() };

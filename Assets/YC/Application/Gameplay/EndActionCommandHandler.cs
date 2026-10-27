@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Globalization;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
@@ -16,6 +17,7 @@ namespace YC.Application.Gameplay
         private readonly FinalScoringService finalScoringService;
         private readonly EffectRegistry registry;
         private readonly RoundExecutionService roundExecutionService;
+        private readonly Func<GameState, ValidationResult> advanceFinalScoring;
 
         public EndActionCommandHandler()
             : this(new RoundAdvanceService())
@@ -35,6 +37,11 @@ namespace YC.Application.Gameplay
             this.registry = registry; this.roundExecutionService = roundExecutionService;
         }
 
+        public EndActionCommandHandler(RoundAdvanceService roundAdvanceService, FinalScoringService finalScoringService,
+            EffectRegistry registry, RoundExecutionService roundExecutionService, Func<GameState, ValidationResult> advanceFinalScoring)
+            : this(roundAdvanceService, finalScoringService, registry, roundExecutionService)
+        { this.advanceFinalScoring = advanceFinalScoring ?? throw new ArgumentNullException(nameof(advanceFinalScoring)); }
+
         public bool CanHandle(GameCommand command)
         {
             return command != null && command.Kind == GameCommandKind.EndAction;
@@ -42,6 +49,15 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
+            if (FinalScoringSessionService.IsActiveOwner(state))
+            {
+                if (command?.Kind != GameCommandKind.EndAction || state.FindPlayer(command.PlayerId) == null) return Invalid(CommandErrorCode.InvalidTarget, "final_scoring_command_invalid");
+                if (advanceFinalScoring == null) return Invalid(CommandErrorCode.PendingChoiceRequired, "final_scoring_progress_connector_required");
+                var progress = advanceFinalScoring(state);
+                if (progress == null) return Invalid(CommandErrorCode.UnknownCommand, "final_scoring_progress_result_missing");
+                if (!progress.IsValid) return CommandResult.Invalid(progress);
+                return CommandResult.SuccessResult(new List<GameEvent>(), "终局流程已推进或保持等待。");
+            }
             var phaseValidation = CommandPhasePolicy.ValidatePhase(state, command.Kind);
             if (!phaseValidation.IsValid)
             {

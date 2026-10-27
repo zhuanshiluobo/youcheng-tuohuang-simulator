@@ -1,0 +1,174 @@
+{
+  "version": "1.2",
+  "compatibleWith": [
+    "Settlement-Effects-v1.0",
+    "Settlement-Icons-Extra-v1.1"
+  ],
+  "count": 5,
+  "canvasSize": [
+    24,
+    24
+  ],
+  "displaySize": [
+    22,
+    22
+  ],
+  "strokeWidth": 1.7,
+  "tones": {
+    "dark": "#38372E",
+    "light": "#F0E4C7",
+    "muted": "#A9A392"
+  },
+  "icons": [
+    {
+      "id": "ui-outpost-payout",
+      "label": "据点补给",
+      "source": "第三回合 · 建设据点",
+      "shortSource": "建设据点",
+      "summary": "清理帮派 · 共享资源",
+      "timing": "每收尾阶段一次",
+      "effect": "移除1个资源点上的帮派影响力；你和该资源点上有影响力的对手获得1次该资源点对应的资源。",
+      "visual": "据点轮廓、内部减号、向两侧分发的箭头",
+      "files": {
+        "dark": {
+          "png": "assets/icons-endphase/ui-outpost-payout-dark.png",
+          "png2x": "assets/icons-endphase/ui-outpost-payout-dark@2x.png",
+          "png4x": "assets/icons-endphase/ui-outpost-payout-dark@4x.png",
+          "svg": "assets/icons-endphase/ui-outpost-payout-dark.svg"
+        },
+        "light": {
+          "png": "assets/icons-endphase/ui-outpost-payout-light.png",
+          "png2x": "assets/icons-endphase/ui-outpost-payout-light@2x.png",
+          "png4x": "assets/icons-endphase/ui-outpost-payout-light@4x.png",
+          "svg": "assets/icons-endphase/ui-outpost-payout-light.svg"
+        },
+        "muted": {
+          "png": "assets/icons-endphase/ui-outpost-payout-muted.png",
+          "png2x": "assets/icons-endphase/ui-outpost-payout-muted@2x.png",
+          "png4x": "assets/icons-endphase/ui-outpost-payout-muted@4x.png",
+          "svg": "assets/icons-endphase/ui-outpost-payout-muted.svg"
+        }
+      }
+    },
+    {
+      "id": "ui-marker-redeem",
+      "label": "标记兑换",
+      "source": "第五号企业家",
+      "shortSource": "第五号企业家",
+      "summary": "消耗牌上标记 · 选择收益",
+      "timing": "收尾阶段任意次",
+      "effect": "移除此牌上3个标记；选择放置影响力，或获得1个卡面所示资源。",
+      "visual": "卡牌、三个小标记、向外转出的箭头",
+      "files": {
+        "dark": {
+          "png": "assets/icons-endphase/ui-marker-redeem-dark.png",
+          "png2x": "assets/icons-endphase/ui-marker-redeem-dark@2x.png",
+          "png4x": "assets/icons-endphase/ui-marker-redeem-dark@4x.png",
+          "svg": "assets/icons-endphase/ui-marker-redeem-dark.svg"
+        },
+        "light": {
+          "png": "assets/icons-endphase/ui-marker-redeem-light.png",
+          "png2x": "assets/icons-endphase/ui-marker-redeem-light@2x.png",
+          "png4x": "assets/icons-endphase/ui-marker-redeem-light@4x.png",
+          "svg": "assets/icons-endphase/ui-marker-redeem-light.svg"
+        },
+        "muted": {
+          "png": "assets/icons-endphase/ui-marker-redeem-muted.png",
+          "png2x": "assets/icons-endphase/ui-marker-redeem-muted@2x.png",
+          "png4x": "assets/icons-endphase/ui-marker-redeem-muted@4x.png",
+          "svg": "assets/icons-endphase/ui-marker-redeem-muted.svg"
+        }
+      }
+    },
+    {
+      "id": "ui-fund-invest",
+      "label": "基金投资",
+      "source": "蒂亚戈 · H · 罗德里格斯",
+      "shortSource": "蒂亚戈",
+      "summary": "基金投资 · 选择骰子结果",
+      "timing": "每收尾阶段一次",
+      "effect": "支付4金券；掷2个骰子，获得1声望，选择其中1个骰子并发动点数对应的效果。",
+      "visual": "资金圆点、上升折线与图表坐标",
+      "files": {
+        "dark": {
+          "png": "assets/icons-endphase/ui-fund-invest-dark.png",
+          "png2x": "assets/icons-endphase/ui-fund-invest-dark@2x.png",
+          "png4x": "assets/icons-endphase/ui-fund-invest-dark@4x.png",
+          "svg": "assets/icons-endphase/ui-fund-invest-dark.svg"
+        },
+        "light": {
+          "png": "assets/icons-endphase/ui-fund-invest-light.png",
+          "png2x": "assets/icons-endphase/ui-fund-invest-light@2x.png",
+          "png4x": "assets/icons-endphase/ui-fund-invest-light@4x.png",
+          "svg": "assets/icons-endphase/ui-fund-invest-light.svg"
+        },
+        "muted": {
+          "png": "assets/icons-endphase/ui-fund-invest-muted.png",
+          "png2x": "assets/icons-endphase/ui-fund-invest-muted@2x.png",
+          "png4x": "assets/icons-endphase/ui-fund-invest-muted@4x.png",
+          "svg": "assets/icons-endphase/ui-fund-invest-muted.svg"
+        }
+      }
+    },
+    {
+      "id": "ui-reputation-score",
+      "label": "声望兑分",
+      "source": "第一回合 · 降本增效",
+      "shortSource": "降本增效",
+      "summary": "支付声望 · 获得分数",
+      "timing": "收尾阶段任意次",
+      "effect": "支付3声望，获得1分。",
+      "visual": "声望绶带、星芒、向上转出的箭头",
+      "files": {
+        "dark": {
+          "png": "assets/icons-endphase/ui-reputation-score-dark.png",
+          "png2x": "assets/icons-endphase/ui-reputation-score-dark@2x.png",
+          "png4x": "assets/icons-endphase/ui-reputation-score-dark@4x.png",
+          "svg": "assets/icons-endphase/ui-reputation-score-dark.svg"
+        },
+        "light": {
+          "png": "assets/icons-endphase/ui-reputation-score-light.png",
+          "png2x": "assets/icons-endphase/ui-reputation-score-light@2x.png",
+          "png4x": "assets/icons-endphase/ui-reputation-score-light@4x.png",
+          "svg": "assets/icons-endphase/ui-reputation-score-light.svg"
+        },
+        "muted": {
+          "png": "assets/icons-endphase/ui-reputation-score-muted.png",
+          "png2x": "assets/icons-endphase/ui-reputation-score-muted@2x.png",
+          "png4x": "assets/icons-endphase/ui-reputation-score-muted@4x.png",
+          "svg": "assets/icons-endphase/ui-reputation-score-muted.svg"
+        }
+      }
+    },
+    {
+      "id": "ui-tactical-dispatch",
+      "label": "特勤行动",
+      "source": "第五回合 · 特勤小组",
+      "shortSource": "特勤小组",
+      "summary": "支付指令 · 执行战术",
+      "timing": "每收尾阶段一次",
+      "effect": "支付1指令，执行1项未使用的战术行动。",
+      "visual": "完整盾形轮廓与执行三角",
+      "files": {
+        "dark": {
+          "png": "assets/icons-endphase/ui-tactical-dispatch-dark.png",
+          "png2x": "assets/icons-endphase/ui-tactical-dispatch-dark@2x.png",
+          "png4x": "assets/icons-endphase/ui-tactical-dispatch-dark@4x.png",
+          "svg": "assets/icons-endphase/ui-tactical-dispatch-dark.svg"
+        },
+        "light": {
+          "png": "assets/icons-endphase/ui-tactical-dispatch-light.png",
+          "png2x": "assets/icons-endphase/ui-tactical-dispatch-light@2x.png",
+          "png4x": "assets/icons-endphase/ui-tactical-dispatch-light@4x.png",
+          "svg": "assets/icons-endphase/ui-tactical-dispatch-light.svg"
+        },
+        "muted": {
+          "png": "assets/icons-endphase/ui-tactical-dispatch-muted.png",
+          "png2x": "assets/icons-endphase/ui-tactical-dispatch-muted@2x.png",
+          "png4x": "assets/icons-endphase/ui-tactical-dispatch-muted@4x.png",
+          "svg": "assets/icons-endphase/ui-tactical-dispatch-muted.svg"
+        }
+      }
+    }
+  ]
+}

@@ -41,6 +41,8 @@ namespace YC.Presentation
         [SerializeField] private Text phaseText;
         [SerializeField] private Text redZoneText;
         [SerializeField] private Text redZoneOpenRoundText;
+        [SerializeField] private GameObject roundPlayerOrderGroup;
+        [SerializeField] private InfluenceMarker2DView[] roundPlayerOrderMarkers;
         [SerializeField] private Text turnTagText;
         [SerializeField] private Image[] roundTicks;
         [SerializeField] private Text summaryText;
@@ -195,6 +197,16 @@ namespace YC.Presentation
             Require(nameof(roundNumberText), roundNumberText); Require(nameof(roundTotalText), roundTotalText);
             Require(nameof(phaseText), phaseText); Require(nameof(redZoneText), redZoneText);
             Require(nameof(redZoneOpenRoundText), redZoneOpenRoundText); Require(nameof(turnTagText), turnTagText);
+            Require(nameof(roundPlayerOrderGroup), roundPlayerOrderGroup);
+            RequireArray(nameof(roundPlayerOrderMarkers), roundPlayerOrderMarkers, 4);
+            if (roundPlayerOrderMarkers != null)
+                for (var i = 0; i < roundPlayerOrderMarkers.Length; i++)
+                {
+                    var marker = roundPlayerOrderMarkers[i];
+                    Require(nameof(roundPlayerOrderMarkers) + "[" + i + "]", marker);
+                    if (marker != null && (marker.ShowNumber || !marker.TryValidateConfiguration(out _)))
+                        missing.Add(nameof(roundPlayerOrderMarkers) + "[" + i + "]需要完整的无数字方格引用");
+                }
             RequireArray(nameof(roundTicks), roundTicks, 1, true);
             Require(nameof(summaryText), summaryText); Require(nameof(shortSummaryText), shortSummaryText);
             Require(nameof(summaryDocumentView), summaryDocumentView); Require(nameof(shortSummaryDocumentView), shortSummaryDocumentView);
@@ -321,6 +333,7 @@ namespace YC.Presentation
             string collectionCompletion = null, GameStateView publicState = null)
         {
             BindGameplaySnapshot(publicState);
+            RefreshRoundPlayerOrder(publicState);
             var game = publicState?.GameId ?? state?.GameId;
             var viewer = publicState?.ViewerPlayerId ?? -1;
             if (navigationGameId != game || navigationViewer != viewer)
@@ -743,6 +756,7 @@ namespace YC.Presentation
             if (gameplayTextStyle == null || gameplayIconCatalog == null) throw new InvalidOperationException("玩法文字资产尚未接线。");
             foreach (var view in configuredTextViews) if (view != null) view.ClearBinding();
             configuredTextViews.Clear(); gameplayCatalog = catalog;
+            GameplayIconResourceResolver.UseCatalog(catalog);
             ClearScopedInteractionMessageDocument();
             ClearLegacyInteractionMessageDocument();
             ClearInteractionDocument();
@@ -819,6 +833,24 @@ namespace YC.Presentation
             presentationGeneration++;
         }
 
+        private void RefreshRoundPlayerOrder(GameStateView view)
+        {
+            if (roundPlayerOrderGroup == null || roundPlayerOrderMarkers == null) return;
+            var order = view?.CurrentRoundPlayerOrder;
+            var hasOrder = order != null && order.Count >= 2 && order.Count <= roundPlayerOrderMarkers.Length &&
+                view.Players != null && view.Players.All(player => player != null) &&
+                TurnOrderService.IsValidPlayerOrder(order, view.Players.Select(player => player.PlayerId));
+            for (var i = 0; i < roundPlayerOrderMarkers.Length; i++)
+            {
+                var marker = roundPlayerOrderMarkers[i];
+                if (marker == null) continue;
+                var visible = hasOrder && i < order.Count;
+                marker.gameObject.SetActive(visible);
+                if (visible) marker.RenderPlayer(view.Players.Find(player => player.PlayerId == order[i]).Color, 0);
+            }
+            roundPlayerOrderGroup.SetActive(hasOrder);
+        }
+
         private static Dictionary<string, string> BuildVisibleGameplayDefinitionNames(GameStateView view,
             IReadOnlyDictionary<string, string> knownNames, Func<string, string> resolveVisibleLegacyName)
         {
@@ -838,7 +870,11 @@ namespace YC.Presentation
             return result;
         }
 
-        public GameplayTextDocument ResolveGameplayText(GameplayTextRef text) => text == null || gameplayContext == null ? null : gameplayResolver.Resolve(text, gameplayContext);
+        public GameplayTextDocument ResolveGameplayText(GameplayTextRef text)
+        {
+            using var measurement = UiRegressionMetrics.Measure("text.resolve");
+            return text == null || gameplayContext == null ? null : gameplayResolver.Resolve(text, gameplayContext);
+        }
         private GameplayTextView ConfigureTextView(Component component)
         {
             var view = component as GameplayTextView;
@@ -848,6 +884,7 @@ namespace YC.Presentation
         }
         public void RenderGameplayText(Component component, GameplayTextDocument document, bool singleLine)
         {
+            using var measurement = UiRegressionMetrics.Measure("text.render");
             if (component == null) throw new InvalidOperationException("玩法文案宿主缺失。");
             if (document == null) { ((GameplayTextView)component).ClearBinding(); return; }
             var view = ConfigureTextView(component);
@@ -859,7 +896,7 @@ namespace YC.Presentation
         public Sprite ResolveGameplayIcon(string key, string tone)
         {
             if (gameplayCatalog != null && gameplayCatalog.TryGetIcon(key, out var icon) &&
-                gameplayIconCatalog.TryResolve(icon, tone == "light" ? GameplayIconTone.Light : tone == "muted" ? GameplayIconTone.Muted : GameplayIconTone.Dark, out var sprite)) return sprite;
+                GameplayIconResourceResolver.TryResolve(gameplayCatalog, gameplayIconCatalog, icon, tone == "light" ? GameplayIconTone.Light : tone == "muted" ? GameplayIconTone.Muted : GameplayIconTone.Dark, out var sprite)) return sprite;
             return null;
         }
         private void CaptureSummaryDefaults()

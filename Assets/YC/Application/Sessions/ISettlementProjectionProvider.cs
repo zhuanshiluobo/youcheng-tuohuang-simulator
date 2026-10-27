@@ -7,5 +7,6 @@ namespace YC.Application.Sessions
     public interface ISettlementProjectionProvider
     {
         IReadOnlyList<CharacterSettlementOption> GetSettlementOptions(GameState state, GameStateViewer viewer);
+        IReadOnlyList<YC.Domain.Effects.AbilityActionOption> GetAbilityActions(GameState state, GameStateViewer viewer);
     }
 }

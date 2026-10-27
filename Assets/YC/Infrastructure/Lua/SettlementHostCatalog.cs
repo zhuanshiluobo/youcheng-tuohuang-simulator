@@ -19,6 +19,7 @@ namespace YC.Infrastructure.Lua
         public static SettlementLuaCatalog Register(EffectRegistry registry, ExternalContentPack pack)
         {
             if (registry == null || pack == null) throw new ArgumentNullException();
+            ResourcePaymentSourceService.Register(registry);
             if (Catalogs.TryGetValue(registry, out var existing))
             {
                 if (registry.SettlementCatalogContentHash != pack.ContentHash) throw new InvalidOperationException("settlement_catalog_hash_mismatch");
@@ -43,10 +44,12 @@ namespace YC.Infrastructure.Lua
                 if (window.IsClosed || window.Context.Kind == SettlementEntryService.PlayerCleanup) return;
                 foreach (var item in declared.Where(d => d.Ability.Settlement.EntryKind == SettlementEntryService.OptionalInsertion))
                 {
+                    // 所有付款版本均消费内容声明的真实插入Offer；只读来源查询不替代结算入口。
                     var context = SettlementEntryService.CreateQueryContext(state, window);
-                    var facts = CreateFacts(state, context, null, item.Ability.AbilityId);
+                    var facts = CreateFacts(state, context, null, item.Ability.AbilityId, registry);
                     foreach (var offer in catalog.GetOffers(item.Ability.AbilityId, context, facts))
                     {
+                        if (ResourcePaymentInsertionService.SupersedesLegacyOffer(state, registry, window, offer)) continue;
                         var source = state.ItemZones.Items.Find(i => i.ItemId == offer.SourceItemId && i.DefinitionId == item.Definition.DefinitionId &&
                             i.ControllerSubject.Kind == ItemSubjectKind.Player && i.ControllerSubject.PlayerId == context.PlayerId);
                         var activation = FindActivation(state, offer.SourceItemId, item.Ability.AbilityId, context.PlayerId);
@@ -61,18 +64,32 @@ namespace YC.Infrastructure.Lua
             }, (state, window, entry, forceRefresh) =>
             {
                 var context = SettlementEntryService.CreateQueryContext(state, window);
-                return catalog.QueryAvailability(context, entry, CreateFacts(state, context, entry, entry.AbilityId), forceRefresh);
+                return catalog.QueryAvailability(context, entry, CreateFacts(state, context, entry, entry.AbilityId, registry), forceRefresh,
+                    SourceFactsLuaCatalog.ForSettlement(state, registry, context, entry));
             });
             Catalogs.Add(registry, catalog);
             return catalog;
         }
 
+        public const string EligibilityVersion="cleanup_eligibility.v1.0.0";
+        public static bool CanInjectCleanup(GameState state,EffectRegistry registry,SettlementLuaCatalog catalog,AbilitySourceRef source,RuleEvent trigger)
+        {
+            if(trigger.EventType!="PlayerCleanupStarted" || trigger.PlayerId!=source.AuthorizedPlayerId) throw new InvalidOperationException("cleanup_injection_scope_invalid");
+            var declaration=state.ContentDefinitions.AbilitySources.Single(d=>d.AbilityId==source.AbilityId);
+            if(declaration.Kind!="cleanup" || declaration.RepeatPolicy!="once") throw new InvalidOperationException("cleanup_injection_policy_invalid");
+            var contract=registry.TryGetSettlementSourceContract(source.AbilityId,out var c) ? c : throw new InvalidOperationException("settlement_ability_not_registered");
+            var window=new SettlementWindowContext { Id=StableIdFactory.Create("cleanup-injection",trigger.EventId,source.SourceKey),Kind=SettlementEntryService.PlayerCleanup,
+                TriggerId=trigger.EventId,OwnerEffectId=trigger.OwnerNodeId,PlayerId=source.AuthorizedPlayerId,StateRevision=state.EffectRuntime.StateRevision };
+            var entry=new SettlementEntryRuntimeState { AbilityId=source.AbilityId,SourceItemId=source.ItemId,SourceDefinitionId=source.DefinitionId,
+                EntryKind=SettlementEntryService.CleanupOrder,AvailabilityHandlerId=contract.AvailabilityHandlerId,OptionId=window.Id };
+            return catalog.QueryAvailability(window,entry,CreateFacts(state,window,entry,source.AbilityId,registry),true,SourceFactsLuaCatalog.Create(state,registry,source)).Enabled;
+        }
         public static EffectNodeRuntimeState FindActivation(GameState state, string itemId, string abilityId, int playerId) =>
             state.EffectRuntime.EffectNodes.LastOrDefault(n => n.EffectTypeId == CharacterAbilityEffectExecutor.ActivationEffectTypeId &&
                 n.PlayerId == playerId && Text(n.NormalizedArguments, "abilityId") == abilityId &&
                 Value(n.NormalizedArguments, "cardInstanceId")?.ReferenceId == itemId && n.PendingOutcome == EffectPendingOutcome.Completed);
 
-        private static NormalizedValue CreateFacts(GameState state, SettlementWindowContext window, SettlementEntryRuntimeState entry, string abilityId)
+        private static NormalizedValue CreateFacts(GameState state, SettlementWindowContext window, SettlementEntryRuntimeState entry, string abilityId, EffectRegistry registry)
         {
             var player = state.FindPlayer(window.PlayerId);
             var sources = state.ItemZones.Items.Where(i => i.ControllerSubject.Kind == ItemSubjectKind.Player && i.ControllerSubject.PlayerId == window.PlayerId &&
@@ -100,6 +117,8 @@ namespace YC.Infrastructure.Lua
                 "hasTwoUsableModes", NormalizedValue.CreateBoolean(!use.Finished && use.Modes.Select(m => m.Mode).Distinct().Count() == 2 &&
                     state.CurrentPlayerId == window.PlayerId && !player.CharacterCardLockedThisTurn)) });
             var owner = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == window.OwnerEffectId);
+            if (owner?.Payment?.PaymentProtocolVersion == 2)
+                facts.Properties.Add(new NormalizedValueEntry { Name = "paymentSourceQuery", Value = ResourcePaymentDraftHost.SourceQuery(state, registry, owner) });
             var markers = state.ItemZones.Zones.Select(z => ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, window.PlayerId, z.ZoneId))
                 .Where(z => z != null).Select(z => Object("eligible", NormalizedValue.CreateBoolean(true), "markerCount",
                     NormalizedValue.CreateInteger(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, z, window.PlayerId).Count))).ToList();
@@ -117,10 +136,27 @@ namespace YC.Infrastructure.Lua
         {
             var zones = state.ItemZones.Zones.Where(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == itemId && z.TemplateId == "core.zone.card_cube_storage").ToList();
             var paymentZone = zones.FirstOrDefault(z => ResourcePaymentSubstitutionEffectExecutor.FindEligibleZone(state, window.PlayerId, z.ZoneId) != null);
+            var source = state.ContentDefinitions.AbilitySources.SingleOrDefault(d => d.AbilityId == abilityId);
+            var item = state.ItemZones.Items.Find(i => i.ItemId == itemId);
+            var permissions = source?.AllowedOperations.Where(p => p.StartsWith("carrier.transfer.", StringComparison.Ordinal) && CardMarkerCarrier.ValidPermission(p)).Select(p => p.Split(':'))
+                .Where(p => p[1] == item?.DefinitionId).ToList() ?? new List<string[]>();
+            int declaredPayable = state.ItemZones.Items.Count(i => zones.Any(z => z.ZoneId == i.ZoneId &&
+                CardMarkerCarrier.AcceptsTransfer(state, z, i, window.PlayerId, permissions.Where(p => p[2] == z.LocalZoneId).Select(p => p[3]))));
+            var current = AbilitySourceService.QuerySources(state, state.ContentDefinitions.AbilitySources, window.PlayerId)
+                .SingleOrDefault(s => s.ItemId == itemId && s.AbilityId == abilityId);
+            var transferable = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var permission in permissions)
+            {
+                var zone = CardMarkerCarrier.ResolveWithSource(state, current, window.PlayerId, itemId, permission[2],
+                    permission[0].Substring("carrier.".Length), state.ContentDefinitions.AbilitySources, out var types, out _);
+                if (zone != null) foreach (var token in state.ItemZones.Items.Where(i => i.ZoneId == zone.ZoneId &&
+                    CardMarkerCarrier.AcceptsTransfer(state, zone, i, window.PlayerId, types))) transferable.Add(token.ItemId);
+            }
             return Object("itemId", NormalizedValue.CreateString(itemId), "abilityId", NormalizedValue.CreateString(abilityId),
-                "persistentActive", NormalizedValue.CreateBoolean(active), "markerCount", NormalizedValue.CreateInteger(paymentZone != null
-                    ? ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, paymentZone, window.PlayerId).Count
-                    : state.ItemZones.Items.Count(i => zones.Any(z => z.ZoneId == i.ZoneId) && i.PhysicalKind == ItemPhysicalKind.Cube)),
+                "transferableTokenCount", NormalizedValue.CreateInteger(transferable.Count),
+                "persistentActive", NormalizedValue.CreateBoolean(active), "markerCount", NormalizedValue.CreateInteger(window.Kind == SettlementEntryService.ResourcePayment
+                    ? paymentZone == null ? 0 : ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, paymentZone, window.PlayerId).Count
+                    : permissions.Count > 0 ? declaredPayable : state.ItemZones.Items.Count(i => zones.Any(z => z.ZoneId == i.ZoneId) && i.PhysicalKind == ItemPhysicalKind.Cube)),
                 "storageZoneId", NormalizedValue.CreateString(paymentZone?.ZoneId ?? ""));
         }
         private static NormalizedValue Resources(ResourceSet set) => Object("originium", NormalizedValue.CreateInteger(set.Originium),
