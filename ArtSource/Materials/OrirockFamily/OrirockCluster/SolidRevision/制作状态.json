@@ -1,0 +1,22 @@
+{
+  "stage": "完成",
+  "model": {
+    "name": "固源岩组",
+    "key": "OrirockCluster",
+    "parts": 1,
+    "triangles": 920
+  },
+  "geometry": {
+    "connected_components": 1,
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 5.183868484926691,
+    "triangles": 920
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\正面_完整实体.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\左侧_完整实体.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\右侧_完整实体.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\背面_完整实体.png"
+  }
+}

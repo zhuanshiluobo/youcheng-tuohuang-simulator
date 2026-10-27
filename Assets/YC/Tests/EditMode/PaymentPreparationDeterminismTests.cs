@@ -74,6 +74,9 @@ namespace YC.Tests.EditMode
 
         private static void ReplayOriginalPayment(bool pauseExecution)
         {
+            if (!File.Exists(Path.Combine(OriginalRoot, "结束时正式存档只读备份/auto-2.json")) ||
+                !File.Exists(Path.Combine(OriginalRoot, "四端正常联机/host/四端全局应用回执.jsonl")))
+                Assert.Ignore("未提供 2026-10-19 的历史存档及回执；本用例只重放该历史现场。");
             var envelope = JObject.Parse(File.ReadAllText(Path.Combine(OriginalRoot, "结束时正式存档只读备份/auto-2.json")));
             var save = JsonConvert.DeserializeObject<MatchSaveData>((string)envelope["Payload"]);
             var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);

@@ -1,0 +1,61 @@
+{
+  "scene": "Assets/Scenes/CollectionRoom.unity",
+  "testJobId": "8010d60fc02b408788adca921927e0fe",
+  "tests": {
+    "mode": "PlayMode",
+    "summary": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 9.0582871,
+      "resultState": "Passed"
+    },
+    "results": [
+      {
+        "name": "AxesFollowRotation_AndControlsDoNotCompeteWithDragOrSwitching",
+        "fullName": "YC.Tests.PlayMode.CollectionModelViewPlayModeTests.AxesFollowRotation_AndControlsDoNotCompeteWithDragOrSwitching",
+        "state": "Passed",
+        "durationSeconds": 2.1662618,
+        "message": null,
+        "stackTrace": null,
+        "output": ""
+      },
+      {
+        "name": "SlidersUseFrontViewAngles_ResetRestoresPreset_AndSwitchRefreshesAngles",
+        "fullName": "YC.Tests.PlayMode.CollectionModelViewPlayModeTests.SlidersUseFrontViewAngles_ResetRestoresPreset_AndSwitchRefreshesAngles",
+        "state": "Passed",
+        "durationSeconds": 4.2811121,
+        "message": null,
+        "stackTrace": null,
+        "output": ""
+      },
+      {
+        "name": "WheelCapsZoom_AndTransientHintsFollowHandlesThenFade",
+        "fullName": "YC.Tests.PlayMode.CollectionModelViewPlayModeTests.WheelCapsZoom_AndTransientHintsFollowHandlesThenFade",
+        "state": "Passed",
+        "durationSeconds": 2.5735389,
+        "message": null,
+        "stackTrace": null,
+        "output": ""
+      }
+    ]
+  },
+  "manualVerification": {
+    "rollAxis": "展示区左侧滑块，绕摄像机视线翻转",
+    "wheelHitTarget": "藏品预览区",
+    "wheelZoomMultiplier": 2,
+    "resetRotationErrorDegrees": 0,
+    "resetZoomMultiplier": 1,
+    "finalNormalPlayAndStopConsoleErrors": 0,
+    "finalNormalPlayAndStopConsoleWarnings": 0,
+    "savedSceneReferences": "完整，场景无未保存改动",
+    "testFrameworkCleanup": "清理了已完成测试残留的临时运行对象；随后正常进入、退出均无异常"
+  },
+  "screenshots": [
+    "收藏室_角度交互验收.png",
+    "收藏室_缩放200百分比.png",
+    "收藏室_复位验收.png"
+  ],
+  "visualReview": "左翻转、右竖向、下横向；浮层随手柄显示；XYZ三色箭头可辨认；胶囊和圆形复位按钮符合要求"
+}

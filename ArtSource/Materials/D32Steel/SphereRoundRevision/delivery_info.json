@@ -1,0 +1,39 @@
+{
+  "active_scene": "D32钢_圆形包络返工",
+  "previous_scenes_retained": 43,
+  "total_scenes": 45,
+  "new_model_meshes": 37,
+  "new_white_meshes": 37,
+  "backup": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\D32Steel\\SphereRoundRevision\\BeforeRoundRevision_FormalStages.blend",
+  "formal_fbx": "F:\\游城拓荒模拟器\\Assets\\YC\\Presentation\\Models\\D32Steel\\D32Steel_Finished.fbx",
+  "bounds": {
+    "min": [
+      -1.0,
+      -1.0,
+      -1.0
+    ],
+    "max": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "size": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "front_camera": {
+    "position": [
+      3,
+      -6.2,
+      2.55
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "ortho_scale": 2.38
+  }
+}

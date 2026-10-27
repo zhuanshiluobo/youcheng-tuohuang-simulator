@@ -1,0 +1,906 @@
+{
+  "command": [
+    "git",
+    "-c",
+    "merge.renameLimit=10000",
+    "merge-tree",
+    "--write-tree",
+    "--name-only",
+    "-z",
+    "eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8",
+    "1bc3a5e3b3684659225cb9e255c836e8b6bd4020"
+  ],
+  "exitCode": 1,
+  "tree": "6e24b6730f419613c087d83859d9c22cf44ee65a",
+  "conflictPathCount": 52,
+  "conflictPaths": [
+    ".gitignore",
+    "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs",
+    "Assets/YC/Application/Sessions/GameSession.cs",
+    "Assets/YC/Application/Sessions/MatchSaveData.cs",
+    "Assets/YC/Domain/Commands/GameCommandDto.cs",
+    "Assets/YC/Domain/State/GameStateCloneService.cs",
+    "Assets/YC/Editor/CardPickerCapture.cs",
+    "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs",
+    "Assets/YC/Editor/GameplayHudCapture.cs",
+    "Assets/YC/Editor/SharedUiPreviewCapture.cs",
+    "Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs",
+    "Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs",
+    "Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs",
+    "Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs",
+    "Assets/YC/Infrastructure/Persistence.meta",
+    "Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs",
+    "Assets/YC/Presentation/BuildInfoPanel.cs",
+    "Assets/YC/Presentation/CardVisualCatalog.cs",
+    "Assets/YC/Presentation/CommandSubmissionController.cs",
+    "Assets/YC/Presentation/Content/CardVisualCatalog.asset",
+    "Assets/YC/Presentation/GameLaunchContext.cs",
+    "Assets/YC/Presentation/GameSessionBootstrapper.cs",
+    "Assets/YC/Presentation/GameplayHudFrame.cs",
+    "Assets/YC/Presentation/MatchSaveController.cs",
+    "Assets/YC/Presentation/MatchSaveWindowView.cs",
+    "Assets/YC/Presentation/MobileCityInteractionController.cs",
+    "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+    "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab",
+    "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+    "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab",
+    "Assets/YC/Presentation/StartMenuController.cs",
+    "Assets/YC/Presentation/StartMenuMessagePanelView.cs",
+    "Assets/YC/Presentation/StartMenuRoomPanelView.cs",
+    "Assets/YC/Presentation/Workflows/BuildInteraction.cs",
+    "Assets/YC/Presentation/Workflows/TurnActionPresenter.cs",
+    "Assets/YC/Tests/EditMode/CardPickerDialogTests.cs",
+    "Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs",
+    "Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs",
+    "Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs",
+    "Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs",
+    "Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs",
+    "Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs",
+    "ConfigTables/收藏室配置.xlsx",
+    "README.md",
+    "docs/指南/联机手册.md",
+    "docs/收藏室扩展说明.md",
+    "docs/概览/发布检查清单.md",
+    "docs/模块文档/通用窗口使用说明.md"
+  ],
+  "messages": [
+    {
+      "paths": [
+        ".gitignore"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging .gitignore"
+    },
+    {
+      "paths": [
+        ".gitignore"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in .gitignore"
+    },
+    {
+      "paths": [
+        "Assets/Scenes/StartScene.unity"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/Scenes/StartScene.unity"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Gameplay/UseCharacterCardCommandHandler.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Application/Gameplay/UseCharacterCardCommandHandler.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs"
+      ],
+      "type": "CONFLICT (modify/delete)",
+      "message": "CONFLICT (modify/delete): Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs deleted in 1bc3a5e3b3684659225cb9e255c836e8b6bd4020 and modified in eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8.  Version eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8 of Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs left in tree."
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/GameSession.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Application/Sessions/GameSession.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/GameSession.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Application/Sessions/GameSession.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/MatchSaveData.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Application/Sessions/MatchSaveData.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/MatchSaveData.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Application/Sessions/MatchSaveData.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Application/Sessions/PlayerSeat.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Application/Sessions/PlayerSeat.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/Cards/CharacterAbilityEffectExecutor.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Domain/Cards/CharacterAbilityEffectExecutor.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/Cards/CharacterCardService.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Domain/Cards/CharacterCardService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/Commands/GameCommandDto.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Domain/Commands/GameCommandDto.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/Commands/GameCommandDto.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Domain/Commands/GameCommandDto.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/State/GameStateCloneService.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Domain/State/GameStateCloneService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/State/GameStateCloneService.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Domain/State/GameStateCloneService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Domain/State/GameStateView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Domain/State/GameStateView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/CardPickerCapture.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Editor/CardPickerCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/CardPickerCapture.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Editor/CardPickerCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs"
+      ],
+      "type": "CONFLICT (modify/delete)",
+      "message": "CONFLICT (modify/delete): Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs deleted in eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8 and modified in 1bc3a5e3b3684659225cb9e255c836e8b6bd4020.  Version 1bc3a5e3b3684659225cb9e255c836e8b6bd4020 of Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs left in tree."
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/GameplayHudCapture.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Editor/GameplayHudCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/GameplayHudCapture.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Editor/GameplayHudCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/SharedUiPreviewCapture.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Editor/SharedUiPreviewCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Editor/SharedUiPreviewCapture.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Editor/SharedUiPreviewCapture.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Persistence.meta"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Persistence.meta"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Persistence.meta"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Infrastructure/Persistence.meta"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/BuildInfoPanel.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/BuildInfoPanel.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/BuildInfoPanel.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/BuildInfoPanel.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/CardVisualCatalog.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/CardVisualCatalog.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/CardVisualCatalog.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/CardVisualCatalog.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/CommandSubmissionController.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/CommandSubmissionController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/CommandSubmissionController.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/CommandSubmissionController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Content/CardVisualCatalog.asset"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Content/CardVisualCatalog.asset"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Content/CardVisualCatalog.asset"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Content/CardVisualCatalog.asset"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameLaunchContext.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/GameLaunchContext.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameLaunchContext.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/GameLaunchContext.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameSessionBootstrapper.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/GameSessionBootstrapper.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameSessionBootstrapper.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/GameSessionBootstrapper.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameSettingsMenuController.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/GameSettingsMenuController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameSettingsMenuView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/GameSettingsMenuView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameplayHudFrame.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/GameplayHudFrame.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/GameplayHudFrame.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/GameplayHudFrame.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MatchSaveController.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/MatchSaveController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MatchSaveController.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Presentation/MatchSaveController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MatchSaveWindowView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/MatchSaveWindowView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MatchSaveWindowView.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Presentation/MatchSaveWindowView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MobileCityInteractionController.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/MobileCityInteractionController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/MobileCityInteractionController.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/MobileCityInteractionController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/PlayerJourney/PlayerJourneyRuntime.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/PlayerJourney/PlayerJourneyRuntime.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/FacilityBuildDialog.prefab"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/FacilityBuildDialog.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuController.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/StartMenuController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuController.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/StartMenuController.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuJoinPanelView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/StartMenuJoinPanelView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuMessagePanelView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/StartMenuMessagePanelView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuMessagePanelView.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/StartMenuMessagePanelView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuRoomPanelView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/StartMenuRoomPanelView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuRoomPanelView.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/StartMenuRoomPanelView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/StartMenuView.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/StartMenuView.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Workflows/BuildInteraction.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Workflows/BuildInteraction.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Workflows/BuildInteraction.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Workflows/BuildInteraction.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Workflows/TurnActionPresenter.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Presentation/Workflows/TurnActionPresenter.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Presentation/Workflows/TurnActionPresenter.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Presentation/Workflows/TurnActionPresenter.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/CardPickerDialogTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/EditMode/CardPickerDialogTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/CardPickerDialogTests.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Tests/EditMode/CardPickerDialogTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs"
+      ],
+      "type": "CONFLICT (modify/delete)",
+      "message": "CONFLICT (modify/delete): Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs deleted in 1bc3a5e3b3684659225cb9e255c836e8b6bd4020 and modified in eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8.  Version eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8 of Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs left in tree."
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/EditMode/TurnActionPresenterTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/EditMode/TurnActionPresenterTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs"
+    },
+    {
+      "paths": [
+        "Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs"
+    },
+    {
+      "paths": [
+        "ConfigTables/收藏室配置.xlsx"
+      ],
+      "type": "CONFLICT (binary)",
+      "message": "warning: Cannot merge binary files: ConfigTables/收藏室配置.xlsx (eb34dc192bf43a98cd66dafd9a7d1c5a0b4776a8 vs. 1bc3a5e3b3684659225cb9e255c836e8b6bd4020)"
+    },
+    {
+      "paths": [
+        "ConfigTables/收藏室配置.xlsx"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging ConfigTables/收藏室配置.xlsx"
+    },
+    {
+      "paths": [
+        "ConfigTables/收藏室配置.xlsx"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in ConfigTables/收藏室配置.xlsx"
+    },
+    {
+      "paths": [
+        "README.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging README.md"
+    },
+    {
+      "paths": [
+        "README.md"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in README.md"
+    },
+    {
+      "paths": [
+        "docs/指南/联机手册.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/指南/联机手册.md"
+    },
+    {
+      "paths": [
+        "docs/指南/联机手册.md"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in docs/指南/联机手册.md"
+    },
+    {
+      "paths": [
+        "docs/收藏室扩展说明.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/收藏室扩展说明.md"
+    },
+    {
+      "paths": [
+        "docs/收藏室扩展说明.md"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in docs/收藏室扩展说明.md"
+    },
+    {
+      "paths": [
+        "docs/架构/程序模块设计.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/架构/程序模块设计.md"
+    },
+    {
+      "paths": [
+        "docs/概览/发布检查清单.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/概览/发布检查清单.md"
+    },
+    {
+      "paths": [
+        "docs/概览/发布检查清单.md"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (content): Merge conflict in docs/概览/发布检查清单.md"
+    },
+    {
+      "paths": [
+        "docs/概览/核心技术栈与模块实现解读.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/概览/核心技术栈与模块实现解读.md"
+    },
+    {
+      "paths": [
+        "docs/概览/项目总览.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/概览/项目总览.md"
+    },
+    {
+      "paths": [
+        "docs/模块文档/通用窗口使用说明.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/模块文档/通用窗口使用说明.md"
+    },
+    {
+      "paths": [
+        "docs/模块文档/通用窗口使用说明.md"
+      ],
+      "type": "CONFLICT (contents)",
+      "message": "CONFLICT (add/add): Merge conflict in docs/模块文档/通用窗口使用说明.md"
+    },
+    {
+      "paths": [
+        "docs/设计/Lua新架构迁移结案.md"
+      ],
+      "type": "Auto-merging",
+      "message": "Auto-merging docs/设计/Lua新架构迁移结案.md"
+    }
+  ],
+  "stderr": ""
+}

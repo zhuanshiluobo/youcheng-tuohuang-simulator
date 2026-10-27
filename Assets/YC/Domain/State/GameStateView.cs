@@ -1346,6 +1346,8 @@ namespace YC.Domain.State
                 if (source == null || !GameStateVisibilityPolicy.IsVisible(source.Visibility, source.PlayerId, viewer)) continue;
                 destination.Add(new RuleEventView
                 {
+                    // 按当前观察者的可见历史编号，避免暴露隐藏事件的数量。
+                    Sequence = destination.Count + 1,
                     EventId = source.EventId ?? string.Empty,
                     EventType = source.EventType ?? string.Empty,
                     TargetEntityId = source.TargetEntityId ?? string.Empty,

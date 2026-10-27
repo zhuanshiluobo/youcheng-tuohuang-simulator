@@ -1,0 +1,207 @@
+{
+  "stage": "已撤销：把方块本体误解为缺口必须规则方形或长槽",
+  "scene": "固源岩组_标准方块_方口凹槽",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.2224276788225166,
+    "triangles": 292,
+    "floor_z": -0.8809438943862915,
+    "model_zmin": -0.8809438943862915
+  },
+  "body_checks": [
+    {
+      "block": 0,
+      "equal_edge_error": 1.2724032238953242e-07,
+      "orthogonality_error": 2.0696906638528745e-07,
+      "original_corner_max_distance": 5.428579472948791e-08
+    },
+    {
+      "block": 1,
+      "equal_edge_error": 1.227529484726375e-07,
+      "orthogonality_error": 1.1196648389000252e-07,
+      "original_corner_max_distance": 3.9650534277284824e-08
+    },
+    {
+      "block": 2,
+      "equal_edge_error": 3.428051792431219e-08,
+      "orthogonality_error": 1.1195224031146367e-07,
+      "original_corner_max_distance": 1.2215246030014025e-08
+    },
+    {
+      "block": 3,
+      "equal_edge_error": 3.216250982207569e-08,
+      "orthogonality_error": 1.6056001822528643e-07,
+      "original_corner_max_distance": 2.4632582828213422e-08
+    },
+    {
+      "block": 4,
+      "equal_edge_error": 3.718750185566222e-08,
+      "orthogonality_error": 3.895011965737716e-08,
+      "original_corner_max_distance": 6.342163216848801e-08
+    },
+    {
+      "block": 5,
+      "equal_edge_error": 1.0316409304600427e-07,
+      "orthogonality_error": 1.2054923276272334e-07,
+      "original_corner_max_distance": 0.0
+    },
+    {
+      "block": 6,
+      "equal_edge_error": 1.1885976269887522e-07,
+      "orthogonality_error": 1.802703208653167e-07,
+      "original_corner_max_distance": 0.0
+    }
+  ],
+  "notches": [
+    {
+      "block": 0,
+      "label": "顶部赭皮_靠浅面长方口槽",
+      "local_low": [
+        0.67,
+        0.055,
+        -0.065
+      ],
+      "local_high": [
+        1.035,
+        0.125,
+        0.055
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 0,
+      "label": "顶部赭皮_左侧较短方口槽",
+      "local_low": [
+        0.81,
+        0.27,
+        -0.06
+      ],
+      "local_high": [
+        1.035,
+        0.345,
+        0.039
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 0,
+      "label": "顶部灰面左棱_矩形小台阶",
+      "local_low": [
+        0.855,
+        0.945,
+        -0.05
+      ],
+      "local_high": [
+        0.925,
+        1.04,
+        0.04
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 1,
+      "label": "左块灰面上缘_直角阶梯口",
+      "local_low": [
+        0.26,
+        -0.045,
+        -0.045
+      ],
+      "local_high": [
+        0.37,
+        0.04,
+        0.04
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 1,
+      "label": "左块灰浅交界_矩形凹口",
+      "local_low": [
+        -0.04,
+        0.32,
+        -0.04
+      ],
+      "local_high": [
+        0.042,
+        0.415,
+        0.042
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 4,
+      "label": "右后褐浅交界_下段矩形阶梯",
+      "local_low": [
+        -0.04,
+        -0.04,
+        0.17
+      ],
+      "local_high": [
+        0.045,
+        0.045,
+        0.25
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 4,
+      "label": "右后褐浅交界_上段矩形阶梯",
+      "local_low": [
+        -0.033,
+        -0.033,
+        0.39
+      ],
+      "local_high": [
+        0.038,
+        0.038,
+        0.455
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    },
+    {
+      "block": 3,
+      "label": "右前浅顶外缘_矩形小缺口",
+      "local_low": [
+        -0.035,
+        -0.035,
+        0.5
+      ],
+      "local_high": [
+        0.04,
+        0.04,
+        0.595
+      ],
+      "real_geometry_changed": true,
+      "shape": "方口、平槽壁、平槽底",
+      "preserved_cube_corners": true
+    }
+  ],
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SquareNotchRevision\\方口_整体正面.png",
+    "顶部": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SquareNotchRevision\\方口_顶部近看.png",
+    "顶部侧看": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SquareNotchRevision\\方口_顶部侧看.png"
+  },
+  "removed_wrong_wedge_chips": true,
+  "materials_unchanged": true,
+  "poses_unchanged": true,
+  "posterior_cubes_unchanged": true,
+  "unity_imported": false,
+  "other_work_stopped_by_user": true,
+  "withdrawn": true,
+  "approved_for_import": false
+}

@@ -1,0 +1,18 @@
+{
+  "stage": "块面比例与全侧石质已修订，待正面对照",
+  "scene": "固源岩组_正面比例与石质全侧修订",
+  "geometry": {
+    "boundary_edges": 0,
+    "volume": 2.224026063744549,
+    "triangles": 164,
+    "floor_z": -0.8809438943862915,
+    "model_zmin": -0.8809438943862915
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SurfaceMatchRevision\\石质_正面.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SurfaceMatchRevision\\石质_背面.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SurfaceMatchRevision\\石质_左侧.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SurfaceMatchRevision\\石质_右侧.png"
+  },
+  "unity_imported": false
+}

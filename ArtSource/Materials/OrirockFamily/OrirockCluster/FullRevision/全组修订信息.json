@@ -1,0 +1,20 @@
+{
+  "key": "OrirockClusterFull",
+  "item_id": "04",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 1.8338154401354376,
+    "triangles": 138
+  },
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\OrirockClusterFull_Finished.fbx",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\OrirockClusterFull_Finished.blend",
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\正面_全组修订.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\左侧_全组修订.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\右侧_全组修订.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FullRevision\\背面_全组修订.png"
+  },
+  "front_status": "待实图对照及收藏室观察",
+  "limitations": "背侧由单张图标推定，非官方背面参考。"
+}

@@ -1,0 +1,183 @@
+{
+  "materials": {
+    "PolymerizationPreparation_容器深灰": {
+      "color": [
+        0.24,
+        0.295,
+        0.32,
+        1
+      ],
+      "metallic": 0.45,
+      "smoothness": 0.52,
+      "transparent": false
+    },
+    "PolymerizationPreparation_凹槽黑": {
+      "color": [
+        0.055,
+        0.085,
+        0.09,
+        1
+      ],
+      "metallic": 0.25,
+      "smoothness": 0.39,
+      "transparent": false
+    },
+    "PolymerizationPreparation_金属银边": {
+      "color": [
+        0.65,
+        0.74,
+        0.77,
+        1
+      ],
+      "metallic": 0.78,
+      "smoothness": 0.75,
+      "transparent": false
+    },
+    "PolymerizationPreparation_青色聚合层板": {
+      "color": [
+        0.018,
+        0.48,
+        0.54,
+        1
+      ],
+      "metallic": 0.08,
+      "smoothness": 0.58,
+      "transparent": false
+    },
+    "PolymerizationPreparation_层板亮边": {
+      "color": [
+        0.06,
+        0.69,
+        0.74,
+        1
+      ],
+      "metallic": 0.04,
+      "smoothness": 0.63,
+      "transparent": false,
+      "emission": [
+        0.005,
+        0.04,
+        0.05
+      ]
+    },
+    "PolymerizationPreparation_青蓝透光盖板": {
+      "color": [
+        0.11,
+        0.49,
+        0.54,
+        0.32
+      ],
+      "metallic": 0.02,
+      "smoothness": 0.75,
+      "transparent": true
+    },
+    "PolymerizationPreparation_黄绿标签": {
+      "color": [
+        0.45,
+        0.79,
+        0.04,
+        1
+      ],
+      "metallic": 0,
+      "smoothness": 0.48,
+      "transparent": false
+    },
+    "PolymerizationPreparation_标签深色印记": {
+      "color": [
+        0.045,
+        0.16,
+        0.09,
+        1
+      ],
+      "metallic": 0.0,
+      "smoothness": 0.38,
+      "transparent": false
+    },
+    "PolymerizationPreparation_锁扣黄铜": {
+      "color": [
+        0.79,
+        0.56,
+        0.17,
+        1
+      ],
+      "metallic": 0.72,
+      "smoothness": 0.63,
+      "transparent": false
+    },
+    "PolymerizationPreparation_青灰托盘内衬": {
+      "color": [
+        0.16,
+        0.29,
+        0.31,
+        1
+      ],
+      "metallic": 0.42,
+      "smoothness": 0.61,
+      "transparent": false
+    }
+  },
+  "model": "PolymerizationPreparation",
+  "bounds": {
+    "min": [
+      -1.0,
+      -0.8355029821395874,
+      -0.6688467264175415
+    ],
+    "max": [
+      1.0,
+      0.8355029821395874,
+      0.6663570404052734
+    ],
+    "size": [
+      2.0,
+      1.6710059642791748,
+      1.335203766822815
+    ],
+    "center": [
+      0.0,
+      0.0,
+      -0.0012448430061340332
+    ]
+  },
+  "reference": "用户附图聚合剂；三根管剂与浅托盘。无稀有度圆环；背面、底面、夹具为单视图推定",
+  "meshCount": 122,
+  "units": "m",
+  "sourceAxes": "Z up, front -Y",
+  "previewReferenceCamera": {
+    "location": [
+      2.0,
+      -4.2,
+      4.0
+    ],
+    "target": [
+      0.0,
+      0.0,
+      -0.05999999865889549
+    ],
+    "orthographicScale": 2.75
+  },
+  "independentRevision": "每模型独立子代理制作：三根透明聚合剂管；参考角校准后管实体左倾与俯视角；最终盒体侧壁与底深增加 50%，标签随之增高加宽",
+  "referenceAngleMatch": {
+    "azimuthDegrees": 25.463345,
+    "elevationDegrees": 41.1179,
+    "rearTubeTopSource": [
+      0.12,
+      0.46,
+      0.77
+    ],
+    "rearTubeBottomSource": [
+      0.49,
+      0.32,
+      0.035
+    ],
+    "frontLabelWidthSource": 1.1
+  },
+  "finalDepthAdjustment": {
+    "previousWallHeight": 0.2,
+    "wallHeight": 0.3,
+    "bottomLowering": 0.1,
+    "frontLabelHeight": 0.225
+  },
+  "referenceRefinement": "仅六个独立夹子固定在盒内底部，每根管两个；没有连接长杆、轨道或框架。管体姿态及恢复后的原始配色保持不变。",
+  "editableSource": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\PolymerizationPreparation\\FloorHolderRevision\\PolymerizationPreparation_SixClips.blend"
+}

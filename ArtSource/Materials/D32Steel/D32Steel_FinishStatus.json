@@ -1,0 +1,17 @@
+{
+  "stage": "已完成本轮收藏室实际视觉复查",
+  "mesh_parts": 37,
+  "triangles": 104304,
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\D32Steel\\D32Steel_Finished.blend",
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\D32Steel\\D32Steel_Finished.fbx",
+  "shape": "同半径球面大圆钢带形成球形包络，各轴中心密、外缘疏",
+  "retained_scenes": 45,
+  "active_scene": "D32钢_圆形包络返工",
+  "review": "根代理已查看收藏室0、25、90、180度：圆形球包络、中心密外围疏，转动可见不同交叠；复位误差0，无缺失材质。",
+  "screenshots": [
+    "F:/游城拓荒模拟器/ArtSource/Materials/CollectionRoomReview/FinalRevision/06_D32钢_正面.png",
+    "F:/游城拓荒模拟器/ArtSource/Materials/CollectionRoomReview/FinalRevision/06_D32钢_旋转25度.png",
+    "F:/游城拓荒模拟器/ArtSource/Materials/CollectionRoomReview/FinalRevision/06_D32钢_侧面.png",
+    "F:/游城拓荒模拟器/ArtSource/Materials/CollectionRoomReview/FinalRevision/06_D32钢_背面.png"
+  ]
+}

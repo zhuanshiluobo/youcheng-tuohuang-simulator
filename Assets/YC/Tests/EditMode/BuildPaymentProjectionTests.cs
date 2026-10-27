@@ -97,6 +97,27 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void CancelBuildPreparationPreservesResourcesAndActionBudget()
+        {
+            var f = new Fixture(); var port = new Port(f);
+            var workflow = new BuildInteraction(f, port, new View(), new InteractionFlowCoordinator(), () => true, _ => { });
+            workflow.GetVisibleState = () => f.Visible;
+            var beforeResources = UnityEngine.JsonUtility.ToJson(f.State.FindPlayer(1).Resources);
+            var beforeBudget = f.State.FindPlayer(1).RemainingMainActionsThisTurn;
+            workflow.Begin(); workflow.SelectFacility(f.Item.ItemId);
+            Assert.That(f.Visible.PreparedActionPayments, Has.Count.EqualTo(1));
+            var continued = false;
+            Assert.That(workflow.TryCancelPreparedPayment(() => continued = true), Is.True);
+            Assert.That(continued, Is.True);
+            Assert.That(workflow.IsActive, Is.False);
+            Assert.That(f.Visible.PreparedActionPayments, Is.Empty);
+            Assert.That(port.Results.All(result => result.Succeeded), Is.True);
+            Assert.That(port.Commands.Any(command => command.Kind == GameCommandKind.BuildFacility), Is.False);
+            Assert.That(UnityEngine.JsonUtility.ToJson(f.State.FindPlayer(1).Resources), Is.EqualTo(beforeResources));
+            Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(beforeBudget));
+        }
+
+        [Test]
         public void GoldQuoteCannotTurnResourcePreparationIntoFinalGoldCommand()
         {
             var f = new Fixture(); f.Prepare("resources");

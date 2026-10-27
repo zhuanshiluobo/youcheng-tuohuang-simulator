@@ -1,0 +1,146 @@
+{
+  "active_scene": "D32钢_白模",
+  "blend_path": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\D32Steel\\D32Steel_Blockout.blend",
+  "parts": [
+    {
+      "name": "主片_01_斜向尖带",
+      "vertices": 1100,
+      "triangles": 2196,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "主片_02_交叉翻卷",
+      "vertices": 1100,
+      "triangles": 2196,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "内带_01_正面斜片",
+      "vertices": 1388,
+      "triangles": 2772,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "内带_02_右侧折片",
+      "vertices": 1388,
+      "triangles": 2772,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "内带_03_中间竖片",
+      "vertices": 1388,
+      "triangles": 2772,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "内带_04_背面弧片",
+      "vertices": 1388,
+      "triangles": 2772,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "外环_01_主轮廓",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "外环_02_倾斜轮廓",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "外环_03_横向薄带",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_01_纵向折转",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_02_横向翻卷",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_03_侧向内弯",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_04_后侧层叠",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_05_下方回环",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "宽带_06_顶部弧片",
+      "vertices": 1772,
+      "triangles": 3540,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_01",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_02",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_03",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_04",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_05",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    },
+    {
+      "name": "细环_06",
+      "vertices": 1728,
+      "triangles": 3456,
+      "non_manifold_edges": 0
+    }
+  ],
+  "mesh_parts": 21,
+  "triangles": 67824,
+  "non_manifold_edges": 0,
+  "bounds_min": [
+    -1.054234504699707,
+    -1.0340754985809326,
+    -1.0560264587402344
+  ],
+  "bounds_max": [
+    1.0377233028411865,
+    1.059039831161499,
+    1.073551058769226
+  ],
+  "finite_coordinates": true
+}

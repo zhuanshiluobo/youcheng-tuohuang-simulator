@@ -1,0 +1,100 @@
+{
+  "model": "D32Steel",
+  "materials": {
+    "D32Steel_Sphere_亮冷银": {
+      "color": [
+        0.7176470588235294,
+        0.8156862745098039,
+        0.8392156862745098,
+        1
+      ],
+      "metallic": 0.6,
+      "smoothness": 0.6599999999999999,
+      "transparent": false
+    },
+    "D32Steel_Sphere_青银钢": {
+      "color": [
+        0.5254901960784314,
+        0.6666666666666666,
+        0.7176470588235294,
+        1
+      ],
+      "metallic": 0.64,
+      "smoothness": 0.61,
+      "transparent": false
+    },
+    "D32Steel_Sphere_冷蓝钢": {
+      "color": [
+        0.34509803921568627,
+        0.5607843137254902,
+        0.6549019607843137,
+        1
+      ],
+      "metallic": 0.58,
+      "smoothness": 0.62,
+      "transparent": false
+    },
+    "D32Steel_Sphere_背侧冷银": {
+      "color": [
+        0.44313725490196076,
+        0.5843137254901961,
+        0.6588235294117647,
+        1
+      ],
+      "metallic": 0.58,
+      "smoothness": 0.5700000000000001,
+      "transparent": false
+    },
+    "D32Steel_Sphere_窄银边": {
+      "color": [
+        0.7450980392156863,
+        0.8352941176470589,
+        0.8588235294117647,
+        1
+      ],
+      "metallic": 0.67,
+      "smoothness": 0.71,
+      "transparent": false
+    }
+  },
+  "bounds": {
+    "min": [
+      -1.0,
+      -1.0,
+      -1.0
+    ],
+    "max": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "size": [
+      2.0,
+      2.0,
+      2.0
+    ]
+  },
+  "mesh_count": 37,
+  "triangles": 104304,
+  "front_camera": {
+    "position": [
+      3,
+      -6.2,
+      2.55
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "ortho_scale": 2.38
+  },
+  "axes": {
+    "source_up": "Z",
+    "source_front": "-Y",
+    "fbx_forward": "-Z",
+    "fbx_up": "Y"
+  },
+  "structure": "6个球心内卷片、12个密集内层宽带、6个各向核心折转尖片、4个疏外层连接带、9个同半径球面大圆窄带；密度随半径降低。",
+  "limits": "根据原单视图推定球形内层交叠与背侧；不含稀有度金圈，不声称官方背面。"
+}

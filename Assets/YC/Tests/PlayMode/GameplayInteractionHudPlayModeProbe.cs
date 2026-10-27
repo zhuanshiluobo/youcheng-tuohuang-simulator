@@ -316,37 +316,18 @@ namespace YC.Tests.PlayMode
                 throw new InvalidOperationException("SampleScene CardVisualCatalog 无效：" + reason);
             }
 
-            var facilityIds = new List<string>(FacilityCardDatabase.DefaultSupplyIds);
-            facilityIds.AddRange(FacilityCardDatabase.ReserveIds);
-            if (facilityIds.Count != CardVisualCatalog.ExpectedFacilityCount)
+            foreach (var definition in ExternalContentRuntime.Pack.ActiveDefinitions)
             {
-                throw new InvalidOperationException("设施卡查询集合数量异常：" + facilityIds.Count);
-            }
-
-            for (var i = 0; i < facilityIds.Count; i++)
-            {
-                RequireSprite(catalog.GetFacility(facilityIds[i]), "设施卡 " + facilityIds[i]);
-            }
-
-            for (var i = 0; i < CityStyleDatabase.DefaultSupplyIds.Count; i++)
-            {
-                var id = CityStyleDatabase.DefaultSupplyIds[i];
-                RequireSprite(catalog.GetCityStyle(id), "城市样式卡 " + id);
-            }
-
-            var characterTemplateIds = new[]
-            {
-                CharacterCardDatabase.Liskarm,
-                CharacterCardDatabase.Elysium,
-                CharacterCardDatabase.Texas,
-                CharacterCardDatabase.Cannot,
-                CharacterCardDatabase.TinMan
-            };
-            for (var i = 0; i < characterTemplateIds.Length; i++)
-            {
-                RequireSprite(
-                    catalog.GetCharacterFront(characterTemplateIds[i]),
-                    "角色卡正面 " + characterTemplateIds[i]);
+                Sprite sprite;
+                switch (definition.ContentType)
+                {
+                    case "facility": sprite = catalog.GetFacility(definition.RuntimeId); break;
+                    case "city_style": sprite = catalog.GetCityStyle(definition.RuntimeId); break;
+                    case "character": sprite = catalog.GetCharacterFront(definition.RuntimeId); break;
+                    case "event": sprite = catalog.GetEvent(definition.RuntimeId); break;
+                    default: continue;
+                }
+                RequireSprite(sprite, definition.RuntimeId);
             }
 
             var playerColors = new[]

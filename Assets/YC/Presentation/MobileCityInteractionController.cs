@@ -375,12 +375,14 @@ namespace YC.Presentation
         private void Update()
         {
             PulseInteractionTrace();
-            if (UpdateEffectMapConfirmationCancellation()) return;
             workflowView?.RefreshCityStylePreview();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
                 (mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation) ||
                 (interactionRouter != null && interactionRouter.HasPendingMapConfirmation));
             buildFacilityInteraction?.Synchronize();
+            // 存档窗口只拦截局内输入；关闭当帧仍由窗口消费，状态和付款同步继续。
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return;
+            if (UpdateEffectMapConfirmationCancellation()) return;
             if (Input.GetKeyDown(KeyCode.Escape) && TryHandleInteractionEscape())
             {
                 return;
@@ -634,6 +636,7 @@ namespace YC.Presentation
 
         public bool TryHandleInteractionEscape()
         {
+            if (MatchSaveWindowView.IsAnyOpen || MatchSaveWindowView.WasClosedThisFrame) return false;
             if (CardViewer.HasOpenViewer() || CardViewer.WasEscapeConsumedThisFrame()) return false;
             if (interactionEscapeConsumedFrame == Time.frameCount)
             {

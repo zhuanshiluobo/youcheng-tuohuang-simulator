@@ -28,7 +28,6 @@ namespace YC.Presentation
         [SerializeField] private Button cancelReturnButton;
 
         [SerializeField] private Button saveGameButton;
-        public Button SaveGameButton => saveGameButton;
 
         [Header("General")]
         [SerializeField] private Dropdown resolutionDropdown;
@@ -50,6 +49,7 @@ namespace YC.Presentation
         public Button RulebookButton => rulebookButton;
         public Button PlaceholderTabButton => placeholderTabButton;
         public Button ReturnButton => returnButton;
+        public Button SaveGameButton => saveGameButton;
         public Button ConfirmReturnButton => confirmReturnButton;
         public Button CancelReturnButton => cancelReturnButton;
         public Dropdown ResolutionDropdown => resolutionDropdown;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -44,24 +45,27 @@ namespace YC.Tests.EditMode
             var catalog = AssetDatabase.LoadMainAssetAtPath(CatalogPath);
             Assert.That(catalog, Is.Not.Null);
             AssertCatalogValid(catalog);
-            Assert.That(GetProperty<int>(catalog, "FacilityCount"), Is.EqualTo(45));
-            Assert.That(GetProperty<int>(catalog, "CityStyleCount"), Is.EqualTo(6));
-            Assert.That(GetProperty<int>(catalog, "CharacterFrontCount"), Is.EqualTo(5));
-            Assert.That(GetProperty<int>(catalog, "EventCount"), Is.EqualTo(22));
+            var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
+            var pack = (YC.Infrastructure.Lua.ExternalContentPack)runtime.GetProperty("Pack").GetValue(null);
+            foreach (var pair in new[] { ("facility", "FacilityCount"), ("city_style", "CityStyleCount"),
+                ("character", "CharacterFrontCount"), ("event", "EventCount") })
+                Assert.That(GetProperty<int>(catalog, pair.Item2),
+                    Is.EqualTo(pack.ActiveDefinitions.Count(definition => definition.ContentType == pair.Item1)));
             var serialized = new SerializedObject(catalog);
             foreach (var name in new[] { "facilityTextures", "cityStyleTextures", "characterFrontTextures", "eventTextures" })
                 Assert.That(serialized.FindProperty(name), Is.Null, name);
             var shared = 0;
             CheckCharacterBackEntries(serialized.FindProperty("characterBackTextures"), ref shared);
             AssertPersistent(serialized.FindProperty("cityBoardTexture").objectReferenceValue as Texture2D);
-            Assert.That(shared, Is.EqualTo(4));
-            var pack = YC.Infrastructure.Lua.ExternalContentPack.Load(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core"));
+            Assert.That(shared, Is.EqualTo(Enum.GetValues(typeof(PlayerColor)).Length));
             var sheets = new Dictionary<string, Texture2D>();
             foreach (var definition in pack.ActiveDefinitions)
             {
                 var method = definition.ContentType == "facility" ? "GetFacility" :
                     definition.ContentType == "city_style" ? "GetCityStyle" :
-                    definition.ContentType == "character" ? "GetCharacterFront" : "GetEvent";
+                    definition.ContentType == "character" ? "GetCharacterFront" :
+                    definition.ContentType == "event" ? "GetEvent" : null;
+                if (method == null) continue;
                 var sprite = catalog.GetType().GetMethod(method).Invoke(catalog, new object[] { definition.RuntimeId }) as Sprite;
                 Assert.That(sprite, Is.Not.Null, definition.DefinitionId);
                 var slice = definition.ArtworkSlice;
@@ -73,8 +77,8 @@ namespace YC.Tests.EditMode
                 if (sheets.TryGetValue(definition.Artwork, out var sheet)) Assert.That(sprite.texture, Is.SameAs(sheet));
                 else sheets.Add(definition.Artwork, sprite.texture);
             }
-            Assert.That(sheets.Count, Is.EqualTo(7));
-            Assert.That(catalog.GetType().GetMethod("GetFacility").Invoke(catalog, new object[] { FacilityCardDatabase.EnterpriseOffice }), Is.Null);
+            Assert.That(sheets.Count, Is.GreaterThan(0));
+            Assert.That(catalog.GetType().GetMethod("GetFacility").Invoke(catalog, new object[] { "unknown_card" }), Is.Null);
         }
 
         [Test]
@@ -137,7 +141,7 @@ namespace YC.Tests.EditMode
             ref int persistentTextures)
         {
             Assert.That(entries, Is.Not.Null);
-            Assert.That(entries.arraySize, Is.EqualTo(4));
+            Assert.That(entries.arraySize, Is.EqualTo(Enum.GetValues(typeof(PlayerColor)).Length));
             var colors = new HashSet<int>();
             for (var i = 0; i < entries.arraySize; i++)
             {

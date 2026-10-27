@@ -1804,7 +1804,6 @@ namespace YC.Presentation.Validation
                 }
             }
             yield return Press(settings.ReturnButton, "原返回主菜单按钮");
-            yield return Press(settings.ConfirmReturnButton, "原返回菜单确认");
             yield return PerformanceWait(() => FindObjectOfType<StartMenuView>() != null && !SceneTransitionContext.IsTransitionInProgress, "正常主菜单返回完成");
             PerformanceRecord("exit.normal_menu");
             PerformanceMemoryPulse("memory.menu_entered");

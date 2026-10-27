@@ -2,6 +2,7 @@
   "name": "YC.Tests.PlayMode",
   "rootNamespace": "YC.Tests.PlayMode",
   "references": [
+    "YC.Application",
     "YC.Domain",
     "UnityEngine.TestRunner"
   ],

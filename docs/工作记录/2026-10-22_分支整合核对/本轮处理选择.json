@@ -1,0 +1,146 @@
+{
+  "sourceTxym": "1bc3a5e3b3684659225cb9e255c836e8b6bd4020",
+  "integrationBefore": "0b8775675ec4f1ca4f14462f7e04c8d4ee36306d",
+  "groups": [
+    {
+      "function": "联机链路与房间入口",
+      "choice": "txym",
+      "paths": [
+        "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs",
+        "Assets/YC/Application/Sessions/GameSession.cs",
+        "Assets/YC/Domain/Commands/GameCommandDto.cs",
+        "Assets/YC/Domain/State/GameStateCloneService.cs",
+        "Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs",
+        "Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs",
+        "Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs",
+        "Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs",
+        "Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs",
+        "Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs",
+        "Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs",
+        "Assets/YC/Presentation/CommandSubmissionController.cs",
+        "Assets/YC/Presentation/GameLaunchContext.cs",
+        "Assets/YC/Presentation/GameSessionBootstrapper.cs",
+        "Assets/YC/Presentation/StartMenuController.cs",
+        "Assets/YC/Presentation/StartMenuMessagePanelView.cs",
+        "Assets/YC/Presentation/StartMenuRoomPanelView.cs",
+        "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab"
+      ]
+    },
+    {
+      "function": "存档",
+      "choice": "txym",
+      "paths": [
+        "Assets/YC/Application/Sessions/MatchSaveData.cs",
+        "Assets/YC/Infrastructure/Persistence.meta",
+        "Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs",
+        "Assets/YC/Presentation/MatchSaveController.cs",
+        "Assets/YC/Presentation/MatchSaveWindowView.cs",
+        "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab"
+      ]
+    },
+    {
+      "function": "卡图与编辑器工具",
+      "choice": "txym",
+      "paths": [
+        "Assets/YC/Presentation/CardVisualCatalog.cs",
+        "Assets/YC/Presentation/Content/CardVisualCatalog.asset",
+        "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs",
+        "Assets/YC/Editor/CardPickerCapture.cs",
+        "Assets/YC/Editor/GameplayHudCapture.cs",
+        "Assets/YC/Editor/SharedUiPreviewCapture.cs"
+      ]
+    },
+    {
+      "function": "收藏室配置",
+      "choice": "main",
+      "paths": [
+        "ConfigTables/收藏室配置.xlsx"
+      ]
+    },
+    {
+      "function": "文档与忽略规则",
+      "choice": "人工合并",
+      "paths": [
+        ".gitignore",
+        "README.md",
+        "docs/指南/联机手册.md",
+        "docs/收藏室扩展说明.md",
+        "docs/概览/发布检查清单.md",
+        "docs/模块文档/通用窗口使用说明.md"
+      ]
+    },
+    {
+      "function": "建设与局内交互",
+      "choice": "暂不修改",
+      "paths": [
+        "Assets/YC/Infrastructure/Lua/FacilityLuaCatalog.cs",
+        "Assets/YC/Presentation/BuildInfoPanel.cs",
+        "Assets/YC/Presentation/MobileCityInteractionController.cs",
+        "Assets/YC/Presentation/Workflows/BuildInteraction.cs",
+        "Assets/YC/Presentation/Workflows/TurnActionPresenter.cs",
+        "Assets/YC/Presentation/Prefabs/Gameplay/BuildInfoPanel.prefab",
+        "Assets/YC/Presentation/GameplayHudFrame.cs",
+        "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"
+      ]
+    },
+    {
+      "function": "测试与运行探针",
+      "choice": "暂不修改",
+      "paths": [
+        "Assets/YC/Tests/EditMode/CardPickerDialogTests.cs",
+        "Assets/YC/Tests/EditMode/CardVisualCatalogEditorAssetTests.cs",
+        "Assets/YC/Tests/EditMode/NMC003RuntimeStateEditModeTests.cs",
+        "Assets/YC/Tests/EditMode/NetworkCommandDispatcherTests.cs",
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/CollectionModelViewPlayModeTests.cs",
+        "Assets/YC/Tests/PlayMode/FacilityCatalog/GameplayMainHudPlayModeTests.cs",
+        "Assets/YC/Tests/PlayMode/GameplayInteractionHudPlayModeProbe.cs"
+      ]
+    }
+  ],
+  "pairedMetaFiles": [
+    "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs.meta",
+    "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs.meta"
+  ],
+  "txymPaths": [
+    "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs",
+    "Assets/YC/Application/Sessions/GameSession.cs",
+    "Assets/YC/Domain/Commands/GameCommandDto.cs",
+    "Assets/YC/Domain/State/GameStateCloneService.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/NetworkRoomService.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/ResumeRoomOptions.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/RoomState.cs",
+    "Assets/YC/Infrastructure/Multiplayer/Core/SteamLobbyPolicy.cs",
+    "Assets/YC/Infrastructure/Multiplayer/LocalMirrorRoomService.cs",
+    "Assets/YC/Infrastructure/Multiplayer/MirrorCommandTransport.cs",
+    "Assets/YC/Infrastructure/Multiplayer/SteamRoomService.cs",
+    "Assets/YC/Presentation/CommandSubmissionController.cs",
+    "Assets/YC/Presentation/GameLaunchContext.cs",
+    "Assets/YC/Presentation/GameSessionBootstrapper.cs",
+    "Assets/YC/Presentation/StartMenuController.cs",
+    "Assets/YC/Presentation/StartMenuMessagePanelView.cs",
+    "Assets/YC/Presentation/StartMenuRoomPanelView.cs",
+    "Assets/YC/Presentation/Prefabs/StartMenu/StartMenuRoot.prefab",
+    "Assets/YC/Application/Sessions/MatchSaveData.cs",
+    "Assets/YC/Infrastructure/Persistence.meta",
+    "Assets/YC/Infrastructure/Persistence/MatchSaveStore.cs",
+    "Assets/YC/Presentation/MatchSaveController.cs",
+    "Assets/YC/Presentation/MatchSaveWindowView.cs",
+    "Assets/YC/Presentation/Prefabs/Gameplay/InGame/InGameSettingsMenu.prefab",
+    "Assets/YC/Presentation/CardVisualCatalog.cs",
+    "Assets/YC/Presentation/Content/CardVisualCatalog.asset",
+    "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs",
+    "Assets/YC/Editor/CardPickerCapture.cs",
+    "Assets/YC/Editor/GameplayHudCapture.cs",
+    "Assets/YC/Editor/SharedUiPreviewCapture.cs",
+    "Assets/YC/Application/Sessions/AuthoritativeCommandDispatcher.cs.meta",
+    "Assets/YC/Editor/CardVisualCatalogEditorAssetBuilder.cs.meta"
+  ],
+  "exactDeletionTargets": [
+    "F:\\游城拓荒模拟器-integration\\Assets\\YC\\Application\\Sessions\\AuthoritativeCommandDispatcher.cs",
+    "F:\\游城拓荒模拟器-integration\\Assets\\YC\\Application\\Sessions\\AuthoritativeCommandDispatcher.cs.meta"
+  ],
+  "scope": "仅处理已确认的52路径冲突分组及必要配套meta；其他文件不自动合入，保留部分整合状态。",
+  "selectedFilesApplied": true,
+  "recordPhase": "首次部分整合的历史选择，已被后续完整合并取代",
+  "supersededBy": "完整整合与验收.md"
+}

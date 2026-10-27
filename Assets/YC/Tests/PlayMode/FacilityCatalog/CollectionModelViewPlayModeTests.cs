@@ -257,9 +257,9 @@ namespace YC.Tests.PlayMode
         private static IEnumerator CaptureReview(string fileName)
         {
             // 批处理只检查交互；画面留给可见程序的正常流程验收。
-            if (Application.isBatchMode) yield break;
+            if (UnityEngine.Application.isBatchMode) yield break;
             yield return new WaitForEndOfFrame();
-            var directory = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath,
+            var directory = System.IO.Path.GetFullPath(System.IO.Path.Combine(UnityEngine.Application.dataPath,
                 "../Logs/GitMergeValidation/UiMerge-20261018/collection-captures"));
             System.IO.Directory.CreateDirectory(directory);
             var screenshot = ScreenCapture.CaptureScreenshotAsTexture();

@@ -1,0 +1,29 @@
+{
+  "scene": "Assets/Scenes/CollectionRoom.unity",
+  "item": "10",
+  "displaySource": "Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab",
+  "meshCount": 14,
+  "rotationChangeDegrees": 25.0,
+  "resetRotationErrorDegrees": 0.0,
+  "resetScaleError": 0.0,
+  "zoom": 1.0,
+  "posePath": "展示姿态",
+  "modelGuid": "ca190b803d780e742bc10dafa9760d11",
+  "animationClips": 0,
+  "zoomInteraction": {
+    "changed": 0.75,
+    "reset": 1.0
+  },
+  "commonAxis": {
+    "frameCount": 5,
+    "maxAxisAngleDegrees": 0.0,
+    "maxCenterDistance": 0.0
+  },
+  "switchAwayItem": "09",
+  "switchAwayFinished": true,
+  "switchBackItem": "10",
+  "switchBackFinished": true,
+  "finalMeshCount": 14,
+  "missingMeshes": 0,
+  "missingMaterials": 0
+}

@@ -1,0 +1,79 @@
+{
+  "stage": "完成",
+  "model": {
+    "name": "固源岩组下部",
+    "key": "OrirockClusterLower",
+    "parts": 1,
+    "triangles": 264
+  },
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.362441125895591,
+    "triangles": 264
+  },
+  "preserved": [
+    {
+      "name": "主岩_不规则高块.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "左侧_低位横岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "左中_倾斜浅色断片.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "中间_横向搭接岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "右前_浅色顶面暗色断岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "前中_深色裂块.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "右下_收尾碎岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    }
+  ],
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\正面_顶部保留.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\左侧_顶部保留.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\右侧_顶部保留.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\背面_顶部保留.png"
+  }
+}

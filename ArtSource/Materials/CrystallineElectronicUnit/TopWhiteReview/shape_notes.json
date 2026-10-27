@@ -1,0 +1,18 @@
+{
+  "scope": "仅顶部白模",
+  "source": "用户本轮附件 image-1.png 与 image-2.png",
+  "shape": "上窄下宽，窄矩形截面逐层展开并绕竖轴错转，前角形成弧形轨迹。",
+  "layer_count": 32,
+  "height": 1.752,
+  "top_dimensions": [
+    0.7,
+    0.125
+  ],
+  "bottom_dimensions": [
+    1.49,
+    1.325
+  ],
+  "total_turn_degrees": 66,
+  "uncertain": "两图为同一视角；背面、底部、层内孔及精确层数为白模推定，等待用户验收。",
+  "no_other_asset_writes": true
+}

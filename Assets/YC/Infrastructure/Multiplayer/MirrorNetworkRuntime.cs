@@ -142,6 +142,7 @@ namespace YC.Infrastructure.Multiplayer
             Manager.maxConnections = 4;
             Manager.autoCreatePlayer = false;
             Mirror.Transport.active = ActiveTransport;
+            UnityEngine.Application.quitting += OnApplicationQuitting;
         }
 
         public bool TryValidatePersistentConfiguration(out string reason)
@@ -185,9 +186,20 @@ namespace YC.Infrastructure.Multiplayer
         private void OnDestroy()
         {
             if (Instance != this) return;
+            UnityEngine.Application.quitting -= OnApplicationQuitting;
             ShutdownNetwork();
             NetworkExecutionObservation.FlushPending();
             Instance = null;
+        }
+
+        private void OnApplicationQuitting()
+        {
+            // 保存门禁已允许退出后才清理；先断传输，再释放共享房间服务和 Steam API。
+            ShutdownNetwork();
+            OnlineRoomServiceProvider.DisposeActive();
+            NetworkManager.ResetStatics();
+            SteamBootstrap.Instance?.Shutdown();
+            NetworkExecutionObservation.FlushPending();
         }
 
         private void Update()

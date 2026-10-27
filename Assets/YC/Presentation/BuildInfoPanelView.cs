@@ -68,6 +68,9 @@ namespace YC.Presentation
         public bool TryValidateConfiguration(out string reason)
         {
             reason = string.Empty;
+            // 父控制器的 Awake 可能先于共享图片组件的 OnEnable。
+            if (cityBoardImage != null && cityBoardImage.texture == null)
+                cityBoardImage.GetComponent<SharedArtworkImage>()?.RefreshArtwork();
             if (cardInteractionLayoutProfile == null ||
                 !cardInteractionLayoutProfile.TryValidateConfiguration(out reason))
             {

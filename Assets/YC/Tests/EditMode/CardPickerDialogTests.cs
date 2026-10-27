@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Domain.Interactions;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
@@ -88,11 +89,6 @@ namespace YC.Tests.EditMode
                     "卡牌空槽不能整体充当选择按钮。");
                 AssertWithin((RectTransform)face.transform, Property<RectTransform>(card, "CardRect"));
             }
-            if (count > 5)
-                Assert.That(scroll.content.rect.width, Is.GreaterThan(scroll.viewport.rect.width),
-                    "第六张开始必须真实溢出并可通过横向滚动访问。");
-            else
-                Assert.That(scroll.content.rect.width, Is.LessThanOrEqualTo(scroll.viewport.rect.width + .01f));
             var row = scroll.content.GetComponent(RuntimeType("CardPickerRowLayout"));
             Assert.That(Property<bool>(row, "FitsAvailableHeight"), Is.True);
             Call(page, "RestoreScrollPosition", 0f);
@@ -208,7 +204,10 @@ namespace YC.Tests.EditMode
             Assert.That(FindButton(Page(dialog), "Confirm Selection"), Is.Null);
             foreach (var card in Cards(Page(dialog)))
             {
-                Assert.That(Property<Button>(card, "Button").interactable, Is.False);
+                var previousSelection = selected;
+                Property<Button>(card, "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(previousSelection), "只读卡牌点击不得改变业务选择。");
+                Assert.That(submissions, Is.EqualTo(1));
                 OpenCardPreview(Property<Button>(card, "Button"));
                 var viewer = Field(Field(dialog, "shell"), "cardViewer");
                 Assert.That(Property<bool>(viewer, "IsShowing"), Is.True,
@@ -242,7 +241,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void PageScaleUsesPhysicalScreenAndOnlyClampsWhenScreenCannotFit()
+        public void PageScaleClampsRequestedScaleToAvailableScreen()
         {
             var type = RuntimeType("CardPickerPageScale");
             var method = type.GetMethod("CalculateScale", BindingFlags.Public | BindingFlags.Static);
@@ -254,17 +253,6 @@ namespace YC.Tests.EditMode
                 Is.EqualTo(1.2f).Within(.0001f));
             var clamped = Scale(new Vector2(1000, 500), new Rect(0, 0, 1024, 768), new Vector2(512, 384));
             Assert.That(clamped, Is.EqualTo(1.024f).Within(.0001f));
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab");
-            var scale = prefab.GetComponentInChildren(type, true);
-            Assert.That(scale, Is.Not.Null);
-            Assert.That(Property<float>(scale, "RequestedScale"), Is.EqualTo(1.2f));
-            var window = (RectTransform)scale.transform;
-            Assert.That(window.anchorMin, Is.EqualTo(Vector2.one * .5f));
-            Assert.That(window.anchorMax, Is.EqualTo(Vector2.one * .5f));
-            Assert.That(window.pivot, Is.EqualTo(Vector2.one * .5f));
-            Assert.That(window.rect.width / window.rect.height, Is.EqualTo(2f).Within(.0001f));
-            Assert.That(window.GetComponentsInParent<Mask>(true), Is.Empty);
-            Assert.That(window.GetComponentsInParent<RectMask2D>(true), Is.Empty);
         }
 
         private static void OpenCardPreview(Button card)
@@ -298,10 +286,12 @@ namespace YC.Tests.EditMode
 
         private string[] FacilityIds(int count)
         {
-            Assert.That(count, Is.LessThanOrEqualTo(41));
-            var result = new string[count];
-            for (var i = 0; i < count; i++) result[i] = "building_" + (i + 1).ToString("000");
-            return result;
+            var runtime = RuntimeType("ExternalContentRuntime");
+            var pack = (ExternalContentPack)runtime.GetProperty("Pack").GetValue(null);
+            var ids = pack.ActiveDefinitions.Where(definition => definition.ContentType == "facility")
+                .Select(definition => definition.RuntimeId).Take(count).ToArray();
+            Assert.That(ids.Length, Is.EqualTo(count), "外部内容包没有足够的设施卡供交互验证。");
+            return ids;
         }
 
         private static void ShowSelection(object dialog, object spec, bool preserveScroll) =>

@@ -412,7 +412,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             var restoredBehavior = restored.State.Map.FacilityInstances.Single();
             Assert.That(restoredBehavior.OwnerPlayerId, Is.EqualTo(2)); Assert.That(restoredBehavior.CityBoardSlotIndex, Is.EqualTo(3)); Assert.That(restoredBehavior.ActivationCount, Is.EqualTo(2));
             Position(state, item, Zone(state, "secret_retired").ZoneId);
-            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).Map.FacilityInstances, Is.Empty);
+            // 回盒查看权属于最后持有者；可见记录不代表仍占据城市槽位。
+            var retired = GameStateViewProjector.ProjectForPlayer(state, 2).Map.FacilityInstances.Single();
+            Assert.That(retired.ContentInstanceId, Is.EqualTo(item.ItemId));
+            Assert.That(retired.CityBoardSlotIndex, Is.EqualTo(-1));
+            Assert.That(retired.ActivationCount, Is.EqualTo(2));
+            Assert.That(GameStateViewProjector.ProjectForPlayer(state, 1).Map.FacilityInstances, Is.Empty);
             behavior.LegacyCityBoardSlotIndex = 7;
             Assert.Throws<InvalidOperationException>(() => GameStateCloneService.DeepClone(state));
         }

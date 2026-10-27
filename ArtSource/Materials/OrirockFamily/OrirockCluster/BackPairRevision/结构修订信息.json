@@ -1,0 +1,17 @@
+{
+  "主要方块": 5,
+  "后方支撑块": 2,
+  "下侧支撑": "水平转角22度",
+  "上侧支撑": "水平转角-26度、整体侧倾16度、俯仰-10度",
+  "源文件": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\BackPairRevision\\OrirockCluster_BackPair_Blockout.blend",
+  "结构连通分量": 3,
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.246681889868118,
+    "triangles": 216
+  },
+  "正面验收": "未通过",
+  "纹理": "未在此版添加",
+  "Unity正式模型": "未覆盖"
+}

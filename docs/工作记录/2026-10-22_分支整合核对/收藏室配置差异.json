@@ -1,0 +1,814 @@
+{
+  "differentZipEntries": [
+    "_rels/.rels",
+    "xl/_rels/workbook.xml.rels",
+    "xl/sharedStrings.xml",
+    "xl/styles.xml",
+    "xl/workbook.xml",
+    "xl/worksheets/sheet1.xml",
+    "xl/worksheets/sheet2.xml"
+  ],
+  "cellChangeCount": 70,
+  "cells": [
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A10",
+      "main": {
+        "value": "10",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A11",
+      "main": {
+        "value": "11",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A4",
+      "main": {
+        "value": "04",
+        "formula": null
+      },
+      "txym": {
+        "value": "03",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A5",
+      "main": {
+        "value": "05",
+        "formula": null
+      },
+      "txym": {
+        "value": "04",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A6",
+      "main": {
+        "value": "06",
+        "formula": null
+      },
+      "txym": {
+        "value": "05",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A7",
+      "main": {
+        "value": "07",
+        "formula": null
+      },
+      "txym": {
+        "value": "06",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A8",
+      "main": {
+        "value": "08",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "A9",
+      "main": {
+        "value": "09",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B10",
+      "main": {
+        "value": "稀有",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B11",
+      "main": {
+        "value": "稀有",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B4",
+      "main": {
+        "value": "精良",
+        "formula": null
+      },
+      "txym": {
+        "value": "普通",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B5",
+      "main": {
+        "value": "罕见",
+        "formula": null
+      },
+      "txym": {
+        "value": "精良",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B6",
+      "main": {
+        "value": "稀有",
+        "formula": null
+      },
+      "txym": {
+        "value": "罕见",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B8",
+      "main": {
+        "value": "稀有",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "B9",
+      "main": {
+        "value": "稀有",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C10",
+      "main": {
+        "value": "双极纳米片",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C11",
+      "main": {
+        "value": "聚合剂",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C4",
+      "main": {
+        "value": "固源岩组",
+        "formula": null
+      },
+      "txym": {
+        "value": "固源岩",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C5",
+      "main": {
+        "value": "提纯源岩",
+        "formula": null
+      },
+      "txym": {
+        "value": "固源岩组",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C6",
+      "main": {
+        "value": "D32钢",
+        "formula": null
+      },
+      "txym": {
+        "value": "提纯源岩",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C7",
+      "main": {
+        "value": "重相位对映体",
+        "formula": null
+      },
+      "txym": {
+        "value": "D32钢",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C8",
+      "main": {
+        "value": "烧结核凝晶",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "C9",
+      "main": {
+        "value": "晶体电子单元",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D10",
+      "main": {
+        "value": "BIPOLAR NANOFLAKE",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D11",
+      "main": {
+        "value": "POLYMERIZATION PREPARATION",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D3",
+      "main": {
+        "value": "ORIROCK",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D4",
+      "main": {
+        "value": "ORIROCK CLUSTER",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D5",
+      "main": {
+        "value": "ORIROCK CONCENTRATION",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D6",
+      "main": {
+        "value": "D32 STEEL",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D7",
+      "main": {
+        "value": "REPHASIC ENANTIOMER",
+        "formula": null
+      },
+      "txym": {
+        "value": "D32 STEEL",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D8",
+      "main": {
+        "value": "NUCLEIC CRYSTAL SINTER",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "D9",
+      "main": {
+        "value": "CRYSTALLINE ELECTRONIC UNIT",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E10",
+      "main": {
+        "value": "对附近源石反应敏感的精密装置，可提升武器与设备对源石的响应能力，用于高级强化。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E11",
+      "main": {
+        "value": "具有强粘接能力的液态工业材料，常用作精密装备的隔绝涂层，可阻断源石挥发。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E3",
+      "main": {
+        "value": "富含有机物的地表岩石，常见于源石挥发后的地区，便于采集，可用于强化与合成。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E4",
+      "main": {
+        "value": "固源岩压缩定型形成的岩石组合，也可自然形成。质地易碎，是强化与合成用料。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E5",
+      "main": {
+        "value": "经高度提纯和规则切割得到的源岩，工艺与提纯成本较高，可用于强化及制作聚合剂。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E6",
+      "main": {
+        "value": "高强度的人造固态金属，可传导源石技艺，用于高级强化。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E7",
+      "main": {
+        "value": "具备源石技艺适应性的实验性光功能材料，可承受高功率能量输出，用于高级强化。",
+        "formula": null
+      },
+      "txym": {
+        "value": "高强度的人造固态金属，可传导源石技艺，用于高级强化。",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E8",
+      "main": {
+        "value": "经高温工艺制成的精密晶体材料，可选择性吸附源石，用于源石器件加工与高级强化。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "E9",
+      "main": {
+        "value": "源石工业中的高精度电子单元，应用于施术设备与城际网络服务器，用于重要强化。",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "F10",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "F11",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "F8",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "F9",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G10",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G11",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G3",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": {
+        "value": "否",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G4",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": {
+        "value": "否",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G5",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": {
+        "value": "否",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G6",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": {
+        "value": "否",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G8",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "G9",
+      "main": {
+        "value": "是",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I10",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I11",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/PolymerizationPreparationDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I4",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/OrirockClusterDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I5",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/OrirockConcentrationDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I6",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/D32SteelDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I7",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/RephasicEnantiomerDisplay.prefab",
+        "formula": null
+      },
+      "txym": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/D32SteelDisplay.prefab",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I8",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/NucleicCrystalSinterDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "I9",
+      "main": {
+        "value": "Assets/YC/Presentation/Collection/Prefabs/CrystallineElectronicUnitDisplay.prefab",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J10",
+      "main": {
+        "value": "#FFC802",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J11",
+      "main": {
+        "value": "#FFC802",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J4",
+      "main": {
+        "value": "#00B3FD",
+        "formula": null
+      },
+      "txym": {
+        "value": "#DCE537",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J5",
+      "main": {
+        "value": "#D6C5D6",
+        "formula": null
+      },
+      "txym": {
+        "value": "#00B3FD",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J6",
+      "main": {
+        "value": "#FFC802",
+        "formula": null
+      },
+      "txym": {
+        "value": "#D6C5D6",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J8",
+      "main": {
+        "value": "#FFC802",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet1.xml",
+      "cell": "J9",
+      "main": {
+        "value": "#FFC802",
+        "formula": null
+      },
+      "txym": null
+    },
+    {
+      "sheet": "xl/worksheets/sheet2.xml",
+      "cell": "C42",
+      "main": {
+        "value": "https://prts.wiki/w/道具一览；https://prts.wiki/w/D32钢",
+        "formula": null
+      },
+      "txym": {
+        "value": "https://prts.wiki/w/D32钢",
+        "formula": null
+      }
+    },
+    {
+      "sheet": "xl/worksheets/sheet2.xml",
+      "cell": "M36",
+      "main": {
+        "value": "黄绿",
+        "formula": null
+      },
+      "txym": {
+        "value": "黄绿（固源岩）",
+        "formula": null
+      }
+    }
+  ],
+  "scope": "比较单元格值及公式，并列出ZIP内差异；未宣称样式和可视布局一致。",
+  "mainCatalog": [
+    {
+      "id": "01",
+      "name": "至纯源石",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/OriginiteDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "02",
+      "name": "源岩",
+      "model": null,
+      "modelExists": null
+    },
+    {
+      "id": "04",
+      "name": "固源岩组",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/OrirockClusterDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "05",
+      "name": "提纯源岩",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/OrirockConcentrationDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "06",
+      "name": "D32钢",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/D32SteelDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "07",
+      "name": "重相位对映体",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/RephasicEnantiomerDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "08",
+      "name": "烧结核凝晶",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/NucleicCrystalSinterDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "09",
+      "name": "晶体电子单元",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/CrystallineElectronicUnitDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "10",
+      "name": "双极纳米片",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/BipolarNanoflakeDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "11",
+      "name": "聚合剂",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/PolymerizationPreparationDisplay.prefab",
+      "modelExists": true
+    }
+  ],
+  "txymCatalog": [
+    {
+      "id": "01",
+      "name": "至纯源石",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/OriginiteDisplay.prefab",
+      "modelExists": true
+    },
+    {
+      "id": "02",
+      "name": "源岩",
+      "model": null,
+      "modelExists": null
+    },
+    {
+      "id": "03",
+      "name": "固源岩",
+      "model": null,
+      "modelExists": null
+    },
+    {
+      "id": "04",
+      "name": "固源岩组",
+      "model": null,
+      "modelExists": null
+    },
+    {
+      "id": "05",
+      "name": "提纯源岩",
+      "model": null,
+      "modelExists": null
+    },
+    {
+      "id": "06",
+      "name": "D32钢",
+      "model": "Assets/YC/Presentation/Collection/Prefabs/D32SteelDisplay.prefab",
+      "modelExists": true
+    }
+  ]
+}

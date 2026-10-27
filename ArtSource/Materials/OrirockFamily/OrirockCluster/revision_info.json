@@ -1,0 +1,37 @@
+{
+  "key": "OrirockCluster",
+  "item_id": "04",
+  "blend": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/OrirockCluster_TopPreserved.blend",
+  "fbx": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/OrirockCluster_Finished.fbx",
+  "lower_fbx": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/OrirockClusterLower_Finished.fbx",
+  "fbx_usage": "原FBX及原贴图只复用主岩和其余六块断片；新下部独立FBX与材质，不覆盖原主岩。",
+  "preview": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/正面_顶部保留.png",
+  "camera_position": [
+    3.8,
+    -6.2,
+    4
+  ],
+  "parts": 8,
+  "triangles": 472,
+  "preserved_original_parts": 7,
+  "lower_triangles": 264,
+  "textures": {
+    "BaseColor": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_BaseColor.png",
+    "Normal": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_Normal.png",
+    "Occlusion": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_Occlusion.png",
+    "MetallicSmoothness": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/textures/OrirockCluster_MetallicSmoothness.png"
+  },
+  "lower_textures": {
+    "BaseColor": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_BaseColor.png",
+    "Normal": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_Normal.png",
+    "Occlusion": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_Occlusion.png",
+    "MetallicSmoothness": "F:/游城拓荒模拟器/ArtSource/Materials/OrirockFamily/OrirockCluster/SolidRevision/textures/OrirockClusterLower_MetallicSmoothness.png"
+  },
+  "changes": [
+    "上方主岩和其余六块断片的几何、UV、材质与姿态原样保留",
+    "仅修左前灰青断岩和右侧黄褐边岩",
+    "下部闭合连续实体补齐贯通空隙和侧背体积",
+    "只更新04独立展示预制体，下部资产单独导出；原模型根姿态与缩放不改"
+  ],
+  "limitations": "单视图只能约束默认正面；背面与厚度为推定。"
+}

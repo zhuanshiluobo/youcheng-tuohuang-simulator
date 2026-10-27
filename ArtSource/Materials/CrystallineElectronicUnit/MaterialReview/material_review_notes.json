@@ -1,0 +1,140 @@
+{
+  "stage": "已验收白模之后的材质验收",
+  "white_source": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\CrystallineElectronicUnit\\FullWhiteReview\\CrystallineElectronicUnit_FullWhite.blend",
+  "white_sha256": "fdd8ab7903513a1c525366cec7f5f977d018f201eba9908479ba9648a29d7f7d",
+  "preserved_white_scene": "晶体电子单元_完整白模验收",
+  "material_scene": "晶体电子单元_材质验收",
+  "mesh_vertices_preserved": false,
+  "material_model": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\CrystallineElectronicUnit\\MaterialReview\\CrystallineElectronicUnit_MaterialReview.blend",
+  "materials": {
+    "crystal": {
+      "name": "层片_青绿半透晶体",
+      "srgb": "#148D73",
+      "metallic": 0.08,
+      "roughness": 0.2,
+      "transmission": 0.36,
+      "coat": 0.24
+    },
+    "edge": {
+      "name": "层片_浅青晶体切边",
+      "srgb": "#249F86",
+      "metallic": 0.12,
+      "roughness": 0.17,
+      "transmission": 0.3,
+      "coat": 0.2
+    },
+    "silver": {
+      "name": "台面_抛光中性银",
+      "srgb": "#BFC7C7",
+      "metallic": 1,
+      "roughness": 0.135,
+      "transmission": 0,
+      "coat": 0.18
+    },
+    "rim": {
+      "name": "边沿_浅香槟金属",
+      "srgb": "#CFBF91",
+      "metallic": 1,
+      "roughness": 0.24,
+      "transmission": 0,
+      "coat": 0.08
+    },
+    "bronze": {
+      "name": "箱体_暗黄铜",
+      "srgb": "#73654C",
+      "metallic": 0.94,
+      "roughness": 0.31,
+      "transmission": 0,
+      "coat": 0
+    },
+    "copper": {
+      "name": "铜柱铜管_抛光橘铜",
+      "srgb": "#DF7D47",
+      "metallic": 1,
+      "roughness": 0.235,
+      "transmission": 0,
+      "coat": 0.1
+    },
+    "cap": {
+      "name": "柱帽底圈_深褐金属",
+      "srgb": "#29201B",
+      "metallic": 0.85,
+      "roughness": 0.35,
+      "transmission": 0,
+      "coat": 0
+    },
+    "iron": {
+      "name": "薄铁皮支架_深枪灰",
+      "srgb": "#353B3D",
+      "metallic": 0.75,
+      "roughness": 0.3,
+      "transmission": 0,
+      "coat": 0
+    },
+    "core": {
+      "name": "后部核心_冷黑外壳",
+      "srgb": "#1A222D",
+      "metallic": 0,
+      "roughness": 0.53,
+      "transmission": 0,
+      "coat": 0.015
+    },
+    "black": {
+      "name": "铭牌槽底_炭黑",
+      "srgb": "#181915",
+      "metallic": 0.15,
+      "roughness": 0.49,
+      "transmission": 0,
+      "coat": 0
+    },
+    "letter": {
+      "name": "铭牌文字_暖灰银",
+      "srgb": "#CABFA5",
+      "metallic": 0.55,
+      "roughness": 0.32,
+      "transmission": 0,
+      "coat": 0
+    },
+    "mark": {
+      "name": "台面标签_深灰图案",
+      "srgb": "#343D3D",
+      "metallic": 0.48,
+      "roughness": 0.38,
+      "transmission": 0,
+      "coat": 0
+    },
+    "steel": {
+      "name": "转轴铆钉_灰钢",
+      "srgb": "#89908A",
+      "metallic": 0.9,
+      "roughness": 0.27,
+      "transmission": 0,
+      "coat": 0
+    }
+  },
+  "preview_lights": "中性棚灯；无彩色自发光。",
+  "reference": "用户提供的晶体电子单元图标；黄色圆环仅为背景。",
+  "geometry": "主体沿用已验收白模；按最新意见将前侧及左右后侧改为内凹散热槽，中央凹槽加深并同步下沉整组层片。",
+  "unity_imported": false,
+  "export_note": "当前为Blender材质验收阶段，程序化粗糙度尚未烘焙至游戏贴图。",
+  "latest_geometry_revision": {
+    "vent_faces": [
+      0,
+      3,
+      5
+    ],
+    "vent_rows_each": 7,
+    "vent_depth": 0.065,
+    "vent_height": 0.04,
+    "vent_length": 1.14,
+    "vent_pitch": 0.077,
+    "vent_lips_flush_with_housing": true,
+    "basin_top_z": 0.94,
+    "basin_floor_z": 0.65,
+    "basin_depth_before": 0.12,
+    "basin_depth_after": 0.29,
+    "layers_lowered_by": 0.17,
+    "original_white_archive_unchanged": true,
+    "post_positions_unchanged": true
+  }
+}

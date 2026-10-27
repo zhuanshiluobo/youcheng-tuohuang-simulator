@@ -1,0 +1,9 @@
+{
+  "stage": "小块尺寸与后置方块结构预览完成，尚未验收",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 1.7980566687293675,
+    "triangles": 176
+  }
+}

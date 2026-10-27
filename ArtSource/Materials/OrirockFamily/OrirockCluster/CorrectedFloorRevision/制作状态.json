@@ -1,0 +1,464 @@
+{
+  "scene": "固源岩组_左下在前_重定地板与后撑",
+  "source_scene": "固源岩组_标准方块正面姿态修订",
+  "ground_alignment": {
+    "corners": [
+      2,
+      7,
+      2
+    ],
+    "normal": [
+      0.1413299428670873,
+      0.15231313441170713,
+      0.9781751153729413
+    ],
+    "plane_offset": -0.7494147139537162,
+    "min_height": 0.0,
+    "elevation": 24.98428026755211,
+    "tilt": 11.99241522321864,
+    "alignment_matrix": [
+      [
+        0.9899027378336783,
+        -0.010881951965236015,
+        -0.1413299428670873
+      ],
+      [
+        -0.010881951965236015,
+        0.988272377539263,
+        -0.15231313441170713
+      ],
+      [
+        0.1413299428670873,
+        0.15231313441170713,
+        0.9781751153729413
+      ]
+    ],
+    "world_translation": [
+      0.0,
+      0.0,
+      0.7494147139537162
+    ],
+    "left_depth_advance": 0.76,
+    "new_right": [
+      0.8383057859454612,
+      0.5071556987383066,
+      0.20009122535651028
+    ],
+    "new_up": [
+      -0.3776162622343499,
+      0.27538805283142037,
+      0.8840630418991616
+    ],
+    "new_front": [
+      0.3932548553504863,
+      -0.8166728658772215,
+      0.4223695902465416
+    ],
+    "support_specs": [
+      {
+        "index": 5,
+        "center_pixels": [
+          94,
+          117
+        ],
+        "size": 0.665,
+        "yaw_degrees": -10
+      },
+      {
+        "index": 6,
+        "center_pixels": [
+          109,
+          101
+        ],
+        "size": 0.64,
+        "yaw_degrees": 8
+      }
+    ]
+  },
+  "left_depth_advance": 0.76,
+  "top_right_relative_unchanged": true,
+  "cuts": [
+    {
+      "label": "上块顶部_单平面截角",
+      "block": 0,
+      "corner": 1,
+      "neighbors": [
+        0,
+        2,
+        5
+      ],
+      "fractions": [
+        0.4565067437813949,
+        0.34353471499955407,
+        0.3553436648881824
+      ],
+      "material_face": 5,
+      "plane_world_points": [
+        [
+          0.027266332879662514,
+          -0.18732967972755432,
+          1.7094111442565918
+        ],
+        [
+          -0.5079752802848816,
+          -0.054745905101299286,
+          1.6790518760681152
+        ],
+        [
+          -0.2182418406009674,
+          0.308601438999176,
+          1.7898674011230469
+        ]
+      ],
+      "plane_world_normal": [
+        -0.10731777548789978,
+        -0.21075718104839325,
+        0.9716296792030334
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.11984629929065704,
+      "boundary_edges": 0,
+      "plane_error": 1.1430148028068743e-07,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    },
+    {
+      "label": "左块三色交角_单平面截角",
+      "block": 1,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.14469727962395793,
+        0.18008688573418563,
+        0.3096562245291241
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          -0.013075481168925762,
+          -1.3259613513946533,
+          0.8144433498382568
+        ],
+        [
+          0.11346946656703949,
+          -1.2566499710083008,
+          0.7484151124954224
+        ],
+        [
+          0.012845187447965145,
+          -1.1223043203353882,
+          0.9283097982406616
+        ]
+      ],
+      "plane_world_normal": [
+        0.5941245555877686,
+        -0.44882816076278687,
+        0.6675096750259399
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.017958663403987885,
+      "boundary_edges": 0,
+      "plane_error": 2.60770320892334e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    },
+    {
+      "label": "右后块三色交角_单平面截角",
+      "block": 4,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.202905343954893,
+        0.25800762969056745,
+        0.1805757942596798
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          0.7559162974357605,
+          0.43483370542526245,
+          0.8645525574684143
+        ],
+        [
+          0.9186680316925049,
+          0.5484173893928528,
+          0.6810444593429565
+        ],
+        [
+          0.8646742105484009,
+          0.6210067868232727,
+          0.9240937232971191
+        ]
+      ],
+      "plane_world_normal": [
+        0.7631431221961975,
+        -0.5528348088264465,
+        0.33464375138282776
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.02681489661335945,
+      "boundary_edges": 0,
+      "plane_error": 2.3283064365386963e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    }
+  ],
+  "rear_supports": [
+    {
+      "index": 5,
+      "size": 0.5,
+      "rotation_matrix": [
+        [
+          -0.07048149325170383,
+          0.21135452790700293,
+          -0.9748649253318216
+        ],
+        [
+          -0.9601249337133407,
+          0.25068372661323113,
+          0.12376502281846802
+        ],
+        [
+          0.270541070395907,
+          0.9447152654342529,
+          0.1852581887111232
+        ]
+      ],
+      "pose": 73,
+      "center_pixels": [
+        86,
+        109
+      ],
+      "center_world": [
+        -0.14213608952321724,
+        0.26186557941000815,
+        0.28136267533912934
+      ],
+      "vertices": [
+        [
+          0.14842889125179945,
+          0.41648442946448794,
+          0.5627253712796485
+        ],
+        [
+          0.04017847441020456,
+          -0.06707229335363168,
+          0.49598150960667353
+        ],
+        [
+          -0.4477312087080362,
+          0.04221568444333673,
+          0.4955249588226037
+        ],
+        [
+          -0.3394808104753173,
+          0.5257723239177591,
+          0.5622687569633709
+        ],
+        [
+          0.1634590302655123,
+          0.4815154771620251,
+          0.06720041321197881
+        ],
+        [
+          0.05520862719545436,
+          -0.0020411840663658865,
+          0.0004565772656353606
+        ],
+        [
+          -0.43270106913593587,
+          0.10724673463060902,
+          0.0
+        ],
+        [
+          -0.3244506509894193,
+          0.590803463081845,
+          0.06674381556312406
+        ]
+      ],
+      "reference_pixels": 534,
+      "reference_overlap": 372,
+      "missed_pixels": 162,
+      "extra_pixels": 21,
+      "unwanted_primary_cover": 0,
+      "links": [
+        0,
+        2,
+        4
+      ],
+      "score": 204.0,
+      "source_scene": "固源岩组_三处真实平面截角",
+      "source_object": "后方_落地完整源岩_承托.005",
+      "role": "用户旧白模中央完整承托方块"
+    },
+    {
+      "index": 6,
+      "size": 0.56,
+      "euler_xyz_degrees": [
+        30,
+        -12,
+        20
+      ],
+      "vertices": [
+        [
+          -0.47758394479751587,
+          -0.6327806711196899,
+          0.0
+        ],
+        [
+          0.037144601345062256,
+          -0.4454348087310791,
+          0.11643055081367493
+        ],
+        [
+          -0.18343082070350647,
+          -0.009618908166885376,
+          0.3903118968009949
+        ],
+        [
+          -0.6981593370437622,
+          -0.19696474075317383,
+          0.27388131618499756
+        ],
+        [
+          -0.47656920552253723,
+          -0.9303810596466064,
+          0.474376380443573
+        ],
+        [
+          0.038159310817718506,
+          -0.7430352568626404,
+          0.5908069610595703
+        ],
+        [
+          -0.18241608142852783,
+          -0.30721932649612427,
+          0.8646882772445679
+        ],
+        [
+          -0.697144627571106,
+          -0.4945651888847351,
+          0.7482577562332153
+        ]
+      ],
+      "center_world": [
+        -0.33000001311302185,
+        -0.4699999988079071,
+        0.43234413862228394
+      ],
+      "front_cover": 0,
+      "front_extension": 0,
+      "score": 0.776,
+      "ground_contact": "角点接地，三轴倾斜",
+      "actual_contacts": {
+        "0": 5,
+        "1": 7,
+        "5": 0
+      }
+    },
+    {
+      "index": 7,
+      "size": 0.55,
+      "euler_xyz_degrees": [
+        -30,
+        -15,
+        -10
+      ],
+      "vertices": [
+        [
+          -0.7511700853321236,
+          0.2716523112597845,
+          0.26562960222949383
+        ],
+        [
+          -0.2279819019218148,
+          0.17940011853669818,
+          0.40798007703588024
+        ],
+        [
+          -0.07517692305542623,
+          0.6361183608404664,
+          0.14235047480638646
+        ],
+        [
+          -0.598365106465735,
+          0.7283705535635527,
+          0.0
+        ],
+        [
+          -0.8248230769445738,
+          0.5638816391595336,
+          0.7257135692852883
+        ],
+        [
+          -0.301634893534265,
+          0.4716294464364473,
+          0.8680640440916747
+        ],
+        [
+          -0.14882991466787643,
+          0.9283476887402154,
+          0.6024344418621809
+        ],
+        [
+          -0.6720180980781852,
+          1.0205998814633017,
+          0.46008396705579446
+        ]
+      ],
+      "center_world": [
+        -0.45,
+        0.6,
+        0.43403202204583735
+      ],
+      "front_cover": 0,
+      "front_extension": 0,
+      "score": 0.0,
+      "ground_contact": "角点接地，三轴倾斜",
+      "actual_contacts": {
+        "0": 5,
+        "1": 0,
+        "5": 6
+      }
+    }
+  ],
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "connected_components": 1,
+    "volume": 2.2677470877739703,
+    "triangles": 514,
+    "model_zmin": 0.0,
+    "floor_z": 0
+  },
+  "renders": {
+    "material_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\新地板_材质正面.png",
+    "新地板_侧面接地.png": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\新地板_侧面接地.png",
+    "新地板_背面支撑.png": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\新地板_背面支撑.png",
+    "rear_support_corrected": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\支撑修正_背面.png",
+    "front_support_corrected": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\支撑修正_正面.png",
+    "middle_support_restored_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\中央支撑恢复_正面.png",
+    "middle_support_restored_rear": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\中央支撑恢复_背面.png",
+    "old_support_white_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\旧白模承托恢复_白模正面.png",
+    "old_support_material_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\旧白模承托恢复_材质正面.png",
+    "old_support_rear": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\旧白模承托恢复_背面.png",
+    "additional_rear_view": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\红线新增承托_背侧观察.png",
+    "additional_rear_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\红线新增承托_正面核对.png",
+    "staggered_rear": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\背撑错落_背侧观察.png",
+    "staggered_front": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\CorrectedFloorRevision\\背撑错落_默认正面.png"
+  },
+  "unity_imported": false,
+  "approved_for_import": false,
+  "full_reference_match_accepted": false
+}

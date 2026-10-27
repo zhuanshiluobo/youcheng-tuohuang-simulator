@@ -16,7 +16,7 @@ namespace YC.Application.Sessions
         public int PlayerId;
         public ulong SteamId;
         public ulong NetworkClientId;
-        public string OperatorId = string.Empty;
+        public string OperatorId = string.Empty; // 本地测试后端的稳定用户标识，不是连接票据。
         public string PlayerName = string.Empty;
         public PlayerColor Color;
         public bool LobbyMemberPresent;

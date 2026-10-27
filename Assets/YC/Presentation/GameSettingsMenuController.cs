@@ -216,7 +216,7 @@ namespace YC.Presentation
             BindButton(view.GeneralTabButton, () => SelectTab(SettingsTab.General));
             BindButton(view.RulebookButton, SelectRulebookTab);
             BindButton(view.PlaceholderTabButton, () => SelectTab(SettingsTab.Placeholder));
-            BindButton(view.ReturnButton, ShowConfirmation);
+            BindButton(view.ReturnButton, ReturnToStartScene);
             BindButton(view.ConfirmReturnButton, ReturnToStartScene);
             BindButton(view.CancelReturnButton, HideConfirmation);
         }
@@ -317,11 +317,6 @@ namespace YC.Presentation
         {
             button.onClick.RemoveAllListeners();
             button.onClick.AddListener(action);
-        }
-
-        private void ShowConfirmation()
-        {
-            view.ConfirmationObject.SetActive(true);
         }
 
         private void HideConfirmation()

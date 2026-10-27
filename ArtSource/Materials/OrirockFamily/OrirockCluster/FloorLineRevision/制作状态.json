@@ -1,0 +1,20 @@
+{
+  "stage": "地板线后撑已修订，白模待正面对照，不添加纹理，不覆盖Unity",
+  "scene": "固源岩组_角点地板线后撑修订",
+  "geometry": {
+    "boundary_edges": 0,
+    "volume": 2.1376271480787707,
+    "triangles": 204,
+    "model_zmin": -0.8809438943862915,
+    "floor_z": -0.8809438943862915,
+    "primary_max_vertex_change": 0
+  },
+  "posterior_count": 2,
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FloorLineRevision\\地板线_正面.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FloorLineRevision\\地板线_右侧.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FloorLineRevision\\地板线_背面.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\FloorLineRevision\\地板线_左侧.png"
+  },
+  "limitations": "背侧推定；正面视觉尚未验收。"
+}

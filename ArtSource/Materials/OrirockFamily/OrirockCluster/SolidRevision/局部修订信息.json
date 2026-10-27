@@ -1,0 +1,88 @@
+{
+  "key": "OrirockClusterLower",
+  "item_id": "04",
+  "blend": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\OrirockCluster_TopPreserved.blend",
+  "fbx": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\OrirockClusterLower_Finished.fbx",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "volume": 2.362441125895591,
+    "triangles": 264
+  },
+  "textures": {
+    "BaseColor": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockClusterLower_BaseColor.png",
+    "Normal": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockClusterLower_Normal.png",
+    "Occlusion": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockClusterLower_Occlusion.png",
+    "MetallicSmoothness": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\textures\\OrirockClusterLower_MetallicSmoothness.png"
+  },
+  "renders": {
+    "正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\正面_顶部保留.png",
+    "左侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\左侧_顶部保留.png",
+    "右侧": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\右侧_顶部保留.png",
+    "背面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\SolidRevision\\背面_顶部保留.png"
+  },
+  "preserved": [
+    {
+      "name": "主岩_不规则高块.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "左侧_低位横岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "左中_倾斜浅色断片.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "中间_横向搭接岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "右前_浅色顶面暗色断岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "前中_深色裂块.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    },
+    {
+      "name": "右下_收尾碎岩.001",
+      "same_vertices": true,
+      "same_faces": true,
+      "same_uv": true,
+      "same_materials": true,
+      "same_pose": true
+    }
+  ],
+  "changes": [
+    "保留原主岩全部几何、UV、材质和姿态",
+    "仅修左前灰青岩和右侧边岩",
+    "补完整下部衔接和背侧体积"
+  ],
+  "limitations": "背侧厚度由单张图标推定，不声称存在官方背面参考。"
+}

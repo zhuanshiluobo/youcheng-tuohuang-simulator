@@ -1,0 +1,174 @@
+{
+  "stage": "左下在前，上部退后；整体正面尚未验收",
+  "scene": "固源岩组_左下在前_深度修正",
+  "geometry": {
+    "boundary_edges": 0,
+    "non_manifold_edges": 0,
+    "components": [
+      251
+    ],
+    "volume": 2.162575697133566,
+    "model_zmin": -0.8809438943862915,
+    "floor_z": -0.8809438943862915,
+    "triangles": 506
+  },
+  "cuts": [
+    {
+      "label": "上块顶部_单平面截角",
+      "block": 0,
+      "corner": 1,
+      "neighbors": [
+        0,
+        2,
+        5
+      ],
+      "fractions": [
+        0.4565067437813949,
+        0.34353471499955407,
+        0.3553436648881824
+      ],
+      "material_face": 5,
+      "plane_world_points": [
+        [
+          -0.17869263887405396,
+          0.5210722088813782,
+          0.6022517085075378
+        ],
+        [
+          -0.7142632007598877,
+          0.653301477432251,
+          0.6280064582824707
+        ],
+        [
+          -0.41574764251708984,
+          1.0261133909225464,
+          0.6401128172874451
+        ]
+      ],
+      "plane_world_normal": [
+        0.03337966650724411,
+        -0.059125710278749466,
+        0.9976922869682312
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.11984629929065704,
+      "boundary_edges": 0,
+      "plane_error": 1.1430148028068743e-07,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    },
+    {
+      "label": "左块三色交角_单平面截角",
+      "block": 1,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.14469727962395793,
+        0.18008688573418563,
+        0.3096562245291241
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          -0.33730095624923706,
+          -0.7326120138168335,
+          -0.09887297451496124
+        ],
+        [
+          -0.2221197783946991,
+          -0.6755474209785461,
+          -0.19190184772014618
+        ],
+        [
+          -0.29776546359062195,
+          -0.5142820477485657,
+          -0.022174697369337082
+        ]
+      ],
+      "plane_world_normal": [
+        0.6873487830162048,
+        -0.34835922718048096,
+        0.6373361945152283
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.017958663403987885,
+      "boundary_edges": 0,
+      "plane_error": 2.60770320892334e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    },
+    {
+      "label": "右后块三色交角_单平面截角",
+      "block": 4,
+      "corner": 0,
+      "neighbors": [
+        1,
+        3,
+        4
+      ],
+      "fractions": [
+        0.202905343954893,
+        0.25800762969056745,
+        0.1805757942596798
+      ],
+      "material_face": 2,
+      "plane_world_points": [
+        [
+          0.7598241567611694,
+          0.4390452802181244,
+          -0.060439541935920715
+        ],
+        [
+          0.893761396408081,
+          0.5215752124786377,
+          -0.2802446186542511
+        ],
+        [
+          0.8738729953765869,
+          0.63092041015625,
+          -0.04592520743608475
+        ]
+      ],
+      "plane_world_normal": [
+        0.8087485432624817,
+        -0.5036852359771729,
+        0.30368921160697937
+      ],
+      "new_face_vertices": 3,
+      "cap_area": 0.02681489661335945,
+      "boundary_edges": 0,
+      "plane_error": 2.3283064365386963e-08,
+      "removed_corner": true,
+      "original_cube_pose_preserved": false,
+      "cube_equal_edges_preserved": true
+    }
+  ],
+  "renders": {
+    "截角_材质正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ForegroundDepthRevision\\截角_材质正面.png",
+    "截角_白模正面": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ForegroundDepthRevision\\截角_白模正面.png",
+    "截角_白模斜视": "F:\\游城拓荒模拟器\\ArtSource\\Materials\\OrirockFamily\\OrirockCluster\\ForegroundDepthRevision\\截角_白模斜视.png"
+  },
+  "top_depth_retreat": 0.75,
+  "top_world_offset": [
+    -0.34339839220046997,
+    0.5602816343307495,
+    -0.36147207021713257
+  ],
+  "front_projection_change_pixels": 2.042054747519728e-06,
+  "left_cube_unchanged": true,
+  "floor_contact_unchanged": true,
+  "main_shapes_and_materials_unchanged": true,
+  "prior_scene_preserved": "固源岩组_标准方块正面姿态修订",
+  "unity_imported": false,
+  "approved_for_import": false,
+  "full_reference_match_accepted": false,
+  "withdrawn": true,
+  "withdrawal_reason": "上部整体后移意外改变上部与右部的遮挡；已恢复原活动场景。本试验不继续使用。",
+  "restored_scene": "固源岩组_标准方块正面姿态修订"
+}

@@ -138,7 +138,7 @@ namespace YC.Application.Sessions
         {
             EnsureExecutionOwner();
             HostRecoveryResult result = HostRecoveryService.Recover(archive, registry);
-            if (result.State != null)
+            if (result.Succeeded && result.State != null)
             {
                 GameStateCloneService.CopyTo(State, result.State);
                 View = null;

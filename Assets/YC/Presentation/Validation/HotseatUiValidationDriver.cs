@@ -159,6 +159,17 @@ namespace YC.Presentation.Validation
             driver.deferContentDifferencesRequested = Argument("--yc-ui-defer-content-differences=") == "true";
             driver.started = Time.realtimeSinceStartup;
             UnityEngine.Application.runInBackground = true;
+            // 同机多窗口可显式限制渲染负载；只影响本验收进程，不改时间尺度、规则或等待门限。
+            if (int.TryParse(Argument("--yc-validation-frame-rate="), out int frameRate) && frameRate > 0)
+            {
+                int previousVSync = QualitySettings.vSyncCount;
+                int previousFrameRate = UnityEngine.Application.targetFrameRate;
+                QualitySettings.vSyncCount = 0;
+                UnityEngine.Application.targetFrameRate = frameRate;
+                driver.Write("验收渲染设置.json", new { PreviousVSync = previousVSync, PreviousFrameRate = previousFrameRate,
+                    TargetFrameRate = frameRate, VSync = QualitySettings.vSyncCount, TimeScale = Time.timeScale,
+                    Scope = "仅显式启动的可见验收进程；正常启动保持原设置" });
+            }
             UnityEngine.Application.logMessageReceived += driver.OnLog;
             driver.StartCoroutine(driver.Guarded(driver.Run()));
         }
@@ -722,7 +733,6 @@ namespace YC.Presentation.Validation
             Require(JToken.DeepEquals(expected, JToken.FromObject(State)), "手动保存改变了规则状态");
             yield return Capture(label + "-保存成功回设置");
             yield return Press(settings.ReturnButton, label + "正常返回主页入口");
-            yield return Press(settings.ConfirmReturnButton, label + "正常确认返回主页");
             mobile = null; session = null; registry = null; hud = null;
             yield return SaveResumeAwait(() => FindObjectOfType<StartMenuView>() != null && !SceneTransitionContext.IsTransitionInProgress,
                 "返回正常主菜单");
@@ -1436,6 +1446,7 @@ namespace YC.Presentation.Validation
 
         private IEnumerator NormalChoice()
         {
+            bool normalFlow = CoverageMode || SaveResumeMode;
             if (NetworkMode)
             {
                 // 新发表请求可能同帧重建选项；等正常渲染，再读取当前请求和原控件。
@@ -1550,7 +1561,7 @@ namespace YC.Presentation.Validation
                     OriginalRequest = request, SelectedPlayers = selected, Command = commands[before], CommandsAdded = commands.Count - before, State = Observe() });
                 Covered("page:player-selection");
             }
-            else if (CoverageMode && ChoiceExecuteButton() != null)
+            else if (normalFlow && ChoiceExecuteButton() != null)
             {
                 yield return Press(ChoiceExecuteButton(), "正常效果页面选择一个合法分支");
             }
@@ -1628,7 +1639,7 @@ namespace YC.Presentation.Validation
                     else
                     {
                         var candidates = FindObjectsOfType<MapButtonView>().Where(b =>
-                            (b.TargetKind == WorkflowHighlightTargetKind.Location || (CoverageMode || CampaignMode) &&
+                            (b.TargetKind == WorkflowHighlightTargetKind.Location || (normalFlow || CampaignMode) &&
                                 (b.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot ||
                                  request?.InteractionTypeId == "effect.route.choose" && b.TargetKind == WorkflowHighlightTargetKind.Route && request.CandidateIds.Contains(b.TargetId))) &&
                             b.IsInteractive).ToArray();
@@ -1636,6 +1647,7 @@ namespace YC.Presentation.Validation
                             request?.InteractionTypeId != "effect.influence.move.source" &&
                             // Lua 的移除请求沿正式提示键识别，不能套用新增放置时避开己方影响力的策略。
                             request?.PromptKey != "effect.influence.remove.choose_target" &&
+                            request?.PromptKey != "effect.influence.replace.target" &&
                             request?.PromptKey != "effect.influence.replace.choose_target";
                         var influenceTargets = candidates.Where(button => influenceDestination && button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot).ToArray();
                         bool mapArray = EffectDialogSelectionSpec.IsInfluenceMapArray(request) &&

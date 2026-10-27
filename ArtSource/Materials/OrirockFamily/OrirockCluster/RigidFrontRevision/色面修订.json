@@ -1,0 +1,413 @@
+{
+  "material_changes": [
+    {
+      "material": "04_上块灰面_取消假截面色帽.001_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        0.9112984221658372,
+        0.9698984265470825
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_0_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_0_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.8763908006246534,
+        1.0238056534067084,
+        0.9853414919911448
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_0_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_0_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_0_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.6697481516052135,
+        0.7483048015872038,
+        0.8115880542467135
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_上块顶部_单平面截角_真实截面石质.001_原图色面柔化",
+      "linear_multiplier": [
+        0.6474830340172549,
+        0.504196388898449,
+        0.39640942981359656
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.7426025228120771,
+        0.7440520107359452,
+        0.7195209696183659
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.6685693176316579,
+        0.5671152396626742,
+        0.5154119777927015
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_1_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0122870866490477,
+        1.0992705494062325,
+        1.1232941761931574
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_左块三色交角_单平面截角_真实截面石质.001_原图色面柔化",
+      "linear_multiplier": [
+        0.6685693176316579,
+        0.5671152396626742,
+        0.5154119777927015
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_2_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.9352201686916668,
+        1.0253120150413635,
+        1.0157555180836726
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_3_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.6697481516052135,
+        0.7483048015872038,
+        0.8115880542467135
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_4_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        0.9400714846774305,
+        0.9546861284103999,
+        0.9431494132846849
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_右后块三色交角_单平面截角_真实截面石质.001_原图色面柔化",
+      "linear_multiplier": [
+        0.6697481516052135,
+        0.7483048015872038,
+        0.8115880542467135
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_5_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_0_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_1_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_2_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_3_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_4_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    },
+    {
+      "material": "04_6_5_石质面_微粒修订_微粒修订.002_原图色面柔化",
+      "linear_multiplier": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "coarse_texture_flattening": 0.5
+    }
+  ],
+  "geometry_unchanged": true,
+  "game_background_unchanged": true,
+  "lights_unchanged": true,
+  "note": "来自当前真实渲染的局部色面修正，仍需重新观察，非视觉验收结论。"
+}

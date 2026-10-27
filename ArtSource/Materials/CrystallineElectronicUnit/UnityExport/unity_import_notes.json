@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-05",
+  "status": "已导入正式收藏室09号藏品，并完成实际游戏画面观察",
+  "source": "ArtSource/Materials/CrystallineElectronicUnit/MaterialReview/CrystallineElectronicUnit_MaterialReview.blend",
+  "source_sha256": "34fabab5f4ba5f6c5c630ea30cf6f44fbf02ec5f4236ea100dc495efe5f0869c",
+  "source_unchanged": true,
+  "asset_directory": "Assets/YC/Presentation/Models/CrystallineElectronicUnit/Approved20261005",
+  "display_prefab": "Assets/YC/Presentation/Collection/Prefabs/CrystallineElectronicUnitDisplay.prefab",
+  "display_prefab_guid": "60dc9558082039547a7e95079be2be06",
+  "item": "Assets/YC/Presentation/Collection/Items/09.asset",
+  "geometry": {
+    "renderers": 33,
+    "independent_crystal_layers": 32,
+    "triangles": 45756,
+    "notes": "沿用已验收深中央凹槽、前侧与后部两侧共三面内嵌散热槽、双轴居中四柱、铭牌和后部铜管及双侧薄铁皮支架。"
+  },
+  "materials": {
+    "count": 14,
+    "surface_map": "2048×2048 RGBA PNG；线性数据；R金属度、G遮蔽、A光滑度",
+    "opaque_shader": "YC/Collection/CEUApprovedMetal",
+    "crystal_shader": "YC/Collection/CEUApprovedGlass",
+    "glass_opacity": 0.65,
+    "glass_edge_opacity": 0.88,
+    "glass_light_response": 0.12,
+    "glass_environment_response": 0.5,
+    "occlusion_strength": 0.6,
+    "copper_occlusion_strength": 0.35,
+    "local_reflection_intensity": 0.65,
+    "notes": "保留基色常量；程序化粗糙度与局部遮蔽烘焙；透明层采用独立对象与Fresnel透明度，实时环境反射并非Blender路径追踪折射及台面镜像的逐像素复现。"
+  },
+  "pose": {
+    "euler_degrees": [-30, 0, 0],
+    "uniform_scale": 0.3435595,
+    "notes": "保留FBX导入轴转换及文件单位缩放，展示姿态按实际包围盒居中；默认投影宽度1.15。"
+  },
+  "verification": {
+    "actual_collection_item_selected": "09",
+    "actual_renderers": 33,
+    "front_and_rear_observed": true,
+    "rotation_check_degrees": 34.9999847,
+    "reset_error_degrees": 0,
+    "model_missing_scripts": 0,
+    "shaders_compile_without_errors": true,
+    "screenshots": [
+      "ArtSource/Materials/CrystallineElectronicUnit/UnityReview/晶体电子单元_Unity正面验收.png",
+      "ArtSource/Materials/CrystallineElectronicUnit/UnityReview/晶体电子单元_Unity后部验收.png",
+      "ArtSource/Materials/CrystallineElectronicUnit/UnityReview/晶体电子单元_Unity最终默认视图.png"
+    ],
+    "limitations": "未进行全项目测试或构建。MCP截图工具曾触发自身PlayerLoop递归报错，改用Unity原生ScreenCapture后完成验收；期间还有其他流程重载编辑器与切换运行状态。未修改收藏室场景或公共UI。"
+  }
+}

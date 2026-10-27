@@ -1,0 +1,29 @@
+{
+  "geometryUnchanged": true,
+  "geometryHash": "2eb574998fa9ee948e1c85f7aaf67bc46d8ece751fe2a5edac183051d9ea4571",
+  "liquidOriginalBaseColor": [
+    0.0013931888388469815,
+    0.19599418342113495,
+    0.2529500722885132,
+    1.0
+  ],
+  "glass": {
+    "ior": 1.46,
+    "transmission": 1,
+    "roughness": 0.065,
+    "emission": 0
+  },
+  "fluid": {
+    "ior": 1.333,
+    "transmission": 0.18,
+    "emissionColorLinear": [
+      0.002,
+      0.46,
+      0.55
+    ],
+    "emissionStrength": 1.15
+  },
+  "glassClearMix": "Fresnel * 0.84 + 0.075",
+  "meniscusEmissionStrength": 1.0,
+  "unityImported": false
+}
