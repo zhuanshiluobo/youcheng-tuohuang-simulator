@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using YC.Application.Sessions;
+using YC.Infrastructure.Multiplayer;
+using YC.Presentation.Workflows;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -24,6 +27,26 @@ namespace YC.Presentation
         [SerializeField] private Text tipsText;
         [SerializeField] private CanvasGroup tipsGroup;
         [SerializeField] private RectTransform progressFill;
+        [SerializeField] private Button returnToMenuButton;
+        [SerializeField, Min(1f)] private float offerReturnAfterSeconds = 30f;
+        [SerializeField] private string percentageFormat = "{0}%";
+        [SerializeField] private string preparingStatus = "准备中";
+        [SerializeField] private string restoringStatus = "恢复中";
+        [SerializeField] private string waitingStatus = "等待中";
+        [SerializeField] private string failureStatus = "未完成";
+        [SerializeField] private string sceneStageText = "正在加载场景资源…";
+        [SerializeField] private string hostInitializationText = "房主正在初始化对局…";
+        [SerializeField] private string localInitializationText = "正在初始化对局…";
+        [SerializeField] private string clientInitializationText = "正在准备客户端界面…";
+        [SerializeField] private string restoreStageText = "正在恢复存档和结算状态…";
+        [SerializeField] private string preparingSynchronizationText = "正在准备联机同步数据…";
+        [SerializeField] private string awaitingHostText = "正在等待房主准备对局数据…";
+        [SerializeField] private string receivingFormat = "正在同步并恢复对局数据：{0:0.00} / {1:0.00} MB";
+        [SerializeField] private string hostWaitingText = "正在等待玩家接收并恢复对局数据…";
+        [SerializeField] private string playerCountFormat = "{0}/{1} 人";
+        [SerializeField] private string confirmingText = "正在确认所有玩家的对局状态…";
+        [SerializeField] private string readyText = "对局已就绪，正在进入…";
+        [SerializeField] private string failedText = "加载未完成，请返回菜单后重试。";
         [SerializeField, Min(1f)] private float progressFillWidth = 520f;
         [SerializeField, Min(0.05f)] private float fadeToBlackDuration = 0.8f;
         [SerializeField, Min(0.05f)] private float revealDuration = 1.04f;
@@ -42,6 +65,33 @@ namespace YC.Presentation
         private Coroutine tipLoop;
         private bool hadGameplaySource;
         private bool sourceScenesUnloaded;
+        private static LoadingSceneController active;
+        private GameplayLoadingProgress gameplayProgress;
+        private MobileCityInteractionController gameplayController;
+        private string gameplaySceneName;
+        private string gameplayGameId;
+        private bool aborted;
+        private bool activationComplete;
+
+        public static void TrackGameplayStartup(MobileCityInteractionController controller)
+        {
+            if (active != null && active.gameplayProgress != null && controller.gameObject.scene.name == active.gameplaySceneName)
+                active.gameplayController = controller;
+        }
+
+        public static bool DeferGameplaySynchronization(MobileCityInteractionController controller)
+        {
+            if (active == null || active.gameplayController != controller || active.gameplayProgress == null) return false;
+            active.gameplayProgress.MarkSessionPrepared();
+            active.RenderGameplayProgress();
+            return active.gameplayProgress.Online;
+        }
+
+        public static bool IsBlockingGameplay(Scene scene) => active != null && active.gameplayProgress != null &&
+            active.gameplaySceneName == scene.name;
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetForRuntimeStart() { active = null; }
 
         public CanvasGroup BlackScreen => blackScreen;
         public Camera LoadingCamera => loadingCamera;
@@ -75,6 +125,12 @@ namespace YC.Presentation
             tipsGroup.alpha = 1f;
             progressRoot.SetActive(false);
             SetProgress(0f);
+            active = this;
+            if (returnToMenuButton != null)
+            {
+                returnToMenuButton.gameObject.SetActive(false);
+                returnToMenuButton.onClick.AddListener(ReturnToMenu);
+            }
         }
 
         private IEnumerator Start()
@@ -91,6 +147,15 @@ namespace YC.Presentation
             if (string.IsNullOrEmpty(targetScene))
             {
                 targetScene = FallbackSceneName;
+            }
+            if (showProgress && !quickBlackTransition && (targetScene == "SampleScene" || targetScene == "ThreePlayerScene"))
+            {
+                var launch = GameLaunchContext.Instance;
+                gameplaySceneName = targetScene;
+                gameplayGameId = launch?.GameId;
+                gameplayProgress = new GameplayLoadingProgress(launch != null && launch.Mode != LaunchMode.Local,
+                    launch?.Mode == LaunchMode.Host, launch?.RestoreData != null || launch?.ResumeInfo != null);
+                RenderGameplayProgress();
             }
 
             yield return FadeBlackScreen(
@@ -111,6 +176,7 @@ namespace YC.Presentation
             catch (System.Exception ex)
             {
                 releaseGameplayArtwork = false;
+                gameplayProgress = null;
                 Debug.LogError("加载目标场景失败：" + ex.Message, this);
                 targetScene = FallbackSceneName;
                 operation = SceneManager.LoadSceneAsync(targetScene, LoadSceneMode.Additive);
@@ -133,7 +199,7 @@ namespace YC.Presentation
                         displayedProgress,
                         actualProgress,
                         Time.unscaledDeltaTime * 0.65f);
-                    SetProgress(displayedProgress);
+                    SetSceneProgress(displayedProgress);
                 }
                 yield return null;
             }
@@ -141,11 +207,19 @@ namespace YC.Presentation
             while (showProgress && displayedProgress < 1f)
             {
                 displayedProgress = Mathf.MoveTowards(displayedProgress, 1f, Time.unscaledDeltaTime * 1.5f);
-                SetProgress(displayedProgress);
+                SetSceneProgress(displayedProgress);
                 yield return null;
             }
 
-            if (showProgress)
+            if (gameplayProgress != null)
+            {
+                gameplayProgress.BeginInitialization();
+                RenderGameplayProgress();
+                // 激活场景会同步执行 Awake；先绘制阶段说明，耗时步骤不伪造逐帧百分比。
+                yield return null;
+                yield return null;
+            }
+            else if (showProgress)
             {
                 SetProgress(1f);
                 yield return new WaitForSecondsRealtime(0.18f);
@@ -169,6 +243,24 @@ namespace YC.Presentation
             }
 
             SceneManager.SetActiveScene(loadedTargetScene);
+            activationComplete = true;
+            if (gameplayProgress != null)
+            {
+                var waitingSince = Time.realtimeSinceStartup;
+                while (gameplayProgress.Stage != GameplayLoadingStage.Ready && !aborted)
+                {
+                    ObserveGameplayReadiness();
+                    RenderGameplayProgress();
+                    if (returnToMenuButton != null)
+                        returnToMenuButton.gameObject.SetActive(gameplayProgress.Stage == GameplayLoadingStage.Failed ||
+                            Time.realtimeSinceStartup - waitingSince >= offerReturnAfterSeconds);
+                    yield return null;
+                }
+                if (aborted) yield break;
+                if (returnToMenuButton != null) returnToMenuButton.gameObject.SetActive(false);
+                yield return new WaitForSecondsRealtime(0.18f);
+                yield return AnimateProgressPanel(false);
+            }
 
             if (quickBlackTransition)
             {
@@ -227,7 +319,8 @@ namespace YC.Presentation
                 progressRoot.SetActive(true);
                 progressContainer.anchoredPosition = progressShownPosition + progressHiddenOffset;
                 progressGroup.alpha = 0f;
-                StartTipLoop();
+                if (gameplayProgress == null) StartTipLoop();
+                else RenderGameplayProgress();
             }
             else
             {
@@ -381,8 +474,97 @@ namespace YC.Presentation
         public void SetProgress(float normalizedProgress)
         {
             var progress = Mathf.Clamp01(normalizedProgress);
-            progressText.text = "加载中 " + Mathf.RoundToInt(progress * 100f) + "%";
+            progressText.text = string.Format(percentageFormat, Mathf.RoundToInt(progress * 100f));
             progressFill.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, progressFillWidth * progress);
+        }
+
+        private void SetSceneProgress(float value)
+        {
+            if (gameplayProgress == null) { SetProgress(value); return; }
+            gameplayProgress.SetSceneProgress(value);
+            RenderGameplayProgress();
+        }
+
+        private void ObserveGameplayReadiness()
+        {
+            var launch = GameLaunchContext.Instance;
+            if (gameplayController == null || !string.IsNullOrEmpty(gameplayController.StartupFailure) ||
+                launch?.IsLeavingGameplay == true || gameplayProgress.Online && launch?.GameId != gameplayGameId)
+            { gameplayProgress.Fail(); return; }
+            if (!gameplayProgress.Online)
+            { gameplayProgress.CompleteLocal(gameplayController.IsStartupInitialized); return; }
+            var transport = MirrorCommandTransport.Instance;
+            if (transport == null || transport.InitialLoadingGameId != gameplayGameId) return;
+            SimulationPublishedSnapshot snapshot = null;
+            transport.SimulationCoordinator?.TryReadPublishedSnapshot(out snapshot);
+            bool recoveringConnection = transport.IsAwaitingLocalSimulationConnectionRecovery;
+            bool failed = !string.IsNullOrEmpty(transport.InitialLoadingFailure) ||
+                !recoveringConnection && snapshot != null && (snapshot.IsStopped || snapshot.RequiresRecovery);
+            bool boundaryReady = !recoveringConnection && GameplayLoadingProgress.HasConfirmedSimulationState(snapshot, gameplayGameId);
+            gameplayProgress.ObserveNetwork(transport.InitialLoadingReceivedBytes, transport.InitialLoadingTotalBytes,
+                transport.InitialLoadingReadyPlayerCount, transport.InitialLoadingPlayerCount,
+                transport.IsInitialLoadingStateInstalled, gameplayController.IsStartupSimulationReady, boundaryReady, failed);
+        }
+
+        private void RenderGameplayProgress()
+        {
+            var state = gameplayProgress;
+            if (state == null) return;
+            progressFill.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, progressFillWidth * state.Fill);
+            tipsGroup.alpha = 1f;
+            progressText.text = waitingStatus;
+            switch (state.Stage)
+            {
+                case GameplayLoadingStage.Scene:
+                    tipsText.text = sceneStageText;
+                    progressText.text = string.Format(percentageFormat, Mathf.RoundToInt(state.SceneProgress * 100f));
+                    break;
+                case GameplayLoadingStage.Initializing:
+                    tipsText.text = state.Host ? hostInitializationText : state.Online ? clientInitializationText : localInitializationText;
+                    progressText.text = preparingStatus;
+                    break;
+                case GameplayLoadingStage.Restoring:
+                    tipsText.text = state.Online && !state.Host ? clientInitializationText : restoreStageText;
+                    progressText.text = state.Online && !state.Host ? preparingStatus : restoringStatus;
+                    break;
+                case GameplayLoadingStage.PreparingSynchronization:
+                    tipsText.text = state.Host ? preparingSynchronizationText : awaitingHostText;
+                    progressText.text = preparingStatus;
+                    break;
+                case GameplayLoadingStage.Synchronizing:
+                    tipsText.text = state.TotalBytes == 0 ? awaitingHostText :
+                        string.Format(receivingFormat, state.ReceivedBytes / 1048576f, state.TotalBytes / 1048576f);
+                    if (state.TotalBytes > 0) progressText.text = string.Format(percentageFormat,
+                        Mathf.FloorToInt(100f * state.ReceivedBytes / state.TotalBytes));
+                    break;
+                case GameplayLoadingStage.WaitingForPlayers:
+                    tipsText.text = state.Host && state.ReadyPlayers < state.TotalPlayers ? hostWaitingText : confirmingText;
+                    if (state.Host) progressText.text = string.Format(playerCountFormat, state.ReadyPlayers, state.TotalPlayers);
+                    break;
+                case GameplayLoadingStage.Ready:
+                    tipsText.text = readyText;
+                    progressText.text = string.Format(percentageFormat, 100);
+                    break;
+                case GameplayLoadingStage.Failed:
+                    tipsText.text = failedText;
+                    progressText.text = failureStatus;
+                    break;
+            }
+        }
+
+        private void ReturnToMenu()
+        {
+            if (!activationComplete || aborted) return;
+            GameLaunchContext.ShutdownOnlineSession();
+            SceneTransitionContext.CompleteTransition();
+            aborted = SceneTransitionContext.TryBeginBlackTransition(FallbackSceneName);
+            if (returnToMenuButton != null) returnToMenuButton.interactable = !aborted;
+        }
+
+        private void OnDestroy()
+        {
+            if (active == this) active = null;
+            if (returnToMenuButton != null) returnToMenuButton.onClick.RemoveListener(ReturnToMenu);
         }
 
         public void SetLoadingTips(string[] tips)

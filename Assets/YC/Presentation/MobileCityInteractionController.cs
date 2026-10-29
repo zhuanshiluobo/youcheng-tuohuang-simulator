@@ -154,6 +154,27 @@ namespace YC.Presentation
         }
         private void Awake()
         {
+            LoadingSceneController.TrackGameplayStartup(this);
+            try
+            {
+                InitializeScene();
+                if (!enabled || !IsStartupInitialized && !startupCompletionPending) StartupFailure = "gameplay_scene_binding_invalid";
+            }
+            catch (Exception error)
+            {
+                StartupFailure = error.Message;
+                enabled = false;
+                throw;
+            }
+        }
+
+        public bool IsStartupInitialized { get; private set; }
+        private bool startupCompletionPending;
+        public string StartupFailure { get; private set; }
+        public bool IsStartupSimulationReady => IsStartupInitialized && commandSubmission?.IsSimulationReady == true;
+
+        private void InitializeScene()
+        {
             if (!GameplayInteractionHudView.TryValidateSceneBinding(
                     gameplayInteractionHud,
                     this,
@@ -363,17 +384,42 @@ namespace YC.Presentation
             characterMapInteraction.ShowGameplayPrompt = SetPrompt;
             BuildCharacterCardEffectInteraction();
             BuildInteractionRouting();
+            if (LoadingSceneController.DeferGameplaySynchronization(this))
+            {
+                startupCompletionPending = true;
+                StartCoroutine(CompleteStartupAfterLoadingFrame());
+            }
+            else CompleteStartup();
+        }
+
+        private System.Collections.IEnumerator CompleteStartupAfterLoadingFrame()
+        {
+            // 先让加载页实际绘制“准备联机同步”，再运行原有同步初始化。
+            yield return null;
+            yield return null;
+            if (uiShuttingDown || GameLaunchContext.Instance?.IsLeavingGameplay == true) yield break;
+            try { CompleteStartup(); }
+            catch (Exception error) { StartupFailure = error.Message; enabled = false; Debug.LogException(error, this); }
+        }
+
+        private void CompleteStartup()
+        {
             BuildCommandSubmission(GameLaunchContext.Instance);
+            if (!string.IsNullOrEmpty(commandSubmission.InitializationFailure))
+                throw new InvalidOperationException(commandSubmission.InitializationFailure);
             // 完成初始热座视角同步，避免把读档时的玩家切换延迟到第一笔付款准备回执。
             StartInteractionTrace();
             SynchronizeInteractionFromState();
             turnActionPresenter.RestorePreparedMove();
             RefreshPendingChoiceOrHighlights();
             PrepareRightCardSmokePresentation();
+            IsStartupInitialized = true;
+            startupCompletionPending = false;
         }
 
         private void Update()
         {
+            if (!IsStartupInitialized || LoadingSceneController.IsBlockingGameplay(gameObject.scene)) return;
             PulseInteractionTrace();
             workflowView?.RefreshCityStylePreview();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
@@ -785,6 +831,7 @@ namespace YC.Presentation
             turnActionPresenter.CityStyleInteraction.GetDisplayedPlayerId = () => displayedCityPlayerId;
             turnActionPresenter.CityStyleInteraction.GetPresentationGeneration = () => gameplayInteractionHud.Frame.PresentationGeneration;
             turnActionPresenter.BuildInteraction.GetVisibleState = VisibleSaleState;
+            turnActionPresenter.MoveInteraction.CanSubmitInitialPlacement = () => CanSubmitGameplayCommand;
             turnActionPresenter.MainActionDraftCleared = () => {
                 interactionRouter?.ClearMapConfirmation(); mapInteractionRouter?.ClearConfirmation(false);
                 routeResourceSelection?.CancelLocalPreview();

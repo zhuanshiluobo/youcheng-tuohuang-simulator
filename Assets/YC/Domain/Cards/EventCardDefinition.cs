@@ -68,6 +68,15 @@ namespace YC.Domain.Cards
 
     public static class EventEffectUtility
     {
+        public static bool HasInfluencePayment(IReadOnlyList<EventEffect> effects)
+        {
+            if (effects == null) return false;
+            foreach (var effect in effects)
+                if (effect != null && effect.Kind == EventEffectKind.PlaceInfluence && effect.CostAmount > 0)
+                    return true;
+            return false;
+        }
+
         public static void Apply(GameState state, int playerId, IReadOnlyList<EventEffect> effects)
         {
             if (state == null || effects == null || effects.Count <= 0)

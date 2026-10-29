@@ -548,7 +548,7 @@ namespace YC.Domain.State
             if (ItemZoneLegacyProjection.IsActive(state)) view.Map.FacilityInstances.RemoveAll(item => !view.ItemZones.Items.Exists(entity => entity.ItemId == item.ContentInstanceId));
             ProjectDecks(state.Decks, view.Decks);
             view.GameBox = GameBoxState.ForViewer(state.GameBox, viewer);
-            if (ItemZoneLegacyProjection.IsActive(state)) view.GameBox = GameBoxStateProjector.Project(state, view.ItemZones);
+            if (ItemZoneLegacyProjection.IsActive(state)) view.GameBox = GameBoxStateProjector.Project(state, view.ItemZones, viewer);
             ProjectFinalScoring(state.FinalScoring, viewer, view);
             ProjectInteractions(state, viewer, view);
             if (viewer.Role == GameStateViewerRole.Player && runtime != null)

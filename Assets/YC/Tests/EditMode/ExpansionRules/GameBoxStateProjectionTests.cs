@@ -3,6 +3,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Domain.Items;
+using YC.Domain.Effects;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -10,6 +11,42 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class GameBoxStateProjectionTests
     {
+        [TestCase(true)]
+        [TestCase(false)]
+        public void LegacyCompletedEnterpriseSelectionOnlyRevealsOwnDiscardedBoards(bool concurrent)
+        {
+            var state = State();
+            var candidates = new[] { "p1-keep-a", "p1-drop-a", "p1-keep-b", "p1-drop-b", "p2-keep-a", "p2-drop-a", "p2-keep-b", "p2-drop-b" };
+            foreach (string id in candidates) Item(state, id, "diy.no_prefix", "core.board_card", id.Contains("keep") ? "outside" : "reserve");
+            Item(state, "never-dealt", "diy.no_prefix", "core.board_card", "reserve");
+            var setup = new EffectNodeRuntimeState { EffectId = "old-setup", EffectTypeId = ExpansionSetupFlow.PreparationTypeId,
+                Status = EffectNodeStatus.Completed, ContinuationData = ItemTransferEffectExecutor.Object(
+                    "candidateEnterpriseItemIds", ItemTransferEffectExecutor.Strings(candidates),
+                    "selectedEnterpriseItemIds", ItemTransferEffectExecutor.Strings(candidates.Where(id => id.Contains("keep"))),
+                    "initialEnterprisePlayerIds", NormalizedValue.CreateArray(new[] { 1, 1, 2, 2 }.Select(player =>
+                        ItemTransferEffectExecutor.Object("playerId", NormalizedValue.CreateInteger(player))).ToList())) };
+            state.EffectRuntime.EffectNodes.Add(setup);
+            if (concurrent)
+                foreach (int player in new[] { 1, 2 }) state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState {
+                    EffectId = "selection-" + player, ParentEffectId = setup.EffectId, PlayerId = player,
+                    EffectTypeId = ExpansionSetupFlow.EnterpriseSelectionTypeId, Status = EffectNodeStatus.Completed,
+                    NormalizedArguments = ItemTransferEffectExecutor.Object("candidateEnterpriseItemIds",
+                        ItemTransferEffectExecutor.Strings(candidates.Skip((player - 1) * 4).Take(4))) });
+            string before = JsonConvert.SerializeObject(state);
+            foreach (var viewer in new[] { GameStateViewer.Player(1), GameStateViewer.Player(2), GameStateViewer.Spectator, GameStateViewer.Unknown })
+            {
+                var visible = new ItemZoneQuery().Project(state, viewer);
+                var box = GameBoxStateProjector.Project(state, visible, viewer);
+                var expected = viewer.Role == GameStateViewerRole.Player
+                    ? candidates.Where(id => id.StartsWith("p" + viewer.PlayerId + "-drop")).ToArray() : new string[0];
+                Assert.That(box.Cards.Select(card => card.InstanceId), Is.EquivalentTo(expected));
+                Assert.That(visible.Items.Any(item => item.ItemId.Contains("drop") || item.ItemId == "never-dealt"), Is.False);
+            }
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+            setup.Status = EffectNodeStatus.Blocked;
+            Assert.That(GameBoxStateProjector.Project(state, new ItemZoneQuery().Project(state, GameStateViewer.Player(1)), GameStateViewer.Player(1)).Cards, Is.Empty);
+        }
+
         private static GameState State()
         {
             var state = new GameState { GameId = "game.box_projection",

@@ -27,6 +27,7 @@ namespace YC.Presentation
         [Serializable] public sealed class SeatBinding
         {
             public Text NameText, StateText;
+            public SteamAvatarView Avatar;
             public GameObject HostBadge, InviteState;
             public Button SwapButton, InviteButton, CloseButton, OpenButton, RemoveButton, HotSeatButton, BotButton;
         }
@@ -226,6 +227,7 @@ namespace YC.Presentation
             {
                 var slot = room.SeatSlots[i];
                 var occupant = slot.Occupant;
+                seats[i].Avatar?.Bind(online ? occupant?.SteamId ?? 0 : 0);
                 var self = occupant != null && occupant.PlayerId == viewerId;
                 var label = occupant == null ? (slot.Status == "closed" ? closedCaption : emptyCaption) : occupant.PlayerName;
                 seats[i].NameText.text = string.Format(seatNameFormat, i + 1, label, self ? selfCaption : string.Empty);
@@ -339,6 +341,7 @@ namespace YC.Presentation
 
             foreach (var seat in seats)
                 if (seat == null || seat.NameText == null || seat.StateText == null || seat.HostBadge == null || seat.InviteState == null ||
+                    seat.Avatar == null || !seat.Avatar.IsConfigured ||
                     seat.SwapButton == null || seat.InviteButton == null || seat.CloseButton == null || seat.OpenButton == null ||
                     seat.RemoveButton == null || seat.HotSeatButton == null || seat.BotButton == null)
                 { reason = "座位引用不完整。"; return false; }

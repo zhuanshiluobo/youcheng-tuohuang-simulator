@@ -1,0 +1,43 @@
+{
+  "source": "游城拓荒\\应用图标\\金环举杯剪影头像.png",
+  "sha256": "e143aaa7333f29a15f425f90ecdb039c32c3fecc23675f429788121bb77f0ed1",
+  "size": [
+    1254,
+    1254
+  ],
+  "mode": "RGBA",
+  "unityAsset": "Assets\\Branding\\ApplicationIcon.png",
+  "installerIcon": "tools\\packaging\\ApplicationIcon.ico",
+  "icoSizes": [
+    [
+      16,
+      16
+    ],
+    [
+      24,
+      24
+    ],
+    [
+      32,
+      32
+    ],
+    [
+      48,
+      48
+    ],
+    [
+      64,
+      64
+    ],
+    [
+      128,
+      128
+    ],
+    [
+      256,
+      256
+    ]
+  ],
+  "use": "Windows应用程序、快捷方式、安装器与卸载器图标",
+  "basis": "2026-10-28 用户明确指定金环举杯剪影头像.png；保留完整原图，仅转换ICO格式和标准尺寸。"
+}

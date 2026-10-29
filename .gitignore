@@ -45,7 +45,10 @@ Thumbs.db
 /Artifacts/
 /tmp/
 /tmp_*
+/.codex-tmp/
 /tools/__pycache__/
+__pycache__/
+*.pyc
 /Assets/InitTestScene*.unity
 /Assets/InitTestScene*.unity.meta
 /Assets/Screenshots/
@@ -106,3 +109,8 @@ Thumbs.db
 
 # 本机对话归档审核记录仅在本地保留。
 /docs/工作记录/2026-10-22_Codex对话归档审核建议.md
+
+# 本地测试现场、生成证据及提交过程回执不纳入版本控制。
+/prompt/企业家内容实施规划-20261019/实施记录/
+/prompt/企业家实现后杂项修复/实施记录/
+/prompt/企业家内容实施规划-20261019/整理记录/20261028/提交结果本地/

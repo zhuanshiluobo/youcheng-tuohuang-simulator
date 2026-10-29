@@ -255,6 +255,17 @@ namespace YC.Domain.Rules
         private static void PublishEnterprises(EffectExecutionContext context, List<string> boards)
         {
             if (boards.Count != 4 || boards.Distinct().Count() != 4) throw new InvalidOperationException("enterprise_board_count_invalid");
+            // 未选企业是各玩家已经看过的私密回盒牌，不能继续留在无人可见的备用区。
+            var order = context.State.EffectRuntime.PlayerOrderSnapshot;
+            var candidates = ReadIds(Value(context.Node.ContinuationData, "candidateEnterpriseItemIds"));
+            int draw = order.Count == 2 ? 4 : 2;
+            for (int index = 0; index < order.Count; index++)
+            foreach (string id in candidates.Skip(index * draw).Take(draw).Where(id => !boards.Contains(id)))
+            {
+                var discarded = context.State.ItemZones.Items.Single(item => item.ItemId == id);
+                discarded.ControllerSubject = ItemSubjectRef.Player(order[index]);
+                ItemZoneStateMigrator.SetPosition(context.State, discarded, FindZone(context.State, "secret_retired").ZoneId);
+            }
             foreach (string id in boards)
             {
                 var board = context.State.ItemZones.Items.Single(i => i.ItemId == id);

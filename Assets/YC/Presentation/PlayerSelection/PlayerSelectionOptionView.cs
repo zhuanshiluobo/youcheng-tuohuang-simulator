@@ -12,6 +12,7 @@ namespace YC.Presentation
         [SerializeField] private Button button;
         [SerializeField] private Image fill, frame, marker, checkbox, check;
         [SerializeField] private RawImage avatar;
+        [SerializeField] private SteamAvatarView steamAvatar;
         [SerializeField] private GameObject emptyAvatar, selfTag, disabledState;
         [SerializeField] private Text playerName, colorName, disabledReason;
         [SerializeField] private Sprite[] fills, frames, markers, checkboxes;
@@ -27,7 +28,7 @@ namespace YC.Presentation
         public Button Button => button;
         public PlayerSelectionOption Option => option;
         public bool IsConfigured => button != null && fill != null && frame != null && marker != null && checkbox != null &&
-            check != null && avatar != null && emptyAvatar != null && selfTag != null && disabledState != null &&
+            check != null && avatar != null && steamAvatar != null && steamAvatar.IsConfigured && emptyAvatar != null && selfTag != null && disabledState != null &&
             playerName != null && colorName != null && disabledReason != null && fills?.Length == 4 && frames?.Length == 4 &&
             markers?.Length == 4 && checkboxes?.Length == 3 && colorLabels?.Length == 4;
 
@@ -44,14 +45,8 @@ namespace YC.Presentation
             colorName.text = colorLabels[index];
             selfTag.SetActive(data.IsSelf); disabledState.SetActive(!data.Eligible);
             disabledReason.text = string.IsNullOrEmpty(data.DisabledReason) ? unavailableText : data.DisabledReason;
-            avatar.texture = data.Avatar;
-            avatar.gameObject.SetActive(data.Avatar != null); emptyAvatar.SetActive(data.Avatar == null);
+            steamAvatar.BindPlayer(data.Id, data.Avatar);
             avatar.color = new Color(1,1,1,data.Eligible ? 1 : .45f);
-            if (data.Avatar != null)
-            {
-                var aspect = (float)data.Avatar.width / Mathf.Max(1,data.Avatar.height);
-                avatar.uvRect = aspect > 1 ? new Rect((1-1/aspect)/2,0,1/aspect,1) : new Rect(0,(1-aspect)/2,1,aspect);
-            }
             RefreshState();
         }
         private void LateUpdate()

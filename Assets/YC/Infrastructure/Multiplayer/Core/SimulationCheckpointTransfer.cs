@@ -78,6 +78,7 @@ namespace YC.Infrastructure.Multiplayer
                 expected = expectedIdentity.Snapshot();
             }
             public int BufferedBytes => received;
+            public int ExpectedBytes => buffer?.Length ?? 0;
             public void Reset() { buffer = null; envelope = null; received = 0; }
 
             public bool TryAppend(SimulationCheckpointEnvelope incoming, int offset, byte[] payload, out string archiveJson, out string faultCode)

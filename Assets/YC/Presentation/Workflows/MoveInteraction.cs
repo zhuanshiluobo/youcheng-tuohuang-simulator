@@ -38,6 +38,7 @@ namespace YC.Presentation.Workflows
         private string confirmedTarget, preselectedTarget;
         private PreparedActionPaymentView observedPreparation;
         public Func<int> ObservedStateRevision { private get; set; }
+        public Func<bool> CanSubmitInitialPlacement { private get; set; }
         public Func<GameStateView> GetVisibleState { set => paymentPreparation.GetVisibleState = value; }
         public bool HasPreparedPayment => paymentPreparation.HasPreparation;
         public bool CanResumePreparedDraft => IsActive && IsDraftScopeCurrent() &&
@@ -452,6 +453,7 @@ namespace YC.Presentation.Workflows
 
         public void PlaceInitialCity(string locationId)
         {
+            if (CanSubmitInitialPlacement?.Invoke() == false || !IsAwaitingInitialPlacement || !IsLocalPlayersTurn()) return;
             commandGateway.Submit(
                 new GameCommand
                 {
@@ -470,7 +472,7 @@ namespace YC.Presentation.Workflows
         public IReadOnlyList<WorkflowHighlight> BuildInitialPlacementHighlights()
         {
             var result = new List<WorkflowHighlight>();
-            if (!IsAwaitingInitialPlacement || !IsLocalPlayersTurn())
+            if (CanSubmitInitialPlacement?.Invoke() == false || !IsAwaitingInitialPlacement || !IsLocalPlayersTurn())
             {
                 return result;
             }

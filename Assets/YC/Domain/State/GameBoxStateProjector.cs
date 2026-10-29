@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using YC.Domain.Items;
+using YC.Domain.Effects;
 using YC.Domain.Rules;
 
 namespace YC.Domain.State
@@ -9,7 +10,7 @@ namespace YC.Domain.State
     /// <summary>从本局真实实例及当前观察者投影派生游戏盒；不写入旧位置列表。</summary>
     public static class GameBoxStateProjector
     {
-        public static GameBoxState Project(GameState state, ItemZoneStateView visibleItems)
+        public static GameBoxState Project(GameState state, ItemZoneStateView visibleItems, GameStateViewer? viewer = null)
         {
             var result = new GameBoxState();
             if (state?.ItemZones == null || visibleItems == null) return result;
@@ -37,6 +38,7 @@ namespace YC.Domain.State
                 PopulateBack(state, actual, kind, types, definitionBacks, card);
                 result.Cards.Add(card);
             }
+            AppendLegacyUnselectedEnterprises(state, result, items, zones, enterpriseDefinitions, viewer);
             // 回盒区无历史牌堆顺序；固定种类与实例顺序避免刷新时跳动。
             result.Cards.Sort((left, right) =>
             {
@@ -45,6 +47,46 @@ namespace YC.Domain.State
             });
             return result;
         }
+
+        private static void AppendLegacyUnselectedEnterprises(GameState state, GameBoxState result,
+            IDictionary<string, ItemInstanceState> items, IDictionary<string, ZoneInstanceState> zones,
+            HashSet<string> definitions, GameStateViewer? viewer)
+        {
+            if (!viewer.HasValue || viewer.Value.Role != GameStateViewerRole.Player || state.EffectRuntime == null) return;
+            int player = viewer.Value.PlayerId;
+            // 旧档曾把已知但未选的企业留在备用区。仅从已完成的本人选择记录恢复查看权限，
+            // 不修改存档位置，也不开放备用区或他人的候选。
+            foreach (var setup in state.EffectRuntime.EffectNodes.Where(node =>
+                node.EffectTypeId == ExpansionSetupFlow.PreparationTypeId && node.Status == EffectNodeStatus.Completed))
+            {
+                var selection = state.EffectRuntime.EffectNodes.FirstOrDefault(node => node.ParentEffectId == setup.EffectId &&
+                    node.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId && node.PlayerId == player && node.Status == EffectNodeStatus.Completed);
+                var candidates = Ids(ItemTransferEffectExecutor.Value(selection?.NormalizedArguments, "candidateEnterpriseItemIds"));
+                if (selection == null)
+                {
+                    var owners = ItemTransferEffectExecutor.Value(setup.ContinuationData, "initialEnterprisePlayerIds");
+                    var order = owners?.Items?.Select(value => ItemTransferEffectExecutor.Number(value, "playerId")).Distinct().ToList();
+                    int index = order?.IndexOf(player) ?? -1;
+                    if (index < 0) continue;
+                    int draw = order.Count == 2 ? 4 : 2;
+                    candidates = Ids(ItemTransferEffectExecutor.Value(setup.ContinuationData, "candidateEnterpriseItemIds")).Skip(index * draw).Take(draw);
+                }
+                var selected = new HashSet<string>(Ids(ItemTransferEffectExecutor.Value(setup.ContinuationData, "selectedEnterpriseItemIds")), StringComparer.Ordinal);
+                foreach (string id in candidates.Where(id => !selected.Contains(id)))
+                {
+                    if (!items.TryGetValue(id, out var item) || item.TypeId != "core.board_card" || !definitions.Contains(item.DefinitionId) ||
+                        !zones.TryGetValue(item.ZoneId, out var zone) || zone.TemplateId != "core.zone.box_reserve" ||
+                        result.Cards.Any(card => card.InstanceId == id)) continue;
+                    result.Cards.Add(new GameBoxCardState { InstanceId = id, CardId = item.DefinitionId,
+                        Kind = GameBoxCardKind.EnterpriseCooperation, PrivateForPlayerId = player,
+                        FaceUp = false, BackVisualKey = "enterprise_back", BackColor = (PlayerColor)(-1) });
+                }
+            }
+        }
+
+        private static IEnumerable<string> Ids(NormalizedValue value) => value?.Kind == NormalizedValueKind.Array
+            ? value.Items.Select(item => item.Kind == NormalizedValueKind.StableReference ? item.ReferenceId : item.StringValue)
+            : Enumerable.Empty<string>();
 
         private static NormalizedValue LocalValue(ItemInstanceState item, string name) =>
             item.LocalState?.Properties?.Find(entry => entry.Name == name)?.Value;

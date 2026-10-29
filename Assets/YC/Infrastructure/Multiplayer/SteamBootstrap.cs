@@ -72,8 +72,9 @@ namespace YC.Infrastructure.Multiplayer
         public void Shutdown()
         {
             if (!IsInitialized) return;
-            SteamAPI.Shutdown();
             IsInitialized = false;
+            SteamAvatarCache.Clear();
+            SteamAPI.Shutdown();
         }
         private void Fail(string message)
         {

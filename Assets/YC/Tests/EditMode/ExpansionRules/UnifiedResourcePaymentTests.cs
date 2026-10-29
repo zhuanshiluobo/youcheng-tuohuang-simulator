@@ -496,6 +496,41 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(condition.NestedEffectGroups[1].Any(effect => effect.EffectTypeId == EffectTypeIds.PlaceInfluence), Is.True);
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void RusthammerConfirmsBeforeInfluenceTargetAndRecoversBothStages(bool pay)
+        {
+            // 隔离规则回归：仅在本夹具中固定牌堆顶，不计正常对局或界面验收。
+            var deck = FindZone(state, "event_yellow");
+            var order = state.ItemZones.Orders.Single(value => value.ZoneId == deck.ZoneId);
+            string card = state.ItemZones.Items.Single(item => item.DefinitionId == "event_yellow_04").ItemId;
+            order.ItemIds.Remove(card); order.ItemIds.Insert(0, card); order.OrderRevision++;
+            state.FindPlayer(1).Resources.GoldVoucher = 8;
+            string primary = InfluenceService.GetLocationSlotId("A-02", 0);
+            string root = Run(EventCardEffectSpecFactory.Resolve(1, EventColor.Yellow, "A-02", primary));
+            Answer(EventCardOptionIdFactory.Create("event_yellow_04", 0));
+            Assert.That(Open().InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" &&
+                request.InteractionTypeId == EventCardEffectExecutor.InfluenceInteractionTypeId), Is.False);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(8));
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(1));
+            Restore();
+            Assert.That(Open().InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Answer(pay ? "continue" : "decline");
+            if (pay)
+            {
+                Assert.That(Open().InteractionTypeId, Is.EqualTo("effect.influence.place.target"));
+                Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
+                Restore();
+                Assert.That(Open().CandidateIds, Does.Not.Contain(primary));
+                Answer(Open().CandidateIds[0]);
+            }
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open"), Is.False);
+            Assert.That(Engine().GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(pay ? 2 : 1));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(pay ? 4 : 8));
+        }
+
         [Test]
         public void OriginallyFreeStyleRunsContentWithoutEmptyCondition()
         {

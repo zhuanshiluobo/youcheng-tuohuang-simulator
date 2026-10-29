@@ -596,6 +596,28 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void InitialPlacement_WaitsForSubmissionPermissionAndRechecksItOnClick()
+        {
+            var fixture = CreateFixture();
+            fixture.Context.State.Phase = GamePhase.Entrance;
+            fixture.Context.State.FindPlayer(1).CityLocationId = string.Empty;
+            bool ready = false;
+            fixture.Presenter.MoveInteraction.CanSubmitInitialPlacement = () => ready;
+            Assert.That(fixture.Presenter.BuildInitialPlacementHighlights(), Is.Empty);
+            fixture.Presenter.PlaceInitialCity("A");
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero);
+
+            ready = true;
+            Assert.That(fixture.Presenter.BuildInitialPlacementHighlights(), Has.Count.EqualTo(2));
+            ready = false; // 显示过的旧目标不能在权限撤销后继续提交。
+            fixture.Presenter.PlaceInitialCity("A");
+            Assert.That(fixture.Commands.SubmitCount, Is.Zero);
+            ready = true;
+            fixture.Presenter.PlaceInitialCity("A");
+            Assert.That(fixture.Commands.SubmitCount, Is.EqualTo(1));
+        }
+
+        [Test]
         public void InitialPlacement_ThreePlayerMapHighlightsOnlyGreenUnoccupiedDocks()
         {
             var fixture = CreateFixture();

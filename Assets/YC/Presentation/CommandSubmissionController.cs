@@ -117,6 +117,7 @@ namespace YC.Presentation
         { if (!disposed && SimulationBindingIsCurrent) refreshFromState?.Invoke(); }
         public bool IsSimulationReady => !disposed && (!UsesDeterministicSimulation ||
             SimulationBindingIsCurrent && simulationCoordinator != null && !simulationCoordinator.IsStopped && !simulationCoordinator.RequiresRecovery);
+        public string InitializationFailure { get; private set; }
         private int traceSubmissionFlags = -1;
         public bool CanSubmitForLocalPlayer
         {
@@ -250,6 +251,7 @@ namespace YC.Presentation
             }
             catch (Exception ex)
             {
+                InitializationFailure = ex.Message;
                 Dispose(); Debug.LogException(ex, logContext);
                 setPrompt("联网模拟初始化失败，请返回房间重试。");
             }

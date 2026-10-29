@@ -26,6 +26,7 @@ namespace YC.Presentation
         [SerializeField] private RectTransform[] opponentSeats;
         [SerializeField] private GameObject[] opponentSeatGaps;
         [SerializeField] private Button[] opponentPortraits;
+        [SerializeField] private SteamAvatarView[] opponentAvatars;
         [SerializeField] private Text cityTitle;
         [SerializeField] private GameObject viewedCityReturnHint;
         [SerializeField] private CityBoardInspectionInput cityInspectionInput;
@@ -217,6 +218,7 @@ namespace YC.Presentation
                 opponentSeatGaps == null || opponentSeatGaps.Length != 2 ||
                 Array.Exists(opponentSeatGaps, gap => gap == null) ||
                 opponentPortraits == null || opponentPortraits.Length != 3 || Array.Exists(opponentPortraits, button => button == null) ||
+                opponentAvatars == null || opponentAvatars.Length != 3 || Array.Exists(opponentAvatars, avatar => avatar == null || !avatar.IsConfigured) ||
                 cityTitle == null || viewedCityReturnHint == null || cityInspectionInput == null ||
                 cityRegion == null || cityBoardArtwork == null || playerCityLayout == null ||
                 detailToggleCollapsed == null || detailToggleExpanded == null ||
@@ -368,6 +370,7 @@ namespace YC.Presentation
                 detailCounts[slot] = 0;
             }
             opponentIds[slot] = playerId;
+            if (opponentAvatars != null && slot < opponentAvatars.Length) opponentAvatars[slot]?.BindPlayer(playerId);
             opponentSeats[slot].gameObject.SetActive(true);
             opponentData[slot].SetActive(true);
             opponentName[slot].text = string.IsNullOrEmpty(name)

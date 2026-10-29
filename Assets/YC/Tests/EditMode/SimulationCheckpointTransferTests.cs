@@ -45,11 +45,18 @@ namespace YC.Tests.EditMode
             var receiver = new Channel(f.Identity, new InitialSimulationCheckpointInstaller(client.Session, client.Registry, GameStateViewer.Player(2)), null);
             receiver.Bind("peer-token"); var before = GameStateCloneService.DeepClone(client.Session.State);
             var parts = transfer.Split().ToList(); Assert.That(parts.Count > 1, Is.True);
+            Assert.That(receiver.ExpectedBytes, Is.Zero);
             for (int index = 0; index < parts.Count - 1; index++)
+            {
                 Assert.That(receiver.Receive("peer-token", parts[index]).Status, Is.EqualTo("Buffered"));
+                Assert.That(receiver.ExpectedBytes, Is.EqualTo(transfer.Envelope.EncodedByteCount));
+                Assert.That(receiver.ReceivedBytes, Is.EqualTo(parts[index].Offset + parts[index].Payload.Length));
+            }
             Assert.That(GameStateCloneService.AreEquivalent(client.Session.State, before), Is.True); Assert.That(client.Session.View, Is.Null);
             var installed = receiver.Receive("peer-token", parts.Last());
             Assert.That(installed.Status, Is.EqualTo("Installed")); Assert.That(installed.InstallResult.Succeeded, Is.True);
+            Assert.That(receiver.ReceivedBytes, Is.EqualTo(receiver.ExpectedBytes));
+            Assert.That(receiver.ExpectedBytes, Is.EqualTo(transfer.Envelope.EncodedByteCount), "解码清空缓冲区后仍保留本次成功传输的进度。");
             Assert.That(installed.InstallResult.ArchiveDigest, Is.EqualTo(transfer.Envelope.ArchiveDigest));
             Assert.That(GameStateCloneService.AreEquivalent(client.Session.State, f.Host.Session.State), Is.True);
             Assert.That(client.Session.State.FindPlayer(1).HandCardIds.Count > 0, Is.True);
@@ -226,6 +233,8 @@ namespace YC.Tests.EditMode
             internal void Stop() => type.GetMethod("Stop").Invoke(value, null);
             internal bool IsStopped => (bool)type.GetProperty("IsStopped").GetValue(value);
             internal int BufferedBytes => (int)type.GetProperty("BufferedBytes").GetValue(value);
+            internal int ExpectedBytes => (int)type.GetProperty("ExpectedBytes").GetValue(value);
+            internal int ReceivedBytes => (int)type.GetProperty("ReceivedBytes").GetValue(value);
             internal bool IsPeerInstalled(int player) => (bool)type.GetMethod("IsPeerInstalled").Invoke(value, new object[] { player });
             internal Received Receive(string token, SimulationCheckpointPart part) => Receive(token, part.Envelope, part.Offset, part.Payload);
             internal Received Receive(string token, SimulationCheckpointEnvelope envelope, int offset, byte[] payload) =>

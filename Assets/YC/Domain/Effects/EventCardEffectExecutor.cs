@@ -191,6 +191,11 @@ namespace YC.Domain.Effects
                     return EffectStepResult.Failed("insufficient_influence_targets");
                 }
 
+                // 付费影响力由条件式右侧的基础放置节点选点，先确认付款，再请求目标。
+                // 已保存的 awaiting_influence 仍沿原分支恢复，保留此前提交的目标。
+                if (EventEffectUtility.HasInfluencePayment(card.ChoicePendingEffects[optionIndex]))
+                    return Resolve(context, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, new List<string>());
+
                 var influenceInteraction = new EffectInteractionSpec
                 {
                     InteractionTypeId = InfluenceInteractionTypeId,

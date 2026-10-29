@@ -144,7 +144,7 @@ end";
 
                 IReadOnlyList<EventEffect> pendingEffects = card.ChoicePendingEffects[optionIndex];
                 ResourceSet costs = CollectCosts(pendingEffects);
-                bool rulePayment = card.CardId == "event_yellow_04" && costs.Enumerate().Any(pair => pair.Value > 0);
+                bool rulePayment = EventEffectUtility.HasInfluencePayment(pendingEffects);
                 if (rulePayment) builder.AppendLine("        local outerEffects = effects; effects = {}");
                 else AppendResourcePayments(builder, costs, "event_card.cost:" + card.CardId);
 

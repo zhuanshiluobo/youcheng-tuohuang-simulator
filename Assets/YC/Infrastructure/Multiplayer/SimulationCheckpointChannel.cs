@@ -45,6 +45,9 @@ namespace YC.Infrastructure.Multiplayer
         public bool IsInstalled => installedEnvelope != null;
         public bool IsStopped => stopped;
         public int BufferedBytes => assembler.BufferedBytes;
+        public int ExpectedBytes => installedEnvelope?.EncodedByteCount ?? assembler.ExpectedBytes;
+        public int ReceivedBytes => installedEnvelope?.EncodedByteCount ?? assembler.BufferedBytes;
+        public bool IsHostArchivePrepared => hostTransfer != null && !stopped;
         public bool IsPeerInstalled(int playerId) => installedPeers.Contains(playerId);
 
         public bool TryPrepareHostArchive(out string faultCode)

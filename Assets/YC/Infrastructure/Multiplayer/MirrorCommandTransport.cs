@@ -139,6 +139,17 @@ namespace YC.Infrastructure.Multiplayer
         public bool IsInitialSimulationCheckpointConfigured => checkpointChannel != null;
         public bool HasInstalledInitialSimulationCheckpoint => checkpointChannel != null && checkpointChannel.IsInstalled && !checkpointChannel.IsStopped;
         public bool IsInitialSimulationCheckpointInstalledByPeer(int playerId) => checkpointChannel != null && checkpointChannel.IsPeerInstalled(playerId);
+        // 仅供加载页观察；成功接收/安装与规则边界就绪仍由原协议判定。
+        public string InitialLoadingGameId => simulationOptions?.GameId;
+        public int InitialLoadingReceivedBytes => checkpointChannel?.ReceivedBytes ?? 0;
+        public int InitialLoadingTotalBytes => checkpointChannel?.ExpectedBytes ?? 0;
+        public bool IsInitialLoadingStateInstalled => mode == LaunchMode.Host
+            ? checkpointChannel?.IsHostArchivePrepared == true : HasInstalledInitialSimulationCheckpoint;
+        public int InitialLoadingPlayerCount => simulationOptions?.FrozenPlayerIds?.Count ?? 0;
+        public int InitialLoadingReadyPlayerCount => simulationOptions == null ? 0 :
+            simulationOptions.FrozenPlayerIds.Count(id => id == localPlayerId
+                ? IsInitialLoadingStateInstalled : checkpointChannel?.IsPeerInstalled(id) == true);
+        public string InitialLoadingFailure { get; private set; }
 
         public void InitializeDeterministicSimulation(GameSession session, LaunchMode launchMode, int playerId, IList<PlayerSeat> seats,
             DeterministicSimulationSessionOptions options, InitialSimulationCheckpointInstaller installer, Func<string> createHostArchive)
@@ -187,7 +198,8 @@ namespace YC.Infrastructure.Multiplayer
                 NetworkServer.RegisterHandler<SimulationCheckpointInstalledMessage>(OnCheckpointInstalled, false);
                 NetworkServer.RegisterHandler<SimulationCheckpointErrorMessage>(OnCheckpointPeerError, false);
                 NetworkServer.RegisterHandler<SimulationProtocolPartMessage>(OnSimulationClientPart, false);
-                foreach (var connection in NetworkServer.connections.Values) OnServerConnected(connection);
+                // 身份校验可能同步断开连接，不能遍历会被断开回调修改的实时字典。
+                foreach (var connection in NetworkServer.connections.Values.ToArray()) OnServerConnected(connection);
                 if (!channel.TryPrepareHostArchive(out var fault)) { PublishCheckpointFault(fault); return; }
                 replayCapture?.CaptureInitial(channel.Identity);
                 AttachSimulation(prepared);
@@ -300,6 +312,7 @@ namespace YC.Infrastructure.Multiplayer
 
         public void Shutdown()
         {
+            InitialLoadingFailure = null;
             NetworkExecutionObservation.Event("simulation.shutdown", ReadObservationContext());
             transportGeneration++; recoveryPreparationPending = recoveryCompletionPending = false;
             DetachSimulation(); simulationOptions = null; protocolPeers.Clear(); protocolHost.Reset(); nextSimulationTransfer = 0;
@@ -313,6 +326,8 @@ namespace YC.Infrastructure.Multiplayer
             checkpointInstallationSent = false;
             savedCoordinatorFactory = null;
             pendingLocalBindings.Clear();
+            // 房间关闭后连接号会重用；相同 Steam 席位也不能沿用上一局的连接绑定。
+            bindings.Clear();
             if (MirrorNetworkRuntime.Instance != null)
             {
                 MirrorNetworkRuntime.Instance.LocalClientRestarted -= RegisterClientMessages;
@@ -667,6 +682,7 @@ namespace YC.Infrastructure.Multiplayer
 
         private void PublishCheckpointFault(string fault, bool notifyHost = false)
         {
+            InitialLoadingFailure = fault;
             if (simulationOptions != null) ProtocolFault("checkpoint_transport_failed", fault);
             if (notifyHost && checkpointChannel != null && IsBoundCheckpointHost(clientConnectionToken))
                 NetworkClient.Send(new SimulationCheckpointErrorMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),

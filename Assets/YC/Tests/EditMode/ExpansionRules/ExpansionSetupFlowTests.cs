@@ -436,6 +436,19 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(selections < 8, Is.True);
             }
             var boards = In(state, "enterprises"); Assert.That(boards.Count, Is.EqualTo(4));
+            state = Restore(state, registry);
+            preparation = state.EffectRuntime.EffectNodes.Single(node => node.EffectId == preparationId);
+            var dealt = Value(preparation.ContinuationData, "candidateEnterpriseItemIds").Items.Select(value => value.StringValue).ToArray();
+            int drawCount = players == 2 ? 4 : 2;
+            foreach (int viewer in Enumerable.Range(1, players))
+            {
+                var discarded = dealt.Skip((viewer - 1) * drawCount).Take(drawCount).Except(boards).ToArray();
+                Assert.That(discarded.Length, Is.EqualTo(players == 2 ? 2 : 1));
+                Assert.That(In(state, "secret_retired"), Is.SupersetOf(discarded));
+                var box = GameStateViewProjector.ProjectForPlayer(state, viewer).GameBox;
+                Assert.That(box.Cards.Where(card => card.Kind == GameBoxCardKind.EnterpriseCooperation).Select(card => card.InstanceId),
+                    Is.EquivalentTo(discarded), "游戏盒只能展示本人开局未选的企业板，不能泄露他人或未抽取的企业。");
+            }
             var query = new EnterpriseStateQuery(registry.EnterpriseDefinitions);
             foreach (int player in Enumerable.Range(1, players)) Assert.That(boards.Sum(id => query.GetLevel(state, player, id)), Is.EqualTo(players == 2 ? 2 : 1));
             Assert.That(state.ItemZones.Items.Count(i => i.TypeId == "core.player_marker" && state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.board_marker_track")), Is.EqualTo(players * 4));
@@ -614,7 +627,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.MapId, Is.EqualTo(config.MapId));
             Assert.That(discardedPlayers, Is.EqualTo(enterprise ? players : 0));
             Assert.That(optionalInfluenceRequests, Is.EqualTo(players == 2 ? 1 : 0));
-            Assert.That(In(state, "secret_retired"), Has.Count.EqualTo(enterprise ? players * 2 : 0));
+            var privateRetired = In(state, "secret_retired").Select(id => state.ItemZones.Items.Single(item => item.ItemId == id)).ToList();
+            var itemTypes = ItemTypeRegistry.CreateBuiltIn();
+            Assert.That(privateRetired.Count(item => itemTypes.IsAssignableTo(item.TypeId, "core.basic_character_card")), Is.EqualTo(enterprise ? players * 2 : 0));
+            Assert.That(privateRetired.Count(item => item.TypeId == "core.board_card"), Is.EqualTo(enterprise ? players == 2 ? 4 : players : 0));
             foreach (var player in state.Players) Assert.That(CharacterLifecycleService.GetRetainedBasicCharacterCount(state, player.PlayerId), Is.EqualTo(5));
             var expectedGold = players == 2 ? new[] { 10, 18 } : players == 3 ? new[] { 10, 12, 18 } : new[] { 10, 12, 14, 18 };
             var initialGoldNodes = state.EffectRuntime.EffectNodes.Where(n => n.SourceId == "setup.initial_gold").ToList();

@@ -79,8 +79,22 @@ namespace YC.Editor
                 throw new BuildFailedException("PlayerSettings.bundleVersion 不能用于发行目录：" + version);
             }
 
+            var outputDirectory = Path.Combine("Builds", "v" + version);
+            var arguments = Environment.GetCommandLineArgs();
+            var outputArgument = Array.IndexOf(arguments, "-ycReleaseOutput");
+            if (outputArgument >= 0)
+            {
+                if (outputArgument + 1 >= arguments.Length)
+                    throw new BuildFailedException("缺少 -ycReleaseOutput 路径。");
+                outputDirectory = Path.GetFullPath(arguments[outputArgument + 1]);
+                var allowed = Path.GetFullPath("Builds") + Path.DirectorySeparatorChar;
+                if (!outputDirectory.StartsWith(allowed, StringComparison.OrdinalIgnoreCase) ||
+                    Directory.Exists(outputDirectory) || File.Exists(outputDirectory))
+                    throw new BuildFailedException("发行输出必须是项目 Builds 内尚不存在的子目录。");
+            }
+
             BuildLocalhost(
-                Path.Combine("Builds", "v" + version),
+                outputDirectory,
                 BuildOptions.None,
                 "Release build succeeded");
         }

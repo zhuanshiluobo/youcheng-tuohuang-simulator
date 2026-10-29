@@ -18,6 +18,37 @@ namespace YC.Tests.EditMode
     public sealed class LocalMirrorReconnectLifecycleTests
     {
         [Test]
+        public void ShutdownAllowsSavedSeatsToReconnectWithReassignedConnectionIds()
+        {
+            // 隔离生命周期回归：模拟原房间退出后，续局成员按不同顺序重新连接。
+            Assert.That(NetworkIsActive(), Is.False);
+            var root = new GameObject("ResumeConnectionBindings"); root.SetActive(false);
+            var transport = root.AddComponent(Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport"));
+            try
+            {
+                var bindings = (SteamIdentityBindingRegistry)Get(transport, "bindings");
+                var seats = new[] { new KeyValuePair<int, ulong>(2, 222),
+                    new KeyValuePair<int, ulong>(3, 333), new KeyValuePair<int, ulong>(4, 444) };
+                bindings.ReplaceLobbySeats(seats);
+                Assert.That(bindings.TryBindConnection(1, 222, out _), Is.True);
+                Assert.That(bindings.TryBindConnection(2, 333, out _), Is.True);
+                Assert.That(bindings.TryBindConnection(3, 444, out _), Is.True);
+                // 主动退出会先退订断开事件，因此不能依赖逐个断开回调清理。
+                Call(transport, "Shutdown");
+                bindings.ReplaceLobbySeats(seats);
+                Assert.That(bindings.TryBindConnection(1, 444, out var fourth), Is.True);
+                Assert.That(fourth, Is.EqualTo(4));
+                Assert.That(bindings.TryBindConnection(2, 333, out var third), Is.True);
+                Assert.That(third, Is.EqualTo(3));
+                Assert.That(bindings.TryBindConnection(3, 222, out var second), Is.True);
+                Assert.That(second, Is.EqualTo(2));
+                Assert.That(bindings.TryBindConnection(4, 999, out _), Is.False, "未知身份仍须拒绝。");
+                Assert.That(bindings.TryBindConnection(5, 444, out _), Is.False, "同一身份不能占用两条连接。");
+            }
+            finally { Call(transport, "Shutdown"); UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        [Test]
         public void AcceptedLocalReconnectKeepsRoomTicketAndPublishesTerminalOnlyAtDeadline()
         {
             Assert.That(NetworkIsActive(), Is.False);
