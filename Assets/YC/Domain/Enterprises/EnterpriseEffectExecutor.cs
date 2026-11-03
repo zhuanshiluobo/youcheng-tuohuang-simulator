@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -12,6 +12,7 @@ namespace YC.Domain.Enterprises
     public static class EnterpriseEffectExecutor
     {
         public const string ChangeLevelTypeId = "effect.enterprise.change_level";
+        public const string UpgradeDefinitionVersion = "v3.target_player";
         public const string UpgradeAllPlayersTypeId = "effect.enterprise.upgrade_all_players";
         internal const string IncompleteTypeId = "effect.enterprise.incomplete";
         public const string LevelChangedEvent = "enterprise.level.changed", DepartmentChangedEvent = "enterprise.department.changed";
@@ -21,9 +22,9 @@ namespace YC.Domain.Enterprises
             if (definitions != null) registry.EnterpriseDefinitions = definitions;
             foreach (string typeId in new[] { LuaDomainEffectTypeIds.UpgradeEnterprise, ChangeLevelTypeId, LuaDomainEffectTypeIds.SwitchDepartment })
                 if (!registry.TryGet(typeId, out _)) registry.Register(new EffectRegistration(typeId,
-                    typeId == LuaDomainEffectTypeIds.SwitchDepartment ? (Func<EffectExecutionContext, EffectStepResult>)SwitchDepartment : typeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? Upgrade : ChangeLevel, EffectExecutorKind.IntrinsicFlow));
+                    typeId == LuaDomainEffectTypeIds.SwitchDepartment ? (Func<EffectExecutionContext, EffectStepResult>)SwitchDepartment : typeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? Upgrade : ChangeLevel, EffectExecutorKind.IntrinsicFlow, typeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? UpgradeDefinitionVersion : "v2.marker_state"));
             if (!registry.TryGet(UpgradeAllPlayersTypeId, out _))
-                registry.Register(new EffectRegistration(UpgradeAllPlayersTypeId, UpgradeAllPlayers, EffectExecutorKind.IntrinsicFlow, "v1"));
+                registry.Register(new EffectRegistration(UpgradeAllPlayersTypeId, UpgradeAllPlayers, EffectExecutorKind.IntrinsicFlow, "v2.marker_state"));
             if (!registry.TryGet(IncompleteTypeId, out _)) registry.Register(IncompleteTypeId, context => SkipIncomplete(context, new[] { "abilityEffects" }));
             foreach (string eventType in new[] { LevelChangedEvent, DepartmentChangedEvent, "EnterpriseSpecialEffectActivated" })
             {
@@ -43,7 +44,7 @@ namespace YC.Domain.Enterprises
         public static string[] AllowedFields(string typeId)
         {
             if (typeId == EnterpriseDistinctUpgradeFlow.TypeId) return new[] { "apiVersion", "player", "count", "levels" };
-            if (typeId == LuaDomainEffectTypeIds.UpgradeEnterprise) return new[] { "apiVersion", "player", "enterpriseItemId", "enterpriseItemIds", "levels" };
+            if (typeId == LuaDomainEffectTypeIds.UpgradeEnterprise) return new[] { "apiVersion", "player", "targetPlayer", "enterpriseItemId", "enterpriseItemIds", "levels" };
             if (typeId == UpgradeAllPlayersTypeId) return new[] { "apiVersion", "player", "enterpriseItemId", "enterpriseItemIds", "levels" };
             if (typeId == ChangeLevelTypeId) return new[] { "apiVersion", "player", "enterpriseItemId", "levelDelta", "resolveArrivalReward" };
             if (typeId == LuaDomainEffectTypeIds.SwitchDepartment) return new[] { "apiVersion", "player", "enterpriseItemId", "departmentItemId" };
@@ -53,7 +54,7 @@ namespace YC.Domain.Enterprises
         }
         public static List<string> MissingFields(string typeId, NormalizedValue args)
         {
-            if (Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Value(args, "apiVersion").IntegerValue != 1 || args.Properties.Any(entry => !AllowedFields(typeId).Concat(new[] { "kind", "effectTypeId" }).Contains(entry.Name))) return new List<string>();
+            if (Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || !SupportsSchema(typeId, args) || args.Properties.Any(entry => !AllowedFields(typeId).Concat(new[] { "kind", "effectTypeId" }).Contains(entry.Name))) return new List<string>();
             var required = new List<string> { "player" };
             if (typeId == EnterpriseDistinctUpgradeFlow.TypeId) required.AddRange(new[] { "count", "levels" });
             if ((typeId == LuaDomainEffectTypeIds.UpgradeEnterprise || typeId == UpgradeAllPlayersTypeId) && Value(args, "enterpriseItemIds") == null || typeId == ChangeLevelTypeId || typeId == LuaDomainEffectTypeIds.SwitchDepartment) required.Add("enterpriseItemId");
@@ -65,12 +66,13 @@ namespace YC.Domain.Enterprises
         public static string ValidateArguments(string typeId, NormalizedValue args)
         {
             if (args?.Kind != NormalizedValueKind.Object || args.Properties.Any(entry => !AllowedFields(typeId).Concat(new[] { "kind", "effectTypeId" }).Contains(entry.Name))) return "invalid_enterprise_arguments";
-            if (Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Value(args, "apiVersion").IntegerValue != 1) return "enterprise_schema_unsupported";
+            if (Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || !SupportsSchema(typeId, args)) return "enterprise_schema_unsupported";
+            if (Value(args, "targetPlayer") != null && (typeId != LuaDomainEffectTypeIds.UpgradeEnterprise || Number(args, "apiVersion") != 2)) return "enterprise_target_player_version_unsupported";
             if ((typeId == LuaDomainEffectTypeIds.UpgradeEnterprise || typeId == UpgradeAllPlayersTypeId) && Value(args, "enterpriseItemId") != null && Value(args, "enterpriseItemIds") != null) return "enterprise_upgrade_target_ambiguous";
             if (typeId == EnterpriseDistinctUpgradeFlow.TypeId && (Value(args, "count")?.Kind != NormalizedValueKind.Integer || Number(args, "count") < 1 || Number(args, "count") > 16)) return "enterprise_distinct_count_invalid";
             foreach (var entry in args.Properties)
             {
-                if (new[] { "player", "unlockedByPlayer" }.Contains(entry.Name) && (!int.TryParse(entry.Value.StringValue, NumberStyles.None, CultureInfo.InvariantCulture, out var id) || entry.Value.Kind != NormalizedValueKind.String || id <= 0)) return "invalid_player";
+                if (new[] { "player", "targetPlayer", "unlockedByPlayer" }.Contains(entry.Name) && (!int.TryParse(entry.Value.StringValue, NumberStyles.None, CultureInfo.InvariantCulture, out var id) || entry.Value.Kind != NormalizedValueKind.String || id <= 0)) return "invalid_player";
                 if (new[] { "levels", "levelDelta", "minLevel", "maxLevel" }.Contains(entry.Name) && (entry.Value.Kind != NormalizedValueKind.Integer || entry.Value.IntegerValue < int.MinValue || entry.Value.IntegerValue > int.MaxValue ||
                     (entry.Name == "levels" ? entry.Value.IntegerValue <= 0 : entry.Name == "levelDelta" ? entry.Value.IntegerValue == 0 : entry.Value.IntegerValue < 1 || entry.Value.IntegerValue > 5))) return "invalid_enterprise_level_argument";
                 if (new[] { "enterpriseItemId", "departmentItemId", "specialId" }.Contains(entry.Name) && (entry.Value.Kind != NormalizedValueKind.String || string.IsNullOrWhiteSpace(entry.Value.StringValue))) return "invalid_enterprise_target";
@@ -98,7 +100,51 @@ namespace YC.Domain.Enterprises
             if (missing.Count > 0) return SkipIncomplete(context, missing);
             if (int.Parse(Text(context.Node.NormalizedArguments, "player"), CultureInfo.InvariantCulture) != context.Node.PlayerId || context.State.FindPlayer(context.Node.PlayerId) == null)
                 throw new InvalidOperationException("enterprise_execution_permission_denied");
+            if (context.Node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise && Number(args, "apiVersion") == 2)
+            {
+                int target = UpgradePlayer(context.Node);
+                if (context.State.FindPlayer(target) == null) return EffectStepResult.Failed("invalid_player");
+                if (Value(context.Node.ContinuationData, "upgradeTargetPlayerId") == null)
+                {
+                    Set(context.Node, "upgradeTargetPlayerId", NormalizedValue.CreateInteger(target));
+                    Set(context.Node, "upgradeInitiatingPlayerId", NormalizedValue.CreateInteger(context.Node.PlayerId));
+                }
+                else if (Number(context.Node.ContinuationData, "upgradeTargetPlayerId", -1) != target || Number(context.Node.ContinuationData, "upgradeInitiatingPlayerId", -1) != context.Node.PlayerId)
+                    throw new InvalidOperationException("enterprise_target_player_restore_invalid");
+            }
             return null;
+        }
+
+        private static bool SupportsSchema(string type, NormalizedValue args) => Number(args, "apiVersion") == 1 || type == LuaDomainEffectTypeIds.UpgradeEnterprise && Number(args, "apiVersion") == 2;
+        public static int UpgradePlayer(EffectNodeRuntimeState node) => node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise && Value(node.NormalizedArguments, "targetPlayer") != null
+            ? int.TryParse(Text(node.NormalizedArguments, "targetPlayer"), NumberStyles.None, CultureInfo.InvariantCulture, out int target) ? target : -1 : node.PlayerId;
+
+        private static bool TryValidateTargetPlayers(GameState state, out string reason)
+        {
+            reason = "enterprise_target_player_restore_invalid";
+            foreach (var node in state.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise && Number(n.NormalizedArguments, "apiVersion") == 2))
+            {
+                if (node.DefinitionVersion != UpgradeDefinitionVersion || ValidateArguments(node.EffectTypeId, node.NormalizedArguments).Length > 0 || Text(node.NormalizedArguments, "player") != node.PlayerId.ToString(CultureInfo.InvariantCulture)) return false;
+                int target = UpgradePlayer(node); var frozen = Value(node.ContinuationData, "upgradeTargetPlayerId");
+                if (frozen == null)
+                {
+                    if (node.EnterpriseArrivalReceipts.Count > 0 || node.PositionChanges.Count > 0 || node.FlowStage.Length > 0 || node.Status == EffectNodeStatus.Completed) return false;
+                    continue;
+                }
+                if (frozen.Kind != NormalizedValueKind.Integer || frozen.IntegerValue != target || state.FindPlayer(target) == null ||
+                    Number(node.ContinuationData, "upgradeInitiatingPlayerId", -1) != node.PlayerId) return false;
+                for (int index = 0; index < node.EnterpriseArrivalReceipts.Count; index++)
+                {
+                    var receipt = node.EnterpriseArrivalReceipts[index]; var ev = state.EffectRuntime.RuleEvents.SingleOrDefault(e => e.EventId == receipt.EventId);
+                    if (receipt.PlayerId != target || receipt.EnterpriseItemId != UpgradeTarget(node) ||
+                        receipt.EventId != StableIdFactory.Create("event", node.EffectId, "arrival", index.ToString(CultureInfo.InvariantCulture)) ||
+                        ev == null || ev.PlayerId != target || ev.SourceEffectId != node.EffectId || ev.EventType != LevelChangedEvent ||
+                        Number(ev.Payload, "oldLevel", -9) != receipt.OldLevel || Number(ev.Payload, "newLevel", -9) != receipt.NewLevel) return false;
+                }
+                if (node.Status == EffectNodeStatus.Completed &&
+                    (Number(node.NormalizedResult, "targetPlayerId", -1) != target || Number(node.NormalizedResult, "initiatingPlayerId", -1) != node.PlayerId)) return false;
+            }
+            reason = ""; return true;
         }
 
         private static List<int> PlayerOrder(GameState state, int initiatingPlayer)
@@ -170,9 +216,10 @@ namespace YC.Domain.Enterprises
                     {
                         var oldLevel = Value(child.NormalizedResult, "oldLevel"); var newLevel = Value(child.NormalizedResult, "newLevel");
                         var changed = Value(child.NormalizedResult, "changed"); var arrivals = Value(child.NormalizedResult, "arrivalEventIds");
+                        bool missingMarker = Text(child.NormalizedResult, "reasonCode") == "enterprise_cooperation_marker_missing";
                         // 到达响应可再次改变等级；仅核验来源结果与收据，不把最终等级锁死为旧等级+1。
-                        if (child.FlowStage != "finished" || oldLevel?.Kind != NormalizedValueKind.Integer || oldLevel.IntegerValue < 0 || oldLevel.IntegerValue > 5 ||
-                            oldLevel.IntegerValue != Number(child.ContinuationData, "oldLevel", -1) || newLevel?.Kind != NormalizedValueKind.Integer || newLevel.IntegerValue < 0 || newLevel.IntegerValue > 5 ||
+                        if (child.FlowStage != "finished" || oldLevel?.Kind != NormalizedValueKind.Integer || oldLevel.IntegerValue < (missingMarker && child.EnterpriseArrivalReceipts.Count == 0 ? -1 : 0) || oldLevel.IntegerValue > 5 ||
+                            oldLevel.IntegerValue != Number(child.ContinuationData, "oldLevel", -2) || newLevel?.Kind != NormalizedValueKind.Integer || newLevel.IntegerValue < (missingMarker ? -1 : 0) || newLevel.IntegerValue > 5 || missingMarker && newLevel.IntegerValue != -1 ||
                             changed?.Kind != NormalizedValueKind.Boolean || changed.BooleanValue != (child.EnterpriseArrivalReceipts.Count > 0) ||
                             arrivals?.Kind != NormalizedValueKind.Array || arrivals.Items.Any(value => value.Kind != NormalizedValueKind.String) ||
                             !arrivals.Items.Select(value => value.StringValue).SequenceEqual(child.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId))) return false;
@@ -258,7 +305,7 @@ namespace YC.Domain.Enterprises
                 var active = query.GetEnterpriseItemIds(context.State);
                 if (scope.Any(id => !active.Contains(id))) return EffectStepResult.Failed("enterprise_not_active");
                 var frozen = active.Where(scope.Contains).ToList();
-                foreach (string id in frozen) query.GetLevel(context.State, node.PlayerId, id);
+                foreach (string id in frozen) query.GetLevel(context.State, UpgradePlayer(node), id);
                 Set(node, "upgradeCandidateItemIds", Strings(frozen));
                 Set(node, "upgradeCandidateDefinitionIds", Strings(frozen.Select(id => context.State.ItemZones.Items.Single(item => item.ItemId == id).DefinitionId)));
             }
@@ -267,9 +314,15 @@ namespace YC.Domain.Enterprises
             var definitions = Value(node.ContinuationData, "upgradeCandidateDefinitionIds").Items.Select(value => value.StringValue).ToList();
             var candidates = query.GetEnterpriseItemIds(context.State).Where(id => ids.Contains(id) &&
                 context.State.ItemZones.Items.Single(item => item.ItemId == id).DefinitionId == definitions[ids.IndexOf(id)]).ToList();
-            foreach (string id in candidates) query.GetLevel(context.State, node.PlayerId, id);
+            // 集体升级选择的是企业；单人升级必须确有该玩家的合作标记。
+            // 回答前移出的候选只从原冻结范围收窄，不转而扩展到其他企业。
+            if (node.EffectTypeId != UpgradeAllPlayersTypeId)
+                candidates = candidates.Where(id => query.GetLevel(context.State, UpgradePlayer(node), id) != EnterpriseStateQuery.MissingCooperationLevel).ToList();
             string selected = node.FlowStage == "choose_enterprise" ? Answer(context) : string.Empty;
-            if (candidates.Count == 0) return NoCandidates().WithFlowStage("finished");
+            if (candidates.Count == 0)
+            {
+                var empty = NoCandidates(); AddUpgradeActors(node, empty.NormalizedResult); return empty.WithFlowStage("finished");
+            }
             if (!candidates.Contains(selected))
             {
                 if (candidates.Count == 1) selected = candidates[0];
@@ -285,7 +338,7 @@ namespace YC.Domain.Enterprises
 
         public static bool TryValidateUpgradeSelections(GameState state, EnterpriseDefinitions definitions, out string reason)
         {
-            if (!EnterpriseSpecialSelectionExecutor.TryValidateCandidateScopes(state, out reason)) return false;
+            if (!TryValidateTargetPlayers(state, out reason) || !EnterpriseSpecialSelectionExecutor.TryValidateCandidateScopes(state, out reason)) return false;
             reason = "enterprise_upgrade_selection_restore_invalid";
             foreach (var node in state.EffectRuntime.EffectNodes.Where(value => (value.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise || value.EffectTypeId == UpgradeAllPlayersTypeId) && Value(value.NormalizedArguments, "enterpriseItemIds") != null))
             {
@@ -334,23 +387,24 @@ namespace YC.Domain.Enterprises
                     continue;
                 }
                 var oldLevel = Value(node.ContinuationData, "oldLevel"); var next = Value(node.ContinuationData, "nextIndex"); var count = Value(node.ContinuationData, "requestedCount");
-                if (oldLevel?.Kind != NormalizedValueKind.Integer || oldLevel.IntegerValue < 0 || oldLevel.IntegerValue > 5 ||
+                bool missingMarker = node.FlowStage == "finished" && Text(node.NormalizedResult, "reasonCode") == "enterprise_cooperation_marker_missing";
+                if (oldLevel?.Kind != NormalizedValueKind.Integer || oldLevel.IntegerValue < (missingMarker && node.EnterpriseArrivalReceipts.Count == 0 ? -1 : 0) || oldLevel.IntegerValue > 5 ||
                     next?.Kind != NormalizedValueKind.Integer || next.IntegerValue < 0 || next.IntegerValue > Math.Min(5, Number(node.NormalizedArguments, "levels")) ||
                     count?.Kind != NormalizedValueKind.Integer || count.IntegerValue != Math.Min(5, Number(node.NormalizedArguments, "levels")) || node.EnterpriseArrivalReceipts.Count != next.IntegerValue) return false;
                 for (int index = 0; index < node.EnterpriseArrivalReceipts.Count; index++)
                 {
                     var receipt = node.EnterpriseArrivalReceipts[index];
-                    if (receipt.EnterpriseItemId != selected.StringValue || receipt.PlayerId != node.PlayerId || receipt.NewLevel != receipt.OldLevel + 1 ||
+                    if (receipt.EnterpriseItemId != selected.StringValue || receipt.PlayerId != UpgradePlayer(node) || receipt.NewLevel != receipt.OldLevel + 1 ||
                         receipt.EventId != StableIdFactory.Create("event", node.EffectId, "arrival", index.ToString(CultureInfo.InvariantCulture)) || index == 0 && receipt.OldLevel != oldLevel.IntegerValue) return false;
                     var ruleEvent = state.EffectRuntime.RuleEvents.Find(value => value.EventId == receipt.EventId);
-                    if (ruleEvent == null || ruleEvent.SourceEffectId != node.EffectId || ruleEvent.EventType != LevelChangedEvent || ruleEvent.PlayerId != node.PlayerId ||
+                    if (ruleEvent == null || ruleEvent.SourceEffectId != node.EffectId || ruleEvent.EventType != LevelChangedEvent || ruleEvent.PlayerId != UpgradePlayer(node) ||
                         Text(ruleEvent.Payload, "enterpriseItemId") != selected.StringValue || Number(ruleEvent.Payload, "oldLevel", -1) != receipt.OldLevel || Number(ruleEvent.Payload, "newLevel", -1) != receipt.NewLevel) return false;
                 }
                 if (node.FlowStage == "finished" && (node.PendingOutcome == EffectPendingOutcome.Completed || node.Status == EffectNodeStatus.Completed))
                 {
                     var arrivals = Value(node.NormalizedResult, "arrivalEventIds"); var resultLevel = Value(node.NormalizedResult, "newLevel");
                     if (Text(node.NormalizedResult, "selectedEnterpriseItemId") != selected.StringValue || Number(node.NormalizedResult, "oldLevel", -1) != oldLevel.IntegerValue ||
-                        resultLevel?.Kind != NormalizedValueKind.Integer || resultLevel.IntegerValue < 0 || resultLevel.IntegerValue > 5 ||
+                        resultLevel?.Kind != NormalizedValueKind.Integer || resultLevel.IntegerValue < (missingMarker ? -1 : 0) || resultLevel.IntegerValue > 5 || missingMarker && resultLevel.IntegerValue != -1 ||
                         Value(node.NormalizedResult, "changed")?.Kind != NormalizedValueKind.Boolean || Flag(node.NormalizedResult, "changed") != (node.EnterpriseArrivalReceipts.Count > 0) ||
                         arrivals?.Kind != NormalizedValueKind.Array || arrivals.Items.Any(value => value.Kind != NormalizedValueKind.String) ||
                         !arrivals.Items.Select(value => value.StringValue).SequenceEqual(node.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId))) return false;
@@ -366,41 +420,53 @@ namespace YC.Domain.Enterprises
             query.RequireDefinition(context.State, enterpriseItemId);
             int levelDelta = node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? Number(node.NormalizedArguments, "levels") : Number(node.NormalizedArguments, "levelDelta");
             bool resolveArrivalReward = node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise || Flag(node.NormalizedArguments, "resolveArrivalReward");
+            int currentLevel = query.GetLevel(context.State, UpgradePlayer(node), enterpriseItemId);
             if (node.FlowStage.Length == 0)
             {
-                Set(node, "oldLevel", NormalizedValue.CreateInteger(query.GetLevel(context.State, node.PlayerId, enterpriseItemId)));
+                Set(node, "oldLevel", NormalizedValue.CreateInteger(currentLevel));
                 Set(node, "requestedCount", NormalizedValue.CreateInteger(Math.Min(5L, Math.Abs((long)levelDelta))));
                 Set(node, "nextIndex", NormalizedValue.CreateInteger(0));
             }
             else if (node.FlowStage != "awaiting_arrival" && node.FlowStage != "finished") throw new InvalidOperationException("enterprise_level_stage_invalid");
             int index = Number(node.ContinuationData, "nextIndex", -1), requested = Number(node.ContinuationData, "requestedCount", -1);
             if (index < 0 || index > requested || requested < 1 || requested > 5 || node.EnterpriseArrivalReceipts.Count != index) throw new InvalidOperationException("enterprise_arrival_state_invalid");
-            int oldLevel = query.GetLevel(context.State, node.PlayerId, enterpriseItemId);
+            // 已结算的到达奖励保留，缺标记不补发零级实例，也不继续升级。
+            if (currentLevel == EnterpriseStateQuery.MissingCooperationLevel) return FinishLevel(context, enterpriseItemId, "enterprise_cooperation_marker_missing");
+            int oldLevel = currentLevel;
             int newLevel = Math.Max(0, Math.Min(5, oldLevel + Math.Sign(levelDelta)));
             if (index == requested || oldLevel == newLevel || node.FlowStage == "finished") return FinishLevel(context, enterpriseItemId);
             string reward = query.GetRewardAbilityId(context.State, enterpriseItemId, newLevel, out var departmentItemId);
             if (!resolveArrivalReward) reward = "";
-            var marker = query.GetCooperationMarker(context.State, node.PlayerId, enterpriseItemId);
+            var marker = query.GetCooperationMarker(context.State, UpgradePlayer(node), enterpriseItemId);
             var transfer = new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = new List<string> { marker.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = marker.ZoneId, SlotId = marker.SlotId },
                 Destination = new ZoneRef { ZoneId = marker.ZoneId }, InsertionKind = "slot", DestinationSlotId = "level_" + newLevel, OperationProfileId = "core.player_marker_storage", RequiredCount = 1 };
             new ItemTransferService().RelocateItems(context, transfer);
             var receipt = new EnterpriseArrivalReceipt { EventId = StableIdFactory.Create("event", node.EffectId, "arrival", index.ToString(CultureInfo.InvariantCulture)), EnterpriseItemId = enterpriseItemId,
-                DepartmentItemId = departmentItemId, RewardAbilityId = reward, PlayerId = node.PlayerId, OldLevel = oldLevel, NewLevel = newLevel };
+                DepartmentItemId = departmentItemId, RewardAbilityId = reward, PlayerId = UpgradePlayer(node), OldLevel = oldLevel, NewLevel = newLevel };
             node.EnterpriseArrivalReceipts.Add(receipt);
             Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1));
             return EffectStepResult.Continue("awaiting_arrival").AddEvent(new EffectEventRequest { EventId = receipt.EventId, EventType = LevelChangedEvent, SourceEffectId = node.EffectId,
-                TargetEntityId = enterpriseItemId, PlayerId = node.PlayerId, Payload = Object("enterpriseItemId", NormalizedValue.CreateString(enterpriseItemId), "oldLevel", NormalizedValue.CreateInteger(oldLevel),
+                TargetEntityId = enterpriseItemId, PlayerId = UpgradePlayer(node), Payload = Object("enterpriseItemId", NormalizedValue.CreateString(enterpriseItemId), "oldLevel", NormalizedValue.CreateInteger(oldLevel),
                     "newLevel", NormalizedValue.CreateInteger(newLevel), "departmentItemId", NormalizedValue.CreateString(departmentItemId), "abilityId", NormalizedValue.CreateString(reward)) });
         }
-        private static EffectStepResult FinishLevel(EffectExecutionContext context, string enterpriseItemId)
+        private static EffectStepResult FinishLevel(EffectExecutionContext context, string enterpriseItemId, string reasonCode = "")
         {
-            var node = context.Node; int newLevel = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions).GetLevel(context.State, node.PlayerId, enterpriseItemId);
+            var node = context.Node; int newLevel = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions).GetLevel(context.State, UpgradePlayer(node), enterpriseItemId);
             var result = Object("oldLevel", Value(node.ContinuationData, "oldLevel").Clone(), "newLevel", NormalizedValue.CreateInteger(newLevel), "changed", NormalizedValue.CreateBoolean(node.EnterpriseArrivalReceipts.Count > 0),
                 "arrivalEventIds", Strings(node.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId)));
             if (Value(node.NormalizedArguments, "enterpriseItemIds") != null) result.Properties.Add(new NormalizedValueEntry { Name = "selectedEnterpriseItemId", Value = NormalizedValue.CreateString(enterpriseItemId) });
-            if (node.EnterpriseArrivalReceipts.Count == 0) result.Properties.Add(new NormalizedValueEntry { Name = "reasonCode", Value = NormalizedValue.CreateString("limit_reached") });
-            result.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
+            if (reasonCode.Length > 0 || node.EnterpriseArrivalReceipts.Count == 0) result.Properties.Add(new NormalizedValueEntry { Name = "reasonCode", Value = NormalizedValue.CreateString(reasonCode.Length > 0 ? reasonCode : "limit_reached") });
+            AddUpgradeActors(node, result);
             return EffectStepResult.Completed(result).WithFlowStage("finished");
+        }
+        private static void AddUpgradeActors(EffectNodeRuntimeState node, NormalizedValue result)
+        {
+            if (node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise && Number(node.NormalizedArguments, "apiVersion") == 2)
+            {
+                result.Properties.Add(new NormalizedValueEntry { Name = "initiatingPlayerId", Value = NormalizedValue.CreateInteger(node.PlayerId) });
+                result.Properties.Add(new NormalizedValueEntry { Name = "targetPlayerId", Value = NormalizedValue.CreateInteger(UpgradePlayer(node)) });
+            }
+            result.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
         }
         private static EffectStepResult SwitchDepartment(EffectExecutionContext context)
         {
@@ -409,6 +475,8 @@ namespace YC.Domain.Enterprises
             if (node.FlowStage == "awaiting_department_reward") return EffectStepResult.Completed(node.NormalizedResult).WithFlowStage("finished");
             if (node.FlowStage != "" && node.FlowStage != "choose_department") throw new InvalidOperationException("enterprise_department_stage_invalid");
             var query = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions); string enterpriseItemId = Text(node.NormalizedArguments, "enterpriseItemId");
+            if (query.GetLevel(context.State, node.PlayerId, enterpriseItemId) == EnterpriseStateQuery.MissingCooperationLevel)
+                return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("enterprise_cooperation_marker_missing"))).WithFlowStage("finished");
             var candidates = query.GetDepartmentCandidates(context.State, enterpriseItemId);
             string departmentItemId = Text(node.NormalizedArguments, "departmentItemId");
             if (node.FlowStage == "choose_department") departmentItemId = Answer(context);

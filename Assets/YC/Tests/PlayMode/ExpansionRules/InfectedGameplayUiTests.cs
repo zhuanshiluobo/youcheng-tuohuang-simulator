@@ -300,43 +300,17 @@ namespace YC.Tests.PlayMode.ExpansionRules
             return restored;
         }
 
-        [UnityTest] public IEnumerator RepeatProgressUsesHostCountAndResumesWithoutAnExtraIteration()
+        [UnityTest] public IEnumerator RetiredRepeatCannotPublishAPlayableRequest()
         {
-            // 验证正式Repeat路由；林的真实买卖定义与定价由内容任务及组合验收覆盖。
-            var repeat = EffectSpec.Create(LuaDomainEffectTypeIds.Repeat, Object("apiVersion", NormalizedValue.CreateInteger(1),
-                "count", NormalizedValue.CreateInteger(10), "allowEarlyStop", NormalizedValue.CreateBoolean(true)), 1);
-            repeat.NestedEffectGroups.Add(new List<EffectSpec> { ResourceEffectSpecFactory.GainScore(1, 1) });
-            RepeatEffectExecutor.Register(Registry);
-            int startingScore = State.FindPlayer(1).Score;
-            Run(repeat);
-            for (int completed = 0; completed < 10; completed++)
-            {
-                Refresh(); Route();
-                var request = (InteractionRequestProjection)Call(scene, "Projection");
-                Assert.That(request.PromptKey, Is.EqualTo("effect.repeat.continue"));
-                var wire = RoundTrip(View);
-                var node = wire.Effects.Single(value => value.EffectId == request.OwnerEffectId);
-                Assert.That(node.RequestedCount, Is.EqualTo(10)); Assert.That(node.CompletedCount, Is.EqualTo(completed));
-                string format = (string)Get(Prop(Ui, "Copy"), "RepeatProgressFormat");
-                Assert.That((string)Call(Ui, "RequestProgress", request), Does.Contain(string.Format(format, completed, 10)));
-                Commands.Clear();
-                Call(Get(scene, "characterRenderer"), "SubmitCandidates", request, (IReadOnlyList<string>)new[] { "continue" });
-                Assert.That(Commands.Count, Is.EqualTo(1));
-                var result = new AnswerInteractionCommandHandler(Registry).Handle(State, Commands[0]);
-                Assert.That(result.Succeeded, Is.True, result.LogMessage);
-                Call(Get(scene, "characterRenderer"), "NotifyCommandSettled", Commands[0].CommandId);
-                if (completed == 3)
-                {
-                    var recovered = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(State)), Registry);
-                    Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic); Set(scene, "state", recovered.State);
-                }
-                Call(Ui, "NotifyCommandSettled");
-                yield return null;
-            }
-            Refresh(); Route();
-            Assert.That(State.FindPlayer(1).Score, Is.EqualTo(startingScore + 10));
-            Assert.That(View.Interactions.Any(value => value.Status == "open" && value.PromptKey == "effect.repeat.continue"), Is.False);
+            int score = State.FindPlayer(1).Score;
+            var engine = new EffectTreeExecutor(State, Registry);
+            Assert.That(engine.TryCreateRoot(EffectSpec.Create(LuaDomainEffectTypeIds.Repeat, Object("apiVersion", NormalizedValue.CreateInteger(1), "count", NormalizedValue.CreateInteger(10)), 1), "", "", out _), Is.False);
+            Assert.That(State.EffectRuntime.LastFaultMessage, Does.Contain("repeat_api_retired"));
+            Assert.That(State.FindPlayer(1).Score, Is.EqualTo(score));
+            Assert.That(State.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && q.PromptKey == "effect.repeat.continue"), Is.False);
+            yield return null;
         }
+
 
         private void ScrollDetails(int column, float position)
         {

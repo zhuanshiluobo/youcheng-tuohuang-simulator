@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_city_construction_frontier",
   "contentType": "city_style",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "displayName": "城建开拓区",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.city_style_city_construction_frontier.special",
       "script": "lua/city_styles/city_style_city_construction_frontier.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "completionHandlerId": "city_style_city_construction_frontier.special.complete"
     }
   ],
@@ -93,7 +93,7 @@
     "luaSubscriptionId": "content.city_style_city_construction_frontier.special",
     "luaAbilityId": "city_style_city_construction_frontier.special",
     "luaCompletionHandlerId": "city_style_city_construction_frontier.special.complete",
-    "luaVersion": "1.0.0",
+    "luaVersion": "1.0.1",
     "effectScript": "lua/city_styles/city_style_city_construction_frontier.special.lua"
   },
   "abilitySources": [
@@ -133,7 +133,7 @@
     {
       "handlerId": "content.city_style_city_construction_frontier.special",
       "script": "lua/city_styles/city_style_city_construction_frontier.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.2",
       "completionHandlerId": "city_style_city_construction_frontier.special.complete"
     }
   ],

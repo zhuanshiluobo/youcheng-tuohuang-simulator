@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.P.1",
   "contentType": "entrepreneur_round",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "displayName": "保罗·蒂尔曼·第1回合",
   "artwork": "artwork/entrepreneurs/P01.jpg",
   "expansionId": "infected",
@@ -22,7 +22,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.P01.handler",
       "script": "lua/entrepreneurs/paul.p01.quick.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -36,7 +36,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.P02.handler",
       "script": "lua/entrepreneurs/paul.p02.quick.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -165,13 +165,13 @@
     {
       "handlerId": "entrepreneur.face.P01.handler",
       "script": "lua/entrepreneurs/paul.p01.quick.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.face.P02.handler",
       "script": "lua/entrepreneurs/paul.p02.quick.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": ""
     }
   ],

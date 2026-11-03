@@ -367,11 +367,11 @@ namespace YC.Domain.Effects
 
     public sealed class FacilityBuildEffectExecutor
     {
-        public const string DefinitionVersion = "2.0.0";
+        public const string DefinitionVersion = "2.2.0";
 
         public const string PlacementInteractionType = "facility.build.placement";
         public const int PlacementObservationProtocolVersion = 2;
-        public const string SourceValidationVersion = "1.0.5";
+        public const string SourceValidationVersion = "1.0.6";
         public const string PaymentTypeId = "effect.facility.pay_build_cost";
 
         // 仅复核本次冻结来源；取牌后不要求已按空区政策弃置的载体继续在场。
@@ -380,36 +380,40 @@ namespace YC.Domain.Effects
             diagnostic = "build_source_restore_invalid";
             foreach (var node in state.EffectRuntime.EffectNodes)
             {
+                if (!FacilityBuildContract.TryValidateNode(state, node, out diagnostic)) return false;
+                if (FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments)) continue;
                 if (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildJournal.TryValidate(state, node, out diagnostic)) return false;
                 if (!FacilityPlacementObservations.TryValidateState(state, node, out diagnostic)) return false;
                 diagnostic = "build_source_restore_invalid";
                 if (node.Status == EffectNodeStatus.Completed || node.Status == EffectNodeStatus.Failed || node.Status == EffectNodeStatus.Faulted) continue;
                 var expectedArgument = Value(node.NormalizedArguments, "expectedSourceZoneId");
                 if (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && expectedArgument != null && expectedArgument.Kind != NormalizedValueKind.String) return false;
-                if (node.EffectTypeId == FacilitySelectionEffectExecutor.TypeId && Value(node.ContinuationData, "selectedSourceZoneId") != null)
-                {
-                    string selected = Value(node.ContinuationData, "selectedItemIds")?.Items.FirstOrDefault()?.StringValue;
-                    var item = state.ItemZones.Items.Find(value => value.ItemId == selected);
-                    string source = Text(node.ContinuationData, "selectedSourceZoneId");
-                    if (item == null || source.Length == 0) return false;
-                    if (node.FlowStage == "payment" && item.ZoneId != source) return false;
-                    if (node.FlowStage == "built" && !node.ChildEffectIds.Any(id => state.EffectRuntime.EffectNodes.Any(child => child.EffectId == id && child.EffectTypeId == FacilityEntryEffectTypeIds.Build && Text(child.NormalizedArguments, "expectedSourceZoneId") == source && Text(child.NormalizedArguments, "facilityId") == selected))) return false;
-                }
+
                 if (node.EffectTypeId != FacilityEntryEffectTypeIds.Build || Text(node.NormalizedArguments, "expectedSourceZoneId").Length == 0 || node.FlowStage.Length == 0) continue;
                 string expected = Text(node.NormalizedArguments, "expectedSourceZoneId");
                 string selectedId = Value(node.ContinuationData, "selectedItemIds")?.Items.FirstOrDefault()?.StringValue;
                 var selectedItem = state.ItemZones.Items.Find(item => item.ItemId == selectedId);
                 var sourceZone = state.ItemZones.Zones.Find(zone => zone.ZoneId == expected);
-                var move = node.NestedEffects.FirstOrDefault();
                 if (selectedItem == null || sourceZone == null || Text(node.NormalizedArguments, "facilityId") != selectedId ||
-                    Text(Value(move?.NormalizedArguments, "expectedSource"), "zoneId") != expected ||
-                    Text(Value(move?.NormalizedArguments, "itemRefs")?.Items.FirstOrDefault(), "itemId") != selectedId ||
+                    !ValidFrozenTake(state, node, expected, selectedId) ||
                     Text(node.ContinuationData, "originalSupplySlotZoneId") != (sourceZone.TemplateId == "core.zone.facility_supply_slot" ? expected : "")) return false;
                 if (node.FlowStage == "pay" && selectedItem.ZoneId != expected) return false;
                 var payment = state.EffectRuntime.EffectNodes.Find(child => child.ParentEffectId == node.EffectId && child.EffectTypeId == PaymentTypeId);
                 if (payment != null && Text(payment.NormalizedArguments, "facilityId") != selectedItem.DefinitionId) return false;
             }
             diagnostic = ""; return true;
+        }
+
+        private static bool ValidFrozenTake(GameState state, EffectNodeRuntimeState node, string source, string item)
+        {
+            var staging = state.ItemZones.Zones.SingleOrDefault(z => z.OwnerEffectId == node.EffectId &&
+                z.TemplateId == "core.zone.effect_staging" && z.LocalZoneId == "build_pending");
+            if (node.NestedEffects?.Count != 1) return false;
+            var take = node.NestedEffects[0];
+            if (staging == null || take?.EffectTypeId != ItemTransferEffectExecutor.TypeId || take.PlayerId != node.PlayerId ||
+                take.DefinitionVersion != ItemTransferEffectExecutor.TransferDefinitionVersion) return false;
+            var expected = ItemMovementV4.TransferSpec(node.PlayerId, new[] { item }, source, staging.ZoneId, "unordered", 1);
+            return ItemTransferService.MovementV4Digest(take.NormalizedArguments) == ItemTransferService.MovementV4Digest(expected.NormalizedArguments);
         }
 
         public static void Register(EffectRegistry registry)
@@ -431,6 +435,14 @@ namespace YC.Domain.Effects
 
         private EffectStepResult Execute(EffectExecutionContext context)
         {
+            if (FacilityBuildContract.IsV3(context.Node.NormalizedArguments))
+            {
+                if (!ItemZoneLegacyProjection.IsActive(context.State)) return EffectStepResult.Failed("build_v3_entity_state_required");
+                FacilityBuildContract.Initialize(context.Node);
+                if (!FacilityBuildContract.TryValidateNode(context.State, context.Node, out string invalid)) throw new InvalidOperationException(invalid);
+                return FacilityBuildContract.Complete(context, FacilityBuildContract.IsSelection(context.Node.EffectTypeId, context.Node.NormalizedArguments)
+                    ? FacilitySelectionEffectExecutor.ExecuteBuildSelection(context) : ExecuteEntity(context));
+            }
             if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteEntity(context);
             if (context.Node.PendingOutcome != EffectPendingOutcome.None)
                 return EffectStepResult.Completed(context.Node.NormalizedResult == null ? NormalizedValue.CreateNull() : context.Node.NormalizedResult.Clone());
@@ -510,11 +522,15 @@ namespace YC.Domain.Effects
             if (owner?.EffectTypeId == FacilityEntryEffectTypeIds.Build && Text(owner.NormalizedArguments, "expectedSourceZoneId").Length > 0)
             {
                 var frozen = owner.NestedEffects.FirstOrDefault();
-                var request = ItemTransferEffectExecutor.Request(frozen.NormalizedArguments);
-                if (request.ExpectedSource.ZoneId != Text(owner.NormalizedArguments, "expectedSourceZoneId") ||
-                    request.ItemIds.Count != 1 || request.ItemIds[0] != Text(owner.NormalizedArguments, "facilityId")) return EffectStepResult.Failed("source_zone_changed");
-                var item = context.State.ItemZones.Items.Find(value => value.ItemId == request.ItemIds[0]);
-                if (item?.ZoneId != request.ExpectedSource.ZoneId || item.DefinitionId != Text(context.Node.NormalizedArguments, "facilityId")) return EffectStepResult.Failed("source_zone_changed");
+                var selector = Value(frozen?.NormalizedArguments, "selector");
+                var ids = Value(selector, "itemIds");
+                string expectedSource = Text(Value(selector, "expectedSource"), "zoneId");
+                if (!ItemMovementV4.IsV4(frozen?.EffectTypeId, frozen?.NormalizedArguments) ||
+                    Text(selector, "mode") != "explicit" || expectedSource != Text(owner.NormalizedArguments, "expectedSourceZoneId") ||
+                    ids?.Kind != NormalizedValueKind.Array || ids.Items.Count != 1 || ids.Items[0].StringValue != Text(owner.NormalizedArguments, "facilityId")) return EffectStepResult.Failed("source_zone_changed");
+                if (!ValidFrozenTake(context.State, owner, expectedSource, ids.Items[0].StringValue)) return EffectStepResult.Failed("source_zone_changed");
+                var item = context.State.ItemZones.Items.Find(value => value.ItemId == ids.Items[0].StringValue);
+                if (item?.ZoneId != expectedSource || item.DefinitionId != Text(context.Node.NormalizedArguments, "facilityId")) return EffectStepResult.Failed("source_zone_changed");
                 var facts = FacilityBuildJournal.Read(owner);
                 if (facts != null)
                 {
@@ -572,6 +588,7 @@ namespace YC.Domain.Effects
                 var item = query.FindItem(state, requested);
                 if (item == null)
                 {
+                    if (FacilityBuildContract.IsV3(node.NormalizedArguments)) return RejectInitial("facility_instance_required");
                     var matches = state.ItemZones.Items.Where(value => value.DefinitionId == requested && FacilityLayerQuery.IsSupplyTop(state, value.ItemId)).ToList();
                     if (matches.Count != 1) return RejectInitial("facility_instance_required");
                     item = matches[0];
@@ -594,6 +611,11 @@ namespace YC.Domain.Effects
                 {
                     var candidate = slots.Single(c => c.SlotIndex == slot);
                     var observed = Value(node.NormalizedArguments, "slotObservation");
+                    if (FacilityBuildContract.IsV3(node.NormalizedArguments))
+                    {
+                        observed = FacilityBuildJournal.EncodeSlot(candidate);
+                        Set(node, "explicitSlotObservation", observed);
+                    }
                     if (candidate.IsOverlay && observed == null) return RejectInitial("facility_slot_observation_required");
                     if (observed != null) queries.RevalidateSlot(state, FacilityBuildJournal.DecodeSlot(observed), node.EffectId);
                 }
@@ -632,7 +654,7 @@ namespace YC.Domain.Effects
                 node = context.Node;
                 node.NestedGroupSizes = new System.Collections.Generic.List<int> { 1 };
                 node.NestedEffects = new System.Collections.Generic.List<EffectSpecRuntimeState> {
-                    MoveSpec(node.PlayerId, new[] { item.ItemId }, item.ZoneId, staging, "unordered", 1).ToRuntimeState() };
+                    ItemMovementV4.TransferSpec(node.PlayerId, new[] { item.ItemId }, item.ZoneId, staging, "unordered", 1).ToRuntimeState() };
                 var paymentArgs = Object("facilityId", NormalizedValue.CreateString(item.DefinitionId), "paymentMode", NormalizedValue.CreateString(mode),
                     "paymentProtocolVersion",NormalizedValue.CreateInteger(2));
                 if (bound != null) { paymentArgs.Properties.Add(new NormalizedValueEntry { Name = "maxGoldVoucherCost", Value = bound.Clone() }); paymentArgs.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name)); }
@@ -648,7 +670,7 @@ namespace YC.Domain.Effects
             if (stage == "pay")
             {
                 Set(node, "paid", NormalizedValue.CreateBoolean(true));
-                string expected = Text(Value(node.NestedEffects.First().NormalizedArguments, "expectedSource"), "zoneId");
+                string expected = Text(Value(Value(node.NestedEffects.First().NormalizedArguments, "selector"), "expectedSource"), "zoneId");
                 if (selectedItem.ZoneId != expected) throw new InvalidOperationException("paid_build_source_changed");
                 // 已付后的取牌失败是故障，不能转取另一个同名实例。
                 queries.AuthorizeSource(state, node.PlayerId, selected, Text(facts.Data, "sourceKind"), node.EffectId, Text(facts.Data, "sourceKey"));
@@ -694,8 +716,10 @@ namespace YC.Domain.Effects
                 else if (slot < 0) return AwaitLayeredPlacement(context, available, facility);
                 var chosen = available.SingleOrDefault(c => c.SlotIndex == slot);
                 if (chosen == null) return AwaitLayeredPlacement(context, available, facility);
-                if (stage == "refill" && Value(node.NormalizedArguments, "slotObservation") != null)
-                    queries.RevalidateSlot(state, FacilityBuildJournal.DecodeSlot(Value(node.NormalizedArguments, "slotObservation")), node.EffectId);
+                var declaredObservation = FacilityBuildContract.IsV3(node.NormalizedArguments)
+                    ? Value(node.ContinuationData, "explicitSlotObservation") : Value(node.NormalizedArguments, "slotObservation");
+                if (stage == "refill" && declaredObservation != null)
+                    queries.RevalidateSlot(state, FacilityBuildJournal.DecodeSlot(declaredObservation), node.EffectId);
                 // 已选择的完整事实写入BuildJournal；其余候选观察不再重复占用ContinuationData预算。
                 node.ContinuationData.Properties.RemoveAll(entry => entry.Name == "placementCandidates");
                 FacilityBuildJournal.SelectSlot(node, chosen);
@@ -708,8 +732,7 @@ namespace YC.Domain.Effects
                 legs.Add(new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = new System.Collections.Generic.List<string> { selected },
                     RequiredCount = 1, ExpectedSource = new ItemPositionRef { ZoneId = selectedItem.ZoneId },
                     Destination = new ZoneRef { ZoneId = cell.CellZoneId }, InsertionKind = "unordered", OperationProfileId = "core.facility_card_transfer" });
-                var batch = ItemTransferService.CreateBatch(state, node.PlayerId, node.EffectId + ":place", legs.ToArray());
-                return EffectStepResult.Continue("place").AddChild(ItemTransferEffectExecutor.BatchSpec(batch));
+                return EffectStepResult.Continue("place").AddChild(FacilityPlacementMovement.Create(state,node.PlayerId,legs));
             }
             if (stage == "place")
             {
@@ -764,6 +787,9 @@ namespace YC.Domain.Effects
 
         private static string ValidateSpec(EffectSpec spec)
         {
+            if (FacilityBuildContract.IsV3(spec?.NormalizedArguments)) return FacilityBuildContract.ValidateSpec(spec);
+            if (new[] { "allowDecline", "effectId", "includeStoredFacilities", "excludeRainbow" }.Any(k => Value(spec?.NormalizedArguments, k) != null))
+                return "build_contract_version_required";
             return spec == null || string.IsNullOrEmpty(ReadString(spec.NormalizedArguments, "facilityId", string.Empty))
                 ? "设施建设 Effect 必须提供 facilityId。" : string.Empty;
         }

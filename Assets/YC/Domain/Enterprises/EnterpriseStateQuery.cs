@@ -10,12 +10,14 @@ namespace YC.Domain.Enterprises
     public sealed class EnterpriseStateQuery
     {
         public const string ActiveDepartmentRelation = "enterprise.active_department";
+        public const int MissingCooperationLevel = -1;
         private readonly EnterpriseDefinitions definitions;
         public EnterpriseStateQuery(EnterpriseDefinitions definitions = null) { this.definitions = definitions ?? new EnterpriseDefinitions(); }
 
         public int GetLevel(GameState state, int playerId, string enterpriseItemId)
         {
             var marker = GetCooperationMarker(state, playerId, enterpriseItemId);
+            if (marker == null) return MissingCooperationLevel;
             if (!marker.SlotId.StartsWith("level_", StringComparison.Ordinal) || !int.TryParse(marker.SlotId.Substring(6), NumberStyles.None, CultureInfo.InvariantCulture, out var level) ||
                 level < 0 || level > 5 || marker.SlotId != "level_" + level) throw new InvalidOperationException("enterprise_level_slot_invalid");
             return level;
@@ -30,8 +32,9 @@ namespace YC.Domain.Enterprises
                 zone.TemplateId == "core.zone.board_marker_track" && zone.LocalZoneId == "cooperation_" + playerId && zone.OwnerPlayerId == playerId).ToList();
             if (tracks.Count != 1) throw new InvalidOperationException("enterprise_cooperation_track_missing");
             var markers = state.ItemZones.Items.Where(item => item.ZoneId == tracks[0].ZoneId).ToList();
+            if (markers.Count == 0) return null;
             if (markers.Count != 1 || markers[0].OwnerSubject.Kind != ItemSubjectKind.Player || markers[0].OwnerSubject.PlayerId != playerId || markers[0].TypeId != "core.player_marker")
-                throw new InvalidOperationException("enterprise_cooperation_marker_missing");
+                throw new InvalidOperationException("enterprise_cooperation_marker_invalid");
             return markers[0];
         }
 
@@ -44,6 +47,7 @@ namespace YC.Domain.Enterprises
             {
                 var definition = RequireDefinition(state, enterpriseItemId);
                 int currentLevel = GetLevel(state, unlockedByPlayerId, enterpriseItemId);
+                if (currentLevel == MissingCooperationLevel) continue;
                 int effectiveLevelCeiling = (int)Math.Min(5L, (long)currentLevel + levelDelta);
                 foreach (var level in definition.Levels.Where(level => level.Kind == "special" && level.Level <= effectiveLevelCeiling).OrderBy(level => level.Level))
                     result.Add(new EnterpriseSpecialCandidate { CandidateId = StableIdFactory.Create("candidate", enterpriseItemId, level.AbilityId), EnterpriseItemId = enterpriseItemId,

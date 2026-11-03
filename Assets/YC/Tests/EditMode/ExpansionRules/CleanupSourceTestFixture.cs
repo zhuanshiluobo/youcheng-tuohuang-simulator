@@ -86,7 +86,7 @@ end" : @"return function(ctx)
  {id='place',effects={Effect.PlaceInfluence({executingPlayer=ctx.playerId,ownerSubject=ctx.playerId,influenceSource='player_supply'})}},
  {id='resource',effects={Effect.GainResource({player=ctx.playerId,resourceType='pure_originium',amount=1})}}
  }})} }) }
-end"); // 普通条件缺省v1；v2仅用于005 fixedDeliveryRequirement。
+end"); // 普通条件使用当前默认版本；库存补充走真实MoveItem v3，不再声明固定交付字段。
             body = WithTokenTransfers(body);
             var replacements = new Dictionary<string, string> {
                 ["award/" + Definition + ".json"] = award.ToString(),
@@ -114,7 +114,16 @@ end"); // 普通条件缺省v1；v2仅用于005 fixedDeliveryRequirement。
                 replacements["lua/awards/" + requiredDefinition + ".cleanup.lua"] = mandatory ?
                     "return function(ctx) return {Effect.Choice({player=ctx.playerId,options={'required'},minSelections=1,maxSelections=1})} end" :
                     "return function(ctx) local cards=Global.Content.FindInstances({definitionId='" + Definition + "',controller=ctx.playerId}) " +
-                    "return {Effect.LoadCardMarkers({apiVersion=2,player=ctx.playerId,cardInstanceId=cards[1].id,localZoneId='markers',amountMode='fixed',count=3})} end";
+                    "if #cards~=1 then error('replenish_fixture_carrier_missing:'..#cards) end " +
+                    "local supply=Global.Content.FindZones({templateId='core.zone.player_supply',owner=ctx.playerId})[1] " +
+                    "if supply==nil then error('replenish_fixture_supply_missing') end " +
+                    "local target=Global.Content.FindZones({parentId=cards[1].id,localZoneId='markers'})[1] " +
+                    "if target==nil then error('replenish_fixture_storage_missing') end " +
+                    "local stock=Global.Content.FindInstances({zoneId=supply.id,typeId='core.player_marker',owner=ctx.playerId}) " +
+                    "local ids={} for _,item in ipairs(stock) do ids[#ids+1]=item.id end table.sort(ids) local effects={} local limit=3 if #ids<limit then limit=#ids end " +
+                    "for i=1,limit do effects[#effects+1]=Effect.MoveItem({apiVersion=3,player=ctx.playerId,itemIds={ids[i]}," +
+                    "expectedSource={zoneId=supply.id},destination={zoneId=target.id},insertion={kind='unordered'}," +
+                    "operationProfileId='core.player_marker_storage',requiredCount=1}) end return effects end";
                 replacements["lua/settlements/" + requiredDefinition + ".cleanup.lua"] = File.ReadAllText(Path.Combine(installed, "lua/settlements/" + Ability + ".lua"))
                     .Replace("localId = '" + Ability + ".cleanup_order'", "localId = '" + requiredAbility + ".cleanup_order'")
                     .Replace("availabilityHandlerId = '" + Ability + ".settlement.availability'", "availabilityHandlerId = '" + requiredAbility + ".settlement.availability'")

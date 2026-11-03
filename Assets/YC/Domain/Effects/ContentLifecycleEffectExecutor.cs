@@ -14,7 +14,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 namespace YC.Domain.Effects
 {
     /// <summary>通用设施离场、样式标记和奖励生命周期；不包含具体卡面规则。</summary>
-    public static class ContentLifecycleEffectExecutor
+    public static partial class ContentLifecycleEffectExecutor
     {
         public const string RetireFacilityTypeId = "effect.facility.retire";
         public const string ReturnMarkerTypeId = "effect.city_style.return_marker";
@@ -23,10 +23,11 @@ namespace YC.Domain.Effects
         public const string AwardActionId = "award.activate_special";
         public static readonly string[] PublicTypeIds = { RetireFacilityTypeId, ReturnMarkerTypeId };
         public static string[] Fields(string type) => type == RetireFacilityTypeId
-            ? new[] { "apiVersion", "player", "facilityItemId", "expectedCellZoneId", "expectedOrderDigest" } : new[] { "apiVersion", "player" };
+            ? new[] { "apiVersion", "player", "facilityItemId", "expectedCellZoneId", "expectedOrderDigest" } : new[] { "apiVersion", "player", "selector" };
         public static string ValidateArguments(string type, NormalizedValue args) =>
+            type==ReturnMarkerTypeId ? ValidateExplicitReturnArguments(args) :
             args?.Kind != NormalizedValueKind.Object || args.Properties.Any(p => !Fields(type).Concat(new[] { "kind", "effectTypeId" }).Contains(p.Name)) ||
-            (Number(args, "apiVersion") != 1 && !(type == RetireFacilityTypeId && Number(args, "apiVersion") == 2)) || Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer ||
+            (Value(args, "apiVersion")?.IntegerValue != 1 && !(type == RetireFacilityTypeId && Value(args, "apiVersion")?.IntegerValue == 2)) || Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer ||
             !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1 ||
             type == RetireFacilityTypeId && (string.IsNullOrWhiteSpace(Text(args, "facilityItemId")) ||
                 Number(args, "apiVersion") == 2 && (Text(args, "expectedCellZoneId").Length == 0 || Text(args, "expectedOrderDigest").Length == 0)) ? "lifecycle_arguments_invalid" : "";
@@ -42,7 +43,7 @@ namespace YC.Domain.Effects
                     if (error.Length > 0) return EffectStepResult.Failed(error);
                     if (Text(context.Node.NormalizedArguments, "player") != context.Node.PlayerId.ToString(CultureInfo.InvariantCulture)) return EffectStepResult.Failed("lifecycle_permission_denied");
                     return context.Node.EffectTypeId == RetireFacilityTypeId ? RetireFacility(context) : ReturnMarker(context);
-                }, EffectExecutorKind.IntrinsicFlow, type == RetireFacilityTypeId ? "2.0.0" : "v1"));
+                }, EffectExecutorKind.IntrinsicFlow, type == RetireFacilityTypeId ? "2.0.0" : ReturnMarkerDefinitionVersion) { Validator = spec => ValidateArguments(spec.EffectTypeId, spec.NormalizedArguments) });
             foreach (var type in new[] { AwardActivateTypeId, AwardCleanupTypeId })
                 if (!registry.TryGet(type, out _)) registry.Register(new EffectRegistration(type, ResolveAward, EffectExecutorKind.IntrinsicFlow, "v1"));
         }
@@ -88,9 +89,7 @@ namespace YC.Domain.Effects
                         for (int index = 0; index < next; index++)
                             if (!node.PositionChanges.Any(c => c.ItemId == ids.Items[index].StringValue && c.To.ZoneId == FindZone(state, "retired").ZoneId)) return false;
                     }
-                    else if (!new[] { "", "choose_marker" }.Contains(node.FlowStage) || node.PositionChanges.Any(c =>
-                        !state.ItemZones.Zones.Any(z => z.ZoneId == c.From.ZoneId && z.TemplateId == "core.zone.board_marker_track") ||
-                        c.To.ZoneId != FindZone(state, "supply", node.PlayerId).ZoneId)) return false;
+                    else if (!ValidateReturnMarkerWrapper(state, node)) return false;
                 }
                 else
                 {
@@ -157,30 +156,6 @@ namespace YC.Domain.Effects
                 return EffectStepResult.Continue("retiring_bound_characters");
             }
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "facilityItemId", NormalizedValue.CreateString(id))).WithFlowStage("finished");
-        }
-
-        private static EffectStepResult ReturnMarker(EffectExecutionContext context)
-        {
-            var node = context.Node;
-            if (node.FlowStage != "" && node.FlowStage != "choose_marker") throw new InvalidOperationException("city_style_return_stage_invalid");
-            var declarations = context.State.FindPlayer(node.PlayerId).DeclaredCityStyles.Where(d =>
-                CityStyleDatabase.Get(context.State, d.CityStyleId)?.Level == 2 && d.MarkerArea.Length > 0).ToList();
-            var ids = declarations.Select(d => d.InfluenceMarkerId).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToList();
-            if (ids.Count == 0) return EffectStepResult.Failed("no_city_style_marker");
-            string selected = node.FlowStage == "choose_marker" ? Answer(context) : "";
-            if (!ids.Contains(selected))
-            {
-                var request = new EffectInteractionSpec { InteractionTypeId = "lua.choice", AnsweringPlayerId = node.PlayerId, Visibility = "owner",
-                    PromptKey = "city_style.choose_level_two_marker", AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
-                request.CandidateIds.AddRange(ids);
-                return EffectStepResult.Continue("choose_marker").AddInteraction(PrepareInteraction(context, request));
-            }
-            var item = context.State.ItemZones.Items.Single(i => i.ItemId == selected);
-            new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ExecutingPlayerId = node.PlayerId, ItemIds = new List<string> { selected },
-                ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId, SlotId = item.SlotId }, Destination = new ZoneRef { ZoneId = FindZone(context.State, "supply", node.PlayerId).ZoneId },
-                InsertionKind = "unordered", RequiredCount = 1, OperationProfileId = "core.player_marker_storage" });
-            // 分数、宣告历史、同回合已使用记录一概不写；资格只来自实际轨道。
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "markerItemId", NormalizedValue.CreateString(selected)));
         }
 
         public static EffectNodeRuntimeState Acquisition(GameState state, string itemId) => state.EffectRuntime.EffectNodes.SingleOrDefault(n =>

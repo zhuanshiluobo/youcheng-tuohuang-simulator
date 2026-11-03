@@ -21,7 +21,7 @@ using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
-    public sealed class RouteResourceSelectionTests
+    public sealed partial class RouteResourceSelectionTests
     {
         private static GameMapDefinition Map(params MapRouteDefinition[] routes)
         {
@@ -64,7 +64,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var config = new GameRuleConfiguration { PlayerCount = 2, EnabledExpansionIds = new List<string> { "core" } };
             var catalog = ActiveContentCatalogBuilder.Build(pack, config); config.ContentPackHash = catalog.ContentPackHash;
             state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } }, config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
-            state.GameId = "route_selection.production"; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.Round = 1;
+            // 保留工厂的GameId与随机账本绑定，隔离恢复同样使用真实身份。
+            state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.Round = 1;
             state.FindPlayer(1).Resources.GoldVoucher = 4; state.FindPlayer(1).RemainingMainActionsThisTurn = 1;
             var city = state.ItemZones.Items.Single(i => i.PhysicalKind == ItemPhysicalKind.MobileCity && i.OwnerSubject.PlayerId == 1);
             var location = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == "A-03");
@@ -115,11 +116,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void LuaChooseExplore_CompilesToCommonSelectionAndUsesTheSameFrozenRoutePlan()
+        public void LuaUnifiedExplore_CompilesToCommonSelectionAndUsesTheSameFrozenRoutePlan()
         {
             Production(out var state, out var registry, out _);
             var executor = new EffectExecutor(state, registry);
-            Assert.That(executor.TryCreateRoot(CompileLua("Effect.ChooseExplore({ player = ctx.playerId })"), out _), Is.True, executor.LastDiagnostic);
+            Assert.That(executor.TryCreateRoot(CompileLua("Effect.Explore({apiVersion=3,targetMode='select',player=ctx.playerId,consumeMainAction=false})"), out _), Is.True, executor.LastDiagnostic);
             Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
             var request = Selection(state); Submit(state, registry, request, SelectionAnswer(request, "A-01", "A1", "A2"));
             Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.EqualTo(4));
@@ -128,21 +129,15 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void ExploreCommand_StartAndCancelOnlyCreateSelection_WithoutSpendingRevealingOrMovingItems()
+        public void ExploreCommand_UnconfirmedStartIsRejectedWithoutSpendingRevealingOrMovingItems()
         {
             Production(out var state, out var registry, out var exploration);
-            string items = JsonConvert.SerializeObject(state.ItemZones); int green = state.Decks.EventDeckGreen.Count;
+            string before = JsonConvert.SerializeObject(state);
             var handler = new ExploreLocationCommandHandler(exploration, new RoundAdvanceService(), registry);
-            var started = handler.Handle(state, new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = 1, CommandId = "begin_exploration" });
-            Assert.That(started.Succeeded, Is.True, started.Validation.Reason);
-            var request = Selection(state); Assert.That(request.AnswerSchema, Is.EqualTo("candidate_ids"));
-            Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(items)); Assert.That(state.Decks.EventDeckGreen.Count, Is.EqualTo(green));
-            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4)); Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
-            string cancel = request.CandidateIds.Single(id => id.EndsWith(".cancel", StringComparison.Ordinal));
-            Submit(state, registry, request, new[] { cancel });
-            Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(items)); Assert.That(state.Decks.EventDeckGreen.Count, Is.EqualTo(green));
-            Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.Zero); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
-            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1)); Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            var rejected = handler.Handle(state, new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = 1, CommandId = "unconfirmed_exploration" });
+            Assert.That(rejected.Succeeded, Is.False); Assert.That(rejected.Validation.Reason, Is.EqualTo("exploration_preselection_arguments_invalid"));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+            // 正常探索的草稿和取消在本地预览，不创建Host旧开始请求；统一select的取消另有真实合同验证。
         }
 
         [Test]
@@ -150,10 +145,14 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             Production(out var state, out var registry, out var exploration);
             var handler = new ExploreLocationCommandHandler(exploration, new RoundAdvanceService(), registry);
-            Assert.That(handler.Handle(state, new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = 1, CommandId = "begin_exploration" }).Succeeded, Is.True);
-            var request = Selection(state); Submit(state, registry, request, SelectionAnswer(request, "A-01", "A1", "A2"));
+            var confirmed = new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = 1, CommandId = "confirmed_exploration", TargetId = "A-01" };
+            confirmed.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = "A1,A2";
+            confirmed.Parameters[ExploreLocationCommandHandler.PaymentRecipientsParameter] = "A1=-1;A2=-1";
+            var accepted = handler.Handle(state, confirmed); Assert.That(accepted.Succeeded, Is.True, accepted.Validation.Reason);
             Assert.That(RouteTollEscrowService.QueryBalance(state, 1).Reserved, Is.EqualTo(4)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.Zero);
-            var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == RouteResourceSelectionEffectExecutor.TypeId);
+            var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ExplorationEffectTypeIds.Explore && ExplorationContract.IsV3(n.NormalizedArguments));
+            Assert.That(ItemTransferEffectExecutor.Text(owner.NormalizedArguments, "targetMode"), Is.EqualTo("explicit"));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.InteractionTypeId == "route_resource.selection"), Is.False);
             Assert.That(new RouteSelectionSessionAuthority().TryResolveFinalized(state, owner.EffectId, out _, out var commitment).IsValid, Is.True);
             Assert.That(commitment.AcceptedPreview.ChargeRouteIds, Is.EqualTo(new[] { "A1", "A2" }));
             FinishEvents(state, registry);
@@ -389,30 +388,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test]
         public void NormalHarvest_MultipleOwnersKeepStartBudgetsAndSubmitOnceInEitherOrder()
         {
-            var map = StaticMapDefinitions.CreateFourPlayerMap(); var state = State(map); state.Phase = GamePhase.ResourceCollection;
-            var starts = new[] { "A-01", "B-01", "C-01" };
-            for (int i = 0; i < state.Players.Count; i++) { state.Players[i].CityLocationId = starts[i]; state.Players[i].Resources.GoldVoucher = 20; state.Players[i].ResourceCollectionStartGoldVoucher = 20; }
-            state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = "B-01", ResourceType = ResourceType.Iron, Amount = 2 });
-            var registry = new EffectRegistry(); RouteResourceSelectionEffectExecutor.Register(registry);
-            var executor = new EffectExecutor(state, registry);
-            for (int i = 1; i <= 3; i++) Assert.That(executor.TryCreateRoot(RouteResourceSelectionEffectExecutor.CreateHarvest(i, false), out _), Is.True, executor.LastDiagnostic);
-            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
-            var round = new RoundExecutionService(); var advanced = round.Advance(state); Assert.That(advanced.IsValid, Is.True, advanced.Reason);
-            foreach (int player in new[] { 2, 1, 3 })
-            {
-                var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.AnsweringPlayerId == player);
-                string scope = request.PromptParameters.Properties.Find(p => p.Name == "scopeKey").Value.StringValue;
-                var ids = new List<string> { RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Commit) };
-                if (player == 2) ids.Add(RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Location, "B-01"));
-                var answer = NormalizedValue.CreateArray(ids.Select(id => NormalizedValue.CreateStableReference("candidate", id)).ToList());
-                Assert.That(executor.TrySubmitInteraction(request.InteractionId, player, state.EffectRuntime.StateRevision, answer, out var diagnostic), Is.True, diagnostic);
-                var report = executor.RunUntilQuiescent();
-                Assert.That(report.Faulted, Is.False, report.FaultCode);
-                Assert.That(state.FindPlayer(player).HasCollectedResourcesThisRound, Is.True,
-                    "玩家=" + player + "；" + string.Join("；", state.EffectRuntime.EffectNodes.Select(n => n.PlayerId + ":" + n.FlowStage + ":" + n.Status + ":" + n.FailureReason)));
-                advanced = round.Advance(state); Assert.That(advanced.IsValid, Is.True, "玩家=" + player + "；" + advanced.Reason);
-            }
-            Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(2)); Assert.That(state.Players.All(p => p.Resources.GoldVoucher == 20), Is.True);
+            RunFormalHarvestBothOrders();
         }
     }
 }

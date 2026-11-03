@@ -262,7 +262,8 @@ namespace YC.Presentation.Validation
                 PreviousAssembly = Argument("--yc-local-resume-source-mvid="), HiddenCardsReadForStrategy = false });
             yield return Press(((Button[])Read(SaveResumeWindow, "rows"))[localResumeChosenSlot.Index], "原列表指定同局正常档");
             yield return Press(((GenericWindowView)Read(SaveResumeWindow, "window")).ConfirmButton, "原确认正式读取同一对局");
-            yield return SaveResumeAwait(() => FindObjectOfType<MobileCityInteractionController>() != null && !SceneTransitionContext.IsTransitionInProgress, "原生产恢复进入正式游戏场景");
+            // 大型正常原档包含完整已提交历史；只延长此处冷恢复等待，身份／版本边界继续严格检查。
+            yield return SaveResumeAwait(() => FindObjectOfType<MobileCityInteractionController>() != null && !SceneTransitionContext.IsTransitionInProgress, "原生产恢复进入正式游戏场景", 300f);
         }
         private void RecordLocalFullGameResumeBoundary()
         {

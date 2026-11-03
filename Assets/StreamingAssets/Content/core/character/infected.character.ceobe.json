@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.ceobe",
   "contentType": "character",
-  "version": "2.0.1",
+  "version": "2.0.4",
   "displayName": "刻俄柏",
   "expansionId": "infected",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.ceobe.tactic",
       "script": "lua/characters/infected.character.ceobe.tactic.lua",
-      "version": "2.0.1",
+      "version": "2.0.4",
       "completionHandlerId": "content.infected.character.ceobe.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,

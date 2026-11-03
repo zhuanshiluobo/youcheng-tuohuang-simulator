@@ -8,12 +8,14 @@ namespace YC.Infrastructure.Lua
 {
     public static class AbilityEventLuaFacts
     {
-        public const string Version = "ability_events.v2.1.0.0";
+        public const string Version = "ability_events.v2.1.0.3";
         public static bool MatchesCompletion(GameState state, RuleEvent ruleEvent, AbilitySourceDeclaration declaration)
         {
             if (ruleEvent.EventType != "EffectCompleted") return true;
             var node = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == ruleEvent.SourceEffectId);
-            return node != null && node.CompletedEventId == ruleEvent.EventId &&
+            return node != null && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments) &&
+                !(node.EffectTypeId == ExplorationEffectTypeIds.Explore && ExplorationContract.IsV3(node.NormalizedArguments)) &&
+                node.CompletedEventId == ruleEvent.EventId &&
                 declaration.CompletedEffectTypes.Contains(node.EffectTypeId) && node.EffectTypeId != AbilitySourceEffectExecutor.TypeId &&
                 (declaration.CompletionPolicy == "terminal" || node.Status == EffectNodeStatus.Completed || node.PendingOutcome == EffectPendingOutcome.Completed);
         }
@@ -25,12 +27,16 @@ namespace YC.Infrastructure.Lua
             var choice = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == ruleEvent.SourceEffectId &&
                 n.EffectTypeId == LuaDomainEffectTypeIds.Choice && n.CompletedEventId == ruleEvent.EventId);
             if (choice == null) return payload;
-            var requests = state.EffectRuntime.InteractionRequests.Where(r => r.OwnerEffectId == choice.EffectId && r.Status == "answered").ToList();
+            var requests = state.EffectRuntime.InteractionRequests.Where(r => r.OwnerEffectId == choice.EffectId).ToList();
             // 空候选可正常完成；没有实际回答就不补造interactionId。
             if (requests.Count == 0) return payload;
-            if (requests.Count != 1 || requests[0].AnsweredAtRevision < 1 || requests[0].AnsweredAtRevision > state.EffectRuntime.StateRevision)
+            // 数量范围按真实库存刷新时，旧回答仍是历史。与执行器消费答案的顺序一致，
+            // 只将最后一条实际完成请求作为续接身份，不把过期回答冒充本次完成。
+            var completed = requests.Last();
+            if (completed.Status != "answered" ||
+                requests.Where(r => r.Status == "answered").Any(r => r.AnsweredAtRevision < 1 || r.AnsweredAtRevision > state.EffectRuntime.StateRevision))
                 throw new InvalidOperationException("choice_completed_interaction_invalid");
-            string id = requests[0].GetStableInteractionId();
+            string id = completed.GetStableInteractionId();
             var result = payload?.Kind == NormalizedValueKind.Object ? payload.Clone() : Object("result", payload?.Clone() ?? NormalizedValue.CreateNull());
             var existing = Value(result, "interactionId");
             if (existing != null)

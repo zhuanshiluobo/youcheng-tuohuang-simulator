@@ -364,7 +364,6 @@ namespace YC.Presentation
                    !pending.OptionIds.Contains(CharacterEffectChoiceIds.ContinueSecondEffect);
         }
 
-        private CharacterCardEffectChoiceDialog characterUsePage;
         private InteractionRequestProjection characterViewerUseRequest;
         private Func<bool> characterViewerRequestIsCurrent;
         private string characterUsePageKey = string.Empty;
@@ -386,7 +385,6 @@ namespace YC.Presentation
                 gameplayInteractionHud?.Frame.ReleasePage(characterViewer.gameObject);
                 characterViewer.Dismiss();
             }
-            characterUsePage?.Hide();
             characterUsePageKey = string.Empty;
         }
 
@@ -418,28 +416,8 @@ namespace YC.Presentation
                 OpenCharacterViewer(model);
                 return;
             }
-            var key = CharacterUseKey(model);
-            if (characterUsePage != null && characterUsePage.IsShowing && characterUsePageKey == key) return;
-            if (characterUsePage == null)
-                characterUsePage = new CharacterCardEffectChoiceDialog(gameplayInteractionHud.DialogRegistry,
-                    gameplayInteractionHud.Frame.ContentRect);
-            characterUsePageKey = key;
-            bool Current() => characterUsePageKey == key && session != null &&
-                CharacterUseKey(characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState())) == key;
-            characterUsePage.ShowSecondEffectStep(model, () =>
-            {
-                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Strategy);
-            }, () =>
-            {
-                if (Current()) BeginCharacterEffect(UseCharacterCardCommandHandler.Tactic);
-            }, () =>
-            {
-                if (Current()) FinishCharacterUseButtonClicked();
-            }, Current, () =>
-            {
-                characterUsePageKey = string.Empty;
-                characterSettlementInProgress = false;
-            });
+            // 旧全局Pending第二模式不属于当前实体生命周期；恢复层已明确拒绝，不再发布客户端值菜单。
+            throw new InvalidOperationException("[character_legacy_lifecycle_not_supported] 旧第二模式页面已退役。");
         }
 
         private void OpenCharacterViewer(CharacterCardPanelViewModel model)
@@ -606,7 +584,6 @@ namespace YC.Presentation
             }
 
             characterSettlementInProgress = true;
-            characterUsePage?.Hide();
             characterUsePageKey = string.Empty;
             var effect = useStrategy ? view.StrategyEffect : view.TacticEffect;
             if (characterCardEffectInteraction != null &&

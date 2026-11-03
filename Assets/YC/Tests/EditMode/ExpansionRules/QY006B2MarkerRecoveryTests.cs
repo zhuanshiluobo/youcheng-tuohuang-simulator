@@ -79,6 +79,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             (JObject)((JArray)value["Properties"]).Single(p => (string)p["Name"] == key)["Value"];
         private static void B2MarkerDrop(JObject value, string key) =>
             ((JArray)value["Properties"]).Single(p => (string)p["Name"] == key).Remove();
+        private JObject B2MarkerPaymentNode(JObject rawState) => (JObject)rawState["EffectRuntime"]["EffectNodes"].Single(n =>
+            (string)n["EffectTypeId"] == ItemTransferEffectExecutor.TypeId &&
+            (string)B2MarkerRawValue(B2MarkerRawValue(B2MarkerRawValue((JObject)n["NormalizedArguments"], "selector"), "expectedSource"), "zoneId")["StringValue"] == Storage.ZoneId);
         private void B2AssertMarkerRejected(JObject raw, bool domain, string label, List<string> failures)
         {
             artifacts.WriteLabeledText(label, raw.ToString());
@@ -89,12 +92,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(JToken.DeepEquals(raw, JObject.Parse(HostRecoveryService.SerializeArchive(archive))), Is.True, label + "转换只能保留目标变异，不能额外丢字段。");
                 bool stateAfter = archive.Journal.Entries.Any(e => e.StateAfter != null);
                 var target = stateAfter ? archive.Journal.Entries.Last(e => e.StateAfter != null).StateAfter : archive.Snapshot.State;
-                if (!target.EffectRuntime.TryValidate(out string shapeReason)) failures.Add(label + "被无关运行时形状错误提前拒绝：" + shapeReason);
+                bool runtimeValid = target.EffectRuntime.TryValidate(out string shapeReason);
                 var token = target.EffectRuntime.EffectNodes.SingleOrDefault(IsTokenTransfer);
-                if (token != null && !YC.Domain.Items.ItemTransferService.TryValidateTokenState(target, token, out targetReason))
+                if (token != null && !YC.Domain.Items.ItemMovementV4.TryValidateState(target, token, out targetReason))
                 {
                     // 原生收据门禁先于内容续接门禁；缺收据也必须精确命中实际token收据拒绝。
-                    targetGate = "ItemTransferService.TryValidateTokenState";
+                    targetGate = "ItemMovementV4.TryValidateState";
                 }
                 else
                 {
@@ -104,6 +107,10 @@ namespace YC.Tests.EditMode.ExpansionRules
                         failures.Add(label + "目标token/domain门禁未拒绝");
                     }
                 }
+                // 规范参数与原输入摘要不一致本身就是本例目标门禁；只能接受同一精确诊断。
+                // 其它运行时形状错误仍视为非目标误拒，不能掩盖损坏收据被接受。
+                if (!runtimeValid && !(token != null && shapeReason == YC.Domain.Items.ItemMoveInputNormalization.InvalidProvenance && targetReason == shapeReason))
+                    failures.Add(label + "被无关运行时形状错误提前拒绝：" + shapeReason);
                 result = HostRecoveryService.Recover(archive, registry);
                 if (!result.Succeeded && (result.FaultCode != (stateAfter ? HostRecoveryService.JournalConflict : HostRecoveryService.SnapshotInvalid) ||
                     string.IsNullOrEmpty(targetReason) || result.Diagnostic != targetReason))
@@ -122,8 +129,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Invoke(TransferTokens(17)); Assert.That(Stored, Is.Empty);
             Assert.That(ids.All(id => state.ItemZones.Items.Single(i => i.ItemId == id).ZoneId == state.ItemZones.Items.Single(i => i.ItemId == id).OriginalSupplyZoneId), Is.True);
             var payment = state.EffectRuntime.EffectNodes.Single(IsTokenTransfer);
-            Assert.That(payment.PositionChanges.Count, Is.EqualTo(17)); Assert.That(Number(Value(payment.ContinuationData, "transferBatchReceipt"), "protocolVersion"), Is.EqualTo(3));
-            Assert.That(payment.TransferBatchRequest.Transfers.SelectMany(v => v.ItemIds), Is.EqualTo(ids));
+            Assert.That(payment.PositionChanges.Count, Is.EqualTo(17)); Assert.That(TokenReceipt(payment).ContractVersion, Is.EqualTo(YC.Domain.Items.ItemMovementV4.ContractVersion));
+            Assert.That(TokenTransfers(payment).SelectMany(v => v.ItemIds), Is.EqualTo(ids));
             if (stateAfter)
             {
                 HostRecoveryService.AppendJournal(archive, state, pack.ContentHash);
@@ -131,7 +138,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(archive.Snapshot.State.EffectRuntime.EffectNodes.Any(IsTokenTransfer), Is.False);
             }
             else archive = HostRecoveryService.CreateArchive(state);
-            string legal = HostRecoveryService.SerializeArchive(archive); artifacts.WriteLabeledText("B2合法v3标记支付原归档", legal);
+            string legal = HostRecoveryService.SerializeArchive(archive); artifacts.WriteLabeledText("B2原v3输入的合法共同v4标记支付原归档", legal);
             var control = HostRecoveryService.RecoverJson(legal, registry); Assert.That(control.Succeeded, Is.True, control.Diagnostic);
             return archive;
         }
@@ -148,18 +155,19 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string mutation in mutations)
             {
                 var raw = JObject.Parse(legal);
-                var node = B2MarkerRawState(raw, stateAfter)["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectTypeId"] == effectType);
+                var node = B2MarkerPaymentNode(B2MarkerRawState(raw, stateAfter));
                 var result = (JObject)node["NormalizedResult"];
-                var receipt = operation == "token" ? B2MarkerRawValue((JObject)node["ContinuationData"], "transferBatchReceipt") : null;
+                var plan = (JObject)(node["ItemMovementV4"] is JObject ? node["ItemMovementV4"] : node["CommonItemMovementV4"]);
+                var receipt = (JObject)plan["Receipt"];
                 switch (mutation)
                 {
-                    case "protocol": B2MarkerRawValue(receipt, "protocolVersion")["IntegerValue"] = 1; break;
+                    case "protocol": receipt["ContractVersion"] = "item.move.v4.1"; break;
                     case "requested": B2MarkerRawValue((JObject)node["NormalizedArguments"], "requiredCount")["IntegerValue"] = 16; break;
                     case "moved": B2MarkerRawValue(result, "movedCount")["IntegerValue"] = 16; break;
                     case "changed": B2MarkerRawValue(result, "changed")["BooleanValue"] = false; break;
-                    case "receipt": B2MarkerRawValue(receipt, "requestDigest")["StringValue"] = "forged-receipt"; break;
-                    case "receipt_operation": B2MarkerRawValue(receipt, "operationId")["StringValue"] = "forged-operation"; break;
-                    case "receipt_count": B2MarkerRawValue(receipt, "movedCount")["IntegerValue"] = 16; break;
+                    case "receipt": receipt["ArgumentsDigest"] = "forged-receipt"; break;
+                    case "receipt_operation": receipt["OperationId"] = "forged-operation"; break;
+                    case "receipt_count": receipt["Result"]["MovedCount"] = 16; break;
                     case "ids_missing": B2MarkerRawValue(result, "movedItemIds")["Items"].Last.Remove(); break;
                     case "ids_duplicate": B2MarkerRawValue(result, "movedItemIds")["Items"][1] = B2MarkerRawValue(result, "movedItemIds")["Items"][0].DeepClone(); break;
                     case "ids_wrong": B2MarkerRawValue(result, "movedItemIds")["Items"][0]["StringValue"] = "forged-item"; break;
@@ -171,13 +179,13 @@ namespace YC.Tests.EditMode.ExpansionRules
                     case "typed_item": node["PositionChanges"][0]["ItemId"] = "forged-item"; break;
                     case "typed_from": node["PositionChanges"][0]["From"]["ZoneId"] = "forged-from"; break;
                     case "typed_to": node["PositionChanges"][0]["To"]["ZoneId"] = "forged-to"; break;
-                    case "request_actor": node["TransferBatchRequest"]["ExecutingPlayerId"] = 2; break;
+                    case "request_actor": plan["ExecutingPlayerId"] = 2; break;
                     case "request_order":
-                        var ids = (JArray)node["TransferBatchRequest"]["Transfers"][0]["ItemIds"];
+                        var ids = (JArray)plan["Transfers"][0]["ItemIds"];
                         var first = ids[0].DeepClone(); ids[0] = ids[1].DeepClone(); ids[1] = first; break;
-                    case "request_source": node["TransferBatchRequest"]["Transfers"][0]["ExpectedSource"]["ZoneId"] = "forged-source"; break;
-                    case "request_destination": node["TransferBatchRequest"]["Transfers"][0]["Destination"]["ZoneId"] = "forged-destination"; break;
-                    case "receipt_missing": B2MarkerDrop((JObject)node["ContinuationData"], "transferBatchReceipt"); break;
+                    case "request_source": plan["Transfers"][0]["ExpectedSource"]["ZoneId"] = "forged-source"; break;
+                    case "request_destination": plan["Transfers"][0]["Destination"]["ZoneId"] = "forged-destination"; break;
+                    case "receipt_missing": plan["Receipt"] = null; break;
                 }
                 B2AssertMarkerRejected(raw, domain, "Load2或token3" + operation + (domain ? "domain" : "raw") + mutation, failures);
             }
@@ -186,19 +194,20 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (bool missing in new[] { true, false })
             {
                 var raw = JObject.Parse(legal);
-                var result = (JObject)B2MarkerRawState(raw, stateAfter)["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectTypeId"] == effectType)["NormalizedResult"];
+                var result = (JObject)B2MarkerPaymentNode(B2MarkerRawState(raw, stateAfter))["NormalizedResult"];
                 if (missing) B2MarkerDrop(result, field); else B2MarkerRawValue(result, field)["Kind"] = (int)NormalizedValueKind.Null;
                 B2AssertMarkerRejected(raw, false, operation + "结果" + field + (missing ? "缺失" : "坏类型"), failures);
             }
             if (!domain && operation == "token")
-            foreach (string field in new[] { "protocolVersion", "operationId", "requestDigest", "movedCount" })
+            foreach (string field in new[] { "ContractVersion", "OperationId", "ArgumentsDigest", "Result" })
             foreach (bool missing in new[] { true, false })
             {
                 var raw = JObject.Parse(legal);
-                var node = B2MarkerRawState(raw, stateAfter)["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectTypeId"] == ItemTransferEffectExecutor.TypeId);
-                var receipt = B2MarkerRawValue((JObject)node["ContinuationData"], "transferBatchReceipt");
-                if (missing) B2MarkerDrop(receipt, field); else B2MarkerRawValue(receipt, field)["Kind"] = (int)NormalizedValueKind.Null;
-                B2AssertMarkerRejected(raw, false, "token3收据" + field + (missing ? "缺失" : "坏类型"), failures);
+                var node = B2MarkerPaymentNode(B2MarkerRawState(raw, stateAfter));
+                var plan = (JObject)(node["ItemMovementV4"] is JObject ? node["ItemMovementV4"] : node["CommonItemMovementV4"]);
+                var receipt = (JObject)plan["Receipt"];
+                if (missing) receipt.Property(field).Remove(); else receipt[field] = new JArray();
+                B2AssertMarkerRejected(raw, false, "共同v4收据" + field + (missing ? "缺失" : "坏类型"), failures);
             }
             Assert.That(failures, Is.Empty, "下列坏档被接受或非目标误拒：" + string.Join("、", failures));
         }

@@ -23,7 +23,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
             string version = (string)pack.Manifest["version"];
-            Require(version == "2.1.1", version);
+            Require(version == "2.1.36", version);
             Require(!MoonSharpLuaRuntimeHost.SupportedEffectConstructors.Contains("LoadCardMarkers"), "旧公开构造器仍存在");
             var r = new EffectRegistry(); GenericLuaEffectExecutor.Register(r);
             Require(!r.TryGet(ContentPrimitiveEffectExecutor.RetiredMarkerLoadTypeId, out _), "旧Load仍可执行");
@@ -94,7 +94,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var moves = f.State.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == TypeId && Text(Value(n.NormalizedArguments, "destination"), "zoneId") == f.State.ItemZones.Zones.Single(z => z.ParentId == f.Carrier && z.LocalZoneId == "reputation").ZoneId).ToList();
             Require(moves.Count == 2 && moves.All(n => Number(n.NormalizedArguments, "requiredCount") == 1 && n.Status == EffectNodeStatus.Completed), "声望未逐枚真实提交");
             var open = f.State.EffectRuntime.InteractionRequests.Where(r => r.Status == "open" && r.AnsweringPlayerId == 1).ToList();
-            Require(open.Count == 1 && Text(f.Engine.GetNode(open[0].OwnerEffectId).ContinuationContext, "stage") == "main_selected", "骰点页不是一次");
+            Require(open.Count == 1 && Text(f.Engine.GetNode(open[0].OwnerEffectId).ContinuationContext, "stage") == "main_completed", "骰点页不是一次");
             int dice = f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice);
             f.Restore("R17多枚声望后一次骰点页"); f.Drain();
             Require(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice) == dice, "恢复重复掷骰");

@@ -134,8 +134,7 @@ namespace YC.Application.Gameplay
                 candidate.AnsweringPlayerId == playerId &&
                 (!parallelCover || state.EffectRuntime.EffectNodes.Exists(owner =>
                     owner != null && owner.EffectId == candidate.OwnerEffectId &&
-                    owner.ParentEffectId == mainNode.ExecutionEffectId &&
-                    owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId)));
+                    MainCoverAuthority.IsRequestOwner(state,owner,mainNode.ExecutionEffectId))));
             if (request == null)
             {
                 if (parallelCover)

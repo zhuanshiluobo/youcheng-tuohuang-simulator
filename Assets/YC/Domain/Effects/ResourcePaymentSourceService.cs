@@ -15,7 +15,7 @@ namespace YC.Domain.Effects
     public static class ResourcePaymentSourceService
     {
         public const string QueryKind = "resource_payment_substitution.v1";
-        public const string TokenCostContractVersion = "resource_token_cost.v1";
+        public const string TokenCostContractVersion = "resource_token_cost.v2";
         internal static bool IsResourcePaymentNode(EffectNodeRuntimeState node) => node != null &&
             (node.EffectTypeId == ResourceEffectTypeIds.Pay || node.EffectTypeId == ResourcePaymentChoiceEffectExecutor.TypeId || node.EffectTypeId == FacilityBuildEffectExecutor.PaymentTypeId);
         private static readonly ConditionalWeakTable<EffectRegistry, object> Registered = new ConditionalWeakTable<EffectRegistry, object>();
@@ -98,7 +98,10 @@ namespace YC.Domain.Effects
             if (zone == null) { reason = "card_zone_permission_denied"; return false; }
             var retired = cost.DestinationKind == "retired" ? state.ItemZones.Zones.SingleOrDefault(z => z.TemplateId == "core.zone.box_retired") : null;
             if (cost.DestinationKind != "original_supply" && (cost.DestinationKind != "retired" || retired == null)) return false;
-            args = TokenArguments(player, ids, zone.ZoneId, retired?.ZoneId, count, cost.OperationProfileId); reason = ""; return true;
+            args = ItemMovementV4.TransferSpec(player, ids, zone.ZoneId, retired?.ZoneId ?? "", required: count, profile: cost.OperationProfileId).NormalizedArguments;
+            if (cost.DestinationKind == "original_supply")
+                args.Properties.Single(p => p.Name == "destination").Value = Object("kind", NormalizedValue.CreateString("original_supply"));
+            reason = ""; return true;
         }
         public static bool TryPlanItemCost(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner, PaymentSourceRule rule, int units,
             IReadOnlyList<string> ids, out PaymentTokenCostPlan plan, out string reason)
@@ -106,7 +109,7 @@ namespace YC.Domain.Effects
             plan = null; reason = "payment_item_cost_invalid";
             long count = (long)units * (rule?.ItemCost?.CountPerUnit ?? 0);
             if (state == null || registry == null || owner == null || ids == null || rule?.SourceRef?.AuthorizedPlayerId != owner.PlayerId || count < 1 || count > MaximumTokenCount) return false;
-            // 正规资源替代v1原有本人库存语义保留；通用api3自身仍支持Lua选择的异质/不同原主返还。
+            // 正规资源替代保留本人库存语义；普通共同v4仍支持Lua明确选择的异质/不同原主返还。
             if (ids.Any(id => !state.ItemZones.Items.Any(i => i.ItemId == id && i.OwnerSubject.Kind == ItemSubjectKind.Player && i.OwnerSubject.PlayerId == owner.PlayerId)))
             { reason = "payment_source_item_owner_invalid"; return false; }
             if (!TryItemArguments(state, owner.PlayerId, rule, ids, (int)count, out var args, out reason) ||

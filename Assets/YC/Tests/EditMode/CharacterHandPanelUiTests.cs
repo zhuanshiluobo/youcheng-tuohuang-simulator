@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Domain.Cards;
 using YC.Domain.Rules;
@@ -126,6 +127,37 @@ namespace YC.Tests.EditMode
             ClickHierarchy(background);
             Assert.That(panel.IsDiscardPreviewOpen, Is.False);
             Assert.That(panel.OrderedHandCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void DiscardListWithoutArtworkKeepsReadOnlyCardPageAndVisibleIds()
+        {
+            var artifacts = ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                CreatePanel();
+                var ids = new[] { "isolated.discard.missing.1", "isolated.discard.missing.2" };
+                panel.Render(1, BuildModel(Array.Empty<string>(), ids, false));
+                foreach (var id in ids)
+                    LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=discard-view item=" + id);
+                panel.OpenDiscardPreview();
+                var list = owner.GetComponentInChildren(GetRuntimeType("YC.Presentation.EffectDialogShellView"), false);
+                Assert.That(GetProperty<bool>(list, "IsCardPicker"), Is.True);
+                var cards = list.GetComponentsInChildren(GetRuntimeType("YC.Presentation.FacilityEffectCardView"), false);
+                Assert.That(cards, Has.Length.EqualTo(ids.Length));
+                Assert.That(list.GetComponentsInChildren(GetRuntimeType("YC.Presentation.EffectDialogOptionRowView"), false), Is.Empty);
+                for (int i = 0; i < cards.Length; i++)
+                {
+                    Assert.That(GetProperty<RawImage>(cards[i], "CardImage").texture, Is.Null);
+                    Assert.That(GetProperty<Text>(cards[i], "FallbackLabel").text, Is.EqualTo(ids[i]));
+                    Assert.That(GetProperty<Text>(cards[i], "FallbackLabel").gameObject.activeSelf, Is.True);
+                    GetProperty<Button>(cards[i], "Button").onClick.Invoke();
+                }
+                Assert.That(Array.Exists(list.GetComponentsInChildren<Button>(), b => b.name == "Confirm Selection"), Is.False);
+                Assert.That(panel.OrderedHandCount, Is.Zero);
+                artifacts.WriteLabeledText("原弃牌入口缺图只读", Newtonsoft.Json.JsonConvert.SerializeObject(new { ids, cardCount = cards.Length }));
+            }
+            finally { artifacts.Finish(); }
         }
 
         private static void ClickHierarchy(GameObject target,
@@ -269,7 +301,7 @@ namespace YC.Tests.EditMode
 
             public void Render(int playerId, CharacterCardPanelViewModel model)
             {
-                target.GetType().GetMethod("Render").Invoke(target, new object[] { playerId, model });
+                target.GetType().GetMethod("Render").Invoke(target, new object[] { playerId, model, null });
             }
 
             public void OpenDiscardPreview()

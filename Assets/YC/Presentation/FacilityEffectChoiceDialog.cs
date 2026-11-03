@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using YC.Domain.Interactions;
 using YC.Domain.Presentation;
@@ -80,15 +80,6 @@ namespace YC.Presentation
             get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy; }
         }
 
-        public void ShowOptions(
-            string title,
-            string description,
-            IReadOnlyList<EffectDialogOption> options,
-            Action back = null)
-        {
-            ShowOptionsCore(title, description, options, back);
-        }
-
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
@@ -105,10 +96,15 @@ namespace YC.Presentation
             }
             if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            if (spec.CardSprite == null) spec.CardSprite = id => cardVisualCatalog.GetFacility(
-                GameplayExpansionUi.CandidateDefinition(spec.Request, id) is string definition && !string.IsNullOrEmpty(definition)
-                    ? definition : id);
-            var panel = PreparePage(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.HasCardArtwork());
+            spec.BindCardSemantics(cardVisualCatalog);
+            if (spec.CardSprite == null) spec.CardSprite = id =>
+            {
+                var definitionId = spec.ResolveCardDefinition(id);
+                return spec.IsRewardCardSelection ? cardVisualCatalog.GetAward(definitionId) :
+                    cardVisualCatalog.GetFacility(definitionId) ?? cardVisualCatalog.GetCharacterFront(definitionId) ??
+                    cardVisualCatalog.GetEvent(definitionId) ?? cardVisualCatalog.GetAward(definitionId);
+            };
+            var panel = PreparePage(layoutProfile.SelectionPanelSize, Vector2.zero, cardPicker: spec.ShouldUseCardPicker());
             AddHeading(panel, title, description);
             if (spec.PromptDocument != null)
             {
@@ -122,16 +118,6 @@ namespace YC.Presentation
             }
             shell.AddSelection(panel, spec);
             shell.RestoreScroll(scroll);
-        }
-
-        public void ShowEffectOptions(
-            string title,
-            string description,
-            IReadOnlyList<EffectDialogOption> options,
-            Action back = null,
-            string backLabel = null)
-        {
-            ShowOptionsCore(title, description, options, back, backLabel);
         }
 
         public void ShowExtensionHubOptions(
@@ -241,46 +227,6 @@ namespace YC.Presentation
             layoutProfile.ExtensionHubSkipButtonLayout.ApplyTo(
                 skipButton.GetComponent<RectTransform>());
             BindOnce(skipButton, skip);
-        }
-
-        private void ShowOptionsCore(
-            string title,
-            string description,
-            IReadOnlyList<EffectDialogOption> options,
-            Action back,
-            string backLabel = null)
-        {
-            var panel = PreparePage(layoutProfile.OptionsPanelSize, Vector2.zero);
-            AddHeading(panel, title, description);
-
-            var scrollBottom = back == null
-                ? layoutProfile.OptionsScrollBottom
-                : layoutProfile.OptionsScrollBottomWithBack;
-            var content = EffectDialogShell.AddOptionScroll(
-                panel,
-                "Options Scroll",
-                scrollBottom,
-                layoutProfile.OptionsScrollTop);
-            shell.AddOptions(content, options, "Option ", Hide);
-
-            if (back != null)
-            {
-                var backButton = CreateButton(
-                    panel,
-                    "Back",
-                    string.IsNullOrEmpty(backLabel) ? "\u8fd4\u56de" : backLabel,
-                    17);
-                SetRect(
-                    backButton.GetComponent<RectTransform>(),
-                    layoutProfile.BottomCenterAnchor,
-                    layoutProfile.BottomCenterAnchor,
-                    layoutProfile.OptionsBackButtonSize,
-                    new Vector2(
-                        0f,
-                        layoutProfile.OptionsBackButtonNormalY));
-                backAction = back;
-                BindOnce(backButton, back);
-            }
         }
 
         public void ShowResourceAllocation(

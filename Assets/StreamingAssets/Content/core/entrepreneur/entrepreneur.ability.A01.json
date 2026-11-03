@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.ability.A01",
   "contentType": "entrepreneur_ability",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "displayName": "艾格尼丝·史密斯",
   "artwork": "artwork/entrepreneurs/A01.jpg",
   "expansionId": "infected",
@@ -44,7 +44,7 @@
       "abilityId": "entrepreneur.A01.cover",
       "kind": "event",
       "handlerRef": "entrepreneur.A01.cover",
-      "declarationVersion": "1.3.0",
+      "declarationVersion": "1.4.0",
       "authorizationPolicy": "controller",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -286,14 +286,14 @@
     {
       "handlerId": "entrepreneur.A01.final",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A01.final.completed"
     },
     {
       "handlerId": "entrepreneur.A01.cover",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
-      "completionHandlerId": "entrepreneur.A01.cover.completed"
+      "version": "1.4.0",
+      "completionHandlerId": ""
     }
   ],
   "actionCallPolicies": [],

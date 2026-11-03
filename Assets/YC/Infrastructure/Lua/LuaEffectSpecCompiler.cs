@@ -74,6 +74,14 @@ namespace YC.Infrastructure.Lua
                     new[] { "itemId", "actionId", "callPolicyRef" }.Any(field => string.IsNullOrEmpty(ItemTransferEffectExecutor.Text(spec.RawArguments, field))) ? "action_direct_arguments_invalid" : "",
                 CreateRawArguments));
             Register(new LuaEffectTypeRegistration(ResourceCollectionEffectExecutor.TypeId, spec => ResourceCollectionEffectExecutor.ValidateArguments(spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(ResourcePaymentInsertionService.PickItemTypeId, spec => ResourcePaymentInsertionService.ValidatePickArguments(spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(OrdinarySpecialActionChoice.TypeId, spec => OrdinarySpecialActionChoice.ValidateArguments(spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(CarrierTokenPairReturnChoice.TypeId, spec => CarrierTokenPairReturnChoice.ValidateArguments(CarrierTokenPairReturnChoice.TypeId, spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(CarrierTokenPairReturnChoice.SecondTypeId, spec => CarrierTokenPairReturnChoice.ValidateArguments(CarrierTokenPairReturnChoice.SecondTypeId, spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(TransferCountChoiceFlow.TypeId, spec => TransferCountChoiceFlow.ValidateArguments(TransferCountChoiceFlow.TypeId, spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(TransferCountChoiceFlow.SequenceTypeId, spec => TransferCountChoiceFlow.ValidateArguments(TransferCountChoiceFlow.SequenceTypeId, spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(ResourceExchangeFlow.TypeId, spec => ResourceExchangeFlow.ValidateArguments(spec.RawArguments), CreateRawArguments));
+            Register(new LuaEffectTypeRegistration(AllocationEffects.TypeId, spec => AllocationEffects.ValidateArguments(spec.RawArguments, spec.AllocationOptions, spec.NestedEffectGroups?.Length ?? 0), spec => spec.RawArguments.Clone()));
             Register(new LuaEffectTypeRegistration(
                 EffectTypeIds.Condition,
                 spec => spec == null || spec.NestedEffectGroups == null || spec.NestedEffectGroups.Length < 2
@@ -85,8 +93,9 @@ namespace YC.Infrastructure.Lua
                     : spec.RawArguments.Clone()));
             Register(new LuaEffectTypeRegistration(
                 "effect.resource.gain",
-                spec => IsResourceType(spec.ResourceTypeId) ? string.Empty : "资源类型未登记。",
-                spec => CreateArguments(spec, true)));
+                spec => spec.RawArguments != null ? ResourceEffectExecutor.ValidateGainArguments(spec.RawArguments) :
+                    IsResourceType(spec.ResourceTypeId) ? string.Empty : "资源类型未登记。",
+                spec => spec.RawArguments != null ? CreateRawArguments(spec) : CreateArguments(spec, true)));
             Register(new LuaEffectTypeRegistration(
                 "effect.resource.pay",
                 spec => spec.RawArguments != null ? (ResourcePaymentDemandParser.IsTotal(spec.RawArguments)
@@ -106,7 +115,6 @@ namespace YC.Infrastructure.Lua
                 CityMoveEffectTypeIds.Move,
                 ValidateRawObject,
                 CreateRawArguments));
-            Register(new LuaEffectTypeRegistration(InfluenceDepartureBatchExecutor.TypeId, spec => spec.NestedEffectGroups.Length == 1 ? "" : "departure_batch_body_invalid", CreateRawArguments));
             Register(new LuaEffectTypeRegistration(
                 InfluenceEffectTypeIds.PlaceInfluence,
                 ValidateInfluence,
@@ -125,8 +133,8 @@ namespace YC.Infrastructure.Lua
                 CreateInfluenceArguments));
             Register(new LuaEffectTypeRegistration(
                 CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker,
-                ValidateCityStyleMarker,
-                CreateCityStyleArguments));
+                spec => YC.Domain.Items.PlayerMarkerOperation.ValidateArguments(spec.RawArguments),
+                spec => spec.RawArguments.Clone()));
             Register(new LuaEffectTypeRegistration(
                 EventCardEffectTypeIds.Resolve,
                 ValidateRawObject,
@@ -137,34 +145,30 @@ namespace YC.Infrastructure.Lua
                 CreateCharacterAbilityArguments));
             Register(new LuaEffectTypeRegistration(
                 CharacterCoverEffectExecutor.EffectTypeId,
-                spec => ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") == null ? ValidateRawObject(spec) : CharacterCoverEffectExecutor.ValidateArguments(spec.RawArguments),
+                spec => ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") == null ? CharacterCoverEffectExecutor.PublicNormalCoverReason : CharacterCoverEffectExecutor.ValidateArguments(spec.RawArguments),
                 CreateRawArguments));
 
             string[] genericTypes =
             {
                 CleanupObligation.ScheduleType,
                 ContentPrimitiveEffectExecutor.IncompleteEffect,
+                CityStyleMarkerReturnChoice.TypeId,
                 ContentLifecycleEffectExecutor.RetireFacilityTypeId, ContentLifecycleEffectExecutor.ReturnMarkerTypeId, RewardGrantEffectExecutor.TypeId,
                 YC.Domain.Influence.RewardAcquisitionFlow.TypeId,
                 ResourceLossEffectExecutor.TypeId,
                 ContentPrimitiveEffectExecutor.StoreRemoved, ContentPrimitiveEffectExecutor.ClearRouteRoad,
                 ItemTransferEffectExecutor.RefillTypeId, ItemTransferEffectExecutor.RefreshTypeId,
-                CharacterLifecycleService.TransferTypeId,
                 CharacterLifecycleService.ConsumeSourceTypeId,
                 ResourcePaymentSubstitutionEffectExecutor.TypeId,
                 OperatorDispatchFlow.ReplaceTypeId,
-                ContentPrimitiveEffectExecutor.SelectInfluence,
                 CityStyleSpecialActionEffectTypeIds.GrantMainActions,
-                FacilitySelectionEffectExecutor.TypeId,
                 FacilitySelectionEffectExecutor.PanelTypeId,
-                ExplorationSelectionEffectExecutor.TypeId,
                 ContentPrimitiveEffectExecutor.OverrideNextStartPlayer,
                 ContentPrimitiveEffectExecutor.ActivateFacilityEntry,
                 ContentPrimitiveEffectExecutor.ChooseResources,
                 ItemTransferEffectExecutor.TypeId,
                 DeckShuffleEffectExecutor.TypeId,
                 LuaDomainEffectTypeIds.Choice,
-                LuaDomainEffectTypeIds.Repeat,
                 LuaDomainEffectTypeIds.RollDice,
                 LuaDomainEffectTypeIds.ResourceDiscount,
                 LuaDomainEffectTypeIds.ResourceSell,
@@ -207,12 +211,20 @@ namespace YC.Infrastructure.Lua
 
         private static string ValidateGenericArguments(string typeId, LuaEffectSpec spec)
         {
+            string retired = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(typeId, spec?.RawArguments);
+            if (retired.Length > 0) return retired;
+            if (typeId == LuaDomainEffectTypeIds.ExecuteMainAction) return GenericLuaEffectExecutor.ValidateMainActionArguments(spec?.RawArguments);
+            if (typeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions) return CityStyleSpecialActionEffectExecutor.ValidateGrantArguments(spec?.RawArguments);
             if(typeId==CleanupObligation.ScheduleType) return CleanupObligation.ValidateArguments(spec?.RawArguments);
             if (typeId == FacilitySelectionEffectExecutor.PanelTypeId) return FacilitySelectionEffectExecutor.ValidatePanelArguments(spec?.RawArguments);
             if (typeId == CharacterLifecycleService.ConsumeSourceTypeId) return SettlementHostProtocol.ValidateConsumeSourceArguments(spec?.RawArguments);
             if (typeId == ResourcePaymentSubstitutionEffectExecutor.TypeId) return ResourcePaymentSubstitutionEffectExecutor.ValidateArguments(spec?.RawArguments);
             if (typeId == ResourceLossEffectExecutor.TypeId) return ResourceLossEffectExecutor.ValidateArguments(spec?.RawArguments);
             if (typeId == LuaDomainEffectTypeIds.Choice) return GenericLuaEffectExecutor.ValidateChoiceArguments(spec?.RawArguments);
+            if (typeId == ExplorationEffectTypeIds.Explore) return ExplorationContract.ValidateArguments(spec?.RawArguments);
+            if (typeId == FacilityEntryEffectTypeIds.Build && FacilityBuildContract.IsV3(spec?.RawArguments)) return FacilityBuildContract.ValidateArguments(spec.RawArguments);
+            if (typeId == FacilityEntryEffectTypeIds.Build && new[] { "allowDecline", "effectId", "includeStoredFacilities", "excludeRainbow", "maxGoldVoucherCost" }.Any(k => ItemTransferEffectExecutor.Value(spec?.RawArguments, k) != null))
+                return "build_contract_version_required";
             string error = ValidateRawObject(spec);
             if (error.Length > 0) return error;
             if (CharacterContentEffectExecutor.IsPublic(typeId)) return CharacterContentEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
@@ -220,11 +232,12 @@ namespace YC.Infrastructure.Lua
             if (typeId == LuaDomainEffectTypeIds.RollDice) return DiceRollEffectExecutor.ValidateArguments(spec.RawArguments);
             if (typeId == RewardGrantEffectExecutor.TypeId) return RewardGrantEffectExecutor.ValidateArguments(spec.RawArguments);
             if (ContentLifecycleEffectExecutor.PublicTypeIds.Contains(typeId)) return ContentLifecycleEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
+            if(typeId==CityStyleMarkerReturnChoice.TypeId)return CityStyleMarkerReturnChoice.ValidateArguments(spec.RawArguments);
             if (ContentPrimitiveEffectExecutor.ContentFlowTypeIds.Contains(typeId)) return ContentPrimitiveEffectExecutor.ValidateContentFlow(typeId, spec.RawArguments);
             if (typeId == ItemTransferEffectExecutor.RefillTypeId || typeId == ItemTransferEffectExecutor.RefreshTypeId) return ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") == null ? "supply_arguments_incomplete" : ItemTransferEffectExecutor.ValidateSupplyArguments(typeId, spec.RawArguments);
             if (typeId == LuaDomainEffectTypeIds.ResourceSell && ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion") != null) return ContentPrimitiveEffectExecutor.ValidateSaleArguments(spec.RawArguments);
             if (typeId == OperatorDispatchFlow.TypeId || typeId == OperatorDispatchFlow.ReplaceTypeId) return OperatorDispatchFlow.ValidateArguments(typeId, spec.RawArguments);
-            if (typeId == CharacterLifecycleService.TransferTypeId || typeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule) return CharacterLifecycleService.ValidateArguments(typeId, spec.RawArguments);
+            if (typeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule) return CharacterLifecycleService.ValidateArguments(typeId, spec.RawArguments);
             if (typeId == LuaDomainEffectTypeIds.PlaceRoad || typeId == LuaDomainEffectTypeIds.OperateToken)
                 return YC.Domain.Movement.MapOperationEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
             if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(typeId))
@@ -233,8 +246,6 @@ namespace YC.Infrastructure.Lua
                 return ItemTransferEffectExecutor.MissingTransferFields(typeId, spec.RawArguments).Count > 0 ? "" : ItemTransferEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
             if (typeId == DeckShuffleEffectExecutor.TypeId || typeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck)
                 return DeckShuffleEffectExecutor.MissingFields(typeId, spec.RawArguments).Count > 0 ? "" : DeckShuffleEffectExecutor.ValidateArguments(typeId, spec.RawArguments);
-            if (typeId == LuaDomainEffectTypeIds.Repeat)
-                return ItemTransferEffectExecutor.Value(spec.RawArguments, "apiVersion")?.IntegerValue == 1 && ItemTransferEffectExecutor.Value(spec.RawArguments, "count") == null ? "" : RepeatEffectExecutor.ValidateArguments(spec.RawArguments);
             return "";
         }
 
@@ -474,6 +485,9 @@ namespace YC.Infrastructure.Lua
 
         private static string ValidateInfluence(LuaEffectSpec spec)
         {
+            if (spec != null && InfluenceSelectionFlow.IsSelection(spec.EffectTypeId, spec.RawArguments))
+                return spec.NestedEffectGroups != null && spec.NestedEffectGroups.Any(g => g != null && g.Count > 0)
+                    ? "influence_selection_body_rejected" : InfluenceSelectionFlow.ValidateArguments(spec.EffectTypeId, spec.RawArguments);
             // 严格移除使用完整规范化 RawArguments，不能先按旧单目标 DTO 的空字段拒绝。
             if (spec != null && spec.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && spec.RawArguments != null)
                 return InfluenceEffectExecutor.ValidateRemoveSpec(EffectSpec.Create(spec.EffectTypeId, spec.RawArguments));
@@ -617,12 +631,6 @@ namespace YC.Infrastructure.Lua
             return string.Empty;
         }
 
-        private static string ValidateCityStyleMarker(LuaEffectSpec spec)
-        {
-            return spec == null || string.IsNullOrWhiteSpace(spec.Operation)
-                ? "OperatePlayerMarker 必须提供 operation。" : string.Empty;
-        }
-
         private static string ValidateCityStyleGrant(LuaEffectSpec spec)
         {
             return spec == null || spec.Amount <= 0 ? "GrantMainActions 必须提供正 amount。" : string.Empty;
@@ -746,6 +754,15 @@ namespace YC.Infrastructure.Lua
             {
                 LuaEffectSpec sourceSpec = source[i];
                 LuaEffectTypeRegistration registration;
+                string retiredContract = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(sourceSpec?.EffectTypeId, sourceSpec?.RawArguments);
+                if(sourceSpec?.EffectTypeId==CityStyleSpecialActionEffectTypeIds.RoundCleanup||sourceSpec?.EffectTypeId==YC.Domain.Items.PlayerMarkerOperation.TypeId&&YC.Domain.Items.PlayerMarkerOperation.IsLegacy(sourceSpec.RawArguments))retiredContract=YC.Domain.Items.PlayerMarkerOperation.CleanupHostOnlyReason;
+                if (retiredContract.Length == 0 && sourceSpec?.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId &&
+                    ItemTransferEffectExecutor.Value(sourceSpec.RawArguments, "apiVersion") == null) retiredContract = CharacterCoverEffectExecutor.PublicNormalCoverReason;
+                if (retiredContract.Length > 0)
+                {
+                    fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, retiredContract, i);
+                    return false;
+                }
                 if (sourceSpec?.EffectTypeId == ContentPrimitiveEffectExecutor.PayMarkers)
                 {
                     fault = new LuaEffectCompilationFault(LuaFailureCode.UnknownEffectType,
@@ -795,6 +812,7 @@ namespace YC.Infrastructure.Lua
                     context.PlayerId);
                 // 脚本版本属于内容/handler 收据；节点执行版本由正式 Registry 的
                 // EffectRegistration 决定，避免同一通用 Effect 因内容版本不同而失配。
+                spec.AllocationOptions = AllocationEffects.CloneOptions(sourceSpec.AllocationOptions);
                 spec.Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(sourceSpec.Presentation);
                 spec.Settlement = GameStateCloneService.DeepClone(sourceSpec.Settlement);
                 spec.ContinuationContext = sourceSpec.ContinuationContext?.Clone();
@@ -802,7 +820,7 @@ namespace YC.Infrastructure.Lua
                 if (presentationCatalog != null)
                 {
                     abilityPresentations.TryGetValue(context.AbilityId ?? string.Empty, out var abilityPresentation);
-                    spec.Presentation = presentationCatalog.ResolveEffect(spec.EffectTypeId, spec.Presentation, abilityPresentation);
+                    spec.Presentation = presentationCatalog.ResolveEffect(BuildPresentationType(spec), spec.Presentation, abilityPresentation);
                 }
                 spec.DefinitionVersion = string.Empty;
                 spec.SourceId = string.IsNullOrEmpty(context.SourceId) ? invocation.ContentId : context.SourceId;
@@ -846,7 +864,10 @@ namespace YC.Infrastructure.Lua
                 }
                 catch (Exception error) when (error is InvalidOperationException || error is ArgumentException)
                 { fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, Sanitize(error.Message), i); return false; }
+                if (!YC.Domain.Items.ItemMoveInputNormalization.TryNormalize(spec, out string normalizationReason))
+                { fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, normalizationReason, i); return false; }
                 if (!TryCompileGroups(sourceSpec, spec, spec.PlayerId, 0, out fault)) return false;
+                try { ValidateAllocationDeclaration(spec); } catch (ArgumentException error) { fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, error.Message, i); return false; }
                 compiled.Add(spec);
             }
 
@@ -855,6 +876,13 @@ namespace YC.Infrastructure.Lua
         }
 
         // 嵌套结构递归编译；continuation 仅属于显式绑定的顶层节点，不能复制到每个支付子节点。
+        private void ValidateAllocationDeclaration(EffectSpec spec)
+        {
+            AllocationEffects.ValidateSpec(spec);
+            if (spec.AllocationOptions != null && presentationCatalog != null)
+                foreach (var option in spec.AllocationOptions) presentationCatalog.ValidateReferences(option.Text);
+        }
+
         private bool TryCompileGroups(LuaEffectSpec source, EffectSpec target, int playerId, int depth,
             out LuaEffectCompilationFault fault)
         {
@@ -873,6 +901,15 @@ namespace YC.Infrastructure.Lua
                 {
                     var child = sources[i];
                     LuaEffectTypeRegistration registration;
+                    string retiredContract = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(child?.EffectTypeId, child?.RawArguments);
+                    if(child?.EffectTypeId==CityStyleSpecialActionEffectTypeIds.RoundCleanup||child?.EffectTypeId==YC.Domain.Items.PlayerMarkerOperation.TypeId&&YC.Domain.Items.PlayerMarkerOperation.IsLegacy(child.RawArguments))retiredContract=YC.Domain.Items.PlayerMarkerOperation.CleanupHostOnlyReason;
+                    if (retiredContract.Length == 0 && child?.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId &&
+                        ItemTransferEffectExecutor.Value(child.RawArguments, "apiVersion") == null) retiredContract = CharacterCoverEffectExecutor.PublicNormalCoverReason;
+                    if (retiredContract.Length > 0)
+                    {
+                        fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, retiredContract);
+                        return false;
+                    }
                     if (child?.EffectTypeId == ContentPrimitiveEffectExecutor.PayMarkers)
                     {
                         fault = new LuaEffectCompilationFault(LuaFailureCode.UnknownEffectType,
@@ -891,6 +928,7 @@ namespace YC.Infrastructure.Lua
                         var args = registration.ArgumentBuilder(child);
                         if (args == null || !args.TryValidate(out error)) throw new ArgumentException(error);
                         var compiled = EffectSpec.Create(child.EffectTypeId, args, playerId);
+                        compiled.AllocationOptions = AllocationEffects.CloneOptions(child.AllocationOptions);
                         compiled.Presentation = YC.Domain.Presentation.GameplayPresentationNormalizer.Clone(child.Presentation);
                         compiled.Settlement = GameStateCloneService.DeepClone(child.Settlement);
                         if (child.ExecutionBindingRequest != null) throw new ArgumentException("effect_execution_binding_nested_override_forbidden");
@@ -904,7 +942,7 @@ namespace YC.Infrastructure.Lua
                         compiled.ContinuationDefinitionVersion = target.ContinuationDefinitionVersion;
                         compiled.ContinuationContentHash = target.ContinuationContentHash;
                         if (!BindContextContinuation(compiled, out string continuationError, true)) throw new ArgumentException(continuationError);
-                        if (presentationCatalog != null) compiled.Presentation = presentationCatalog.ResolveEffect(compiled.EffectTypeId, compiled.Presentation);
+                        if (presentationCatalog != null) compiled.Presentation = presentationCatalog.ResolveEffect(BuildPresentationType(compiled), compiled.Presentation);
                         compiled.DefinitionVersion = string.Empty;
                         compiled.SourceId = target.SourceId;
                         compiled.StableKey = BuildStableKey(target.StableKey + ":group:" + group, i);
@@ -915,7 +953,9 @@ namespace YC.Infrastructure.Lua
                             EffectExecutionBinding.ValidateOperationArguments(compiled.NormalizedArguments, compiled.ExecutionBinding.PlayerId);
                             compiled.PlayerId = compiled.ExecutionBinding.PlayerId; compiled.DecisionPlayerId = compiled.ExecutionBinding.PlayerId;
                         }
+                        if (!YC.Domain.Items.ItemMoveInputNormalization.TryNormalize(compiled, out string normalizationReason)) throw new ArgumentException(normalizationReason);
                         if (!TryCompileGroups(child, compiled, playerId, depth + 1, out fault)) return false;
+                        ValidateAllocationDeclaration(compiled);
                         children.Add(compiled);
                     }
                     catch (Exception exception)
@@ -964,6 +1004,10 @@ namespace YC.Infrastructure.Lua
             }
         }
 
+        // API-12：统一选择根复用原建设候选表现；未受影响的直接Build不套用选牌脚本。
+        private static string BuildPresentationType(EffectSpec spec) => spec.EffectTypeId == FacilityEntryEffectTypeIds.Build &&
+            !FacilityBuildContract.IsSelection(spec.EffectTypeId, spec.NormalizedArguments) ? "" : spec.EffectTypeId;
+
         private static void ApplyExecutionOptions(EffectSpec spec)
         {
             var args = spec.NormalizedArguments;
@@ -972,8 +1016,9 @@ namespace YC.Infrastructure.Lua
             {
                 if (entry == null || entry.Value == null) continue;
                 if (entry.Name == "allowDecline" && entry.Value.Kind == NormalizedValueKind.Boolean)
-                    spec.AllowDecline = spec.EffectTypeId != FacilitySelectionEffectExecutor.TypeId &&
-                        spec.EffectTypeId != FacilitySelectionEffectExecutor.PanelTypeId && entry.Value.BooleanValue;
+                    spec.AllowDecline = !FacilityBuildContract.IsSelection(spec.EffectTypeId, args) &&
+                        spec.EffectTypeId != FacilitySelectionEffectExecutor.PanelTypeId &&
+                        spec.EffectTypeId != TransferCountChoiceFlow.TypeId && entry.Value.BooleanValue;
                 if (entry.Name == "decisionPlayer")
                 {
                     int id;

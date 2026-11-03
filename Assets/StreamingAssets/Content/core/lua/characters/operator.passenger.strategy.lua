@@ -18,6 +18,24 @@ local function basic_resource(resource)
     return resource == 'originium' or resource == 'originium-shard' or resource == 'iron'
 end
 
+-- 资源项直接包含原数量选择效果；数量仍是有正式来源和上限的数据选择。
+local function resource_choice(ctx, target)
+    local branches, labels = {}, {}
+    local keys = { originium = 'originium', ['originium-shard'] = 'originium_shard', iron = 'iron' }
+    for _, resource in ipairs({ 'originium', 'originium-shard', 'iron' }) do
+        branches[#branches + 1] = { id = resource, effects = {
+            Effect.Choice({ player = ctx.playerId,
+                amountRange = { minAmount = 0, maxAmount = 4, sourcePlayer = target.playerId, resourceType = resource },
+                resultContext = { stage = 'amount', targetPlayer = target.playerId, resourceType = resource },
+                completionHandlerId = completion })
+        } }
+        labels[#labels + 1] = { candidateId = resource, label = Text.Ref('core:interaction.resource.' .. keys[resource]) }
+    end
+    return Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        interactionType = 'effect.choice.execute', promptKey = 'effect.resource.choose_type' }),
+        { interaction = { options = labels } })
+end
+
 return function(ctx)
     if ctx.eventType ~= 'EffectCompleted' then
         local opponents = {}
@@ -52,19 +70,10 @@ return function(ctx)
         end
         local target = find_player(key)
         if target.playerId == ctx.playerId then error('passenger_target_player_invalid') end
-        return { Effect.Choice({ player = ctx.playerId, options = { 'originium', 'originium-shard', 'iron' },
-            promptKey = 'effect.resource.choose_type', resultContext = { stage = 'resource', targetPlayer = target.playerId },
-            completionHandlerId = completion }) }
+        return { resource_choice(ctx, target) }
     end
     local target = find_player(context.targetPlayer)
     if target.playerId == ctx.playerId then error('passenger_target_player_invalid') end
-    if context.stage == 'resource' then
-        if not basic_resource(result.value) then error('passenger_resource_selection_invalid') end
-        return { Effect.Choice({ player = ctx.playerId,
-            amountRange = { minAmount = 0, maxAmount = 4, sourcePlayer = target, resourceType = result.value },
-            resultContext = { stage = 'amount', targetPlayer = target.playerId, resourceType = result.value },
-            completionHandlerId = completion }) }
-    end
     if context.stage == 'amount' then
         if not basic_resource(context.resourceType) then error('passenger_resource_selection_invalid') end
         return { Effect.LoseResource({ apiVersion = 1, player = ctx.playerId, targetPlayer = target,

@@ -83,7 +83,7 @@ end";
             CityStyleLuaCatalog.Register(Registry, Pack); ContentLifecycleLuaCatalog.Register(Registry, Pack);
             FacilityLuaCatalog.Register(Registry,Pack);
             AbilitySourceLuaCatalog.Register(Registry, Pack); ItemTransferEffectExecutor.Register(Registry);
-            DeckShuffleEffectExecutor.Register(Registry); RepeatEffectExecutor.Register(Registry);
+            DeckShuffleEffectExecutor.Register(Registry);
             FacilityEntryEffectExecutor.Register(Registry); FacilitySelectionEffectExecutor.Register(Registry);
             FacilityLayerLuaCatalog.Register(Registry);
             Map = StaticMapDefinitions.CreateThreePlayerMap();
@@ -128,7 +128,7 @@ end";
             const string script = @"return function(ctx)
  local f=ctx.payload.buildFacts
  if not f or not f.overlay then return {} end
- return {Effect.WithContext(Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',
+ return {Effect.WithContext(Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',
   count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false}),
   {requiredOutcome={protocolVersion=1,resultField='completedCount',expectedValue=1}})}
 end";

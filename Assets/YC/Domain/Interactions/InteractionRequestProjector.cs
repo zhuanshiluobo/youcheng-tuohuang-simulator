@@ -81,6 +81,8 @@ namespace YC.Domain.Interactions
                     ? value.ReferenceId : value.Kind == NormalizedValueKind.String ? value.StringValue : null)
                     .Where(id => !string.IsNullOrWhiteSpace(id))
                 : Array.Empty<string>();
+            if(visible && request.InteractionTypeId==AllocationEffects.InteractionType && request.AnswerSchema==AllocationEffects.AnswerSchema)
+                rowIds=request.CandidateIds ?? new List<string>();
             var projection = new InteractionRequestProjection
             {
                 VisibleToViewer = visible,

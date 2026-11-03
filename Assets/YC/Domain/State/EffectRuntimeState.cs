@@ -480,12 +480,23 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectNodeRuntimeState
     {
+        public YC.Domain.Items.ItemMoveInputNormalizationV1 ItemMoveInput;
+        public List<YC.Domain.Effects.AllocationOptionV1> AllocationOptions;
+        public YC.Domain.Effects.AllocationStateV1 AllocationV1;
         public string DepartureBatchId = "";
         public OperationCommandContext OperationContext;
         public OperationCommandContext ContinuationOperationContext;
         public YC.Domain.Effects.SettlementWindowRuntimeState SettlementWindow;
         public YC.Domain.Effects.ResourcePaymentRuntimeState Payment;
+        public YC.Domain.Effects.PaymentInsertionItemDraft PaymentInsertionItems;
+        public YC.Domain.Effects.CarrierPairReturnSnapshot CarrierPairReturn;
         public YC.Domain.Items.ItemTransferBatchRequest TransferBatchRequest;
+        public YC.Domain.Items.ItemMovementPlanV4 ItemMovementV4;
+        public YC.Domain.Items.CommonItemMovementPlanV4 CommonItemMovementV4;
+        public YC.Domain.Items.CharacterCoverMovementPlanV4 CharacterCoverMovementV4;
+        public YC.Domain.Cards.MainCoverFlowStateV1 MainCoverFlowV1;
+        public YC.Domain.Effects.FacilitySupplyFlowStateV1 FacilitySupplyFlowV1;
+        public YC.Domain.Effects.InfluenceDepartureCompletionReceipt DepartureCompletionReceipt;
         public YC.Domain.Effects.RewardGrantReceipt RewardGrant;
         public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome;
         public YC.Domain.Effects.EffectExecutionBinding ExecutionBinding;
@@ -539,6 +550,8 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class EffectSpecRuntimeState
     {
+        public YC.Domain.Items.ItemMoveInputNormalizationV1 ItemMoveInput;
+        public List<YC.Domain.Effects.AllocationOptionV1> AllocationOptions;
         public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome;
         public YC.Domain.Effects.EffectExecutionBinding ExecutionBinding;
         public YC.Domain.Cards.PersistentSourceFactsBinding PersistentSourceFacts;
@@ -569,8 +582,10 @@ namespace YC.Domain.State
         {
             var clone = new EffectSpecRuntimeState
             {
+                ItemMoveInput = GameStateCloneService.DeepClone(ItemMoveInput),
                 PersistentSourceFacts = GameStateCloneService.DeepClone(PersistentSourceFacts),
                 Settlement = GameStateCloneService.DeepClone(Settlement),
+                AllocationOptions = YC.Domain.Effects.AllocationEffects.CloneOptions(AllocationOptions),
                 Presentation = GameplayPresentationNormalizer.Clone(Presentation),
                 EffectTypeId = EffectTypeId,
                 DefinitionVersion = DefinitionVersion,
@@ -1066,7 +1081,7 @@ namespace YC.Domain.State
     [Serializable]
     public sealed partial class EffectRuntimeState
     {
-        public int UsageTrackProtocolVersion = 1;
+        public int UsageTrackProtocolVersion = 2;
         public List<YC.Domain.Effects.UsageTrackBinding> UsageTrackBindings = new List<YC.Domain.Effects.UsageTrackBinding>();
         public List<YC.Domain.Effects.UsageGroupReceipt> UsageGroupReceipts = new List<YC.Domain.Effects.UsageGroupReceipt>();
         public List<YC.Domain.Effects.UsageTrackResetProgress> UsageTrackResets = new List<YC.Domain.Effects.UsageTrackResetProgress>();
@@ -1124,6 +1139,7 @@ namespace YC.Domain.State
             }
 
             if (!YC.Domain.Rules.OperationWindowService.TryValidateRuntime(this, out reason)) return false;
+            if (!LuaEntryMemoryStore.TryValidate(this, out reason)) return false;
 
             if (Status != EffectRuntimeStatus.Active && Status != EffectRuntimeStatus.PausedFault)
             {
@@ -1199,6 +1215,8 @@ namespace YC.Domain.State
                     return false;
                 }
 
+                if (!YC.Domain.Items.ItemMoveInputNormalization.TryValidate(node.EffectTypeId,node.NormalizedArguments,node.ItemMoveInput,out reason)) return false;
+
                 if (node != null && ((node.ContinuationData == null || node.ContinuationData.Kind != NormalizedValueKind.Object || !node.ContinuationData.IsValid()) ||
                                      (node.NormalizedArguments != null && !node.NormalizedArguments.IsValid()) ||
                                      (node.NormalizedResult != null && !node.NormalizedResult.IsValid()) ||
@@ -1207,7 +1225,7 @@ namespace YC.Domain.State
                                      node.PositionChanges == null || node.ShuffleInputItemIds == null || node.EnterpriseArrivalReceipts == null || node.FrozenEnterpriseSpecials == null ||
                                      !TryValidateNestedSpecs(node.NestedEffects, node.NestedGroupSizes, out reason)))
                 {
-                    reason = "Effect 节点包含非法归一化参数或结果。";
+                    if (reason != YC.Domain.Items.ItemMoveInputNormalization.InvalidProvenance) reason = "Effect 节点包含非法归一化参数或结果。";
                     return false;
                 }
                 foreach (var change in node.PositionChanges)
@@ -1639,6 +1657,7 @@ namespace YC.Domain.State
                 EffectSpecRuntimeState spec = specs[i];
                 if (spec == null || string.IsNullOrEmpty(spec.EffectTypeId) ||
                     spec.NormalizedArguments == null || !spec.NormalizedArguments.IsValid() ||
+                    !YC.Domain.Items.ItemMoveInputNormalization.TryValidate(spec.EffectTypeId, spec.NormalizedArguments, spec.ItemMoveInput, out reason) ||
                     !TryValidateNestedSpecs(spec.NestedEffects, spec.NestedGroupSizes, out reason))
                 {
                     if (string.IsNullOrEmpty(reason)) reason = "Effect 嵌套描述无效。";

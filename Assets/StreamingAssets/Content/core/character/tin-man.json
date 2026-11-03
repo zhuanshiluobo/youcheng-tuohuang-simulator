@@ -1,7 +1,7 @@
 {
   "definitionId": "tin-man",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "锡人",
   "artwork": "artwork/sheets/character_faces.jpg",
   "tags": [],
@@ -24,7 +24,7 @@
       "mode": "tactic",
       "subscriptionId": "characters.tin-man.tactic",
       "script": "lua/characters/tin-man.tactic.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "",
       "cleanupScript": "",
       "skillType": "normal",

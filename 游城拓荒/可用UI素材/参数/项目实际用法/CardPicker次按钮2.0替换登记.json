@@ -1,0 +1,179 @@
+{
+  "date": "2026-11-01",
+  "standardId": "P01",
+  "basis": "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
+  "scope": "仅专用CardPicker的次按钮（取消、返回、重新选择等由当前流程决定的次操作）；不扩展到主按钮、CardViewer、普通窗口或其他同名按钮",
+  "status": "可用库替换完成；只读核对的CardPickerDialog源Prefab仍用旧图，本次未导入Unity或换绑",
+  "source": {
+    "path": "游城拓荒/UI素材/botton-secondary-v2.0.png",
+    "sha256": "15dd7f3ff36ccd0db8dc8fb508e955388f5f5c862757e95e965632221c13a6f5",
+    "bytes": 1551025,
+    "authorizationScope": "仅本张PNG，不授权其他原档案"
+  },
+  "asset": {
+    "path": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "sha256": "15dd7f3ff36ccd0db8dc8fb508e955388f5f5c862757e95e965632221c13a6f5",
+    "width": 1983,
+    "height": 793,
+    "format": "RGBA PNG",
+    "preserveOriginalBytes": true
+  },
+  "replaces": {
+    "package": "Card-Picker-UI-v1.zip",
+    "member": "assets/button-secondary.png",
+    "formerCatalogPath": "资产/多卡选择/Card-Picker-UI-v1/assets/button-secondary.png",
+    "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "candidateStatus": "已退出，不保留为备用"
+  },
+  "sourceUsage": {
+    "document": "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+    "parameter": "参数/Card-Picker-UI-v1/layout.json",
+    "originalMapping": {
+      "path": "assets/button-secondary.png",
+      "size": [
+        1983,
+        793
+      ],
+      "source_reference_rect": [
+        35,
+        102,
+        1916,
+        582
+      ],
+      "mode": "RGBA",
+      "reference_kind": "visible_rect"
+    },
+    "currentMapping": {
+      "asset": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+      "canvas": [
+        1983,
+        793
+      ],
+      "sourceReferenceRectTopLeft": [
+        35,
+        102,
+        1916,
+        582
+      ],
+      "logicalButtonExample": [
+        280,
+        84
+      ],
+      "uvRectBottomLeft": [
+        0.017650025214321734,
+        0.13745271122320302,
+        0.9662128088754413,
+        0.733921815889029
+      ]
+    },
+    "guidance": "同画布替换承接现有RawImage可见框映射。原280×84是包内示例，实际布局由当前资产决定；透明画布不扩大点击区，不新增九宫格或独立状态图。"
+  },
+  "pixelMeasurement": {
+    "newAlphaBounds": [
+      30,
+      29,
+      1924,
+      764
+    ],
+    "oldAlphaBounds": [
+      30,
+      97,
+      1926,
+      658
+    ],
+    "threshold": "alpha>0",
+    "note": "非零透明度边界含低透明度边缘杂点，不等于按钮主体可见框，不据此自动修改UV、裁图或命中区。"
+  },
+  "currentProjectSnapshot": {
+    "prefab": "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab",
+    "object": "Secondary Action/Button Artwork",
+    "rawImageFileId": "346028464777822654",
+    "texture": "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png",
+    "textureGuid": "b2b6b6af52cb4b87b5619aa82d2aa5e1",
+    "textureSha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+    "rawImage": {
+      "uvRect": [
+        0.017650025,
+        0.1374527,
+        0.9662128,
+        0.7339218
+      ],
+      "tint": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "raycastTarget": false,
+      "anchorMin": [
+        0,
+        0
+      ],
+      "anchorMax": [
+        1,
+        1
+      ],
+      "sizeDelta": [
+        0,
+        0
+      ]
+    },
+    "import": {
+      "textureType": 0,
+      "spriteMode": 0,
+      "sRGB": true,
+      "mipMaps": false,
+      "filterMode": 1,
+      "wrapU": 1,
+      "wrapV": 1,
+      "alphaIsTransparency": true,
+      "maxTextureSize": 4096,
+      "note": "当前底图是Default Texture供RawImage使用，不是Sprite；Sprite PPU/Image倍率与九宫格不适用于该渲染链。"
+    },
+    "button": {
+      "fileId": "2847547672509192386",
+      "targetGraphic": "346028464777822654",
+      "transition": "ColorTint",
+      "normal": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "hover": [
+        1.08,
+        1.08,
+        1.08,
+        1
+      ],
+      "pressed": [
+        0.78,
+        0.78,
+        0.78,
+        1
+      ],
+      "selected": [
+        0.9607843,
+        0.9607843,
+        0.9607843,
+        1
+      ],
+      "disabled": [
+        0.42,
+        0.42,
+        0.42,
+        0.65
+      ],
+      "fadeDuration": 0.1,
+      "stateSprites": "全部为空"
+    },
+    "fingerprints": {
+      "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab": "38727f3048ab523a065fd06fb798c646743a05e33b91305e47fcfc1d0e8ea52c",
+      "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+      "Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png.meta": "b3b44491f18c7fa2a846f72f09f210792e89196209af5e811641418564a712ec"
+    },
+    "limits": "仅源Prefab静态记录，未遍历场景覆盖或运行时所有调用；不是新图运行或正常流程视觉验收，不固化用户可调样式。"
+  },
+  "stateContract": "普通态使用本图；其他状态由既有ColorTint作用于同图。禁用输入仍由现有游戏流程处理，不因新图添加取消权限。",
+  "unchanged": "CardPicker其余六图及专用用途不变；原文保留作为来源，旧次按钮路径不再授予可用资格。"
+}

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -22,6 +22,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.Open.AllowDecline, Is.True);
             Assert.That(f.Open.CandidateIds, Does.Not.Contain("0"));
             Assert.That(f.Open.CandidateIds, Does.Not.Contain("decline"));
+            if (!f.Open.CandidateIds.Contains("" + k)) f.Answer("page:" + f.Open.CandidateIds.Select(id => int.Parse(id.Substring(5))).Where(first => first >= k).Min());
             Assert.That(f.Open.CandidateIds, Does.Contain("" + k));
             f.Answer("" + k);
             Assert.That(f.Stored, Is.EqualTo(k));
@@ -196,10 +197,21 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void A05ChosenTacticCreatesOnlyAuthorizedDirectInvocation()
         {
             using var f = new AgnesContentTestFixture();
-            var result = f.Lua("{\"outcome\":\"completed\",\"normalizedResult\":{\"value\":\"real.option\"},\"continuationContext\":{\"stage\":\"tactic_selected\",\"actions\":{\"real.option\":{\"itemId\":\"real.card\",\"actionId\":\"real.action\",\"callPolicyRef\":\"real.policy\"}}}}", eventType: "EffectCompleted");
-            Assert.That(result.IsSuccess, Is.True, result.Diagnostic); Assert.That(result.Effects.Count, Is.EqualTo(1));
-            Assert.That(Value(result.Effects[0].RawArguments, "callPolicyRef").StringValue, Is.EqualTo("real.policy"));
-            // 宿主仍需复验真实policy、来源及轨道；此输入不提供授权。
+            var result = f.Lua("{\"abilityId\":\"entrepreneur.A05.cleanup\"}",
+                snapshot: Inventory(0, -1, 0), sourceFacts: CallableFacts(3, 1, disabledLast: 1));
+            Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
+            var choice = result.Effects.Single().NestedEffectGroups[1].Single();
+            Assert.That(choice.ContinuationContext, Is.Null, "来源选择不再保存纯值回调上下文");
+            Assert.That(choice.NestedEffectGroups.Count, Is.EqualTo(2));
+            for (int i = 0; i < 2; i++)
+            {
+                var invoke = choice.NestedEffectGroups[i].Single();
+                Assert.That(invoke.EffectTypeId, Is.EqualTo(AbilityActionExecutor.DirectTypeId));
+                Assert.That(Text(invoke.RawArguments, "itemId"), Is.EqualTo("real.card." + i));
+                Assert.That(Text(invoke.RawArguments, "actionId"), Is.EqualTo("real.action." + i));
+                Assert.That(Text(invoke.RawArguments, "callPolicyRef"), Is.EqualTo("real.policy." + i));
+            }
+            // 手工只读事实仅核构树；正式Host用例另证来源与调用授权。
         }
         [TestCase(false, 1, false)] [TestCase(true, 0, false)] [TestCase(true, 1, true)]
         public void CleanupAvailabilityRequiresRealCandidateAndOneTransferableCommand(bool candidate, int stock, bool expected)
@@ -290,6 +302,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var options = Value(result.Effects.Single().NestedEffectGroups[1].Single().RawArguments, "options").Items.Select(x => x.StringValue).ToArray();
             Assert.That(options, Is.EqualTo(Enumerable.Range(0, 7).Select(i => "real.option." + i).ToArray()));
             Assert.That(options, Does.Not.Contain("forged"));
+            Assert.That(result.Effects.Single().NestedEffectGroups[1].Single().NestedEffectGroups.Count, Is.EqualTo(7));
+            Assert.That(result.Effects.Single().NestedEffectGroups[1].Single().NestedEffectGroups.All(g =>
+                g.Count == 1 && g[0].EffectTypeId == AbilityActionExecutor.DirectTypeId), Is.True);
             var availability = f.Lua("{}", "return A.availability(ctx)", responseKind: "settlementAvailability", sourceFacts: CallableFacts(9, 1, disabledLast: 2));
             Assert.That(availability.IsSuccess, Is.True, availability.Diagnostic); Assert.That(availability.SettlementAvailability.Enabled, Is.True);
         }
@@ -308,7 +323,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             using var f = new AgnesContentTestFixture();
             var result = f.Lua("{\"arguments\":{\"protocolVersion\":1,\"cleanupKind\":\"remove_own\",\"count\":" + (valid ? "1" : "2") + ",\"requiredCount\":0}}", "return A.cleanupDue(ctx)");
             Assert.That(result.IsSuccess, Is.EqualTo(valid), result.Diagnostic);
-            if (valid) { Assert.That(result.Effects.Single().EffectTypeId, Is.EqualTo(ContentPrimitiveEffectExecutor.SelectInfluence)); Assert.That(Value(result.Effects[0].RawArguments, "allowDecline").BooleanValue, Is.False); }
+            if (valid) { Assert.That(result.Effects.Single().EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.RemoveInfluence)); Assert.That(Value(result.Effects[0].RawArguments, "allowDecline").BooleanValue, Is.False); }
         }
         [Test] public void FormalA08QuickConsumesTwoAndCreatesActualActionObligationOnce()
         {
@@ -451,6 +466,70 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(invocation.PaymentEffectIds, Is.Empty); Assert.That(invocation.MainActionCommitted, Is.False);
             Assert.That(f.Action("entrepreneur." + targetFace + ".tactic.special").Enabled, Is.False);
         }
+        [Test]
+        public void ActualNinetyNineItemsExposeEveryCountAndResumeAfterFortyTwoMoves()
+        {
+            using var f = new AgnesContentTestFixture();
+            f.Host("return A.gainCommand(ctx,{},99)", supply: 99); f.Start();
+            var flow = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == TransferCountChoiceFlow.TypeId);
+            Assert.That(Value(flow.NormalizedArguments, "itemIds").Items.Count, Is.EqualTo(99));
+            Assert.That(Number(flow.NormalizedArguments, "maximumCount"), Is.EqualTo(99));
+            var counts = new System.Collections.Generic.List<int>();
+            void Visit(EffectSpecRuntimeState spec)
+            {
+                if (spec.EffectTypeId == TransferCountChoiceFlow.SequenceTypeId) counts.Add(Value(spec.NormalizedArguments, "itemIds").Items.Count);
+                if (spec.EffectTypeId == LuaDomainEffectTypeIds.Choice)
+                    Assert.That(Value(spec.NormalizedArguments, "options").Items.Count, Is.LessThanOrEqualTo(16));
+                foreach (var child in spec.NestedEffects) Visit(child);
+            }
+            var top = f.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == flow.EffectId && n.EffectTypeId == LuaDomainEffectTypeIds.Choice);
+            foreach (var child in top.NestedEffects) Visit(child);
+            Assert.That(counts.OrderBy(k => k), Is.EqualTo(Enumerable.Range(1, 99)), "实际冻结树须包含完整1～99，不能只验证请求上限");
+            Assert.That(f.Stored, Is.Zero);
+            f.Restore("99个真实实例初始分页待答");
+            Assert.That(f.Open.CandidateIds, Does.Contain("page:99")); f.Answer("page:99");
+            Assert.That(f.Open.CandidateIds, Does.Contain("99"));
+            f.Restore("99数量分支待答"); var request = f.Open;
+            Assert.That(f.Engine.TrySubmitInteraction(request.GetStableInteractionId(), 2, request.StateRevision, NormalizedValue.CreateString("99"), out _), Is.False);
+            Assert.That(f.Engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision - 1, NormalizedValue.CreateString("99"), out _), Is.False);
+            Assert.That(f.Engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString("99"), out string reason), Is.True, reason);
+            EffectNodeRuntimeState sequence = null;
+            for (int guard = 0; guard < 2000; guard++)
+            {
+                sequence = f.State.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectTypeId == TransferCountChoiceFlow.SequenceTypeId);
+                if (sequence != null && Number(sequence.ContinuationData, "processed") == 42) break;
+                Assert.That(f.Engine.Advance(), Is.True, f.State.EffectRuntime.LastFaultMessage);
+            }
+            Assert.That(Number(sequence?.ContinuationData, "processed"), Is.EqualTo(42));
+            f.Restore("99个实际实例已处理42枚的执行中断点"); f.Pump();
+            flow = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == flow.EffectId);
+            sequence = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == TransferCountChoiceFlow.SequenceTypeId);
+            Assert.That(flow.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(Number(flow.NormalizedResult, "selectedCount"), Is.EqualTo(99));
+            Assert.That(Number(sequence.ContinuationData, "processed"), Is.EqualTo(99));
+            Assert.That(Number(sequence.NormalizedResult, "movedCount"), Is.EqualTo(99));
+            Assert.That(Number(sequence.NormalizedResult, "failedCount"), Is.Zero);
+            Assert.That(f.Stored, Is.EqualTo(99));
+            int nodeCount = f.State.EffectRuntime.EffectNodes.Count;
+            f.Restore("实际99枚完成后不重放"); f.Pump();
+            Assert.That(f.Stored, Is.EqualTo(99)); Assert.That(f.State.EffectRuntime.EffectNodes.Count, Is.EqualTo(nodeCount));
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(100));
+            f.Artifacts.WriteLabeledText("完整99边界实际结果", Newtonsoft.Json.JsonConvert.SerializeObject(new {
+                actualCandidates = 99, legalCounts = counts.OrderBy(k => k), restoredAtProcessed = 42,
+                actualProcessed = 99, actualStored = f.Stored, normalGameCoverage = false }));
+        }
+
+        [Test] public void PagedCountDeclineDoesNotMoveOrEndTheFollowingEffect()
+        {
+            using var f = new AgnesContentTestFixture();
+            f.Host("local e=A.gainCommand(ctx,{},99);e[#e+1]=Effect.GainResource({recipient=ctx.playerId,resourceType='iron',amount=1});return e", supply:99);
+            f.Start(); f.Restore("99数量分页放弃前"); f.Decline();
+            Assert.That(f.Stored, Is.Zero); Assert.That(f.State.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId), Is.False);
+            f.Restore("99数量分页放弃后"); f.Pump();
+            Assert.That(f.Stored, Is.Zero); Assert.That(f.State.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+        }
+
         internal static LuaSnapshotValue CallableFacts(int candidates, int transferable, int disabledLast = 0)
             => AgnesContentTestFixture.Snapshot(CallableFactsJson(candidates, transferable, disabledLast));
 

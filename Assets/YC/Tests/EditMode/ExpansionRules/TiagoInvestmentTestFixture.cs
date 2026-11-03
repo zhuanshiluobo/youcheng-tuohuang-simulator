@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -108,7 +108,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (value.Kind == NormalizedValueKind.Boolean) return LuaSnapshotValue.Boolean(value.BooleanValue);
             return LuaSnapshotValue.String(value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue);
         }
-        internal LuaInvocationResult Invoke(string ability = Ability, string[] faces = null, NormalizedValue continuation = null, NormalizedValue result = null, string outcome = "completed", Action<JObject> alterIsolatedContent = null, JArray tokenInventory = null)
+        internal LuaInvocationResult Invoke(string ability = Ability, string[] faces = null, NormalizedValue continuation = null, NormalizedValue result = null, string outcome = "completed", Action<JObject> alterIsolatedContent = null, JArray tokenInventory = null, int markerSupply = 8)
         {
             // 这是仅检验Lua构树的只读快照，不是伪造随机结果的正常游戏验收。
             var instances = new JArray(); var choices = new JArray();
@@ -122,11 +122,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             instances.Add(new JObject { ["id"] = "carrier", ["definitionId"] = "entrepreneur.ability.D09", ["controller"] = "p1", ["owner"] = "p1", ["zoneId"] = "active", ["roundChoices"] = choices });
             for (int i = 1; i <= 3; i++) instances.Add(new JObject { ["id"] = "die." + i, ["definitionId"] = "entrepreneur.component.die", ["typeId"] = "core.die", ["owner"] = "p1", ["controller"] = "p1", ["zoneId"] = "supply" });
+            // 构树夹具显式提供已存在的供应标记；SourceData 中的牌上库存不能冒充供应区。
+            for (int i = 1; i <= markerSupply; i++) instances.Add(new JObject { ["id"] = "supply.marker." + i,
+                ["definitionId"] = "core.player_marker", ["typeId"] = "core.player_marker", ["ownerSubject"] = "p1",
+                ["owner"] = "p1", ["controller"] = "p1", ["zoneId"] = "supply" });
             var snapshot = LuaFacadeSnapshot.FromInvocation("p1", 0, 100, 2, handlerVersion);
             var isolatedContent = new JObject { ["instances"] = instances, ["definitions"] = new JArray(), ["zones"] = new JArray(
                 new JObject { ["id"] = "active", ["templateId"] = "core.zone.entrepreneur_active" },
                 new JObject { ["id"] = "reputation", ["parentId"] = "carrier", ["localZoneId"] = "reputation" },
-                new JObject { ["id"] = "supply", ["owner"] = "p1", ["localZoneId"] = "supply" },
+                new JObject { ["id"] = "supply", ["templateId"] = "core.zone.player_supply", ["owner"] = "p1", ["localZoneId"] = "supply" },
                 new JObject { ["id"] = "retired", ["templateId"] = "core.zone.box_retired" }) };
             alterIsolatedContent?.Invoke(isolatedContent);
             snapshot.GlobalContent = Snapshot(isolatedContent);
@@ -233,16 +237,22 @@ namespace YC.Tests.EditMode.ExpansionRules
         internal void AssertCommittedTokenCost(EffectNodeRuntimeState node, int count, string destination)
         {
             Assert.That(IsTokenTransfer(node), Is.True); Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed));
-            var ids = Value(node.NormalizedArguments, "itemIds").Items.Select(v => v.StringValue).ToArray();
+            var ids = Value(Value(node.NormalizedArguments, "selector"), "itemIds").Items.Select(v => v.StringValue).ToArray();
             Assert.That(ids.Length, Is.EqualTo(count)); Assert.That(ids.Distinct().Count(), Is.EqualTo(count));
             Assert.That(Number(node.NormalizedArguments, "requiredCount"), Is.EqualTo(count));
             Assert.That(Number(node.NormalizedResult, "movedCount"), Is.EqualTo(count)); Assert.That(Flag(node.NormalizedResult, "changed"), Is.True);
             Assert.That(Value(node.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue), Is.EqualTo(ids));
-            var receipt = Value(node.ContinuationData, "transferBatchReceipt");
-            Assert.That(Number(receipt, "protocolVersion"), Is.EqualTo(3)); Assert.That(Number(receipt, "movedCount"), Is.EqualTo(count));
-            Assert.That(Text(receipt, "operationId"), Is.EqualTo(node.EffectId + ":move"));
-            Assert.That(Text(receipt, "requestDigest"), Does.StartWith("yc.token-transfer.sha256.v1:"));
-            Assert.That(receipt.Properties.Count, Is.EqualTo(4));
+            var plan = node.ItemMovementV4; Assert.That(plan, Is.Not.Null);
+            var receipt = plan.Receipt; Assert.That(receipt, Is.Not.Null);
+            Assert.That(receipt.ContractVersion, Is.EqualTo(ItemMovementV4.ContractVersion));
+            Assert.That(receipt.OwnerEffectId, Is.EqualTo(node.EffectId)); Assert.That(receipt.ExecutingPlayerId, Is.EqualTo(1));
+            Assert.That(receipt.ArgumentsDigest, Is.EqualTo(plan.ArgumentsDigest));
+            Assert.That(receipt.OperationId, Is.EqualTo(StableIdFactory.Create("item-move-v4", node.EffectId)));
+            Assert.That(receipt.ReceiptId, Is.EqualTo(Text(node.NormalizedResult, "receiptId"))); Assert.That(receipt.Outcome, Is.EqualTo("completed"));
+            Assert.That(receipt.Items.Select(i => i.ItemId), Is.EqualTo(ids)); Assert.That(receipt.Result.MovedCount, Is.EqualTo(count));
+            Assert.That(receipt.Result.MovedItemIds, Is.EqualTo(ids)); Assert.That(receipt.Result.Changed, Is.True);
+            Assert.That(node.ItemMoveInput, Is.Not.Null); Assert.That(Number(node.ItemMoveInput.OriginalArguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(Value(node.ContinuationData, "transferBatchReceipt"), Is.Null, "旧v3执行收据不再产生");
             foreach (string id in ids)
             {
                 var position = node.PositionChanges.Single(c => c.ItemId == id);
@@ -262,15 +272,26 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         internal LuaInvocationResult Rolled(string[] faces, int[] dice, string ability = Ability)
         {
-            var initial = Invoke(ability, faces); var roll = Investment(initial, ability != Ability).NestedEffectGroups[1].Single();
+            // 点数构树用例明确使用零供应隔离前提；不再伪造旧声望数量0的值回调。
+            // 声望真实分支由正式Host测试另行覆盖，此方法不计正常骰子或界面验收。
+            var initial = Invoke(ability, faces, markerSupply: 0); var roll = Investment(initial, ability != Ability).NestedEffectGroups[1].Single();
             LuaInvocationResult next = null;
             for (int i = 0; i < dice.Length; i++)
             {
-                next = Invoke(ability, faces, roll.ContinuationContext, Object("diceResult", NormalizedValue.CreateInteger(dice[i])));
+                next = Invoke(ability, faces, roll.ContinuationContext, Object("diceResult", NormalizedValue.CreateInteger(dice[i])), markerSupply: 0);
                 Assert.That(next.IsSuccess, Is.True, next.Diagnostic); roll = next.Effects.Single();
             }
             Assert.That(roll.EffectTypeId, Is.EqualTo(LuaDomainEffectTypeIds.Choice));
-            return Invoke(ability, faces, roll.ContinuationContext, NormalizedValue.CreateString("0"));
+            return next;
+        }
+        internal static IReadOnlyList<LuaEffectSpec> PointEffects(LuaEffectSpec choice, int point)
+        {
+            var ids = Value(choice.RawArguments, "options").Items.Select(v => v.StringValue).ToList();
+            int index = ids.IndexOf(point.ToString());
+            Assert.That(index, Is.GreaterThanOrEqualTo(0));
+            Assert.That(choice.NestedEffectGroups.Count, Is.EqualTo(ids.Count));
+            Assert.That(choice.NestedEffectGroups[index], Is.Not.Empty, "点数须承载实际效果。");
+            return choice.NestedEffectGroups[index];
         }
         internal void CreateHost(int gold = 50, int markerSupply = 29)
         {
@@ -454,7 +475,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(State.EffectRuntime.InteractionRequests.Where(r => r.Status == "open").Any(r =>
                 IsTokenTransfer(Engine.GetNode(r.OwnerEffectId))), Is.False, "通用token费用不产生实例选择页");
         }
-        internal static bool IsTokenTransfer(EffectNodeRuntimeState node) => node.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(node.NormalizedArguments, "apiVersion") == 3;
+        internal static bool IsTokenTransfer(EffectNodeRuntimeState node) => node != null && ItemMovementV4.IsV4(node.EffectTypeId, node.NormalizedArguments) &&
+            Text(node.NormalizedArguments, "operation") == "transfer" && Text(node.NormalizedArguments, "operationProfileId") == "core.player_marker_storage";
 
         internal void StartInvestment()
         {
@@ -490,6 +512,25 @@ namespace YC.Tests.EditMode.ExpansionRules
         { var r = Engine.RunUntilQuiescent(); if (r.Faulted) Artifacts.WriteLabeledText("014首次故障", Newtonsoft.Json.JsonConvert.SerializeObject(State)); Assert.That(r.Faulted, Is.False, State.EffectRuntime.LastFaultMessage); RoundExecutionService.RefreshConcurrentInteractionRevisions(State); }
         internal void Restore(string label)
         { var recovered = Artifacts.Recover(State, label, Registry); Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic); State = recovered.State; }
+        internal void DeclineReputation(bool recoverRolls = false)
+        {
+            var q = Open; Assert.That(q.AllowDecline, Is.True);
+            Assert.That(Engine.TrySubmitInteraction(q.GetStableInteractionId(), 1, q.StateRevision,
+                NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason);
+            if (recoverRolls) AdvanceSavingEachRoll(); else Drain();
+        }
+        internal void ToReputationChoice()
+        {
+            for (int i = 0; i < 12; i++)
+            {
+                var q = Open; var owner = Engine.GetNode(q.OwnerEffectId);
+                if (q.PromptKey == "core:entrepreneur.D.reputation.prompt") return;
+                if (q.CandidateIds.Contains("continue")) Answer("continue");
+                else if (owner.Payment != null) Answer(PaymentResources.Candidate(owner.Payment.PaymentCost));
+                else Assert.Fail("声望页之前出现非预期真实请求：" + q.InteractionTypeId);
+            }
+            Assert.Fail("未到达真实声望请求");
+        }
         internal void ToPointChoice(int reputation = 0, bool recoverEachRoll = false)
         {
             for (int i = 0; i < 12; i++)
@@ -497,7 +538,11 @@ namespace YC.Tests.EditMode.ExpansionRules
                 var q = Open; var owner = Engine.GetNode(q.OwnerEffectId);
                 if (q.CandidateIds.Contains("continue")) Answer("continue", recoverEachRoll);
                 else if (owner.Payment != null) Answer(PaymentResources.Candidate(owner.Payment.PaymentCost), recoverEachRoll);
-                else if (owner.EffectTypeId == LuaDomainEffectTypeIds.Choice && Text(owner.ContinuationContext, "stage") == "reputation_selected") Answer(reputation.ToString(System.Globalization.CultureInfo.InvariantCulture), recoverEachRoll);
+                else if (owner.EffectTypeId == LuaDomainEffectTypeIds.Choice && q.PromptKey == "core:entrepreneur.D.reputation.prompt")
+                {
+                    if (reputation == 0) DeclineReputation(recoverEachRoll);
+                    else Answer(reputation.ToString(System.Globalization.CultureInfo.InvariantCulture), recoverEachRoll);
+                }
                 else { Assert.That(q.CandidateIds.All(s => int.TryParse(s, out var n) && n >= 0 && n <= 7), Is.True); return; }
             }
             Assert.Fail("未到达正式点数请求");

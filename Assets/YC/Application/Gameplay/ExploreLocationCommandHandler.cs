@@ -109,7 +109,7 @@ namespace YC.Application.Gameplay
                 return Invalid(CommandErrorCode.InvalidTarget, "exploration_preselection_executor_missing");
             ExplorationActionEffectExecutor.Register(registry, explorationService.MapQuery);
             var executor = new EffectExecutor(state, registry);
-            var spec = ExplorationActionEffectExecutor.Create(command.PlayerId, command.TargetId, routeIds, recipients, command.CommandId);
+            var spec = ExplorationContract.Explicit(command.PlayerId, command.TargetId, routeIds, recipients, true, command.CommandId);
             if (!executor.TryCreatePlayerActionEffect(command.PlayerId, spec, string.Empty, command.CommandId, out var nodeId))
                 return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
             var report = executor.RunUntilQuiescent();
@@ -214,7 +214,7 @@ namespace YC.Application.Gameplay
                 executor = new EffectExecutor(state, effectRegistry);
             }
             else executor = roundAdvanceService.Execution.CreateCommandExecutor(state);
-            var spec = RouteResourceSelectionEffectExecutor.CreateExploration(sourceCommand.PlayerId, sourceCommand.CommandId, false, targetLocationId);
+            var spec = ExplorationContract.Select(sourceCommand.PlayerId, false, targetLocationId, sourceCommand.CommandId);
             if (!executor.TryCreatePlayerActionEffect(sourceCommand.PlayerId, spec, string.Empty, sourceCommand.CommandId, out var nodeId))
                 return Invalid(CommandErrorCode.InvalidTarget, executor.LastDiagnostic);
             if (legacyFacility != null)

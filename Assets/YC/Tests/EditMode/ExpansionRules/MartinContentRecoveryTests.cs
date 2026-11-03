@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
@@ -23,11 +23,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             UntilPrompt(state,"core:entrepreneur.M.blueprint.choose_supply");Answer(state,NormalizedValue.CreateString(supply.ItemId));
             state=Recover(state,"M05供应已选图纸待答");var request=Open(state);var engine=new EffectTreeExecutor(state,Registry);
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(),1,request.StateRevision,NormalizedValue.CreateString(blueprint.ItemId),out string reason),Is.True,reason);
-            UntilNode(engine,()=>state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==ItemTransferEffectExecutor.TypeId&&Text(n.NormalizedArguments,"operationId").StartsWith("martin:exchange:")&&(committed?n.Status==EffectNodeStatus.Completed:n.Status==EffectNodeStatus.Created||n.Status==EffectNodeStatus.Ready)));
+            UntilNode(engine,()=>state.EffectRuntime.EffectNodes.Any(n=>IsActualMartinBatch(n)&&(committed?n.Status==EffectNodeStatus.Completed:n.Status==EffectNodeStatus.Created||n.Status==EffectNodeStatus.Ready)));
             state=Recover(state,committed?"M05双腿已原子提交":"M05双腿构造未提交");Assert.That(new EffectTreeExecutor(state,Registry).RunUntilQuiescent().Faulted,Is.False);
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==supply.ItemId).ZoneId,Is.EqualTo(BlueprintZone(state)));
             Assert.That(FacilityLayerQuery.Supply(state).Single(s=>s.SlotIndex==0).TopItemId,Is.EqualTo(blueprint.ItemId));
-            Assert.That(state.EffectRuntime.EffectNodes.Count(n=>n.TransferBatchRequest?.OperationId.StartsWith("martin:exchange:")==true),Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(IsActualMartinBatch),Is.EqualTo(1));
             Assert.That(JsonConvert.SerializeObject(state.RandomRuntime),Is.EqualTo(random));
         }
         [Test] public void CorruptSecondLegOfActualEmittedBatchCannotCommitFirstLeg()
@@ -35,8 +35,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state=State("entrepreneur.round.M.1",true);ActivateFace(state,"entrepreneur.round.M.1","M05");var blueprint=Blueprint(state,"entrepreneur.facility.M02");var supply=Supply(state,"building_015",0);
             Action(state,"M05");Answer(state,NormalizedValue.CreateString("place_twice"));UntilPrompt(state,"core:entrepreneur.M.blueprint.choose_supply");Answer(state,NormalizedValue.CreateString(supply.ItemId));
             var request=Open(state);var engine=new EffectTreeExecutor(state,Registry);Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(),1,request.StateRevision,NormalizedValue.CreateString(blueprint.ItemId),out string reason),Is.True,reason);
-            UntilNode(engine,()=>state.EffectRuntime.EffectNodes.Any(n=>Text(n.NormalizedArguments,"operationId").StartsWith("martin:exchange:")));
-            var batch=state.EffectRuntime.EffectNodes.Single(n=>Text(n.NormalizedArguments,"operationId").StartsWith("martin:exchange:"));
+            UntilNode(engine,()=>state.EffectRuntime.EffectNodes.Any(IsActualMartinBatch));
+            var batch=state.EffectRuntime.EffectNodes.Single(IsActualMartinBatch);
             // 隔离畸形输入：只破坏真实Lua已生成请求的第二腿，不以此代替正式成功路径。
             var second=Value(batch.NormalizedArguments,"transfers").Items[1];Value(second,"destination").Properties.Single(p=>p.Name=="zoneId").Value=NormalizedValue.CreateString("missing.zone");
             Assert.That(engine.RunUntilQuiescent().Faulted,Is.True);Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==blueprint.ItemId).ZoneId,Is.EqualTo(BlueprintZone(state)));
@@ -46,51 +46,44 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void StaleBlueprintAnswerRefreshesRealSupplyChoiceAndDoesNotSubstituteAnotherCard()
         {
             var state=State("entrepreneur.round.M.1",true);ActivateFace(state,"entrepreneur.round.M.1","M05");var a=Blueprint(state,"entrepreneur.facility.M02");Blueprint(state,"entrepreneur.facility.M02");var supply=Supply(state,"building_015",0);
+            Registry.Register("api04.isolated.interleave", c=>EffectStepResult.Completed());
+            string externalId=Run(state,EffectSpec.Create("api04.isolated.interleave",playerId:1)).EffectId;
             Action(state,"M05");Answer(state,NormalizedValue.CreateString("place_twice"));UntilPrompt(state,"core:entrepreneur.M.blueprint.choose_supply");Answer(state,NormalizedValue.CreateString(supply.ItemId));var old=Open(state);
+            var waiting=GameStateCloneService.DeepClone(state);
             Position(state,state.ItemZones.Items.Single(i=>i.ItemId==a.ItemId),FindZone(state,"retired").ZoneId);
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==a.ItemId).ZoneId,Is.EqualTo(FindZone(state,"retired").ZoneId));
             var engine=new EffectTreeExecutor(state,Registry);
             Assert.That(engine.TrySubmitInteraction(old.GetStableInteractionId(),1,old.StateRevision,NormalizedValue.CreateString(a.ItemId),out string stale),Is.False);
             Assert.That(stale,Does.Contain("过期"));
-            // 普通旧版本答案必须拒绝。单独只读调用正式Lua续接与生产快照构造器，核验业务重查返回新供应选择。
-            // 这段不创建运行时请求、不提交效果、不伪造已答收据，不能称作正常界面刷新已验。
-            var owner=state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==old.OwnerEffectId);
-            string unchanged=JsonConvert.SerializeObject(state);
-            var r=ReadOnlyFormalContinuation(state,owner,Rounds,Object("continuationContext",owner.ContinuationContext.Clone(),
-                "normalizedResult",NormalizedValue.CreateString(a.ItemId),"outcome",NormalizedValue.CreateString("completed"),
-                "effectTypeId",NormalizedValue.CreateString(owner.EffectTypeId)));
-            Assert.That(r.IsSuccess,Is.True,r.Diagnostic);var next=r.Effects.Single();
-            Assert.That(next.EffectTypeId,Is.EqualTo("effect.flow.choice"));
-            Assert.That(Text(next.RawArguments,"promptKey"),Is.EqualTo("core:entrepreneur.M.blueprint.choose_supply"));
+            // 独立分支：合法选择已接受、完成续接尚未运行时，交错一次真实图纸离场。
+            // 由内核生成实际EffectCompleted与正式注册续接，不伪造事件/处理器或来源事实。
+            state=waiting;old=Open(state);engine=new EffectTreeExecutor(state,Registry);
+            var external=state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==externalId);
+            Assert.That(engine.TrySubmitInteraction(old.GetStableInteractionId(),1,old.StateRevision,NormalizedValue.CreateString(a.ItemId),out string accepted),Is.True,accepted);
+            var ctor=typeof(EffectExecutionContext).GetConstructor(BindingFlags.Instance|BindingFlags.NonPublic,null,new[]{typeof(GameState),typeof(EffectNodeRuntimeState),typeof(EffectRegistry),typeof(EffectRuntimeLimits)},null);
+            var isolated=(EffectExecutionContext)ctor.Invoke(new object[]{state,external,Registry,null});
+            var item=state.ItemZones.Items.Single(i=>i.ItemId==a.ItemId);
+            new ItemTransferService().RelocateItems(isolated,new ItemTransferRequest { ExecutingPlayerId=1,ItemIds=new System.Collections.Generic.List<string>{item.ItemId},ExpectedSource=new ItemPositionRef{ZoneId=item.ZoneId},Destination=new ZoneRef{ZoneId=FindZone(state,"retired").ZoneId},InsertionKind="unordered",OperationProfileId="core.facility_card_transfer",RequiredCount=1 });
+            Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,state.EffectRuntime.LastFaultMessage);
+            var fresh=Open(state);
+            Assert.That(fresh.PromptKey,Is.EqualTo("core:entrepreneur.M.blueprint.choose_supply"));
+            Assert.That(fresh.GetStableInteractionId(),Is.Not.EqualTo(old.GetStableInteractionId()));
+            var next=state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==fresh.OwnerEffectId);
             Assert.That(Text(next.ContinuationContext,"stage"),Is.EqualTo("M.pair.supply"));
-            Assert.That(JsonConvert.SerializeObject(state),Is.EqualTo(unchanged));
             Assert.That(FacilityLayerQuery.Supply(state).Single(s=>s.SlotIndex==0).TopItemId,Is.EqualTo(supply.ItemId));
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.TransferBatchRequest?.OperationId.StartsWith("martin:exchange:")==true),Is.False);
-            Artifacts.WriteLabeledText("旧版本拒绝及正式Lua只读失效重查",JsonConvert.SerializeObject(new { stale,r.Status,r.Diagnostic,next.EffectTypeId,next.RawArguments,next.ContinuationContext,scope="Lua返回新选择的只读断言；未创建/刷新运行时请求，正常覆盖0" }));
-            Recover(state,"图纸已真实移出旧答案拒绝后");
-        }
-        private LuaInvocationResult ReadOnlyFormalContinuation(GameState state,EffectNodeRuntimeState owner,string path,NormalizedValue payload)
-        {
-            string source=Pack.GetScript(path);
-            Assert.That(LuaContentHasher.ComputeSha256(source),Is.EqualTo(owner.ContinuationContentHash));
-            var script=new LuaScriptDefinition(owner.ContinuationContentId,owner.ContinuationAbilityId,owner.ContinuationHandlerId,
-                owner.ContinuationDefinitionVersion,source,owner.ContinuationContentHash);
-            var definition=new LuaHandlerDefinition("qy007.readonly.continuation","EffectCompleted","*",script,
-                EffectHandlerRole.Continuation,contentInstanceId:owner.ContinuationContentInstanceId,abilityId:owner.ContinuationAbilityId);
-            var factory=typeof(LuaEffectEventDispatcher).GetMethod("CreateInvocationContext",BindingFlags.Instance|BindingFlags.NonPublic);
-            Assert.That(factory,Is.Not.Null);
-            var ev=new RuleEvent { EventId="qy007.readonly.continuation",EventType="EffectCompleted",PlayerId=1,Payload=payload,HostOnlyPayload=payload.Clone() };
-            var context=(LuaInvocationContext)factory.Invoke(new LuaEffectEventDispatcher(Registry),new object[] { definition,new EffectEventHandlerContext(state,ev,owner,null) });
-            return new MoonSharpLuaRuntimeHost().Invoke(script,context);
+            Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==a.ItemId).ZoneId,Is.EqualTo(FindZone(state,"retired").ZoneId));
+            Assert.That(state.EffectRuntime.EffectNodes.Any(IsActualMartinBatch),Is.False);
+            Artifacts.WriteLabeledText("旧版本拒绝及实际正式续接失效重查",JsonConvert.SerializeObject(new { stale,accepted,fresh,state,scope="两个隔离交错分支；旧答案拒绝，已接受后来源离开由实际完成事件续接新供应选择；不计正常对局/UI" }));
+            Recover(state,"图纸离开后实际续接重新选择供应");
         }
         [Test] public void OwnedTowerStagingAndPlacementRecoveryNeverTakesAnotherTowerOrMainAction()
         {
             var state=State("entrepreneur.round.M.3",true,new[]{new ItemRecipeEntry {EntryId="owned-tower-recovery",DefinitionId="entrepreneur.facility.additional_core_tower",TypeId="core.facility_card",Quantity=1,PerPlayer=true,InitialZoneRole="supply"}});
             SelectFace(state,"entrepreneur.round.M.3","M07");int budget=state.FindPlayer(1).RemainingMainActionsThisTurn;Immediate(state,"M07");
-            var build=state.EffectRuntime.EffectNodes.Single(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build);string item=Text(build.NormalizedArguments,"facilityId");
+            var build=state.EffectRuntime.EffectNodes.Single(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)));string item=Text(build.NormalizedArguments,"facilityId");
             state=Recover(state,"追加塔已取入待建区");Answer(state,NormalizedValue.CreateString("0"));state=Recover(state,"追加塔完成后");
             Assert.That(Cell(state,0).TopItemId,Is.EqualTo(item));Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn,Is.EqualTo(budget));
-            Assert.That(state.EffectRuntime.EffectNodes.Count(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build),Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))),Is.EqualTo(1));
         }
         [Test] public void OpponentChoiceAndCompletedScopeRecoverAfterOriginalSourceExits()
         {
@@ -119,6 +112,56 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==facts.EntryEffectId).FlowStage,Is.Empty);
             state=Recover(state,"必做目标丢失首次故障");Assert.That(state.EffectRuntime.Status,Is.EqualTo(EffectRuntimeStatus.PausedFault));
         }
+        [TestCase(1, 2)] [TestCase(3, 1)]
+        public void M03OpponentPlacementKeepsTheAnsweredPlayerChoiceBindingAcrossActors(int actor, int target)
+            => AssertM03CommandBinding(actor, target, false);
+        [TestCase(1, 2)] [TestCase(3, 1)]
+        public void M03OpponentPlacementAcceptsTheFormalSingleTargetCommand(int actor, int target)
+            => AssertM03CommandBinding(actor, target, true);
+        private void AssertM03CommandBinding(int actor, int target, bool singleTarget)
+        {
+            var state = State(carrier: true); state.CurrentPlayerId = actor;
+            Position(state, Card(state, "reserve_001"), Cell(state, 0, actor).CellZoneId, player: actor);
+            Position(state, Card(state, "reserve_001"), Cell(state, 0, target).CellZoneId, player: target);
+            var build = Run(state, BuildScenario(state, Card(state, "entrepreneur.facility.M03"), 1, actor));
+            for (int i = 0; i < 12 && Open(state).PromptKey != "core:entrepreneur.M.M13.opponent.choose"; i++)
+                Answer(state, NormalizedValue.CreateString(Open(state).CandidateIds.First()));
+            var request = Open(state); Assert.That(request.PromptKey, Is.EqualTo("core:entrepreneur.M.M13.opponent.choose"));
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(actor));
+            string choiceId = request.GetStableInteractionId(); var engine = new EffectTreeExecutor(state, Registry);
+            var command = new YC.Domain.Commands.GameCommand { Kind = YC.Domain.Rules.GameCommandKind.AnswerInteraction, PlayerId = actor };
+            command.Parameters.Add("interactionId", choiceId); command.Parameters.Add("expectedRevision", request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            if (singleTarget) command.TargetId = "p" + target; else command.OptionIds.Add("p" + target);
+            var result = new YC.Application.Interactions.AnswerInteractionCommandHandler(Registry).Handle(state, command);
+            Artifacts.WriteLabeledText("真实M03对手回答后", JsonConvert.SerializeObject(state));
+            Assert.That(state.EffectRuntime.Status, Is.Not.EqualTo(EffectRuntimeStatus.PausedFault), state.EffectRuntime.LastFaultMessage);
+            Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(target));
+            state = Recover(state, "正式candidate答案绑定后待放置"); engine = new EffectTreeExecutor(state, Registry);
+            Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(target));
+            Assert.That(engine.GetNode(build.EffectId).PlayerId, Is.EqualTo(actor));
+            Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.GetStableInteractionId() == choiceId).Status, Is.EqualTo("answered"));
+        }
+
+        [Test] public void CandidateAnswerDoesNotAuthorizeOtherReferenceTypesOrMultiplePlayers()
+        {
+            var state = State(carrier: true);
+            Position(state, Card(state, "reserve_001"), Cell(state, 0, 2).CellZoneId, player: 2);
+            var build = Run(state, BuildScenario(state, Card(state, "entrepreneur.facility.M02"), 0));
+            var choice = Open(state); Answer(state, NormalizedValue.CreateStableReference("candidate", "p2"));
+            var use = state.EffectRuntime.AbilitySourceUses.Single(u => u.AbilityId == "entrepreneur.M13.urbanization_after" && u.PlayerId == 1);
+            var committed = choice.NormalizedAnswer.Clone();
+            foreach (var bad in new[] { NormalizedValue.CreateStableReference("influence", "p2"),
+                Strings(new[] { "p2", "p3" }), NormalizedValue.CreateStableReference("candidate", "p999") })
+            {
+                choice.NormalizedAnswer = bad;
+                var error = Assert.Throws<InvalidOperationException>(() => EffectExecutionBinding.Create(state, Registry, build.EffectId, use.SourceRef,
+                    choice.GetStableInteractionId(), 2, use.VersionRef));
+                Assert.That(error.Message, Is.EqualTo("effect_execution_choice_invalid"));
+            }
+            choice.NormalizedAnswer = committed;
+            Assert.DoesNotThrow(() => EffectExecutionBinding.Create(state, Registry, build.EffectId, use.SourceRef, choice.GetStableInteractionId(), 2, use.VersionRef));
+        }
+
         [Test] public void EffectIdCannotReplaceTheRealAnsweredChoice()
         {
             var state=State(carrier:true);Position(state,Card(state,"reserve_001"),Cell(state,0,2).CellZoneId,player:2);
@@ -214,9 +257,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             InitializeTrack(state,"entrepreneur.round.M.7","usage.entrepreneur.M.7");
             state.FindPlayer(1).Resources.PureOriginium=0; // 隔离规则定位的初始资源条件，不计正常流程。
             Action(state,"M12");
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==FacilitySelectionEffectExecutor.TypeId || n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments) || n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.False);
             state=Recover(state,"M12左式不足后"); Assert.That(new EffectTreeExecutor(state,Registry).RunUntilQuiescent().Faulted,Is.False);
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==FacilitySelectionEffectExecutor.TypeId || n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments) || n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.False);
         }
     }
 }

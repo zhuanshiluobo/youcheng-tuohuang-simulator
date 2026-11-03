@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_pioneer_outpost",
   "contentType": "city_style",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "displayName": "拓荒者据点",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.city_style_pioneer_outpost.special",
       "script": "lua/city_styles/city_style_pioneer_outpost.special.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": ""
     }
   ],
@@ -119,7 +119,7 @@
     {
       "handlerId": "content.city_style_pioneer_outpost.special",
       "script": "lua/city_styles/city_style_pioneer_outpost.special.lua",
-      "version": "1.1.1",
+      "version": "1.1.2",
       "completionHandlerId": ""
     }
   ],

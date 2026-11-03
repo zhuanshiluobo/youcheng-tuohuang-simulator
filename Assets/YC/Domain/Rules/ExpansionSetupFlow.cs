@@ -413,7 +413,7 @@ namespace YC.Domain.Rules
                 if (node.FlowStage == "choose_supply_retirement") return Choose(context, "awaiting_supply_retirement", SupplyRetirementInteraction, order[index], supply.Select(i => i.ItemId), 1, 1);
                 var item = supply.SingleOrDefault(i => i.ItemId == Answer(context)); if (item == null) return EffectStepResult.Failed("supply_candidate_changed");
                 string slot = item.ZoneId; Set(node, "originalSupplySlotZoneId", NormalizedValue.CreateString(slot));
-                return EffectStepResult.Continue("refilling_supply").AddChild(MoveSpec(order[index], new[] { item.ItemId }, slot, FindZone(context.State, "retired").ZoneId, "unordered", 1)).AddChild(RefillSpec(order[index], slot));
+                return EffectStepResult.Continue("refilling_supply").AddChild(ItemMovementV4.TransferSpec(order[index], new[] { item.ItemId }, slot, FindZone(context.State, "retired").ZoneId, "unordered", 1)).AddChild(RefillSpec(order[index], slot));
             }
             if (node.FlowStage == "entrepreneur_faces" || node.FlowStage == "awaiting_entrepreneur_face")
             {

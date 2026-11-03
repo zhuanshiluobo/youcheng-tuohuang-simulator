@@ -25,7 +25,7 @@ namespace YC.Presentation
                 copy.SelectionPanelSize, copy.CharacterPanelPosition, true, false, true, true);
             EffectDialogShell.AddHeading(panel, title, description);
             shell.AddSelection(panel, new EffectDialogSelectionSpec {
-                ReadOnly = true, IsEffectPage = false, CloseOnBackgroundClick = backgroundClose,
+                ReadOnly = true, IsEffectPage = false, IsCardSelection = true, CloseOnBackgroundClick = backgroundClose,
                 Request = new InteractionRequestProjection { InteractionId = "read-only-collection", VisibleToViewer = true,
                     CandidateIds = cards.Select(c => c.Id).ToList(), MinSelections = 0, MaxSelections = 0, AllowDecline = true, Status = "open" },
                 Label = id => cards.First(c => c.Id == id).Label, CardSprite = id => cards.First(c => c.Id == id).Artwork,

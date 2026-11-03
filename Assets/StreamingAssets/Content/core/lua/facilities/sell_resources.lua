@@ -3,34 +3,6 @@ local function copy(value)
     if type(value) ~= 'table' then return value end
     local result = {}; for key, item in pairs(value) do result[key] = copy(item) end; return result
 end
-local function state(ctx)
-    if ctx.eventType == 'EffectCompleted' then
-        if ctx.payload.continuationContext == nil or ctx.payload.outcome ~= 'completed' then return nil end
-        return copy(ctx.payload.continuationContext)
-    end
-    local source = ctx.payload.cardInstanceRef or ctx.payload.sourceItemId or ctx.payload.enterpriseItemId
-    if source == nil then error('content_source_missing') end
-    return { source = source, stage = 'start' }
-end
-local function tag(effect, context, stage)
-    local saved = copy(context); saved.stage = stage; return Effect.WithContext(effect, saved)
-end
-local function zone(localId, player)
-    local filter = { localZoneId = localId }; if player ~= nil then filter.owner = player end
-    local values = Global.Content.FindZones(filter)
-    if #values ~= 1 then error('content_zone_missing:' .. localId) end
-    return values[1].id
-end
-local function has(values, id)
-    for _, value in ipairs(values or {}) do if value == id then return true end end; return false
-end
-local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
-    local options = {}; for _, id in ipairs(ids) do options[#options + 1] = { candidateId = id, label = labels[id] } end
-    return tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = ids,
-        minSelections = minimum or 1, maxSelections = 1, interactionType = kind or 'lua.choice', promptKey = prompt }),
-        { interaction = { prompt = Text.Ref(prompt), options = options } }), context, stage)
-end
-
 return function(ctx)
     local c
     if ctx.eventType == 'EffectCompleted' then

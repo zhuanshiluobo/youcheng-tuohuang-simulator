@@ -1,4 +1,4 @@
--- QY-013 / 1.8.1。冻结模块；仅构造Effect，不保存VM状态或写Host。
+-- QY-013 / 1.9.0。冻结模块；仅构造Effect，不保存VM状态或写Host。
 -- 入口薄脚本及其依赖由唯一整合者登记。rules来自同版本候选ruleRefs，非回合数推断。
 local M = {}
 local function pid(p)
@@ -62,26 +62,6 @@ end
 local function saved(effect, c, stage)
     local next = copy(c); next.stage = stage
     return Effect.WithContext(effect, next)
-end
-local function choice(ctx, ids, labels, optional, key, integerLabel)
-    local options = {}; for _, id in ipairs(ids) do
-        if labels[id]~=nil then options[#options+1]={candidateId=id,label=labels[id]} end
-    end
-    return Effect.WithPresentation(Effect.Choice({player=ctx.playerId,options=ids,
-        minSelections=optional and 0 or 1,maxSelections=1,interactionType='effect.choice.execute'}),
-        {interaction={prompt=text(key),options=options,candidateIntegerLabel=integerLabel}})
-end
-local function selected(ctx)
-    local value = ctx.payload.normalizedResult
-    if type(value) == 'table' then
-        if value.value ~= nil then value=value.value
-        elseif #value == 0 then return nil
-        elseif #value == 1 then value=value[1]
-        else error('agnes_choice_result_invalid') end
-    end
-    if value == nil or value == '' or value == false then return nil end
-    if type(value) ~= 'string' then error('agnes_choice_result_invalid') end
-    return value
 end
 local function gain(resource, amount, player)
     return Effect.GainResource({recipient=player,resourceType=resource,amount=amount})
@@ -156,7 +136,6 @@ local function legal_counts(ctx, card, n, paid)
     local supply,inventory=command_supply(ctx)
     local stock=#inventory
     local gold=number(PlayerData.GetResources(ctx.playerId).availableGoldVoucherCount,'availableGoldVoucherCount')
-    local ids, labels={},{}
     -- 保留既有合法数量范围；n可更大，不把n改为库存或候选上限。
     local largest=99
     if n<largest then largest=n end
@@ -164,22 +143,27 @@ local function legal_counts(ctx, card, n, paid)
     if capacity~=-1 and capacity-presentCount<largest then largest=capacity-presentCount end
     local affordable=(gold-gold%2)/2
     if paid and affordable<largest then largest=affordable end
-    for k=largest,1,-1 do
-        -- ID保留原数字字符串；标签沿紧凑整数模板消费，不展开99份标签。
-        ids[#ids+1]=tostring(k)
-    end
-    return ids,labels
+    if largest<1 then return 0,supply,{} end
+    local candidates={}
+    for i=1,largest do candidates[#candidates+1]=inventory[i] end
+    return largest,supply,candidates
 end
 function M.gainCommand(ctx,rules,n)
     local card=ability(ctx).id
     local paid=has_rule(ctx,rules,'entrepreneur.rule.A.command_price')
     if n==0 then return {} end
     if n==1 and paid then return M.purchaseCommand(ctx,1) end
-    local ids,labels=legal_counts(ctx,card,n,paid)
-    if #ids==0 then return {} end
+    local maximum,supply,inventory=legal_counts(ctx,card,n,paid)
+    if maximum==0 then return {} end
     local integerLabel=paid and {key='core:entrepreneur.A.command.buy',arguments={{name='cost',multiplier=2},{name='count',multiplier=1}}}
         or {key='core:entrepreneur.A.command.gain',arguments={{name='count',multiplier=1}}}
-    return {saved(choice(ctx,ids,labels,true,paid and 'command.choose_paid' or 'command.choose',integerLabel),{card=card,paid=paid,n=n},'command_selected')}
+    -- 系统按完整1..maximum构造真实分支；大于16项只分层，不截断、不提高Lua预算。
+    -- 选择发生在移动接口之外；选定后原付款条件先执行，再按冻结顺序逐枚MoveItem。
+    return {Effect.WithPresentation(Flow.ChooseTransferCount({apiVersion=1,player=ctx.playerId,
+        itemIds=inventory,sourceZoneId=supply,destinationZoneId=zone(card,'commands').id,
+        operationProfileId='core.player_marker_storage',maximumCount=maximum,
+        unitCost=paid and {GoldVoucher=2} or nil,allowDecline=true}),
+        {interaction={prompt=text(paid and 'command.choose_paid' or 'command.choose'),candidateIntegerLabel=integerLabel}})}
 end
 local function source_pages(player,query,args,visit)
     local cursor,revision,content,total=0,nil,nil,nil
@@ -260,12 +244,12 @@ local function place(ctx)
         influenceSource='player_supply',ownerSubject=ctx.playerId})
 end
 local function remove(ctx)
-    return Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='any',
-        count=1,requiredCount=0,allowDecline=false})
+    return Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='any',
+        count=1,requiredCount=0,allowDecline=false })
 end
 local function move(ctx, own)
-    return Effect.SelectInfluence({player=ctx.playerId,operation='move',subjectFilter=own and 'self' or 'any',
-        count=1,requiredCount=0,allowDecline=false})
+    return Effect.MoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter=own and 'self' or 'any',
+        count=1,requiredCount=0,allowDecline=false })
 end
 local function alternatives(ctx, kind)
     local effects=kind=='move' and {move(ctx,true),remove(ctx)} or {place(ctx),remove(ctx)}
@@ -277,8 +261,8 @@ local function alternatives(ctx, kind)
 end
 function M.a08Placements(ctx) return {place(ctx),place(ctx)} end
 function M.a08Cleanup(ctx)
-    return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='self',count=1,
-        requiredCount=0,allowDecline=false,distinctPolicy='instance',interactionType='effect.influence.remove.target',promptKey='core:entrepreneur.A.cleanup.remove'})}
+    return {Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='self',count=1,
+        requiredCount=0,allowDecline=false,distinctPolicy='instance',interactionType='effect.influence.remove.target',promptKey='core:entrepreneur.A.cleanup.remove' })}
 end
 function M.a08Tactic(ctx)
     local effects=M.a08Placements(ctx)
@@ -332,21 +316,24 @@ local function callable_actions(ctx)
     return items,transferable,enabled
 end
 local function tactic_options(ctx)
-    local ids,labels,refs={}, {}, {}
+    local branches,labels={}, {}
     local actions=callable_actions(ctx)
     for _, a in ipairs(actions) do
         if a.enabled then
-            -- 续接只冻结选择所需的三个Invoke参数，不保存SourceData完整来源/分页事实或自造policy。
-            ids[#ids+1]=a.optionId; refs[a.optionId]={itemId=a.itemId,actionId=a.actionId,callPolicyRef=a.callPolicyRef}
-            labels[a.optionId]=text('tactic.call',{source=Text.Item(a.itemId)})
+            -- 每个正式来源直接绑定实际调用；执行器仍按当前来源、policy、轨道和角色限制复验。
+            branches[#branches+1]={id=a.optionId,effects={Effect.InvokeAction({apiVersion=1,player=ctx.playerId,
+                itemId=a.itemId,actionId=a.actionId,callPolicyRef=a.callPolicyRef})}}
+            labels[#labels+1]={candidateId=a.optionId,label=text('tactic.call',{source=Text.Item(a.itemId)})}
         end
     end
-    return ids,labels,refs
+    return branches,labels
 end
 function M.cleanup(ctx)
-    local ids,labels,refs=tactic_options(ctx)
-    if #ids==0 then return {} end -- when_available已由宿主注入前核资格；正文再核实时合法候选，无则不扣费。
-    local choose=saved(choice(ctx,ids,labels,true,'cleanup.choose'),{actions=refs},'tactic_selected')
+    local branches,labels=tactic_options(ctx)
+    if #branches==0 then return {} end -- when_available已由宿主注入前核资格；正文再核实时合法候选，无则不扣费。
+    local choose=Effect.WithPresentation(Effect.Choice({player=ctx.playerId,branches=branches,
+        minSelections=0,maxSelections=1,interactionType='effect.choice.execute'}),
+        {interaction={prompt=text('cleanup.choose'),options=labels}})
     return {present_condition(Effect.Condition({decisionPlayer=ctx.playerId,ruleCondition=true,
         leftEffects={M.payCommand(ctx,1)},rightEffects={choose}}),'cleanup.pay')}
 end
@@ -402,19 +389,7 @@ function M.invoke(ctx,rules)
             return single_command_moves(ctx,c.card,c.supply,c.destination,c.markers)
         end
         if ctx.payload.outcome~='completed' then return {} end
-        if c.stage=='command_selected' then
-            local id=selected(ctx); if id==nil then return {} end
-            local k=tonumber(string.match(id,'^(%d+)$'))
-            if k==nil or k<1 or k>99 or k>c.n then error('agnes_quantity_choice_invalid') end
-            if c.paid then return {purchase(ctx,c.card,k)} end
-            local effects=transfer_commands(ctx,c.card,k)
-            effects[1]=present(effects[1],'command.gain',{count=k})
-            return effects
-        elseif c.stage=='tactic_selected' then
-            local id=selected(ctx); if id==nil then return {} end
-            local a=c.actions[id]; if a==nil then error('agnes_action_choice_invalid') end
-            return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=a.itemId,actionId=a.actionId,callPolicyRef=a.callPolicyRef})}
-        elseif c.stage=='after_map_gain' then
+        if c.stage=='after_map_gain' then
             return M.gainCommand(ctx,rules,1)
         end
         return {}

@@ -99,7 +99,7 @@ namespace YC.Domain.Effects
             var types = ItemTypeRegistry.CreateBuiltIn();
             return item?.PhysicalKind == ItemPhysicalKind.Cube && item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == player &&
                 allowedTypes.Any(t => types.IsAssignableTo(item.TypeId, t)) && new ItemZoneQuery().Accepts(zone, item) &&
-                !state.EffectRuntime.UsageTrackBindings.Any(b => b.MarkerItemId == item.ItemId && b.ZoneId == item.ZoneId);
+                !UsageTracks.HasCurrentMarker(state, item.ItemId);
         }
         // 卡上已有内容可具有不同原主/公司主体；返还资格来自真实受控载体及来源声明。
         // 与装载/正规资源替代的本人标记筛选分开，不能借返还许可跨玩家供应取物。
@@ -109,7 +109,7 @@ namespace YC.Domain.Effects
             var carrier = state.ItemZones.Items.Find(i => i.ItemId == zone?.ParentId);
             return zone?.TemplateId == "core.zone.card_cube_storage" && carrier?.ControllerSubject.Kind == ItemSubjectKind.Player && carrier.ControllerSubject.PlayerId == player &&
                 item?.PhysicalKind == ItemPhysicalKind.Cube && item.ZoneId == zone.ZoneId && allowedTypes.Any(t => types.IsAssignableTo(item.TypeId, t)) &&
-                new ItemZoneQuery().Accepts(zone, item) && !state.EffectRuntime.UsageTrackBindings.Any(b => b.MarkerItemId == item.ItemId);
+                new ItemZoneQuery().Accepts(zone, item) && !UsageTracks.HasCurrentMarker(state, item.ItemId);
         }
         // 仅用于挂必要等待前核来源/端点意向，不能作为提交授权；恢复后仍走完整规划和强制执行守卫。
         internal static string ValidateTransferIntentWithSource(GameState state, AbilitySourceRef source, ItemTransferRequest request, IEnumerable<AbilitySourceDeclaration> declarations)

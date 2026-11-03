@@ -1,7 +1,7 @@
 {
   "definitionId": "enterprise.rhodes_island",
   "contentType": "enterprise",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "罗德岛",
   "expansionId": "enterprise",
   "replaces": null,
@@ -72,7 +72,7 @@
       "skillType": "normal",
       "subscriptionId": "content.enterprise.rhodes_island.level_4.special",
       "script": "lua/enterprises/enterprise.rhodes_island.level_4.special.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.enterprise.rhodes_island.level_4.special.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,

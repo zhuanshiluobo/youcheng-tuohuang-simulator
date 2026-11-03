@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.A.3",
   "contentType": "entrepreneur_round",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "displayName": "艾格尼丝·史密斯·第3回合",
   "artwork": "artwork/entrepreneurs/A06.jpg",
   "expansionId": "infected",
@@ -62,7 +62,7 @@
       "abilityId": "entrepreneur.A07.immediate.2",
       "kind": "setup",
       "handlerRef": "entrepreneur.A07.immediate.2",
-      "declarationVersion": "1.3.0",
+      "declarationVersion": "1.4.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -248,7 +248,7 @@
       "abilityId": "entrepreneur.A06.departure",
       "kind": "event",
       "handlerRef": "entrepreneur.A06.departure",
-      "declarationVersion": "1.3.0",
+      "declarationVersion": "1.4.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -395,62 +395,62 @@
     {
       "handlerId": "entrepreneur.A06.immediate.1",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A06.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.A07.immediate.1",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A07.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.A07.immediate.2",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
-      "completionHandlerId": "entrepreneur.A07.immediate.2.completed"
+      "version": "1.4.0",
+      "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.A06.tactic",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A06.tactic.completed"
     },
     {
       "handlerId": "entrepreneur.A06.tactic.cost",
       "script": "lua/entrepreneurs/agnes.cost.lua",
-      "version": "1.4.0",
+      "version": "1.4.2",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.A06.tactic.after",
       "script": "lua/entrepreneurs/agnes.after.lua",
-      "version": "1.1.5",
+      "version": "1.1.7",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.A07.tactic",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A07.tactic.completed"
     },
     {
       "handlerId": "entrepreneur.A07.tactic.cost",
       "script": "lua/entrepreneurs/agnes.cost.lua",
-      "version": "1.4.0",
+      "version": "1.4.2",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.A07.tactic.after",
       "script": "lua/entrepreneurs/agnes.after.lua",
-      "version": "1.1.5",
+      "version": "1.1.7",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.A06.departure",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
-      "completionHandlerId": "entrepreneur.A06.departure.completed"
+      "version": "1.4.0",
+      "completionHandlerId": ""
     }
   ],
   "actionCallPolicies": [],

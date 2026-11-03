@@ -28,11 +28,11 @@ namespace YC.Infrastructure.Lua
                 foreach (var ability in content.Abilities)
                 {
                     string source = getScript(ability.Script);
-                    var script = new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.SubscriptionId, ability.Version, source, LuaContentHasher.ComputeSha256(source));
+                    var script = new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.SubscriptionId, ability.Version, source, LuaContentHasher.ComputeSha256(source), pack?.GetScriptEntryId(ability.Script) ?? YC.Domain.State.StableIdFactory.Create("lua-script-entry", ability.Script));
                     var handler = new LuaHandlerDefinition(ability.SubscriptionId, "EnterpriseSpecialEffectActivated", "", script, EffectHandlerRole.Primary, abilityId: ability.AbilityId,
                         completionHandlerId: ability.CompletionHandlerId);
                     if (!string.IsNullOrEmpty(ability.CompletionHandlerId)) dispatcher.RegisterContinuation(new LuaHandlerDefinition(ability.CompletionHandlerId, "EffectCompleted", "",
-                        new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.CompletionHandlerId, ability.Version, source, LuaContentHasher.ComputeSha256(source)),
+                        new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.CompletionHandlerId, ability.Version, source, LuaContentHasher.ComputeSha256(source), script.EntryId),
                         EffectHandlerRole.Continuation, abilityId: ability.AbilityId));
                     definitions.BindAbility(ability.AbilityId, context => dispatcher.Invoke(handler, context));
                 }

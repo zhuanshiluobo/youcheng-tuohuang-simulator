@@ -19,10 +19,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         private IsolatedTestArtifacts artifacts;
         [SetUp] public void Start() => artifacts = IsolatedTestArtifacts.BeginCase();
         [TearDown] public void Finish() => artifacts?.Finish();
-        private string Prepare(Action<JObject, string> change = null, string mainOverride = null)
+        private string Prepare(Action<JObject, string> change = null, string mainOverride = null, string moduleOverride = null)
         {
             string installed = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
-            string module = File.ReadAllText(Path.Combine(installed, Module));
+            string module = moduleOverride ?? File.ReadAllText(Path.Combine(installed, Module));
             string hash = LuaContentHasher.ComputeSha256(module);
             string main = mainOverride ?? "return function(ctx) return Shared.entry(ctx) end";
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(installed, "pack.json")));
@@ -34,7 +34,147 @@ namespace YC.Tests.EditMode.ExpansionRules
             token["abilitySources"] = new JArray();
             token["abilityHandlers"] = new JArray(new JObject { ["handlerId"] = Handler, ["version"] = "1.0.0", ["script"] = Main, ["completionHandlerId"] = "" });
             return artifacts.CopyContent(installed, "模块隔离私有输入", new Dictionary<string, string> {
-                ["pack.json"] = manifest.ToString(), ["component/" + Token + ".json"] = token.ToString(), [Main] = main });
+                ["pack.json"] = manifest.ToString(), ["component/" + Token + ".json"] = token.ToString(), [Main] = main, [Module] = module });
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredSelectorCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.influence.select_action',player=ctx.playerId,operation='remove',count=1}} end"
+                : "return function(ctx) local old=Effect.SelectInfluence;return {old({player=ctx.playerId,operation='remove',count=1})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API10真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("selector.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredInfluenceSelectionReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredBuildSelectorCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.facility.choose_build',player=ctx.playerId,sourceZone='supply',paymentMode='auto'}} end"
+                : "return function(ctx) local old=Effect.ChooseBuild;return {old({player=ctx.playerId,sourceZone='supply',paymentMode='auto'})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API13真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("selector.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredBuildSelectionReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredExplorationSelectorCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.exploration.choose',player=ctx.playerId}} end"
+                : "return function(ctx) local old=Effect.ChooseExplore;return {old({player=ctx.playerId})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API16真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("selector.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredExplorationSelectionReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredCharacterTransferCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.character.transfer',apiVersion=1,player=ctx.playerId,cardInstanceId='old',recipientPlayer='2'}} end"
+                : "return function(ctx) local old=Effect.TransferCharacterCard;return {old({apiVersion=1,player=ctx.playerId,cardInstanceId='old',recipientPlayer='2'})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API20真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("transfer.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredCharacterTransferReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredCharacterZoneMoveCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.content.transaction.move_character',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.MoveCharacterCardToZone;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API24真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredCharacterZoneMoveReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredMarkerStoreCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.content.transaction.store_marker',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.StorePlayerMarker;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API26真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredMarkerStoreReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredMarkerReturnCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.content.transaction.return_marker',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.ReturnPlayerMarker;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API26真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredMarkerReturnReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredEnterpriseUpgradeCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.content.transaction.upgrade_enterprise',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.UpgradeEnterpriseForPlayer;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API28真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredEnterpriseUpgradeReason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredDepartureBatchCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.influence.departure_batch',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.DepartureBatch;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API34真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(RetiredDepartureBatchContract.Reason));
+        }
+        [TestCase(false)][TestCase(true)]
+        public void RetiredFacilityReleaseCannotReturnThroughARealFrozenModule(bool raw)
+        {
+            string module = raw
+                ? "return function(ctx) return {{kind='effect_spec',effectTypeId='effect.content.transaction.release_binding',apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true}} end"
+                : "return function(ctx) local old=Effect.ReleaseFacilityBinding;return {old({apiVersion=1,player=ctx.playerId,cardItemId='old',destinationZoneId='target',reveal=true})} end";
+            string input = Prepare(moduleOverride: module); var pack = ExternalContentPack.Load(input);
+            artifacts.RecordContent("API34真实冻结模块拒绝", input, pack.ContentHash);
+            string source = pack.GetScript(Main);
+            var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, Handler, Handler, "1.0.0", source, LuaContentHasher.ComputeSha256(source)),
+                new LuaInvocationContext("character.zone.module.retired", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            if (raw) Assert.That(result.Diagnostic, Does.Contain(ContentPrimitiveEffectExecutor.RetiredFacilityReleaseReason));
         }
         [Test] public void RealFacilityModuleProducesTheSameOrdinaryResourceEffectAndFreezesItsHash()
         {

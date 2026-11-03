@@ -64,7 +64,7 @@ namespace YC.Application.Interactions
 
             NormalizedValue answer;
             string answerDiagnostic;
-            if (!TryBuildAnswer(command, out answer, out answerDiagnostic))
+            if (!TryBuildAnswer(state, interactionId, command, out answer, out answerDiagnostic))
             {
                 return Invalid(CommandErrorCode.InvalidTarget, answerDiagnostic);
             }
@@ -152,12 +152,23 @@ namespace YC.Application.Interactions
         }
 
         private static bool TryBuildAnswer(
+            GameState state, string interactionId,
             GameCommand command,
             out NormalizedValue answer,
             out string diagnostic)
         {
             answer = null;
             diagnostic = string.Empty;
+
+            if(command.Parameters!=null && command.Parameters.ContainsKey(AllocationSequenceAnswerJson.Parameter))
+            {
+                var request=state.EffectRuntime?.InteractionRequests.Find(q=>q.GetStableInteractionId()==interactionId);
+                if(request?.InteractionTypeId!=AllocationEffects.InteractionType || request.AnswerSchema!=AllocationEffects.AnswerSchema ||
+                    command.Parameters.ContainsKey(AnswerValueParameter) || command.OptionIds?.Count>0 || !string.IsNullOrEmpty(command.TargetId) ||
+                    !AllocationSequenceAnswerJson.TryDecode(GetParameter(command,AllocationSequenceAnswerJson.Parameter),out answer))
+                {diagnostic="有序分配答案格式或当前交互不匹配。";return false;}
+                return true;
+            }
 
             string answerValue = GetParameter(command, AnswerValueParameter);
             if (!string.IsNullOrEmpty(answerValue))

@@ -71,7 +71,16 @@ namespace YC.Presentation
             bool useRightCardSmokeState,
             bool prepareSharedCityStyleSmokeState,
             bool deferRuleInitialization = false)
-            => BuildCore(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState, deferRuleInitialization, launchContext?.RestoreData);
+        {
+            if (!useRightCardSmokeState && !prepareSharedCityStyleSmokeState && !deferRuleInitialization &&
+                launchContext?.Mode == LaunchMode.Local && launchContext.RestoreData?.Mode == LaunchMode.Local &&
+                launchContext.LocalPlayerId == launchContext.RestoreData.LocalPlayerId)
+            {
+                var prepared = MatchSaveController.Instance?.TakePreparedLocalRestore(launchContext.RestoreData, ExternalContentRuntime.Pack.ContentHash);
+                if (prepared != null) return prepared;
+            }
+            return BuildCore(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState, deferRuleInitialization, launchContext?.RestoreData);
+        }
 
         public static Result Restore(GameLaunchContext context, MatchSaveData data)
         {
@@ -97,12 +106,13 @@ namespace YC.Presentation
             var mapQuery = new MapQueryService(StaticMapDefinitions.Resolve(
                 restore != null ? restore.MapId : launchContext == null ? StaticMapDefinitions.FourPlayerMapId : launchContext.RuleConfiguration?.MapId ?? launchContext.MapId));
             var launchMode = restore?.Mode ?? (launchContext == null ? LaunchMode.Local : launchContext.Mode);
-            var eventDeckSeed = restore?.EventDeckSeed ?? GetEventDeckSeed(launchContext);
+            var restoreMetadata = restore?.ReadLaunchMetadata();
+            var eventDeckSeed = restoreMetadata?.EventDeckSeed ?? GetEventDeckSeed(launchContext);
             var eventDeckService = new EventDeckService(eventDeckSeed);
             var localPlayerId = restore?.LocalPlayerId ?? ResolveLocalPlayerId(launchContext);
 
             var players = restore != null ? restore.Seats.ConvertAll(s => s.ToSeat()) : launchContext == null ? null : launchContext.Players;
-            var configuration = restore?.Configuration ?? launchContext?.RuleConfiguration?.Clone() ?? new GameRuleConfiguration
+            var configuration = restoreMetadata?.Configuration ?? launchContext?.RuleConfiguration?.Clone() ?? new GameRuleConfiguration
             { MapId = mapQuery.Map.MapId, PlayerCount = players == null || players.Count == 0 ? 1 : players.Count };
             configuration.PlayerStageSchedulingMode = launchMode == LaunchMode.Local
                 ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent;
@@ -133,8 +143,8 @@ namespace YC.Presentation
                     localPlayerId,
                     players,
                     configuration, eventDeckSeed, activeCatalog.SetupRecipe, activeCatalog.ContentDefinitions,
-                    restore?.LaunchPlayerOrder ?? launchContext.LaunchPlayerOrder, restore?.GameId ?? launchContext.GameId,
-                    restore?.RandomState ?? launchContext.InitialRandomState);
+                    restoreMetadata?.LaunchPlayerOrder ?? launchContext.LaunchPlayerOrder, restore?.GameId ?? launchContext.GameId,
+                    restoreMetadata?.RandomState ?? launchContext.InitialRandomState);
             if (useRightCardSmokeState)
             {
                 state.GameId = launchContext.GameId;
@@ -274,7 +284,7 @@ namespace YC.Presentation
                 var recovered = HostRecoveryService.RecoverJson(restore.ArchiveJson, effectRegistry);
                 if (!recovered.Succeeded) throw new System.InvalidOperationException(recovered.FaultCode + ":" + recovered.Diagnostic);
                 if (recovered.State.GameId != restore.GameId || recovered.State.ContentPackHash != activeCatalog.ContentPackHash ||
-                    recovered.State.MapId != restore.MapId || recovered.State.EventDeckSeed != restore.EventDeckSeed ||
+                    recovered.State.MapId != restore.MapId || recovered.State.EventDeckSeed != eventDeckSeed ||
                     Newtonsoft.Json.JsonConvert.SerializeObject(recovered.State.RuleConfiguration) != Newtonsoft.Json.JsonConvert.SerializeObject(configuration))
                     throw new System.InvalidOperationException("存档恢复身份不一致。");
                 if (restore.Mode == LaunchMode.Host)

@@ -86,6 +86,7 @@ namespace YC.Presentation
         private SettlementOptionView option;
         private long scope, identity;
         private bool pending, hovered, executionAllowed;
+        private bool displayOnly;
         private Action<long, long, int, string> use, inspect;
         private Action manualScroll;
         private Func<string, string, Sprite> resolveIcon;
@@ -133,6 +134,7 @@ namespace YC.Presentation
             ScrollRect scrollRect, Action onManualScroll)
         {
             if (!ValidateReferences(out var reason)) throw new InvalidOperationException(reason);
+            displayOnly=false;
             if (value?.Presentation == null) throw new ArgumentException("结算按钮缺少统一展示声明。");
             if (option == null || option.OptionId != value.OptionId || scope != scopeToken || identity != entryIdentity ||
                 option.StateRevision != value.StateRevision) { gesture.Reset(); hovered = false; }
@@ -182,6 +184,10 @@ namespace YC.Presentation
                 measuredLabelWidth + (option.Presentation.ContentMode == "icon_text" ? iconTextPadding : textPadding)) / 2) * 2);
         }
         public void SetPending(bool value) { pending = value; RefreshState(); }
+        public void SetDisplayOnly()
+        {
+            displayOnly=true;executionAllowed=false;use=null;inspect=null;gesture.Reset();hovered=false;hitTarget.interactable=false;RefreshState();
+        }
         public void PrepareArrival(bool reduced)
         {
             animating = false;
@@ -200,6 +206,7 @@ namespace YC.Presentation
 
         public void ClearBinding()
         {
+            displayOnly=false;
             if (renderText != null && labelView != null) renderText(labelView, null, true);
             option = null; use = inspect = null; manualScroll = null; scroll = null;
             resolveIcon = null; renderText = null; pending = hovered = executionAllowed = false; gesture.Reset(); InvalidatePresentation();
@@ -211,7 +218,7 @@ namespace YC.Presentation
         private void Update()
         {
             if (option == null) return;
-            if (pressedButton == PointerEventData.InputButton.Left && gesture.TryLongPress(Time.unscaledTime, longPressDelay))
+            if (!displayOnly && pressedButton == PointerEventData.InputButton.Left && gesture.TryLongPress(Time.unscaledTime, longPressDelay))
             { Inspect(); RefreshState(); }
             if (!animating) return;
             var elapsed = Time.unscaledTime - arrivalStart;
@@ -236,24 +243,24 @@ namespace YC.Presentation
 
         public void OnPointerDown(PointerEventData e)
         {
-            if (option == null || (e.button != PointerEventData.InputButton.Left && e.button != PointerEventData.InputButton.Right)) return;
+            if (displayOnly || option == null || (e.button != PointerEventData.InputButton.Left && e.button != PointerEventData.InputButton.Right)) return;
             pressedButton = e.button;
             var p = LocalPoint(e); gesture.Begin(e.pointerId, p.x, p.y, Time.unscaledTime); RefreshState();
         }
         public void OnPointerUp(PointerEventData e)
-        { if (e.button != pressedButton) return; Move(e); gesture.Release(e.pointerId); RefreshState(); }
+        { if (displayOnly || e.button != pressedButton) return; Move(e); gesture.Release(e.pointerId); RefreshState(); }
         public void OnPointerClick(PointerEventData e)
         {
-            if (option == null) return;
+            if (displayOnly || option == null) return;
             if (e.button == PointerEventData.InputButton.Right && gesture.ConsumeClick(e.pointerId)) { Inspect(); return; }
             if (e.button == PointerEventData.InputButton.Left && gesture.ConsumeClick(e.pointerId) && !pending && executionAllowed)
                 use?.Invoke(scope, identity, option.StateRevision, option.OptionId);
         }
         public void OnPointerEnter(PointerEventData e)
-        { hovered = true; RefreshState(); }
+        { if(displayOnly)return;hovered = true; RefreshState(); }
         public void OnPointerExit(PointerEventData e)
         { hovered = false; gesture.Cancel(e.pointerId); RefreshState(); }
-        private void Inspect() { if (option != null) inspect?.Invoke(scope, identity, option.StateRevision, option.OptionId); }
+        private void Inspect() { if (!displayOnly && option != null) inspect?.Invoke(scope, identity, option.StateRevision, option.OptionId); }
         private Vector2 LocalPoint(PointerEventData e)
         {
             var canvas = GetComponentInParent<Canvas>();

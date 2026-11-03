@@ -208,32 +208,22 @@ namespace YC.Tests.PlayMode
             character.ShowOptions(
                 "角色效果",
                 "Play 探针",
-                new[] { new EffectDialogOption("确认角色效果", () => characterCount++) });
+                new[] { new EffectDialogOption("确认逻辑组件回调（隔离）", () => characterCount++)
+                    { ExecuteImmediately = true, StableId = "hud-component-probe", IsCurrent = () => true } });
             var characterShell = RequireActiveDialog<EffectDialogShellView>(
                 pageRoot,
                 "Character Card Effect Overlay");
             RequireDirectCanvasParent(characterShell.transform, pageRoot, "角色效果");
-            var characterClick = RequireButton(characterShell.transform, "Character Effect Option 0").onClick;
+            var characterClick = characterShell.GetComponentInChildren<UiEffectRowView>().StatusButton.onClick;
             characterClick.Invoke();
             characterClick.Invoke();
             RequireClosedOnce(characterCount, character.IsShowing, characterShell.gameObject, "角色效果");
             RequireRootCount(rootsBefore, "角色效果");
 
-            var facilityCount = 0;
-            var facility = new FacilityEffectChoiceDialog(hud.DialogRegistry, canvas);
-            facility.ShowOptions(
-                "设施效果",
-                "Play 探针",
-                new[] { new EffectDialogOption("确认设施效果", () => facilityCount++) });
-            var facilityShell = RequireActiveDialog<EffectDialogShellView>(
-                pageRoot,
-                "Facility Effect Choice Overlay");
-            RequireDirectCanvasParent(facilityShell.transform, pageRoot, "设施效果");
-            var facilityClick = RequireButton(facilityShell.transform, "Option 0").onClick;
-            facilityClick.Invoke();
-            facilityClick.Invoke();
-            RequireClosedOnce(facilityCount, facility.IsShowing, facilityShell.gameObject, "设施效果");
-            RequireRootCount(rootsBefore, "设施效果");
+            // 旧设施值菜单已退役；本探针不再通过旧正向调用重新创建普通模板。
+            if (typeof(FacilityEffectChoiceDialog).GetMethod("ShowOptions") != null ||
+                typeof(EffectDialogShellView).GetMethod("CreateOptionRow") != null)
+                throw new InvalidOperationException("退役的普通模板入口重新出现。");
 
             var specialCancelCount = 0;
             var special = new SpecialActionChoiceDialog(hud.DialogRegistry, () => canvas);

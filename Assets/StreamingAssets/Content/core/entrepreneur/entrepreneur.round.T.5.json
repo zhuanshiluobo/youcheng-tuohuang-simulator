@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.T.5",
   "contentType": "entrepreneur_round",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "displayName": "第五号企业家·第5回合",
   "artwork": "artwork/entrepreneurs/T03.jpg",
   "expansionId": "infected",
@@ -25,7 +25,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T03.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -39,7 +39,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T03.immediate.2",
       "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -53,7 +53,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T04.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -67,7 +67,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T04.immediate.2",
       "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -194,25 +194,25 @@
     {
       "handlerId": "entrepreneur.T03.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.T03.immediate.2",
       "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.T04.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.T04.immediate.2",
       "script": "lua/entrepreneurs/fifth_number_round_secondary.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ]

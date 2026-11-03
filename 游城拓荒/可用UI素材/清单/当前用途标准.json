@@ -1,9 +1,10 @@
 {
-  "date": "2026-10-25",
+  "date": "2026-11-01",
   "basis": [
     "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
     "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
-    "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材"
+    "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
+    "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材"
   ],
   "interpretation": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
   "standards": [
@@ -602,6 +603,24 @@
         "ab6ace1eaff283f15515d152c8a16d198ecd5cdef68a4ba1a791fd9989f01351",
         "edcc07d148d018ab557f550f011fc43be0aa005c2b52188d6983596295c21eec",
         "afd73d934def1788bfb746251f519ccb6955abd15540f8f7d220a36565d8e64b"
+      ]
+    },
+    {
+      "id": "P01",
+      "role": "CardPicker次按钮",
+      "expected": "用户指定botton-secondary-v2.0.png，直接替换原Card-Picker-UI-v1 button-secondary.png",
+      "status": "可用库替换完成；只读核对的CardPickerDialog源Prefab仍用旧图，本次未导入Unity或换绑",
+      "scope": "仅专用CardPicker的次按钮（取消、返回、重新选择等由当前流程决定的次操作）；不扩展到主按钮、CardViewer、普通窗口或其他同名按钮",
+      "basis": [
+        "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
+        "文档/CardPicker次按钮2.0替换登记.md"
+      ],
+      "parameters": "参数/项目实际用法/CardPicker次按钮2.0替换登记.json",
+      "assetHashes": [
+        "15dd7f3ff36ccd0db8dc8fb508e955388f5f5c862757e95e965632221c13a6f5"
+      ],
+      "replacedAssetHashes": [
+        "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2"
       ]
     }
   ]

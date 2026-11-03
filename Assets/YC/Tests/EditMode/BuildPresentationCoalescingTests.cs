@@ -255,9 +255,7 @@ namespace YC.Tests.EditMode
             public string OpenOwner()
             {
                 var engine = new EffectTreeExecutor(State, Registry);
-                var node = engine.CreateRoot(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                    Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"),
-                        "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+                var node = engine.CreateRoot(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("auto"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
                 Assert.That(engine.RunUntilQuiescent().Faulted, Is.False);
                 Refresh(); return node;
             }

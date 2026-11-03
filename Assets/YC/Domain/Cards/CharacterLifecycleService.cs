@@ -37,7 +37,7 @@ namespace YC.Domain.Cards
             normalized = Object("mode", NormalizedValue.CreateString(mode), "order", NormalizedValue.CreateString(order), "offerSecondEffect", NormalizedValue.CreateBoolean(Flag(input, "offerSecondEffect")));
             return "";
         }
-        public const string UseTypeId = "character.use", TransferTypeId = "effect.character.transfer";
+        public const string UseTypeId = "character.use";
         public const string QuickActionTypeId = "character.quick_action";
         public const string SecondModeInteractionTypeId = "character.use.second_mode";
         public const string FinishChoiceId = "finish", CancelChoiceId = "cancel";
@@ -110,13 +110,8 @@ namespace YC.Domain.Cards
             CharacterAbilityEffectExecutor.Register(registry);
             RegisterOnce(registry, UseTypeId, ExecuteUse, EffectExecutorKind.IntrinsicFlow);
             RegisterOnce(registry, QuickActionTypeId, ExecuteQuickAction, EffectExecutorKind.IntrinsicFlow);
-            RegisterOnce(registry, TransferTypeId, context => {
-                string error = ValidateArguments(TransferTypeId, context.Node.NormalizedArguments);
-                if (error.Length > 0) return EffectStepResult.Failed(error);
-                if (ParsePlayer(Text(context.Node.NormalizedArguments, "player")) != context.Node.PlayerId) return EffectStepResult.Failed("invalid_player");
-                return new CharacterLifecycleService().Transfer(context, Text(context.Node.NormalizedArguments, "cardInstanceId"), ParsePlayer(Text(context.Node.NormalizedArguments, "recipientPlayer")));
-            });
-            RegisterOnce(registry, ConsumeSourceTypeId, ConsumeSource);
+            if (!registry.TryGet(ConsumeSourceTypeId, out _)) registry.Register(new EffectRegistration(ConsumeSourceTypeId,
+                context => { ResumeDeferredDependencies(context); return CharacterDoubleUseConsumption.Execute(context); }, EffectExecutorKind.IntrinsicFlow, CharacterDoubleUseConsumption.DefinitionVersion));
             RegisterOnce(registry, LuaDomainEffectTypeIds.SetCharacterDoubleUseRule, SetDoubleUse);
             OperatorDispatchFlow.Register(registry);
         }
@@ -425,22 +420,6 @@ namespace YC.Domain.Cards
             DetachExitedSubscriptions(context.State, item.ItemId);
             return EffectStepResult.Completed(Object("useId", NormalizedValue.CreateString(useId), "changed", NormalizedValue.CreateBoolean(true))).AddEvent(new EffectEventRequest { EventType = "CharacterUseFinished", PlayerId = use.ExecutingPlayerId, Payload = Object("useId", NormalizedValue.CreateString(useId)) });
         }
-        public EffectStepResult Transfer(EffectExecutionContext context, string cardInstanceId, int recipientPlayerId)
-        {
-            ResumeDeferredDependencies(context);
-            context.Node.Visibility = GameStateVisibilityPolicy.Owner;
-            var item = context.State.ItemZones.Items.Find(value => value.ItemId == cardInstanceId);
-            if (recipientPlayerId <= 0 || recipientPlayerId == context.Node.PlayerId || context.State.FindPlayer(recipientPlayerId) == null) return EffectStepResult.Failed("invalid_recipient");
-            if (item == null || item.ControllerSubject.Kind != ItemSubjectKind.Player || item.ControllerSubject.PlayerId != context.Node.PlayerId) return EffectStepResult.Failed("not_current_holder");
-            string destination = FindZone(context.State, "hand", recipientPlayerId).ZoneId;
-            if (TryAwaitCardMoves(context, new[] { cardInstanceId }, destination)) return DeferredDependencyWait();
-            string error = MoveCard(context, cardInstanceId, destination);
-            if (error.Length > 0) return EffectStepResult.Failed(error);
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true))).AddEvent(new EffectEventRequest {
-                EventType = "character.transferred", PlayerId = context.Node.PlayerId, Visibility = "public", ResponseKind = RuleEventResponseKind.Effects,
-                Payload = Object("recipientPlayerId", NormalizedValue.CreateInteger(recipientPlayerId)),
-                HostOnlyPayload = Object("itemId", NormalizedValue.CreateString(cardInstanceId), "recipientPlayerId", NormalizedValue.CreateInteger(recipientPlayerId)) });
-        }
         public static string MoveCard(EffectExecutionContext context, string itemId, string destinationZoneId)
         {
             if (CardMoveDependencyQueries(context.State, new[] { itemId }, destinationZoneId)
@@ -453,6 +432,19 @@ namespace YC.Domain.Cards
             return reason;
         }
         private static string MoveCardCore(EffectExecutionContext context, string itemId, string destinationZoneId)
+        {
+            string error = PrepareCardCarrierExit(context, itemId, destinationZoneId);
+            if (error.Length > 0) return error;
+            var item = context.State.ItemZones.Items.Single(value => value.ItemId == itemId);
+            var move = TransferRequest(context.Node.PlayerId, item, destinationZoneId, "core.character_card_transfer");
+            var valid = new ItemTransferService().Validate(context.State, move);
+            if (!valid.IsValid) return valid.ReasonCode;
+            new ItemTransferService().RelocateItems(context, move);
+            foreach (var slot in context.State.CharacterCoverSlots.Where(value => value.CardInstanceId == itemId)) slot.CardInstanceId = "";
+            DetachExitedSubscriptions(context.State, itemId);
+            return "";
+        }
+        internal static string PrepareCardCarrierExit(EffectExecutionContext context, string itemId, string destinationZoneId)
         {
             var item = context.State.ItemZones.Items.Find(value => value.ItemId == itemId);
             if (item == null) return "unknown_item";
@@ -472,14 +464,8 @@ namespace YC.Domain.Cards
                 var request = TransferRequest(context.Node.PlayerId, content, destination, profile, insertion);
                 var validation = new ItemTransferService().Validate(context.State, request);
                 if (!validation.IsValid) return validation.ReasonCode;
-                new ItemTransferService().RelocateItems(context, request);
+                new ItemTransferService().RelocateCarrierExitContent(context, itemId, request);
             }
-            var move = TransferRequest(context.Node.PlayerId, item, destinationZoneId, "core.character_card_transfer");
-            var valid = new ItemTransferService().Validate(context.State, move);
-            if (!valid.IsValid) return valid.ReasonCode;
-            new ItemTransferService().RelocateItems(context, move);
-            foreach (var slot in context.State.CharacterCoverSlots.Where(value => value.CardInstanceId == itemId)) slot.CardInstanceId = "";
-            DetachExitedSubscriptions(context.State, itemId);
             return "";
         }
         public static ZoneInstanceState CubeSupply(GameState state, ItemInstanceState cube)
@@ -918,21 +904,6 @@ namespace YC.Domain.Cards
                 Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)), "scope", NormalizedValue.CreateString("current_use"), "useId", NormalizedValue.CreateString(useId), "sourceItemId", NormalizedValue.CreateString(sourceId)), player) });
             spec.Visibility = GameStateVisibilityPolicy.Owner; return spec;
         }
-        private static EffectStepResult ConsumeSource(EffectExecutionContext context)
-        {
-            var use = context.State.CharacterUses.Find(value => value.UseId == Text(context.Node.NormalizedArguments, "useId"));
-            string sourceId = Text(context.Node.NormalizedArguments, "sourceItemId");
-            var source = context.State.ItemZones.Items.Find(value => value.ItemId == sourceId);
-            if (use == null || use.Finished || use.ExecutingPlayerId != context.Node.PlayerId || use.DoubleUseSourceItemId != sourceId || sourceId == use.CardInstanceId ||
-                use.ModeOrder.Count != 0 || use.CompletedModes.Count != 0) return EffectStepResult.Failed("character_double_use_target_invalid");
-            if (use.SourceConsumed) return EffectStepResult.Completed();
-            if (source == null || source.ControllerSubject.PlayerId != context.Node.PlayerId || source.ZoneId != FindZone(context.State, "persistent", context.Node.PlayerId).ZoneId) return EffectStepResult.Failed("character_double_use_source_invalid");
-            if (TryAwaitCardMoves(context, new[] { sourceId }, FindZone(context.State, "discard", context.Node.PlayerId).ZoneId)) return DeferredDependencyWait();
-            string reason = MoveCard(context, sourceId, FindZone(context.State, "discard", context.Node.PlayerId).ZoneId);
-            if (reason.Length > 0) return EffectStepResult.Failed(reason);
-            context.State.CharacterUses.Single(value => value.UseId == Text(context.Node.NormalizedArguments, "useId")).SourceConsumed = true;
-            return EffectStepResult.Completed();
-        }
         private static EffectStepResult SetDoubleUse(EffectExecutionContext context)
         {
             string error = ValidateArguments(context.Node.EffectTypeId, context.Node.NormalizedArguments);
@@ -1073,20 +1044,12 @@ namespace YC.Domain.Cards
             context.State.FacilityCharacterBindings.Add(new FacilityCharacterBindingState { BindingId = StableIdFactory.Create("character_facility_binding", context.Node.EffectId, characterItemId, facilityItemId), CharacterItemId = characterItemId, FacilityItemId = facilityItemId, SourceEffectId = context.Node.EffectId, ControllerPlayerId = context.Node.PlayerId, Active = true });
             return EffectStepResult.Completed();
         }
-        public static EffectStepResult ReleaseFacilityBinding(EffectExecutionContext context, string bindingId)
-        {
-            var binding = context.State.FacilityCharacterBindings.Find(value => value.BindingId == bindingId && value.ControllerPlayerId == context.Node.PlayerId);
-            if (binding == null) return EffectStepResult.Failed("character_facility_binding_invalid");
-            bool changed = binding.Active; binding.Active = false;
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(changed)));
-        }
         public static string ValidateArguments(string typeId, NormalizedValue args)
         {
-            string[] allowed = typeId == TransferTypeId ? new[] { "apiVersion", "player", "cardInstanceId", "recipientPlayer" } :
-                new[] { "apiVersion", "player", "scope", "useId", "sourceItemId", "expiresActionRoundSequence" };
+            if (typeId != LuaDomainEffectTypeIds.SetCharacterDoubleUseRule) return "character_arguments_invalid";
+            string[] allowed = new[] { "apiVersion", "player", "scope", "useId", "sourceItemId", "expiresActionRoundSequence" };
             if (args?.Kind != NormalizedValueKind.Object || args.Properties.Any(entry => entry.Name != "kind" && entry.Name != "effectTypeId" && !allowed.Contains(entry.Name))) return "character_arguments_invalid";
             if (Number(args, "apiVersion") != 1 || ParsePlayer(Text(args, "player")) < 1) return "character_arguments_invalid";
-            if (typeId == TransferTypeId) return Text(args, "cardInstanceId").Length > 0 && ParsePlayer(Text(args, "recipientPlayer")) > 0 ? "" : "character_arguments_invalid";
             if (Text(args, "scope") == "current_use") return Text(args, "useId").Length > 0 && Text(args, "sourceItemId").Length > 0 && Value(args, "expiresActionRoundSequence") == null ? "" : "character_arguments_invalid";
             return Text(args, "scope") == "action_round" && Value(args, "expiresActionRoundSequence")?.Kind == NormalizedValueKind.Integer && Number(args, "expiresActionRoundSequence") > 0 && Value(args, "useId") == null && Value(args, "sourceItemId") == null ? "" : "character_arguments_invalid";
         }

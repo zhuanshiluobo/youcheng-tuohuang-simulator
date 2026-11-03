@@ -167,7 +167,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(ResourcePaymentPlanService.TryBuild(f.State, f.Registry, n, out var plan, out var reason), Is.True, reason);
             Assert.That(plan.FinalCost.GoldVoucher, Is.EqualTo(1)); Assert.That(plan.FinalCost.Originium + plan.FinalCost.Iron, Is.Zero);
             var tokenPlan = plan.TokenPlans.Single();
-            Assert.That(Number(tokenPlan.Arguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(Number(tokenPlan.Arguments, "apiVersion"), Is.EqualTo(4));
+            Assert.That(Text(tokenPlan.Arguments, "operation"), Is.EqualTo("transfer"));
             Assert.That(Number(tokenPlan.Arguments, "requiredCount"), Is.EqualTo(2));
             Assert.That(tokenPlan.Request.Transfers.SelectMany(t => t.ItemIds), Is.EquivalentTo(markerIds));
             Assert.That(tokenPlan.Request.Transfers.All(t => t.ExpectedSource.ZoneId == markerZone && t.RequiredCount == t.ItemIds.Count), Is.True);
@@ -188,7 +189,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(receipt.ProtocolVersion, Is.EqualTo(2));
             Assert.That(receipt.ItemIds, Is.EquivalentTo(expectedIds));
             Assert.That(Number(receipt.TokenArguments, "requiredCount"), Is.EqualTo(expectedIds.Count));
-            Assert.That(receipt.TokenTransfer.Request.ProtocolVersion, Is.EqualTo(3));
+            Assert.That(receipt.TokenTransfer.Request.ProtocolVersion, Is.EqualTo(3), "付款私有原子批次3保持；公开物品参数已为v4，不能混作旧公开执行节点。");
             Assert.That(receipt.TokenTransfer.Request.Transfers.SelectMany(t => t.ItemIds), Is.EquivalentTo(expectedIds));
             Assert.That(ItemTransferService.TryValidateTokenCommit(f.State, 1, receipt.TokenArguments, receipt.TokenTransfer, out string reason), Is.True, reason);
             Assert.That(owner.Payment.FinalReceipt.CostReceiptPolicyVersion, Is.EqualTo(ResourcePaymentSourceService.TokenCostContractVersion));
@@ -299,7 +300,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             f.Run(RefillSpec(1, FindZone(f.State, "facility_supply_0").ZoneId));
             string target = new ItemZoneQuery().GetItemIds(f.State, FindZone(f.State, "facility_supply_0").ZoneId).Single();
-            f.Run(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+            f.Run(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
             var selection = f.Open();
             Assert.That(f.Engine.TryPrepareEffectBuildPayment(1, selection.OwnerEffectId, selection.GetStableInteractionId(), selection.CandidateSetId, selection.CandidateSetVersion, target,
                 Object("expectedSourceZoneId", NormalizedValue.CreateString(FindZone(f.State, "facility_supply_0").ZoneId), "paymentMode", NormalizedValue.CreateString("resources")),

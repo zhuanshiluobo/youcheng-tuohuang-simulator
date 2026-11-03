@@ -160,6 +160,7 @@ namespace YC.Domain.Effects
 
         private EffectStepResult Execute(EffectExecutionContext context)
         {
+            if (ExplorationContract.IsV3(context.Node.NormalizedArguments)) return ExplorationContract.Execute(context, mapQuery);
             if (Get(context.Node.NormalizedArguments, "paymentProtocol") != null)
                 return ExecuteEscrow(context);
             if (context.Node.FlowStage == RouteTollEscrowService.AwaitingEventStage ||
@@ -287,6 +288,7 @@ namespace YC.Domain.Effects
 
         private static string ValidateSpec(EffectSpec spec)
         {
+            if (ExplorationContract.IsV3(spec?.NormalizedArguments)) return ExplorationContract.ValidateSpec(spec);
             if (Get(spec?.NormalizedArguments, "paymentProtocol") != null)
                 return ValidateEscrowArguments(spec.NormalizedArguments);
             string target;

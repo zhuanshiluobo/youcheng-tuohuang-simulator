@@ -16,6 +16,7 @@ using YC.Domain.State;
 using YC.Domain.Interactions;
 using YC.Domain.Facilities;
 using YC.Domain.Commands;
+using YC.Domain.Presentation;
 
 namespace YC.Tests.PlayMode
 {
@@ -48,6 +49,17 @@ namespace YC.Tests.PlayMode
         private static IEnumerator Load(string scene)
         {
             var launch=Find("GameLaunchContext");if(launch!=null){UnityEngine.Object.Destroy(launch.gameObject);yield return null;}
+            // 页面组件隔离检查使用正式合法启动上下文；不计正常菜单／整局验收。
+            var context=T("GameLaunchContext").GetMethod("Ensure").Invoke(null,null);
+            var listType=context.GetType().GetField("Players").FieldType;
+            var seats=(IList)Activator.CreateInstance(listType); var seatType=listType.GetGenericArguments()[0];
+            for(var id=1;id<=2;id++)
+            {
+                var seat=Activator.CreateInstance(seatType); seatType.GetField("PlayerId").SetValue(seat,id);
+                seatType.GetField("PlayerName").SetValue(seat,"玩家"+id); seatType.GetField("IsReady").SetValue(seat,true); seats.Add(seat);
+            }
+            context.GetType().GetMethod("ConfigureNewLocal").Invoke(context,new object[]{1,"player-selection-isolated",seats,
+                new GameRuleConfiguration { PlayerCount=2,MapId=scene=="ThreePlayerScene"?"map-three-players":"map-four-players" },null,null});
             yield return SceneManager.LoadSceneAsync(scene,LoadSceneMode.Single);SetSize(new Vector2Int(1920,1080));
             for(var i=0;i<8;i++)yield return null;
         }
@@ -160,6 +172,54 @@ namespace YC.Tests.PlayMode
             Call(page,"Confirm");Call(page,"Confirm");Assert.That(submitted.Count,Is.EqualTo(1));
             CollectionAssert.AreEqual(new[]{"player:2"},submitted[0].OptionIds);Call(coordinator,"Dispose");
         }
+        [UnityTest]
+        public IEnumerator TypedPlayerFixtureConfirmsOriginalP2ThroughBoundPageExactlyOnce()
+        {
+            yield return Load("SampleScene"); var registry=Find("GameplayDialogRegistry");
+            var state=new GameState { GameId="fixture-typed-player", CurrentPlayerId=1 };
+            state.Players.Add(new PlayerState { PlayerId=1,Name="甲",Color=PlayerColor.Green });
+            state.Players.Add(new PlayerState { PlayerId=2,Name="乙",Color=PlayerColor.Blue });
+            var request=new InteractionRequest { InteractionId="fixture-m13-opponent", SourceNodeId="fixture-source", OwnerEffectId="fixture-source",
+                InteractionTypeId=FacilityEntryEffectTypeIds.InteractionType,AnsweringPlayerId=1,Visibility="public",Status="open",
+                MinSelections=1,MaxSelections=1,AnswerSchema="candidate_id",StateRevision=0,CandidateIds=new List<string>{"p2"},
+                Presentation=new GameplayInteractionPresentation { Options=new List<GameplayOptionPresentation> {
+                    new GameplayOptionPresentation { CandidateId="p2",Label=new GameplayTextRef("core:entrepreneur.M.M13.opponent.player",
+                        new GameplayTextArgument { Name="who",Kind="player",Value=NormalizedValue.CreateStableReference("player","p2") }) } } } };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var visible=GameStateViewProjector.ProjectForPlayer(state,1);
+            var routed=InteractionRequestProjector.ProjectForPlayer(request,1);
+            Assert.That(routed.Presentation.Options[0].Label,Is.Null,"基础路由投影缺少引用上下文时按原可见性合同裁剪标签。");
+            var ctor=T("FacilityInteractionUiCoordinator").GetConstructors().Single(); var parameters=ctor.GetParameters(); var args=new object[parameters.Length];
+            var submitted=new List<GameCommand>();
+            for(var i=0;i<args.Length;i++)
+            {
+                var type=parameters[i].ParameterType;
+                if(type==typeof(Func<GameState>))args[i]=(Func<GameState>)(()=>state);
+                else if(type==typeof(Func<int>))args[i]=(Func<int>)(()=>1);
+                else if(type==typeof(Func<RectTransform>))args[i]=(Func<RectTransform>)(()=>(RectTransform)P(Find("GameplayHudFrame"),"ContentRect"));
+                else if(type.IsInstanceOfType(registry))args[i]=registry;
+                else if(type==typeof(Action<GameCommand>))args[i]=(Action<GameCommand>)submitted.Add;
+                else {var invoke=type.GetMethod("Invoke");args[i]=Expression.Lambda(type,Expression.Empty(),invoke.GetParameters().Select(p=>Expression.Parameter(p.ParameterType)).ToArray()).Compile();}
+            }
+            var coordinator=ctor.Invoke(args);
+            coordinator.GetType().GetProperty("GetVisibleState").SetValue(coordinator,(Func<GameStateView>)(()=>visible));
+            try
+            {
+                Call(coordinator,"Render",routed); yield return null;
+                var page=Find("PlayerSelectionPageView"); Assert.That(page,Is.Not.Null);
+                var button=(Button)P(Options(page).Single(option=>(int)P(option,"Option").GetType().GetField("Id").GetValue(P(option,"Option"))==2),"Button");
+                button.onClick.Invoke(); Assert.That(submitted,Is.Empty); CollectionAssert.AreEqual(new[]{2},Selected(page));
+                var driver=Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp",true);
+                var selected=(string[])driver.GetMethod("PlayerSelectionFormalAnswers",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,
+                    new object[]{state.GameId,F(coordinator,"presentationGameId"),1,routed,F(coordinator,"presentationProjection"),P(P(page,"Draft"),"Config"),Selected(page)});
+                CollectionAssert.AreEqual(new[]{"p2"},selected);
+                ((Button)P(page,"ConfirmButton")).onClick.Invoke(); Call(page,"Confirm");
+                Assert.That(submitted.Count,Is.EqualTo(1)); CollectionAssert.AreEqual(selected,submitted[0].OptionIds);
+                Assert.That(submitted[0].Parameters["interactionId"],Is.EqualTo(request.InteractionId));
+            }
+            finally { Call(coordinator,"Dispose"); }
+        }
+
         private static void SetSize(Vector2Int size)
         {
 #if UNITY_EDITOR

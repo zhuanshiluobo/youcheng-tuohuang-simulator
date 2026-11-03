@@ -9,5 +9,5 @@ return function(ctx)
                     { rowId = 'Iron', label = Text.Ref('core:interaction.resource.iron') }
                 }
             }
-        }), Effect.SelectInfluence({ player = ctx.playerId, operation = 'move', subjectFilter = 'self', count = 1, requiredCount = 0 }) }
+        }), Effect.MoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'self', count = 1, requiredCount = 0 }) }
 end

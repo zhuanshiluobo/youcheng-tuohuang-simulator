@@ -378,8 +378,15 @@ namespace YC.Presentation.Validation
             if (view.Phase == GamePhase.Entrance && new[] { "event_card.option", "event_card.influence_targets",
                 "setup.basic_character.discard", "setup.influence.optional" }.Contains(request.Kind))
                 return view.Interactions.Count(r => r.InteractionId == request.InteractionId) == 1 && EntranceSourceChain(view, request) != null;
-            if (view.Phase != GamePhase.CharacterCover || request.Kind != "character.cover.card" ||
-                owner.EffectTypeId != "character.cover.task") return false;
+            if (view.Phase != GamePhase.CharacterCover || request.Kind != "character.cover.card") return false;
+            if(owner.EffectTypeId=="effect.item.move")
+            {
+                var cover=owner.NormalizedArguments?.Properties.FirstOrDefault(p=>p.Name=="cover")?.Value;
+                var modeValue=cover?.Properties.FirstOrDefault(p=>p.Name=="mode")?.Value;
+                return ArgumentText(owner,"operation")=="cover_character"&&modeValue?.Kind==NormalizedValueKind.String&&modeValue.StringValue=="main"&&
+                    view.Effects.Any(p=>p.EffectId==owner.ParentEffectId&&p.EffectTypeId=="character.cover.task"&&p.PlayerId==owner.PlayerId&&p.ChildEffectIds.Contains(owner.EffectId));
+            }
+            if(owner.EffectTypeId!="character.cover.task")return false;
             var version = owner.NormalizedArguments?.Properties.FirstOrDefault(value => value.Name == "apiVersion")?.Value;
             var mode = owner.NormalizedArguments?.Properties.FirstOrDefault(value => value.Name == "coverMode")?.Value;
             return !(version?.Kind == NormalizedValueKind.Integer && version.IntegerValue == 2) &&

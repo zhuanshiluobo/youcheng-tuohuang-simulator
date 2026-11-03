@@ -19,92 +19,44 @@ namespace YC.Tests.EditMode.ExpansionRules
     // 隔离通用展示合同；合成子请求仅复现候选规模，不实现卡面规则或代替正常UI验收。
     public sealed class RepeatPresentationFactsR12Tests
     {
-        private const string Script = "lua/presentation/interaction.repeat.lua";
-        private const string ChildType = "qy008.repeat.presentation.child";
-        private const string ChildPrompt = "core:interaction.map.influence.move";
-
-        [TestCase(128)]
-        [TestCase(288)]
-        public void FixedRepeatLargeChildCandidatesKeepPromptAndProgressAcrossRecovery(int candidateCount)
+        private const string Script = "lua/presentation/interaction.choose_build.lua";
+        private const string ChildType = "qy008.ordinary.presentation.child";
+        private const string ChildPrompt = "core:interaction.map.influence.move";        [TestCase(128)][TestCase(288)]
+        public void OrdinaryLargeCandidatesKeepTheirOwnPromptAndFullSetAcrossRecovery(int candidateCount)
         {
             using var f = new Fixture(candidateCount);
-            string root = f.Start(2, false);
-            f.AssertNoPresentationFailure();
-            var request = f.Open;
+            string root = f.Start(); var request = f.Open;
             Assert.That(request.CandidateIds, Is.EqualTo(f.Candidates));
             Assert.That(request.Presentation.Prompt.Key, Is.EqualTo(ChildPrompt));
-            AssertProgress(request, 0, 2);
-            Assert.That(request.Presentation.Options, Is.Empty, "父进度不能给子请求补continue/stop");
-            Assert.That(f.Contexts.Single().Facts.Properties.Select(p => p.Name), Is.EqualTo(new[] { "completedCount", "totalCount" }));
-            Assert.That(f.Contexts.Single().Facts.IsValid(), Is.True);
+            Assert.That(request.Presentation.Progress, Is.Null); Assert.That(request.Presentation.Options, Is.Empty);
             var before = JsonConvert.SerializeObject(request.Presentation);
-            var archive = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(f.State, f.State.ContentPackHash));
-            var recovered = HostRecoveryService.RecoverJson(archive, f.Registry);
-            Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
-            f.State = recovered.State; f.Pump();
-            Assert.That(f.Contexts.Count, Is.EqualTo(1), "恢复等待请求不能重新执行展示脚本");
+            var recovered = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(f.State, f.State.ContentPackHash)), f.Registry);
+            Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic); f.State = recovered.State; f.Pump();
             Assert.That(JsonConvert.SerializeObject(f.Open.Presentation), Is.EqualTo(before));
             Assert.That(f.Open.CandidateIds, Is.EqualTo(f.Candidates));
-            f.Answer(f.Candidates.Last()); // 明确验证尾部候选没有因显示预算被截断。
-            AssertProgress(f.Open, 1, 2);
-            Assert.That(f.Open.Presentation.Prompt.Key, Is.EqualTo(ChildPrompt));
-            Assert.That(f.Open.CandidateIds, Is.EqualTo(f.Candidates));
-            f.Answer(f.Candidates.First());
-            var completed = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root);
-            Assert.That(completed.Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(Number(completed.NormalizedResult, "requestedCount"), Is.EqualTo(2));
-            Assert.That(Number(completed.NormalizedResult, "completedCount"), Is.EqualTo(2));
-            Assert.That(f.Contexts.Count, Is.EqualTo(2));
-            Assert.That(f.State.EffectRuntime.InteractionRequests.Any(q => q.CandidateIds.Contains("stop")), Is.False);
-            f.AssertNoPresentationFailure();
-        }
-
-        [TestCase(0)]
-        [TestCase(2)]
-        public void AutomaticRepeatWithoutChildInputDoesNotInventPresentationOrChoice(int count)
-        {
-            using var f = new Fixture(0);
-            string root = f.Start(count, false);
-            var completed = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root);
-            Assert.That(completed.Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(Number(completed.NormalizedResult, "completedCount"), Is.EqualTo(count));
-            Assert.That(f.State.EffectRuntime.InteractionRequests, Is.Empty);
-            Assert.That(f.Contexts, Is.Empty, "没有实际交互就不应额外发布进度或选择");
-            Assert.That(completed.ChildEffectIds.Count, Is.EqualTo(count));
-            f.AssertNoPresentationFailure();
-        }
-
-        [TestCase(false)]
-        [TestCase(true)]
-        public void EarlyStopUsesOnlyItsOwnMandatoryDecisionCandidates(bool finishOneIteration)
-        {
-            using var f = new Fixture(288);
-            string root = f.Start(2, true);
-            AssertDecision(f.Open, 0);
-            Assert.That(Value(f.Contexts.Single().Facts, "candidateIds").Items.Select(v => v.StringValue),
-                Is.EqualTo(new[] { "continue", "stop" }));
-            if (finishOneIteration)
-            {
-                f.Answer("continue");
-                Assert.That(f.Open.CandidateIds, Is.EqualTo(f.Candidates));
-                Assert.That(f.Open.Presentation.Prompt.Key, Is.EqualTo(ChildPrompt));
-                AssertProgress(f.Open, 0, 2);
-                f.Answer(f.Candidates.Last());
-                AssertDecision(f.Open, 1);
-            }
-            f.Answer("stop");
-            var completed = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root);
-            Assert.That(completed.Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(Number(completed.NormalizedResult, "completedCount"), Is.EqualTo(finishOneIteration ? 1 : 0));
-            Assert.That(completed.ChildEffectIds.Count, Is.EqualTo(finishOneIteration ? 1 : 0));
+            f.Answer(f.Candidates.Last());
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(f.Contexts, Is.Empty, "未绑定脚本的普通请求不运行已退役的父级进度脚本");
             Assert.That(f.State.EffectRuntime.InteractionRequests.Any(q => q.Status == "open"), Is.False);
             f.AssertNoPresentationFailure();
+        }        [TestCase(0)][TestCase(2)]
+        public void IndependentEffectsWithoutInputDoNotInventPresentationOrChoice(int count)
+        {
+            using var f = new Fixture(0);
+            for (int i = 0; i < count; i++)
+            {
+                string root = f.Start();
+                Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            }
+            Assert.That(f.State.EffectRuntime.InteractionRequests, Is.Empty); Assert.That(f.Contexts, Is.Empty);
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count, Is.EqualTo(count)); f.AssertNoPresentationFailure();
         }
+
 
         [TestCase("empty")]
         [TestCase("partial_progress")]
         [TestCase("other_candidates")]
-        public void FormalRepeatScriptAcceptsNoApplicableDisplayWithoutInventingFacts(string shape)
+        public void FormalBuildScriptAcceptsNoApplicableDisplayWithoutInventingFacts(string shape)
         {
             using var f = new Fixture(0);
             var facts = shape == "empty" ? Object() : shape == "partial_progress"
@@ -115,8 +67,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.Pack.TryPresent(Script, new GameplayPresentationContext { Purpose = "interaction", Facts = facts },
                 out var result, out var code, out string reason), Is.True, reason);
             Assert.That(code, Is.EqualTo(LuaFailureCode.None));
-            Assert.That(result.Interaction.Prompt, Is.Null); Assert.That(result.Interaction.Progress, Is.Null);
-            Assert.That(result.Interaction.Options, Is.Empty); Assert.That(result.Interaction.QuantityRows, Is.Empty);
+            Assert.That(result.Interaction, Is.Null, "无适用显示时不生成空交互对象");
             Assert.That(result.Resolution, Is.Null); Assert.That(result.Details, Is.Empty);
             Assert.That(JsonConvert.SerializeObject(facts), Is.EqualTo(before));
         }
@@ -135,22 +86,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(reason, Does.Contain("显示参数无效")); Assert.That(result, Is.Null);
         }
 
-        private static void AssertDecision(InteractionRequest request, int completed)
-        {
-            Assert.That(request.CandidateIds, Is.EqualTo(new[] { "continue", "stop" }));
-            Assert.That(request.MinSelections, Is.EqualTo(1)); Assert.That(request.MaxSelections, Is.EqualTo(1));
-            Assert.That(request.AllowDecline, Is.False);
-            Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:effect.repeat.continue.prompt"));
-            Assert.That(request.Presentation.Options.Select(o => o.CandidateId), Is.EqualTo(request.CandidateIds));
-            AssertProgress(request, completed, 2);
-        }
 
-        private static void AssertProgress(InteractionRequest request, int completed, int total)
-        {
-            Assert.That(request.Presentation.Progress.Key, Is.EqualTo("core:effect.repeat.progress"));
-            Assert.That(request.Presentation.Progress.Arguments.Single(a => a.Name == "completed").Value.IntegerValue, Is.EqualTo(completed));
-            Assert.That(request.Presentation.Progress.Arguments.Single(a => a.Name == "total").Value.IntegerValue, Is.EqualTo(total));
-        }
+
+
+
+
 
         private sealed class Fixture : IDisposable
         {
@@ -169,7 +109,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 var configuration = new GameRuleConfiguration { PlayerCount = 3, EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
                 var installed = ExternalContentPack.Load(input);
                 var active = ActiveContentCatalogBuilder.Build(installed, configuration); configuration.ContentPackHash = active.ContentPackHash;
-                State = active.SetupRecipe.Assemble(new GameState { GameId = "qy008.repeat.presentation." + Guid.NewGuid().ToString("N"),
+                State = active.SetupRecipe.Assemble(new GameState { GameId = "qy008.ordinary.presentation." + Guid.NewGuid().ToString("N"),
                     MapId = configuration.MapId, ContentPackHash = active.ContentPackHash, ContentDefinitions = active.ContentDefinitions,
                     RuleConfiguration = configuration, Round = 1, ActionRound = 1, CurrentPlayerId = 1, StartPlayerId = 1,
                     Phase = GamePhase.ActionRound1, LaunchPlayerOrder = new List<int> { 1, 2, 3 },
@@ -193,18 +133,14 @@ namespace YC.Tests.EditMode.ExpansionRules
                     request.CandidateIds.AddRange(Candidates);
                     return EffectStepResult.Continue("waiting").AddInteraction(request);
                 }, EffectExecutorKind.IntrinsicFlow);
-                Artifacts.WriteLabeledText("R12隔离边界", "生产Repeat执行器和正式展示Lua；合成子请求仅复现128/288候选规模，不使用旧存档、卡面特例或正常UI覆盖。");
+                Artifacts.WriteLabeledText("R12隔离边界", "普通独立效果和正式展示Lua；合成子请求仅复现128/288候选规模，不使用旧存档、卡面特例或正常UI覆盖。");
             }
 
-            internal string Start(int count, bool allowEarlyStop)
+            internal string Start()
             {
-                var spec = EffectSpec.Create(LuaDomainEffectTypeIds.Repeat,
-                    Object("apiVersion", NormalizedValue.CreateInteger(1), "count", NormalizedValue.CreateInteger(count),
-                        "allowEarlyStop", NormalizedValue.CreateBoolean(allowEarlyStop)), 1);
-                spec.NestedEffectGroups.Add(new List<EffectSpec> { EffectSpec.Create(ChildType, playerId: 1) });
-                spec.Presentation = new EffectPresentationDefinition { PresentationScript = Script };
-                string root = Engine.CreateRoot(spec); Pump(); return root;
+                string root = Engine.CreateRoot(EffectSpec.Create(ChildType, playerId: 1)); Pump(); return root;
             }
+
             internal void Pump()
             {
                 var report = Engine.RunUntilQuiescent();

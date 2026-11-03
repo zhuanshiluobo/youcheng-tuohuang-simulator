@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.amiya",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "阿米娅",
   "expansionId": "infected",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "persistent",
       "subscriptionId": "content.infected.character.amiya.tactic",
       "script": "lua/characters/infected.character.amiya.tactic.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,

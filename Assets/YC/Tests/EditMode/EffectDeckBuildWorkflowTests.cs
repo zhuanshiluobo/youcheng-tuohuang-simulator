@@ -114,9 +114,7 @@ namespace YC.Tests.EditMode
             string AddFlow()
             {
                 var executor = new EffectTreeExecutor(fixture.State, fixture.Registry);
-                var owner = executor.CreateRoot(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                    Object("sourceZone", NormalizedValue.CreateString("deck"), "paymentMode", NormalizedValue.CreateString("auto"),
-                        "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+                var owner = executor.CreateRoot(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("auto"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("deck"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
                 Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
                 fixture.Refresh(1); readState = fixture.Public; readView = fixture.Visible; return owner;
             }
@@ -234,7 +232,8 @@ namespace YC.Tests.EditMode
             Assert.That(CanUsePayment(f.Workflow.BuildDraftViewModel(), "gold"), Is.True);
             if (f.Workflow.TryPreparePayment("gold")) f.Workflow.Confirm();
             Assert.That(f.Results.All(result => result.Succeeded), Is.True, string.Join(";", f.Results.Select(result => result.LogMessage)));
-            Assert.That(f.Commands.Count, Is.EqualTo(4));
+            Assert.That(f.Commands.Count, Is.EqualTo(3));
+            Assert.That(f.Commands[1].Parameters["operation"], Is.EqualTo("change_payment_mode"));
             Assert.That(f.Commands.Last().Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(8));
             Assert.That(f.State.Decks.FacilitySupply, Is.EqualTo(supply));
@@ -258,20 +257,21 @@ namespace YC.Tests.EditMode
         [Test]
         public void IsolatedHandlerDeferredGoldWaitsForCorrectReceiptAndViewer()
         {
-            var f = new Fixture(18, isolatedHandlers: true) { Deferred = true };
-            f.Start(); f.SelectTarget(); f.Ack(f.Commands.Last(), true);
-            f.Workflow.TryPreparePayment("gold"); var cancel = f.Commands.Last();
-            f.Ack(new GameCommand { CommandId = cancel.CommandId + ".wrong" }, true);
+            var f = new Fixture(18, isolatedHandlers: true) { Deferred = true }; f.Start(); f.SelectTarget();
+            f.Ack(f.Commands.Last(), true); var original = f.Scope().Payment;
+            f.Workflow.TryPreparePayment("gold"); var mode = f.Commands.Last();
+            Assert.That(mode.Parameters["operation"], Is.EqualTo("change_payment_mode"));
+            Assert.That(mode.Parameters["ownerEffectId"], Is.EqualTo(original.PaymentOwnerEffectId));
+            f.Ack(new GameCommand { CommandId = mode.CommandId + ".wrong" }, true);
             Assert.That(f.Commands.Count, Is.EqualTo(2));
-            f.Ack(cancel, true); var gold = f.Commands.Last();
-            Assert.That(f.Commands.Count, Is.EqualTo(3));
-            f.Refresh(2); f.Ack(gold, true);
-            Assert.That(f.Commands.Count, Is.EqualTo(3));
-            f.Refresh(1); f.Workflow.RefreshEffectBuild();
-            Assert.That(f.Commands.Count, Is.EqualTo(4));
+            f.Refresh(2); f.Ack(mode, true);
+            Assert.That(f.Commands.Count, Is.EqualTo(2), "别的查看者不能代原玩家续付");
+            f.Refresh(1); Assert.That(f.Scope().Payment.PaymentGeneration, Is.EqualTo(original.PaymentGeneration + 1));
+            f.Workflow.RefreshEffectBuild();
+            Assert.That(f.Commands.Count, Is.EqualTo(3)); Assert.That(f.Commands.Last().Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(8));
-            f.Workflow.RefreshEffectBuild(); f.Ack(gold, true);
-            Assert.That(f.Commands.Count, Is.EqualTo(4));
+            f.Workflow.RefreshEffectBuild(); f.Ack(mode, true);
+            Assert.That(f.Commands.Count, Is.EqualTo(3), "重复/晚到回执不能重付");
         }
 
         [Test]
@@ -285,14 +285,15 @@ namespace YC.Tests.EditMode
             if (f.Workflow.TryPreparePayment("gold")) f.Workflow.Confirm();
             Assert.That(f.Results.All(result => result.Succeeded), Is.True, string.Join(";", f.Results.Select(result => result.LogMessage)));
             Assert.That(f.Commands.Select(command => command.Kind), Is.EqualTo(new[] {
-                GameCommandKind.PreparePaymentDraft, GameCommandKind.PreparePaymentDraft,
-                GameCommandKind.PreparePaymentDraft, GameCommandKind.AnswerInteraction }));
-            Assert.That(f.Commands.Take(3).Select(command => command.Parameters["operation"]),
-                Is.EqualTo(new[] { "prepare_effect_build", "cancel_effect_build", "prepare_effect_build" }));
+                GameCommandKind.PreparePaymentDraft, GameCommandKind.PreparePaymentDraft, GameCommandKind.AnswerInteraction }));
+            Assert.That(f.Commands.Take(2).Select(command => command.Parameters["operation"]),
+                Is.EqualTo(new[] { "prepare_effect_build", "change_payment_mode" }));
             var pay = f.Commands.Last();
             var request = f.State.EffectRuntime.InteractionRequests.Single(value => value.GetStableInteractionId() == pay.Parameters["interactionId"]);
             var payer = f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == request.OwnerEffectId);
             Assert.That(payer.Payment.Preparation.SelectionOwnerEffectId, Is.EqualTo(f.Owner));
+            Assert.That(payer.EffectId, Is.EqualTo(resources.PaymentOwnerEffectId));
+            Assert.That(payer.Payment.PaymentGeneration, Is.EqualTo(resources.PaymentGeneration + 1));
             Assert.That(request.OwnerEffectId, Is.Not.EqualTo(f.Owner), "最终回答P，不回答B历史输入");
             Assert.That(pay.OptionIds, Is.EqualTo(new[] { "pay" }));
             Assert.That(payer.Payment.IsCommitted, Is.True);
@@ -344,31 +345,35 @@ namespace YC.Tests.EditMode
         public void DeferredSwitchResumesOnlyAfterExactReceiptAndOriginalViewerReturns()
         {
             var f = new Fixture(18) { Deferred = true }; f.Start(); f.SelectTarget();
-            f.Ack(f.Commands.Last(), true);
-            f.Workflow.TryPreparePayment("gold"); var cancel = f.Commands.Last();
-            f.Workflow.NotifyInteractionCommandResolved(f.State.GameId, cancel.CommandId + ".wrong", true, default);
+            f.Ack(f.Commands.Last(), true); var original = f.Scope().Payment;
+            f.Workflow.TryPreparePayment("gold"); var mode = f.Commands.Last();
+            Assert.That(mode.Parameters["operation"], Is.EqualTo("change_payment_mode"));
+            Assert.That(mode.Parameters["ownerEffectId"], Is.EqualTo(original.PaymentOwnerEffectId));
+            f.Ack(new GameCommand { CommandId = mode.CommandId + ".wrong" }, true);
             Assert.That(f.Commands.Count, Is.EqualTo(2));
-            f.Ack(cancel, true); var gold = f.Commands.Last();
-            Assert.That(gold.Parameters["paymentMode"], Is.EqualTo("gold"));
-            f.Refresh(2); f.Ack(gold, true);
-            Assert.That(f.Commands.Count, Is.EqualTo(3), "别的查看者不能代原玩家续付");
-            f.Refresh(1); f.Workflow.RefreshEffectBuild();
-            Assert.That(f.Commands.Count, Is.EqualTo(4));
-            Assert.That(f.Commands.Last().Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
-            f.Workflow.RefreshEffectBuild(); f.Ack(gold, true);
-            Assert.That(f.Commands.Count, Is.EqualTo(4));
+            f.Refresh(2); f.Ack(mode, true);
+            Assert.That(f.Commands.Count, Is.EqualTo(2), "别的查看者不能代原玩家续付");
+            f.Refresh(1); Assert.That(f.Scope().Payment.PaymentGeneration, Is.EqualTo(original.PaymentGeneration + 1));
+            f.Workflow.RefreshEffectBuild();
+            Assert.That(f.Commands.Count, Is.EqualTo(3)); Assert.That(f.Commands.Last().Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(8));
+            f.Workflow.RefreshEffectBuild(); f.Ack(mode, true);
+            Assert.That(f.Commands.Count, Is.EqualTo(3), "重复/晚到回执不能重付");
         }
 
         [Test]
         public void RejectedGoldPreparationDoesNotResignOnRefreshOrLateSuccess()
         {
             var f = new Fixture(18) { Deferred = true }; f.Start(); f.SelectTarget(); f.Ack(f.Commands.Last(), true);
-            f.Workflow.TryPreparePayment("gold"); var cancel = f.Commands.Last(); f.RejectNext = true; f.Ack(cancel, true);
-            var rejected = f.Commands.Last(); f.Ack(rejected, false);
+            var original = f.Scope().Payment; f.RejectNext = true;
+            f.Workflow.TryPreparePayment("gold"); var rejected = f.Commands.Last();
+            Assert.That(rejected.Parameters["operation"], Is.EqualTo("change_payment_mode")); f.Ack(rejected, false);
             f.Workflow.RefreshEffectBuild(); f.Ack(rejected, true);
-            Assert.That(f.Commands.Count, Is.EqualTo(3));
+            Assert.That(f.Commands.Count, Is.EqualTo(2));
             Assert.That(f.Commands.Any(command => command.Kind == GameCommandKind.AnswerInteraction), Is.False);
+            Assert.That(f.Scope().Payment.PaymentOwnerEffectId, Is.EqualTo(original.PaymentOwnerEffectId));
+            Assert.That(f.Scope().Payment.PaymentGeneration, Is.EqualTo(original.PaymentGeneration));
+            Assert.That(f.Scope().Payment.PaymentMode, Is.EqualTo("resources"));
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(18));
         }
 
@@ -490,7 +495,7 @@ namespace YC.Tests.EditMode
             AnswerLatest(held); AnswerLatest(decline: true);
             var storage = f.State.ItemZones.Items.Single(value => value.ItemId == held).ZoneId;
             var executor2 = new EffectTreeExecutor(f.State, f.Registry);
-            f.Owner = executor2.CreateRoot(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, playerId: 1));
+            f.Owner = executor2.CreateRoot(FacilityBuildContract.Select(1, "supply", "auto", false, false));
             Assert.That(executor2.RunUntilQuiescent().Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage); f.Refresh(1);
             var scope = f.Scope(); Assert.That(scope.Selection.CandidateIds, Does.Contain(held));
             var option = f.Options().Single(value => value.FacilityId == held);
@@ -619,7 +624,7 @@ namespace YC.Tests.EditMode
                 catalog.Register(Registry); GenericLuaEffectExecutor.Register(Registry); ResourceEffectExecutor.Register(Registry);
                 ResourcePaymentChoiceEffectExecutor.Register(Registry); ItemTransferEffectExecutor.Register(Registry);
                 FacilityBuildEffectExecutor.Register(Registry); FacilitySelectionEffectExecutor.Register(Registry);
-                FacilityEntryEffectExecutor.Register(Registry); RepeatEffectExecutor.Register(Registry);
+                FacilityEntryEffectExecutor.Register(Registry);
                 if (withMainWindow)
                 {
                     var builder = new RoundMainChainBuilder(); var order = new List<int> { 1, 2, 3 };
@@ -635,9 +640,7 @@ namespace YC.Tests.EditMode
                 }
                 var executor = new EffectTreeExecutor(State, Registry);
                 if (grantScript == null)
-                    Owner = executor.CreateRoot(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                        Object("sourceZone", NormalizedValue.CreateString(sourceZone), "paymentMode", NormalizedValue.CreateString(paymentMode),
-                            "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+                    Owner = executor.CreateRoot(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString(sourceZone == "reserve" ? "free" : paymentMode), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString(sourceZone), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
                 else
                 {
                     string script = pack.GetScript(grantScript);
@@ -651,7 +654,8 @@ namespace YC.Tests.EditMode
                     executor.CreateRoot(EffectSpec.Create("test.supply.activate", playerId: 1));
                 }
                 Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, State.EffectRuntime.LastFaultMessage);
-                Session = new GameSession(State); Session.RegisterHandler(new PreparePaymentDraftCommandHandler(Registry));
+                Session = new GameSession(State); Session.RegisterHandler(new BuildFacilityCommandHandler(new BuildFacilityService(), new RoundAdvanceService(), Registry));
+                Session.RegisterHandler(new PreparePaymentDraftCommandHandler(Registry));
                 Session.RegisterHandler(new AnswerInteractionCommandHandler(Registry));
                 if (grantScript != null)
                 {
@@ -665,7 +669,7 @@ namespace YC.Tests.EditMode
                         var result = Session.Submit(answer);
                         Assert.That(result.Succeeded, Is.True, result.LogMessage);
                     }
-                    Owner = State.EffectRuntime.EffectNodes.Single(value => value.EffectTypeId == FacilitySelectionEffectExecutor.TypeId &&
+                    Owner = State.EffectRuntime.EffectNodes.Single(value => FacilityBuildContract.IsSelection(value.EffectTypeId, value.NormalizedArguments) &&
                         value.PlayerId == 1).EffectId;
                 }
                 Port = new Port(this); Refresh(1);

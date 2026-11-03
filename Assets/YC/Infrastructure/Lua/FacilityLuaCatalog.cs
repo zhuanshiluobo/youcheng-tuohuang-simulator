@@ -30,16 +30,17 @@ namespace YC.Infrastructure.Lua
                 string source = pack.GetFacilityScript(registration.EffectId);
                 var dispatcher = new LuaEffectEventDispatcher(registry, compiler: new LuaEffectSpecCompiler(presentationPack: pack));
                 var content = facilityDefinitionsByEffectId[registration.EffectId].First();
+                string entryId = pack.GetScriptEntryId((string)content.Data["effectScript"]);
                 string continuation = (string)content.Data["completionHandlerId"] ?? "";
                 if (continuation.Length > 0)
                     dispatcher.RegisterContinuation(new LuaHandlerDefinition(continuation, "EffectCompleted", "",
-                        Definition(registration, source, continuation), EffectHandlerRole.Continuation, 0,
+                        Definition(registration, source, entryId, continuation), EffectHandlerRole.Continuation, 0,
                         "facility-definition:" + registration.EffectId, "facility.entry." + registration.EffectId));
                 dispatcher.Register(new LuaHandlerDefinition(
                     registration.SubscriptionId,
                     registration.EventType,
                     registration.RouteKey,
-                    Definition(registration, source),
+                    Definition(registration, source, entryId),
                     EffectHandlerRole.Primary,
                     0,
                     "facility-definition:" + registration.EffectId,
@@ -47,7 +48,7 @@ namespace YC.Infrastructure.Lua
             }
         }
 
-        private static LuaScriptDefinition Definition(FacilityContentRegistration registration, string source, string handlerId = null)
+        private static LuaScriptDefinition Definition(FacilityContentRegistration registration, string source, string entryId, string handlerId = null)
         {
             return new LuaScriptDefinition(
                 "content.facility." + registration.EffectId,
@@ -55,7 +56,7 @@ namespace YC.Infrastructure.Lua
                 handlerId ?? registration.HandlerId,
                 DefinitionVersion,
                 source,
-                LuaContentHasher.ComputeSha256(source));
+                LuaContentHasher.ComputeSha256(source), entryId);
         }
 
     }

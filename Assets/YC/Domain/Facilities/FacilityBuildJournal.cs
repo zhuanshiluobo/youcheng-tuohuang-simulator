@@ -65,9 +65,8 @@ namespace YC.Domain.Facilities
         {
             var facts = Read(context.Node) ?? throw new InvalidOperationException("facility_build_facts_missing");
             if (facts.ScoreCommitted) throw new InvalidOperationException("facility_build_score_duplicate");
-            string operationId = context.Node.EffectId + ":place";
-            var transfer = context.ChildNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && Text(n.NormalizedArguments, "operationId") == operationId);
-            if (transfer.Status != EffectNodeStatus.Completed || Text(Value(transfer.ContinuationData, "transferBatchReceipt"), "operationId") != operationId)
+            var transfer = context.ChildNodes.Single(n => n.CommonItemMovementV4?.FacilityPlacement?.BuildEffectId == context.Node.EffectId);
+            if (!FacilityPlacementMovement.IsCommitted(context.State,transfer,context.Node))
                 throw new InvalidOperationException("facility_build_placement_receipt_missing");
             Change(context.Node, "placementEffectId", NormalizedValue.CreateString(transfer.EffectId));
             Change(context.Node, "scoreReceiptId", NormalizedValue.CreateString(StableIdFactory.Create("build-score", context.Node.EffectId, facts.ItemId)));
@@ -135,6 +134,9 @@ namespace YC.Domain.Facilities
         }
         public static bool TryValidate(GameState state, EffectNodeRuntimeState build, out string reason)
         {
+            // API-11：选择式 Build 的建设事实属于实际子式，根流程由自身合同验证。
+            if (FacilityBuildContract.IsSelection(build.EffectTypeId, build.NormalizedArguments))
+                return FacilityBuildContract.TryValidateNode(state, build, out reason);
             reason = "facility_build_facts_invalid";
             var record = Read(build);
             if (record == null)
@@ -170,7 +172,7 @@ namespace YC.Domain.Facilities
             {
                 var transfer = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == Text(d, "placementEffectId"));
                 if (transfer?.ParentEffectId != build.EffectId || transfer.Status != EffectNodeStatus.Completed ||
-                    Text(Value(transfer.ContinuationData, "transferBatchReceipt"), "operationId") != build.EffectId + ":place" ||
+                    !FacilityPlacementMovement.IsCommitted(state,transfer,build) ||
                     Text(d, "scoreReceiptId") != StableIdFactory.Create("build-score", build.EffectId, record.ItemId) ||
                     !transfer.PositionChanges.Any(c => c.ItemId == record.ItemId && c.To.ZoneId == SelectedSlot(build).CellZoneId)) return false;
             }

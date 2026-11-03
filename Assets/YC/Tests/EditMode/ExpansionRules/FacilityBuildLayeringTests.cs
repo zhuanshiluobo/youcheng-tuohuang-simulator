@@ -215,8 +215,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             string chosen = Card(state, definition).ItemId;
             string slot = FindZone(state, "facility_supply_0").ZoneId;
             Transfer(state, Leg(state, chosen, slot, "top"));
-            var choose = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("gold"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+            var choose = Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("gold"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
             Assert.That(Open(state).CandidateIds, Does.Contain(chosen));
             int balance = state.FindPlayer(1).Resources.GoldVoucher;
             Run(state, MoveSpec(1, new[] { chosen }, slot, FindZone(state, "facility_deck").ZoneId, "bottom", 1));
@@ -238,9 +237,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Transfer(state, Leg(state, chosen, FindZone(state, "facility_supply_0").ZoneId, "top"));
             string fallback = Card(state, definition).ItemId;
             Transfer(state, Leg(state, fallback, FindZone(state, "facility_supply_1").ZoneId, "top"));
-            var choose = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("gold"),
-                    "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+            var choose = Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("gold"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
             var original = Open(state); var engine = new EffectTreeExecutor(state, Registry);
             string source = state.ItemZones.Items.Single(i => i.ItemId == chosen).ZoneId;
             Assert.That(engine.TryPrepareEffectBuildPayment(1, choose.EffectId, original.GetStableInteractionId(),
@@ -265,7 +262,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Open(state).CandidateIds, Does.Not.Contain(chosen));
             Assert.That(Open(state).CandidateIds, Does.Contain(fallback));
             Assert.That(FacilityLayerQuery.TopCityItems(state, 1), Is.Empty);
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n => (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))), Is.False);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score));
             state = Recover(state, "G6合法取消刷新后不替选");

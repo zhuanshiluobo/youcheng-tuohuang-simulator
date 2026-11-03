@@ -192,6 +192,7 @@ namespace YC.Infrastructure.Lua
             var payload = CreateCandidatePayload(draft).Properties.ToList();
             if (cardInstanceId.Length > 0) payload.Add(new LuaSnapshotEntry("cardInstanceRef", LuaSnapshotValue.String(cardInstanceId)));
             invocationContext.FacadeSnapshot.EventPayload = LuaSnapshotValue.Object(payload);
+            invocationContext.Memory = LuaEntryMemoryStore.Read(state.EffectRuntime, definition.Script.EntryId, invocationContext.EntryPoint, definition.Script.ContentHash);
             LuaInvocationResult invocation = host.Invoke(invocationDefinition.Script, invocationContext);
             if (!invocation.IsSuccess)
             {
@@ -334,6 +335,9 @@ namespace YC.Infrastructure.Lua
                     fault.Diagnostic);
             }
 
+            if (invocation.Memory != null && !SourceFactsLuaCatalog.IsPreviewInvocation(handlerContext))
+                LuaEntryMemoryStore.Replace(handlerContext.State.EffectRuntime, definition.Script.EntryId,
+                    invocationContext.EntryPoint, definition.Script.ContentHash, invocation.Memory);
             return specs;
         }
         internal NormalizedValue InvokeAbilityQuery(LuaHandlerDefinition definition, EffectEventHandlerContext handlerContext)
@@ -369,6 +373,7 @@ namespace YC.Infrastructure.Lua
                 EventPayload = ToLuaSnapshot(AbilityEventLuaFacts.Enrich(state, ruleEvent, ResolveLuaPayload(ruleEvent)))
             };
 
+            AttachAllocationResult(snapshot,definition,handlerContext);
             using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.stamp", definition)) LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision);
             if (state.FinalScoring?.Session != null && YC.Domain.Scoring.FinalScoringSessionService.Within(
                 state, handlerContext.OwnerNode.EffectId, state.FinalScoring.Session.OwnerEffectId))
@@ -462,6 +467,7 @@ namespace YC.Infrastructure.Lua
             using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.content", definition)) snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
 
             var invocationGold = player?.Resources == null ? null : RouteTollEscrowService.QueryBalance(state, player.PlayerId);
+            SourceFactsLuaCatalog.BindReceiptInvocation(handlerContext,state,registry,definition);
             return new LuaInvocationContext(
                 ruleEvent.EventId,
                 ruleEvent.EventType,
@@ -479,7 +485,9 @@ namespace YC.Infrastructure.Lua
             {
                 AllowOtherPlayerReads = definition.AllowOtherPlayerReads,
                 ResponseKind = definition.ResponseKind,
-                SourceFacts = ReadSourceFacts(state, definition, handlerContext, playerId)
+                Memory = LuaEntryMemoryStore.Read(state.EffectRuntime, definition.Script.EntryId, "", definition.Script.ContentHash),
+                SourceFacts = ReadSourceFacts(state, definition, handlerContext, playerId),
+                TransferReceipts = SourceFactsLuaCatalog.ReceiptsForInvocation(state, registry, definition, handlerContext, playerId)
             };
         }
 

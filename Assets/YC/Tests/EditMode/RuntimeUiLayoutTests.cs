@@ -57,38 +57,32 @@ namespace YC.Tests.EditMode
                 Does.Contain("17"));
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public void CharacterUse_SecondEffectOffersLegalChoiceOnce(bool finish)
+        [Test]
+        public void CharacterUse_LegacySecondEffectMenuIsRetired()
         {
-            var state = SecondEffectState();
-            var dialog = CreateCharacterUseDialog();
-            var calls = 0;
-            InvokePublic(dialog, "ShowSecondEffectStep", new CharacterCardPanelPresenter().BuildView(state, 1),
-                new Action(() => Assert.Fail("策略已完成，不得再次发动")),
-                new Action(() => { if (!finish) calls++; }),
-                new Action(() => { if (finish) calls++; }), new Func<bool>(() => true), null);
-            var strategy = FindTransform("Character Effect Option 0").GetComponent<Button>();
-            Assert.That(strategy.interactable, Is.False);
-            var button = FindTransform("Character Effect Option " + (finish ? 2 : 1)).GetComponent<Button>();
-            Assert.That(button.interactable, Is.True);
-            var click = button.onClick;
-            click.Invoke();
-            click.Invoke();
-            Assert.That(calls, Is.EqualTo(1), "连续点击不能重复提交角色效果决定。");
+            var dialog = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
+            var controller = Type.GetType("YC.Presentation.MobileCityInteractionController, Assembly-CSharp", true);
+            Assert.That(dialog.GetMethod("ShowSecondEffectStep"), Is.Null);
+            Assert.That(controller.GetField("characterUsePage", BindingFlags.Instance | BindingFlags.NonPublic), Is.Null);
         }
 
-        [Test]
-        public void CharacterUse_StaleChoiceAndClosingDoNotSubmitDecision()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CharacterUse_ValueOptionsAreRejectedBeforeInvokingCallbacks(bool enabled)
         {
             var dialog = CreateCharacterUseDialog();
+            var optionType = Type.GetType("YC.Presentation.EffectDialogOption, Assembly-CSharp", true);
             var calls = 0;
-            Action callback = () => calls++;
-            InvokePublic(dialog, "ShowSecondEffectStep", new CharacterCardPanelPresenter().BuildView(SecondEffectState(), 1),
-                callback, callback, callback, new Func<bool>(() => false), callback);
-            FindTransform("Character Effect Option 2").GetComponent<Button>().onClick.Invoke();
-            InvokePublic(dialog, "Hide");
+            var option = Activator.CreateInstance(optionType, new object[] { "旧值菜单", new Action(() => calls++), enabled });
+            var options = Array.CreateInstance(optionType, 1); options.SetValue(option, 0);
+            var show = Array.Find(dialog.GetType().GetMethods(), method => method.Name == "ShowOptions" && method.GetParameters().Length == 5);
+            var error = Assert.Throws<TargetInvocationException>(() => show.Invoke(dialog,
+                new object[] { "退役合同隔离", string.Empty, options, null, null }));
+            Assert.That(error.InnerException, Is.InstanceOf<InvalidOperationException>());
+            Assert.That(error.InnerException.Message, Does.Contain("ordinary_option_row_retired"));
             Assert.That(calls, Is.Zero);
+            var oldRows = owner.GetComponentsInChildren(Type.GetType("YC.Presentation.EffectDialogOptionRowView, Assembly-CSharp", true), false);
+            Assert.That(oldRows, Is.Empty);
         }
 
         private object CreateCharacterUseDialog()
@@ -100,23 +94,6 @@ namespace YC.Tests.EditMode
             return Activator.CreateInstance(type, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
                 null, new object[] { registry, owner.GetComponentInChildren<Canvas>(true).GetComponent<RectTransform>() }, null);
         }
-
-        private static GameState SecondEffectState() => new GameState
-        {
-            Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, StartPlayerId = 1,
-            Players = { new PlayerState { PlayerId = 1, Color = PlayerColor.Red,
-                CoveredCharacterCardId = "character.red.p1.cannot" } },
-            PendingCharacterEffect = new PendingCharacterEffectState
-            {
-                ChoiceType = YC.Domain.Cards.CharacterPendingChoiceTypes.SecondEffectDecision,
-                PlayerId = 1, CardId = "character.red.p1.cannot",
-                RemainingEffectMode = YC.Domain.Cards.CharacterEffectModes.Tactic,
-                OptionIds = { YC.Domain.Cards.CharacterEffectChoiceIds.ContinueSecondEffect,
-                    YC.Domain.Cards.CharacterEffectChoiceIds.FinishCharacterUse }
-            }
-        };
-
-
 
         [Test]
         public void BuildInfoPanel_BindsVisibleCityAndIndependentSupply()

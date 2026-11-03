@@ -84,10 +84,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             if (freeze) registry.FreezeAbilityCatalog(state.ContentDefinitions.AbilitySources);
         }
-        private static Tuple<GameState, EffectRegistry> Fixture(int maxUses, bool heterogeneous = false, bool build = false, bool withAward = false)
+        private static Tuple<GameState, EffectRegistry> Fixture(int maxUses, bool heterogeneous = false, bool build = false, bool withAward = false, int markerCount = 3)
         {
             var type = typeof(YC.Tests.EditMode.SettlementFlowContractTests);
-            var state = (GameState)type.GetMethod("PaymentStateCore", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { build, withAward });
+            var state = (GameState)type.GetMethod("PaymentStateCoreWithMarkerCount", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, new object[] { build, withAward, markerCount });
             state.ContentDefinitions = state.ContentDefinitions ?? new GameContentDefinitions();
             state.ContentDefinitions.AbilitySources.Clear();
             var pack = ExternalContentPack.Current.CreateActiveSnapshot(new GameRuleConfiguration { MapId = state.MapId, PlayerCount = 2,
@@ -116,6 +116,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             new EffectTreeExecutor(state, reg).CreateRoot(EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); Run(state, reg); Answer(state, reg, NormalizedValue.CreateString(card.ItemId));
             new EffectTreeExecutor(state, reg).CreateRoot(CharacterLifecycleService.CreateUseSpec(1, card.ItemId, "tactic")); Run(state, reg);
             Answer(state, reg, NormalizedValue.CreateString("3"));
+            if (markerCount > 3)
+            {
+                // Passenger原初始存放仍是3；额外隔离库存经API-25既有玩家标记移动合法入区，不扩大角色规则。
+                var extra = state.ItemZones.Items.Where(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 1 &&
+                    i.ZoneId == i.OriginalSupplyZoneId).ToArray();
+                var storage = state.ItemZones.Zones.Single(z => z.ParentId == card.ItemId && z.LocalZoneId == "markers");
+                var engine = new EffectTreeExecutor(state, reg);
+                string moved = engine.CreateRoot(TokenSpec(1, extra.Select(i => i.ItemId), extra.First().ZoneId, storage.ZoneId,
+                    extra.Length, "core.player_marker_storage"));
+                Run(state, reg); Assert.That(engine.GetNode(moved).Status, Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage.ZoneId), Is.EqualTo(markerCount));
+            }
             return Tuple.Create(state, reg);
         }
         private static InteractionRequest Open(GameState s) => s.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
@@ -133,6 +145,58 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static GameState Restore(GameState s, EffectRegistry r)
         { LastState = s; var restored = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(s)), r); Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); LastState = restored.State; return restored.State; }
 
+        // 只检原始字段合同／Host的反序列化前门禁；这些最小JSON不是可恢复完整对局。
+        private static JObject ItemDraftRawProbe() => new JObject {
+            ["PaymentInsertionItems"] = JObject.FromObject(new PaymentInsertionItemDraft {
+                RequiredCount = 2, AwaitingRevision = 1, CandidateIds = new List<string> { "one", "two" },
+                Picks = new List<PaymentInsertionItemPick> { new PaymentInsertionItemPick { EffectId = "pick.one", ItemId = "one" } } }) };
+
+        [Test] public void ItemDraftRawShapeAcceptsCompleteCurrentDataAndAbsentOptionalState()
+        {
+            var node = ItemDraftRawProbe(); var original = node.ToString(Formatting.None);
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, true), Is.Empty);
+            Assert.That(node.ToString(Formatting.None), Is.EqualTo(original), "校验不补写或转换原件");
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(new JObject(), true), Is.Empty);
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(new JObject { ["PaymentInsertionItems"] = JValue.CreateNull() }, true), Is.Empty);
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, false), Is.EqualTo("payment_insertion_item_draft_raw_shape_invalid"), "定义规格不能夹带运行时草稿");
+        }
+
+        [TestCase("ProtocolVersion")][TestCase("RequiredCount")][TestCase("AwaitingRevision")]
+        [TestCase("Cancelled")][TestCase("CandidateIds")][TestCase("Picks")]
+        public void ItemDraftRawShapeRejectsMissingFieldsBeforeDtoDefaults(string field)
+        {
+            var node = ItemDraftRawProbe(); ((JObject)node["PaymentInsertionItems"]).Remove(field);
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, true), Is.EqualTo("payment_insertion_item_draft_raw_shape_invalid"));
+        }
+
+        [TestCase("ProtocolVersion", "1")][TestCase("RequiredCount", "2")]
+        [TestCase("AwaitingRevision", "1")][TestCase("Cancelled", "false")]
+        public void ItemDraftRawShapeRejectsJsonNetScalarCoercion(string field, string scalar)
+        {
+            var node = ItemDraftRawProbe(); node["PaymentInsertionItems"][field] = scalar;
+            Assert.DoesNotThrow(() => node["PaymentInsertionItems"].ToObject<PaymentInsertionItemDraft>(), "旧DTO读取可转换该值；新门禁须保留原始类型约束");
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, true), Is.EqualTo("payment_insertion_item_draft_raw_shape_invalid"));
+        }
+
+        [TestCase("CandidateIds[0]")][TestCase("Picks[0].EffectId")][TestCase("Picks[0].ItemId")]
+        public void ItemDraftRawShapeRejectsCoercedNestedIdentity(string path)
+        {
+            var node = ItemDraftRawProbe(); node["PaymentInsertionItems"].SelectToken(path).Replace(new JValue(1));
+            Assert.That(ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, true), Is.EqualTo("payment_insertion_item_draft_raw_shape_invalid"));
+        }
+
+        [Test] public void HostRawTraversalRejectsMissingDraftProtocolBeforeDeserialization()
+        {
+            var node = ItemDraftRawProbe(); node["EffectTypeId"] = ResourcePaymentSubstitutionEffectExecutor.TypeId;
+            ((JObject)node["PaymentInsertionItems"]).Remove("ProtocolVersion");
+            var state = new JObject { ["EffectRuntime"] = new JObject { ["EffectNodes"] = new JArray(node) } };
+            var method = typeof(HostRecoveryService).GetMethod("TryValidateRetiredCardMarkerRawState",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var args = new object[] { state, null };
+            Assert.That(method.Invoke(null, args), Is.EqualTo(false));
+            Assert.That(args[1], Is.EqualTo("payment_insertion_item_draft_raw_shape_invalid"));
+        }
+
         [Test] public void RealRuleWithoutInsertionDoesNotBecomeClickableOffer()
         {
             var f = Fixture(-1); string id = Pay(f.Item1, f.Item2);
@@ -149,11 +213,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 s = Restore(s, r); Invoke(s, r, option); s = Restore(s, r);
                 Answer(s, r, NormalizedValue.CreateString("Iron=1"));
-                if (Open(s).InteractionTypeId == "lua.choice")
+                if (Open(s).InteractionTypeId == "effect.choice.execute")
                 {
                     Assert.That(heterogeneous, Is.True); s = Restore(s, r); var q = Open(s);
                     Assert.That(q.CandidateIds.Count, Is.EqualTo(3 - use));
-                    Answer(s, r, Strings(new[] { q.CandidateIds.Last() }));
+                    Answer(s, r, NormalizedValue.CreateString(q.CandidateIds.Last()));
                 }
                 Assert.That(Open(s).OwnerEffectId, Is.EqualTo(id));
                 Assert.That(Entry(s, id).AcceptedUseCount, Is.EqualTo(use + 1));
@@ -171,6 +235,71 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(s.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2)); s = Restore(s, r);
             Assert.That(p.FinalCost.Iron, Is.Zero);
         }
+        [TestCase(3, false)][TestCase(17, false)][TestCase(17, true)]
+        public void MultiItemDraftKeepsEveryCandidateAndCommitsOnlyTheCompleteSelection(int markerCount, bool cancel)
+        {
+            var fixture = Fixture(1, true, markerCount: markerCount); var s = fixture.Item1; var r = fixture.Item2;
+            string ownerId = Pay(s, r); string option = Entry(s, ownerId).OptionId;
+            Invoke(s, r, option); Answer(s, r, NormalizedValue.CreateString("Iron=2"));
+            var selection = s.EffectRuntime.EffectNodes.Single(n => n.PaymentInsertionItems != null);
+            var candidates = selection.PaymentInsertionItems.CandidateIds.ToArray();
+            Assert.That(candidates.Length, Is.EqualTo(markerCount)); Assert.That(selection.PaymentInsertionItems.RequiredCount, Is.EqualTo(2));
+            var originalZones = candidates.ToDictionary(id => id, id => s.ItemZones.Items.Single(i => i.ItemId == id).ZoneId);
+            string[] CurrentLeafItems()
+            {
+                var ids = new List<string>();
+                void Visit(EffectSpecRuntimeState spec)
+                {
+                    if (spec.EffectTypeId == ResourcePaymentInsertionService.PickItemTypeId) ids.Add(Text(spec.NormalizedArguments, "itemId"));
+                    if (spec.EffectTypeId == LuaDomainEffectTypeIds.Choice) Assert.That(Value(spec.NormalizedArguments, "options").Items.Count, Is.LessThanOrEqualTo(16));
+                    foreach (var child in spec.NestedEffects) Visit(child);
+                }
+                var owner = s.EffectRuntime.EffectNodes.Single(n => n.EffectId == Open(s).OwnerEffectId);
+                foreach (var child in owner.NestedEffects) Visit(child);
+                return ids.ToArray();
+            }
+            void Pick(string item)
+            {
+                for (int guard = 0; !Open(s).CandidateIds.Contains(item) && guard < 4; guard++)
+                {
+                    var q = Open(s); var node = s.EffectRuntime.EffectNodes.Single(n => n.EffectId == q.OwnerEffectId);
+                    string page = q.CandidateIds.Single(id => {
+                        int index = Value(node.NormalizedArguments, "options").Items.FindIndex(v => v.StringValue == id);
+                        return JsonConvert.SerializeObject(node.NestedEffects[node.NestedGroupSizes.Take(index).Sum()]).Contains("\"" + item + "\"");
+                    });
+                    Answer(s, r, NormalizedValue.CreateString(page));
+                }
+                Assert.That(Open(s).CandidateIds, Does.Contain(item)); Answer(s, r, NormalizedValue.CreateString(item));
+            }
+            Assert.That(CurrentLeafItems(), Is.EquivalentTo(candidates), "真实草稿候选须完整，不能截前16项");
+            s = Restore(s, r); Pick(candidates.Last());
+            Assert.That(CurrentLeafItems(), Is.EquivalentTo(candidates.Take(markerCount - 1)));
+            s = Restore(s, r);
+            foreach (var pair in originalZones) Assert.That(s.ItemZones.Items.Single(i => i.ItemId == pair.Key).ZoneId, Is.EqualTo(pair.Value));
+            Assert.That(s.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment.IsCommitted, Is.False);
+            if (cancel)
+            {
+                Answer(s, r, NormalizedValue.CreateBoolean(false)); s = Restore(s, r);
+                var owner = s.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+                Assert.That(owner.Payment.SourceDrafts, Is.Empty); Assert.That(owner.Payment.SourceReceipts, Is.Empty);
+                Assert.That(ResourcePaymentInsertionService.ConfiguredUseCount(s, Entry(s, ownerId)), Is.Zero);
+                foreach (var pair in originalZones) Assert.That(s.ItemZones.Items.Single(i => i.ItemId == pair.Key).ZoneId, Is.EqualTo(pair.Value));
+                return;
+            }
+            Pick(candidates.First()); s = Restore(s, r);
+            var selectedIds = new[] { candidates.Last(), candidates.First() };
+            var payment = s.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment;
+            Assert.That(payment.SourceDrafts.Single().SelectedItemIds, Is.EquivalentTo(selectedIds)); Assert.That(payment.SourceReceipts, Is.Empty);
+            foreach (var pair in originalZones) Assert.That(s.ItemZones.Items.Single(i => i.ItemId == pair.Key).ZoneId, Is.EqualTo(pair.Value));
+            Answer(s, r, NormalizedValue.CreateString(ResourceEffectExecutor.PaymentConfirmationCandidateId));
+            payment = s.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment;
+            Assert.That(payment.IsCommitted, Is.True); Assert.That(payment.SourceReceipts.Single().ItemIds, Is.EquivalentTo(selectedIds));
+            Assert.That(s.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
+            s = Restore(s, r); Run(s, r);
+            Assert.That(s.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId).Payment.SourceReceipts.Single().ItemIds, Is.EquivalentTo(selectedIds));
+            Assert.That(s.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
+        }
+
         [Test] public void WrongOwnerStaleRevisionAndLostSourceDoNotChangeState()
         {
             var f = Fixture(2); var s = f.Item1; string id = Pay(s, f.Item2); var e = Entry(s, id);

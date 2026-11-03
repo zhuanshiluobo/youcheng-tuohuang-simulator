@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.ability.M13",
   "contentType": "entrepreneur_ability",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "displayName": "马丁·费舍尔",
   "artwork": "artwork/entrepreneurs/M13.jpg",
   "expansionId": "infected",
@@ -22,7 +22,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.built",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -37,7 +37,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.blueprint_source",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -52,7 +52,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.tower_source",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -67,7 +67,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.overlay_slots",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -82,7 +82,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.overlay_response",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -97,7 +97,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.M13.urbanization_after",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "entrepreneur.M13.urbanization_after.completed",
       "presentation": {
         "description": {
@@ -486,37 +486,37 @@
     {
       "handlerId": "entrepreneur.M13.built",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.M13.blueprint_source",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.M13.tower_source",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.M13.overlay_slots",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.M13.overlay_response",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.M13.urbanization_after",
       "script": "lua/entrepreneurs/martin_ability.lua",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "completionHandlerId": "entrepreneur.M13.urbanization_after.completed"
     }
   ]

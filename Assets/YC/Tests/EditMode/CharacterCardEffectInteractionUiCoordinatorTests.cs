@@ -12,6 +12,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
+using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -20,7 +21,7 @@ using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
 {
-    public sealed class CharacterCardEffectInteractionUiCoordinatorTests
+    public sealed partial class CharacterCardEffectInteractionUiCoordinatorTests
     {
         private GameObject canvasObject;
         [TestCase("setup.basic_character.discard")]
@@ -115,8 +116,11 @@ namespace YC.Tests.EditMode
             renderer.Clear();
         }
 
-        [Test]
-        public void SaleQuantityInput_RejectsInvalidDraftAndSubmitsValidAmountOnlyOnce()
+        [TestCase("effect.resource.sell")]
+        [TestCase("core:custom.sale.prompt")]
+        [TestCase("effect.resource.choose_type")]
+        [TestCase("effect.influence.replace.target")]
+        public void SaleQuantityInput_RejectsInvalidDraftAndSubmitsValidAmountOnlyOnce(string promptKey)
         {
             var state = CreateState();
             state.FindPlayer(1).Resources.Originium = 3;
@@ -126,7 +130,8 @@ namespace YC.Tests.EditMode
                 InteractionId = "sale-input", InteractionTypeId = "lua.choice", Status = "open",
                 Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
                 CandidateIds = new List<string> { "sale|originium|0", "sale|originium|1", "sale|originium|2", "sale|originium|3" },
-                MinSelections = 1, MaxSelections = 4, PromptKey = "effect.resource.sell"
+                MinSelections = 1, MaxSelections = 4, PromptKey = promptKey,
+                PromptParameters = ItemTransferEffectExecutor.Object("interactionSemantic", NormalizedValue.CreateString(ContentPrimitiveEffectExecutor.ResourceSaleSemantic))
             };
             state.EffectRuntime.InteractionRequests.Add(request);
             var commands = new List<YC.Domain.Commands.GameCommand>();
@@ -146,10 +151,49 @@ namespace YC.Tests.EditMode
             input.onValueChanged.Invoke("2");
             Assert.That(confirm.interactable, Is.True);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
+            request.StateRevision++;
+            confirm.onClick.Invoke();
+            Assert.That(commands, Is.Empty, "出售也必须拒绝刷新前的旧版本回调。");
+            renderer.Render(InteractionRequestProjector.ProjectForPlayer(request, 1));
+            confirm = FindChild(GetOverlay(fixture.Dialog), "Confirm Character Effect").GetComponent<Button>();
             confirm.onClick.Invoke(); confirm.onClick.Invoke();
             Assert.That(commands, Has.Count.EqualTo(1));
             Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "sale|originium|2" }));
             renderer.Clear();
+        }
+
+        [TestCase("effect.resource.sell")]
+        [TestCase("core:custom.sale.prompt")]
+        public void RetiredPlainChoiceCannotBorrowSalePageOrCreateOrdinaryRows(string promptKey)
+        {
+            var artifacts = ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var state = CreateState(); var fixture = CreateCoordinator(state);
+                var request = new InteractionRequest { InteractionId = "plain-sale-looking-choice", InteractionTypeId = "lua.choice",
+                    AnsweringPlayerId = 1, Visibility = "owner", Status = "open", StateRevision = 1,
+                    PromptKey = promptKey, MinSelections = 1, MaxSelections = 1,
+                    CandidateIds = new List<string> { "sale|originium|0", "sale|originium|999" } };
+                state.EffectRuntime.InteractionRequests.Add(request);
+                var before = JsonConvert.SerializeObject(state);
+                var commands = new List<YC.Domain.Commands.GameCommand>();
+                var renderer = CreateGenericRenderer(state, fixture.Dialog, commands);
+                var error = Assert.Throws<InvalidOperationException>(() =>
+                    renderer.Render(InteractionRequestProjector.ProjectForPlayer(request, 1)));
+                Assert.That(error.Message, Does.StartWith("[ordinary_option_row_retired]"));
+                var overlay = GetOverlay(fixture.Dialog);
+                if (overlay != null)
+                {
+                    var controls = overlay.GetComponentsInChildren<Transform>(true);
+                    Assert.That(controls.Any(control => control.name.StartsWith("Character Effect Option ", StringComparison.Ordinal)), Is.False);
+                    Assert.That(controls.Any(control => control.name.StartsWith("Character Sale ", StringComparison.Ordinal) && control.gameObject.activeInHierarchy), Is.False);
+                }
+                Assert.That(commands, Is.Empty, "提示键及候选文本不能授予出售语义，也不能重新创建退役普通候选。");
+                Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+                artifacts.WriteLabeledText("退役普通候选不得借出售提示键或文本回流", JsonConvert.SerializeObject(new { request, error = error.Message, commands }));
+                renderer.Clear();
+            }
+            finally { artifacts.Finish(); }
         }
 
 
@@ -245,7 +289,8 @@ namespace YC.Tests.EditMode
                 InteractionId = "zero-sale", InteractionTypeId = "character.ability.choice.awaiting_trade", Status = "open",
                 Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
                 CandidateIds = new List<string> { "sale|originium|0", "sale|originium|1" },
-                MinSelections = 1, MaxSelections = 4, PromptKey = "character.cannot.strategy.choose_sale"
+                MinSelections = 1, MaxSelections = 4, PromptKey = "character.cannot.strategy.choose_sale",
+                PromptParameters = ItemTransferEffectExecutor.Object("interactionSemantic", NormalizedValue.CreateString(ContentPrimitiveEffectExecutor.ResourceSaleSemantic))
             };
             state.EffectRuntime.InteractionRequests.Add(request);
             var commands = new List<YC.Domain.Commands.GameCommand>();
@@ -466,14 +511,14 @@ namespace YC.Tests.EditMode
             visible.Interactions[0].Visibility = "owner";
             confirm.Invoke();
             Assert.That(commands, Has.Count.EqualTo(1));
-            var settled = renderer.GetType().GetMethod("NotifyCommandSettled");
+            var settled = renderer.GetType().GetMethod("NotifyInteractionCommandResolved");
             foreach (var id in new[] { "", "unrelated-command" })
             {
-                settled.Invoke(renderer, new object[] { id });
+                settled.Invoke(renderer, new object[] { client.GameId, id, false, CommandErrorCode.InvalidTarget });
                 Assert.That(router.RouteOpen(source(), 1), Is.True);
                 Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "非本命令回包不能释放pending并重建可提交页。");
             }
-            settled.Invoke(renderer, new object[] { commands[0].CommandId });
+            settled.Invoke(renderer, new object[] { client.GameId, commands[0].CommandId, false, CommandErrorCode.InvalidTarget });
             Assert.That(router.RouteOpen(source(), 1), Is.True);
             Assert.That(FindChild(GetOverlay(fixture.Dialog), "Confirm Selection").GetComponent<Button>().interactable, Is.True,
                 "匹配拒绝回包后保留草稿。");
@@ -510,7 +555,7 @@ namespace YC.Tests.EditMode
             Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "originium" }));
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
             Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "pending 不能重建可提交页。");
-            renderer.GetType().GetMethod("NotifyCommandSettled").Invoke(renderer, new object[] { commands[0].CommandId });
+            renderer.GetType().GetMethod("NotifyInteractionCommandResolved").Invoke(renderer, new object[] { state.GameId, commands[0].CommandId, false, CommandErrorCode.InvalidTarget });
             var olderProjection = YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1);
             olderProjection.StateRevision--;
             renderer.Render(olderProjection);
@@ -525,12 +570,12 @@ namespace YC.Tests.EditMode
             Assert.That(FindChild(GetOverlay(fixture.Dialog), "Confirm Selection").GetComponent<Button>().interactable, Is.False,
                 "新请求不得继承上一阶段选择。");
             ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
-            renderer.GetType().GetMethod("NotifyCommandSettled").Invoke(renderer, new object[] { commands[0].CommandId });
+            renderer.GetType().GetMethod("NotifyInteractionCommandResolved").Invoke(renderer, new object[] { state.GameId, commands[0].CommandId, false, CommandErrorCode.InvalidTarget });
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
             ClickButton(GetOverlay(fixture.Dialog), "Confirm Selection");
             Assert.That(commands, Has.Count.EqualTo(2), "旧回包不能清理新请求的草稿。");
             Assert.That(commands[1].OptionIds, Is.EqualTo(new[] { "iron" }));
-            renderer.GetType().GetMethod("NotifyCommandSettled").Invoke(renderer, new object[] { commands[0].CommandId });
+            renderer.GetType().GetMethod("NotifyInteractionCommandResolved").Invoke(renderer, new object[] { state.GameId, commands[0].CommandId, false, CommandErrorCode.InvalidTarget });
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
             Assert.That(IsDialogShowing(fixture.Dialog), Is.False, "旧回包不能释放新请求的 pending 锁。");
             renderer.Clear();
@@ -555,10 +600,11 @@ namespace YC.Tests.EditMode
             renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
             ClickButton(GetOverlay(fixture.Dialog), "Character Effect Option 0");
             var overlay = GetOverlay(fixture.Dialog);
-            var confirm = FindChild(overlay, "Confirm Selection").GetComponent<Button>().onClick;
-            var cancel = FindChild(overlay, "Cancel Selection").GetComponent<Button>().onClick;
-            (cancelFirst ? cancel : confirm).Invoke();
-            (cancelFirst ? confirm : cancel).Invoke();
+            Action confirm = FindChild(overlay, "Confirm Selection").GetComponent<Button>().onClick.Invoke;
+            // 当前通用页没有取消按钮；实际已开放的 Escape 仍按 AllowDecline 提交同一个拒绝答案。
+            Action cancel = () => renderer.GetType().GetMethod("OnEscape").Invoke(renderer, null);
+            (cancelFirst ? cancel : confirm)();
+            (cancelFirst ? confirm : cancel)();
             Assert.That(commands, Has.Count.EqualTo(1));
             if (cancelFirst)
                 Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter], Is.EqualTo("false"));
@@ -580,7 +626,8 @@ namespace YC.Tests.EditMode
                 InteractionId = "sale-refresh", InteractionTypeId = "lua.choice", Status = "open",
                 Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 1,
                 CandidateIds = new List<string> { "sale|originium|0", "sale|" + resourceId + "|1", "sale|" + resourceId + "|2", "sale|" + resourceId + "|3" },
-                MinSelections = 1, MaxSelections = 4, PromptKey = "effect.resource.sell"
+                MinSelections = 1, MaxSelections = 4, PromptKey = "effect.resource.sell",
+                PromptParameters = ItemTransferEffectExecutor.Object("interactionSemantic", NormalizedValue.CreateString(ContentPrimitiveEffectExecutor.ResourceSaleSemantic))
             };
             state.EffectRuntime.InteractionRequests.Add(request);
             var commands = new List<YC.Domain.Commands.GameCommand>();

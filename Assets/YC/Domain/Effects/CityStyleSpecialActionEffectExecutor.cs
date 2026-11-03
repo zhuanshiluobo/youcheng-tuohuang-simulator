@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
 using YC.Domain.Influence;
@@ -20,6 +21,7 @@ namespace YC.Domain.Effects
         public const string ResolveContent = "effect.city_style.special_action.content";
         public const string ScriptStep = "effect.city_style.special_action.step";
         public const string OperatePlayerMarker = "effect.player.marker.operate";
+        public const string RoundCleanup = "effect.city_style.round_cleanup";
         public const string GrantMainActions = "effect.player.main_action.grant";
     }
 
@@ -64,14 +66,14 @@ namespace YC.Domain.Effects
         public static EffectSpec Cleanup(int playerId, string sourceId = "")
         {
             return new EffectSpec(
-                CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker,
+                CityStyleSpecialActionEffectTypeIds.RoundCleanup,
                 Object(
                     Entry("mode", NormalizedValue.CreateString("round_cleanup")),
                     Entry("playerId", NormalizedValue.CreateStableReference("player", playerId.ToString(CultureInfo.InvariantCulture)))))
             {
                 PlayerId = playerId,
                 SourceId = sourceId ?? string.Empty,
-                DefinitionVersion = CityStyleSpecialActionEffectExecutor.DefinitionVersion
+                DefinitionVersion = "2.0.0"
             };
         }
 
@@ -135,8 +137,7 @@ namespace YC.Domain.Effects
                 executor.ExecuteContent, EffectExecutorKind.IntrinsicFlow);
             RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.ScriptStep,
                 executor.ExecuteScriptStep, EffectExecutorKind.IntrinsicFlow);
-            RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker,
-                ExecuteMarkerOperation, EffectExecutorKind.Atomic);
+            RegisterCleanup(registry);
             RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.GrantMainActions,
                 ExecuteGrantMainActions, EffectExecutorKind.Atomic);
         }
@@ -144,8 +145,8 @@ namespace YC.Domain.Effects
         public static void RegisterCleanup(EffectRegistry registry)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
-            RegisterIfMissing(registry, CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker,
-                ExecuteMarkerOperation, EffectExecutorKind.Atomic);
+            YC.Domain.Items.PlayerMarkerOperation.Register(registry);
+            if(!registry.TryGet(CityStyleSpecialActionEffectTypeIds.RoundCleanup,out _)) registry.Register(new EffectRegistration(CityStyleSpecialActionEffectTypeIds.RoundCleanup,ExecuteMarkerOperation,EffectExecutorKind.Atomic,"2.0.0"));
         }
 
         public static void RegisterPrimitives(EffectRegistry registry)
@@ -166,7 +167,8 @@ namespace YC.Domain.Effects
             if (registry.TryGet(typeId, out ignored)) return;
             registry.Register(new EffectRegistration(typeId, executor, kind, DefinitionVersion)
             {
-                Validator = ValidateObjectSpec
+                Validator = typeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions
+                    ? spec => ValidateGrantArguments(spec?.NormalizedArguments) : ValidateObjectSpec
             });
         }
 
@@ -198,7 +200,7 @@ namespace YC.Domain.Effects
                 bool boundContent = parent?.EffectTypeId == ContentTransactionEffectExecutor.Prefix + "activate_style" &&
                     !string.IsNullOrEmpty(parent.ContinuationContentHash) && ReadString(parent.NormalizedArguments, "specialActionId", "") == actionId &&
                     ReadString(parent.NormalizedArguments, "declarationMarkerId", "") == markerId && ReadString(parent.NormalizedArguments, "activationSource", "") == activationSource;
-                bool ordinaryImmediate = immediate && parent?.EffectTypeId == YC.Domain.Cards.CharacterContentEffectExecutor.Prefix + "immediate_special";
+                bool ordinaryImmediate = immediate && ImmediateSpecialActionFlow.OwnsActivation(context.State, context.Node);
                 if ((!publicSource && !immediate) || (!boundContent && !ordinaryImmediate) || parent.PlayerId != context.Node.PlayerId)
                     return EffectStepResult.Failed("special_action_source_invalid");
                 if (publicSource && (definition.Level != 1 || !context.State.ItemZones.Items.Exists(i => i.DefinitionId == definition.CityStyleId && context.State.ItemZones.Zones.Exists(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "city_styles"))))
@@ -212,13 +214,13 @@ namespace YC.Domain.Effects
             }
             if (context.Registry.HasAbilityCatalog && string.IsNullOrEmpty(stage) && activationSource.Length > 0)
             {
-                var validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate);
+                var validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate, context.Registry);
                 if (!validation.IsValid) return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
                 return EffectStepResult.Continue("unified_action").AddChild(AbilityLegacyStyleBridge.Create(context.Node.PlayerId, actionId, markerId));
             }
             if (string.IsNullOrEmpty(stage))
             {
-                ValidationResult validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate);
+                ValidationResult validation = ValidateActivation(context.State, player, definition, markerId, publicSource, immediate, context.Registry);
                 if (!validation.IsValid)
                     return EffectStepResult.Failed(validation.ErrorCode.ToString(), NormalizedValue.CreateString(validation.Reason));
 
@@ -342,8 +344,7 @@ namespace YC.Domain.Effects
 
         private static EffectStepResult ExecuteMarkerOperation(EffectExecutionContext context)
         {
-            // 旧的 C# 工厂使用 mode；Lua 内容契约使用 operation。两者都归一到
-            // 同一行为族，避免 Event handler 产出的正式 Lua Effect 被误判为无效操作。
+            // 只由现有系统轮末收尾工厂组织；公共玩家标记转移不能重置使用历史。
             string mode = ReadString(
                 context.Node.NormalizedArguments,
                 "mode",
@@ -393,6 +394,10 @@ namespace YC.Domain.Effects
 
         private static EffectStepResult ExecuteGrantMainActions(EffectExecutionContext context)
         {
+            string error = ValidateGrantArguments(context.Node.NormalizedArguments);
+            if (error.Length > 0) return EffectStepResult.Failed(error);
+            if (GenericLuaEffectExecutor.ReadPlayerId(context.Node.NormalizedArguments, context.Node.PlayerId) != context.Node.PlayerId ||
+                context.State.FindPlayer(context.Node.PlayerId) == null) return EffectStepResult.Failed("invalid_player");
             int amount = ReadInt(context.Node.NormalizedArguments, "amount", 0);
             if (amount <= 0) return EffectStepResult.Failed("invalid_amount");
             var allowed = ReadStringArray(context.Node.NormalizedArguments, "allowedActionTypes");
@@ -404,7 +409,24 @@ namespace YC.Domain.Effects
             return EffectStepResult.Completed(NormalizedValue.CreateInteger(amount));
         }
 
-        private ValidationResult ValidateActivation(GameState state, PlayerState player, SpecialActionDefinition definition, string markerId, bool publicSource = false, bool immediate = false)
+        public static string ValidateGrantArguments(NormalizedValue args)
+        {
+            var amount = ItemTransferEffectExecutor.Value(args, "amount");
+            if (args?.Kind != NormalizedValueKind.Object ||
+                args.Properties.Any(p => !new[] { "kind", "effectTypeId", "player", "amount", "lockCharacterCard", "allowedActionTypes" }.Contains(p.Name)) ||
+                amount?.Kind != NormalizedValueKind.Integer || amount.IntegerValue < 1 || amount.IntegerValue > int.MaxValue ||
+                ItemTransferEffectExecutor.Value(args, "player") != null && GenericLuaEffectExecutor.ReadPlayerId(args, -1) < 1 ||
+                ItemTransferEffectExecutor.Value(args, "lockCharacterCard") is NormalizedValue locked && locked.Kind != NormalizedValueKind.Boolean)
+                return "main_action_grant_arguments_invalid";
+            var allowed = ItemTransferEffectExecutor.Value(args, "allowedActionTypes");
+            if (allowed != null && (allowed.Kind != NormalizedValueKind.Array || allowed.Items.Count != 0 &&
+                (allowed.Items.Count != 3 || allowed.Items.Any(v => v.Kind != NormalizedValueKind.String) ||
+                 !new[] { "build", "explore", "move_city" }.All(id => allowed.Items.Any(v => v.StringValue == id)))))
+                return "main_action_restriction_invalid";
+            return "";
+        }
+
+        private ValidationResult ValidateActivation(GameState state, PlayerState player, SpecialActionDefinition definition, string markerId, bool publicSource = false, bool immediate = false, EffectRegistry registry = null)
         {
             if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
                 return ValidationResult.Failure(CommandErrorCode.WrongPhase, "特殊行动只能在行动轮阶段发动。");
@@ -417,9 +439,11 @@ namespace YC.Domain.Effects
             if (player.UsedSpecialActionIdsThisRound != null && player.UsedSpecialActionIdsThisRound.Contains(definition.SpecialActionId))
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "该特殊行动本回合已经使用过。");
             CityStyleDeclarationState marker = FindMarker(player, markerId);
-            if (!publicSource && (marker == null || marker.UnlockedSpecialActionId != definition.SpecialActionId))
+            bool currentImmediate = immediate && registry?.HasAbilityCatalog == true && ImmediateSpecialActionFlow.Sources(state, registry, player.PlayerId).Any(s => s.ActionId == definition.SpecialActionId && s.TrackBindingId == markerId);
+            if (immediate && registry?.HasAbilityCatalog == true && !currentImmediate) return ValidationResult.Failure(CommandErrorCode.InvalidSource, "特殊行动来源已失效。");
+            if (!publicSource && !currentImmediate && (marker == null || marker.UnlockedSpecialActionId != definition.SpecialActionId))
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "所选城市样式标记未解锁该特殊行动。");
-            if (!publicSource && marker.RemainingSpecialActionUses <= 0)
+            if (!publicSource && !currentImmediate && marker.RemainingSpecialActionUses <= 0)
                 return ValidationResult.Failure(CommandErrorCode.InvalidSource, "该城市样式标记的特殊行动次数已耗尽。");
             if (definition.LocksCharacterCard && (player.UsedCharacterThisTurn || state.CharacterUses.Exists(u => u.ExecutingPlayerId == player.PlayerId && !u.Finished)))
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本玩家行动轮已使用角色牌。");
@@ -579,7 +603,7 @@ namespace YC.Domain.Effects
         {
             if (player == null || player.DeclaredCityStyles == null) return null;
             for (int i = 0; i < player.DeclaredCityStyles.Count; i++)
-                if (player.DeclaredCityStyles[i] != null && player.DeclaredCityStyles[i].InfluenceMarkerId == markerId && player.DeclaredCityStyles[i].MarkerArea.Length > 0) return player.DeclaredCityStyles[i];
+                if (player.DeclaredCityStyles[i] != null && player.DeclaredCityStyles[i].GetCurrentMarkerItemId() == markerId && player.DeclaredCityStyles[i].MarkerArea.Length > 0) return player.DeclaredCityStyles[i];
             return null;
         }
 

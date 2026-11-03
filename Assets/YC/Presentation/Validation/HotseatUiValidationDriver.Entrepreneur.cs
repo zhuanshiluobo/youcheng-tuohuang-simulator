@@ -140,6 +140,13 @@ namespace YC.Presentation.Validation
                     "企业家选择控件与正式候选集合不一致");
                 // 以当前正式顺序选首个尚可选项；不按未公开牌或库存推算收益。
                 selected = request.CandidateIds.FirstOrDefault(ids.Contains);
+                if (LuaApiAcceptanceMode && request.InteractionTypeId == EntrepreneurFlow.ChooseInteraction)
+                {
+                    selected = LuaApiEntrepreneurCandidate(request.CandidateIds, ids);
+                    Append("决策变化.jsonl", new { visible.GameId, visible.StateRevision, visible.ViewerPlayerId,
+                        Action = "API-07本人正式企业家候选优先蒂亚戈", FormalCandidates = request.CandidateIds,
+                        RenderedCandidates = ids, Selected = selected, RandomSeedOverride = false });
+                }
                 if (selected == null) throw new DriverContinuationPendingException("当前企业家正式候选暂无对应原控件，重新读取，不代答");
                 if (request.InteractionTypeId == EntrepreneurFlow.FaceInteraction)
                 {

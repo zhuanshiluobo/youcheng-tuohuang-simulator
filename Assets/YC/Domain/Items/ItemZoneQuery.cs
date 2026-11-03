@@ -206,6 +206,7 @@ namespace YC.Domain.Items
                 if (zone.TemplateId.StartsWith("core.zone.character_", StringComparison.Ordinal) && (item.ControllerSubject.Kind != ItemSubjectKind.Player || item.ControllerSubject.PlayerId != zone.OwnerPlayerId)) return Reject("ControllerSubject_zone_mismatch", out reasonCode);
                 if (zone.TemplateId == "core.zone.board_marker_track" && zone.OwnerPlayerId > 0 && item.OwnerSubject.PlayerId != zone.OwnerPlayerId) return Reject("OwnerSubject_track_mismatch", out reasonCode);
             }
+            if (!PlayerMarkerTrackPolicy.TryValidate(state, types, out reasonCode)) return false;
             foreach (var zone in zones.Values)
             {
                 membersByZone.TryGetValue(zone.ZoneId, out var members);

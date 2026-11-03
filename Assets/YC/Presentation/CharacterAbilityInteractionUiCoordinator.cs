@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace YC.Presentation
     /// 展示 NMC-010 角色能力生成的通用 InteractionRequest。
     /// 这类请求不再回退到 PendingCharacterEffect，也不能借用事件牌提示。
     /// </summary>
-    internal sealed class CharacterAbilityInteractionUiCoordinator :
+    internal sealed partial class CharacterAbilityInteractionUiCoordinator :
         InteractionBase,
         IInteractionRequestRenderer,
         IMapConfirmationScope,
@@ -118,11 +118,14 @@ namespace YC.Presentation
         public bool CanRender(InteractionRequestProjection request)
         {
             return request != null && request.VisibleToViewer &&
+                   (request.InteractionTypeId != AllocationEffects.InteractionType || request.AnswerSchema == AllocationEffects.AnswerSchema) &&
                    request.AnsweringPlayerId == getLocalPlayerId() && request.Status == "open" &&
-                   (IsCharacterAbilityInteraction(request.InteractionTypeId) || EffectDialogSelectionSpec.IsInfluenceMapArray(request)) && !ActionPaymentPreparation.IsPreparedActionRequest(request) &&
-                   (request.InteractionTypeId != ResourceEffectExecutor.PaymentConfirmationInteractionTypeId || request.AnswerSchema == "candidate_id") &&
-                   (request.InteractionTypeId != ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId ||
-                    request.AnswerSchema == ResourceAllocationAnswer.BoundedAnswerSchema);
+                   !ActionPaymentPreparation.IsPreparedActionRequest(request) &&
+                   (EffectDialogSelectionSpec.IsInfluenceSelection(request) ||
+                    (IsCharacterAbilityInteraction(request.InteractionTypeId) || EffectDialogSelectionSpec.IsInfluenceMapArray(request)) &&
+                    (request.InteractionTypeId != ResourceEffectExecutor.PaymentConfirmationInteractionTypeId || request.AnswerSchema == "candidate_id") &&
+                    (request.InteractionTypeId != ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId ||
+                     request.AnswerSchema == ResourceAllocationAnswer.BoundedAnswerSchema));
         }
 
         // 仅已实测的初始角色弃牌多选；不将角色模式、地图或数量式草稿并入此许可。
@@ -162,6 +165,7 @@ namespace YC.Presentation
             if (confirmedIntent.IsBusy || !string.IsNullOrEmpty(inFlightCommandId)) return;
             if (!sameRequest)
             {
+                ClearAllocationPresentation();
                 selectedCandidates.Clear();
                 mapSelectionVersion++;
                 saleDraft.Clear();
@@ -210,7 +214,39 @@ namespace YC.Presentation
             ownsPresentation = true;
 
             influenceSourceCandidates.Clear();
-            if (projection.InteractionTypeId == "character.cleanup.settlement")
+            if(projection.InteractionTypeId==AllocationEffects.InteractionType)
+                ShowAllocation(projection);
+            else if (ItemTransferEffectExecutor.Text(projection.PromptParameters, "interactionSemantic") == ContentPrimitiveEffectExecutor.ResourceSaleSemantic)
+            {
+                GameStateView visible;
+                if (GetVisibleState != null) visible = GetVisibleState();
+                else
+                {
+                    using (PlayerProjectionMarker.Auto()) visible = GameStateViewProjector.ProjectForPlayer(getState(), getLocalPlayerId());
+                }
+                var receipt = ResourceSaleReceiptProjection.Latest(visible, getLocalPlayerId());
+                if (ExpansionUi != null) dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
+                dialog.ShowResourceSaleCandidates(
+                    projection.CandidateIds,
+                    selected => SubmitCandidates(projection, selected),
+                    null, saleDraft, values => { saleDraft.Clear(); saleDraft.AddRange(values); },
+                    () => IsCurrent(projection), maximums,
+                    projection.Presentation?.Prompt != null || projection.Presentation?.Progress != null || receipt == null
+                        ? null : string.Format(dialog.Copy.SaleReceiptSummaryFormat, receipt.Revenue), projection);
+            }
+            else if (EffectDialogSelectionSpec.IsInfluenceSelection(projection, "move"))
+            {
+                dialog.Hide();
+                BindInfluenceMoveCandidates(projection);
+                setHighlights(BuildInfluenceMovePresentation().Highlights);
+            }
+            else if (EffectDialogSelectionSpec.IsInfluenceSelection(projection) && CanPresentInfluenceMapTarget(projection))
+            {
+                dialog.Hide();
+                BindInfluenceSlotCandidates(projection);
+                setHighlights(BuildInfluenceTargetHighlights(projection));
+            }
+            else if (projection.InteractionTypeId == "character.cleanup.settlement")
             {
                 // 当前窗口仅使用既有底栏来源条目和结束操作。
                 dialog.Hide();
@@ -251,6 +287,10 @@ namespace YC.Presentation
                         SubmitCommand(command);
                     });
             }
+            else if (projection.InteractionTypeId == "character.card.destination")
+            {
+                ShowCardDestination(projection);
+            }
             else if (projection.PromptKey == "effect.resource.choose_type")
             {
                 dialog.ShowResourceType(projection.CandidateIds.Select(FormatResource).ToArray(), saleDraft, RememberDraft,
@@ -288,24 +328,7 @@ namespace YC.Presentation
                 BindInfluenceSlotCandidates(projection);
                 setHighlights(BuildInfluenceTargetHighlights(projection));
             }
-            else if (projection.PromptKey == "character.cannot.strategy.choose_sale" || projection.PromptKey == "effect.resource.sell")
-            {
-                GameStateView visible;
-                if (GetVisibleState != null) visible = GetVisibleState();
-                else
-                {
-                    using (PlayerProjectionMarker.Auto()) visible = GameStateViewProjector.ProjectForPlayer(getState(), getLocalPlayerId());
-                }
-                var receipt = ResourceSaleReceiptProjection.Latest(visible, getLocalPlayerId());
-                if (ExpansionUi != null) dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
-                dialog.ShowResourceSaleCandidates(
-                    projection.CandidateIds,
-                    selected => SubmitCandidates(projection, selected),
-                    null, saleDraft, values => { saleDraft.Clear(); saleDraft.AddRange(values); },
-                    () => IsCurrent(projection), maximums,
-                    projection.Presentation?.Prompt != null || projection.Presentation?.Progress != null || receipt == null
-                        ? null : string.Format(dialog.Copy.SaleReceiptSummaryFormat, receipt.Revenue), projection);
-            }
+
             else
             {
                 ShowCandidateOptions(projection, sameRequest);
@@ -478,6 +501,7 @@ namespace YC.Presentation
         {
             if (string.IsNullOrEmpty(commandId) || commandId != inFlightCommandId || gameId != inFlightGameId) return;
             confirmedIntent.Resolve(gameId, commandId, accepted, errorCode, RequiresExplicitRefresh?.Invoke() == true);
+            if(!accepted)allocationDraft.Reject();
             inFlightCommandId = string.Empty; needsRefresh = true;
         }
 
@@ -488,6 +512,7 @@ namespace YC.Presentation
 
         public void Clear()
         {
+            ClearAllocationPresentation();
             if (ownsUseSelection) { ownsUseSelection = false; ClearUseSelection?.Invoke(); }
             mapSelectionVersion++;
             selectedCandidates.Clear();
@@ -517,6 +542,23 @@ namespace YC.Presentation
             return true;
         }
 
+        private void ShowCardDestination(InteractionRequestProjection projection)
+        {
+            var card = projection.Presentation?.Prompt?.Arguments.SingleOrDefault(argument => argument.Name == "card" && argument.Kind == "item");
+            var itemId = card?.Value?.Kind == NormalizedValueKind.StableReference && card.Value.ReferenceType == "item" ? card.Value.ReferenceId : null;
+            var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
+            var item = visible?.ItemZones.Items.Find(value => value.ItemId == itemId);
+            if (item == null || item.TypeId != "core.generated_character_card" || projection.AnswerSchema != "candidate_id" ||
+                projection.MinSelections != 1 || projection.MaxSelections != 1 || projection.AllowDecline ||
+                !projection.CandidateIds.SequenceEqual(new[] { "hand", "discard" }))
+                throw new InvalidOperationException("卡牌去向请求缺少可见真实流形或完整去向合同。");
+            if (ExpansionUi != null) dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
+            var options = projection.CandidateIds.Select(id => new EffectDialogOption(RequestLabel(id, projection),
+                () => { if (IsCurrent(projection)) SubmitCandidates(projection, new[] { id }); }) { StableId = id }).ToArray();
+            dialog.ShowCardActions(projection, RequestTitle(projection), RequestPrompt(projection),
+                item.ItemId, item.DefinitionId, item.ItemId, options, () => IsCurrent(projection));
+        }
+
         private void ShowCandidateOptions(InteractionRequestProjection projection, bool preserveScroll = true)
         {
             using var measurement = UiRegressionMetrics.Measure("selection.build");
@@ -542,7 +584,8 @@ namespace YC.Presentation
                     DescriptionDocument = dialog.ResolveGameplayText(projection.Presentation?.Options.Find(value => value.CandidateId == id)?.Description)
                 }).ToArray();
                 // 沿原执行条目与结束当前请求入口；不伪改0..1合同，也不增加确认或取消页。
-                dialog.ShowOptions(projection, RequestTitle(projection), RequestPrompt(projection), options);
+                dialog.ShowOptions(projection, RequestTitle(projection), RequestPrompt(projection), options,
+                    projection.AllowDecline ? (Action)(() => { if (Current()) SubmitDecline(projection); }) : null);
                 return;
             }
             var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
@@ -561,11 +604,14 @@ namespace YC.Presentation
                 PlayerSelectionChanged = ids =>
                 { selectedCandidates.Clear(); foreach (var id in PlayerSelectionRequestAdapter.CandidateIds(projection,ids)) selectedCandidates.Add(id); },
                 Label = candidateId => RequestLabel(candidateId, projection),
+                ResolveCardDefinition = id => ResolveCandidateDefinition(projection, id, visible),
                 CardSprite = candidateId =>
                 {
                     var definitionId = ResolveCandidateDefinition(projection, candidateId, visible);
                     var catalog = ExpansionUi?.GetComponent<GameplayInteractionHudView>()?.DialogRegistry.CardVisualCatalog;
-                    return catalog?.GetCharacterFront(definitionId) ?? catalog?.GetFacility(definitionId) ?? catalog?.GetEvent(definitionId);
+                    if (projection.InteractionTypeId == YC.Domain.Influence.RewardAcquisitionFlow.InteractionTypeId)
+                        return catalog?.GetAward(definitionId);
+                    return catalog?.GetCharacterFront(definitionId) ?? catalog?.GetFacility(definitionId) ?? catalog?.GetEvent(definitionId) ?? catalog?.GetAward(definitionId);
                 },
                 OptionNamePrefix = "Character Effect Option ",
                 IsCurrent = Current,
@@ -682,7 +728,7 @@ namespace YC.Presentation
             var fresh = InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId());
             return CanSubmit?.Invoke() != false && !confirmedIntent.IsBusy && CanRender(fresh) &&
                 InteractionCommandIntent.SameContract(renderedGameId, projection, getState()?.GameId, fresh) &&
-                fresh.StateRevision >= projection.StateRevision;
+                fresh.StateRevision == projection.StateRevision;
         }
 
         private void SubmitDecline(InteractionRequestProjection projection)
@@ -701,18 +747,21 @@ namespace YC.Presentation
             var distinct = new HashSet<string>(StringComparer.Ordinal);
             foreach (var id in selected)
                 if (!distinct.Add(id) || projection.CandidateIds == null || !projection.CandidateIds.Contains(id)) return;
-            var resourceIds = new[] { "originium", "originium-shard", "iron", "pure-originium" };
-            var inventory = CurrentSaleInventory();
-            foreach (var id in selected)
+            if (ItemTransferEffectExecutor.Text(projection.PromptParameters, "interactionSemantic") == ContentPrimitiveEffectExecutor.ResourceSaleSemantic)
             {
-                var parts = id.Split('|');
-                if (parts.Length != 3 || parts[0] != "sale") continue;
-                var index = Array.IndexOf(resourceIds, parts[1]);
-                if (index < 0 || !int.TryParse(parts[2], out var amount) || amount < 0 || amount > inventory[index])
+                var resourceIds = new[] { "originium", "originium-shard", "iron", "pure-originium" };
+                var inventory = CurrentSaleInventory();
+                foreach (var id in selected)
                 {
-                    needsRefresh = true;
-                    Render(projection);
-                    return;
+                    var parts = id.Split('|');
+                    if (parts.Length != 3 || parts[0] != "sale") continue;
+                    var index = Array.IndexOf(resourceIds, parts[1]);
+                    if (index < 0 || !int.TryParse(parts[2], out var amount) || amount < 0 || amount > inventory[index])
+                    {
+                        needsRefresh = true;
+                        Render(projection);
+                        return;
+                    }
                 }
             }
             if (TryGetRequest(out var fresh)) SubmitCommand(EffectInteractionCommands.Answer(
@@ -771,6 +820,7 @@ namespace YC.Presentation
                     candidate.AnsweringPlayerId == localPlayerId &&
                     !ActionPaymentPreparation.IsPreparedActionRequest(candidate) &&
                     (IsCharacterAbilityInteraction(candidate.InteractionTypeId) ||
+                     EffectDialogSelectionSpec.IsInfluenceSelection(InteractionRequestProjector.ProjectForPlayer(candidate, localPlayerId)) ||
                      candidate.AnswerSchema == "candidate_id_array" &&
                      EffectDialogSelectionSpec.IsInfluenceMapTarget(InteractionRequestProjector.ProjectForPlayer(candidate, localPlayerId))))
                 {
@@ -810,6 +860,7 @@ namespace YC.Presentation
         private static bool IsCharacterAbilityInteraction(string interactionTypeId)
         {
             return interactionTypeId == "lua.choice" ||
+                   interactionTypeId == AllocationEffects.InteractionType ||
                    interactionTypeId == "effect.choice.execute" ||
                    interactionTypeId == "effect.map.location.target" ||
                    interactionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId ||
@@ -822,7 +873,7 @@ namespace YC.Presentation
                    interactionTypeId == "operator.dispatch.choose" || interactionTypeId == "operator.dispatch.return" ||
                    interactionTypeId == "operator.replace.choose" || interactionTypeId == "operator.replace.hand" ||
                    interactionTypeId == "setup.basic_character.discard" || interactionTypeId == "setup.basic_character.keep" || interactionTypeId == "round.supply.retire" ||
-                   interactionTypeId == "reward.choose" ||
+                   interactionTypeId == "reward.choose" || interactionTypeId == "character.card.destination" ||
                    (!string.IsNullOrEmpty(interactionTypeId) &&
                     interactionTypeId.StartsWith("character.ability.", StringComparison.Ordinal));
         }
@@ -877,7 +928,7 @@ namespace YC.Presentation
                 case "reward.choose": return copy.RewardPrompt;
                 default:
                     var configured = ExpansionUi.Description(request.PromptKey);
-                    return (string.IsNullOrEmpty(configured) ? BuildPrompt(request.PromptKey) : configured) + ExpansionUi.RequestProgress(request);
+                    return (string.IsNullOrEmpty(configured) ? BuildPrompt(request.PromptKey) : configured);
             }
         }
         private string RequestLabel(string id, InteractionRequestProjection request)
@@ -963,6 +1014,7 @@ namespace YC.Presentation
             var result = new List<WorkflowHighlight>();
             foreach (var source in influenceSourceCandidates)
                 result.Add(new WorkflowHighlight(WorkflowHighlightTargetKind.InfluenceSlot, source.Key,
+                    EffectDialogSelectionSpec.IsInfluenceSelection(request) ? WorkflowHighlightSemantic.EventInfluenceTarget :
                     request.InteractionTypeId == "effect.influence.place.target" ? WorkflowHighlightSemantic.DeployTarget :
                         request.InteractionTypeId == "effect.influence.move.target" ? WorkflowHighlightSemantic.DispatchTarget :
                         InfluenceTargetSemantic(request.PromptKey), selectedCandidates.Contains(source.Value)
@@ -1064,7 +1116,6 @@ namespace YC.Presentation
         {
             switch (promptKey ?? string.Empty)
             {
-                case "effect.repeat.continue": return dialog.Copy.RepeatContinuePrompt;
                 case "effect.resource.sell": return "选择要出售的资源数量，或结束出售。";
                 case "effect.influence.replace.choose_target": return "请选择要替换的对手影响力。";
                 case "facility.entry.choose_influence_branch": return "选择替换或放置 1 个影响力。";
@@ -1106,11 +1157,7 @@ namespace YC.Presentation
         private string FormatCandidateLabel(string candidateId, InteractionRequestProjection request)
         {
             if (string.IsNullOrEmpty(candidateId)) return "未命名选项";
-            if (request.PromptKey == "effect.repeat.continue")
-            {
-                if (candidateId == "continue") return dialog.Copy.RepeatContinueLabel;
-                if (candidateId == "stop") return dialog.Copy.RepeatStopLabel;
-            }
+
             int candidateIndex = request.CandidateIds.IndexOf(candidateId);
             var definitions = YC.Domain.Effects.ItemTransferEffectExecutor.Value(request.PromptParameters, "candidateDefinitionIds");
             if (definitions?.Kind == NormalizedValueKind.Array && candidateIndex >= 0 && candidateIndex < definitions.Items.Count)

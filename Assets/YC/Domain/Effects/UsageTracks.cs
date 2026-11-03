@@ -12,10 +12,54 @@ namespace YC.Domain.Effects
     /// <summary>轨道位置只有ItemZones一份事实。调用使用002唯一激活步骤；初始化与全体复位是独立可恢复Effect。</summary>
     public static class UsageTracks
     {
-        public const string Version = "1.0.0", InitializeTypeId = "effect.usage_track.initialize", ResetTypeId = "effect.usage_track.reset_all";
+        public const string Version = "2.0.0", InitializeTypeId = "effect.usage_track.initialize", ResetTypeId = "effect.usage_track.reset_all";
         public static string BindingId(string item, string track, int player) => StableIdFactory.Create("usage-binding", item, track, player.ToString(CultureInfo.InvariantCulture));
         public static string GroupKey(string item, string track, int player) => StableIdFactory.Create("usage-group", item, track, player.ToString(CultureInfo.InvariantCulture));
         public static UsageTrackDeclaration Declaration(GameState state, string track) => state.ContentDefinitions?.UsageTracks?.SingleOrDefault(d => d.TrackId == track);
+        public static ItemInstanceState CurrentMarker(GameState state, UsageTrackBinding binding)
+        {
+            if (binding == null) return null;
+            var declaration = Declaration(state, binding.TrackId);
+            var zones = new HashSet<string>(state.ItemZones.Zones.Where(z =>
+                PlayerMarkerTrackPolicy.IsUsageArea(z, binding.SourceItemId, declaration, binding.PlayerId)).Select(z => z.ZoneId), StringComparer.Ordinal);
+            var markers = state.ItemZones.Items.Where(i => i.TypeId == "core.player_marker" && i.OwnerSubject.Kind == ItemSubjectKind.Player &&
+                i.OwnerSubject.PlayerId == binding.PlayerId && zones.Contains(i.ZoneId)).ToList();
+            if (markers.Count > 1) throw new InvalidOperationException("player_marker_track_duplicate");
+            return markers.SingleOrDefault();
+        }
+        public static bool HasCurrentMarker(GameState state, string itemId) =>
+            state.EffectRuntime.UsageTrackBindings.Any(b => CurrentMarker(state, b)?.ItemId == itemId);
+        public static ItemInstanceState DeclarationMarker(GameState state, CityStyleDeclarationState declaration)
+        {
+            if (declaration == null) return null;
+            var binding = state.EffectRuntime.UsageTrackBindings.SingleOrDefault(b => b.SourceItemId == declaration.CityStyleItemId &&
+                state.Players.Any(p => p.PlayerId == b.PlayerId && p.DeclaredCityStyles.FirstOrDefault(d => d.CityStyleItemId == declaration.CityStyleItemId)?.DeclarationId == declaration.DeclarationId));
+            return binding == null ? declaration.MarkerArea.Length == 0 ? null : state.ItemZones.Items.Find(i => i.ItemId == declaration.InfluenceMarkerId) : CurrentMarker(state, binding);
+        }
+        public static string PlacementAuthorization(string bindingId) => "marker-placement:" + bindingId;
+        public static bool IsPlacementBinding(UsageTrackBinding binding) => binding?.ProtocolVersion == 2 && binding.AuthorizationRef == PlacementAuthorization(binding.BindingId);
+        public static void RegisterDirectPlacements(EffectExecutionContext context, IEnumerable<MarkerMoveItemFactV4> moved)
+        {
+            foreach (var fact in moved.Where(f => f.From.ZoneId != f.To.ZoneId || f.From.SlotId != f.To.SlotId))
+            {
+                var zone = context.State.ItemZones.Zones.Single(z => z.ZoneId == fact.To.ZoneId);
+                if (zone.ParentKind != ZoneParentKind.Item || zone.TemplateId != "core.zone.board_marker_track") continue;
+                var carrier = context.State.ItemZones.Items.Single(i => i.ItemId == zone.ParentId);
+                foreach (var declaration in context.State.ContentDefinitions?.UsageTracks.Where(d => d.DefinitionId == carrier.DefinitionId &&
+                    PlayerMarkerTrackPolicy.IsUsageArea(zone, carrier.ItemId, d, fact.Owner.PlayerId)) ?? Enumerable.Empty<UsageTrackDeclaration>())
+                {
+                    if (context.Registry.UsageProvider(declaration.TrackId) is not DeclaredUsageProvider || !declaration.Slots.Contains(fact.To.SlotId)) continue;
+                    string id = BindingId(carrier.ItemId, declaration.TrackId, fact.Owner.PlayerId);
+                    if (context.State.EffectRuntime.UsageTrackBindings.Any(b => b.BindingId == id)) continue;
+                    if (declaration.InitializationPolicy == "owner_supply_or_retrieve" &&
+                        (carrier.OwnerSubject.Kind != ItemSubjectKind.Player || carrier.OwnerSubject.PlayerId != fact.Owner.PlayerId)) continue;
+                    context.State.EffectRuntime.UsageTrackBindings.Add(new UsageTrackBinding { ProtocolVersion = 2, BindingId = id, SourceItemId = carrier.ItemId,
+                        TrackId = declaration.TrackId, DefinitionVersion = declaration.Version, PlayerId = fact.Owner.PlayerId, ZoneId = zone.ZoneId, MarkerItemId = fact.ItemId,
+                        AuthorizationRef = PlacementAuthorization(id), InitializationEffectId = context.Node.EffectId, InitializedRoundNumber = context.State.Round,
+                        InitializationReceiptId = StableIdFactory.Create("usage-initialized", context.Node.EffectId, id) });
+                }
+            }
+        }
         public static void Register(EffectRegistry registry, IEnumerable<UsageTrackDeclaration> declarations = null)
         {
             if (!registry.TryGet(InitializeTypeId, out _)) registry.Register(InitializeTypeId, Initialize, EffectExecutorKind.IntrinsicFlow);
@@ -45,9 +89,9 @@ namespace YC.Domain.Effects
         }
         public static void Move(EffectExecutionContext context, UsageTrackBinding binding, string slot)
         {
-            var marker = context.State.ItemZones.Items.Single(i => i.ItemId == binding.MarkerItemId);
+            var marker = CurrentMarker(context.State, binding) ?? throw new InvalidOperationException("usage_marker_departed");
             new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ItemIds = new List<string> { marker.ItemId },
-                ExpectedSource = new ItemPositionRef { ZoneId = binding.ZoneId, SlotId = marker.SlotId }, Destination = new ZoneRef { ZoneId = binding.ZoneId }, DestinationSlotId = slot,
+                ExpectedSource = new ItemPositionRef { ZoneId = marker.ZoneId, SlotId = marker.SlotId }, Destination = new ZoneRef { ZoneId = marker.ZoneId }, DestinationSlotId = slot,
                 InsertionKind = "slot", RequiredCount = 1, OperationProfileId = "core.player_marker_storage", CarrierPolicyId = "preserve" });
         }
         private static EffectStepResult Initialize(EffectExecutionContext context)
@@ -130,8 +174,8 @@ namespace YC.Domain.Effects
             if (next != null)
             {
                 var declaration = Declaration(context.State, next.TrackId) ?? throw new InvalidOperationException("usage_reset_definition_missing");
-                var marker = context.State.ItemZones.Items.Single(i => i.ItemId == next.MarkerItemId);
-                var transition = marker.ZoneId == next.ZoneId ? declaration.ResetTransitions.SingleOrDefault(t => t.FromSlotId == marker.SlotId) : null;
+                var marker = CurrentMarker(context.State, next);
+                var transition = marker == null ? null : declaration.ResetTransitions.SingleOrDefault(t => t.FromSlotId == marker.SlotId);
                 if (transition != null)
                 {
                     // 同一统一节点的玩家子式保留正常转移的所有者校验。
@@ -152,16 +196,18 @@ namespace YC.Domain.Effects
                 if (progress == null || !BarrierReady(context.State, progress, out _)) throw new InvalidOperationException("usage_reset_boundary_required");
                 var binding = context.State.EffectRuntime.UsageTrackBindings.Single(b => b.BindingId == Text(context.Node.NormalizedArguments, "bindingId") && b.PlayerId == context.Node.PlayerId);
                 if (progress.ProcessedBindingIds.Contains(binding.BindingId)) return EffectStepResult.Completed();
-                var marker = context.State.ItemZones.Items.Single(i => i.ItemId == binding.MarkerItemId);
-                var transition = Declaration(context.State, binding.TrackId).ResetTransitions.SingleOrDefault(t => t.FromSlotId == marker.SlotId);
-                if (marker.ZoneId != binding.ZoneId || transition == null) throw new InvalidOperationException("usage_reset_position_changed");
-                Move(context, binding, transition.ToSlotId); progress.ProcessedBindingIds.Add(binding.BindingId); return EffectStepResult.Completed();
+                var marker = CurrentMarker(context.State, binding);
+                var transition = marker == null ? null : Declaration(context.State, binding.TrackId).ResetTransitions.SingleOrDefault(t => t.FromSlotId == marker.SlotId);
+                // 已移出或已显式换状态时不拉回旧实例，也不将合法零成员变成回合故障。
+                if (transition != null) Move(context, binding, transition.ToSlotId);
+                progress.ProcessedBindingIds.Add(binding.BindingId); return EffectStepResult.Completed();
             });
         }
         public static IReadOnlyList<UsageTrackView> Project(GameState state, int player = -1) => state.EffectRuntime.UsageTrackBindings.Where(b => player < 0 || b.PlayerId == player).Select(b =>
         {
-            var marker = state.ItemZones.Items.Single(i => i.ItemId == b.MarkerItemId);
-            return new UsageTrackView { Binding = GameStateCloneService.DeepClone(b), SlotId = marker.ZoneId == b.ZoneId ? marker.SlotId : "", DisabledReason = marker.ZoneId == b.ZoneId ? "" : "usage_marker_departed" };
+            var marker = CurrentMarker(state, b);
+            return new UsageTrackView { Binding = GameStateCloneService.DeepClone(b), MarkerItemId = marker?.ItemId ?? "", ZoneId = marker?.ZoneId ?? "",
+                SlotId = marker?.SlotId ?? "", DisabledReason = marker == null ? "usage_marker_departed" : "" };
         }).ToList();
         public static bool AllowsTrackTransfer(EffectExecutionContext context, ItemTransferRequest request)
         {
@@ -174,8 +220,7 @@ namespace YC.Domain.Effects
                     (zone.LocalZoneId == d.CardZoneLocalId || context.State.EffectRuntime.UsageTrackBindings.Any(b => b.ZoneId == zone.ZoneId) || zone.LocalZoneId.StartsWith("declaration_", StringComparison.Ordinal))) == true;
             }
             if (!IsTrack(request.ExpectedSource?.ZoneId) && !IsTrack(request.Destination?.ZoneId)) return true;
-            return new[] { InitializeTypeId, ResetBindingTypeId, AbilityActionExecutor.TypeId, AbilityActionExecutor.DirectTypeId, CityStyleDeclarationEffectExecutor.TypeId,
-                ContentLifecycleEffectExecutor.ReturnMarkerTypeId }.Contains(context.Node.EffectTypeId);
+            return new[] { InitializeTypeId, ResetBindingTypeId, AbilityActionExecutor.TypeId, AbilityActionExecutor.DirectTypeId, CityStyleDeclarationEffectExecutor.TypeId }.Contains(context.Node.EffectTypeId);
         }
     }
     public sealed class DeclaredUsageProvider : IAbilityActionUsageProvider
@@ -195,11 +240,11 @@ namespace YC.Domain.Effects
             if (publicGrant) return "";
             if (binding == null) return "usage_track_not_initialized";
             if (binding.DefinitionVersion != declaration.Version) return "usage_track_version_mismatch";
-            var marker = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == binding.MarkerItemId);
-            if (marker == null || marker.ZoneId != binding.ZoneId || marker.OwnerSubject.Kind != ItemSubjectKind.Player || marker.OwnerSubject.PlayerId != binding.PlayerId) return "usage_marker_departed";
+            var marker = UsageTracks.CurrentMarker(state, binding);
+            if (marker == null) return "usage_marker_departed";
             var card = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == binding.SourceItemId);
             if (declaration.InitializationPolicy == "owner_supply_or_retrieve" && (card?.OwnerSubject.Kind != ItemSubjectKind.Player || card.OwnerSubject.PlayerId != binding.PlayerId)) return "usage_owner_changed";
-            if (declaration.InitializationPolicy == "public_declaration" && !state.FindPlayer(binding.PlayerId).DeclaredCityStyles.Any(d => d.DeclarationId == binding.AuthorizationRef && d.InfluenceMarkerId == binding.MarkerItemId && d.CityStyleItemId == binding.SourceItemId && d.UnlockedSpecialActionId == action.ActionId)) return "style_authorization_missing";
+            if (declaration.InitializationPolicy == "public_declaration" && !UsageTracks.IsPlacementBinding(binding) && !state.FindPlayer(binding.PlayerId).DeclaredCityStyles.Any(d => d.DeclarationId == binding.AuthorizationRef && d.InfluenceMarkerId == binding.MarkerItemId && d.CityStyleItemId == binding.SourceItemId && d.UnlockedSpecialActionId == action.ActionId)) return "style_authorization_missing";
             return declaration.ActivationTransitions.Any(t => t.FromSlotId == marker.SlotId) ? "" : "style_track_exhausted";
         }
         public void Activate(EffectExecutionContext context, AbilityActionInvocation invocation, AbilityActionDeclaration action)
@@ -210,7 +255,7 @@ namespace YC.Domain.Effects
             if (!AbilityLegacyStyleBridge.IsPublicGrant(context.State, source))
             {
                 var binding = context.State.EffectRuntime.UsageTrackBindings.Single(b => b.BindingId == bindingId);
-                var marker = context.State.ItemZones.Items.Single(i => i.ItemId == binding.MarkerItemId);
+                var marker = UsageTracks.CurrentMarker(context.State, binding) ?? throw new InvalidOperationException("usage_marker_departed");
                 UsageTracks.Move(context, binding, declaration.ActivationTransitions.Single(t => t.FromSlotId == marker.SlotId).ToSlotId);
             }
             context.State.EffectRuntime.UsageGroupReceipts.Add(new UsageGroupReceipt { GroupKey = UsageTracks.GroupKey(source.ItemId, declaration.TrackId, source.AuthorizedPlayerId), RoundNumber = context.State.Round,

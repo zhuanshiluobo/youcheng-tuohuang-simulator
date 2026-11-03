@@ -76,7 +76,7 @@ namespace YC.Domain.Rules
                     request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == requestId);
                     var candidates = state.EffectRuntime.CandidateResolutions.Find(r => r.CandidateSetId == candidateSetId && r.Version == version);
                     var target = state.ItemZones.Items.Find(i => i.ItemId == command.TargetId);
-                    if (commandSource?.EffectTypeId != FacilitySelectionEffectExecutor.TypeId || commandSource.PlayerId != command.PlayerId ||
+                    if (!FacilityBuildContract.IsSelectionOwner(commandSource) || commandSource.PlayerId != command.PlayerId ||
                         Terminal(commandSource.Status) || commandSource.PendingOutcome != EffectPendingOutcome.None || commandSource.FlowStage != "deck_select" ||
                         !FacilitySelectionEffectExecutor.IsNormalBuildSelection(commandSource) ||
                         request?.OwnerEffectId != ownerId || request.AnsweringPlayerId != command.PlayerId ||

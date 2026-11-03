@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NUnit.Framework;
+using System;
+using System.Reflection;
+using Newtonsoft.Json.Linq;
+using YC.Application.Sessions;
 using YC.Domain.CityStyles;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
@@ -16,8 +20,83 @@ namespace YC.Tests.EditMode
 {
     public sealed class NMC013CityStyleSpecialActionEffectEditModeTests
     {
+        [TestCase("Effect.ExecuteMainAction({player=ctx.playerId,executionMode='grant_budget',amount=2})")]
+        [TestCase("Effect.ExecuteMainAction({player=ctx.playerId,executionMode='facility_entry'})")]
+        [TestCase("Effect.ExecuteMainAction({player=ctx.playerId,executionMode='immediate',allowedActionTypes={'build'},amount=1})")]
+        [TestCase("Effect.ExecuteMainAction({player=ctx.playerId,allowedActionTypes={'build'}})")]
+        [TestCase("Effect.GrantMainActions({player=ctx.playerId,amount=1,executionMode='immediate'})")]
+        [TestCase("Effect.RetainCharacter({apiVersion=1,player=ctx.playerId})")]
+        [TestCase("{kind='effect',effectTypeId='effect.character.content.retain',apiVersion=1,player=ctx.playerId}")]
+        public void RetiredAndMixedActionContractsCannotBeConstructedThroughLua(string expression)
+        {
+            string source = "return function(ctx) return {" + expression + "} end";
+            var script = new LuaScriptDefinition("upgrade.isolated", "upgrade.isolated", "upgrade.isolated", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var result = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("upgrade.isolated", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False, expression);
+        }
+
+        [TestCase("grant_budget")][TestCase("facility_entry")]
+        public void RetiredActionModesAreRejectedByTheKernelAndRawNestedRecovery(string mode)
+        {
+            var state = CreateState(); var registry = new EffectRegistry(); GenericLuaEffectExecutor.Register(registry);
+            var args = Object(Entry("player", NormalizedValue.CreateInteger(1)), Entry("executionMode", NormalizedValue.CreateString(mode)), Entry("amount", NormalizedValue.CreateInteger(2)));
+            var spec = EffectSpec.Create(LuaDomainEffectTypeIds.ExecuteMainAction, args, 1);
+            Assert.That(Assert.Throws<InvalidOperationException>(() => new EffectTreeExecutor(state, registry).CreateRoot(spec)).Message,
+                Does.Contain("main_action_execution_mode_retired"));
+            var raw = new JObject { ["EffectRuntime"] = new JObject { ["EffectNodes"] = new JArray(new JObject {
+                ["EffectTypeId"] = "effect.flow.choice", ["NestedEffects"] = new JArray(JObject.FromObject(new EffectSpecRuntimeState {
+                    EffectTypeId = spec.EffectTypeId, NormalizedArguments = args })) }) } };
+            object[] values = { raw, null };
+            var validate = typeof(HostRecoveryService).GetMethod("TryValidateRetiredCardMarkerRawState", BindingFlags.Static | BindingFlags.NonPublic);
+            string before = raw.ToString();
+            Assert.That((bool)validate.Invoke(null, values), Is.False);
+            Assert.That(values[1], Is.EqualTo("main_action_execution_mode_retired"));
+            Assert.That(raw.ToString(), Is.EqualTo(before));
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
+        }
+
+        [Test] public void RetainCannotReturnThroughACustomRegistrationOrNestedSpec()
+        {
+            var state = CreateState(); var registry = new EffectRegistry();
+            registry.Register("effect.character.content.retain", _ => EffectStepResult.Completed());
+            var spec = EffectSpec.Create("effect.character.content.retain", ItemTransferEffectExecutor.Object(), 1);
+            Assert.That(Assert.Throws<InvalidOperationException>(() => new EffectTreeExecutor(state, registry).CreateRoot(spec)).Message,
+                Does.Contain("character_retain_api_retired"));
+            var outer = EffectSpec.Create(EffectTypeIds.Condition, ItemTransferEffectExecutor.Object(), 1);
+            outer.NestedEffectGroups.Add(new List<EffectSpec> { spec }); outer.NestedEffectGroups.Add(new List<EffectSpec>());
+            Assert.That(Assert.Throws<InvalidOperationException>(() => new EffectTreeExecutor(state, registry).CreateRoot(outer)).Message,
+                Does.Contain("character_retain_api_retired"));
+        }
+
+        [TestCase(false)][TestCase(true)]
+        public void RetiredRetainIsRejectedInCompletedAndNestedRawSnapshots(bool nested)
+        {
+            var legacy = JObject.FromObject(new EffectNodeRuntimeState {
+                EffectTypeId = "effect.character.content.retain", Status = EffectNodeStatus.Completed });
+            var owner = nested ? JObject.FromObject(new EffectNodeRuntimeState { EffectTypeId = EffectTypeIds.Condition }) : legacy;
+            if (nested) ((JArray)owner["NestedEffects"]).Add(legacy);
+            var raw = new JObject { ["EffectRuntime"] = new JObject { ["EffectNodes"] = new JArray(owner) } };
+            object[] values = { raw, null };
+            var validate = typeof(HostRecoveryService).GetMethod("TryValidateRetiredCardMarkerRawState", BindingFlags.Static | BindingFlags.NonPublic);
+            string before = raw.ToString();
+            Assert.That((bool)validate.Invoke(null, values), Is.False);
+            Assert.That(values[1], Is.EqualTo("character_retain_api_retired"));
+            Assert.That(raw.ToString(), Is.EqualTo(before));
+        }
+
+        [TestCase(4294967297L)][TestCase(2147483648L)][TestCase(-4294967295L)]
+        public void ActionPlayerIdsCannotWrapIntoAnotherPlayer(long player)
+        {
+            // 模拟未经工厂校验的原始规格；正常 CreateInteger 已先行拒绝这些数值。
+            var rawPlayer = new NormalizedValue { Kind = NormalizedValueKind.Integer, IntegerValue = player };
+            Assert.That(GenericLuaEffectExecutor.ValidateMainActionArguments(Object(
+                Entry("player", rawPlayer), Entry("executionMode", NormalizedValue.CreateString("immediate")),
+                Entry("allowedActionTypes", NormalizedValue.CreateArray(new List<NormalizedValue> { NormalizedValue.CreateString("build") })))), Is.Not.Empty);
+            Assert.That(CityStyleSpecialActionEffectExecutor.ValidateGrantArguments(Object(
+                Entry("player", rawPlayer), Entry("amount", NormalizedValue.CreateInteger(1)))), Is.Not.Empty);
+        }
         [Test]
-        public void CityStyleLuaCatalog_RegistersEverySpecialActionAndCleanupRoute()
+        public void CityStyleLuaCatalog_RegistersActionsWithoutPerPlayerRoundReset()
         {
             var registry = new EffectRegistry();
             CityStyleLuaCatalog.Register(registry);
@@ -27,7 +106,7 @@ namespace YC.Tests.EditMode
             Assert.That(registry.HasEventHandler("city-styles.composite"), Is.True);
             Assert.That(registry.HasEventHandler("city-styles.source-stone"), Is.True);
             Assert.That(registry.HasEventHandler("city-styles.efficient"), Is.True);
-            Assert.That(registry.HasEventHandler(CityStyleLuaCatalog.CleanupSubscriptionId), Is.True);
+            Assert.That(registry.HasEventHandler(CityStyleLuaCatalog.CleanupSubscriptionId), Is.False);
         }
 
         [Test]
@@ -64,7 +143,6 @@ namespace YC.Tests.EditMode
             var effect = new EffectSpec(
                 CityStyleSpecialActionEffectTypeIds.GrantMainActions,
                 Object(
-                    Entry("operation", NormalizedValue.CreateString("grant_main_actions")),
                     Entry("amount", NormalizedValue.CreateInteger(2)),
                     Entry("lockCharacterCard", NormalizedValue.CreateBoolean(true))))
             {
@@ -129,7 +207,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void LuaCleanupEvent_DispatchesTheDocumentedMarkerCleanupEffect()
+        public void PlayerCleanupEvent_WaitsForSystemRoundCleanup()
         {
             var state = CreateState();
             var player = state.FindPlayer(1);
@@ -156,8 +234,14 @@ namespace YC.Tests.EditMode
             var rootId = executor.CreateRoot(EffectSpec.Create("test.nmc013.cleanup-event"));
             var report = executor.RunUntilQuiescent();
 
-            Assert.That(report.Completed, Is.True, report.FaultCode);
+            Assert.That(report.Completed, Is.True, report.FaultCode + ":" + state.EffectRuntime.LastFaultMessage + "\n" + Newtonsoft.Json.JsonConvert.SerializeObject(state.EffectRuntime.Diagnostics));
             Assert.That(executor.GetNode(rootId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            player = state.FindPlayer(1);
+            Assert.That(player.DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Used));
+            Assert.That(state.EffectRuntime.EffectNodes.Exists(n => n.EffectTypeId == CityStyleSpecialActionEffectTypeIds.OperatePlayerMarker), Is.False);
+            Assert.That(executor.CreateRoot(CityStyleSpecialActionEffectSpecFactory.Cleanup(1)), Is.Not.Empty);
+            Assert.That(executor.RunUntilQuiescent().Completed, Is.True);
+            player = state.FindPlayer(1);
             Assert.That(player.UsedSpecialActionIdsThisRound, Is.Empty);
             Assert.That(player.DeclaredCityStyles[0].MarkerArea, Is.EqualTo(CityStyleMarkerAreas.Unused));
             Assert.That(player.DeclaredCityStyles[0].RemainingSpecialActionUses, Is.EqualTo(1));
@@ -200,18 +284,19 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void DocumentedExecuteMainActionGrantBudget_UpdatesPlayerBudget()
+        public void GrantMainActions_UpdatesBudgetWithoutLockingWhenExplicitlyDisabled()
         {
             var state = CreateState();
             var registry = new EffectRegistry();
             GenericLuaEffectExecutor.Register(registry);
+            CityStyleSpecialActionEffectExecutor.RegisterPrimitives(registry);
             var executor = new EffectTreeExecutor(state, registry);
             string effectId = executor.CreateRoot(EffectSpec.Create(
-                LuaDomainEffectTypeIds.ExecuteMainAction,
+                CityStyleSpecialActionEffectTypeIds.GrantMainActions,
                 Object(
                     Entry("player", NormalizedValue.CreateInteger(1)),
-                    Entry("executionMode", NormalizedValue.CreateString("grant_budget")),
-                    Entry("amount", NormalizedValue.CreateInteger(2)))));
+                    Entry("lockCharacterCard", NormalizedValue.CreateBoolean(false)),
+                    Entry("amount", NormalizedValue.CreateInteger(2))), playerId: 1));
 
             Assert.That(executor.RunUntilQuiescent().Completed, Is.True);
             Assert.That(executor.GetNode(effectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
@@ -265,6 +350,7 @@ namespace YC.Tests.EditMode
             return new GameState
             {
                 GameId = "nmc013-test",
+                Round = 1, ActionRound = 1,
                 Phase = GamePhase.ActionRound1,
                 CurrentPlayerId = 1,
                 MapId = map.MapId,

@@ -455,8 +455,6 @@ namespace YC.Presentation
             // 场景销毁只释放 UI 意图，不能把保存中的领域付款准备当成玩家主动取消。
             turnActionPresenter?.BeginShutdown();
             gameplayInteractionHud?.ExpansionUi?.BeginShutdown();
-            characterUsePage?.Hide();
-            specialActionUsePage?.Hide();
             if (facilityBuildPage != null) facilityBuildPage.Hide();
             if (characterViewer != null) characterViewer.Dismiss();
             characterViewer = null;
@@ -934,7 +932,6 @@ namespace YC.Presentation
                 ClearEventCardInteraction();
                 characterHandPanel?.CloseCharacterCardViewer();
                 characterHandPanel?.CloseDiscardPreview();
-                characterUsePage?.Hide();
                 showCharacterUseOptions = false;
                 gameplayInteractionHud?.ExpansionUi?.Clear();
             }
@@ -1137,8 +1134,6 @@ namespace YC.Presentation
             using var latency = InteractionLatencyTrace.Begin("ui.action_panel");
             using var refreshSample = ActionPanelRefreshMarker.Auto();
             using var visibleRead = BeginVisibleRead();
-            if (specialActionUsePage != null && specialActionUsePage.IsShowing && specialActionPageIsCurrent != null && !specialActionPageIsCurrent())
-                specialActionUsePage.Hide();
             if (actionPanel == null || !actionPanel.IsReady || turnActionPresenter == null)
             {
                 return;
@@ -1147,12 +1142,6 @@ namespace YC.Presentation
             var characterView = characterCardPresenter == null
                 ? null
                 : characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
-            if (characterUsePage != null && characterUsePage.IsShowing &&
-                characterUsePageKey != CharacterUseKey(characterView))
-            {
-                characterUsePage.Hide();
-                characterUsePageKey = string.Empty;
-            }
             ActionPanelViewModel actionViewModel;
             using (ActionPanelViewModelMarker.Auto())
             {
@@ -1485,49 +1474,12 @@ namespace YC.Presentation
             else turnActionPresenter.CityStyleInteraction.OpenPreview(string.Empty);
         }
 
-        private CharacterCardEffectChoiceDialog specialActionUsePage;
-        private Func<bool> specialActionPageIsCurrent;
-
         private void OnSpecialActionClicked()
         {
-            if (!CanBeginGameplayAction) return;
-            if (!CanSubmitGameplayCommand || turnActionPresenter.IsMainActionSubmissionInFlight) return;
+            if (!CanBeginGameplayAction || !CanSubmitGameplayCommand || turnActionPresenter.IsMainActionSubmissionInFlight) return;
             var interaction = turnActionPresenter.CityStyleInteraction;
             if (!interaction.CanUseSpecialAction) return;
-            turnActionPresenter.RunAfterClearingMainActionDraft(OpenSpecialActionPage);
-        }
-        private void OpenSpecialActionPage()
-        {
-            var interaction = turnActionPresenter.CityStyleInteraction;
-            if (!CanBeginGameplayAction || !interaction.CanUseSpecialAction) return;
-            var owner = session;
-            var player = localPlayerId;
-            var revision = ReadUiStateWithTrace().EffectRuntime?.StateRevision ?? 0;
-            bool Current() => CanSubmitGameplayCommand && session == owner && localPlayerId == player &&
-                ReadUiStateWithTrace() != null && (ReadUiStateWithTrace().EffectRuntime?.StateRevision ?? 0) == revision &&
-                interaction.CanUseSpecialAction;
-            var options = new System.Collections.Generic.List<EffectDialogOption>();
-            foreach (var option in interaction.QuerySpecialActions().Options)
-            {
-                var captured = option;
-                string details = option.DeclaredAction == null ? option.Description : YC.Application.Presentation.AbilityActionTextDocuments.PlainDetails(option.DeclaredAction);
-                string suffix = option.CanUse ? option.Warning : "\n" + option.DisabledReason;
-                options.Add(new EffectDialogOption(option.Name + "\n" + details +
-                    (option.CanUse ? option.Warning : "\n" + option.DisabledReason),
-                    () => interaction.SubmitSpecialAction(captured.SpecialActionId, captured.DeclarationMarkerId),
-                    option.CanUse) { StableId = option.DeclarationMarkerId + ":" + option.SpecialActionId,
-                        SourceLabel = option.Name,
-                        DescriptionLabel = details + suffix,
-                        LabelDocument = option.DeclaredAction == null ? null : YC.Application.Presentation.AbilityActionTextDocuments.Name(option.DeclaredAction, gameplayInteractionHud.ExpansionUi.ResolveGameplayText),
-                        DescriptionDocument = option.DeclaredAction == null ? null : YC.Application.Presentation.AbilityActionTextDocuments.Details(option.DeclaredAction, gameplayInteractionHud.ExpansionUi.ResolveGameplayText, suffix) });
-            }
-            if (specialActionUsePage == null) specialActionUsePage = new CharacterCardEffectChoiceDialog(
-                gameplayInteractionHud.DialogRegistry, uiCanvas.transform as RectTransform);
-            specialActionUsePage.BindGameplayText(gameplayInteractionHud.ExpansionUi.ResolveGameplayText, gameplayInteractionHud.Frame.RenderGameplayText);
-            specialActionPageIsCurrent = Current;
-            var copy = specialActionUsePage.Copy;
-            specialActionUsePage.ShowExecutionChoices(copy.SpecialActionTitle, copy.SpecialActionDescription,
-                options, Current);
+            turnActionPresenter.RunAfterClearingMainActionDraft(() => interaction.BeginSpecialActionChoice());
         }
 
         private void OnBuildActionClicked()

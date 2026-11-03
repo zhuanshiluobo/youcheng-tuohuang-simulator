@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Domain.Effects;
@@ -133,7 +134,7 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         [TestCase(2390)]
         [TestCase(1124)]
-        public void OriginalSaveCopyUsesExistingRecoveryWithoutClearingFault(int revision)
+        public void OriginalArchivedSaveRejectsRetiredContentWithoutRewritingEvidence(int revision)
         {
             var artifacts = IsolatedTestArtifacts.BeginCase();
             try
@@ -143,34 +144,42 @@ namespace YC.Tests.EditMode.ExpansionRules
                     revision == 2390 ? "故障2390副本.json" : "正常1124副本.json");
                 string copy = Path.Combine(directory, "auto-1.json"); File.Copy(input, copy, false);
                 string originalHash = IsolatedTestArtifacts.FileHash(copy);
+                string sealedHash = revision == 2390 ? "c20870f6d8ca5086c51ed80c4f0770b9abeb2387994979e70637105c58e12c9d" :
+                    "655785247ed9e0614c22b947d0c281974f25d93082eb05d1844ba6711f16a755";
+                Assert.That(originalHash, Is.EqualTo(sealedHash).IgnoreCase, "须使用历史归档封存的真实原字节");
                 var storeType = Type.GetType("YC.Infrastructure.Persistence.MatchSaveStore, Assembly-CSharp", true);
                 var store = Activator.CreateInstance(storeType, new object[] { directory });
                 var data = (MatchSaveData)storeType.GetMethod("Read").Invoke(store, new object[] { 3 });
                 Assert.That(data.ContentHash, Is.EqualTo("b68344b9d026498af200548aca9e51cb23dece71b156adac0da7656b75b8fe29"));
-                var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);
-                var built = bootstrapper.GetMethod("Restore", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { null, data });
-                var session = (GameSession)built.GetType().GetField("Session").GetValue(built);
-                var registry = (EffectRegistry)built.GetType().GetField("EffectRegistry").GetValue(built);
-                var state = session.State;
-                Assert.That(state.GameId, Is.EqualTo("8cea6a46d03242b7892f6d1013bfee03"));
-                Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision));
+                string archiveBefore = data.ArchiveJson;
+                var state = JObject.Parse(archiveBefore)["Snapshot"]["State"];
+                var runtime = state["EffectRuntime"];
+                Assert.That((string)state["GameId"], Is.EqualTo("8cea6a46d03242b7892f6d1013bfee03"));
+                Assert.That((int)runtime["StateRevision"], Is.EqualTo(revision));
                 if (revision == 2390)
                 {
-                    Assert.That(state.EffectRuntime.Status, Is.EqualTo(EffectRuntimeStatus.PausedFault));
-                    var report = new EffectTreeExecutor(state, registry).RunUntilQuiescent();
-                    Assert.That(report.Faulted, Is.True); Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(revision));
-                    Assert.That(state.EffectRuntime.LastFaultMessage, Is.EqualTo("source_facts_unavailable"));
+                    Assert.That((int)runtime["Status"], Is.EqualTo((int)EffectRuntimeStatus.PausedFault));
+                    Assert.That((string)runtime["LastFaultCode"], Is.EqualTo("event_dispatch_exception"));
+                    Assert.That((string)runtime["LastFaultMessage"], Is.EqualTo("source_facts_unavailable"));
                 }
                 else
                 {
-                    Assert.That(state.EffectRuntime.Status, Is.EqualTo(EffectRuntimeStatus.Active));
-                    Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && q.GetStableInteractionId() ==
-                        "interaction_7df14808209a4effafc8d3659bbb6c9a836dabd201ceea3019b7f107ee7c9f15" && q.InteractionTypeId == "facility.supply.select"), Is.True);
+                    Assert.That((int)runtime["Status"], Is.EqualTo((int)EffectRuntimeStatus.Active));
+                    Assert.That((string)runtime["LastFaultMessage"], Is.Empty);
                 }
+                // API-04要求旧内容身份执行前拒绝；不再用当前包强行恢复历史内容。
+                var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);
+                var rejected = Assert.Throws<TargetInvocationException>(() => bootstrapper.GetMethod("Restore", BindingFlags.Public | BindingFlags.Static)
+                    .Invoke(null, new object[] { null, data }));
+                Assert.That(rejected.InnerException, Is.TypeOf<InvalidOperationException>());
+                Assert.That(rejected.InnerException.Message, Is.EqualTo("content_version_mismatch"));
+                Assert.That(data.ArchiveJson, Is.EqualTo(archiveBefore));
                 Assert.That(IsolatedTestArtifacts.FileHash(copy), Is.EqualTo(originalHash));
-                artifacts.WriteLabeledText("原档合法恢复语义", JsonConvert.SerializeObject(new { revision, state.GameId, state.ContentPackHash,
-                    state.EffectRuntime.Status, state.EffectRuntime.LastFaultCode, state.EffectRuntime.LastFaultMessage,
-                    fileUnmodified = true, usedForStrategy = false, normalPlayerStarted = false }));
+                Assert.That(IsolatedTestArtifacts.FileHash(input), Is.EqualTo(originalHash));
+                artifacts.WriteLabeledText("历史原字节与旧内容拒绝", JsonConvert.SerializeObject(new { revision, input, copy, originalHash,
+                    data.GameId, data.ContentHash, SavedRuntime = runtime, RejectReason = rejected.InnerException.Message,
+                    fileUnmodified = true, archiveUnmodified = true, oldPositiveExpectationReplaced = true,
+                    usedForStrategy = false, normalPlayerStarted = false }));
             }
             finally { artifacts.Finish(); }
         }
@@ -200,7 +209,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Assert.That(f.State.EffectRuntime.LastFaultMessage, Is.Empty);
                     Assert.That(entry.FlowStage, Is.EqualTo("body"));
                     immediateId = entry.EffectId;
-                    var build = f.State.EffectRuntime.EffectNodes.Single(n => f.Within(n.EffectId, entry.EffectId) && n.EffectTypeId == FacilityEntryEffectTypeIds.Build);
+                    var build = f.State.EffectRuntime.EffectNodes.Single(n => f.Within(n.EffectId, entry.EffectId) && (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)));
                     var caller = f.Registry.QuerySources(f.State, 1).Single(s => s.AbilityId == "entrepreneur." + face + ".setup");
                     var construction = f.Registry.QuerySources(f.State, 1).Single(s => s.AbilityId == "entrepreneur.M13.tower_source");
                     Assert.That(Text(entry.NormalizedArguments, "sourceKey"), Is.EqualTo(caller.SourceKey));
@@ -210,7 +219,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Assert.That(Text(build.NormalizedArguments, "paymentMode"), Is.EqualTo("free"));
                     Assert.That(Flag(build.NormalizedArguments, "consumeMainAction"), Is.False);
                     Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => f.Within(n.EffectId, entry.EffectId) &&
-                        (n.EffectTypeId == FacilitySelectionEffectExecutor.TypeId || n.EffectTypeId == ResourceEffectTypeIds.Pay)), Is.False);
+                        (FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments) || n.EffectTypeId == ResourceEffectTypeIds.Pay)), Is.False);
                     f.Artifacts.WriteLabeledText(face + "调用者与查询授权分离", JsonConvert.SerializeObject(new { caller, construction, entry.PlayerId,
                         entryId = entry.EffectId, buildId = build.EffectId }));
                     f.Restore(face + "正式立即塔建设待答"); restored = true;

@@ -226,7 +226,9 @@ namespace YC.Domain.Effects
             ? body(context) : throw new InvalidOperationException("ability_handler_missing:" + handler);
         public IReadOnlyList<AbilityActionOption> QueryActions(GameState state, int playerId, string windowId = "", string contentVersion = "")
             => QueryActionOptions(state,playerId,windowId,contentVersion,null);
-        private IReadOnlyList<AbilityActionOption> QueryActionOptions(GameState state,int playerId,string windowId,string contentVersion,AbilityActionCallPolicy directPolicy)
+        public IReadOnlyList<AbilityActionOption> QuerySpecialActionSources(GameState state, int player, bool immediate) =>
+            QueryActionOptions(state, player, "", "", immediate ? AbilityLegacyStyleBridge.Policy : null, true);
+        private IReadOnlyList<AbilityActionOption> QueryActionOptions(GameState state,int playerId,string windowId,string contentVersion,AbilityActionCallPolicy directPolicy, bool specialOnly = false)
         {
             if (!HasAbilityCatalog || state.FindPlayer(playerId) == null) return Array.Empty<AbilityActionOption>();
             if (contentVersion.Length > 0 && contentVersion != ContentPackHash) throw new InvalidOperationException("content_version_mismatch");
@@ -236,7 +238,8 @@ namespace YC.Domain.Effects
             foreach (var source in QuerySources(state, playerId))
             foreach (var action in SourceDeclaration(source).Actions)
             {
-                if(directPolicy!=null && (action.ActionId!=directPolicy.TargetActionId || action.DirectCallPolicy!=directPolicy.PolicyRef)) continue;
+                if (specialOnly && action.EntryKind != "special") continue;
+                if(directPolicy!=null && ((!specialOnly && action.ActionId!=directPolicy.TargetActionId) || action.DirectCallPolicy!=directPolicy.PolicyRef)) continue;
                 string binding = "";
                 string reason = directPolicy==null ? AbilitySourceService.WindowReason(state, source, action) : ValidateAuthorizedActionEntry(state,source,action,directPolicy);
                 if (action.UsageTrackId.Length > 0)

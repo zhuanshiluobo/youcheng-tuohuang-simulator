@@ -124,7 +124,7 @@ namespace YC.Domain.Cards
             request.CandidateIds.AddRange(choices); return EffectStepResult.Continue(stage).AddInteraction(PrepareInteraction(context, request));
         }
         private static List<string> Members(GameState state, string zoneId) => new ItemZoneQuery().GetItemIds(state, zoneId).ToList();
-        private static EffectSpec CharacterMove(int player, IEnumerable<string> ids, string source, string target, string insertion = "unordered") => MoveSpec(player, ids, source, target, insertion, profile: "core.character_card_transfer");
+        private static EffectSpec CharacterMove(int player, IEnumerable<string> ids, string source, string target, string insertion = "unordered") => ItemMovementV4.TransferSpec(player, ids, source, target, insertion, profile: "core.character_card_transfer");
         private static EffectSpec Shuffle(int player, string deck) => EffectSpec.Create(DeckShuffleEffectExecutor.TypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)), "deckZone", Object("zoneId", NormalizedValue.CreateString(deck))), player);
         private static EffectStepResult ReplaceHand(EffectExecutionContext context)
         {

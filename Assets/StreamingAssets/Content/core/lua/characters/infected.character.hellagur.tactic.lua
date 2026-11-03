@@ -39,6 +39,18 @@ local function cover_choice(ctx, c)
     for _, id in ipairs(ids) do labels[id] = Text.Ref('core:interaction.entity.item', { entity = Text.Item(id) }) end
     return { choose(ctx, c, 'cover_selected', ids, labels, 'core:interaction.hellagur.cover', 1, 'lua.choice') }
 end
+local function move(ctx, id, destination, reveal)
+    local item = Global.Content.GetInstance(id)
+    if item == nil then error('character_move_source_missing') end
+    return Effect.MoveCharacterCard({ apiVersion = 2, player = ctx.playerId, itemRefs = {{ itemId = id }},
+        expectedSource = { zoneId = item.zoneId, slotId = item.slotId }, destination = { zoneId = destination },
+        insertion = { kind = 'unordered' }, operationProfileId = 'core.character_card_transfer', requiredCount = 1, reveal = reveal == true })
+end
+local function moved(ctx, id)
+    local result = ctx.payload.normalizedResult
+    return ctx.payload.outcome == 'completed' and type(result) == 'table' and result.changed == true and result.movedCount == 1
+        and type(result.movedItemIds) == 'table' and #result.movedItemIds == 1 and result.movedItemIds[1] == id
+end
 return function(ctx)
     local c = state(ctx); if c == nil then return {} end
     if c.stage == 'start' then
@@ -48,10 +60,10 @@ return function(ctx)
     elseif c.stage == 'discard_selected' then
         local id = ctx.payload.normalizedResult
         if id == nil then return cover_choice(ctx, c) end
-        return { tag(Effect.MoveCharacterCardToZone({ apiVersion = 1, player = ctx.playerId, cardItemId = id,
-            destinationZoneId = zone('discard', ctx.playerId) }), c, 'discarded') }
+        c.discarded = id
+        return { tag(move(ctx, id, zone('discard', ctx.playerId)), c, 'discarded') }
     elseif c.stage == 'discarded' then
-        if ctx.payload.outcome ~= 'completed' then return {} end
+        if not moved(ctx, c.discarded) then return {} end
         return cover_choice(ctx, c)
     elseif c.stage == 'cover_selected' then
         return { tag(Effect.CoverCharacterCard({ apiVersion = 3, player = ctx.playerId, cardInstanceId = ctx.payload.normalizedResult,

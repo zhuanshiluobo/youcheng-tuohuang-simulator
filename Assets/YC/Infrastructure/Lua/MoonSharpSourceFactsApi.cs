@@ -14,7 +14,31 @@ namespace YC.Infrastructure.Lua
             api.Set("GetGrantSources", DynValue.NewCallback((_, args) => SourceFactsPage(script, context, args, "grants", guard), "SourceData.GetGrantSources"));
             api.Set("GetCallableActions",DynValue.NewCallback((_,args)=>SourceFactsPage(script,context,args,"callableActions",guard),"SourceData.GetCallableActions"));
             api.Set("GetTransferableTokens",DynValue.NewCallback((_,args)=>SourceFactsPage(script,context,args,"transferableTokens",guard),"SourceData.GetTransferableTokens"));
+            api.Set("GetTransferReceiptPage", DynValue.NewCallback((_, args) => TransferReceiptPage(script, context, args, guard), "SourceData.GetTransferReceiptPage"));
             script.Globals.Set("SourceData", DynValue.NewTable(CreateReadOnlyProxy(script, api, "nmc_read_only_snapshot")));
+        }
+
+        private static DynValue TransferReceiptPage(Script script, LuaInvocationContext context, CallbackArguments args, ExecutionGuard guard)
+        {
+            var snapshot = context.TransferReceipts;
+            if (snapshot?.Kind != LuaSnapshotValueKind.Object || snapshot.Get("version").StringValue != TransferReceiptLuaCatalog.Version ||
+                snapshot.Get("stateRevision").IntegerValue != context.StateRevision || snapshot.Get("authorizedPlayerId").StringValue != context.PlayerId) throw new ScriptRuntimeException("transfer_receipt_scope_unavailable");
+            if (args.Count != 1 || args[0].Type != DataType.Table) throw new ScriptRuntimeException("transfer_receipt_page_arguments_invalid");
+            var input = SnapshotValues(args[0].Table);
+            if (input.Pairs.Count() != 3 || input.Pairs.Any(p => p.Key.Type != DataType.String || !new[] { "receiptId", "offset", "limit" }.Contains(p.Key.String))) throw new ScriptRuntimeException("transfer_receipt_page_arguments_invalid");
+            var id = input.Get("receiptId"); var start = input.Get("offset"); var count = input.Get("limit");
+            if (id.Type != DataType.String || string.IsNullOrWhiteSpace(id.String) || start.Type != DataType.Number || start.Number < 0 || start.Number > int.MaxValue || start.Number % 1 != 0 ||
+                count.Type != DataType.Number || count.Number < 1 || count.Number > 8 || count.Number % 1 != 0) throw new ScriptRuntimeException("transfer_receipt_page_arguments_invalid");
+            var receipt = snapshot.Get("receipts").Items.SingleOrDefault(r => r.Get("receiptId").StringValue == id.String);
+            if (receipt == null) throw new ScriptRuntimeException("transfer_receipt_not_authorized");
+            var rows = receipt.Get("items").Items; int offset = (int)start.Number, limit = (int)count.Number;
+            if (offset > rows.Count) throw new ScriptRuntimeException("transfer_receipt_page_offset_invalid");
+            var items = rows.Skip(offset).Take(limit).ToList();
+            var page = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("receiptId", receipt.Get("receiptId")), new LuaSnapshotEntry("items", LuaSnapshotValue.Array(items)),
+                new LuaSnapshotEntry("nextOffset", LuaSnapshotValue.Integer(offset + items.Count < rows.Count ? offset + items.Count : -1)), new LuaSnapshotEntry("total", LuaSnapshotValue.Integer(rows.Count)) });
+            var result = SnapshotToDynValue(script, page, guard, "nmc_read_only_snapshot");
+            if (ToNormalizedValue(result, 0, out _, out _) == null) throw new ScriptRuntimeException("transfer_receipt_page_budget_exceeded");
+            return result;
         }
 
         private static DynValue SourceFactsPage(Script script, LuaInvocationContext context, CallbackArguments args,

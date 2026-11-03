@@ -89,7 +89,8 @@ namespace YC.Infrastructure.Lua
             string handlerId,
             string definitionVersion,
             string source,
-            string contentHash)
+            string contentHash,
+            string entryId = null)
         {
             ContentId = contentId;
             AbilityId = abilityId;
@@ -97,6 +98,7 @@ namespace YC.Infrastructure.Lua
             DefinitionVersion = definitionVersion;
             Source = source;
             ContentHash = contentHash;
+            EntryId = entryId ?? StableIdFactory.Create("lua-entry", contentId, handlerId);
         }
 
         public string ContentId { get; }
@@ -105,6 +107,8 @@ namespace YC.Infrastructure.Lua
         public string DefinitionVersion { get; }
         public string Source { get; }
         public string ContentHash { get; }
+        // 外部内容使用包内脚本路径；同入口的不同能力及完成回调共享此身份。
+        public string EntryId { get; }
     }
 
     public enum LuaSnapshotValueKind
@@ -325,8 +329,10 @@ namespace YC.Infrastructure.Lua
     public sealed class LuaInvocationContext
     {
         public string EntryPoint { get; set; } = string.Empty;
+        public NormalizedValue Memory { get; set; } = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
         public YC.Domain.Effects.SettlementWindowContext SettlementContext { get; set; }
         public LuaSnapshotValue SourceFacts { get; set; } = LuaSnapshotValue.Null;
+        internal LuaSnapshotValue TransferReceipts { get; set; } = LuaSnapshotValue.Null;
         public NormalizedValue SettlementFacts { get; set; } = NormalizedValue.CreateObject(new List<NormalizedValueEntry>());
         public LuaInvocationContext(
             string eventId,
@@ -393,6 +399,7 @@ namespace YC.Infrastructure.Lua
 
     public sealed class LuaEffectSpec
     {
+        public List<YC.Domain.Effects.AllocationOptionV1> AllocationOptions { get; set; }
         public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome { get; set; }
         public NormalizedValue ExecutionBindingRequest { get; set; }
         public string CompletionHandlerId { get; set; } = string.Empty;
@@ -695,6 +702,12 @@ namespace YC.Infrastructure.Lua
         public string DefinitionVersion { get; }
         public string ContentHash { get; }
         public IReadOnlyList<LuaEffectSpec> Effects { get; }
+        public NormalizedValue Memory { get; private set; }
+        internal LuaInvocationResult WithMemory(NormalizedValue memory)
+        {
+            Memory = memory?.Clone();
+            return this;
+        }
         public IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> SettlementOffers { get; private set; } = Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>();
         public YC.Domain.Effects.SettlementAvailabilityResult SettlementAvailability { get; private set; }
         public NormalizedValue AbilityQueryResult { get; private set; }

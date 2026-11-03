@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-25",
+  "date": "2026-11-01",
   "rule": "仅按 uses 所列用途选用。存在于本库不代表允许跨用途替代。；2026-10-20 E02/E03/E04登记企业家49完整正面、追加塔facility_045新用途及U05未抉择A面预览，正式游戏绑定未完成。",
   "assets": [
     {
@@ -41038,17 +41038,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/window.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {
@@ -41097,17 +41099,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/button-primary.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {
@@ -41140,59 +41144,72 @@
       ]
     },
     {
-      "path": "资产/多卡选择/Card-Picker-UI-v1/assets/button-secondary.png",
-      "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
-      "bytes": 1483924,
+      "path": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+      "sha256": "15dd7f3ff36ccd0db8dc8fb508e955388f5f5c862757e95e965632221c13a6f5",
+      "bytes": 1551025,
       "format": ".png",
       "image": {
         "width": 1983,
         "height": 793
       },
+      "sources": [
+        {
+          "package": "用户指定独立替换",
+          "member": "游城拓荒/UI素材/botton-secondary-v2.0.png"
+        }
+      ],
       "uses": [
         {
-          "package": "Card-Picker-UI-v1.zip",
-          "member": "assets/button-secondary.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
-          "scope": "全部",
+          "purpose": "CardPicker次按钮当前2.0普通态底图；同图承接现有ColorTint悬停、按下、选中和禁用，不提供额外状态图",
+          "scope": "仅专用CardPicker的次按钮（取消、返回、重新选择等由当前流程决定的次操作）；不扩展到主按钮、CardViewer、普通窗口或其他同名按钮",
           "evidence": [
-            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
-            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
-          ],
-          "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材"
           ],
           "documents": [
+            "文档/CardPicker次按钮2.0替换登记.md",
             "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
           ],
           "parameters": [
             {
-              "parameter": "layout.json/assets/button-secondary.png",
+              "parameter": "参数/项目实际用法/CardPicker次按钮2.0替换登记.json/sourceUsage/currentMapping",
               "spec": {
-                "path": "assets/button-secondary.png",
-                "size": [
+                "asset": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+                "canvas": [
                   1983,
                   793
                 ],
-                "source_reference_rect": [
+                "sourceReferenceRectTopLeft": [
                   35,
                   102,
                   1916,
                   582
                 ],
-                "mode": "RGBA",
-                "reference_kind": "visible_rect"
-              },
-              "parentSpec": null
+                "logicalButtonExample": [
+                  280,
+                  84
+                ],
+                "uvRectBottomLeft": [
+                  0.017650025214321734,
+                  0.13745271122320302,
+                  0.9662128088754413,
+                  0.733921815889029
+                ]
+              }
             }
           ]
         }
       ],
-      "sources": [
-        {
-          "package": "Card-Picker-UI-v1.zip",
-          "member": "assets/button-secondary.png"
-        }
-      ]
+      "currentUsageStandards": [
+        "P01"
+      ],
+      "usageParameters": "参数/项目实际用法/CardPicker次按钮2.0替换登记.json",
+      "replaces": {
+        "package": "Card-Picker-UI-v1.zip",
+        "member": "assets/button-secondary.png",
+        "formerCatalogPath": "资产/多卡选择/Card-Picker-UI-v1/assets/button-secondary.png",
+        "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
+        "candidateStatus": "已退出，不保留为备用"
+      }
     },
     {
       "path": "资产/多卡选择/Card-Picker-UI-v1/assets/card-selected.png",
@@ -41207,17 +41224,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/card-selected.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {
@@ -41262,17 +41281,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/card-slot.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {
@@ -41317,17 +41338,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/scrollbar-thumb.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {
@@ -41389,17 +41412,19 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/scrollbar-track.png",
-          "purpose": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
           ],
           "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
           ],
           "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
+            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
+            "文档/CardPicker次按钮2.0替换登记.md"
           ],
           "parameters": [
             {

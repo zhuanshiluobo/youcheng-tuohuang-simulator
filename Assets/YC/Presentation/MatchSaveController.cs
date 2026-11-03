@@ -17,6 +17,9 @@ namespace YC.Presentation
         private MatchSaveStore store;
         private GameSession session;
         private GameLaunchContext context;
+        private MatchSaveData preparedLocalSource;
+        private string preparedLocalArchive, preparedLocalContinuation, preparedLocalContentHash;
+        private GameSessionBootstrapper.Result preparedLocalResult;
         private int generation, dirty, saved;
         private bool saving, leaving, allowQuit;
         private float retryAt;
@@ -78,19 +81,46 @@ namespace YC.Presentation
         private void OnDestroy()
         {
             if (Instance != this) return;
-            Unbind(); saveLifetime.Dispose(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
+            ClearPreparedLocalRestore(); Unbind(); saveLifetime.Dispose(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
         }
         public Task<System.Collections.Generic.List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
         public Task Delete(int slot) => store.DeleteAsync(slot);
         public MatchSaveData Read(int slot)
         {
+            ClearPreparedLocalRestore();
             var data = store.Read(slot);
-            GameSessionBootstrapper.Restore(null, data);
+            var prepared = GameSessionBootstrapper.Restore(null, data);
             store.EnsureResumeCapacity(data.GameId); store.SetRestoreSource(slot, data.GameId);
+            if (data.Mode == LaunchMode.Local)
+            {
+                preparedLocalSource = data; preparedLocalArchive = data.ArchiveJson;
+                preparedLocalContinuation = data.ContinuationJson;
+                preparedLocalContentHash = ExternalContentRuntime.Pack.ContentHash;
+                preparedLocalResult = prepared;
+            }
             return data;
+        }
+        // 仅交接菜单刚刚完成的本地恢复；一次消费，源或内容变化时回到完整恢复。
+        // 联机续局仍在正式确认点/成员同步边界独立安装，不复用菜单中的会话。
+        internal GameSessionBootstrapper.Result TakePreparedLocalRestore(MatchSaveData data, string installedContentHash)
+        {
+            var result = preparedLocalResult;
+            bool matches = result != null && ReferenceEquals(data, preparedLocalSource) && data.Mode == LaunchMode.Local &&
+                ReferenceEquals(data.ArchiveJson, preparedLocalArchive) && ReferenceEquals(data.ContinuationJson, preparedLocalContinuation) &&
+                data.LocalPlayerId == result.LocalPlayerId && preparedLocalContentHash == installedContentHash;
+            ClearPreparedLocalRestore();
+            if (!matches) return null;
+            data.Validate(); // 头/席位可能被调用方修改；保留进入地图前的完整存档约束。
+            return result;
+        }
+        internal void ClearPreparedLocalRestore()
+        {
+            preparedLocalSource = null; preparedLocalArchive = null; preparedLocalContinuation = null;
+            preparedLocalContentHash = null; preparedLocalResult = null;
         }
         public void Bind(GameSession value, GameLaunchContext launch)
         {
+            ClearPreparedLocalRestore();
             Unbind();
             if (value == null || launch == null || launch.Mode == LaunchMode.Client) return;
             session = value; context = launch;

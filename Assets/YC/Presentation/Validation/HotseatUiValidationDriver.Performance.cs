@@ -1396,7 +1396,7 @@ namespace YC.Presentation.Validation
                 if (value.name != "Confirm Selection" || !PerformanceReady(value)) return false;
                 var shell = value.GetComponentInParent<EffectDialogShellView>();
                 return shell != null && !shell.GetComponentsInChildren<EffectDialogResourceRowView>().Any(row => row.isActiveAndEnabled) &&
-                    (shell.IsCardPicker || shell.GetComponentsInChildren<EffectDialogOptionRowView>().Any(row => row.isActiveAndEnabled));
+                    shell.IsCardPicker;
             });
             if (selectionConfirm != null) { yield return Press(selectionConfirm, "当前原卡牌选择确认"); yield break; }
             foreach (string prefix in new[] { "supply.select.", "selection.card.", "event.option." })
@@ -1409,12 +1409,6 @@ namespace YC.Presentation.Validation
                     performanceDraftClicks.Add(key + marker.Id);
                     yield return Press(marker.GetComponent<Button>(), "当前真实候选" + marker.Id); yield break;
                 }
-            }
-            var row = FindObjectsOfType<EffectDialogOptionRowView>().FirstOrDefault(value => PerformanceReady(value.Button) && !performanceDraftClicks.Contains(key + value.name));
-            if (row != null)
-            {
-                performanceDraftClicks.Add(key + row.name);
-                yield return Press(row.Button, "当前原文本候选" + row.name); yield break;
             }
             foreach (var view in FindObjectsOfType<EventChoiceDialogView>())
                 foreach (var button in new[] { view.ResourcePaymentBankButton, view.ExploreConfirmButton, view.CharacterContinueButton, view.CharacterFinishButton })

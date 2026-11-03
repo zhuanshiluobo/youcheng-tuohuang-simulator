@@ -110,15 +110,17 @@
   },
   {
     "package": "Card-Picker-UI-v1.zip",
-    "version": "1.0专用保留",
+    "version": "1.0其余六图；次按钮独立2.0替换",
     "sha256": "3d9cc4d45c17ae0dbcb93c1a6cea9ac686e0f8e48d72de38c39a1767b5e87190",
     "members": 11,
     "category": "多卡选择",
     "documents": [
+      "文档/CardPicker次按钮2.0替换登记.md",
       "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md"
     ],
     "notes": [
-      "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。"
+      "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
+      "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
     ]
   },
   {

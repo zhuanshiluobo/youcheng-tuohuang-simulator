@@ -21,6 +21,7 @@ using YC.Domain.Influence;
 using YC.Domain.Interactions;
 using YC.Domain.Items;
 using YC.Domain.Maps;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation;
@@ -225,7 +226,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(f.Request.PromptKey, Is.EqualTo("acceptance.cleanup.required"));
             Assert.That(EndButton.IsInteractable(), Is.False, "强制子式未完成不得直接结束收尾");
             Assert.That(CharacterSettlementOptionQuery.GetOptions(f.State, player, ""), Is.Empty);
-            yield return ChooseOrdinaryCandidate("required");
+            int scoreBeforeRequired = f.State.FindPlayer(player).Score;
+            yield return ChooseExecutionCandidate("required");
+            Assert.That(f.State.FindPlayer(player).Score, Is.EqualTo(scoreBeforeRequired + 1), "受控强制分支须实际结算一次，不能只是返回值");
             Assert.That(f.Request.InteractionTypeId, Is.EqualTo(CharacterContentEffectExecutor.CleanupInteractionTypeId));
             Assert.That(Active("EffectDialogOptionRowView"), Is.Empty, "收尾不应再有激活/放弃弹窗");
             var offer = CharacterSettlementOptionQuery.GetOptions(f.State, player, "").Single(o => o.SourceItemId == dorothy);
@@ -505,12 +508,17 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(commands.Last().OptionIds, Is.EqualTo(new[] { id }));
         }
 
-        private IEnumerator ChooseOrdinaryCandidate(string id)
+        private IEnumerator ChooseExecutionCandidate(string id)
         {
-            int index = f.Request.CandidateIds.IndexOf(id); Assert.That(index, Is.GreaterThanOrEqualTo(0));
-            var row = Active("EffectDialogOptionRowView").Single(r => r.name == "Character Effect Option " + index);
-            yield return Click(ButtonObject(row, "Button"), "选择强制响应");
-            yield return ConfirmSelection();
+            var request = f.Request;
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(request.CandidateIds, Does.Contain(id));
+            var row = Active("UiEffectRowView").Single(r => (string)Read(r, "ItemId") == id);
+            Assert.That((string)Read(row, "requestId"), Is.EqualTo(request.GetStableInteractionId()));
+            int before = commands.Count;
+            yield return Click(ButtonObject(row, "StatusButton"), "执行受控强制分支的真实得分");
+            Assert.That(commands.Count, Is.EqualTo(before + 1));
+            Assert.That(commands.Last().OptionIds, Is.EqualTo(new[] { id }));
         }
 
         private IEnumerator ConfirmSelection()
@@ -598,14 +606,29 @@ namespace YC.Tests.PlayMode.ExpansionRules
         private void RegisterMandatoryCleanup()
         {
             const string type = "acceptance.cleanup.required";
-            effects.Register(new EffectRegistration(type, context => context.Node.FlowStage.Length > 0 ? EffectStepResult.Completed() :
-                EffectStepResult.Continue("waiting").AddInteraction(new EffectInteractionSpec {
-                    InteractionTypeId = "lua.choice", PromptKey = type, AnsweringPlayerId = player,
-                    AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1, CandidateIds = { "required" } })));
+            effects.Register(new EffectRegistration(type, context =>
+            {
+                if (context.Node.FlowStage.Length > 0)
+                {
+                    var child = context.ChildNodes.Single();
+                    return child.Status == EffectNodeStatus.Failed ? EffectStepResult.Failed(child.FailureReason) : EffectStepResult.Completed();
+                }
+                var choice = EffectSpec.Create(LuaDomainEffectTypeIds.Choice, Object(
+                    "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)),
+                    "options", Strings(new[] { "required" }), "minSelections", NormalizedValue.CreateInteger(1),
+                    "maxSelections", NormalizedValue.CreateInteger(1), "interactionType", NormalizedValue.CreateString("effect.choice.execute"),
+                    "promptKey", NormalizedValue.CreateString(type)), player);
+                choice.NestedEffectGroups = new List<List<EffectSpec>> { new List<EffectSpec> { ResourceEffectSpecFactory.GainScore(player, 1, type) } };
+                choice.Presentation = new EffectPresentationDefinition { Interaction = new GameplayInteractionPresentation {
+                    Options = new List<GameplayOptionPresentation> { new GameplayOptionPresentation { CandidateId = "required",
+                        Label = new GameplayTextRef("core:score.gain.result", new GameplayTextArgument {
+                            Name = "amount", Kind = "integer", Value = NormalizedValue.CreateInteger(1) }) } } } };
+                return EffectStepResult.Continue("waiting").AddChild(choice);
+            }));
             effects.RegisterEventHandler(new EffectEventHandlerRegistration(type, "PlayerCleanupStarted", "*", type,
                 context => context.Event.PlayerId == player ? new List<EffectSpec> { EffectSpec.Create(type, playerId: player) } : new List<EffectSpec>(),
                 EffectHandlerRole.Observer));
-            f.Record("受控强制收尾响应", new { type, note = "专用无收益强制响应只用于验证强制先于可选；多萝西可选项仍来自原生角色Lua" });
+            f.Record("受控强制收尾响应", new { type, note = "受控强制响应以实际获得1分分支验证强制先于可选，不再发布纯确认值；该得分只属于隔离前置，多萝西可选项仍来自原生角色Lua" });
         }
 
         private IEnumerator AdvanceToOwnCleanup()

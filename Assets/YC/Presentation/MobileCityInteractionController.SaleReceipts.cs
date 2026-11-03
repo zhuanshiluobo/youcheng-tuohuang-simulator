@@ -1,5 +1,6 @@
 using System;
 using YC.Domain.State;
+using YC.Domain.Effects;
 using YC.Application.Sessions;
 using YC.Presentation.Workflows;
 
@@ -76,8 +77,8 @@ namespace YC.Presentation
         private bool NeedsExistingInteractionPermissionRefresh() =>
             lastActionPanelPermissionModel == null ||
             interactionRequestRouter?.CurrentRequest != null && !IsCharacterViewerUseRequest(interactionRequestRouter.CurrentRequest) || buildDialogActive ||
-            characterCoverChoiceDialog?.IsShowing == true || characterUsePage?.IsShowing == true ||
-            characterCardEffectChoiceDialog?.IsShowing == true || specialActionUsePage?.IsShowing == true ||
+            characterCoverChoiceDialog?.IsShowing == true ||
+            characterCardEffectChoiceDialog?.IsShowing == true ||
             eventChoiceDialog?.IsShowing == true || (VisibleSaleState()?.CharacterSettlementOptions?.Count ?? 0) > 0;
 
         private readonly struct UiExecutionTimingScope : IDisposable
@@ -251,7 +252,7 @@ namespace YC.Presentation
                 if (visible.Interactions == null) return false;
                 foreach (var request in visible.Interactions)
                     if (request != null && request.Status == "open" && request.AnsweringPlayerId == playerId &&
-                        request.Kind == "lua.choice" && request.PromptKey == "effect.resource.sell" &&
+                        ItemTransferEffectExecutor.Text(request.PromptParameters, "interactionSemantic") == ContentPrimitiveEffectExecutor.ResourceSaleSemantic &&
                         request.AnswerSchema == "candidate_id_array" && request.Presentation?.Prompt != null) return true;
                 return false;
             }

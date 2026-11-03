@@ -38,8 +38,9 @@ namespace YC.Domain.State
             foreach (var interaction in view.Interactions)
             {
                 var rows = ItemTransferEffectExecutor.Value(interaction.PromptParameters, "rowIds");
+                bool allocation=interaction.Kind==AllocationEffects.InteractionType && interaction.AnswerSchema==AllocationEffects.AnswerSchema;
                 interaction.Presentation = GameplayPresentationNormalizer.ProjectInteraction(interaction.Presentation, true, interaction.CandidateIds,
-                    rows?.Kind == NormalizedValueKind.Array ? rows.Items.Select(v => v.Kind == NormalizedValueKind.StableReference ? v.ReferenceId : v.StringValue) : null, CanSee);
+                    allocation?interaction.CandidateIds:rows?.Kind == NormalizedValueKind.Array ? rows.Items.Select(v => v.Kind == NormalizedValueKind.StableReference ? v.ReferenceId : v.StringValue) : null, CanSee);
             }
             foreach (var effect in view.Effects) effect.Presentation = GameplayPresentationNormalizer.ProjectEffect(effect.Presentation, CanSee);
             foreach (var option in view.CharacterSettlementOptions)

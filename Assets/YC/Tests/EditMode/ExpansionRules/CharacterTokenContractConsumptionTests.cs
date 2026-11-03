@@ -215,6 +215,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void ActualRegisteredDorothyCleanupMovesOneBatchBeforeOpeningPlacement(bool mixed)
             => RunRegisteredDorothyCleanup(mixed);
 
+        [TestCase(0)][TestCase(1)][TestCase(2)][TestCase(3)][TestCase(4)][TestCase(5)][TestCase(6)]
+        public void LargeDorothyPairTreeKeepsAllSecondChoicesAndExecutesOneAtomicPair(int first)
+            => RunRegisteredDorothyCleanup(true, largeFirst: first);
+
         // 64由005在原真实入口上增加恢复/授权观测；不改007的Lua和必要选择。
         [TestCase("missing_binding")][TestCase("wrong_handler")][TestCase("wrong_hash")][TestCase("wrong_trigger")]
         [TestCase("wrong_source")][TestCase("forged_grant")][TestCase("revoked_subscription")][TestCase("source_left")]
@@ -226,7 +230,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void PersistentChoiceRawProtocolIsCheckedBeforeDeserialization(string variant)
             => RunRegisteredDorothyCleanup(true, "raw:" + variant);
 
-        private void RunRegisteredDorothyCleanup(bool mixed, string damage = "")
+        private void RunRegisteredDorothyCleanup(bool mixed, string damage = "", int largeFirst = -1)
         {
             // 使用正式活动目录/角色声明与真实调用链；配方和库存布置仅为隔离规则定位。
             var map = StaticMapDefinitions.CreateThreePlayerMap();
@@ -276,6 +280,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             Engine().CreateRoot(CharacterLifecycleService.CreateUseSpec(1, card, "tactic")); Drain(); Submit("2");
             string storage = state.ItemZones.Zones.Single(z => z.ParentId == card && z.LocalZoneId == "markers").ZoneId;
             if (mixed) state.ItemZones.Items.Single(i => i.TypeId == "entrepreneur.gang_marker" && i.OwnerSubject.PlayerId == 1).ZoneId = storage;
+            if (largeFirst >= 0)
+            {
+                // 隔离库存：只使用真实配方实例；不同本地规则状态构成不等价组，不伪造ID或正常局证据。
+                foreach (var item in state.ItemZones.Items.Where(i => i.PhysicalKind == ItemPhysicalKind.Cube && i.ZoneId != storage).OrderBy(i => i.ItemId).Take(5)) item.ZoneId = storage;
+                int local = 0;
+                foreach (var item in state.ItemZones.Items.Where(i => i.ZoneId == storage).OrderBy(i => i.ItemId))
+                { item.LocalState = Object("amount", NormalizedValue.CreateInteger(++local)); }
+                Assert.That(local, Is.EqualTo(8));
+            }
             var stored = state.ItemZones.Items.Where(i => i.ZoneId == storage).ToDictionary(i => i.ItemId, i => i.OriginalSupplyZoneId);
             var chain = new RoundMainChainBuilder().Build(state.GameId, "", 1, new[] { 1, 2 }, 1);
             var main = chain.Nodes.Single(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow && n.PlayerId == 1);
@@ -290,15 +303,33 @@ namespace YC.Tests.EditMode.ExpansionRules
             main = state.EffectRuntime.MainNodes.Single(n => n.NodeId == main.NodeId); main.ExecutionEffectId = root; main.Status = EffectNodeStatus.Running;
             Drain(); var option = registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == card);
             Assert.That(Engine().TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out _, out string reason), Is.True, reason);
-            Drain(); Submit("continue");
-            if (mixed)
+            Drain();
+            if (largeFirst >= 0)
+            {
+                var frozen = state.EffectRuntime.EffectNodes.Single(n => n.CarrierPairReturn != null).CarrierPairReturn;
+                Assert.That(frozen.Groups.Count, Is.EqualTo(8));
+                var firstRequest = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+                Assert.That(firstRequest.CandidateIds.Count, Is.EqualTo(7));
+                Restore("28组合首组待答-" + largeFirst); Submit("first:" + largeFirst);
+                if (largeFirst < 6)
+                {
+                    var next = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+                    Assert.That(next.CandidateIds, Is.EqualTo(Enumerable.Range(largeFirst + 1, 7 - largeFirst).Select(i => "pair:" + i)));
+                    Restore("28组合第二枚待答-" + largeFirst); Submit("pair:7");
+                }
+                var actual = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && InfluenceDepartureProtocol.IsWithin(state, n.EffectId, root));
+                Assert.That(Value(actual.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue), Is.EquivalentTo(new[] { frozen.Groups[largeFirst].First, frozen.Groups[7].First }));
+                artifacts.WriteLabeledText("28组合实际可达后继-" + largeFirst, Newtonsoft.Json.JsonConvert.SerializeObject(new { first=largeFirst,
+                    actualCandidates=Enumerable.Range(largeFirst + 1, 7 - largeFirst), actualMoved=actual.NormalizedResult, normalGameCoverage=false }));
+            }
+            else if (mixed)
             {
                 Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(3));
                 string gang = state.ItemZones.Items.Single(i => i.ZoneId == storage && i.TypeId == "entrepreneur.gang_marker").ItemId;
                 string playerMarker = state.ItemZones.Items.First(i => i.ZoneId == storage && i.TypeId == "core.player_marker").ItemId;
                 var choice = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
-                Assert.That(choice.MinSelections, Is.EqualTo(2)); Assert.That(choice.MaxSelections, Is.EqualTo(2));
-                Assert.That(choice.InteractionTypeId, Is.EqualTo("lua.choice"));
+                Assert.That(choice.MinSelections, Is.EqualTo(1)); Assert.That(choice.MaxSelections, Is.EqualTo(1));
+                Assert.That(choice.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
                 var bindingRoot = CharacterLifecycleService.PersistentSourceFactsRoot(state, Engine().GetNode(choice.OwnerEffectId));
                 Assert.That(bindingRoot, Is.Not.Null); Assert.That(bindingRoot.PersistentSourceFacts.SourceRef.ItemId, Is.EqualTo(card));
                 if (damage.StartsWith("raw:", StringComparison.Ordinal))
@@ -346,12 +377,22 @@ namespace YC.Tests.EditMode.ExpansionRules
                         Assert.That(SourceFactsLuaCatalog.Create(denied.State, registry, binding.SourceRef).Kind, Is.EqualTo(LuaSnapshotValueKind.Null));
                         var recoveredChoice = denied.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
                         var inactiveEngine = new EffectTreeExecutor(denied.State, registry);
+                        // 继续原G0反例：选择含非玩家标记的实际组合；普通玩家标记库存转移按API-25不再受旧载物来源门槛约束。
+                        var recoveredOwner = inactiveEngine.GetNode(recoveredChoice.OwnerEffectId);
+                        string inactivePair = recoveredChoice.CandidateIds.Single(id => {
+                            int index = Value(recoveredOwner.NormalizedArguments, "options").Items.FindIndex(v => v.StringValue == id);
+                            string args = Newtonsoft.Json.JsonConvert.SerializeObject(recoveredOwner.NestedEffects[recoveredOwner.NestedGroupSizes.Take(index).Sum()].NormalizedArguments);
+                            return args.Contains("\"" + gang + "\"") && args.Contains("\"" + playerMarker + "\"");
+                        });
                         Assert.That(inactiveEngine.TrySubmitInteraction(recoveredChoice.GetStableInteractionId(), recoveredChoice.AnsweringPlayerId,
-                            recoveredChoice.StateRevision, Strings(new[] { gang, playerMarker }), out string inactiveReason), Is.True, inactiveReason);
-                        Assert.That(inactiveEngine.RunUntilQuiescent().Faulted, Is.True);
-                        Assert.That(denied.State.EffectRuntime.LastFaultMessage, Does.Contain("source_facts_unavailable"));
-                        Assert.That(denied.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId &&
-                            Number(n.NormalizedArguments, "apiVersion") == 3), Is.False);
+                            recoveredChoice.StateRevision, NormalizedValue.CreateString(inactivePair), out string inactiveReason), Is.True, inactiveReason);
+                        var inactiveResult = inactiveEngine.RunUntilQuiescent();
+                        artifacts.WriteLabeledText("来源失效后真实分支结果-" + damage, Newtonsoft.Json.JsonConvert.SerializeObject(denied.State));
+                        Assert.That(inactiveResult.Faulted, Is.False, denied.State.EffectRuntime.LastFaultMessage);
+                        var failedFlow = denied.State.EffectRuntime.EffectNodes.Single(n => n.CarrierPairReturn != null);
+                        Assert.That(failedFlow.Status, Is.EqualTo(EffectNodeStatus.Failed), "新流程按实际操作失败返回，不能把失效来源算作成功");
+                        Assert.That(denied.State.EffectRuntime.EffectNodes.Where(n => InfluenceDepartureProtocol.IsWithin(denied.State, n.EffectId, root)).SelectMany(n => n.PositionChanges), Is.Empty);
+                        Assert.That(denied.State.Map.Influences, Is.Empty);
                         Assert.That(denied.State.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(3));
                     }
                     else
@@ -364,18 +405,24 @@ namespace YC.Tests.EditMode.ExpansionRules
                 }
                 Restore("005必要3选2回答前恢复");
                 string choiceId = choice.GetStableInteractionId(); int revision = choice.StateRevision;
-                Submit(gang, playerMarker);
+                var branchOwner = Engine().GetNode(choice.OwnerEffectId);
+                string chosenPair = choice.CandidateIds.Single(id => {
+                    int index = Value(branchOwner.NormalizedArguments, "options").Items.FindIndex(v => v.StringValue == id);
+                    string args = Newtonsoft.Json.JsonConvert.SerializeObject(branchOwner.NestedEffects[branchOwner.NestedGroupSizes.Take(index).Sum()].NormalizedArguments);
+                    return args.Contains("\"" + gang + "\"") && args.Contains("\"" + playerMarker + "\"");
+                });
+                Submit(chosenPair);
                 string unchanged = RuleStateDigestService.Compute(state);
-                Assert.That(Engine().TrySubmitInteraction(choiceId, 1, revision, Strings(new[] { gang, playerMarker }), out _), Is.False);
+                Assert.That(Engine().TrySubmitInteraction(choiceId, 1, revision, NormalizedValue.CreateString(chosenPair), out _), Is.False);
                 Assert.That(RuleStateDigestService.Compute(state), Is.EqualTo(unchanged));
             }
-            var moved = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(n.NormalizedArguments, "apiVersion") == 3);
+            var moved = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && InfluenceDepartureProtocol.IsWithin(state, n.EffectId, root));
             Assert.That(moved.Status, Is.EqualTo(EffectNodeStatus.Completed)); Assert.That(Number(moved.NormalizedResult, "movedCount"), Is.EqualTo(2));
             var idsMoved = Value(moved.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue).ToArray();
             Assert.That(idsMoved.Distinct().Count(), Is.EqualTo(2));
             foreach (string id in idsMoved) Assert.That(state.ItemZones.Items.Single(i => i.ItemId == id).ZoneId, Is.EqualTo(stored[id]));
-            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(mixed ? 1 : 0));
-            Assert.That(ItemTransferService.TryValidateTokenState(state, moved, out reason), Is.True, reason);
+            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(stored.Count - 2));
+            Assert.That(ItemMovementV4.TryValidateState(state, moved, out reason), Is.True, reason);
             Assert.That(state.EffectRuntime.RuleEvents.Any(e => e.EventType == "InfluenceRemoved" || e.EventType == "InfluenceReplaced"), Is.False);
             Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.InteractionTypeId.Contains("payment_items")), Is.False);
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == card).ZoneId, Is.EqualTo(FindZone(state, "persistent", 1).ZoneId));
@@ -387,10 +434,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             var placement = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             Submit(placement.CandidateIds.First());
             Assert.That(state.Map.Influences.Count, Is.EqualTo(placedBefore + 1));
-            Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(n.NormalizedArguments, "apiVersion") == 3), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId && InfluenceDepartureProtocol.IsWithin(state, n.EffectId, root)), Is.EqualTo(1));
             Restore("005放置完成后恢复不重复转移"); Drain();
             Assert.That(state.Map.Influences.Count, Is.EqualTo(placedBefore + 1));
-            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(mixed ? 1 : 0));
+            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == storage), Is.EqualTo(stored.Count - 2));
         }
     }
 }

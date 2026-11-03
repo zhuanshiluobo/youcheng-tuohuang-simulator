@@ -33,7 +33,7 @@ return function(ctx)
     return {
         Effect.GainScore({
             recipient = player.playerId,
-            amount = game.playerCount + map.missing + 1,
+            amount = game.playerCount + #map.locations,
             reasonId = ctx.payload.reason
         })
     }
@@ -42,7 +42,11 @@ end";
             LuaFacadeSnapshot snapshot = LuaFacadeSnapshot.FromInvocation("p1", 10, 4, 2, "1.0.0");
             snapshot.GlobalMap = LuaSnapshotValue.Object(new[]
             {
-                new LuaSnapshotEntry("missing", LuaSnapshotValue.Integer(0))
+                // 手工Facade隔离样本仍须满足当前查询集合合同；不以虚构missing字段绕开地图查询。
+                new LuaSnapshotEntry("locations", LuaSnapshotValue.Array(new[] {
+                    LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("locationId", LuaSnapshotValue.String("fixture.location")) }) })),
+                new LuaSnapshotEntry("routes", LuaSnapshotValue.Array(new LuaSnapshotValue[0])),
+                new LuaSnapshotEntry("regions", LuaSnapshotValue.Array(new LuaSnapshotValue[0]))
             });
             snapshot.EventPayload = LuaSnapshotValue.Object(new[]
             {
@@ -138,7 +142,7 @@ end";
 
             EffectRunReport report = executor.RunUntilQuiescent();
 
-            Assert.That(report.Faulted, Is.False, report.FaultCode);
+            Assert.That(report.Faulted, Is.False, report.FaultCode + ":" + state.EffectRuntime.LastFaultMessage);
             Assert.That(executor.GetNode(rootId).Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(state.EffectRuntime.DispatchReceipts, Has.Count.EqualTo(2));
             Assert.That(state.EffectRuntime.DispatchReceipts[0].SubscriptionId, Is.EqualTo("primary"));
@@ -273,7 +277,9 @@ end";
 
         private static GameState NewState(string gameId)
         {
-            var state = new GameState { GameId = gameId, CurrentPlayerId = 1, StartPlayerId = 1 };
+            // Dispatcher会构造正式回合事实；Round=0不是合法的Lua查询上下文。
+            var state = new GameState { GameId = gameId, CurrentPlayerId = 1, StartPlayerId = 1,
+                Round = 1, ActionRound = 1, Phase = YC.Domain.Rules.GamePhase.ActionRound1 };
             state.Players.Add(new PlayerState { PlayerId = 1, Score = 7 });
             state.Players.Add(new PlayerState { PlayerId = 2, Score = 3 });
             return state;

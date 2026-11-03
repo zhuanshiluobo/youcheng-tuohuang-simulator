@@ -162,8 +162,10 @@ namespace YC.Tests.EditMode
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 var shell = prefab.GetComponentsInChildren<Component>(true).First(component => component != null && component.GetType().Name == "EffectDialogShellView");
                 Assert.That(AssetDatabase.GetAssetPath((UnityEngine.Object)Field(shell, "effectRowTemplate")), Is.EqualTo(SourcePath));
-                var ordinary = (Component)Field(shell, "optionRowTemplate");
-                Assert.That(ordinary.GetComponentsInChildren<Component>(true).Any(component => component != null && component.GetType().Name == "UiChoiceExecuteTextLayout"), Is.False);
+                Assert.That(shell.GetType().GetField("optionRowTemplate", BindingFlags.Instance | BindingFlags.NonPublic), Is.Null);
+                Assert.That(shell.GetType().GetMethod("CreateOptionRow"), Is.Null);
+                Assert.That(prefab.GetComponentsInChildren<Component>(true).Any(component => component != null &&
+                    component.GetType().Name == "EffectDialogOptionRowView" && component.name == "Option Row Template"), Is.False);
             }
             var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
             var original = hud.GetComponentsInChildren<Component>(true).First(component => component != null && component.GetType().Name == "UiQuickActionRow");
@@ -178,6 +180,20 @@ namespace YC.Tests.EditMode
                 Assert.That(executed, Is.EqualTo(1));
             }
             finally { UnityEngine.Object.DestroyImmediate(instance); }
+        }
+
+        [TestCase("facility.entry.choice", "facility.entry.choose_vehicle_action")]
+        [TestCase("facility.entry.choice", "facility.rhodes_office.entry")]
+        [TestCase("lua.choice", "facility.entry.choose_influence_branch")]
+        public void ExecutionChoiceRequiresSemanticContractInsteadOfLegacyPrompt(string type, string prompt)
+        {
+            var spec = Type.GetType("YC.Presentation.EffectDialogSelectionSpec, Assembly-CSharp", true);
+            var identify = spec.GetMethod("IsExecutionChoice", BindingFlags.Static | BindingFlags.NonPublic);
+            var request = new YC.Domain.Interactions.InteractionRequestProjection
+            { InteractionTypeId = type, PromptKey = prompt, AnswerSchema = "candidate_id", MinSelections = 1, MaxSelections = 1 };
+            Assert.That(identify.Invoke(null, new object[] { request }), Is.False, "旧提示键不能把纯值菜单冒充为逻辑执行分支。");
+            request.InteractionTypeId = "effect.choice.execute";
+            Assert.That(identify.Invoke(null, new object[] { request }), Is.True, "正式逻辑合同不依赖提示键。");
         }
 
         private static object Field(object value, string name) => value.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(value);

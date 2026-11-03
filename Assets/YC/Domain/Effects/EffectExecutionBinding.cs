@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Linq;
 using YC.Domain.Rules;
@@ -9,7 +9,7 @@ namespace YC.Domain.Effects
 {
     [Serializable] public sealed class EffectExecutionBinding
     {
-        public const string ValidationVersion = "facility_execution_history.v1.1.0";
+        public const string ValidationVersion = "facility_execution_history.v1.1.1";
         public int ProtocolVersion = 1, PlayerId, AuthorizedAtRevision;
         public string ParentBuildId = "", ChoiceInteractionId = "", AuthorizationRef = "";
         public AbilitySourceRef SourceRef;
@@ -78,7 +78,7 @@ namespace YC.Domain.Effects
                 choice.AnsweredAtRevision > binding.AuthorizedAtRevision || choice.AnsweringPlayerId != build.PlayerId ||
                 choiceOwner?.PlayerId != build.PlayerId ||
                 !Within(state, choice.OwnerEffectId, build.EffectId) || !ChoiceSourceMatches(state, registry, choice.OwnerEffectId, build.EffectId, binding.SourceRef, binding.VersionRef,historical && !sourceCurrent) ||
-                Player(choice.NormalizedAnswer) != binding.PlayerId || !choice.CandidateIds.Any(id => Player(NormalizedValue.CreateString(id)) == binding.PlayerId))
+                ChoicePlayer(choice.NormalizedAnswer) != binding.PlayerId || !choice.CandidateIds.Any(id => Player(NormalizedValue.CreateString(id)) == binding.PlayerId))
                 throw new InvalidOperationException("effect_execution_choice_invalid");
             if (binding.AuthorizationRef != ComputeAuthorization(state, binding)) throw new InvalidOperationException("effect_execution_authorization_changed");
         }
@@ -180,6 +180,14 @@ namespace YC.Domain.Effects
                 choice?.NormalizedAnswer?.ToDeterministicString() ?? "", choice?.AnsweredAtRevision ?? 0,
                 b.PlayerId, b.SourceRef?.SourceKey ?? "", b.VersionRef?.ContentPackHash ?? "",
                 b.VersionRef?.DefinitionVersion ?? "", b.VersionRef?.HandlerHash ?? "", b.AuthorizedAtRevision));
+        }
+        // 正式AnswerInteraction命令将选项编码为candidate引用；仅在已提交Choice答案处解码。
+        // 其他操作的player参数仍使用原玩家解析，来源、候选、父Build与回答者校验不变。
+        private static int ChoicePlayer(NormalizedValue answer)
+        {
+            var value = answer?.Kind == NormalizedValueKind.Array && answer.Items.Count == 1 ? answer.Items[0] : answer;
+            return value?.Kind == NormalizedValueKind.StableReference && value.ReferenceType == "candidate"
+                ? Player(NormalizedValue.CreateString(value.ReferenceId)) : Player(answer);
         }
         private static int Player(NormalizedValue value)
         {

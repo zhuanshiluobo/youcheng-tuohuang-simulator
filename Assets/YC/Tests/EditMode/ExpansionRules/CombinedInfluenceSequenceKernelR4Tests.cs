@@ -93,9 +93,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.PerformStep("remove", marker);
             Assert.That(f.Open.InteractionTypeId, Is.EqualTo(gateType));
             Assert.That(f.ActionEvents.Select(e => e.EventType), Is.EqualTo(new[] { InfluenceEventTypeIds.InfluenceRemoved }));
-            Assert.That(f.State.EffectRuntime.EffectNodes.Skip(f.ActionNodeIndex)
-                .Any(n => n.EffectTypeId == InfluenceEffectTypeIds.PlaceInfluence), Is.False,
-                "第二步实际Place不得在前步及其必需响应结束前挂接。");
+            var futurePlaces = f.State.EffectRuntime.EffectNodes.Skip(f.ActionNodeIndex)
+                .Where(n => n.EffectTypeId == InfluenceEffectTypeIds.PlaceInfluence).ToList();
+            Assert.That(futurePlaces.All(n => n.Status == EffectNodeStatus.Created && n.FlowStage.Length == 0 && n.PositionChanges.Count == 0), Is.True,
+                "列表可以预建后续声明；前步及必要响应结束前不得推进或提交Place。");
+            Assert.That(f.ActionEvents.Any(e => e.EventType == InfluenceEventTypeIds.InfluencePlaced), Is.False);
+            Assert.That(f.SupplyCount, Is.EqualTo(1), "默认去向已返供；必要响应结束前，后续Place还不得取用这枚标记。");
             f.Answer("response_done");
             Assert.That(f.SupplyCount, Is.EqualTo(1));
             f.PerformStep("place");
@@ -120,7 +123,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.CombinedRequests, Is.Empty);
             Assert.That(f.State.EffectRuntime.EffectNodes.Skip(f.ActionNodeIndex)
                 .Any(n => n.EffectTypeId == InfluenceEffectTypeIds.PlaceInfluence ||
-                    n.EffectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence), Is.False);
+                    n.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence), Is.False);
             var condition = f.State.EffectRuntime.EffectNodes.Skip(f.ActionNodeIndex).Single(n => n.EffectTypeId == EffectTypeIds.Condition);
             Assert.That(Text(condition.NormalizedResult, "outcome"), Is.EqualTo("condition_not_met"),
                 "主动放弃应保原条件未满足结果，不将它改成技术成功或执行右式。");
@@ -284,7 +287,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             private EffectRegistry NewRegistry()
             {
                 var registry = new EffectRegistry();
-                GenericLuaEffectExecutor.Register(registry); RepeatEffectExecutor.Register(registry); ResourceEffectExecutor.Register(registry);
+                GenericLuaEffectExecutor.Register(registry);  ResourceEffectExecutor.Register(registry);
                 ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry);
                 ContentPrimitiveEffectExecutor.Register(registry); CharacterContentEffectExecutor.Register(registry);
                 InfluenceEffectExecutor.Register(registry, new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateThreePlayerMap())));
@@ -354,7 +357,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 }
                 else
                 {
-                    Assert.That(owner.EffectTypeId, Is.EqualTo(ContentPrimitiveEffectExecutor.SelectInfluence));
+                    Assert.That(owner.EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.RemoveInfluence));
                     string candidate = preferredRemoval ?? Open.CandidateIds.First(id => State.Map.Influences.Any(i => i.InfluenceId == id && i.OwnerSubject.PlayerId == 1));
                     Assert.That(Open.CandidateIds, Does.Contain(candidate), "放置后移除须能看见刚实际放下的实例。");
                     Answer(candidate);

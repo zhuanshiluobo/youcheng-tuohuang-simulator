@@ -1,0 +1,164 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Reflection;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using YC.Application.Sessions;
+
+namespace YC.Tests.EditMode
+{
+    // 隔离解析回归及可选原档只读诊断；不注入正式对局，不计正常界面验收。
+    public sealed class MatchSaveMetadataMemoryTests
+    {
+        private static MatchSaveData Example() => new MatchSaveData { ArchiveJson = @"{
+            'Snapshot':{'SchemaVersion':5,'State':{'GameId':'metadata-test','EventDeckSeed':42,
+              'RuleConfiguration':{'MapId':'test-map','PlayerCount':2},
+              'RandomRuntime':{'AlgorithmVersion':'test-random'},'LaunchPlayerOrder':[2,1],
+              'CurrentPlayerId':2,'ActionRound':3,'Players':[
+                {'PlayerId':1,'Color':0,'Name':'本机','Resources':{'Iron':12}},
+                {'PlayerId':2,'Color':1,'Name':'行动者','Resources':{'Iron':99}}],
+              'EffectRuntime':{'EffectNodes':[{'largeHistory':['a','b','c']}]}}},
+            'Journal':{'SchemaVersion':5,'Entries':[{'StateAfter':{'unrelated':123}}]}}" };
+
+        [Test]
+        public void MetadataMatchesFullArchiveAndKeepsDisplaySeparateFromHistory()
+        {
+            var data = Example();
+            var full = data.ReadArchiveState();
+            var metadata = data.ReadArchiveMetadata();
+            foreach (string field in new[] { "GameId", "EventDeckSeed", "RuleConfiguration", "RandomRuntime",
+                "LaunchPlayerOrder", "CurrentPlayerId", "ActionRound", "Players" })
+                Assert.That(JToken.DeepEquals(full[field], metadata[field]), Is.True, field);
+            Assert.That(metadata["EffectRuntime"], Is.Null);
+            Assert.That(data.ReadArchiveState()["EffectRuntime"], Is.Not.Null, "完整读取合同保持");
+            var launch = data.ReadLaunchMetadata();
+            Assert.That(launch.EventDeckSeed, Is.EqualTo(data.EventDeckSeed));
+            Assert.That(launch.Configuration.MapId, Is.EqualTo(data.Configuration.MapId));
+            Assert.That(launch.LaunchPlayerOrder, Is.EqualTo(data.LaunchPlayerOrder));
+            Assert.That(JsonConvert.SerializeObject(launch.RandomState), Is.EqualTo(JsonConvert.SerializeObject(data.RandomState)));
+            launch.Configuration.MapId = "changed";
+            launch.LaunchPlayerOrder.Clear();
+            metadata["EventDeckSeed"] = 99;
+            Assert.That(data.Configuration.MapId, Is.EqualTo("test-map"));
+            Assert.That(data.LaunchPlayerOrder, Is.EqualTo(new[] { 2, 1 }));
+            Assert.That(data.EventDeckSeed, Is.EqualTo(42));
+            data.ArchiveJson = data.ArchiveJson.Replace("42", "43");
+            Assert.That(data.EventDeckSeed, Is.EqualTo(43), "替换归档不得使用旧元数据");
+        }
+
+        [TestCase("{'x':1,'x':2}")]
+        [TestCase("[{'x':1,'x':2}]")]
+        [TestCase("{'x':[1,2}")]
+        public void MetadataStillRejectsInvalidDiscardedHistory(string history)
+        {
+            var data = Example();
+            data.ArchiveJson = data.ArchiveJson.Replace("{'largeHistory':['a','b','c']}", history);
+            Assert.Throws<JsonReaderException>(() => data.ReadArchiveState());
+            Assert.Throws<JsonReaderException>(() => data.ReadArchiveMetadata());
+            Assert.Throws<JsonReaderException>(() => data.ReadLaunchMetadata());
+        }
+
+        [Test]
+        public void OptionalOriginalSaveMemoryComparison()
+        {
+            var args = Environment.GetCommandLineArgs();
+            int fileIndex = Array.IndexOf(args, "-ycMemorySaveFile");
+            int reportIndex = Array.IndexOf(args, "-ycMemoryReport");
+            if (fileIndex < 0 || reportIndex < 0) Assert.Ignore("仅显式提供原档及报告路径时运行只读诊断。");
+            string file = args[fileIndex + 1], report = args[reportIndex + 1];
+            string beforeHash = Hash(file);
+            var envelope = JObject.Parse(File.ReadAllText(file));
+            var data = JsonConvert.DeserializeObject<MatchSaveData>((string)envelope["Payload"]);
+            envelope = null;
+            var full = Measure(data, false);
+            var metadata = Measure(data, true);
+            Assert.That(metadata.Fields, Is.EqualTo(full.Fields));
+            Assert.That(metadata.RetainedBytes, Is.LessThan(full.RetainedBytes / 10), "元数据不应保留整个效果历史树");
+            Assert.That(Hash(file), Is.EqualTo(beforeHash), "原档必须逐字保持");
+            File.WriteAllText(report, JsonConvert.SerializeObject(new { SourceFile = file, SourceSha256 = beforeHash,
+                data.GameId, ArchiveChars = data.ArchiveJson.Length, Full = full, Metadata = metadata,
+                Scope = "同档只读解析；受控GC后的存活托管大小，不等于正式程序工作集或完整恢复峰值" }, Formatting.Indented));
+        }
+
+        private static string Hash(string file)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            using var stream = File.OpenRead(file);
+            return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "").ToLowerInvariant();
+        }
+        [Test]
+        public void OptionalPreparedLocalRestoreIsSingleUseAndInvalidatesChangedInputs()
+        {
+            var args = Environment.GetCommandLineArgs();
+            int fileIndex = Array.IndexOf(args, "-ycMemorySaveFile");
+            if (fileIndex < 0) Assert.Ignore("仅显式提供原档时运行交接隔离回归。");
+            var envelope = JObject.Parse(File.ReadAllText(args[fileIndex + 1]));
+            var data = JsonConvert.DeserializeObject<MatchSaveData>((string)envelope["Payload"]);
+            var type = Type.GetType("YC.Presentation.MatchSaveController, Assembly-CSharp", true);
+            var root = new UnityEngine.GameObject("存档交接隔离回归");
+            root.SetActive(false);
+            try
+            {
+                var controller = root.AddComponent(type);
+                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+                var resultField = type.GetField("preparedLocalResult", flags);
+                var result = Activator.CreateInstance(resultField.FieldType);
+                resultField.FieldType.GetField("LocalPlayerId").SetValue(result, data.LocalPlayerId);
+                var take = type.GetMethod("TakePreparedLocalRestore", flags);
+                void Seed()
+                {
+                    type.GetField("preparedLocalSource", flags).SetValue(controller, data);
+                    type.GetField("preparedLocalArchive", flags).SetValue(controller, data.ArchiveJson);
+                    type.GetField("preparedLocalContinuation", flags).SetValue(controller, data.ContinuationJson);
+                    type.GetField("preparedLocalContentHash", flags).SetValue(controller, "installed-test-hash");
+                    resultField.SetValue(controller, result);
+                }
+                object Take(MatchSaveData source, string hash = "installed-test-hash") => take.Invoke(controller, new object[] { source, hash });
+                Seed(); Assert.That(Take(data), Is.SameAs(result));
+                Assert.That(Take(data), Is.Null, "只能交接一次");
+                Seed(); Assert.That(Take(data, "changed-content"), Is.Null);
+                Seed(); Assert.That(Take(new MatchSaveData()), Is.Null);
+                string archive = data.ArchiveJson, continuation = data.ContinuationJson;
+                Seed(); data.ArchiveJson = archive + " "; Assert.That(Take(data), Is.Null); data.ArchiveJson = archive;
+                Seed(); data.ContinuationJson = continuation + " "; Assert.That(Take(data), Is.Null); data.ContinuationJson = continuation;
+                int player = data.LocalPlayerId;
+                Seed(); data.LocalPlayerId++; Assert.That(Take(data), Is.Null); data.LocalPlayerId = player;
+                Seed(); data.Mode = LaunchMode.Host; Assert.That(Take(data), Is.Null); data.Mode = LaunchMode.Local;
+                int round = data.Round;
+                Seed(); data.Round++;
+                Assert.That(Assert.Throws<TargetInvocationException>(() => Take(data)).InnerException, Is.TypeOf<InvalidOperationException>());
+                data.Round = round;
+                Assert.That(Take(data), Is.Null, "校验失败也必须释放交接对象");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+        private sealed class Measurement
+        {
+            public double Seconds;
+            public long RetainedBytes;
+            public string Fields;
+        }
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static Measurement Measure(MatchSaveData data, bool projected)
+        {
+            long before = GC.GetTotalMemory(true);
+            var timer = Stopwatch.StartNew();
+            var state = projected ? data.ReadArchiveMetadata() : data.ReadArchiveState();
+            timer.Stop();
+            long after = GC.GetTotalMemory(true);
+            var fields = new JObject();
+            foreach (string field in new[] { "RuleConfiguration", "EventDeckSeed", "RandomRuntime", "LaunchPlayerOrder",
+                "CurrentPlayerId", "ActionRound" }) fields[field] = state[field]?.DeepClone();
+            fields["Players"] = new JArray(((JArray)state["Players"]).Select(p => new JObject {
+                ["PlayerId"] = p["PlayerId"]?.DeepClone(), ["Color"] = p["Color"]?.DeepClone(),
+                ["Name"] = p["Name"]?.DeepClone(), ["Resources"] = p["Resources"]?.DeepClone() }));
+            GC.KeepAlive(state);
+            return new Measurement { Seconds = timer.Elapsed.TotalSeconds, RetainedBytes = after - before,
+                Fields = fields.ToString(Formatting.None) };
+        }
+    }
+}

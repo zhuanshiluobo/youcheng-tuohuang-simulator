@@ -23,7 +23,7 @@ namespace YC.Tests.EditMode
             Assert.That(result.Effects[0].Amount, Is.EqualTo(1));
         }
         [TestCase("options={'other'}")]
-        [TestCase("minSelections=1")]
+        [TestCase("minSelections=2")]
         [TestCase("maxSelections=2")]
         public void BranchChoice_RejectsConflictingSelectionContracts(string field)
         {
@@ -31,6 +31,21 @@ namespace YC.Tests.EditMode
                 ",branches={{id='one',effects={Effect.GainScore({recipient=ctx.playerId,amount=1})}}}}) } end");
             Assert.That(result.IsSuccess, Is.False);
         }
+        [TestCase(0)]
+        [TestCase(1)]
+        public void BranchChoice_ExplicitZeroOrOneMinimumPreservesRealBranch(int minimum)
+        {
+            var result = Invoke("return function(ctx) return { Effect.Choice({player=ctx.playerId,minSelections=" + minimum +
+                ",maxSelections=1,branches={{id='one',effects={Effect.GainScore({recipient=ctx.playerId,amount=1})}}}}) } end");
+            Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
+            var choice = result.Effects[0];
+            Assert.That(choice.RawArguments.Properties.Find(p => p.Name == "minSelections").Value.IntegerValue, Is.EqualTo(minimum));
+            Assert.That(choice.RawArguments.Properties.Find(p => p.Name == "maxSelections").Value.IntegerValue, Is.EqualTo(1));
+            Assert.That(choice.NestedEffectGroups, Has.Length.EqualTo(1));
+            Assert.That(choice.NestedEffectGroups[0][0].EffectTypeId, Is.EqualTo("effect.score.gain"));
+            Assert.That(choice.NestedEffectGroups[0][0].Amount, Is.EqualTo(1));
+        }
+
         [Test]
         public void ValidHandler_ReadsSnapshotsAndReturnsNormalizedEffectSpec()
         {

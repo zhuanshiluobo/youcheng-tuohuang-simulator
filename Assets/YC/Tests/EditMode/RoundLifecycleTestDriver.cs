@@ -69,8 +69,9 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True, result.Validation == null ? string.Empty : result.Validation.Reason);
             Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.GetStableInteractionId() == requestId).Status,
                 Is.EqualTo("answered"));
-            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerEffectId).Status,
-                Is.EqualTo(EffectNodeStatus.Completed));
+            var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerEffectId);
+            Assert.That(owner.Status, Is.EqualTo(EffectNodeStatus.Completed),
+                "采集所有者未完成：" + owner.FailureReason + "；阶段=" + owner.FlowStage);
         }
     }
 }

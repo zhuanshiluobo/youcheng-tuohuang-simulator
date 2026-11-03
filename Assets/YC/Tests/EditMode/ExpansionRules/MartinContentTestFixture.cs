@@ -32,6 +32,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         protected const string Urban = "lua/facilities/martin_urbanization.lua";
         protected const string Ability = "lua/entrepreneurs/martin_ability.lua";
         protected const string Award = "lua/entrepreneurs/martin_award_grant.lua";
+        protected static bool IsActualMartinBatch(EffectNodeRuntimeState node) =>
+            ItemMovementV4.IsV4(node.EffectTypeId,node.NormalizedArguments) && Text(node.NormalizedArguments,"operation")=="transfer_batch" &&
+            node.ContinuationAbilityId=="entrepreneur.face.M05" && Value(node.NormalizedArguments,"transfers")?.Items.All(t=>Text(t,"operationProfileId")=="core.facility_card_transfer")==true;
         [SetUp] public virtual void StartMartin()
         {
             Artifacts = IsolatedTestArtifacts.BeginCase();
@@ -120,6 +123,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             InfluenceEffectExecutor.Register(Registry, state, new MapQueryService(map));
             var query = new MapQueryService(map);
             var influence = Registry.InfluenceService;
+            // API-15：Choice的所有合法新分支都需要真实注册，未选择探索也不能依赖旧包装掩盖缺失装配。
+            var decks = new EventDeckService(1); var tokens = new ResourceTokenService();
+            EventCardEffectExecutor.Register(Registry, query, influence, decks, tokens);
+            ExplorationEffectExecutor.Register(Registry, query, new YC.Domain.Exploration.ExplorationService(query, influence, decks, tokens), decks, tokens);
             var costs = new TravelCostService(query);
             ContentPrimitiveEffectExecutor.Register(Registry, query, influence);
             CityDestinationLuaCatalog.Register(Registry, Pack);
@@ -284,10 +291,10 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Answer(state,NormalizedValue.CreateString(Open(state).CandidateIds.First()));
             Assert.That(state.Map.Influences.Any(i=>i.PlayerId==1),Is.True);
         }
-        protected EffectSpec BuildScenario(GameState state, ItemInstanceState card, int slot)
+        protected EffectSpec BuildScenario(GameState state, ItemInstanceState card, int slot, int player = 1)
         {
-            var spec=FacilityBuildEffectSpecFactory.Build(1,card.ItemId,slot,"free",false,"qy016.isolated",false,card.ZoneId,"deck");
-            var observed=Registry.FacilityBuildQueries.ResolveSlots(state,1,card.ItemId).Single(c=>c.SlotIndex==slot);
+            var spec=FacilityBuildEffectSpecFactory.Build(player,card.ItemId,slot,"free",false,"qy016.isolated",false,card.ZoneId,"deck");
+            var observed=Registry.FacilityBuildQueries.ResolveSlots(state,player,card.ItemId).Single(c=>c.SlotIndex==slot);
             spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry {Name="slotObservation",Value=FacilityBuildJournal.EncodeSlot(observed)});
             spec.NormalizedArguments.Properties.Sort((a,b)=>System.StringComparer.Ordinal.Compare(a.Name,b.Name)); return spec;
         }

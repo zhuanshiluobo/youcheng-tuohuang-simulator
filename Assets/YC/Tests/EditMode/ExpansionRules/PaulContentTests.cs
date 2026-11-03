@@ -235,7 +235,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             string root = f.Invoke("entrepreneur.face.P01");
             var optional = f.Request(root); Assert.That(optional.CandidateIds, Does.Contain("decline")); f.Answer(optional, "decline");
             var next = f.Request(root);
-            Assert.That(Text(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == next.OwnerEffectId).NormalizedArguments, "operation"), Is.EqualTo("remove"));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == next.OwnerEffectId).EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.RemoveInfluence));
             f.Restore("P01首移放弃后仍待本人移除");
         }
         [Test] public void P02PaymentPrecedesReplacementAndDeclineDoesNotCharge()
@@ -244,11 +244,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Artifacts.WriteLabeledText("付款隔离前提", "初始金券设为4，仅核真实Lua付款/右式，不计正常资源获得。");
             string declined = f.Invoke("entrepreneur.face.P02"); var q = f.Request(declined); f.Decline(q);
             Assert.That(f.Resource(1, ResourceType.GoldVoucher), Is.EqualTo(4));
-            Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => f.Within(n.EffectId, declined) && n.EffectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence), Is.False);
+            Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => f.Within(n.EffectId, declined) && n.EffectTypeId == InfluenceEffectTypeIds.ReplaceInfluence), Is.False);
             string paid = f.Invoke("entrepreneur.face.P02"); f.ConfirmPayment(paid);
             Assert.That(f.Resource(1, ResourceType.GoldVoucher), Is.Zero);
             q = f.Request(paid); var selection = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == q.OwnerEffectId);
-            Assert.That(Text(selection.NormalizedArguments, "operation"), Is.EqualTo("replace"));
+            Assert.That(selection.EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.ReplaceInfluence));
             Assert.That(f.State.Map.Influences.Count(i => i.LocationId == f.Location), Is.EqualTo(1), "付款后仍等真实替换选择，不提前移走");
             f.Restore("P02付4券待替换");
         }
@@ -373,7 +373,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.Map.Influences.Any(i => i.InfluenceId == gang), Is.False);
             Assert.That(f.State.Map.Influences.Any(i => i.InfluenceId == ordinary), Is.True);
             Assert.That(f.State.Map.Influences.Any(i => i.SlotId == routeSlot), Is.True);
-            var selection = f.State.EffectRuntime.EffectNodes.Single(n => f.Within(n.EffectId, root) && n.EffectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence);
+            var selection = f.State.EffectRuntime.EffectNodes.Single(n => f.Within(n.EffectId, root) && n.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && InfluenceSelectionFlow.IsSelection(n.EffectTypeId, n.NormalizedArguments));
             Assert.That(Text(Value(selection.NormalizedResult, "removedInfluences").Items.Single(), "locationId"), Is.EqualTo(f.OtherLocation));
             f.Restore("分享右式清单及双方真实收益" + face);
         }
@@ -396,15 +396,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             U10ShareTestSupport.AssertOneCondition(f, root);
             Assert.That(JsonConvert.SerializeObject(new { f.State.Map.Influences, Resources = f.State.Players.Select(p => p.Resources).ToList() }), Is.EqualTo(before));
             Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => f.Within(n.EffectId, root) &&
-                new[] { ContentPrimitiveEffectExecutor.SelectInfluence, InfluenceEffectTypeIds.RemoveInfluence, ResourceEffectTypeIds.Gain }.Contains(n.EffectTypeId)), Is.False);
+                new[] { InfluenceEffectTypeIds.RemoveInfluence, ResourceEffectTypeIds.Gain }.Contains(n.EffectTypeId)), Is.False);
         }
         [Test] public void FailedRequiredRemovalCannotConstructShareIncome()
         {
             f = new PaulContentTestFixture(); f.Choose(3, "P03");
             string before = JsonConvert.SerializeObject(f.State.Players.Select(p => p.Resources).ToList());
-            string id = f.Run(EffectSpec.Create(ContentPrimitiveEffectExecutor.SelectInfluence, Object(
-                "player", NormalizedValue.CreateString("1"), "operation", NormalizedValue.CreateString("remove"),
-                "ownerFilter", NormalizedValue.CreateString("self"), "candidateScope", NormalizedValue.CreateString("resource_points"),
+            string id = f.Run(EffectSpec.Create(InfluenceEffectTypeIds.RemoveInfluence, Object(
+                "apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "executingPlayer", NormalizedValue.CreateStableReference("player", "1"),
+                "subjectFilter", NormalizedValue.CreateString("self"), "selectionScope", NormalizedValue.CreateString("resource_points"),
                 "candidateIds", Strings(new[] { "qy007.u10.missing-target" }), "count", NormalizedValue.CreateInteger(1),
                 "requiredCount", NormalizedValue.CreateInteger(1), "requireCompleteSelection", NormalizedValue.CreateBoolean(true)), 1));
             var node = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == id);

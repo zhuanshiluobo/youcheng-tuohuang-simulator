@@ -76,6 +76,7 @@ namespace YC.Presentation
             public string OperationAvailable = "当前请求可操作", OperationUnavailable = "当前请求未授权操作";
             public string ViewerOnly = "仅可查看";
             public string PlayerFormat = "玩家 {0}", NoOwner = "公共";
+            public string MissingCooperationMarker = "未参与";
             public string PersistentArea = "持续区", CoveredArea = "盖牌区", HandArea = "手牌区", DiscardArea = "弃牌区", StagingArea = "待结算区";
             public string SettlementTitle = "结算插入", VoucherCostFormat = "{0} 金券";
             public string SettlementReasonFormat = "主机状态：{0}";
@@ -94,7 +95,6 @@ namespace YC.Presentation
             public string PermanentToken = "永久留在地图", LockExpiryFormat = "行动轮序 {0} 开始前到期";
             public string LockExpiryUnknown = "主机尚未提供锁定期限";
             public string DiceResultFormat = "本次骰点：{0}";
-            public string RepeatProgressFormat = "已完成 {0} / {1} 次";
             public string MainCoverType = "角色", GeneratedCoverType = "流形";
             public string CompactSettlementFormat = "{0} · {1}", PendingSettlement = "等待主机确认";
             public string CurrentCharacterFormat = "当前角色：{0}", ModeOrderPending = "等待选择模式或顺序";
@@ -326,6 +326,7 @@ namespace YC.Presentation
                 board.SupportsDepartmentBrowsing = definitions?.FindEnterprise(definitionId)?.DepartmentRewardPolicy == "active_department";
                 board.PlayerIds = view.Players.Select(player => player.PlayerId).ToArray();
                 board.PlayerColors = view.Players.Select(player => (int)player.Color).ToArray();
+                board.MissingMarkerLabel = copy.MissingCooperationMarker;
                 // 只读 Host 公开轨道；没有标记不会冒充0级。
                 board.PlayerLevels = view.Players.Select(player =>
                 {
@@ -832,7 +833,7 @@ namespace YC.Presentation
                 layout.SelectionPanelSize, layout.CharacterPanelPosition, true, false, true, cardPicker: true);
             EffectDialogShell.AddHeading(panel, coveredActionTitle, coveredActionHint);
             detailViewer.AddSelection(panel, new EffectDialogSelectionSpec {
-                IsEffectPage = false, CloseOnBackgroundClick = true,
+                IsEffectPage = false, IsCardSelection = true, CloseOnBackgroundClick = true,
                 Request = new InteractionRequestProjection { VisibleToViewer = true, CandidateIds = candidates,
                     MinSelections = 1, MaxSelections = 1, AllowDecline = true, InteractionId = "covered-actions", Status = "open" },
                 Label = id => CardName(view.ItemZones.Items.Find(item => item.ItemId == id)?.DefinitionId),
@@ -1088,19 +1089,8 @@ namespace YC.Presentation
             return string.Empty;
         }
 
-        public string RequestProgress(InteractionRequestProjection request)
-        {
-            var view = VisibleView();
-            var current = view?.Effects.Find(value => value.EffectId == request.OwnerEffectId);
-            var visited = new HashSet<string>();
-            while (current != null && visited.Add(current.EffectId))
-            {
-                if (current.RequestedCount >= 0 && current.CompletedCount >= 0)
-                    return "\n" + string.Format(copy.RepeatProgressFormat, current.CompletedCount, current.RequestedCount);
-                current = view.Effects.Find(value => value.EffectId == current.ParentEffectId);
-            }
-            return string.Empty;
-        }
+
+
 
         private string TokenDescription(MapTokenView token) => string.Format(copy.MapTokenFormat, ItemName(token.DefinitionId), string.IsNullOrEmpty(token.LocationId) ? token.RouteId : token.LocationId, token.RegionName) + "\n" +
             (token.TypeId == "infected.company_marker" ? copy.CompanyToll : token.IsPermanent ? copy.PermanentToken : token.ExpiresBeforeActionRoundSequence < 0 ? copy.LockExpiryUnknown :
@@ -1124,6 +1114,7 @@ namespace YC.Presentation
             hud.Frame.BindGameplaySnapshot(hasOwnContext ? view : null);
             if (!hasOwnContext || !hud.Frame.GameplayPresentationReady)
             {
+                settlementStrip.ClearAllAllocationPreviews();
                 presentationBinding = new object();
                 renderedSnapshot = null; contentKey = string.Empty; stripPresentationGeneration = -1;
                 settlementStrip.ClearWindow();
@@ -1297,7 +1288,7 @@ namespace YC.Presentation
             detailViewer?.Hide(); InspectedItemIds = Array.Empty<string>();
             pendingOptions.Clear(); pendingCharacters.Clear(); pendingSubmissions.Clear(); contentKey = string.Empty;
             stripPresentationGeneration = -1;
-            if (settlementStrip != null) settlementStrip.ClearWindow();
+            if (settlementStrip != null) { settlementStrip.ClearAllAllocationPreviews();settlementStrip.ClearWindow(); }
             if (!shuttingDown && hud != null) hud.Frame.SetSettlementButtonsVisible(false);
             if (settlementHost != null) settlementHost.gameObject.SetActive(false);
             foreach (var token in mapTokens.Values) if (token != null) EnterpriseBoardItemView.Retire(token.gameObject);

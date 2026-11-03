@@ -47,9 +47,9 @@ namespace YC.Presentation
             {
                 int index = playerColorOrder != null && i < playerColorOrder.Length && board.PlayerColors != null
                     ? Array.IndexOf(board.PlayerColors, playerColorOrder[i]) : i;
-                var show = board.PlayerLevels != null && index >= 0 && index < board.PlayerLevels.Length && board.PlayerLevels[index] >= 0;
+                var show = board.PlayerLevels != null && index >= 0 && index < board.PlayerLevels.Length;
                 playerLevels[i].transform.parent.gameObject.SetActive(show);
-                if (show) playerLevels[i].text = board.PlayerLevels[index].ToString();
+                if (show) playerLevels[i].text = board.PlayerLevels[index] >= 0 ? board.PlayerLevels[index].ToString() : board.MissingMarkerLabel ?? string.Empty;
             }
             for (int i = 0; playerLevelMarkers != null && i < playerLevelMarkers.Length; i++)
             {

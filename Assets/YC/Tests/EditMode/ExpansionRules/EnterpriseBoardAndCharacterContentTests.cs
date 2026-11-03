@@ -62,12 +62,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             Directory.CreateDirectory(Path.GetDirectoryName(destination));
             File.Copy(source, destination, true);
         }
-        private GameState State(int players = 2)
+        private GameState State(int players = 2, bool formalAbilities = false)
         {
             map = StaticMapDefinitions.CreateThreePlayerMap();
             registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
             ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
-            ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry); RepeatEffectExecutor.Register(registry);
+            ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry);
             var query = new MapQueryService(map); var influence = new InfluenceService(query);
             InfluenceEffectExecutor.Register(registry, influence); MapOperationEffectExecutor.Register(registry, query);
             ContentPrimitiveEffectExecutor.Register(registry, query, influence); FacilityEntryEffectExecutor.Register(registry);
@@ -117,6 +117,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             state.ItemZones.Relations.Add(new ItemRelationState { RelationId = StableIdFactory.Create("relation", state.GameId, "active_department"), RelationTypeId = EnterpriseStateQuery.ActiveDepartmentRelation,
                 SourceItemId = Item(state, "enterprise.rhine_lab").ItemId, TargetItemId = Item(state, "enterprise.department.structural").ItemId });
+            if (formalAbilities)
+            {
+                // 严格载物权限用例必须装配正式声明；不以生产兼容分支或放宽权限使旧隔离夹具通过。
+                state.ContentDefinitions.AbilitySources = AbilitySourceLuaCatalog.CreateDeclarations(pack);
+                registry.ContentDefinitions = state.ContentDefinitions;
+                AbilitySourceLuaCatalog.Register(registry, pack);
+            }
             Valid(state); return state;
         }
         private static ItemInstanceState Item(GameState state, string definition) => state.ItemZones.Items.Single(i => i.DefinitionId == definition);
@@ -172,6 +179,15 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var recovery = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
             Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic); Valid(recovery.State); return recovery.State;
+        }
+        private void DeclineSupplyChoice(GameState state)
+        {
+            var request=CurrentRequest(state);Assert.That(request.MinSelections,Is.Zero);Assert.That(request.AllowDecline,Is.True);
+            Assert.That(request.CandidateIds,Does.Not.Contain("choice.skip"));
+            var engine=new EffectTreeExecutor(state,registry);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(),request.AnsweringPlayerId,request.StateRevision,
+                NormalizedValue.CreateBoolean(false),out string reason),Is.True,reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,state.EffectRuntime.LastFaultMessage);Valid(state);
         }
         private EffectNodeRuntimeState Invoke(GameState state, string path, NormalizedValue payload = null, int player = 1)
         {
@@ -296,10 +312,41 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(); string location = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount >= 2).LocationId;
             Place(state, 2, InfluenceService.GetLocationSlotId(location, 0)); Place(state, 2, InfluenceService.GetLocationSlotId(location, 1));
-            Invoke(state, "lua/characters/operator.w.tactic.lua"); Drain(state);
+            Invoke(state, "lua/characters/operator.w.tactic.lua"); AcceptResourcePayment(state); Drain(state);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(76));
             Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(1));
-            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.Zero);
+            // 既有 Replace v2 先移除、结清离场，再放置并发出替换事实；两种事件各一次。
+            var removed = state.EffectRuntime.RuleEvents.Single(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved);
+            var replaced = state.EffectRuntime.RuleEvents.Single(e => e.EventType == InfluenceEventTypeIds.InfluenceReplaced);
+            Assert.That(state.EffectRuntime.RuleEvents.IndexOf(removed), Is.LessThan(state.EffectRuntime.RuleEvents.IndexOf(replaced)));
+            Assert.That(state.Map.Influences.Count(i => i.PlayerId == 2), Is.EqualTo(1), "同一对手仍只替换一枚。");
+            state = Restore(state); new EffectTreeExecutor(state, registry).RunUntilQuiescent();
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(1));
+        }
+        [Test] public void TexasActualLuaPaysThenRemovesAndMovesTwoDistinctInstancesAcrossRecovery()
+        {
+            // API-09 规则隔离：真实正式 Lua 和操作；人工布置候选不计正常角色／页面验收。
+            var state = State(); var points = map.Locations.Where(l => !l.IsRedZone && l.InfluenceSlotCount > 0).Take(3).ToArray();
+            Place(state, 1, InfluenceService.GetLocationSlotId(points[0].LocationId, 0));
+            Place(state, 1, InfluenceService.GetLocationSlotId(points[1].LocationId, 0));
+            Place(state, 2, InfluenceService.GetLocationSlotId(points[2].LocationId, 0));
+            string own = state.Map.Influences.First(i => i.PlayerId == 1).InfluenceId;
+            string opponent = state.Map.Influences.Single(i => i.PlayerId == 2).InfluenceId;
+            int gold = state.FindPlayer(1).Resources.GoldVoucher;
+            Invoke(state, "lua/characters/texas.tactic.lua"); AcceptResourcePayment(state);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold - 3));
+            state = Restore(state); Answer(state, opponent);
+            var request = CurrentRequest(state);
+            Answer(state, request.CandidateIds.First(id => id.StartsWith("move|" + own + "|", StringComparison.Ordinal)));
+            state = Restore(state); request = CurrentRequest(state);
+            Assert.That(request.CandidateIds.Any(id => id.StartsWith("move|" + own + "|", StringComparison.Ordinal)), Is.False);
+            Answer(state, request.CandidateIds.First());
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceMoved), Is.EqualTo(2));
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ContentPrimitiveEffectExecutor.RetiredInfluenceSelectionTypeId), Is.False);
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.Status == "open"), Is.False);
+            Restore(state);
         }
         [Test] public void SilverashDirectSelectionExcludesAlreadyHandledPlayersAndContinuesPlacement()
         {
@@ -500,8 +547,36 @@ namespace YC.Tests.EditMode.ExpansionRules
             Run(state, CharacterLifecycleService.CreateUseSpec(1, card.ItemId, mode));
         }
         private static ZoneInstanceState CarrierZone(GameState state, string definition) => state.ItemZones.Zones.Single(z => z.ParentId == Item(state, definition).ItemId && z.ParentKind == ZoneParentKind.Item);
+        private void OpenFormalCharacterCleanup(GameState state)
+        {
+            var chain = new RoundMainChainBuilder().Build(state.GameId, "", state.Round, new[] { 1, 2 }, 1);
+            var main = chain.Nodes.Single(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow && n.PlayerId == 1);
+            state.EffectRuntime.MainNodes.AddRange(chain.Nodes);
+            foreach (var previous in chain.Nodes.Where(n => n.MainlineIndex < main.MainlineIndex)) previous.Status = EffectNodeStatus.Completed;
+            state.EffectRuntime.ActiveMainNodeId = main.NodeId; state.EffectRuntime.FirstMainNodeId = chain.FirstNodeId;
+            state.EffectRuntime.CurrentRoundExecutionId = chain.RoundExecutionId; state.EffectRuntime.CurrentRoundNumber = state.Round;
+            state.EffectRuntime.CurrentRoundStartPlayerId = 1; state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
+            state.Phase = GamePhase.Cleanup;
+            var rounds = new RoundExecutionService(registry);
+            string root = rounds.CreateCommandExecutor(state).CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId,
+                Object("mainNodeId", NormalizedValue.CreateString(main.NodeId)), 1));
+            main.ExecutionEffectId = root; main.Status = EffectNodeStatus.Running;
+            Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+        }
+
         private void LoadMarkers(GameState state, string definition, int count)
-        { StartCard(state, definition, "tactic"); Answer(state, count.ToString()); Drain(state); }
+        {
+            StartCard(state, definition, "tactic");
+            if (count == 0 && CurrentRequest(state).AllowDecline)
+            {
+                var request = CurrentRequest(state); var engine = new EffectTreeExecutor(state, registry);
+                Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, request.StateRevision,
+                    NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason);
+                Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            }
+            else Answer(state, count.ToString());
+            Drain(state);
+        }
         private static EffectSpec CompositePay(int player, params object[] fields) => EffectSpec.Create(ResourceEffectTypeIds.Pay, Object("player", NormalizedValue.CreateString(player.ToString()), "cost", Object(fields)), player);
 
         [Test] public void RhodesRouteIncomeReadsCommittedMapIncludingNewMarkerAfterRecovery()
@@ -515,14 +590,66 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void RhodesRecoversExactDiscardInstanceAndPubliclyDiscardsOtherHands()
         {
-            var state = State(); var card = state.ItemZones.Items.Single(i => i.DefinitionId == "texas" && i.ControllerSubject.PlayerId == 1);
-            SetFixturePosition(state, card, FindZone(state, "discard", 1).ZoneId); Invoke(state, "lua/enterprises/enterprise.rhodes_island.level_4.special.lua");
+            GameState CurrentRhodesState()
+            {
+                // 此项验证当前正式续接，必须装配活动目录的声明/正文/版本，不能使用原手工目录。
+                var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 2,
+                    EnabledExpansionIds = new List<string> { "core", "enterprise" } };
+                var active = ActiveContentCatalogBuilder.Build(core, config); config.ContentPackHash = active.ContentPackHash;
+                registry = new EffectRegistry(); active.Register(registry); GenericLuaEffectExecutor.Register(registry); ResourceEffectExecutor.Register(registry);
+                var current = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1,
+                    new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } },
+                    config, 452, active.SetupRecipe, active.ContentDefinitions, new[] { 1, 2 }, "api24.rhodes", null);
+                current.Round = 1; current.ActionRound = 1; current.Phase = GamePhase.ActionRound1; current.CurrentPlayerId = current.StartPlayerId = 1;
+                current.FindPlayer(1).Resources.GoldVoucher = 80;
+                var board = Item(current, "enterprise.rhodes_island"); SetFixturePosition(current, board, FindZone(current, "enterprises").ZoneId);
+                foreach (int player in new[] { 1, 2 })
+                {
+                var declaration = new CardZoneDefinition { LocalZoneId = "cooperation_" + player, ZoneTemplateId = "core.zone.board_marker_track",
+                    AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" },
+                    CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public,
+                    EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
+                Assert.That(new ItemZoneStateFactory().TryCreateCardZone(current, board.ItemId, declaration, out string track, out string reason), Is.True, reason);
+                var marker = current.ItemZones.Items.First(i => i.ZoneId == FindZone(current, "supply", player).ZoneId);
+                SetFixturePosition(current, marker, track); marker.SlotId = "level_4";
+                }
+                Valid(current); return current;
+            }
+            var state = CurrentRhodesState(); var card = state.ItemZones.Items.Single(i => i.DefinitionId == "texas" && i.ControllerSubject.PlayerId == 1);
+            Run(state, YC.Domain.Cards.CharacterCardMovement.Create(state, 1, card.ItemId, FindZone(state, "discard", 1).ZoneId));
+            var others = new ItemZoneQuery().GetItemIds(state, FindZone(state, "hand", 1).ZoneId).ToArray();
+            void ActivateRhodes(GameState current)
+            {
+                var board = Item(current, "enterprise.rhodes_island");
+                var track = current.ItemZones.Zones.Single(z => z.ParentId == board.ItemId && z.LocalZoneId == "cooperation_1");
+                // 隔离企业等级前提；正文必须从真实注册的特效进入，不伪造完成续接。
+                current.ItemZones.Items.Single(i => i.ZoneId == track.ZoneId).SlotId = "level_4";
+                Assert.That(new EnterpriseStateQuery(registry.EnterpriseDefinitions).GetLevel(current, 1, board.ItemId), Is.EqualTo(4));
+                try { Run(current, EffectSpec.Create(LuaDomainEffectTypeIds.ActivateEnterpriseSpecial, Object("apiVersion", NormalizedValue.CreateInteger(1),
+                    "player", NormalizedValue.CreateString("1"), "unlockedByPlayer", NormalizedValue.CreateString("1"),
+                    "enterpriseItemIds", Strings(new[] { board.ItemId }), "specialId", NormalizedValue.CreateString("enterprise.rhodes_island.level_4.special")), 1)); }
+                catch (AssertionException)
+                {
+                    string folder = Path.Combine(Directory.GetCurrentDirectory(), "Logs/LuaApiUpgrade/API-24/罗德岛首次现场"); Directory.CreateDirectory(folder);
+                    File.WriteAllText(Path.Combine(folder, "state-" + Guid.NewGuid().ToString("N") + ".json"), JsonConvert.SerializeObject(current)); throw;
+                }
+            }
+            ActivateRhodes(state); state = Restore(state);
+            Assert.That(CurrentRequest(state).InteractionTypeId, Is.EqualTo("action.decline_effect")); Answer(state, "continue");
             state = Restore(state); Answer(state, card.ItemId); Drain(state);
             Assert.That(new ItemZoneQuery().GetItemIds(state, FindZone(state, "hand", 1).ZoneId), Is.EqualTo(new[] { card.ItemId }));
+            Assert.That(new ItemZoneQuery().GetItemIds(state, FindZone(state, "discard", 1).ZoneId), Is.EquivalentTo(others));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(90));
-            Assert.That(state.EffectRuntime.RuleEvents.Single(e => e.EventType == "character.cards.revealed").Visibility, Is.EqualTo("public"));
-            var empty = State(); Invoke(empty, "lua/enterprises/enterprise.rhodes_island.level_4.special.lua");
-            Assert.That(empty.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(80)); Assert.That(empty.FindPlayer(1).HandCardIds.Count, Is.EqualTo(7));
+            var facts = state.EffectRuntime.RuleEvents.Where(e => e.EventType == "character.cards.revealed").ToArray();
+            Assert.That(facts.Length, Is.EqualTo(1 + others.Length)); Assert.That(facts.All(e => e.Visibility == "public"), Is.True);
+            Assert.That(facts.SelectMany(e => Value(e.Payload, "itemIds").Items.Select(v => v.StringValue)), Is.EquivalentTo(new[] { card.ItemId }.Concat(others)));
+            var moves = state.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard && Flag(n.NormalizedArguments, "reveal")).ToArray();
+            Assert.That(moves.Length, Is.EqualTo(facts.Length)); Assert.That(moves.All(n => Number(n.NormalizedResult, "movedCount") == 1), Is.True);
+            state = Restore(state); new EffectTreeExecutor(state, registry).RunUntilQuiescent();
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == "character.cards.revealed"), Is.EqualTo(facts.Length));
+            var empty = CurrentRhodesState(); var initial = new ItemZoneQuery().GetItemIds(empty, FindZone(empty, "hand", 1).ZoneId).ToArray(); ActivateRhodes(empty);
+            Assert.That(empty.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(80));
+            Assert.That(new ItemZoneQuery().GetItemIds(empty, FindZone(empty, "hand", 1).ZoneId), Is.EqualTo(initial));
         }
         [Test] public void HydeReturnsOnlyFrozenOldSupplyThenShufflesRefillsAndCanDeclineBuild()
         {
@@ -565,22 +692,33 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void EunectesRefillsFirstSlotBeforeSecondDifferentNameChoiceAndRewardsOnZero()
         {
-            var state = State(); FillSupply(state); Invoke(state, "lua/characters/operator.eunectes.tactic.lua");
+            var state = State(); FillSupply(state); StartCard(state,"operator.eunectes","tactic");
             string first = CurrentRequest(state).CandidateIds.First(id => id != "choice.skip"), slot = new ItemZoneQuery().FindItem(state, first).ZoneId;
             string name = FacilityCardDatabase.Get(state, new ItemZoneQuery().FindItem(state, first).DefinitionId).Name; Answer(state, first);
             Assert.That(state.ItemZones.Items.Any(i => i.ZoneId == slot), Is.True); state = Restore(state);
             Assert.That(CurrentRequest(state).CandidateIds.Where(id => id != "choice.skip").All(id => FacilityCardDatabase.Get(state, new ItemZoneQuery().FindItem(state, id).DefinitionId).Name != name), Is.True);
-            Answer(state, "choice.skip"); Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(23)); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == first).ZoneId, Is.EqualTo(FindZone(state, "retired").ZoneId));
-            var zero = State(); Invoke(zero, "lua/characters/operator.eunectes.tactic.lua"); Answer(zero, "choice.skip"); Assert.That(zero.FindPlayer(1).Resources.Iron, Is.EqualTo(23));
+            DeclineSupplyChoice(state); Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(23)); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == first).ZoneId, Is.EqualTo(FindZone(state, "retired").ZoneId));
+            var zero = State(); StartCard(zero,"operator.eunectes","tactic");
+            Assert.That(zero.EffectRuntime.InteractionRequests.Any(r=>r.Status=="open"),Is.False,"零候选沿正式可选Choice直接完成，不补造跳过请求。");
+            Assert.That(zero.FindPlayer(1).Resources.Iron, Is.EqualTo(23));
         }
         [Test] public void ClosureStoredFacilityIsOwnedCandidatePaysNormalCostAndEmptyCarrierDiscards()
         {
             var state = State(); FillSupply(state); StartCard(state, "operator.closure", "tactic");
-            string selected = CurrentRequest(state).CandidateIds.First(id => id != "choice.skip"); Answer(state, selected); Answer(state, "choice.skip");
+            string selected = CurrentRequest(state).CandidateIds.First(id => id != "choice.skip"); Answer(state, selected); DeclineSupplyChoice(state);
             var zone = CarrierZone(state, "operator.closure"); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == selected).ZoneId, Is.EqualTo(zone.ZoneId));
-            state = Restore(state); Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            state = Restore(state); Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             Assert.That(CurrentRequest(state).CandidateIds, Does.Contain(selected)); var facility = FacilityCardDatabase.Get(state, new ItemZoneQuery().FindItem(state, selected).DefinitionId);
-            var cost = new FacilityBuildCostService().GetEffectiveResourceCost(state, state.FindPlayer(1), facility); Answer(state, selected); Answer(state, "resources");
+            var cost = new FacilityBuildCostService().GetEffectiveResourceCost(state, state.FindPlayer(1), facility);
+            var selection=CurrentRequest(state);var engine=new EffectTreeExecutor(state,registry);
+            Assert.That(engine.TryPrepareEffectBuildPayment(1,selection.OwnerEffectId,selection.GetStableInteractionId(),selection.CandidateSetId,selection.CandidateSetVersion,
+                selected,Object("paymentMode",NormalizedValue.CreateString("resources"),"expectedSourceZoneId",NormalizedValue.CreateString(zone.ZoneId)),
+                state.EffectRuntime.StateRevision,Guid.NewGuid().ToString("N"),out string reason),Is.True,reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,state.EffectRuntime.LastFaultMessage);
+            var payment=CurrentRequest(state);Assert.That(payment.InteractionTypeId,Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId));
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==payment.OwnerEffectId).Payment,Is.Not.Null);
+            Assert.That(payment.CandidateIds,Does.Contain(ResourceEffectExecutor.PaymentConfirmationCandidateId));
+            Answer(state,ResourceEffectExecutor.PaymentConfirmationCandidateId);
             Assert.That(Item(state, "operator.closure").ZoneId, Is.EqualTo(FindZone(state, "discard", 1).ZoneId));
             Assert.That(CharacterLifecycleService.IsSubscriptionActive(state, Item(state, "operator.closure").ItemId, "operator.closure.tactic"), Is.False);
             state = Restore(state); Drain(state); Assert.That(state.Map.Facilities.Any(f => f.ContentInstanceId == selected), Is.True);
@@ -598,21 +736,57 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase(false)] [TestCase(true)]
         public void DorothyStoresRealDepartureBeyondFourKeepsOwnerAndEmptyPersistence(bool replacement)
         {
-            var state = State(); LoadMarkers(state, "operator.dorothy", 4); var location = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0);
+            var state = State(formalAbilities: true); LoadMarkers(state, "operator.dorothy", 4); var location = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0);
             Place(state, 1, InfluenceService.GetLocationSlotId(location.LocationId, 0)); string id = state.Map.Influences.Single().InfluenceId;
             Run(state, replacement ? InfluenceEffectSpecFactory.ReplaceInfluence(2, id) : InfluenceEffectSpecFactory.RemoveInfluence(2, id));
             Assert.That(CurrentRequest(state).AnsweringPlayerId, Is.EqualTo(1)); state = Restore(state); Answer(state, "store"); Drain(state);
             var zone = CarrierZone(state, "operator.dorothy"); var cube = state.ItemZones.Items.Single(i => i.ItemId == id);
-            Assert.That(cube.ZoneId, Is.EqualTo(zone.ZoneId)); Assert.That(cube.OwnerSubject.PlayerId, Is.EqualTo(1)); Assert.That(cube.TypeId, Is.EqualTo("core.player_marker")); Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == zone.ZoneId), Is.EqualTo(5));
+            if (cube.ZoneId != zone.ZoneId)
+            {
+                string capture = Path.Combine(Directory.GetCurrentDirectory(), "Logs/LuaApiUpgrade/API-41初始标记真实分支/正式捕获上下文-" + replacement + ".json");
+                if (!File.Exists(capture)) File.WriteAllText(capture, JsonConvert.SerializeObject(state, Formatting.Indented));
+            }
+            Assert.That(cube.ZoneId, Is.EqualTo(zone.ZoneId), JsonConvert.SerializeObject(new { registry.HasAbilityCatalog,
+                Nodes = state.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Failed || n.EffectTypeId.Contains("store")).Select(n => new {
+                    n.EffectTypeId, n.Status, n.FailureReason, n.SourceId, n.ParentEffectId, n.NormalizedArguments, n.NormalizedResult, n.ContinuationData }) }));
+            Assert.That(cube.OwnerSubject.PlayerId, Is.EqualTo(1)); Assert.That(cube.TypeId, Is.EqualTo("core.player_marker")); Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == zone.ZoneId), Is.EqualTo(5));
             int removed = state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved);
-            Run(state, EventSpec("PlayerCleanupStarted")); Answer(state, "activate"); Drain(state);
+            OpenFormalCharacterCleanup(state);
+            var cleanup = registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == Item(state, "operator.dorothy").ItemId);
+            Assert.That(new EffectTreeExecutor(state, registry).TryInvokeCharacterSettlementOption(1, cleanup.OptionId, "", cleanup.StateRevision, out _, out var error), Is.True, error);
+            Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Answer(state, "continue"); Drain(state);
             Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == zone.ZoneId), Is.EqualTo(3)); Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.EqualTo(removed));
-            state = Restore(state); Run(state, EventSpec("PlayerCleanupStarted")); Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
+            state = Restore(state);
+            Assert.That(registry.GetSettlementOptions(state, 1).Where(o => o.SourceItemId == Item(state, "operator.dorothy").ItemId).All(o => !o.IsEnabled), Is.True);
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
             var card = Item(state, "operator.dorothy"); Run(state, MoveSpec(1, new[] { card.ItemId }, card.ZoneId, FindZone(state, "retired").ZoneId, "unordered", 1, "core.character_card_transfer"));
             Assert.That(state.ItemZones.Items.Any(i => i.ZoneId == zone.ZoneId), Is.False); Assert.That(CharacterLifecycleService.IsSubscriptionActive(state, card.ItemId, "operator.dorothy.tactic"), Is.False);
-            var empty = State(); LoadMarkers(empty, "operator.dorothy", 0); Assert.That(Item(empty, "operator.dorothy").ZoneId, Is.EqualTo(FindZone(empty, "persistent", 1).ZoneId));
-            Run(empty, EventSpec("PlayerCleanupStarted")); Answer(empty, "activate"); Drain(empty); Assert.That(empty.Map.Influences, Is.Empty);
+            var empty = State(formalAbilities: true); LoadMarkers(empty, "operator.dorothy", 0); Assert.That(Item(empty, "operator.dorothy").ZoneId, Is.EqualTo(FindZone(empty, "persistent", 1).ZoneId));
+            OpenFormalCharacterCleanup(empty);
+            Assert.That(registry.GetSettlementOptions(empty, 1).Where(o => o.SourceItemId == Item(empty, "operator.dorothy").ItemId).All(o => !o.IsEnabled), Is.True);
+            Assert.That(empty.Map.Influences, Is.Empty);
         }
+        [TestCase(false)] [TestCase(true)]
+        public void DorothyRealDepartureDeclineKeepsOriginalSupplyAndCreatesNoEmptyStorageEffect(bool replacement)
+        {
+            var state = State(formalAbilities: true); LoadMarkers(state, "operator.dorothy", 4);
+            var location = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0);
+            Place(state, 1, InfluenceService.GetLocationSlotId(location.LocationId, 0)); string id = state.Map.Influences.Single().InfluenceId;
+            Run(state, replacement ? InfluenceEffectSpecFactory.ReplaceInfluence(2, id) : InfluenceEffectSpecFactory.RemoveInfluence(2, id));
+            var request = CurrentRequest(state); string owner = request.OwnerEffectId;
+            Assert.That(request.AllowDecline, Is.True); Assert.That(request.MinSelections, Is.Zero);
+            Assert.That(request.CandidateIds, Is.EqualTo(new[] { "store" }));
+            state = Restore(state); request = CurrentRequest(state);
+            Assert.That(new EffectTreeExecutor(state, registry).TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision,
+                NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason);
+            Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Drain(state); var cube = state.ItemZones.Items.Single(i => i.ItemId == id);
+            Assert.That(cube.ZoneId, Is.EqualTo(cube.OriginalSupplyZoneId));
+            Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == CarrierZone(state, "operator.dorothy").ZoneId), Is.EqualTo(4));
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == owner).ChildEffectIds, Is.Empty);
+        }
+
         [TestCase(0, 0)] [TestCase(2, 0)] [TestCase(2, 2)] [TestCase(9, 4)]
         public void PassengerQuantityIsOptionalBoundedAndBothPlayersScore(int stock, int selected)
         {
@@ -739,7 +913,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.FindPlayer(1).Resources = GameStateCloneService.DeepClone(cost); state.FindPlayer(1).Resources.GoldVoucher = 0;
             for (int i = 0; i < 3; i++) { allocation[i] = Math.Min(remaining, cost.Get(types[i])); remaining -= allocation[i]; state.FindPlayer(1).Resources.Set(types[i], cost.Get(types[i]) - allocation[i]); }
             Assert.That(BuildFacilityService.CreateForEffectTree().ValidatePaymentMode(state, 1, item.ItemId, "resources").IsValid, Is.True);
-            Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1)); Answer(state, item.ItemId); Answer(state, "resources");
+            Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1)); Answer(state, item.ItemId); Answer(state, "resources");
             Assert.That(CurrentRequest(state).PromptKey, Is.EqualTo("resource.payment.substitution")); state = Restore(state);
             Answer(state, CurrentRequest(state).CandidateIds.Single(id => id.EndsWith("|" + string.Join("|", allocation))));
             Assert.That(Item(state, "operator.passenger").ZoneId, Is.EqualTo(FindZone(state, "discard", 1).ZoneId));
@@ -767,10 +941,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void StoredFacilityIsExcludedFromSupplyOnlySkillsAndOtherPlayersCannotBuildIt()
         {
-            var state = State(); FillSupply(state); StartCard(state, "operator.closure", "tactic"); string held = CurrentRequest(state).CandidateIds.First(id => id != "choice.skip"); Answer(state, held); Answer(state, "choice.skip");
+            var state = State(); FillSupply(state); StartCard(state, "operator.closure", "tactic"); string held = CurrentRequest(state).CandidateIds.First(id => id != "choice.skip"); Answer(state, held); DeclineSupplyChoice(state);
             Assert.That(BuildFacilityService.CreateForEffectTree().ValidateFacility(state, 1, held).IsValid, Is.True);
             Assert.That(BuildFacilityService.CreateForEffectTree().ValidateFacility(state, 2, held).IsValid, Is.False);
-            Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("free"), "includeStoredFacilities", NormalizedValue.CreateBoolean(false)), 1));
+            Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("free"), "includeStoredFacilities", NormalizedValue.CreateBoolean(false), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             Assert.That(CurrentRequest(state).CandidateIds, Does.Not.Contain(held)); Drain(state);
             var result = Run(state, FacilityBuildEffectSpecFactory.Build(2, held, -1, "free", false, "test.foreign", false));
             Assert.That(result.Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == held).ZoneId, Is.EqualTo(CarrierZone(state, "operator.closure").ZoneId));

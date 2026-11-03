@@ -1,14 +1,11 @@
 {
   "schemaVersion": 1,
   "effectTypes": {
-    "effect.facility.choose_build": {
-      "presentationScript": "lua/presentation/interaction.choose_build.lua"
-    },
     "effect.resource.choose_amounts": {
       "presentationScript": "lua/presentation/interaction.choose_resources.lua"
     },
-    "effect.flow.repeat": {
-      "presentationScript": "lua/presentation/interaction.repeat.lua"
+    "effect.facility.build": {
+      "presentationScript": "lua/presentation/interaction.choose_build.lua"
     }
   },
   "interactions": {},

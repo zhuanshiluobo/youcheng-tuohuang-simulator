@@ -1,3 +1,3 @@
 return function(ctx)
-    return { Effect.ChooseBuild({ player = ctx.playerId, sourceZone = 'supply', allowDecline = true, includeStoredFacilities = false, excludeRainbow = true }) }
+    return { Effect.Build({ apiVersion=3, targetMode='select', player = ctx.playerId, sourceKind = 'supply', allowDecline = true, includeStoredFacilities = false, excludeRainbow = true , paymentMode='auto' , consumeMainAction=false }) }
 end

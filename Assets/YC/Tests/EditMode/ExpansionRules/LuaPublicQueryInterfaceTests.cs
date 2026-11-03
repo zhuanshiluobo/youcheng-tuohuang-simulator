@@ -119,6 +119,26 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(original));
         }
 
+        [TestCase(false)][TestCase(true)]
+        public void ForeignHandDestinationMetadataDoesNotExposeInstancesOrOrder(bool empty)
+        {
+            var f = Create("core");
+            var hand = f.State.ItemZones.Zones.Single(z => z.LocalZoneId == "hand" && z.OwnerPlayerId == 2);
+            var hidden = f.State.ItemZones.Items.Where(i => i.ZoneId == hand.ZoneId).ToArray();
+            Assert.That(hidden, Is.Not.Empty);
+            if (empty)
+            {
+                var discard = f.State.ItemZones.Zones.Single(z => z.LocalZoneId == "discard" && z.OwnerPlayerId == 2);
+                foreach (var item in hidden) Position(f.State, item, discard);
+            }
+            string before = JsonConvert.SerializeObject(f.State);
+            Success(f.State, "local zones=Global.Content.FindZones({localZoneId='hand',owner='p2'}); assert(#zones==1); local z=zones[1]; " +
+                "assert(z.id==" + Q(hand.ZoneId) + " and z.templateId=='core.zone.character_hand'); " +
+                "assert(z.orderRevision==nil and z.orderDigest==nil and z.topItemId==nil); " +
+                "assert(#Global.Content.FindInstances({zoneId=z.id})==0); " +
+                (empty ? "assert(z.itemCount==0); " : "assert(Global.Content.GetInstance(" + Q(hidden[0].ItemId) + ")==nil); "));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
+        }
         [Test]
         public void InvalidFiltersArityTypesAndLimitsFailExplicitly()
         {
@@ -235,8 +255,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 new FacilityBuildCandidateOptions { SourceZone = "deck" }, stateRevision: f.State.EffectRuntime.StateRevision);
             Assert.That(snapshot.FinalItemIds, Is.EqualTo(expected)); Assert.That(snapshot.DefaultItemIds, Is.EquivalentTo(expected));
             Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
-            var requestNode = CandidateRun(f, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                ItemTransferEffectExecutor.Object("sourceZone", NormalizedValue.CreateString("deck"), "paymentMode", NormalizedValue.CreateString("free")), 1));
+            var requestNode = CandidateRun(f, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, ItemTransferEffectExecutor.Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("free"), "sourceKind", NormalizedValue.CreateString("deck"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             var request = CandidateOpen(f);
             Assert.That(request.CandidateIds, Is.EqualTo(expected)); Assert.That(request.PromptParameters.IsValid(), Is.True);
             Assert.That(ItemTransferEffectExecutor.Value(request.PromptParameters, "candidateDefinitionIds").Items.Count, Is.EqualTo(expected.Length));
@@ -303,7 +322,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(local.FinalItemIds, Is.EqualTo(snapshot.FinalItemIds)); Assert.That(local.Resolution.StateRevision, Is.EqualTo(view.StateRevision));
             Assert.That(client.EffectRuntime, Is.Null); Assert.That(JsonConvert.SerializeObject(client), Is.EqualTo(clientBefore));
             var expected = snapshot.FinalItemIds.ToArray();
-            var selection = CandidateRun(f, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, playerId: 1));
+            var selection = CandidateRun(f, FacilityBuildContract.Select(1, "supply", "auto", false, false));
             Assert.That(CandidateOpen(f).CandidateIds, Is.EqualTo(expected)); Assert.That(CandidateOpen(f).PromptParameters.IsValid(), Is.True);
             Assert.That(CandidateOpen(f).InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
             var balances = JsonConvert.SerializeObject(f.State.Players.Select(p => p.Resources));
@@ -332,7 +351,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 {
                     var cells = f.State.ItemZones.Zones.Where(z => z.TemplateId == "core.zone.city_facility_cell" && z.OwnerPlayerId == 1).ToList();
                     foreach (var cell in cells.Where(z => f.State.ItemZones.Items.All(i => i.ZoneId != z.ZoneId)))
-                        Position(f.State, f.State.ItemZones.Items.First(i => i.TypeId == "core.facility_card" && i.ZoneId == ItemTransferEffectExecutor.FindZone(f.State, "facility_deck").ZoneId), cell);
+                    {
+                        var filler = f.State.ItemZones.Items.First(i => i.TypeId == "core.facility_card" && i.ZoneId == ItemTransferEffectExecutor.FindZone(f.State, "facility_deck").ZoneId);
+                        filler.ControllerSubject = ItemSubjectRef.Player(1); filler.OwnerSubject = ItemSubjectRef.Player(1);
+                        Position(f.State, filler, cell);
+                    }
+                    Assert.That(new ItemZoneQuery().TryValidate(f.State, out string reason), Is.True, reason);
                 }
                 var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
                 var ability = pack.Definitions.Single(d => d.DefinitionId == "enterprise.raythean").Abilities.Single(a => a.AbilityId == "enterprise.raythean.level_5.special");
@@ -392,9 +416,9 @@ namespace YC.Tests.EditMode.ExpansionRules
                         Assert.That(payInput.InteractionTypeId, Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), outcome);
                         Assert.That(payment.Payment.Preparation.SelectionOwnerEffectId, Is.EqualTo(selection.OwnerEffectId));
                         Assert.That(payment.Payment.Preparation.TargetId, Is.EqualTo(selected));
-                        var view = GameStateViewProjector.ProjectForPlayer(f.State, 1).PreparedActionPayments.Single();
+                        var view = GameStateViewProjector.ProjectForPlayer(f.State, 1, f.Registry).PreparedActionPayments.Single();
                         Assert.That(view.IsReady, Is.True, outcome); Assert.That(view.CanConfirm, Is.EqualTo(outcome == "built"), outcome);
-                        Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.False, outcome);
+                        Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))), Is.False, outcome);
                         Assert.That(shuffles(), Is.Zero, outcome);
                         Assert.That(JsonConvert.SerializeObject(f.State.FindPlayer(1).Resources), Is.EqualTo(originalResources), outcome);
                         if (outcome == "no_resources")
@@ -417,7 +441,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                             CandidateAnswer(f, NormalizedValue.CreateString(placement.CandidateIds.First()));
                             Assert.That(f.State.ItemZones.Zones.Single(z => z.ZoneId == f.State.ItemZones.Items.Single(i => i.ItemId == selected).ZoneId).TemplateId, Is.EqualTo("core.zone.city_facility_cell"));
                             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold - price));
-                            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build).Status, Is.EqualTo(EffectNodeStatus.Completed));
+                            Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))).Status, Is.EqualTo(EffectNodeStatus.Completed));
                             string afterBuild = JsonConvert.SerializeObject(f.State);
                             Assert.That(new EffectTreeExecutor(f.State, f.Registry).TrySubmitInteraction(payInput.GetStableInteractionId(), 1,
                                 f.State.EffectRuntime.StateRevision, NormalizedValue.CreateString("pay"), out _), Is.False);
@@ -430,7 +454,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(f.State.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False, outcome);
                 Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == root.EffectId).Status, Is.EqualTo(EffectNodeStatus.Completed), outcome);
                 Assert.That(shuffles(), Is.EqualTo(1), outcome);
-                Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.EqualTo(outcome == "built" ? 1 : 0), outcome);
+                Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))), Is.EqualTo(outcome == "built" ? 1 : 0), outcome);
                 Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.Payment?.Preparation?.AuthorizationKind == "effect_build" && n.Payment.IsCommitted), Is.EqualTo(outcome == "built" ? 1 : 0), outcome);
                 Assert.That(f.State.ItemZones.Items.Where(i => i.ZoneId == deck.ZoneId).Select(i => i.ItemId), Is.EquivalentTo(expectedIds.Where(id => outcome != "built" || id != selected)), outcome);
                 Assert.That(f.State.ItemZones.Items.Where(i => f.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.facility_supply_slot")).Select(i => i.ItemId), Is.EqualTo(supplyIds), outcome);

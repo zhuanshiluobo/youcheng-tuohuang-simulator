@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using YC.Domain.Items;
 using YC.Application.Gameplay;
 using YC.Domain.CityStyles;
 using YC.Domain.Commands;
@@ -357,7 +359,7 @@ namespace YC.Presentation.Workflows
                         var specialActionOption = player.PlayerId == localPlayerId
                             ? specialActionOptions.Find(
                                 actionDeclaration.UnlockedSpecialActionId,
-                                actionDeclaration.InfluenceMarkerId)
+                                actionDeclaration.GetCurrentMarkerItemId())
                             : null;
                         var specialActionDefinition = SpecialActionDatabase.Get(
                             actionDeclaration.UnlockedSpecialActionId);
@@ -366,7 +368,7 @@ namespace YC.Presentation.Workflows
                             player.PlayerId,
                             player.Color,
                             DisplayMarkerArea(player, declaration),
-                            actionDeclaration.InfluenceMarkerId,
+                            actionDeclaration.GetCurrentMarkerItemId(),
                             actionDeclaration.UnlockedSpecialActionId,
                             specialActionOption != null &&
                             specialActionOption.CanUse &&
@@ -390,13 +392,42 @@ namespace YC.Presentation.Workflows
 
             }
 
+            foreach (var marker in CurrentMarkersWithoutDeclaration(state))
+            {
+                var option = marker.PlayerId == localPlayerId ? specialActionOptions.Find(marker.SpecialActionId, marker.MarkerId) : null;
+                result.Add(new CityStyleMarkerViewModel(marker.CityStyleId, marker.PlayerId, marker.PlayerColor, marker.MarkerArea,
+                    marker.MarkerId, marker.SpecialActionId, option?.CanUse == true && string.IsNullOrEmpty(interactionUnavailableReason),
+                    ResolveSpecialActionDropArea(SpecialActionDatabase.Get(marker.SpecialActionId), marker.MarkerArea == "2" ? 2 : marker.MarkerArea == "1" ? 1 : 0),
+                    option == null ? string.Empty : !string.IsNullOrEmpty(interactionUnavailableReason) ? interactionUnavailableReason : option.DisabledReason,
+                    option?.Warning ?? string.Empty, GetMaximumCompositePayment(option, true), GetMaximumCompositePayment(option, false)));
+            }
+
+            return result.AsReadOnly();
+        }
+
+        // 直接入轨只赋予当前资格；展示实际物品，不创建宣告或计分历史。
+        public static IReadOnlyList<CityStyleMarkerViewModel> CurrentMarkersWithoutDeclaration(GameState state)
+        {
+            var result = new List<CityStyleMarkerViewModel>();
+            if (state?.ItemZones?.Items == null) return result;
+            foreach (var marker in state.ItemZones.Items.Where(i => i.TypeId == "core.player_marker" && i.OwnerSubject.Kind == ItemSubjectKind.Player))
+            {
+                var zone = state.ItemZones.Zones.Find(z => z.ZoneId == marker.ZoneId);
+                if (zone?.TemplateId != "core.zone.board_marker_track" || zone.ParentKind != ZoneParentKind.Item || string.IsNullOrEmpty(marker.SlotId)) continue;
+                var source = state.ItemZones.Items.Find(i => i.ItemId == zone.ParentId);
+                var player = state.FindPlayer(marker.OwnerSubject.PlayerId);
+                if (player == null || source == null || !CityStyleDatabase.TryGet(state, source.DefinitionId, out var definition) ||
+                    player.DeclaredCityStyles.Any(d => d.CityStyleId == definition.CityStyleId)) continue;
+                result.Add(new CityStyleMarkerViewModel(definition.CityStyleId, player.PlayerId, player.Color, marker.SlotId,
+                    marker.ItemId, definition.SpecialActionId, false, string.Empty, string.Empty));
+            }
             return result.AsReadOnly();
         }
 
         public static string DisplayMarkerArea(PlayerState player, CityStyleDeclarationState declaration)
         {
             var owner = FindGroupDeclaration(player, declaration);
-            return string.IsNullOrEmpty(owner.MarkerArea) ? CityStyleMarkerAreas.Declared : owner.MarkerArea;
+            return owner.MarkerArea ?? string.Empty;
         }
 
         public SpecialActionOptionQueryResult QuerySpecialActions()
@@ -406,12 +437,23 @@ namespace YC.Presentation.Workflows
             var result = new SpecialActionOptionQueryResult();
             foreach (var action in visible.AbilityActions)
                 if (action.EntryKind == "special") result.Options.Add(new SpecialActionOption { DeclaredAction = action, SpecialActionId = action.ActionId,
-                    DeclarationMarkerId = visible.UsageTracks.Find(t => t.Binding.BindingId == action.TrackBindingId)?.Binding.MarkerItemId ?? action.SourceRef.ItemId, CityStyleId = action.SourceRef.DefinitionId,
+                    DeclarationMarkerId = visible.UsageTracks.Find(t => t.Binding.BindingId == action.TrackBindingId)?.MarkerItemId ?? action.SourceRef.ItemId, CityStyleId = action.SourceRef.DefinitionId,
                     Name = action.DisplayName, Description = action.Description, CanUse = action.Enabled, DisabledReason = YC.Domain.Effects.AbilityActionReasons.Display(action.DisabledReason) });
             return result;
         }
 
-        public bool CanUseSpecialAction => canStartMainAction() && QuerySpecialActions().HasUsableOption;
+        public bool CanUseSpecialAction => GetVisibleState?.Invoke()?.HasAbilityActionCatalog == true && canStartMainAction() && QuerySpecialActions().HasUsableOption;
+
+        public bool BeginSpecialActionChoice()
+        {
+            var visible = GetVisibleState?.Invoke();
+            if (visible?.HasAbilityActionCatalog != true || !CanUseSpecialAction) return false;
+            var command = YC.Application.Interactions.SpecialActionChoiceCommand.Create(context.LocalPlayerId, visible.StateRevision, visible.ContentPackHash);
+            var submitted = commandGateway.Submit(command, new SubmitCallbacks(view.ShowPrompt, "特殊行动选择已发送，等待主机确认。") {
+                OnAppliedLocally = _ => view.RefreshFromState()
+            });
+            return submitted.Kind == SubmitOutcomeKind.AppliedLocally || submitted.Kind == SubmitOutcomeKind.WaitingForHost;
+        }
 
         public bool SubmitSpecialAction(string actionId, string markerId)
         {

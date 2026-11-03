@@ -75,22 +75,30 @@ namespace YC.Domain.Effects
                 return EffectStepResult.Completed(child.NormalizedResult.Clone());
             }
             if (node.FlowStage != "") return EffectStepResult.Failed("exploration_preselection_stage_invalid");
+            return ExecutePreselected(context, configuredMap, RouteSelectionSessionAuthority.Text(node.NormalizedArguments, "targetLocation"),
+                RouteSelectionSessionAuthority.Value(node.NormalizedArguments, "routeIds").Items.Select(v => v.StringValue).ToArray(),
+                RouteSelectionSessionAuthority.Value(node.NormalizedArguments, "recipients").Items.Select(v => new RouteRecipientChoice(
+                    RouteSelectionSessionAuthority.Text(v, "routeId"), RouteSelectionSessionAuthority.Text(v, "subject"))).ToArray(), true);
+        }
+
+        // API-14：正常命令与公开已确认方案共用同一Host资格、封存和托管入口。
+        internal static EffectStepResult ExecutePreselected(EffectExecutionContext context, IMapQueryService configuredMap, string target,
+            IReadOnlyList<string> routes, IReadOnlyList<RouteRecipientChoice> recipients, bool consumeMainAction)
+        {
+            var node = context.Node;
             var map = configuredMap ?? new MapQueryService(StaticMapDefinitions.Resolve(context.State.MapId));
+            if (map.Map?.MapId != context.State.MapId) return EffectStepResult.Failed("route_selection_map_mismatch");
             var player = context.State.FindPlayer(node.PlayerId);
-            var seed = new RouteSelectionSession { PlayerId = node.PlayerId, Purpose = RouteSelectionPurpose.Exploration, ActionContextId = "main_action" };
+            var seed = new RouteSelectionSession { PlayerId = node.PlayerId, Purpose = RouteSelectionPurpose.Exploration, ActionContextId = consumeMainAction ? "main_action" : "granted" };
             var eligible = RouteResourceSelectionEffectExecutor.GetSelectableLocations(context.State, seed, map);
-            string target = RouteSelectionSessionAuthority.Text(node.NormalizedArguments, "targetLocation");
             if (player == null || !eligible.Contains(target)) return EffectStepResult.Failed("route_selection_target_unavailable");
             var authority = new RouteSelectionSessionAuthority(map);
             var options = new RouteSelectionOptions(RouteSelectionPurpose.Exploration, node.PlayerId, player.CityLocationId,
-                eligible, 1, 1, false, "main_action");
+                eligible, 1, 1, false, seed.ActionContextId);
             var opened = authority.TryOpen(context.State, node, options, out var session);
             if (!opened.IsValid) return EffectStepResult.Failed(opened.Reason);
             var prepared = authority.TryPrepareRequest(context.State, node, session, eligible, out var binding, out _);
             if (!prepared.IsValid) return EffectStepResult.Failed(prepared.Reason);
-            var routes = RouteSelectionSessionAuthority.Value(node.NormalizedArguments, "routeIds").Items.Select(v => v.StringValue).ToArray();
-            var recipients = RouteSelectionSessionAuthority.Value(node.NormalizedArguments, "recipients").Items.Select(v =>
-                new RouteRecipientChoice(RouteSelectionSessionAuthority.Text(v, "routeId"), RouteSelectionSessionAuthority.Text(v, "subject"))).ToArray();
             var draft = new RouteSelectionDraft(session.SessionId, 0, routes, new[] { target }, recipients);
             var finalized = new RouteResourceSelectionService(map).TryFinalize(context.State, session, binding, draft, eligible, out var commitment);
             if (!finalized.IsValid) return EffectStepResult.Failed(finalized.Reason);
@@ -98,7 +106,7 @@ namespace YC.Domain.Effects
             if (!sealedResult.IsValid) return EffectStepResult.Failed(sealedResult.Reason);
             return EffectStepResult.Continue("execution").AddChild(ExplorationEffectSpecFactory.ExploreFinalized(node.PlayerId,
                 node.EffectId, session.SessionId, commitment.CommitmentId, commitment.AcceptedAtStateRevision, target,
-                "", false, true, node.SourceId));
+                "", !consumeMainAction, consumeMainAction, node.SourceId));
         }
 
         private static NormalizedValueEntry Entry(string key, NormalizedValue value) => new NormalizedValueEntry { Name = key, Value = value };

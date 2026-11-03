@@ -19,6 +19,7 @@ namespace YC.Domain.Effects
                 FactsDigest = StableIdFactory.Create("payment-demand-facts", source.SourceKey, facts.ToDeterministicString(), state.EffectRuntime.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture)),
                 SubjectPlayerId = source.AuthorizedPlayerId, ContentVersion = registry.ContentPackHash, StateRevision = state.EffectRuntime.StateRevision, MapId = state.MapId, Facts = facts, Purpose = "action_body_payment" };
             var rows = registry.QueryRules(state, query).Where(r => r.SourceRef.ItemId == source.ItemId && r.SourceRef.DefinitionId == source.DefinitionId && r.SourceRef.AuthorizedPlayerId == source.AuthorizedPlayerId).SelectMany(r => r.Items.Items).ToList();
+            if (rows.Count == 0) rows = registry.QueryGrantedStylePaymentDemand(state, query, source, actionId).SelectMany(r => r.Items.Items).ToList();
             if (rows.Count != 1) return false;
             reason = ResourcePaymentDemandParser.TryParse(rows[0], out demand, out var player);
             if (reason.Length == 0 && player != source.AuthorizedPlayerId) reason = "payment_permission_denied";

@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_security_district",
   "contentType": "city_style",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "displayName": "警备队辖区",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,8 +18,8 @@
       "skillType": "normal",
       "subscriptionId": "content.city_style_security_district.special",
       "script": "lua/city_styles/city_style_security_district.special.lua",
-      "version": "1.0.0",
-      "completionHandlerId": "city_style_security_district.special.complete"
+      "version": "1.1.0",
+      "completionHandlerId": ""
     }
   ],
   "data": {
@@ -147,8 +147,8 @@
     {
       "handlerId": "content.city_style_security_district.special",
       "script": "lua/city_styles/city_style_security_district.special.lua",
-      "version": "1.0.0",
-      "completionHandlerId": "city_style_security_district.special.complete"
+      "version": "1.1.0",
+      "completionHandlerId": ""
     }
   ],
   "usageTracks": [

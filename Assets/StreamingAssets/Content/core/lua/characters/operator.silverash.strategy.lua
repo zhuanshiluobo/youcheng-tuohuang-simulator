@@ -13,5 +13,6 @@ return function(ctx)
             end
         end
     end
-    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches, promptKey = 'operator.choose_resource_and_player' }), { interaction = { prompt = Text.Ref('core:interaction.silverash.sale.choose'), options = options } }) }
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        interactionType = 'effect.choice.execute', promptKey = 'operator.choose_resource_and_player' }), { interaction = { prompt = Text.Ref('core:interaction.silverash.sale.choose'), options = options } }) }
 end

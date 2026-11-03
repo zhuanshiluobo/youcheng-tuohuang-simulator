@@ -509,9 +509,9 @@ namespace YC.Presentation
             var levelBoard = p.FixedCompany ?? boardInfo;
             int viewer = p.ViewerPlayerId != 0 ? p.ViewerPlayerId : levelBoard?.ViewerPlayerId ?? 0;
             int playerIndex = levelBoard?.PlayerIds == null ? -1 : Array.IndexOf(levelBoard.PlayerIds, viewer);
-            if (cooperationLevel != null && !string.IsNullOrEmpty(cooperationLevelFormat) && playerIndex >= 0 &&
-                levelBoard.PlayerLevels != null && playerIndex < levelBoard.PlayerLevels.Length && levelBoard.PlayerLevels[playerIndex] >= 0)
-                cooperationLevel.text = string.Format(cooperationLevelFormat, levelBoard.PlayerLevels[playerIndex]);
+            if (cooperationLevel != null && playerIndex >= 0 && levelBoard.PlayerLevels != null && playerIndex < levelBoard.PlayerLevels.Length)
+                cooperationLevel.text = levelBoard.PlayerLevels[playerIndex] < 0 ? levelBoard.MissingMarkerLabel ?? string.Empty :
+                    string.IsNullOrEmpty(cooperationLevelFormat) ? string.Empty : string.Format(cooperationLevelFormat, levelBoard.PlayerLevels[playerIndex]);
             if (detailTitle != null) detailTitle.gameObject.SetActive(!string.IsNullOrEmpty(detailTitle.text));
             if (cost != null) cost.gameObject.SetActive(!string.IsNullOrEmpty(cost.text));
             if (cooperationLevel != null) cooperationLevel.gameObject.SetActive(!string.IsNullOrEmpty(cooperationLevel.text));

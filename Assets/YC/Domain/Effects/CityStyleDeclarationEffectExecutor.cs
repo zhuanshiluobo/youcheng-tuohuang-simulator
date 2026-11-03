@@ -35,7 +35,9 @@ namespace YC.Domain.Effects
             var declaration = DeclareCityStyleService.CreateDeclarationState(style, player.PlayerId, previous);
             if (previous == 0 && declaration.UnlockedSpecialActionId.Length > 0 && usage != null) declaration.MarkerArea = usage.InitialSlotId;
             string area = declaration.MarkerArea;
-            var marker = state.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player.PlayerId && i.ZoneId == FindZone(state, "supply", player.PlayerId).ZoneId);
+            var existingUsage = previous == 0 && usage != null ? state.EffectRuntime.UsageTrackBindings.SingleOrDefault(b =>
+                b.SourceItemId == styleItem.ItemId && b.TrackId == usage.TrackId && b.PlayerId == player.PlayerId) : null;
+            var marker = UsageTracks.CurrentMarker(state, existingUsage) ?? state.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player.PlayerId && i.ZoneId == FindZone(state, "supply", player.PlayerId).ZoneId);
             if (marker == null) return EffectStepResult.Failed("insufficient_items");
             string markerId = marker.ItemId, source = marker.ZoneId;
             var zoneDefinition = new CardZoneDefinition { LocalZoneId = "declaration_" + player.PlayerId + "_" + previous, ZoneTemplateId = "core.zone.board_marker_track",
@@ -57,7 +59,7 @@ namespace YC.Domain.Effects
             declaration.UsedFacilityIds.AddRange(match.UsedCityBoardSlotIndexes.Select(index => state.Map.Facilities.Single(f => f.PlayerId == player.PlayerId && f.CityBoardSlotIndex == index).ContentInstanceId));
             declaration.UsedCityBoardSlotIndexes.AddRange(match.UsedCityBoardSlotIndexes);
             player.DeclaredCityStyles.Add(declaration); declaration.BindItemZones(state);
-            if (previous == 0 && declaration.UnlockedSpecialActionId.Length > 0 && usage != null) UsageTracks.Bind(context, usage, styleItem.ItemId, declaration.DeclarationId, zoneId, markerId);
+            if (previous == 0 && declaration.UnlockedSpecialActionId.Length > 0 && usage != null && existingUsage == null) UsageTracks.Bind(context, usage, styleItem.ItemId, declaration.DeclarationId, zoneId, markerId);
             player.Score += style.Score; player.Resources.Add(style.DeclarationReward ?? new ResourceSet());
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "declarationId", NormalizedValue.CreateString(declaration.DeclarationId))).AddEvent(new EffectEventRequest {
                 EventType = "CityStyleDeclared", PlayerId = player.PlayerId, Payload = Object("declarationId", NormalizedValue.CreateString(declaration.DeclarationId), "cityStyleItemId", NormalizedValue.CreateString(declaration.CityStyleItemId),
@@ -66,7 +68,7 @@ namespace YC.Domain.Effects
         public static void MoveMarker(EffectExecutionContext context, CityStyleDeclarationState declaration, string area)
         {
             if (!ItemZoneLegacyProjection.IsActive(context.State)) { declaration.MarkerArea = area; return; }
-            var marker = new ItemZoneQuery().FindItem(context.State, declaration.InfluenceMarkerId);
+            var marker = UsageTracks.DeclarationMarker(context.State, declaration) ?? throw new InvalidOperationException("usage_marker_departed");
             var request = new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ItemIds = new List<string> { marker.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = marker.ZoneId }, Destination = new ZoneRef { ZoneId = marker.ZoneId }, DestinationSlotId = area,
                 InsertionKind = "slot", RequiredCount = 1, CarrierPolicyId = "preserve", OperationProfileId = "core.player_marker_storage" };
             new ItemTransferService().RelocateItems(context, request);

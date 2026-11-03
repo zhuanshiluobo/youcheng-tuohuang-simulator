@@ -29,7 +29,7 @@ namespace YC.Infrastructure.Lua
                 string script = pack.GetScript(handler.Script);
                 var definition = new LuaHandlerDefinition(handler.HandlerId, "CandidateSetBuilding", CityDestinationQueryService.CandidateKind,
                     new LuaScriptDefinition(entry.Definition.DefinitionId, entry.Source.AbilityId, handler.HandlerId,
-                        handler.Version, script, LuaContentHasher.ComputeSha256(script)), responseKind: "candidatePatches");
+                        handler.Version, script, LuaContentHasher.ComputeSha256(script), pack.GetScriptEntryId(handler.Script)), responseKind: "candidatePatches");
                 registry.RegisterCityDestinationPolicyProvider(handler.HandlerId, definition.Script.ContentHash,
                     (state, draft, source) => dispatcher.InvokeAbilityCandidatePatches(definition, state, draft, source));
             }

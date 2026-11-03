@@ -13,7 +13,7 @@ namespace YC.Domain.Effects
         public static bool HasRawFields(JObject state)
         {
             if ((int?)state["EntitySchemaVersion"] != GameProtocolVersions.Entity) return true;
-            if ((int?)state["ItemZones"]?["NamingVersion"] != PlayerAreaPolicy.NamingVersion || (int?)state["EffectRuntime"]?["UsageTrackProtocolVersion"] != 1) return false;
+            if ((int?)state["ItemZones"]?["NamingVersion"] != PlayerAreaPolicy.NamingVersion || (int?)state["EffectRuntime"]?["UsageTrackProtocolVersion"] != 2) return false;
             var runtime = state["EffectRuntime"];
             foreach (var pair in new[] { new { Name = "UsageTrackBindings", Type = typeof(UsageTrackBinding) }, new { Name = "UsageGroupReceipts", Type = typeof(UsageGroupReceipt) }, new { Name = "UsageTrackResets", Type = typeof(UsageTrackResetProgress) } })
             {
@@ -25,8 +25,8 @@ namespace YC.Domain.Effects
         }
         public static bool Validate(GameState state, EffectRegistry registry, out string reason)
         {
-            reason = "usage_tracks.v1:invalid"; var runtime = state?.EffectRuntime;
-            if (runtime?.UsageTrackProtocolVersion != 1 || runtime.UsageTrackBindings == null || runtime.UsageGroupReceipts == null || runtime.UsageTrackResets == null) return false;
+            reason = "usage_tracks.v2:invalid"; var runtime = state?.EffectRuntime;
+            if (runtime?.UsageTrackProtocolVersion != 2 || runtime.UsageTrackBindings == null || runtime.UsageGroupReceipts == null || runtime.UsageTrackResets == null) return false;
             if (state.ContentDefinitions != null && state.ContentDefinitions.UsageTracks == null) return false;
             if (runtime.UsageTrackBindings.Any(b => b == null) || runtime.UsageTrackBindings.Select(b => b.BindingId).Distinct().Count() != runtime.UsageTrackBindings.Count) return false;
             if (registry != null && runtime.UsageTrackBindings.Any(b => registry.UsageProvider(b.TrackId) is not DeclaredUsageProvider provider || !provider.Matches(UsageTracks.Declaration(state, b.TrackId)))) return false;
@@ -37,15 +37,28 @@ namespace YC.Domain.Effects
                 var zone = state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == b.ZoneId);
                 var marker = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == b.MarkerItemId);
                 var initializer = runtime.EffectNodes.SingleOrDefault(n => n.EffectId == b.InitializationEffectId);
-                if (b.ProtocolVersion != 1 || b.InitializedRoundNumber < 0 || b.InitializedRoundNumber > state.Round || b.BindingId != UsageTracks.BindingId(b.SourceItemId, b.TrackId, b.PlayerId) || declaration?.DefinitionId != item?.DefinitionId ||
-                    declaration == null || b.DefinitionVersion != declaration.Version || state.FindPlayer(b.PlayerId) == null || initializer == null || initializer.PlayerId != b.PlayerId ||
-                    !new[] { UsageTracks.InitializeTypeId, CityStyleDeclarationEffectExecutor.TypeId }.Contains(initializer.EffectTypeId) ||
+                bool placement = UsageTracks.IsPlacementBinding(b);
+                if ((!placement && b.ProtocolVersion != 1) || b.InitializedRoundNumber < 0 || b.InitializedRoundNumber > state.Round || b.BindingId != UsageTracks.BindingId(b.SourceItemId, b.TrackId, b.PlayerId) || declaration?.DefinitionId != item?.DefinitionId ||
+                    declaration == null || b.DefinitionVersion != declaration.Version || state.FindPlayer(b.PlayerId) == null || initializer == null ||
                     b.InitializationReceiptId != StableIdFactory.Create("usage-initialized", initializer.EffectId, b.BindingId) ||
-                    zone?.ParentId != b.SourceItemId || zone.ParentKind != ZoneParentKind.Item || zone.OwnerPlayerId != b.PlayerId || !zone.LegalSlotIds.SequenceEqual(declaration.Slots) || zone.Configuration == null || !zone.Configuration.Slots.SequenceEqual(declaration.Slots) ||
-                    marker?.TypeId != "core.player_marker" || marker.OwnerSubject.Kind != ItemSubjectKind.Player || marker.OwnerSubject.PlayerId != b.PlayerId ||
-                    !initializer.PositionChanges.Any(c => c.ItemId == b.MarkerItemId && c.To.ZoneId == b.ZoneId && c.To.SlotId == declaration.InitialSlotId)) return false;
-                if (declaration.InitializationPolicy == "public_declaration" && state.FindPlayer(b.PlayerId).DeclaredCityStyles.FirstOrDefault(d => d.CityStyleItemId == b.SourceItemId)?.DeclarationId != b.AuthorizationRef) return false;
-                if (declaration.InitializationPolicy == "owner_supply_or_retrieve" && (string.IsNullOrEmpty(b.AuthorizationRef) || ItemTransferEffectExecutor.Text(initializer.NormalizedArguments, "sourceItemId") != b.SourceItemId || ItemTransferEffectExecutor.Text(initializer.NormalizedArguments, "trackId") != b.TrackId)) return false;
+                    zone?.ParentId != b.SourceItemId || zone.ParentKind != ZoneParentKind.Item || (placement ? zone.OwnerPlayerId > 0 && zone.OwnerPlayerId != b.PlayerId : zone.OwnerPlayerId != b.PlayerId) ||
+                    !zone.LegalSlotIds.SequenceEqual(declaration.Slots) || zone.Configuration == null || !zone.Configuration.Slots.SequenceEqual(declaration.Slots) ||
+                    marker?.TypeId != "core.player_marker" || marker.OwnerSubject.Kind != ItemSubjectKind.Player || marker.OwnerSubject.PlayerId != b.PlayerId) return false;
+                if (placement)
+                {
+                    var receipt = initializer.ItemMovementV4?.Receipt ?? initializer.CommonItemMovementV4?.Receipt;
+                    if (!ItemMovementV4.IsV4(initializer.EffectTypeId, initializer.NormalizedArguments) || receipt == null || !ItemMovementV4.TryValidateState(state, initializer, out _) ||
+                        !receipt.Items.Any(f => f.ItemId == b.MarkerItemId && f.Owner.PlayerId == b.PlayerId && f.To.ZoneId == b.ZoneId && declaration.Slots.Contains(f.To.SlotId)) ||
+                        receipt.BindingsBefore.Any(v => v.BindingId == b.BindingId) || !receipt.BindingsAfter.Any(v => v.BindingId == b.BindingId && v.MarkerItemId == b.MarkerItemId && v.ZoneId == b.ZoneId)) return false;
+                    if (declaration.InitializationPolicy == "owner_supply_or_retrieve" && (item.OwnerSubject.Kind != ItemSubjectKind.Player || item.OwnerSubject.PlayerId != b.PlayerId)) return false;
+                }
+                else
+                {
+                    if (initializer.PlayerId != b.PlayerId || !new[] { UsageTracks.InitializeTypeId, CityStyleDeclarationEffectExecutor.TypeId }.Contains(initializer.EffectTypeId) ||
+                        !initializer.PositionChanges.Any(c => c.ItemId == b.MarkerItemId && c.To.ZoneId == b.ZoneId && c.To.SlotId == declaration.InitialSlotId)) return false;
+                    if (declaration.InitializationPolicy == "public_declaration" && state.FindPlayer(b.PlayerId).DeclaredCityStyles.FirstOrDefault(d => d.CityStyleItemId == b.SourceItemId)?.DeclarationId != b.AuthorizationRef) return false;
+                    if (declaration.InitializationPolicy == "owner_supply_or_retrieve" && (string.IsNullOrEmpty(b.AuthorizationRef) || ItemTransferEffectExecutor.Text(initializer.NormalizedArguments, "sourceItemId") != b.SourceItemId || ItemTransferEffectExecutor.Text(initializer.NormalizedArguments, "trackId") != b.TrackId)) return false;
+                }
             }
             if (runtime.UsageGroupReceipts.Any(r => r == null) || runtime.UsageGroupReceipts.GroupBy(r => r.RoundNumber + ":" + r.GroupKey).Any(g => g.Count() != 1)) return false;
             foreach (var receipt in runtime.UsageGroupReceipts)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using YC.Domain.Effects;
 using YC.Domain.SpecialActions;
@@ -15,28 +15,11 @@ namespace YC.Infrastructure.Lua
         public const string ContentInstanceId = "city-styles.core";
         public const string CleanupSubscriptionId = "city-styles.player-cleanup";
 
-        private const string CleanupSource = @"
-return function(ctx)
-    return { Effect.OperatePlayerMarker({ operation = ""round_cleanup"", executingPlayer = ctx.playerId }) }
-end";
-
         public static void Register(EffectRegistry registry) => Register(registry, ExternalContentPack.Current);
 
         public static void Register(EffectRegistry registry, ExternalContentPack pack)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
-            if (!registry.HasEventHandler(CleanupSubscriptionId))
-            {
-                new LuaEffectEventDispatcher(registry).Register(new LuaHandlerDefinition(
-                    CleanupSubscriptionId,
-                    CityStyleSpecialActionEventTypeIds.CleanupStarted,
-                    "*",
-                    Definition("content.city-styles.cleanup", "city_styles.cleanup", CleanupSubscriptionId, CleanupSource),
-                    EffectHandlerRole.Observer,
-                    0,
-                    ContentInstanceId,
-                    "city_styles.cleanup"));
-            }
 
             foreach (var content in pack.ActiveDefinitions)
             {
@@ -46,30 +29,30 @@ end";
                 string ability = (string)content.Data["luaAbilityId"] ?? "city_styles." + content.RuntimeId;
                 string completion = (string)content.Data["luaCompletionHandlerId"] ?? "";
                 string version = (string)content.Data["luaVersion"] ?? content.Version;
-                RegisterAction(registry, subscription, actionId, ability, pack.GetContentScript("city_style", content.RuntimeId), completion, version);
+                RegisterAction(registry, subscription, actionId, ability, pack.GetContentScript("city_style", content.RuntimeId), completion, version, pack.GetScriptEntryId((string)content.Data["effectScript"]));
             }
         }
 
-        private static void RegisterAction(EffectRegistry registry, string subscriptionId, string routeKey, string abilityId, string source, string continuation, string version)
+        private static void RegisterAction(EffectRegistry registry, string subscriptionId, string routeKey, string abilityId, string source, string continuation, string version, string entryId)
         {
             if (registry.HasEventHandler(subscriptionId)) return;
             var dispatcher = new LuaEffectEventDispatcher(registry);
             if (continuation.Length > 0)
                 dispatcher.RegisterContinuation(new LuaHandlerDefinition(continuation, "EffectCompleted", "",
-                    Definition("content." + subscriptionId, abilityId, continuation, source, version),
+                    Definition("content." + subscriptionId, abilityId, continuation, source, version, entryId),
                     EffectHandlerRole.Continuation, 0, ContentInstanceId, abilityId));
             dispatcher.Register(new LuaHandlerDefinition(
                 subscriptionId,
                 CityStyleSpecialActionEventTypeIds.Activated,
                 routeKey,
-                Definition("content." + subscriptionId, abilityId, subscriptionId, source, version),
+                Definition("content." + subscriptionId, abilityId, subscriptionId, source, version, entryId),
                 EffectHandlerRole.Primary,
                 0,
                 ContentInstanceId,
                 abilityId, continuation));
         }
 
-        private static LuaScriptDefinition Definition(string contentId, string abilityId, string handlerId, string source, string version = DefinitionVersion)
+        private static LuaScriptDefinition Definition(string contentId, string abilityId, string handlerId, string source, string version, string entryId)
         {
             return new LuaScriptDefinition(
                 contentId,
@@ -77,7 +60,7 @@ end";
                 handlerId,
                 version,
                 source,
-                LuaContentHasher.ComputeSha256(source));
+                LuaContentHasher.ComputeSha256(source), entryId);
         }
     }
 }

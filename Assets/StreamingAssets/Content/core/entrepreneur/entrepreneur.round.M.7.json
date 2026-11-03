@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.M.7",
   "contentType": "entrepreneur_round",
-  "version": "1.2.2",
+  "version": "1.3.2",
   "displayName": "马丁·费舍尔·第7回合",
   "artwork": "artwork/entrepreneurs/M11.jpg",
   "expansionId": "infected",
@@ -22,7 +22,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.M11.body",
       "script": "lua/entrepreneurs/martin_rounds.lua",
-      "version": "1.2.2",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.face.M11.body.completed",
       "presentation": {
         "description": {
@@ -37,7 +37,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.M12.body",
       "script": "lua/entrepreneurs/martin_rounds.lua",
-      "version": "1.2.2",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.face.M12.body.completed",
       "presentation": {
         "description": {
@@ -169,13 +169,13 @@
     {
       "handlerId": "entrepreneur.face.M11.body",
       "script": "lua/entrepreneurs/martin_rounds.lua",
-      "version": "1.2.2",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.face.M11.body.completed"
     },
     {
       "handlerId": "entrepreneur.face.M12.body",
       "script": "lua/entrepreneurs/martin_rounds.lua",
-      "version": "1.2.2",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.face.M12.body.completed"
     }
   ],

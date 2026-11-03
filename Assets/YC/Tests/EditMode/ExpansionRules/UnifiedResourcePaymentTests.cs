@@ -66,7 +66,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             InfluenceEffectExecutor.Register(registry, influence); ItemTransferEffectExecutor.Register(registry);
             CityMoveEffectExecutor.Register(registry, map, influence, movement, costs, new ResourceTokenService());
             FacilityBuildEffectExecutor.Register(registry);
-            FacilityEntryEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry); RepeatEffectExecutor.Register(registry);
+            FacilityEntryEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry);
             GenericLuaEffectExecutor.Register(registry); ContentPrimitiveEffectExecutor.Register(registry, map, influence);
             EventCardEffectExecutor.Register(registry, map, influence, new EventDeckService(321), new ResourceTokenService());
             CharacterCoverEffectExecutor.Register(registry); CharacterLifecycleService.Register(registry);
@@ -138,13 +138,30 @@ namespace YC.Tests.EditMode.ExpansionRules
             var payment = Engine().GetNode(ownerId).Payment;
             var receipt = payment.SourceReceipts.Single(r => r.Rule.SourceRef.AbilityId == "operator.passenger.payment");
             Assert.That(receipt.ProtocolVersion, Is.EqualTo(2)); Assert.That(receipt.ItemIds.Count, Is.EqualTo(count));
-            Assert.That(Number(receipt.TokenArguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(Number(receipt.TokenArguments, "apiVersion"), Is.EqualTo(4));
+            Assert.That(Text(receipt.TokenArguments, "operation"), Is.EqualTo("transfer"));
+            Assert.That(Value(Value(receipt.TokenArguments, "selector"), "itemIds").Items.Select(i => i.StringValue), Is.EqualTo(receipt.ItemIds));
             Assert.That(Number(receipt.TokenArguments, "requiredCount"), Is.EqualTo(count));
             Assert.That(receipt.TokenTransfer.Request.Transfers.SelectMany(t => t.ItemIds), Is.EquivalentTo(receipt.ItemIds));
             Assert.That(ItemTransferService.TryValidateTokenCommit(state, 1, receipt.TokenArguments, receipt.TokenTransfer, out string reason), Is.True, reason);
             Assert.That(payment.FinalReceipt.CostReceiptPolicyVersion, Is.EqualTo(ResourcePaymentSourceService.TokenCostContractVersion));
         }
         private static ResourceSet Mixed() => new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 3 };
+        [TestCase(false)][TestCase(true)]
+        public void CanonicalTokenPaymentReceiptRejectsOldPolicyWithoutChangingCurrentState(bool journal)
+        {
+            LoadPassenger(); state.FindPlayer(1).Resources = new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2 };
+            Run(EffectSpec.Condition(new[] { ResourceEffectSpecFactory.Pay(1, Mixed()) }, new[] { ResourceEffectSpecFactory.GainScore(1, 7) }, allowDecline: true, decisionPlayerId: 1, ruleCondition: true));
+            string owner = Open().OwnerEffectId; Substitute(owner, "Iron=1"); var archive = HostRecoveryService.CreateArchive(state);
+            Answer("continue"); AssertPaidTokens(owner, 1);
+            if (journal) HostRecoveryService.AppendJournal(archive, state, registry.ContentPackHash); else archive = HostRecoveryService.CreateArchive(state);
+            var saved = journal ? archive.Journal.Entries.Last(e => e.StateAfter != null).StateAfter : archive.Snapshot.State;
+            saved.EffectRuntime.EffectNodes.Single(n => n.EffectId == owner).Payment.FinalReceipt.CostReceiptPolicyVersion = "resource_token_cost.v1";
+            string before = JsonConvert.SerializeObject(state);
+            var rejected = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(archive), registry);
+            Assert.That(rejected.Succeeded, Is.False); Assert.That(rejected.Diagnostic, Does.Contain("payment_cost_receipt_contract_version_unsupported"));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before));
+        }
 
         [TestCase("continue")]
         [TestCase("decline")]
@@ -626,21 +643,21 @@ namespace YC.Tests.EditMode.ExpansionRules
             var before = state.Players.ToDictionary(player => player.PlayerId, player => player.Resources.GoldVoucher);
             int score = state.FindPlayer(1).Score;
             string source = File.ReadAllText(Path.Combine(privateContentRoot, "lua/characters/cannot.tactic.lua"));
-            var definition = new LuaScriptDefinition("cannot.tactic", "cannot.tactic", "fixture.cannot.tactic", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
-            var snapshot = LuaFacadeSnapshot.FromInvocation("p1", score, before[1], 3, "1.0.0");
+            var definition = new LuaScriptDefinition("content.characters.cannot.tactic", "character.cannot.tactic", "characters.cannot.tactic", "1.4.0", source, LuaContentHasher.ComputeSha256(source));
+            var snapshot = LuaFacadeSnapshot.FromInvocation("p1", score, before[1], 3, "1.4.0");
             snapshot.Players.Clear();
             foreach (var player in state.Players) snapshot.Players.Add(new LuaPlayerSnapshot("p" + player.PlayerId, player.Score,
                 player.Resources.GoldVoucher, player.CityLocationId, player.Resources.Originium, player.Resources.OriginiumShard, player.Resources.Iron, player.Resources.PureOriginium));
-            snapshot.EventPayload = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("outcome", LuaSnapshotValue.String("completed")),
-                new LuaSnapshotEntry("normalizedResult", LuaSnapshotValue.String("iron")) });
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(definition,
-                new LuaInvocationContext("cannot.sale", "EffectCompleted", "p1", state.EffectRuntime.StateRevision, "1.0.0", 3, score, before[1], snapshot) { AllowOtherPlayerReads = true });
+                new LuaInvocationContext("cannot.sale", "CharacterEffectActivated", "p1", state.EffectRuntime.StateRevision, "1.4.0", 3, score, before[1], snapshot) { AllowOtherPlayerReads = true });
             Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
-            Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1, SourceId = "cannot.tactic" },
+            ResourceExchangeFlowTests.RegisterCannotCompletion(registry, privateContentRoot);
+            Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1, SourceId = "cannot.tactic", ContentInstanceId = "characters.core", AbilityId = "character.cannot.tactic", CompletionHandlerId = "characters.cannot.tactic.completed" },
                 out var specs, out var fault), Is.True, fault?.Diagnostic);
-            var payments = specs.Where(spec => spec.EffectTypeId == ResourceEffectTypeIds.Pay).ToList();
+            Run(specs.Single()); Answer("iron");
+            var payments = state.EffectRuntime.EffectNodes.Where(node => node.EffectTypeId == ResourceEffectTypeIds.Pay &&
+                state.EffectRuntime.EffectNodes.Any(parent => parent.EffectId == node.ParentEffectId && parent.EffectTypeId == ResourceExchangeFlow.TypeId)).ToList();
             Assert.That(payments.Count, Is.EqualTo(2)); Assert.That(payments.Select(spec => spec.PlayerId), Is.EquivalentTo(new[] { 1, 2 }));
-            foreach (var spec in specs) Run(spec);
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero); Assert.That(state.FindPlayer(2).Resources.Iron, Is.Zero);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(before[1] + 2));
             Assert.That(state.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(before[2] + 6));
@@ -828,9 +845,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(ResolvePaymentText(request.Presentation.Prompt).Runs.OfType<NumberRun>().Select(run => run.Value), Does.Contain(9));
             var fees = ResolvePaymentText(request.Presentation.Progress);
             Assert.That(fees.Runs.OfType<NumberRun>().Select(run => run.Value), Is.EquivalentTo(new[] { 0, 0, 0, 0, 3 }));
-            var authorProgress = new GameplayTextRef("core:effect.repeat.progress",
-                new GameplayTextArgument { Name = "completed", Kind = "integer", Value = NormalizedValue.CreateInteger(2) },
-                new GameplayTextArgument { Name = "total", Kind = "integer", Value = NormalizedValue.CreateInteger(10) });
+            var authorProgress = new GameplayTextRef("core:enterprise.special.level_range",
+                new GameplayTextArgument { Name = "current", Kind = "integer", Value = NormalizedValue.CreateInteger(2) },
+                new GameplayTextArgument { Name = "ceiling", Kind = "integer", Value = NormalizedValue.CreateInteger(10) });
             var withProgress = EffectSpec.Condition(new[] { ResourceEffectSpecFactory.Pay(1, new ResourceSet { GoldVoucher = 3 }) },
                 new[] { ResourceEffectSpecFactory.GainScore(1, 1) }, ruleCondition: true);
             withProgress.Presentation = new EffectPresentationDefinition { Interaction = new GameplayInteractionPresentation {

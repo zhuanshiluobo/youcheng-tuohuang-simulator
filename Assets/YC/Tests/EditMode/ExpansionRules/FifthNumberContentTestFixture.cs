@@ -249,7 +249,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             AnswerCandidate(Open(), card.ItemId);
             Run(CharacterLifecycleService.CreateUseSpec(1, card.ItemId, "tactic"));
             var amount = Open();
-            Assert.That(amount.AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema));
+            Assert.That(amount.AnswerSchema, Is.EqualTo("candidate_id"));
+            Assert.That(amount.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
             Answer(amount, NormalizedValue.CreateString("1"));
             Assert.That(CharacterLifecycleService.IsSubscriptionActive(State, card.ItemId, "operator.dorothy.tactic"), Is.True);
         }
@@ -259,7 +260,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             foreach (string id in State.Map.Influences.Where(i => i.PlayerId == 1).Select(i => InfluenceIdentity.GetStableId(State, i)).ToArray())
             {
-                Depart(id); Answer(StoreRequest(), NormalizedValue.CreateString("decline"));
+                Depart(id); Answer(StoreRequest(), NormalizedValue.CreateBoolean(false));
             }
         }
         internal void CompleteDestinations(string destination, bool restoreEach = false)
@@ -276,7 +277,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     string id = request.GetStableInteractionId(); Restore("独立收容待答");
                     request = State.EffectRuntime.InteractionRequests.Single(q => q.GetStableInteractionId() == id);
                 }
-                Answer(request, NormalizedValue.CreateString(chooseStore ? "store" : "decline"));
+                Answer(request, chooseStore ? NormalizedValue.CreateString("store") : NormalizedValue.CreateBoolean(false));
                 if (restoreEach) Restore("独立收容已答");
             }
             Assert.Fail("同一离场来源机会没有正常结清。");

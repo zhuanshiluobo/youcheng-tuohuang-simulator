@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.award.enterprise_special",
   "contentType": "award",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "梅兰德基金会—授勋卡",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.award.enterprise_special.quick",
       "script": "lua/awards/infected.award.enterprise_special.quick.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": ""
     }
   ],

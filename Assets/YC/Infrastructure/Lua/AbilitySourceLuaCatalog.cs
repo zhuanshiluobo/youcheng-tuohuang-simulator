@@ -183,10 +183,10 @@ namespace YC.Infrastructure.Lua
                     string ability = owningSource?.AbilityId ?? content.Abilities.First(a => a.SubscriptionId == handler.HandlerId).AbilityId;
                     string contentId = content.ContentType == "city_style" ? "content." + handler.HandlerId : content.DefinitionId;
                     string instanceId = content.ContentType == "city_style" ? CityStyleLuaCatalog.ContentInstanceId : content.DefinitionId;
-                    var definition = new LuaHandlerDefinition(handler.HandlerId, "AbilityInvoked", "", new LuaScriptDefinition(contentId, ability, handler.HandlerId, handler.Version, source, hash),
+                    var definition = new LuaHandlerDefinition(handler.HandlerId, "AbilityInvoked", "", new LuaScriptDefinition(contentId, ability, handler.HandlerId, handler.Version, source, hash, pack.GetScriptEntryId(handler.Script)),
                         EffectHandlerRole.Primary, contentInstanceId: instanceId, abilityId: ability, completionHandlerId: handler.CompletionHandlerId);
                     if (owningSource != null && handler.CompletionHandlerId.Length > 0 && !registry.HasEventHandler(handler.CompletionHandlerId))
-                        dispatcher.RegisterContinuation(new LuaHandlerDefinition(handler.CompletionHandlerId, "EffectCompleted", "", new LuaScriptDefinition(contentId, ability, handler.CompletionHandlerId, handler.Version, source, hash),
+                        dispatcher.RegisterContinuation(new LuaHandlerDefinition(handler.CompletionHandlerId, "EffectCompleted", "", new LuaScriptDefinition(contentId, ability, handler.CompletionHandlerId, handler.Version, source, hash, definition.Script.EntryId),
                             EffectHandlerRole.Continuation, contentInstanceId: instanceId, abilityId: ability));
                     registry.RegisterAbilityHandler(handler.HandlerId, hash, call =>
                     {
@@ -266,7 +266,7 @@ namespace YC.Infrastructure.Lua
         }
         private static LuaHandlerDefinition BindSource(LuaHandlerDefinition definition, string abilityId) => new LuaHandlerDefinition(definition.SubscriptionId,
             definition.EventType, definition.RouteKey, new LuaScriptDefinition(definition.Script.ContentId, abilityId, definition.Script.HandlerId,
-                definition.Script.DefinitionVersion, definition.Script.Source, definition.Script.ContentHash), definition.Role, definition.Priority,
+                definition.Script.DefinitionVersion, definition.Script.Source, definition.Script.ContentHash, definition.Script.EntryId), definition.Role, definition.Priority,
             definition.ContentInstanceId, abilityId, definition.CompletionHandlerId, definition.AllowOtherPlayerReads, definition.ResponseKind);
         private static EffectEventHandlerContext Context(AbilityActionCallContext call, LuaHandlerDefinition definition, EffectRegistry registry)
         {

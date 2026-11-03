@@ -70,8 +70,7 @@ namespace YC.Domain.Rules
             var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.GetStableInteractionId() == id && r.AnsweringPlayerId == command.PlayerId);
             var owner = request == null ? null : state.EffectRuntime.EffectNodes.Find(n => n.EffectId == request.OwnerEffectId);
             if (owner == null || Terminal(owner.Status) || owner.PlayerId != command.PlayerId || state.FindPlayer(command.PlayerId) == null) return false;
-            bool potentialProfile = owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId && request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
-                    ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "apiVersion") < 2 ||
+            bool potentialProfile = (owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId && ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "apiVersion") < 2||MainCoverAuthority.IsMainBody(owner)) && request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId ||
                 owner.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction ||
                 owner.EffectTypeId == RouteResourceSelectionEffectExecutor.TypeId && request.InteractionTypeId == "route_resource.selection" &&
                     ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "purpose") == (int)RouteSelectionPurpose.NormalHarvest;
@@ -79,9 +78,9 @@ namespace YC.Domain.Rules
             // 仅决定不降级为legacy；授权仍须通过下方真实主链/组/任务检查。
             validation = Invalid("request_contract_authority_changed");
             string profile; EffectNodeRuntimeState groupOwner, task;
-            if (owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId && request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
-                state.Phase == GamePhase.CharacterCover && ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "apiVersion") < 2 &&
-                TryGroup(state, owner, "character_cover_players", out groupOwner, out task) && task == owner &&
+            if ((owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId && ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "apiVersion") < 2||MainCoverAuthority.IsMainBody(owner)) && request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId &&
+                state.Phase == GamePhase.CharacterCover &&
+                TryGroup(state, owner, "character_cover_players", out groupOwner, out task) && (task == owner||MainCoverAuthority.TryGetTask(state,owner,true,out var actualTask)&&actualTask.EffectId==task.EffectId) &&
                 RoundExecutionService.IsParallelCoverExecution(groupOwner) && ActiveMain(state, groupOwner, RoundMainlineNodeTypeIds.CharacterCover))
                 profile = NormalCover;
             else if (owner.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction &&
@@ -105,9 +104,9 @@ namespace YC.Domain.Rules
                 var main = state.EffectRuntime.MainNodes.Single(m => m.ExecutionEffectId == groupOwner.EffectId && m.NodeId == state.EffectRuntime.ActiveMainNodeId);
                 var group = groupOwner.ChildSchedulingGroups.Single(g => g.StableGroupKey == "character_cover_players");
                 if (owner.FlowStage != "awaiting_card" || request.MinSelections != 1 || request.MaxSelections != 1 || request.AllowDecline ||
-                    ItemTransferEffectExecutor.Text(owner.NormalizedArguments, "mainNodeId") != main.NodeId ||
-                    ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "playerId", -1) != command.PlayerId ||
-                    ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "coverIndex", -1) != group.ChildEffectIds.IndexOf(owner.EffectId) ||
+                    ItemTransferEffectExecutor.Text(task.NormalizedArguments, "mainNodeId") != main.NodeId ||
+                    ItemTransferEffectExecutor.Number(task.NormalizedArguments, "playerId", -1) != command.PlayerId ||
+                    ItemTransferEffectExecutor.Number(task.NormalizedArguments, "coverIndex", -1) != group.ChildEffectIds.IndexOf(task.EffectId) ||
                     main.CompletedPlayerIds.Contains(command.PlayerId)) return false;
             }
             var fields = new StringBuilder();

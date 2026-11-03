@@ -97,10 +97,15 @@ namespace YC.Domain.Effects
                     return controlled && zone.OwnerPlayerId == player && receipt.Length > 0 && AbilitySourceSelection.HasSelectedFaceReceipt(state, item, Text(item.LocalState, "activeFaceId"), player)
                         ? "selection:" + receipt : "";
                 case "public_declaration":
-                    var declarations = state.FindPlayer(player)?.DeclaredCityStyles;
-                    return declarations != null && declarations.Any(d => d.CityStyleId == item.DefinitionId && d.MarkerArea.Length > 0 &&
-                        state.ItemZones.Items.Any(m => m.ItemId == d.InfluenceMarkerId && m.OwnerSubject.Kind == ItemSubjectKind.Player && m.OwnerSubject.PlayerId == player &&
-                            state.ItemZones.Zones.Any(z => z.ZoneId == m.ZoneId && z.ParentKind == ZoneParentKind.Item && z.ParentId == item.ItemId)))
+                    var placement = state.EffectRuntime.UsageTrackBindings.SingleOrDefault(b => b.SourceItemId == item.ItemId && b.PlayerId == player &&
+                        UsageTracks.IsPlacementBinding(b) && UsageTracks.Declaration(state, b.TrackId)?.InitializationPolicy == "public_declaration");
+                    if (placement != null && UsageTracks.CurrentMarker(state, placement) != null) return "declaration:" + item.ItemId + ":" + player;
+                    var first = state.FindPlayer(player)?.DeclaredCityStyles.FirstOrDefault(d => d.CityStyleId == item.DefinitionId && d.CityStyleItemId == item.ItemId);
+                    var binding = first == null ? null : state.EffectRuntime.UsageTrackBindings.SingleOrDefault(b =>
+                        b.SourceItemId == item.ItemId && b.PlayerId == player && b.AuthorizationRef == first.DeclarationId);
+                    var marker = binding == null ? state.ItemZones.Items.Find(m => m.ItemId == first?.InfluenceMarkerId) : UsageTracks.CurrentMarker(state, binding);
+                    return first != null && first.MarkerArea.Length > 0 && marker?.OwnerSubject.Kind == ItemSubjectKind.Player && marker.OwnerSubject.PlayerId == player &&
+                        state.ItemZones.Zones.Any(z => z.ZoneId == marker.ZoneId && z.ParentKind == ZoneParentKind.Item && z.ParentId == item.ItemId)
                         ? "declaration:" + item.ItemId + ":" + player : "";
                 default: return "";
             }
@@ -118,7 +123,8 @@ namespace YC.Domain.Effects
             StableIdFactory.Create("action-window", state.GameId, state.Round.ToString(CultureInfo.InvariantCulture), state.ActionRound.ToString(CultureInfo.InvariantCulture), player.ToString(CultureInfo.InvariantCulture));
 
         public static string OccupancyKey(GameState state, AbilitySourceRef source, AbilityActionDeclaration action) => StableIdFactory.Create("action-occupancy",
-            source.ItemId, source.AuthorizationRef.StartsWith("declaration:", StringComparison.Ordinal) || source.AuthorizationRef.StartsWith(AbilityLegacyStyleBridge.AuthorizationPrefix, StringComparison.Ordinal)
+            source.ItemId, source.AuthorizationRef.StartsWith("declaration:", StringComparison.Ordinal) || source.AuthorizationRef.StartsWith(AbilityLegacyStyleBridge.AuthorizationPrefix, StringComparison.Ordinal) &&
+                (action.UsageTrackId.Length == 0 || UsageTracks.Declaration(state, action.UsageTrackId)?.InitializationPolicy == "public_declaration")
                 ? source.AuthorizedPlayerId.ToString(CultureInfo.InvariantCulture) : "instance", action.UsageTrackId.Length > 0 ? action.UsageTrackId : action.ActionId,
             action.LifecyclePolicy == "once" ? "game" : action.LifecyclePolicy == "round" ? "round:" + state.Round : WindowId(state, source.AuthorizedPlayerId));
 

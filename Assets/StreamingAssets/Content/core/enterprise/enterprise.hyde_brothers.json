@@ -1,7 +1,7 @@
 {
   "definitionId": "enterprise.hyde_brothers",
   "contentType": "enterprise",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "海德兄弟",
   "expansionId": "enterprise",
   "replaces": null,
@@ -72,7 +72,7 @@
       "skillType": "normal",
       "subscriptionId": "content.enterprise.hyde_brothers.level_4.special",
       "script": "lua/enterprises/enterprise.hyde_brothers.level_4.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,

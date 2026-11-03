@@ -763,14 +763,14 @@ namespace YC.Tests.EditMode
         }
 
         [UnityTest, Category("原生Unity")]
-        public IEnumerator ActualMobileRetireKeepSelectionRetainsInactiveShellOwnershipAndResumes()
+        public IEnumerator ActualMobileRetireConditionDeclinePreservesSourceAndReward()
         {
             PrepareRuntime(); yield return new EnterPlayMode();
             var prepared = Production(); var state = State(prepared);
             var registry = (EffectRegistry)Read(prepared, "Registry");
             var facility = state.ItemZones.Items.First(item => item.DefinitionId == "infected.facility.temporary_settlement");
             const string trigger = "fixture.ui.temporary_settlement.declared";
-            // 隔离声明入口仅供页面接缝；正式观察者和正式Lua产生retire/keep，不代表正常建设/宣告覆盖。
+            // 只隔离发布声明事件；业务请求与放弃由正式Lua Condition／原付款页处理，不代表正常建设或声明验收。
             registry.Register(new EffectRegistration(trigger, context => EffectStepResult.Completed().AddEvent(
                 new EffectEventRequest { EventType = "CityStyleDeclared", PlayerId = 1,
                     Payload = NormalizedValue.CreateObject(new[] { new NormalizedValueEntry { Name = "usedFacilityItemIds",
@@ -779,51 +779,31 @@ namespace YC.Tests.EditMode
             Native native = null; yield return Native.CreatePlayScene(prepared, value => native = value);
             using (native)
             {
-                var coordinator = Read(native.Mobile, "characterAbilityInteraction");
-                var dialog = Read(native.Mobile, "characterCardEffectChoiceDialog");
-                var request = (InteractionRequestProjection)Read(Read(native.Mobile, "interactionRequestRouter"), "CurrentRequest");
-                Assert.That(request.PromptKey, Is.EqualTo("facility.temporary_settlement.retire"));
-                Assert.That(request.CandidateIds, Is.EquivalentTo(new[] { "retire", "keep" }));
-                var host = (RectTransform)Read(native.Frame, "ContentRect");
-                Call(dialog, "Hide");
-                var wasActive = host.gameObject.activeSelf;
-                host.gameObject.SetActive(false);
-                try
-                {
-                    // 控制非激活祖先这一组件前提，不强刷布局；不能把它算作正常完整局画面。
-                    Call(coordinator, "Render", request);
-                    var pageType = Type.GetType("YC.Presentation.EffectDialogShellView, Assembly-CSharp", true);
-                    var page = host.GetComponentsInChildren(pageType, true).Single(value => value.gameObject.activeSelf);
-                    Assert.That(page.gameObject.activeInHierarchy, Is.False);
-                    var content = (RectTransform)Read(page, "ExpandedContent");
-                    var shellType = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", true);
-                    var resolve = shellType.GetMethod("ResolveView", BindingFlags.Static | BindingFlags.NonPublic);
-                    Assert.That(resolve.Invoke(null, new object[] { content }), Is.SameAs(page));
-                    var foreign = new GameObject("无弹窗归属的组件探针", typeof(RectTransform));
-                    try
-                    {
-                        var error = Assert.Throws<TargetInvocationException>(() => resolve.Invoke(null, new object[] { foreign.transform }));
-                        Assert.That(error.InnerException, Is.InstanceOf<InvalidOperationException>(), "非所属内容仍必须抛错，不能吞异常或借另一活动页");
-                    }
-                    finally { UnityEngine.Object.Destroy(foreign); }
-                }
-                finally { host.gameObject.SetActive(wasActive); }
-                yield return null;
-                var rowType = Type.GetType("YC.Presentation.EffectDialogOptionRowView, Assembly-CSharp", true);
-                var keepRow = host.GetComponentsInChildren(rowType, false)
-                    .Single(row => row.gameObject.name == "Character Effect Option " + request.CandidateIds.IndexOf("keep"));
-                ((Button)Read(keepRow, "Button")).onClick.Invoke();
-                yield return null;
-                ActiveButton(native, "Confirm Selection").onClick.Invoke();
-                yield return null;
-                native.Applied();
+                var request = UiRequest(native);
+                Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+                Assert.That(request.PromptParameters.Properties.Single(p => p.Name == "sourceKind").Value.StringValue, Is.EqualTo("condition"));
+                Assert.That(request.CandidateIds, Does.Contain("decline"));
+                Assert.That(request.Presentation?.Prompt?.Key, Is.EqualTo("core:condition.infected.facility.temporary_settlement.declared"));
+                var window = PaymentWindow(native);
+                var decline = (Button)Read(window, "ConditionPaymentDeclineButton");
+                Assert.That(decline.isActiveAndEnabled && decline.IsInteractable(), Is.True);
+                string beforeBalances = JsonConvert.SerializeObject(Balances(native));
+                string sourceZone = native.State.ItemZones.Items.Single(i => i.ItemId == facility.ItemId).ZoneId;
+                var beforeAllowance = native.State.Players.Select(p => p.RemainingMainActionsThisTurn).ToArray();
+                var callback = decline.onClick;
+                callback.Invoke(); callback.Invoke();
+                yield return null; native.Applied();
                 Assert.That(native.Commands, Has.Count.EqualTo(1));
-                Assert.That(native.Commands.Single().OptionIds, Is.EqualTo(new[] { "keep" }));
+                Assert.That(native.Commands.Single().OptionIds, Is.EqualTo(new[] { "decline" }));
                 Assert.That(native.Commands.Single().Parameters["interactionId"], Is.EqualTo(request.InteractionId));
-                Assert.That(Read(coordinator, "inFlightCommandId"), Is.EqualTo(string.Empty));
-                Assert.That(native.State.EffectRuntime.InteractionRequests.Any(item => item.Status == "open" && item.GetStableInteractionId() == request.InteractionId), Is.False);
-                Evidence("临时聚居点-非激活页面归属与原确认接缝", native,
-                    new { IsolatedSeam = true, request.InteractionId, request.CandidateIds, Selected = "keep", ExtraPage = false });
+                Assert.That(JsonConvert.SerializeObject(Balances(native)), Is.EqualTo(beforeBalances), "放弃不取得12金券");
+                Assert.That(native.State.ItemZones.Items.Single(i => i.ItemId == facility.ItemId).ZoneId, Is.EqualTo(sourceZone), "放弃不退役设施");
+                Assert.That(native.State.Players.Select(p => p.RemainingMainActionsThisTurn), Is.EqualTo(beforeAllowance));
+                var oldRow = Type.GetType("YC.Presentation.EffectDialogOptionRowView, Assembly-CSharp", true);
+                Assert.That(((Component)native.Hud).GetComponentsInChildren(oldRow, false).Cast<Component>()
+                    .Any(c => c.name.StartsWith("Character Effect Option ", StringComparison.Ordinal)), Is.False);
+                Evidence("临时聚居点-原Condition放弃接缝", native, new { IsolatedSeam = true, NormalGameAcceptance = false,
+                    OriginalRequest = request, Selected = "decline", SourceItemId = facility.ItemId, SourceZone = sourceZone });
             }
         }
 
@@ -1220,15 +1200,48 @@ namespace YC.Tests.EditMode
                 Assert.That(request.CandidateIds, Is.EqualTo(new[] { "originium", "originium-shard", "iron" }));
                 Assert.That(request.Presentation?.Prompt?.Key, Is.EqualTo("core:interaction.character.cannot.tactic.resource.prompt"));
                 var expected = new[] { "core:resource.orirock", "core:resource.originium_shard", "core:resource.iron" };
-                var rowType = Type.GetType("YC.Presentation.EffectDialogOptionRowView, Assembly-CSharp", true);
+                Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+                var owner = native.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
+                Assert.That(owner.NestedGroupSizes, Has.Count.EqualTo(3));
+                Assert.That(owner.NestedGroupSizes.All(size => size > 0), Is.True);
+                Assert.That(owner.NestedEffects.All(n => n.EffectTypeId == ResourceExchangeFlow.TypeId), Is.True,
+                    "资源候选必须直接承载真实兑换分支");
+                var rowType = Type.GetType("YC.Presentation.UiEffectRowView, Assembly-CSharp", true);
                 var rows = UnityEngine.Object.FindObjectsOfType(rowType).Cast<Component>()
                     .Where(row => row.gameObject.activeInHierarchy && row.name.StartsWith("Character Effect Option ", StringComparison.Ordinal))
                     .OrderBy(row => int.Parse(row.name.Substring("Character Effect Option ".Length))).ToArray();
                 Assert.That(rows, Has.Length.EqualTo(3));
+                // 原临时聚居点旧值菜单的非激活归属检查，改在当前真实逻辑页验证。
+                // 只暂时隐藏该运行时页面，不重建、不刷新请求，也不改规则状态；不计正常页面验收。
+                var shellType = Type.GetType("YC.Presentation.EffectDialogShellView, Assembly-CSharp", true);
+                var page = rows[0].GetComponentInParent(shellType, true);
+                var resolve = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", true)
+                    .GetMethod("ResolveView", BindingFlags.Static | BindingFlags.NonPublic);
+                string beforeOwnership = JsonConvert.SerializeObject(native.State);
+                bool pageWasActive = page.gameObject.activeSelf;
+                page.gameObject.SetActive(false);
+                try
+                {
+                    Assert.That(resolve.Invoke(null, new[] { Read(page, "ExpandedContent") }), Is.SameAs(page));
+                    var foreign = new GameObject("无归属内容隔离探针", typeof(RectTransform));
+                    try
+                    {
+                        var error = Assert.Throws<TargetInvocationException>(() => resolve.Invoke(null,
+                            new object[] { foreign.GetComponent<RectTransform>() }));
+                        Assert.That(error.InnerException, Is.InstanceOf<InvalidOperationException>());
+                    }
+                    finally { UnityEngine.Object.Destroy(foreign); }
+                }
+                finally { page.gameObject.SetActive(pageWasActive); }
+                Assert.That(JsonConvert.SerializeObject(native.State), Is.EqualTo(beforeOwnership));
+                Assert.That(native.Commands, Is.Empty);
                 var rendered = new List<object>();
                 for (var index = 0; index < rows.Length; index++)
                 {
-                    var textView = Read(rows[index], "labelDocument"); Assert.That(textView, Is.Not.Null);
+                    Assert.That((string)Read(rows[index], "ItemId"), Is.EqualTo(request.CandidateIds[index]));
+                    var title = (Text)Read(rows[index], "TitleText");
+                    var textView = title.GetComponent(Type.GetType("YC.Presentation.GameplayTextView, Assembly-CSharp", true));
+                    Assert.That(textView, Is.Not.Null);
                     var document = (GameplayTextDocument)Read(textView, "document"); Assert.That(document, Is.Not.Null);
                     Assert.That(document.Runs.OfType<IconRun>().Select(run => run.IconKey), Is.EqualTo(new[] { expected[index] }));
                     var images = ((IEnumerable)Read(textView, "iconPool")).Cast<object>().Select(slot => (Image)Read(slot, "Image"))
@@ -1255,18 +1268,20 @@ namespace YC.Tests.EditMode
                     for (var frame = 0; frame < 1000 && !done; frame++) yield return null;
                     Assert.That(done, Is.True);
                 }
-                yield return Drive((Button)Read(rows[0], "Button"), "坎诺特原源岩选项");
-                Assert.That(native.Commands, Is.Empty, "选择仅编辑原草稿");
-                yield return Drive(ActiveButton(native, "Confirm Selection"), "坎诺特原选择页首次确认");
+                var execute = (Button)Read(rows[0], "StatusButton");
+                var staleClick = execute.onClick;
+                yield return Drive(execute, "坎诺特真实源岩兑换分支");
+                staleClick.Invoke();
+                yield return null;
                 native.Applied(); Assert.That(native.Commands, Has.Count.EqualTo(1));
                 Assert.That(native.Commands.Single().OptionIds, Is.EqualTo(new[] { "originium" }));
                 Assert.That(native.Commands.Single().Parameters["interactionId"], Is.EqualTo(request.InteractionId));
                 Assert.That(native.Commands.Single().Parameters["expectedRevision"], Is.EqualTo(request.StateRevision.ToString()));
                 Assert.That(UiRequest(native)?.InteractionId, Is.Not.EqualTo(request.InteractionId));
                 Assert.That(native.State.Players.All(player => player.Resources.Originium == 0 && player.Resources.GoldVoucher == 2), Is.True);
-                Evidence("坎诺特计谋-原ID准确提交与后继", native, new { IsolatedSeam = true, NormalGameAcceptance = false,
+                Evidence("坎诺特计谋-真实分支原ID准确提交与后继", native, new { IsolatedSeam = true, NormalGameAcceptance = false,
                     OriginalId = "originium", Successor = UiRequest(native), CardUse = native.State.CharacterUses.Last(use => use.CardInstanceId == card.ItemId) });
-                yield return CaptureUi("坎诺特计谋-原ID确认后继", native);
+                yield return CaptureUi("坎诺特计谋-真实分支执行后继", native);
                 UnityEngine.Object.Destroy(root);
             }
         }

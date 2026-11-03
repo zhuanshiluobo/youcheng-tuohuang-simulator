@@ -508,6 +508,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 for (int player = 1; player <= 2; player++) { Assert.That(Open(state).InteractionTypeId, Is.EqualTo(ExpansionSetupFlow.SupplyRetirementInteraction)); Answer(state, registry, Open(state).CandidateIds[0]); }
                 Assert.That(In(state, "retired").Count, Is.EqualTo(2));
+                var retirements = state.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId &&
+                    Text(Value(n.NormalizedArguments, "destination"), "zoneId") == FindZone(state, "retired").ZoneId).ToList();
+                Assert.That(retirements.Count, Is.EqualTo(2));
+                foreach (var retirement in retirements)
+                {
+                    Assert.That(ItemMovementV4.IsV4(retirement.EffectTypeId, retirement.NormalizedArguments), Is.True);
+                    Assert.That(retirement.CommonItemMovementV4?.Receipt?.Result.MovedCount, Is.EqualTo(1));
+                    Assert.That(ItemMovementV4.TryValidateState(state, retirement, out string invalid), Is.True, invalid);
+                }
             }
             foreach (var p in state.Players) Assert.That(In(state, "enterprises").Sum(id => new EnterpriseStateQuery(registry.EnterpriseDefinitions).GetLevel(state, p.PlayerId, id)), Is.EqualTo(before[p.PlayerId] + 1));
             Assert.That(mainline.Advance(state).IsValid, Is.True); Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));

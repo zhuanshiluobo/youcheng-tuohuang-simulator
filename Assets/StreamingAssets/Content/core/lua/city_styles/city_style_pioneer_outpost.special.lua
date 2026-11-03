@@ -9,7 +9,7 @@ return function(ctx)
         end
     end
     for _ = 1, ctx.payload.declarationMarkerCount do
-        table.insert(effects, Effect.SelectInfluence({ player = ctx.playerId, operation = 'move', subjectFilter = 'self', count = 1 }))
+        table.insert(effects, Effect.MoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'self', count = 1 }))
     end
     return effects
 end

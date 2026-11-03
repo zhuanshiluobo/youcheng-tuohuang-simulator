@@ -57,10 +57,6 @@
       "parameters": {},
       "template": "发动点数对应的效果。"
     },
-    "core:entrepreneur.D.sale.prompt": {
-      "parameters": {},
-      "template": "请选择各种资源的出售数量；所有出售数量均为0时结束贸易。"
-    },
     "core:entrepreneur.D.point.0": {
       "parameters": {
         "point": "integer"

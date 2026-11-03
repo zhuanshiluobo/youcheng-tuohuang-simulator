@@ -78,8 +78,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(rounds.CreateRound(state, round, start).IsValid, Is.True);
             for (int guard = 0; state.Phase == GamePhase.CharacterCover && guard < 12; guard++)
             {
-                var command = presenter.CreateCoverCommand(state.CurrentPlayerId, state.FindPlayer(state.CurrentPlayerId).HandCardIds[0]);
-                Assert.That(new CoverCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, command).Succeeded, Is.True);
+                // API-18：沿当前并发主链的本人正式请求准备角色二次使用回归，不假设全局轮到某人盖牌。
+                var request = state.EffectRuntime.InteractionRequests.FirstOrDefault(q => q.Status == "open" &&
+                    q.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId);
+                Assert.That(request, Is.Not.Null, state.EffectRuntime.LastFaultMessage);
+                var command = presenter.CreateCoverCommand(request.AnsweringPlayerId, request.CandidateIds.First());
+                command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
+                command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var result = new CoverCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, command);
+                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
             }
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             if (nonFirst) Assert.That(rounds.CompleteMainAction(state, start).IsValid, Is.True);
@@ -285,8 +292,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(engine.TryInvokeCharacterSettlementOption(player, option.OptionId, use.UseId, option.StateRevision, out _, out _), Is.True);
             for (int guard = 0; !state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == CharacterLifecycleService.ConsumeSourceTypeId) && guard < 100; guard++) Assert.That(engine.Advance(), Is.True);
             var consume = state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == CharacterLifecycleService.ConsumeSourceTypeId);
-            engine.CreateChild(consume.EffectId, EffectSpec.Create(CharacterLifecycleService.TransferTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1),
-                "player", NormalizedValue.CreateString(player.ToString()), "cardInstanceId", NormalizedValue.CreateString(option.SourceItemId), "recipientPlayer", NormalizedValue.CreateString("1")), player));
+            engine.CreateChild(consume.EffectId, CharacterCardMovement.Create(state, player, option.SourceItemId, FindZone(state, "hand", 1).ZoneId));
             Run(state); Assert.That(Current(state).DoubleUseGranted || Current(state).SourceConsumed, Is.False);
             Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "strategy", "tactic", "cancel" }));
             Answer(state, "cancel"); Assert.That(Current(state).SelectionCancelled, Is.True); state = Restore(state);

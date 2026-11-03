@@ -194,6 +194,21 @@ namespace YC.Presentation
         [SerializeField] private string selectionSummaryFormat = "已选 {0} · 最少 {1} / 最多 {2}";
         [SerializeField] private string selectionEmptyText = "当前没有可选内容";
         [SerializeField] private string saleConfirmLabel = "确认出售";
+        [Header("有序次数分配模式文案（API-38）")]
+        [SerializeField] private string allocationTitle = "效果次数分配";
+        [SerializeField] private string allocationDescription = "选择次数，按队列顺序依次执行。";
+        [SerializeField] private string allocationConfirmLabel = "确认分配";
+        [SerializeField] private string allocationEndLabel = "结束行动";
+        [SerializeField] private string allocationProgressFormat = "已分配 {0} / {1} 次";
+        [SerializeField] private string allocationLimitFormat = "上限 {0} 次";
+        [SerializeField] private string allocationResetNotice = "本地草稿已初始化或重置，次数与顺序同步为空。";
+        public string AllocationTitle => allocationTitle;
+        public string AllocationDescription => allocationDescription;
+        public string AllocationConfirmLabel => allocationConfirmLabel;
+        public string AllocationEndLabel => allocationEndLabel;
+        public string AllocationProgressFormat => allocationProgressFormat;
+        public string AllocationLimitFormat => allocationLimitFormat;
+        public string AllocationResetNotice => allocationResetNotice;
         [SerializeField] private string saleFinishLabel = "结束出售";
         [SerializeField] private string saleDiscardDraftLabel = "放弃并结束";
         [SerializeField] private string saleSummaryFormat = "预计获得 {0} 金券";
@@ -208,12 +223,6 @@ namespace YC.Presentation
         public string SelectionReturnLabel => selectionReturnLabel;
         public string SelectionSummaryFormat => selectionSummaryFormat;
         public string SelectionEmptyText => selectionEmptyText;
-        [SerializeField] private string repeatContinuePrompt = "可继续执行下一次，或结束本次效果。";
-        [SerializeField] private string repeatContinueLabel = "继续执行";
-        [SerializeField] private string repeatStopLabel = "结束效果";
-        public string RepeatContinuePrompt => repeatContinuePrompt;
-        public string RepeatContinueLabel => repeatContinueLabel;
-        public string RepeatStopLabel => repeatStopLabel;
         public string SaleConfirmLabel => saleConfirmLabel;
         public string SaleFinishLabel => saleFinishLabel;
         public string SaleDiscardDraftLabel => saleDiscardDraftLabel;

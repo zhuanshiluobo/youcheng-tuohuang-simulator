@@ -1,8 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YC.Domain.Cards;
 using YC.Domain.Rules;
+using YC.Infrastructure.Lua;
 
 namespace YC.Presentation
 {
@@ -36,9 +38,33 @@ namespace YC.Presentation
             new CharacterBackTextureEntry[0];
         [SerializeField] private Texture2D cityBoardTexture;
         [NonSerialized] private Func<string, string> runtimeDefinitionResolver;
+        [NonSerialized] private ExternalContentPack cardDefinitionPack;
+        [NonSerialized] private HashSet<string> cardDefinitionIds;
 
         public void BindRuntimeDefinitions(Func<string, string> resolver) => runtimeDefinitionResolver = resolver;
         private string ResolveDefinition(string id) => runtimeDefinitionResolver?.Invoke(id) ?? id;
+
+        // 只读正式内容类型，不读取图片、图集或纹理；无图的有效定义仍是卡牌。
+        public bool IsCardDefinition(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return false;
+            var pack = ExternalContentRuntime.Pack;
+            if (!ReferenceEquals(cardDefinitionPack, pack))
+            {
+                var definitions = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var definition in pack.Definitions.Concat(pack.ActiveDefinitions))
+                {
+                    if (!definition.Enabled || definition.ContentType != "character" && definition.ContentType != "facility" &&
+                        definition.ContentType != "event" && definition.ContentType != "award") continue;
+                    if (!string.IsNullOrEmpty(definition.DefinitionId)) definitions.Add(definition.DefinitionId);
+                    if (!string.IsNullOrEmpty(definition.RuntimeId)) definitions.Add(definition.RuntimeId);
+                }
+                cardDefinitionIds = definitions;
+                cardDefinitionPack = pack;
+            }
+            // 实例由调用方的正式候选声明／可见投影解析；类型判断不调用Host实例解析器。
+            return cardDefinitionIds.Contains(id);
+        }
 
         public int FacilityCount => CountContent("facility");
         public int CityStyleCount => CountContent("city_style");
@@ -118,6 +144,13 @@ namespace YC.Presentation
                 ? ExternalContentRuntime.GetSharedArtwork(backVisualKey) : null;
 
         public Sprite GetEvent(string cardId) => ExternalContentRuntime.GetArtworkSprite("event", ResolveDefinition(cardId));
+
+        public Sprite GetAward(string cardId)
+        {
+            var definitionId = ResolveDefinition(cardId);
+            return ExternalContentRuntime.GetArtworkSprite("award", definitionId) ??
+                ExternalContentRuntime.GetDeclaredArtworkSprite("award", definitionId);
+        }
 
         public Texture2D GetCityBoard() => ExternalContentRuntime.GetSharedArtwork("city_board");
 

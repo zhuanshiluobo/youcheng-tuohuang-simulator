@@ -80,7 +80,8 @@ namespace YC.Domain.Effects
             {
                 PlayerId = playerId,
                 SourceId = sourceId ?? string.Empty,
-                DefinitionVersion = typeId == ResourceEffectTypeIds.Pay ? ResourceEffectExecutor.PaymentDefinitionVersion : ResourceEffectExecutor.DefinitionVersion
+                DefinitionVersion = typeId == ResourceEffectTypeIds.Pay ? ResourceEffectExecutor.PaymentDefinitionVersion :
+                    typeId == ResourceEffectTypeIds.Gain ? ResourceEffectExecutor.GainDefinitionVersion : ResourceEffectExecutor.DefinitionVersion
             };
         }
 
@@ -98,6 +99,7 @@ namespace YC.Domain.Effects
     public sealed class ResourceEffectExecutor
     {
         public const string DefinitionVersion = "1.0.0";
+        public const string GainDefinitionVersion = "2.0.0";
         public const string PaymentDefinitionVersion = "3.1.0";
         public const string PaymentConfirmationStage = "awaiting_payment_confirmation";
         public const string PaymentConfirmationInteractionTypeId = "effect.resource.payment_confirmation";
@@ -118,6 +120,7 @@ namespace YC.Domain.Effects
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
             ResourceLossEffectExecutor.Register(registry);
+            ResourceExchangeFlow.Register(registry);
             RegisterIfMissing(registry, ResourceEffectTypeIds.Gain, new ResourceEffectExecutor(false, false));
             RegisterIfMissing(registry, ResourceEffectTypeIds.GainOpponents, new ResourceEffectExecutor(false, false, true));
             RegisterIfMissing(registry, ResourceEffectTypeIds.Pay, new ResourceEffectExecutor(true, false));
@@ -128,7 +131,8 @@ namespace YC.Domain.Effects
         {
             EffectRegistration ignored;
             if (registry.TryGet(typeId, out ignored)) return;
-            registry.Register(new EffectRegistration(typeId, executor.Execute, executor.isPaymentExecutor ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic, executor.isPaymentExecutor ? PaymentDefinitionVersion : DefinitionVersion)
+            registry.Register(new EffectRegistration(typeId, executor.Execute, executor.isPaymentExecutor ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic,
+                executor.isPaymentExecutor ? PaymentDefinitionVersion : typeId == ResourceEffectTypeIds.Gain ? GainDefinitionVersion : DefinitionVersion)
             {
                 Validator = executor.ValidateSpec
             });
@@ -201,9 +205,50 @@ namespace YC.Domain.Effects
                 return ExecutePayment(context, cost, Result(playerId, ResourceEffectTypeIds.Pay, amount, resourceType));
             }
 
+            // 资格属于实际收益；不能沿用选择构树时冻结的库存判断。
+            var qualification = Value(context.Node.NormalizedArguments, "qualification");
+            if (qualification != null)
+            {
+                string error = ValidateGainArguments(context.Node.NormalizedArguments);
+                if (error.Length > 0) return EffectStepResult.Failed(error);
+                foreach (var candidate in Value(qualification, "resourceTypes").Items)
+                {
+                    ResourceLossEffectExecutor.TryReadResourceType(candidate, out var compared);
+                    if (current > player.Resources.Get(compared))
+                        return EffectStepResult.Failed("resource_gain_not_minimum");
+                }
+            }
             player.Resources.Set(resourceType, current + amount);
             return EffectStepResult.Completed(Result(playerId, ResourceEffectTypeIds.Gain, amount, resourceType));
         }
+
+        // API-41：只接受封闭的资源余额最少资格，不执行Lua谓词或卡牌专用判断。
+        public static string ValidateGainArguments(NormalizedValue args)
+        {
+            if (!TryRead(args, out _, out var selected, out _, out var diagnostic)) return diagnostic;
+            var version = Value(args, "apiVersion"); var qualification = Value(args, "qualification");
+            if (version == null && qualification == null) return string.Empty;
+            if (args.Kind != NormalizedValueKind.Object || !args.IsValid() ||
+                args.Properties.Exists(entry => !new[] { "executingPlayer", "resourceType", "amount", "reasonId", "sourceId", "apiVersion", "qualification" }.Contains(entry.Name)) ||
+                version?.Kind != NormalizedValueKind.Integer || version.IntegerValue != 2 ||
+                qualification?.Kind != NormalizedValueKind.Object ||
+                qualification.Properties.Count != 2 || qualification.Properties.Exists(entry => entry.Name != "kind" && entry.Name != "resourceTypes") ||
+                Text(qualification, "kind") != "minimum_balance") return "resource_gain_qualification_invalid";
+            var types = Value(qualification, "resourceTypes");
+            if (types?.Kind != NormalizedValueKind.Array || types.Items.Count < 2 || types.Items.Count > 5)
+                return "resource_gain_qualification_invalid";
+            var seen = new HashSet<ResourceType>();
+            foreach (var type in types.Items)
+                if (!ResourceLossEffectExecutor.TryReadResourceType(type, out var resource) || !seen.Add(resource))
+                    return "resource_gain_qualification_invalid";
+            return seen.Contains(selected) ? string.Empty : "resource_gain_qualification_invalid";
+        }
+
+        public static bool CanRestoreLegacyGain(string typeId, string version, NormalizedValue args) =>
+            typeId == ResourceEffectTypeIds.Gain && version == DefinitionVersion &&
+            args?.Kind == NormalizedValueKind.Object && args.IsValid() &&
+            args.Properties.All(entry => new[] { "executingPlayer", "resourceType", "amount", "reasonId", "sourceId" }.Contains(entry.Name)) &&
+            ValidateGainArguments(args).Length == 0;
 
         // 兼容尚不传Registry的建设/移动只读消费者；来源来自同一状态的实际执行上下文绑定。
         public static bool CanPayWithStoredMarkers(GameState state, int player, ResourceSet cost)
@@ -372,6 +417,8 @@ namespace YC.Domain.Effects
                 return ResourcePaymentDemandParser.TryParse(spec.NormalizedArguments, out _, out _);
             if (isPaymentExecutor && ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "cost") != null)
                 return ValidateCompositePayment(spec.NormalizedArguments);
+            if (!isPaymentExecutor && !isScoreExecutor && !targetsOpponents)
+                return ValidateGainArguments(spec.NormalizedArguments);
             NormalizedValue player;
             NormalizedValue type;
             NormalizedValue amount;
@@ -400,9 +447,14 @@ namespace YC.Domain.Effects
                 Value(args, "allowSubstitution") is NormalizedValue flag && flag.Kind != NormalizedValueKind.Boolean)
                 return "composite_payment_arguments_invalid";
             var player = ItemTransferEffectExecutor.Value(args, "player");
-            var cost = ItemTransferEffectExecutor.Value(args, "cost");
-            if (player?.Kind != NormalizedValueKind.String || !int.TryParse(player.StringValue, NumberStyles.None, CultureInfo.InvariantCulture, out int id) || id <= 0 ||
-                cost?.Kind != NormalizedValueKind.Object || cost.Properties.Count == 0) return "composite_payment_arguments_invalid";
+            if (player?.Kind != NormalizedValueKind.String || !int.TryParse(player.StringValue, NumberStyles.None, CultureInfo.InvariantCulture, out int id) || id <= 0)
+                return "composite_payment_arguments_invalid";
+            return ValidateCompositeCost(ItemTransferEffectExecutor.Value(args, "cost"));
+        }
+        public static string ValidateCompositeCost(NormalizedValue cost)
+        {
+            if (cost?.Kind != NormalizedValueKind.Object || cost.Properties.Count == 0) return "composite_payment_arguments_invalid";
+            if (!cost.IsValid()) return "composite_payment_cost_invalid";
             var keys = new HashSet<string>();
             foreach (var entry in cost.Properties)
             {

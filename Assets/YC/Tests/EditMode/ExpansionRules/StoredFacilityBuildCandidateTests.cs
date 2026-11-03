@@ -136,7 +136,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(snapshot.IsDefaultSupplySet, Is.False); Assert.That(snapshot.FinalItemIds, Does.Contain(held));
             Assert.That(snapshot.Candidates.Count(candidate => candidate.DefinitionId == facilityDefinitionId), Is.EqualTo(7));
             Assert.That(snapshot.Resolution.AppliedPatches.Single().SourceContentInstanceId, Is.EqualTo(Carrier(state).ItemId));
-            Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             Assert.That(Open(state).CandidateIds, Is.EquivalentTo(options.Where(option => option.CanBuild).Select(option => option.FacilityId)));
         }
 
@@ -190,7 +190,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void ChooseBuildRestoresPaymentAndPaidStagingWithoutRepeatingPayment()
         {
             var state = State(); string held = Store(state);
-            var selection = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            var selection = Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             PrepareStoredBuildPayment(state, selection, held); state = Restore(state); Answer(state, "pay");
             int gold = state.FindPlayer(1).Resources.GoldVoucher;
             state = Restore(state); Answer(state, Open(state).CandidateIds[0]); state = Restore(state);
@@ -213,7 +213,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void TamperedFrozenSelectionSourceIsRejectedOnRecovery()
         {
             var state = State(); string held = Store(state);
-            var node = Run(state, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply")), 1));
+            var node = Run(state, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false), "allowDecline", NormalizedValue.CreateBoolean(false)), 1));
             PrepareStoredBuildPayment(state, node, held); Answer(state, "pay");
             var archive = HostRecoveryService.CreateArchive(state);
             string original = HostRecoveryService.SerializeArchive(archive);
@@ -221,8 +221,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(control.Succeeded, Is.True, control.Diagnostic);
             artifacts.WriteLabeledText("库存建设冻结来源合法归档对照", original);
             Set(archive.Snapshot.State.EffectRuntime.EffectNodes.Single(value => value.EffectId == node.EffectId), "selectedSourceZoneId", NormalizedValue.CreateString(FindZone(state, "facility_supply_0").ZoneId));
-            var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(archive), registry);
-            Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Does.Contain("build_source_restore_invalid"));
+            string broken = HostRecoveryService.SerializeArchive(archive), stateBefore = JsonConvert.SerializeObject(state);
+            var result = HostRecoveryService.RecoverJson(broken, registry);
+            Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Does.Contain("build_contract_state_invalid"));
+            Assert.That(HostRecoveryService.SerializeArchive(archive), Is.EqualTo(broken));
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(stateBefore));
         }
     }
 }

@@ -57,7 +57,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(request.InteractionTypeId, Is.EqualTo("effect.influence.remove.target"));
             Assert.That(request.AnswerSchema, Is.EqualTo("candidate_id")); Assert.That(request.AllowDecline, Is.False);
             var owner = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
-            Assert.That(owner.EffectTypeId, Is.EqualTo(ContentPrimitiveEffectExecutor.SelectInfluence));
+            Assert.That(owner.EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.RemoveInfluence));
             Assert.That(Flag(owner.NormalizedArguments, "requireCompleteSelection"), Is.True);
             var commands = new List<GameCommand>(); IReadOnlyList<WorkflowHighlight> highlights = null;
             var type = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
@@ -102,11 +102,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Answer(state, NormalizedValue.CreateString("continue"));
             Assert.That(Open(state).InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
             Assert.That(Open(state).AllowDecline, Is.True);
-            var selection = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == FacilitySelectionEffectExecutor.TypeId);
+            var selection = state.EffectRuntime.EffectNodes.Single(n => FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments));
             Assert.That(selection.AllowDecline, Is.False); Assert.That(Flag(selection.NormalizedArguments, "allowDecline"), Is.True);
             state = Recover(state, "ChooseBuild自身取消待答"); Answer(state, NormalizedValue.CreateBoolean(false));
             Assert.That(state.EffectRuntime.InteractionRequests.Count(q => q.InteractionTypeId == "action.decline_effect"), Is.EqualTo(1));
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build), Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n => (n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))), Is.False);
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == card.ItemId).ZoneId, Is.EqualTo(BlueprintZone(state)));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold - 2));
             Recover(state, "ChooseBuild取消保外层已付费用不建设");

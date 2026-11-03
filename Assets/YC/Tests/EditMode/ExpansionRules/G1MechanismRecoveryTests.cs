@@ -23,7 +23,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             const string body = @"return function(ctx) return {Effect.Condition({ruleCondition=true,decisionPlayer=ctx.playerId,
 leftEffects={tokenTransfer(ctx.payload.sourceItemId,3)},
-rightEffects={Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='self',count=1,requiredCount=1})}})} end";
+rightEffects={Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1})}})} end";
             fixture = new CleanupSourceTestFixture(artifacts, initialMarkers: 3, bodyOverride: body, storageResponse: true, concurrent: concurrent, inMemoryInput: true);
             var f = fixture;
             var map = StaticMapDefinitions.Resolve(f.State.MapId);
@@ -67,9 +67,7 @@ rightEffects={Effect.SelectInfluence({player=ctx.playerId,operation='remove',sub
             string definition = Definition(current, d => !d.Unique && !d.HasEntryEffect);
             Transfer(current, Leg(current, Card(current, definition).ItemId, storage), Leg(current, Card(current, definition, 1).ItemId, storage));
             string key = Registry.QuerySources(current, 1, "ruleQuery").Single(source => source.AbilityId == QueryAbility).SourceKey;
-            var node = Run(current, EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId,
-                Object("sourceZone", NormalizedValue.CreateString("authorized"), "sourceKey", NormalizedValue.CreateString(key),
-                    "paymentMode", NormalizedValue.CreateString("auto"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+            var node = Run(current, EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "sourceKey", NormalizedValue.CreateString(key), "paymentMode", NormalizedValue.CreateString("auto"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("authorized"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
             var request = current.EffectRuntime.InteractionRequests.Single(r => r.OwnerEffectId == node.EffectId && r.Status == "open");
             var record = current.EffectRuntime.CandidateResolutions.Single(r => r.CandidateSetId == request.CandidateResolutionId);
             Assert.That(record.FacilitySourceProofs.Select(p => p.ItemId), Is.EqualTo(request.CandidateIds));

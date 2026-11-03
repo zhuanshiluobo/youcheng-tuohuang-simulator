@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
@@ -354,6 +355,19 @@ namespace YC.Application.Sessions
                 if (entry.CleanupSource.Invocations.Exists(i => i.CommandId == command.CommandId && Same(i.RequestRef))) return true;
                 var options = settlementProjectionProvider?.GetSettlementOptions(state, GameStateViewer.Player(command.PlayerId));
                 return options != null && System.Linq.Enumerable.Any(options, o => o.IsEnabled && Same(o.CleanupRequest) && o.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture) == command.Parameters["expectedRevision"]);
+            }
+            if (YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "intent") == YC.Application.Interactions.SpecialActionChoiceCommand.Intent)
+            {
+                string P(string key) => YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, key);
+                if (command.Parameters.Keys.Any(k => !new[] { "intent", "expectedRevision", "contentHash" }.Contains(k)) ||
+                    !int.TryParse(P("expectedRevision"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int expected) || expected < 0 ||
+                    P("contentHash") != state.ContentPackHash) return false;
+                var old = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectTypeId == YC.Domain.Effects.OrdinarySpecialActionChoice.TypeId &&
+                    YC.Domain.Effects.ItemTransferEffectExecutor.Text(n.NormalizedArguments, "commandId") == command.CommandId);
+                if (old != null) return old.PlayerId == command.PlayerId && YC.Domain.Effects.ItemTransferEffectExecutor.Number(old.NormalizedArguments, "expectedRevision", -1) == expected &&
+                    YC.Domain.Effects.ItemTransferEffectExecutor.Text(old.NormalizedArguments, "contentHash") == P("contentHash");
+                var choices = settlementProjectionProvider?.GetAbilityActions(state, GameStateViewer.Player(command.PlayerId));
+                return expected == state.EffectRuntime.StateRevision && choices != null && choices.Any(o => o.EntryKind == "special" && o.Enabled);
             }
             if (YC.Application.Interactions.InvokeSettlementOptionCommandHandler.Parameter(command, "intent") == YC.Application.Interactions.AbilityActionCommand.Intent)
             {

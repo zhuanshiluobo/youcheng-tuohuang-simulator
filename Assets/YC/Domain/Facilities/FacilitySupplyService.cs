@@ -16,18 +16,7 @@ namespace YC.Domain.Facilities
         public const int SupplySize = 6;
         private static readonly ICardPoolService CardPool = new CardPoolService();
 
-        // 实体路径只补指定槽。空堆成功无变化，已占用槽明确拒绝覆盖。
-        public static ItemTransferResult RefillSlot(EffectExecutionContext context, string slotZoneId)
-        {
-            var query = new ItemZoneQuery();
-            var slot = query.FindZone(context.State, slotZoneId);
-            if (slot?.TemplateId != "core.zone.facility_supply_slot" || query.GetItemIds(context.State, slotZoneId).Count > 0)
-                throw new InvalidOperationException("destination_rejected");
-            var deck = ItemTransferEffectExecutor.FindZone(context.State, "facility_deck");
-            var request = new ItemTransferRequest { ExecutingPlayerId = context.Node.PlayerId, ExpectedSource = new ItemPositionRef { ZoneId = deck.ZoneId }, Destination = new ZoneRef { ZoneId = slotZoneId }, InsertionKind = "top", OperationProfileId = "core.facility_card_transfer", ItemIds = query.GetTopItemIds(context.State, deck.ZoneId, 1).ToList() };
-            return new ItemTransferService().RelocateItems(context, request);
-        }
-
+        // 正常实体补槽由ItemTransferEffectExecutor.RefillSpec组织公开MoveItem顶部步骤。
         public static void Initialize(
             DeckRuntimeState decks,
             IReadOnlyList<string> facilityCardIds,

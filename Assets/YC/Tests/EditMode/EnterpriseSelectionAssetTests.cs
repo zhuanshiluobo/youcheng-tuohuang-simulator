@@ -14,7 +14,7 @@ using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode
 {
-    public sealed class EnterpriseSelectionAssetTests
+    public sealed partial class EnterpriseSelectionAssetTests
     {
         private SceneRuntimeCatalogScope runtimeCatalogs;
         [UnityTearDown] public IEnumerator RestoreEditMode()

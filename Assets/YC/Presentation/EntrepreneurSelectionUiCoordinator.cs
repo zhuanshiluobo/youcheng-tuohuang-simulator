@@ -120,7 +120,7 @@ namespace YC.Presentation
                 layout.CharacterPanelPosition, true, false, false, true);
             EffectDialogShell.AddHeading(panel, shown.InteractionTypeId == EntrepreneurFlow.ChooseInteraction ? copy.ChooseTitle : copy.FaceTitle, copy.SelectionHint);
             var selectionSpec = new EffectDialogSelectionSpec {
-                Request = shown, IsEffectPage = false, AllowStageFolding = true, SelectedIds = selected.Length == 0 ? Array.Empty<string>() : new[] { selected },
+                Request = shown, IsEffectPage = false, IsCardSelection = true, AllowStageFolding = true, SelectedIds = selected.Length == 0 ? Array.Empty<string>() : new[] { selected },
                 Label = id => cards.FirstOrDefault(c => c.Id == id)?.Label ?? id,
                 CardSprite = id => cards.FirstOrDefault(c => c.Id == id)?.Artwork,
                 CanSelect = id => cards.Any(c => c.Id == id), IsCurrent = Valid,

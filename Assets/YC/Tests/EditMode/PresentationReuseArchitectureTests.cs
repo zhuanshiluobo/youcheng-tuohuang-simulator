@@ -42,62 +42,18 @@ namespace YC.Tests.EditMode
                 Is.EqualTo(shell));
             Assert.That(allocation.GetField("UnitPrices"), Is.Not.Null);
             Assert.That(allocation.GetField("FormatSummary"), Is.Not.Null);
-        }
-
-        [Test]
-        public void FacilityOrBranches_KeepSharedCoordinatorHelperAndDialogShell()
+        }        [Test]
+        public void FacilityRequestsKeepSharedDialogAndRetireLegacyCoordinator()
         {
-            var coordinator = Type.GetType(
-                "YC.Presentation.FacilityEffectInteractionUiCoordinator, Assembly-CSharp",
-                false);
-            var dialog = Type.GetType(
-                "YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp",
-                false);
-            var option = Type.GetType("YC.Presentation.EffectDialogOption, Assembly-CSharp", false);
-            var shell = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", false);
-            Assert.That(coordinator, Is.Not.Null);
-            Assert.That(dialog, Is.Not.Null);
-            Assert.That(option, Is.Not.Null);
-            Assert.That(shell, Is.Not.Null);
-
-            var sharedBranchPresenter = coordinator.GetMethod(
-                "ShowOrBranchOptions",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var showMercenary = coordinator.GetMethod(
-                "ShowMercenary",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var showWarehouse = coordinator.GetMethod(
-                "ShowWarehouse",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            var showEffectOptions = dialog.GetMethod(
-                "ShowEffectOptions",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            Assert.That(sharedBranchPresenter, Is.Not.Null,
-                "带“或”的设施分支必须保留统一的 ShowOrBranchOptions 入口。");
-            Assert.That(showMercenary, Is.Not.Null);
-            Assert.That(showWarehouse, Is.Not.Null);
-            Assert.That(showEffectOptions, Is.Not.Null);
-
-            var parameters = sharedBranchPresenter.GetParameters();
-            Assert.That(parameters, Has.Length.EqualTo(4));
-            Assert.That(parameters[0].ParameterType, Is.EqualTo(typeof(PendingCardSessionState)));
-            Assert.That(parameters[2].ParameterType.IsGenericType, Is.True);
-            Assert.That(
-                parameters[2].ParameterType.GetGenericTypeDefinition(),
-                Is.EqualTo(typeof(IReadOnlyList<>)));
-            Assert.That(parameters[2].ParameterType.GetGenericArguments()[0], Is.EqualTo(option));
-            Assert.That(parameters[3].ParameterType, Is.EqualTo(typeof(bool)));
-
-            Assert.That(CallsMethod(showMercenary, sharedBranchPresenter), Is.True,
-                "佣兵指挥部必须通过统一“或”分支入口呈现一级选择。");
-            Assert.That(CallsMethod(showWarehouse, sharedBranchPresenter), Is.True,
-                "载具仓库必须通过统一“或”分支入口呈现一级选择。");
-            Assert.That(CallsMethod(sharedBranchPresenter, showEffectOptions), Is.True,
-                "统一“或”分支入口必须落到共用的可折叠选项弹窗。");
-            Assert.That(
-                dialog.GetField("shell", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType,
-                Is.EqualTo(shell));
+            Assert.That(Type.GetType("YC.Presentation.FacilityEffectInteractionUiCoordinator, Assembly-CSharp", false), Is.Null);
+            Assert.That(Type.GetType("YC.Presentation.FacilityEffectInteractionAdapter, Assembly-CSharp", false), Is.Null);
+            var coordinator = Type.GetType("YC.Presentation.FacilityInteractionUiCoordinator, Assembly-CSharp", true);
+            var dialog = Type.GetType("YC.Presentation.FacilityEffectChoiceDialog, Assembly-CSharp", true);
+            var shell = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", true);
+            Assert.That(coordinator.GetField("dialog", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType, Is.EqualTo(dialog));
+            Assert.That(dialog.GetField("shell", BindingFlags.Instance | BindingFlags.NonPublic)?.FieldType, Is.EqualTo(shell));
         }
+
 
         [Test]
         public void CityBoardSlotLayout_ProvidesSharedTwelveSlotGeometry()

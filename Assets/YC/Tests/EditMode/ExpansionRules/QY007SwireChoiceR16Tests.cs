@@ -26,17 +26,17 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             fixture = new InfectedCharacterEffectsTests();
             fixture.LoadExplicitRealDefinitionsFromFormalPack();
-            var core = (YC.Infrastructure.Lua.ExternalContentPack)typeof(InfectedCharacterEffectsTests)
-                .GetField("core", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture);
-            if (!YC.Domain.Cards.CharacterCardDatabase.IsInitialized) YC.Domain.Cards.CharacterCardDatabase.Initialize(core.CreateCharacters());
-            YC.Domain.Facilities.FacilityCardDatabase.InitializeExternal(core.CreateFacilities());
-            YC.Domain.Cards.EventCardDatabase.InitializeExternal(core.CreateEvents());
-            YC.Domain.CityStyles.CityStyleDatabase.InitializeExternal(core.CreateCityStyles());
-            YC.Domain.SpecialActions.SpecialActionDatabase.InitializeExternal(core.CreateSpecialActions());
+            // 与正式能力使用同一活动内容/来源目录，位置和规则从每局冻结定义读取。
+            // 不再把新版全ID角色目录塞回旧静态模板表，也不覆盖其他夹具的全局目录。
             ObservedState = null;
         }
 
-        [SetUp] public void BeginCase() { ObservedState = null; }
+        [SetUp] public void BeginCase() { ObservedState = null; fixture.BeginEvidence(); }
+        [TearDown] public void FinishCase()
+        {
+            if (ObservedState != null) typeof(InfectedCharacterEffectsTests).GetField("observed", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fixture, ObservedState);
+            fixture.FinishEvidence();
+        }
 
         private object Call(string name, params object[] args)
         {
@@ -47,7 +47,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             catch (TargetInvocationException error) { throw error.InnerException ?? error; }
         }
 
-        private GameState State(int players = 3) => ObservedState = (GameState)Call("State", players);
+        private GameState State(int players = 3) => ObservedState = (GameState)Call("State", players, true, 0);
         private static InteractionRequest Open(GameState state) => state.EffectRuntime.InteractionRequests.LastOrDefault(r => r.Status == "open");
         private static ItemInstanceState Card(GameState state) => state.ItemZones.Items.Single(i => i.DefinitionId == "infected.character.swire");
         private List<ItemInstanceState> Markers(GameState state) => (List<ItemInstanceState>)Call("StoredMarkers", state, "swire");

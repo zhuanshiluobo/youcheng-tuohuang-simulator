@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using System;
 using System.IO;
 using System.Linq;
@@ -146,3 +147,5 @@ namespace YC.Presentation.Validation
         static void TraceSample(string phase,bool begin){if(begin)Profiler.BeginSample(phase);else Profiler.EndSample();}
     }
 }
+
+#endif

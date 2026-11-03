@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.enterprise.rhodes_island",
   "contentType": "enterprise",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "罗德岛",
   "expansionId": "infected",
   "replaces": {
@@ -58,7 +58,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.enterprise.rhodes_island.level_3.special",
       "script": "lua/enterprises/infected.enterprise.rhodes_island.level_3.special.lua",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "completionHandlerId": "content.infected.enterprise.rhodes_island.level_3.special.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,

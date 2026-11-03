@@ -92,44 +92,12 @@ namespace YC.Application.Sessions
                     !ValidateNestedRaw(spec["NestedEffects"] as JArray)) return false;
             return true;
         }
-        // 仅由Host在识别到旧原始结构后调用。不是对真实用户存档的自动修复入口。
+        // 当前实体合同为v2；缺少设施层元数据的旧表示没有完整类型/位置/收据证据。
+        // Host和隔离调用均明确拒绝，不从零/单枚供应猜测可迁移，也不改写原始状态。
         public static bool TryMigrateLegacy(JObject rawState, GameState original, out GameState migrated, out string reason)
         {
             migrated = null; reason = "facility_layer_legacy_unsupported";
-            if (rawState?["ItemZones"] is not JObject rawZones || rawZones["FacilityLayerVersion"] != null ||
-                original?.EntitySchemaVersion != 1 || original.ItemZones.Zones.Any(z => z.TemplateId == FacilityLayerQuery.CoveredTemplate) ||
-                original.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build && n.DefinitionVersion == "2.0.0"))
-                return false;
-            if (original.Players.Any(p => p.DeclaredCityStyles.Any(d => d.UsedCityBoardSlotIndexes.Count > 0 && d.UsedFacilityIds.Count == 0)))
-                return false; // 不从现有格猜历史宣告实例。
-            var work = GameStateCloneService.DeepClone(original);
-            foreach (var slot in work.ItemZones.Zones.Where(z => z.TemplateId == FacilityLayerQuery.SupplyTemplate))
-            {
-                var members = work.ItemZones.Items.Where(i => i.ZoneId == slot.ZoneId).Select(i => i.ItemId).ToList();
-                if (members.Count > 1 || work.ItemZones.Orders.Any(o => o.ZoneId == slot.ZoneId) || slot.Configuration != null) return false;
-                work.ItemZones.Orders.Add(new ZoneOrderState { ZoneId = slot.ZoneId, ItemIds = members });
-            }
-            foreach (var cell in work.ItemZones.Zones.Where(z => z.TemplateId == FacilityLayerQuery.CellTemplate).ToList())
-            {
-                if (work.ItemZones.Items.Count(i => i.ZoneId == cell.ZoneId) > 1) return false;
-                string id = StableIdFactory.Create("zone", work.GameId, FacilityLayerQuery.CoveredTemplate, cell.ZoneId, "covered");
-                work.ItemZones.Zones.Add(new ZoneInstanceState { ZoneId = id, TemplateId = FacilityLayerQuery.CoveredTemplate,
-                    LocalZoneId = "covered", ParentKind = ZoneParentKind.Zone, ParentId = cell.ZoneId,
-                    OwnerPlayerId = cell.OwnerPlayerId, VisibilityPolicyId = cell.VisibilityPolicyId });
-                work.ItemZones.Orders.Add(new ZoneOrderState { ZoneId = id });
-            }
-            work.ItemZones.FacilityLayerVersion = 1;
-            // 明确记录来源原始区域表示，不补造Build/付款/叠建事件或宣告历史。
-            using (var hash = System.Security.Cryptography.SHA256.Create())
-                work.ItemZones.FacilityLayerMigrationId = BitConverter.ToString(hash.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawZones.ToString(Formatting.None)))).Replace("-", "").ToLowerInvariant();
-            // 在途旧unordered移位不能因为新模板被默默解释。保留不受模板影响节点，拒绝其他旧在途移位/Build。
-            foreach (var n in work.EffectRuntime.EffectNodes.Where(n => n.Status != EffectNodeStatus.Completed && n.Status != EffectNodeStatus.Failed && n.Status != EffectNodeStatus.Faulted))
-                if (n.EffectTypeId == FacilityEntryEffectTypeIds.Build || n.EffectTypeId == ItemTransferEffectExecutor.TypeId ||
-                    n.EffectTypeId == ItemTransferEffectExecutor.RefillTypeId || n.EffectTypeId == ItemTransferEffectExecutor.RefreshTypeId)
-                { reason = "facility_layer_legacy_inflight_requires_original_executor"; return false; }
-            if (!new ItemZoneQuery().TryValidate(work, out reason)) return false;
-            ItemZoneLegacyProjection.Bind(work);
-            migrated = work; reason = ""; return true;
+            return false;
         }
         public static bool TryValidateState(GameState state, EffectRegistry registry, out string reason)
         {

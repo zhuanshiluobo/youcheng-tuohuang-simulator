@@ -24,7 +24,7 @@ namespace YC.Domain.Cards
         public const string CleanupOfferTypeId = Prefix + "cleanup_offer";
         public const string CleanupInteractionTypeId = "character.cleanup.settlement";
         public static readonly Dictionary<string, string> Constructors = new Dictionary<string, string> {
-            { "RetainCharacter", "retain" }, { "CreateCityInfluenceLock", "city_lock" }
+            { "CreateCityInfluenceLock", "city_lock" }
         };
         public static bool IsPublic(string type) => type != null && type.StartsWith(Prefix, StringComparison.Ordinal) && Constructors.Values.Contains(type.Substring(Prefix.Length));
         public static string[] Fields(string type) => type == Prefix + "city_lock" ? new[] { "apiVersion", "player", "definitionId" } : new[] { "apiVersion", "player" };
@@ -47,19 +47,12 @@ namespace YC.Domain.Cards
                 string type = Prefix + suffix;
                 if (!registry.TryGet(type,out _)) registry.Register(new EffectRegistration(type, c => {
                     if (ValidateArguments(c.Node.EffectTypeId,c.Node.NormalizedArguments).Length > 0 || Text(c.Node.NormalizedArguments,"player") != c.Node.PlayerId.ToString(CultureInfo.InvariantCulture)) return EffectStepResult.Failed("character_content_arguments_invalid");
-                    return c.Node.EffectTypeId == Prefix + "city_lock" ? InfluenceLockRules.Create(c,Text(c.Node.NormalizedArguments,"definitionId")) : EffectStepResult.Completed();
+                    return InfluenceLockRules.Create(c,Text(c.Node.NormalizedArguments,"definitionId"));
                 },EffectExecutorKind.Atomic,"v1") { Validator = spec => ValidateArguments(type,spec.NormalizedArguments) });
             }
-            if (!registry.TryGet(Prefix + "immediate_special",out _)) registry.Register(new EffectRegistration(Prefix + "immediate_special",ImmediateSpecial,EffectExecutorKind.IntrinsicFlow,"v1"));
+            if (!registry.TryGet(Prefix + "immediate_special",out _)) registry.Register(new EffectRegistration(Prefix + "immediate_special",ImmediateSpecialActionFlow.Execute,EffectExecutorKind.IntrinsicFlow,ImmediateSpecialActionFlow.Version));
             if (!registry.TryGet(CleanupOfferTypeId,out _)) registry.Register(new EffectRegistration(CleanupOfferTypeId,c => EffectStepResult.Completed().WithFlowStage("offered"),EffectExecutorKind.IntrinsicFlow,"v1") { Validator = spec => ValidateCleanupOfferArguments(spec.NormalizedArguments) });
             InfluenceLockRules.Register(registry);
-        }
-        private static EffectStepResult Empty() => EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("no_candidates")));
-        private static EffectStepResult Wait(EffectExecutionContext c, string stage, IEnumerable<string> ids, string type = "lua.choice", bool allowDecline = false)
-        {
-            var list = ids.ToList(); if (list.Count == 0) return Empty();
-            var request = new EffectInteractionSpec { InteractionTypeId = type, AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", PromptKey = c.Node.EffectTypeId + "." + stage, MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id", AllowDecline = allowDecline };
-            request.CandidateIds.AddRange(list); return EffectStepResult.Continue(stage).AddInteraction(PrepareInteraction(c, request));
         }
         private static string ValidateCleanupOfferArguments(NormalizedValue args) =>
             args?.Kind == NormalizedValueKind.Object && Number(args,"apiVersion") == 1 &&
@@ -140,20 +133,6 @@ namespace YC.Domain.Cards
                 }
             }
             return "";
-        }
-        private static EffectStepResult ImmediateSpecial(EffectExecutionContext c)
-        {
-            if(c.Node.FlowStage=="executing")return EffectStepResult.Completed();
-            var player=c.State.FindPlayer(c.Node.PlayerId);
-            var choices=player.DeclaredCityStyles.Where(m=>m.MarkerArea.Length>0 && m.UnlockedSpecialActionId.Length>0 && m.RemainingSpecialActionUses>0 &&
-                !player.UsedSpecialActionIdsThisRound.Contains(m.UnlockedSpecialActionId) &&
-                !(YC.Domain.SpecialActions.SpecialActionDatabase.Get(c.State,m.UnlockedSpecialActionId)?.LocksCharacterCard==true && (player.UsedCharacterThisTurn || c.State.CharacterUses.Any(u=>u.ExecutingPlayerId==player.PlayerId && !u.Finished)))).ToList();
-            if(c.Node.FlowStage.Length==0)return Wait(c,"choose_special",choices.Select(m=>m.InfluenceMarkerId));
-            if(c.Node.FlowStage!="choose_special")throw new InvalidOperationException("immediate_special_stage_invalid");
-            var selected=choices.Find(m=>m.InfluenceMarkerId==Answer(c)); if(selected==null)return Wait(c,"choose_special",choices.Select(m=>m.InfluenceMarkerId));
-            var spec=CityStyleSpecialActionEffectSpecFactory.Activate(c.Node.PlayerId,selected.UnlockedSpecialActionId,selected.InfluenceMarkerId);
-            spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry{Name="activationSource",Value=NormalizedValue.CreateString("immediate")});spec.NormalizedArguments.Properties.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Name,b.Name));
-            return EffectStepResult.Continue("executing").AddChild(spec);
         }
     }
 }

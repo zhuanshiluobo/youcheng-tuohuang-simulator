@@ -36,8 +36,12 @@ namespace YC.Domain.Effects
                     }
                     InfluenceDepartureProtocol.Resolve(context, d, d.OriginalSupplyZoneId);
                 }
+                if (!replace) InfluenceDepartureCompletion.Complete(context, departures);
+                else
+                {
                 InfluenceDestinationResolver.Set(node.NormalizedResult, "responseRefs", Strings(departures.SelectMany(d => d.ResponseIds)));
                 InfluenceDestinationResolver.Set(node.NormalizedResult, "destinations", NormalizedValue.CreateArray(departures.Select(d => Object("departureId", NormalizedValue.CreateString(d.DepartureId), "zoneId", NormalizedValue.CreateString(d.Status == "open" ? d.CustodyZoneId : d.DestinationZoneId), "status", NormalizedValue.CreateString(d.Status))).ToList()));
+                }
                 if (replace)
                 {
                     var d = departures.Single();
@@ -77,7 +81,7 @@ namespace YC.Domain.Effects
             {
                 required = Number(args, "requiredCount");
                 targets = rawTargets.Items.Select(v => v.Kind == NormalizedValueKind.StableReference ? v.ReferenceId : v.StringValue).ToList();
-                if (targets.Count != required || targets.Distinct().Count() != required || targets.Any(id => !candidates.Contains(id))) return StrictRemovalFailed(required, "incomplete_influence_payment");
+                if (targets.Count != required || targets.Distinct().Count() != required || targets.Any(id => !candidates.Contains(id)) || !InfluenceSelectionFlow.ParentDistinctSubjects(context, targets)) return StrictRemovalFailed(required, "incomplete_influence_payment");
             }
             else
             {

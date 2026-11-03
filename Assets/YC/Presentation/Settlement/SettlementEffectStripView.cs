@@ -202,7 +202,7 @@ namespace YC.Presentation
             headerVisible && width >= hideBelowWidth ? Math.Max(0, reservedWidth) : 0;
     }
 
-    public sealed class SettlementEffectStripView : MonoBehaviour, IScrollHandler
+    public sealed partial class SettlementEffectStripView : MonoBehaviour, IScrollHandler
     {
         [SerializeField] private ScrollRect scrollRect;
         [SerializeField] private RectTransform viewport, content;
@@ -228,8 +228,8 @@ namespace YC.Presentation
         private float lastManualScroll = float.NegativeInfinity;
         public long ScopeToken => binding.Scope;
         public string WindowId => binding.WindowId;
-        public int VisibleOptionCount => binding.Entries.Count;
-        public bool HasVisibleOptions => binding.HasVisibleOptions;
+        public int VisibleOptionCount => binding.Entries.Count+allocationChips.Count;
+        public bool HasVisibleOptions => binding.HasVisibleOptions || allocationChips.Count>0;
         public event Action<bool> ButtonsVisibilityChanged;
         private bool reportedButtonsVisible;
         private bool headerVisibilityCaptured, headerWasActive;
@@ -244,11 +244,13 @@ namespace YC.Presentation
             measureText = labelMeasurement ?? throw new ArgumentNullException(nameof(labelMeasurement));
             resolveIcon = iconResolver ?? throw new ArgumentNullException(nameof(iconResolver));
             foreach (var chip in chips.Values) chip.InvalidatePresentation();
+            foreach(var chip in allocationChips.Values)chip.InvalidatePresentation();
         }
 
         public void SetScope(string sessionId, int viewerPlayerId)
         {
             if (!binding.SetScope(sessionId, viewerPlayerId)) return;
+            ClearAllocationQueue(allocationKey);
             ReleaseAll();
             // resolver 闭包也携带授权上下文；换观察者后必须重新注入，不能沿用旧名称字典。
             resolveText = null; bindText = null; measureText = null; resolveIcon = null;
@@ -319,6 +321,7 @@ namespace YC.Presentation
                 }
             }
             catch { ClearWindow(); throw; } // 展示端口或模板失败时关闭整批，避免留半个可提交的窗口。
+            PositionAllocationQueue();
             if (added > 0 && (previousScope != binding.Scope || wasAtTail) && Time.unscaledTime - lastManualScroll >= manualScrollQuietTime) followAfterLayout = true;
             // 批量完成后只显式提交一次布局请求；没有逐项强制重建。
             LayoutRebuilder.MarkLayoutForRebuild(content);
@@ -370,7 +373,7 @@ namespace YC.Presentation
             chips.Clear(); use = null; inspectSource = null; inspectAuthorizedSource = null; followAfterLayout = false;
             pendingArrivals.Clear();
             lastManualScroll = float.NegativeInfinity;
-            if (scrollRect != null) { scrollRect.StopMovement(); scrollRect.horizontalNormalizedPosition = 0; }
+            if (scrollRect != null && allocationChips.Count==0) { scrollRect.StopMovement(); scrollRect.horizontalNormalizedPosition = 0; }
         }
 
         public void ClearWindow() { binding.Clear(); ReleaseAll(); NotifyButtonsVisibility(); }
@@ -386,6 +389,7 @@ namespace YC.Presentation
             ApplyViewportLayout();
             if (viewport != null)
                 foreach (var chip in chips.Values) chip.FitWidth(viewport.rect.width);
+            if(viewport!=null)FitAllocationQueue();
             if (content != null && chips.Count > 0) LayoutRebuilder.MarkLayoutForRebuild(content);
         }
         private void OnDisable()
@@ -421,6 +425,7 @@ namespace YC.Presentation
             if (viewport == null || content == null) return;
             ApplyViewportLayout();
             foreach (var chip in chips.Values) chip.FitWidth(viewport.rect.width);
+            FitAllocationQueue();
             if (chips.Count > 0) LayoutRebuilder.MarkLayoutForRebuild(content);
         }
 

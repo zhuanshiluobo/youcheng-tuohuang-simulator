@@ -1,30 +1,12 @@
 # DIY 内容开发：Lua API
 
-更新：2026-10-28。核对基线：`3a398b86a1a5433714dd5dc4a9fc55aa4a68213a` 及本次工作区生产源码。
+本文说明当前内容宿主实际开放的 Lua 合同，适用于 core `2.1.70` 对应实现。API 名称、字段大小写和版本均有校验；未列出的字段不能靠猜测添加。`apiVersion` 是某个接口的输入协议版本，不是内容包版本。
 
-本文面向独立编写 DIY 规则的内容作者，配套 [JSON 编写文档](DIY内容开发-JSON编写.md)。参考 [Lua效果系统API初稿](Lua效果系统API初稿.md) 的分层思路，但**接口名称、参数、返回形状以当前宿主、编译器和执行器为准**。初稿中的设想不能直接当成可调用 API。
+配套文档：[JSON 编写](DIY内容开发-JSON编写.md)、[Event 与处理器](DIY内容开发-Event.md)。
 
-本文是源码合同说明，不是正常对局、UI 或联机验收报告。只使用本文示例也不代表已经完成内容包装配；运行入口、资源、文案和能力声明见配套文档。
+## 1. 入口、数据和执行规则
 
-## 1. 使用范围与剔除项
-
-依据 [待移除与未完成事项](../../prompt/企业家内容实施规划-20261019/04-高风险语义与回归清单.md)，本版执行以下排除规则。该表只用于迁移检查，不属于可用接口表。
-
-| 清单项 | 新内容规则 | 当前事实及替代方向 |
-| --- | --- | --- |
-| REMOVE-01 | 禁用 `Effect.Repeat` | 次数式构造器仍有内核、编译器和表现残留。固定次数直接展开有限 Effect 数组；依赖上一步结果时使用完成回调。收尾来源 `repeatPolicy = once/unbounded` 是另一机制，继续保留 |
-| REMOVE-02 | 不接入无卡面候选的旧多选显示链路 | 保留卡牌多选、玩家多选、普通执行选择。多个合法效果的组合可编码为一个选项，以 `effect.choice.execute` 做 1 选 1；不能借此取消真实规则中的多选约束 |
-| REMOVE-03 | 禁用 `Effect.LoadCardMarkers` 及旧名/旧类型包装 | API 已正式退役。使用当前 `MoveItem` 转移协议及真实来源授权；不能造一个同义包装恢复旧固定装载语义 |
-| REMOVE-04 | 不复制未证实有消费者的企业家文案 | 按真实引用和可见消费者登记文案；不能仅因静态搜索不到就删除动态键或用户手改文案 |
-| REMOVE-05 | 不提供插入结算按钮的悬浮文字入口 | 保留 hover 视觉、点击、拖动、禁用态、详情和无障碍名称；不是禁用全局提示或全部 `Text` API |
-
-此外，旧草稿中的 `Effect.TransferResource`、`Effect.PayCardMarkers`、`Effect.ResolveCharacterCard`、任意注册 CLR 执行器和运行时自由订阅事件，不是本版公开构造器。资源转移应根据真实语义组合失去/支付和获得；牌上标记支付使用来源声明与统一支付机制。
-
-本次只更新文档，没有删除上述代码残留、测试、文案或界面资产。
-
-## 2. 最小脚本与执行模型
-
-普通效果脚本返回一个 `handler(ctx)` 函数，函数返回从 1 开始、无空洞的 Effect 数组。无效果返回 `{}`，不能返回 `nil`、单个 Effect 或 C# 对象。
+### 1.1 普通入口
 
 ```lua
 return function(ctx)
@@ -32,366 +14,828 @@ return function(ctx)
         Effect.GainResource({
             recipient = ctx.playerId,
             resourceType = 'originium',
-            amount = 2
+            amount = 1
         })
     }
 end
 ```
 
-构造器只创建声明；调用 `Effect.GainResource(...)` 时资源尚未变化。Host 在 Lua 返回后校验、编译并依序执行。返回的普通兄弟节点之间没有自动“前者失败则后者取消”关系；需要支付成功才给奖励时必须用 `Condition`。等待选择、响应或子节点时，Host 保存可恢复状态；不能保存 Lua 闭包、VM 或协程来等待玩家。
+`Effect.*` 和 `Flow.*` 创建声明；构造时不执行、不显示页面。Host 接收返回值后按效果树结算，遇到必答请求才暂停等待玩家。数组中的两个效果不会自动构成“支付成功才获得”；需要此关系时使用 `Effect.Condition`。
 
-同一次 Lua 调用内查询得到的是同一版本快照。不能返回一个变更后立刻在同一次调用中查询其结果；应从新的 `EffectCompleted` 回调继续。
+普通返回值有两种，不能混合：
 
-### 2.1 `ctx`
-
-| 字段 | 含义 |
+| 返回形式 | 含义 |
 | --- | --- |
-| `eventId`, `eventType` | 当前真实事件身份和类型 |
-| `playerId` | 当前执行玩家键；直接传给接受玩家参数的接口，不自行改编号 |
-| `stateRevision` | 本次快照修订号 |
-| `definitionVersion` | 当前处理器版本 |
-| `goldVoucherCount`, `availableGoldVoucherCount`, `reservedGoldVoucherCount` | 当前玩家金券总量、可用量、已预留量 |
-| `payload` | 当前入口授权的只读数据；形状随入口而变 |
+| `{ effect1, effect2 }` | 连续效果数组；`{}` 表示没有效果 |
+| `{ effects={...}, memory={...} }` | 效果数组加本 Lua 入口的持久数据；`effects` 必填，包装只接受这两个键 |
 
-`payload` 不是任意 GameState。角色、设施、事件牌、纯查询和收尾来源的字段各有合同；不能把一个脚本的 payload 原样假定为所有入口都有。规则查询和结算查询还有专门的返回合同，见第 7 节。
+回调、事件订阅和纯查询的装配方式见 Event 文档。没有 `UI.Open`、`Event.Publish`、运行时自由订阅、文件读写或直接修改游戏状态的公开接口。
 
-### 2.2 引用、数组、数值
+### 1.2 `ctx` 字段
 
-- 定义 ID、物品实例 ID、区域实例 ID、能力 ID、处理器 ID 是不同身份。引用实际物品时不能拿 `definitionId` 替代 `itemId`。
-- `GameData.GetPlayers()` 返回玩家引用，引用含 `playerId`。给其他玩家发资源/分数时优先传宿主返回的玩家引用，不能随意拼一个字符串绕过目标校验。
-- Lua 数组下标从 1 开始；payload 中的棋盘槽位、选项索引沿宿主合同，不能一律加减 1。例如事件牌 `optionIndex` 从 0 开始。
-- 整数不接受小数、无穷大或 NaN。各接口范围独立，不能把同一个 `amount` 上限套给所有接口。
-- API 使用点调用，例如 `PlayerData.GetScore(ctx.playerId)`；冒号调用会多传一个参数。
-
-### 2.3 沙箱与预算
-
-可使用普通 Lua 运算、字符串、table、`pairs/ipairs` 等已启用基础模块。禁止文件/系统/网络/Unity/CLR 访问；`os`、`io`、`debug`、`package`、`coroutine`、`math`、`CS`、`System`、`UnityEngine` 和 `require/load/loadfile/dofile` 不可用。**整个 `math` 模块均未启用**；随机结果交给 `Effect.RollDice` 等 Host 流程。
-
-默认预算为：脚本 32 KiB UTF-8、10,000 条 VM 指令、顶层返回最多 16 个 Effect、返回表深度 8、单表条目 128。嵌套 Effect 数组也有 16 项限制，不能通过套表无限展开。权威规则入口不以机器墙钟耗时判定规则成败；表现入口仍有时间保护。预算可由宿主配置，内容不能修改。
-
-共享函数通过 `pack.json` 的 `luaModules/scriptDependencies` 冻结为 `Shared.<alias>`，不是运行期 `require`，详见 JSON 文档。
-
-## 3. 只读查询
-
-返回值及其子表都是只读快照。字段缺失、隐藏信息和查询未装配是不同情况：单个 ID 不存在通常返回 `nil`，集合无匹配通常返回空数组；缺少相应快照会报错，不能全部当作空集合继续。
-
-### 3.1 `GameData` 与 `PlayerData`
-
-| 调用 | 返回 |
-| --- | --- |
-| `GameData.Get()` | `eventId/eventType/stateRevision/playerCount/definitionVersion/gameId/phaseId/round/maxRounds/actionRound/startPlayerId/currentPlayerId/contentVersion` |
-| `GameData.GetRound()` / `GetActionRound()` | 大回合/行动轮整数 |
-| `GameData.GetPhase()` | 阶段 ID |
-| `GameData.GetPlayers()` / `GetTurnOrder()` | 玩家引用数组；后者表达行动顺序 |
-| `GameData.GetStartPlayer()` / `GetCurrentPlayer()` | 玩家引用或空值 |
-| `GameData.GetEnabledDlcIds()` | 本局启用扩展 ID 数组 |
-| `GameData.IsDlcEnabled(id)` | 布尔值；缺配置快照时拒绝查询 |
-| `PlayerData.Get(player)` | 玩家公开字段、可见事实；私有字段依调用权限 |
-| `PlayerData.GetScore(player)` | 分数 |
-| `PlayerData.GetResources(player)` | `originium/originiumShard/iron/pureOriginium/goldVoucher` 资源表 |
-| `PlayerData.GetCityLocation(player)` | 城市位置 ID |
-| `PlayerData.GetHand(player)` / `GetDiscard(player)` | 卡牌 ID 数组；其他玩家读取受权限限制 |
-| `PlayerData.GetBuiltFacilities(player)` | 已建设施快照数组；全层信息用下表的设施查询 |
-
-建议始终显式传 `ctx.playerId` 或真实玩家引用，不依赖省略参数的兼容行为。资源 Effect 推荐使用 `originium`、`originium_shard`、`iron`、`pure_originium`、`gold_voucher`；查询表字段使用上表的驼峰拼写，不能混用。
-
-### 3.2 `Global`
-
-| 调用 | 参数与结果 |
-| --- | --- |
-| `Global.Map.GetMap()` | 当前授权地图快照 |
-| `GetLocation(locationId)` / `GetRoute(routeId)` / `GetRegion(regionId)` | 单个地图对象；均位于 `Global.Map` |
-| `GetConnectedLocations(locationId)` / `GetRoutesBetween(fromId, toId)` | 相邻位置/两位置之间路线数组 |
-| `GetInfluenceSlot(slotId)` / `GetResourcePoint(id)` | 影响力槽位/资源点对象 |
-| `GetCitiesAt(locationId)` / `IsRoad(routeId)` | 所在城市数组/是否道路 |
-| `Global.Map.FindInfluences(filter?)` | 影响力数组；筛选键见下文 |
-| `Global.Content.GetDefinition(id)` / `GetInstance(id)` | 内容定义/物品实例快照 |
-| `Global.Content.FindZones(filter?)` / `FindInstances(filter?)` | 区域/物品实例数组 |
-| `Global.Facilities.GetCityLayers(playerId)` | 城市各格的完整设施层级 |
-| `Global.Facilities.GetTowerAdjacency(playerId)` | 核心塔相邻关系 |
-| `Global.Facilities.GetSupplyLayers()` | 供应各槽完整层级 |
-| `Global.Facilities.GetFactsDigest(playerId)` | 设施事实摘要，用于发现版本变化 |
-| `Global.Scoring.GetFinalControl()` | 当前已提供的终局控制权投影；其他时点不保证可用 |
-
-设施查询的 `playerId` 参数要求字符串，不要传玩家 table。
-
-过滤器接受零个参数或一个 table，未知键报错：
-
-| 查询 | 允许的筛选键 |
-| --- | --- |
-| `FindInfluences` | `influenceId, ownerPlayerId, owner, locationId, routeId, slotId, slotIds, limit` |
-| `FindZones` | `id, templateId, localZoneId, parentId, owner, includeDescendants, limit` |
-| `FindInstances` | `id, definitionId, typeId, contentType, zoneId, owner, controller, slotId, tag, includeDescendants, limit` |
-
-`includeDescendants` 是布尔值，区域查询必须同时给 `parentId`，实例查询必须同时给 `zoneId`。`slotIds` 是至多 128 项的无重复字符串数组。其余身份过滤项为字符串，最长 1024 字符，`limit` 为 1～1024 整数；显式限量得到的是截断结果，不能据此断言全部候选已列完。
-
-### 3.3 `SourceData`：当前来源权限
-
-| 调用 | 专用筛选键 |
-| --- | --- |
-| `SourceData.GetCurrentSources(filter?)` | `definitionId, abilityId, itemId, activeFaceId, sourceKey` |
-| `SourceData.GetGrantSources(filter?)` | 同上 |
-| `SourceData.GetCallableActions(filter?)` | `itemId, sourceKey, actionId, callPolicyRef` |
-| `SourceData.GetTransferableTokens(filter?)` | `itemId, typeId, zoneId, carrierItemId, localZoneId` |
-
-四者共同接受 `cursor`（从 0 开始）、`expectedStateRevision`、`expectedContentHash`。每页至多 4 项，返回分页对象，含 `items, totalCount, nextCursor, protocolVersion, stateRevision, contentHash, authorizedPlayerId, ruleOwnerSourceKey, ruleOwnerItemId`；`nextCursor == -1` 表示结束。可调用行动页还含 `enabledCount/payableMarkerCount/transferableTokenCount`。
-
-这些 API 只在宿主提供真实来源事实时可用；没有来源报 `source_facts_unavailable`，版本过期报 `source_facts_scope_stale`。不能通过手填 payload、来源键或授权字符串授予自己权限。
-
-## 4. 常用 Effect 合同
-
-下文 `?` 表示可选。所有构造器都只接收一个参数 table。除明确列出的接口外，不要一律添加 `apiVersion`、`completionHandlerId` 或 `presentation`，未知字段会被拒绝。
-
-### 4.1 资源、分数与支付
-
-| 构造器 | 新内容使用的参数与语义 |
-| --- | --- |
-| `Effect.GainResource` | `recipient, resourceType, amount, reasonId?`；amount 为 1～100 整数 |
-| `Effect.GainScore` | `recipient, amount, reasonId?`；amount 为 1～100 整数 |
-| `Effect.PayResource` | 单资源：`payer, resourceType, amount, allowSubstitution?`；amount 为 1～100。复合费用：`player, cost, allowSubstitution?`；足额支付，不等于失去资源 |
-| `Effect.LoseResource` | 必填 `apiVersion=1, player, targetPlayer, resourceType, amount`；可带 `completionHandlerId`。amount 为 0～Int32.MaxValue；不足时只失去现有可用量，后续读实际结果 |
-| `Effect.LoseScore` | `player, amount, minimumScore?`；amount 为正整数，省略 minimumScore 不自动保底 0；有底线时显式填写。不能使用负数 GainScore |
-| `Effect.ChooseResources` | `player, amount`；走既有资源数量选择流程 |
-| `Effect.Collect` | `apiVersion=1, player, scope='extra'`；当前仅支持该额外采集范围 |
-| `Effect.SellResource` | 批量：`apiVersion=2, player, saleMode='batch', pricePolicy='core.resource_sale', interactionType?, promptKey?`；指定玩家全部某资源：`apiVersion=1, player, targetPlayer, resourceType, saleMode='all', unitPrice`，单价 1～99 |
-
-复合 `cost` 由资源枚举名映射到非负整数，例如 `{ GoldVoucher = 2, Iron = 1 }`。总量费用另有 `apiVersion=2, player, resourceType='total', amount, allowedResourceTypes, cost?, allowSubstitution?` 合同，amount 为 0～99，allowedResourceTypes 是非空、无重复的枚举名数组，如 `{'Originium','Iron'}`；大小写必须与 `ResourceType` 一致，不能沿用普通 GainResource 的下划线拼写。cost 为额外固定费用。高级支付入口参见 [ResourcePaymentDemand.cs](../../Assets/YC/Domain/Effects/ResourcePaymentDemand.cs)。
-
-支付换分数的完整脚本：
-
-```lua
-return function(ctx)
-    return {
-        Effect.Condition({
-            leftEffects = {
-                Effect.PayResource({ payer = ctx.playerId,
-                    resourceType = 'gold_voucher', amount = 2 })
-            },
-            rightEffects = {
-                Effect.GainScore({ recipient = ctx.playerId, amount = 1 })
-            }
-        })
-    }
-end
-```
-
-### 4.2 `Condition`
-
-参数为 `leftEffects, rightEffects`，可加 `ruleCondition, allowDecline, decisionPlayer, declinePromptKey, apiVersion`。左右都是 Effect 数组。默认 `ruleCondition=true`；左侧依序结算并按条件合同判断后，才执行右侧。可选支付在确需玩家拒绝时声明 `allowDecline` 和对应决策玩家/文案。条件失败不会自动回滚已经提交的左侧效果。
-
-不要用 `if PlayerData.GetResources(...).goldVoucher >= 2` 代替支付：预留、替代支付和执行期变化仍须由 Host 检查。
-
-### 4.3 `Choice` 三种互斥写法
-
-| 写法 | 参数 | 完成值 |
+| 字段 | 类型及内容 | 用途 |
 | --- | --- | --- |
-| 候选选择 | `player, options={字符串ID...}, minSelections?, maxSelections?, promptKey?, interactionType?` | 单选字符串、多选数组，或可选选择的空值 |
-| 分支执行 | `player, branches={{id=字符串, effects={...}}, ...}, promptKey?, interactionType?` | 只创建被选分支的子节点；1～16 个分支、ID 唯一、固定单选 |
-| 数量选择 | `player, amountRange={minAmount=整数,maxAmount=整数,sourcePlayer?=玩家引用,resourceType?=资源名}` | 所选整数；可用资源约束由 Host 重算 |
+| `eventId` | 本次宿主事件的稳定字符串 ID | 区分具体调用事实；不是效果 ID |
+| `eventType` | 事件名字符串 | 同一入口内区分初次调用、完成续接等 |
+| `playerId` | 宿主玩家键，例如 `p1` | 当前调用上下文中的玩家；观察其他玩家的事件时，不应凭此猜受益人 |
+| `stateRevision` | 非负整数 | 本次只读快照的版本；不是锁定未来状态 |
+| `definitionVersion` | 已装配处理器版本字符串 | 内容一致性检查 |
+| `goldVoucherCount` | 非负整数 | 当前上下文玩家金券总量 |
+| `availableGoldVoucherCount` | 非负整数 | 扣除预留后的可用金券 |
+| `reservedGoldVoucherCount` | 非负整数 | 已预留金券 |
+| `payload` | 只读 table；结构随事件变化 | 事件事实、真实来源和完成结果，详见 Event 文档 |
+| `memory` | 本入口持久数据的独立可写副本 | 本次修改后显式返回才保存 |
 
-共同可使用 `resultContext` 和 `completionHandlerId`。提供 `resultContext` 后，完成结果变为 `{ value=原完成值, context=原resultContext }`；没有该字段时返回原值。context 只能存普通可序列化数据，不能藏 Effect 或函数。
+查询结果是只读快照；不要把给返回对象赋值当作修改游戏。目标必须在实际执行时重新合法，先查询成功不保证稍后一定成功。
 
-数量选择的 `sourcePlayer/resourceType` 必须成对出现；范围非负且 max 不小于 min。数量式不能再加 `options/branches/minSelections/maxSelections/promptKey/interactionType`。分支式不能再加 `options/amountRange/minSelections/maxSelections`。
+### 1.3 ID、整数和容器
 
-普通执行选项使用 `interactionType='effect.choice.execute'`，语义为 1 选 1。例如把“两枚标记的合法组合”作为一个候选 ID；选择后仍逐枚校验真实实例与规则，不能把任意组合都放进去。玩家选择使用正式玩家候选（现有内容形如 `player:1`）；实际卡牌多选保留卡牌页面。自定义字符串的多选不得依赖待清理的无卡面多选页。
+| 值 | 写法及限制 |
+| --- | --- |
+| 玩家 | 优先用 `ctx.playerId` 或查询返回的真实玩家引用；不要混用玩家键、主体键和候选 ID。常见 `p1`、`player:1` 分别用于不同协议 |
+| 物品实例 | 实际 `itemId`，标识某一张牌／某一枚标记；不等于 `definitionId` |
+| 内容定义 | `definitionId`，标识卡面规则／物品定义；不能用它冒充实例 |
+| 区域 | 真实 `zoneId`；`localZoneId` 仅是某个载体内部的区域名，`templateId` 是区域类型 |
+| 地图 | `locationId`、`routeId`、`slotId` 分别是地点、路线、槽位，不能互换 |
+| 资源名 | 普通资源参数推荐 `originium / originium_shard / iron / pure_originium / gold_voucher`；费用表键使用 `Originium / OriginiumShard / Iron / PureOriginium / GoldVoucher` |
+| Lua 数组 | 从 1 开始、连续、无空洞；不可混用字符串键。宿主格子编号、`optionIndex` 等可能从 0 开始，以字段说明为准 |
+| 整数 | 不允许小数；接口范围仍受普通值序列化范围约束。普通规范化整数范围为 ±1,000,000,000 |
+| 普通对象 | 字符串键 table；不能含函数、协程、循环引用、元表或隐藏 Effect 的对象 |
 
-### 4.4 完成回调：可复制示例
+单份 Lua 源码最多 32 KiB，调用指令预算 10,000；普通返回值深度上限 8、元素预算 128，效果数预算 16。嵌套业务不会解除这些限制。Lua 沙盒没有任意 `require`、`io`、`os`、网络或可自行控制的随机源；随机使用宿主效果。共享模块必须已由内容包正式登记和冻结。
 
-JSON 的该能力必须声明 `completionHandlerId = 'diy.demo.strategy.done'`，脚本会在首次能力事件和完成事件中被调用。对应 JSON 在配套文档第 4 节。
+### 1.4 `ctx.memory`
+
+memory 按“本局＋内容包中的脚本入口身份＋实际调用函数入口”保存，跨多次发动保留。**不按单张牌、单个能力或玩家自动分开。** A、B 共用同一个已登记 Lua 入口时可以共用数据；如果需要按玩家区分，在 table 内自行以玩家键分层。
 
 ```lua
 return function(ctx)
-    if ctx.eventType == 'EffectCompleted' then
-        if ctx.payload.outcome ~= 'completed' then return {} end
-        if ctx.payload.effectTypeId ~= 'effect.flow.choice' then return {} end
-        local result = ctx.payload.normalizedResult
-        if result.context.stage ~= 'resource' then
-            error('diy_demo_choice_stage_invalid')
-        end
-        local resource = result.value
-        if resource ~= 'originium' and resource ~= 'iron' then
-            error('diy_demo_resource_invalid')
-        end
-        return { Effect.GainResource({ recipient = ctx.playerId,
-            resourceType = resource, amount = 2 }) }
-    end
-    return {
-        Effect.WithPresentation(
-            Effect.Choice({ player = ctx.playerId,
-                options = { 'originium', 'iron' },
-                interactionType = 'effect.choice.execute',
-                minSelections = 1, maxSelections = 1,
-                resultContext = { stage = 'resource' } }),
-            { interaction = {
-                prompt = Text.Ref('core:diy.demo.choose_resource'),
-                options = {
-                    { candidateId = 'originium',
-                      label = Text.Ref('core:diy.demo.choose_originium') },
-                    { candidateId = 'iron',
-                      label = Text.Ref('core:diy.demo.choose_iron') }
-                }
-            } })
-    }
+    local memory = ctx.memory
+    local times = memory[ctx.playerId] or 0
+    memory[ctx.playerId] = times + 1
+    return { effects = {}, memory = memory }
 end
 ```
 
-`completionHandlerId` 必须是装配时注册的处理器，不是 Lua 全局函数名。按 `eventType/effectTypeId/context.stage` 分流，并先判断 `outcome`。后续选择若需要再次续接，按入口合同显式设置已注册的 completion ID；不能凭名称调用一个未登记处理器。
-
-`LoseResource` 完成结果包含实际 `amount`、`targetPlayer`、`resourceType` 等；转给自己时按实际 amount 创建 GainResource，amount 为 0 就不创建 GainResource。不能按原请求量发资源，也不能使用负数 GainResource。
-
-## 5. 其他公开构造器速查
-
-本节列出当前公开名称及主要参数，不将每个可选字段或兼容分支都当成推荐写法。**有来源、操作域、候选、层级摘要或阶段要求的接口必须在相应真实入口调用**。表中源码合同是高级接口的组成部分；在未理解其嵌套结构前，不按名称猜参数。所有表中 API 均保留 Host 规则校验，不提供状态注入能力。
-
-### 5.1 城市、影响力、建设与主行动
-
-| API | 参数与限制 |
+| 行为／限制 | 规则 |
 | --- | --- |
-| `Effect.MoveCity` | `player`；常用 `waiveBaseCost, consumeMainAction, targetPolicy, allowDecline`。定向移动还接受 `targetLocationId/targetLocation` 及 movement/cost/clear/source 策略；只使用 `CityMoveArgumentParser` 支持的组合 |
-| `Effect.PlaceInfluence` | `executingPlayer, influenceSource, ownerSubject`，目标用 `targetSlotId` 或对应候选范围；可用 `targetLocationId, itemTypeId, subjectFilter, excludedSubjectKeys, causeKind, replaceEffectId` |
-| `Effect.RemoveInfluence` | 严格批量写法：`apiVersion=2, executingPlayer, targets={实例ID...}, requiredCount, reasonId?`，requiredCount 1～16；不能混入 `targetInfluence/candidateScope`。旧单目标写法另有目标/范围合同，不能冒充严格批量 |
-| `Effect.MoveInfluence` | `executingPlayer, targetInfluence, targetSlotId, causeKind?`，可筛选主体及排除主体 |
-| `Effect.ReplaceInfluence` | `executingPlayer, targetInfluence, replacementSource, replacementOwner`，可加 `itemTypeId, subjectFilter, excludedSubjectKeys, placementFailurePolicy, causeKind` |
-| `Effect.SelectInfluence` | `player, operation='remove'/'replace'/'move'`；`ownerFilter/subjectFilter, count/requiredCount, distinctPolicy, candidateScope/candidateIds, requireCompleteSelection, allowDecline, promptKey, nextPromptKey, interactionType` 按选择器合同配套，不等于直接提交 |
-| `Effect.DepartureBatch` | `effects`；组织已确定的离场子效果，不能拿来绕过移除资格 |
-| `Effect.StoreRemovedInfluence` | `apiVersion, player, cardInstanceId, localZoneId, influenceItemId`；仅在合法离场响应中暂存真实离场实例 |
-| `Effect.PlaceRoad` | `apiVersion=1, player, routeId`；路线、道路库存及权限由 Host 验证 |
-| `Effect.SetLocationsOpen` | `locations` 字符串数组、`isOpen` 布尔值、`reasonId?`；位置数最多 16 |
-| `Effect.Build` | `player, facilityId/facilityInstanceId, cityBoardSlotIndex` 及 `paymentMode, reserveForFree, recipient, sourceId/sourceKind/sourceKey, expectedSourceZoneId, consumeMainAction`；使用真实建设候选 |
-| `Effect.ChooseBuild` | `player`，可带 `sourceZone, sourceKey, expectedSourceZoneId, consumeMainAction, effectId, paymentMode, allowDecline, maxGoldVoucherCost, includeStoredFacilities, excludeRainbow` |
-| `Effect.SelectFacilityPanel` | `apiVersion=1, player, allowDecline, operationProfile, emptyIsFailure, promptKey, itemIds?`；operationProfile 为 `city_top` 或 `effect.facility.retire` |
-| `Effect.RetireFacility` | `apiVersion=1, player, facilityItemId, expectedCellZoneId, expectedOrderDigest`；以当前真实顶层、格子和顺序摘要提交 |
-| `Effect.ActivateFacilityEntry` | `player, instanceId`；激活真实设施入场效果 |
-| `Effect.Explore` / `Effect.ChooseExplore` | 进入既有探索执行/选择流程；不接受随意填写的地图奖励。详细字段以 `ExplorationEffectExecutor` / `ExplorationSelectionEffectExecutor` 为准 |
-| `Effect.GrantMainActions` | `player, amount, lockCharacterCard?, allowedActionTypes?`；额度仍走主行动规则 |
-| `Effect.ExecuteMainAction` | `player` 与既有主行动候选策略；实际执行由主链完成 |
-| `Effect.OverrideNextStartPlayer` | `player`；覆盖下一起始玩家 |
+| 不返回 `memory` 或返回 `nil` | 保留上次数据；只改 `ctx.memory` 不会自动保存 |
+| 显式返回 `memory={}` | 清空本入口数据；单独 `return {}` 只表示无效果，不清空 memory |
+| 返回 table | 整份覆盖，不做递归合并；保存后下次调用重新复制到 `ctx.memory` |
+| 可存值 | 布尔、整数、字符串、连续数组、字符串键对象；不存宿主引用对象、Effect、函数或循环引用 |
+| 大小 | 深度最多 8，总值数最多 128，字符串／键最多 1024 UTF-8 字节；本局入口槽位上限 4096 |
+| 存档／恢复 | 进入存档，入口和源码哈希必须匹配；不能用同路径的新代码静默解释旧状态 |
+| 提交时机 | 与本次 Lua 调用结果一起校验、提交；调用或编译失败不覆盖。随后独立子效果失败不会自动撤销已提交 memory |
+| 纯查询／预览 | 可读取对应入口数据，但不能借这些入口写入 memory |
 
-影响力来源、目标、主体与候选范围都有类型和权限约束；特别是离场实例、普通玩家影响力、卡牌标记不能因为都表现为方块就混用。
+## 2. 只读查询
 
-### 5.2 物品与角色生命周期
+本节所有接口均无 UI、不执行业务。不存在的单个对象通常为 `nil`，无匹配集合通常为空数组；未装配快照、越权或版本不符会报错，不能一律当作空集合。
 
-| API | 参数与限制 |
+### 2.1 `GameData`、`PlayerData`
+
+| 调用 | 参数 | 返回与用途 |
+| --- | --- | --- |
+| `GameData.Get()` | 无 | `eventId/eventType/stateRevision/playerCount/definitionVersion/gameId/phaseId/round/maxRounds/actionRound/startPlayerId/currentPlayerId/contentVersion` |
+| `GameData.GetRound()` | 无 | 当前大回合整数 |
+| `GameData.GetActionRound()` | 无 | 当前行动轮整数 |
+| `GameData.GetPhase()` | 无 | 阶段 ID |
+| `GameData.GetPlayers()` | 无 | 本局玩家引用数组 |
+| `GameData.GetTurnOrder()` | 无 | 当前行动顺序的玩家引用数组 |
+| `GameData.GetStartPlayer()` / `GameData.GetCurrentPlayer()` | 无 | 起始／当前玩家引用，时点无对应玩家时为空 |
+| `GameData.GetEnabledDlcIds()` | 无 | 启用的扩展 ID 数组 |
+| `GameData.IsDlcEnabled(id)` | 已登记扩展 ID 字符串 | 布尔值 |
+| `PlayerData.Get(player)` | 玩家引用或玩家键 | 授权可见的玩家事实；不是完整可写状态 |
+| `PlayerData.GetScore(player)` | 同上 | 当前分数 |
+| `PlayerData.GetResources(player)` | 同上 | `originium/originiumShard/iron/pureOriginium/goldVoucher`，均为整数 |
+| `PlayerData.GetCityLocation(player)` | 同上 | 城市所在地点 ID |
+| `PlayerData.GetHand(player)` / `PlayerData.GetDiscard(player)` | 同上 | 实际卡牌 ID 数组；其他玩家私有信息受调用权限限制 |
+| `PlayerData.GetBuiltFacilities(player)` | 同上 | 已建设施快照；需要叠层时使用设施专门查询 |
+
+### 2.2 `Global`
+
+| 调用 | 参数与返回 |
 | --- | --- |
-| `Effect.MoveItem` | 当前统一转移入口；包含 `apiVersion, player, operationId, transfers, expectedOrders, itemRefs/itemIds, expectedSource, destination, insertion, operationProfileId, requiredCount, carrierPolicy` 等按版本互斥字段。不得把字段全集塞进一次调用 |
-| `Effect.MoveFacilityCard` / `MoveCharacterCard` | 接入同一转移执行器，也保留有限旧 `sourceZone/destinationZone` 流程；新跨区规则按 `MoveItem` 的版本、区域与操作域合同写 |
-| `Effect.ShuffleDeck` / `ShuffleFacilityDeck` | `apiVersion, player, deckZone`；随机化由 Host 执行 |
-| `Effect.RefreshFacilitySupply` / `RefillFacilitySlot` | `apiVersion, player, slotZoneId`；供应更新/单槽补牌 |
-| `Effect.CoverCharacterCard` | `apiVersion, player` 和真实 `cardInstanceId` 或合法 `candidateSource/count`；`coverMode, blockedActionRoundSequence, acceptedTypeId, reusable, recycleDiscardWhenEmpty` 属各自盖放合同 |
-| `Effect.TransferCharacterCard` | `apiVersion=1, player, cardInstanceId, recipientPlayer` |
-| `Effect.SetCharacterDoubleUseRule` | `apiVersion, player, scope, useId, sourceItemId, expiresActionRoundSequence`；仅合法角色使用窗口 |
-| `Effect.ConsumeCharacterDoubleUseSource` | `apiVersion=1, player, useId, sourceItemId`；消费已证明的来源 |
-| `Effect.RetainCharacter` | `apiVersion=1, player`；当前角色生命周期声明，不是任意 ID 移牌 |
-| `Effect.CreateCityInfluenceLock` | `apiVersion=1, player, definitionId`；定义必须属于已登记组件与合法来源 |
-| `Effect.OperatePlayerMarker` | `markerOwner, operation, sourceZone, destinationZone, count, targetSlot, executingPlayer, markerId` 按标记操作合同配套 |
-| `Effect.OperateToken` | `apiVersion=1, player, tokenItemId, operation, destinationLocationId, operationProfileId` |
-| `Effect.ReturnCityStyleMarker` | `apiVersion=1, player`；使用现有样式标记返还流程 |
+| `Global.Map.GetMap()` | 无参数；授权地图快照 |
+| `Global.Map.GetLocation(locationId)` | 真实地点 ID → 地点对象 |
+| `Global.Map.GetRoute(routeId)` | 真实路线 ID → 路线对象 |
+| `Global.Map.GetRegion(regionId)` | 真实地区 ID → 地区对象 |
+| `Global.Map.GetConnectedLocations(locationId)` | 真实地点 ID → 相邻地点数组 |
+| `Global.Map.GetRoutesBetween(fromId,toId)` | 两个地点 ID → 连接它们的路线数组 |
+| `Global.Map.GetInfluenceSlot(slotId)` | 真实槽位 ID → 槽位对象 |
+| `Global.Map.GetResourcePoint(id)` | 真实资源点 ID → 资源点对象 |
+| `Global.Map.GetCitiesAt(locationId)` | 地点 ID → 此处城市数组 |
+| `Global.Map.IsRoad(routeId)` | 路线 ID → 是否为道路 |
+| `Global.Map.FindInfluences(filter?)` | 下表过滤器 → 影响力实例数组 |
+| `Global.Content.GetDefinition(id)` | 定义 ID → 内容定义快照 |
+| `Global.Content.GetInstance(id)` | 物品实例 ID → 实例快照 |
+| `Global.Content.FindZones(filter?)` | 下表过滤器 → 区域数组 |
+| `Global.Content.FindInstances(filter?)` | 下表过滤器 → 实例数组 |
+| `Global.Facilities.GetCityLayers(playerId)` | 玩家字符串键，如 `p1` → 每格 `slotIndex/cellZoneId/topItemId/coveredZoneId/coveredItemIds/allItemIds/orderDigest/orderRevision` |
+| `Global.Facilities.GetTowerAdjacency(playerId)` | 同上 → `towerItemId/slotIndex/adjacentTopItemIds` 数组 |
+| `Global.Facilities.GetSupplyLayers()` | 无参数 → 每槽 `slotIndex/slotZoneId/topItemId/itemIds/orderDigest/orderRevision` |
+| `Global.Facilities.GetFactsDigest(playerId)` | 玩家字符串键 → 当前设施事实摘要；用于检测变动 |
+| `Global.Scoring.GetFinalControl()` | 无参数 → 当前已提供的终局控制权投影；不是任意时点都存在 |
 
-`MoveItem` 嵌套结构、版本分支和权限以 [ItemTransferEffectExecutor](../../Assets/YC/Domain/Effects/ItemTransferEffectExecutor.cs) 及其调用的转移服务为准。卡牌携带物、数量、先后顺序、源区和目的区必须分别声明；成功移动物品不等于获得任意“收益”。当前可转移 Token 从 `SourceData.GetTransferableTokens` 取事实；不存在一个替代已退役装载 API 的无限造标记接口。
+过滤器可以省略，或给一个 table。未列出的键拒绝；多个条件取交集。
 
-为迁移旧装载写法，新内容需要理解以下三个协议，而不是只改函数名：
+| 字段 | 适用查询 | 类型／作用 |
+| --- | --- | --- |
+| `id` | 区域、实例 | 精确区域／实例 ID |
+| `influenceId` | 影响力 | 精确影响力实例 ID |
+| `ownerPlayerId` | 影响力 | 所有者玩家 ID 字符串 |
+| `owner` | 三者 | 快照中的所有者主体键；不是控制者 |
+| `controller` | 实例 | 控制者主体键 |
+| `locationId` / `routeId` | 影响力 | 限制地图地点／路线 |
+| `slotId` | 影响力、实例 | 限制槽位 |
+| `slotIds` | 影响力 | 无重复槽位 ID 数组，最多 128 项 |
+| `templateId` | 区域 | 区域模板 ID |
+| `localZoneId` | 区域 | 载体内部区域名 |
+| `parentId` | 区域 | 父区域／载体身份 |
+| `definitionId` / `typeId` / `contentType` | 实例 | 定义、物品类型、内容分类过滤 |
+| `zoneId` | 实例 | 实际所在区域 |
+| `tag` | 实例 | 已登记标签 |
+| `includeDescendants` | 区域、实例 | 布尔，默认 false；区域须同时给 `parentId`，实例须同时给 `zoneId` |
+| `limit` | 三者 | 1～1024 整数；结果截断上限，不代表已经查询所有候选 |
 
-| 版本 | 形状与用途 |
+除布尔、数组、整数外，上表筛选值均为不超过 1024 字符的字符串；使用查询得到的真实键，不自行拼出隐藏区域或实例。
+
+### 2.3 `SourceData`
+
+| 调用 | 专用过滤字段 | 作用 |
+| --- | --- | --- |
+| `SourceData.GetCurrentSources(filter?)` | `definitionId/abilityId/itemId/activeFaceId/sourceKey` | 当前生效来源 |
+| `SourceData.GetGrantSources(filter?)` | 同上 | 本来源获授予的来源事实 |
+| `SourceData.GetCallableActions(filter?)` | `itemId/sourceKey/actionId/callPolicyRef` | 当前可调用行动及精确策略 |
+| `SourceData.GetTransferableTokens(filter?)` | `itemId/typeId/zoneId/carrierItemId/localZoneId` | 当前真实权限内可转移物品 |
+| `SourceData.GetTransferReceiptPage({receiptId,offset,limit})` | `receiptId` 非空收据 ID；`offset` 非负整数；`limit` 1～8 | 当前真实来源／完成续接可读的 MoveItem v4 收据分页；返回 `items/nextOffset/total` |
+
+前四者专用字段均为身份字符串，还允许 `cursor`（非负整数，默认从 0 开始）、`expectedStateRevision`（期望整数版本）、`expectedContentHash`（期望内容哈希）。每页最多 4 项，返回 `items/totalCount/nextCursor/protocolVersion/stateRevision/contentHash/authorizedPlayerId/ruleOwnerSourceKey/ruleOwnerItemId`；`nextCursor=-1` 表示结束。行动页另有 `enabledCount/payableMarkerCount/transferableTokenCount`。
+
+必须来自 Host 装配的真实来源。没有来源时报 `source_facts_unavailable`，过期时报 `source_facts_scope_stale`；手填 `sourceKey`、`sourceItemId` 或 payload 不能授予权限。收据分页不能跨来源、跨局读隐藏信息。
+
+## 3. 只唤起选择 UI、返回答案的接口
+
+这些接口会检查候选资格、保存交互状态和答案，但**不会支付、移动、出售、建设或发奖**。纯 UI 不等于任意造一个候选列表都能显示：必须使用当前已有的页面和候选语义。
+
+当前没有独立 `UI` 命名空间。纯选择入口只有 `Choice.options`、`Choice.amountRange` 和 `SelectFacilityPanel` 这三种合同。`Choice.branches`、`AllocateEffects`、`ChooseResources`、`SellResource`、`Build/Explore` 的选择模式及 `Flow.Choose*` 含业务，分别在后文说明。
+
+### 3.1 `Effect.Choice`：候选选择
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `player` | 必填 | 实际回答玩家 |
+| `options` | 必填 | 连续字符串候选 ID 数组；来自真实卡牌、玩家或已登记地图／设施候选协议 |
+| `minSelections` | 默认 1 | 非负整数；0 表示允许不选／放弃 |
+| `maxSelections` | 默认等于 minSelections | 至少 1、不小于最少值且不超过候选数量的整数；大于 1 才是多选。minSelections=0 时应显式给 maxSelections=1 或合法多选上限 |
+| `promptKey` | 默认 `lua.choice.select` | 已登记提示文案键；不决定业务授权 |
+| `interactionType` | 默认 `lua.choice` | 已登记交互类型；见页面表 |
+| `resultContext` | 可选 | 普通对象；用于区分续接阶段，不能含 Effect／函数 |
+| `completionHandlerId` | 可选 | 已注册的完成处理器 ID；不是 Lua 函数变量 |
+
+| 参数／候选语义 | 预期 UI 操作页面顺序 |
 | --- | --- |
-| v1 | 单组 `itemRefs={{itemId=真实ID}}, expectedSource={zoneId=源区}, destination={zoneId=目的区}, insertion, operationProfileId` 等；执行既有卡牌/区域转移合同 |
-| v2 | `operationId, transfers={转移段...}, expectedOrders={顺序期望...}`；每段分别给 itemRefs、源/目标、插入与操作域，用于多段和有序区域，不与 v3 混用 |
-| v3 | `itemIds={真实ID...}, expectedSource={zoneId=源区}, destination={zoneId=目的区}, insertion={kind='unordered'}, operationProfileId, requiredCount, carrierPolicy?`；Token/Cube 明确实例移动。requiredCount 为 1～99；carrierPolicy 如给只可 preserve |
+| 真实卡牌候选 | 卡牌页 → 选中卡牌 → 确认；多选保留多选确认 |
+| 真实玩家候选 | 玩家选择页 → 选中玩家 → 确认；可直接用 `player:1` 等真实候选，或用 `p1` 并为该项 label 提供唯一 `Text.Player(...)` 参数来证明玩家身份。最多 4 名，回答保留原候选 ID |
+| `facility.supply.select`＋真实供应设施 | 供应设施卡牌页 → 选卡 → 确认；不执行回底／建设 |
+| `effect.influence.place.target / effect.influence.remove.target / effect.influence.move.target` | 对应地图槽位／影响力高亮 → 选中 → 确认；options 必须是对应的真实槽位／影响力候选 |
+| `effect.route.choose` | 地图路线高亮 → 选路线 → 确认；只返回原候选 ID |
+| `lua.choice` 且 promptKey 为 `effect.influence.replace.target` 或 `effect.influence.replace.choose_target` | 地图替换目标高亮 → 选中 → 确认；不执行替换 |
+| `effect.map.location.target` 且提示为 `core:interaction.token.initial.choose / core:interaction.token.adjacent.choose` | 地图地点选择 → 确认；要求正式真实地点候选，后续创建／移动 Token 另行执行 |
+| `lua.choice` 且 promptKey 为 `effect.resource.choose_type` | 已登记的资源种类页 → 选择一种资源；只返回对应资源候选，不获得／出售资源 |
+| `reward.choose`＋正式奖赏卡候选 | 奖赏卡牌页 → 选卡确认；只用 Choice 时仍不自动取得奖赏，完整取得使用 Flow.AcquireReward |
+| 其他已登记业务专页 | 必须同时满足其请求身份、提示、候选及附加事实合同；仅改 interactionType 不保证能够显示，不能把内部请求类型当通用页面 API |
+| 空候选且 `minSelections=0` | 直接结束，无页面 |
+| 任意纯文本 ID／无语义菜单 | 不再有普通 `Option Row Template` 兜底，拒绝进入普通文字选项页 |
 
-v3 返还原供应区可将 destination 写为 `{kind='original_supply'}`。牌上方块常见操作域是 `core.cube_storage`，但仍须有真实牌区、匹配类型和本来源的精确载物权限；它不是所有内容通用的豁免授权。无序区域不能填 top/bottom。迁移固定数量装载时先通过合法选择确定数量，再重读供应实例，对每枚生成 `requiredCount=1` 的独立转移；某枚缺货应得到真实失败，不撤回已经成功的其他枚，也不虚构实例 ID。足额费用则按其真实支付语义处理，不能照搬逐枚尽量移动。
+供应设施专页当前只支持 `minSelections=maxSelections=1`，候选必须全部仍是实际供应顶牌。正常完成值：单选字符串、多选数组，或允许不选时的空结果。指定 `resultContext` 后包装为 `{value=原值, context=原对象}`。只有选中的 ID，没有该 ID 对应业务已完成的含义。
 
-### 5.3 企业、奖励、来源行动
+不要把 `interactionType='effect.choice.execute'` 填给任意值菜单来绕过页面限制；业务选项必须使用真实 `branches.effects`。卡牌缺图不会退化成普通文字条目，而是保留卡牌语义并报告缺失。提示键和 `WithPresentation` 都不能强行改变页面类别。
 
-以下企业 API 需 `apiVersion=1, player`；玩家参数由宿主归一化，企业参数使用实例 ID。
+### 3.2 `Effect.Choice`：单个数量选择
 
-| API | 其余参数 |
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `player` | 必填 | 回答玩家 |
+| `amountRange.minAmount` | 必填 | 非负整数，最小数量 |
+| `amountRange.maxAmount` | 必填 | 不小于最小值的整数；接口校验上限 Int32.MaxValue，同时受普通值范围限制 |
+| `amountRange.sourcePlayer` | 可选，与下一项成对 | 用于计算当前可用库存的真实玩家 |
+| `amountRange.resourceType` | 可选，与上一项成对 | 普通资源类型；Host 据当前可用量缩小上限，目标变化时刷新请求 |
+| `resultContext` | 可选 | 普通续接对象 |
+| `completionHandlerId` | 可选 | 已登记完成处理器 |
+
+不能同时填 `options/branches/minSelections/maxSelections/promptKey/interactionType`。
+
+UI：单数量调节页 → 调整整数 → 确认。完成值为整数；提供 `resultContext` 时为 `{value=整数,context=...}`。它不扣资源、不提供三资源分配、不产生出售收益。
+
+```lua
+Effect.Choice({
+    player = ctx.playerId,
+    amountRange = { minAmount = 0, maxAmount = 3 },
+    resultContext = { stage = 'choose_amount' },
+    completionHandlerId = 'diy.example.complete'
+})
+```
+
+此例要求 JSON 已登记 `diy.example.complete`。回调必须先检查 `payload.outcome`，再从 `payload.normalizedResult.value` 取数量，重新提交真实业务效果。
+
+### 3.3 `Effect.SelectFacilityPanel`
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `1` |
+| `player` | 必填 | 城市所属及回答玩家 |
+| `allowDecline` | 必填 | 布尔；允许放弃时，放弃结果为失败 `player_declined` |
+| `operationProfile` | 必填 | `city_top`：本人城市顶层设施；`effect.facility.retire`：再应用退役／绑定资格检查 |
+| `emptyIsFailure` | 必填 | true：空集失败；false：完成并返回 `outcome='no_legal_target'` |
+| `promptKey` | 必填 | 非空已登记提示键 |
+| `itemIds` | 可选 | 实例 ID 数组，与实际合法顶层候选取交集；省略不额外限范围 |
+
+UI：城市设施格选择页 → 选中合法顶层设施 → 确认。返回 `slotIndex`（0 起）、`facilityItemId`、`cellZoneId`、`orderDigest`。候选改变时重新验证／刷新，不默默换成同名设施。调用后尚未退役；需要以这些事实构造 `RetireFacility`。本接口没有任意 `completionHandlerId` 字段，续接来自已装配入口。
+
+## 4. 条件、逻辑选择与次数分配
+
+### 4.1 `Effect.Condition`
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `leftEffects` | 必填 | 左式 Effect 数组，依序执行；用于费用／条件动作 |
+| `rightEffects` | 必填 | 左式满足才执行的 Effect 数组 |
+| `ruleCondition` | 默认 true | 是否为规则条件式；影响前置执行／放弃入口 |
+| `allowDecline` | 默认 false；规则式另由左式形状确定 | 布尔；非规则式可显式开放拒绝 |
+| `decisionPlayer` | 可选 | 决策玩家；普通规则式由执行玩家决策 |
+| `declinePromptKey` | 可选 | 执行／放弃入口文案键 |
+| `apiVersion` | 可选 | 仅允许 `1`；新脚本通常省略 |
+
+UI：规则式且左式唯一效果为 `PayResource`，直接由付款页提供付款／放弃；其他规则左式先显示执行／放弃，再执行左式 UI，成功后展开右式。`ruleCondition=false` 且不允许拒绝时直接执行左式；允许拒绝时先出现执行／放弃页。
+
+左式失败不执行右式，**不会撤销已经成功提交的左式前缀**。对必须足量移除的费用，用 `RemoveInfluence` v2 或 v3 完整选择合同；不能依赖多个松散单枚移除自然组成原子费用。
+
+```lua
+Effect.Condition({
+    leftEffects = {
+        Effect.PayResource({payer=ctx.playerId, resourceType='gold_voucher', amount=2})
+    },
+    rightEffects = {
+        Effect.GainScore({recipient=ctx.playerId, amount=1})
+    }
+})
+```
+
+### 4.2 `Effect.Choice`：逻辑分支
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `player` | 必填 | 选择玩家 |
+| `branches` | 必填 | 1～16 项数组，每项见下两行 |
+| `branches[].id` | 必填 | 唯一非空字符串；对应选项身份和表现绑定 |
+| `branches[].effects` | 必填 | 真实业务 Effect 数组，不能用空数组／NoOp 伪装执行菜单 |
+| `minSelections` | 默认 1 | 只允许 0 或 1；0 允许放弃，不需要额外“空分支” |
+| `maxSelections` | 默认 1 | 只能为 1 |
+| `promptKey` | 可选 | 提示文案键 |
+| `interactionType` | 可选 | 省略或 `lua.choice` 归一为 `effect.choice.execute`；真实卡牌／玩家路由可显式使用其正式类型 |
+| `resultContext` / `completionHandlerId` | 可选 | 与纯候选式相同，前者包装结果，后者指向已登记续接 |
+
+不能混入 `options` 或 `amountRange`。UI：逻辑选择页 → 点击某项即提交 → 执行该分支实际业务及其所有必要子页面。此页不是已移除的普通文字选项模板。明确采用真实卡牌路由时保留卡牌页及确认流程。
+
+此接口等待所选分支子树，传播真实失败；“点击过选项”不代表支付、移动或奖励成功。卡面必须选择其他玩家、再执行业务时，可以使用纯玩家选择续接，也可将真实业务绑定到合法玩家分支。
+
+单卡双去向的专门页面：`interactionType='character.card.destination'`，branches 必须按 `hand/discard` 顺序提供两条真实移动分支，`minSelections=maxSelections=1`、不可放弃；用 WithPresentation 的 `interaction.prompt=Text.Ref('core:interaction.card.destination.choose',{card=Text.Item(真实实例ID)})` 绑定可见的 `core.generated_character_card`。页面只显示该实例一次，点击手牌／弃牌动作按钮后执行对应分支。此合同用于缪尔赛思流形，不是任意卡／任意去向的通用 UI 参数。
+
+### 4.3 `Effect.AllocateEffects`
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `1` |
+| `player` | 必填 | 分配和提交玩家 |
+| `options` | 必填 | 1～16 项选项数组 |
+| `options[].id` | 必填 | 唯一 1～64 字符 ID，只含英文字母、数字、`_ . : -` |
+| `options[].text` | 必填 | `Text.Ref(...)`，该效果式的转译文案 |
+| `options[].maxExecutions` | 必填 | 0～99 整数，本项最多执行次数；0 表示不可分配 |
+| `options[].effects` | 必填 | 本项每执行一次所展开的真实 Effect 数组 |
+| `totalExecutions` | 必填 | 1～99 整数；整次分配上限 |
+| `allowEndAction` | 必填 | 布尔；true 可通过结束行动提交尚未分满的当前分配；false 必须分满，且各项容量合计须足够 |
+| `completionHandlerId` | 可选 | 已登记完成处理器 |
+
+UI：通用数量页的效果分配模式 → 每行显示该效果文本 → 每次加号在结算区域最右追加一个不可点击按钮 → 每次减号删除该项最右侧按钮 → 分满确认，或在允许时以结束行动提交当前分配。按钮从左到右就是执行顺序，不按选项分组重排。
+
+确认前只有草稿；确认后 Host 冻结顺序，逐次等待该项完整子树。首个普通业务失败使队列停止，保留已提交前缀，技术故障则保留故障现场。普通失败停止时外层仍以完成事件交付队列结果，必须检查内层 `outcome='stopped_on_failure'`，不能只看外层完成。
+
+`payload.normalizedResult` 是摘要：`version='allocation_result_v1',resultRef,resultDigest,submitKind,allocatedCount,attemptedCount,completedCount,failedOrdinal,failureReason,outcome`。只有真实绑定的完成续接另可读 `payload.allocationResult` 完整只读视图，含 `sequence/allocatedCounts/executions/unexecutedFrom` 等；不要把它重新复制进普通 128 值 table。`submitKind` 为 `confirm/end_action`；`failedOrdinal` 从 1 开始、无失败为 0，`unexecutedFrom` 为尝试次数加 1。林的策略使用此类业务分配。
+
+## 5. 资源、分数、支付和出售
+
+本节各 API 的未列出字段均不应填写；特别是不要一律给无版本接口添加 `apiVersion`。
+
+### 5.1 直接数值变化
+
+| API | 字段：类型、范围、默认及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.GainResource` | 必填 `recipient` 玩家、`resourceType` 普通资源名、`amount` 整数 1～100；可选 `reasonId` 原因字符串 | 无独立页面，增加资源 |
+| `Effect.GainResource` 资格式 | 上述字段＋必须成对给 `apiVersion=2`、`qualification={kind='minimum_balance',resourceTypes={...}}`；集合 2～5 种普通资源名，无重复且含本次获得类型。执行前比较这些资源当前库存，允许并列最少 | 无独立页面；不再满足最少资格时失败、不发奖 |
+| `Effect.GainScore` | 必填 `recipient`、`amount` 整数 1～100；可选 `reasonId` 原因字符串 | 无独立页面，增加分数 |
+| `Effect.LoseResource` | 必填 `apiVersion=1`、`player` 发起者、`targetPlayer` 扣减对象、`resourceType`、`amount` 非负整数（执行器上限 Int32.MaxValue）；可选 `completionHandlerId` | 无独立页面；最多扣实际可用量，完成结果 `amount` 是实际值。0 不开数量页 |
+| `Effect.LoseScore` | 必填 `player`、正整数 `amount`；可选整数 `minimumScore`，是扣分下限；省略不自动保底 0 | 无独立页面，直接扣分 |
+
+`LoseResource` 不是足额付款。转移资源时只能按其实际完成量发给收款人；数量 0 不构造 `GainResource(amount=0)`。
+
+### 5.2 `Effect.PayResource`
+
+以下三种输入互斥；`allowSubstitution` 为可选布尔，默认允许正式来源提供的替代。
+
+| 写法 | 字段 | 作用 |
+| --- | --- | --- |
+| 固定单资源 | `payer` 玩家、`resourceType` 普通资源名、`amount` 1～100、`allowSubstitution?` | 足额支付一种资源 |
+| 固定复合费用 | `player` 玩家、`cost` 费用对象、`allowSubstitution?` | 一笔支付所有固定资源 |
+| 总量分配 | `apiVersion=2`、`player`、`resourceType='total'`、`amount` 0～99、`allowedResourceTypes`、`cost?`、`allowSubstitution?` | 在允许资源之间分配合计 amount，再加固定 cost |
+
+固定复合 `cost` 必须为非空对象，使用 `Originium/OriginiumShard/Iron/PureOriginium/GoldVoucher` 键，值为非负整数，例如 `{GoldVoucher=2,Iron=1}`。总量写法的附加 cost 可以省略。`allowedResourceTypes` 是这些枚举名组成的非空无重复数组，大小写不能改成普通资源参数的下划线拼写。
+
+UI：付款前响应 → 必要付款确认 → 提交。固定费用且没有替代来源／预备行动上下文时可以直接支付；作为规则 Condition 唯一左式时由付款页提供放弃。总量 `amount>0` 显示资源数量分配页；`amount=0` 回到固定费用流程。
+
+有真实替代来源时：原付款页 → 插入来源 → 替代数量分配／必要实例选择 → 返回同一付款草稿 → 最终确认。关闭替代不等于跳过其他确认。付款失败不会产生 Condition 右式收益。
+
+### 5.3 `Effect.PaymentSubstitution`
+
+只能在当前付款草稿的真实授权来源内使用；不是任意减免费用。
+
+| 字段 | v1 | v2 |
+| --- | --- | --- |
+| `apiVersion` | `1` | `2` |
+| `player` | 当前付款玩家 | 同左 |
+| `paymentOwnerEffectId` | 真实付款所有者效果 ID | 同左 |
+| `sourceZoneId` | 已授权存储区域 ID | 不填 |
+| `substitutionBudget` | 1～2 整数，可抵扣预算 | 不填 |
+| `sourceKey` | 不填 | 当前窗口提供的来源键 |
+| `ruleId` | 不填 | 当前来源提供的替代规则 ID |
+| `paymentGeneration` | 不填 | 当前付款代数，使用宿主事实，不自行递增 |
+| `draftRevision` | 不填 | 当前草稿版本，使用宿主事实 |
+
+UI：替代分配页 → 必要时选择真实消耗实例 → 确认／放弃配置 → 返回原付款页。此时只改草稿；实际扣款和物品消费在最终付款提交时发生。
+
+### 5.4 获得分配、出售与采集
+
+| API | 字段：类型、范围、默认及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.ChooseResources` | 必填 `player`、`amount` 整数 1～99；没有资源种类自定义参数 | 三种基础资源数量分配页 → 合计恰好 amount → 确认 → 真正获得资源；不含至纯源石／金券 |
+| `Effect.SellResource` 批量 | 必填 `apiVersion=2,player,saleMode='batch',pricePolicy='core.resource_sale'`；可选 `interactionType`（默认 `lua.choice`）、`promptKey`（省略为 `effect.resource.sell`；当前正式内容统一显式用 `core:interaction.sale.batch`） | 统一出售数量页 → 调整源岩／源石碎片／异铁／至纯源石四行、查看单价及预计收益 → 确认本批；全 0 结束 |
+| `Effect.SellResource` 全部某资源 | 必填 `apiVersion=1,player,targetPlayer,resourceType,saleMode='all',unitPrice`；类型限三种基础资源，单价 1～99 | 无独立页面，读取指定玩家该资源钱包总量，清零并增加金券；不是按扣除预留后的可用量结算 |
+| `Effect.Collect` | 必填 `apiVersion=1,player,scope='extra'`；目前无其他 scope | 地图额外采集选点／选路 → 航道费用及收款方小窗 → 核对总费用 → 确认 → 采集及响应 |
+
+出售 v2 的 Host 语义是 `resource_sale_batch`，不是把“资源×数量”字符串送给纯 Choice。一次调用结算一次提交，结果含 `soldCount/revenue/finished`；需要连续交易时按完成结果续接。贸易街区、坎诺特和蒂亚戈共用此页面及提示合同。`ChooseResources` 则会发放资源，不能当作纯 UI 使用。
+
+## 6. 城市、设施、探索和主要行动
+
+### 6.1 `Effect.Build`
+
+当前推荐 v3。它既负责选设施，也负责真实付款、取牌、落位和入场，不能用普通 `MoveItem` 免费搬进城市来代替建设。
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `3` |
+| `player` | 必填 | 建设玩家 |
+| `targetMode` | 必填 | `select`：内部选择设施；`explicit`：已确定具体设施 |
+| `sourceKind` | 必填 | `supply` 供应、`deck` 牌堆、`reserve` 备用区、`authorized` 当前来源授予的建设区域 |
+| `paymentMode` | 必填 | `auto` 按正式规则准备支付、`resources` 资源费用、`gold` 金券费用、`free` 免建设费用；免费仍检查来源／位置 |
+| `consumeMainAction` | 必填 | 布尔；是否消费本次主行动额度 |
+| `sourceKey` | authorized 必填，其他来源不填 | 正式授权来源键；不能自行制造权限 |
+| `expectedSourceZoneId` | 可选 | 期望真实源区域，用于防止目标已移动 |
+| `allowDecline` | select 可选，默认 false | 是否允许准备阶段放弃；explicit 不能为 true，已付款后不能放弃 |
+| `effectId` | select 可选 | 本次范围构造所用的实际效果身份；不要借用其他效果 ID |
+| `includeStoredFacilities` | 仅 supply/select 可选 | 布尔，默认 false；纳入有权限的存储设施 |
+| `excludeRainbow` | select 可选 | 布尔，默认 false；排除彩虹设施 |
+| `maxGoldVoucherCost` | 可选 | 非负整数，金券费用上限；执行器上限 Int32.MaxValue |
+| `facilityId` | explicit 必填，select 不填 | 真实设施实例 ID，不是定义 ID |
+| `cityBoardSlotIndex` | explicit 可选 | `-1` 或省略由流程处理位置；`0～11` 指定城市格，仍检查占用／叠建规则 |
+
+`sourceKind='reserve'` 必须 `paymentMode='free'` 且 `consumeMainAction=false`。explicit 不能带 `effectId/includeStoredFacilities/excludeRainbow`，select 不能带 `facilityId/cityBoardSlotIndex`。
+
+| 模式 | 预期 UI 操作页面顺序 |
 | --- | --- |
-| `Effect.UpgradeEnterprise` | `enterpriseItemId` 或 `enterpriseItemIds`，`levels` |
-| `Effect.ChangeEnterpriseLevel` | `enterpriseItemId, levelDelta, resolveArrivalReward` |
-| `Effect.SwitchDepartment` | `enterpriseItemId, departmentItemId` |
-| `Effect.ActivateEnterpriseSpecial` | `unlockedByPlayer, minLevel, maxLevel, enterpriseItemIds, specialId, candidateIds` 按目标选择方式取用 |
-| `Flow.UpgradeDistinctEnterprises` | `count, levels` |
-| `Flow.UpgradeThenActivateEnterpriseSpecial` | `levels, enterpriseItemIds` |
-| `Flow.ActivateAllEnterpriseSpecials` | `unlockedByPlayer, minLevel, maxLevel, enterpriseItemIds` |
-| `Flow.UpgradeEnterpriseForAllPlayers` | `enterpriseItemId` 或 `enterpriseItemIds`，`levels` |
+| select | 设施卡牌候选 → 付款准备／确认（免费跳过）→ 取牌及必要补供应 → 城市格／叠建选择 → 来源响应及入场子页面 |
+| explicit | 跳过选牌；其余付款、位置和响应仍按规则发生；已指定合法格子时跳过该位置选择 |
 
-下表为其他公开入口：
+完成结果含 `outcome/builtItemId/definitionId/buildEffectId`；只有实际建成且必要响应完成才是 `built`。放弃／无候选不会返回可当作建成凭据的实例 ID。
 
-| API | 参数与限制 |
+仍接受原合法无版本直接建设输入：`player`（或原归一化的 `recipient`）、`facilityId`／`facilityInstanceId`、`cityBoardSlotIndex`、`paymentMode`、`reserveForFree`、`sourceId`、`sourceKind`、`sourceKey`、`expectedSourceZoneId`、`consumeMainAction`。位置、费用和来源字段含义同上；reserveForFree 默认为 false，true 使用备用免费建设；consumeMainAction 默认 true，备用免费路径不扣主行动；sourceId 为来源标识。旧路径在实例未命中时仍允许唯一供应顶牌的定义 ID 解析，因此新内容必须使用 v3 和实际实例，避免依赖此兼容规则。缺目标不自动开选择。
+
+### 6.2 `Effect.Explore`
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `3` |
+| `player` | 必填 | 探索玩家 |
+| `targetMode` | 必填 | `select` 或 `explicit` |
+| `consumeMainAction` | 必填 | 布尔；赠送探索可设 false，但仍支付真实路费 |
+| `targetLocationId` | explicit 必填；select 可选 | 真实目标地点；select 填写时限制目标 |
+| `routeIds` | explicit 必填 | 无重复真实路线 ID 数组，按本次路线意图提供 |
+| `recipients` | explicit 必填 | 数组，每项严格 `{routeId=路线ID,subject=收款主体键}`；路线须在 routeIds 中，同一路线不能重复指定 |
+
+select 不接受 `routeIds/recipients`。UI：select 走地图选目标／选路／费用确认；explicit 复验外部已经确定的意图，不再替换成任意新目标。随后封存路线 → 预留路费 → 事件及必要响应 → 交付 → 按声明消费主行动。结果区分 `completed/cancelled/no_legal_target/failed`，不能自行编造支付收据。
+
+### 6.3 `Effect.MoveCity`
+
+| 字段 | 默认／允许值 | 作用 |
+| --- | --- | --- |
+| `player` | 当前调用玩家 | 城市移动执行上下文；不以此绕过当前玩家权限 |
+| `targetLocationId` | 可选真实地点 ID | 已确定目标；兼容字段 `targetLocation` 可接同一地点引用，二者不应同时填写 |
+| `targetPolicy` | `standard` | 可取 `standard / explored / explored_own_influence`，依次为通常合法范围、已探索地点、已有本人影响力的已探索地点 |
+| `waiveBaseCost` | false | 布尔，免基础移动费用 |
+| `costPolicy` | 可选 | `waived` 等价开启免基础费用；其他值没有额外策略效果，新内容优先用上一个布尔字段 |
+| `consumeMainAction` | true | 布尔，是否消费主行动 |
+| `clearInfluencePolicy` | `remove` | `remove` 移除相关影响力；`move` 按规则调遣它们 |
+| `allowDecline` | false | 布尔，是否有前置执行／放弃 |
+| `decisionPlayer` | 当前调用玩家 | 前置决策玩家 |
+| `declinePromptKey` | 空 | 前置执行／放弃提示键 |
+
+UI：可选执行／放弃 → 移动前响应 → 未指定目标时地图选点 → 基础费用付款（免除时跳过）→ 影响力离场及响应 → 城市移动 → 入场／事件子效果。`clearInfluencePolicy='move'` 时还需逐枚选择合法目的槽。`movementMode/candidateScope/sourceInfluencePolicy` 虽仍在构造白名单，但当前归一化不保留、不控制执行；不要填写它们期待产生另一条流程。
+
+### 6.4 设施操作与主行动
+
+| API | 字段：类型、范围、默认及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.RetireFacility` | `apiVersion=2,player,facilityItemId,expectedCellZoneId,expectedOrderDigest`；实例、城市格和摘要来自当前选择／查询。v1 仍接受，但不强制后两项；新内容用 v2 防止叠层改变 | 无选设施页 → 复验当前顶层及摘要 → 退役／绑定牌离场／必要响应 |
+| `Effect.ActivateFacilityEntry` | `player`、`instanceId`，指本人实际设施实例 | 无选设施页 → 执行该设施入场正文，页面由正文决定 |
+| `Effect.GrantMainActions` | `player`、正整数 `amount`；`lockCharacterCard` 可选布尔，默认 true；`allowedActionTypes` 可省略／空，或无重复地完整给出 `build/explore/move_city` 三项 | 无独立页面；增加本行动轮额度，立即继续后续效果，不等待额度用完 |
+| `Effect.ExecuteMainAction` | `player,executionMode='immediate',allowedActionTypes`；候选数组非空、无重复，元素来自 `build/explore/move_city/deploy/dispatch/special`；不接受 amount 或 lockCharacterCard | 逻辑主行动选择页（单项也选择）→ 所选实际行动及必要响应 → 完成 → 后续效果 |
+| `Effect.OverrideNextStartPlayer` | `player` 发起上下文、必填 `targetPlayer` 实际目标玩家；`scope` 默认且只支持 `current_round` | 无页面；记录本轮产生的下一大回合起始玩家覆盖。只填 player 不足以指定目标 |
+
+`ExecuteMainAction` 不赠送额度，结果为 `outcome/executed/actionType/actionEffectId/actionResult`；只有子树实际完成且 `outcome='completed'` 才有 `executed=true`。`grant_budget/facility_entry` 模式不支持；额度用 `GrantMainActions`，设施入场用 `ActivateFacilityEntry`。
+
+## 7. 影响力与地图
+
+### 7.1 确定目标的基础影响力合同
+
+下面的 `executingPlayer` 为真实玩家键或 `{playerId=...}`。`targetInfluence` 可为真实实例 ID 或 `{influenceId=...}`；`targetSlotId` 可为槽位 ID 或 `{slotId=...}`。引用 table 只填该引用字段。
+
+| 公共字段 | 允许值与用途 |
 | --- | --- |
-| `Effect.InvokeAction` | `apiVersion=1, player, itemId, actionId, callPolicyRef`；须有 JSON 调用策略和真实来源授权，不能直接点名任意行动免付成本 |
-| `Effect.ScheduleCleanupObligation` | `apiVersion=1, player, handlerRef, dueRound, context`；context 是普通对象，dueRound 为正整数；需要本来源 `cleanup.defer:<handlerRef>` 授权 |
-| `Effect.PaymentSubstitution` | `apiVersion, player, paymentOwnerEffectId, sourceZoneId, substitutionBudget, sourceKey, ruleId, paymentGeneration, draftRevision`；只在现有付款草稿与授权来源内有效 |
-| `Effect.GrantReward` | `apiVersion=1, player, definitionId, typeId, count, recipientPlayer, destination, operationId`；count 1～16，需精确 `reward.grant` 权限及 `content_granted` 奖励定义 |
-| `Flow.AcquireReward` | `apiVersion=1, player, poolRole='awards'/'contracts'`；从正式池获得 |
-| `Flow.ClearRouteAndPlaceRoad` | `apiVersion=1, player, scoreRemovedPlayers, scoreExecutor`；分数为 0～99 |
-| `Flow.DispatchOperator` | `apiVersion=1, player, drawCount, excludedReturnItemIds?`；真实抽牌与返牌流程 |
-| `Flow.ReplaceHandWithOperator` | `apiVersion=1, player` |
-| `Effect.RollDice` | `apiVersion=1, player, count=1, sides=6`；当前只支持单枚六面骰。多枚用多个有序 Effect；完成结果为 `{diceResult=1到6}`，不能脚本自选点数 |
-| `Effect.RevealEventCard` | `player, eventDeck, placeResourcePointIndicator, resourcePoint, postResolveDestination, allowedOptions, eventColor, targetLocation/targetLocationId, primaryInfluenceSlot` 按事件入口合同配套 |
+| `subjectFilter` | 可选 `self/player/opponent/any`；限制本人、玩家主体、其他玩家、任意允许主体，不能扩大业务权限 |
+| `excludedSubjectKeys` | 可选无重复主体键数组，如 `player:1` 或正式公司键 `company:stonehoove_security` |
+| `causeKind` | 可选原因字符串；通常放置／移动／移除默认 `direct`，替换默认 `replace`。不能通过改原因取得权限 |
+| `influenceSource` / `replacementSource` | 真实供应来源 ID；也可 `{kind='player_supply'或'company_supply',sourceId=真实来源ID}`，宿主复验类型和供应 |
+| `ownerSubject` / `replacementOwner` | 真实玩家主体／公司主体；例如 `{kind='player',playerId=ctx.playerId}`，公司只允许已登记的 `stonehoove_security`。归属不是执行玩家的同义词 |
 
-### 5.4 需绑定真实调用来源的事务
+| API／写法 | 字段和限制 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.PlaceInfluence` | 必填 `executingPlayer/influenceSource/ownerSubject`；可选 `targetSlotId`、`candidateScope`（槽位 ID 数组）、`targetLocationId`、`itemTypeId`（已登记影响力物品类型）、公共筛选／原因；`replaceEffectId` 只接真实替换父效果身份 | 显式合法槽位时直接放置；省略时地图选择合法槽 → 确认 → 放置及附着／入场响应 |
+| `Effect.RemoveInfluence` 单枚 | `executingPlayer`；`targetInfluence` 或非空 `candidateScope`（影响力 ID 数组）；`destination` 默认且只允许 `player_supply`；`reasonId?`；公共筛选／原因；可省略版本或填 1 | 指定实例直接移除 → 离场响应；仅给候选范围时地图选择一枚 → 确认 → 移除 |
+| `Effect.RemoveInfluence` 严格批量 | 必填 `apiVersion=2,executingPlayer,targets,requiredCount`；targets 为无重复实例 ID 数组，条数不超过 requiredCount；requiredCount 为 1～16；可选 `reasonId/subjectFilter/excludedSubjectKeys` | 无选择页；整组复验、足量预检 → 移除 → 离场响应。不足则不进行部分扣除 |
+| `Effect.MoveInfluence` | `executingPlayer,targetInfluence`；`targetSlotId?`；公共筛选／原因 | 来源和目标都指定则直接移动；缺目标槽则地图选目的槽 → 确认 → 移动及响应 |
+| `Effect.ReplaceInfluence` | `executingPlayer,targetInfluence,replacementSource,replacementOwner`；可选 `placementFailurePolicy='keep_removal'`、`itemTypeId`、公共筛选／原因 | 无目标选择页 → 旧影响力移除及响应 → 原槽放置替代影响力及响应 |
 
-以下均要求 `apiVersion=1, player`，并由 `ContentTransactionEffectExecutor.BoundSource` 核对真实调用祖先、能力与来源。只注册名称或填写 `sourceItemId` 不会产生资格。
+严格 v2 不接受 `targetInfluence/candidateScope/destination/causeKind`。选择数量和当前合法数量都必须满足要求才提交；它可用于条件左式，也可独立使用。`ReplaceInfluence` 不是同样的足量原子费用：放置失败保留已发生的移除，没有整组替换回滚。
 
-| API | 其余字段 |
+公开 Lua 的 `MoveInfluence` 不接受执行器内部 `moves` 数组。需要多步用下述 v3 或多个明确效果，不把内部 DTO 当作公开字段。
+
+### 7.2 `RemoveInfluence / MoveInfluence / ReplaceInfluence` v3 选择模式
+
+三个构造器使用同一组字段，不能再混入上一节的显式目标、替代来源或目的槽字段。
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `3` |
+| `targetMode` | 必填 | `select` |
+| `executingPlayer` | 必填 | 实际执行玩家 |
+| `subjectFilter` | `self` | `self/player/opponent/any` |
+| `excludedSubjectKeys` | 空数组 | 无重复正式主体键 |
+| `selectionScope` | 空字符串 | 空：一般合法范围；`resource_points`：资源点；`routes`：路线 |
+| `distinctPolicy` | `none` | `none` 不增加去重条件；`instance` 不重复实例；`subject` 不重复主体 |
+| `count` | 1 | 1～16，最多处理次数／完整选择数量 |
+| `requiredCount` | 0 | 0～count，至少完成数量 |
+| `requireCompleteSelection` | false | true 时先选齐再执行；只支持移除／替换，且 requiredCount 必须等于 count |
+| `allowDecline` | false | 布尔；开放本操作的放弃入口 |
+| `candidateIds` | 不填 | 仅移除、count=requiredCount=1 且完整选择时可给无重复真实候选 ID，用于收窄范围 |
+| `promptKey` | 不填 | 首次选择提示键 |
+| `nextPromptKey` | 不填 | 后续选择提示键 |
+| `interactionType` | 不填 | 移动只接受空、`lua.choice`、`character.ability.choice.move`；不用于借用无关页面 |
+
+UI：普通模式逐次在地图选择，执行该次操作并等待响应后刷新候选；移动还要选择对应目的槽。完整模式在地图多选，显示已选项，选足后确认；严格移除复用 v2 足量提交。替换仍逐项按 `keep_removal` 执行，没有“全部替换失败则撤回移除”的保证。
+
+已确定目标、不需要任何选择的影响力效果通常只产生简要结算和地图变化；其事件响应仍可能展开别的页面。因此“该操作无选择页”和“整棵响应树没有交互”是两件事。
+
+### 7.3 其他地图接口
+
+| API | 字段：类型、范围、默认及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.StoreRemovedInfluence` | 必填 `apiVersion=1` 或 `2`、`player,cardInstanceId,localZoneId,influenceItemId`；v1 要求目标区域 entryPolicyId 为 `core.removed_owned_influence`；v2 走当前来源的 carrier.store 权限和类型校验；均只能在真实离场去向响应中接管该枚方块 | 无选择页；暂存已确定的离场实例，保留离场去向协议 |
+| `Effect.PlaceRoad` | 必填 `apiVersion=1,player,routeId`；真实合法路线与道路库存 | 无选择页，放置道路 |
+| `Effect.SetLocationsOpen` | 必填 `locations` 地点 ID 数组（最多 16）、`isOpen` 布尔；`reasonId?` 原因字符串 | 无选择页，改变地点开放状态 |
+| `Effect.OperateToken` | 必填 `apiVersion=1,player,tokenItemId,operation='move',destinationLocationId,operationProfileId='core.adjacent_location_token_move'` | 无选 Token／选地点页，明确目标后移动及响应 |
+| `Effect.CreateCityInfluenceLock` | 必填 `apiVersion=1,player,definitionId`；定义须为已登记锁组件且来源合法 | 无选择页；建立来源绑定锁，跟随和到期由规则处理 |
+| `Effect.RevealEventCard` | 实际生效参数：`targetLocationId`（兼容 `resourcePoint`）为真实地点、`eventColor` 可取 `green/yellow/red`、默认 green；`primaryInfluenceSlot?` 为真实槽位引用；`player` 使用当前调用上下文 | 不先选地图地点；若已有资源点标记跳过，否则翻牌 → 有选项时事件牌选项页 → 分支付款／放置影响力等子页面 |
+
+`RevealEventCard` 的 `eventDeck/placeResourcePointIndicator/postResolveDestination/allowedOptions/targetLocation` 仍在构造白名单，但不进入当前实际归一化，不控制流程。不能用它们定制翻牌。Event 文档说明事件牌调用与规则事件的区别。
+
+## 8. 物品移动和牌堆
+
+### 8.1 `Effect.MoveItem` v4：单组转移
+
+本接口只提交已经确定的移动。`selector.mode='select'` 拒绝；它不打开选择、数量分配或执行确认。合法业务响应／在途角色依赖可能需要等待，但不是移动节点自行选目标。
+
+```lua
+Effect.MoveItem({
+    apiVersion=4, player=ctx.playerId, operation='transfer',
+    selector={ mode='explicit', itemIds={actualItemId},
+        expectedSource={zoneId=actualSourceZoneId} },
+    destination={zoneId=actualDestinationZoneId},
+    insertion={kind='unordered'},
+    operationProfileId='core.player_marker_storage', requiredCount=1
+})
+```
+
+上例变量必须从真实授权查询／已确认事实取得。
+
+| 字段 | 必填／默认 | 能填什么、做什么 |
+| --- | --- | --- |
+| `apiVersion` | 必填 | `4` |
+| `player` | 必填 | 执行玩家；权限依据真实来源和实际物品状态 |
+| `operation` | 必填 | 本节为 `transfer`；其他模式见下文 |
+| `selector` | 必填 | `explicit` 或 `top`，结构见下表 |
+| `destination` | 必填 | `{zoneId=真实区域ID,mustBeEmpty?=布尔}`，默认不额外要求全区为空；或 Token 使用 `{kind='original_supply'}` 回各自真实原供应 |
+| `insertion` | 必填 | `{kind='unordered'}` 无序区、`{kind='top'}` 顶、`{kind='bottom'}` 底、`{kind='slot',slotId=真实槽位}`；必须匹配区域结构。original_supply 只允许 unordered |
+| `operationProfileId` | 必填 | 下表六种转移 profile 之一；决定物品类型和来源／目的域规则，不是任意权限开关 |
+| `requiredCount` | 必填 | 0～99；本笔必须满足的最低数量，top 不得超过 count。正数不足整笔失败；0 允许合法零变化 |
+| `carrierPolicy` | 默认 `preserve` | 仅此值；载物仍遵守载体生命周期自动离场策略 |
+| `reveal` | 默认 false | 仅角色牌 profile 可用；真实移动后公开展示事实并等待响应，不是额外确认 |
+
+| selector 形式 | 每个字段 |
 | --- | --- |
-| `Effect.RecycleCharacterCover` | `coveredItemIds`（至多 16 个、无重复），`sourceItemId` |
-| `Effect.BindCharacterToFacility` | `characterItemId, facilityItemId` |
-| `Effect.ReleaseFacilityBinding` | `bindingId` |
-| `Effect.CreateMapToken` | `definitionId, sourceItemId, destinationLocationId, operationProfileId` |
-| `Effect.MoveCharacterCardToZone` | `cardItemId, destinationZoneId, reveal?` |
-| `Effect.StorePlayerMarker` / `ReturnPlayerMarker` | `markerItemId, cardItemId, localZoneId` |
-| `Effect.ActivateCityStyleSpecial` | `specialActionId, declarationMarkerId, activationSource` |
-| `Effect.UpgradeEnterpriseForPlayer` | `enterpriseItemId, targetPlayer, levels`（1～16） |
+| explicit | `mode='explicit'`；`itemIds` 无重复真实实例 ID 数组，最多 99；`expectedSource={zoneId=非空真实源区,slotId?=非空原槽位}`，逐项复验来源 |
+| top | `mode='top'`；`zoneId` 真实有序源区；`count` 1～99；`itemTypeId` 真实可接受物品类型。按执行时正式顶部取物，不允许读隐藏牌序后挑选 |
 
-## 6. 文案与表现
-
-`Text.Ref(key, arguments?)` 引用已登记文案；arguments 是具名表。实体参数用 `Text.Player(id)`、`Text.Item(id)`、`Text.Definition(id)`、`Text.Resource(id)`、`Text.Location(id)`。`Text.Player(1)` 会形成 `p1` 引用；不要把它当成可写玩家对象。
-
-`Effect.WithPresentation(spec, presentation)` 为已有 Effect 添加表现信息，返回同一业务声明的副本。常用 `interaction.prompt` 和 `interaction.options`，见第 4.4 节；具体字段遵循 `EffectPresentationDefinition`。它不能改变合法候选、费用、效果结果或权限。
-
-`Effect.WithContext(spec, context)` 为可恢复效果附加受校验的续接数据；特殊键 `requiredOutcome`、`executionBinding` 有封闭合同，不能自造任意结构。它不同于 `Choice.resultContext`，也不是全局可写状态。
-
-静态界面标题、按钮名称、布局和样式继续以场景/预制体为准。JSON 文案用于已有内容展示合同，不允许 Lua 直接找 UI 对象改字、改布局或创建弹窗。
-
-## 7. 专门入口：不要与普通效果返回混用
-
-| 入口 | 返回合同与可用范围 |
+| profile | 适用功能 |
 | --- | --- |
-| 普通规则处理器 | 连续 Effect 数组；第 2～6 节 |
-| 候选集修正 | `Candidate.Add/Remove/Intersect({ ids={...}, reasonCode=... })` 的数组；仅宿主以 `candidatePatches` 合同调用时使用，不在普通 handler 中混入 Effect |
-| 纯规则查询 | `{ queryId=..., basisDigest=..., items={...} }`，严格只有这三个字段；依据宿主给出的 queryId/digest 回传，items 结构由各 queryKind 决定。该入口未安装 Effect/Flow |
-| 影响力附加改写 | `influencePlaceAttaching` 专门合同；只能按 `InfluencePlaceRewriteLua` 的字段修改允许部分 |
-| 结算来源报价 | `Settlement.Offer(...)`；仅 `settlementOffers` 入口，按 `SettlementLuaHost` 的 OfferFields、窗口和来源资格返回 |
-| 结算可用性 | `settlementAvailability` 专门返回；不能返回 Effect，不能用规则查询执行支付 |
-| 段表现 | `Settlement.WithPresentation(spec, metadata)`；附加结算段信息，不能扩大插入窗口权限 |
-| 纯显示脚本 | `Present` 入口及 `GameplayPresentationResult`，只使用展示上下文和 Text，不能执行规则 |
+| `core.facility_card_transfer` | 设施牌转移；不自动执行建设、城市叠层或入场奖励 |
+| `core.character_card_transfer` | 角色牌转移、交接和载物退出；原所有权不因此随控制权改变 |
+| `core.reward_card_transfer` | 已存在奖励牌的合法移动；不等价生成／获得新奖励 |
+| `core.cube_storage` | 合法方块存取；需精确载体来源授权 |
+| `core.player_marker_storage` | 玩家标记存取／轨道移动；同步当前实际权限，遵守互斥 |
+| `core.token_storage` | 其他已登记 Token 的合法库存转移 |
 
-旧初稿中的事件总表不是自由订阅白名单。JSON 的 `abilities[].observedEvents` 与 `abilitySources[].observedEvents` 有不同验证范围，见配套文档。没有正式入口、快照或 queryKind 的能力属于引擎扩展需求，不能只靠增加 JSON 字符串完成。
+企业同一实例中，同一玩家跨合作等级／子区最多一枚标记；第一条宣告与其 usage 区共享互斥域。允许零枚；企业无合作标记时等级状态是 `-1`，没有升级／特效资格。直接移动不补发到达奖励、不自动宣告计分、不重置已使用次数。供应区仍检查原所有者／原供应资格。
 
-## 8. 隔离开发检查顺序
+结果含 `outcome/changed/movedCount/movedItemIds/receiptId/reasonCode`。必要时通过 `SourceData.GetTransferReceiptPage` 读完整收据；不要把简要列表当作可写状态。目标过期时失败，不重新补选；多个独立单枚步骤不会自动合并成一笔原子移动。
 
-1. 在独立内容工作目录编写，不覆盖正式 core、场景或预制体。固定基线提交、规则版本和所需能力。
-2. 核对所有调用名属于本文；搜索被剔除 API、旧无卡面多选和插入按钮悬浮文字依赖。
-3. 检查 JSON → 处理器 → Lua → 完成回调 → 文案的引用闭环，未知字段不能靠宽松 JSON 解析蒙混通过。
-4. 在隔离装配包上验证解析、Lua 语法、Effect 归一化及领域执行，覆盖资源不足、空候选、拒绝、目标变化、来源失效、断点恢复和版本不一致。这属于隔离规则验证。
-5. 正常界面验收从可见独立程序菜单、建房、开局和合法操作进入；不得注入牌、资源或强制刷新来代替。随机未出现记录为未覆盖，继续本局。
-6. 按版本/内容哈希、GameId 和实际证据累计多局覆盖。夹具预期不同但仍能合法推进时记录首次差异并继续；崩溃、不同步、必答请求/权限丢失或无合法下一步则保现场中断受影响部分。
+### 8.2 批量及专门共同操作
 
-## 9. 源码索引与维护
+| `operation` | 允许字段和含义 | UI／执行边界 |
+| --- | --- | --- |
+| `transfer_batch` | 顶层仅 `apiVersion=4,player,operation,transfers,expectedOrders`。`transfers` 非空，每项为上一节单组的 `selector/destination/insertion/operationProfileId/requiredCount/carrierPolicy?`；只允许 explicit，同一批 profile 一致，所有实例全局无重复且合计最多 99 | 无页面；按整个计划预检、提交，不等价多个独立根效果 |
+| `move_map_token` | `apiVersion=4,player,operation,selector,destinationLocationId,operationProfileId`；selector 为单枚 explicit，profile 只能 `core.adjacent_location_token_move` | 无页面；按正式地图邻接移动规则处理 |
+| `return_city_style_marker` | `apiVersion=4,player,operation,selector`；selector 为单枚 explicit | 无页面；返还本人符合条件的二级样式标记至真实原供应，不能自定 destination |
+| `cover_character` | `apiVersion=4,player,operation,selector,cover`；selector 为单枚 explicit；cover 见下一段 | 无页面；实际盖放及生命周期，不提供任意免费主链盖牌能力 |
 
-| 合同 | 当前来源 |
+`expectedOrders` 必填数组，可以为空；每项严格为 `zoneId` 非空区域、`digest` 非空当前顺序摘要、`orderRevision` 非负整数、`expectedTopItemId` 字符串（空堆可为空）。区域不得重复，事实必须来自当前授权快照，不能自行算一个可绕过校验的摘要。
+
+`cover` 必填字段：`mode='additional'`、`acceptedTypeId='core.character_card'` 或 `'core.generated_character_card'`、`reusable` 布尔、`blockedActionRoundSequence` 非负整数。可复用盖放只接本人手牌且阻塞序号为 0；不可复用可接本人手牌／弃牌，阻塞序号必须是当前真实行动轮序列。附加盖放须绑定真实来源，不冒发正常主链盖放事件。`mode='main'` 虽为共同执行器内部模式，但仅 Host 正常主链任务可使用，DIY 不能自行获得此权限。
+
+### 8.3 专门移动包装
+
+| API | 当前字段 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.MoveFacilityCard` 普通转移 | `apiVersion=2,player,itemRefs,expectedSource,destination,insertion,operationProfileId='core.facility_card_transfer'`；`requiredCount?` 非负整数、`carrierPolicy?='preserve'`。itemRefs 每项 `{itemId=真实ID}`；源 `{zoneId,slotId?}`；目的 `{zoneId}`；insertion 同前 | 无选择页；复验后移动 |
+| `Effect.MoveFacilityCard` 回底补槽 | `apiVersion=4,player,operation='cycle_supply',selector={mode='explicit',itemIds={单枚ID},expectedSource={zoneId,slotId?}}` | 无选择页；供应顶牌回底 → 仅原槽实际为空时补牌；下层仍在不补 |
+| `Effect.MoveCharacterCard` | `apiVersion=2,player,itemRefs,expectedSource,destination,insertion={kind='unordered'},operationProfileId='core.character_card_transfer'`；`requiredCount?`、`carrierPolicy?='preserve'`、`reveal?=false`。引用结构同上 | 无选牌／选玩家页；等待真实在途角色与载物退出 → 转移 → 必要交接／展示响应 |
+| `Effect.ReturnCityStyleMarker` | `apiVersion=2,player,selector={mode='explicit',itemIds={单枚真实标记ID},expectedSource={zoneId,slotId?}}` | 无选择页；明确返还；结果 `changed/markerItemId` |
+| `Effect.OperatePlayerMarker` | `apiVersion=1,player,operation='transfer',selector,destination,insertion,requiredCount`；selector 仅 explicit；其他结构同 v4 单组，`carrierPolicy?='preserve'`；包装固定玩家标记 profile | 无选择页；明确移动并同步当前资格；结果 `changed/movedCount/movedItemIds` |
+
+设施回底前的选择使用真实供应卡牌页；城市样式返还前的选择使用后文 `Flow.ChooseCityStyleMarkerReturn`。不让包装偷偷创建选择请求。
+
+仍接受的通用 `MoveItem` 有限旧输入：v1 使用上述 `itemRefs/expectedSource/destination/insertion/operationProfileId/requiredCount?/carrierPolicy?/reveal?` 单组；v2 使用 `player,operationId,transfers,expectedOrders`，transfers 各项使用 itemRefs 且固定设施 profile、requiredCount 等于项内枚数；v3 使用 `player,itemIds,expectedSource,destination,insertion={kind='unordered'},operationProfileId,requiredCount,carrierPolicy?`，只用于明确 Token，requiredCount 为 1～99。它们只在新输入处规范化为共同 v4，不表示旧执行节点可恢复；新内容统一使用 v4。
+
+### 8.4 补牌与洗牌
+
+| API | 字段 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.RefillFacilitySlot` | 必填 `apiVersion=1,player,slotZoneId`；slotZoneId 为真实供应槽区域 | 无页面；当时堆顶补入空槽。槽已占用失败，空堆合法零变化；不洗牌 |
+| `Effect.RefreshFacilitySupply` | 必填 `apiVersion=1,player`；不接受 slotZoneId | 无页面；原供应逐张回底 → 洗设施堆 → 按槽顺序逐步从当时顶部补牌 |
+| `Effect.ShuffleDeck` | 必填 `apiVersion=1,player,deckZone={zoneId=真实牌堆}` | 无页面；在权限内随机化该堆顺序 |
+| `Effect.ShuffleFacilityDeck` | 同上，但 zoneId 必须为实际设施牌堆 | 无页面；洗设施堆 |
+
+补牌使用共同移动能力，洗牌是独立随机操作。恢复已完成洗牌不重复消耗随机。不能先读未来隐藏牌序再声称按顶补牌。
+
+## 9. 企业、角色规则和来源事务
+
+### 9.1 企业
+
+本节默认必填 `apiVersion=1,player`。企业参数用实例 ID，所有目标仍受合作标记与来源资格检查。
+
+| API | 其他字段：取值及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.UpgradeEnterprise` | `enterpriseItemId` 单实例或 `enterpriseItemIds` 无重复候选数组，二选一；`levels` 正整数。v2 可另给 `targetPlayer`（默认 player），指定实际被升级玩家 | 显式目标直接逐级升级／每级到达奖励；列表多项先企业选择，单项自动定目标，空集结束。v2 由发起者选企业，目标玩家处理自己的奖励 |
+| `Effect.ChangeEnterpriseLevel` | 必填 `enterpriseItemId`、非零整数 `levelDelta`、布尔 `resolveArrivalReward`；true 结算到达奖励，false 只改等级 | 无选企业页；改级 → 必要到达奖励子页面 |
+| `Effect.SwitchDepartment` | 必填 `enterpriseItemId`；可选 `departmentItemId` 为具体科室板实例 | 明确科室直接切；省略则科室板选择页（单项也确认）→ 新科室当前等级奖励；无合法项结束 |
+| `Effect.ActivateEnterpriseSpecial` | 必填 `unlockedByPlayer` 为解锁资格玩家；`minLevel?=1,maxLevel?=5` 均 1～5 且前者≤后者；`enterpriseItemIds?` 无重复企业范围；`candidateIds?` 无重复正式特效候选 ID；`specialId?` 为指定特效 | 指定 specialId 时必须同时给恰好一家 enterpriseItemIds，跳过选择直接发动；否则特效选择页（单项也选择）→ 正文及响应 |
+
+`levels` 不限于 1 的接口可以逐级升级；`Flow.UpgradeEnterpriseForAllPlayers` 单独仅支持 1。升级封顶、缺合作标记或来源变化须读实际结果，不凭请求的 levels 发额外奖励。v2 升级结果区分 `initiatingPlayerId/targetPlayerId` 及真实升级收据；移动企业标记不等于调用升级。
+
+### 9.2 角色生命周期
+
+| API | 字段：取值及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.CoverCharacterCard` | 必填 `apiVersion=3,player,cardInstanceId,coverMode='additional',blockedActionRoundSequence,acceptedTypeId,reusable`；后三项含义同 MoveItem.cover，真实来源绑定 | 无选牌页；明确角色附加盖放，返回 `coveredItemId/coverSlotId` |
+| `Effect.SetCharacterDoubleUseRule` 当前使用 | `apiVersion=1,player,scope='current_use',useId,sourceItemId`；useId 和 sourceItemId 必须为真实使用窗口和来源；不填过期序号 | 无页面；登记本次使用规则，后续方式／顺序 UI 属于主流程 |
+| `Effect.SetCharacterDoubleUseRule` 行动轮 | `apiVersion=1,player,scope='action_round',expiresActionRoundSequence`；序号必须是当前真实正整数行动轮序列；不填 useId/sourceItemId | 无页面；登记本行动轮期限规则 |
+| `Effect.ConsumeCharacterDoubleUseSource` | 必填 `apiVersion=1,player,useId,sourceItemId`，均为真实消费证明对应身份 | 无页面；消费明确来源及等待载物退出；不自行授予双用资格 |
+| `Effect.RecycleCharacterCover` | 必填 `apiVersion=1,player,coveredItemIds,sourceItemId`；ID 数组最多 16、无重复 | 无选牌页；回收指定盖牌及等待必要依赖 |
+| `Effect.BindCharacterToFacility` | 必填 `apiVersion=1,player,characterItemId,facilityItemId`；真实明确两张牌 | 无选择页；建立绑定；真实离场自动按生命周期解绑 |
+
+普通转移不能改写使用历史、创建角色使用窗口或重置次数。`CoverCharacterCard` 无版本主链签名只属于 Host，不是 DIY 入口。
+
+### 9.3 来源调用、延迟义务和奖励
+
+| API | 字段：取值及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Effect.InvokeAction` | 必填 `apiVersion=1,player,itemId,actionId,callPolicyRef`；精确调用真实来源已登记行动，callPolicyRef 须匹配 JSON 调用策略 | 无选来源页 → 入口费用／条件 → 行动正文 → 后置效果；只有被授权省略的阶段才省略 |
+| `Effect.ScheduleCleanupObligation` | 必填 `apiVersion=1,player,handlerRef,dueRound,context`；handlerRef 是本来源已登记处理器，dueRound 正整数，context 普通对象；要求 `cleanup.defer:<handlerRef>` 权限 | 登记时无页面；到指定回合该玩家收尾窗口 → 执行处理器返回的业务页面 |
+| `Effect.GrantReward` | 必填 `apiVersion=1,player,definitionId,typeId,count,recipientPlayer,destination,operationId`；count 1～16；typeId=`core.award_card`；destination=`core.zone.player_rewards`；definitionId/typeId/operationId 为非空≤128字符字符串，operationId 为本次稳定操作键 | 无选择页；生成指定奖励交付目标玩家 → 获得奖励响应 |
+| `Effect.CreateMapToken` | 必填 `apiVersion=1,player,definitionId,sourceItemId,destinationLocationId,operationProfileId='core.adjacent_location_token_move'`；definitionId 为已登记组件，sourceItemId 须匹配真实来源，地点须已开放且存在资源点标记 | 无选择页；创建合法地图 Token；同一来源已存在对应 Token 时返回该 tokenItemId，不重复生成 |
+| `Effect.ActivateCityStyleSpecial` | 必填 `apiVersion=1,player,specialActionId,declarationMarkerId,activationSource`；实际样式行动和宣告标记；activationSource 只接受 `public_style/immediate`，分别对应合法公共样式调用／即时发动合同 | 无选样式页 → 入口条件／付款 → 特殊行动正文；不凭填写来源免印刷费用 |
+| `Effect.RollDice` | 必填 `apiVersion=1,player,count=1,sides=6`；当前只支持单枚六面骰 | 无操作页；Host 投骰，返回 `{diceResult=1到6}`；后续按点数创建的页面属于续接效果 |
+
+`GrantReward` 要求真实来源声明精确 `reward.grant:<definitionId>:core.award_card:<最大数1～16>:<self/other/any>:core.zone.player_rewards`，并且奖励定义 acquisitionPolicy 为 `content_granted`。`RecycleCharacterCover/BindCharacterToFacility/CreateMapToken/ActivateCityStyleSpecial` 等会核对真实调用祖先；填写 sourceItemId 或复制 payload 都不能伪造资格。
+
+## 10. Flow：包含业务的组合流程
+
+当前公开 12 个 Flow。它们不是纯 UI 别名；会组织真实子效果、等待响应并报告结果。全部必填 `apiVersion=1,player`，下面只列其余字段。
+
+### 10.1 企业和地图流程
+
+| API | 字段：取值及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Flow.UpgradeDistinctEnterprises` | 必填 `count` 1～16、`levels` 正整数；分别是不同企业数量和每家升级级数 | 选择一家企业 → 升级及到达奖励 → 再选尚未选择企业，直到 count；候选不足失败，单项也保留该轮选择 |
+| `Flow.UpgradeThenActivateEnterpriseSpecial` | 必填 `levels` 正整数，可为 2，表示升级两级；`enterpriseItemIds?` 无重复企业实例范围 | 按升级后资格选择一个企业特效 → 该企业逐级升级及奖励 → 发动先前选定特效 |
+| `Flow.ActivateAllEnterpriseSpecials` | 必填 `unlockedByPlayer`；`minLevel?=1,maxLevel?=5` 均 1～5，范围不能倒置；`enterpriseItemIds?` 无重复企业范围 | 多家时先选一家 → 该家多项特效时选择发动顺序 → 逐项执行；只有一家／一项时跳过相应选择。“全部”是选中企业的冻结集合，不是遍历所有企业 |
+| `Flow.UpgradeEnterpriseForAllPlayers` | `enterpriseItemId` 或无重复候选 `enterpriseItemIds`，二选一；必填 `levels=1` | 必要企业选择（显式／单项跳过）→ 按冻结玩家顺序各升级一次及各自奖励；无合作标记者不升级 |
+| `Flow.ClearRouteAndPlaceRoad` | 必填 `scoreRemovedPlayers`、`scoreExecutor`，各为 0～99；分别给被清理玩家和执行者的分数 | 地图选合法路线 → 逐项影响力离场及响应 → 放道路 → 计分；无合法路线结束 |
+
+### 10.2 卡牌、奖励和兑换流程
+
+| API | 字段：取值及作用 | 预期 UI 操作页面顺序 |
+| --- | --- | --- |
+| `Flow.DispatchOperator` | 必填 `drawCount`，只允许 2 或 3；`excludedReturnItemIds?` 非空 ID 元素组成的数组，用于排除返还牌。返牌区域仍由正式业务规定，Lua 不开放内部 allowedReturnZoneIds | 抽候选 → 干员卡牌页选一张／放弃 → 接受时获得、其余回堆并洗牌 → 合法手牌／弃牌返还页 → 确认返牌；放弃时全部回堆洗牌并得 1 分，不再返牌 |
+| `Flow.ReplaceHandWithOperator` | 无其他字段 | 干员卡牌候选 → 选一张 → 本人手牌候选 → 选被替换牌 → 提交交换；空池／空手结束 |
+| `Flow.AcquireReward` | 必填 `poolRole='awards'` 或 `'contracts'` | awards：正式奖励卡页 → 选卡确认 → 取得及响应；contracts：自动取合法合同 Token，无卡牌选择；上限／池空时结束 |
+| `Flow.ExchangeResource` | 必填 `targetPlayer` 实际兑换者、`resourceType` 支出资源、`receiveResourceType` 获得资源（两种须不同）、`amount='all'`、`rate` 1～100；`reasonId?` 原因字符串 | 自身无选择页；执行到目标玩家时读取实际可用库存，按真实付款 → 获得资源逐批执行；付款前响应可展开页面 |
+
+正式特派抽牌数受游戏规则影响，例如感染者规则或双人局使用 3 张。`ExchangeResource` 禁用替代支付，每批最多付 50 且收益不超过 100；失败不生成该批收益，已完成前批不撤回；合法 0 库存可以完成。结果 `paidAmount/receivedAmount/changed/targetPlayer` 均是实际事实。
+
+### 10.3 移动之外的业务选择
+
+`Flow.ChooseTransferCount`：
+
+| 字段 | 必填／默认 | 含义 |
+| --- | --- | --- |
+| `itemIds` | 必填 | 1～99 个无重复真实 Token ID；确定顺序，选择 K 即使用前 K 个 |
+| `sourceZoneId` | 必填 | 当前真实源区 |
+| `destinationZoneId` | 必填 | 真实目的区，不能等于源区 |
+| `operationProfileId` | 必填 | 合法 Token profile：`core.cube_storage/core.player_marker_storage/core.token_storage` |
+| `maximumCount` | 必填 | 1～itemIds 数量，最多 99 |
+| `unitCost` | 可选 | 费用枚举名到非负整数的对象；每项费用乘 K，总额不能溢出 Int32；省略不收该费用 |
+| `allowDecline` | 默认 false | 布尔，允许通过当前选择放弃 |
+
+UI：1～maximumCount 的真实逻辑选择，超过 16 项分层呈现 → 如有费用先正式付款 Condition → 依既定顺序逐枚明确 MoveItem。每层最多 16，不截断候选。返回 `selectedCount/declined/changed/movedCount/failedCount`；移动失败不重试、不撤销已成功前缀；Flow 不额外授予转移权限。
+
+`Flow.ChooseCarrierTokenPairReturn`：必填 `carrierItemId` 真实载体、`localZoneId` 卡内方块储区、`operationProfileId` 合法 Token profile。必须是本人当前控制、当前来源获授权的 `card_cube_storage`。
+
+UI：按类型、原所有者、控制者、原供应及本地状态分组构造真实返还组合；能唯一确定时直接确定，组合数≤16 时平铺逻辑选择，更多时分阶段选择 → 最终一笔足量 MoveItem 将两枚返还各自原供应。开放离场实例不能互相当作等价项折叠。它有真实返还业务，不是只返回两个 ID。
+
+`Flow.ChooseCityStyleMarkerReturn`：没有其他字段。UI：本人合法二级样式返还逻辑选择（单项仍选择；超过 16 项分层）→ 执行明确 `ReturnCityStyleMarker`。空池失败，真实返还失败传播；不会让 Condition 右式在返还未成功时发奖。
+
+## 11. 文案、效果表现与续接数据
+
+这些接口本身都不打开页面，只给已有业务和已有 UI 提供数据。
+
+### 11.1 `Text`
+
+| 调用 | 参数和作用 |
 | --- | --- |
-| 构造器、白名单、归一化、只读查询 | [MoonSharpLuaRuntimeHost.cs](../../Assets/YC/Infrastructure/Lua/MoonSharpLuaRuntimeHost.cs)、[查询过滤](../../Assets/YC/Infrastructure/Lua/MoonSharpLuaRuntimeHost.Queries.cs) |
-| 编译、权限与续接 | [LuaEffectSpecCompiler.cs](../../Assets/YC/Infrastructure/Lua/LuaEffectSpecCompiler.cs)、[LuaEffectEventDispatcher.cs](../../Assets/YC/Infrastructure/Lua/LuaEffectEventDispatcher.cs) |
-| 沙箱预算与返回类型 | [LuaRuntimeContracts.cs](../../Assets/YC/Infrastructure/Lua/LuaRuntimeContracts.cs) |
-| 当前来源分页 | [MoonSharpSourceFactsApi.cs](../../Assets/YC/Infrastructure/Lua/MoonSharpSourceFactsApi.cs) |
-| Choice 与主行动 | [GenericLuaEffectExecutor.cs](../../Assets/YC/Domain/Effects/GenericLuaEffectExecutor.cs) |
-| 资源损失 | [ResourceLossEffectExecutor.cs](../../Assets/YC/Domain/Effects/ResourceLossEffectExecutor.cs) |
-| 内容原语/事务 | [ContentPrimitiveEffectExecutor.cs](../../Assets/YC/Domain/Effects/ContentPrimitiveEffectExecutor.cs)、[ContentTransactionEffectExecutor.cs](../../Assets/YC/Domain/Effects/ContentTransactionEffectExecutor.cs) |
-| 企业/设施 | [EnterpriseEffectExecutor.cs](../../Assets/YC/Domain/Enterprises/EnterpriseEffectExecutor.cs)、[FacilitySelectionEffectExecutor.cs](../../Assets/YC/Domain/Effects/FacilitySelectionEffectExecutor.cs) |
-| 文案/结算/纯查询 | [GameplayPresentationLuaHost.cs](../../Assets/YC/Infrastructure/Lua/GameplayPresentationLuaHost.cs)、[SettlementLuaHost.cs](../../Assets/YC/Infrastructure/Lua/SettlementLuaHost.cs)、[AbilityQueryLuaHost.cs](../../Assets/YC/Infrastructure/Lua/AbilityQueryLuaHost.cs) |
+| `Text.Ref(key,arguments?)` | key 为已登记文案键；arguments 为具名对象，对应模板参数；参数可用整数、文本及下列类型化引用 |
+| `Text.Player(id)` | 真实玩家身份；整数 1 会形成 p1 文案引用，不是可写玩家对象 |
+| `Text.Item(id)` | 真实物品实例 ID，按可见性显示其名称 |
+| `Text.Definition(id)` | 内容定义 ID |
+| `Text.Resource(id)` | 正式资源 ID |
+| `Text.Location(id)` | 正式地点 ID |
 
-升级引擎时先对照构造器注册、字段白名单、领域参数验证和注册入口，再更新文档与示例。源码仍有残留不等于允许新内容使用；剔除表优先于从源码自动枚举出的名字。
+文本引用只替换模板参数，不选择玩家、不移动物品、不打开详情。可见性不足时不能借文案取隐藏卡面。
 
-本版检查记录：65 个未剔除的 Effect 构造器和 8 个 Flow 构造器均已列入文档；三个完整 Lua 示例通过当前 Domain/Application/Lua 源码编译出的隔离宿主归一化与 Effect 编译，选择完成/失败两条回调分别产生 1/0 个效果。此处使用独立 .NET 检查程序，没有启动 Unity、Player 或进行正常对局验收，也没有验证所有高级 API 的运行组合。
+### 11.2 `Effect.WithPresentation(spec,presentation)`
+
+返回带表现的原效果声明副本。`spec` 是实际构造器结果；`presentation` 可用字段如下，均为可选，不填保留宿主默认表现。
+
+| 字段 | 类型和作用 |
+| --- | --- |
+| `started / waiting / succeeded / failed / stopped` | `Text.Ref`，对应结算阶段文案 |
+| `interaction.prompt` | 当前既有交互的提示 `Text.Ref` |
+| `interaction.progress` | 当前进度 `Text.Ref` |
+| `interaction.options` | 候选表现数组，逐项结构见下表 |
+| `interaction.quantityRows` | 数量行表现数组，逐项结构见下表 |
+| `interaction.candidateIntegerLabel` | 整数候选模板 `{key=文案键,arguments={{name=参数名,multiplier=整数},...}}`；参数由实际候选数值乘 multiplier（默认 1）生成 |
+| `presentationScript` | 已登记纯表现脚本路径；不执行规则 |
+
+| 子项 | 字段 |
+| --- | --- |
+| `options[]` | `candidateId` 真实候选 ID；`label/description/disabledReason` 可选 Text.Ref；`iconKey` 可选已登记图标键 |
+| `quantityRows[]` | `rowId` 真实数量行 ID；`label/description/unit` 可选 Text.Ref；`iconKey` 可选已登记图标键 |
+
+例：为真实分支附加文本，不制造空业务选项：
+
+```lua
+Effect.WithPresentation(
+    Effect.Choice({player=ctx.playerId,branches={
+        {id='gain',effects={Effect.GainScore({recipient=ctx.playerId,amount=1})}}
+    }}),
+    {interaction={options={
+        {candidateId='gain',label=Text.Ref('diy:choice.gain_score')}
+    }}}
+)
+```
+
+表现不能改合法候选、费用、结果或权限，也不能把卡牌／逻辑执行／数量页面换成普通文字条目。静态标题、按钮名称、布局、缩放和样式由现有场景／预制体决定，Lua 不直接修改 Unity 对象。
+
+### 11.3 `Effect.WithContext(spec,context)`
+
+`spec` 为真实效果声明；`context` 为可序列化普通对象，提供完成续接上下文。使用自定义阶段键，例如 `{stage='after_move'}`；回调从 `payload.continuationContext` 读。
+
+`requiredOutcome`、`executionBinding` 是宿主封闭合同的保留键；允许按下表使用，但不能作为任意业务数据或自造证明：
+
+| 保留对象 | 字段和作用 |
+| --- | --- |
+| `requiredOutcome` | 严格 `{protocolVersion=1,resultField=非空顶层结果字段名,expectedValue=非负整数}`，resultField 不含点。表示已承担的必做义务；要求实际完成、不可放弃且结果整数恰等于期望。不满足则 `required_outcome_unfulfilled`，保留已提交事实并暂停后续，不能用作普通可失败费用 |
+| `executionBinding` | 严格 `{protocolVersion=1,parentBuildId=真实建设ID,choiceInteractionId=真实已回答选择ID,playerId=所选玩家正整数}`。仅来源已有 `execution.bind` 权限、建设及必做响应已完成、选择确属该树并选中该玩家时成立；用于受证的其他玩家正文执行，不授予任意跨玩家权限 |
+
+这两个对象提取为执行元数据，不作为普通 continuationContext 原样传回。WithContext 不是 memory，不在不同发动之间自动共享；也不等同于仅包装 Choice 返回值的 `resultContext`。
+
+## 12. 专门入口合同
+
+这些入口必须由 JSON 声明和 Host 以对应 responseKind 调用；普通效果处理器不能混合返回它们。它们都不自行弹独立页面。
+
+### 12.1 候选集修正
+
+`Candidate.Add({ids,reasonCode})`、`Candidate.Remove({ids,reasonCode})`、`Candidate.Intersect({ids,reasonCode})` 返回候选补丁。`ids` 为该次候选协议中的真实 ID 数组；`reasonCode` 为可诊断原因字符串。返回补丁数组，不返回 Effect。分别表示添加允许候选、去除候选、与声明集合取交集；添加仍受宿主原始池及授权限制。
+
+只在 `CandidateSetBuilding` 的 `candidatePatches` 入口中可用，当前角色持续候选修正针对正式设施建设候选。它不是打开选择页：Host 完成候选计算后由原业务显示原选择页。
+
+### 12.2 纯规则查询和影响力附着
+
+纯规则查询入口返回严格 `{queryId=当前查询ID,basisDigest=当前事实摘要,items={...}}`。三字段均必填，ID／摘要必须原样回传；items 的具体字段由声明的 `queryKind` 决定，见 Event 文档的查询合同部分。此入口不安装 Effect／Flow，不能以查询为名支付、选择或发奖。
+
+`influencePlaceAttaching` 是放置附着改写入口，只允许返回规定的改写描述；不是普通规则查询，也不能任意返回 Effect 来改放置流程。其字段及来源限制见 [Event 与处理器](DIY内容开发-Event.md)。
+
+### 12.3 `Settlement.Offer`
+
+只在 `settlementOffers` 入口使用，返回 Offer 数组。上下文为 `ctx.playerId/stateRevision/window/facts`；window 提供 `id/kind/ownerEffectId/playerId/targetUseId/triggerId/stateRevision/paymentId/paymentCost`（费用事实按窗口提供），facts 是本次来源授权事实。
+
+| 字段 | 能填什么、做什么 |
+| --- | --- |
+| `apiVersion` | 必填 `1` |
+| `localId` | 非空≤128字符，须以当前 abilityId 加 `.` 开头；同窗口来源内唯一 |
+| `player` | 当前窗口玩家 |
+| `sourceItemId` | 真实来源实例 |
+| `windowId` | 当前 ctx.window.id |
+| `ownerEffectId` | 当前 ctx.window.ownerEffectId |
+| `maxUses` | 必填 `1` |
+| `visibility` | 必填 `owner` |
+| `availabilityHandlerId` | 已登记可用性处理器 ID |
+| `presentation` | 下述结算表现对象 |
+| `effects` | 非空真实效果声明数组；获准插入时才实例化 |
+
+字符串身份字段不能超过 128 字符。Offer 只把合法来源提供给已有结算窗口，不能凭任意 windowId 创建新窗口。可用性处理器返回 `{enabled=布尔,disabledReasonKey?=统一文案键}`，不能返回效果。
+
+结算 `presentation` 字段：`label/description/ariaLabel` 是 Text.Ref；`iconKey` 是已登记图标键；`contentMode` 为 `text/icon_text/icon`，默认 text。不会改变窗口的实际使用权限。
+
+### 12.4 `Settlement.WithPresentation(spec,metadata)`
+
+给已有结算段加元数据，不开放新插入权限。metadata 字段：
+
+| 字段 | 取值和作用 |
+| --- | --- |
+| `entryKind` | 必填 `cleanup_order` |
+| `localId` | 必填非空稳定段 ID |
+| `wholeEffectPolicy` | 必填 `optional/required/unspecified`，声明整段可选／必做／未指定 |
+| `sourceItemId` | 必填真实来源实例 |
+| `sourceEffectId` | 可选真实来源效果 ID |
+| `abilityId` | 必填真实能力 ID |
+| `presentation` | 上一节结算表现对象 |
+
+身份字符串最多 128 字符。元数据只对应已经合法存在的段，不能借 optional 跳过规则要求的付款或必答请求。
+
+### 12.5 纯表现入口
+
+宿主以 `Present` 等登记入口调用纯展示脚本，返回 `resolution`（Text.Ref）、`interaction`（11.2 的交互表现结构）、`details`（Text.Ref 数组）。字段按实际展示用途填写，不返回 Effect 或业务查询结果。只能更新已有展示内容，不能作为独立 UI 调用。
+
+## 13. 不开放的名称与编写检查
+
+当前没有以下公共执行入口：`Effect.Repeat`、`Effect.LoadCardMarkers`、`Effect.SelectInfluence`、`Effect.DepartureBatch`、`Effect.ChooseBuild`、`Effect.ChooseExplore`、`Effect.TransferCharacterCard`、`Effect.MoveCharacterCardToZone`、`Effect.RetainCharacter`、`Effect.StorePlayerMarker`、`Effect.ReturnPlayerMarker`、`Effect.UpgradeEnterpriseForPlayer`、`Effect.ReleaseFacilityBinding`。旧名、旧类型包装或自行构造 effectTypeId 都不能绕过退役校验。
+
+也不能使用移动 selector.select、MoveFacilityCard v3 内置选择、ReturnCityStyleMarker v1 内置选择、CoverCharacterCard v2、无版本角色／设施移动及无版本设施洗牌、OperatePlayerMarker 的公开 round_cleanup、ExecuteMainAction 的 grant_budget/facility_entry。这不是需要填写另一组提示键的页面问题。
+
+编写时依次核对：
+
+1. JSON 注册的脚本、处理器、文案、来源和调用策略完整，命名空间及输入版本在本文内。
+2. 每次调用只使用该模式允许字段，ID 来自真实查询／事件，区分定义、实例、区域、主体与候选 ID。
+3. 需要纯选择时用第 3 节；点击后执行规则的业务菜单用真实逻辑分支；移动前完成选择，不回流普通文字模板。
+4. 条件成本按足量合同提交，续接先检查结果再发收益，区分完成、无变化、放弃和失败。
+5. 检查目标变化、来源失效、空候选、库存不足、取消、存档恢复和重复回答；隔离测试不代表正常页面验收。
+6. 正常页面验收从独立程序菜单、建房和合法行动进入，按版本／内容哈希和 GameId 累积覆盖；未出现的随机内容记录为未覆盖。

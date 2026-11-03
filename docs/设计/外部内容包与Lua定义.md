@@ -18,13 +18,13 @@ JSON 保存静态数据、版本、名称、贴图、标记区与能力脚本引
 
 - 雷蛇：策略两个 PlaceInfluence 与收尾 Remove；计谋 Condition(Pay, SelectInfluence replace)。
 - 极境：策略按最低资源生成 Choice 和奖励 continuation；计谋 Condition(Pay, 普通 MoveCity 候选修正)。
-- 德克萨斯：策略 GainResource → MoveFacilityCard；计谋 Condition(Pay, SelectInfluence remove → SelectInfluence move count=2)。
+- 德克萨斯：策略 GainResource → 显式v3 MoveFacilityCard(cycle_supply)，回底与必要补原槽由公开MoveItem共同步骤承担；计谋 Condition(Pay, SelectInfluence remove → SelectInfluence move count=2)。
 - 坎诺特：策略 SellResource；计谋一次 Choice 后按各玩家资源量生成支付和补偿。
-- 锡人：策略 GainScore 与两个独立可选 Condition；计谋 MoveCharacterCard 先回收全部，再按回收数生成有子 Effect 分支的 Choice。
+- 锡人：策略 GainScore 与两个独立可选 Condition；当前计谋使用MoveItem v4 explicit先回收真实弃牌，再按原数量生成有子Effect分支的Choice。旧无版本MoveCharacterCard已于2026-10-31按API-35退役，显式v2保留。
 
 上述旧五项角色专用 executor 方法已经移除。`CharacterCardService` 等旧无 Registry 兼容路径仍存在，其删除需要另行收敛生产调用方，不作为本次外部内容规则来源。
 
-新增通用原语目前支持的范围必须明确：SellResource 使用游戏统一出售价格；MoveFacilityCard 支持供应区选牌→牌堆底并补供应槽；MoveCharacterCard 支持全部弃牌→手牌；SelectInfluence 支持移除/替换/移动、所有权过滤、次数与已移动实例排除。不能将这些首批实现解释为所有规划卡区和移动模式均已完成。
+首批实现的历史范围为统一出售价格、设施供应回底补槽、全部弃牌回手和影响力选择操作，不代表所有规划卡区及移动模式均已完成。当前可用签名、退役原因和共同能力以[Lua API](<DIY内容开发-Lua API.md>)为准；不再推荐旧无版本MoveCharacterCard或旧SelectInfluence。
 
 ## 其他内容边界
 

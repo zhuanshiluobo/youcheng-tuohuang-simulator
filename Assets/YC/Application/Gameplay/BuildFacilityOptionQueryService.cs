@@ -98,10 +98,10 @@ namespace YC.Application.Gameplay
                 view.StateRevision != (state.EffectRuntime?.StateRevision ?? 0) || view.IsPausedFault ||
                 view.Interactions == null || view.PreparedActionPayments == null) return false;
             var parents = view.Effects?.Where(value => value != null && value.EffectId == selectionOwnerEffectId &&
-                value.EffectTypeId == FacilitySelectionEffectExecutor.TypeId && value.PlayerId == playerId &&
+                FacilityBuildContract.IsSelection(value.EffectTypeId, value.NormalizedArguments) && value.PlayerId == playerId &&
                 value.Status != EffectNodeStatus.Completed && value.Status != EffectNodeStatus.Failed && value.Status != EffectNodeStatus.Faulted).Take(2).ToArray();
             if (parents?.Length != 1) return false;
-            string sourceZone = ItemTransferEffectExecutor.Text(parents[0].NormalizedArguments, "sourceZone");
+            string sourceZone = FacilityBuildContract.SourceKind(parents[0].EffectTypeId, parents[0].NormalizedArguments);
             if (sourceZone.Length == 0) sourceZone = "supply";
             string paymentMode = ItemTransferEffectExecutor.Text(parents[0].NormalizedArguments, "paymentMode");
             if (paymentMode.Length == 0) paymentMode = "auto";
@@ -302,12 +302,13 @@ namespace YC.Application.Gameplay
                         query.HasBuiltUnique(definition) ?
                         ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该唯一设施已经建设过。") : ValidationResult.Success;
                     var slots = new List<BuildFacilitySlotOptionResult>();
+                    var previewSlots = structural.IsValid ? candidates.Queries.ResolvePreviewSlots(state, playerId, id, definitionId) : Array.Empty<FacilityBuildSlotCandidate>();
                     for (int slot = 0; slot < BuildFacilityService.CityBoardSlotCount; slot++)
-                        slots.Add(new BuildFacilitySlotOptionResult(slot, structural.IsValid ?
-                            query.ValidatePaidPlacement(id, slot) : structural));
+                        slots.Add(new BuildFacilitySlotOptionResult(slot, !structural.IsValid ? structural : previewSlots.Any(c => c.SlotIndex == slot) ?
+                            ValidationResult.Success : ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位不可用。")));
                     if (structural.IsValid && !slots.Any(slot => slot.IsLegal))
                         structural = ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法建设槽位。");
-                    var cost = query.GetEffectiveResourceCost(id);
+                    var cost = query.GetEffectiveResourceCost(definitionId);
                     ValidationResult Payment(string mode) => !structural.IsValid ? structural : !scope.AllowsPaymentMode(mode) ?
                         ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本次建设未授权该支付方式。") :
                         (mode == "gold" ? player.Resources.GoldVoucher >= definition.GoldVoucherCost :

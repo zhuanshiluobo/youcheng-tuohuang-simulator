@@ -236,6 +236,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 NormalizedValue.CreateString("4"), out _), Is.False);
             state.FindPlayer(2).Resources.Iron = 1;
             Answer("3");
+            Assert.That(Open().GetStableInteractionId(), Is.Not.EqualTo(request.GetStableInteractionId()));
             Assert.That(Number(Open().PromptParameters, "maxAmount"), Is.EqualTo(1));
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
             Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(1));
@@ -243,6 +244,31 @@ namespace YC.Tests.EditMode.ExpansionRules
             Answer("1");
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
             Assert.That(state.FindPlayer(2).Resources.Iron, Is.Zero);
+            string completedId = state.EffectRuntime.InteractionRequests.Last(r => r.OwnerEffectId == request.OwnerEffectId).GetStableInteractionId();
+            var completion = state.EffectRuntime.RuleEvents.Single(e => e.EventType == "EffectCompleted" && e.SourceEffectId == request.OwnerEffectId);
+            Assert.That(Text(AbilityEventLuaFacts.Enrich(state, completion, completion.Payload), "interactionId"), Is.EqualTo(completedId));
+            Assert.That(completedId, Is.Not.EqualTo(request.GetStableInteractionId()));
+            RestoreJson();
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.Zero);
+        }
+
+        [TestCase("conflict")][TestCase("unanswered")][TestCase("revision")]
+        public void CompletedAmountFactsRejectConflictingOrUnfinishedRequestIdentity(string corruption)
+        {
+            ActivatePassenger(); Answer("player:2"); Answer("iron"); var request = Open(); Answer("1");
+            var completion = state.EffectRuntime.RuleEvents.Single(e => e.EventType == "EffectCompleted" && e.SourceEffectId == request.OwnerEffectId);
+            var snapshot = GameStateCloneService.DeepClone(state);
+            var finalRequest = snapshot.EffectRuntime.InteractionRequests.Last(r => r.OwnerEffectId == request.OwnerEffectId);
+            var payload = completion.Payload.Clone();
+            if (corruption == "conflict")
+            {
+                payload.Properties.RemoveAll(p => p.Name == "interactionId");
+                payload.Properties.Add(new NormalizedValueEntry { Name = "interactionId", Value = NormalizedValue.CreateString("foreign-request") });
+            }
+            else if (corruption == "unanswered") finalRequest.Status = "open";
+            else finalRequest.AnsweredAtRevision = snapshot.EffectRuntime.StateRevision + 1;
+            Assert.Throws<InvalidOperationException>(() => AbilityEventLuaFacts.Enrich(snapshot, completion, payload));
         }
 
         [Test]

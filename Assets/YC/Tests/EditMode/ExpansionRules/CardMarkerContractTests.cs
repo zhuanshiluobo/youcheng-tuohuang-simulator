@@ -44,7 +44,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (state != null) artifacts.WriteLabeledText("最终真实状态", JsonConvert.SerializeObject(state));
             artifacts.Finish();
         }
-        private void State(int supply = 6, bool mixed = false, bool allow = true, bool multipleSupplies = false, bool tokenCost = false, bool twoAuthorizedSources = false, int initialGold = 20)
+        private void State(int supply = 6, bool mixed = false, bool allow = true, bool multipleSupplies = false, bool tokenCost = false, bool twoAuthorizedSources = false, int initialGold = 20, bool nativeTokenCost = false, bool initialCharacters = false)
         {
             definition = mixed ? "operator.dorothy" : "entrepreneur.ability.A01"; local = mixed ? "markers" : "commands";
             var declarations = new List<AbilitySourceDeclaration>();
@@ -58,7 +58,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry); ItemTransferEffectExecutor.Register(registry); AbilityActionExecutor.Register(registry);
             registry.RegisterAbilityHandler("qy005.unprivileged", "qy005.unprivileged/1", _ => body());
             registry.RegisterAbilityHandler("qy005.allowed", "qy005.allowed/1", _ => body());
-            if (tokenCost) registry.RegisterAbilityHandler("qy005.cost", "qy005.cost/1", _ => new[] { TransferTokens(2) });
+            if (tokenCost) registry.RegisterAbilityHandler("qy005.cost", "qy005.cost/1", _ => new[] { nativeTokenCost ? NativeTokenCost(2) : TransferTokens(2) });
             registry.FreezeAbilityCatalog(declarations);
             var map = StaticMapDefinitions.CreateThreePlayerMap();
             var source = new GameState { GameId = "qy005.isolated", ContentPackHash = pack.ContentHash, MapId = map.MapId,
@@ -68,6 +68,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Name = "隔离甲", Resources = new ResourceSet { GoldVoucher = initialGold } }, new PlayerState { PlayerId = 2, Name = "隔离乙" } } };
             var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = supply, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "carrier", DefinitionId = definition, TypeId = mixed ? "core.operator_card" : "entrepreneur.ability_card", Quantity = 1, PerPlayer = true, InitialZoneRole = mixed ? "persistent" : "entrepreneur_active" } };
+            if(initialCharacters)recipe.Add(new ItemRecipeEntry{EntryId="host_cover_characters",DefinitionId="texas",TypeId="core.basic_character_card",Quantity=2,PerPlayer=true,InitialZoneRole="hand"});
             if (mixed) recipe.Add(new ItemRecipeEntry { EntryId = "gang", DefinitionId = "entrepreneur.component.gang_marker", TypeId = "entrepreneur.gang_marker", Quantity = 2, PerPlayer = true, InitialZoneRole = "supply" });
             if (multipleSupplies) recipe.Add(new ItemRecipeEntry { EntryId = "reserve_marker", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 1, PerPlayer = true, InitialZoneRole = "reserve" });
             state = new ItemZoneStateFactory().CreateForSetup(source, map, recipe, new[] { new ItemCardZoneDeclaration { DefinitionId = definition, CardZones = pack.Definitions.Single(d => d.DefinitionId == definition).CardZones } });
@@ -122,7 +123,9 @@ end)()";
         // 通用原语夹具只传当前Lua已选定实例；不恢复专用付款接口或内核自动组合。
         private EffectSpec TransferTokens(int n, string destination = "original_supply") => B2MarkerSpecs(TokenTransferExpression(n.ToString(), destination)).Single();
         private EffectSpec ChooseTokenTypes(int n) => B2MarkerSpecs(TokenTransferExpression(n.ToString(), selection: "types")).Single();
-        private bool IsTokenTransfer(EffectNodeRuntimeState node) => node.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(node.NormalizedArguments, "apiVersion") == 3 && Text(Value(node.NormalizedArguments, "expectedSource"), "zoneId") == Storage.ZoneId;
+        private static List<ItemTransferRequest> TokenTransfers(EffectNodeRuntimeState node) => node.ItemMovementV4?.Transfers ?? node.CommonItemMovementV4?.Transfers;
+        private static TransferReceiptV4 TokenReceipt(EffectNodeRuntimeState node) => node.ItemMovementV4?.Receipt ?? node.CommonItemMovementV4?.Receipt;
+        private bool IsTokenTransfer(EffectNodeRuntimeState node) => node.EffectTypeId == ItemTransferEffectExecutor.TypeId && Number(node.NormalizedArguments, "apiVersion") == 4 && Text(Value(Value(node.NormalizedArguments, "selector"), "expectedSource"), "zoneId") == Storage.ZoneId;
         private void AwaitChosenTokenBeforeCommit(string choice)
         {
             var request = state.EffectRuntime.InteractionRequests.Last(q => q.Status == "open");
@@ -142,14 +145,14 @@ end)()";
         {
             State(supply: n); Invoke(SeedStoredTokens(n)); Assert.That(Stored.Count, Is.EqualTo(n));
             var load = state.EffectRuntime.EffectNodes.Last(v => v.EffectTypeId == ItemTransferEffectExecutor.TypeId);
-            Assert.That(Number(Value(load.ContinuationData, "transferBatchReceipt"), "protocolVersion"), Is.EqualTo(3));
+            Assert.That(TokenReceipt(load).ContractVersion, Is.EqualTo(ItemMovementV4.ContractVersion));
             Assert.That(Value(load.NormalizedResult, "positionChanges"), Is.Null); Assert.That(load.PositionChanges.Count, Is.EqualTo(n));
             Assert.That(load.NormalizedResult.TryValidate(out string reason), Is.True, reason); Restore("v3完整装载" + n);
             var ids = Stored.Select(i => i.ItemId).ToList(); Invoke(TransferTokens(n)); Assert.That(Stored, Is.Empty);
             var token = state.EffectRuntime.EffectNodes.Single(IsTokenTransfer);
-            Assert.That(token.TransferBatchRequest.ProtocolVersion, Is.EqualTo(3));
-            Assert.That(Number(Value(token.ContinuationData, "transferBatchReceipt"), "protocolVersion"), Is.EqualTo(3));
-            Assert.That(Value(token.NormalizedArguments, "itemIds").Items.Select(v => v.StringValue), Is.EqualTo(Value(token.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue)));
+            Assert.That(token.TransferBatchRequest, Is.Null); Assert.That(TokenReceipt(token).ContractVersion, Is.EqualTo(ItemMovementV4.ContractVersion));
+            Assert.That(ItemMovementV4.TryValidateState(state, token, out _), Is.True);
+            Assert.That(Value(Value(token.NormalizedArguments, "selector"), "itemIds").Items.Select(v => v.StringValue), Is.EqualTo(Value(token.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue)));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.Status == "open"), Is.False, "等价实例不产生多余选择页。");
             Assert.That(ids.All(id => state.ItemZones.Items.Single(i => i.ItemId == id).ZoneId == state.ItemZones.Items.Single(i => i.ItemId == id).OriginalSupplyZoneId), Is.True);
             Restore("v3足额支付" + n); Run(); Assert.That(Stored, Is.Empty);
@@ -176,8 +179,8 @@ end)()";
             Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, Strings(Enumerable.Repeat(selected[0], 17)), out _), Is.False);
             AwaitChosenTokenBeforeCommit("15"); Restore("Lua组合已选token尚未提交"); Run();
             var token = state.EffectRuntime.EffectNodes.Single(IsTokenTransfer);
-            Assert.That(token.TransferBatchRequest.ProtocolVersion, Is.EqualTo(3));
-            Assert.That(token.TransferBatchRequest.Transfers.SelectMany(v => v.ItemIds), Is.EqualTo(selected));
+            Assert.That(token.TransferBatchRequest, Is.Null); Assert.That(TokenReceipt(token).ContractVersion, Is.EqualTo(ItemMovementV4.ContractVersion));
+            Assert.That(TokenTransfers(token).SelectMany(v => v.ItemIds), Is.EqualTo(selected));
             Assert.That(Stored.Count, Is.EqualTo(2)); Assert.That(selected.All(id => state.ItemZones.Items.Single(i => i.ItemId == id).ZoneId == state.ItemZones.Items.Single(i => i.ItemId == id).OriginalSupplyZoneId), Is.True);
             Restore("Lua混合17枚足额原子提交后"); Run(); Assert.That(Stored.Count, Is.EqualTo(2));
         }
@@ -191,16 +194,16 @@ end)()";
         { State(); Invoke(SeedStoredTokens(1)); int score = state.FindPlayer(1).Score; Invoke(EffectSpec.Condition(new[] { TransferTokens(2) }, new[] { ResourceEffectSpecFactory.GainScore(1, 9) })); Assert.That(Stored.Count, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score)); Assert.That(state.EffectRuntime.RuleEvents.Any(e => e.EventType == "InfluenceRemoved" || e.EventType == "InfluenceReplaced"), Is.False); }
         [Test] public void ExplicitRetiredPaymentPreservesTypeAndOriginalSupply()
         { State(); Invoke(SeedStoredTokens(3)); var original = Stored.ToDictionary(i => i.ItemId, i => i.OriginalSupplyZoneId); Invoke(TransferTokens(3, "retired")); Assert.That(original.All(p => state.ItemZones.Items.Single(i => i.ItemId == p.Key).ZoneId == FindZone(state, "retired").ZoneId && state.ItemZones.Items.Single(i => i.ItemId == p.Key).OriginalSupplyZoneId == p.Value), Is.True); Restore("永久回盒后"); }
-        [Test] public void UsesActualOperationSourceAndRejectsUnprivilegedSameCard()
+        [Test] public void OrdinaryPlayerMarkerMoveDoesNotRequireOldCarrierOperationPermission()
         {
             State(); body = () => new[] { SeedStoredTokens(2) };
             var denied = registry.QueryActions(state, 1).Single(o => o.ActionId == "qy005.unprivileged");
             Engine().CreateRoot(AbilityActionExecutor.Create(denied, "qy005.denied.source", Object()));
-            Assert.That(Engine().RunUntilQuiescent().Faulted, Is.True); Assert.That(Stored, Is.Empty);
+            Assert.That(Engine().RunUntilQuiescent().Faulted, Is.False); Assert.That(Stored.Count, Is.EqualTo(2));
             State(); Invoke(SeedStoredTokens(2)); Assert.That(Stored.Count, Is.EqualTo(2));
         }
-        [Test] public void GenericTransferCannotBypassCarrierPermission()
-        { State(allow: false); var ids = state.ItemZones.Items.Where(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 1).Take(1).Select(i => i.ItemId); body = () => new[] { MoveSpec(1, ids, FindZone(state, "supply", 1).ZoneId, Storage.ZoneId, "unordered", 1, "core.cube_storage") }; var option = registry.QueryActions(state, 1).Single(o => o.ActionId == "qy005.allowed"); Engine().CreateRoot(AbilityActionExecutor.Create(option, "bad_transfer")); var result = Engine().RunUntilQuiescent(); Assert.That(result.Faulted, Is.True); Assert.That(Stored, Is.Empty); }
+        [Test] public void GenericPlayerMarkerMoveUsesDeclaredTypeAndCapacityWithoutOldCarrierPermission()
+        { State(allow: false); var ids = state.ItemZones.Items.Where(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 1).Take(1).Select(i => i.ItemId).ToList(); body = () => new[] { MoveSpec(1, ids, FindZone(state, "supply", 1).ZoneId, Storage.ZoneId, "unordered", 1, "core.cube_storage") }; var option = registry.QueryActions(state, 1).Single(o => o.ActionId == "qy005.allowed"); Engine().CreateRoot(AbilityActionExecutor.Create(option, "explicit_transfer")); var result = Engine().RunUntilQuiescent(); Assert.That(result.Faulted, Is.False); Assert.That(Stored.Select(i => i.ItemId), Is.EqualTo(ids)); Assert.That(Stored.All(i => i.OwnerSubject.PlayerId == 1), Is.True); }
         [TestCase(0)][TestCase(1)][TestCase(2)] public void MixedTypesUseLuaChoicesAndReturnEachOriginalSupply(int normalCount)
         {
             State(2, true); var ids = state.ItemZones.Items.Where(i => i.OwnerSubject.PlayerId == 1 && i.PhysicalKind == ItemPhysicalKind.Cube && i.ZoneId == FindZone(state, "supply", 1).ZoneId).Select(i => i.ItemId).ToArray();
@@ -211,7 +214,7 @@ end)()";
             if (normalCount == 1) { AwaitChosenTokenBeforeCommit("1"); Restore("Lua混合组合已选未提交"); Run(); }
             else Answer(normalCount.ToString());
             var token = state.EffectRuntime.EffectNodes.Single(IsTokenTransfer);
-            var moved = token.TransferBatchRequest.Transfers.SelectMany(v => v.ItemIds).ToArray();
+            var moved = TokenTransfers(token).SelectMany(v => v.ItemIds).ToArray();
             Assert.That(moved.Length, Is.EqualTo(2)); Assert.That(moved.Count(id => state.ItemZones.Items.Single(i => i.ItemId == id).TypeId == "core.player_marker"), Is.EqualTo(normalCount));
             Assert.That(Stored.Count, Is.EqualTo(2)); Assert.That(state.ItemZones.Items.Where(i => ids.Contains(i.ItemId) && i.ZoneId != Storage.ZoneId).All(i => i.ZoneId == i.OriginalSupplyZoneId), Is.True); Restore("Lua混合组合足额返原供应");
         }
@@ -248,16 +251,18 @@ end)()";
             var option = registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == card);
             Assert.That(Engine().TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out _, out var error), Is.True, error); Run();
             Answer("continue"); Assert.That(Stored.Count, Is.EqualTo(0));
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n => IsTokenTransfer(n) && Number(n.NormalizedResult, "movedCount") == 2 && n.TransferBatchRequest.ProtocolVersion == 3), Is.True);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n => IsTokenTransfer(n) && Number(n.NormalizedResult, "movedCount") == 2 && TokenReceipt(n)?.ContractVersion == ItemMovementV4.ContractVersion), Is.True);
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == card).ZoneId, Is.EqualTo(FindZone(state, "persistent", 1).ZoneId)); Restore("真实多萝西支付后放置待答");
         }
         [Test] public void TokenTransferPreviewChecksPermissionAndRealInventory()
         {
             State(); var source = registry.QuerySources(state, 1).Single(s => s.AbilityId == "qy005.allowed");
             var service = new ItemTransferService();
-            Assert.That(service.TryPlanTokens(state, source, TransferTokens(2).NormalizedArguments, registry.AbilityDeclarations, "qy006.preview.empty", out _, out string reason), Is.False);
+            Assert.That(service.TryPlanTokens(state, source, TransferTokens(2).ItemMoveInput.OriginalArguments, registry.AbilityDeclarations, "qy006.preview.empty", out _, out string reason), Is.False);
             Assert.That(reason, Is.EqualTo("insufficient_items"));
-            Invoke(SeedStoredTokens(2)); var args = TransferTokens(2).NormalizedArguments;
+            Invoke(SeedStoredTokens(2)); var spec = TransferTokens(2);
+            Assert.That(ItemMoveInputNormalization.TryValidate(spec.EffectTypeId, spec.NormalizedArguments, spec.ItemMoveInput, out _), Is.True);
+            var args = spec.ItemMoveInput.OriginalArguments; // 仅支付底层预检；普通v4移动不再要求旧carrier许可。
             Assert.That(service.TryPlanTokens(state, source, args, registry.AbilityDeclarations, "qy006.preview.full", out var plan, out reason), Is.True, reason);
             Assert.That(plan.Transfers.Sum(v => v.ItemIds.Count), Is.EqualTo(2));
             var denied = registry.QuerySources(state, 1).Single(s => s.AbilityId == "qy005.unprivileged");
@@ -288,7 +293,7 @@ end)()";
             Invoke(B2MarkerSpecs(TokenTransferExpression("1", selection: "original_supply")));
             var request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open"); Assert.That(request.CandidateIds.Count, Is.EqualTo(2));
             Assert.That(request.CandidateIds, Does.Contain(selected.ItemId)); Answer(selected.ItemId);
-            Assert.That(state.EffectRuntime.EffectNodes.Single(IsTokenTransfer).TransferBatchRequest.Transfers.Single().ItemIds, Is.EqualTo(new[] { selected.ItemId }));
+            Assert.That(TokenTransfers(state.EffectRuntime.EffectNodes.Single(IsTokenTransfer)).Single().ItemIds, Is.EqualTo(new[] { selected.ItemId }));
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == selected.ItemId).ZoneId, Is.EqualTo(FindZone(state, "reserve").ZoneId)); Restore("Lua按原供应差异选择真实实例后恢复");
         }
         [Test] public void ExplicitDependencyZoneDoesNotWaitForAnotherLocalStorage()
@@ -319,6 +324,7 @@ end)()";
             var raw = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
             var node = raw["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectTypeId"] == ItemTransferEffectExecutor.TypeId);
             node["EffectTypeId"] = ContentPrimitiveEffectExecutor.PayMarkers; node["NormalizedArguments"] = JObject.FromObject(arguments);
+            node["ItemMoveInput"] = null; node["ItemMovementV4"] = null; node["CommonItemMovementV4"] = null;
             artifacts.WriteLabeledText("明确退役旧标记付款存档探针", raw.ToString());
             var result = HostRecoveryService.RecoverJson(raw.ToString(), registry);
             Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Is.EqualTo("ability_action.v1:retired_marker_payment_state_requires_migration"));

@@ -166,7 +166,7 @@ namespace YC.Presentation
             EffectDialogShell.AddCountedHeading(panel,box.ListTitleFormat(kind),ids.Count,string.Empty);
             browser.AddSelection(panel,new EffectDialogSelectionSpec
             {
-                ReadOnly=true,IsEffectPage=false,CloseOnBackgroundClick=true,CardPickerHint=box.InspectHintFor(kind),
+                ReadOnly=true,IsEffectPage=false,IsCardSelection=true,CloseOnBackgroundClick=true,CardPickerHint=box.InspectHintFor(kind),
                 InspectGameBoxCharacter=gameBoxFaces,CharacterBack=id=>backArtwork[id],
                 Request=new InteractionRequestProjection { VisibleToViewer=true,CandidateIds=ids,MinSelections=0,MaxSelections=0,
                     AllowDecline=true,InteractionId="game-box-view",Status="open" },

@@ -40,7 +40,7 @@ namespace YC.Infrastructure.Lua
                 if (registry.HasEventHandler(subscriptionId)) continue;
                 var external = pack?.ActiveDefinitions.Single(d => d.DefinitionId == card.CardId || d.RuntimeId == card.CardId);
                 var scriptDefinition = external?.Data["effectScript"] == null ? CreateDefinition(card) : new LuaScriptDefinition(external.DefinitionId, card.CardId, subscriptionId, external.Version,
-                    pack.GetContentScript("event", external.DefinitionId), LuaContentHasher.ComputeSha256(pack.GetContentScript("event", external.DefinitionId)));
+                     pack.GetContentScript("event", external.DefinitionId), LuaContentHasher.ComputeSha256(pack.GetContentScript("event", external.DefinitionId)), pack.GetScriptEntryId((string)external.Data["effectScript"]));
                 dispatcher.Register(new LuaHandlerDefinition(
                     subscriptionId,
                     EventCardEffectEventTypeIds.Resolved,

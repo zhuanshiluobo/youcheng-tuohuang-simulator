@@ -307,7 +307,7 @@ namespace YC.Tests.EditMode
                 catalog.Register(Registry); GenericLuaEffectExecutor.Register(Registry);
                 ResourceEffectExecutor.Register(Registry); ResourcePaymentChoiceEffectExecutor.Register(Registry);
                 ItemTransferEffectExecutor.Register(Registry); FacilityBuildEffectExecutor.Register(Registry);
-                FacilityEntryEffectExecutor.Register(Registry); RepeatEffectExecutor.Register(Registry);
+                FacilityEntryEffectExecutor.Register(Registry);
                 foreach (var player in State.Players) player.RemainingMainActionsThisTurn = 1;
                 State.FindPlayer(1).Resources = new ResourceSet { GoldVoucher = 18 };
                 // 固定种子下的正式供应候选，未注入目标牌或改变候选定义。

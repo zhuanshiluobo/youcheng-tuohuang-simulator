@@ -10,8 +10,9 @@ end
 
 local function upgrade_all(player)
     local candidates = {}
-    for _, item in ipairs(Global.Content.FindInstances()) do
-        if item.contentType == 'enterprise' then
+    -- 非Choice业务选择同样只交正式在场企业；不把未启用牌塞给原Flow后再放宽其校验。
+    for _, zone in ipairs(Global.Content.FindZones({ templateId = 'core.zone.enterprise_display' })) do
+        for _, item in ipairs(Global.Content.FindInstances({ zoneId = zone.id, contentType = 'enterprise' })) do
             candidates[#candidates + 1] = item.id
         end
     end

@@ -144,7 +144,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 else
                     root = WithCommand(() => { Need(Engine.TryCreatePlayerActionEffect(actor, count == 1
                         ? InfluenceEffectSpecFactory.RemoveInfluence(actor, targets[0])
-                        : InfluenceDepartureBatchExecutor.Create(actor, targets.Select(t => InfluenceEffectSpecFactory.RemoveInfluence(actor, t))), "1", "qy006.r10.remove", out string id), "移除入口拒绝"); return id; });
+                        : InfluenceEffectExecutor.StrictRemove(actor, targets, count), "1", "qy006.r10.remove", out string id), "移除入口拒绝"); return id; });
                 Capture("去向待答首次现场");
                 if (!noDestination) Need(f.State.EffectRuntime.DeferredResponses.Any(r => r.Kind == "destination" && r.Status == DeferredResponseStatus.Pending), "未进入真实去向响应");
                 if (t09) Need(f.State.EffectRuntime.DeferredResponses.Where(r => r.Kind == "destination").Select(r => r.AbilityId).OrderBy(x => x)

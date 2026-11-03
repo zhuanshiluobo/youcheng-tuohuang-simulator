@@ -125,7 +125,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             int before = f.Stored, gold = f.State.FindPlayer(1).Resources.GoldVoucher;
             var effects = own.Select(id => InfluenceEffectSpecFactory.RemoveInfluence(1, id)).ToList();
             effects.Add(InfluenceEffectSpecFactory.RemoveInfluence(1, other));
-            f.Run(InfluenceDepartureBatchExecutor.Create(1, effects));
+            f.Run(InfluenceEffectExecutor.StrictRemove(1, own.Concat(new[] { other }), 4));
             // 对手真实收容机会属于批次封口之前，不能略过它就断言已封口。
             while (f.State.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && q.AnsweringPlayerId == 2))
             { Assert.That(f.Open.AnsweringPlayerId, Is.EqualTo(2)); Assert.That(f.Open.CandidateIds, Does.Contain("decline")); f.Answer("decline"); }
@@ -269,8 +269,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 f = new FifthNumberContentTestFixture(artifacts, onceCleanup: !repeated); f.CollectOne();
                 Assert.That(f.Stored, Is.EqualTo(3)); f.OpenCleanup(); int pure = f.State.FindPlayer(1).Resources.PureOriginium;
-                var system = f.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == f.CleanupRoot && n.EffectTypeId == "effect.player.marker.operate");
-                string systemId = system.EffectId; Assert.That(system.Status, Is.EqualTo(EffectNodeStatus.Created));
+                Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.ParentEffectId == f.CleanupRoot &&
+                    n.EffectTypeId == CityStyleSpecialActionEffectTypeIds.RoundCleanup), Is.False, "逐玩家收尾不再提前挂轮末复位节点。");
                 if (repeated) f.InvokeCleanup("qy007.r2.scheduling.repeat");
                 else
                 {
@@ -287,8 +287,31 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Assert.That(f.Engine.TryEndSettlementAction(1, f.CleanupWindow.Context.Id, "", "", f.State.EffectRuntime.StateRevision,
                         "qy007.r2.scheduling.close", out string reason), Is.True, reason); f.Pump();
                 }
+                Assert.That(f.State.EffectRuntime.UsageTrackResets, Is.Empty, "其他玩家尚未完成，不能先复位声明轨道。");
+                var pending = f.State.EffectRuntime.MainNodes.Where(n => n.RoundExecutionId == f.State.EffectRuntime.CurrentRoundExecutionId &&
+                    n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow && n.Status != EffectNodeStatus.Completed).OrderBy(n => n.MainlineIndex).Select(n => n.NodeId).ToArray();
+                foreach (string mainId in pending)
+                {
+                    var main = f.State.EffectRuntime.MainNodes.Single(n => n.NodeId == mainId);
+                    Assert.That(f.State.EffectRuntime.ActiveMainNodeId, Is.EqualTo(mainId));
+                    main.ExecutionEffectId = f.Rounds.CreateCommandExecutor(f.State).CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId,
+                        Object("mainNodeId", NormalizedValue.CreateString(mainId), "nodeTypeId", NormalizedValue.CreateString(main.NodeTypeId)), main.PlayerId));
+                    main.Status = EffectNodeStatus.Running; f.Pump();
+                    var window = f.State.EffectRuntime.EffectNodes.Select(n => n.SettlementWindow).SingleOrDefault(w => w != null && !w.IsClosed && w.Context.Id == f.State.EffectRuntime.ActiveSettlementWindowId);
+                    if (window != null)
+                    {
+                        Assert.That(f.Rounds.CreateCommandExecutor(f.State).TryEndSettlementAction(main.PlayerId, window.Context.Id, "", "", f.State.EffectRuntime.StateRevision,
+                            "qy007.r2.scheduling.other." + main.PlayerId, out string reason), Is.True, reason); f.Pump();
+                    }
+                    Assert.That(f.State.EffectRuntime.MainNodes.Single(n => n.NodeId == mainId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+                }
+                var roundEnd = f.State.EffectRuntime.MainNodes.Single(n => n.RoundExecutionId == f.State.EffectRuntime.CurrentRoundExecutionId && n.NodeTypeId == RoundMainlineNodeTypeIds.RoundEnded);
+                Assert.That(f.State.EffectRuntime.ActiveMainNodeId, Is.EqualTo(roundEnd.NodeId));
+                string systemId = f.Rounds.CreateCommandExecutor(f.State).CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId,
+                    Object("mainNodeId", NormalizedValue.CreateString(roundEnd.NodeId), "nodeTypeId", NormalizedValue.CreateString(roundEnd.NodeTypeId)), roundEnd.PlayerId));
+                roundEnd.ExecutionEffectId = systemId; roundEnd.Status = EffectNodeStatus.Running; f.Pump();
                 Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == systemId).Status, Is.EqualTo(EffectNodeStatus.Completed));
-                f.Restore("真实收尾及其后系统步骤都已完成"); f.Pump();
+                f.Restore("真实逐玩家收尾及轮末系统步骤都已完成"); f.Pump();
                 Assert.That(f.State.FindPlayer(1).Resources.PureOriginium, Is.EqualTo(pure + 1));
             }
             finally

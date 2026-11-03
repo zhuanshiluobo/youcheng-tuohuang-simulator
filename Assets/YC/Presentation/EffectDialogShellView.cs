@@ -24,8 +24,6 @@ namespace YC.Presentation
         [SerializeField] private GameplayTextView descriptionDocument;
         [SerializeField] private ScrollRect optionScroll;
         [SerializeField] private RectTransform optionContent;
-        [SerializeField] private EffectDialogOptionRowView optionRowTemplate;
-        [SerializeField] private EffectDialogOptionRowView executionRowTemplate;
         [SerializeField] private EffectDialogResourceRowView resourceRowTemplate;
         [SerializeField] private Text resourceSummaryText;
         [SerializeField] private EffectDialogActionButtonView[] actionButtons;
@@ -109,7 +107,6 @@ namespace YC.Presentation
         public Text DescriptionText => descriptionText;
         public ScrollRect OptionScroll => optionScroll;
         public RectTransform OptionContent => IsCardPicker || cardGrid == null ? optionContent : cardGrid.Content;
-        public EffectDialogOptionRowView OptionRowTemplate => optionRowTemplate;
         public EffectDialogResourceRowView ResourceRowTemplate => resourceRowTemplate;
         public Text ResourceSummaryText => resourceSummaryText;
         public FacilityEffectCardView FacilityCardTemplate => facilityCardTemplate;
@@ -190,7 +187,6 @@ namespace YC.Presentation
             if (actionButtons == null || actionButtons.Length < 2) missing.Add(nameof(actionButtons));
             if (!IsCardPicker)
             {
-                Require(optionRowTemplate, nameof(optionRowTemplate));
                 Require(resourceRowTemplate, nameof(resourceRowTemplate));
                 Require(boundedLayout, nameof(boundedLayout));
                 Require(effectRowTemplate, nameof(effectRowTemplate));
@@ -211,8 +207,7 @@ namespace YC.Presentation
 
             if (!facilityCardTemplate.TryValidateConfiguration(out reason) ||
                 (IsCardPicker && !cardPickerRow.TryValidateConfiguration(out reason)) ||
-                (!IsCardPicker && (!optionRowTemplate.TryValidateConfiguration(out reason) ||
-                !resourceRowTemplate.TryValidateConfiguration(out reason))))
+                (!IsCardPicker && !resourceRowTemplate.TryValidateConfiguration(out reason)))
             {
                 return false;
             }
@@ -246,8 +241,6 @@ namespace YC.Presentation
             titleText.gameObject.SetActive(true);
             descriptionText.gameObject.SetActive(true);
             optionScroll.gameObject.SetActive(false);
-            if (optionRowTemplate != null) optionRowTemplate.gameObject.SetActive(false);
-            if (executionRowTemplate != null) executionRowTemplate.gameObject.SetActive(false);
             if (resourceRowTemplate != null) resourceRowTemplate.gameObject.SetActive(false);
             resourceSummaryText.gameObject.SetActive(false);
             footer.gameObject.SetActive(false);
@@ -359,14 +352,6 @@ namespace YC.Presentation
         {
             ConfigureOptionScroll("Option Scroll", 0, 0);
             var row = Instantiate(effectRowTemplate, OptionContent, false);
-            dynamicRows.Add(row.gameObject);
-            row.gameObject.SetActive(true);
-            return row;
-        }
-
-        public EffectDialogOptionRowView CreateOptionRow(RectTransform parent, bool execution = false)
-        {
-            var row = Instantiate(execution ? executionRowTemplate : optionRowTemplate, parent == null ? OptionContent : parent, false);
             dynamicRows.Add(row.gameObject);
             row.gameObject.SetActive(true);
             return row;

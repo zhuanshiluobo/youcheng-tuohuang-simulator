@@ -72,7 +72,7 @@ namespace YC.Infrastructure.Lua
                     ["items"] = new JArray(items.Select(i => new JObject { ["item"] = ItemFacts(i),
                         ["originalSupply"] = Model(state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == i.OriginalSupplyZoneId)),
                         ["payable"] = CardMarkerCarrier.AcceptsTransfer(state, zone, i, playerId, accepted),
-                        ["usageBindings"] = new JArray(state.EffectRuntime.UsageTrackBindings.Where(b => b.MarkerItemId == i.ItemId)
+                        ["usageBindings"] = new JArray(state.EffectRuntime.UsageTrackBindings.Where(b => UsageTracks.CurrentMarker(state, b)?.ItemId == i.ItemId)
                             .OrderBy(b => b.BindingId, StringComparer.Ordinal).Select(b => Model(b))) })) });
             }
             var resources = state.FindPlayer(playerId).Resources;

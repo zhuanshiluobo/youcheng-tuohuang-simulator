@@ -217,6 +217,7 @@ namespace YC.Presentation
             var supply = request.PromptParameters?.Properties.Find(value => value.Name == "isDefaultSupplySet")?.Value;
             var title = !isBuild ? dialog.Copy.FacilitySelectionTitle : supply?.BooleanValue == true
                 ? dialog.Copy.BuildCandidateSupplyTitle : dialog.Copy.BuildCandidateAlternateTitle;
+            var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
             var specification = new EffectDialogSelectionSpec
             {
                 Request = request,
@@ -226,6 +227,11 @@ namespace YC.Presentation
                 PlayerSelectionChanged = ids =>
                 { selectedCandidates.Clear(); foreach (var id in PlayerSelectionRequestAdapter.CandidateIds(request,ids)) selectedCandidates.Add(id); },
                 Label = candidateId => FormatCandidateLabel(candidateId, request),
+                ResolveCardDefinition = id =>
+                {
+                    var declared = GameplayExpansionUi.CandidateDefinition(request, id);
+                    return !string.IsNullOrEmpty(declared) ? declared : visible?.ItemZones?.Items.Find(item => item.ItemId == id)?.DefinitionId ?? id;
+                },
                 OptionNamePrefix = "Option ",
                 IsCurrent = Current,
                 Select = candidateId =>

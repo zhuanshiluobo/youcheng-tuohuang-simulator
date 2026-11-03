@@ -108,7 +108,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 registry = new EffectRegistry(); catalog.Register(registry);
                 registry.SetupRecipe = recipe;
                 ResourceEffectExecutor.Register(registry); InfluenceEffectExecutor.Register(registry, influence);
-                ItemTransferEffectExecutor.Register(registry); RepeatEffectExecutor.Register(registry);
+                ItemTransferEffectExecutor.Register(registry);
                 ContentPrimitiveEffectExecutor.Register(registry, map, influence); FacilityEntryEffectExecutor.Register(registry);
                 CharacterLifecycleService.Register(registry); ResourceCollectionEffectExecutor.Register(registry);
                 var tokens = new ResourceTokenService(); var travel = new TravelCostService(map); var decks = new EventDeckService(73);

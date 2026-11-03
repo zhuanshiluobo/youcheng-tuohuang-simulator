@@ -25,6 +25,7 @@ namespace YC.Application.Interactions
         public CommandResult Handle(GameState state, GameCommand command)
         {
             if (state == null || command == null || !CanHandle(command)) return Invalid("结算请求无效。");
+            if (Parameter(command, "intent") == SpecialActionChoiceCommand.Intent) return SpecialActionChoiceCommand.Handle(state, registry, command, roundExecutionService);
             if (Parameter(command, "intent") == AbilityActionCommand.Intent) return AbilityActionCommand.Handle(state, registry, command, roundExecutionService);
             var phase = CommandPhasePolicy.ValidatePhase(state, command.Kind); if (!phase.IsValid) return CommandResult.Invalid(phase);
             if (!int.TryParse(Parameter(command, "expectedRevision"), NumberStyles.None, CultureInfo.InvariantCulture, out int revision)) return Invalid("结算请求缺少有效版本。");

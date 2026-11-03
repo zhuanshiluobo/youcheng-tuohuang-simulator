@@ -77,9 +77,8 @@ return function(ctx)
     if not p.buildFacts then error('martin_overlay_build_facts_missing') end
     if not p.buildFacts.overlay then return {} end
     -- facility.overlay.source唯一SourceUse包装；叶及包装均要求足额，确认后不能放弃。
-    return {Effect.WithContext(Effect.SelectInfluence({player=ctx.playerId,operation='remove',
-      ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false,
-      interactionType='effect.influence.remove.target',promptKey='core:entrepreneur.M.overlay.remove'}),
+    return {Effect.WithContext(Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false,
+      interactionType='effect.influence.remove.target',promptKey='core:entrepreneur.M.overlay.remove' }),
       {requiredOutcome={protocolVersion=1,resultField='completedCount',expectedValue=1}})}
   end
   if p.abilityId=='entrepreneur.M13.urbanization_after' then

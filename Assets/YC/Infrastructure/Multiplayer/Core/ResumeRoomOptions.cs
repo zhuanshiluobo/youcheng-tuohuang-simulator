@@ -28,9 +28,10 @@ namespace YC.Infrastructure.Multiplayer
             save.Validate();
             if (save.Mode != LaunchMode.Host) throw new InvalidOperationException("只有联机存档可以创建续局房间。");
             var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(save.SimulationCheckpointJson);
+            var metadata = save.ReadLaunchMetadata();
             return new ResumeRoomOptions { MapId = save.MapId, GameId = save.GameId, ContentHash = save.ContentHash,
-                Round = save.Round, HostPlayerId = save.LocalPlayerId, Configuration = save.Configuration,
-                RandomRuntime = save.RandomState, EventDeckSeed = save.EventDeckSeed, LaunchPlayerOrder = save.LaunchPlayerOrder,
+                Round = save.Round, HostPlayerId = save.LocalPlayerId, Configuration = metadata.Configuration,
+                RandomRuntime = metadata.RandomState, EventDeckSeed = metadata.EventDeckSeed, LaunchPlayerOrder = metadata.LaunchPlayerOrder,
                 Seats = save.Seats, SimulationEpoch = baseline.SimulationEpoch, MembershipVersion = baseline.MembershipVersion,
                 ConfirmedGlobalSequence = baseline.ConfirmedGlobalSequence, CommandPrefixDigest = baseline.CommandPrefixDigest,
                 CheckpointId = baseline.CheckpointId, MetadataDigest = baseline.MetadataDigest }.Clone();

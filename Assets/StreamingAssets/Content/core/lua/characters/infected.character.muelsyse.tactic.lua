@@ -42,10 +42,30 @@ local function cover(ctx, c)
     end
     return { choose(ctx, c, 'cover_selected', ids, labels, 'core:interaction.muelsyse.cover', 0, 'lua.choice') }
 end
+local function move(ctx, id, destination, reveal)
+    local item = Global.Content.GetInstance(id)
+    if item == nil then error('character_move_source_missing') end
+    return Effect.MoveCharacterCard({ apiVersion = 2, player = ctx.playerId, itemRefs = {{ itemId = id }},
+        expectedSource = { zoneId = item.zoneId, slotId = item.slotId }, destination = { zoneId = destination },
+        insertion = { kind = 'unordered' }, operationProfileId = 'core.character_card_transfer', requiredCount = 1, reveal = reveal == true })
+end
 local function acquire(ctx, c)
     if c.index > #c.items then return cover(ctx, c) end
-    local ids = { 'hand', 'discard' }; local labels = { hand = Text.Ref('core:interaction.card.destination.hand'), discard = Text.Ref('core:interaction.card.destination.discard') }
-    return { choose(ctx, c, 'destination_selected', ids, labels, 'core:interaction.card.destination.choose', 1, 'lua.choice') }
+    local id = c.items[c.index]
+    local branches, options = {}, {}
+    for _, destination in ipairs({ 'hand', 'discard' }) do
+        branches[#branches + 1] = { id = destination, effects = { tag(move(ctx, id, zone(destination, ctx.playerId)), c, 'acquired') } }
+        options[#options + 1] = { candidateId = destination, label = Text.Ref('core:interaction.card.destination.' .. destination) }
+    end
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        minSelections = 1, maxSelections = 1, interactionType = 'character.card.destination',
+        promptKey = 'core:interaction.card.destination.choose' }),
+        { interaction = { prompt = Text.Ref('core:interaction.card.destination.choose', { card = Text.Item(id) }), options = options } }) }
+end
+local function moved(ctx, id)
+    local result = ctx.payload.normalizedResult
+    return ctx.payload.outcome == 'completed' and type(result) == 'table' and result.changed == true and result.movedCount == 1
+        and type(result.movedItemIds) == 'table' and #result.movedItemIds == 1 and result.movedItemIds[1] == id
 end
 return function(ctx)
     local c = state(ctx); if c == nil then return {} end
@@ -63,13 +83,8 @@ return function(ctx)
         for _, item in ipairs(Global.Content.FindInstances({ zoneId = zone('flowing_shapes'), typeId = 'core.generated_character_card' })) do c.items[#c.items + 1] = item.id end
         table.sort(c.items)
         return acquire(ctx, c)
-    elseif c.stage == 'destination_selected' then
-        local destination = ctx.payload.normalizedResult
-        if destination ~= 'hand' and destination ~= 'discard' then error('generated_destination_invalid') end
-        return { tag(Effect.MoveCharacterCardToZone({ apiVersion = 1, player = ctx.playerId, cardItemId = c.items[c.index],
-            destinationZoneId = zone(destination, ctx.playerId) }), c, 'acquired') }
     elseif c.stage == 'acquired' then
-        if ctx.payload.outcome ~= 'completed' then return {} end
+        if not moved(ctx, c.items[c.index]) then return {} end
         c.index = c.index + 1; return acquire(ctx, c)
     elseif c.stage == 'cover_selected' then
         local id = ctx.payload.normalizedResult; if id == nil then return {} end

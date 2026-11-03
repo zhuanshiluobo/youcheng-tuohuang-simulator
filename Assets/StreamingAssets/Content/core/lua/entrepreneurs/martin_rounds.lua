@@ -10,17 +10,29 @@ local function gain(ctx,resource,amount)
   return Effect.GainResource({recipient=ctx.playerId,resourceType=resource,amount=amount})
 end
 local function normal_build(ctx)
-  return shown(Effect.ChooseBuild({player=ctx.playerId,sourceZone='supply',paymentMode='auto',
+  return shown(Effect.Build({ apiVersion=3, targetMode='select',player=ctx.playerId,sourceKind='supply',paymentMode='auto',
     allowDecline=true,includeStoredFacilities=true,excludeRainbow=false,consumeMainAction=false}),'build.normal')
 end
+local function cycle_choice(ctx,prompt)
+  local branches={}
+  for _,slot in ipairs(Global.Facilities.GetSupplyLayers()) do
+    if slot.topItemId~='' then
+      branches[#branches+1]={id=slot.topItemId,effects={Effect.MoveFacilityCard({apiVersion=4,
+        player=ctx.playerId,operation='cycle_supply',selector={mode='explicit',itemIds={slot.topItemId},
+          expectedSource={zoneId=slot.slotZoneId}}})}}
+    end
+  end
+  if #branches==0 then return {} end
+  local effect=Effect.Choice({player=ctx.playerId,branches=branches,interactionType='facility.supply.select',
+    promptKey=prompt or 'core:interaction.item.transfer.prompt'})
+  if prompt then effect=Effect.WithPresentation(effect,{interaction={prompt=Text.Ref(prompt)}}) end
+  return {effect}
+end
 local function to_bottom(ctx)
-  -- 本节点执行时重新查全部供应顶牌，包括刚插入的牌；空槽才沿原操作补牌。
-  return shown(Effect.MoveFacilityCard({player=ctx.playerId,sourceZone='supply',
-    destinationZone='deck_bottom',interactionType='facility.supply.select',
-    promptKey='core:entrepreneur.M.blueprint.to_bottom'}),'blueprint.to_bottom')
+  return cycle_choice(ctx,'core:entrepreneur.M.blueprint.to_bottom')
 end
 local function hub(ctx)
-  return shown(Effect.ChooseBuild({player=ctx.playerId,sourceZone='reserve',
+  return shown(Effect.Build({ apiVersion=3, targetMode='select',player=ctx.playerId,sourceKind='reserve',
     effectId='reserve_extension_hub',paymentMode='free',allowDecline=false,consumeMainAction=false}),'build.hub')
 end
 local function source_for(ctx,abilityId)
@@ -108,7 +120,7 @@ local function order(zone)
     orderRevision=zone.orderRevision,expectedTopItemId=zone.topItemId or ''}
 end
 local function leg(id,from,to,kind)
-  return {itemRefs={{itemId=id}},expectedSource={zoneId=from},destination={zoneId=to},
+  return {selector={mode='explicit',itemIds={id},expectedSource={zoneId=from}},destination={zoneId=to},
     insertion={kind=kind},operationProfileId='core.facility_card_transfer',requiredCount=1,carrierPolicy='preserve'}
 end
 local function transfer(ctx,mode,zone,slot,item)
@@ -120,9 +132,11 @@ local function transfer(ctx,mode,zone,slot,item)
     -- 原顶不离开供应槽，已有下层的相对顺序保持；无中间补槽。
     legs[#legs+1]=leg(slot.topItemId,slot.slotZoneId,slot.slotZoneId,'top')
   elseif mode~='over' then error('martin_pair_mode_invalid') end
-  return Effect.MoveItem({apiVersion=2,player=ctx.playerId,
-    operationId='martin:'..mode..':'..ctx.eventId,transfers=legs,
+  local effect=Effect.MoveItem({apiVersion=4,player=ctx.playerId,operation='transfer_batch',transfers=legs,
     expectedOrders={order(zone),order(slot)}})
+  -- 回底候选必须在上插真实结束后查询，不能在旧快照提前冻结。
+  if mode=='over' then effect=Effect.WithContext(effect,{stage='M09.after_over'}) end
+  return effect
 end
 local function pair_context(stage,mode,source,zone,slot)
   return {stage=stage,mode=mode,sourceKey=source.sourceKey,blueprintZoneId=zone.id,
@@ -141,7 +155,7 @@ local function item_choice(ctx,items,key,context,interactionType)
 end
 local function begin_pair(ctx,mode)
   local source,zone=storage(ctx)
-  if not source then return {} end
+  if not source then return mode=='over' and to_bottom(ctx) or {} end
   local blueprints=inventory(zone)
   local colors={}
   for _,item in ipairs(blueprints) do colors[Global.Content.GetDefinition(item.definitionId).color]=true end
@@ -153,7 +167,7 @@ local function begin_pair(ctx,mode)
       if d and d.color~='rainbow' and colors[d.color] then candidates[#candidates+1]=item end
     end
   end
-  if #candidates==0 then return {} end
+  if #candidates==0 then return mode=='over' and to_bottom(ctx) or {} end
   return {item_choice(ctx,candidates,'blueprint.choose_supply',
     {stage='M.pair.supply',mode=mode,sourceKey=source.sourceKey,blueprintZoneId=zone.id},'facility.supply.select')}
 end
@@ -218,6 +232,7 @@ return function(ctx)
         facilityItemId=target.facilityItemId,expectedCellZoneId=target.cellZoneId,
         expectedOrderDigest=target.orderDigest}),{stage='M11.retire'})}
     end
+    if saved.stage == 'M09.after_over' then return to_bottom(ctx) end
     if saved.stage == 'M05.after_intro' then return begin_pair(ctx,'exchange') end
     if saved.stage == 'M06.after_move' then return begin_pair(ctx,'under') end
     if saved.stage == 'M.pair.supply' then return after_supply(ctx,p,saved) end
@@ -232,9 +247,9 @@ return function(ctx)
   local ability = p.abilityId
   if ability == 'entrepreneur.face.M05' then
     local intro = Effect.WithPresentation(Effect.Choice({player=ctx.playerId,branches={
-      {id='explore',effects={Effect.ChooseExplore({player=ctx.playerId})}},
+      {id='explore',effects={Effect.Explore({apiVersion=3,targetMode='select',player=ctx.playerId,consumeMainAction=false})}},
       {id='place_twice',effects={place(ctx),place(ctx)}}},
-      promptKey='core:entrepreneur.M.M05.choice',interactionType='lua.choice'}),{interaction={prompt=Text.Ref('core:entrepreneur.M.M05.choice'),options={
+      promptKey='core:entrepreneur.M.M05.choice',interactionType='effect.choice.execute'}),{interaction={prompt=Text.Ref('core:entrepreneur.M.M05.choice'),options={
       {candidateId='explore',label=Text.Ref('core:entrepreneur.M.M05.explore')},
       {candidateId='place_twice',label=Text.Ref('core:entrepreneur.M.M05.place_twice')}}}})
     -- 一次挂好两独立有序Place；之后交换需真实配对及原子批量接口，不能两次移位冒充。
@@ -285,8 +300,7 @@ return function(ctx)
   end
   if ability == 'entrepreneur.face.M09' then
     local effects=begin_pair(ctx,'over')
-    -- 两项是独立兄弟；无配对只完成上插，仍执行后句。
-    effects[#effects+1]=to_bottom(ctx)
+    -- 上插无配对时begin_pair直接进入回底；有配对时由实际转移完成续接。
     return effects
   end
   if ability == 'entrepreneur.face.M10' then
@@ -294,9 +308,9 @@ return function(ctx)
     if not source then error('martin_blueprint_source_unavailable') end
     return {shown(Effect.Condition({decisionPlayer=ctx.playerId,allowDecline=true,
       leftEffects={Effect.PayResource({player=ctx.playerId,cost={GoldVoucher=2}})},
-      rightEffects={Effect.ChooseBuild({player=ctx.playerId,sourceZone='authorized',
+      rightEffects={Effect.Build({ apiVersion=3, targetMode='select',player=ctx.playerId,sourceKind='authorized',
         sourceKey=source.sourceKey,expectedSourceZoneId=zone.id,consumeMainAction=false,
-        paymentMode='auto',allowDecline=true,includeStoredFacilities=false})}}),'M10.condition')}
+        paymentMode='auto',allowDecline=true})}}),'M10.condition')}
   end
   if ability == 'entrepreneur.face.M11' then
     local panel=Effect.WithContext(shown(Effect.SelectFacilityPanel({apiVersion=1,

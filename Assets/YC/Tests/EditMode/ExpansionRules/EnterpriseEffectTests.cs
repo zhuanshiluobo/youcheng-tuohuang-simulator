@@ -18,7 +18,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
-    public sealed class EnterpriseEffectTests
+    public sealed partial class EnterpriseEffectTests
     {
         private const string Business = "test.enterprise.business", Research = "test.enterprise.research";
         private static EnterpriseDefinition Board(string id, params string[] kinds) => new EnterpriseDefinition { DefinitionId = id, RuntimeId = id,
@@ -58,7 +58,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static GameState State(int businessLevel = 0, int researchLevel = 0, int opponentBusinessLevel = 0, EnterpriseDefinitions definitions = null, int playerCount = 2)
         {
             var map = new GameMapDefinition { MapId = "test.enterprise.map", MinPlayers = 2, MaxPlayers = 4 };
-            var source = new GameState { GameId = "test.enterprise.game", MapId = map.MapId, ContentPackHash = "test.enterprise.content",
+            var source = new GameState { GameId = "test.enterprise.game", MapId = map.MapId, Round = 1, ActionRound = 1, Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, ContentPackHash = "test.enterprise.content",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = playerCount, ContentPackHash = "test.enterprise.content", EnabledExpansionIds = new List<string> { "core", "enterprise" } },
                 Players = Enumerable.Range(1, playerCount).Select(player => new PlayerState { PlayerId = player, Name = "玩家" + player, Resources = new ResourceSet { OriginiumShard = player == 1 ? 6 : 0 } }).ToList() };
             var recipe = new List<ItemRecipeEntry> { new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } };
@@ -96,6 +96,23 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             registry = registry ?? Registry(); var engine = new EffectTreeExecutor(state, registry); string id = engine.CreateRoot(spec); var result = engine.RunUntilQuiescent(); Assert.That(result.Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state); return engine.GetNode(id);
         }
+        private static void Run(GameState state, EffectSpec[] effects, EffectRegistry registry)
+        {
+            for (int index = 0; index < effects.Length; index++)
+            {
+                var node = Run(state, effects[index], registry);
+                if (index + 1 < effects.Length)
+                {
+                    for (int guard = 0; guard < 8 && node.Status != EffectNodeStatus.Completed; guard++)
+                    {
+                        var request = Open(state);
+                        Assert.That(request.CandidateIds, Does.Contain("continue"), "仅接受原规则的条件执行/付款确认");
+                        AnswerRequest(state, registry, "continue");
+                    }
+                    Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed));
+                }
+            }
+        }
         private static GameState Restore(GameState state, EffectRegistry registry)
         {
             var result = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry); Assert.That(result.Succeeded, Is.True, result.Diagnostic); Valid(result.State); return result.State;
@@ -107,7 +124,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, answer, out var reason), Is.True, reason);
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state);
         }
-        private static EffectSpec Sequence(params EffectSpec[] effects) { var spec = EffectSpec.Create(LuaDomainEffectTypeIds.Repeat, Object("apiVersion", NormalizedValue.CreateInteger(1), "count", NormalizedValue.CreateInteger(1)), 1); spec.NestedEffectGroups.Add(effects.ToList()); return spec; }
+        private static EffectSpec[] Effects(params EffectSpec[] effects) => effects;
+
 
         [TestCase(0)][TestCase(1)][TestCase(2)][TestCase(3)][TestCase(4)][TestCase(5)]
         public void LevelReadsActualCooperationSlotWithoutWritableCache(int level)
@@ -116,9 +134,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void MissingCooperationMarkerFailsInsteadOfReturningZero()
         {
-            var state = State(); var track = state.ItemZones.Zones.Single(zone => zone.ParentId == ItemId(state, Business) && zone.OwnerPlayerId == 1);
-            var marker = state.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId); marker.ZoneId = FindZone(state, "supply", 1).ZoneId; marker.SlotId = "";
-            Assert.Throws<InvalidOperationException>(() => Level(state));
+            var state = State(); RemoveCooperationMarkerForIsolation(state, Business, 1);
+            Assert.That(Level(state), Is.EqualTo(EnterpriseStateQuery.MissingCooperationLevel));
+            Valid(state);
         }
         [Test] public void RewardUnlockAndBlankArrivalsRemainDistinct()
         {
@@ -129,7 +147,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase(4, 2, 1, 2)][TestCase(5, 1, 0, 0)]
         public void CappedUpgradeRewardsOnlyTrueArrivalsAndContinuesSibling(int oldLevel, int levels, int arrivals, int rewardScore)
         {
-            var state = State(oldLevel); var registry = Registry(); Run(state, Sequence(EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), levels), ResourceEffectSpecFactory.GainScore(1, 1)), registry);
+            var state = State(oldLevel); var registry = Registry(); Run(state, Effects(EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), levels), ResourceEffectSpecFactory.GainScore(1, 1)), registry);
             Assert.That(Level(state), Is.EqualTo(5)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(rewardScore + 1));
             var upgrade = state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise); Assert.That(upgrade.EnterpriseArrivalReceipts.Count, Is.EqualTo(arrivals));
             Assert.That(state.EffectRuntime.DispatchReceipts.Count(receipt => receipt.SubscriptionId == "enterprise.resolve:" + EnterpriseEffectExecutor.LevelChangedEvent), Is.EqualTo(arrivals));
@@ -174,7 +192,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void SeparateUpgradeAndActivationKeepIndependentEnterpriseTargets()
         {
-            var state = State(0, 1); var registry = Registry(); Run(state, Sequence(EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), 1),
+            var state = State(0, 1); var registry = Registry(); Run(state, Effects(EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), 1),
                 EnterpriseSpecialSelectionExecutor.ActivateSpec(1, 1, ItemId(state, Research), Research + ".level_1.special")), registry);
             Assert.That(Level(state), Is.EqualTo(1)); Assert.That(Open(state).InteractionTypeId, Is.EqualTo("enterprise.department"));
             AnswerRequest(state, registry, ItemId(state, "test.department.structural")); Assert.That(Level(state, Research), Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(2));
@@ -194,14 +212,14 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void NoUnlockedSpecialCompletesOfficeEntryAndScoreWithoutEmptyDialog()
         {
-            var state = State(); var registry = Registry(); Run(state, Sequence(ResourceEffectSpecFactory.GainScore(1, 1), Activate(state)), registry);
+            var state = State(); var registry = Registry(); Run(state, Effects(ResourceEffectSpecFactory.GainScore(1, 1), Activate(state)), registry);
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty);
             Assert.That(Text(state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == LuaDomainEffectTypeIds.ActivateEnterpriseSpecial).NormalizedResult, "reasonCode"), Is.EqualTo("no_candidates"));
         }
         [Test] public void IncompleteLeftSkipsWholeConditionAndLogsOnceAcrossRecovery()
         {
             var state = State(); var registry = Registry(); var incomplete = Spec(LuaDomainEffectTypeIds.UpgradeEnterprise, 1, "levels", NormalizedValue.CreateInteger(1));
-            Run(state, Sequence(EffectSpec.Condition(new[] { incomplete }, new[] { ResourceEffectSpecFactory.GainScore(1, 9) }), ResourceEffectSpecFactory.GainScore(1, 1)), registry);
+            Run(state, Effects(EffectSpec.Condition(new[] { incomplete }, new[] { ResourceEffectSpecFactory.GainScore(1, 9) }), ResourceEffectSpecFactory.GainScore(1, 1)), registry);
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(state.Logs.Count(log => log.Message.Contains("incomplete_effect_skipped")), Is.EqualTo(1));
             state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(state.Logs.Count(log => log.Message.Contains("incomplete_effect_skipped")), Is.EqualTo(1));
         }
@@ -226,7 +244,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void UnknownSchemaAndExecutionPermissionAreNotContentSkips()
         {
-            var state = State(); var registry = Registry(); var spec = EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), 1); Value(spec.NormalizedArguments, "apiVersion").IntegerValue = 2;
+            var state = State(); var registry = Registry(); var spec = EnterpriseEffectExecutor.UpgradeSpec(1, ItemId(state, Business), 1); Value(spec.NormalizedArguments, "apiVersion").IntegerValue = 99;
             Assert.That(Run(state, spec, registry).FailureReason, Is.EqualTo("enterprise_schema_unsupported")); Assert.That(state.Logs, Is.Empty);
             spec = EnterpriseEffectExecutor.UpgradeSpec(2, ItemId(state, Business), 1); spec.PlayerId = 1; var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(spec); Assert.That(engine.RunUntilQuiescent().Faulted, Is.True); Assert.That(Level(state), Is.Zero);
         }
@@ -274,7 +292,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Data = JObject.Parse("{levels:[{level:0,kind:'empty',abilityId:''},{level:1,kind:'reward',abilityId:'test.enterprise.lua.reward'},{level:2,kind:'empty',abilityId:''},{level:3,kind:'empty',abilityId:''},{level:4,kind:'empty',abilityId:''},{level:5,kind:'empty',abilityId:''}]}"),
                 Abilities = new List<ExternalAbilityDefinition> { new ExternalAbilityDefinition { AbilityId = "test.enterprise.lua.reward", Version = "1.0.0", SubscriptionId = "content.test.enterprise.lua.reward", Script = "test.reward.lua" } } };
             var researchDefinition = new ExternalContentDefinition { ContentType = "enterprise", DefinitionId = Research, RuntimeId = Research, Data = new JObject {
-                ["levels"] = JArray.FromObject(Board(Research, "empty", "special", "department_reward", "department_reward", "department_reward", "department_reward").Levels), ["departmentRewardPolicy"] = "active_department" } };
+                ["levels"] = new JArray(Board(Research, "empty", "special", "department_reward", "department_reward", "department_reward", "department_reward").Levels.Select(level => new JObject { ["level"] = level.Level, ["kind"] = level.Kind, ["abilityId"] = level.AbilityId })), ["departmentRewardPolicy"] = "active_department" } };
             registry.EnterpriseDefinitions = LuaContentCatalog.CreateEnterpriseDefinitions(registry, new[] { definition, researchDefinition }, path => "return function(ctx) return { Effect.GainScore({recipient=ctx.playerId,amount=4}) } end");
             state.ItemZones.Items.Single(item => item.DefinitionId == Business).DefinitionId = "test.enterprise.lua";
             string source = "return function(ctx) return { Effect.UpgradeEnterprise({apiVersion=1,player=ctx.playerId,enterpriseItemId='" + ItemId(state, "test.enterprise.lua") + "',levels=1}) } end";
@@ -387,7 +405,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             string source = "return function(ctx) return { Effect.Condition({leftEffects={" + left + "},rightEffects={" + right + "}}), Effect.GainScore({recipient=ctx.playerId,amount=1}) } end";
             var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition("test.incomplete", "test.incomplete", "test.incomplete", "1.0.0", source, LuaContentHasher.ComputeSha256(source)), new LuaInvocationContext("test.event", "test.event", "1", 0, "1.0.0", 2, 0, 1));
             Assert.That(result.IsSuccess, Is.True, result.Diagnostic); Assert.That(new LuaEffectSpecCompiler().TryCompile(result, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic);
-            Run(state, Sequence(specs.ToArray()), registry); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(missingLeft ? 1 : 0));
+            Run(state, Effects(specs.ToArray()), registry); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(missingLeft ? 1 : 0));
             Assert.That(state.Logs.Count(log => log.Message.Contains("missingFieldNames=amount")), Is.EqualTo(1)); state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(state.Logs.Count(log => log.Message.Contains("incomplete_effect_skipped")), Is.EqualTo(1));
         }
 

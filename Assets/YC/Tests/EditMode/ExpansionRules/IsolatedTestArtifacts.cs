@@ -49,6 +49,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static Lazy<Run> shared = new Lazy<Run>(() => new Run());
         private static bool boundaryStarted;
+        private static readonly object caseGate = new object();
+        private static readonly List<IsolatedTestArtifacts> cases = new List<IsolatedTestArtifacts>();
+        private static readonly Dictionary<string, IsolatedTestArtifacts> unclaimedStarts = new Dictionary<string, IsolatedTestArtifacts>(StringComparer.Ordinal);
         private static UnityEditor.TestTools.TestRunner.Api.TestRunnerApi callbackApi;
         [UnityEditor.InitializeOnLoadMethod]
         private static void RegisterRunBoundary()
@@ -59,7 +62,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private sealed class RunBoundary : UnityEditor.TestTools.TestRunner.Api.ICallbacks
         {
-            public void RunStarted(UnityEditor.TestTools.TestRunner.Api.ITestAdaptor _) { shared = new Lazy<Run>(() => new Run()); boundaryStarted = true; }
+            public void RunStarted(UnityEditor.TestTools.TestRunner.Api.ITestAdaptor _) { shared = new Lazy<Run>(() => new Run()); boundaryStarted = true; lock(caseGate) { cases.Clear(); unclaimedStarts.Clear(); } }
             public void RunFinished(UnityEditor.TestTools.TestRunner.Api.ITestResultAdaptor result)
             {
                 if (!shared.IsValueCreated) return;
@@ -68,14 +71,29 @@ namespace YC.Tests.EditMode.ExpansionRules
                     passed = result.PassCount, failed = result.FailCount, skipped = result.SkipCount, inconclusive = result.InconclusiveCount,
                     codeFingerprint = run.CodeHash, installedContentTreeFingerprint = run.ContentHash }, Formatting.Indented), run.Results, run.Project);
             }
-            public void TestStarted(UnityEditor.TestTools.TestRunner.Api.ITestAdaptor _) { }
-            public void TestFinished(UnityEditor.TestTools.TestRunner.Api.ITestResultAdaptor _) { }
+            public void TestStarted(UnityEditor.TestTools.TestRunner.Api.ITestAdaptor test)
+            {
+                if (test.IsSuite) return;
+                lock (caseGate) unclaimedStarts[CaseKey(test.Id, test.FullName)] = new IsolatedTestArtifacts(test.Id, test.FullName, "Unity.TestStarted");
+            }
+            public void TestFinished(UnityEditor.TestTools.TestRunner.Api.ITestResultAdaptor result)
+            {
+                if (result.Test.IsSuite) return;
+                lock (caseGate)
+                {
+                    foreach (var entry in cases.Where(c => c.TestId == result.Test.Id && c.TestName == result.Test.FullName))
+                        entry.WriteFinalResult(result);
+                    unclaimedStarts.Remove(CaseKey(result.Test.Id, result.Test.FullName));
+                }
+            }
         }
         private readonly Run run;
         private readonly Dictionary<string, int> labels = new Dictionary<string, int>(StringComparer.Ordinal);
         private readonly HashSet<string> workspaces = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private int sequence;
         private bool finished;
+        private bool terminal;
+        private readonly string identityOrigin;
         public string ResultsDirectory { get; }
         public string InputsDirectory { get; }
         public string RunId => run.Id;
@@ -85,27 +103,46 @@ namespace YC.Tests.EditMode.ExpansionRules
         public string TestId { get; }
         public string TestName { get; }
 
-        private IsolatedTestArtifacts()
+        private static string CaseKey(string id, string name) => id + "|" + name;
+        private IsolatedTestArtifacts(string id, string name, string origin)
         {
             run = shared.Value;
-            var test = TestContext.CurrentContext.Test;
-            TestId = test.ID; TestName = test.FullName;
+            TestId = id; TestName = name; identityOrigin = origin;
             CaseId = Hash(Encoding.UTF8.GetBytes(TestId + "|" + TestName)).Substring(0, 16) + "-" + Guid.NewGuid().ToString("N");
             ResultsDirectory = Path.Combine(run.Results, CaseId); InputsDirectory = Path.Combine(run.Inputs, CaseId);
             CreateDirectory(ResultsDirectory, run.Project); CreateDirectory(InputsDirectory, run.Project);
             WriteText("case-start.json", JsonConvert.SerializeObject(Identity("开始"), Formatting.Indented));
+            lock (caseGate) cases.Add(this);
         }
-        public static IsolatedTestArtifacts BeginCase() => new IsolatedTestArtifacts();
+        public static IsolatedTestArtifacts BeginCase()
+        {
+            var test = TestContext.CurrentContext.Test;
+            lock (caseGate)
+            {
+                string key = CaseKey(test.ID, test.FullName);
+                if (unclaimedStarts.TryGetValue(key, out var entry)) { unclaimedStarts.Remove(key); return entry; }
+                return new IsolatedTestArtifacts(test.ID, test.FullName, "NUnit.BeginCase");
+            }
+        }
         private object Identity(string status) => new { runId = run.Id, caseId = CaseId, testId = TestId, testFullName = TestName, codeFingerprint = run.CodeHash,
-            installedContentTreeFingerprint = run.ContentHash, status, utc = DateTime.UtcNow };
+            installedContentTreeFingerprint = run.ContentHash, identityOrigin, resultContractVersion = 2, status, utc = DateTime.UtcNow };
 
         public void Finish()
         {
             if (finished) throw new IOException("isolated_test_result_already_written");
             var result = TestContext.CurrentContext.Result;
-            WriteText("case-result.json", JsonConvert.SerializeObject(new { identity = Identity(result.Outcome.Status.ToString()), result = result.Outcome.ToString(),
+            // finally/TearDown中的CurrentContext可能尚未包含最终失败或仍显示前例结果。保留观察，不提前写终态。
+            WriteText("case-finish-observation.json", JsonConvert.SerializeObject(new { identity = Identity(result.Outcome.Status.ToString()), result = result.Outcome.ToString(),
+                source = "NUnit.CurrentContext观察，非最终结果",
                 message = result.Message, stackTrace = result.StackTrace }, Formatting.Indented));
             finished = true;
+        }
+        private void WriteFinalResult(UnityEditor.TestTools.TestRunner.Api.ITestResultAdaptor result)
+        {
+            if (terminal) return;
+            WriteText("case-result.json", JsonConvert.SerializeObject(new { identity = Identity(result.TestStatus.ToString()), result = result.ResultState,
+                source = "Unity.TestFinished", finishRequested = finished, message = result.Message, stackTrace = result.StackTrace }, Formatting.Indented));
+            terminal = true;
         }
         public string WriteText(string relative, string text)
         {

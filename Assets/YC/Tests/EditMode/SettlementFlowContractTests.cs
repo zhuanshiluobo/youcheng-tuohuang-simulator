@@ -378,6 +378,8 @@ namespace YC.Tests.EditMode
 
         private static GameState PaymentState(bool withBuildSupply = false) => PaymentStateCore(withBuildSupply, false);
         private static GameState PaymentStateCore(bool withBuildSupply, bool withAward)
+            => PaymentStateCoreWithMarkerCount(withBuildSupply, withAward, 3);
+        private static GameState PaymentStateCoreWithMarkerCount(bool withBuildSupply, bool withAward, int markerCount)
         {
             var map = StaticMapDefinitions.CreateThreePlayerMap(); var source = State(); source.MapId = map.MapId;
             source.ContentPackHash = "settlement.fixture"; source.Round = source.ActionRound = 1;
@@ -391,7 +393,7 @@ namespace YC.Tests.EditMode
                 PaymentPolicyId = "core.basic_resource_substitution", MaxMarkersPerPayment = 2 };
             var recipes = new List<ItemRecipeEntry> {
                 new ItemRecipeEntry { EntryId = "carrier", DefinitionId = "operator.passenger", TypeId = "core.operator_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "persistent" },
-                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", PerPlayer = true, Quantity = 3, InitialZoneRole = "supply" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", PerPlayer = true, Quantity = markerCount, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "generated.hand", DefinitionId = "fixture.generated.hand", TypeId = "core.generated_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "generated.discard", DefinitionId = "fixture.generated.discard", TypeId = "core.generated_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "discard" },
                 new ItemRecipeEntry { EntryId = "normal.hand", DefinitionId = "liskarm", TypeId = "core.basic_character_card", PerPlayer = true, Quantity = 1, InitialZoneRole = "hand" }

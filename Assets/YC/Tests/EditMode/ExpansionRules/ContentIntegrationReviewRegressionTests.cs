@@ -111,7 +111,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void I01Q803ActualRemovalEventCannotHideAnOuterDueInvocation(bool insideDue)
         {
             const string observer="i01.removal.schedule";
-            string due="return function(ctx) return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end";
+            string due="return function(ctx) return {Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end";
             using var f=Fixture(ScheduleBody,due,j=>{
                 ((JArray)j["abilitySources"]).Add(JObject.FromObject(new AbilitySourceDeclaration{DefinitionId=Definition,AbilityId=observer,Kind="event",HandlerRef=observer,DeclarationVersion="1.0.0",AuthorizationPolicy="controller",PresentationRef=Definition,
                     EffectiveZones=new List<string>{"core.zone.entrepreneur_active"},ObservedEvents=new List<string>{"InfluenceRemoved"},AllowedOperations=new List<string>{"cleanup.defer:"+Due}}));
@@ -119,7 +119,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             },fullRound:true,extraOverrides:_=>new Dictionary<string,string>{{"lua/entrepreneurs/paul.p07.resource_profile.lua",ScheduleBody}});
             for(int guard=0;guard<200 && f.State.Phase!=GamePhase.ActionRound1;guard++) AdvanceVisible(f);
             f.Place(f.Location,0);
-            if(insideDue){f.Invoke(Signal);Cleanup(f);var q=f.Open.Single(request=>f.State.EffectRuntime.EffectNodes.Any(n=>n.EffectId==request.OwnerEffectId && n.EffectTypeId==ContentPrimitiveEffectExecutor.SelectInfluence));Assert.That(f.Engine.TrySubmitInteraction(q.GetStableInteractionId(),1,q.StateRevision,NormalizedValue.CreateString(q.CandidateIds.First()),out string reason),Is.True,reason);}
+            if(insideDue){f.Invoke(Signal);Cleanup(f);var q=f.Open.Single(request=>f.State.EffectRuntime.EffectNodes.Any(n=>n.EffectId==request.OwnerEffectId && n.EffectTypeId==InfluenceEffectTypeIds.RemoveInfluence));Assert.That(f.Engine.TrySubmitInteraction(q.GetStableInteractionId(),1,q.StateRevision,NormalizedValue.CreateString(q.CandidateIds.First()),out string reason),Is.True,reason);}
             else {string id=f.State.Map.Influences.Single(i=>i.PlayerId==1).InfluenceId;f.Engine.CreateRoot(InfluenceEffectSpecFactory.RemoveInfluence(1,id));}
             var result=f.Engine.RunUntilQuiescent();f.Snapshot(insideDue?"I01到期移除普通事件包装首次现场":"I01义务外同一真实事件来源");
             Assert.That(f.State.EffectRuntime.AbilitySourceUses.Any(u=>u.AbilityId==observer),Is.True);

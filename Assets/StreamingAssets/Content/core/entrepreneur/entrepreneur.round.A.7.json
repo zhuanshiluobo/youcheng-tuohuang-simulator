@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.A.7",
   "contentType": "entrepreneur_round",
-  "version": "1.4.0",
+  "version": "1.4.2",
   "displayName": "艾格尼丝·史密斯·第7回合",
   "artwork": "artwork/entrepreneurs/A02.jpg",
   "expansionId": "infected",
@@ -269,37 +269,37 @@
     {
       "handlerId": "entrepreneur.A02.immediate.1",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A02.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.A03.immediate.1",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.3.0",
+      "version": "1.3.2",
       "completionHandlerId": "entrepreneur.A03.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.A02.final",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.1.5",
+      "version": "1.1.7",
       "completionHandlerId": "entrepreneur.A02.final.completed"
     },
     {
       "handlerId": "entrepreneur.A02.scoring",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.2.0",
+      "version": "1.2.2",
       "completionHandlerId": "entrepreneur.A02.scoring.completed"
     },
     {
       "handlerId": "entrepreneur.A03.scoring",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.1.5",
+      "version": "1.1.7",
       "completionHandlerId": "entrepreneur.A03.scoring.completed"
     },
     {
       "handlerId": "entrepreneur.A03.special",
       "script": "lua/entrepreneurs/agnes.invoke.lua",
-      "version": "1.1.5",
+      "version": "1.1.7",
       "completionHandlerId": "entrepreneur.A03.special.completed"
     }
   ],

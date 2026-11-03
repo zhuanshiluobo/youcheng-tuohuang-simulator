@@ -7,7 +7,7 @@ end
 return function(ctx)
     if ctx.eventType == 'EffectCompleted' then
         local saved = ctx.payload.continuationContext
-        if saved == nil or saved.stage ~= 'share' or ctx.payload.effectTypeId ~= 'effect.influence.select_action'
+        if saved == nil or saved.stage ~= 'share' or ctx.payload.effectTypeId ~= 'effect.influence.remove'
             or ctx.payload.outcome ~= 'completed' then return {} end
         local result = ctx.payload.normalizedResult
         if result.completedCount ~= 1 or result.removedInfluences == nil or #result.removedInfluences ~= 1 then
@@ -42,9 +42,9 @@ return function(ctx)
     end
     if #targets == 0 then return {} end
     return {Effect.WithPresentation(Effect.Condition({ruleCondition=true,decisionPlayer=ctx.playerId,
-        leftEffects={Effect.WithContext(Effect.WithPresentation(Effect.SelectInfluence({player=ctx.playerId,
-            operation='remove',ownerFilter='self',candidateScope='resource_points',candidateIds=targets,
-            count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false}),
+        leftEffects={Effect.WithContext(Effect.WithPresentation(Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,
+            subjectFilter='self',selectionScope='resource_points',candidateIds=targets,
+            count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false }),
             {interaction={prompt=Text.Ref('core:entrepreneur.P.share.choose'),options=options}}),
             {stage='share'})},rightEffects={}}),
         {interaction={prompt=Text.Ref('core:entrepreneur.P.share.condition')}})}

@@ -6,9 +6,11 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Domain.Interactions;
 using YC.Infrastructure.Lua;
+using YC.Tests.EditMode.ExpansionRules;
 
 namespace YC.Tests.EditMode
 {
@@ -102,17 +104,20 @@ namespace YC.Tests.EditMode
 
         [TestCase("CharacterCardEffectChoiceDialog")]
         [TestCase("FacilityEffectChoiceDialog")]
-        public void ArtworkSelectionUsesCardPicker_AndTextChoiceKeepsOriginalShell(string typeName)
+        public void ArtworkSelectionUsesCardPicker_AndUntypedValueChoiceIsRejected(string typeName)
         {
             var dialog = NewDialog(typeName);
             ShowSelection(dialog, NewSelection(FacilityIds(2)), false);
             Assert.That(Property<bool>(Page(dialog), "IsCardPicker"), Is.True);
-            ShowSelection(dialog, NewSelection(new[] { "originium", "iron" }), false);
+            var error = Assert.Throws<TargetInvocationException>(() =>
+                ShowSelection(dialog, NewSelection(new[] { "originium", "iron" }), false));
+            Assert.That(error.InnerException, Is.InstanceOf<InvalidOperationException>());
+            Assert.That(error.InnerException.Message, Does.Contain("ordinary_option_row_retired"));
             var page = Page(dialog);
             Assert.That(Property<bool>(page, "IsCardPicker"), Is.False);
             Assert.That(Cards(page), Is.Empty);
-            Assert.That(page.GetComponentsInChildren(RuntimeType("EffectDialogOptionRowView"), false).Length,
-                Is.EqualTo(2));
+            Assert.That(page.GetComponentsInChildren(RuntimeType("EffectDialogOptionRowView"), false), Is.Empty,
+                "无正式目标语义的值菜单不得创建退役条目");
         }
 
         [Test]
@@ -132,6 +137,241 @@ namespace YC.Tests.EditMode
             Call(facility, "ShowExtensionHubOptions", options, new Action(() => { }),
                 new Action<string, int>((_, __) => { }), new Action(() => { }), new Action(() => { }));
             Assert.That(Property<bool>(Page(facility), "IsCardPicker"), Is.False);
+        }
+
+        [TestCase("CharacterCardEffectChoiceDialog", false)]
+        [TestCase("FacilityEffectChoiceDialog", false)]
+        [TestCase("CharacterCardEffectChoiceDialog", true)]
+        [TestCase("FacilityEffectChoiceDialog", true)]
+        public void ExplicitCardSelectionWithoutArtworkKeepsRealCardsAndSubmissionBoundary(string host, bool readOnly)
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var ids = new[] { "isolated.card.missing.1", "isolated.card.missing.2" };
+                var dialog = NewDialog(host);
+                var spec = NewSelection(ids);
+                var request = (InteractionRequestProjection)Field(spec, "Request");
+                var original = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                var selected = new List<string>();
+                int submissions = 0;
+                bool current = true;
+                Set(spec, "IsCardSelection", true);
+                Set(spec, "ReadOnly", readOnly);
+                Set(spec, "CardSprite", new Func<string, Sprite>(_ => null));
+                Set(spec, "Select", new Action<string>(id => selected.Add(id)));
+                Set(spec, "Confirm", new Action(() => submissions++));
+                Set(spec, "IsCurrent", new Func<bool>(() => current));
+                foreach (var id in ids)
+                    LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=" + request.InteractionId + " item=" + id);
+                ShowSelection(dialog, spec, false);
+                var page = Page(dialog);
+                var cards = Cards(page);
+                Assert.That(Property<bool>(page, "IsCardPicker"), Is.True);
+                Assert.That(cards, Has.Length.EqualTo(2));
+                Assert.That(page.GetComponentsInChildren(RuntimeType("EffectDialogOptionRowView"), false), Is.Empty);
+                for (int i = 0; i < cards.Length; i++)
+                {
+                    Assert.That(Property<RawImage>(cards[i], "CardImage").texture, Is.Null);
+                    Assert.That(Property<Text>(cards[i], "FallbackLabel").text, Is.EqualTo(ids[i]));
+                    Assert.That(Property<Text>(cards[i], "FallbackLabel").gameObject.activeSelf, Is.True);
+                }
+                Property<Button>(cards[1], "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(readOnly ? Array.Empty<string>() : new[] { ids[1] }));
+                Assert.That(submissions, Is.Zero, "点卡只选草稿；只读页不得提交业务。");
+                if (readOnly) Assert.That(FindButton(page, "Confirm Selection"), Is.Null);
+                else
+                {
+                    Set(spec, "SelectedIds", new[] { ids[1] });
+                    foreach (var id in ids)
+                        LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=" + request.InteractionId + " item=" + id);
+                    ShowSelection(dialog, spec, true);
+                    var confirm = FindButton(Page(dialog), "Confirm Selection");
+                    Assert.That(confirm.interactable, Is.True);
+                    confirm.onClick.Invoke(); confirm.onClick.Invoke();
+                    Assert.That(submissions, Is.EqualTo(1));
+                }
+                current = false;
+                Property<Button>(Cards(Page(dialog))[0], "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(readOnly ? Array.Empty<string>() : new[] { ids[1] }));
+                Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(request), Is.EqualTo(original));
+                artifacts.WriteLabeledText("缺图卡牌语义与实际操作", Newtonsoft.Json.JsonConvert.SerializeObject(new { host, readOnly, request, selected, submissions }));
+            }
+            finally { artifacts.Finish(); }
+        }
+
+        [Test]
+        public void CoverSelectionWithoutArtworkKeepsActualCardIdsAndCachedDraft()
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var dialog = NewDialog("CharacterCardEffectChoiceDialog");
+                var ids = new[] { "isolated.cover.missing.1", "isolated.cover.missing.2" };
+                string selected = ids[0];
+                int submissions = 0;
+                foreach (var id in ids)
+                    LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=character-cover item=" + id);
+                void Show() => Call(dialog, "ShowCoverSelection", ids, selected, new Func<string, bool>(_ => true),
+                    new Action<string>(id => selected = id), new Action(() => submissions++), "isolated.cover.context");
+                Show();
+                var page = Page(dialog);
+                Assert.That(Property<bool>(page, "IsCardPicker"), Is.True);
+                Assert.That(Cards(page), Has.Length.EqualTo(2));
+                Assert.That(page.GetComponentsInChildren(RuntimeType("EffectDialogOptionRowView"), false), Is.Empty);
+                Property<Button>(Cards(page)[1], "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(ids[1]));
+                Assert.That(submissions, Is.Zero);
+                Show();
+                Assert.That(Page(dialog), Is.SameAs(page), "刷新盖放草稿复用原卡牌页。");
+                FindButton(page, "Confirm Selection").onClick.Invoke();
+                Assert.That(submissions, Is.EqualTo(1));
+                artifacts.WriteLabeledText("原盖放入口缺图与草稿", Newtonsoft.Json.JsonConvert.SerializeObject(new { ids, selected, submissions }));
+            }
+            finally { artifacts.Finish(); }
+        }
+
+        [TestCase("CharacterCardEffectChoiceDialog", "character")]
+        [TestCase("CharacterCardEffectChoiceDialog", "facility")]
+        [TestCase("CharacterCardEffectChoiceDialog", "event")]
+        [TestCase("CharacterCardEffectChoiceDialog", "award")]
+        [TestCase("FacilityEffectChoiceDialog", "character")]
+        [TestCase("FacilityEffectChoiceDialog", "facility")]
+        [TestCase("FacilityEffectChoiceDialog", "event")]
+        [TestCase("FacilityEffectChoiceDialog", "award")]
+        public void GenericSelectionUsesDeclaredCardTypeWithoutLoadingArtwork(string host, string contentType)
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var pack = (ExternalContentPack)RuntimeType("ExternalContentRuntime").GetProperty("Pack").GetValue(null);
+                var definition = pack.ActiveDefinitions.Concat(pack.Definitions).First(value => value.Enabled && value.ContentType == contentType);
+                var id = "isolated.opaque." + contentType;
+                var spec = NewSelection(new[] { id });
+                var request = (InteractionRequestProjection)Field(spec, "Request");
+                request.PromptParameters = YC.Domain.State.NormalizedValue.CreateObject(new List<YC.Domain.State.NormalizedValueEntry>
+                {
+                    new YC.Domain.State.NormalizedValueEntry { Name = "candidateDefinitionIds", Value =
+                        YC.Domain.State.NormalizedValue.CreateArray(new List<YC.Domain.State.NormalizedValue> {
+                            YC.Domain.State.NormalizedValue.CreateString(definition.DefinitionId) }) }
+                });
+                var before = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                Set(spec, "CardSprite", new Func<string, Sprite>(_ => null));
+                string selected = null;
+                Set(spec, "Select", new Action<string>(value => selected = value));
+                LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=" + request.InteractionId + " item=" + id);
+                var dialog = NewDialog(host);
+                ShowSelection(dialog, spec, false);
+                var page = Page(dialog);
+                Assert.That(Property<bool>(page, "IsCardPicker"), Is.True);
+                Assert.That(Cards(page), Has.Length.EqualTo(1));
+                Assert.That(page.GetComponentsInChildren(RuntimeType("EffectDialogOptionRowView"), false), Is.Empty);
+                Assert.That(Property<RawImage>(Cards(page)[0], "CardImage").texture, Is.Null);
+                Assert.That(Property<Text>(Cards(page)[0], "FallbackLabel").text, Is.EqualTo(id));
+                Property<Button>(Cards(page)[0], "Button").onClick.Invoke();
+                Assert.That(selected, Is.EqualTo(id), "显示定义不能替换实际候选答案。");
+                Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(request), Is.EqualTo(before));
+                artifacts.WriteLabeledText("正式候选定义与缺图卡牌路由", Newtonsoft.Json.JsonConvert.SerializeObject(new { host, contentType, request, selected }));
+            }
+            finally { artifacts.Finish(); }
+        }
+
+        [TestCase("CharacterCardEffectChoiceDialog")]
+        [TestCase("FacilityEffectChoiceDialog")]
+        public void CardDefinitionNamedExecutionBranchKeepsLogicAndNeverProbesArtwork(string host)
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var id = FacilityIds(1)[0];
+                var spec = NewSelection(new[] { id });
+                var request = (InteractionRequestProjection)Field(spec, "Request");
+                request.AnswerSchema = "candidate_id";
+                request.InteractionTypeId = "effect.choice.execute";
+                int imageCalls = 0, selections = 0;
+                Set(spec, "ExecuteImmediately", true);
+                Set(spec, "CardSprite", new Func<string, Sprite>(_ => { imageCalls++; throw new InvalidOperationException("逻辑分支不应查询图片"); }));
+                Set(spec, "Select", new Action<string>(value => { Assert.That(value, Is.EqualTo(id)); selections++; }));
+                var dialog = NewDialog(host);
+                ShowSelection(dialog, spec, false);
+                var page = Page(dialog);
+                Assert.That(Property<bool>(page, "IsCardPicker"), Is.False);
+                Assert.That(Cards(page), Is.Empty);
+                var rows = page.GetComponentsInChildren(RuntimeType("UiEffectRowView"), false);
+                Assert.That(rows, Has.Length.EqualTo(1));
+                var button = Property<Button>(rows[0], "StatusButton");
+                Assert.That(button, Is.Not.Null);
+                button.onClick.Invoke(); button.onClick.Invoke();
+                Assert.That(selections, Is.EqualTo(1));
+                Assert.That(imageCalls, Is.Zero);
+                artifacts.WriteLabeledText("逻辑语义优先于同名卡牌定义", Newtonsoft.Json.JsonConvert.SerializeObject(new { host, request, imageCalls, selections }));
+            }
+            finally { artifacts.Finish(); }
+        }
+
+        [TestCase("CharacterCardEffectChoiceDialog")]
+        [TestCase("FacilityEffectChoiceDialog")]
+        public void VisibleCandidateResolverKeepsOpaqueItemOnCardPageWithoutDefinitionArray(string host)
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var id = "isolated.visible.opaque.facility";
+                var definition = FacilityIds(1)[0];
+                var spec = NewSelection(new[] { id });
+                Set(spec, "ResolveCardDefinition", new Func<string, string>(value => value == id ? definition : null));
+                Set(spec, "CardSprite", new Func<string, Sprite>(_ => null));
+                LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=card-picker-ui-test item=" + id);
+                var dialog = NewDialog(host);
+                ShowSelection(dialog, spec, false);
+                Assert.That(Property<bool>(Page(dialog), "IsCardPicker"), Is.True);
+                Assert.That(Cards(Page(dialog)), Has.Length.EqualTo(1));
+                Assert.That(Property<Text>(Cards(Page(dialog))[0], "FallbackLabel").text, Is.EqualTo(id));
+                artifacts.WriteLabeledText("可见实例定义解析无提示数组", Newtonsoft.Json.JsonConvert.SerializeObject(new { host, id, definition }));
+            }
+            finally { artifacts.Finish(); }
+        }
+
+        [Test]
+        public void CardTypeClassificationDoesNotConsultHostInstanceResolverOrDirtyCatalog()
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            var catalog = UnityEngine.Object.Instantiate(Property<ScriptableObject>(registry, "CardVisualCatalog"));
+            try
+            {
+                int calls = 0;
+                Call(catalog, "BindRuntimeDefinitions", new Func<string, string>(_ => { calls++; throw new InvalidOperationException("不得读取Host实例"); }));
+                bool dirty = EditorUtility.IsDirty(catalog);
+                Assert.That((bool)Call(catalog, "IsCardDefinition", "isolated.hidden.opaque"), Is.False);
+                Assert.That((bool)Call(catalog, "IsCardDefinition", "character.red.p1.liskarm"), Is.False,
+                    "不从实例名或后缀猜卡牌定义；实例须由正式声明或可见投影解析。");
+                Assert.That((bool)Call(catalog, "IsCardDefinition", FacilityIds(1)[0]), Is.True);
+                Assert.That(calls, Is.Zero);
+                Assert.That(EditorUtility.IsDirty(catalog), Is.EqualTo(dirty));
+                artifacts.WriteLabeledText("类型分流不读取Host实例", Newtonsoft.Json.JsonConvert.SerializeObject(new { calls, dirty }));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(catalog); artifacts.Finish(); }
+        }
+
+        [Test]
+        public void OptionalLogicalChoiceDoesNotInferCardsFromDefinitionNamedCandidates()
+        {
+            var artifacts = IsolatedTestArtifacts.BeginCase();
+            try
+            {
+                var spec = NewSelection(FacilityIds(1));
+                var request = (InteractionRequestProjection)Field(spec, "Request");
+                request.InteractionTypeId = "effect.choice.execute";
+                request.MinSelections = 0;
+                request.AllowDecline = true;
+                int imageCalls = 0;
+                Set(spec, "CardSprite", new Func<string, Sprite>(_ => { imageCalls++; throw new InvalidOperationException("逻辑请求不查图"); }));
+                Call(spec, "BindCardSemantics", Property<ScriptableObject>(registry, "CardVisualCatalog"));
+                Assert.That((bool)Call(spec, "ShouldUseCardPicker"), Is.False);
+                Assert.That(imageCalls, Is.Zero);
+                artifacts.WriteLabeledText("可放弃逻辑请求的语义优先级", Newtonsoft.Json.JsonConvert.SerializeObject(new { request, imageCalls }));
+            }
+            finally { artifacts.Finish(); }
         }
 
         [Test]

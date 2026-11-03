@@ -143,10 +143,10 @@ namespace YC.Tests.EditMode
                 var request = actual.State.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
                 var baseline = original.State.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
                 Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
-                Assert.That(request.PromptKey, Is.EqualTo("character.tin_man.purchase." + cost));
+                Assert.That(request.PromptKey, Is.EqualTo("effect.decline"));
                 Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:interaction.tin_man.purchase"));
                 Assert.That(request.Presentation.Prompt.Arguments.Single().Value.IntegerValue, Is.EqualTo(cost));
-                Assert.That(baseline.Presentation, Is.Null, "旧未知专用gate继续沿旧兼容");
+                Assert.That(baseline.Presentation.Prompt.Key, Is.EqualTo("core:resource.payment.condition.prompt"), "原条件使用统一付款提示，实际锡人请求继续验证专用费用正文");
                 Assert.That(request.CandidateIds, Is.EqualTo(baseline.CandidateIds));
                 Assert.That(request.CandidateIds, Is.EqualTo(new[] { "continue", "decline" }));
                 Assert.That(request.Visibility, Is.EqualTo(baseline.Visibility));
@@ -267,8 +267,8 @@ end
                 new LuaEffectCompilationContext { PlayerId = 1, SourceId = sourceItem.ItemId, ContentInstanceId = sourceItem.ItemId,
                     AbilityId = "facility.entry." + effect }, out var specs, out var fault), Is.True, fault?.Diagnostic);
             var spec = specs.Single();
-            Assert.That(spec.EffectTypeId, Is.EqualTo("effect.facility.choose_build"));
-            Assert.That(ItemTransferEffectExecutor.Text(spec.NormalizedArguments, "sourceZone"), Is.EqualTo(reserve ? "reserve" : "supply"));
+            Assert.That(FacilityBuildContract.IsSelection(spec.EffectTypeId, spec.NormalizedArguments), Is.True);
+            Assert.That(ItemTransferEffectExecutor.Text(spec.NormalizedArguments, "sourceKind"), Is.EqualTo(reserve ? "reserve" : "supply"));
             Assert.That(ItemTransferEffectExecutor.Text(spec.NormalizedArguments, "effectId"), Is.EqualTo(reserve ? "reserve_extension_hub" : ""));
             Assert.That(spec.Presentation.PresentationScript, Is.EqualTo("lua/presentation/interaction.choose_build.lua"));
             int calls = 0; var contexts = new List<GameplayPresentationContext>(); var presenter = fixture.Registry.GameplayPresenter;
@@ -282,7 +282,7 @@ end
             var originalIds = choose.CandidateIds.ToArray();
             Assert.That(choose.PromptKey, Is.EqualTo("facility.entry.choose_additional_build"));
             Assert.That(choose.AnswerSchema, Is.EqualTo("candidate_id")); Assert.That(choose.MinSelections, Is.EqualTo(1));
-            Assert.That(choose.MaxSelections, Is.EqualTo(1)); Assert.That(choose.AllowDecline, Is.False);
+            Assert.That(choose.MaxSelections, Is.EqualTo(1)); Assert.That(choose.AllowDecline, Is.True, "正常额外建设保留放弃选择");
             Assert.That(choose.CandidateIds.Contains("free"), Is.False);
             var suppliedChoose = contexts.Single();
             Assert.That(ItemTransferEffectExecutor.Text(suppliedChoose.Facts, "promptKey"), Is.EqualTo(choose.PromptKey));
@@ -332,32 +332,30 @@ end
             Assert.That(fixture.Pack.TryPresent("lua/presentation/interaction.choose_build.lua", oldStage,
                 out compatibility, out code, out diagnostic), Is.True, code + ": " + diagnostic);
             Assert.That(compatibility.Interaction, Is.Null);
-            string answer = reserve ? "choice.skip" : cardId;
-            Assert.That(executor.TrySubmitInteraction(choose.GetStableInteractionId(), 1, state.EffectRuntime.StateRevision,
-                NormalizedValue.CreateString(answer), out var answerReason), Is.True, answerReason);
-            var next = executor.RunUntilQuiescent(); Assert.That(next.Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
             if (reserve)
             {
-                Assert.That(originalIds.Contains("choice.skip"), Is.True);
+                Assert.That(executor.TrySubmitInteraction(choose.GetStableInteractionId(), 1, state.EffectRuntime.StateRevision,
+                    NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason);
+                Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
                 Assert.That(state.EffectRuntime.InteractionRequests.All(request => request.Status != "open"), Is.True);
                 Assert.That(state.EffectRuntime.EffectNodes.Single(node => node.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
-                Assert.That(calls, Is.EqualTo(1), "skip不制造free付款请求");
             }
             else
             {
-                Assert.That(next.WaitingForInput, Is.True);
+                Assert.That(executor.TryPrepareEffectBuildPayment(1, choose.OwnerEffectId, choose.GetStableInteractionId(),
+                    choose.CandidateSetId, choose.CandidateSetVersion, cardId,
+                    ItemTransferEffectExecutor.Object("paymentMode", NormalizedValue.CreateString("gold"),
+                        "expectedSourceZoneId", NormalizedValue.CreateString(state.ItemZones.Items.Single(i => i.ItemId == cardId).ZoneId)),
+                    state.EffectRuntime.StateRevision, "presentation.prepare.build", out string reason), Is.True, reason);
+                Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
                 var payment = state.EffectRuntime.InteractionRequests.Single(request => request.Status == "open");
-                Assert.That(payment.PromptKey, Is.EqualTo("effect.build.choose_payment"));
-                Assert.That(payment.AnswerSchema, Is.EqualTo("candidate_id"));
-                Assert.That(payment.CandidateIds, Is.EquivalentTo(new[] { "resources", "gold" }), string.Join(",", payment.CandidateIds));
-                Assert.That(payment.Presentation.Prompt.Key, Is.EqualTo("core:interaction.facility.build.payment"));
-                Assert.That(payment.Presentation.Options.Select(option => option.CandidateId), Is.EqualTo(payment.CandidateIds));
-                Assert.That(payment.Presentation.Options.Select(option => option.Label.Key),
-                    Is.EqualTo(payment.CandidateIds.Select(id => "core:interaction.facility.build." + id)));
-                Assert.That(ItemTransferEffectExecutor.Text(contexts.Last().Facts, "promptKey"), Is.EqualTo(payment.PromptKey));
-                Assert.That(calls, Is.EqualTo(2));
-                executor.RunUntilQuiescent(); Assert.That(calls, Is.EqualTo(2));
-                Assert.That(choose.CandidateIds, Is.EqualTo(originalIds), "支付阶段不改已存候选");
+                Assert.That(payment.InteractionTypeId, Is.EqualTo(ResourceEffectExecutor.PaymentConfirmationInteractionTypeId));
+                var paymentOwner = executor.GetNode(payment.OwnerEffectId);
+                Assert.That(paymentOwner.Payment.Preparation.AuthorizationKind, Is.EqualTo("effect_build"));
+                Assert.That(paymentOwner.Payment.IsCommitted, Is.False);
+                Assert.That(payment.Presentation.Prompt, Is.Not.Null);
+                int before = calls; executor.RunUntilQuiescent(); Assert.That(calls, Is.EqualTo(before));
+                Assert.That(choose.CandidateIds, Is.EqualTo(originalIds), "付款准备不篡改原候选事实");
             }
             Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(state.FindPlayer(1).Resources),
                 Is.EqualTo(Newtonsoft.Json.JsonConvert.SerializeObject(resourcesBefore)), "选择／skip不能提前扣费用");
@@ -386,6 +384,8 @@ end
                 Instance(0, 3, "p1", true, "red"), Instance(1, 5, "p1", true, "blue"),
                 Instance(2, 1, "p2", true, "red"), Instance(3, 7, "p1", true, "rainbow"),
                 Instance(4, 0, "p1", true, "red"), Instance(5, 1, "p1", false, "blue") })) });
+            context.FacadeSnapshot.Players.Single(p => p.PlayerId == "p1").BuiltFacilities.AddRange(
+                context.FacadeSnapshot.GlobalContent.Get("instances").Items.Where(i => i.Get("owner").StringValue == "p1"));
             string path = adjacent ? "lua/facilities/copy_adjacent_entry.lua" : "lua/facilities/remove_then_dispatch_or_explore.lua";
             string original = adjacent ? OriginalAdjacentFacilityLua : OriginalVehicleFacilityLua;
             LuaInvocationResult Invoke(string source) => new MoonSharpLuaRuntimeHost(new LuaExecutionBudget(20000, 1000, 12, 512, 16, 32768))
@@ -397,7 +397,7 @@ end
             var actualBusiness = Newtonsoft.Json.Linq.JToken.FromObject(actual.Effects);
             RemoveFacilityDisplayMetadata(expectedBusiness); RemoveFacilityDisplayMetadata(actualBusiness);
             Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(expectedBusiness, actualBusiness), Is.True,
-                "完整原业务树、合法候选、子效果及参数保持");
+                "完整原业务树、合法候选、子效果及参数保持\nexpected=" + expectedBusiness + "\nactual=" + actualBusiness);
             Assert.That(new LuaEffectSpecCompiler(presentationPack: fixture.Pack).TryCompile(actual,
                 new LuaEffectCompilationContext { PlayerId = 1, SourceId = "facility.presentation" }, out var specs, out var fault), Is.True, fault?.Diagnostic);
             var executor = new EffectTreeExecutor(fixture.State, fixture.Registry); executor.CreateRoot(specs.Single());
@@ -405,7 +405,7 @@ end
             var request = fixture.State.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
             var expectedIds = adjacent ? visibleItems.Take(2).Select(item => item.ItemId).ToArray() : new[] { "vehicle.remove_move", "vehicle.explore" };
             Assert.That(request.CandidateIds, Is.EqualTo(expectedIds));
-            Assert.That(request.InteractionTypeId, Is.EqualTo("facility.entry.choice"));
+            Assert.That(request.InteractionTypeId, Is.EqualTo(adjacent ? "facility.entry.choice" : "effect.choice.execute"));
             Assert.That(request.PromptKey, Is.EqualTo(adjacent ? "facility.entry.choose_adjacent" : "facility.entry.choose_vehicle_action"));
             Assert.That(request.MinSelections, Is.EqualTo(1)); Assert.That(request.MaxSelections, Is.EqualTo(1));
             Assert.That(request.AllowDecline, Is.False);
@@ -534,7 +534,14 @@ end
                 Round = 1, ActionRound = 1, CurrentPlayerId = 1, StartPlayerId = 1, Phase = GamePhase.ActionRound1,
                 LaunchPlayerOrder = new List<int> { 1, 2, 3 }, Players = Enumerable.Range(1, 3).Select(id => new PlayerState { PlayerId = id }).ToList() },
                 StaticMapDefinitions.CreateThreePlayerMap(), 17);
-            var registry = new EffectRegistry(); GenericLuaEffectExecutor.Register(registry); ResourceEffectExecutor.Register(registry); active.Register(registry);
+            var registry = new EffectRegistry(); GenericLuaEffectExecutor.Register(registry); ResourceEffectExecutor.Register(registry); FacilityBuildEffectExecutor.Register(registry); active.Register(registry);
+            // API-16：正式Choice所有新分支都需真实装配；只验证候选也不借旧选择包装隐藏未知类型。
+            var map = new YC.Domain.Maps.MapQueryService(StaticMapDefinitions.CreateThreePlayerMap());
+            var influence = registry.InfluenceService ?? new YC.Domain.Influence.InfluenceService(map);
+            InfluenceEffectExecutor.Register(registry, influence);
+            var decks = new EventDeckService(17); var tokens = new ResourceTokenService();
+            EventCardEffectExecutor.Register(registry, map, influence, decks, tokens);
+            ExplorationEffectExecutor.Register(registry, map, new YC.Domain.Exploration.ExplorationService(map, influence, decks, tokens), decks, tokens);
             return (state, registry, installed.CreateActiveSnapshot(configuration));
         }
         private static EffectSpec CompileFacilityPresentation(ExternalContentPack pack, string source)
@@ -555,15 +562,15 @@ end
             else if (token is Newtonsoft.Json.Linq.JArray array) foreach (var item in array) RemoveFacilityDisplayMetadata(item);
         }
         private const string OriginalVehicleFacilityLua = @"return function(ctx)
-    return { Effect.Choice({ player = ctx.playerId, interactionType = 'facility.entry.choice',
+    return { Effect.Choice({ player = ctx.playerId, interactionType = 'effect.choice.execute',
         promptKey = 'facility.entry.choose_vehicle_action', branches = {
             { id = 'vehicle.remove_move', effects = {
-                Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', ownerFilter = 'any',
-                    interactionType = 'character.ability.target', promptKey = 'effect.influence.remove.choose_target' }),
-                Effect.SelectInfluence({ player = ctx.playerId, operation = 'move', ownerFilter = 'self',
-                    interactionType = 'character.ability.choice.move', promptKey = 'effect.influence.move.choose_target' })
+                Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer= ctx.playerId, subjectFilter= 'any',
+                    interactionType = 'character.ability.target', promptKey = 'effect.influence.remove.choose_target'}),
+                Effect.MoveInfluence({apiVersion=3,targetMode='select',executingPlayer= ctx.playerId, subjectFilter= 'self',
+                    interactionType = 'character.ability.choice.move', promptKey = 'effect.influence.move.choose_target'})
             } },
-            { id = 'vehicle.explore', effects = { Effect.ChooseExplore({ player = ctx.playerId }) } }
+            { id = 'vehicle.explore', effects = { Effect.Explore({apiVersion=3,targetMode='select',player=ctx.playerId,consumeMainAction=false}) } }
         }
     }) }
 end";
@@ -582,85 +589,40 @@ end";
         end
     end
     if #branches == 0 then return {} end
-    return { Effect.Choice({ player = ctx.playerId, branches = branches,
+    return { Effect.Choice({ player = ctx.playerId, interactionType = 'effect.choice.execute', branches = branches,
         interactionType = 'facility.entry.choice', promptKey = 'facility.entry.choose_adjacent' }) }
-end";
-
-        [TestCase(true)]
-        [TestCase(false)]
-        public void RepeatProgressKeepsChildPromptCountsFailedIterationsAndSurvivesRecovery(bool earlyStop)
+end";        [Test] public void OrdinaryChoiceKeepsAuthoredProgressAndPromptAcrossRecovery()
         {
             var fixture = DynamicPresentationFixture(); var state = fixture.State;
-            string source = "return function(ctx) return {Effect.Repeat{apiVersion=1,count=" + (earlyStop ? "3" : "2") +
-                ",allowEarlyStop=" + (earlyStop ? "true" : "false") + ",effects={Effect.WithPresentation(Effect.Choice{player=ctx.playerId,branches={" +
-                "{id='complete',effects={Effect.GainScore{recipient=ctx.playerId,amount=1,reasonId='repeat.display'}}}," +
-                "{id='fail',effects={Effect.PayResource{payer=ctx.playerId,resourceType='gold_voucher',amount=100}}}}}," +
-                "{interaction={prompt=Text.Ref('core:enterprise.blacksteel.level_1.choice.prompt')}})}}} end";
-            int calls = 0; var presenter = fixture.Registry.GameplayPresenter;
-            fixture.Registry.GameplayPresenter = (string path, GameplayPresentationContext context,
-                out GameplayPresentationResult result, out string diagnostic) => {
-                calls++; return presenter(path, context, out result, out diagnostic);
-            };
-            var spec = CompileDynamicPresentation(fixture.Pack, source, "repeat.display", abilityId: "repeat.display.ability");
+            const string source = "return function(ctx) return {Effect.WithPresentation(Effect.Choice{player=ctx.playerId,branches={{id='complete',effects={Effect.GainScore{recipient=ctx.playerId,amount=1}}},{id='fail',effects={Effect.PayResource{payer=ctx.playerId,resourceType='gold_voucher',amount=100}}}}},{interaction={prompt=Text.Ref('core:enterprise.blacksteel.level_1.choice.prompt'),progress=Text.Ref('core:interaction.sale.batch',{soldCount=2,revenue=10})}})} end";
+            var spec = CompileDynamicPresentation(fixture.Pack, source, "ordinary.presentation", abilityId: "ordinary.presentation.ability");
             var executor = new EffectTreeExecutor(state, fixture.Registry); string root = executor.CreateRoot(spec);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True, state.EffectRuntime.LastFaultMessage);
-            if (earlyStop)
-            {
-                var decision = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
-                Assert.That(decision.CandidateIds, Is.EqualTo(new[] { "continue", "stop" }));
-                Assert.That(decision.Presentation.Options.Select(value => value.CandidateId), Is.EqualTo(decision.CandidateIds));
-                Assert.That(decision.Presentation.Prompt.Key, Is.EqualTo("core:effect.repeat.continue.prompt"));
-                CheckDynamicProgress(decision, 0, 3);
-                AnswerDynamicPresentation(state, executor, "continue");
-            }
+            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
             var child = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
             Assert.That(child.CandidateIds, Is.EqualTo(new[] { "complete", "fail" }));
             Assert.That(child.Presentation.Prompt.Key, Is.EqualTo("core:enterprise.blacksteel.level_1.choice.prompt"));
-            CheckDynamicProgress(child, 0, earlyStop ? 3 : 2);
-            int beforeRecovery = calls;
-            var archive = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state, state.ContentPackHash));
-            var restored = HostRecoveryService.RecoverJson(archive, fixture.Registry);
-            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
-            state = restored.State; executor = new EffectTreeExecutor(state, fixture.Registry);
-            Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
-            Assert.That(calls, Is.EqualTo(beforeRecovery), "恢复挂起请求不重放展示");
-            var restoredChild = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
-            Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(Newtonsoft.Json.Linq.JToken.FromObject(restoredChild.Presentation),
-                Newtonsoft.Json.Linq.JToken.FromObject(child.Presentation)), Is.True);
-            AnswerDynamicPresentation(state, executor, "fail");
-            Assert.That(ItemTransferEffectExecutor.Number(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == root).ContinuationData,
-                "completedCount"), Is.EqualTo(1), "失败迭代也已完成，不能以成功奖励数代替");
-            if (earlyStop)
-            {
-                CheckDynamicProgress(state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open"), 1, 3);
-                AnswerDynamicPresentation(state, executor, "continue");
-            }
-            child = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
-            CheckDynamicProgress(child, 1, earlyStop ? 3 : 2);
-            Assert.That(child.Presentation.Prompt.Key, Is.EqualTo("core:enterprise.blacksteel.level_1.choice.prompt"));
+            var before = Newtonsoft.Json.Linq.JToken.FromObject(child.Presentation);
+            var restored = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state, state.ContentPackHash)), fixture.Registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State;
+            executor = new EffectTreeExecutor(state, fixture.Registry); Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
+            Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(before, Newtonsoft.Json.Linq.JToken.FromObject(state.EffectRuntime.InteractionRequests.Single(q => q.Status == "open").Presentation)), Is.True);
             AnswerDynamicPresentation(state, executor, "complete");
-            Assert.That(ItemTransferEffectExecutor.Number(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == root).ContinuationData,
-                "completedCount"), Is.EqualTo(2));
-            if (earlyStop)
-            {
-                CheckDynamicProgress(state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open"), 2, 3);
-                AnswerDynamicPresentation(state, executor, "stop");
-            }
-            else Assert.That(state.EffectRuntime.InteractionRequests.Any(value => value.PromptKey == "effect.repeat.continue"), Is.False);
+            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
             Assert.That(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1), "恢复或展示不得重发奖励");
         }
+
 
         [TestCase(false)]
         [TestCase(true)]
         public void PresentationFailureKeepsStaticPromptAndOriginalQuantityBusiness(bool throws)
         {
             var fixture = DynamicPresentationFixture(); var state = fixture.State;
-            var card = PrepareDynamicMarkerCard(state, "operator.dorothy", 1);
-            var spec = CompileDynamicPresentation(fixture.Pack, fixture.Pack.GetScript("lua/characters/operator.dorothy.tactic.lua"),
-                card.DefinitionId, card.ItemId, "operator.dorothy.tactic");
+            var spec = CompileDynamicPresentation(fixture.Pack,
+                "return function(ctx) return {Effect.Choice({player=ctx.playerId,amountRange={minAmount=0,maxAmount=1}})} end",
+                "quantity.presentation", abilityId: "quantity.presentation.ability");
+            spec.Presentation = new EffectPresentationDefinition { PresentationScript = "lua/presentation/interaction.choose_build.lua" };
             spec.Presentation.Interaction = new GameplayInteractionPresentation {
-                Prompt = new GameplayTextRef("core:effect.repeat.continue.prompt") };
+                Prompt = new GameplayTextRef("core:interaction.effect.optional") };
             fixture.Registry.GameplayPresenter = (string path, GameplayPresentationContext context,
                 out GameplayPresentationResult result, out string diagnostic) => {
                 result = null; diagnostic = "fixture_presentation_failure";
@@ -670,9 +632,9 @@ end";
             var executor = new EffectTreeExecutor(state, fixture.Registry); executor.CreateRoot(spec);
             Assert.That(executor.RunUntilQuiescent().WaitingForInput, Is.True);
             var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
-            Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:effect.repeat.continue.prompt"));
+            Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:interaction.effect.optional"));
             Assert.That(ItemTransferEffectExecutor.Number(request.PromptParameters, "maxAmount"), Is.EqualTo(1));
-            Assert.That(request.AnswerSchema, Is.EqualTo("bounded_amount")); Assert.That(request.AllowDecline, Is.True);
+            Assert.That(request.AnswerSchema, Is.EqualTo("bounded_amount")); Assert.That(request.AllowDecline, Is.False);
             Assert.That(state.EffectRuntime.Diagnostics.Count(value => value.Code == "presentation_failed"), Is.EqualTo(1));
             Assert.That(state.EffectRuntime.Status, Is.EqualTo(EffectRuntimeStatus.Active));
             AnswerDynamicPresentation(state, executor, "0");
@@ -694,32 +656,16 @@ end";
             active.Register(registry);
             return (state, registry, installed.CreateActiveSnapshot(configuration));
         }
-        private static ItemInstanceState PrepareDynamicMarkerCard(GameState state, string definitionId, int available)
-        {
-            var card = state.ItemZones.Items.Single(item => item.DefinitionId == definitionId);
-            var covered = state.ItemZones.Zones.Single(zone => zone.OwnerPlayerId == 1 && zone.TemplateId == "core.zone.character_covered");
-            DynamicFixturePosition(state, card, covered.ZoneId); card.ControllerSubject = ItemSubjectRef.Player(1);
-            var storage = state.ItemZones.Zones.Single(zone => zone.ParentId == card.ItemId && zone.LocalZoneId == "markers");
-            var supply = state.ItemZones.Zones.Single(zone => zone.OwnerPlayerId == 1 && zone.LocalZoneId == "supply");
-            foreach (var cube in state.ItemZones.Items.Where(item => item.ZoneId == supply.ZoneId && item.TypeId == "core.player_marker").Skip(available).ToArray())
-                DynamicFixturePosition(state, cube, storage.ZoneId);
-            Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
-            return card;
-        }
-        private static void DynamicFixturePosition(GameState state, ItemInstanceState item, string zoneId)
-        {
-            state.ItemZones.Orders.Find(order => order.ZoneId == item.ZoneId)?.ItemIds.Remove(item.ItemId);
-            item.ZoneId = zoneId; item.SlotId = "";
-            state.ItemZones.Orders.Find(order => order.ZoneId == zoneId)?.ItemIds.Add(item.ItemId);
-        }
+
+
         private static EffectSpec CompileDynamicPresentation(ExternalContentPack pack, string source, string definitionId,
             string itemId = "", string abilityId = "")
         {
             var context = new LuaInvocationContext("dynamic.presentation.event", "CharacterAbilityActivated", "p1", 0, "1.0.0", 3, 0, 0);
             context.FacadeSnapshot.EventPayload = LuaSnapshotValue.Object(new[] {
                 new LuaSnapshotEntry("cardInstanceRef", LuaSnapshotValue.String(itemId)) });
-            var invocation = new MoonSharpLuaRuntimeHost(new LuaExecutionBudget(20000, 1000, 12, 512, 16, 32768)).Invoke(
-                new LuaScriptDefinition(definitionId, abilityId, "dynamic.presentation.handler", "1.0.0", source, LuaContentHasher.ComputeSha256(source)), context);
+            var script = new LuaScriptDefinition(definitionId, abilityId, "dynamic.presentation.handler", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var invocation = new MoonSharpLuaRuntimeHost(new LuaExecutionBudget(20000, 1000, 12, 512, 16, 32768)).Invoke(script, context);
             Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler(presentationPack: pack).TryCompile(invocation, new LuaEffectCompilationContext {
                 PlayerId = 1, SourceId = itemId, ContentInstanceId = itemId, AbilityId = abilityId
@@ -733,12 +679,8 @@ end";
                 NormalizedValue.CreateString(answer), out var reason), Is.True, reason);
             Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
         }
-        private static void CheckDynamicProgress(InteractionRequest request, int completed, int total)
-        {
-            Assert.That(request.Presentation.Progress.Key, Is.EqualTo("core:effect.repeat.progress"));
-            Assert.That(request.Presentation.Progress.Arguments.Single(value => value.Name == "completed").Value.IntegerValue, Is.EqualTo(completed));
-            Assert.That(request.Presentation.Progress.Arguments.Single(value => value.Name == "total").Value.IntegerValue, Is.EqualTo(total));
-        }
+
+
         #endregion
 
         #region EnterpriseDetailMigration
@@ -941,9 +883,9 @@ end";
             var pack = ExternalContentPack.Load(Path.Combine(Environment.CurrentDirectory, "Assets/StreamingAssets/Content/core"))
                 .CreateActiveSnapshot(new GameRuleConfiguration { PlayerCount = 3, EnabledExpansionIds = new List<string> { "core", "enterprise" } });
             // 独立保留修改前的完整业务式，比较整个Condition/Choice及全部child，而非只比标签。
-            string originalChoice = "Effect.Choice({player=ctx.playerId," + (defense ? "" : "promptKey='effect.influence.place_or_remove',") + "branches={" +
+            string originalChoice = "Effect.Choice({interactionType='effect.choice.execute',player=ctx.playerId," + (defense ? "" : "promptKey='effect.influence.place_or_remove',") + "branches={" +
                 "{id='place',effects={Effect.PlaceInfluence({executingPlayer=ctx.playerId,influenceSource='player_supply',ownerSubject=ctx.playerId,causeKind='other_intrinsic_flow'})}}," +
-                "{id='" + last + "',effects={Effect.SelectInfluence({player=ctx.playerId,operation='" + last + "',subjectFilter='" + (defense ? "self" : "any") +
+                "{id='" + last + "',effects={Effect." + (defense ? "MoveInfluence" : "RemoveInfluence") + "({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='" + (defense ? "self" : "any") +
                 "',count=" + (defense ? "2" : "1") + ",requiredCount=0,distinctPolicy='instance',promptKey='effect.influence.choose'})}}}})";
             string original = "return function(ctx) return {" + (defense ? "Effect.Condition({leftEffects={Effect.PayResource({payer=ctx.playerId,resourceType='gold_voucher',amount=3})},rightEffects={" + originalChoice + "}})" : originalChoice) + "} end";
             LuaInvocationResult InvokeChoice(string source) => new MoonSharpLuaRuntimeHost(new LuaExecutionBudget(20000, 1000, 12, 512, 16, 32768)).Invoke(
@@ -954,7 +896,7 @@ end";
             var expectedBusiness = Newtonsoft.Json.Linq.JToken.FromObject(before.Effects);
             var actualBusiness = Newtonsoft.Json.Linq.JToken.FromObject(actual.Effects);
             RemoveChoicePresentation(expectedBusiness); RemoveChoicePresentation(actualBusiness);
-            Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(expectedBusiness, actualBusiness), Is.True, "完整原业务树／支付／数量／主体／候选须相同");
+            Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(expectedBusiness, actualBusiness), Is.True, "完整原业务树／支付／数量／主体／候选须相同\nexpected=" + expectedBusiness + "\nactual=" + actualBusiness);
             var compiler = new LuaEffectSpecCompiler(presentationPack: pack);
             Assert.That(compiler.TryCompile(actual, new LuaEffectCompilationContext { PlayerId = 1, SourceId = "visible.enterprise" }, out var specs, out var fault), Is.True, fault?.Diagnostic);
             var compiledChoice = defense ? specs[0].NestedEffectGroups[1][0] : specs[0];
@@ -1336,9 +1278,7 @@ end";
         [Test]
         public void PaymentDraftUsesOriginalRequestAndPaysOnlyAtItsFinalAnswer()
         {
-            var fixture = InfectedPartialFixture(); var state = fixture.State; var executor = fixture.Executor;
-            executor.CreateRoot(ResourceEffectSpecFactory.Gain(1, ResourceType.Originium, 3));
-            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var fixture = ActiveActualPassengerFixture(); var state = fixture.State; var executor = fixture.Executor;
             ResourcePaymentChoiceEffectExecutor.Register(fixture.Registry);
             string ownerId = executor.CreateRoot(ResourcePaymentChoiceEffectExecutor.Create(1, new[] {
                 new ResourceSet { Originium = 1 }, new ResourceSet { Originium = 2 } }, "fixture.payment"));
@@ -1355,7 +1295,9 @@ end";
             Assert.That(session.Submit(command).Succeeded, Is.True);
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
             Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open"), Is.EqualTo(1));
-            Assert.That(state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open").GetStableInteractionId(), Is.EqualTo(request.GetStableInteractionId()));
+            var refreshed = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            Assert.That(refreshed.OwnerEffectId, Is.EqualTo(ownerId));
+            Assert.That(request.Status, Is.Not.EqualTo("open"));
             Assert.That(executor.GetNode(ownerId).Payment.PaymentCost.Originium, Is.EqualTo(1));
             var old = GameStateCloneService.DeepClone(state);
             string windowId = SettlementHostProtocol.FindActiveWindow(state).Context.Id;
@@ -1363,13 +1305,14 @@ end";
             Assert.That(session.Submit(command).Succeeded, Is.False);
             Assert.That(state.EffectRuntime.StateRevision, Is.EqualTo(old.EffectRuntime.StateRevision));
             command.Parameters["expectedRevision"] = state.EffectRuntime.StateRevision.ToString();
+            command.Parameters["interactionId"] = refreshed.GetStableInteractionId();
             Assert.That(session.Submit(command).Succeeded, Is.True);
             Assert.That(executor.GetNode(ownerId).Payment.PaymentCost.Originium, Is.EqualTo(2));
             Assert.That(executor.GetNode(ownerId).Payment.PaymentId, Is.EqualTo(ownerId));
             Assert.That(SettlementHostProtocol.FindActiveWindow(state).Context.Id, Is.EqualTo(windowId));
             Assert.That(SettlementHostProtocol.FindActiveWindow(state).Context.PaymentCost.Originium, Is.EqualTo(2));
             var current = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
-            Assert.That(current.GetStableInteractionId(), Is.EqualTo(request.GetStableInteractionId()));
+            Assert.That(current.OwnerEffectId, Is.EqualTo(ownerId));
             Assert.That(current.StateRevision, Is.EqualTo(state.EffectRuntime.StateRevision));
             Assert.That(ItemTransferEffectExecutor.Text(ItemTransferEffectExecutor.Value(current.PromptParameters, "paymentDraft"), "candidateId"), Is.EqualTo(command.Parameters["candidateId"]));
             Assert.That(ItemTransferEffectExecutor.Flag(ItemTransferEffectExecutor.Value(current.PromptParameters, "paymentDraft"), "canChange"), Is.True);
@@ -1772,7 +1715,8 @@ end";
             Assert.That(resumed.InteractionTypeId, Is.EqualTo(ResourcePaymentChoiceEffectExecutor.InteractionTypeId));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(3));
             Assert.That(ResourcePaymentSubstitutionEffectExecutor.MarkerIds(state, state.ItemZones.Zones.Single(z => z.ZoneId == fixture.SourceZoneId), 1).Count, Is.EqualTo(3));
-            Assert.That(fixture.Registry.GetSettlementOptions(state, 1), Is.Empty);
+            Assert.That(fixture.Registry.GetSettlementOptions(state, 1).Where(o => o.IsEnabled)
+                .All(o => string.IsNullOrEmpty(o.TargetEffectId)), Is.True, "取消不保留运行中的来源插入；未消费的合法来源仍可重新选择");
             Assert.That(executor.GetNode(fixture.OwnerId).Payment.IsCommitted, Is.False);
             Assert.That(executor.GetNode(fixture.OwnerId).Payment.SourceEdits.Single().Status, Is.EqualTo("cancelled"));
             Assert.That(executor.GetNode(fixture.OwnerId).Payment.SourceDrafts, Is.Empty);
@@ -1845,7 +1789,8 @@ end";
             Assert.That(fixture.Executor.RunUntilQuiescent().Faulted, Is.False, fixture.State.EffectRuntime.LastFaultMessage);
             Assert.That(fixture.State.FindPlayer(1).Score, Is.EqualTo(2));
             var session = Session(fixture.State, fixture.Registry);
-            Assert.That(session.Submit(EndCommand(fixture.State)).Validation.ErrorCode, Is.EqualTo(CommandErrorCode.PendingChoiceRequired));
+            var pending = session.Submit(EndCommand(fixture.State));
+            Assert.That(pending.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.NotCurrentPlayer), "缺少当前节点授权的结束命令由真实操作窗口先拒绝");
             Assert.That(SettlementHostProtocol.GetEndActionView(fixture.State, 1).CanStopCurrentNode, Is.True);
             var result = session.Submit(EndCommand(fixture.State, includeCurrent: true));
             Assert.That(result.Succeeded, Is.True);

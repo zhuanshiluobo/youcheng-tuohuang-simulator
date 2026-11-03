@@ -81,12 +81,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == one).SlotId, Is.EqualTo(Slot(0))); Assert.That(state.EffectRuntime.InfluenceDepartures, Is.Empty);
             Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.SourceEffectId == n.EffectId && e.EventType == "InfluenceRemoved"), Is.Zero); Restore("严格失败零变更");
         }
-        [Test] public void ExplicitBatchSealsAfterRealDynamicProducers()
+        [Test] public void AutomaticBatchSealsAfterItsRealMultiTargetProducer()
         {
             string one = Place(0), two = Place(1);
-            var n = Run(InfluenceDepartureBatchExecutor.Create(1, new[] { InfluenceEffectSpecFactory.RemoveInfluence(1, one), InfluenceEffectSpecFactory.RemoveInfluence(1, two) }));
+            var n = Run(InfluenceEffectExecutor.StrictRemove(1, new[] { one, two }, 2));
             Assert.That(n.Status, Is.EqualTo(EffectNodeStatus.Completed)); var batch = state.EffectRuntime.InfluenceDepartureBatches.Single();
-            Assert.That(batch.Sealed, Is.True); Assert.That(batch.DepartureIds.Count, Is.EqualTo(2)); Assert.That(batch.ProducerSteps.Count, Is.EqualTo(2)); Restore("显式生产封口");
+            Assert.That(batch.Sealed, Is.True); Assert.That(batch.DepartureIds.Count, Is.EqualTo(2)); Assert.That(batch.ProducerSteps, Is.EqualTo(new[] { n.EffectId })); Assert.That(batch.OwnerEffectId, Is.EqualTo(n.EffectId)); Restore("真实基础操作自动生产封口");
         }
         [Test] public void FirstRemovedObserverAlreadySeesBothStrictTargetsOffMap()
         {
@@ -106,10 +106,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(),1,request.StateRevision,NormalizedValue.CreateString(item),out string reason),Is.True,reason); Quiesce();
             Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==id).DefinitionVersion,Is.EqualTo("v1")); Assert.That(state.EffectRuntime.InfluenceDepartures,Is.Empty); Restore("旧v1未补新离场事件");
         }
-        [Test] public void EmptyExplicitProductionBatchSealsWithoutAResponse()
+        [Test] public void RetiredEmptyExplicitProductionBatchCannotCreateBatchOrResponse()
         {
-            var n=Run(InfluenceDepartureBatchExecutor.Create(1,new[]{InfluenceEffectExecutor.StrictRemove(1,new[]{"missing1","missing2"},2)}));
-            var batch=state.EffectRuntime.InfluenceDepartureBatches.Single(); Assert.That(batch.Sealed,Is.True); Assert.That(batch.DepartureIds,Is.Empty); Assert.That(state.EffectRuntime.DeferredResponses,Is.Empty); Restore("零生产封口");
+            var old = EffectSpec.Create(RetiredDepartureBatchContract.TypeId, Object(), 1);
+            old.NestedEffectGroups.Add(new List<EffectSpec> { InfluenceEffectExecutor.StrictRemove(1, new[] { "missing1", "missing2" }, 2) });
+            Assert.That(Engine().TryCreateRoot(old, "", "", out _), Is.False);
+            Assert.That(state.EffectRuntime.InfluenceDepartureBatches, Is.Empty); Assert.That(state.EffectRuntime.DeferredResponses, Is.Empty);
+            Assert.That(state.EffectRuntime.LastFaultMessage, Does.Contain(RetiredDepartureBatchContract.Reason));
         }
     }
 }

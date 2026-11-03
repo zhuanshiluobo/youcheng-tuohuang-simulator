@@ -235,7 +235,7 @@ namespace YC.Domain.Effects
                 input.InteractionTypeId != FacilitySelectionEffectExecutor.NormalBuildInteractionType ||
                 input.CandidateSetVersion < 1 || !input.CandidateIds.Contains(targetId)) return false;
             var record = state.EffectRuntime.CandidateResolutions.Find(c => c.CandidateSetId == input.CandidateSetId && c.Version == input.CandidateSetVersion);
-            string source = Text(selection.NormalizedArguments, "sourceZone", "supply");
+            string source = FacilityBuildContract.SourceKind(selection);
             return record?.SourceEffectId == selection.EffectId && record.ExecutingPlayerId == selection.PlayerId &&
                 record.CandidateKind == FacilityBuildCandidateQuery.CandidateKind && record.FinalCandidateIds.SequenceEqual(input.CandidateIds) &&
                 Text(input.PromptParameters, "sourceZone") == source &&
@@ -278,7 +278,7 @@ namespace YC.Domain.Effects
             return build?.EffectTypeId == FacilityEntryEffectTypeIds.Build && build.ParentEffectId == selection.EffectId && build.PlayerId == owner.PlayerId &&
                 Text(build.NormalizedArguments, "preparedPaymentOwnerEffectId") == owner.EffectId && Text(build.NormalizedArguments, "facilityId") == p.TargetId &&
                 Text(build.NormalizedArguments, "expectedSourceZoneId") == source && Text(build.NormalizedArguments, "paymentMode") == Text(p.ActionArguments, "paymentMode") &&
-                Text(build.NormalizedArguments,"sourceKind")==Text(selection.NormalizedArguments,"sourceZone","supply") &&
+                Text(build.NormalizedArguments,"sourceKind")==FacilityBuildContract.SourceKind(selection) &&
                 Text(build.NormalizedArguments,"sourceKey")==Text(selection.NormalizedArguments,"sourceKey") &&
                 Value(build.NormalizedArguments, "consumeMainAction")?.Kind == NormalizedValueKind.Boolean && Flag(build.NormalizedArguments, "consumeMainAction")==Flag(selection.NormalizedArguments,"consumeMainAction") &&
                 Value(build.NormalizedArguments, "reserveForFree")?.Kind == NormalizedValueKind.Boolean && !Flag(build.NormalizedArguments, "reserveForFree");
@@ -385,7 +385,7 @@ namespace YC.Domain.Effects
             if (Runtime.Status != EffectRuntimeStatus.Active || string.IsNullOrEmpty(commandId)) return false;
             var parent = GetNode(selectionOwnerEffectId);
             var request = Runtime.InteractionRequests.Find(q => q.GetStableInteractionId() == selectionInteractionId && q.Status == "open");
-            if (parent?.EffectTypeId != FacilitySelectionEffectExecutor.TypeId || parent.PlayerId != playerId || parent.FlowStage != "deck_select" ||
+            if (!FacilityBuildContract.IsSelectionOwner(parent) || parent.PlayerId != playerId || parent.FlowStage != "deck_select" ||
                 parent.PendingOutcome != EffectPendingOutcome.None || !FacilitySelectionEffectExecutor.IsNormalBuildSelection(parent) ||
                 request?.OwnerEffectId != parent.EffectId || request.InteractionTypeId != FacilitySelectionEffectExecutor.NormalBuildInteractionType ||
                 request.AnsweringPlayerId != playerId || request.StateRevision != expectedRevision || request.CandidateSetId != selectionCandidateSetId ||
@@ -480,7 +480,9 @@ namespace YC.Domain.Effects
                 var p = owner.Payment.Preparation;
                 var spec = FacilityBuildEffectSpecFactory.Build(playerId, p.TargetId, -1, Text(p.ActionArguments, "paymentMode"), false,
                     parent.SourceId, Flag(parent.NormalizedArguments,"consumeMainAction"), Text(p.ActionArguments, "expectedSourceZoneId"),
-                    Text(parent.NormalizedArguments,"sourceZone","supply"), Text(parent.NormalizedArguments,"sourceKey"));
+                    FacilityBuildContract.SourceKind(parent), Text(parent.NormalizedArguments,"sourceKey"));
+                var maximum = Value(parent.NormalizedArguments, "maxGoldVoucherCost");
+                if (maximum != null) spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "maxGoldVoucherCost", Value = maximum.Clone() });
                 spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "preparedPaymentOwnerEffectId", Value = NormalizedValue.CreateString(owner.EffectId) });
                 spec.NormalizedArguments.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
                 var ids = AppendChildEffects(work, parent, new[] { spec }, "child", input.GetStableInteractionId(), entries);

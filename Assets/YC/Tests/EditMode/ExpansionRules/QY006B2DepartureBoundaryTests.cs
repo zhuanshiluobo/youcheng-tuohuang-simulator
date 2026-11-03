@@ -16,29 +16,27 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed partial class InfluenceDepartureLuaTests
     {
-        // 规则隔离：真实 Lua → 行动入口 → 逐次合法选择，不计正常独立程序或页面验收。
-        private HostSessionArchiveDto B2BatchArchive(int n, bool stateAfter)
+        // 规则隔离：真实16枚自动批次；compact仅对同一真实事实换用协议已支持的编码，不计生产17枚或正常验收。
+        private HostSessionArchiveDto B2BatchArchive(int n, bool stateAfter, bool compact = false)
         {
             string slot = InfluenceService.GetLocationSlotId(StaticMapDefinitions.CreateThreePlayerMap().Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0).LocationId, 0);
-            string script = @"return function(ctx) if ctx.eventType=='EffectCompleted' then return {} end
-return {Effect.DepartureBatch({effects={Effect.Repeat({apiVersion=1,count=" + n + @",effects={
-Effect.PlaceInfluence({executingPlayer=ctx.playerId,ownerSubject=ctx.playerId,influenceSource='qy006.b2',targetSlotId='" + slot + @"'}),
-Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})}})}})} end";
-            Setup(batch: true, quickScript: script, markerStock: 8, initialGold: 20);
+            Setup(batch: true, markerStock: Math.Max(8, n), initialGold: 20);
             var archive = HostRecoveryService.CreateArchive(state);
-            var option = registry.QueryActions(state, 1).Single(o => o.ActionId == "qy006.quick.action");
-            Assert.That(Engine().TryInvokeAbilityAction(1, option.OptionId, option.RequestRef.InteractionId, option.RequestRef.FactsDigest,
-                option.VersionRef.ContentPackHash, "qy006.b2.batch", Object(), out _, out string reason), Is.True, reason);
-            Pump();
-            for (int i = 0; i < n; i++)
+            Run(DepartureProduction(n, slot, "qy006.b2"));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && state.EffectRuntime.EffectNodes.Single(node => node.EffectId == q.OwnerEffectId).EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence), Is.False);
+            if (compact)
             {
-                var request = state.EffectRuntime.InteractionRequests.Single(q => q.Status == "open" &&
-                    state.EffectRuntime.EffectNodes.Single(node => node.EffectId == q.OwnerEffectId).EffectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence);
-                Assert.That(request.CandidateIds.Count, Is.EqualTo(1));
-                Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, Strings(request.CandidateIds), out reason), Is.True, reason);
-                Pump();
+                var batch = state.EffectRuntime.InfluenceDepartureBatches.Single(); var offer = batch.Offers.Single();
+                var response = state.EffectRuntime.DeferredResponses.Single(r => r.BatchId == batch.BatchId);
+                var payload = Value(response.PendingBody.Single().NormalizedArguments, "triggerPayload");
+                payload.Properties.RemoveAll(p => p.Name == "departureIds" || p.Name == "sourceEventIds");
+                payload.Properties.Add(new NormalizedValueEntry { Name = "batchFactsProtocolVersion", Value = NormalizedValue.CreateInteger(2) });
+                payload.Properties.Add(new NormalizedValueEntry { Name = "batchFactsDigest", Value = NormalizedValue.CreateString(InfluenceDepartureProtocol.BatchFactsDigest(batch.BatchId, offer)) });
+                payload.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
+                Assert.That(InfluenceDepartureProtocol.ValidBatchPayload(state, response), Is.True);
+                artifacts.WriteLabeledText("B2紧凑编码隔离说明", "当前基础操作上限16，不构造17枚生产范围；只把同一真实16枚事实由内联转为合同已支持的compact2编码，实际物品/事件/收据/分组均不变。不计现行生产17覆盖。");
             }
-            B2AssertBatchFacts(state, n);
+            B2AssertBatchFacts(state, n, compact);
             if (stateAfter)
             {
                 HostRecoveryService.AppendJournal(archive, state, pack.ContentHash);
@@ -51,10 +49,10 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
             artifacts.WriteLabeledText("B2合法批次原归档" + n + (stateAfter ? "日志" : "快照"), json);
             var recovered = HostRecoveryService.RecoverJson(json, registry);
             Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
-            B2AssertBatchFacts(recovered.State, n);
+            B2AssertBatchFacts(recovered.State, n, compact);
             return archive;
         }
-        private static void B2AssertBatchFacts(GameState current, int n)
+        private static void B2AssertBatchFacts(GameState current, int n, bool compact = false)
         {
             var runtime = current.EffectRuntime;
             var batch = runtime.InfluenceDepartureBatches.Single();
@@ -81,7 +79,7 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
             var payload = Value(response.PendingBody.Single().NormalizedArguments, "triggerPayload");
             Assert.That(Text(payload, "batchId"), Is.EqualTo(batch.BatchId));
             Assert.That(Number(payload, "departureCount"), Is.EqualTo(n));
-            if (n == 16)
+            if (!compact)
             {
                 Assert.That(Value(payload, "departureIds").Items.Select(v => v.StringValue), Is.EqualTo(batch.DepartureIds));
                 Assert.That(Value(payload, "sourceEventIds").Items.Select(v => v.StringValue), Is.EqualTo(offer.EventIds));
@@ -97,15 +95,15 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
             }
             Assert.That(payload.TryValidate(out string reason), Is.True, reason);
         }
-        [TestCase(16)] [TestCase(17)]
-        public void B2BatchSixteenAndSeventeenKeepFullTypedFactsAndContinueWithLegalK(int n)
+        [TestCase(false)] [TestCase(true)]
+        public void B2AutomaticSixteenKeepsFactsWithInlineOrCompactEncodingAndContinuesWithLegalK(bool compact)
         {
-            var archive = B2BatchArchive(n, false);
+            const int n = 16; var archive = B2BatchArchive(n, false, compact);
             var recovered = HostRecoveryService.Recover(archive, registry);
             Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic); state = recovered.State;
             var request = state.EffectRuntime.InteractionRequests.Single(q => q.Status == "open");
             Assert.That(request.CandidateIds, Is.EqualTo(Enumerable.Range(1, n).Select(i => i.ToString()).ToArray()));
-            // 本例只选择当前供应和资金均允许的 k=2；n 保留 16/17，不把候选上界当成实际交付量。
+            // 本例只选择当前供应和资金均允许的k=2；真实n=16，内联/compact编码不改变生产范围。
             AnswerResponse("optional_effect", "2");
             AnswerResponse("optional_effect", "continue");
             Assert.That(Stored(commandCard), Is.EqualTo(2));
@@ -151,7 +149,7 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
             Assert.That(graphEqual, Is.True, "正式合同转换不得丢失归档字段图。");
             Assert.That(digests.All(d => (string)d["before"] == (string)d["after"]), Is.True, "快照与全部实际StateAfter规则摘要须保持。");
             Assert.That(control.Succeeded, Is.True, "同通路合法控制失败，不能记作坏档被拒：" + control.FaultCode + ":" + control.Diagnostic);
-            B2AssertBatchFacts(control.State, 17);
+            B2AssertBatchFacts(control.State, 16, true);
         }
         private static JObject B2BatchRawState(JObject archive, bool stateAfter) => stateAfter
             ? (JObject)archive["Journal"]["Entries"].Last(e => e["StateAfter"] is JObject)["StateAfter"]
@@ -172,7 +170,7 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
         [TestCase(false)] [TestCase(true)]
         public void B2BatchCompactRawPresenceAndTypesAreRequiredAtBothArchivePositions(bool stateAfter)
         {
-            string legal = HostRecoveryService.SerializeArchive(B2BatchArchive(17, stateAfter));
+            string legal = HostRecoveryService.SerializeArchive(B2BatchArchive(16, stateAfter, true));
             var failures = new List<string>();
             foreach (string field in new[] { "batchFactsProtocolVersion", "batchFactsDigest", "batchId", "departureCount" })
             foreach (bool missing in new[] { true, false })
@@ -198,7 +196,7 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
         [TestCase(false, false)] [TestCase(true, false)] [TestCase(false, true)] [TestCase(true, true)]
         public void B2BatchTypedIdentityOrderCountAndMixedPayloadCorruptionAreRejected(bool stateAfter, bool domain)
         {
-            var original = B2BatchArchive(17, stateAfter);
+            var original = B2BatchArchive(16, stateAfter, true);
             string legal = HostRecoveryService.SerializeArchive(original);
             if (domain) B2BatchAssertDomainControl(original, legal);
             var failures = new List<string>();
@@ -217,7 +215,7 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
                     case "protocol": B2BatchRawValue(payload, "batchFactsProtocolVersion")["IntegerValue"] = 1; break;
                     case "digest": B2BatchRawValue(payload, "batchFactsDigest")["StringValue"] = "forged-digest"; break;
                     case "batchId": B2BatchRawValue(payload, "batchId")["StringValue"] = "forged-batch"; break;
-                    case "count": B2BatchRawValue(payload, "departureCount")["IntegerValue"] = 16; break;
+                    case "count": B2BatchRawValue(payload, "departureCount")["IntegerValue"] = 15; break;
                     case "mixed_departures": B2BatchAdd(payload, "departureIds", Strings(((JArray)offer["DepartureIds"]).Values<string>())); break;
                     case "mixed_events": B2BatchAdd(payload, "sourceEventIds", Strings(((JArray)offer["EventIds"]).Values<string>())); break;
                     case "typed_batch_id": batch["BatchId"] = "forged-typed-batch"; break;
@@ -284,6 +282,58 @@ Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self
                 if (result.Succeeded) failures.Add(mutation);
             }
             Assert.That(failures, Is.Empty, "下列坏档被接受：" + string.Join("、", failures));
+        }
+        [TestCase(false, false)] [TestCase(false, true)] [TestCase(true, false)] [TestCase(true, true)]
+        public void AutomaticDepartureCompletionCannotOmitBothReceiptAndReference(bool stateAfter, bool domain)
+        {
+            var original = B2BatchArchive(16, stateAfter, true); string legal = HostRecoveryService.SerializeArchive(original);
+            if (domain) B2BatchAssertDomainControl(original, legal);
+            var raw = JObject.Parse(legal); var targetState = B2BatchRawState(raw, stateAfter);
+            var targetNode = targetState["EffectRuntime"]["EffectNodes"].Single(n => n["DepartureCompletionReceipt"]?.Type == JTokenType.Object);
+            targetNode["DepartureCompletionReceipt"] = JValue.CreateNull(); B2BatchDrop((JObject)targetNode["NormalizedResult"], "destinationFacts");
+            string bad = raw.ToString(); var converted = B2BatchReadDomainArchive(raw);
+            var current = stateAfter ? converted.Journal.Entries.Last(e => e.StateAfter != null).StateAfter : converted.Snapshot.State;
+            var owner = current.EffectRuntime.EffectNodes.Single(n => n.EffectId == (string)targetNode["EffectId"]);
+            Assert.That(current.EffectRuntime.TryValidate(out string shapeReason), Is.True, shapeReason);
+            Assert.That(InfluenceDepartureProtocol.Validate(current, out string protocolReason), Is.True, protocolReason);
+            bool gateAccepted = InfluenceDepartureCompletion.TryValidate(current, owner, out string reason);
+            var result = domain ? HostRecoveryService.Recover(converted, registry) : HostRecoveryService.RecoverJson(bad, registry);
+            artifacts.WriteLabeledText("完成收据和引用同时删除坏档_" + stateAfter + "_" + domain, bad);
+            artifacts.WriteLabeledText("同时删除的恢复结果", JsonConvert.SerializeObject(new { gateAccepted, reason, result.Succeeded, result.FaultCode, result.Diagnostic }));
+            Assert.That(gateAccepted, Is.False, "结果删去引用不能掩盖实际完整去向超预算所需收据");
+            Assert.That(reason, Is.EqualTo("departure_completion_receipt_missing"));
+            Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Is.EqualTo(reason));
+            Assert.That(raw.ToString(), Is.EqualTo(bad)); Assert.That(HostRecoveryService.RecoverJson(legal, registry).Succeeded, Is.True);
+        }
+        [TestCase("receipt")][TestCase("summary")][TestCase("missing_protocol")][TestCase("missing_responses")]
+        [TestCase("rehash_supply")][TestCase("rehash_item")]
+        public void AutomaticDepartureCompletionKeepsAllDestinationsAndRejectsChangedReceipt(string fault)
+        {
+            var archive = B2BatchArchive(16, false); string clean = HostRecoveryService.SerializeArchive(archive);
+            var raw = JObject.Parse(clean); var runtime = raw["Snapshot"]["State"]["EffectRuntime"];
+            var node = runtime["EffectNodes"].Single(n => n["DepartureCompletionReceipt"]?.Type == JTokenType.Object);
+            var receipt = (JObject)node["DepartureCompletionReceipt"];
+            Assert.That(((JArray)receipt["Destinations"]).Count, Is.EqualTo(16));
+            Assert.That(((JArray)receipt["Destinations"]).All(row => (string)row["Status"] == "returned"), Is.True);
+            Assert.That(B2BatchRawValue((JObject)node["NormalizedResult"], "destinationFacts"), Is.Not.Null);
+            if (fault == "receipt") receipt["ReceiptId"] = "not-the-receipt";
+            if (fault == "summary") B2BatchRawValue((JObject)node["NormalizedResult"], "actualRemovedCount")["IntegerValue"] = 15;
+            if (fault == "missing_protocol") receipt.Property("ProtocolVersion").Remove();
+            if (fault == "missing_responses") ((JObject)receipt["Destinations"][0]).Property("ResponseIds").Remove();
+            if (fault.StartsWith("rehash", StringComparison.Ordinal))
+            {
+                if (fault == "rehash_supply") receipt["Destinations"][0]["OriginalSupplyZoneId"] = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == 2).ZoneId;
+                else receipt["Destinations"][0]["ItemId"] = receipt["Destinations"][1]["ItemId"].DeepClone();
+                var typed = B2BatchReadDomainArchive(raw); var target = typed.Snapshot.State.EffectRuntime.EffectNodes.Single(n => n.DepartureCompletionReceipt != null);
+                var digest = typeof(InfluenceDepartureCompletion).GetMethod("Digest", BindingFlags.NonPublic | BindingFlags.Static);
+                target.DepartureCompletionReceipt.ReceiptId = StableIdFactory.Create("departure-completion", target.EffectId, (string)digest.Invoke(null, new object[] { target.DepartureCompletionReceipt }));
+                Value(Value(target.NormalizedResult, "destinationFacts"), "receiptId").StringValue = target.DepartureCompletionReceipt.ReceiptId;
+                Assert.That(InfluenceDepartureCompletion.TryValidate(typed.Snapshot.State, target, out _), Is.False, "重算摘要不能伪造真实原供应或实例");
+                raw = JObject.Parse(HostRecoveryService.SerializeArchive(typed));
+            }
+            string bad = raw.ToString(); Assert.That(HostRecoveryService.RecoverJson(bad, registry).Succeeded, Is.False); Assert.That(raw.ToString(), Is.EqualTo(bad));
+            Assert.That(HostRecoveryService.RecoverJson(clean, registry).Succeeded, Is.True);
+            artifacts.WriteLabeledText("自动离场完成收据坏档_" + fault, bad);
         }
     }
 }

@@ -76,7 +76,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 string id = (string)entry["definitionId"], role = (string)entry["initialZoneRole"];
                 string category = id.Split('.')[1]; string path = category + "/" + id + ".json";
-                if (paths.Values<string>().Contains(path)) continue;
+                if (paths.Values<string>().Contains(path) || inventoryDefinitions.Contains(path)) continue;
                 JObject definition;
                 if (category == "character")
                 {
@@ -371,7 +371,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var node = Run(state, InfluenceEffectSpecFactory.MoveInfluence(1, item.ItemId, locked)); Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Failed));
             var route = map.Routes.First(r => r.InfluenceSlotCount > 0); Assert.That(registry.InfluenceService.ValidateItemPlacement(state, item.OwnerSubject, InfluenceService.GetRouteSlotId(route.RouteId, 0)).Succeeded, Is.False);
             Assert.That(registry.InfluenceService.GetLegalMovementSlotIds(state, item.ItemId), Does.Not.Contain(locked));
-            Run(state, EffectSpec.Create(ContentPrimitiveEffectExecutor.SelectInfluence, Object("player", NormalizedValue.CreateString("p1"), "operation", NormalizedValue.CreateString("move"), "subjectFilter", NormalizedValue.CreateString("opponent")), 1));
+            Run(state, EffectSpec.Create(InfluenceEffectTypeIds.MoveInfluence, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "executingPlayer", NormalizedValue.CreateStableReference("player", "1"), "subjectFilter", NormalizedValue.CreateString("opponent")), 1));
             Assert.That(Open(state).CandidateIds.Any(id => id.EndsWith("|" + locked)), Is.False);
             Answer(state, Open(state).CandidateIds[0]);
         }
@@ -440,7 +440,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void FoundationChoosesOnlyActualRemainingAwardAndPublishesLifecycleRequestOnce()
         {
             var state = State(); Reward(state, Foundation, 4); string chosen = Open(state).CandidateIds[0]; int total = state.ItemZones.Items.Count;
-            state = Restore(state); Answer(state, chosen); Assert.That(In(state, "awards", 1), Does.Contain(chosen));
+            state = Restore(state); Answer(state, chosen);
+            var acquiredItem = state.ItemZones.Items.Single(i => i.ItemId == chosen);
+            var rewards = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_rewards" && z.OwnerPlayerId == 1);
+            Assert.That(acquiredItem.ZoneId, Is.EqualTo(rewards.ZoneId));
+            Assert.That(acquiredItem.TypeId, Is.EqualTo("core.award_card"));
             var acquired = state.EffectRuntime.RuleEvents.Single(e => e.EventType == RewardAcquisitionFlow.AcquiredEventTypeId);
             Assert.That(Text(acquired.Payload, "rewardItemId"), Is.EqualTo(chosen)); Assert.That(acquired.Visibility, Is.EqualTo("public"));
             state = Restore(state); Reward(state, Foundation, 4, 2); Assert.That(Open(state).CandidateIds, Does.Not.Contain(chosen)); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(3));
@@ -450,8 +454,19 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void RhodesRecoveryAndDirectReplacementUseSeparateActualAbilities()
         {
             var state = State(); var recovered = Item(state, "texas", 1); Position(state, recovered, FindZone(state, "discard", 1).ZoneId);
-            Activate(state, Rhodes, 3); state = Restore(state); Answer(state, recovered.ItemId);
+            var others = In(state, "hand", 1).ToArray();
+            Activate(state, Rhodes, 3); state = Restore(state);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("action.decline_effect")); Answer(state, "continue");
+            state = Restore(state); Answer(state, recovered.ItemId);
             Assert.That(In(state, "hand", 1), Is.EqualTo(new[] { recovered.ItemId })); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(90));
+            Assert.That(In(state, "discard", 1), Is.EquivalentTo(others));
+            var facts = state.EffectRuntime.RuleEvents.Where(e => e.EventType == "character.cards.revealed").ToArray();
+            Assert.That(facts.Length, Is.EqualTo(1 + others.Length)); Assert.That(facts.All(e => e.Visibility == "public"), Is.True);
+            Assert.That(facts.SelectMany(e => Value(e.Payload, "itemIds").Items.Select(v => v.StringValue)), Is.EquivalentTo(new[] { recovered.ItemId }.Concat(others)));
+            var moves = state.EffectRuntime.EffectNodes.Where(n => n.EffectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard && Flag(n.NormalizedArguments, "reveal")).ToArray();
+            Assert.That(moves.Length, Is.EqualTo(facts.Length)); Assert.That(moves.All(n => Number(n.NormalizedResult, "movedCount") == 1), Is.True);
+            state = Restore(state); new EffectTreeExecutor(state, registry).RunUntilQuiescent();
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == "character.cards.revealed"), Is.EqualTo(facts.Length));
             int count = In(state, "operator_deck").Count; Reward(state, Rhodes, 4); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(count));
             Assert.That(Open(state).CandidateIds, Does.Not.Contain("decline")); string selected = Open(state).CandidateIds[0]; state = Restore(state); Answer(state, selected); Answer(state, recovered.ItemId);
             Assert.That(In(state, "hand", 1), Is.EqualTo(new[] { selected })); Assert.That(In(state, "retired"), Does.Contain(recovered.ItemId));

@@ -159,7 +159,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void ActualRoundCleanupRemovalAndItsRequiredResponseFinishBeforeTheActualTrackReset()
         {
-            using var f=Fixture(ScheduleBody,"return function(ctx) return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end",fullRound:true);
+            using var f=Fixture(ScheduleBody,"return function(ctx) return {Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end",fullRound:true);
             for(int guard=0;guard<200 && f.State.Phase!=GamePhase.ActionRound1;guard++) AdvanceVisible(f);
             Assert.That(f.State.Phase,Is.EqualTo(GamePhase.ActionRound1));f.Invoke(Signal);f.Place(f.Location,0);
             const string hold="qy007.obligation.actual.response";

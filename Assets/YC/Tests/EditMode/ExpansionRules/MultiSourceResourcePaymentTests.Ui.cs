@@ -53,7 +53,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             f.Run(RefillSpec(1, FindZone(f.State, "facility_supply_0").ZoneId));
             string target = new ItemZoneQuery().GetItemIds(f.State, FindZone(f.State, "facility_supply_0").ZoneId).Single();
-            f.Run(EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "allowDecline", NormalizedValue.CreateBoolean(true)), 1));
+            f.Run(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
             var selection = f.Open();
             Assert.That(f.Engine.TryPrepareEffectBuildPayment(1, selection.OwnerEffectId, selection.GetStableInteractionId(), selection.CandidateSetId, selection.CandidateSetVersion, target,
                 Object("expectedSourceZoneId", NormalizedValue.CreateString(FindZone(f.State, "facility_supply_0").ZoneId), "paymentMode", NormalizedValue.CreateString("resources")),

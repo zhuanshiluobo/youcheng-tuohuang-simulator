@@ -73,19 +73,54 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void NormalSameDiceDoNotCreateOrChargeTheExtraCondition()
         {
             var faces = new[] { "D03" }; var main = f.Rolled(faces, new[] { 2, 2 }).Effects.Single();
+            Assert.That(TiagoInvestmentTestFixture.PointEffects(main, 2).Single().Amount, Is.EqualTo(15));
             var selected = f.Invoke(faces: faces, continuation: main.ContinuationContext, result: NormalizedValue.CreateString("2"));
-            Assert.That(selected.IsSuccess, Is.True, selected.Diagnostic); Assert.That(selected.Effects.Count, Is.EqualTo(1));
-            Assert.That(selected.Effects[0].Amount, Is.EqualTo(15));
+            Assert.That(selected.IsSuccess, Is.True, selected.Diagnostic); Assert.That(selected.Effects, Is.Empty,
+                "主分支已经实际获得资源，完成续接不能再发同一收益。");
         }
         [TestCase(false)][TestCase(true)] public void ExtraIsIndependentAndRetainsTwoDiceDirectVersusThreeDiceChoice(bool triple)
         {
             var faces = triple ? new[] { "D03", "D06" } : new[] { "D03" };
             var main = f.Rolled(faces, triple ? new[] { 2, 4, 4 } : new[] { 2, 5 }).Effects.Single();
             var r = f.Invoke(faces: faces, continuation: main.ContinuationContext, result: NormalizedValue.CreateString("2"));
-            Assert.That(r.IsSuccess, Is.True, r.Diagnostic); Assert.That(r.Effects.Count, Is.EqualTo(2));
-            var extra = r.Effects[1]; TiagoInvestmentTestFixture.AssertTokenCost(extra.NestedEffectGroups[0][0], 2, "original_supply");
-            if (triple) Assert.That(Options(extra.NestedEffectGroups[1].Single()), Is.EqualTo(new[] { "4" }));
+            Assert.That(TiagoInvestmentTestFixture.PointEffects(main, 2).Single().Amount, Is.EqualTo(15));
+            Assert.That(r.IsSuccess, Is.True, r.Diagnostic); Assert.That(r.Effects.Count, Is.EqualTo(1));
+            var extra = r.Effects.Single(); TiagoInvestmentTestFixture.AssertTokenCost(extra.NestedEffectGroups[0][0], 2, "original_supply");
+            if (triple)
+            {
+                Assert.That(extra.NestedEffectGroups[1], Is.Empty);
+                var paid = f.Invoke(faces: faces, continuation: extra.ContinuationContext,
+                    result: Object("outcome", NormalizedValue.CreateString("condition_met")));
+                Assert.That(paid.IsSuccess, Is.True, paid.Diagnostic);
+                Assert.That(Options(paid.Effects.Single()), Is.EqualTo(new[] { "4" }));
+            }
             else Assert.That(extra.NestedEffectGroups[1].Count, Is.EqualTo(3));
+        }
+        [Test] public void MainBranchFailureStillOrganizesTheIndependentExtraWithoutRepeatingTheMainReward()
+        {
+            var faces = new[] { "D03" };
+            var main = f.Rolled(faces, new[] { 2, 5 }).Effects.Single();
+            var result = f.Invoke(faces: faces, continuation: main.ContinuationContext,
+                result: NormalizedValue.CreateString("2"), outcome: "failed");
+            Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
+            Assert.That(result.Effects.Count, Is.EqualTo(1));
+            Assert.That(result.Effects.Single().EffectTypeId, Is.EqualTo(EffectTypeIds.Condition));
+            TiagoInvestmentTestFixture.AssertTokenCost(result.Effects.Single().NestedEffectGroups[0].Single(), 2, "original_supply");
+            Assert.That(result.Effects.Any(e => e.EffectTypeId == ResourceEffectTypeIds.Gain), Is.False);
+        }
+        [TestCase("condition_not_met")] [TestCase("player_declined")]
+        public void ExtraChoiceRequiresTheRealSuccessfulConditionResult(string outcome)
+        {
+            const string entry = "entrepreneur.D07.quick";
+            var faces = new[] { "D03" };
+            var main = f.Rolled(faces, new[] { 2, 5 }, entry).Effects.Single();
+            var completed = f.Invoke(entry, faces, main.ContinuationContext, NormalizedValue.CreateString("2"));
+            var extra = completed.Effects.Single();
+            Assert.That(extra.NestedEffectGroups[1], Is.Empty);
+            var denied = f.Invoke(entry, faces, extra.ContinuationContext,
+                Object("outcome", NormalizedValue.CreateString(outcome)));
+            Assert.That(denied.IsSuccess, Is.True, denied.Diagnostic);
+            Assert.That(denied.Effects, Is.Empty, "费用未成功时不能构造额外点数分支。");
         }
         [TestCase(false)][TestCase(true)] public void SevenADrawsEveryDieButBothChoicesAllowTheSamePoint(bool triple)
         {
@@ -93,33 +128,40 @@ namespace YC.Tests.EditMode.ExpansionRules
             var main = f.Rolled(faces, triple ? new[] { 2, 2, 2 } : new[] { 2, 2 }, entry).Effects.Single();
             Assert.That(Options(main), Is.EqualTo(Enumerable.Range(0, 8).Select(n => n.ToString())));
             var r = f.Invoke(entry, faces, main.ContinuationContext, NormalizedValue.CreateString("2"));
-            var extraChoice = r.Effects[1].NestedEffectGroups[1].Single(); Assert.That(Options(extraChoice), Does.Contain("2")); Assert.That(Options(extraChoice).Length, Is.EqualTo(8));
-            var extra = f.Invoke(entry, faces, extraChoice.ContinuationContext, NormalizedValue.CreateString("2"));
-            Assert.That(extra.IsSuccess, Is.True, extra.Diagnostic); Assert.That(extra.Effects.Single().Amount, Is.EqualTo(15));
+            var paid = f.Invoke(entry, faces, r.Effects.Single().ContinuationContext, Object("outcome", NormalizedValue.CreateString("condition_met")));
+            Assert.That(paid.IsSuccess, Is.True, paid.Diagnostic);
+            var extraChoice = paid.Effects.Single(); Assert.That(Options(extraChoice), Does.Contain("2")); Assert.That(Options(extraChoice).Length, Is.EqualTo(8));
+            Assert.That(TiagoInvestmentTestFixture.PointEffects(extraChoice, 2).Single().Amount, Is.EqualTo(15));
+            Assert.That(extraChoice.ContinuationContext, Is.Null, "额外点数直接执行，不再挂值分派。");
         }
         [TestCase(0)][TestCase(1)][TestCase(2)][TestCase(3)][TestCase(4)][TestCase(5)][TestCase(6)][TestCase(7)]
         public void EveryPointProducesItsRealOrdinaryEffect(int n)
         {
             const string entry = "entrepreneur.D07.quick"; var main = f.Rolled(Array.Empty<string>(), new[] { 1, 1 }, entry).Effects.Single();
-            var r = f.Invoke(entry, Array.Empty<string>(), main.ContinuationContext, NormalizedValue.CreateString(n.ToString()));
-            Assert.That(r.IsSuccess, Is.True, r.Diagnostic); Assert.That(r.Effects, Is.Not.Empty);
-            if (n == 3 || n == 7) Assert.That(Number(r.Effects.Single().RawArguments, "levels"), Is.EqualTo(n == 3 ? 1 : 2));
-            if (n == 5) Assert.That(r.Effects.Select(e => e.Amount), Is.EqualTo(new[] { 2, 2, 1 }));
-            if (n == 6) Assert.That(r.Effects.Count, Is.EqualTo(2));
-            if (n == 4) { Assert.That(Text(r.Effects[0].RawArguments, "saleMode"), Is.EqualTo("batch")); Assert.That(Text(r.Effects[0].RawArguments, "pricePolicy"), Is.EqualTo("core.resource_sale")); }
-            f.Artifacts.WriteLabeledText("点数" + n + "实际Lua树", JsonConvert.SerializeObject(r.Effects));
+            var effects = TiagoInvestmentTestFixture.PointEffects(main, n);
+            if (n == 3 || n == 7) Assert.That(Number(effects.Single().RawArguments, "levels"), Is.EqualTo(n == 3 ? 1 : 2));
+            if (n == 5) Assert.That(effects.Select(e => e.Amount), Is.EqualTo(new[] { 2, 2, 1 }));
+            if (n == 6) Assert.That(effects.Count, Is.EqualTo(2));
+            if (n == 4) { Assert.That(Text(effects[0].RawArguments, "saleMode"), Is.EqualTo("batch")); Assert.That(Text(effects[0].RawArguments, "pricePolicy"), Is.EqualTo("core.resource_sale")); }
+            var completed = f.Invoke(entry, Array.Empty<string>(), main.ContinuationContext, NormalizedValue.CreateString(n.ToString()));
+            Assert.That(completed.IsSuccess, Is.True, completed.Diagnostic); Assert.That(completed.Effects, Is.Empty);
+            f.Artifacts.WriteLabeledText("点数" + n + "实际Lua分支", JsonConvert.SerializeObject(effects));
         }
         [Test] public void BatchSaleFinishesBeforeTheExtraConditionAndDoesNotIssueDuplicateRevenue()
         {
             var faces = new[] { "D03" }; var main = f.Rolled(faces, new[] { 4, 5 }).Effects.Single();
-            var r = f.Invoke(faces: faces, continuation: main.ContinuationContext, result: NormalizedValue.CreateString("4"));
+            var sale = TiagoInvestmentTestFixture.PointEffects(main, 4).Single();
+            LuaInvocationResult r = null;
             for (int i = 0; i < 2; i++)
             {
-                Assert.That(r.Effects.Count, Is.EqualTo(1)); var sale = r.Effects[0];
                 r = f.Invoke(faces: faces, continuation: sale.ContinuationContext, result: Object("revenue", NormalizedValue.CreateInteger(3), "soldCount", NormalizedValue.CreateInteger(1), "finished", NormalizedValue.CreateBoolean(false)));
-                Assert.That(r.IsSuccess, Is.True, r.Diagnostic);
+                Assert.That(r.IsSuccess, Is.True, r.Diagnostic); sale = r.Effects.Single();
             }
-            r = f.Invoke(faces: faces, continuation: r.Effects[0].ContinuationContext, result: Object("finished", NormalizedValue.CreateBoolean(true)));
+            Assert.That(Number(r.Effects[0].ContinuationContext, "saleSoldCount"), Is.EqualTo(2));
+            Assert.That(Number(r.Effects[0].ContinuationContext, "saleRevenue"), Is.EqualTo(6));
+            Assert.That(Text(r.Effects[0].RawArguments, "promptKey"), Is.EqualTo("effect.resource.sell"));
+            r = f.Invoke(faces: faces, continuation: r.Effects[0].ContinuationContext, result: Object("finished", NormalizedValue.CreateBoolean(true),
+                "soldCount", NormalizedValue.CreateInteger(0), "revenue", NormalizedValue.CreateInteger(0)));
             Assert.That(r.IsSuccess, Is.True, r.Diagnostic); TiagoInvestmentTestFixture.AssertTokenCost(r.Effects.Single().NestedEffectGroups[0].Single(), 2, "original_supply");
         }
         [TestCase("D01")][TestCase("D02")]

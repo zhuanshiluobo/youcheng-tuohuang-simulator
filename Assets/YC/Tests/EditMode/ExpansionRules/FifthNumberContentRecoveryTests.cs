@@ -70,6 +70,50 @@ namespace YC.Tests.EditMode.ExpansionRules
                 f.State.EffectRuntime.DeferredResponses.Any(r => r.DepartureId == departure.DepartureId && InfluenceDepartureProtocol.IsWithin(f.State, q.OwnerEffectId, r.ResponseRootEffectId))), Is.False);
         }
 
+        [TestCase(false, false)] [TestCase(false, true)]
+        [TestCase(true, false)] [TestCase(true, true)]
+        public void StoreChoiceOwnsCancellationAndExecutesOnlyTheActualStoreSubtree(bool replace, bool decline)
+        {
+            f = new FifthNumberContentTestFixture(artifacts);
+            string item = f.Place(); f.Depart(item, 1, replace);
+            var request = f.StoreRequest(); string requestId = request.GetStableInteractionId();
+            var choice = f.Engine.GetNode(request.OwnerEffectId); string choiceId = choice.EffectId;
+            string staged = f.State.ItemZones.Items.Single(i => i.ItemId == item).ZoneId;
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(request.CandidateIds, Is.EqualTo(new[] { "store" }));
+            Assert.That(request.MinSelections, Is.Zero); Assert.That(request.MaxSelections, Is.EqualTo(1));
+            Assert.That(request.AllowDecline, Is.True); Assert.That(choice.ChildEffectIds, Is.Empty);
+            Assert.That(choice.NestedGroupSizes, Is.EqualTo(new[] { 1 }));
+            Assert.That(choice.NestedEffects.Single().EffectTypeId, Is.EqualTo(ContentPrimitiveEffectExecutor.StoreRemoved));
+            Assert.That(Text(choice.NestedEffects.Single().NormalizedArguments, "influenceItemId"), Is.EqualTo(item));
+            f.Restore("真实T09可选存放待答"); request = f.StoreRequest();
+            Assert.That(request.GetStableInteractionId(), Is.EqualTo(requestId));
+            Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == item).ZoneId, Is.EqualTo(staged));
+            f.Answer(request, decline ? NormalizedValue.CreateBoolean(false) : NormalizedValue.CreateString("store"));
+            var marker = f.State.ItemZones.Items.Single(i => i.ItemId == item);
+            if (decline)
+            {
+                var departure = f.State.EffectRuntime.InfluenceDepartures.Single(d => d.ItemId == item);
+                Assert.That(departure.Status, Is.EqualTo("returned"));
+                Assert.That(departure.DestinationZoneId, Is.EqualTo(marker.OriginalSupplyZoneId));
+                if (replace)
+                {
+                    // 原替换流程可以在归还后合法重用该方块；取消存放不取消原替换正文。
+                    Assert.That(marker.ZoneId, Is.EqualTo(departure.OriginalPosition.ZoneId));
+                    Assert.That(f.State.EffectRuntime.EffectNodes.Where(n => InfluenceDepartureProtocol.IsWithin(f.State, n.EffectId, departure.SourceEffectId))
+                        .SelectMany(n => n.PositionChanges).Any(p => p.ItemId == item && p.From.ZoneId == marker.OriginalSupplyZoneId &&
+                            p.To.ZoneId == departure.OriginalPosition.ZoneId), Is.True);
+                }
+                else Assert.That(marker.ZoneId, Is.EqualTo(marker.OriginalSupplyZoneId));
+            }
+            else Assert.That(marker.ZoneId, Is.EqualTo(f.Storage.ZoneId));
+            Assert.That(f.Engine.GetNode(choiceId).ChildEffectIds.Count, Is.EqualTo(decline ? 0 : 1));
+            int changes = f.State.EffectRuntime.EffectNodes.SelectMany(n => n.PositionChanges).Count(p => p.ItemId == item);
+            f.Restore("真实T09存放或放弃已结清"); f.Pump();
+            Assert.That(f.State.EffectRuntime.EffectNodes.SelectMany(n => n.PositionChanges).Count(p => p.ItemId == item), Is.EqualTo(changes));
+            Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == item).ZoneId, Is.EqualTo(marker.ZoneId));
+        }
+
         [Test] public void PaidMandatoryRewardRestoresWithoutRefundRepaymentOrAbandonment()
         {
             f = new FifthNumberContentTestFixture(artifacts); for (int i = 0; i < 4; i++) f.CollectOne();
@@ -77,7 +121,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.InvokeCleanup("qy012.restore.exchange"); f.Answer("continue");
             var request = f.Open(); Assert.That(request.AllowDecline, Is.False); Assert.That(f.Stored, Is.EqualTo(3));
             string id = request.GetStableInteractionId();
-            string[] paid = f.State.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Completed && n.TransferBatchRequest?.ProtocolVersion == 3 &&
+            string[] paid = f.State.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Completed && n.ItemMovementV4 != null && n.DefinitionVersion == ItemTransferEffectExecutor.TransferDefinitionVersion &&
                 n.PositionChanges.Count == 3 && n.PositionChanges.All(c => c.From.ZoneId == f.Storage.ZoneId)).Select(n => n.EffectId).ToArray();
             Assert.That(paid.Length, Is.EqualTo(1));
             Assert.That(f.Engine.TrySubmitInteraction(id, 1, request.StateRevision, NormalizedValue.CreateBoolean(false), out _), Is.False);
@@ -85,10 +129,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Restore("已付3枚收益待选"); request = f.State.EffectRuntime.InteractionRequests.Single(q => q.GetStableInteractionId() == id);
             f.AnswerCandidate(request, "resource"); f.Restore("本次兑换已完成"); f.Pump();
             Assert.That(f.Stored, Is.EqualTo(3)); Assert.That(f.State.FindPlayer(1).Resources.PureOriginium, Is.EqualTo(pure + 1));
-            Assert.That(f.State.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Completed && n.TransferBatchRequest?.ProtocolVersion == 3 &&
+            Assert.That(f.State.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Completed && n.ItemMovementV4 != null && n.DefinitionVersion == ItemTransferEffectExecutor.TransferDefinitionVersion &&
                 n.PositionChanges.Count == 3 && n.PositionChanges.All(c => c.From.ZoneId == f.Storage.ZoneId)).Select(n => n.EffectId), Is.EqualTo(paid));
             foreach (string paidNodeId in paid)
-                Assert.That(ItemTransferService.TryValidateTokenState(f.State, f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == paidNodeId), out string reason), Is.True, reason);
+                Assert.That(ItemMovementV4.TryValidateState(f.State, f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == paidNodeId), out string reason), Is.True, reason);
             f.InvokeCleanup("qy012.restore.exchange.second"); f.Answer("continue"); f.Answer("place");
             var place = f.PlacementRequest(); f.Restore("第二次兑换放置待答");
             place = f.State.EffectRuntime.InteractionRequests.Single(q => q.GetStableInteractionId() == place.GetStableInteractionId());
@@ -170,11 +214,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Restore("坏档负例合法控制");
             var archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(f.State)));
             int changed = 0;
-            foreach (var obj in archive.Descendants().OfType<JObject>().Where(o => o["ContinuationContext"] is JObject &&
-                (string)o["ContinuationAbilityId"] == "entrepreneur.T09.departure").ToList())
+            foreach (var obj in archive.Descendants().OfType<JObject>().Where(o =>
+                (string)o["EffectTypeId"] == ContentPrimitiveEffectExecutor.StoreRemoved).ToList())
             {
-                // 不改权限/版本来制造任意拒绝；破坏真实续接结构必需的完整对象形状。
-                obj["ContinuationContext"] = new JArray(); changed++;
+                // 旧值回调上下文已删除；破坏真实Store待执行规格必需的离场实例，不改权限或版本。
+                var properties = obj["NormalizedArguments"]?["Properties"] as JArray;
+                if (properties == null) continue;
+                foreach (var field in properties.OfType<JObject>().Where(v => (string)v["Name"] == "influenceItemId").ToList())
+                { field.Remove(); changed++; }
             }
             Assert.That(changed, Is.GreaterThan(0));
             var rejected = HostRecoveryService.RecoverJson(archive.ToString(), f.Registry);

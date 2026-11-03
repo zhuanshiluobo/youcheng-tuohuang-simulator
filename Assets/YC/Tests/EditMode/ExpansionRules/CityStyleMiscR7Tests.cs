@@ -195,7 +195,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(State.Decks.CityStyleSupply, Does.Contain(Management).And.Contain("city_style_source_stone_industrial_hub").And.Contain("city_style_core_commercial_area"));
                 declarationFacilities = new HashSet<string>(catalog.Definitions.Where(d => d.ContentType == "facility" && d.Abilities.Any(a => a.Mode == "declared")).Select(d => d.DefinitionId));
                 ResourceEffectExecutor.Register(Registry); GenericLuaEffectExecutor.Register(Registry);
-                ItemTransferEffectExecutor.Register(Registry); RepeatEffectExecutor.Register(Registry);
+                ItemTransferEffectExecutor.Register(Registry);
                 ContentLifecycleEffectExecutor.Register(Registry); CityStyleDeclarationEffectExecutor.Register(Registry);
                 CharacterLifecycleService.Register(Registry); CharacterCoverEffectExecutor.Register(Registry);
                 var map = new MapQueryService(StaticMapDefinitions.Resolve(State.MapId));

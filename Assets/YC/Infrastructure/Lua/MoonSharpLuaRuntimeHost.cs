@@ -127,6 +127,9 @@ namespace YC.Infrastructure.Lua
                 Coroutine handlerCoroutine = script.CreateCoroutine(handler).Coroutine;
                 DynValue contextValue = settlementResponse ? CreateSettlementContext(script, context, guard) : CreateInvocationContext(script, context, guard);
                 DynValue rawResult = ResumeWithBudget(handlerCoroutine, new[] { contextValue }, guard);
+                if (context.ResponseKind != "effects" && rawResult.Type == DataType.Table &&
+                    (!rawResult.Table.Get("memory").IsNil() || !rawResult.Table.Get("effects").IsNil()))
+                    return LuaInvocationResult.Failure(definition, LuaFailureCode.InvalidReturnShape, "lua_memory_effects_entry_required");
                 if (settlementResponse) return NormalizeSettlementResponse(definition, context, rawResult);
                 if (context.ResponseKind == "abilityRuleQuery") return NormalizeAbilityQueryResponse(definition, rawResult);
                 if (context.ResponseKind == "influencePlaceAttaching") return NormalizePlaceRewrite(definition, context, rawResult);
@@ -148,12 +151,14 @@ namespace YC.Infrastructure.Lua
                         candidatePatches);
                 }
 
-                if (!TryNormalizeResult(rawResult, context, out effects, out resultCode, out resultDiagnostic))
+                if (!TryUnwrapMemoryResult(rawResult, out var effectResult, out var memory, out resultCode, out resultDiagnostic))
+                    return LuaInvocationResult.Failure(definition, resultCode, resultDiagnostic);
+                if (!TryNormalizeResult(effectResult, context, out effects, out resultCode, out resultDiagnostic))
                 {
                     return LuaInvocationResult.Failure(definition, resultCode, resultDiagnostic);
                 }
 
-                return LuaInvocationResult.Success(definition, effects);
+                return LuaInvocationResult.Success(definition, effects).WithMemory(memory);
             }
             catch (LuaLimitException exception)
             {
@@ -856,6 +861,7 @@ namespace YC.Infrastructure.Lua
             values.Set("reservedGoldVoucherCount", DynValue.NewNumber(context.ReservedGoldVoucherCount));
             values.Set("stateRevision", DynValue.NewNumber(context.StateRevision));
             values.Set("definitionVersion", DynValue.NewString(context.DefinitionVersion));
+            values.Set("memory", MemoryToLua(script, context.Memory));
             values.Set("payload", SnapshotToDynValue(
                 script,
                 context.FacadeSnapshot.EventPayload,
@@ -918,16 +924,16 @@ namespace YC.Infrastructure.Lua
         }
 
         public static IReadOnlyCollection<string> SupportedEffectConstructors => CreateRegisteredEffectConstructors().Keys.Concat(new[] { "WithPresentation", "WithContext" }).ToList().AsReadOnly();
-        public static IReadOnlyCollection<string> SupportedFlowConstructors => Array.AsReadOnly(new[] { "DispatchOperator", "ReplaceHandWithOperator", "UpgradeDistinctEnterprises", "UpgradeThenActivateEnterpriseSpecial", "ActivateAllEnterpriseSpecials", "UpgradeEnterpriseForAllPlayers", "ClearRouteAndPlaceRoad", "AcquireReward" });
+        public static IReadOnlyCollection<string> SupportedFlowConstructors => Array.AsReadOnly(new[] { "ChooseCarrierTokenPairReturn", "ChooseTransferCount", "ExchangeResource", "ChooseCityStyleMarkerReturn", "DispatchOperator", "ReplaceHandWithOperator", "UpgradeDistinctEnterprises", "UpgradeThenActivateEnterpriseSpecial", "ActivateAllEnterpriseSpecials", "UpgradeEnterpriseForAllPlayers", "ClearRouteAndPlaceRoad", "AcquireReward" });
         private static Dictionary<string, string> CreateRegisteredEffectConstructors()
         {
             var registered = new Dictionary<string, string>(StringComparer.Ordinal)
             {
                 { "Condition", EffectTypeIds.Condition },
                 { "InvokeAction", AbilityActionExecutor.DirectTypeId },
+                { "AllocateEffects", AllocationEffects.TypeId },
                 { "Choice", LuaDomainEffectTypeIds.Choice },
                 { "Collect", ResourceCollectionEffectExecutor.TypeId },
-                { "Repeat", LuaDomainEffectTypeIds.Repeat },
                 { "ScheduleCleanupObligation", CleanupObligation.ScheduleType },
                 { "MoveItem", ItemTransferEffectExecutor.TypeId },
                 { "ShuffleDeck", DeckShuffleEffectExecutor.TypeId },
@@ -936,14 +942,11 @@ namespace YC.Infrastructure.Lua
                 { "RefillFacilitySlot", ItemTransferEffectExecutor.RefillTypeId },
                 { "LoseResource", ResourceLossEffectExecutor.TypeId },
                 { "StoreRemovedInfluence", ContentPrimitiveEffectExecutor.StoreRemoved },
-                { "SelectInfluence", ContentPrimitiveEffectExecutor.SelectInfluence },
                 { "GrantMainActions", CityStyleSpecialActionEffectTypeIds.GrantMainActions },
                 { "RetireFacility", ContentLifecycleEffectExecutor.RetireFacilityTypeId },
                 { "GrantReward", RewardGrantEffectExecutor.TypeId },
                 { "ReturnCityStyleMarker", ContentLifecycleEffectExecutor.ReturnMarkerTypeId },
-                { "ChooseBuild", FacilitySelectionEffectExecutor.TypeId },
                 { "SelectFacilityPanel", FacilitySelectionEffectExecutor.PanelTypeId },
-                { "ChooseExplore", ExplorationSelectionEffectExecutor.TypeId },
                 { "OverrideNextStartPlayer", ContentPrimitiveEffectExecutor.OverrideNextStartPlayer },
                 { "ActivateFacilityEntry", ContentPrimitiveEffectExecutor.ActivateFacilityEntry },
                 { "ChooseResources", ContentPrimitiveEffectExecutor.ChooseResources },
@@ -959,7 +962,6 @@ namespace YC.Infrastructure.Lua
                 { "ActivateEnterpriseSpecial", LuaDomainEffectTypeIds.ActivateEnterpriseSpecial },
                 { "SwitchDepartment", LuaDomainEffectTypeIds.SwitchDepartment },
                 { "MoveCity", MoveCityEffectType },
-                { "DepartureBatch", InfluenceDepartureBatchExecutor.TypeId },
                 { "PlaceInfluence", PlaceInfluenceEffectType },
                 { "RemoveInfluence", RemoveInfluenceEffectType },
                 { "MoveInfluence", MoveInfluenceEffectType },
@@ -971,7 +973,6 @@ namespace YC.Infrastructure.Lua
                 { "RevealEventCard", RevealEventCardEffectType },
                 { "CoverCharacterCard", CoverCardEffectType },
                 { "SetCharacterDoubleUseRule", LuaDomainEffectTypeIds.SetCharacterDoubleUseRule },
-                { "TransferCharacterCard", CharacterLifecycleService.TransferTypeId },
                 { "ConsumeCharacterDoubleUseSource", CharacterLifecycleService.ConsumeSourceTypeId },
                 { "PaymentSubstitution", ResourcePaymentSubstitutionEffectExecutor.TypeId },
                 { "Build", FacilityEntryEffectTypeIds.Build },
@@ -1003,6 +1004,10 @@ namespace YC.Infrastructure.Lua
             script.Globals.Set("Effect", DynValue.NewTable(CreateReadOnlyProxy(script, effect, "nmc_read_only_effect_api")));
 
             Table flow = new Table(script);
+            flow.Set("ChooseCarrierTokenPairReturn", DynValue.NewCallback((_, args) => { guard.ThrowIfTimeExceeded(); return CreateEffectSpec(script, CarrierTokenPairReturnChoice.TypeId, args); }, "Flow.ChooseCarrierTokenPairReturn"));
+            flow.Set("ChooseTransferCount", DynValue.NewCallback((_, args) => { guard.ThrowIfTimeExceeded(); return CreateEffectSpec(script, TransferCountChoiceFlow.TypeId, args); }, "Flow.ChooseTransferCount"));
+            flow.Set("ExchangeResource", DynValue.NewCallback((_, args) => { guard.ThrowIfTimeExceeded(); return CreateEffectSpec(script, ResourceExchangeFlow.TypeId, args); }, "Flow.ExchangeResource"));
+            flow.Set("ChooseCityStyleMarkerReturn",DynValue.NewCallback((_,args)=>{guard.ThrowIfTimeExceeded();return CreateEffectSpec(script,CityStyleMarkerReturnChoice.TypeId,args);},"Flow.ChooseCityStyleMarkerReturn"));
             flow.Set("DispatchOperator", DynValue.NewCallback((_, args) => { guard.ThrowIfTimeExceeded(); return CreateEffectSpec(script, OperatorDispatchFlow.TypeId, args); }, "Flow.DispatchOperator"));
             flow.Set("ReplaceHandWithOperator", DynValue.NewCallback((_, args) => { guard.ThrowIfTimeExceeded(); return CreateEffectSpec(script, OperatorDispatchFlow.ReplaceTypeId, args); }, "Flow.ReplaceHandWithOperator"));
             flow.Set("UpgradeDistinctEnterprises", DynValue.NewCallback((_, args) =>
@@ -1074,6 +1079,8 @@ namespace YC.Infrastructure.Lua
 
             Table input = args[0].Table;
             HashSet<string> allowedFields = CreateAllowedFields(effectTypeId);
+            string retiredType = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(effectTypeId, null);
+            if (retiredType.Length > 0) throw new ScriptRuntimeException(retiredType);
             foreach (TablePair pair in input.Pairs)
             {
                 if (pair.Key.Type != DataType.String || !allowedFields.Contains(pair.Key.String))
@@ -1106,6 +1113,10 @@ namespace YC.Infrastructure.Lua
 
         private static HashSet<string> CreateBaseAllowedFields(string effectTypeId)
         {
+            if (effectTypeId == CarrierTokenPairReturnChoice.TypeId) return new HashSet<string>(new[] { "apiVersion", "player", "carrierItemId", "localZoneId", "operationProfileId" }, StringComparer.Ordinal);
+            if (effectTypeId == TransferCountChoiceFlow.TypeId) return new HashSet<string>(new[] { "apiVersion", "player", "itemIds", "sourceZoneId", "destinationZoneId", "operationProfileId", "maximumCount", "unitCost", "allowDecline" }, StringComparer.Ordinal);
+            if(effectTypeId==CityStyleMarkerReturnChoice.TypeId)return new HashSet<string>(new[]{"apiVersion","player"},StringComparer.Ordinal);
+            if (effectTypeId == AllocationEffects.TypeId) return new HashSet<string>(new[] { "kind", "effectTypeId", "apiVersion", "player", "options", "totalExecutions", "allowEndAction", "completionHandlerId" }, StringComparer.Ordinal);
             if(effectTypeId==CleanupObligation.ScheduleType) return new HashSet<string>(CleanupObligation.Fields,StringComparer.Ordinal);
             if (effectTypeId == ResourceLossEffectExecutor.TypeId) return new HashSet<string>(new[] { "apiVersion", "player", "targetPlayer", "resourceType", "amount" }, StringComparer.Ordinal);
             if (effectTypeId == CharacterLifecycleService.ConsumeSourceTypeId) return new HashSet<string>(new[] { "apiVersion", "player", "useId", "sourceItemId" }, StringComparer.Ordinal);
@@ -1116,18 +1127,19 @@ namespace YC.Infrastructure.Lua
             if (effectTypeId == ResourceCollectionEffectExecutor.TypeId) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "scope" };
             if (effectTypeId == OperatorDispatchFlow.TypeId) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "drawCount", "excludedReturnItemIds" };
             if (effectTypeId == OperatorDispatchFlow.ReplaceTypeId) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player" };
-            if (effectTypeId == CharacterLifecycleService.TransferTypeId) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "cardInstanceId", "recipientPlayer" };
             if (effectTypeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "scope", "useId", "sourceItemId", "expiresActionRoundSequence" };
             if (effectTypeId == LuaDomainEffectTypeIds.PlaceRoad) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "routeId" };
             if (effectTypeId == LuaDomainEffectTypeIds.OperateToken) return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "tokenItemId", "operation", "destinationLocationId", "operationProfileId" };
             if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(effectTypeId))
                 return new HashSet<string>(YC.Domain.Enterprises.EnterpriseEffectExecutor.AllowedFields(effectTypeId), StringComparer.Ordinal);
-            if (effectTypeId == LuaDomainEffectTypeIds.Repeat)
-                return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "count", "effects", "allowEarlyStop" };
             if (effectTypeId == DeckShuffleEffectExecutor.TypeId || effectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck)
                 return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "deckZone" };
             if (effectTypeId == ItemTransferEffectExecutor.TypeId || effectTypeId == LuaDomainEffectTypeIds.MoveFacilityCard || effectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard)
-                return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "operationId", "transfers", "expectedOrders", "itemRefs", "itemIds", "expectedSource", "destination", "insertion", "operationProfileId", "requiredCount", "carrierPolicy", "sourceZone", "destinationZone", "interactionType", "promptKey" };
+            {
+                var fields = new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "operation", "selector", "operationId", "transfers", "expectedOrders", "itemRefs", "itemIds", "expectedSource", "destination", "insertion", "operationProfileId", "requiredCount", "carrierPolicy", "sourceZone", "destinationZone", "interactionType", "promptKey", "reveal" };
+                if (effectTypeId == ItemTransferEffectExecutor.TypeId) { fields.Add("destinationLocationId"); fields.Add("cover"); }
+                return fields;
+            }
             if (effectTypeId == "effect.flow.choice")
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "options", "minSelections", "maxSelections", "promptKey", "branches", "interactionType" };
             if (effectTypeId == SetLocationsOpenEffectType)
@@ -1139,16 +1151,14 @@ namespace YC.Infrastructure.Lua
             if (effectTypeId == RewardGrantEffectExecutor.TypeId) return new HashSet<string>(RewardGrantEffectExecutor.Fields, StringComparer.Ordinal);
             if (ContentLifecycleEffectExecutor.PublicTypeIds.Contains(effectTypeId)) return new HashSet<string>(ContentLifecycleEffectExecutor.Fields(effectTypeId), StringComparer.Ordinal);
             if (effectTypeId == FacilityEntryEffectTypeIds.Build)
-                return new HashSet<string>(StringComparer.Ordinal) { "player", "recipient", "facilityId", "facilityInstanceId", "cityBoardSlotIndex", "paymentMode", "reserveForFree", "sourceId", "sourceKind", "sourceKey", "expectedSourceZoneId", "consumeMainAction" };
-            if (effectTypeId == FacilitySelectionEffectExecutor.TypeId)
-                return new HashSet<string>(StringComparer.Ordinal) { "player", "sourceZone", "sourceKey", "expectedSourceZoneId", "consumeMainAction", "effectId", "paymentMode", "allowDecline", "maxGoldVoucherCost", "includeStoredFacilities", "excludeRainbow" };
+                return new HashSet<string>(new[] { "player", "recipient", "facilityId", "facilityInstanceId", "cityBoardSlotIndex", "paymentMode", "reserveForFree", "sourceId", "sourceKind", "sourceKey", "expectedSourceZoneId", "consumeMainAction" }
+                    .Concat(FacilityBuildContract.Fields.Where(f => f != "kind" && f != "effectTypeId")), StringComparer.Ordinal);
+            if (effectTypeId == ExplorationEffectTypeIds.Explore)
+                return new HashSet<string>(ExplorationContract.Fields.Where(f => f != "kind" && f != "effectTypeId"), StringComparer.Ordinal);
             if (effectTypeId == FacilitySelectionEffectExecutor.PanelTypeId)
                 return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "allowDecline", "operationProfile", "emptyIsFailure", "promptKey", "itemIds" };
-            if (effectTypeId == InfluenceDepartureBatchExecutor.TypeId) return new HashSet<string>(StringComparer.Ordinal) { "effects" };
             if (effectTypeId == ContentPrimitiveEffectExecutor.OverrideNextStartPlayer)
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "targetPlayer", "scope" };
-            if (effectTypeId == ExplorationSelectionEffectExecutor.TypeId)
-                return new HashSet<string>(StringComparer.Ordinal) { "player" };
             if (effectTypeId == ContentPrimitiveEffectExecutor.ActivateFacilityEntry)
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "instanceId" };
             if (effectTypeId == ContentPrimitiveEffectExecutor.ChooseResources)
@@ -1157,8 +1167,6 @@ namespace YC.Infrastructure.Lua
                 return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "targetPlayer", "resourceType", "saleMode", "unitPrice", "pricePolicy", "interactionType", "promptKey" };
             if (effectTypeId == LuaDomainEffectTypeIds.MoveFacilityCard || effectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard)
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "sourceZone", "destinationZone", "interactionType", "promptKey" };
-            if (effectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence)
-                return new HashSet<string>(StringComparer.Ordinal) { "player", "operation", "ownerFilter", "subjectFilter", "excludedSubjectKeys", "count", "requiredCount", "distinctPolicy", "interactionType", "promptKey", "nextPromptKey", "candidateScope", "requireCompleteSelection", "allowDecline", "candidateIds" };
             if (effectTypeId == MoveCityEffectType)
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "targetPolicy", "targetLocationId", "movementMode", "candidateScope", "costPolicy", "clearInfluencePolicy", "sourceInfluencePolicy", "targetLocation", "waiveBaseCost", "consumeMainAction", "allowDecline", "decisionPlayer", "declinePromptKey" };
             if (effectTypeId == RevealEventCardEffectType)
@@ -1167,10 +1175,19 @@ namespace YC.Infrastructure.Lua
                 return new HashSet<string>(StringComparer.Ordinal) { "player", "card", "allowedModes", "doubleUseRule", "orderPolicy", "abilityId", "cardInstanceId", "mode", "effectOrder" };
             if (effectTypeId == CoverCardEffectType)
                 return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "cardInstanceId", "coverMode", "blockedActionRoundSequence", "acceptedTypeId", "reusable", "candidateSource", "count", "recycleDiscardWhenEmpty", "playerId", "coverIndex", "mainNodeId" };
-            if (IsInfluenceEffectType(effectTypeId)) return CreateInfluenceAllowedFields(effectTypeId);
+            if (IsInfluenceEffectType(effectTypeId))
+            {
+                var influenceFields = CreateInfluenceAllowedFields(effectTypeId);
+                if (InfluenceSelectionFlow.Operation(effectTypeId).Length > 0) influenceFields.UnionWith(InfluenceSelectionFlow.Fields.Where(field => field != "kind" && field != "effectTypeId"));
+                return influenceFields;
+            }
             if (effectTypeId == CityStyleMarkerEffectType)
-                return new HashSet<string>(StringComparer.Ordinal) { "markerOwner", "operation", "destinationZone", "sourceZone", "count", "targetSlot", "executingPlayer", "markerId" };
-            if (effectTypeId == GainResourceEffectType || effectTypeId == PayResourceEffectType || effectTypeId == GainScoreEffectType)
+                return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "operation", "selector", "destination", "insertion", "requiredCount", "carrierPolicy", "executingPlayer", "mode" };
+            if (effectTypeId == ResourceExchangeFlow.TypeId)
+                return new HashSet<string>(StringComparer.Ordinal) { "apiVersion", "player", "targetPlayer", "resourceType", "receiveResourceType", "amount", "rate", "reasonId" };
+            if (effectTypeId == GainResourceEffectType)
+                return new HashSet<string>(StringComparer.Ordinal) { "recipient", "payer", "player", "resourceType", "resourceId", "cost", "amount", "reasonId", "source", "apiVersion", "qualification" };
+            if (effectTypeId == PayResourceEffectType || effectTypeId == GainScoreEffectType)
                 return new HashSet<string>(StringComparer.Ordinal) { "recipient", "payer", "player", "resourceType", "resourceId", "cost", "amount", "reasonId", "source" };
 
             // 未逐项连接的首批稳定 API 仍使用同一组可审计字段；不再接受旧的
@@ -1462,6 +1479,16 @@ namespace YC.Infrastructure.Lua
                     return false;
                 }
 
+                if (effectSpec && inspectedTable.Get("effectTypeId").String == PayResourceEffectType &&
+                    pair.Key.Type == DataType.String && pair.Key.String == "cost")
+                {
+                    // 仅已有PayResource复合费用的封闭DTO独立计预算；普通对象同名字段仍受原返回表深度限制。
+                    var cost = ToNormalizedValue(pair.Value, 0, out code, out diagnostic);
+                    if (cost == null) return false;
+                    diagnostic = ResourceEffectExecutor.ValidateCompositeCost(cost);
+                    if (diagnostic.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; return false; }
+                    continue;
+                }
                 if (effectSpec && pair.Key.Type == DataType.String && pair.Key.String == "continuationContext")
                 {
                     var saved = ReadPresentationValue(pair.Value, 0);
@@ -1558,6 +1585,8 @@ namespace YC.Infrastructure.Lua
             HashSet<string> allowedFields = CreateAllowedFields(effectTypeId);
             allowedFields.Add("kind");
             allowedFields.Add("effectTypeId");
+            string retiredType = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(effectTypeId, null);
+            if (retiredType.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = retiredType; return false; }
 
             foreach (TablePair pair in table.Pairs)
             {
@@ -1589,8 +1618,61 @@ namespace YC.Infrastructure.Lua
             if (effectTypeId == ResourceLossEffectExecutor.TypeId)
                 return TryNormalizeResourceLoss(table, context, out effect, out code, out diagnostic);
 
+            if (effectTypeId == ExplorationEffectTypeIds.Explore)
+            {
+                var raw = ToNormalizedValue(DynValue.NewTable(table), 0, out code, out diagnostic);
+                if (raw == null) return false;
+                if (table.Get("player").Type != DataType.String || ParsePlayerKey(ReadString(table, "player", "")) != ParsePlayerKey(context.PlayerId))
+                { code = LuaFailureCode.InvalidTarget; diagnostic = "explore_contract_player_invalid"; return false; }
+                NormalizeContractPlayerFields(raw, "player");
+                string invalid = ExplorationContract.ValidateArguments(raw);
+                if (invalid.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = invalid; return false; }
+                effect = LuaEffectSpec.FromArguments(effectTypeId, raw); return true;
+            }
+            if (effectTypeId == FacilityEntryEffectTypeIds.Build)
+            {
+                if (HasField(table, "apiVersion") || HasField(table, "targetMode"))
+                {
+                    var raw = ToNormalizedValue(DynValue.NewTable(table), 0, out code, out diagnostic);
+                    if (raw == null) return false;
+                    if (table.Get("player").Type != DataType.String || ParsePlayerKey(ReadString(table, "player", "")) != ParsePlayerKey(context.PlayerId))
+                    { code = LuaFailureCode.InvalidTarget; diagnostic = "build_contract_player_invalid"; return false; }
+                    NormalizeContractPlayerFields(raw, "player");
+                    string invalid = FacilityBuildContract.ValidateArguments(raw);
+                    if (invalid.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = invalid; return false; }
+                    effect = LuaEffectSpec.FromArguments(effectTypeId, raw); return true;
+                }
+                if (new[] { "allowDecline", "effectId", "includeStoredFacilities", "excludeRainbow", "maxGoldVoucherCost" }.Any(f => HasField(table, f)))
+                { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "build_contract_version_required"; return false; }
+            }
             if (IsInfluenceEffectType(effectTypeId))
             {
+                if (InfluenceSelectionFlow.Operation(effectTypeId).Length > 0 &&
+                    (HasField(table, "targetMode") || table.Get("apiVersion").Type == DataType.Number && table.Get("apiVersion").Number == 3))
+                {
+                    var raw = ToNormalizedValue(DynValue.NewTable(table), 0, out code, out diagnostic);
+                    if (raw == null || !TryReadPlayerReference(table.Get("executingPlayer"), "executingPlayer", out string executing, out _, out code, out diagnostic)) return false;
+                    int id = ParsePlayerKey(executing);
+                    if (id < 1) { code = LuaFailureCode.InvalidTarget; diagnostic = "invalid_player"; return false; }
+                    raw.Properties.RemoveAll(p => p.Name == "executingPlayer");
+                    raw.Properties.Add(new NormalizedValueEntry { Name = "executingPlayer", Value = NormalizedValue.CreateStableReference("player", id.ToString(CultureInfo.InvariantCulture)) });
+                    foreach (string field in new[] { "candidateIds", "excludedSubjectKeys" })
+                        if (HasField(table, field))
+                        {
+                            if (!TryReadStringArray(table, field, out var values, out code, out diagnostic)) return false;
+                            raw.Properties.RemoveAll(p => p.Name == field);
+                            raw.Properties.Add(new NormalizedValueEntry { Name = field, Value = ItemTransferEffectExecutor.Strings(values) });
+                        }
+                    raw.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
+                    string invalid = InfluenceSelectionFlow.ValidateArguments(effectTypeId, raw);
+                    if (invalid.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = invalid; return false; }
+                    effect = LuaEffectSpec.FromArguments(effectTypeId, raw); return true;
+                }
+                // 新选择字段只属于v3，不可被旧显式目标DTO接收后丢弃。
+                var explicitFields = CreateInfluenceAllowedFields(effectTypeId);
+                explicitFields.Add("kind"); explicitFields.Add("effectTypeId");
+                if (table.Pairs.Any(pair => pair.Key.Type != DataType.String || !explicitFields.Contains(pair.Key.String)))
+                { code = LuaFailureCode.UnexpectedField; diagnostic = "influence_selection_mode_required"; return false; }
                 // 严格调用不能因targets=nil在Lua中成为缺键而落回旧单目标分支。
                 // 旧未声明严格字段的默认/显式api1仍沿原路径。
                 if (effectTypeId == RemoveInfluenceEffectType && !HasField(table, "targets") &&
@@ -1599,11 +1681,29 @@ namespace YC.Infrastructure.Lua
                 { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "strict_remove_arguments_invalid"; return false; }
                 if (effectTypeId == RemoveInfluenceEffectType && HasField(table, "targets"))
                 {
+                    if (HasField(table, "destination") || HasField(table, "causeKind"))
+                    { code = LuaFailureCode.UnexpectedField; diagnostic = "strict_remove_field_not_supported"; return false; }
+                    if (HasField(table, "reasonId") && table.Get("reasonId").Type != DataType.String)
+                    { code = LuaFailureCode.InvalidFieldType; diagnostic = "strict_remove_reason_invalid"; return false; }
                     if (!TryReadStringArray(table, "targets", out var targets, out code, out diagnostic) || !TryReadInfluenceReference(table.Get("executingPlayer"), "player", "executingPlayer", out var player, out code, out diagnostic)) return false;
                     var version = table.Get("apiVersion"); var count = table.Get("requiredCount");
                     if (version.Type != DataType.Number || version.Number != 2 || count.Type != DataType.Number || count.Number != Math.Truncate(count.Number) || count.Number < 1 || count.Number > 16 || targets.Count > count.Number || HasField(table, "targetInfluence") || HasField(table, "candidateScope"))
                     { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "strict_remove_arguments_invalid"; return false; }
-                    effect = LuaEffectSpec.FromArguments(effectTypeId, ItemTransferEffectExecutor.Object("apiVersion", NormalizedValue.CreateInteger(2), "executingPlayer", NormalizedValue.CreateStableReference("player", player), "targets", ItemTransferEffectExecutor.Strings(targets), "requiredCount", NormalizedValue.CreateInteger((long)count.Number), "reasonId", NormalizedValue.CreateString(ReadString(table, "reasonId", "rule.unspecified"))));
+                    var arguments = ItemTransferEffectExecutor.Object("apiVersion", NormalizedValue.CreateInteger(2), "executingPlayer", NormalizedValue.CreateStableReference("player", player), "targets", ItemTransferEffectExecutor.Strings(targets), "requiredCount", NormalizedValue.CreateInteger((long)count.Number), "reasonId", NormalizedValue.CreateString(ReadString(table, "reasonId", "rule.unspecified")));
+                    if (HasField(table, "subjectFilter"))
+                    {
+                        if (!TryReadOptionalString(table, "subjectFilter", out var strictFilter, out code, out diagnostic)) return false;
+                        arguments.Properties.Add(new NormalizedValueEntry { Name = "subjectFilter", Value = NormalizedValue.CreateString(strictFilter) });
+                    }
+                    if (HasField(table, "excludedSubjectKeys"))
+                    {
+                        if (!TryReadStringArray(table, "excludedSubjectKeys", out var strictExcluded, out code, out diagnostic)) return false;
+                        arguments.Properties.Add(new NormalizedValueEntry { Name = "excludedSubjectKeys", Value = ItemTransferEffectExecutor.Strings(strictExcluded) });
+                    }
+                    arguments.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
+                    diagnostic = InfluenceEffectExecutor.ValidateRemoveSpec(EffectSpec.Create(effectTypeId, arguments));
+                    if (diagnostic.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; return false; }
+                    effect = LuaEffectSpec.FromArguments(effectTypeId, arguments);
                     return true;
                 }
                 if (!TryNormalizeInfluenceEffect(table, effectTypeId, out effect, out code, out diagnostic)) return false;
@@ -1616,34 +1716,9 @@ namespace YC.Infrastructure.Lua
                 return true;
             }
 
+            if (effectTypeId == AllocationEffects.TypeId) return TryNormalizeAllocation(table, context, out effect, out code, out diagnostic);
             if (effectTypeId == LuaDomainEffectTypeIds.Choice && HasField(table, "branches"))
                 return TryNormalizeBranchChoice(table, context, out effect, out code, out diagnostic);
-            if (effectTypeId == InfluenceDepartureBatchExecutor.TypeId)
-            {
-                if (!TryReadNestedEffectArray(table.Get("effects"), context, "effects", out var body, out code, out diagnostic)) return false;
-                effect = LuaEffectSpec.FromEffectGroups(effectTypeId, ItemTransferEffectExecutor.Object(), new IReadOnlyList<LuaEffectSpec>[] { body }); return true;
-            }
-            if (effectTypeId == LuaDomainEffectTypeIds.Repeat)
-            {
-                effect = null;
-                var groups = new List<IReadOnlyList<LuaEffectSpec>>();
-                if (HasField(table, "effects"))
-                {
-                    if (!TryReadNestedEffectArray(table.Get("effects"), context, "effects", out var body, out code, out diagnostic)) return false;
-                    groups.Add(body);
-                }
-                var arguments = ItemTransferEffectExecutor.Object("apiVersion", NormalizedValue.CreateInteger(ReadInteger(table, "apiVersion", -1)), "allowEarlyStop", NormalizedValue.CreateBoolean(ReadBoolean(table, "allowEarlyStop", false)));
-                if (HasField(table, "count"))
-                {
-                    var count = table.Get("count");
-                    if (count.Type != DataType.Number || count.Number != Math.Truncate(count.Number) || count.Number < 0 || count.Number > int.MaxValue) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Repeat 次数必须是非负有界整数。"; return false; }
-                    arguments.Properties.Add(new NormalizedValueEntry { Name = "count", Value = NormalizedValue.CreateInteger((long)count.Number) });
-                    arguments.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
-                }
-                if (ReadInteger(table, "apiVersion", -1) != 1 || (HasField(table, "count") && RepeatEffectExecutor.ValidateArguments(arguments).Length > 0) || (HasField(table, "allowEarlyStop") && table.Get("allowEarlyStop").Type != DataType.Boolean)) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Repeat 参数无效。"; return false; }
-                effect = LuaEffectSpec.FromEffectGroups(effectTypeId, arguments, groups.ToArray());
-                return true;
-            }
             if (effectTypeId == EffectTypeIds.Condition)
             {
                 return TryNormalizeConditionEffect(table, context, out effect, out code, out diagnostic);
@@ -1759,6 +1834,26 @@ namespace YC.Infrastructure.Lua
                 return false;
             }
 
+            if (effectTypeId == GainResourceEffectType && (HasField(table, "apiVersion") || HasField(table, "qualification")))
+            {
+                if (HasField(table, "cost"))
+                { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "resource_gain_qualification_invalid"; return false; }
+                var qualification = ToNormalizedValue(table.Get("qualification"), 0, out code, out diagnostic);
+                if (qualification == null) return false;
+                ResourceLossEffectExecutor.TryReadResourceType(NormalizedValue.CreateString(resourceType), out var gainType);
+                var args = ItemTransferEffectExecutor.Object(
+                    "executingPlayer", NormalizedValue.CreateStableReference("player", recipient),
+                    "resourceType", NormalizedValue.CreateString(gainType.ToString()),
+                    "amount", NormalizedValue.CreateInteger(amount),
+                    "reasonId", NormalizedValue.CreateString(reasonId ?? string.Empty),
+                    "apiVersion", ToNormalizedValue(table.Get("apiVersion"), 0, out code, out diagnostic),
+                    "qualification", qualification);
+                diagnostic = ResourceEffectExecutor.ValidateGainArguments(args);
+                if (diagnostic.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; return false; }
+                effect = LuaEffectSpec.FromArguments(effectTypeId, args);
+                return true;
+            }
+
             if (effectTypeId == PayResourceEffectType && HasField(table, "allowSubstitution"))
             {
                 if (table.Get("allowSubstitution").Type != DataType.Boolean)
@@ -1808,8 +1903,12 @@ namespace YC.Infrastructure.Lua
             out LuaFailureCode code, out string diagnostic)
         {
             effect = null; code = LuaFailureCode.None; diagnostic = "";
-            if (HasField(table, "amountRange") || table.Get("options").Type != DataType.Nil || table.Get("minSelections").Type != DataType.Nil || table.Get("maxSelections").Type != DataType.Nil)
-            { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Choice.branches 是单分支选择，不能同时提供 options 或多选数量。"; return false; }
+            if (HasField(table, "amountRange") || table.Get("options").Type != DataType.Nil)
+            { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Choice.branches不能同时提供options或amountRange。"; return false; }
+            var minimum = table.Get("minSelections"); var maximum = table.Get("maxSelections");
+            if (minimum.Type != DataType.Nil && (minimum.Type != DataType.Number || minimum.Number != 0 && minimum.Number != 1) ||
+                maximum.Type != DataType.Nil && (maximum.Type != DataType.Number || maximum.Number != 1))
+            { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Choice.branches仅允许minSelections=0或1、maxSelections=1；0表示放弃当前可选操作。"; return false; }
             DynValue branches = table.Get("branches");
             if (branches.Type != DataType.Table || branches.Table.Length < 1 || branches.Table.Length > 16)
             { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Choice.branches 必须包含 1 至 16 个分支。"; return false; }
@@ -1825,6 +1924,8 @@ namespace YC.Infrastructure.Lua
                 if (!ids.Add(id)) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "Choice 分支 ID 重复。"; return false; }
                 List<LuaEffectSpec> effects;
                 if (!TryReadNestedEffectArray(branch.Table.Get("effects"), context, "effects", out effects, out code, out diagnostic)) return false;
+                if (minimum.Type == DataType.Number && minimum.Number == 0 && effects.Count == 0)
+                { code = LuaFailureCode.InvalidEffectSpec; diagnostic = "可放弃的Choice.branches必须包含真实效果，放弃不能写成空分支。"; return false; }
                 options.Add(NormalizedValue.CreateString(id)); groups.Add(effects);
             }
             var arguments = NormalizedValue.CreateObject(new List<NormalizedValueEntry>
@@ -1832,8 +1933,15 @@ namespace YC.Infrastructure.Lua
                 new NormalizedValueEntry { Name = "player", Value = NormalizedValue.CreateString(ReadString(table, "player", context.PlayerId)) },
                 new NormalizedValueEntry { Name = "options", Value = NormalizedValue.CreateArray(options) },
                 new NormalizedValueEntry { Name = "promptKey", Value = NormalizedValue.CreateString(ReadString(table, "promptKey", "lua.choice.select")) },
-                new NormalizedValueEntry { Name = "interactionType", Value = NormalizedValue.CreateString(ReadString(table, "interactionType", "lua.choice")) }
+                new NormalizedValueEntry { Name = "interactionType", Value = NormalizedValue.CreateString(GenericLuaEffectExecutor.ResolveChoiceInteractionType(
+                    ReadString(table, "interactionType", ""), groups.All(group => group.Count > 0))) }
             });
+            if (minimum.Type != DataType.Nil || maximum.Type != DataType.Nil)
+            {
+                arguments.Properties.Add(new NormalizedValueEntry { Name = "minSelections", Value = NormalizedValue.CreateInteger(minimum.Type == DataType.Nil ? 1 : (long)minimum.Number) });
+                arguments.Properties.Add(new NormalizedValueEntry { Name = "maxSelections", Value = NormalizedValue.CreateInteger(1) });
+                arguments.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
+            }
             if (HasField(table, "resultContext"))
             {
                 var resultContext = ToNormalizedValue(table.Get("resultContext"), 0, out code, out diagnostic);
@@ -2031,17 +2139,7 @@ namespace YC.Infrastructure.Lua
                 if (reason.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = reason; return false; }
                 effect = LuaEffectSpec.FromArguments(CoverCardEffectType, raw); return true;
             }
-            int coverIndex = ReadInteger(table, "coverIndex", 0);
-            string mainNodeId = ReadString(table, "mainNodeId", string.Empty);
-            effect = LuaEffectSpec.FromArguments(
-                CoverCardEffectType,
-                NormalizedValue.CreateObject(new List<NormalizedValueEntry>
-                {
-                    new NormalizedValueEntry { Name = "playerId", Value = NormalizedValue.CreateInteger(ParsePlayerKey(player)) },
-                    new NormalizedValueEntry { Name = "coverIndex", Value = NormalizedValue.CreateInteger(coverIndex) },
-                    new NormalizedValueEntry { Name = "mainNodeId", Value = NormalizedValue.CreateString(mainNodeId) }
-                }));
-            return true;
+            code=LuaFailureCode.InvalidEffectSpec;diagnostic=CharacterCoverEffectExecutor.PublicNormalCoverReason;return false;
         }
 
         private static bool TryNormalizeMarkerEffect(
@@ -2052,33 +2150,13 @@ namespace YC.Infrastructure.Lua
             out LuaFailureCode code,
             out string diagnostic)
         {
-            string operation = ReadString(table, "operation", string.Empty);
-            string executingPlayer = ReadString(table, "executingPlayer", context.PlayerId);
-            List<string> candidates;
-            if (!TryReadStringArray(table, "candidateIds", out candidates, out code, out diagnostic))
-            {
-                effect = null;
-                return false;
-            }
-            int version = ReadInteger(table, "candidateSetVersion", 0);
-            int min = ReadInteger(table, "minSelections", 0);
-            int max = ReadInteger(table, "maxSelections", 0);
-            effect = new LuaEffectSpec(
-                effectTypeId,
-                operation,
-                executingPlayer,
-                candidates,
-                ReadString(table, "candidateSetId", string.Empty),
-                version,
-                min,
-                max,
-                ReadString(table, "promptKey", string.Empty),
-                ReadInteger(table, "amount", 0),
-                ReadString(table, "resourceType", string.Empty),
-                ReadString(table, "markerId", string.Empty));
-            code = LuaFailureCode.None;
-            diagnostic = string.Empty;
-            return true;
+            effect=null;code=LuaFailureCode.None;diagnostic="";
+            var raw=ToNormalizedValue(DynValue.NewTable(table),0,out code,out diagnostic);if(raw==null)return false;
+            NormalizeContractPlayerFields(raw,"player");
+            diagnostic=YC.Domain.Items.PlayerMarkerOperation.ValidateArguments(raw);
+            if(diagnostic.Length>0){code=LuaFailureCode.InvalidEffectSpec;return false;}
+            if(ParsePlayerKey(ItemTransferEffectExecutor.Text(raw,"player"))!=ParsePlayerKey(context.PlayerId)){code=LuaFailureCode.InvalidTarget;diagnostic="transfer_permission_denied";return false;}
+            effect=LuaEffectSpec.FromArguments(effectTypeId,raw);return true;
         }
 
         private static bool TryReadLocationValue(
@@ -2221,12 +2299,11 @@ namespace YC.Infrastructure.Lua
             if (ContentTransactionEffectExecutor.IsType(effectTypeId)) return true;
             if (effectTypeId == CharacterLifecycleService.ConsumeSourceTypeId || effectTypeId == ResourcePaymentSubstitutionEffectExecutor.TypeId) return true;
             if (CharacterContentEffectExecutor.IsPublic(effectTypeId)) return true;
-            if (effectTypeId == ResourceCollectionEffectExecutor.TypeId) return true;
-            if (effectTypeId == CharacterLifecycleService.TransferTypeId || effectTypeId == OperatorDispatchFlow.ReplaceTypeId) return true;
+            if (effectTypeId == CarrierTokenPairReturnChoice.TypeId || effectTypeId == TransferCountChoiceFlow.TypeId || effectTypeId == ResourceCollectionEffectExecutor.TypeId || effectTypeId == ResourceExchangeFlow.TypeId) return true;
+            if (effectTypeId == OperatorDispatchFlow.ReplaceTypeId) return true;
             if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(effectTypeId)) return true;
-            return effectTypeId == CleanupObligation.ScheduleType || effectTypeId == RewardGrantEffectExecutor.TypeId || ContentLifecycleEffectExecutor.PublicTypeIds.Contains(effectTypeId) || ContentPrimitiveEffectExecutor.ContentFlowTypeIds.Contains(effectTypeId) || effectTypeId == ItemTransferEffectExecutor.RefillTypeId || effectTypeId == ItemTransferEffectExecutor.RefreshTypeId || effectTypeId == ItemTransferEffectExecutor.TypeId || effectTypeId == DeckShuffleEffectExecutor.TypeId || effectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions || effectTypeId == FacilitySelectionEffectExecutor.TypeId || effectTypeId == ExplorationSelectionEffectExecutor.TypeId || effectTypeId == ContentPrimitiveEffectExecutor.OverrideNextStartPlayer || effectTypeId == ContentPrimitiveEffectExecutor.ActivateFacilityEntry || effectTypeId == ContentPrimitiveEffectExecutor.ChooseResources || effectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence ||
+            return effectTypeId == CityStyleMarkerReturnChoice.TypeId || effectTypeId == CleanupObligation.ScheduleType || effectTypeId == RewardGrantEffectExecutor.TypeId || ContentLifecycleEffectExecutor.PublicTypeIds.Contains(effectTypeId) || ContentPrimitiveEffectExecutor.ContentFlowTypeIds.Contains(effectTypeId) || effectTypeId == ItemTransferEffectExecutor.RefillTypeId || effectTypeId == ItemTransferEffectExecutor.RefreshTypeId || effectTypeId == ItemTransferEffectExecutor.TypeId || effectTypeId == DeckShuffleEffectExecutor.TypeId || effectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions || effectTypeId == ContentPrimitiveEffectExecutor.OverrideNextStartPlayer || effectTypeId == ContentPrimitiveEffectExecutor.ActivateFacilityEntry || effectTypeId == ContentPrimitiveEffectExecutor.ChooseResources ||
                    effectTypeId == LuaDomainEffectTypeIds.Choice ||
-                   effectTypeId == LuaDomainEffectTypeIds.Repeat ||
                    effectTypeId == LuaDomainEffectTypeIds.RollDice ||
                    effectTypeId == LuaDomainEffectTypeIds.ResourceDiscount ||
                    effectTypeId == LuaDomainEffectTypeIds.ResourceSell ||
@@ -2338,7 +2415,7 @@ namespace YC.Infrastructure.Lua
             effect = null;
             code = LuaFailureCode.None;
             diagnostic = string.Empty;
-            if (effectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions || effectTypeId == FacilitySelectionEffectExecutor.TypeId || effectTypeId == ExplorationSelectionEffectExecutor.TypeId || effectTypeId == ContentPrimitiveEffectExecutor.OverrideNextStartPlayer || effectTypeId == ContentPrimitiveEffectExecutor.ActivateFacilityEntry || effectTypeId == ContentPrimitiveEffectExecutor.ChooseResources || effectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence || effectTypeId == LuaDomainEffectTypeIds.ResourceSell ||
+            if (effectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions || effectTypeId == ContentPrimitiveEffectExecutor.OverrideNextStartPlayer || effectTypeId == ContentPrimitiveEffectExecutor.ActivateFacilityEntry || effectTypeId == ContentPrimitiveEffectExecutor.ChooseResources || effectTypeId == LuaDomainEffectTypeIds.ResourceSell ||
                 effectTypeId == LuaDomainEffectTypeIds.MoveFacilityCard || effectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard)
             {
                 string player = ReadString(table, "player", context.PlayerId);
@@ -2346,6 +2423,44 @@ namespace YC.Infrastructure.Lua
             }
             NormalizedValue raw = ToNormalizedValue(DynValue.NewTable(table), 0, out code, out diagnostic);
             if (raw == null) return false;
+            if (effectTypeId == CarrierTokenPairReturnChoice.TypeId)
+            {
+                if (!TryReadPlayerReference(table.Get("player"), "player", out string pairActor, out _, out code, out diagnostic)) return false;
+                raw.Properties.Single(p => p.Name == "player").Value = NormalizedValue.CreateString(ParsePlayerKey(pairActor).ToString(CultureInfo.InvariantCulture));
+                diagnostic = CarrierTokenPairReturnChoice.ValidateArguments(effectTypeId, raw);
+                if (diagnostic.Length > 0 || ParsePlayerKey(pairActor) != ParsePlayerKey(context.PlayerId))
+                { code = LuaFailureCode.InvalidEffectSpec; if (diagnostic.Length == 0) diagnostic = "carrier_pair_player_invalid"; return false; }
+            }
+            if (effectTypeId == TransferCountChoiceFlow.TypeId)
+            {
+                if (!TryReadPlayerReference(table.Get("player"), "player", out string actor, out _, out code, out diagnostic)) return false;
+                raw.Properties.Single(p => p.Name == "player").Value = NormalizedValue.CreateString(ParsePlayerKey(actor).ToString(CultureInfo.InvariantCulture));
+                diagnostic = TransferCountChoiceFlow.ValidateArguments(effectTypeId, raw);
+                if (diagnostic.Length > 0 || ParsePlayerKey(actor) != ParsePlayerKey(context.PlayerId))
+                { code = LuaFailureCode.InvalidEffectSpec; if (diagnostic.Length == 0) diagnostic = "transfer_count_player_invalid"; return false; }
+            }
+            if (effectTypeId == ResourceExchangeFlow.TypeId)
+            {
+                if (!TryReadPlayerReference(table.Get("player"), "player", out string exchangeActor, out _, out code, out diagnostic) ||
+                    !TryReadPlayerReference(table.Get("targetPlayer"), "targetPlayer", out string exchangeTarget, out _, out code, out diagnostic)) return false;
+                raw.Properties.Single(p => p.Name == "player").Value = NormalizedValue.CreateString(ParsePlayerKey(exchangeActor).ToString(CultureInfo.InvariantCulture));
+                raw.Properties.Single(p => p.Name == "targetPlayer").Value = NormalizedValue.CreateString(ParsePlayerKey(exchangeTarget).ToString(CultureInfo.InvariantCulture));
+                diagnostic = ResourceExchangeFlow.ValidateArguments(raw);
+                if (diagnostic.Length > 0 || ParsePlayerKey(exchangeActor) != ParsePlayerKey(context.PlayerId) || !IsKnownPlayerOrCurrent(context, exchangeTarget))
+                { code = LuaFailureCode.InvalidEffectSpec; if (diagnostic.Length == 0) diagnostic = "resource_exchange_player_invalid"; return false; }
+            }
+            if (effectTypeId == LuaDomainEffectTypeIds.ExecuteMainAction)
+            {
+                diagnostic = GenericLuaEffectExecutor.ValidateMainActionArguments(raw);
+                if (diagnostic.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; return false; }
+                if (ParsePlayerKey(ReadString(table, "player", "")) != ParsePlayerKey(context.PlayerId))
+                { code = LuaFailureCode.InvalidTarget; diagnostic = "main_action_player_invalid"; return false; }
+            }
+            if (effectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions)
+            {
+                diagnostic = CityStyleSpecialActionEffectExecutor.ValidateGrantArguments(raw);
+                if (diagnostic.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; return false; }
+            }
             if(effectTypeId==CleanupObligation.ScheduleType)
             {
                 NormalizeContractPlayerFields(raw,"player");
@@ -2354,9 +2469,9 @@ namespace YC.Infrastructure.Lua
                 string why=CleanupObligation.ValidateArguments(raw);
                 if(why.Length>0 || ParsePlayerKey(ReadString(table,"player",""))!=ParsePlayerKey(context.PlayerId)) {code=LuaFailureCode.InvalidEffectSpec;diagnostic=why.Length>0?why:"cleanup_obligation_player_invalid";return false;}
             }
-            if (effectTypeId == FacilityEntryEffectTypeIds.Build || effectTypeId == FacilitySelectionEffectExecutor.TypeId)
+            if (effectTypeId == FacilityEntryEffectTypeIds.Build)
             {
-                string sourceField = effectTypeId == FacilityEntryEffectTypeIds.Build ? "sourceKind" : "sourceZone";
+                const string sourceField = "sourceKind";
                 foreach (string name in new[] { sourceField, "sourceKey", "expectedSourceZoneId" })
                     if (HasField(table,name) && table.Get(name).Type != DataType.String)
                     { code=LuaFailureCode.InvalidFieldType; diagnostic="建设来源字段必须为字符串："+name; return false; }
@@ -2407,8 +2522,6 @@ namespace YC.Infrastructure.Lua
                 if (diagnostic.Length > 0 || ParsePlayerKey(ReadString(table, "player", "")) != ParsePlayerKey(context.PlayerId))
                 { code = LuaFailureCode.InvalidEffectSpec; if (diagnostic.Length == 0) diagnostic = "facility_panel_player_invalid"; return false; }
             }
-            if (effectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence && HasField(table, "allowDecline") && table.Get("allowDecline").Type != DataType.Boolean)
-            { code = LuaFailureCode.InvalidFieldType; diagnostic = "影响力选择的放弃标记必须为布尔值。"; return false; }
             if (ContentTransactionEffectExecutor.IsType(effectTypeId))
             {
                 NormalizeContractPlayerFields(raw, "player", "targetPlayer");
@@ -2437,9 +2550,6 @@ namespace YC.Infrastructure.Lua
                 if (lifecycleError.Length > 0 || ParsePlayerKey(ReadString(table, "player", "")) != ParsePlayerKey(context.PlayerId))
                 { code = LuaFailureCode.InvalidEffectSpec; diagnostic = lifecycleError.Length > 0 ? lifecycleError : "lifecycle_permission_denied"; return false; }
             }
-            var rainbow = ItemTransferEffectExecutor.Value(raw, "excludeRainbow");
-            if (effectTypeId == FacilitySelectionEffectExecutor.TypeId && rainbow != null && rainbow.Kind != NormalizedValueKind.Boolean)
-            { code = LuaFailureCode.InvalidFieldType; diagnostic = "非彩设施限制必须为布尔值。"; return false; }
             if (ContentPrimitiveEffectExecutor.ContentFlowTypeIds.Contains(effectTypeId) || effectTypeId == ItemTransferEffectExecutor.RefillTypeId || effectTypeId == ItemTransferEffectExecutor.RefreshTypeId || effectTypeId == LuaDomainEffectTypeIds.ResourceSell && ItemTransferEffectExecutor.Value(raw, "apiVersion") != null)
             {
                 NormalizeContractPlayerFields(raw, "player", "sourcePlayer", "targetPlayer");
@@ -2450,16 +2560,12 @@ namespace YC.Infrastructure.Lua
                 foreach (string field in new[] { "sourcePlayer", "targetPlayer" })
                 { var value = ItemTransferEffectExecutor.Value(raw, field); if (value != null && !IsKnownPlayerOrCurrent(context, "p" + value.StringValue)) { code = LuaFailureCode.InvalidTarget; diagnostic = "玩家引用不存在。"; return false; } }
             }
-            var stored = ItemTransferEffectExecutor.Value(raw, "includeStoredFacilities");
-            if (effectTypeId == FacilitySelectionEffectExecutor.TypeId && stored != null && stored.Kind != NormalizedValueKind.Boolean) { code = LuaFailureCode.InvalidFieldType; diagnostic = "牌下设施候选配置必须为布尔值。"; return false; }
-            var limit = ItemTransferEffectExecutor.Value(raw, "maxGoldVoucherCost");
-            if (effectTypeId == FacilitySelectionEffectExecutor.TypeId && limit != null && (limit.Kind != NormalizedValueKind.Integer || limit.IntegerValue < 0)) { code = LuaFailureCode.InvalidFieldType; diagnostic = "设施费用上限必须为非负整数。"; return false; }
             if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(effectTypeId) ||
-                effectTypeId == CharacterLifecycleService.TransferTypeId || effectTypeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule)
-                NormalizeContractPlayerFields(raw, "player", "unlockedByPlayer", "recipientPlayer");
+                effectTypeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule)
+                NormalizeContractPlayerFields(raw, "player", "targetPlayer", "unlockedByPlayer", "recipientPlayer");
             if (YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType(effectTypeId))
             {
-                foreach (string field in new[] { "player", "unlockedByPlayer" })
+                foreach (string field in new[] { "player", "targetPlayer", "unlockedByPlayer" })
                 {
                     var value = ItemTransferEffectExecutor.Value(raw, field);
                     if (value == null) continue;
@@ -2499,8 +2605,13 @@ namespace YC.Infrastructure.Lua
                     ? SettlementHostProtocol.ValidateConsumeSourceArguments(raw) : ResourcePaymentSubstitutionEffectExecutor.ValidateArguments(raw);
                 if (controlledError.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = controlledError; return false; }
             }
-            string characterError = effectTypeId == OperatorDispatchFlow.TypeId || effectTypeId == OperatorDispatchFlow.ReplaceTypeId ? OperatorDispatchFlow.ValidateArguments(effectTypeId, raw) :
-                effectTypeId == CharacterLifecycleService.TransferTypeId || effectTypeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.ValidateArguments(effectTypeId, raw) : "";
+            if(effectTypeId==CityStyleMarkerReturnChoice.TypeId)
+            {
+                NormalizeContractPlayerFields(raw,"player");
+                if(ParsePlayerKey(ReadString(table,"player",""))!=ParsePlayerKey(context.PlayerId)){code=LuaFailureCode.InvalidTarget;diagnostic="标记返还选择只能由当前执行玩家提交。";return false;}
+            }
+            string characterError = effectTypeId==CityStyleMarkerReturnChoice.TypeId ? CityStyleMarkerReturnChoice.ValidateArguments(raw) : effectTypeId == OperatorDispatchFlow.TypeId || effectTypeId == OperatorDispatchFlow.ReplaceTypeId ? OperatorDispatchFlow.ValidateArguments(effectTypeId, raw) :
+                effectTypeId == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.ValidateArguments(effectTypeId, raw) : "";
             if (characterError.Length > 0) { code = LuaFailureCode.InvalidEffectSpec; diagnostic = characterError; return false; }
             if ((effectTypeId == ItemTransferEffectExecutor.TypeId || effectTypeId == LuaDomainEffectTypeIds.MoveFacilityCard || effectTypeId == LuaDomainEffectTypeIds.MoveCharacterCard || effectTypeId == DeckShuffleEffectExecutor.TypeId || effectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck) && ItemTransferEffectExecutor.Value(raw, "apiVersion") != null)
             {

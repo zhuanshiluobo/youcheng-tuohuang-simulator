@@ -5885,7 +5885,9 @@
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
     "decision": "不选用",
-    "reason": "预览、示例或生产原料不得作为运行时替代图"
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "FrontierUI-v3-Patch.zip",
@@ -12251,12 +12253,12 @@
     "sha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
     "bytes": 1631112,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12269,19 +12271,21 @@
     "member": "assets/button-secondary.png",
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
-    "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "decision": "不选用",
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
     "rule": {
-      "pattern": "assets/*",
-      "decision": "保留",
-      "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "pattern": "assets/button-secondary.png",
+      "decision": "排除",
+      "scope": "CardPicker次按钮",
+      "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+      "replacement": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
       "evidence": [
-        "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
-        "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
+        "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
+        "文档/CardPicker次按钮2.0替换登记.md"
       ]
     },
-    "catalogPath": "资产/多卡选择/Card-Picker-UI-v1/assets/button-secondary.png"
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "Card-Picker-UI-v1.zip",
@@ -12289,12 +12293,12 @@
     "sha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf",
     "bytes": 125932,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12308,12 +12312,12 @@
     "sha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30",
     "bytes": 1453194,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12335,12 +12339,12 @@
     "sha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec",
     "bytes": 259540,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12354,12 +12358,12 @@
     "sha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523",
     "bytes": 192239,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12373,12 +12377,12 @@
     "sha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
     "bytes": 2185173,
     "decision": "可用",
-    "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "七张素材按原包完整采用，明确开发记录支持；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12432,7 +12436,9 @@
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
     "decision": "不选用",
-    "reason": "旧选项外壳已迁移；CardPicker 专用许可不能外推"
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "Option-Picker-UI-v1.zip",
@@ -17326,13 +17332,16 @@
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
     "decision": "不选用",
-    "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并",
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
     "rule": {
       "pattern": "shared/card-picker/*",
-      "decision": "仅其他合法专用用途",
+      "decision": "排除",
       "scope": "全部",
-      "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
-    }
+      "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+      "replacement": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png"
+    },
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "FacilityBuild-UI-v1.0.zip",
@@ -19731,13 +19740,16 @@
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
     "decision": "不选用",
-    "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并",
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
     "rule": {
       "pattern": "shared/card-picker/*",
-      "decision": "仅其他合法专用用途",
+      "decision": "排除",
       "scope": "全部",
-      "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
-    }
+      "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+      "replacement": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png"
+    },
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "CityPattern-UI-v1.0.zip",
@@ -22204,13 +22216,16 @@
     "sha256": "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2",
     "bytes": 1483924,
     "decision": "不选用",
-    "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并",
+    "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
     "rule": {
       "pattern": "shared/card-picker/*",
-      "decision": "仅其他合法专用用途",
+      "decision": "排除",
       "scope": "全部",
-      "reason": "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并"
-    }
+      "reason": "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+      "replacement": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png"
+    },
+    "replacementCatalogPath": "资产/多卡选择/Card-Picker-Secondary-v2.0/botton-secondary-v2.0.png",
+    "replacementStandard": "P01"
   },
   {
     "package": "RhineDepartment-UI-v1.0.zip",

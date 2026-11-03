@@ -169,18 +169,17 @@ namespace YC.Presentation
             foreach (var card in DisplayedCards(previewCovered)) ids.Add(card.CardId);
             var owner = currentPlayerId;
             var generation = displayGeneration;
-            var useCardPicker = ids.Exists(id => cardVisualCatalog.GetCharacterFront(ResolveDefinitionId(id)) != null);
             bool Current() => initialized && generation == displayGeneration && owner == currentPlayerId &&
                 previewCovered == coveredPreview && !(previewCovered && inspectingOtherPlayer) &&
                 ids.TrueForAll(id => ContainsCard(DisplayedCards(previewCovered), id));
             var panel = discardPage.PreparePage((RectTransform)transform, "Discard Card List", "Discard List Panel",
                 copy.SelectionPanelSize, copy.CharacterPanelPosition, true, false, true,
-                cardPicker: useCardPicker);
+                cardPicker: true);
             EffectDialogShell.AddCountedHeading(panel, coveredPreview ? coveredListTitleFormat : copy.DiscardListTitleFormat, ids.Count,
-                useCardPicker ? string.Empty : (coveredPreview ? coveredListDescription : copy.DiscardListDescription));
+                string.Empty);
             discardPage.AddSelection(panel, new EffectDialogSelectionSpec
             {
-                ReadOnly = true, IsEffectPage = false, CloseOnBackgroundClick = true,
+                ReadOnly = true, IsEffectPage = false, IsCardSelection = true, CloseOnBackgroundClick = true,
                 CardPickerHint = (coveredPreview ? coveredListDescription : copy.DiscardListDescription),
                 Request = new InteractionRequestProjection
                 {

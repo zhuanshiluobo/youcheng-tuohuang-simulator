@@ -29,7 +29,7 @@ namespace YC.Infrastructure.Lua
                 string eventType = ability.Mode == "declared" ? "CityStyleDeclared" : ability.Mode == "acquired" ? "reward.acquired" : ability.Mode == "quick" ? "reward.activated" : "reward.cleanup";
                 string source = pack.GetScript(ability.Script);
                 var definition = new LuaHandlerDefinition(ability.SubscriptionId, eventType, "",
-                    new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.SubscriptionId, ability.Version, source, LuaContentHasher.ComputeSha256(source)),
+                    new LuaScriptDefinition(content.DefinitionId, ability.AbilityId, ability.SubscriptionId, ability.Version, source, LuaContentHasher.ComputeSha256(source), pack.GetScriptEntryId(ability.Script)),
                     EffectHandlerRole.Observer, contentInstanceId: content.DefinitionId, abilityId: ability.AbilityId);
                 registry.RegisterEventHandler(new EffectEventHandlerRegistration(ability.SubscriptionId, eventType,
                     content.ContentType == "award" ? content.DefinitionId : "", ability.SubscriptionId, context =>

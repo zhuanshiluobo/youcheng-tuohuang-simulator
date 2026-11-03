@@ -78,10 +78,24 @@ namespace YC.Domain.Facilities
         {
             var item = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == newItemId);
             if (!FacilityLayerQuery.IsFacility(item)) throw new InvalidOperationException("facility_build_instance_required");
+            return ResolveSlotsCore(state, player, newItemId, item.DefinitionId, request);
+        }
+        // API-12：只读页面按本次正式候选公开的实例/定义计算预览，不补造隐藏牌库实体。
+        // 这不授予来源或支付权限；实际Build仍必须从真实ItemZones实例进入ResolveSlots。
+        public IReadOnlyList<FacilityBuildSlotCandidate> ResolvePreviewSlots(GameState state, int player, string itemId, string definitionId)
+        {
+            var visible = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == itemId);
+            if (string.IsNullOrEmpty(itemId) || FacilityCardDatabase.Get(state, definitionId) == null ||
+                visible != null && (!FacilityLayerQuery.IsFacility(visible) || visible.DefinitionId != definitionId))
+                throw new InvalidOperationException("facility_preview_identity_invalid");
+            return ResolveSlotsCore(state, player, itemId, definitionId, "");
+        }
+        private IReadOnlyList<FacilityBuildSlotCandidate> ResolveSlotsCore(GameState state, int player, string newItemId, string definitionId, string request)
+        {
             var cells = FacilityLayerQuery.ResolveCity(state, player);
-            var facts = Object("player", NormalizedValue.CreateInteger(player), "newItemId", NormalizedValue.CreateString(item.ItemId),
-                "definitionId", NormalizedValue.CreateString(item.DefinitionId),
-                "newScore", NormalizedValue.CreateInteger(FacilityCardDatabase.Get(state, item.DefinitionId).Score),
+            var facts = Object("player", NormalizedValue.CreateInteger(player), "newItemId", NormalizedValue.CreateString(newItemId),
+                "definitionId", NormalizedValue.CreateString(definitionId),
+                "newScore", NormalizedValue.CreateInteger(FacilityCardDatabase.Get(state, definitionId).Score),
                 "cells", NormalizedValue.CreateArray(cells.Select(c => Object("slotIndex", NormalizedValue.CreateInteger(c.SlotIndex),
                     "cellZoneId", NormalizedValue.CreateString(c.CellZoneId), "topItemId", NormalizedValue.CreateString(c.TopItemId),
                     "topScore", NormalizedValue.CreateInteger(c.TopItemId.Length == 0 ? 0 : FacilityCardDatabase.Get(state, state.ItemZones.Items.Single(i => i.ItemId == c.TopItemId).DefinitionId).Score),

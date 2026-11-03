@@ -1,3 +1,9 @@
+using YC.Infrastructure.Lua;
+using YC.Domain.Interactions;
+using YC.Domain.Items;
+using YC.Domain.Effects;
+using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using YC.Application.Gameplay;
 using YC.Application.Sessions;
@@ -384,44 +390,7 @@ namespace YC.Tests.EditMode
 
         [Test]
         public void LiskarmStrategy_PlacesTwoThenCleanupWaitsForRemovalAndAdvancesAfterResolve()
-        {
-            var state = CreateActionState(CharacterCardDatabase.Liskarm);
-            var registry = new YC.Domain.Effects.EffectRegistry();
-            var round = new RoundExecutionService(registry);
-            YC.Domain.Effects.InfluenceEffectExecutor.Register(registry,
-                new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
-            YC.Infrastructure.Lua.CharacterCardLuaCatalog.Register(registry);
-            Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
-            var command = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = 1 };
-            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = state.FindPlayer(1).CoveredCharacterCardId;
-            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
-            var use = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, command);
-            Assert.That(use.Succeeded, Is.True);
-            for (int i = 0; i < 2; i++)
-            {
-                var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
-                Assert.That(request, Is.Not.Null);
-                var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
-                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1), 1, new[] { request.CandidateIds[0] });
-                Assert.That(new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round).Handle(state, answer).Succeeded, Is.True);
-            }
-            Assert.That(state.Map.Influences, Has.Count.EqualTo(2));
-            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(28));
-            Assert.That(state.DelayedCharacterEffects, Is.Empty);
-            Assert.That(round.CompleteMainAction(state, 1).IsValid, Is.True);
-            Assert.That(round.CompleteMainAction(state, 1).IsValid, Is.True);
-            RoundLifecycleTestDriver.FinishCollection(state, round);
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
-            var removal = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.remove.target");
-            Assert.That(removal, Is.Not.Null);
-            var resolve = YC.Application.Interactions.EffectInteractionCommands.Answer(
-                YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(removal, 1), 1, new[] { removal.CandidateIds[1] });
-            Assert.That(new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round).Handle(state, resolve).Succeeded, Is.True);
-            Assert.That(state.Map.Influences, Has.Count.EqualTo(1));
-            Assert.That(state.FindPlayer(1).InfluenceSupply, Is.EqualTo(29));
-            Assert.That(state.Round, Is.EqualTo(2));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
-        }
+            => RunNativeLiskarmCleanup(2, false, false, onlyFirstOwner: true);
 
         [Test]
         public void ElysiumStrategyThenTactic_WithNoLegalRaidTarget_WaitsForFlipBeforeCompletingCard()
@@ -1031,62 +1000,146 @@ namespace YC.Tests.EditMode
         [TestCase(4, false, false)]
         [TestCase(4, true, false)]
         [TestCase(4, false, true)]
-        public void LiskarmCleanup_HotseatResolvesAllOwnersThenAdvances(
-            int playerCount, bool noInfluence, bool finalRound)
+        public void LiskarmCleanup_HotseatResolvesAllOwnersThenAdvances(int playerCount, bool noInfluence, bool finalRound)
+            => RunNativeLiskarmCleanup(playerCount, noInfluence, finalRound);
+
+        // 原六项均迁到真实实体与当前生命周期；2人仍为规则隔离，不计正式地图人数／正常页面验收。
+        private static void RunNativeLiskarmCleanup(int playerCount, bool noInfluence, bool finalRound, bool onlyFirstOwner = false)
         {
-            var state = CreateActionState(CharacterCardDatabase.Liskarm);
-            state.MaxRounds = finalRound ? 1 : 8;
-            for (int id = 2; id <= playerCount; id++)
-                state.Players.Add(new PlayerState { PlayerId = id, Color = (PlayerColor)(id - 1),
-                    CoveredCharacterCardId = "character." + ((PlayerColor)(id - 1)).ToString().ToLowerInvariant() + ".p" + id + ".liskarm" });
-            var registry = new YC.Domain.Effects.EffectRegistry();
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            var config = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = playerCount, EnabledExpansionIds = new List<string> { "core" } };
+            var pack = ExternalContentPack.Current.CreateActiveSnapshot(config); config.ContentPackHash = pack.ContentHash;
+            var registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
+            ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry); ItemTransferEffectExecutor.Register(registry);
+            CharacterCoverEffectExecutor.Register(registry); CharacterLifecycleService.Register(registry);
+            var mapQuery = new MapQueryService(map); var influence = new InfluenceService(mapQuery);
+            InfluenceEffectExecutor.Register(registry, influence); ContentPrimitiveEffectExecutor.Register(registry, mapQuery, influence);
+            CharacterCardLuaCatalog.Register(registry, pack); CityStyleLuaCatalog.Register(registry, pack);
+            ContentLifecycleLuaCatalog.Register(registry, pack); AbilitySourceLuaCatalog.Register(registry, pack);
             var round = new RoundExecutionService(registry);
-            YC.Domain.Effects.InfluenceEffectExecutor.Register(registry,
-                new InfluenceService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())));
-            YC.Infrastructure.Lua.CharacterCardLuaCatalog.Register(registry);
-            Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
-            var answerHandler = new YC.Application.Interactions.AnswerInteractionCommandHandler(registry, round);
-            var resolver = new YC.Presentation.Workflows.LocalPlayerResolver();
-            // 每名玩家真实发动策略，注册本回合收尾义务；不再手写已退休的 DelayedCharacterEffects。
-            for (int id = 1; id <= playerCount; id++)
+            var source = new GameState { GameId = "liskarm.native.baseline." + playerCount + "." + noInfluence + "." + finalRound,
+                MapId = map.MapId, RuleConfiguration = config, ContentPackHash = pack.ContentHash, Round = 1, ActionRound = 1,
+                Phase = GamePhase.ActionRound1, StartPlayerId = 1, CurrentPlayerId = 1, MaxRounds = finalRound ? 1 : 8,
+                LaunchPlayerOrder = Enumerable.Range(1, playerCount).ToList(),
+                Players = Enumerable.Range(1, playerCount).Select(id => new PlayerState { PlayerId = id, Color = (PlayerColor)(id - 1),
+                    CityLocationId = StaticMapDefinitions.FourPlayerInitialLocationIds.OrderBy(value => value).ElementAt(id - 1) }).ToList(),
+                ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList(), Facilities = pack.CreateFacilities().ToList(),
+                    Components = pack.Definitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition {
+                        DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"], CubeAppearance = d.CubeAppearance }).ToList(),
+                    AbilitySources = registry.AbilityDeclarations.ToList(), UsageTracks = pack.ActiveDefinitions.SelectMany(d => d.UsageTracks).ToList(),
+                    CityStyles = pack.CreateCityStyles().ToList(), SpecialActions = pack.CreateSpecialActions().ToList(), Awards = ContentLifecycleLuaCatalog.CreateAwards(pack) } };
+            source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
+            var state = new ItemZoneStateFactory().CreateForSetup(source, map, new[] {
+                new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 30, PerPlayer = true, InitialZoneRole = "supply" },
+                new ItemRecipeEntry { EntryId = "cards", DefinitionId = "liskarm", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" } });
+            // 仅在隔离世界创建时布置真实城市实例和顺序；不在已发布采集会话上补坐标。
+            foreach (var player in state.Players)
             {
-                var use = new GameCommand { Kind = GameCommandKind.UseCharacterCard, PlayerId = id };
-                use.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = state.FindPlayer(id).CoveredCharacterCardId;
-                use.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
-                var result = new UseCharacterCardCommandHandler(new CharacterCardService(), registry).Handle(state, use);
-                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
-                for (int placement = 0; placement < 2; placement++)
+                string locationId = StaticMapDefinitions.FourPlayerInitialLocationIds.OrderBy(id => id).ElementAt(player.PlayerId - 1);
+                var parent = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == locationId);
+                var dock = state.ItemZones.Zones.Single(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.city_dock");
+                var city = state.ItemZones.Items.Single(i => i.TypeId == "core.mobile_city" && i.OwnerSubject.PlayerId == player.PlayerId);
+                foreach (var order in state.ItemZones.Orders) if (order.ItemIds.Remove(city.ItemId)) order.OrderRevision++;
+                city.ZoneId = dock.ZoneId; city.SlotId = "";
+                var targetOrder = state.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == dock.ZoneId);
+                if (targetOrder != null) { targetOrder.ItemIds.Add(city.ItemId); targetOrder.OrderRevision++; }
+                if (!state.Map.OpenLocationIds.Contains(locationId)) state.Map.OpenLocationIds.Add(locationId);
+                Assert.That(player.CityLocationId, Is.EqualTo(locationId));
+            }
+            Assert.That(new ItemZoneQuery().TryValidate(state, out string initialReason), Is.True, initialReason);
+            var proof = YC.Tests.EditMode.ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            try
+            {
+            EffectTreeExecutor Engine() => new EffectTreeExecutor(state, registry);
+            void Drain() => Assert.That(Engine().RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            void Submit(InteractionRequest request, string id)
+            {
+                Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, request.StateRevision,
+                    NormalizedValue.CreateString(id), out string why), Is.True, why); Drain();
+            }
+            for (int player = 1; player <= playerCount; player++)
+            {
+                Engine().CreateRoot(EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: player)); Drain();
+                var cover = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.AnsweringPlayerId == player);
+                Submit(cover, cover.CandidateIds.First());
+            }
+            var prepared = round.PrepareActionWindowForSmoke(state, 1); Assert.That(prepared.IsValid, Is.True, prepared.Reason);
+            int owners = onlyFirstOwner ? 1 : playerCount;
+            for (int player = 1; player <= owners; player++)
+            {
+                string card = state.CharacterCoverSlots.Single(c => c.PlayerId == player).CardInstanceId;
+                Engine().CreateRoot(CharacterLifecycleService.CreateUseSpec(player, card, CharacterEffectModes.Strategy)); Drain();
+                for (int placed = 0; placed < 2; placed++)
                 {
-                    var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
-                    Assert.That(request, Is.Not.Null);
-                    var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
-                        YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, id), id, new[] { request.CandidateIds[0] });
-                    var accepted = answerHandler.Handle(state, answer);
-                    Assert.That(accepted.Succeeded, Is.True, accepted.Validation?.Reason);
+                    var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.place.target");
+                    Assert.That(request.AnsweringPlayerId, Is.EqualTo(player)); Submit(request, request.CandidateIds.First());
                 }
-                Assert.That(round.CompleteMainAction(state, id).IsValid, Is.True);
+                Assert.That(state.FindPlayer(player).InfluenceSupply, Is.EqualTo(28));
+                var completed = round.CompleteMainAction(state, player); Assert.That(completed.IsValid, Is.True, completed.Reason);
             }
-            if (noInfluence) state.Map.Influences.Clear();
-            for (int id = 1; id <= playerCount; id++) Assert.That(round.CompleteMainAction(state, id).IsValid, Is.True);
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(owners * 2));
+            if (noInfluence) ReturnLiskarmMapMarkers(state, round);
+            for (int guard = 0; (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) && guard < 32; guard++)
+            { var complete = round.CompleteMainAction(state, state.CurrentPlayerId); Assert.That(complete.IsValid, Is.True, complete.Reason); }
             RoundLifecycleTestDriver.FinishCollection(state, round);
-            for (int id = 1; id <= playerCount && !noInfluence; id++)
+            var resolver = new YC.Presentation.Workflows.LocalPlayerResolver();
+            for (int player = 1; player <= owners; player++)
             {
-                Assert.That(state.Phase, Is.EqualTo(GamePhase.Cleanup));
-                int localId = resolver.Resolve(state, 1, true);
-                Assert.That(localId, Is.EqualTo(id));
-                Assert.That(resolver.Resolve(state, 1, false), Is.EqualTo(1), "联机身份不能随收尾玩家改变。");
-                var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.remove.target");
-                Assert.That(request, Is.Not.Null);
-                Assert.That(request.AnsweringPlayerId, Is.EqualTo(id));
-                var answer = YC.Application.Interactions.EffectInteractionCommands.Answer(
-                    YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, id), id, new[] { request.CandidateIds[0] });
-                var accepted = answerHandler.Handle(state, answer);
-                Assert.That(accepted.Succeeded, Is.True, accepted.Validation?.Reason);
+                StartLiskarmCleanup(state, round, player);
+                if (!noInfluence)
+                {
+                    var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == "effect.influence.remove.target");
+                    Assert.That(resolver.Resolve(state, 1, true), Is.EqualTo(player));
+                    Assert.That(resolver.Resolve(state, 1, false), Is.EqualTo(1));
+                    Assert.That(request.AnsweringPlayerId, Is.EqualTo(player));
+                    Submit(request, request.CandidateIds[onlyFirstOwner ? 1 : 0]);
+                    Assert.That(state.FindPlayer(player).InfluenceSupply, Is.EqualTo(29));
+                }
+                CloseLiskarmCleanup(state, round, player);
             }
-            Assert.That(state.Map.Influences.Count, Is.EqualTo(noInfluence ? 0 : playerCount));
-            Assert.That(state.PendingCharacterEffect, Is.Null);
-            Assert.That(state.DelayedCharacterEffects, Is.Empty);
+            var advanced = round.Advance(state); Assert.That(advanced.IsValid, Is.True, advanced.Reason);
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(noInfluence ? 0 : owners));
+            Assert.That(state.PendingCharacterEffect, Is.Null); Assert.That(state.DelayedCharacterEffects, Is.Empty);
             Assert.That(state.Phase, Is.EqualTo(finalRound ? GamePhase.FinalScoring : GamePhase.CharacterCover));
+            Assert.That(state.Round, Is.EqualTo(finalRound ? 1 : 2));
+            }
+            finally
+            {
+                proof.WriteLabeledText("雷蛇原生规则世界与主链", Newtonsoft.Json.JsonConvert.SerializeObject(state)); proof.Finish();
+            }
+        }
+
+        private static void StartLiskarmCleanup(GameState state, RoundExecutionService round, int player)
+        {
+            for (int guard = 0; round.EffectRegistry.GetSettlementOptions(state, player).Count == 0 && guard < 8; guard++)
+            { var advanced = round.Advance(state); Assert.That(advanced.IsValid, Is.True, advanced.Reason); }
+            var option = round.EffectRegistry.GetSettlementOptions(state, player).Single();
+            var engine = new YC.Domain.Effects.EffectTreeExecutor(state, round.EffectRegistry);
+            Assert.That(engine.TryInvokeCharacterSettlementOption(player, option.OptionId, "", option.StateRevision, out _, out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(round.Advance(state).IsValid, Is.True);
+        }
+        private static void CloseLiskarmCleanup(GameState state, RoundExecutionService round, int player)
+        {
+            var active = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.SettlementWindow?.Context?.Id == state.EffectRuntime.ActiveSettlementWindowId);
+            if (active?.SettlementWindow?.Context?.PlayerId != player || active.SettlementWindow.IsClosed) return;
+            var engine = new YC.Domain.Effects.EffectTreeExecutor(state, round.EffectRegistry);
+            Assert.That(engine.TryEndSettlementAction(player, state.EffectRuntime.ActiveSettlementWindowId, "", "", state.EffectRuntime.StateRevision,
+                "liskarm.baseline.cleanup." + player, out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var advanced = round.Advance(state); Assert.That(advanced.IsValid, Is.True, advanced.Reason);
+        }
+        private static void ReturnLiskarmMapMarkers(GameState state, RoundExecutionService round)
+        {
+            foreach (var placement in state.Map.Influences.ToArray())
+            {
+                var engine = new EffectTreeExecutor(state, round.EffectRegistry);
+                string root = engine.CreateRoot(InfluenceEffectSpecFactory.RemoveInfluence(placement.PlayerId, placement.InfluenceId));
+                Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            }
+            Assert.That(state.Map.Influences, Is.Empty);
         }
 
         private static GameState CreateActionState(string templateId)

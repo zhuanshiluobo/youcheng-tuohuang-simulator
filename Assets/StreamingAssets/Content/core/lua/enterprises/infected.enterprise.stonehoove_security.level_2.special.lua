@@ -3,7 +3,7 @@ return function(ctx)
         Effect.PlaceInfluence({ executingPlayer = ctx.playerId, influenceSource = 'company_supply', ownerSubject = { kind = 'company', companyId = 'stonehoove_security' }, causeKind = 'other_intrinsic_flow' }),
         Effect.PlaceInfluence({ executingPlayer = ctx.playerId, influenceSource = 'company_supply', ownerSubject = { kind = 'company', companyId = 'stonehoove_security' }, causeKind = 'other_intrinsic_flow' }),
         Effect.WithPresentation(Effect.Condition({
-            leftEffects = { Effect.WithPresentation(Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', subjectFilter = 'self', count = 1, requiredCount = 1, requireCompleteSelection = true, promptKey = 'effect.influence.remove.choose_target' }), {
+            leftEffects = { Effect.WithPresentation(Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'self', count = 1, requiredCount = 1, requireCompleteSelection = true, promptKey = 'effect.influence.remove.choose_target' }), {
                 interaction = { prompt = Text.Ref('core:interaction.map.influence.remove') }
             }) },
             rightEffects = { Effect.UpgradeEnterprise({ apiVersion = 1, player = ctx.playerId, enterpriseItemId = ctx.payload.enterpriseItemId, levels = 1 }) }

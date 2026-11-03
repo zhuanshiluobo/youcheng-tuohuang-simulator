@@ -26,7 +26,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var map=YC.Domain.Maps.StaticMapDefinitions.Resolve(YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId);
             string slot=YC.Domain.Influence.InfluenceService.GetRouteSlotId(map.Routes.First(r=>r.InfluenceSlotCount>0).RouteId,0);
-            string script="return function(ctx) if ctx.playerId~='p1' then return {} end; return {Effect.DepartureBatch({effects={Effect.PlaceInfluence({executingPlayer=ctx.playerId,ownerSubject=ctx.playerId,influenceSource='qy007.final.batch',targetSlotId='"+slot+"'}),Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})}})} end";
+            string script="return function(ctx) if ctx.playerId~='p1' then return {} end; return {Effect.DepartureBatch({effects={Effect.PlaceInfluence({executingPlayer=ctx.playerId,ownerSubject=ctx.playerId,influenceSource='qy007.final.batch',targetSlotId='"+slot+"'}),Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})}})} end";
             fixture=new FinalScoringTestFixture(eventScript:script,departureResponse:true);var rounds=fixture.StartOriginalLastRound();fixture.Pump();
             string session=fixture.State.FinalScoring.Session.SessionId;string control=fixture.State.FinalScoring.Session.Control.BasisDigest;
             fixture.Artifacts.WriteLabeledText("原末轮特殊效果首次实际现场",JsonConvert.SerializeObject(fixture.State));
@@ -200,7 +200,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void EmptySourceGetsProcessedReceiptWithoutInventedZeroScoreEffect()
         {
             fixture = new FinalScoringTestFixture(eventScript: "return function(ctx) return {} end"); fixture.Start(); fixture.Pump();
-            Assert.That(fixture.State.FinalScoring.Session.ProcessedSourceReceiptIds.Count, Is.EqualTo(2)); Assert.That(fixture.State.FinalScoring.Session.Effects, Is.Empty);
+            Assert.That(fixture.State.FinalScoring.Session.ProcessedSourceReceiptIds.Count, Is.EqualTo(2)); Assert.That(fixture.State.FinalScoring.Session.Effects.Count, Is.EqualTo(2));
+            Assert.That(fixture.State.FinalScoring.Session.Effects.All(e => e.ScoreDelta == 0 && e.ResourceDelta == 1), Is.True);
             Assert.That(fixture.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ResourceEffectTypeIds.GainScore), Is.False);
         }
         [Test] public void ActualLoseScoreIsArchivedAsNetChangeAndNeverAppliedTwice()
@@ -210,15 +211,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(fixture.State.FindPlayer(1).Score, Is.EqualTo(2)); Assert.That(fixture.State.FinalScoring.Session.Players.Single(p => p.PlayerId == 1).SpecialScore, Is.EqualTo(-1));
             Assert.That(fixture.State.FinalScoring.Session.Effects.Single(e => e.PlayerId == 1).ScoreDelta, Is.EqualTo(-1));
         }
-        [Test] public void ZeroIncomeFactsUseRealContinuationWithoutFakeGainScore()
+        [Test] public void ZeroScoreFactsUseRealResourceContinuationWithoutFakeGainScore()
         {
             // 依赖整合接入Global.Scoring读取；未接入应失败，不在夹具注入替身查询。
             const string script = @"return function(ctx) if ctx.eventType=='EffectCompleted' then return {} end
               local f=Global.Scoring.GetFinalControl()
-              return {Effect.WithContext(Effect.Repeat({apiVersion=1,count=0,effects={}}),
+              return {Effect.WithContext(Effect.GainResource({player=ctx.playerId,resourceType='gold_voucher',amount=1}),
                 {scoringEvidence={sessionId=f.sessionId,snapshotId=f.snapshotId,count=0}})} end";
             fixture = new FinalScoringTestFixture(eventScript: script, completionHandler: true); fixture.Start(); fixture.Pump();
-            Assert.That(fixture.State.FinalScoring.Session.Facts.Count, Is.EqualTo(2)); Assert.That(fixture.State.FinalScoring.Session.Effects, Is.Empty);
+            Assert.That(fixture.State.FinalScoring.Session.Facts.Count, Is.EqualTo(2)); Assert.That(fixture.State.FinalScoring.Session.Effects.Count, Is.EqualTo(2));
+            Assert.That(fixture.State.FinalScoring.Session.Effects.All(e => e.ScoreDelta == 0 && e.ResourceDelta == 1), Is.True);
             Assert.That(fixture.State.FinalScoring.Session.Facts.All(f => f.Evidence.Properties.Single(p => p.Name == "count").Value.IntegerValue == 0), Is.True);
             Assert.That(fixture.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ResourceEffectTypeIds.GainScore), Is.False);
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
@@ -359,22 +360,31 @@ namespace YC.Domain.State
         public string UnlockedSpecialActionId = string.Empty;
         public int LegacyRemainingSpecialActionUses;
         [NonSerialized] private GameState itemZoneState;
+        [NonSerialized] internal string ProjectedCurrentMarkerItemId;
+        public string GetCurrentMarkerItemId() => itemZoneState == null ? ProjectedCurrentMarkerItemId ?? InfluenceMarkerId : YC.Domain.Effects.UsageTracks.DeclarationMarker(itemZoneState, this)?.ItemId ?? "";
         public string MarkerArea { get => itemZoneState == null ? LegacyMarkerArea : GetActualMarkerArea();
             set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: city_style_marker"); LegacyMarkerArea = value; } }
         public int RemainingSpecialActionUses { get => itemZoneState == null ? LegacyRemainingSpecialActionUses : MarkerArea == "2" || MarkerArea == "used_from_2" ? 2 : MarkerArea == "1" || MarkerArea == "unused" || MarkerArea == "used_from_1" ? 1 : 0;
             set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: city_style_marker"); LegacyRemainingSpecialActionUses = value; } }
         private string GetActualMarkerArea()
         {
-            var marker = itemZoneState.ItemZones.Items.Find(i => i.ItemId == InfluenceMarkerId);
-            var zone = marker == null ? null : itemZoneState.ItemZones.Zones.Find(z => z.ZoneId == marker.ZoneId);
-            if (zone?.ParentId != CityStyleItemId || zone.TemplateId != "core.zone.board_marker_track") return "";
             foreach (var player in itemZoneState.Players)
             {
                 int index = 0;
                 foreach (var declaration in player.DeclaredCityStyles)
                 {
                     if (declaration.CityStyleId != CityStyleId) continue;
-                    if (ReferenceEquals(declaration, this)) return zone.LocalZoneId == "declaration_" + player.PlayerId + "_" + index ? marker.SlotId : "";
+                    if (ReferenceEquals(declaration, this))
+                    {
+                        // 首次宣告的初始化实例是历史凭证；当前权限/次数读取同域的真实成员。
+                        var binding = index == 0 ? itemZoneState.EffectRuntime.UsageTrackBindings.SingleOrDefault(b =>
+                            b.SourceItemId == CityStyleItemId && b.PlayerId == player.PlayerId) : null;
+                        if (binding != null) return YC.Domain.Effects.UsageTracks.CurrentMarker(itemZoneState, binding)?.SlotId ?? "";
+                        var marker = itemZoneState.ItemZones.Items.Find(i => i.ItemId == InfluenceMarkerId);
+                        var zone = marker == null ? null : itemZoneState.ItemZones.Zones.Find(z => z.ZoneId == marker.ZoneId);
+                        return zone?.ParentId == CityStyleItemId && zone.TemplateId == "core.zone.board_marker_track" &&
+                            zone.LocalZoneId == "declaration_" + player.PlayerId + "_" + index ? marker.SlotId : "";
+                    }
                     index++;
                 }
             }

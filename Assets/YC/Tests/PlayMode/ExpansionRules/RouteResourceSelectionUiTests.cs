@@ -384,33 +384,34 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
 
         [UnityTest]
-        public IEnumerator RegisteredWarehouseLuaChooseExploreUsesSharedMapWithoutLegacyRouteMenu()
+        public IEnumerator RegisteredWarehouseLuaUnifiedExploreUsesSharedMapWithoutLegacyRouteMenu()
         {
             f = new GameplayPageAcceptanceFixture();
             yield return f.Start(4, _ => Settle());
             int player = Player, receiver = f.State.Players.First(p => p.PlayerId != Player).PlayerId;
             yield return PrepareScenario(player, receiver, 4, false);
-            var state = GameStateCloneService.DeepClone(f.State);
+            var state = f.State;
             var card = state.ItemZones.Items.First(i => FacilityCardDatabase.Get(state, i.DefinitionId)?.EffectId == "remove_then_dispatch_or_explore" &&
                 state.ItemZones.Zones.Single(z => z.ZoneId == i.ZoneId).LocalZoneId == "facility_deck");
-            var cell = state.ItemZones.Zones.First(z => z.TemplateId == "core.zone.city_facility_cell" && z.OwnerPlayerId == player &&
-                !state.ItemZones.Items.Any(i => i.ZoneId == z.ZoneId));
-            Relocate(state, card, cell);
-            Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
-            f.Session.ReplaceState(state);
-            var root = RunFormalRoot(FacilityEntryEffectSpecFactory.Activate(player, card.DefinitionId, card.ItemId,
-                int.Parse(cell.LocalZoneId.Substring("city_cell_".Length)), "acceptance.warehouse_entry"));
+            var placement = Registry.FacilityBuildQueries.ResolveSlots(state, player, card.ItemId).First(c => !c.IsOverlay);
+            int slot = placement.SlotIndex;
+            var build = EffectSpec.Create(FacilityEntryEffectTypeIds.Build, ObjectValue(
+                "apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("explicit"),
+                "player", NormalizedValue.CreateString(player.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                "sourceKind", NormalizedValue.CreateString("deck"), "facilityId", NormalizedValue.CreateString(card.ItemId),
+                "cityBoardSlotIndex", NormalizedValue.CreateInteger(slot), "paymentMode", NormalizedValue.CreateString("free"),
+                "consumeMainAction", NormalizedValue.CreateBoolean(false)), player);
+            build.SourceId = "acceptance.warehouse_build";
+            var root = RunFormalRoot(build);
             f.Record("正式设施 Lua 入口边界", new { root, card.ItemId, card.DefinitionId,
-                scope = "实际目录载具仓库实例的正式 Activate 入口；设施位置为受控制备，不冒充本测试走过建造支付" });
+                scope = "受控候选通过真实Build v3免费建设/分层/入场链；不是正常对局自然取得设施，也不是正常支付覆盖" });
             yield return Wait(() => f.Request?.CandidateIds.Contains("vehicle.explore") == true, "真实仓库能力选择页未出现");
-            var index = f.Request.CandidateIds.IndexOf("vehicle.explore");
-            var choice = Active("EffectDialogOptionRowView").Single(row => row.gameObject.name == "Option " + index);
-            yield return f.Click(ButtonObject(choice, "Button"), "载具仓库_正式能力选择探索");
-            var shell = Active("EffectDialogShellView").Single();
-            var confirm = shell.GetComponentsInChildren<Button>().Single(button => button.gameObject.name == "Confirm Selection");
-            yield return f.Click(confirm.gameObject, "载具仓库_确认正式能力分支");
+            yield return Wait(() => HotseatUiInputDriver.Marker("vehicle.explore") != null,
+                "载具探索的真实执行控件尚未绑定");
+            var execute = HotseatUiInputDriver.Marker("vehicle.explore");
+            yield return f.Click(execute, "载具仓库_执行正式探索分支");
             yield return Wait(() => f.Request?.InteractionTypeId == "route_resource.selection" && RoutePresenter.IsActive,
-                "正式 Lua ChooseExplore 必须进入共用地图而非旧选路文字菜单");
+                "正式 Lua 统一探索必须进入共用地图");
             Assert.That(f.State.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.CandidateIds.Any(id =>
                 id.StartsWith("explore.step", StringComparison.Ordinal) || id.StartsWith("explore.pay", StringComparison.Ordinal))), Is.False);
             Assert.That(RoutePresenter.Session.Purpose, Is.EqualTo(RouteSelectionPurpose.Exploration));

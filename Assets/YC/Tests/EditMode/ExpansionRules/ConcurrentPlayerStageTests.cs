@@ -21,7 +21,7 @@ using YC.Infrastructure.Lua;
 namespace YC.Tests.EditMode.ExpansionRules
 {
     // 使用正式主链、原生牌区和正式 AnswerInteraction。额外 observer 仅制造可观察的等待边界。
-    public sealed class ConcurrentPlayerStageTests
+    public sealed partial class ConcurrentPlayerStageTests
     {
         private const string HoldType = "test.concurrent.required_response";
         private const string GeneratedDefinition = "test.concurrent.generated_character";
@@ -272,7 +272,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(RoundExecutionService.TryValidateParallelCoverTasks(fixture.State, null, out var beforeRestoreDiagnostic), Is.True, beforeRestoreDiagnostic);
             var missingFact = GameStateCloneService.DeepClone(fixture.State);
             missingFact.CharacterCoverSlots.RemoveAll(slot => slot.SlotId == StableIdFactory.Create("cover_slot",
-                Node(missingFact, CharacterCoverEffectExecutor.EffectTypeId, 1).EffectId, "primary"));
+                MainCoverAuthority.Body(missingFact, Node(missingFact, CharacterCoverEffectExecutor.EffectTypeId, 1)).EffectId, "primary"));
             Assert.That(RoundExecutionService.TryValidateParallelCoverTasks(missingFact, null, out _), Is.False,
                 "即使牌区仍非空且完成索引仍在，缺少任务的真实主槽也必须拒绝。");
             fixture.Restore();
@@ -295,6 +295,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(fixture.Request(CharacterCoverEffectExecutor.InteractionTypeId, 1).CandidateIds, Is.EqualTo(new[] { generated }));
             Assert.That(In(fixture.State, "hand", 1), Is.EqualTo(new[] { generated }));
             Assert.That(Open(fixture.State, CharacterCoverEffectExecutor.InteractionTypeId), Has.Length.EqualTo(3));
+            var task = Node(fixture.State, CharacterCoverEffectExecutor.EffectTypeId, 1);
+            Assert.That(MainCoverAuthority.Body(fixture.State,task),Is.Null);
+            Assert.That(task.MainCoverFlowV1.RecycledItemIds, Is.EqualTo(new[] { generated }));
+            var recycled = fixture.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == task.EffectId && n.CommonItemMovementV4 != null);
+            Assert.That(recycled.CommonItemMovementV4.Receipt.Result.MovedItemIds, Is.EqualTo(new[] { generated }));
+            fixture.Restore();
             fixture.Submit(fixture.Request(CharacterCoverEffectExecutor.InteractionTypeId, 1));
             Assert.That(fixture.State.FindPlayer(1).CoveredCharacterCardId, Is.EqualTo(generated));
             Assert.That(fixture.State.Phase, Is.EqualTo(GamePhase.CharacterCover));

@@ -19,7 +19,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 namespace YC.Tests.EditMode.ExpansionRules
 {
     /// <summary>只在隔离运行内容副本中装配测试声明；不计正常游戏、正式企业家或像素验收。</summary>
-    public sealed class UsageTrackAreaColorTests
+    public sealed partial class UsageTrackAreaColorTests
     {
         private const string Card = "infected.award.enterprise_special", Track = "qy003.fixture.track", Quick = "qy003.fixture.quick", Special = "qy003.fixture.special";
         private ExternalContentPack pack;
@@ -210,6 +210,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(finite: true); string marker = DeclareFinite(state, 1);
             var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(EffectSpec.Create(ContentLifecycleEffectExecutor.ReturnMarkerTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1")), 1)); Run(engine);
             var request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open"); Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(marker), out string reason), Is.True, reason); Run(engine);
+            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker).ZoneId, Is.EqualTo(FindZone(state, "supply", 1).ZoneId));
             // 隔离夹具换为另一组六张真实实例，使第二次宣告仍满足“不同已用设施”条件；不计正常建设验收。
             foreach (var facility in state.ItemZones.Items.Where(i => i.OwnerSubject.PlayerId == 1 && state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.city_facility_cell")).ToList())
             {
@@ -217,14 +218,18 @@ namespace YC.Tests.EditMode.ExpansionRules
                 string position = facility.ZoneId; facility.ZoneId = fresh.ZoneId; fresh.ZoneId = position;
             }
             string replacement = DeclareFinite(state, 1); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == replacement).SlotId, Is.EqualTo("declared"));
-            Assert.That(registry.QueryActions(state, 1).Single(o => o.ActionId == YC.Domain.SpecialActions.SpecialActionDatabase.SourceStoneIndustrialHub).DisabledReason, Is.EqualTo("usage_marker_departed"));
+            Assert.That(registry.QueryActions(state, 1).Any(o => o.ActionId == YC.Domain.SpecialActions.SpecialActionDatabase.SourceStoneIndustrialHub), Is.False);
+            Assert.That(UsageTracks.CurrentMarker(state, state.EffectRuntime.UsageTrackBindings.Single()), Is.Null);
+            Assert.That(state.FindPlayer(1).DeclaredCityStyles.Count, Is.EqualTo(2));
+            Assert.That(YC.Presentation.Workflows.CityStyleInteraction.DisplayMarkerArea(state.FindPlayer(1), state.FindPlayer(1).DeclaredCityStyles[0]), Is.Empty);
+            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == replacement).SlotId, Is.EqualTo("declared"));
             Assert.That(state.EffectRuntime.UsageTrackBindings.Count, Is.EqualTo(1)); Restore(state, "回收最后标记重宣告只记录");
         }
-        [Test] public void GenericTransferCannotMoveHostManagedUsageMarker()
+        [Test] public void GenericExplicitReturnRemovesActualUsageMarkerAndItsCurrentPermission()
         {
             var state = State(); Initialize(state); var binding = state.EffectRuntime.UsageTrackBindings.Single(); var marker = state.ItemZones.Items.Single(i => i.ItemId == binding.MarkerItemId);
             var engine = new EffectTreeExecutor(state, registry); string root = engine.CreateRoot(MoveSpec(1, new[] { marker.ItemId }, marker.ZoneId, marker.OriginalSupplyZoneId, "unordered", 1, "core.player_marker_storage")); Run(engine);
-            Assert.That(engine.GetNode(root).FailureReason, Is.EqualTo("usage_track_host_managed")); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker.ItemId).SlotId, Is.EqualTo("unused"));
+            Assert.That(engine.GetNode(root).Status,Is.EqualTo(EffectNodeStatus.Completed));Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==marker.ItemId).ZoneId,Is.EqualTo(marker.OriginalSupplyZoneId));Assert.That(UsageTracks.CurrentMarker(state,binding),Is.Null);Assert.That(state.EffectRuntime.InteractionRequests,Is.Empty);Restore(state,"显式返还真实轨道成员后权限消失");
         }
         [Test] public void EmptySupplyInitializationUsesFormalOwnedInfluenceRemovalAndRestoresBeforeAnswer()
         {

@@ -124,7 +124,7 @@
       "idPrefix": "build_additional_facility",
       "definition": {
         "contentType": "facility",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "displayName": "简陋工程营",
         "tags": [],
         "playerMarkerZones": [],
@@ -159,7 +159,7 @@
       "idPrefix": "build_extension_hub",
       "definition": {
         "contentType": "facility",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "displayName": "物流枢纽",
         "tags": [],
         "playerMarkerZones": [],
@@ -593,7 +593,7 @@
       "idPrefix": "remove_then_dispatch_or_explore",
       "definition": {
         "contentType": "facility",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "displayName": "载具仓库",
         "tags": [],
         "playerMarkerZones": [],

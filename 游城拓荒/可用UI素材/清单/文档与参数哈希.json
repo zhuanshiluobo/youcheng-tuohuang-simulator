@@ -743,5 +743,9 @@
   {
     "path": "参数/项目实际用法/地图嘉维尔指示物.json",
     "sha256": "7825da358c422c53e8d006297847a99ec7e09e1871fec50e368ac40c0667ac25"
+  },
+  {
+    "path": "参数/项目实际用法/CardPicker次按钮2.0替换登记.json",
+    "sha256": "94c774fee4f9f53c28ef406405f190a3097dc0e6b9fe7e7df6f48d0e26be2742"
   }
 ]

@@ -704,6 +704,11 @@ namespace YC.Infrastructure.Lua
             return GetScript(path);
         }
         public string GetScript(string relative) => scripts.TryGetValue(relative, out var source) ? source : throw new InvalidDataException("未登记脚本：" + relative);
+        public string GetScriptEntryId(string relative)
+        {
+            GetScript(relative); // 身份只来自当前包中已登记的路径，不能由 Lua 指定任意存储槽。
+            return YC.Domain.State.StableIdFactory.Create("lua-script-entry", PackId, relative);
+        }
         public byte[] GetArtworkBytes(string relative) => (byte[])ReadFile(relative).Clone();
         public string FindArtwork(string type, string id) => FindActiveDefinition(type, id)?.Artwork;
         public ExternalArtworkSlice FindArtworkSlice(string type, string id) => CloneSlice(FindActiveDefinition(type, id)?.ArtworkSlice);

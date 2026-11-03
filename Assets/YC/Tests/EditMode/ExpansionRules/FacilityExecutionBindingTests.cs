@@ -37,21 +37,24 @@ namespace YC.Tests.EditMode.ExpansionRules
   return {Effect.WithContext(Effect.Choice({player=ctx.playerId,options={'p2'}}),{b2OriginalBuild=ctx.payload.parentBuildId})}
  end
  if ctx.payload.b2Scope then
+  assert(Shared and type(Shared.entry)=='function','QY010B2_shared_entry_missing')
   local effects=Shared.entry({playerId='p2',payload={rewardResourceType='iron',rewardAmount=2}})
   table.insert(effects,Effect.Choice({player='p2',options={'QY010B2.scope.done'}}))
   for i,e in ipairs(effects) do effects[i]=Effect.WithContext(e,{executionBinding=ctx.payload.binding,b2Scope='opponent'}) end
   return effects
  end";
-            string body = prefix;
+            string body = prefix.Replace("\r\n", "\n");
             if (nested) body = body.Replace(
                 "for i,e in ipairs(effects) do effects[i]=Effect.WithContext(e,{executionBinding=ctx.payload.binding,b2Scope='opponent'}) end\n  return effects",
-                "for i,e in ipairs(effects) do effects[i]=Effect.WithContext(e,{b2Scope='opponent-child'}) end\n  return {Effect.WithContext(Effect.Repeat({apiVersion=1,count=1,effects=effects}),{executionBinding=ctx.payload.binding,b2Scope='opponent-root'})}");
+                "for i,e in ipairs(effects) do effects[i]=Effect.WithContext(e,{b2Scope='opponent-child'}) end\n  return {Effect.WithContext(Effect.Choice({player='p2',branches={{id='QY010B2.scope.begin',effects=effects}}}),{executionBinding=ctx.payload.binding,b2Scope='opponent-root'})}");
             source = source.Replace("return function(ctx)", body);
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(Pack.RootPath, "pack.json")));
             string moduleHash = LuaContentHasher.ComputeSha256(File.ReadAllText(Path.Combine(Pack.RootPath, module)));
-            var modules = manifest["luaModules"] as JArray ?? new JArray(); manifest["luaModules"] = modules;
+            var modules = manifest["luaModules"] as JArray;
+            if (modules == null) { modules = new JArray(); manifest["luaModules"] = modules; }
             modules.Add(new JObject { ["moduleId"] = "qy010.b2.resource", ["version"] = "1.0.0", ["script"] = module, ["sha256"] = moduleHash });
-            var dependencies = manifest["scriptDependencies"] as JArray ?? new JArray(); manifest["scriptDependencies"] = dependencies;
+            var dependencies = manifest["scriptDependencies"] as JArray;
+            if (dependencies == null) { dependencies = new JArray(); manifest["scriptDependencies"] = dependencies; }
             dependencies.Add(new JObject { ["protocolVersion"] = 1, ["script"] = main,
                 ["modules"] = new JArray(new JObject { ["moduleId"] = "qy010.b2.resource", ["version"] = "1.0.0", ["sha256"] = moduleHash, ["alias"] = "entry" }) });
             var token = JObject.Parse(File.ReadAllText(Path.Combine(Pack.RootPath, "component/" + Token + ".json")));
@@ -79,6 +82,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             snapshot.EventPayload = LuaSnapshotValue.Object(payload);
             string script = Pack.GetScript("lua/qy010_fixture_query.lua"), hash = LuaContentHasher.ComputeSha256(script);
             Assert.That(hash, Is.EqualTo(c.Version.HandlerHash));
+            artifacts.WriteLabeledText("QY010B2实际编译Lua", script);
             var result = new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition(Token, QY010B2ScopeAbility, QY010B2ScopeAbility, "1.0.0", script, hash),
                 new LuaInvocationContext("QY010B2.scope", "AbilityBodyInvoked", "p1", c.State.EffectRuntime.StateRevision, "1.0.0", 2, 0, 0, snapshot));
             Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
@@ -119,6 +123,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (!nested) engine.CreateChild(sourceChoiceId, bound[1]);
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
             Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(2));
+            if (nested)
+            {
+                var begin = Open(state);
+                Assert.That(engine.TrySubmitInteraction(begin.GetStableInteractionId(), 2, begin.StateRevision,
+                    NormalizedValue.CreateString("QY010B2.scope.begin"), out string beginReason), Is.True, beginReason);
+                Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            }
             fixture.BoundChoiceNodeId = Open(state).OwnerEffectId;
             fixture.GainNodeId = nested ? state.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == fixture.BoundRootId && n.EffectTypeId == "effect.resource.gain").EffectId : fixture.BoundRootId;
             Assert.That(engine.GetNode(fixture.GainNodeId).Status, Is.EqualTo(EffectNodeStatus.Completed));
@@ -584,33 +595,32 @@ return effects end";
             Assert.Throws<KernelException>(() => RequiredEffectOutcome.ValidateInteraction(new EffectInteractionSpec { AllowDecline = true }, required));
         }
 
-        [TestCase(0)]
-        [TestCase(1)]
-        [TestCase(2)]
-        public void LegacyMigrationAcceptsOnlyUnambiguousSupplyOrders(int members)
+        [TestCase(0, 1)][TestCase(1, 1)][TestCase(2, 1)]
+        [TestCase(0, 2)][TestCase(1, 2)][TestCase(2, 2)]
+        public void LegacyFacilityLayerMetadataIsRejectedWithoutGuessingSupplyOrders(int members, int entityVersion)
         {
             var state = State(); string definition = Definition(state, d => !d.Unique);
             string supply = FindZone(state, "facility_supply_0").ZoneId;
             for (int i = 0; i < members; i++) Transfer(state, Leg(state, Card(state, definition).ItemId, supply, "bottom"));
+            string valid = YC.Application.Sessions.HostRecoveryService.SerializeArchive(YC.Application.Sessions.HostRecoveryService.CreateArchive(state));
+            var restored = YC.Application.Sessions.HostRecoveryService.RecoverJson(valid, Registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
+            Assert.That(FacilityLayerQuery.ResolveSupply(restored.State, supply).ItemIds, Is.EqualTo(FacilityLayerQuery.ResolveSupply(state, supply).ItemIds));
             var legacy = GameStateCloneService.DeepClone(state);
             // 明确构造旧结构的隔离迁移输入，不修改真实存档或正常验收状态。
             var covered = legacy.ItemZones.Zones.Where(z => z.TemplateId == FacilityLayerQuery.CoveredTemplate).Select(z => z.ZoneId).ToArray();
             legacy.ItemZones.Zones.RemoveAll(z => covered.Contains(z.ZoneId));
             var supplies = legacy.ItemZones.Zones.Where(z => z.TemplateId == FacilityLayerQuery.SupplyTemplate).Select(z => z.ZoneId).ToArray();
             legacy.ItemZones.Orders.RemoveAll(o => covered.Contains(o.ZoneId) || supplies.Contains(o.ZoneId));
+            legacy.EntitySchemaVersion = entityVersion;
             var raw = Newtonsoft.Json.Linq.JObject.FromObject(legacy);
             ((Newtonsoft.Json.Linq.JObject)raw["ItemZones"]).Remove("FacilityLayerVersion");
             ((Newtonsoft.Json.Linq.JObject)raw["ItemZones"]).Remove("FacilityLayerMigrationId");
-            var originalIds = legacy.ItemZones.Items.Select(i => i.ItemId).OrderBy(id => id).ToArray();
+            string beforeRaw = raw.ToString(), beforeState = Newtonsoft.Json.JsonConvert.SerializeObject(legacy);
             bool migrated = FacilityLayerRecovery.TryMigrateLegacy(raw, legacy, out var result, out string reason);
-            Assert.That(migrated, Is.EqualTo(members <= 1), reason);
-            if (migrated)
-            {
-                Assert.That(result.ItemZones.Items.Select(i => i.ItemId).OrderBy(id => id), Is.EqualTo(originalIds));
-                Assert.That(FacilityLayerQuery.ResolveSupply(result, supply).ItemIds.Count, Is.EqualTo(members));
-                Assert.That(result.ItemZones.FacilityLayerMigrationId, Is.Not.Empty);
-                Assert.That(FacilityLayerQuery.ResolveCity(result, 1).All(c => c.CoveredItemIds.Count == 0), Is.True);
-            }
+            Assert.That(migrated, Is.False); Assert.That(result, Is.Null); Assert.That(reason, Is.EqualTo("facility_layer_legacy_unsupported"));
+            Assert.That(raw.ToString(), Is.EqualTo(beforeRaw)); Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(legacy), Is.EqualTo(beforeState));
+            artifacts.WriteLabeledText("API04旧层字段拒绝及当前合法对照", Newtonsoft.Json.JsonConvert.SerializeObject(new { members, entityVersion, valid, beforeRaw, beforeState, reason, scope = "隔离构造旧表示；原零/单枚旧迁移正向已退役，不计旧断言通过" }));
         }
 
         [Test] public void RecoveryRejectsMissingRawMetadataAndTamperedBuildReceipt()

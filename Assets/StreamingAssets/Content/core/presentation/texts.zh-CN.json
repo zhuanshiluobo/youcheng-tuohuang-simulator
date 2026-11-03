@@ -2,6 +2,16 @@
   "schemaVersion": 1,
   "locale": "zh-CN",
   "messages": {
+    "core:interaction.trade.allocate": {
+      "parameters": {
+        "remaining": "integer"
+      },
+      "template": "按顺序分配至多{remaining}次交易；结束行动会执行当前队列。"
+    },
+    "core:interaction.effects.allocate.prompt": {
+      "parameters": {},
+      "template": "按所选顺序分配效果次数。"
+    },
     "core:interaction.map.initial_influence": {
       "parameters": {},
       "template": "可在高亮位置放置1个影响力，或放弃本次放置。"
@@ -87,6 +97,10 @@
     "core:interaction.facility.adjacent.prompt": {
       "parameters": {},
       "template": "选择一个[b]十字相邻[/b]的非彩色设施，结算其[b]入场效果[/b]。"
+    },
+    "core:interaction.item.transfer.prompt": {
+      "parameters": {},
+      "template": "选择要移动的物品。"
     },
     "core:interaction.entity.item": {
       "parameters": {
@@ -188,25 +202,6 @@
     "core:presentation.unknown_entity": {
       "parameters": {},
       "template": "未知对象"
-    },
-    "core:effect.repeat.progress": {
-      "parameters": {
-        "completed": "integer",
-        "total": "integer"
-      },
-      "template": "已完成{completed}/{total}次。"
-    },
-    "core:effect.repeat.continue.prompt": {
-      "parameters": {},
-      "template": "选择是否继续下一次结算。"
-    },
-    "core:effect.repeat.continue": {
-      "parameters": {},
-      "template": "继续下一次"
-    },
-    "core:effect.repeat.stop": {
-      "parameters": {},
-      "template": "停止重复"
     },
     "core:operator.passenger.payment.prompt": {
       "parameters": {
@@ -1175,8 +1170,10 @@
       "template": "特殊行动"
     },
     "core:interaction.card.destination.choose": {
-      "parameters": {},
-      "template": "选择将当前流形角色牌加入手牌或弃牌区。"
+      "parameters": {
+        "card": "item"
+      },
+      "template": "选择将{card}加入手牌或弃牌区。"
     },
     "core:interaction.card.destination.hand": {
       "parameters": {},
@@ -1255,7 +1252,9 @@
       "template": "选择[b]嘉维尔指示物[/b]的相邻资源点。"
     },
     "core:interaction.token.arrival.choose": {
-      "parameters": {"resourcePoint": "text"},
+      "parameters": {
+        "resourcePoint": "text"
+      },
       "template": "移动{resourcePoint}上的1个影响力。"
     },
     "core:interaction.token.arrival.influence": {
@@ -1424,63 +1423,63 @@
       "template": "[icon:core:rule.remove][icon:core:rule.remove][icon:core:rule.remove]"
     },
     "core:interaction.lin.initial_markers.prompt": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "从你的供应在林的计谋牌上放置玩家标记，至多{count}个。"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "从你的供应在林的计谋牌上放置玩家标记，至多{count}个。"
     },
     "core:interaction.lin.initial_markers.count": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "在本牌上放置{count}个你的玩家标记"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "在本牌上放置{count}个你的玩家标记"
     },
     "core:interaction.lin.initial_markers.none": {
-        "parameters": {},
-        "template": "不放置玩家标记"
+      "parameters": {},
+      "template": "不放置玩家标记"
     },
     "core:interaction.dorothy.removal.prompt": {
-        "parameters": {},
-        "template": "选择要移除的两枚标记组合，点选后直接执行。"
+      "parameters": {},
+      "template": "选择要移除的两枚标记组合，点选后直接执行。"
     },
     "core:interaction.dorothy.removal.pair": {
-        "parameters": {
-            "first": "item",
-            "second": "item"
-        },
-        "template": "移除{first}与{second}"
+      "parameters": {
+        "first": "item",
+        "second": "item"
+      },
+      "template": "移除{first}与{second}"
     },
     "core:interaction.dorothy.initial_markers.prompt": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "从你的供应在多萝西的计谋牌上放置玩家标记，至多{count}个。"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "从你的供应在多萝西的计谋牌上放置玩家标记，至多{count}个。"
     },
     "core:interaction.dorothy.initial_markers.count": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "在本牌上放置{count}个你的玩家标记"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "在本牌上放置{count}个你的玩家标记"
     },
     "core:interaction.dorothy.initial_markers.none": {
-        "parameters": {},
-        "template": "不放置玩家标记"
+      "parameters": {},
+      "template": "不放置玩家标记"
     },
     "core:interaction.passenger.initial_markers.prompt": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "从你的供应在异客的计谋牌上放置玩家标记，至多{count}个。"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "从你的供应在异客的计谋牌上放置玩家标记，至多{count}个。"
     },
     "core:interaction.passenger.initial_markers.count": {
-        "parameters": {
-            "count": "integer"
-        },
-        "template": "在本牌上放置{count}个你的玩家标记"
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "在本牌上放置{count}个你的玩家标记"
     },
     "core:interaction.passenger.initial_markers.none": {
-        "parameters": {},
-        "template": "不放置玩家标记"
+      "parameters": {},
+      "template": "不放置玩家标记"
     },
     "core:payment.sources.loading": {
       "parameters": {},
@@ -1511,6 +1510,83 @@
     "core:payment.sources.save": {
       "parameters": {},
       "template": "保存此来源的替代方案"
+    },
+    "core:interaction.city_style.return_marker.prompt": {
+      "parameters": {},
+      "template": "选择要返还的二级城市样式标记"
+    },
+    "core:interaction.character.cover.additional.prompt": {
+      "parameters": {},
+      "template": "选择额外盖放的角色牌"
+    },
+    "core:city_style.return_marker.item": {
+      "parameters": {
+        "style": "item",
+        "marker": "item"
+      },
+      "template": "返还{style}上的{marker}"
+    },
+    "core:city_style.return_marker.group": {
+      "parameters": {
+        "count": "integer"
+      },
+      "template": "从这{count}个标记中选择返还"
+    },
+    "core:interaction.choice.quantity_group": {
+      "parameters": {
+        "minimum": "integer",
+        "maximum": "integer"
+      },
+      "template": "选择{minimum}～{maximum}个的方案"
+    },
+    "core:interaction.special.choose_source": {
+      "parameters": {},
+      "template": "选择要执行的特殊行动来源"
+    },
+    "core:interaction.choice.source_group": {
+      "parameters": {
+        "minimum": "integer",
+        "maximum": "integer"
+      },
+      "template": "选择第{minimum}～{maximum}项来源"
+    },
+    "core:interaction.choice.item_group": {
+      "parameters": {
+        "minimum": "integer",
+        "maximum": "integer"
+      },
+      "template": "选择第{minimum}～{maximum}项实物"
+    },
+    "core:interaction.payment.select_item": {
+      "parameters": {
+        "entity": "item"
+      },
+      "template": "将{entity}加入本次付款草稿"
+    },
+    "core:interaction.special.action_details": {
+      "parameters": {
+        "cost": "text",
+        "body": "text",
+        "after": "text"
+      },
+      "template": "{cost}\n{body}\n{after}"
+    },
+    "core:interaction.carrier_pair.prompt": {
+      "parameters": {},
+      "template": "选择返还原供应的两个标记"
+    },
+    "core:interaction.carrier_pair.first": {
+      "parameters": {
+        "first": "item"
+      },
+      "template": "选择以{first}为首标记的组合"
+    },
+    "core:interaction.carrier_pair.pair": {
+      "parameters": {
+        "first": "item",
+        "second": "item"
+      },
+      "template": "返还{first}与{second}"
     }
   }
 }

@@ -24,7 +24,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 namespace YC.Tests.EditMode.ExpansionRules
 {
     // 仅装配显式完成的真实定义；不修改正式pack、不生成/覆盖界面资产。
-    public sealed class InfectedCharacterEffectsTests
+    public sealed partial class InfectedCharacterEffectsTests
     {
         private static readonly string ContentRoot = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
         private static readonly string[] EnterprisePaths = {
@@ -45,6 +45,14 @@ namespace YC.Tests.EditMode.ExpansionRules
         private ExternalContentPack core;
         private EffectRegistry registry;
         private GameMapDefinition map;
+        private IsolatedTestArtifacts artifacts;
+        private GameState observed;
+        [SetUp] public void BeginEvidence() { artifacts = IsolatedTestArtifacts.BeginCase(); observed = null; diceFace = 5; }
+        [TearDown] public void FinishEvidence()
+        {
+            if (observed != null) artifacts.WriteLabeledText("感染角色隔离当前状态", JsonConvert.SerializeObject(observed));
+            artifacts.Finish();
+        }
 
         [OneTimeSetUp]
         public void LoadExplicitRealDefinitionsFromFormalPack()
@@ -53,13 +61,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             pack = core.CreateActiveSnapshot(new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId,
                 PlayerCount = 3, EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } });
         }
-        private GameState State(int players = 2)
+        private GameState State(int players = 2, bool formalAbilities = false, int additionalInitialHandCharacters = 0)
         {
             map = StaticMapDefinitions.CreateThreePlayerMap();
             var active = pack.ActiveDefinitions.Where(d => DefinitionPaths.Contains(d.ContentType + "/" + d.DefinitionId + ".json")).ToArray();
             registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
             DiceRollEffectExecutor.Register(registry, max => diceFace - 1); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
-            ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry); RepeatEffectExecutor.Register(registry);
+            ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry);
             var query = new MapQueryService(map); var influence = new InfluenceService(query);
             InfluenceEffectExecutor.Register(registry, influence); MapOperationEffectExecutor.Register(registry, query);
             ContentPrimitiveEffectExecutor.Register(registry, query, influence); FacilityEntryEffectExecutor.Register(registry);
@@ -79,6 +87,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = new GameState { GameId = "game.enterprise_content", MapId = map.MapId, ContentPackHash = pack.ContentHash,
                 Round = 1, ActionRound = 1, StartPlayerId = 1, CurrentPlayerId = 1, Phase = GamePhase.ActionRound1,
                 ContentDefinitions = definitions, RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = pack.ContentHash, EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } } };
+            source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
             for (int player = 1; player <= players; player++) source.Players.Add(new PlayerState { PlayerId = player, Resources = new ResourceSet { GoldVoucher = 80, Originium = 20, OriginiumShard = 20, Iron = 20, PureOriginium = 3 } });
             var entries = new List<ItemRecipeEntry> {
                 new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "supply" },
@@ -91,6 +100,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             });
 
             foreach (string id in new[] { "liskarm", "elysium", "texas", "cannot", "tin-man" }) entries.Add(new ItemRecipeEntry { EntryId = "initial_" + id, DefinitionId = id, TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" });
+            if (additionalInitialHandCharacters > 0) entries.Add(new ItemRecipeEntry { EntryId = "api30.initial.hand.boundary", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = additionalInitialHandCharacters, PerPlayer = true, InitialZoneRole = "hand" });
             foreach (var location in map.Locations.Where(l => !l.IsRedZone)) entries.Add(new ItemRecipeEntry { EntryId = "resource_point_" + location.LocationId, DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             foreach (var facility in definitions.Facilities.Where(d => d.GoldVoucherCost > 0).GroupBy(d => d.Name).Select(g => g.First()).Take(9)) entries.Add(new ItemRecipeEntry { EntryId = facility.FacilityId, DefinitionId = facility.FacilityId, TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" });
             foreach(var style in core.ActiveDefinitions.Where(d=>d.ContentType=="city_style")) entries.Add(new ItemRecipeEntry{EntryId=style.DefinitionId,DefinitionId=style.DefinitionId,TypeId="core.board_card",Quantity=1,InitialZoneRole="city_styles"});
@@ -112,7 +122,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             state.ItemZones.Relations.Add(new ItemRelationState { RelationId = StableIdFactory.Create("relation", state.GameId, "active_department"), RelationTypeId = EnterpriseStateQuery.ActiveDepartmentRelation,
                 SourceItemId = Item(state, "enterprise.rhine_lab").ItemId, TargetItemId = Item(state, "enterprise.department.structural").ItemId });
-            Valid(state); return state;
+            if (formalAbilities)
+            {
+                // 来源授权、公共样式上下文与逐枚转移必须装配正式能力目录。
+                // 其余用例仍单独定位既有生命周期适配，不计正常游戏验收。
+                state.ContentDefinitions.AbilitySources = AbilitySourceLuaCatalog.CreateDeclarations(pack);
+                registry.ContentDefinitions = state.ContentDefinitions;
+                AbilitySourceLuaCatalog.Register(registry, pack);
+            }
+            Valid(state); return observed = state;
         }
         private static ItemInstanceState Item(GameState state, string definition) => state.ItemZones.Items.Single(i => i.DefinitionId == definition);
         private static void SetFixturePosition(GameState state, ItemInstanceState item, string zone)
@@ -150,15 +168,26 @@ namespace YC.Tests.EditMode.ExpansionRules
             for (int step = 0; step < 200; step++)
             {
                 var request = state.EffectRuntime.InteractionRequests.LastOrDefault(r => r.Status == "open"); if (request == null) return;
-                string choice = request.CandidateIds.Contains("stop") ? "stop" : request.CandidateIds.Contains("choice.skip") ? "choice.skip" : request.CandidateIds.Contains("decline") ? "decline" : request.CandidateIds[0];
+                if (request.InteractionTypeId == FacilitySelectionEffectExecutor.NormalBuildInteractionType)
+                {
+                    string target = request.CandidateIds.First(); var engine = new EffectTreeExecutor(state, registry);
+                    string zone = state.ItemZones.Items.Single(item => item.ItemId == target).ZoneId;
+                    Assert.That(engine.TryPrepareEffectBuildPayment(request.AnsweringPlayerId, request.OwnerEffectId, request.GetStableInteractionId(),
+                        request.CandidateSetId, request.CandidateSetVersion, target, Object("paymentMode", NormalizedValue.CreateString("gold"),
+                            "expectedSourceZoneId", NormalizedValue.CreateString(zone)), state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string reason), Is.True, reason);
+                    continue;
+                }
+                string choice = request.CandidateIds.Contains("stop") ? "stop" : request.CandidateIds.Contains("choice.skip") ? "choice.skip" :
+                    request.CandidateIds.Contains("continue") ? "continue" : request.CandidateIds.Contains("pay") ? "pay" :
+                    request.CandidateIds.Contains("decline") ? "decline" : request.CandidateIds[0];
                 if (request.MinSelections > 1) Answer(state, request.CandidateIds.Take(request.MinSelections).ToArray()); else Answer(state, choice);
             }
             Assert.Fail("内容交互未在业务步数上限内完成。");
         }
         private GameState Restore(GameState state)
         {
-            var recovery = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry);
-            Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic); Valid(recovery.State); return recovery.State;
+            var recovery = artifacts.Recover(state, "感染角色正式正文冷恢复", registry);
+            Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic); Valid(recovery.State); return observed = recovery.State;
         }
         private static InteractionRequest Open(GameState state) => state.EffectRuntime.InteractionRequests.LastOrDefault(r=>r.Status=="open");
         private void FillSupply(GameState state) => Run(state,EffectSpec.Create(ItemTransferEffectExecutor.RefillTypeId,Object("apiVersion",NormalizedValue.CreateInteger(1),"player",NormalizedValue.CreateString("1"),"slotZoneId",NormalizedValue.CreateString(state.ItemZones.Zones.First(z=>z.LocalZoneId=="facility_supply_0").ZoneId)),1));
@@ -179,7 +208,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCaseSource(nameof(Modes))]
         public void EveryModeUsesRealDefinitionAndEffectLifecycle(string key,string mode)
         {
-            var state=State(3); DockFixtureCity(state,1); FillSupply(state);
+            var state=State(3, formalAbilities: key == "lin" || key == "silence_the_paradigmatic"); DockFixtureCity(state,1); FillSupply(state);
             string root=StartCard(state,key,mode); Drain(state);
             Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==root).Status,Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.Status==EffectNodeStatus.Failed || n.Status==EffectNodeStatus.Faulted || n.EffectTypeId==ContentPrimitiveEffectExecutor.IncompleteEffect),Is.False);
@@ -190,7 +219,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase("swire")][TestCase("lin")][TestCase("gavial_the_invincible")]
         public void RealActiveEffectProjectsFullTextForOwnerOpponentAndRecovery(string key)
         {
-            var state = State(3); DockFixtureCity(state, 1); FillSupply(state);
+            var state = State(3, formalAbilities: key == "lin"); DockFixtureCity(state, 1); FillSupply(state);
             if (key == "swire" || key == "lin")
             {
                 LoadInitialMarkers(state, key, 2);
@@ -204,14 +233,46 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(entry.AbilityId, Is.EqualTo(card.DefinitionId + ".tactic"));
             Assert.That(entry.EffectText, Is.EqualTo(display.Single(value => value.AbilityId == entry.AbilityId).EffectText));
             Assert.That(entry.SourceEffectId, Is.Not.Empty);
-            if (key == "muelsyse") { Assert.That(entry.HasCoverArea, Is.True); Assert.That(entry.CoverSlotIds, Is.Empty); }
+            if (key == "muelsyse") { Assert.That(entry.HasCoverArea, Is.True); Assert.That(entry.CoverSlotIds, Is.EquivalentTo(
+                state.CharacterCoverSlots.Where(slot => slot.Reusable).Select(slot => slot.SlotId))); }
             if (key == "jessica_the_liberated") Assert.That(entry.BindingId, Is.EqualTo(state.FacilityCharacterBindings.Single().BindingId));
             if (key == "swire" || key == "lin") Assert.That(entry.StorageZoneIds.Count, Is.EqualTo(1));
             Assert.That(YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state, 2), display).Single(value => value.SourceItemId == card.ItemId).EntryId, Is.EqualTo(entry.EntryId));
             state = Restore(state);
             Assert.That(YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state), display).Single(value => value.SourceItemId == card.ItemId).EntryId, Is.EqualTo(entry.EntryId));
-            Run(state, MoveSpec(1, new[] { card.ItemId }, card.ZoneId, FindZone(state, "discard", 1).ZoneId, "unordered", 1, "core.character_card_transfer"));
+            var contents = StoredMarkers(state, key).Select(item => item.ItemId).ToArray();
+            var exit = Run(state, MoveSpec(1, new[] { card.ItemId }, card.ZoneId, FindZone(state, "discard", 1).ZoneId, "unordered", 1, "core.character_card_transfer"));
+            foreach (string id in contents) Assert.That(state.ItemZones.Items.Single(item => item.ItemId == id).ZoneId,
+                Is.EqualTo(state.ItemZones.Items.Single(item => item.ItemId == id).OriginalSupplyZoneId));
+            foreach (string id in contents) Assert.That(exit.PositionChanges.Count(change => change.ItemId == id), Is.EqualTo(1));
             Assert.That(YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state), display).Any(value => value.SourceItemId == card.ItemId), Is.False);
+            if (contents.Length > 0)
+            {
+                state = Restore(state);
+                Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False);
+                var restored = state.EffectRuntime.EffectNodes.Single(node => node.EffectId == exit.EffectId);
+                foreach (string id in contents)
+                {
+                    var item = state.ItemZones.Items.Single(value => value.ItemId == id);
+                    Assert.That(item.ZoneId, Is.EqualTo(item.OriginalSupplyZoneId));
+                    Assert.That(restored.PositionChanges.Count(change => change.ItemId == id), Is.EqualTo(1));
+                }
+            }
+        }
+
+        [Test]
+        public void PublicMarkerMoveCannotBorrowAutomaticCarrierExitAuthority()
+        {
+            var state = State(3, formalAbilities: true); LoadInitialMarkers(state, "lin", 1);
+            var marker = StoredMarkers(state, "lin").Single(); string zone = marker.ZoneId;
+            var rules = JsonConvert.SerializeObject(new { state.ItemZones, state.Players, state.RandomRuntime });
+            var engine = new EffectTreeExecutor(state, registry);
+            // 错供应在最终开放合同中也必须拒绝，不把待移除的主动来源限制固化成新规范。
+            string id = engine.CreateRoot(MoveSpec(1, new[] { marker.ItemId }, zone, FindZone(state, "supply", 2).ZoneId, "unordered", 1, "core.cube_storage"));
+            var report = engine.RunUntilQuiescent();
+            Assert.That(engine.GetNode(id).Status, Is.Not.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(report.Faulted || engine.GetNode(id).FailureReason.Length > 0, Is.True);
+            Assert.That(JsonConvert.SerializeObject(new { state.ItemZones, state.Players, state.RandomRuntime }), Is.EqualTo(rules));
         }
         [TestCase("hellagur")][TestCase("muelsyse")]
         public void RealDeferredObligationSurvivesSourceExitAndEndsAtCleanup(string key)
@@ -221,7 +282,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var entries = YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state), display);
             Assert.That(entries.Single(value => value.SourceItemId == card.ItemId).AbilityId, Is.EqualTo(card.DefinitionId + ".strategy"));
             Assert.That(card.ZoneId, Is.EqualTo(FindZone(state, "discard", 1).ZoneId));
-            state = Restore(state); Cleanup(state); Drain(state);
+            state = Restore(state); Cleanup(state); InvokeCleanup(state); Drain(state);
             Assert.That(YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state), display).Any(value => value.SourceItemId == card.ItemId), Is.False);
         }
         [Test]
@@ -297,7 +358,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             StartCard(state, key, "tactic");
             if (key == "lin")
             {
-                Assert.That(Open(state).AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema));
+                Assert.That(Open(state).AnswerSchema, Is.EqualTo("candidate_id"));
+                Assert.That(Open(state).PromptKey, Is.EqualTo("core:interaction.lin.initial_markers.prompt"));
+                Assert.That(Open(state).CandidateIds, Does.Contain(count.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(1));
                 Answer(state, count.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 Assert.That(StoredMarkers(state, key).All(i => i.OwnerSubject.PlayerId == 1), Is.True);
@@ -347,7 +410,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(detail.CoverSlotIds, Is.EqualTo(new[] { slotId }));
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==first).ZoneId,Is.EqualTo(FindZone(state,"covered",1).ZoneId));
             Run(state,CharacterLifecycleService.CreateUseSpec(1,first,"strategy"));
-            while(Open(state)!=null && !Open(state).CandidateIds.Contains("decline"))Answer(state,Open(state).CandidateIds.First());
+            while(Open(state)!=null && Open(state).PromptKey != "core:interaction.muelsyse.cover")Answer(state,Open(state).CandidateIds.First());
             Assert.That(Open(state),Is.Not.Null); string second=Open(state).CandidateIds.First(id=>id!="decline");Answer(state,second);Drain(state);
             Assert.That(state.CharacterCoverSlots.Count(v=>v.Reusable),Is.EqualTo(1));Assert.That(state.CharacterCoverSlots.Single(v=>v.Reusable).SlotId,Is.EqualTo(slotId));
             state=Restore(state); Emit(state,"CollectionStarted");Answer(state,"recycle");
@@ -402,7 +465,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test]
         public void JessicaRetiresWithBoundFacilityAndLosesSettlement()
         {
-            var state=State();DockFixtureCity(state,1);FillSupply(state);Use(state,"jessica_the_liberated","tactic");var binding=state.FacilityCharacterBindings.Single();
+            var state=State();DockFixtureCity(state,1);FillSupply(state);StartCard(state,"jessica_the_liberated","tactic");
+            Assert.That(Open(state).InteractionTypeId,Is.EqualTo("action.decline_effect"));Answer(state,"continue");Drain(state);
+            var binding=state.FacilityCharacterBindings.Single();
             ContentLifecycleEffectExecutor.Register(registry);Run(state,EffectSpec.Create(ContentLifecycleEffectExecutor.RetireFacilityTypeId,Object("apiVersion",NormalizedValue.CreateInteger(1),"player",NormalizedValue.CreateString("1"),"facilityItemId",NormalizedValue.CreateString(binding.FacilityItemId)),1));
             state=Restore(state);Assert.That(Card(state,"jessica_the_liberated").ZoneId,Is.EqualTo(FindZone(state,"retired").ZoneId));Assert.That(state.FacilityCharacterBindings.Single().Active,Is.False);
             Cleanup(state);Assert.That(CharacterSettlementOptionQuery.GetOptions(state,1,""),Is.Empty);
@@ -410,7 +475,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase("swire")][TestCase("lin")]
         public void MarkersPreserveConfiguredSourceAndReturnToOriginalSupply(string key)
         {
-            var state=State(3);LoadInitialMarkers(state,key,1);var first=StoredMarkers(state,key).Single();int owner=first.OwnerSubject.PlayerId;
+            var state=State(3, formalAbilities: key == "lin");LoadInitialMarkers(state,key,1);var first=StoredMarkers(state,key).Single();int owner=first.OwnerSubject.PlayerId;
             Assert.That(owner,key=="lin"?Is.EqualTo(1):Is.Not.EqualTo(1));
             Assert.That(state.EffectRuntime.InteractionRequests.All(r=>r.AnsweringPlayerId==1),Is.True);state=Restore(state);
             Assert.That(StoredMarkers(state,key).Single().ItemId,Is.EqualTo(first.ItemId));
@@ -427,22 +492,17 @@ namespace YC.Tests.EditMode.ExpansionRules
             string source=Card(state,"lin").ItemId;
             var trades=new[]{"sell_originium","buy_originium","sell_originium_shard","buy_originium_shard","sell_iron","buy_iron","sell_pure_originium","buy_pure_originium","sell_originium","buy_originium"};
             var deltas=new[]{3,-1,4,-2,5,-3,15,-13,3,-1};
+            LinSeal(state,trades,"confirm");
             for(int i=0;i<10;i++)
             {
-                CompleteTrade(state,trades[i]);gold+=deltas[i];
+                LinAdvanceToTrades(state,i+1);gold+=deltas[i];
                 Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold));
                 Assert.That(TradeReceipts(View(state),source).Count,Is.EqualTo(i+1));
                 if(i==8)state=Restore(state);
             }
-            Assert.That(Open(state),Is.Null);state=Restore(state);
+            LinPump(state);Assert.That(Open(state),Is.Null);state=Restore(state);
             Assert.That(TradeReceipts(View(state),source).Count,Is.EqualTo(10));
             Assert.That(Open(state),Is.Null,"第十次成交及恢复后不得生成第十一次交易请求。");
-        }
-        private void CompleteTrade(GameState state,string trade)
-        {
-            Assert.That(Open(state).PromptKey,Is.EqualTo("core:interaction.trade.choose"));
-            Assert.That(Open(state).CandidateIds,Does.Contain(trade));Answer(state,trade);
-            AdvanceToCharacterPrompt(state,"core:interaction.trade.choose");
         }
         private void AdvanceToCharacterPrompt(GameState state,string prompt)
         {
@@ -461,11 +521,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Text(Value(e.HostOnlyPayload,"continuationContext"),"stage")=="trade_committed" &&
             Text(Value(e.HostOnlyPayload,"normalizedResult"),"outcome")=="condition_met").ToList();
         [Test]
-        public void LinTradeCandidatesFollowCurrentAffordability()
+        public void LinTradeCandidatesKeepFutureFundedTradesWithoutInitialAffordabilityFilter()
         {
             var state=State();state.FindPlayer(1).Resources=new ResourceSet{Originium=1};StartCard(state,"lin","strategy");
-            Assert.That(Open(state).CandidateIds,Is.EquivalentTo(new[]{"sell_originium","stop"}));Answer(state,"sell_originium");
-            Assert.That(Open(state).CandidateIds,Does.Contain("buy_iron"));Assert.That(Open(state).CandidateIds,Does.Not.Contain("buy_pure_originium"));Answer(state,"buy_iron");Answer(state,"stop");Assert.That(state.FindPlayer(1).Resources.Iron,Is.EqualTo(1));
+            Assert.That(Open(state).CandidateIds.Count,Is.EqualTo(8));Assert.That(Open(state).CandidateIds,Does.Contain("buy_iron").And.Contain("buy_pure_originium"));
+            LinSeal(state,new[]{"sell_originium","buy_iron"});LinAdvanceToTrades(state,2);LinPump(state);Assert.That(state.FindPlayer(1).Resources.Iron,Is.EqualTo(1));Assert.That(Open(state),Is.Null);
         }
         [TestCase(1,false)][TestCase(2,false)][TestCase(1,true)]
         public void HellagurNewCoverKeepsOldSlotAndBlocksOnlyCurrentActionRound(int round,bool generated)
@@ -533,28 +593,98 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state=State();Use(state,"gavial_the_invincible","tactic");var token=state.ItemZones.Items.Single(i=>i.TypeId=="infected.gavial_token");
             string target=new TokenMovementProfileRegistry().GetDestinationLocationIds(state,token.ItemId,"core.adjacent_location_token_move").First();var marker=PlaceFixtureInfluence(state,2,InfluenceService.GetLocationSlotId(target,0));
-            int gold=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);Answer(state,target);Answer(state,marker.ItemId);Assert.That(Open(state),Is.Not.Null);Answer(state,Open(state).CandidateIds.First());Drain(state);state=Restore(state);
+            int gold=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);Answer(state,target);Answer(state,marker.ItemId);Assert.That(Open(state),Is.Not.Null);Answer(state,Open(state).CandidateIds.First());Drain(state);state=Restore(state);
             Assert.That(TokenMovementProfileRegistry.GetLocationId(state,token.ItemId),Is.EqualTo(target));Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==marker.ItemId).OwnerSubject.PlayerId,Is.EqualTo(2));Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold));Assert.That(state.EffectRuntime.RuleEvents.Any(e=>e.EventType==CityMoveEventTypeIds.CityMoveCompleted),Is.False);
         }
         [Test]
         public void SilencePublicStylePaysPrintedCostWithoutDeclarationOrMainActionBudget()
         {
-            var state=State();DockFixtureCity(state,1);int ore=state.FindPlayer(1).Resources.Originium,iron=state.FindPlayer(1).Resources.Iron,shards=state.FindPlayer(1).Resources.OriginiumShard;
-            StartCard(state,"silence_the_paradigmatic","strategy");Answer(state,"special_action.city_style.composite_power_system");Drain(state);
+            var state=State(formalAbilities: true);DockFixtureCity(state,1);int ore=state.FindPlayer(1).Resources.Originium,iron=state.FindPlayer(1).Resources.Iron,shards=state.FindPlayer(1).Resources.OriginiumShard;
+            state.FindPlayer(1).RemainingMainActionsThisTurn = 0;
+            StartCard(state,"silence_the_paradigmatic","strategy");
+            var request = Open(state); var choice = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(choice.ChildEffectIds, Is.Empty);
+            Assert.That(choice.NestedGroupSizes, Is.All.EqualTo(1));
+            Assert.That(choice.NestedEffects.All(e => e.EffectTypeId == ContentTransactionEffectExecutor.Prefix + "activate_style"), Is.True);
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(shards));
+            state = Restore(state); Assert.That(Open(state).GetStableInteractionId(), Is.EqualTo(request.GetStableInteractionId()));
+            Answer(state,"special_action.city_style.composite_power_system");Drain(state);
             Assert.That(state.FindPlayer(1).Resources.OriginiumShard,Is.EqualTo(shards-1));Assert.That(state.FindPlayer(1).Resources.Originium+state.FindPlayer(1).Resources.Iron,Is.EqualTo(ore+iron-3));Assert.That(state.FindPlayer(1).DeclaredCityStyles,Is.Empty);
             Assert.That(state.FindPlayer(1).UsedSpecialActionIdsThisRound,Does.Contain("special_action.city_style.composite_power_system"));state=Restore(state);
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero);
+        }
+
+        [TestCase("receipt")] [TestCase("use_owner")] [TestCase("actor")]
+        public void RealPublicStyleSourceRejectsDetachedUseReceiptOrDifferentActor(string damage)
+        {
+            var state = State(formalAbilities: true); DockFixtureCity(state, 1);
+            StartCard(state, "silence_the_paradigmatic", "strategy");
+            Answer(state, "special_action.city_style.composite_power_system");
+            var transaction = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ContentTransactionEffectExecutor.Prefix + "activate_style");
+            Assert.That(ContentTransactionEffectExecutor.TryValidateRuntime(state, out string validReason, registry), Is.True, validReason);
+            string source = Card(state, "silence_the_paradigmatic").ItemId;
+            var damaged = GameStateCloneService.DeepClone(state);
+            var node = damaged.EffectRuntime.EffectNodes.Single(n => n.EffectId == transaction.EffectId);
+            var activation = damaged.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == CharacterAbilityEffectExecutor.ActivationEffectTypeId &&
+                Text(n.NormalizedArguments, "abilityId") == "infected.character.silence_the_paradigmatic.strategy");
+            if (damage == "receipt")
+            {
+                string eventId = StableIdFactory.Create("event", activation.EffectId, CharacterAbilityEffectExecutor.CharacterEffectActivatedEventType);
+                foreach (var receipt in damaged.EffectRuntime.DispatchReceipts.Where(r => r.EventId == eventId)) receipt.Succeeded = false;
+            }
+            else if (damage == "use_owner") damaged.CharacterUses.Single(u => u.CardInstanceId == source).OwnerEffectId = "detached";
+            else node.PlayerId = 2;
+            Assert.That(ContentTransactionEffectExecutor.TryValidateRuntime(damaged, out _, registry), Is.False);
+        }
+
+        [Test]
+        public void PublicStyleDemandUsesOnlyItsLiveProvenInvocationAndRestoresBeforePayment()
+        {
+            const string action = "special_action.city_style.composite_power_system";
+            var state = State(formalAbilities: true); DockFixtureCity(state, 1);
+            state.FindPlayer(1).RemainingMainActionsThisTurn = 0;
+            StartCard(state, "silence_the_paradigmatic", "strategy"); Answer(state, action);
+            Assert.That(Open(state), Is.Not.Null); Assert.That(state.FindPlayer(1).DeclaredCityStyles, Is.Empty);
+            var invocation = state.EffectRuntime.AbilityActionInvocations.Single(i => i.ActionId == action);
+            var source = invocation.SourceRef;
+            string before = JsonConvert.SerializeObject(state);
+            Assert.That(ResourcePaymentCostPreview.TryDeclaredDemand(state, registry, source, action, out var demand, out string reason), Is.True, reason);
+            Assert.That(demand.TotalCount, Is.EqualTo(3)); Assert.That(demand.FixedCost.OriginiumShard, Is.EqualTo(1));
+            var corruptions = new Dictionary<string, Action<AbilitySourceRef>> {
+                ["key"] = s => s.SourceKey += ".forged", ["item"] = s => s.ItemId += ".forged",
+                ["definition"] = s => s.DefinitionId += ".forged", ["ability"] = s => s.AbilityId += ".forged",
+                ["player"] = s => s.AuthorizedPlayerId = 2, ["authorization"] = s => s.AuthorizationRef += ".forged",
+                ["zone"] = s => s.EffectiveZoneId += ".forged", ["version"] = s => s.DeclarationVersion += ".forged",
+                ["owner"] = s => s.RuleOwnerItemId += ".forged", ["face"] = s => s.ActiveFaceId = "forged",
+                ["grant"] = s => s.GrantingSourceRefs.Add("forged") };
+            foreach (var corruption in corruptions)
+            {
+                var forged = GameStateCloneService.DeepClone(source); corruption.Value(forged);
+                Assert.That(ResourcePaymentCostPreview.TryDeclaredDemand(state, registry, forged, action, out _, out _), Is.False, corruption.Key);
+            }
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before), "纯费用查询不能支付或改写状态");
+            var exited = GameStateCloneService.DeepClone(state);
+            SetFixturePosition(exited, exited.ItemZones.Items.Single(i => i.ItemId == source.ItemId), FindZone(exited, "retired").ZoneId);
+            Assert.That(ResourcePaymentCostPreview.TryDeclaredDemand(exited, registry, source, action, out _, out _), Is.False);
+            state = Restore(state); Drain(state);
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(19));
+            Assert.That(state.FindPlayer(1).Resources.Originium + state.FindPlayer(1).Resources.Iron, Is.EqualTo(37));
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero);
         }
         [Test]
         public void SilenceUndeclaredMilitaryStyleUsesZeroMarkersForX()
         {
-            var state=State();StartCard(state,"silence_the_paradigmatic","strategy");Answer(state,"special_action.city_style.military_industrial_area");Drain(state);Assert.That(state.Map.Influences,Is.Empty);Assert.That(state.FindPlayer(1).DeclaredCityStyles,Is.Empty);
+            var state=State(formalAbilities: true);StartCard(state,"silence_the_paradigmatic","strategy");Answer(state,"special_action.city_style.military_industrial_area");Drain(state);Assert.That(state.Map.Influences,Is.Empty);Assert.That(state.FindPlayer(1).DeclaredCityStyles,Is.Empty);
         }
         [Test]
         public void CeobeStrategyRestrictsActionChoicesWhileDiceAllowsSpecialAndEmptyHandRecipient()
         {
-            var state=State();StartCard(state,"ceobe","strategy");Assert.That(Open(state).CandidateIds,Is.EquivalentTo(new[]{"deploy","dispatch","explore","move_city","build"}));Assert.That(state.FindPlayer(1).Resources.OriginiumShard,Is.EqualTo(19));Drain(state);
-            state=State();foreach(var item in state.ItemZones.Items.Where(i=>i.ZoneId==FindZone(state,"hand",2).ZoneId).ToList())SetFixturePosition(state,item,FindZone(state,"discard",2).ZoneId);
-            diceFace=5;StartCard(state,"ceobe","tactic");Assert.That(Open(state).CandidateIds,Does.Contain("special"));state=Restore(state);Drain(state);Assert.That(state.FindPlayer(2).HandCardIds,Is.EqualTo(new[]{Card(state,"ceobe").ItemId}));
+            var state=State();StartCard(state,"ceobe","strategy");
+            Assert.That(Open(state).InteractionTypeId,Is.EqualTo("action.decline_effect"));Answer(state,"continue");
+            Assert.That(Open(state).CandidateIds,Is.EquivalentTo(new[]{"deploy","dispatch","explore","move_city","build"}));Assert.That(state.FindPlayer(1).Resources.OriginiumShard,Is.EqualTo(19));Drain(state);
+            state=State();DockFixtureCity(state,1);foreach(var item in state.ItemZones.Items.Where(i=>i.ZoneId==FindZone(state,"hand",2).ZoneId).ToList())SetFixturePosition(state,item,FindZone(state,"discard",2).ZoneId);
+            diceFace=5;StartCard(state,"ceobe","tactic");Assert.That(Open(state).CandidateIds,Does.Contain("special"));state=Restore(state);Answer(state,"deploy");Drain(state);Assert.That(state.FindPlayer(2).HandCardIds,Is.EqualTo(new[]{Card(state,"ceobe").ItemId}));
         }
 
         [Test]
@@ -593,7 +723,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase("swire")][TestCase("lin")]
         public void MarkersRefreshCandidatesAndCleanupConsumesAtMostOnePerRound(string key)
         {
-            var state=State(3);LoadInitialMarkers(state,key,2);
+            var state=State(3, formalAbilities: key == "lin");LoadInitialMarkers(state,key,2);
             var markers=StoredMarkers(state,key);Assert.That(markers.Count,Is.EqualTo(2));if(key=="swire")Assert.That(markers.Select(i=>i.OwnerSubject.PlayerId).Distinct().Count(),Is.EqualTo(2));else Assert.That(markers.All(i=>i.OwnerSubject.PlayerId==1),Is.True);
             int gold=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);Answer(state,markers.First().ItemId);
             if(key=="swire")
@@ -643,7 +773,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State();
             StartCard(state, "lin", "strategy");
             string source=Card(state,"lin").ItemId;
-            CompleteTrade(state, "buy_originium");
+            LinSeal(state,Enumerable.Repeat("buy_originium",10),"confirm");LinAdvanceToTrades(state,1);LinPump(state);
             state = Restore(state);
             var own=TradeReceipts(View(state),source);Assert.That(own.Count,Is.EqualTo(1));
             Assert.That(TradeReceipts(View(state,2),source),Is.Empty);
@@ -654,7 +784,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(View(state).Interactions.Any(r => r.InteractionId == ownRequest.GetStableInteractionId()), Is.True);
             Assert.That(View(state, 2).Interactions.Any(r => r.InteractionId == ownRequest.GetStableInteractionId() && r.CandidateIds.Count > 0), Is.False);
             // 上限来自正式Lua续接与实际请求终止，不再读取已撤组合节点的专有字段。
-            for(int count=1;count<10;count++)CompleteTrade(state,"buy_originium");
+            for(int count=1;count<10;count++)LinAdvanceToTrades(state,count+1);LinPump(state);
             Assert.That(TradeReceipts(View(state),source).Count,Is.EqualTo(10));Assert.That(Open(state),Is.Null);
             Assert.That(TradeReceipts(View(state,2),source),Is.Empty);
         }

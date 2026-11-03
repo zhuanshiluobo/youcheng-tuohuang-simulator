@@ -33,7 +33,7 @@ namespace YC.Domain.Effects
             var origin = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == activation.ParentEffectId && n.PlayerId == player);
             bool content = origin?.EffectTypeId == ContentTransactionEffectExecutor.Prefix + "activate_style" && !string.IsNullOrEmpty(origin.ContinuationContentHash) &&
                 Text(origin.NormalizedArguments, "specialActionId") == actionId && Text(origin.NormalizedArguments, "declarationMarkerId") == markerId && Text(origin.NormalizedArguments, "activationSource") == mode;
-            return (mode == "public_style" || mode == "immediate") && (content || mode == "immediate" && origin?.EffectTypeId == CharacterContentEffectExecutor.Prefix + "immediate_special");
+            return (mode == "public_style" || mode == "immediate") && (content || mode == "immediate" && ImmediateSpecialActionFlow.OwnsActivation(state, activation));
         }
         public static AbilityActionOption QueryOption(EffectExecutionContext context)
         {
@@ -53,6 +53,7 @@ namespace YC.Domain.Effects
                 AuthorizedPlayerId = node.PlayerId, AuthorizationRef = AuthorizationPrefix + activation.EffectId, EffectiveZoneId = item.ZoneId, RuleOwnerItemId = item.ItemId };
             source.SourceKey = StableIdFactory.Create("ability-source", item.ItemId, source.AbilityId, "", source.DeclarationVersion, node.PlayerId.ToString(CultureInfo.InvariantCulture));
             string binding = ""; string reason = registry.UsageProvider(action.UsageTrackId)?.Validate(state, source, action, out binding) ?? "usage_track_unavailable";
+            if (!publicSource && (state.EffectRuntime.UsageTrackBindings.SingleOrDefault(b => b.BindingId == binding) is not UsageTrackBinding track || UsageTracks.CurrentMarker(state, track)?.ItemId != markerId)) return null;
             string option = StableIdFactory.Create("ability-action", source.SourceKey, actionId);
             return new AbilityActionOption { OptionId = option, ActionId = actionId, SourceRef = source, TrackBindingId = binding, EntryKind = action.EntryKind,
                 Enabled = reason.Length == 0, DisabledReason = reason, AuthorizationRef = source.AuthorizationRef,
@@ -61,7 +62,9 @@ namespace YC.Domain.Effects
                     AnsweringPlayerId = node.PlayerId, WindowId = AbilitySourceService.WindowId(state, node.PlayerId), FactsDigest = AbilityActionExecutor.Digest(activation.NormalizedArguments), AllowedAnswers = new System.Collections.Generic.List<string> { option } } };
         }
         public static bool SourceCurrent(GameState state, AbilityActionInvocation invocation)
-            => ValidateReceipt(state, invocation) && state.ItemZones.Items.Any(i => i.ItemId == invocation.SourceRef.ItemId && i.ZoneId == invocation.SourceRef.EffectiveZoneId);
+            => ValidateReceipt(state, invocation) && state.ItemZones.Items.Any(i => i.ItemId == invocation.SourceRef.ItemId && i.ZoneId == invocation.SourceRef.EffectiveZoneId) &&
+                (IsPublicGrant(state, invocation.SourceRef) || state.EffectRuntime.UsageTrackBindings.Any(b => b.BindingId == invocation.TrackBindingId &&
+                    UsageTracks.CurrentMarker(state, b)?.ItemId == GrantedMarker(state, invocation.SourceRef)));
         public static bool ValidateReceipt(GameState state, AbilityActionInvocation invocation)
         {
             var source = invocation.SourceRef;

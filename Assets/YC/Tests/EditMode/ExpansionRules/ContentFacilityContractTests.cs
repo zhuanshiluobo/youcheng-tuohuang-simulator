@@ -32,7 +32,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             token["abilitySources"]=JArray.FromObject(new[]{query,response,after});
             token["abilityHandlers"]=JArray.FromObject(new[]{new ExternalAbilityHandler{HandlerId=QueryAbility,Script="lua/qy007_facility_query.lua",Version="1.0.0"},
                 new ExternalAbilityHandler{HandlerId=Response,Script="lua/qy007_facility_response.lua",Version="1.0.0"},new ExternalAbilityHandler{HandlerId=After,Script=AfterPath,Version="1.0.0",CompletionHandlerId=After+".continue"}});
-            string build=directBuild ? "local card=Global.Content.FindInstances({zoneId=z.id,contentType='facility'})[1]; return {Effect.Build({player=ctx.playerId,facilityId=card.id,sourceKind='authorized',sourceKey=source.sourceKey,expectedSourceZoneId=z.id,consumeMainAction=false,paymentMode='free'})}" : "return {Effect.ChooseBuild({player=ctx.playerId,sourceZone='authorized',sourceKey=source.sourceKey,expectedSourceZoneId=z.id,consumeMainAction=false,paymentMode='gold'})}";
+            string build=directBuild ? "local card=Global.Content.FindInstances({zoneId=z.id,contentType='facility'})[1]; return {Effect.Build({player=ctx.playerId,facilityId=card.id,sourceKind='authorized',sourceKey=source.sourceKey,expectedSourceZoneId=z.id,consumeMainAction=false,paymentMode='free'})}" : "return {Effect.Build({apiVersion=3,targetMode='select',player=ctx.playerId,sourceKind='authorized',sourceKey=source.sourceKey,expectedSourceZoneId=z.id,consumeMainAction=false,paymentMode='gold'})}";
             if(consumeMain) build=build.Replace("consumeMainAction=false","consumeMainAction=true");
             string queryLua=@"return function(ctx) local p=ctx.payload; if not p.queryKind then local source=SourceData.GetCurrentSources({abilityId='qy010.fixture.query'}).items[1];assert(source,'actual_source_fact_missing');local z=Global.Content.FindZones({parentId=source.itemId,localZoneId='blueprints'})[1];assert(z,'authorized_source_zone_not_visible'); BUILD end;local f=p.facts;local items={}
                 if p.queryKind=='built_facilities.v1' then items=f.allCityItemIds
@@ -40,7 +40,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     items[#items+1]={slotIndex=c.slotIndex,expectedTopItemId=c.topItemId,orderDigest=c.orderDigest,requiredResponseAbilityId='qy007.facility.response',removalPrecondition={operation='remove',ownerFilter='self',requiredCount=1}} end end
                 elseif p.queryKind=='facility.build.sources.v1' and f.requestedSource=='authorized' then items=f.candidatePoolIds end
                 return {queryId=p.queryId,basisDigest=p.basisDigest,items=items} end".Replace("BUILD",build);
-            const string responseLua=@"return function(ctx) assert(ctx.payload.buildFacts.overlay); return {Effect.WithContext(Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false}),{requiredOutcome={protocolVersion=1,resultField='completedCount',expectedValue=1}})} end";
+            const string responseLua=@"return function(ctx) assert(ctx.payload.buildFacts.overlay); return {Effect.WithContext(Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false}),{requiredOutcome={protocolVersion=1,resultField='completedCount',expectedValue=1}})} end";
             string afterLua=@"return function(ctx) local p=ctx.payload; local c=p.continuationContext
                 if c and c.stage=='give' then assert(p.interactionId~=nil);return {Effect.WithContext(Effect.GainScore({player='p2',amount=1}),{executionBinding={protocolVersion=1,parentBuildId=c.buildId,choiceInteractionId=CHOICE,playerId=2}})} end
                 if p.buildFacts and p.buildFacts.builderId==tonumber(string.sub(ctx.playerId,2)) then return {Effect.WithContext(Effect.Choice({player=ctx.playerId,options={'p2'}}),{stage='give',buildId=p.buildFacts.buildId})} end return {} end".Replace("CHOICE",wrongChoice?"p.effectId":"p.interactionId");
@@ -102,7 +102,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             for(int guard=0;guard<20 && state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==root.EffectId).Status!=EffectNodeStatus.Completed;guard++)
             {var q=Open(state);Answer(state,q.CandidateIds.First());}
-            var buildNode=state.EffectRuntime.EffectNodes.Single(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build);
+            var buildNode=state.EffectRuntime.EffectNodes.Single(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)));
             Assert.That(buildNode.Status,Is.EqualTo(EffectNodeStatus.Completed));Assert.That(Text(buildNode.NormalizedArguments,"sourceKind"),Is.EqualTo("authorized"));
             Assert.That(Text(buildNode.NormalizedArguments,"sourceKey"),Is.EqualTo(source.SourceKey));Assert.That(Text(buildNode.NormalizedArguments,"expectedSourceZoneId"),Is.EqualTo(storage.ZoneId));
             Assert.That(Flag(buildNode.NormalizedArguments,"consumeMainAction"),Is.False);Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn,Is.EqualTo(budget));

@@ -208,7 +208,7 @@ namespace YC.Presentation
         private int RefreshRowDetails(int index, MatchSaveData data)
         {
             // v2 存档保留正式恢复原包；这里只读取展示字段，不恢复整局或推进 effect 链。
-            var state = data?.ReadArchiveState();
+            var state = data?.ReadArchiveMetadata();
             var players = state?["Players"] as JArray;
             int currentPlayerId = (int?)state?["CurrentPlayerId"] ?? -1;
             var currentPlayer = players?.FirstOrDefault(player => (int?)player["PlayerId"] == currentPlayerId);
@@ -381,6 +381,8 @@ namespace YC.Presentation
             }
             catch (Exception ex)
             {
+                Debug.LogException(ex);
+                MatchSaveController.Instance?.ClearPreparedLocalRestore();
                 GameLaunchContext.Instance?.ClearRestore();
                 message.text = string.Format(errorFormat, ex.Message);
             }

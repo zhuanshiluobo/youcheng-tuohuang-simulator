@@ -12,7 +12,7 @@ namespace YC.Infrastructure.Lua
 {
     public static class FacilityLayerLuaCatalog
     {
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.2";
         public static void Register(EffectRegistry registry)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
@@ -73,6 +73,8 @@ namespace YC.Infrastructure.Lua
             var build = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == ruleEvent.SourceEffectId);
             if (build?.EffectTypeId != FacilityEntryEffectTypeIds.Build ||
                 ruleEvent.EventType != FacilityBuildJournal.EventType && ruleEvent.EventType != "EffectCompleted") return original;
+            // API-12：选择根交付统一结果；仅真实落位Build附加一次建设事实。
+            if (FacilityBuildContract.IsSelection(build.EffectTypeId, build.NormalizedArguments)) return original;
             var facts = FacilityBuildJournal.Facts(build);
             if (facts.Kind != NormalizedValueKind.Object) throw new InvalidOperationException("facility_build_facts_missing");
             var payload = original?.Kind == NormalizedValueKind.Object ? original.Clone() : Object("result", original?.Clone() ?? NormalizedValue.CreateNull());

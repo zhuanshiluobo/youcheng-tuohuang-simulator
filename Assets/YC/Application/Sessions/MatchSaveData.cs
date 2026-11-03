@@ -165,22 +165,39 @@ namespace YC.Application.Sessions
 
         public JObject ReadArchiveState() => (JObject)JObject.Parse(ArchiveJson,
             new Newtonsoft.Json.Linq.JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error })["Snapshot"]?["State"];
-        public GameRuleConfiguration Configuration => ReadArchiveState()["RuleConfiguration"].ToObject<GameRuleConfiguration>();
-        public int EventDeckSeed => (int)ReadArchiveState()["EventDeckSeed"];
-        public GameplayRandomState RandomState => ReadArchiveState()["RandomRuntime"].ToObject<GameplayRandomState>();
-        public List<int> LaunchPlayerOrder => ReadArchiveState()["LaunchPlayerOrder"].ToObject<List<int>>();
+        // 启动和列表只需要少量字段；不得为每个便利属性物化包含效果历史的整份归档。
+        // 不缓存原包/可变树，避免替换ArchiveJson后残留旧档或跨调用共享可变配置。
+        public JObject ReadArchiveMetadata() => (JObject)LocalArchiveValidationProjection.Read(ArchiveJson, true)["Snapshot"]?["State"];
+        public sealed class LaunchMetadata
+        {
+            public GameRuleConfiguration Configuration;
+            public int EventDeckSeed;
+            public GameplayRandomState RandomState;
+            public List<int> LaunchPlayerOrder;
+        }
+        public LaunchMetadata ReadLaunchMetadata()
+        {
+            var state = ReadArchiveMetadata();
+            return new LaunchMetadata { Configuration = state["RuleConfiguration"].ToObject<GameRuleConfiguration>(),
+                EventDeckSeed = (int)state["EventDeckSeed"], RandomState = state["RandomRuntime"].ToObject<GameplayRandomState>(),
+                LaunchPlayerOrder = state["LaunchPlayerOrder"].ToObject<List<int>>() };
+        }
+        public GameRuleConfiguration Configuration => ReadArchiveMetadata()["RuleConfiguration"].ToObject<GameRuleConfiguration>();
+        public int EventDeckSeed => (int)ReadArchiveMetadata()["EventDeckSeed"];
+        public GameplayRandomState RandomState => ReadArchiveMetadata()["RandomRuntime"].ToObject<GameplayRandomState>();
+        public List<int> LaunchPlayerOrder => ReadArchiveMetadata()["LaunchPlayerOrder"].ToObject<List<int>>();
 
         private static JObject ReadValidationArchive(string json, bool localProjection)
             => localProjection ? LocalArchiveValidationProjection.Read(json) : JObject.Parse(json,
                 new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
 
-        // 仅供本地ValidateCore读取；完整语法和所有对象查重仍由逐token读取验证。
+        // 供本地ValidateCore及启动/列表元数据读取；完整语法和所有对象查重仍由逐token读取验证。
         // 公开ReadArchiveState与Host继续构建完整树；不要把此投影传给恢复或DeepEquals。
         private static class LocalArchiveValidationProjection
         {
             private enum Shape { Discard, Full, Root, Snapshot, State, Players, Player, Journal }
 
-            public static JObject Read(string json)
+            public static JObject Read(string json, bool metadata = false)
             {
                 var settings = new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error };
                 try
@@ -190,7 +207,7 @@ namespace YC.Application.Sessions
                     // 不修改默认深度、日期、浮点、注释或多内容策略，与JObject.Parse一致。
                     if (!ReadContent(reader) || reader.TokenType != Newtonsoft.Json.JsonToken.StartObject)
                         throw new Newtonsoft.Json.JsonReaderException("需要完整JSON对象。");
-                    var root = (JObject)ReadValue(reader, Shape.Root, settings);
+                    var root = (JObject)ReadValue(reader, Shape.Root, settings, metadata);
                     while (reader.Read()) { } // 包括尾注释；多值/非法尾内容由原reader拒绝。
                     return root;
                 }
@@ -208,7 +225,7 @@ namespace YC.Application.Sessions
                 return false;
             }
 
-            private static JToken ReadValue(Newtonsoft.Json.JsonReader reader, Shape shape, JsonLoadSettings settings)
+            private static JToken ReadValue(Newtonsoft.Json.JsonReader reader, Shape shape, JsonLoadSettings settings, bool metadata)
             {
                 if (shape == Shape.Full) return JToken.ReadFrom(reader, settings);
                 if (reader.TokenType == Newtonsoft.Json.JsonToken.StartObject && shape != Shape.Players)
@@ -222,9 +239,9 @@ namespace YC.Application.Sessions
                             throw new Newtonsoft.Json.JsonReaderException("对象属性结构不完整。");
                         string name = (string)reader.Value;
                         if (!names.Add(name)) throw new Newtonsoft.Json.JsonReaderException("对象含重复属性。");
-                        var childShape = Select(shape, name);
+                        var childShape = Select(shape, name, metadata);
                         if (!ReadContent(reader)) throw new Newtonsoft.Json.JsonReaderException("属性值缺失。");
-                        var child = ReadValue(reader, childShape, settings);
+                        var child = ReadValue(reader, childShape, settings, metadata);
                         if (childShape != Shape.Discard) result.Add(name, child);
                     }
                     throw new Newtonsoft.Json.JsonReaderException("对象未结束。");
@@ -235,7 +252,7 @@ namespace YC.Application.Sessions
                     while (ReadContent(reader))
                     {
                         if (reader.TokenType == Newtonsoft.Json.JsonToken.EndArray) return result;
-                        var child = ReadValue(reader, shape == Shape.Players ? Shape.Player : Shape.Discard, settings);
+                        var child = ReadValue(reader, shape == Shape.Players ? Shape.Player : Shape.Discard, settings, metadata);
                         if (result != null) result.Add(child);
                     }
                     throw new Newtonsoft.Json.JsonReaderException("数组未结束。");
@@ -247,7 +264,7 @@ namespace YC.Application.Sessions
                     while (ReadContent(reader))
                     {
                         if (reader.TokenType == Newtonsoft.Json.JsonToken.EndConstructor) return null;
-                        ReadValue(reader, Shape.Discard, settings);
+                        ReadValue(reader, Shape.Discard, settings, metadata);
                     }
                     throw new Newtonsoft.Json.JsonReaderException("构造值未结束。");
                 }
@@ -268,7 +285,7 @@ namespace YC.Application.Sessions
             }
 
             // ValidateCore新增读取归档字段时，必须同步更新此投影读集。
-            private static Shape Select(Shape parent, string name)
+            private static Shape Select(Shape parent, string name, bool metadata)
             {
                 switch (parent)
                 {
@@ -281,12 +298,14 @@ namespace YC.Application.Sessions
                         if (name == "SchemaVersion" || name == "ContentHash") return Shape.Full;
                         break;
                     case Shape.State:
+                        if (metadata && (name == "CurrentPlayerId" || name == "ActionRound")) return Shape.Full;
                         if (name == "Players") return Shape.Players;
                         if (name == "ContentPackHash" || name == "GameId" || name == "MapId" || name == "Round" ||
                             name == "RuleConfiguration" || name == "RandomRuntime" || name == "EventDeckSeed" ||
                             name == "LaunchPlayerOrder") return Shape.Full;
                         break;
                     case Shape.Player:
+                        if (metadata && (name == "Name" || name == "Resources")) return Shape.Full;
                         if (name == "PlayerId" || name == "Color") return Shape.Full;
                         break;
                     case Shape.Journal:

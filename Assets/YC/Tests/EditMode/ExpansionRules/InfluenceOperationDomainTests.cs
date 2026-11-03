@@ -19,7 +19,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
-    public sealed class InfluenceOperationDomainTests
+    public sealed partial class InfluenceOperationDomainTests
     {
         private GameMapDefinition map;
         private InfluenceService service;
@@ -42,7 +42,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             map.Routes.Add(new MapRouteDefinition { RouteId = "pier_channel", RegionId = "harbor", FromLocationId = "quay", ToLocationId = "pier", InfluenceSlotCount = 2, BaseCost = 2 });
             var query = new MapQueryService(map);
             service = new InfluenceService(query);
-            registry = new EffectRegistry();
+            registry = new EffectRegistry { ContentPackHash = "content.influence" };
             InfluenceEffectExecutor.Register(registry, service);
             MapOperationEffectExecutor.Register(registry, query);
             ContentPrimitiveEffectExecutor.Register(registry, query, service);
@@ -88,8 +88,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var item = state.ItemZones.Items.Single(value => value.ItemId == id); item.ZoneId = zoneId; item.SlotId = "";
             var targetOrder = state.ItemZones.Orders.Find(order => order.ZoneId == zoneId); if (targetOrder != null) { targetOrder.ItemIds.Add(id); targetOrder.OrderRevision++; }
         }
-        private EffectSpec Select(string operation, string filter, int count = 2, int required = 0) => EffectSpec.Create(ContentPrimitiveEffectExecutor.SelectInfluence,
-            Object("player", NormalizedValue.CreateString("1"), "operation", NormalizedValue.CreateString(operation), "subjectFilter", NormalizedValue.CreateString(filter),
+        private EffectSpec Select(string operation, string filter, int count = 2, int required = 0) => EffectSpec.Create(operation == "remove" ? InfluenceEffectTypeIds.RemoveInfluence : operation == "move" ? InfluenceEffectTypeIds.MoveInfluence : InfluenceEffectTypeIds.ReplaceInfluence,
+            Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "executingPlayer", NormalizedValue.CreateStableReference("player", "1"), "subjectFilter", NormalizedValue.CreateString(filter),
                 "count", NormalizedValue.CreateInteger(count), "requiredCount", NormalizedValue.CreateInteger(required), "distinctPolicy", NormalizedValue.CreateString("subject")), 1);
         private void Answer(GameState state, string value)
         {
@@ -358,6 +358,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             var request = state.EffectRuntime.InteractionRequests.Last(item => item.Status == "open"); Assert.That(request.CandidateIds, Does.Not.Contain(otherCompany)); Assert.That(request.CandidateIds, Does.Contain(opponent));
             Answer(state, opponent); Assert.That(state.EffectRuntime.EffectNodes.Single(item => item.EffectId == node.EffectId).Status, Is.EqualTo(EffectNodeStatus.Completed)); Assert.That(state.EffectRuntime.RuleEvents.Count(item => item.EventType == InfluenceEventTypeIds.InfluenceReplaced), Is.EqualTo(2));
         }
+        [Test] public void CanonicalMoveUsesTheInjectedCustomMapAcrossRestore()
+        {
+            var state = State(); string item = PlacedId(Place(state, 1, "location:quay:0"));
+            string root = Run(state, Select("move", "self", 1)).EffectId;
+            var request = state.EffectRuntime.InteractionRequests.Single(q => q.Status == "open");
+            string answer = "move|" + item + "|location:pier:0";
+            Assert.That(request.CandidateIds, Does.Contain(answer));
+            state = Restore(state); Answer(state, answer);
+            Assert.That(state.Map.Influences.Single(i => i.InfluenceId == item).SlotId, Is.EqualTo("location:pier:0"));
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Restore(state);
+        }
         [Test] public void PlayerRemovalExcludesCompaniesAndAlreadyProcessedPlayer()
         {
             var state = State(); CompanyPlace(state, "mine"); string first = PlacedId(Place(state, 2, "location:quay:0")), other = PlacedId(Place(state, 2, "location:pier:0")); string own = PlacedId(Place(state, 1, "route:channel_1:0"));
@@ -458,7 +470,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void LuaRoadTokenAndSubjectFiltersCompileAndExecuteProductionRegistry()
         {
-            string lua = "return function(ctx) return { Effect.PlaceRoad({apiVersion=1,player=ctx.playerId,routeId='channel_1'}), Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='player',excludedSubjectKeys={'player:2'},distinctPolicy='subject',count=2}) } end";
+            string lua = "return function(ctx) return { Effect.PlaceRoad({apiVersion=1,player=ctx.playerId,routeId='channel_1'}), Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='player',excludedSubjectKeys={'player:2'},distinctPolicy='subject',count=2}) } end";
             var definition = new LuaScriptDefinition("content.influence", "test.map", "test.map", "1.0.0", lua, LuaContentHasher.ComputeSha256(lua));
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(definition, new LuaInvocationContext("event.map", "event.test", "1", 0, "1.0.0", 2, 0, 0)); Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var failure), Is.True, failure?.Diagnostic);

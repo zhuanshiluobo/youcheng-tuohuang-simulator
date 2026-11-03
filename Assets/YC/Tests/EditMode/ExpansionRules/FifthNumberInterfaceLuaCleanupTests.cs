@@ -47,18 +47,18 @@ namespace YC.Tests.EditMode.ExpansionRules
                 n.PositionChanges.Any(c => original.ContainsKey(c.ItemId))).ToList();
             Assert.That(transfers.Count, Is.EqualTo(1), "三个实例须由同一通用物品事务完成，不能留专用付款或拆成可部分成功的三笔。");
             Assert.That(transfers[0].EffectTypeId, Is.EqualTo(ItemTransferEffectExecutor.TypeId));
-            Assert.That(transfers[0].DefinitionVersion, Is.EqualTo("3.0.0"));
-            Assert.That(ItemTransferEffectExecutor.Number(transfers[0].NormalizedArguments, "apiVersion"), Is.EqualTo(3));
-            Assert.That(transfers[0].TransferBatchRequest.ProtocolVersion, Is.EqualTo(3));
-            Assert.That(transfers[0].TransferBatchRequest.ExpectedOrders, Is.Empty, "token不使用设施层序证明。");
-            Assert.That(transfers[0].TransferBatchRequest.Transfers.All(t => t.OperationProfileId == "core.player_marker_storage"), Is.True);
+            Assert.That(transfers[0].DefinitionVersion, Is.EqualTo(ItemTransferEffectExecutor.TransferDefinitionVersion));
+            Assert.That(ItemTransferEffectExecutor.Number(transfers[0].NormalizedArguments, "apiVersion"), Is.EqualTo(4));
+            Assert.That(ItemTransferEffectExecutor.Number(transfers[0].ItemMoveInput.OriginalArguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(transfers[0].TransferBatchRequest, Is.Null);
+            Assert.That(transfers[0].ItemMovementV4.Transfers.All(t => t.OperationProfileId == "core.player_marker_storage"), Is.True);
             Assert.That(transfers[0].PositionChanges.Select(c => c.ItemId).Distinct().Count(), Is.EqualTo(3));
             foreach (var change in transfers[0].PositionChanges)
                 Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == change.ItemId).ZoneId, Is.EqualTo(original[change.ItemId]));
-            var receipt = ItemTransferEffectExecutor.Value(transfers[0].ContinuationData, "transferBatchReceipt");
-            Assert.That(ItemTransferEffectExecutor.Number(receipt, "protocolVersion"), Is.EqualTo(3));
-            Assert.That(ItemTransferEffectExecutor.Text(receipt, "operationId"), Is.EqualTo(transfers[0].EffectId + ":move"));
-            Assert.That(ItemTransferService.TryValidateTokenState(f.State, transfers[0], out string invalid), Is.True, invalid);
+            var receipt = transfers[0].ItemMovementV4.Receipt;
+            Assert.That(receipt.ContractVersion, Is.EqualTo(ItemMovementV4.ContractVersion));
+            Assert.That(receipt.OperationId, Is.EqualTo(StableIdFactory.Create("item-move-v4", transfers[0].EffectId)));
+            Assert.That(ItemMovementV4.TryValidateState(f.State, transfers[0], out string invalid), Is.True, invalid);
 
             var reward = f.Open();
             Assert.That(reward.PromptKey, Is.Not.EqualTo("effect.card.payment_items"));
@@ -74,7 +74,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.EffectRuntime.EffectNodes.Sum(n => n.PositionChanges.Count), Is.EqualTo(positionChanges));
             Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectId == transferId), Is.EqualTo(1));
             var restoredTransfer = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == transferId);
-            Assert.That(ItemTransferService.TryValidateTokenState(f.State, restoredTransfer, out invalid), Is.True, invalid);
+            Assert.That(ItemMovementV4.TryValidateState(f.State, restoredTransfer, out invalid), Is.True, invalid);
             reward = f.State.EffectRuntime.InteractionRequests.Single(q => q.GetStableInteractionId() == requestId);
             f.AnswerCandidate(reward, firstReward);
             if (firstReward == "place") f.AnswerCandidate(f.PlacementRequest(), f.PlacementRequest().CandidateIds.First());
@@ -99,7 +99,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 var paid = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == id);
                 Assert.That(AbilityActionExecutor.IsCommittedCost(f.State, paid), Is.True);
-                Assert.That(ItemTransferService.TryValidateTokenState(f.State, paid, out var paidReason), Is.True, paidReason);
+                Assert.That(ItemMovementV4.TryValidateState(f.State, paid, out var paidReason), Is.True, paidReason);
                 Assert.That(ItemTransferEffectExecutor.Number(paid.NormalizedResult, "movedCount"), Is.EqualTo(3));
             }
             Assert.That(f.Registry.QuerySources(f.State, 1).Any(s => s.ItemId == f.Card && s.AbilityId == "entrepreneur.T09.departure"), Is.True);

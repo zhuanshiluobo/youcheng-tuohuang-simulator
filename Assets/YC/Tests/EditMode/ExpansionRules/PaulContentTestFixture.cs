@@ -38,7 +38,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         internal IReadOnlyList<InteractionRequest> Open => State.EffectRuntime.InteractionRequests.Where(x => x.Status == "open").ToList();
         internal string AbilityItem => State.EntrepreneurSetup.Players.Single(p => p.PlayerId == 1).AbilityItemId;
         internal PaulContentTestFixture(string mapId = "map-three-players", string primaryEntrepreneur = "entrepreneur.ability.P09",
-            PlayerStageSchedulingMode schedulingMode = PlayerStageSchedulingMode.Sequential, Func<string, IDictionary<string, string>> sourceOverrides = null,bool setupOnly=false,string secondaryEntrepreneur="entrepreneur.ability.D09")
+            PlayerStageSchedulingMode schedulingMode = PlayerStageSchedulingMode.Sequential, Func<string, IDictionary<string, string>> sourceOverrides = null,bool setupOnly=false,string secondaryEntrepreneur="entrepreneur.ability.D09",int minimumFacilityDeckCount=0)
         {
             Artifacts = IsolatedTestArtifacts.BeginCase();
             var installed = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
@@ -52,6 +52,20 @@ namespace YC.Tests.EditMode.ExpansionRules
             var standardRecipe = recipeFiles.Single(r => (string)r.Data["recipeId"] == "standard");
             var entrepreneurRecipe = recipeFiles.Single(r => (string)r.Data["recipeId"] == "entrepreneur");
             foreach (var entry in entrepreneurRecipe.Data["entries"]) ((JArray)standardRecipe.Data["entries"]).Add(entry.DeepClone());
+            if (minimumFacilityDeckCount > 0)
+            {
+                // API-30/06隔离边界：仅在冻结私有配方、任何对局状态创建之前补真实实例，不改正式卡池或运行中状态。
+                var entries = (JArray)standardRecipe.Data["entries"];
+                var facilities = entries.Where(e => (string)e["initialZoneRole"] == "facility_deck" && (bool?)e["perPlayer"] != true).ToList();
+                Assert.That(facilities, Is.Not.Empty);
+                int original = facilities.Sum(e => (int)e["quantity"]), extra = Math.Max(0, minimumFacilityDeckCount - original);
+                if (extra > 0)
+                {
+                    var addition = facilities[0].DeepClone(); addition["entryId"] = "api30.exact_boundary.facilities"; addition["quantity"] = extra; entries.Add(addition);
+                }
+                Artifacts.WriteLabeledText("精确分页边界私有配方前提", JsonConvert.SerializeObject(new { minimumFacilityDeckCount, originalFacilityCount = original, addedRealInstances = extra,
+                    sourceRecipe = standardRecipe.Path, purpose = "规则隔离：至少99项完整实际收据，不计正常玩法/卡池/页面验收；首次状态前冻结配方，恢复不补牌。" }));
+            }
             replacements[standardRecipe.Path] = standardRecipe.Data.ToString();
             if (sourceOverrides != null)
                 foreach (var replacement in sourceOverrides(BaselineInputRoot))

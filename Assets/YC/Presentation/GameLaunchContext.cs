@@ -31,8 +31,9 @@ namespace YC.Presentation
             data.Validate();
             if (data.Mode != LaunchMode.Local) throw new InvalidOperationException("请选择本地对局存档。");
             GameId = string.Empty;
+            var metadata = data.ReadLaunchMetadata();
             Configure(LaunchMode.Local, data.LocalPlayerId, data.GameId, data.Seats.ConvertAll(s => s.ToSeat()),
-                data.Configuration, data.LaunchPlayerOrder, data.GameId, data.EventDeckSeed, data.RandomState);
+                metadata.Configuration, metadata.LaunchPlayerOrder, data.GameId, metadata.EventDeckSeed, metadata.RandomState);
             RestoreData = data;
         }
         public void ConfigureSavedRoom(LaunchMode mode, int playerId, RoomState room, MatchSaveData data)

@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.D.7",
   "contentType": "entrepreneur_round",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "displayName": "蒂亚戈·H·罗德里格斯·第7回合",
   "artwork": "artwork/entrepreneurs/D07.jpg",
   "expansionId": "infected",
@@ -29,7 +29,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.D07",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -43,7 +43,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D07.quick",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D07.quick.completed",
       "presentation": {
         "description": {
@@ -57,7 +57,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.D08",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -71,7 +71,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D08.quick",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D08.quick.completed",
       "presentation": {
         "description": {
@@ -86,7 +86,7 @@
       "abilityId": "entrepreneur.face.D07",
       "kind": "setup",
       "handlerRef": "entrepreneur.face.D07",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -104,7 +104,7 @@
       "abilityId": "entrepreneur.D07.quick",
       "kind": "quick",
       "handlerRef": "entrepreneur.D07.quick",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -148,7 +148,7 @@
       "abilityId": "entrepreneur.face.D08",
       "kind": "setup",
       "handlerRef": "entrepreneur.face.D08",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -166,7 +166,7 @@
       "abilityId": "entrepreneur.D08.quick",
       "kind": "quick",
       "handlerRef": "entrepreneur.D08.quick",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -243,25 +243,25 @@
     {
       "handlerId": "entrepreneur.face.D07",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.D07.quick",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D07.quick.completed"
     },
     {
       "handlerId": "entrepreneur.face.D08",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.D08.quick",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D08.quick.completed"
     }
   ],

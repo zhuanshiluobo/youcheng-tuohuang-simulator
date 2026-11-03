@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.closure",
   "contentType": "character",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "displayName": "可露希尔",
   "expansionId": "enterprise",
   "replaces": null,
@@ -56,7 +56,7 @@
       ],
       "observerSubjectPolicy": "self",
       "candidateKindFilter": "facility.build.card",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "completionHandlerId": "content.operator.closure.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": true,

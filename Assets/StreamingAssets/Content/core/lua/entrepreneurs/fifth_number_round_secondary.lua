@@ -8,8 +8,8 @@ return function(ctx)
         -- 逗号不是条件：没有目标时原选择原语正常结束，仍执行后面的资源节点。
         -- 有合法目标则必须选；真实移除及其必要去向响应结束后才进入兄弟Gain。
         return {
-            Effect.WithPresentation(Effect.SelectInfluence({ player = ctx.playerId,
-                operation = 'remove', subjectFilter = 'self', count = 1, allowDecline = false }),
+            Effect.WithPresentation(Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId,
+                subjectFilter = 'self', count = 1, allowDecline = false }),
                 { interaction = { prompt = Text.Ref('core:entrepreneur.T.T03.remove.prompt') } }),
             Effect.GainResource({ recipient = ctx.playerId, resourceType = 'PureOriginium', amount = 2 })
         }

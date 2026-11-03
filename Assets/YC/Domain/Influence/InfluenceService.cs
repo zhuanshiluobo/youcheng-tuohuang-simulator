@@ -15,6 +15,7 @@ namespace YC.Domain.Influence
     {
         private readonly GameState boundState;
         private readonly IMapQueryService mapQuery;
+        internal IMapQueryService MapQuery => mapQuery;
         private readonly IInfluenceRoadCoverageQuery roadCoverageQuery;
         private readonly InfluencePlacementRule placementRule;
         private readonly InfluenceMoveRule moveRule;

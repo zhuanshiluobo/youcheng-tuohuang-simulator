@@ -165,7 +165,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var open=state.EffectRuntime.InteractionRequests.Where(q=>q.Status=="open").ToList();
             Assert.That(open.Any(q=>state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==q.OwnerEffectId).EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.False);
             if(declared==0) Assert.That(open,Is.Empty);
-            else { Assert.That(open.Count,Is.EqualTo(1)); Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==open[0].OwnerEffectId).EffectTypeId,Is.EqualTo(ContentPrimitiveEffectExecutor.SelectInfluence)); }
+            else { Assert.That(open.Count,Is.EqualTo(1)); Assert.That(state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==open[0].OwnerEffectId).EffectTypeId,Is.EqualTo(InfluenceEffectTypeIds.MoveInfluence)); }
             Restore("真实据点Lua定点放置后");
         }
         [TestCase(false)][TestCase(true)] public void ActualLuaStrictBatchControlsTheConditionWithRealCounts(bool invalid)
@@ -199,20 +199,63 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InfluenceDepartures, Is.Empty); Restore("真实短目标左式失败" + count);
         }
 
-        [Test] public void FullBatchAboveNinetyNineKeepsEveryDepartureAndLuaSelectsOnlyActuallyObtainableK()
-            => RunFullBatchWithLegalK(100);
+        [TestCase(17)][TestCase(100)] public void RetiredExplicitBatchAboveSingleOperationLimitCannotCreateAProductionScope(int count)
+        {
+            Setup(); var old = EffectSpec.Create(RetiredDepartureBatchContract.TypeId, Object(), 1);
+            old.NestedEffectGroups.Add(Enumerable.Range(0, count).Select(_ => InfluenceEffectSpecFactory.PlaceInfluence(1, Slot())).ToList());
+            Assert.That(Engine().TryCreateRoot(old, "", "", out _), Is.False);
+            Assert.That(state.Map.Influences, Is.Empty); Assert.That(state.EffectRuntime.InfluenceDepartureBatches, Is.Empty);
+            Assert.That(state.EffectRuntime.LastFaultMessage, Does.Contain(RetiredDepartureBatchContract.Reason));
+        }
         [Test] public void LargeBatchAuthorQueryUsesOnlyCurrentFiltersAndPayloadFields()
             => RunFullBatchWithLegalK(3);
+        [TestCase(9)] [TestCase(16)]
+        public void FiniteDeliveryCallbacksKeepIndependentReceiptsAcrossChunks(int count)
+            => RunFullBatchWithLegalK(count);
+        // 规则隔离：先放置多枚真实实例，再由一次StrictRemove产生自动批次；不把普通列表当手动分组。
+        private EffectSpec DepartureProduction(int count, string slot, string source, string explicitItem = "")
+        {
+            Assert.That(count, Is.InRange(1, 16), "API-34不扩大现有基础移除数量合同");
+            var targets = new List<string>();
+            for (int i = 0; i < count; i++)
+            {
+                var legal = registry.InfluenceService.GetLegalPlacementSlotIds(state, 1);
+                Assert.That(legal.Count, Is.GreaterThan(0), "隔离地图没有足够真实格位");
+                string placed = Run(InfluenceEffectSpecFactory.PlaceInfluence(1, legal[0], sourceId: source));
+                targets.Add(Value(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == placed).NormalizedResult, "influenceId").ReferenceId);
+            }
+            return InfluenceEffectExecutor.StrictRemove(1, targets, count);
+        }
         private void RunFullBatchWithLegalK(int fullCount)
         {
             int capacity=fullCount>99?40:11,gold=fullCount>99?100:14;
             int k=Math.Min(fullCount,Math.Min(29,Math.Min(capacity,gold/2)));
             string slot = InfluenceService.GetLocationSlotId(StaticMapDefinitions.CreateThreePlayerMap().Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0).LocationId, 0);
-            string code = @"return function(ctx) if ctx.eventType=='EffectCompleted' then return {} end
-              return {Effect.DepartureBatch({effects={Effect.Repeat({apiVersion=1,count="+fullCount+@",effects={
-                Effect.PlaceInfluence({executingPlayer=ctx.playerId,ownerSubject=ctx.playerId,influenceSource='qy007.full-n',targetSlotId='" + slot + @"'}),
-                Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})}})}})} end";
-            string bounded = BatchScript.Replace("local options={}; for k=1,n", @"local supplies=Global.Content.FindZones({owner=ctx.playerId,localZoneId='supply'})
+            // 百次边界关注真实批次事实和 Lua 可得数量；实际地图选择另由 16/17 项覆盖。
+            // 每次仅声明至多四枚独立交付，随后按真实完成通知继续，不增设重复节点或预算。
+            string delivery = @"local function deliver(k,card)
+ local supply=Global.Content.FindZones({templateId='core.zone.player_supply',owner=ctx.playerId})[1]
+ local target=Global.Content.FindZones({parentId=card,localZoneId='markers'})[1]
+ local stock={};for _,item in ipairs(Global.Content.FindInstances({zoneId=supply.id,typeId='core.player_marker'})) do stock[#stock+1]=item end;table.sort(stock,function(a,b)return a.id<b.id end)
+ local chunk=k;if chunk>4 then chunk=4 end
+ local effects={};for i=1,chunk do local ids={};if stock[i] then ids[1]=stock[i].id end
+  local move=Effect.MoveItem({apiVersion=3,player=ctx.playerId,itemIds=ids,expectedSource={zoneId=supply.id},destination={zoneId=target.id},insertion={kind='unordered'},operationProfileId='core.player_marker_storage',requiredCount=1})
+  if i==chunk and k>chunk then move=Effect.WithContext(move,{deliveryRemaining=k-chunk,card=card}) end
+  effects[#effects+1]=move
+ end
+ return effects
+end
+local function gain(k,card)
+ return Effect.Condition({decisionPlayer=ctx.playerId,leftEffects={Effect.PayResource({player=ctx.playerId,cost={GoldVoucher=2*k}})},rightEffects=deliver(k,card)})
+end
+";
+            int gainStart = BatchScript.IndexOf("local function gain", StringComparison.Ordinal);
+            int eventStart = BatchScript.IndexOf("if ctx.eventType=='EffectCompleted'", StringComparison.Ordinal);
+            string bounded = (BatchScript.Substring(0,gainStart) + delivery + BatchScript.Substring(eventStart))
+                .Replace("if ctx.eventType=='EffectCompleted' then", @"if ctx.eventType=='EffectCompleted' then
+ local next=ctx.payload.continuationContext
+ if next and next.deliveryRemaining then return deliver(next.deliveryRemaining,next.card) end")
+                .Replace("local options={}; for k=1,n", @"local supplies=Global.Content.FindZones({owner=ctx.playerId,localZoneId='supply'})
 local stock=0; for _,item in ipairs(Global.Content.FindInstances({zoneId=supplies[1].id,typeId='core.player_marker',owner=ctx.playerId})) do if item.ownerSubject==ctx.playerId then stock=stock+1 end end
 local target=Global.Content.FindZones({parentId=ctx.payload.sourceItemId,localZoneId='markers'})[1]
 local capacity=target.capacity<0 and stock or target.capacity-target.itemCount
@@ -223,17 +266,15 @@ for k=1,limit do if 2*k<=funds then affordable=k else break end end;limit=afford
 if limit==0 then return {} end
 local options={}; for k=1,limit")
                 .Replace("{card=ctx.payload.sourceItemId}", "{card=ctx.payload.sourceItemId,fullDepartureCount=n,availableStock=stock,remainingCapacity=capacity,legalMaximum=limit}");
-            Setup(batch:true,quickScript:code,markerStock:29,initialGold:gold,batchScript:bounded,commandCapacity:capacity);
-            var option=registry.QueryActions(state,1).Single(o=>o.ActionId=="qy006.quick.action");
-            Assert.That(Engine().TryInvokeAbilityAction(1,option.OptionId,option.RequestRef.InteractionId,option.RequestRef.FactsDigest,option.VersionRef.ContentPackHash,"qy007.full-100",Object(),out _,out string reason),Is.True,reason); Pump();
-            for(int i=0;i<fullCount;i++) {
-                var r=state.EffectRuntime.InteractionRequests.Single(q=>q.Status=="open" && state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==q.OwnerEffectId).EffectTypeId==ContentPrimitiveEffectExecutor.SelectInfluence);
-                Assert.That(r.CandidateIds.Count,Is.EqualTo(1));
-                Assert.That(Engine().TrySubmitInteraction(r.GetStableInteractionId(),1,r.StateRevision,Strings(r.CandidateIds),out reason),Is.True,reason); Pump();
-            }
+            Setup(batch:true,markerStock:29,initialGold:gold,batchScript:bounded,commandCapacity:capacity);
+            artifacts.WriteLabeledText("自动批次隔离输入说明", "多个实际合法格位分别放置真实实例，再由一次StrictRemove自动产生批次；响应和合法数量经实际Lua，不计正常对局或旧手动范围等价性。");
+            string supplyId=state.ItemZones.Zones.Single(z=>z.TemplateId=="core.zone.player_supply" && z.OwnerPlayerId==1).ZoneId;
+            string explicitItem=state.ItemZones.Items.Where(item=>item.ZoneId==supplyId && item.TypeId=="core.player_marker" && item.OwnerSubject.PlayerId==1)
+                .OrderBy(item=>item.ItemId,StringComparer.Ordinal).First().ItemId;
+            Run(DepartureProduction(fullCount, slot, "qy007.full-n", explicitItem));
             var batch=state.EffectRuntime.InfluenceDepartureBatches.Single();
             Assert.That(batch.Sealed,Is.True); Assert.That(batch.DepartureIds.Count,Is.EqualTo(fullCount));
-            Assert.That(state.EffectRuntime.InfluenceDepartures.Select(d=>d.ItemId).Distinct().Count(),Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.InfluenceDepartures.Select(d=>d.ItemId).Distinct().Count(),Is.EqualTo(fullCount));
             var choice=state.EffectRuntime.InteractionRequests.Single(r=>r.Status=="open");
             Assert.That(choice.CandidateIds,Is.EqualTo(Enumerable.Range(1,k).Select(i=>i.ToString()).ToArray()));
             var choiceNode=Engine().GetNode(choice.OwnerEffectId);
@@ -318,13 +359,25 @@ local options={}; for k=1,limit")
             AnswerResponse("optional_effect","2"); AnswerResponse("optional_effect","continue");
             Assert.That(Stored(targetCard),Is.EqualTo(2)); Assert.That(Stored(commandCard),Is.EqualTo(2)); Assert.That(Stored(dorothyCard),Is.EqualTo(1)); Restore("严格两枚各归唯一保管且批次交付一次");
         }
-        [Test] public void NestedProductionScopesSealSeparatelyWithoutWaitingForOwnOptionalBody()
+        [Test] public void NestedAutomaticRemovalsSealSeparatelyWithoutWaitingForOwnOptionalBody()
         {
-            Setup(batch:true); string one=Place(0),two=Place(1);
-            Run(InfluenceDepartureBatchExecutor.Create(1,new[]{InfluenceEffectSpecFactory.RemoveInfluence(1,one),InfluenceDepartureBatchExecutor.Create(1,new[]{InfluenceEffectSpecFactory.RemoveInfluence(1,two)})}));
+            // 各响应先做真实数量选择，再按该次回答时的库存生成转移，避免两个待答正文预取同一枚。
+            Setup(batch:true,batchScript:BatchScript.Replace("if n==1 then return {gain(1,ctx.payload.sourceItemId)} end", "")); string one=Place(0),two=Place(1);
+            Run(EffectSpec.Condition(new[] { InfluenceEffectSpecFactory.RemoveInfluence(1,one), EffectSpec.Condition(new[] { InfluenceEffectSpecFactory.RemoveInfluence(1,two) }, Array.Empty<EffectSpec>()) }, Array.Empty<EffectSpec>()));
             Assert.That(state.EffectRuntime.InfluenceDepartureBatches.Count,Is.EqualTo(2)); Assert.That(state.EffectRuntime.InfluenceDepartureBatches.All(b=>b.Sealed && b.DepartureIds.Count==1),Is.True);
             Assert.That(state.EffectRuntime.DeferredResponses.Count,Is.EqualTo(2)); Restore("嵌套真实生产均已封口");
-            AnswerResponse("optional_effect","continue"); AnswerResponse("optional_effect","continue"); Assert.That(Stored(commandCard),Is.EqualTo(2)); Restore("嵌套每批一次交付");
+            for (int batch = 0; batch < 2; batch++)
+            {
+                var response = state.EffectRuntime.DeferredResponses.Last(r => r.Status == DeferredResponseStatus.Pending);
+                for (int step = 0; step < 8 && response.Status == DeferredResponseStatus.Pending; step++)
+                {
+                    var request = state.EffectRuntime.InteractionRequests.Last(q => q.Status == "open" && InfluenceDepartureProtocol.IsWithin(state,q.OwnerEffectId,response.ResponseRootEffectId));
+                    AnswerResponse("optional_effect", request.CandidateIds.Contains("continue") ? "continue" : "1");
+                    response = state.EffectRuntime.DeferredResponses.Single(r => r.DeferredResponseId == response.DeferredResponseId);
+                }
+                Assert.That(response.Status, Is.Not.EqualTo(DeferredResponseStatus.Pending));
+            }
+            Assert.That(Stored(commandCard),Is.EqualTo(2)); Restore("嵌套每批一次交付");
         }
 
         [Test] public void RealLuaRootRewritePreservesOneLogicalPlaceAndRestoresChoice()
@@ -340,7 +393,7 @@ local options={}; for k=1,limit")
         { Setup(stores:true); string item=Place(); Depart(item); Restore("单来源收容待答"); Answer("store"); Assert.That(Stored(targetCard),Is.EqualTo(1)); Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==item).ZoneId,Is.EqualTo(state.ItemZones.Zones.Single(z=>z.ParentId==targetCard && z.LocalZoneId=="markers").ZoneId)); Restore("单来源收容完成"); }
         [Test] public void RealLuaBatchWaitsForSealAndDoesNotHoldRemovedItems()
         {
-            Setup(batch:true); string one=Place(0),two=Place(1); Run(InfluenceDepartureBatchExecutor.Create(1,new[]{InfluenceEffectSpecFactory.RemoveInfluence(1,one),InfluenceEffectSpecFactory.RemoveInfluence(1,two)}));
+            Setup(batch:true); string one=Place(0),two=Place(1); Run(InfluenceEffectExecutor.StrictRemove(1,new[]{one,two},2));
             var r=state.EffectRuntime.DeferredResponses.Single(); Assert.That(r.Kind,Is.EqualTo("optional_effect")); Assert.That(r.ReservedItemId,Is.Empty); Assert.That(r.SourceDepartureEffectId,Is.Empty); Assert.That(r.SourceEventIds.Count,Is.EqualTo(2)); Restore("批次数量待答"); Answer("2"); Restore("批次付款待答"); Answer("continue");
             Assert.That(Stored(commandCard),Is.EqualTo(2)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(16)); Assert.That(r.ReservedItemId,Is.Empty); Restore("批次付款交付完成");
         }
@@ -378,7 +431,7 @@ local options={}; for k=1,limit")
         [TestCase("dynamic")][TestCase("condition")] public void RealLuaRewriteAlsoCoversActuallyAttachedDynamicNodes(string mode)
         {
             Setup(hook:true); var place=InfluenceEffectSpecFactory.PlaceInfluence(1,Slot());
-            Run(mode=="dynamic"?InfluenceDepartureBatchExecutor.Create(1,new[]{place}):EffectSpec.Condition(new[]{ResourceEffectSpecFactory.GainScore(1,1)},new[]{place}));
+            Run(mode=="dynamic"?EffectSpec.Condition(new[]{place},Array.Empty<EffectSpec>()):EffectSpec.Condition(new[]{ResourceEffectSpecFactory.GainScore(1,1)},new[]{place}));
             Assert.That(state.EffectRuntime.InfluencePlaceMappings.Count,Is.EqualTo(1)); Restore("动态挂接类型待答"); Answer("ordinary"); Assert.That(state.Map.Influences.Count,Is.EqualTo(1)); Restore("动态挂接完成");
         }
         [Test] public void UnselectedConditionDoesNotRewriteOrExecuteItsPlaceTemplate()

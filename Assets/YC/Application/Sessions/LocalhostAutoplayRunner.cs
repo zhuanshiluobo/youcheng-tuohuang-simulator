@@ -391,7 +391,7 @@ namespace YC.Application.DevTools
                 {
                     move(selectedId, ItemTransferEffectExecutor.FindZone(state, "city_cell_" + cell, context.Node.PlayerId).ZoneId, "unordered");
                     FacilityInstanceStateService.EnsureAll(state);
-                    if (state.ItemZones.Zones.Single(z => z.ZoneId == original).TemplateId == "core.zone.facility_supply_slot") FacilitySupplyService.RefillSlot(context, original);
+                    if(state.ItemZones.Zones.Single(z=>z.ZoneId==original).TemplateId=="core.zone.facility_supply_slot")return EffectStepResult.Completed().AddChild(ItemTransferEffectExecutor.RefillSpec(context.Node.PlayerId,original));
                 }
                 else
                 {

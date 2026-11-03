@@ -111,7 +111,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 {
                     int captured = current;
                     enterprise.BindAbility(id + ".level_" + current, context => nestedBuild && id == Business && captured == 1
-                        ? new[] { EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("free"), "allowDecline", NormalizedValue.CreateBoolean(true)), context.Event.PlayerId) }
+                        ? new[] { EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((context.Event.PlayerId).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("free"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), context.Event.PlayerId) }
                         : new[] { ResourceEffectSpecFactory.Gain(context.Event.PlayerId, ResourceType.GoldVoucher, captured == 1 ? 4 : captured) });
                 }
             }

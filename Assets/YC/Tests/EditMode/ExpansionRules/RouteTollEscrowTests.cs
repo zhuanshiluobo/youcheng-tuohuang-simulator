@@ -440,7 +440,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1,
                 new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } },
                 config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
-            state.GameId = "route-toll-production"; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.Round = 1;
+            // 保留工厂GameId及随机账本身份，旧托管隔离验证同样不伪造绑定。
+            state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.Round = 1;
             state.FindPlayer(1).Resources.GoldVoucher = freeRoutes ? 0 : 4; state.FindPlayer(1).RemainingMainActionsThisTurn = 1;
             var city = state.ItemZones.Items.Single(i => i.PhysicalKind == ItemPhysicalKind.MobileCity && i.OwnerSubject.PlayerId == 1);
             var location = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == "A-03");

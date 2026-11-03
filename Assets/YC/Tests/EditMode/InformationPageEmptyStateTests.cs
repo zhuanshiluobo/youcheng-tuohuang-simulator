@@ -82,12 +82,14 @@ namespace YC.Tests.EditMode
         private Component Open(int count)
         {
             var panel = Call(shell, "PreparePage", (RectTransform)host.transform,
-                "生命周期信息页", "生命周期列表", Vector2.zero, Vector2.zero, true, false, true, false);
+                "生命周期信息页", "生命周期列表", Vector2.zero, Vector2.zero, true, false, true, true);
             var spec = Activator.CreateInstance(T("EffectDialogSelectionSpec"), true);
             var ids = Enumerable.Range(0, count).Select(i => "lifecycle-" + i).ToList();
             void Set(string n, object v) => spec.GetType().GetField(n, Members).SetValue(spec, v);
             Set("Request", new InteractionRequestProjection { VisibleToViewer = true, CandidateIds = ids,
                 MinSelections = 0, MaxSelections = 0, InteractionId = "lifecycle", Status = "open" });
+            // 卡牌页的空／非空组件生命周期；显式隔离缺图候选，不冒充正常完整卡面验收。
+            Set("IsCardSelection", true);
             Set("ReadOnly", true);
             Set("IsEffectPage", false);
             Set("IsCurrent", (Func<bool>)(() => true));

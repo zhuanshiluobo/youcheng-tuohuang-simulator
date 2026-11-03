@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.T.3",
   "contentType": "entrepreneur_round",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "displayName": "第五号企业家·第3回合",
   "artwork": "artwork/entrepreneurs/T05.jpg",
   "expansionId": "infected",
@@ -25,7 +25,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T05.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -39,7 +39,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T06.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -128,13 +128,13 @@
     {
       "handlerId": "entrepreneur.T05.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.T06.immediate.1",
       "script": "lua/entrepreneurs/fifth_number_round_primary.lua",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "completionHandlerId": ""
     }
   ]

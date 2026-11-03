@@ -472,7 +472,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                     new ItemTransferService().RelocateItems(context, new ItemTransferRequest { ItemIds = new List<string> { item.ItemId }, ExecutingPlayerId = 1,
                         ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId }, Destination = new ZoneRef { ZoneId = staging }, InsertionKind = "unordered", OperationProfileId = "core.facility_card_transfer", RequiredCount = 1 });
                 }
-                else FacilitySupplyService.RefillSlot(context, FindZone(context.State, "facility_supply_1").ZoneId);
+                else if(context.Node.FlowStage=="refill_later")return EffectStepResult.Continue("refill_wait").AddChild(RefillSpec(1,FindZone(context.State,"facility_supply_1").ZoneId));
                 var request = new EffectInteractionSpec { InteractionTypeId = "lua.choice", AnsweringPlayerId = 1, Visibility = "owner", PromptKey = "facility.pending_placement",
                     MinSelections = 1, MaxSelections = 1, AnswerSchema = "candidate_id" };
                 request.CandidateIds.Add(context.Node.FlowStage == string.Empty ? "refill" : second.ItemId);

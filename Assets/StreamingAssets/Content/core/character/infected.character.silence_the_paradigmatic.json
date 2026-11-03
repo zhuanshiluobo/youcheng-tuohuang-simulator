@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.silence_the_paradigmatic",
   "contentType": "character",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "displayName": "淬羽赫默",
   "expansionId": "infected",
   "replaces": null,
@@ -18,8 +18,8 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.character.silence_the_paradigmatic.strategy",
       "script": "lua/characters/infected.character.silence_the_paradigmatic.strategy.lua",
-      "version": "2.0.0",
-      "completionHandlerId": "content.infected.character.silence_the_paradigmatic.strategy.completed",
+      "version": "2.1.0",
+      "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,
       "specialZoneId": ""

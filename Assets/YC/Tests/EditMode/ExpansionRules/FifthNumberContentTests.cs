@@ -86,7 +86,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.FindPlayer(1).Score, Is.EqualTo(score - 1), "失2分保留，主动放弃特派按原Flow得1分。");
             Assert.That(f.State.FindPlayer(1).Resources.PureOriginium, Is.EqualTo(pure + 2));
             Assert.That(f.Group(5).ImmediateEntries.Select(e => e.Status), Is.EqualTo(new[] { "completed", "completed" }));
-            var remove = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == ContentPrimitiveEffectExecutor.SelectInfluence && n.PlayerId == 1);
+            var remove = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && n.PlayerId == 1);
             Assert.That(remove.Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(Number(remove.NormalizedResult, "completedCount"), Is.Zero);
         }
@@ -153,10 +153,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             string enterprise = query.GetEnterpriseItemIds(f.State).First();
             string definition = f.State.ItemZones.Items.Single(i => i.ItemId == enterprise).DefinitionId;
             int maximum = f.Registry.EnterpriseDefinitions.FindEnterprise(definition).Levels.Max(l => l.Level);
-            for (int i = 0; i < maximum && query.GetLevel(f.State, 1, enterprise) < maximum; i++)
-            {
-                f.Run(EnterpriseEffectExecutor.UpgradeSpec(1, enterprise, 1)); f.ResolveOpenRequests();
-            }
+            // 隔离满级前提：只布置已有本人合作标记，不把逐级到达奖励／建设算作本用例的验收。
+            string track = f.State.ItemZones.Zones.Single(z => z.ParentId == enterprise && z.LocalZoneId == "cooperation_1").ZoneId;
+            f.State.ItemZones.Items.Single(i => i.ZoneId == track).SlotId = "level_" + maximum;
+            artifacts.WriteLabeledText("本人满级隔离前提", "仅布置真实企业合作标记到已有满级格；本用例验证随后真实T05/T06不会剔除对原主仍有效的企业，不代表逐级升级或建设通过。");
             Assert.That(query.GetLevel(f.State, 1, enterprise), Is.EqualTo(maximum));
             int other = query.GetLevel(f.State, 2, enterprise); f.ChooseFace(face);
             var choice = f.Open(); Assert.That(choice.CandidateIds, Does.Contain(enterprise));
@@ -214,13 +214,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.EffectRuntime.InfluenceDepartures.Count, Is.EqualTo(departures), "牌上支付不产生地图离场或重收。");
             var invocations = CleanupSourceService.Invocations(f.State).Where(i => i.SourceRef.ItemId == f.Card).ToList();
             Assert.That(invocations.Count, Is.EqualTo(2)); Assert.That(invocations.Select(i => i.InvocationId).Distinct().Count(), Is.EqualTo(2));
-            var transfers = f.State.EffectRuntime.EffectNodes.Where(n => n.TransferBatchRequest?.ProtocolVersion == 3 &&
+            var transfers = f.State.EffectRuntime.EffectNodes.Where(n => n.ItemMovementV4 != null && n.DefinitionVersion == ItemTransferEffectExecutor.TransferDefinitionVersion &&
                 n.PositionChanges.Count(c => c.From.ZoneId == f.Storage.ZoneId) == 3).ToList();
-            Assert.That(transfers.Count, Is.EqualTo(2), "两笔独立兑换分别提交一笔api3 token事务。");
+            Assert.That(transfers.Count, Is.EqualTo(2), "两笔独立兑换分别提交一笔由api3输入归一化的共同MoveItem事务。");
             foreach (var transfer in transfers)
             {
                 Assert.That(Number(transfer.NormalizedResult, "movedCount"), Is.EqualTo(3));
-                Assert.That(ItemTransferService.TryValidateTokenState(f.State, transfer, out string reason), Is.True, reason);
+                Assert.That(ItemMovementV4.TryValidateState(f.State, transfer, out string reason), Is.True, reason);
             }
             Assert.That(f.Registry.QuerySources(f.State, 1).Any(s => s.ItemId == f.Card && s.AbilityId == "entrepreneur.T09.departure"), Is.True);
             Assert.That(f.Registry.GetSettlementOptions(f.State, 1).Single(o => o.SourceItemId == f.Card).IsEnabled, Is.False);

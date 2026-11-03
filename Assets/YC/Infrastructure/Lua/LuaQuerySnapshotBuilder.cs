@@ -13,6 +13,7 @@ namespace YC.Infrastructure.Lua
     // 只在当前Dispatcher调用内物化；不保留GameState或跨revision缓存。
     internal static partial class LuaQuerySnapshotBuilder
     {
+        internal const string HandDestinationMetadataVersion = "hand_destination_metadata.v1";
         internal static void Stamp(GameState state, LuaFacadeSnapshot snapshot, int revision)
         {
             snapshot.StateRevision = revision;
@@ -157,7 +158,8 @@ namespace YC.Infrastructure.Lua
                         foreach (string name in new[] { "color", "unique", "uniqueGroupId", "hasEntryEffect", "reserveOnly" }) fields[name] = definition.Get(name); }
                 enriched.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
             }
-            var zones = visible.Zones.Where(z => z.IdentitiesVisible || z.Zone.TemplateId == "core.zone.box_retired" || z.Zone.LocalZoneId == "facility_deck")
+            // API-20 / 4.8.1：转交可解析真实接收者手牌区；身份与牌序仍按原投影遮蔽。
+            var zones = visible.Zones.Where(z => z.IdentitiesVisible || z.Zone.TemplateId == "core.zone.character_hand" || z.Zone.TemplateId == "core.zone.box_retired" || z.Zone.LocalZoneId == "facility_deck")
                 .Select(z => O(E("id", S(z.Zone.ZoneId)), E("templateId", S(z.Zone.TemplateId)), E("localZoneId", S(z.Zone.LocalZoneId)),
                     E("parentId", S(z.Zone.ParentId)), E("parentKind", S(z.Zone.ParentKind.ToString())), E("owner", S(Player(z.Zone.OwnerPlayerId))), E("itemCount", N(z.ItemCount)),
                     E("orderRevision", z.IdentitiesVisible ? N(OrderRevision(state, z.Zone.ZoneId)) : LuaSnapshotValue.Null),

@@ -199,7 +199,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             State = new ItemZoneStateFactory().CreateForSetup(input, map, recipe);
             State.ContentDefinitions = new GameContentDefinitions { Facilities = pack.CreateFacilities().ToList() };
             Registry = new EffectRegistry { ContentPackHash = State.ContentPackHash };
-            ItemTransferEffectExecutor.Register(Registry); ResourceEffectExecutor.Register(Registry); DeckShuffleEffectExecutor.Register(Registry); RepeatEffectExecutor.Register(Registry);
+            ItemTransferEffectExecutor.Register(Registry); ResourceEffectExecutor.Register(Registry); DeckShuffleEffectExecutor.Register(Registry);
             FacilityEntryEffectExecutor.Register(Registry); FacilitySelectionEffectExecutor.Register(Registry); ResourcePaymentChoiceEffectExecutor.Register(Registry);
         }
         public static NormalizedValue TotalArgs(int n, ResourceSet fixedCost) => Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString("1"), "resourceType", NormalizedValue.CreateString("total"),

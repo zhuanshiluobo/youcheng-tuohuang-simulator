@@ -12,6 +12,7 @@ namespace YC.Domain.Effects
     public static class DeckShuffleEffectExecutor
     {
         public const string TypeId = "effect.deck.shuffle";
+        public const string UnversionedSignatureRetired = "facility_shuffle_unversioned_signature_retired";
         public static void Register(EffectRegistry registry, Func<int, int> next = null)
         {
             if (registry.TryGet(TypeId, out _)) return;
@@ -21,9 +22,9 @@ namespace YC.Domain.Effects
         }
         public static string ValidateArguments(string typeId, NormalizedValue args)
         {
-            if (typeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck && Value(args, "apiVersion") == null)
-                return args.Properties.All(entry => new[] { "kind", "effectTypeId", "player" }.Contains(entry.Name)) ? "" : "invalid_shuffle_arguments";
-            return Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Number(args, "apiVersion") == 1 &&
+            string retired = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(typeId, args);
+            if (retired.Length > 0) return retired;
+            return args?.Kind == NormalizedValueKind.Object && Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Number(args, "apiVersion") == 1 &&
                 Value(args, "deckZone")?.Kind == NormalizedValueKind.Object && Text(Value(args, "deckZone"), "zoneId").Length > 0 &&
                 Value(args, "deckZone").Properties.Count == 1 && args.Properties.All(entry => new[] { "kind", "effectTypeId", "apiVersion", "player", "deckZone" }.Contains(entry.Name)) && int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) && player > 0 ? "" : "invalid_shuffle_arguments";
         }
@@ -36,15 +37,8 @@ namespace YC.Domain.Effects
             string reason = ValidateArguments(context.Node.EffectTypeId, context.Node.NormalizedArguments);
             if (reason.Length > 0) return EffectStepResult.Failed(reason);
             string playerKey = Text(context.Node.NormalizedArguments, "player", context.Node.PlayerId.ToString(CultureInfo.InvariantCulture));
-            if (context.Node.EffectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck && Value(context.Node.NormalizedArguments, "apiVersion") == null && playerKey.StartsWith("p", StringComparison.Ordinal)) playerKey = playerKey.Substring(1);
             if (playerKey != context.Node.PlayerId.ToString(CultureInfo.InvariantCulture) || context.State.FindPlayer(context.Node.PlayerId) == null) throw new InvalidOperationException("shuffle_permission_denied");
-            if (!ItemZoneLegacyProjection.IsActive(context.State))
-            {
-                if (context.Node.EffectTypeId != LuaDomainEffectTypeIds.ShuffleFacilityDeck) return EffectStepResult.Failed("unknown_zone");
-                var deck = context.State.Decks.FacilityDeck;
-                for (int i = deck.Count - 1; i > 0; i--) { int j = next(i + 1); string swap = deck[i]; deck[i] = deck[j]; deck[j] = swap; }
-                return Result(deck.Count);
-            }
+            if (!ItemZoneLegacyProjection.IsActive(context.State)) return EffectStepResult.Failed("unknown_zone");
             var query = new ItemZoneQuery();
             if (!query.TryValidate(context.State, out reason)) throw new InvalidOperationException("item_state_invalid: " + reason);
             string zoneId = context.Node.EffectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck ? FindZone(context.State, "facility_deck").ZoneId : Text(Value(context.Node.NormalizedArguments, "deckZone"), "zoneId");

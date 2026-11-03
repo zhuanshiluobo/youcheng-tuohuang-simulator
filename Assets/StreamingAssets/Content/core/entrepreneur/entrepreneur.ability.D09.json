@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.ability.D09",
   "contentType": "entrepreneur_ability",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "displayName": "蒂亚戈·H·罗德里格斯",
   "artwork": "artwork/entrepreneurs/D09.jpg",
   "expansionId": "infected",
@@ -28,7 +28,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D09.investment",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D09.investment.completed",
       "presentation": {
         "description": {
@@ -62,7 +62,7 @@
       "abilityId": "entrepreneur.D09.investment",
       "kind": "cleanup",
       "handlerRef": "entrepreneur.D09.investment",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "controller",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -292,7 +292,7 @@
     {
       "handlerId": "entrepreneur.D09.investment",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D09.investment.completed"
     }
   ]

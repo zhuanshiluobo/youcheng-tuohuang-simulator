@@ -101,7 +101,7 @@ namespace YC.Tests.EditMode
             Assert.That(result.Succeeded, Is.True, result.LogMessage);
             Assert.That(session.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(execute ? gold-4 : gold));
             Assert.That(session.State.RuleConfiguration.PlayerStageSchedulingMode, Is.EqualTo(PlayerStageSchedulingMode.Sequential));
-            if (execute) Assert.That(session.State.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==ContentPrimitiveEffectExecutor.SelectInfluence), Is.True);
+            if (execute) Assert.That(session.State.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId=="effect.influence.select_action"), Is.True);
         }
 
         [Test]

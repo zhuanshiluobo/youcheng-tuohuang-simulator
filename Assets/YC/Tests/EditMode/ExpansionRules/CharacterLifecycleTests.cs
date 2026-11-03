@@ -21,7 +21,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
-    public sealed class CharacterLifecycleTests
+    public sealed partial class CharacterLifecycleTests
     {
         private static IsolatedTestArtifacts artifacts;
         private static GameState observed;
@@ -108,6 +108,91 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static CharacterUseRuntimeState Use(GameState state, EffectRegistry registry, string card, string mode = "strategy", string order = "")
         { Run(state, registry, CharacterLifecycleService.CreateUseSpec(1, card, mode, order)); return state.CharacterUses.Last(); }
 
+        private const string RetiredRelease = "effect.content.transaction.release_binding";
+        private const string RetiredReleaseReason = "facility_release_binding_api_retired";
+
+        [TestCase("return {Effect.ReleaseFacilityBinding({apiVersion=1,player=ctx.playerId,bindingId='binding'})}")]
+        [TestCase("local release=Effect.ReleaseFacilityBinding; return {release({apiVersion=1,player=ctx.playerId,bindingId='binding'})}")]
+        [TestCase("return {Effect.Condition({leftEffects={{kind='effect_spec',effectTypeId='effect.content.transaction.release_binding',apiVersion=1,player=ctx.playerId,bindingId='binding'}},rightEffects={}})}")]
+        public void ReleaseFacilityBindingCannotBeConstructedThroughLuaOrAliases(string body)
+        {
+            string source = "return function(ctx) " + body + " end";
+            var script = new LuaScriptDefinition("release.retirement", "release.retirement", "release.retirement", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var result = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("release.retirement", "test", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(MoonSharpLuaRuntimeHost.SupportedEffectConstructors, Does.Not.Contain("ReleaseFacilityBinding"));
+        }
+
+        [TestCase(false)][TestCase(true)]
+        public void ReleaseFacilityBindingCannotBypassCompilerOrKernelThroughManualSpecs(bool nested)
+        {
+            var args = Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
+                "bindingId", NormalizedValue.CreateString("binding"));
+            var leaf = LuaEffectSpec.FromArguments(RetiredRelease, args);
+            var spec = nested ? LuaEffectSpec.FromEffectGroups(EffectTypeIds.Condition, Object(),
+                new IReadOnlyList<LuaEffectSpec>[] { new[] { leaf }, Array.Empty<LuaEffectSpec>() }) : leaf;
+            const string source = "return function(ctx) return {} end";
+            var script = new LuaScriptDefinition("release.retirement", "release.retirement", "release.retirement", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var success = typeof(LuaInvocationResult).GetMethods(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .Single(method => method.Name == "Success" && method.GetParameters().Length == 2);
+            var invocation = (LuaInvocationResult)success.Invoke(null, new object[] { script, new[] { spec } });
+            var catalog = new LuaEffectTypeCatalog();
+            catalog.Register(new LuaEffectTypeRegistration(RetiredRelease, null, item => item.RawArguments.Clone()));
+            Assert.That(new LuaEffectSpecCompiler(catalog).TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 },
+                out _, out var fault), Is.False);
+            Assert.That(fault.Diagnostic, Does.Contain(RetiredReleaseReason));
+            var state = State(); var registry = Registry();
+            Assert.That(registry.TryGet(RetiredRelease, out _), Is.False);
+            registry.Register(RetiredRelease, _ => throw new AssertionException("退役节点不能执行"));
+            var node = EffectSpec.Create(RetiredRelease, args, 1);
+            if (nested)
+            {
+                var outer = EffectSpec.Create(EffectTypeIds.Condition, Object(), 1);
+                outer.NestedEffectGroups.Add(new List<EffectSpec> { node }); outer.NestedEffectGroups.Add(new List<EffectSpec>()); node = outer;
+            }
+            Assert.That(new EffectTreeExecutor(state, registry).TryCreateRoot(node, "", "", out _), Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes, Is.Empty);
+        }
+
+        [TestCase(false)][TestCase(true)]
+        public void ReleaseFacilityBindingRawRecoveryRejectsTerminalAndNestedNodesWithoutRewritingTheArchive(bool nested)
+        {
+            var state = State(); var registry = Registry(); Cover(state, registry, Ids(state, "hand", 1)[0]);
+            string clean = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            Assert.That(HostRecoveryService.RecoverJson(clean, registry).Succeeded, Is.True);
+            var archive = JObject.Parse(clean);
+            var old = JObject.FromObject(new EffectNodeRuntimeState { EffectId = "retired.release", EffectTypeId = RetiredRelease, Status = EffectNodeStatus.Completed });
+            var owner = nested ? JObject.FromObject(new EffectNodeRuntimeState { EffectId = "retired.container", EffectTypeId = EffectTypeIds.Condition }) : old;
+            if (nested) ((JArray)owner["NestedEffects"]).Add(old);
+            ((JArray)archive["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"]).Add(owner);
+            string before = archive.ToString();
+            var result = HostRecoveryService.RecoverJson(before, registry);
+            Assert.That(result.Succeeded, Is.False); Assert.That(result.Diagnostic, Is.EqualTo(RetiredReleaseReason));
+            Assert.That(archive.ToString(), Is.EqualTo(before));
+            artifacts.WriteLabeledText("退役手动解绑拒绝原始归档", before);
+        }
+
+        [Test] public void FormalAmiyaEmptyLuaBodyStillActivatesPersistentLifecycleAndSettlement()
+        {
+            string source = frozenPack.GetScript("lua/characters/infected.character.amiya.tactic.lua");
+            var script = new LuaScriptDefinition("content.infected.character.amiya", "infected.character.amiya.tactic",
+                "content.infected.character.amiya.tactic", "1.0.1", source, LuaContentHasher.ComputeSha256(source));
+            var body = new MoonSharpLuaRuntimeHost().Invoke(script,
+                new LuaInvocationContext("empty.persistent", "CharacterEffectActivated", "p1", 0, "1.0.1", 2, 0, 0));
+            Assert.That(body.IsSuccess, Is.True, body.Diagnostic); Assert.That(body.Effects, Is.Empty);
+            Assert.That(new LuaEffectSpecCompiler().TryCompile(body, new LuaEffectCompilationContext { PlayerId = 1 },
+                out var compiled, out var fault), Is.True, fault?.Diagnostic);
+            var state = State(); var registry = Registry(tacticType: "persistent", tactic: _ => compiled, settlementSource: true);
+            string card = Ids(state, "hand", 1)[0]; Cover(state, registry, card);
+            var use = Use(state, registry, card, "tactic");
+            Assert.That(use.Finished, Is.True); Assert.That(Ids(state, "persistent", 1), Does.Contain(card));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == CharacterAbilityEffectExecutor.CharacterEffectActivatedEventType), Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Score, Is.Zero);
+            state = Restore(state, registry);
+            string next = Ids(state, "hand", 1)[0]; Cover(state, registry, next); Use(state, registry, next, "");
+            Assert.That(CharacterSettlementOptionQuery.GetOptions(state, 1, state.CharacterUses.Last().UseId), Has.Count.EqualTo(1));
+        }
+
         [TestCase("normal", "discard")][TestCase("persistent", "persistent")][TestCase("one_shot", "retired")]
         public void ModeLifecycleUsesOneActualInstance(string skillType, string destination)
         {
@@ -131,14 +216,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(5)); Assert.That(Ids(state, destination, destination == "retired" ? -1 : 1), Does.Contain(card)); Assert.That(state.CharacterUses[0].CompletedModes.Count, Is.EqualTo(2)); Valid(state);
             state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(5));
         }
-        [Test] public void AdditionalCoverBlocksOnlyNewInstanceUntilNextActionRound()
+        [Test] public void RetiredAdditionalCoverV2CannotMoveAnyCard()
         {
             var state = State(); var registry = Registry(); var cards = Ids(state, "hand", 1); Cover(state, registry, cards[0]);
-            Run(state, registry, EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString("1"), "cardInstanceId", NormalizedValue.CreateString(cards[1]), "coverMode", NormalizedValue.CreateString("additional"), "blockedActionRoundSequence", NormalizedValue.CreateInteger(1)), 1));
-            Assert.That(Ids(state, "covered", 1), Is.EquivalentTo(cards.Take(2))); Assert.That(state.CharacterCoverSlots.Count, Is.EqualTo(2));
-            Assert.That(CharacterLifecycleService.GetAvailability(state, 1, cards[0]).CanUse, Is.True); Assert.That(CharacterLifecycleService.GetAvailability(state, 1, cards[1]).DisabledReasonCode, Is.EqualTo("character_instance_blocked"));
-            state = Restore(state, registry); state.ActionRound = 2; state.Phase = GamePhase.ActionRound2;
-            Assert.That(CharacterLifecycleService.GetAvailability(state, 1, cards[1]).CanUse, Is.True); Assert.That(CharacterLifecycleService.GetActionRoundSequence(state), Is.EqualTo(2));
+            string before = JsonConvert.SerializeObject(new { state.ItemZones, state.CharacterCoverSlots });
+            var old = EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString("1"), "cardInstanceId", NormalizedValue.CreateString(cards[1]), "coverMode", NormalizedValue.CreateString("additional"), "blockedActionRoundSequence", NormalizedValue.CreateInteger(1)), 1);
+            Assert.That(new EffectTreeExecutor(state, registry).TryCreateRoot(old, "", "", out _), Is.False);
+            Assert.That(state.EffectRuntime.LastFaultMessage, Does.Contain(CharacterCoverEffectExecutor.RetiredV2Reason));
+            Assert.That(JsonConvert.SerializeObject(new { state.ItemZones, state.CharacterCoverSlots }), Is.EqualTo(before));
+            Assert.That(CharacterLifecycleService.GetAvailability(state, 1, cards[0]).CanUse, Is.True);
         }
         [Test] public void GeneratedCharacterHasHandAndUseEligibility()
         {
@@ -153,7 +239,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void TransferDuringModeKeepsCardInNewHoldersHandAfterOldFinish()
         {
-            var registry = Registry(tactic: context => new List<EffectSpec> { EffectSpec.Create(CharacterLifecycleService.TransferTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "cardInstanceId", NormalizedValue.CreateString(Value(context.OwnerNode.NormalizedArguments, "cardInstanceId").ReferenceId), "recipientPlayer", NormalizedValue.CreateString("2")), 1) });
+            var registry = Registry(tactic: context => new List<EffectSpec> { CharacterCardMovement.Create(context.State, 1,
+                Value(context.OwnerNode.NormalizedArguments, "cardInstanceId").ReferenceId, FindZone(context.State, "hand", 2).ZoneId) });
             var state = State(); string card = Ids(state, "hand", 1)[0]; Cover(state, registry, card); var use = Use(state, registry, card, "tactic");
             Assert.That(Ids(state, "hand", 2), Does.Contain(card)); Assert.That(use.ExecutingPlayerId, Is.EqualTo(1)); Assert.That(state.ItemZones.Items.Single(item => item.ItemId == card).ControllerSubject.PlayerId, Is.EqualTo(2));
             Assert.That(state.ItemZones.Items.Single(item => item.ItemId == card).OwnerSubject.PlayerId, Is.EqualTo(1)); Assert.That(Ids(state, "discard", 1), Is.Empty); Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == OperatorDispatchFlow.TypeId), Is.False);
@@ -172,6 +259,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(Ids(state, "operator_deck"), Is.EqualTo(deckOrder)); Assert.That(randomCalls, Is.EqualTo(callsBefore));
             string outgoing = Ids(state, "hand", 1).First(id => id != selected); AnswerRequest(state, registry, outgoing); Assert.That(Ids(state, "retired"), Does.Contain(outgoing)); Assert.That(state.ItemZones.Items.Select(item => item.ItemId), Is.EquivalentTo(all));
             Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).Events.Any(value => value.EventType == "OperatorDispatchReturnShown"), Is.True);
+            var dispatch = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == OperatorDispatchFlow.TypeId);
+            var moves = state.EffectRuntime.EffectNodes.Where(n => n.ParentEffectId == dispatch.EffectId && n.EffectTypeId == TypeId).ToList();
+            Assert.That(moves.Count, Is.EqualTo(3));
+            foreach (var move in moves)
+            {
+                Assert.That(ItemMovementV4.IsV4(move.EffectTypeId, move.NormalizedArguments), Is.True);
+                Assert.That(move.CommonItemMovementV4?.Receipt, Is.Not.Null);
+                Assert.That(ItemMovementV4.TryValidateState(state, move, out string invalid), Is.True, invalid);
+            }
         }
         [TestCase(1, 3)][TestCase(2, 3)] public void ShortDispatchDeckNeverInventsCandidates(int actual, int requested)
         {
@@ -180,6 +276,24 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void EmptyDispatchDeckDoesNotAwardDeclineScore()
         {
             var state = State(0); var registry = Registry(); var node = Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("empty_deck")); Assert.That(state.FindPlayer(1).Score, Is.Zero); Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open"), Is.False);
+        }
+        [Test] public void SingleDispatchCandidateAcceptsAndKeepsEmptyUnselectedStepRecoverable()
+        {
+            int calls = 0; var state = State(1); var registry = Registry(random: maximum => { calls++; return 0; });
+            var dispatch = Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); string selected = Open(state).CandidateIds.Single();
+            AnswerRequest(state, registry, selected);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("operator.dispatch.return"));
+            var empty = state.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == dispatch.EffectId && n.EffectTypeId == TypeId &&
+                Value(Value(n.NormalizedArguments, "selector"), "itemIds")?.Items.Count == 0);
+            Assert.That(ItemMovementV4.IsV4(empty.EffectTypeId, empty.NormalizedArguments), Is.True);
+            Assert.That(empty.CommonItemMovementV4?.Receipt?.Result.MovedCount, Is.Zero);
+            Assert.That(ItemMovementV4.TryValidateState(state, empty, out string invalid), Is.True, invalid);
+            state = Restore(state, registry);
+            string outgoing = Ids(state, "hand", 1).First(id => id != selected); AnswerRequest(state, registry, outgoing);
+            Assert.That(Ids(state, "operator_deck"), Is.Empty); Assert.That(Ids(state, "hand", 1), Does.Contain(selected));
+            Assert.That(Ids(state, "retired"), Does.Contain(outgoing)); Assert.That(calls, Is.Zero); Assert.That(state.FindPlayer(1).Score, Is.Zero);
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == dispatch.EffectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Restore(state, registry);
         }
         [Test] public void DispatchDeclineRestoresDeckAndAwardsScoreOnlyOnce()
         {
@@ -256,15 +370,15 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase("Flow.DispatchOperator({apiVersion=1,player=ctx.playerId,drawCount=3,excludedReturnItemIds={}})", OperatorDispatchFlow.TypeId)]
         [TestCase("Flow.ReplaceHandWithOperator({apiVersion=1,player=ctx.playerId})", OperatorDispatchFlow.ReplaceTypeId)]
         [TestCase("Effect.SetCharacterDoubleUseRule({apiVersion=1,player=ctx.playerId,scope='action_round',expiresActionRoundSequence=1})", LuaDomainEffectTypeIds.SetCharacterDoubleUseRule)]
-        [TestCase("Effect.TransferCharacterCard({apiVersion=1,player=ctx.playerId,cardInstanceId='card',recipientPlayer='2'})", CharacterLifecycleService.TransferTypeId)]
-        [TestCase("Effect.CoverCharacterCard({apiVersion=2,player=ctx.playerId,cardInstanceId='card',coverMode='additional',blockedActionRoundSequence=1})", CharacterCoverEffectExecutor.EffectTypeId)]
+        [TestCase("Effect.MoveCharacterCard({apiVersion=2,player=ctx.playerId,itemRefs={{itemId='card'}},expectedSource={zoneId='source'},destination={zoneId='target'},insertion={kind='unordered'},operationProfileId='core.character_card_transfer',requiredCount=1})", LuaDomainEffectTypeIds.MoveCharacterCard)]
+        [TestCase("Effect.CoverCharacterCard({apiVersion=3,player=ctx.playerId,cardInstanceId='card',coverMode='additional',acceptedTypeId='core.character_card',reusable=false,blockedActionRoundSequence=1})", CharacterCoverEffectExecutor.EffectTypeId)]
         public void LuaConstructorsCompileToUniqueProductionRegistrations(string expression, string type)
         {
             string source = "return function(ctx) return {" + expression + "} end"; var script = new LuaScriptDefinition("content.character", "ability.character", "handler.character", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("event.character", "test.event", "1", 0, "1.0.0", 2, 0, 0)); Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic); Assert.That(specs.Single().EffectTypeId, Is.EqualTo(type));
             var registry = Registry(); CharacterLifecycleService.Register(registry); Assert.That(registry.Get(type).DefinitionVersion,
-                Is.EqualTo(type == CharacterLifecycleService.TransferTypeId || type == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.DefinitionVersion : "v1"));
+                Is.EqualTo(type == LuaDomainEffectTypeIds.MoveCharacterCard ? CharacterCardMovement.DefinitionVersion : type == CharacterCoverEffectExecutor.EffectTypeId ? CharacterCoverEffectExecutor.SharedCoverDefinitionVersion : type == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.DefinitionVersion : "v1"));
         }
         [TestCase("drawCount=4")][TestCase("seed=11")][TestCase("player='2'")]
         public void DispatchCannotAcceptWrongCountRandomnessOrExecutingPlayer(string extra)
@@ -328,7 +442,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             // 复验前来源被另一个合法业务转交，消费子式必须拒绝并恢复单发请求。
             for (int step = 0; step < 100 && !state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == CharacterLifecycleService.ConsumeSourceTypeId); step++) Assert.That(engine.Advance(), Is.True);
             var consume = state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == CharacterLifecycleService.ConsumeSourceTypeId);
-            engine.CreateChild(consume.EffectId, EffectSpec.Create(CharacterLifecycleService.TransferTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "cardInstanceId", NormalizedValue.CreateString(cards[0]), "recipientPlayer", NormalizedValue.CreateString("2")), 1));
+            engine.CreateChild(consume.EffectId, CharacterCardMovement.Create(state, 1, cards[0], FindZone(state, "hand", 2).ZoneId));
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False); Assert.That(state.CharacterUses.Last().SourceConsumed, Is.False); Assert.That(state.CharacterUses.Last().DoubleUseGranted, Is.False); Assert.That(Ids(state, "hand", 2), Does.Contain(cards[0])); Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "strategy", "tactic" }));
             AnswerRequest(state, registry, "strategy"); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(5)); Assert.That(state.CharacterUses.Last().CompletedModes, Is.EqualTo(new[] { "strategy" }));
         }

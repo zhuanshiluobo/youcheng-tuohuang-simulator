@@ -1,8 +1,8 @@
 {
-  "date": "2026-10-24",
+  "date": "2026-11-01",
   "packages": 24,
   "sourceMembers": 4008,
-  "allowedSourceImageMembers": 1894,
+  "allowedSourceImageMembers": 1893,
   "uniqueFiles": 1396,
   "sourceReadPolicy": "后续未经用户明确授权不得读取原档案",
   "notSelectedCounts": {
@@ -16,30 +16,35 @@
     "生成原料、旧皮肤与参考图；不是缺失素材替代品": 11,
     "顶栏及撤销对应语义已有指定新版图标": 3,
     "企业家演示原画未核准为当前正式来源": 6,
-    "预览、示例或生产原料不得作为运行时替代图": 165,
+    "预览、示例或生产原料不得作为运行时替代图": 164,
     "独立历史顶栏不进入当前可用库": 11,
     "3.5干净底图替换白角旧底图": 1,
     "3.5细框替代": 2,
     "底栏撤销外观已在3.2十一按钮范围": 2,
     "底栏撤销图标已在3.2十一按钮范围": 2,
     "当前普通窗口采用module-frame；3.1 outer-frame旧窗口默认期望失效，仅旧备用模板尚有引用，不能据此保留为候选": 1,
+    "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选": 6,
     "3.1现用红区分组是redzone-plaque": 1,
     "3.0兼容图不得作为现用图": 1,
     "建设按钮各状态当前统一使用项目action-build.png，原版build三色及各分辨率不再作为候选": 6,
     "部署按钮各状态当前统一使用项目action-deploy.png，原版deploy三色及各分辨率不再作为候选": 6,
-    "旧选项外壳已迁移；CardPicker 专用许可不能外推": 3,
+    "旧选项外壳已迁移；CardPicker 专用许可不能外推": 2,
     "旧框/底/标题已明示映射Frontier": 36,
     "旧主次按钮换肤已明确": 28,
     "旧皮肤/生产原料": 24,
-    "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并": 7,
+    "旧主次图在本窗口不可覆盖Frontier；可与CardPicker许可哈希合并": 4,
     "用户已明确删除城市样式锁图标；其他窗口许可另列": 1,
     "1.1是完整独立包，当前只提供最新布局与其皮肤": 308
   },
   "currentStandards": "清单/当前用途标准.json",
   "initialDate": "2026-10-08",
   "latestIncrement": {
-    "projectSource": "G:\\NoMadCity\\游城拓荒\\感染者扩\\httpssteamusercontentaakamaihdnetugc2411202693614576918BFE11BD2F41D145B50F2DE32A0FACEFE29542B4C.png",
+    "source": "游城拓荒/UI素材/botton-secondary-v2.0.png",
     "newFiles": 1,
-    "basis": "2026-10-24 用户129单张PNG精确地图许可；ZIP包数及成员数不变"
+    "removedFiles": 1,
+    "basis": "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
+    "standard": "P01",
+    "zipPackageCountUnchanged": true,
+    "sourceMemberCountUnchanged": true
   }
 }

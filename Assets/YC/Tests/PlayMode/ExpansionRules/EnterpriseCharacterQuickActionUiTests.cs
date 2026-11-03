@@ -286,7 +286,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
             use = f.State.CharacterUses.Single(u => u.UseId == use.UseId);
             Assert.That(use.ModeOrder, Does.Contain(mode));
             string upgradedEnterprise = null;
-            bool secondChoiceSeen = false;
+            bool secondModeRestored = false;
+            // 当前协议3按本次建立时的先手／真实阿米娅来源自动接续，不再征集第二模式值菜单。
+            bool expectSecondMode = withAmiya || before.StartPlayerId == playerId;
 
             for (var step = 0; step < 48 && (!use.Finished || f.Request != null); step++)
             {
@@ -294,19 +296,15 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 var request = f.Request;
                 Assert.That(request, Is.Not.Null, "角色未结束但没有可回答请求，必须保留故障现场");
                 Assert.That(request.CandidateIds, Is.Not.Empty, request.InteractionTypeId + "没有真实合法候选");
-                if (request.InteractionTypeId == CharacterLifecycleService.SecondModeInteractionTypeId)
+                Assert.That(request.InteractionTypeId, Is.Not.EqualTo(CharacterLifecycleService.SecondModeInteractionTypeId),
+                    "协议3不得重新生成旧继续／结束列表");
+                if (bothModes && !withAmiya && !secondModeRestored && use.CompletedModes.Contains(mode) && use.ModeOrder.Count == 2)
                 {
-                    Assert.That(secondChoiceSeen, Is.False, "同次使用重复征集第二模式");
-                    secondChoiceSeen = true;
-                    Assert.That(use.CompletedModes, Is.EqualTo(new[] { mode }));
-                    Assert.That(use.ModeOrder, Is.EqualTo(new[] { mode }));
-                    Assert.That(use.Finished, Is.False);
-                    Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == card.ItemId).ZoneId,
-                        Is.EqualTo(before.ItemZones.Items.Single(i => i.ItemId == card.ItemId).ZoneId));
-                    if (bothModes) yield return EffectTargetUiAcceptance.Restore(f, effects, "首技能完成待第二选择");
-                    yield return ChooseCharacterOption(bothModes ? (mode == "strategy" ? "tactic" : "strategy") : CharacterLifecycleService.FinishChoiceId);
+                    yield return EffectTargetUiAcceptance.Restore(f, effects, "第一模式完成后的真实第二模式待答");
+                    secondModeRestored = true;
                     use = f.State.CharacterUses.Single(u => u.UseId == use.UseId);
-                    continue;
+                    request = f.Request;
+                    Assert.That(request, Is.Not.Null);
                 }
                 if (request.InteractionTypeId == "enterprise.upgrade" || request.InteractionTypeId == "enterprise.special")
                 {
@@ -356,13 +354,23 @@ namespace YC.Tests.PlayMode.ExpansionRules
             }
             // SourceConsumed指授予双模式的来源已消耗，普通角色弃置以实际区域及完成目的地核验。
             Assert.That(use.Finished, Is.True);
-            var expectedModes = bothModes ? new[] { mode, mode == "strategy" ? "tactic" : "strategy" } : new[] { mode };
+            var expectedModes = expectSecondMode ? new[] { mode, mode == "strategy" ? "tactic" : "strategy" } : new[] { mode };
             Assert.That(use.CompletedModes, Is.EqualTo(expectedModes));
             Assert.That(use.ModeOrder, Is.EqualTo(expectedModes));
-            if (bothModes && !withAmiya) Assert.That(secondChoiceSeen, Is.True, "先手逐次双发没有经过正式第二选择");
+            Assert.That(f.State.EffectRuntime.InteractionRequests.Any(r =>
+                r.OwnerEffectId == use.OwnerEffectId && r.InteractionTypeId == CharacterLifecycleService.SecondModeInteractionTypeId), Is.False);
+            if (bothModes && !withAmiya)
+            {
+                if (!secondModeRestored)
+                {
+                    yield return EffectTargetUiAcceptance.Restore(f, effects, "双模式完成后恢复；本局第二模式没有待答停点");
+                    use = f.State.CharacterUses.Single(u => u.UseId == use.UseId);
+                }
+                f.Record("自动第二模式恢复范围", new { use.UseId, PendingSecondModeRestored = secondModeRestored,
+                    CompletedStateOnly = !secondModeRestored, note = "无自然待答只记完成态，不计执行中恢复覆盖" });
+            }
             if (withAmiya)
             {
-                Assert.That(secondChoiceSeen, Is.False, "阿米娅顺序授权不应重新征集第二模式");
                 Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == CharacterLifecycleService.ConsumeSourceTypeId &&
                     Text(n.NormalizedArguments, "sourceItemId") == amiyaSource), Is.EqualTo(1));
             }
@@ -582,7 +590,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
         private void CheckUnusedContext(CharacterUseRuntimeState use)
         {
-            Assert.That(use.SelectionProtocolVersion, Is.EqualTo(2));
+            Assert.That(use.SelectionProtocolVersion, Is.EqualTo(3));
             Assert.That(use.Finished || use.SelectionCancelled || use.SourceConsumed, Is.False);
             Assert.That(use.ModeOrder, Is.Empty); Assert.That(use.CompletedModes, Is.Empty);
             Assert.That(use.Modes.Any(m => m.Activated), Is.False);
@@ -607,22 +615,10 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(request, Is.Not.Null);
             Assert.That(request.CandidateIds, Does.Contain(id));
             Assert.That(request.AnsweringPlayerId, Is.EqualTo((int)Read(f.Gameplay, "localPlayerId")));
-            if (request.InteractionTypeId == CharacterLifecycleService.SecondModeInteractionTypeId)
-            {
-                yield return Wait(() => Active("EffectDialogOptionRowView").Any(), "原继续／结束页面未显示");
-                var target = HotseatUiInputDriver.Marker("action.character." + id);
-                var button = target.GetComponent<Button>(); Assert.That(button, Is.Not.Null);
-                remember?.Invoke(button.onClick);
-                var beforeCount = observed.Count;
-                yield return f.Capture("原继续结束页_" + id, target.GetComponentInParent(T("EffectDialogShellView")));
-                yield return f.Click(target, "原继续结束页回答 " + id);
-                Assert.That(observed.Count, Is.EqualTo(beforeCount + 1));
-                Assert.That(observed.Last().Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
-                Assert.That(observed.Last().OptionIds, Is.EqualTo(new[] { id }));
-                Assert.That(observed.Last().Parameters[AnswerInteractionCommandHandler.InteractionIdParameter], Is.EqualTo(request.GetStableInteractionId()));
-                yield break;
-            }
-            if (request.InteractionTypeId == CharacterLifecycleService.ModeInteractionTypeId)
+            Assert.That(request.InteractionTypeId, Is.Not.EqualTo(CharacterLifecycleService.SecondModeInteractionTypeId),
+                "当前模式助手不支持旧继续／结束值菜单");
+            if (request.InteractionTypeId == CharacterLifecycleService.ModeInteractionTypeId ||
+                request.InteractionTypeId == CharacterLifecycleService.OrderInteractionTypeId)
             {
                 Component viewer = null;
                 yield return Wait(() => (viewer = Active("CardViewer").SingleOrDefault(v => Read(v, "Mode").ToString() == "UseCharacter")) != null,
@@ -630,7 +626,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 var use = f.State.CharacterUses.Single(u => !u.Finished && u.ExecutingPlayerId == request.AnsweringPlayerId);
                 var definition = f.State.ItemZones.Items.Single(i => i.ItemId == use.CardInstanceId).DefinitionId;
                 CheckViewer(viewer, use.CardInstanceId, definition);
-                var button = (Button)Read(viewer, id == CharacterLifecycleService.CancelChoiceId ? "CancelButton" : id == "tactic" ? "PlotButton" : "StrategyButton");
+                var selectedMode = id == "strategy-first" ? "strategy" : id == "tactic-first" ? "tactic" : id;
+                Assert.That(selectedMode, Is.EqualTo(CharacterLifecycleService.CancelChoiceId).Or.EqualTo("strategy").Or.EqualTo("tactic"));
+                var button = (Button)Read(viewer, selectedMode == CharacterLifecycleService.CancelChoiceId ? "CancelButton" : selectedMode == "tactic" ? "PlotButton" : "StrategyButton");
                 remember?.Invoke(button.onClick);
                 var beforeCount = observed.Count;
                 yield return f.Capture("原角色卡面_权威候选_" + id, viewer);
@@ -642,27 +640,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 Assert.That(accepted.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter], Is.EqualTo(request.GetStableInteractionId()));
                 yield break;
             }
-            var index = request.CandidateIds.IndexOf(id);
-            Component row = null;
-            yield return Wait(() => (row = Active("EffectDialogOptionRowView").SingleOrDefault(r => r.name == "Character Effect Option " + index)) != null,
-                "角色权威候选未绑定实际行：" + id);
-            var count = observed.Count;
-            yield return f.Click(ButtonObject(row, "Button"), "选择角色候选 " + id);
-            Assert.That(observed.Count, Is.EqualTo(count), "本地候选选择不应提前提交");
-            var selected = (IEnumerable)Read(Read(f.Gameplay, "characterAbilityInteraction"), "selectedCandidates");
-            Assert.That(selected.Cast<string>(), Is.EquivalentTo(new[] { id }), "页面候选顺序与协议映射不一致");
-            // 选择触发自然刷新，重新解析当前壳和固定确认槽。
-            var shell = Active("EffectDialogShellView").Single(s => s.GetComponentsInChildren<Button>()
-                .Any(b => b.name == "Confirm Selection" || b.transform.parent.name == "Confirm Selection"));
-            var confirm = shell.GetComponentsInChildren<Button>().Single(b => b.name == "Confirm Selection" || b.transform.parent.name == "Confirm Selection");
-            remember?.Invoke(confirm.onClick);
-            yield return f.Capture("角色权威候选_" + id, shell);
-            yield return f.Click(confirm.gameObject, "确认角色候选 " + id);
-            Assert.That(observed.Count, Is.EqualTo(count + 1));
-            var command = observed.Last();
-            Assert.That(command.Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
-            Assert.That(command.OptionIds, Is.EqualTo(new[] { id }));
-            Assert.That(command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter], Is.EqualTo(request.GetStableInteractionId()));
+            Assert.Fail("角色模式必须使用当前CardViewer，未识别合同不能回退普通行：" + request.InteractionTypeId);
         }
 
         private void CheckViewer(Component viewer, string id, string definition)

@@ -150,6 +150,19 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InteractionRequests.Where(q => q.Status == "open"), Is.Empty);
         }
 
+        [TestCase(",subjectFilter='opponent'")]
+        [TestCase(",excludedSubjectKeys={'player:1'}")]
+        public void StrictLuaFiltersSurviveCompilationAndRecoveryAndProtectTheWholeBatch(string filter)
+        {
+            var ids = new[] { Place(0), Place(1) };
+            string domain = DomainSignature(); var counts = DepartureCounts();
+            var spec = Compile(Invoke(ids, extra: filter));
+            var args = spec.NestedEffectGroups[0][0].NormalizedArguments;
+            Assert.That(Value(args, filter.Contains("subjectFilter") ? "subjectFilter" : "excludedSubjectKeys"), Is.Not.Null);
+            Engine().CreateRoot(spec); Pump(); Restore("严格筛选确认前"); Answer("continue");
+            AssertZeroFailure(domain, counts);
+        }
+
         [TestCase(0, false)][TestCase(0, true)][TestCase(1, false)][TestCase(1, true)]
         public void RealShortListReachesConditionAndFailsWithoutRemovingAnything(int count, bool restoreBeforeContinue)
         {
@@ -226,7 +239,17 @@ namespace YC.Tests.EditMode.ExpansionRules
             BeginCondition(targets); Answer("continue");
             Assert.That(state.Map.Influences, Is.Empty);
             Assert.That(StrictNode().Status, Is.EqualTo(EffectNodeStatus.Blocked));
-            Assert.That(StrictNode().PositionChanges.Count, Is.EqualTo(2));
+            // 无去向认领时 FlushDepartureResponses 会先返供。位置日志包含离场和返供，不能用总条数代替移除枚数。
+            var departures = state.EffectRuntime.InfluenceDepartures.Where(d => d.SourceEffectId == StrictNode().EffectId).ToList();
+            Assert.That(departures.Select(d => d.ItemId), Is.EquivalentTo(targets));
+            foreach (var departure in departures)
+            {
+                var trace = StrictNode().PositionChanges.Where(change => change.ItemId == departure.ItemId).ToList();
+                Assert.That(trace.Count(change => change.From.ZoneId == departure.OriginalPosition.ZoneId &&
+                    change.From.SlotId == departure.OriginalPosition.SlotId), Is.EqualTo(1));
+                Assert.That(trace.Count(change => change.To.ZoneId == departure.OriginalSupplyZoneId), Is.EqualTo(1));
+                Assert.That(departure.Status, Is.EqualTo("returned"));
+            }
             Assert.That(DepartureCounts()[0], Is.EqualTo(2)); Assert.That(state.FindPlayer(1).Score, Is.Zero);
             Restore("两枚提交完成但必要响应待答"); Answer("ack");
             Assert.That(state.FindPlayer(1).Score, Is.Zero); Restore("第一必要响应结束"); Answer("ack");

@@ -98,7 +98,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(refill, Is.Not.EqualTo(original));
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == original).ZoneId, Is.EqualTo(retired));
             var transfer = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId &&
-                Value(n.NormalizedArguments, "itemRefs").Items.Any(item => Text(item, "itemId") == original));
+                n.ContinuationAbilityId == "operator.eunectes.tactic" && Text(n.ContinuationContext,"stage") == "moved" &&
+                Value(Value(n.NormalizedArguments,"selector"),"itemIds")?.Items.Any(item => item.StringValue == original) == true);
+            Assert.That(Number(transfer.NormalizedArguments,"apiVersion"),Is.EqualTo(4));
             Assert.That(transfer.Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(Value(transfer.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue), Is.EqualTo(new[] { original }));
             var refillNode = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ItemTransferEffectExecutor.RefillTypeId &&
@@ -200,6 +202,14 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         [Test] public void PassengerRealLuaUsesOpponentThenResourceThenQuantityAndKeepsBothScores()
         {
+            BeginPassengerResourceFixture(3);
+            Assert.That(Open().CandidateIds, Is.EqualTo(new[] { "player:2" })); Answer("player:2");
+            Assert.That(Open().CandidateIds, Is.EqualTo(new[] { "originium", "originium-shard", "iron" })); Answer("iron");
+            Assert.That(Open().AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema)); Answer("0");
+            Assert.That(state.Players.Select(p => p.Score), Is.EqualTo(new[] { 1, 1 })); Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(3));
+        }
+        private void BeginPassengerResourceFixture(int stock)
+        {
             const string ability = "operator.passenger.strategy";
             var map = StaticMapDefinitions.CreateThreePlayerMap();
             var configuration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2,
@@ -223,15 +233,54 @@ namespace YC.Tests.EditMode.ExpansionRules
                 RuleConfiguration = configuration,
                 ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList(), Facilities = pack.CreateFacilities().ToList() },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Resources = new ResourceSet { Originium = 4 } },
-                    new PlayerState { PlayerId = 2, Resources = new ResourceSet { Iron = 3 } } }
+                    new PlayerState { PlayerId = 2, Resources = new ResourceSet { Iron = stock } } }
             }, map, Array.Empty<ItemRecipeEntry>());
             registry.Register(new EffectRegistration("test.passenger", c => EffectStepResult.Completed().AddEvent(new EffectEventRequest
                 { EventType = CharacterAbilityEffectExecutor.CharacterEffectActivatedEventType, RouteKey = ability, PlayerId = 1 })));
             Run(EffectSpec.Create("test.passenger", playerId: 1));
-            Assert.That(Open().CandidateIds, Is.EqualTo(new[] { "player:2" })); Answer("player:2");
-            Assert.That(Open().CandidateIds, Is.EqualTo(new[] { "originium", "originium-shard", "iron" })); Answer("iron");
-            Assert.That(Open().AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema)); Answer("0");
-            Assert.That(state.Players.Select(p => p.Score), Is.EqualTo(new[] { 1, 1 })); Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(3));
+        }
+
+        [TestCase(3, 0)] [TestCase(3, 2)] [TestCase(7, 4)]
+        public void PassengerResourceBranchExecutesItsRealQuantityAndUsesActualLossReceipt(int stock, int amount)
+        {
+            BeginPassengerResourceFixture(stock); Answer("player:2");
+            var resource = Open(); var choice = Engine().GetNode(resource.OwnerEffectId);
+            Assert.That(resource.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(choice.ChildEffectIds, Is.Empty); Assert.That(choice.ContinuationHandlerId, Is.Empty);
+            Assert.That(choice.NestedGroupSizes, Is.EqualTo(new[] { 1, 1, 1 }));
+            Assert.That(choice.NestedEffects.All(e => e.EffectTypeId == LuaDomainEffectTypeIds.Choice), Is.True);
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(stock));
+            var restored = artifacts.Recover(state, "资源真实分支待选", registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State;
+            Answer("iron");
+            var quantity = Open(); Assert.That(quantity.AnswerSchema, Is.EqualTo(ContentPrimitiveEffectExecutor.QuantityAnswerSchema));
+            Assert.That(Number(quantity.PromptParameters, "maxAmount"), Is.EqualTo(Math.Min(stock, 4)));
+            Assert.That(Engine().TrySubmitInteraction(quantity.GetStableInteractionId(), 1, quantity.StateRevision,
+                NormalizedValue.CreateString((Math.Min(stock, 4) + 1).ToString()), out _), Is.False);
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(stock));
+            restored = artifacts.Recover(state, "真实数量待选", registry); Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State;
+            Answer(amount.ToString());
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(stock - amount));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(amount));
+            Assert.That(state.Players.Select(player => player.Score), Is.EqualTo(new[] { 1, 1 }));
+            int nodes = state.EffectRuntime.EffectNodes.Count;
+            restored = artifacts.Recover(state, "实际损失与双方得分已完成", registry); Assert.That(restored.Succeeded, Is.True, restored.Diagnostic); state = restored.State; Drain();
+            Assert.That(state.EffectRuntime.EffectNodes.Count, Is.EqualTo(nodes));
+            Assert.That(state.Players.Select(player => player.Score), Is.EqualTo(new[] { 1, 1 }));
+        }
+
+        [Test]
+        public void PassengerQuantityReadsStockWhenItsResourceBranchActuallyStarts()
+        {
+            BeginPassengerResourceFixture(7); Answer("player:2");
+            // 隔离时序探针；正常流程不注入资源。资源候选出现后、数量子效果开始前改变真实库存。
+            state.FindPlayer(2).Resources.Iron = 1;
+            Answer("iron");
+            Assert.That(Number(Open().PromptParameters, "maxAmount"), Is.EqualTo(1));
+            Answer("1");
+            Assert.That(state.FindPlayer(2).Resources.Iron, Is.Zero);
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(state.Players.Select(player => player.Score), Is.EqualTo(new[] { 1, 1 }));
         }
     }
 }

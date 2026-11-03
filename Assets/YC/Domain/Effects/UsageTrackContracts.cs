@@ -17,6 +17,7 @@ namespace YC.Domain.Effects
     }
     [Serializable] public sealed class UsageTrackBinding
     {
+        // MarkerItemId/ZoneId仅记录初始化凭证；当前成员由UsageTracks.CurrentMarker按实际逻辑区域读取。
         public int ProtocolVersion = 1, PlayerId = -1, InitializedRoundNumber;
         public string BindingId = "", SourceItemId = "", TrackId = "", DefinitionVersion = "", AuthorizationRef = "", ZoneId = "", MarkerItemId = "", InitializationReceiptId = "", InitializationEffectId = "";
     }
@@ -35,6 +36,7 @@ namespace YC.Domain.Effects
     [Serializable] public sealed class UsageTrackView
     {
         public UsageTrackBinding Binding;
+        public string MarkerItemId = "", ZoneId = "";
         public string SlotId = "", DisabledReason = "";
     }
 }

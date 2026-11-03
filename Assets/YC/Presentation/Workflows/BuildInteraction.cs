@@ -26,7 +26,7 @@ namespace YC.Presentation.Workflows
         private string finalMode, finalFacility, finalGame;
         private int finalPlayer, finalRound, finalActionRound;
         private GamePhase finalPhase;
-        private PreparedActionPaymentView finalPreparation;
+        private PreparedActionPaymentView finalPreparation, finalModeChangeExpected;
         private string effectBuildOwner;
         private int presentationBatchDepth;
         private bool presentationPending;
@@ -368,10 +368,12 @@ namespace YC.Presentation.Workflows
                 finalMode = paymentMode; finalFacility = selection.FacilityId; finalGame = context.CurrentState.GameId;
                 finalPlayer = context.LocalPlayerId; finalRound = context.CurrentState.Round;
                 finalActionRound = context.CurrentState.ActionRound; finalPhase = context.CurrentState.Phase;
-                finalPreparation = null;
+                finalPreparation = null; finalModeChangeExpected = null;
                 if (paymentPreparation.Current?.TargetId == selection.FacilityId)
                 {
-                    // 同一次Build改方式沿同一Payment；Host推进代数并要求重新选择失效来源。
+                    // API-12／4.5.2：只保留当前点击预期的同一付款身份及下一代，跨查看者不重建意图。
+                    finalModeChangeExpected = GameStateCloneService.DeepClone(paymentPreparation.Current);
+                    finalModeChangeExpected.PaymentGeneration++;
                     if (!paymentPreparation.ChangePaymentMode(paymentMode)) ClearFinalPaymentIntent();
                     return false;
                 }
@@ -405,8 +407,10 @@ namespace YC.Presentation.Workflows
             using var presentation = DeferEffectBuildPresentation();
             using var latency = InteractionLatencyTrace.Begin("build.payment_changed");
             if (!paymentPreparation.LastResolvedApplied) { ClearFinalPaymentIntent(); view.RefreshFromState(); PresentDraft(); return; }
-            if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build" || paymentPreparation.LastResolvedOperation == "change_payment_mode") && !string.IsNullOrEmpty(finalMode))
+            if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build") && !string.IsNullOrEmpty(finalMode))
                 finalPreparation = paymentPreparation.Current;
+            if (paymentPreparation.LastResolvedOperation == "change_payment_mode" && finalModeChangeExpected != null &&
+                ActionPaymentPreparation.SameIdentity(finalModeChangeExpected, paymentPreparation.Current)) finalPreparation = paymentPreparation.Current;
             view.RefreshFromState(); PresentDraft();
             ContinueFinalPaymentIntent();
         }
@@ -421,6 +425,9 @@ namespace YC.Presentation.Workflows
                 paymentPreparation.LastResolvedOperation == "prepare_effect_build" && current.TargetId == finalFacility &&
                 current.PaymentMode == finalMode && current.SelectionOwnerEffectId == effectBuildOwner &&
                 current.SelectionInteractionId == paymentPreparation.LastPreparedSelectionInteractionId) finalPreparation = current;
+            if (IsEffectBuild && finalPreparation == null && finalModeChangeExpected != null && paymentPreparation.LastResolvedApplied &&
+                paymentPreparation.LastResolvedOperation == "change_payment_mode" && current.PaymentMode == finalMode &&
+                ActionPaymentPreparation.SameIdentity(finalModeChangeExpected, current)) finalPreparation = current;
             if (finalPreparation == null) return;
             var mode = finalMode;
             var valid = ActionPaymentPreparation.SameIdentity(finalPreparation, current) && current.PaymentMode == mode && current.TargetId == finalFacility &&
@@ -437,7 +444,7 @@ namespace YC.Presentation.Workflows
                 if (selection.TrySelectPayment(state, mode, out _, true)) Confirm();
             }
         }
-        private void ClearFinalPaymentIntent() { finalMode = finalFacility = finalGame = null; finalPreparation = null; }
+        private void ClearFinalPaymentIntent() { finalMode = finalFacility = finalGame = null; finalPreparation = finalModeChangeExpected = null; }
 
         public void BackToPayment()
         {

@@ -176,7 +176,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 f.State.FindPlayer(1).RemainingMainActionsThisTurn = 3;
                 var result = ExploreHandler(f).Handle(f.State, ExploreCommand("A-01", free ? "" : "A1,A2"));
                 Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
-                var parent = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == ExplorationActionEffectExecutor.TypeId);
+                var parent = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == ExplorationEffectTypeIds.Explore && ExplorationContract.IsV3(n.NormalizedArguments));
                 Assert.That(new RouteSelectionSessionAuthority(f.Map).TryResolveFinalized(f.State, parent.EffectId, out var session, out var commitment).IsValid, Is.True);
                 Assert.That(session.OwnerEffectId, Is.EqualTo(parent.EffectId)); Assert.That(session.Stage, Is.EqualTo(RouteSelectionStage.Committed));
                 var child = f.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == parent.EffectId && n.EffectTypeId == ExplorationEffectTypeIds.Explore);
@@ -206,7 +206,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             int before = f.State.FindPlayer(2).Resources.GoldVoucher;
             var result = handler.Handle(f.State, ExploreCommand("A-01", "A1,A2", "A1=2"));
             Assert.That(result.Succeeded, Is.True, result.Validation.Reason);
-            var parent = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == ExplorationActionEffectExecutor.TypeId);
+            var parent = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == ExplorationEffectTypeIds.Explore && ExplorationContract.IsV3(n.NormalizedArguments));
             Assert.That(new RouteSelectionSessionAuthority(f.Map).TryResolveFinalized(f.State, parent.EffectId, out _, out var commitment).IsValid, Is.True);
             Assert.That(commitment.AcceptedPreview.PaymentPlan.Lines.Single(l => l.RouteId == "A1").ReceiverSubjectKey, Is.EqualTo("player:2"));
             Finish(f); Assert.That(f.State.FindPlayer(2).Resources.GoldVoucher, Is.EqualTo(before + 2));

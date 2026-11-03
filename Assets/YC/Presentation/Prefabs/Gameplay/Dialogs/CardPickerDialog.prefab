@@ -1100,7 +1100,6 @@ MonoBehaviour:
   descriptionDocument: {fileID: 970001}
   optionScroll: {fileID: 7391304533365237656}
   optionContent: {fileID: 8183514403326396472}
-  optionRowTemplate: {fileID: 0}
   resourceRowTemplate: {fileID: 0}
   resourceSummaryText: {fileID: 5827776957097105756}
   actionButtons:

@@ -1,4 +1,4 @@
--- 初始数量由Lua选择；提交后重读真实供应，逐枚交通用token移动校验。
+-- 初始数量由真实效果分支选择；权威移动复验源区、库存和载物权限后足量提交。
 local function initial_marker_inventory(ctx, card)
     local carriers = Global.Content.FindInstances({ id = card })
     if #carriers ~= 1 or carriers[1].controller ~= ctx.playerId then error('initial_marker_carrier_invalid') end
@@ -18,47 +18,24 @@ local function initial_marker_inventory(ctx, card)
 end
 
 local function initial_marker_choice(ctx, card)
-    local stock = initial_marker_inventory(ctx, card)
+    local stock, supply, storage = initial_marker_inventory(ctx, card)
     local maximum = #stock
     if maximum > 2 then maximum = 2 end
     if maximum == 0 then return {} end
-    local ids, options = {}, {}
-    for count = 0, maximum do
-        local id = tostring(count)
-        ids[#ids + 1] = id
-        options[#options + 1] = { candidateId = id, label = count == 0
-            and Text.Ref('core:interaction.lin.initial_markers.none')
-            or Text.Ref('core:interaction.lin.initial_markers.count', { count = count }) }
+    local branches, options = {}, {}
+    for count = 1, maximum do
+        local id, ids = tostring(count), {}
+        for i = 1, count do ids[#ids + 1] = stock[i] end
+        branches[#branches + 1] = { id = id, effects = { Effect.MoveItem({ apiVersion = 3, player = ctx.playerId,
+            itemIds = ids, expectedSource = { zoneId = supply }, destination = { zoneId = storage },
+            insertion = { kind = 'unordered' }, operationProfileId = 'core.cube_storage', requiredCount = count }) } }
+        options[#options + 1] = { candidateId = id, label = Text.Ref('core:interaction.lin.initial_markers.count', { count = count }) }
     end
-    return { Effect.WithContext(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId,
-        options = ids, minSelections = 1, maxSelections = 1, interactionType = 'lua.choice',
+    -- 放弃只取消本次可选存放；每个正数分支都是一笔足量真实转移，不使用空效果或值分派回调。
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        minSelections = 0, maxSelections = 1, interactionType = 'effect.choice.execute',
         promptKey = 'core:interaction.lin.initial_markers.prompt' }),
-        { interaction = { prompt = Text.Ref('core:interaction.lin.initial_markers.prompt', { count = maximum }), options = options } }),
-        { protocol = 1, stage = 'initial_markers_selected', source = card, maximum = maximum }) }
-end
-
-local function initial_markers_selected(ctx, saved)
-    if saved.protocol ~= 1 or type(saved.source) ~= 'string' or saved.source == ''
-        or type(saved.maximum) ~= 'number' or saved.maximum % 1 ~= 0 or saved.maximum < 1 or saved.maximum > 2 then
-        error('initial_marker_context_invalid')
-    end
-    local raw = ctx.payload.normalizedResult
-    local count = type(raw) == 'string' and tonumber(raw) or nil
-    if count == nil or count % 1 ~= 0 or count < 0 or count > saved.maximum or tostring(count) ~= raw then
-        error('initial_marker_count_invalid')
-    end
-    local stock, supply, storage = initial_marker_inventory(ctx, saved.source)
-    if count == 0 then return {} end
-    local effects = {}
-    for i = 1, count do
-        local ids = {}
-        if stock[i] ~= nil then ids[1] = stock[i] end
-        -- 缺少实例时保留空列表，让这一枚移动失败；不虚构ID或撤回其它移动。
-        effects[#effects + 1] = Effect.MoveItem({ apiVersion = 3, player = ctx.playerId, itemIds = ids,
-            expectedSource = { zoneId = supply }, destination = { zoneId = storage },
-            insertion = { kind = 'unordered' }, operationProfileId = 'core.cube_storage', requiredCount = 1 })
-    end
-    return effects
+        { interaction = { prompt = Text.Ref('core:interaction.lin.initial_markers.prompt', { count = maximum }), options = options } }) }
 end
 
 -- 规则阶段只存在权威Effect续接元数据中；不保留Lua VM或UI草稿。
@@ -96,16 +73,16 @@ end
 
 return function(ctx)
     local c = state(ctx); if c == nil then return {} end
-    if c.stage == 'initial_markers_selected' then return initial_markers_selected(ctx, c) end
     if c.stage == 'start' and ctx.eventType ~= 'PlayerCleanupStarted' then
         return initial_marker_choice(ctx, c.source)
     end
-    if c.stage == 'marker_selected' then
-        local id = ctx.payload.normalizedResult; if id == nil then return {} end
-        return { tag(Effect.ReturnPlayerMarker({ apiVersion = 1, player = ctx.playerId, cardItemId = c.source,
-            markerItemId = id, localZoneId = 'markers' }), c, 'marker_returned') }
-    elseif c.stage == 'marker_returned' then
+    if c.stage == 'marker_returned' then
         if ctx.payload.outcome ~= 'completed' then return {} end
+        local result = ctx.payload.normalizedResult
+        if type(result) ~= 'table' or result.outcome ~= 'completed' or result.changed ~= true or result.movedCount ~= 1 or
+            type(result.movedItemIds) ~= 'table' or #result.movedItemIds ~= 1 or result.movedItemIds[1] ~= c.returnedMarkerId then
+            error('lin_marker_return_result_invalid')
+        end
         local ids, labels = {}, {}
         for _, player in ipairs(GameData.GetPlayers()) do
             if player.playerId ~= ctx.playerId and PlayerData.GetResources(player).goldVoucher >= 20 then
@@ -128,9 +105,19 @@ return function(ctx)
     elseif c.stage ~= 'start' then return {} end
     local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
     if #storage ~= 1 then error('marker_storage_missing') end
-    local ids, labels = {}, {}
-    for _, item in ipairs(Global.Content.FindInstances({ zoneId = storage[1].id, typeId = 'core.player_marker' })) do
-        ids[#ids + 1] = item.id; labels[item.id] = Text.Ref('core:interaction.marker.owner', { player = Text.Player(item.ownerSubject) })
+    local markers, branches, options = {}, {}, {}
+    for _, item in ipairs(Global.Content.FindInstances({ zoneId = storage[1].id, typeId = 'core.player_marker' })) do markers[#markers + 1] = item end
+    table.sort(markers, function(a, b) return a.id < b.id end)
+    for _, item in ipairs(markers) do
+        local context = copy(c); context.returnedMarkerId = item.id
+        branches[#branches + 1] = { id = item.id, effects = { tag(Effect.MoveItem({ apiVersion = 4, operation = 'transfer', player = ctx.playerId,
+            selector = { mode = 'explicit', itemIds = { item.id }, expectedSource = { zoneId = storage[1].id } },
+            destination = { kind = 'original_supply' }, insertion = { kind = 'unordered' }, requiredCount = 1,
+            operationProfileId = 'core.player_marker_storage', carrierPolicy = 'preserve' }), context, 'marker_returned') } }
+        options[#options + 1] = { candidateId = item.id, label = Text.Ref('core:interaction.marker.owner', { player = Text.Player(item.ownerSubject) }) }
     end
-    return { choose(ctx, c, 'marker_selected', ids, labels, 'core:interaction.marker.return.choose', 0, 'lua.choice') }
+    if #branches == 0 then return {} end
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        minSelections = 0, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = 'core:interaction.marker.return.choose' }),
+        { interaction = { prompt = Text.Ref('core:interaction.marker.return.choose'), options = options } }) }
 end

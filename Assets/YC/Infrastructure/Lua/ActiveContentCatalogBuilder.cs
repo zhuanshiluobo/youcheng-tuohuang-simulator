@@ -227,6 +227,7 @@ namespace YC.Infrastructure.Lua
             fingerprint.Append("\nentrepreneur_selection.").Append(EntrepreneurContent.Version);
             fingerprint.Append("\nsetup.v1|round.mainline.v1|collection.v1|enterprise.v1|character.v1|item_transfer.v1|deck_shuffle.v1");
             fingerprint.Append("|ability_sources.v1|declared_actions.v1|authorized_actions.v1|ability_rule_queries.v1|character_lifecycle.").Append(CharacterLifecycleService.DefinitionVersion);
+            fingerprint.Append("|double_use_source.").Append(CharacterDoubleUseConsumption.DefinitionVersion);
             fingerprint.Append("|typed_influence_supply.1.0.0|player_areas.2|usage_tracks.").Append(UsageTracks.Version).Append("|cube_appearance.").Append(CubeAppearance.Version);
             fingerprint.Append("|ability_action_executor.").Append(AbilityActionExecutor.Version).Append("|character_action_arguments.").Append(CharacterLifecycleService.ActionArgumentProtocolVersion);
             fingerprint.Append('|').Append(AbilityActionExecutor.CostReceiptPolicyVersion).Append('|').Append(ResourcePaymentSourceService.TokenCostContractVersion);
@@ -241,6 +242,18 @@ namespace YC.Infrastructure.Lua
             fingerprint.Append('|').Append(ResourcePaymentDraftHost.SourceQueryVersion).Append(".protocol.").Append(ResourcePaymentDraftHost.SourceQueryProtocolVersion.ToString(CultureInfo.InvariantCulture))
                 .Append(".page_size.").Append(ResourcePaymentDraftHost.SourceQueryItemPageSize.ToString(CultureInfo.InvariantCulture));
             fingerprint.Append("|retired_card_load.v1|").Append(ItemTransferEffectExecutor.IndependentItemFailurePolicyVersion);
+            fingerprint.Append('|').Append(InfluenceSelectionFlow.ProtocolVersion);
+            fingerprint.Append('|').Append(FacilityBuildContract.Version).Append('|').Append(ExplorationContract.Version);
+            fingerprint.Append("|immediate_main_action.").Append(GenericLuaEffectExecutor.ImmediateMainActionVersion)
+                .Append("|immediate_special.").Append(ImmediateSpecialActionFlow.Version)
+                .Append("|").Append(ImmediateSpecialActionFlow.ResponseChildSelectionVersion).Append("|").Append(ImmediateSpecialActionFlow.EmptyArgumentsVersion)
+                .Append("|ordinary_special_choice.").Append(OrdinarySpecialActionChoice.Version)
+                .Append("|payment_insertion.").Append(ResourcePaymentInsertionService.Version).Append("|payment_insertion_pick.").Append(ResourcePaymentInsertionService.PickItemVersion)
+                .Append("|").Append(ResourcePaymentInsertionService.ItemSelectionRecoveryVersion)
+                .Append("|transfer_count.").Append(TransferCountChoiceFlow.Version).Append("|").Append(TransferCountChoiceFlow.MovementProofVersion).Append("|").Append(TransferCountChoiceFlow.DeclineContractVersion)
+                .Append("|carrier_pair_choice.").Append(CarrierTokenPairReturnChoice.Version);
+            fingerprint.Append('|').Append(CharacterCardMovement.Version);
+            fingerprint.Append('|').Append(LuaQuerySnapshotBuilder.HandDestinationMetadataVersion);
             fingerprint.Append('|').Append(InfluenceDepartureProtocol.BatchFactsVersion).Append('|').Append(AbilitySourceService.SubscriptionLinkVersion);
             fingerprint.Append("|cleanup_sources.").Append(CleanupSourceService.Version).Append('|').Append(CleanupSourceService.RequestPolicy).Append("|cleanup_entry.1|cleanup_invocation.1");
             fingerprint.Append("|collection_plan.schema.").Append(YC.Domain.Harvest.CollectionPlanService.ProtocolVersion.ToString(CultureInfo.InvariantCulture)).Append(".executor.").Append(YC.Domain.Harvest.CollectionPlanService.Version);
@@ -319,7 +332,10 @@ namespace YC.Infrastructure.Lua
                         definition.AbilityHandlers.Any(h => h.HandlerId == s.HandlerRef && !string.IsNullOrWhiteSpace(pack.GetScript(h.Script))))) continue;
                 if (definition.Abilities.Count == 0 || definition.ContentType == "character" &&
                     (!definition.Abilities.Any(a => a.Mode == "strategy") || !definition.Abilities.Any(a => a.Mode == "tactic")) ||
-                    definition.Abilities.Any(a => string.IsNullOrWhiteSpace(a.Script) || !System.Text.RegularExpressions.Regex.IsMatch(pack.GetScript(a.Script), @"\b(Effect|Flow)\s*\.\s*\w+\s*\(")))
+                    definition.Abilities.Any(a => string.IsNullOrWhiteSpace(a.Script) ||
+                        !System.Text.RegularExpressions.Regex.IsMatch(pack.GetScript(a.Script), @"\b(Effect|Flow)\s*\.\s*\w+\s*\(") &&
+                        !(a.SkillType == "persistent" && System.Text.RegularExpressions.Regex.IsMatch(pack.GetScript(a.Script),
+                            @"\A\s*return\s+function\s*\(\s*\w*\s*\)\s*return\s*\{\s*\}\s*end\s*\z"))))
                     throw new InvalidOperationException("content_not_ready");
             }
         }

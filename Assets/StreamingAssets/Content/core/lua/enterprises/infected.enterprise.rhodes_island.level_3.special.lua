@@ -31,6 +31,18 @@ local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
         { interaction = { prompt = Text.Ref(prompt), options = options } }), context, stage)
 end
 
+local function move(ctx, id, destination, reveal)
+    local item = Global.Content.GetInstance(id)
+    if item == nil then error('character_move_source_missing') end
+    return Effect.MoveCharacterCard({ apiVersion = 2, player = ctx.playerId, itemRefs = {{ itemId = id }},
+        expectedSource = { zoneId = item.zoneId, slotId = item.slotId }, destination = { zoneId = destination },
+        insertion = { kind = 'unordered' }, operationProfileId = 'core.character_card_transfer', requiredCount = 1, reveal = reveal == true })
+end
+local function moved(ctx, id)
+    local result = ctx.payload.normalizedResult
+    return ctx.payload.outcome == 'completed' and type(result) == 'table' and result.changed == true and result.movedCount == 1
+        and type(result.movedItemIds) == 'table' and #result.movedItemIds == 1 and result.movedItemIds[1] == id
+end
 return function(ctx)
     local c=state(ctx);if c==nil then return {} end
     if c.stage=='start' then
@@ -44,15 +56,15 @@ return function(ctx)
             {interaction={prompt=Text.Ref('core:condition.infected.enterprise.rhodes_island.level_3.special')}})}
     elseif c.stage=='selected' then
         c.recovered=ctx.payload.normalizedResult;c.others={};c.index=1
-        return {tag(Effect.MoveCharacterCardToZone({apiVersion=1,player=ctx.playerId,cardItemId=c.recovered,reveal=true,destinationZoneId=zone('hand',ctx.playerId)}),c,'recovered')}
+        return {tag(move(ctx,c.recovered,zone('hand',ctx.playerId),true),c,'recovered')}
     elseif c.stage=='recovered' or c.stage=='discarded' then
-        if ctx.payload.outcome~='completed' then return {} end
+        if not moved(ctx,c.stage=='recovered' and c.recovered or c.others[c.index-1]) then return {} end
         if c.stage=='recovered' then
             for _,id in ipairs(PlayerData.GetHand(ctx.playerId)) do if id~=c.recovered then c.others[#c.others+1]=id end end
         end
         if c.index>#c.others then return {} end
         local id=c.others[c.index];c.index=c.index+1
-        return {tag(Effect.MoveCharacterCardToZone({apiVersion=1,player=ctx.playerId,cardItemId=id,reveal=true,destinationZoneId=zone('discard',ctx.playerId)}),c,'discarded')}
+        return {tag(move(ctx,id,zone('discard',ctx.playerId),true),c,'discarded')}
     end
     return {}
 end

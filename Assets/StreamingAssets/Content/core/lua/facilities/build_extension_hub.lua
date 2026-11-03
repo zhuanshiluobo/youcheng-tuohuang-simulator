@@ -1,3 +1,3 @@
 return function(ctx)
-    return { Effect.ChooseBuild({ player = ctx.playerId, sourceZone = 'reserve', effectId = 'reserve_extension_hub' }) }
+    return { Effect.Build({ apiVersion=3, targetMode='select', player = ctx.playerId, sourceKind = 'reserve', effectId = 'reserve_extension_hub' , paymentMode='free' , consumeMainAction=false , allowDecline=true }) }
 end

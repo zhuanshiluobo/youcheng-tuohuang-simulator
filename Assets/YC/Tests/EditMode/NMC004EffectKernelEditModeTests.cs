@@ -8,6 +8,36 @@ namespace YC.Tests.EditMode
 {
     public sealed class NMC004EffectKernelEditModeTests
     {
+        [Test]
+        public void StepBudgetBoundsEachRunWhileHistoricalCommitsRemainCumulative()
+        {
+            var state = new GameState { GameId = "isolated.step-budget" };
+            var registry = new EffectRegistry(); registry.Register("test.finished", _ => EffectStepResult.Completed());
+            var limits = new EffectRuntimeLimits(8, 8, 100, 100, 100);
+            for (int i = 0; i < 6; i++)
+            {
+                state = GameStateCloneService.DeepClone(state);
+                var engine = new EffectTreeExecutor(state, registry, limits);
+                string id = engine.CreateRoot(EffectSpec.Create("test.finished"));
+                var run = engine.RunUntilQuiescent();
+                Assert.That(run.Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(id).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            }
+            Assert.That(state.EffectRuntime.StepCount, Is.GreaterThan(limits.MaxSteps));
+        }
+
+        [Test]
+        public void ExplicitRunBudgetCannotExceedConfiguredLimit()
+        {
+            var state = new GameState { GameId = "isolated.run-budget" };
+            var registry = new EffectRegistry(); registry.Register("test.loop", _ => EffectStepResult.Completed().AddChild(EffectSpec.Create("test.loop")));
+            var engine = new EffectTreeExecutor(state, registry, new EffectRuntimeLimits(2, 64, 100, 100, 100));
+            engine.CreateRoot(EffectSpec.Create("test.loop"));
+            var run = engine.RunUntilQuiescent(int.MaxValue);
+            Assert.That(run.Faulted, Is.True); Assert.That(run.Steps, Is.EqualTo(2));
+            Assert.That(state.EffectRuntime.LastFaultCode, Is.EqualTo(EffectFaultCodes.StepLimitExceeded));
+        }
+
         [TestCase(EffectNodeStatus.Completed)]
         [TestCase(EffectNodeStatus.Failed)]
         public void ParentChildOutcomeMatrix_DoesNotPropagateBusinessFailure(

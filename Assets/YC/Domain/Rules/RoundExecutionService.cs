@@ -2574,7 +2574,8 @@ namespace YC.Domain.Rules
                         chosen.AddRange(selected);
                         selectedOwners.AddRange(selected.Select(id => new KeyValuePair<string, int>(id, task.PlayerId)));
                     }
-                    foreach (var request in runtime.InteractionRequests.Where(request => request.OwnerEffectId == task.EffectId && request.Status == "open"))
+                    var body=YC.Domain.Cards.MainCoverAuthority.Body(state,task);
+                    foreach (var request in runtime.InteractionRequests.Where(request => (request.OwnerEffectId == task.EffectId||body!=null&&request.OwnerEffectId==body.EffectId) && request.Status == "open"))
                         if (request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
                             request.AnsweringPlayerId != task.PlayerId || request.Visibility != GameStateVisibilityPolicy.Owner ||
                             request.MinSelections != keep || request.MaxSelections != keep ||
@@ -2668,6 +2669,9 @@ namespace YC.Domain.Rules
 
         private static bool HasPrimaryCoverFact(GameState state, EffectNodeRuntimeState task)
         {
+            if(task.MainCoverFlowV1?.NoChangeReceipt!=null)return CharacterCoverEffectExecutor.TryValidateSharedWrapper(state,task);
+            var shared=YC.Domain.Cards.MainCoverAuthority.Body(state,task);
+            if(shared!=null)return YC.Domain.Items.ItemMovementV4.TryValidateState(state,shared,out _)&&shared.CharacterCoverMovementV4?.Receipt?.Result.Changed==true;
             if (!YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
                 return !string.IsNullOrEmpty(state.FindPlayer(task.PlayerId)?.CoveredCharacterCardId);
             // JSON snapshot 尚未绑定旧字段投影；以任务的真实主槽、卡实例和牌区关系核盖放事实。

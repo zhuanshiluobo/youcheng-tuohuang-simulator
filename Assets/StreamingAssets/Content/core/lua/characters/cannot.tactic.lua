@@ -1,33 +1,27 @@
 return function(ctx)
-    if ctx.eventType ~= 'EffectCompleted' then
-        return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = { 'originium', 'originium-shard', 'iron' },
-            promptKey = 'character.cannot.tactic.choose_resource' }), {
-            interaction = { prompt = Text.Ref('core:interaction.character.cannot.tactic.resource.prompt'), options = {
-                { candidateId = 'originium', label = Text.Ref('core:interaction.resource.originium') },
-                { candidateId = 'originium-shard', label = Text.Ref('core:interaction.resource.originium_shard') },
-                { candidateId = 'iron', label = Text.Ref('core:interaction.resource.iron') }
-            } }
-        }) }
+    if ctx.eventType == 'EffectCompleted' then
+        if ctx.payload.outcome ~= 'completed' then return {} end
+        -- 仅消费真实分支及全部兑换已完成的结果；不再用选项值构造兑换正文。
+        return { Effect.GainScore({ recipient = ctx.playerId, amount = 1, reasonId = 'character.cannot.tactic' }) }
     end
-    if ctx.payload.outcome ~= 'completed' then return {} end
-    local selected = ctx.payload.normalizedResult
-    local fields = { originium = 'originium', ['originium-shard'] = 'originiumShard', iron = 'iron' }
+    local ids = { 'originium', 'originium-shard', 'iron' }
     local types = { originium = 'originium', ['originium-shard'] = 'originium_shard', iron = 'iron' }
-    if fields[selected] == nil then error('cannot_requisition_resource_invalid') end
-    local effects = {}
-    for _, player in ipairs(GameData.GetPlayers()) do
-        local amount = PlayerData.GetResources(player)[fields[selected]]
-        while amount > 0 do
-            local batch = amount
-            if batch > 50 then batch = 50 end
-            table.insert(effects, Effect.PayResource({ payer = player, resourceType = types[selected], amount = batch,
-                allowSubstitution = false,
-                reasonId = 'character.cannot.tactic' }))
-            table.insert(effects, Effect.GainResource({ recipient = player, resourceType = 'gold_voucher', amount = batch * 2,
-                reasonId = 'character.cannot.tactic' }))
-            amount = amount - batch
+    local branches = {}
+    for _, id in ipairs(ids) do
+        local exchanges = {}
+        for _, player in ipairs(GameData.GetPlayers()) do
+            exchanges[#exchanges + 1] = Flow.ExchangeResource({ apiVersion = 1, player = ctx.playerId,
+                targetPlayer = player, resourceType = types[id], receiveResourceType = 'gold_voucher',
+                amount = 'all', rate = 2, reasonId = 'character.cannot.tactic' })
         end
+        branches[#branches + 1] = { id = id, effects = exchanges }
     end
-    table.insert(effects, Effect.GainScore({ recipient = ctx.playerId, amount = 1, reasonId = 'character.cannot.tactic' }))
-    return effects
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        promptKey = 'character.cannot.tactic.choose_resource' }), {
+        interaction = { prompt = Text.Ref('core:interaction.character.cannot.tactic.resource.prompt'), options = {
+            { candidateId = 'originium', label = Text.Ref('core:interaction.resource.originium') },
+            { candidateId = 'originium-shard', label = Text.Ref('core:interaction.resource.originium_shard') },
+            { candidateId = 'iron', label = Text.Ref('core:interaction.resource.iron') }
+        } }
+    }) }
 end

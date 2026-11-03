@@ -114,15 +114,20 @@ namespace YC.Tests.PlayMode
                 Is.SameAs(Get<Button>(frame, "SettingsButton").gameObject), "effect 弹窗遮住顶栏");
             Assert.That(FirstHitAt(Get<Button>(frame, "EndActionButton").transform as RectTransform),
                 Is.SameAs(Get<Button>(frame, "EndActionButton").gameObject), "effect 弹窗遮住底栏");
-            var optionContent = shell.GetType().GetMethod("ConfigureOptionScroll")
-                .Invoke(shell, new object[] { "Options", 80f, 80f }) as RectTransform;
-            var optionRow = shell.GetType().GetMethod("CreateOptionRow")
-                .Invoke(shell, new object[] { optionContent, false });
-            var selectedOption = Get<Button>(optionRow, "Button");
-            optionRow.GetType().GetMethod("SetSelected").Invoke(optionRow, new object[] { true });
-            var selectedIndicator = optionRow.GetType().GetField("selectedIndicator",
-                BindingFlags.Instance | BindingFlags.NonPublic).GetValue(optionRow) as Image;
-            Assert.That(selectedIndicator, Is.Not.Null, "实际选项模板未配置动态选择状态");
+            var optionRow = shell.GetType().GetMethod("CreateEffectRow").Invoke(shell, null);
+            var bindingType = optionRow.GetType().GetNestedType("Binding");
+            var binding = Activator.CreateInstance(bindingType);
+            void BindField(string name, object value) => bindingType.GetField(name).SetValue(binding, value);
+            BindField("StableItemId", "hud-effect-focus");
+            BindField("RequestId", "hud-actual-effect");
+            BindField("Revision", 10);
+            BindField("RowMode", Enum.Parse(optionRow.GetType().GetNestedType("Mode"), "ChoiceExecute"));
+            BindField("RightStatus", Enum.Parse(optionRow.GetType().GetNestedType("Status"), "Use"));
+            BindField("Enabled", true);
+            BindField("Title", "逻辑条目焦点隔离");
+            var bind = Array.Find(optionRow.GetType().GetMethods(), method => method.Name == "Bind" && method.GetParameters().Length == 4);
+            bind.Invoke(optionRow, new object[] { binding, new Func<string, int, bool>((_, __) => true), null, new Action<string>(_ => { }) });
+            var selectedOption = Get<Button>(optionRow, "StatusButton");
             EventSystem.current.SetSelectedGameObject(selectedOption.gameObject);
             Assert.That(EventSystem.current.currentSelectedGameObject,
                 Is.SameAs(selectedOption.gameObject), "effect 选项无法取得焦点");
@@ -148,7 +153,7 @@ namespace YC.Tests.PlayMode
             Assert.That(shell.gameObject.activeSelf, Is.True, "当前 effect 页应恢复");
             Assert.That(EventSystem.current.currentSelectedGameObject,
                 Is.SameAs(selectedOption.gameObject), "恢复 effect 后未返回原选项焦点");
-            Assert.That(selectedIndicator.enabled, Is.True, "收起/恢复不能重建并丢失当前选项状态");
+            Assert.That(Get<string>(optionRow, "ItemId"), Is.EqualTo("hud-effect-focus"), "收起/恢复不能重建并丢失实际逻辑条目绑定");
             frameType.GetMethod("ResumeEffectPage").Invoke(frame, null);
             Assert.That(shell.gameObject.activeSelf, Is.True, "已恢复页面再次请求恢复不能被收起");
             frameType.GetMethod("ClearRequest").Invoke(frame, null);

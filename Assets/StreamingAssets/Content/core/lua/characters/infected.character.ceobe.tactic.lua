@@ -37,13 +37,15 @@ return function(ctx)
     elseif c.stage == 'rolled' then
         if ctx.payload.outcome ~= 'completed' then return {} end
         c.dice = ctx.payload.normalizedResult.diceResult
-        if c.dice <= 2 then return { Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', subjectFilter = 'any', count = 1 }),
+        if c.dice <= 2 then return { Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'any', count = 1 }),
             Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }),
             Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }) } end
         if c.dice <= 4 then return { Effect.GainResource({ player = ctx.playerId, resourceType = 'pure_originium', amount = 2 }) } end
         return { tag(Effect.ExecuteMainAction({ player = ctx.playerId, executionMode = 'immediate', allowedActionTypes = { 'deploy', 'dispatch', 'explore', 'move_city', 'build', 'special' } }), c, 'action_completed') }
     elseif c.stage == 'action_completed' then
         if ctx.payload.outcome ~= 'completed' then return {} end
+        local action = ctx.payload.normalizedResult
+        if type(action) ~= 'table' or action.outcome ~= 'completed' or action.executed ~= true then return {} end
         local ids, labels = {}, {}
         for _, player in ipairs(GameData.GetPlayers()) do if player.playerId ~= ctx.playerId then
             local id = string.sub(player.playerId, 2); ids[#ids + 1] = id
@@ -52,8 +54,17 @@ return function(ctx)
         if #ids == 0 then return {} end
         return { choose(ctx, c, 'recipient_selected', ids, labels, 'core:interaction.ceobe.transfer.choose', 1, 'lua.choice') }
     elseif c.stage == 'recipient_selected' then
-        return { tag(Effect.TransferCharacterCard({ apiVersion = 1, player = ctx.playerId, cardInstanceId = c.source,
-            recipientPlayer = ctx.payload.normalizedResult }), c, 'done') }
+        local recipient = ctx.payload.normalizedResult
+        local legal = false
+        for _, player in ipairs(GameData.GetPlayers()) do
+            if player.playerId ~= ctx.playerId and string.sub(player.playerId, 2) == recipient then legal = true end
+        end
+        if not legal then error('invalid_recipient') end
+        local card = Global.Content.GetInstance(c.source)
+        if card == nil or card.controller ~= ctx.playerId then error('not_current_holder') end
+        return { tag(Effect.MoveCharacterCard({ apiVersion = 2, player = ctx.playerId, itemRefs = {{ itemId = c.source }},
+            expectedSource = { zoneId = card.zoneId, slotId = card.slotId }, destination = { zoneId = zone('hand', 'p' .. recipient) },
+            insertion = { kind = 'unordered' }, operationProfileId = 'core.character_card_transfer', requiredCount = 1 }), c, 'done') }
     end
     return {}
 end

@@ -59,6 +59,7 @@ namespace YC.Domain.Effects
         public static void Register(EffectRegistry registry, BoundedResourceAllocationDecoder decoder)
         {
             if (registry == null || decoder == null) throw new ArgumentNullException();
+            ResourcePaymentInsertionService.RegisterItemChoices(registry);
             if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, c => Execute(c, decoder),
                 EffectExecutorKind.IntrinsicFlow, "1.0.0") { Validator = ValidateSpec });
         }

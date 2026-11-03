@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.mudrock",
   "contentType": "character",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "泥岩",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.operator.mudrock.strategy",
       "script": "lua/characters/operator.mudrock.strategy.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,

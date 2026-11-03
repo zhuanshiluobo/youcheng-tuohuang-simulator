@@ -85,7 +85,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(node.NormalizedResult.TryValidate(out reason), Is.True, reason);
             Assert.That(node.ContinuationData.TryValidate(out reason), Is.True, reason);
             Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty);
-            Assert.That(ItemTransferService.TryValidateTokenState(state, node, out reason), Is.True, reason);
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out reason), Is.True, reason);
         }
         [Test] public void ShortfallMovesNothingAndDoesNotExecuteConditionRightSide()
         {
@@ -106,7 +106,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(new EffectTreeExecutor(restored, Registry()).RunUntilQuiescent().Faulted, Is.False);
             Assert.That(restored.FindPlayer(1).Score, Is.EqualTo(5)); Assert.That(Supply(restored).Count, Is.EqualTo(1));
         }
-        [TestCase("missing")] [TestCase("duplicate")] [TestCase("wrong_source")] [TestCase("wrong_player")]
+        [TestCase("missing")] [TestCase("duplicate")] [TestCase("wrong_source")]
         public void InvalidMemberCannotPartiallyMoveOtherMembers(string kind)
         {
             var state = State(); var original = Supply(state); var selected = original.Take(2).ToList();
@@ -114,10 +114,32 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (kind == "missing") selected[1] = "not-an-item";
             if (kind == "duplicate") selected[1] = selected[0];
             if (kind == "wrong_source") source = FindZone(state, "reserve").ZoneId;
-            if (kind == "wrong_player") { selected = Supply(state, 2).Take(2).ToList(); source = FindZone(state, "supply", 2).ZoneId; }
-            var node = Run(state, TokenSpec(1, selected, source, FindZone(state, "retired").ZoneId, 2));
+            var spec = ItemMovementV4.TransferSpec(1, selected.Distinct(), source, FindZone(state, "retired").ZoneId, required: 2, profile: "core.cube_storage");
+            // 旧v3构造器已在编译边界拒绝重复；直接损坏规范输入仍不得部分移动。
+            if (kind == "duplicate") Value(Value(spec.NormalizedArguments, "selector"), "itemIds").Items.Add(NormalizedValue.CreateString(selected[0]));
+            var node = Run(state, spec);
             Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(node.PositionChanges, Is.Empty);
             Assert.That(Supply(state), Is.EqualTo(original)); Assert.That(Supply(state, 2).Count, Is.EqualTo(3));
+        }
+        [Test] public void ExplicitOtherPlayerMarkersKeepOwnerAndOriginalSupplyInOneNativeCommit()
+        {
+            var state = State(); var ids = Supply(state, 2).Take(2).ToList();
+            var originals = state.ItemZones.Items.Where(i => ids.Contains(i.ItemId)).Select(i => i.OriginalSupplyZoneId).ToList();
+            var node = Run(state, TokenSpec(1, ids, FindZone(state, "supply", 2).ZoneId, FindZone(state, "retired").ZoneId, 2));
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(node.PositionChanges.Select(c => c.ItemId), Is.EqualTo(ids));
+            Assert.That(state.ItemZones.Items.Where(i => ids.Contains(i.ItemId)).All(i => i.OwnerSubject.PlayerId == 2), Is.True);
+            Assert.That(state.ItemZones.Items.Where(i => ids.Contains(i.ItemId)).Select(i => i.OriginalSupplyZoneId), Is.EqualTo(originals));
+            Assert.That(Supply(state).Count, Is.EqualTo(3)); Assert.That(Supply(state, 2).Count, Is.EqualTo(1));
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out string reason), Is.True, reason);
+            Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, node), Is.True);
+        }
+        [Test] public void LegacyDuplicateTokenInputIsRejectedBeforeCreatingAnyNode()
+        {
+            var state = State(); var ids = Supply(state); string before = JsonConvert.SerializeObject(state.ItemZones);
+            Assert.Throws<InvalidOperationException>(() => new EffectTreeExecutor(state, Registry()).CreateRoot(TokenSpec(1, new[] { ids[0], ids[0] }, FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 2)));
+            Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(before));
+            Assert.That(state.EffectRuntime.EffectNodes, Is.Empty);
         }
         [Test] public void OriginalSupplyDestinationRemainsPerInstanceAcrossOneAtomicCommit()
         {
@@ -128,8 +150,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(items.Select(i => i.OriginalSupplyZoneId).Distinct().Count(), Is.EqualTo(2));
             var node = Run(state, TokenSpec(1, items.Select(i => i.ItemId), from, null, 2));
             Assert.That(items.All(i => state.ItemZones.Items.Single(actual => actual.ItemId == i.ItemId).ZoneId == i.OriginalSupplyZoneId), Is.True);
-            Assert.That(node.TransferBatchRequest.Transfers.Count, Is.EqualTo(2));
-            Assert.That(ItemTransferService.TryValidateTokenState(state, node, out string reason), Is.True, reason);
+            Assert.That(node.CommonItemMovementV4.Transfers.Count, Is.EqualTo(2));
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out string reason), Is.True, reason);
         }
         [Test] public void ReceiptRoundTripReusesHistoryAfterLaterLegalMoveAndRejectsTampering()
         {
@@ -138,22 +160,22 @@ namespace YC.Tests.EditMode.ExpansionRules
             Run(state, TokenSpec(1, ids, retired, null, 2));
             var restored = JsonRoundTripWithEvidence(state); ItemZoneLegacyProjection.Bind(restored);
             node = restored.EffectRuntime.EffectNodes.Single(n => n.EffectId == effectId);
-            Assert.That(ItemTransferService.TryValidateTokenState(restored, node, out string reason), Is.True, reason);
+            Assert.That(ItemMovementV4.TryValidateState(restored, node, out string reason), Is.True, reason);
             var context = (EffectExecutionContext)Activator.CreateInstance(typeof(EffectExecutionContext), BindingFlags.Instance | BindingFlags.NonPublic, null,
                 new object[] { restored, node, Registry(), null }, null);
             var before = JsonConvert.SerializeObject(restored.ItemZones);
-            var replay = new ItemTransferService().RelocateBatch(context, node.TransferBatchRequest);
-            Assert.That(replay.MovedCount, Is.EqualTo(2)); Assert.That(JsonConvert.SerializeObject(restored.ItemZones), Is.EqualTo(before));
+            var replay = ItemMovementV4.Execute(context);
+            Assert.That(Number(replay.NormalizedResult, "movedCount"), Is.EqualTo(2)); Assert.That(JsonConvert.SerializeObject(restored.ItemZones), Is.EqualTo(before));
             var damaged = HostRecoveryService.CreateArchive(restored);
             damaged.Snapshot.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == effectId).PositionChanges[0].To.ZoneId = supply;
             string damagedJson = HostRecoveryService.SerializeArchive(damaged);
             artifacts.WriteLabeledText("005损坏历史token收据正式存档", damagedJson);
             var rejected = HostRecoveryService.RecoverJson(damagedJson, Registry());
             Assert.That(rejected.Succeeded, Is.False);
-            Assert.That(rejected.Diagnostic, Does.Contain("token_transfer_receipt_invalid"));
+            Assert.That(rejected.Diagnostic, Does.Contain("item_move_v4_receipt_invalid"));
             node.PositionChanges[0].To.ZoneId = supply;
-            Assert.That(ItemTransferService.TryValidateBatchReceipt(node, out _), Is.False);
-            Assert.Throws<InvalidOperationException>(() => new ItemTransferService().RelocateBatch(context, node.TransferBatchRequest));
+            Assert.That(ItemMovementV4.TryValidateState(restored, node, out _), Is.False);
+            Assert.Throws<InvalidOperationException>(() => ItemMovementV4.Execute(context));
         }
         [Test] public void CapacityFailureInOneDestinationRollsBackEveryDestination()
         {
@@ -178,8 +200,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void RawArgumentsCannotBeChangedByRehashingTypedReceipt()
         {
             var state = State(); var node = Run(state, TokenSpec(1, Supply(state).Take(2), FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 2));
+            Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, node), Is.True);
             Value(node.NormalizedArguments, "requiredCount").IntegerValue = 1;
-            Assert.That(ItemTransferService.TryValidateBatchReceipt(node, out _), Is.False);
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out _), Is.False);
+            Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, node), Is.False, "Condition与入口费均不能把损坏的v4收据视为真实付款。");
         }
         [Test] public void FacilityBatchProtocolTwoStillRejectsCubeProfiles()
         {
@@ -232,8 +256,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(definition, new LuaInvocationContext("event.qy005", "event.test", "1", 0, "1.0.0", 2, 0, 0));
             Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic);
-            Assert.That(specs.Single().EffectTypeId, Is.EqualTo(TypeId)); Assert.That(Number(specs.Single().NormalizedArguments, "apiVersion"), Is.EqualTo(3));
-            Assert.That(Value(specs.Single().NormalizedArguments, "itemIds").Items.Count, Is.EqualTo(count));
+            Assert.That(specs.Single().EffectTypeId, Is.EqualTo(TypeId)); Assert.That(Number(specs.Single().NormalizedArguments, "apiVersion"), Is.EqualTo(4));
+            Assert.That(Number(specs.Single().ItemMoveInput.OriginalArguments, "apiVersion"), Is.EqualTo(3));
+            Assert.That(Value(Value(specs.Single().NormalizedArguments, "selector"), "itemIds").Items.Count, Is.EqualTo(count));
             code = "return function(ctx) assert(Effect.PayCardMarkers == nil) return {} end";
             definition = new LuaScriptDefinition("qy005.retired", "qy005.transfer", "qy005.handler", "1.0.0", code, LuaContentHasher.ComputeSha256(code));
             Assert.That(new MoonSharpLuaRuntimeHost().Invoke(definition, new LuaInvocationContext("event.qy005", "event.test", "1", 0, "1.0.0", 2, 0, 0)).IsSuccess, Is.True);
@@ -257,7 +282,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var node = Run(state, TokenSpec(1, tokens.Select(i => i.ItemId), source, target, 2, "core.token_storage"));
             Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed)); Assert.That(node.PositionChanges.Count, Is.EqualTo(2));
             var restored = JsonRoundTripWithEvidence(state); ItemZoneLegacyProjection.Bind(restored);
-            Assert.That(ItemTransferService.TryValidateTokenState(restored, restored.EffectRuntime.EffectNodes.Single(n => n.EffectId == node.EffectId), out string reason), Is.True, reason);
+            Assert.That(ItemMovementV4.TryValidateState(restored, restored.EffectRuntime.EffectNodes.Single(n => n.EffectId == node.EffectId), out string reason), Is.True, reason);
             var returned = Run(restored, TokenSpec(1, tokens.Select(i => i.ItemId), target, null, 2, "core.token_storage"));
             Assert.That(returned.Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(returned.PositionChanges.All(c => c.To.ZoneId == source), Is.True);
@@ -273,7 +298,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             token.ZoneId = zone.ZoneId;
             var before = JsonConvert.SerializeObject(state.ItemZones);
             var denied = Run(state, TokenSpec(1, new[] { token.ItemId }, zone.ZoneId, null, 1, "core.token_storage"));
-            Assert.That(denied.FailureReason, Is.EqualTo("operation_profile_rejected"));
+            Assert.That(denied.FailureReason, Is.EqualTo("token_storage_requires_lifecycle"));
             Assert.That(denied.PositionChanges, Is.Empty);
             Assert.That(JsonConvert.SerializeObject(state.ItemZones), Is.EqualTo(before));
             // 同一保护也覆盖旧api1，不能从另外的入口绕行。
@@ -345,10 +370,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.EffectRuntime.AbilitySourceUses.Add(new AbilitySourceUseReceipt { ReceiptId = "qy005.source", OwnerEffectId = root, PlayerId = 1,
                 SourceKey = owner.SourceKey, ItemId = owner.ItemId, AbilityId = owner.AbilityId, SourceRef = owner });
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
-            var node = engine.GetNode(root); Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            var node = engine.GetNode(root); Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed), node.FailureReason);
             Assert.That(node.PositionChanges.Count, Is.EqualTo(3)); Assert.That(Supply(state).Count, Is.EqualTo(3));
             Assert.That(state.ItemZones.Items.Count(i => i.ZoneId == zone.ZoneId), Is.EqualTo(6));
-            Assert.That(ItemTransferService.TryValidateTokenState(state, node, out string reason), Is.True, reason);
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out string reason), Is.True, reason);
         }
         [Test] public void MixedCubeTypesAndOriginalOwnersReturnTogetherWithoutAutomaticChoice()
         {
@@ -384,7 +409,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == tokens[0].ItemId).OwnerSubject.PlayerId, Is.EqualTo(2));
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == tokens[2].ItemId).OwnerSubject.CompanyId, Is.EqualTo("stonehoove_security"));
             Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty);
-            Assert.That(ItemTransferService.TryValidateTokenState(state, node, out string reason), Is.True, reason);
+            Assert.That(ItemMovementV4.TryValidateState(state, node, out string reason), Is.True, reason);
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == card.ItemId).ZoneId, Is.EqualTo(card.ZoneId), "清空留牌配置不被转移改成退场");
         }
     }

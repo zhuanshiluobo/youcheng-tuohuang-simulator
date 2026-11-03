@@ -16,12 +16,12 @@
 
 ## 本轮新增与修正
 
-- `Effect.ChooseBuild({player, sourceZone='supply'})`：选择可支付且有合法位置的设施，再选择资源/金券支付方式和实际位置。全部选择完成后挂 Build。普通建设费用照付，效果授予的建设不扣主要行动次数。
-- `Effect.ChooseBuild({player, sourceZone='reserve', effectId='reserve_extension_hub'})`：按 Lua 指定的储备类型筛选，允许跳过，选择位置后免费建设。不会默认第一个空位。
-- `Effect.ChooseExplore({player})`：逐段规划路线，选择合法探索落点；同一收费区域有多个接收玩家时明确选择接收人。规划时可以退回上一段或放弃；确认前不付路费、不翻事件牌。选择完成后挂现有 Explore，再由事件链处理奖励与影响力。
+- `Effect.Build({apiVersion=3, targetMode='select', player=ctx.playerId, sourceKind='supply', paymentMode='auto', consumeMainAction=false, allowDecline=true})`：本次建设拥有正式候选、付款准备／确认、取消重选、实际建设、补供应和必要入场。候选不因当前余额不足提前隐藏；普通设施费用照付，效果授予建设不扣主要行动次数，已付后不能放弃。
+- `Effect.Build({apiVersion=3, targetMode='select', player=ctx.playerId, sourceKind='reserve', effectId='reserve_extension_hub', paymentMode='free', consumeMainAction=false, allowDecline=true})`：按原备用延伸枢纽授权筛选，允许放弃，选择位置后免费建设；不自动选择第一个空位。原 ChooseBuild／旧 choose_build 类型已退役，唯一合同见[API-11](../../prompt/Lua-API/API-11统一建设合同-20261030.md)。
+- `Effect.Explore({apiVersion=3,targetMode='select',player=ctx.playerId,consumeMainAction=false})`：整次赠送探索复用现有地图目标、路线与接收者草稿及最终确认。确认前不扣费、不翻牌、不耗行动；Host 复验封存后预留真实路费，等待事件及全部必要响应，再交付并完成。已确认方案用 explicit，正常命令消费一次行动。ChooseExplore／旧 exploration.choose 已退役，合同见[API-14](../../prompt/Lua-API/API-14统一探索合同-20261030.md)。
 - `Effect.OverrideNextStartPlayer({player, targetPlayer, scope='current_round'})`：原子写入本回合的下一起始玩家覆盖值，后一次覆盖前一次。当前玩家和起始标记不立即改变；回合边界消费后清除，下一回合不残留。
 - `Effect.GrantMainActions({player, amount, lockCharacterCard})`：直接授予额外行动。源石工业枢纽使用此原语，不再绕 ExecuteMainAction 的 grant_budget 模式。
-- 载具仓库由 Lua Choice 表达“移除后调度”与“探索”两分支；移除、移动、路线、收费方及事件选择均逐段等待，不能预选后续目标。
+- 载具仓库由 Lua Choice 表达“移除后调度”与“探索”两分支；移除、移动及事件选择按原序列等待；探索的路线与收费方复用既有地图草稿及最终确认，不恢复旧逐段文字菜单。
 - 设施费用新增 `data.costReductionPerDistinctBuiltColor`，格式为五资源 ResourceSet。例如 `{"originium":1}` 表示每种已建基础颜色减少 1 源岩成本，最低为零；彩色不额外计入基础颜色。费用预览与实际支付共用计算。金券整体支付仍使用 goldVoucherCost，不将资源折扣错误套到金券整价。
 
 外部费用修正不按 effectId 分支。旧内置资产的固定效果 ID 仅在兼容目录初始化时转成同一数据字段；正式外部内容必须显式声明修正。字段每项为 0～99，缺省为零。

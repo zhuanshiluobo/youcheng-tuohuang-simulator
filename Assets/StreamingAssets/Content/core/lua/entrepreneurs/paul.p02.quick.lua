@@ -2,7 +2,7 @@
 return function(ctx)
     return {Effect.WithPresentation(Effect.Condition({ruleCondition=true,decisionPlayer=ctx.playerId,
         leftEffects={Effect.PayResource({player=ctx.playerId,cost={GoldVoucher=4}})},
-        rightEffects={Effect.SelectInfluence({player=ctx.playerId,operation='replace',subjectFilter='self',count=1}),
-            Effect.SelectInfluence({player=ctx.playerId,operation='move',subjectFilter='self',count=1})}}),
+        rightEffects={Effect.ReplaceInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='self',count=1 }),
+            Effect.MoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='self',count=1 })}}),
         {interaction={prompt=Text.Ref('core:entrepreneur.P.P02.condition')}})}
 end

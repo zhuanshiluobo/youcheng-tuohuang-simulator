@@ -44,6 +44,7 @@ namespace YC.Presentation.Workflows
         public int[] PlayerLevels;
         public int[] PlayerIds, PlayerColors;
         public int ViewerPlayerId;
+        public string MissingMarkerLabel;
         public string Summary;
         public GameplayTextRef[] Details = Array.Empty<GameplayTextRef>();
         public bool SupportsDepartmentBrowsing;

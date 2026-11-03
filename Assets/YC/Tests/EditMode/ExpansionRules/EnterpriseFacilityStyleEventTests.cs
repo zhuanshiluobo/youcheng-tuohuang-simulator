@@ -90,7 +90,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 {
                     int captured = current;
                     enterprise.BindAbility(id + ".level_" + current, context => nestedBuild && id == Business && captured == 1
-                        ? new[] { EffectSpec.Create(FacilitySelectionEffectExecutor.TypeId, Object("sourceZone", NormalizedValue.CreateString("supply"), "paymentMode", NormalizedValue.CreateString("free"), "allowDecline", NormalizedValue.CreateBoolean(true)), context.Event.PlayerId) }
+                        ? new[] { EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((context.Event.PlayerId).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString("free"), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString("supply"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), context.Event.PlayerId) }
                         : new[] { ResourceEffectSpecFactory.Gain(context.Event.PlayerId, ResourceType.GoldVoucher, captured == 1 ? 4 : captured) });
                 }
             }
@@ -151,6 +151,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             state.ItemZones.Orders.Find(order => order.ZoneId == item.ZoneId)?.ItemIds.Remove(item.ItemId);
             item.ZoneId = zoneId; item.SlotId = "";
+            // 隔离初态中的设施位置与实际城市控制者必须一致；不绕过生产结构校验。
+            if (FacilityLayerQuery.IsFacility(item))
+            {
+                int owner = FacilityLayerQuery.TryGetCityCell(state, zoneId, out var cell) ? cell.OwnerPlayerId :
+                    state.ItemZones.Zones.Single(zone => zone.ZoneId == zoneId).OwnerPlayerId;
+                item.ControllerSubject = owner > 0 ? ItemSubjectRef.Player(owner) : new ItemSubjectRef();
+            }
             var order = state.ItemZones.Orders.Find(value => value.ZoneId == zoneId);
             if (order != null && !order.ItemIds.Contains(item.ItemId)) order.ItemIds.Add(item.ItemId);
         }
@@ -305,7 +312,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
             state = Restore(state, registry); Answer(state, registry, "build");
             while (Open(state) != null) Answer(state, registry, Open(state).CandidateIds.First());
-            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == FacilityEntryEffectTypeIds.Build && node.Status == EffectNodeStatus.Completed), Is.True);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments)) && node.Status == EffectNodeStatus.Completed), Is.True);
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero); Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
         }
         [Test]
@@ -347,7 +354,19 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(out var registry); var marker = Declare(state, registry, StyleIds[4]); state.FindPlayer(1).Resources = new ResourceSet { Originium = 2 };
             Activate(state, registry, marker); Answer(state, registry, "replace");
-            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2)); Answer(state, registry, "remove");
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            state = Restore(state, registry);
+            var payment = Open(state); var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TrySubmitInteraction(payment.GetStableInteractionId(), payment.AnsweringPlayerId, payment.StateRevision,
+                NormalizedValue.CreateString("continue"), out string reason), Is.False);
+            Assert.That(reason, Is.EqualTo("insufficient_resource"));
+            Assert.That(Open(state).GetStableInteractionId(), Is.EqualTo(payment.GetStableInteractionId()));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
+            Answer(state, registry, "decline");
+            Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "replace", "place", "remove" }));
+            Answer(state, registry, "remove");
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2));
         }
         [Test]
@@ -356,6 +375,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(out var registry); var marker = Declare(state, registry, StyleIds[4]);
             state.FindPlayer(1).Resources = new ResourceSet { Originium = 2, Iron = 1 };
             Activate(state, registry, marker); Answer(state, registry, "replace");
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(2));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            state = Restore(state, registry); Answer(state, registry, "continue");
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.Zero); Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
             state = Restore(state, registry); Answer(state, registry, "remove");
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.Zero); Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(2));
@@ -449,7 +472,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.FindPlayer(1).Resources = new ResourceSet();
             var order = state.ItemZones.Orders.Single(value => value.ZoneId == FindZone(state, "facility_deck").ZoneId); int revision = order.OrderRevision;
             Answer(state, registry, "resources");
-            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == FacilityEntryEffectTypeIds.Build && node.Status == EffectNodeStatus.Failed), Is.True);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments)) && node.Status == EffectNodeStatus.Failed), Is.True);
             Assert.That(state.ItemZones.Orders.Single(value => value.ZoneId == order.ZoneId).OrderRevision, Is.EqualTo(revision + 1));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score - 1));
         }
@@ -486,8 +509,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             Assert.That(Open(state), Is.Null);
             var repetitions = state.EffectRuntime.EffectNodes.Where(node => node.EffectTypeId == LuaDomainEffectTypeIds.Repeat).ToList();
-            Assert.That(repetitions.Count, Is.EqualTo(2));
-            Assert.That(repetitions.All(node => Number(node.NormalizedResult, "completedCount") == 2), Is.True);
+            Assert.That(repetitions, Is.Empty, "正式内容使用独立影响力效果，不恢复Repeat节点");
         }
         [Test]
         public void DeclarationResponseCanNestFreeOfficeBuildAndEnterpriseSpecialAcrossRestore()

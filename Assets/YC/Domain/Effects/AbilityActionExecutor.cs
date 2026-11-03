@@ -14,7 +14,7 @@ namespace YC.Domain.Effects
 {
     public static class AbilityActionExecutor
     {
-        public const string DirectAdmissionVersion="direct_admission.v1.0.1";
+        public const string DirectAdmissionVersion="direct_admission.v1.0.2";
         public const string CostReceiptPolicyVersion = "cost_operation_receipts.v2";
         public const string TypeId = "effect.ability.action.invoke", DirectTypeId = "effect.ability.action.authorized", Version = "1.1.0";
         public static void Register(EffectRegistry registry)
@@ -243,8 +243,9 @@ namespace YC.Domain.Effects
         }
         private static string ValidateInvocationEntry(EffectExecutionContext context, AbilityActionInvocation invocation, AbilityActionDeclaration action, AbilityActionCallPolicy policy)
         {
-            if (policy == null || policy.PolicyRef == AbilityLegacyStyleBridge.PolicyRef)
-                return context.Registry.ValidateActionMainBudget(context.State, context.Node.PlayerId, action, policy);
+            if (policy == null) return context.Registry.ValidateActionMainBudget(context.State, context.Node.PlayerId, action, policy);
+            if (policy.PolicyRef == AbilityLegacyStyleBridge.PolicyRef)
+                return context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, policy, invocation.InvocationId, false);
             string callerError = context.Registry.ValidateActionCaller(context.State, invocation.ParentEffectId, policy, context.Node.PlayerId);
             return callerError.Length > 0 ? callerError : context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, policy, invocation.InvocationId, false);
         }
@@ -259,6 +260,9 @@ namespace YC.Domain.Effects
         // 通用转移的已提交事实来自原执行节点/真实位置变化和原批次收据，不根据载体或物品名称推断费用。
         public static bool IsTokenTransferOperation(EffectNodeRuntimeState node)
         {
+            if (ItemMovementV4.IsV4(node?.EffectTypeId, node?.NormalizedArguments))
+                return new[] { "transfer", "transfer_batch" }.Contains(Text(node.NormalizedArguments, "operation")) &&
+                    ItemMovementV4.Legs(node.NormalizedArguments).All(leg => ItemTransferService.IsTokenProfile(Text(leg, "operationProfileId")));
             return node?.EffectTypeId == ItemTransferEffectExecutor.TypeId && (node.TransferBatchRequest != null ?
                 node.TransferBatchRequest.Transfers?.Count > 0 && node.TransferBatchRequest.Transfers.All(t => t != null && ItemTransferService.IsTokenProfile(t.OperationProfileId)) :
                 ItemTransferService.IsTokenProfile(Text(node.NormalizedArguments, "operationProfileId")));
@@ -278,6 +282,13 @@ namespace YC.Domain.Effects
                     p.From.ZoneId == p.To.ZoneId && p.From.SlotId == p.To.SlotId) ||
                 ids.Items.Any(id => !state.ItemZones.Items.Any(item => item.ItemId == id.StringValue &&
                     ItemTransferService.IsTokenKind(item.PhysicalKind)))) return false;
+            if (ItemMovementV4.IsV4(node.EffectTypeId, node.NormalizedArguments))
+            {
+                var receipt = node.ItemMovementV4?.Receipt ?? node.CommonItemMovementV4?.Receipt;
+                return receipt != null && ItemMovementV4.TryValidateState(state, node, out _) &&
+                    receipt.Result.MovedCount == count && receipt.Result.MovedItemIds.SequenceEqual(ids.Items.Select(i => i.StringValue)) &&
+                    ItemMovementV4.Legs(node.NormalizedArguments).Sum(leg => (long)Number(leg, "requiredCount")) <= count;
+            }
             if (node.TransferBatchRequest != null || Value(node.ContinuationData, "transferBatchReceipt") != null)
                 return node.TransferBatchRequest?.ProtocolVersion == ItemTransferService.TokenTransferProtocolVersion &&
                     ItemTransferService.TryValidateTokenState(state, node, out _) &&
@@ -293,7 +304,8 @@ namespace YC.Domain.Effects
         }
         public static bool TokenTransferReceiptRequired(EffectNodeRuntimeState node) => IsTokenTransferOperation(node) &&
             (Number(node.NormalizedArguments, "requiredCount") > 0 || Number(node.NormalizedResult, "movedCount") > 0 ||
-                node.TransferBatchRequest?.Transfers.Any(t => t.RequiredCount > 0) == true);
+                node.TransferBatchRequest?.Transfers.Any(t => t.RequiredCount > 0) == true ||
+                ItemMovementV4.IsV4(node.EffectTypeId, node.NormalizedArguments) && ItemMovementV4.Legs(node.NormalizedArguments).Any(leg => Number(leg, "requiredCount") > 0));
         private static bool CommittedOperation(GameState state, EffectNodeRuntimeState node) => ResourcePaymentSourceService.IsResourcePaymentNode(node) && node.Payment?.IsCommitted == true ||
             node?.EffectTypeId == ResourceEffectTypeIds.Pay && node.Payment == null && node.Status == EffectNodeStatus.Completed || HasCommittedTokenTransfer(state, node);
         public static IEnumerable<EffectNodeRuntimeState> EntryPaymentNodes(GameState state, AbilityActionInvocation invocation)

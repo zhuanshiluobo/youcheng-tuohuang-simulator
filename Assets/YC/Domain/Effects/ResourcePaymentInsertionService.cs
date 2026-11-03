@@ -25,11 +25,11 @@ namespace YC.Domain.Effects
     }
 
     // 真实纯规则可选声明入口；不从只读页面或任意source对象产生授权。
-    public static class ResourcePaymentInsertionService
+    public static partial class ResourcePaymentInsertionService
     {
-        public const string Version = "payment_insertion.v2";
+        public const string Version = "payment_insertion.v3";
         public const string LegacyVersion = "payment_insertion.v1";
-        private static bool SupportedVersion(string version) => version == Version || version == LegacyVersion;
+        private static bool SupportedVersion(string version) => version == Version || version == "payment_insertion.v2" || version == LegacyVersion;
         public const string AvailabilityId = "payment_insertion.current.v1";
         public static bool ValidDeclaration(PaymentSourceInsertion d)
         {
@@ -219,7 +219,7 @@ namespace YC.Domain.Effects
                 return EffectStepResult.Continue("allocating").AddInteraction(request);
             }
             var answer = c.GetLatestInteractionAnswer();
-            if (answer?.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue) return EffectStepResult.Completed();
+            if (c.Node.FlowStage == "allocating" && answer?.Kind == NormalizedValueKind.Boolean && !answer.BooleanValue) return EffectStepResult.Completed();
             ResourceSet added;
             IReadOnlyList<string> selected;
             if (c.Node.FlowStage == "allocating")
@@ -242,22 +242,28 @@ namespace YC.Domain.Effects
                     if (why != "payment_token_selection_required") return EffectStepResult.Failed(why);
                     Set(c.Node, "insertionAdded", PaymentResources.Write(added));
                     int count = checked(units * rule.ItemCost.CountPerUnit);
-                    var request = new EffectInteractionSpec { InteractionTypeId = "lua.choice", AnswerSchema = "candidate_ids",
-                        AnsweringPlayerId = owner.PlayerId, Visibility = "owner", AllowDecline = true, MinSelections = count, MaxSelections = count,
-                        Presentation = new GameplayInteractionPresentation { Prompt = rule.Insertion.Presentation.Description,
-                            Options = items.Select(i => new GameplayOptionPresentation { CandidateId = i.ItemId, Label = new GameplayTextRef("core:interaction.entity.item",
-                                new GameplayTextArgument { Name = "entity", Kind = "item", Value = NormalizedValue.CreateStableReference("item", i.ItemId) }) }).ToList() } };
-                    request.CandidateIds.AddRange(items.Select(i => i.ItemId));
-                    return EffectStepResult.Continue("selecting_items").AddInteraction(request);
+                    c.Node.PaymentInsertionItems = new PaymentInsertionItemDraft { RequiredCount = count, CandidateIds = items.Select(i => i.ItemId).ToList() };
+                    return NextItemChoice(c, rule);
                 }
             }
-            else if (c.Node.FlowStage == "selecting_items")
+            else if (c.Node.FlowStage == "selecting_item_branches")
             {
-                if (!PaymentResources.TryRead(Value(c.Node.ContinuationData, "insertionAdded"), out added) || answer?.Kind != NormalizedValueKind.Array ||
-                    answer.Items.Any(v => v.Kind != NormalizedValueKind.String)) return EffectStepResult.Failed("payment_insertion_items_invalid");
-                selected = answer.Items.Select(v => v.StringValue).ToList();
-                if (selected.Count != (long)PaymentResources.Total(added) * rule.ItemCost.CountPerUnit || selected.Distinct().Count() != selected.Count || selected.Any(id => !items.Any(i => i.ItemId == id)))
-                    return EffectStepResult.Failed("payment_insertion_items_invalid");
+                var draft = c.Node.PaymentInsertionItems;
+                if (!ValidateItemSelectionSaved(c.State, c.Node) || draft == null ||
+                    !PaymentResources.TryRead(Value(c.Node.ContinuationData, "insertionAdded"), out added) ||
+                    draft.RequiredCount != (long)PaymentResources.Total(added) * rule.ItemCost.CountPerUnit ||
+                    !draft.CandidateIds.SequenceEqual(items.Select(i => i.ItemId))) return EffectStepResult.Failed("payment_insertion_items_invalid");
+                var child = SelectionChildren(c.State, c.Node).LastOrDefault();
+                if (child?.EffectTypeId != LuaDomainEffectTypeIds.Choice) return EffectStepResult.Failed("payment_insertion_choice_missing");
+                if (child.Status == EffectNodeStatus.Failed) return EffectStepResult.Failed(child.FailureReason);
+                if (child.Status != EffectNodeStatus.Completed) return EffectStepResult.NoProgress("等待付款实物草稿选择完成。");
+                if (draft.Picks.Count == draft.AwaitingRevision)
+                {
+                    draft.Cancelled = true;
+                    return EffectStepResult.Completed(); // 整次配置放弃，原草稿及所有实物保持。
+                }
+                if (draft.Picks.Count < draft.RequiredCount) return NextItemChoice(c, rule);
+                selected = draft.Picks.Select(p => p.ItemId).ToList();
             }
             else return EffectStepResult.Failed("payment_insertion_stage_invalid");
             var allocation = replace ? added : PaymentResources.Add(previous?.Status == "valid" ? previous.Allocation : new ResourceSet(), added);

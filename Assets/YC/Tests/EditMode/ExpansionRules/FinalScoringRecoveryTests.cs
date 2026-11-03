@@ -408,7 +408,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             // 真实WithContext事实，依赖公共Global.Scoring接线；未接线时应失败，不注入替身。
             const string script = @"return function(ctx) if ctx.eventType=='EffectCompleted' then return {} end
               local f=Global.Scoring.GetFinalControl()
-              return {Effect.WithContext(Effect.Repeat({apiVersion=1,count=0,effects={}}),
+              return {Effect.WithContext(Effect.GainResource({player=ctx.playerId,resourceType='gold_voucher',amount=1}),
                 {scoringEvidence={sessionId=f.sessionId,snapshotId=f.snapshotId,count=0}})} end";
             fixture = new FinalScoringTestFixture(eventScript: script, completionHandler: true); fixture.Start(); fixture.Pump();
             Assert.That(fixture.State.FinalScoring.Session.Facts.Count, Is.GreaterThan(0)); AssertValidWithoutMutation();

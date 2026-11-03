@@ -34,6 +34,7 @@ namespace YC.Presentation
                             if (declaration != null && declaration.CityStyleId == id)
                                 markers.Add(new CityStyleMarkerViewModel(id, player.PlayerId, player.Color,
                                     CityStyleInteraction.DisplayMarkerArea(player, declaration)));
+            markers.AddRange(CityStyleInteraction.CurrentMarkersWithoutDeclaration(state));
             RenderMarkers(markers);
         }
         public void RenderMarkers(IReadOnlyList<CityStyleMarkerViewModel> markers)

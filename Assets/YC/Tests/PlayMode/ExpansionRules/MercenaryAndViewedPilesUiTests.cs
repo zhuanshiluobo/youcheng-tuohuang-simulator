@@ -285,13 +285,18 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
         private IEnumerator ChooseBranch(string id)
         {
-            int index = f.Request.CandidateIds.IndexOf(id);
-            Assert.That(index, Is.GreaterThanOrEqualTo(0));
-            var row = Active("EffectDialogOptionRowView").Single(r => r.name == "Character Effect Option " + index);
-            yield return f.Click(ButtonObject(row, "Button"), "佣兵入场选择替换分支");
-            var confirm = Active("EffectDialogShellView").SelectMany(s => s.GetComponentsInChildren<Button>())
-                .Single(b => b.name == "Confirm Selection" || b.transform.parent.name == "Confirm Selection");
-            yield return f.Click(confirm.gameObject, "确认佣兵替换分支");
+            var request = f.Request;
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(request.CandidateIds, Does.Contain(id));
+            var owner = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
+            Assert.That(owner.NestedGroupSizes, Is.Not.Empty);
+            Assert.That(owner.NestedGroupSizes.All(size => size > 0), Is.True, "每个候选必须承载真实效果");
+            var row = Active("UiEffectRowView").Single(r => (string)Read(r, "ItemId") == id);
+            Assert.That((string)Read(row, "requestId"), Is.EqualTo(request.GetStableInteractionId()));
+            var before = commands.Count;
+            yield return f.Click(ButtonObject(row, "StatusButton"), "佣兵真实逻辑分支执行");
+            Assert.That(commands.Count, Is.EqualTo(before + 1), "逻辑执行不再需要旧列表确认");
+            Assert.That(commands.Last().OptionIds, Is.EqualTo(new[] { id }));
         }
 
         private void PreparePiles(int first, int second)

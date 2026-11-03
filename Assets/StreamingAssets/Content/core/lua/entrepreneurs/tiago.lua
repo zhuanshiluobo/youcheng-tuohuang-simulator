@@ -16,7 +16,9 @@ local function copy(v)
     local r = {}; for k, x in pairs(v) do r[k] = copy(x) end; return r
 end
 local function tag(effect, c, stage)
-    local saved = copy(c); saved.stage = stage
+    -- WithContext立即冻结封闭DTO；这里只改顶层stage，不必在VM中重复深拷贝只读骰子／参数。
+    local saved = {}; for key, value in pairs(c) do saved[key] = value end
+    saved.stage = stage
     return Effect.WithContext(effect, saved)
 end
 local function presented(effect, key, arguments)
@@ -130,17 +132,22 @@ local function enterprises(ctx)
     end
     table.sort(ids); return ids
 end
-local function choose(ctx, c, points, stage)
+local point
+local function choose(ctx, c, points, extra)
     c = copy(c); c.offeredPoints = copy(points)
-    local ids, labels = {}, {}
+    local branches, labels = {}, {}
     for _, n in ipairs(points) do
-        local id = tostring(n); ids[#ids + 1] = id
+        local id = tostring(n)
+        -- 普通点数只读c；只有出售分支需要冻结main及累计结果，交其内部复制一次。
+        branches[#branches + 1] = { id = id, effects = point(ctx, c, n, extra) }
         labels[#labels + 1] = { candidateId = id, label = Text.Ref(prefix .. 'point.' .. id, { point = n }) }
     end
-    if #ids == 0 then error('tiago_point_choice_empty') end
-    return tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = ids,
+    if #branches == 0 then error('tiago_point_choice_empty') end
+    local choice = Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
         minSelections = 1, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = prefix .. 'points.prompt' }),
-        { interaction = { prompt = Text.Ref(prefix .. 'points.prompt'), options = labels } }), c, stage)
+        { interaction = { prompt = Text.Ref(prefix .. 'points.prompt'), options = labels } })
+    -- 主分支结束后只组织原额外条件；点数正文已在真实分支，不再用所选值生成。
+    return extra and choice or tag(choice, c, 'main_completed')
 end
 local function all_points() return { 0, 1, 2, 3, 4, 5, 6, 7 } end
 local function normal_points(c, extra)
@@ -162,8 +169,7 @@ local function choose_main(ctx, c)
     local points, masks
     if c.mode == 'direct' then points = all_points(); masks = {} else points, masks = normal_points(c, false) end
     c.origins = masks
-    c.reputationLimit = nil; c.reputationItemIds = nil; c.reputationSupplyZoneId = nil
-    return { choose(ctx, c, points, 'main_selected') }
+    return { choose(ctx, c, points, false) }
 end
 local function reputation_supply(ctx)
     local zones = Global.Content.FindZones({ templateId = 'core.zone.player_supply', owner = ctx.playerId })
@@ -182,40 +188,51 @@ local function choose_reputation(ctx, c)
     local limit = c.parameters.reputation
     if #ids < limit then limit = #ids end
     if limit == 0 then return choose_main(ctx, c) end
-    c.reputationLimit = limit
-    c.reputationSupplyZoneId = supply.id
-    c.reputationItemIds = {}
-    for i = 1, limit do c.reputationItemIds[i] = ids[i] end
-    local options, labels = {}, {}
-    for n = 0, limit do
-        local id = tostring(n); options[#options + 1] = id
-        labels[#labels + 1] = { candidateId = id, label = n == 0 and Text.Ref(prefix .. 'reputation.none')
-            or Text.Ref(prefix .. 'reputation.amount', { count = n }) }
+    local branches, labels = {}, {}
+    local target = zone_for(c.carrier, 'reputation').id
+    for n = 1, limit do
+        local effects = {}
+        -- 每枚仍独立提交；只把正数选择和已确定的真实移动绑定，不合并成足量批次。
+        for i = 1, n do
+            effects[#effects + 1] = Effect.MoveItem({ apiVersion = 3, player = ctx.playerId, itemIds = { ids[i] },
+                expectedSource = { zoneId = supply.id }, destination = { zoneId = target },
+                insertion = { kind = 'unordered' }, operationProfileId = 'core.player_marker_storage', requiredCount = 1 })
+        end
+        local id = tostring(n)
+        branches[#branches + 1] = { id = id, effects = effects }
+        labels[#labels + 1] = { candidateId = id, label = Text.Ref(prefix .. 'reputation.amount', { count = n }) }
     end
-    return { tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = options,
-        minSelections = 1, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = prefix .. 'reputation.prompt' }),
-        { interaction = { prompt = Text.Ref(prefix .. 'reputation.prompt', { maximum = limit }), options = labels } }), c, 'reputation_selected') }
+    local choice = Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        minSelections = 0, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = prefix .. 'reputation.prompt' }),
+        { interaction = { prompt = Text.Ref(prefix .. 'reputation.prompt', { maximum = limit }), options = labels } })
+    -- 先等真实存放（含其独立失败）或Choice放弃结束，再沿同一普通后继列表进入一次原点数页。
+    -- 点数页不挂在每枚移动回调中，也不由取消答案伪造空移动来推进。
+    return { choice, choose_main(ctx, c)[1] }
 end
 local function sale(ctx, c, stage)
-    return tag(presented(Effect.SellResource({ apiVersion = 2, player = ctx.playerId, saleMode = 'batch',
-        pricePolicy = 'core.resource_sale', interactionType = 'lua.choice', promptKey = prefix .. 'sale.prompt' }),
-        'sale.prompt'), c, stage)
+    return tag(Effect.WithPresentation(Effect.SellResource({ apiVersion = 2, player = ctx.playerId, saleMode = 'batch',
+        pricePolicy = 'core.resource_sale', interactionType = 'lua.choice', promptKey = 'effect.resource.sell' }),
+        { interaction = { prompt = Text.Ref('core:interaction.sale.batch',
+            { soldCount = c.saleSoldCount, revenue = c.saleRevenue }) } }), c, stage)
 end
-local function point(ctx, c, n, extra)
+point = function(ctx, c, n, extra)
     local p = numeric_player(ctx)
     if n == 0 then return { Effect.ActivateEnterpriseSpecial({ apiVersion = 1, player = p, unlockedByPlayer = p }) }
-    elseif n == 1 then return { Effect.SelectInfluence({ player = ctx.playerId, operation = 'replace', subjectFilter = 'any', count = 1, requiredCount = 0 }) }
+    elseif n == 1 then return { Effect.ReplaceInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'any', count = 1, requiredCount = 0 }) }
     elseif n == 2 then return { Effect.GainResource({ player = ctx.playerId, resourceType = 'gold_voucher', amount = 15 }) }
     elseif n == 3 or n == 7 then
         return { Effect.UpgradeEnterprise({ apiVersion = 1, player = p, enterpriseItemIds = enterprises(ctx), levels = n == 3 and 1 or 2 }) }
-    elseif n == 4 then return { sale(ctx, c, extra and 'sale_extra' or 'sale_main') }
+    elseif n == 4 then
+        c = copy(c); c.saleSoldCount = 0; c.saleRevenue = 0
+        if not extra then c.main = 4 end
+        return { sale(ctx, c, extra and 'sale_extra' or 'sale_main') }
     elseif n == 5 then return {
         Effect.GainResource({ player = ctx.playerId, resourceType = 'originium', amount = 2 }),
         Effect.GainResource({ player = ctx.playerId, resourceType = 'originium_shard', amount = 2 }),
         Effect.GainResource({ player = ctx.playerId, resourceType = 'iron', amount = 1 }) }
     elseif n == 6 then return {
         Effect.PlaceInfluence({ executingPlayer = ctx.playerId, ownerSubject = ctx.playerId, influenceSource = 'player_supply' }),
-        Effect.SelectInfluence({ player = ctx.playerId, operation = 'move', subjectFilter = 'self', count = 1, requiredCount = 0 }) }
+        Effect.MoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'self', count = 1, requiredCount = 0 }) }
     end
     error('tiago_point_invalid')
 end
@@ -225,15 +242,15 @@ local function extra_condition(ctx, c)
     if #points == 0 then return {} end -- 正常同点无资格，不付费，不弹空选择。
     local right
     if c.mode ~= 'direct' and c.parameters.dice == 2 then right = point(ctx, c, points[1], true)
-    else right = { choose(ctx, c, points, 'extra_selected') } end
+    else
+        -- 先结算真实的两枚费用，再构造原已冻结点数的实际分支；不把完整Choice再嵌进费用表。
+        -- Condition本身有真实左式；只有其condition_met回执可继续，不用空Effect占位或放宽深度预算。
+        c = copy(c); c.extraPoints = copy(points)
+        return { tag(presented(Effect.Condition({ ruleCondition = true, decisionPlayer = ctx.playerId,
+            leftEffects = { payment(ctx, c, 2) }, rightEffects = {} }), 'extra.condition'), c, 'extra_paid') }
+    end
     return { presented(Effect.Condition({ ruleCondition = true, decisionPlayer = ctx.playerId,
         leftEffects = { payment(ctx, c, 2) }, rightEffects = right }), 'extra.condition') }
-end
-local function main_reward(ctx, c)
-    local effects = point(ctx, c, c.main, false)
-    -- 贸易完整结束才转额外条件；普通主效果的空结果不取消同层额外条件。
-    if c.main ~= 4 then for _, e in ipairs(extra_condition(ctx, c)) do effects[#effects + 1] = e end end
-    return effects
 end
 local function roll(ctx, c)
     return tag(Effect.RollDice({ apiVersion = 1, player = ctx.playerId, count = 1, sides = 6 }), c, 'rolled')
@@ -298,9 +315,9 @@ return function(ctx)
     if ctx.eventType == 'EffectCompleted' then
         local saved = ctx.payload.continuationContext
         if saved == nil then return {} end
-        if type(saved) ~= 'table' or saved.version ~= 5 then error('tiago_context_version_invalid') end
+        if type(saved) ~= 'table' or saved.version ~= 7 then error('tiago_context_version_invalid') end
         if saved.player ~= ctx.playerId then error('tiago_context_player_invalid') end
-        if ctx.payload.outcome ~= 'completed' then return {} end
+        if ctx.payload.outcome ~= 'completed' and not (saved.stage == 'main_completed' and ctx.payload.outcome == 'failed') then return {} end
         local c, result = copy(saved), ctx.payload.normalizedResult
         if c.stage == 'rolled' then
             local d = type(result) == 'table' and result.diceResult or nil
@@ -309,24 +326,12 @@ return function(ctx)
             c.dice[#c.dice + 1] = d
             if #c.dice < c.parameters.dice then return { roll(ctx, c) } end
             return choose_reputation(ctx, c)
-        elseif c.stage == 'reputation_selected' then
-            local count = tonumber(result)
-            if type(result) ~= 'string' or count == nil or count % 1 ~= 0 or tostring(count) ~= result
-                or count < 0 or count > c.reputationLimit then error('tiago_reputation_answer_invalid') end
-            if count == 0 then return choose_main(ctx, c) end
-            if type(c.reputationSupplyZoneId) ~= 'string' or c.reputationSupplyZoneId == ''
-                or type(c.reputationItemIds) ~= 'table' or #c.reputationItemIds < count then error('tiago_reputation_context_invalid') end
-            local effects, target = {}, zone_for(c.carrier, 'reputation').id
-            -- 数量由Lua决定；每枚独立提交，失效实例只由该枚移动的通用校验兜底。
-            for i = 1, count do
-                effects[#effects + 1] = Effect.MoveItem({ apiVersion = 3, player = ctx.playerId, itemIds = { c.reputationItemIds[i] },
-                    expectedSource = { zoneId = c.reputationSupplyZoneId }, destination = { zoneId = target },
-                    insertion = { kind = 'unordered' }, operationProfileId = 'core.player_marker_storage', requiredCount = 1 })
-            end
-            -- 同一普通后继列表末尾只挂一次点数页；不在每枚移动的完成回调中重开。
-            effects[#effects + 1] = choose_main(ctx, c)[1]
-            return effects
-        elseif c.stage == 'main_selected' or c.stage == 'extra_selected' then
+        elseif c.stage == 'extra_paid' then
+            if type(result) ~= 'table' or result.outcome ~= 'condition_met' then return {} end
+            if type(c.extraPoints) ~= 'table' or #c.extraPoints == 0 then error('tiago_extra_points_missing') end
+            return { choose(ctx, c, c.extraPoints, true) }
+        elseif c.stage == 'main_completed' then
+            if result == nil and ctx.payload.outcome == 'failed' then return {} end
             local n = tonumber(result)
             if n == nil or n % 1 ~= 0 or n < 0 or n > 7 then error('tiago_point_answer_invalid') end
             local offered = false
@@ -334,10 +339,17 @@ return function(ctx)
                 if candidate == n then offered = true end
             end
             if not offered then error('tiago_point_not_offered') end
-            if c.stage == 'extra_selected' then return point(ctx, c, n, true) end
-            c.main = n; return main_reward(ctx, c)
+            c.main = n
+            -- 出售由原实际出售回执等完整结束后继续；不能在外层再开一次额外条件。
+            if n == 4 then return {} end
+            return extra_condition(ctx, c)
         elseif c.stage == 'sale_main' or c.stage == 'sale_extra' then
-            if type(result.finished) ~= 'boolean' then error('tiago_sale_result_invalid') end
+            if type(result) ~= 'table' or type(result.finished) ~= 'boolean'
+                or type(result.soldCount) ~= 'number' or type(result.revenue) ~= 'number'
+                or result.soldCount < 0 or result.soldCount % 1 ~= 0
+                or result.revenue < 0 or result.revenue % 1 ~= 0 then error('tiago_sale_result_invalid') end
+            c.saleSoldCount = c.saleSoldCount + result.soldCount
+            c.saleRevenue = c.saleRevenue + result.revenue
             if not result.finished then return { sale(ctx, c, c.stage) } end
             if c.stage == 'sale_main' then return extra_condition(ctx, c) end
             return {}
@@ -360,7 +372,7 @@ return function(ctx)
     local carrier = instance.entrepreneurAbilityItemId or source
     if Global.Content.GetInstance(carrier).definitionId ~= 'entrepreneur.ability.D09' then error('tiago_carrier_invalid') end
     zone_for(carrier, 'reputation')
-    local c = { version = 5, player = ctx.playerId, source = source, carrier = carrier }
+    local c = { version = 7, player = ctx.playerId, source = source, carrier = carrier }
     if ability == 'entrepreneur.D09.investment' then return { FundInvestment(ctx, c, 'normal') }
     elseif ability == 'entrepreneur.D01.exchange' or ability == 'entrepreneur.D02.exchange' then
         local p = parameters(ctx, Global.Content.GetInstance(carrier))

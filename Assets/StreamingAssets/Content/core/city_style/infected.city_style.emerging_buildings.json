@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.city_style.emerging_buildings",
   "contentType": "city_style",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "新兴建筑群",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.city_style.emerging_buildings.declared",
       "script": "lua/city_styles/infected.city_style.emerging_buildings.declared.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],

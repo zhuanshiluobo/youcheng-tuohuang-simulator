@@ -27,11 +27,11 @@ def write(path, text):
     if not meta.exists(): meta.write_text('fileFormatVersion: 2\nguid: '+uuid.uuid4().hex+'\nTextScriptImporter:\n  externalObjects: {}\n  userData: \n  assetBundleName: \n  assetBundleVariant: \n', encoding='utf-8')
 
 place = "Effect.PlaceInfluence({executingPlayer=ctx.playerId, ownerSubject=ctx.playerId, influenceSource='player_supply'})"
-move = "Effect.SelectInfluence({player=ctx.playerId, operation='move', subjectFilter='self', count=1})"
-remove = "Effect.SelectInfluence({player=ctx.playerId, operation='remove', subjectFilter='any', count=1})"
+move = "Effect.MoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId, subjectFilter='self', count=1})"
+remove = "Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId, subjectFilter='any', count=1})"
 gain = lambda resource,amount: "Effect.GainResource({player=ctx.playerId,resourceType='%s',amount=%s})"%(resource,amount)
 pay = lambda resource,amount: "Effect.PayResource({player=ctx.playerId,resourceType='%s',amount=%s})"%(resource,amount)
-repeat = lambda n,body,stop=False: "Effect.Repeat({apiVersion=1,count=%d,allowEarlyStop=%s,effects={%s}})"%(n,str(stop).lower(),body)
+repeat = lambda n,body: ",".join(body for _ in range(n))
 flow = lambda name,args='': "Effect.%s({apiVersion=1,player=ctx.playerId%s})"%(name,(','+args) if args else '')
 condition = lambda cost,reward: 'Effect.Condition({leftEffects={'+cost+'},rightEffects={'+reward+'}})'
 scripts = {}
@@ -39,7 +39,7 @@ def script(card, mode, body): scripts[card,mode] = 'return function(ctx)\n'+body
 def simple(card,mode,body): script(card,mode,'    return {'+body+'}')
 
 simple('amiya','strategy',"Flow.DispatchOperator({apiVersion=1,player=ctx.playerId,drawCount=3,excludedReturnItemIds={ctx.payload.cardInstanceRef}})")
-simple('amiya','tactic',flow('RetainCharacter'))
+simple('amiya','tactic','')  # API-21/22：持续型正文明确为空，不生成退役空节点。
 script('muelsyse','strategy','    return {'+place+','+move+'}')
 script('muelsyse','tactic',"""    if ctx.eventType == 'CharacterCardCovered' or ctx.eventType == 'CharacterUseFinished' then
         return {Effect.ChooseAdditionalCover({apiVersion=1,player=ctx.playerId,acceptedTypeId='core.generated_character_card',reusable=true,blockCurrentRound=false})}
@@ -62,7 +62,7 @@ script('lin','tactic',"""    if ctx.eventType == 'PlayerCleanupStarted' then
 simple('silence_the_paradigmatic','strategy',flow('ChoosePublicStyleSpecial','tier=1'))
 simple('silence_the_paradigmatic','tactic',"Effect.GainScore({player=ctx.playerId,amount=1}),"+flow('CreateCityInfluenceLock',"definitionId='infected.component.influence_lock_token'"))
 script('hellagur','strategy',"""    if ctx.eventType == 'PlayerCleanupStarted' then
-        return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='self',count=2})}
+        return {Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=2})}
     end
     return {"""+repeat(3,"Effect.Choice({player=ctx.playerId,branches={{id='place',effects={"+place+"}},{id='remove',effects={"+remove+"}}}})")+'}')
 simple('hellagur','tactic',flow('ChooseAdditionalCover',"acceptedTypeId='core.character_card',reusable=false,blockCurrentRound=true,discardFirst=true"))

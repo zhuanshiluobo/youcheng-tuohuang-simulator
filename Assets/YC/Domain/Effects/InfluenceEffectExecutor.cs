@@ -279,7 +279,6 @@ namespace YC.Domain.Effects
             if (registry == null) throw new ArgumentNullException(nameof(registry));
             if (influenceService == null) throw new ArgumentNullException(nameof(influenceService));
             registry.InfluenceService = influenceService;
-            InfluenceDepartureBatchExecutor.Register(registry);
             SettlementEntryService.Register(registry);
             foreach (string abilityId in registry.CharacterAbilityContracts.Keys.OrderBy(id => id, StringComparer.Ordinal))
                 RegisterDeferredDestination(registry, abilityId);
@@ -537,6 +536,8 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteRemove(EffectExecutionContext context)
         {
+            if (InfluenceSelectionFlow.IsSelection(context.Node.EffectTypeId, context.Node.NormalizedArguments))
+                return InfluenceSelectionFlow.Execute(context, influenceService);
             if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemDeparture(context, false);
             if (context.Node.PendingOutcome != EffectPendingOutcome.None)
             {
@@ -599,6 +600,8 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteMove(EffectExecutionContext context)
         {
+            if (InfluenceSelectionFlow.IsSelection(context.Node.EffectTypeId, context.Node.NormalizedArguments))
+                return InfluenceSelectionFlow.Execute(context, influenceService);
             if (ReadStableId(context.Node.NormalizedArguments, "targetInfluence", "influence").Length == 0 &&
                 !TryGet(context.Node.NormalizedArguments, "moves", out _)) return ExecuteDispatchMove(context);
             if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemMove(context);
@@ -662,6 +665,8 @@ namespace YC.Domain.Effects
 
         private EffectStepResult ExecuteReplace(EffectExecutionContext context)
         {
+            if (InfluenceSelectionFlow.IsSelection(context.Node.EffectTypeId, context.Node.NormalizedArguments))
+                return InfluenceSelectionFlow.Execute(context, influenceService);
             if (ItemZoneLegacyProjection.IsActive(context.State)) return ExecuteItemDeparture(context, true);
             EffectNodeRuntimeState node = context.Node;
             if (node.PendingOutcome != EffectPendingOutcome.None)
@@ -797,7 +802,7 @@ namespace YC.Domain.Effects
             var candidates = new InfluenceSubjectQuery().GetCandidateItemIds(context.State, context.Node.PlayerId, filter, excluded).ToList();
             var scope = ItemTransferEffectExecutor.Value(args, "candidateScope");
             if (scope != null) candidates.RemoveAll(id => !scope.Items.Any(value => (value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue) == id));
-            return candidates;
+            return InfluenceSelectionFlow.ApplyParentScope(context, candidates);
         }
 
         private EffectStepResult ExecuteItemDeparture(EffectExecutionContext context, bool replace)
@@ -1562,6 +1567,7 @@ namespace YC.Domain.Effects
         public static string ValidateRemoveSpec(EffectSpec spec) => ValidateRemove(spec);
         private static string ValidateRemove(EffectSpec spec)
         {
+            if (InfluenceSelectionFlow.IsSelection(spec.EffectTypeId, spec.NormalizedArguments)) return InfluenceSelectionFlow.ValidateSpec(spec);
             string result = ValidateKeys(
                 spec,
                 new[] { "apiVersion", "targets", "requiredCount", "departureBatchId", "subjectFilter", "excludedSubjectKeys", "causeKind", "candidateScope", "destination", "executingPlayer", "reasonId", "replaceEffectId", "targetInfluence" },
@@ -1570,6 +1576,10 @@ namespace YC.Domain.Effects
             var targets = ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "targets");
             if (targets != null)
             {
+                if (ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "destination") != null || ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "causeKind") != null)
+                    return "strict_remove_field_not_supported";
+                if (ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "reasonId") != null && ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "reasonId").Kind != NormalizedValueKind.String)
+                    return "strict_remove_reason_invalid";
                 var version = ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "apiVersion");
                 var count = ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "requiredCount");
                 if (version?.Kind != NormalizedValueKind.Integer || version.IntegerValue != 2 || count?.Kind != NormalizedValueKind.Integer || count.IntegerValue < 1 || count.IntegerValue > 16 ||
@@ -1588,8 +1598,8 @@ namespace YC.Domain.Effects
             }
             return string.Empty;
         }
-        private static string ValidateMove(EffectSpec spec) { return ValidateKeys(spec, new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "moves", "targetInfluence", "targetSlot", "targetSlotId" }, new[] { "executingPlayer" }); }
-        private static string ValidateReplace(EffectSpec spec) { return ValidateKeys(spec, new[] { "itemTypeId", "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "placementFailurePolicy", "replacementOwner", "replacementSource", "targetInfluence" }, new[] { "executingPlayer", "targetInfluence", "replacementOwner", "replacementSource", "placementFailurePolicy" }); }
+        private static string ValidateMove(EffectSpec spec) { if (InfluenceSelectionFlow.IsSelection(spec.EffectTypeId, spec.NormalizedArguments)) return InfluenceSelectionFlow.ValidateSpec(spec); return ValidateKeys(spec, new[] { "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "moves", "targetInfluence", "targetSlot", "targetSlotId" }, new[] { "executingPlayer" }); }
+        private static string ValidateReplace(EffectSpec spec) { if (InfluenceSelectionFlow.IsSelection(spec.EffectTypeId, spec.NormalizedArguments)) return InfluenceSelectionFlow.ValidateSpec(spec); return ValidateKeys(spec, new[] { "itemTypeId", "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "placementFailurePolicy", "replacementOwner", "replacementSource", "targetInfluence" }, new[] { "executingPlayer", "targetInfluence", "replacementOwner", "replacementSource", "placementFailurePolicy" }); }
 
         private static string ValidateKeys(EffectSpec spec, IList<string> allowed, IList<string> required)
         {

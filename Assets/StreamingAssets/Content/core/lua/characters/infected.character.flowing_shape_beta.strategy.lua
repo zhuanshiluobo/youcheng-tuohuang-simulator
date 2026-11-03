@@ -60,7 +60,7 @@ return function(ctx)
         if item==nil or item.typeId~='core.facility_card' or supply==nil or supply.templateId~='core.zone.facility_supply_slot'
             or supply.topItemId~=id or definition==nil or has(c.names,definition.name) then error('facility_source_changed') end
         c.names[#c.names+1]=definition.name;c.supply=item.zoneId
-        return {tag(Effect.MoveItem({apiVersion=1,player=ctx.playerId,itemRefs={{itemId=id}},expectedSource={zoneId=item.zoneId},
+        return {tag(Effect.MoveItem({apiVersion = 4,player=ctx.playerId,operation='transfer',selector={mode='explicit',itemIds={id},expectedSource={zoneId=item.zoneId}},
             destination={zoneId=c.destination},insertion={kind='bottom'},operationProfileId='core.facility_card_transfer',requiredCount=1}),c,'moved')}
     elseif c.stage=='moved' then
         if ctx.payload.outcome~='completed' then return {} end

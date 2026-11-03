@@ -638,9 +638,16 @@ namespace YC.Presentation.Editor
                 dialogsComponent.ConfigureOptionScroll("Options", 0, 0);
                 for (int i = 0; i < 9; i++)
                 {
-                    var row = dialogsComponent.CreateOptionRow(null);
-                    row.Label.text = "诊断选项 " + (i + 1) + "：正文换行和独立确认";
-                    row.SetSelected(i == 1);
+                    var row = dialogsComponent.CreateEffectRow();
+                    row.Bind(new YC.Presentation.UiEffectRowView.Binding
+                    {
+                        StableItemId = "diagnostic-effect-" + i,
+                        RowMode = YC.Presentation.UiEffectRowView.Mode.ChoiceExecute,
+                        RightStatus = YC.Presentation.UiEffectRowView.Status.Use,
+                        Enabled = false,
+                        Title = "诊断逻辑条目 " + (i + 1),
+                        Description = "仅显示当前逻辑组件，不执行游戏效果。"
+                    }, (_, __) => false, null, null);
                 }
                 dialogsComponent.ResourceSummaryText.text = string.Format(profile.SelectionSummaryFormat, 1, 1, 1);
             }

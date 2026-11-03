@@ -9,7 +9,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
-    public sealed class MartinBlueprintActionTests : MartinContentTestFixture
+    public sealed partial class MartinBlueprintActionTests : MartinContentTestFixture
     {
         [Test] public void M05PlacesAreTwoAlreadyAttachedOrderedSiblings()
         {
@@ -38,9 +38,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==red.ItemId).ZoneId,Is.EqualTo(BlueprintZone(state)));
             var order=FacilityLayerQuery.Supply(state).Single(s=>s.SlotIndex==0).ItemIds;
             Assert.That(order,Is.EqualTo(new[]{blueprint.ItemId,below.ItemId}));
-            var batch=state.EffectRuntime.EffectNodes.Single(n=>n.TransferBatchRequest?.OperationId.StartsWith("martin:exchange:")==true);
-            Assert.That(batch.TransferBatchRequest.Transfers.Count,Is.EqualTo(2));Assert.That(batch.Status,Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(ItemTransferService.TryValidateBatchReceipt(batch,out string reason),Is.True,reason);
+            var batch=state.EffectRuntime.EffectNodes.Single(IsActualMartinBatch);
+            Assert.That(batch.CommonItemMovementV4.Transfers.Count,Is.EqualTo(2));Assert.That(batch.Status,Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(ItemMovementV4.TryValidateState(state,batch,out string reason),Is.True,reason);
+            Assert.That(batch.CommonItemMovementV4.Receipt.Items.Select(i=>i.ItemId),Is.EquivalentTo(new[]{blueprint.ItemId,red.ItemId}));
         }
         [TestCase(false)][TestCase(true)] public void M06DeclineOrInsufficientPaymentStillInsertsUnderTheChosenTop(bool insufficient)
         {
@@ -49,7 +50,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var lower=Supply(state,"entrepreneur.facility.M04",0);var top=Supply(state,"building_015",0);
             if(insufficient)state.FindPlayer(1).Resources.OriginiumShard=0;int shards=state.FindPlayer(1).Resources.OriginiumShard;
             Action(state,"M06");
-            if(!insufficient)
+            if(insufficient)Assert.That(Flag(Open(state).PromptParameters,"canPay"),Is.False,"不足分支仍须回答真实可放弃付款请求，不能由通用UntilPrompt尝试支付。");
             {
                 var decline=Open(state).CandidateIds.FirstOrDefault(id=>id=="decline"||id=="cancel"||id=="choice.skip");
                 Assert.That(decline,Is.Not.Null,"正式付款必须允许放弃左式");Answer(state,NormalizedValue.CreateString(decline));
@@ -89,13 +90,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             if(withHub){var c=Card(state,"reserve_002");hub=c.ItemId;Position(state,c,state.ItemZones.Zones.Single(z=>z.TemplateId=="core.zone.box_reserve").ZoneId);}
             var expected=Registry.QuerySources(state,1).Single(s=>s.AbilityId=="entrepreneur.M13.tower_source");
             int budget=state.FindPlayer(1).RemainingMainActionsThisTurn;Immediate(state,face);
-            var build=state.EffectRuntime.EffectNodes.Single(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build);
+            var build=state.EffectRuntime.EffectNodes.Single(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)));
             Assert.That(Text(build.NormalizedArguments,"sourceKey"),Is.EqualTo(expected.SourceKey));Assert.That(Text(build.NormalizedArguments,"sourceKind"),Is.EqualTo("authorized"));
             Assert.That(Text(build.NormalizedArguments,"paymentMode"),Is.EqualTo("free"));Assert.That(Flag(build.NormalizedArguments,"consumeMainAction"),Is.False);
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==FacilitySelectionEffectExecutor.TypeId),Is.False,"指定塔不先选卡");
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)),Is.False,"指定塔不先选卡");
             Answer(state,NormalizedValue.CreateString("0"));
             if(withHub){Assert.That(Open(state).CandidateIds,Does.Contain(hub));Answer(state,NormalizedValue.CreateString(hub));Answer(state,NormalizedValue.CreateString("1"));}
-            Assert.That(state.EffectRuntime.EffectNodes.Count(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build&&n.Status==EffectNodeStatus.Completed),Is.EqualTo(withHub?2:1));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))&&n.Status==EffectNodeStatus.Completed),Is.EqualTo(withHub?2:1));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn,Is.EqualTo(budget));
         }
         [Test] public void M10PaysItsOuterCostThenDirectNormalBuildUsesBlueprintSourceAndNormalFee()
@@ -106,7 +107,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Open(state).InteractionTypeId,Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));Assert.That(Open(state).CandidateIds,Is.EqualTo(new[]{card.ItemId}));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold-2));PrepareGoldBuild(state,card.ItemId,BlueprintZone(state));
             Answer(state,NormalizedValue.CreateString("pay"));Answer(state,NormalizedValue.CreateString("0"));Answer(state,NormalizedValue.CreateString("p2"));
-            var build=state.EffectRuntime.EffectNodes.Single(n=>n.EffectTypeId==FacilityEntryEffectTypeIds.Build);
+            var build=state.EffectRuntime.EffectNodes.Single(n=>(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)));
             Assert.That(Text(build.NormalizedArguments,"sourceKey"),Is.EqualTo(source.SourceKey));
             Assert.That(Text(build.NormalizedArguments,"sourceKey"),Is.Not.EqualTo(state.EffectRuntime.AbilityActionInvocations.Single(i=>i.SourceRef.AbilityId=="entrepreneur.face.M10").SourceRef.SourceKey));
             Assert.That(Flag(build.NormalizedArguments,"consumeMainAction"),Is.False);
@@ -117,13 +118,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state=State("entrepreneur.round.M.5",true);ActivateFace(state,"entrepreneur.round.M.5","M10");var card=Blueprint(state,"entrepreneur.facility.M02");
             int gold=state.FindPlayer(1).Resources.GoldVoucher;Action(state,"M10");Answer(state,NormalizedValue.CreateString("decline"));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold));Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==card.ItemId).ZoneId,Is.EqualTo(BlueprintZone(state)));
-            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==FacilitySelectionEffectExecutor.TypeId||n.EffectTypeId==FacilityEntryEffectTypeIds.Build),Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(n=>FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments)||(n.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments))),Is.False);
         }
         [Test] public void M12EmptyNormalSupplyStillPlacesAndDoesNotTreatBlueprintsAsNormalSupply()
         {
             var state=State("entrepreneur.round.M.7",true);ActivateFace(state,"entrepreneur.round.M.7","M12");var card=Blueprint(state,"entrepreneur.facility.M02");
             int pure=state.FindPlayer(1).Resources.PureOriginium;Action(state,"M12");Answer(state,NormalizedValue.CreateString("continue"));
-            var selection=state.EffectRuntime.EffectNodes.Single(n=>n.EffectTypeId==FacilitySelectionEffectExecutor.TypeId);
+            var selection=state.EffectRuntime.EffectNodes.Single(n=>FacilityBuildContract.IsSelection(n.EffectTypeId, n.NormalizedArguments));
             Assert.That(selection.Status,Is.EqualTo(EffectNodeStatus.Completed));Assert.That(state.FindPlayer(1).Resources.PureOriginium,Is.EqualTo(pure-1));
             Assert.That(state.EffectRuntime.EffectNodes.Any(n=>n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence),Is.True);
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==card.ItemId).ZoneId,Is.EqualTo(BlueprintZone(state)));
@@ -145,7 +146,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state=State();var r=Invoke(state,"entrepreneur.face.M12",Rounds,Object("abilityId",NormalizedValue.CreateString("entrepreneur.face.M12")));
             Assert.That(r.IsSuccess,Is.True,r.Diagnostic);var e=r.Effects.Single();Assert.That(e.NestedEffectGroups[0].Count,Is.EqualTo(1));Assert.That(e.NestedEffectGroups[1].Count,Is.EqualTo(2));
-            Assert.That(e.NestedEffectGroups[1][0].EffectTypeId,Is.EqualTo(FacilitySelectionEffectExecutor.TypeId));Assert.That(e.NestedEffectGroups[1][1].EffectTypeId,Is.EqualTo(InfluenceEffectTypeIds.PlaceInfluence));
+            Assert.That(FacilityBuildContract.IsSelection(e.NestedEffectGroups[1][0].EffectTypeId,e.NestedEffectGroups[1][0].RawArguments),Is.True);Assert.That(e.NestedEffectGroups[1][1].EffectTypeId,Is.EqualTo(InfluenceEffectTypeIds.PlaceInfluence));
         }
     }
 }

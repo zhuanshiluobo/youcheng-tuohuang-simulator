@@ -24,6 +24,31 @@ namespace YC.Domain.Movement
             var parent = item == null ? null : InfluenceSubjectQuery.GetMapParent(state, item.ZoneId);
             return parent?.TemplateId == "core.zone.map_location" ? parent.LocalZoneId : "";
         }
+        internal static string LocationForZone(GameState state, string zoneId)
+        {
+            var zone = state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == zoneId && z.TemplateId == "core.zone.map_tokens");
+            return zone == null ? "" : state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == zone.ParentId && z.TemplateId == "core.zone.map_location")?.LocalZoneId ?? "";
+        }
+        internal static string DestinationZoneId(GameState state, string location)
+        {
+            var parent = state.ItemZones.Zones.SingleOrDefault(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == location);
+            return parent == null ? "" : state.ItemZones.Zones.SingleOrDefault(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.map_tokens")?.ZoneId ?? "";
+        }
+        public string ValidateMove(GameState state, int player, string itemId, string destination, string profile)
+        {
+            var item = new ItemZoneQuery(types).FindItem(state, itemId);
+            if (item?.PhysicalKind != ItemPhysicalKind.Token || !types.HasOperationProfile(item.TypeId, profile)) return "operation_profile_rejected";
+            if (item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId != player) return "transfer_permission_denied";
+            return profile == "core.adjacent_location_token_move" && GetDestinationLocationIds(state, itemId, profile).Contains(destination) && DestinationZoneId(state, destination).Length > 0 ? "" : "token_destination_rejected";
+        }
+        internal static EffectEventRequest MovedEvent(EffectNodeRuntimeState node, string itemId, ItemPositionRef from, ItemPositionRef to, string origin, string destination)
+        {
+            var payload = Object("changed", NormalizedValue.CreateBoolean(true), "tokenItemId", NormalizedValue.CreateString(itemId),
+                "originalPosition", Object("zoneId", NormalizedValue.CreateString(from.ZoneId), "slotId", NormalizedValue.CreateString(from.SlotId), "locationId", NormalizedValue.CreateString(origin)),
+                "destinationLocationId", NormalizedValue.CreateString(destination), "destination", Object("zoneId", NormalizedValue.CreateString(to.ZoneId), "slotId", NormalizedValue.CreateString(to.SlotId)));
+            return new EffectEventRequest { EventId = StableIdFactory.Create("event", node.EffectId, "token.moved", itemId), EventType = "token.moved",
+                SourceEffectId = node.EffectId, OwnerNodeId = node.EffectId, TargetEntityId = itemId, PlayerId = node.PlayerId, DefinitionVersion = "v1", Visibility = "public", SemanticKey = "moved", Payload = payload };
+        }
         public IReadOnlyList<string> GetDestinationLocationIds(GameState state, string tokenItemId, string operationProfileId)
         {
             var item = new ItemZoneQuery(types).FindItem(state, tokenItemId);
@@ -36,7 +61,8 @@ namespace YC.Domain.Movement
         }
         public ItemTransferResult Move(EffectExecutionContext context, string tokenItemId, string destinationLocationId, string operationProfileId)
         {
-            if (!GetDestinationLocationIds(context.State, tokenItemId, operationProfileId).Contains(destinationLocationId)) throw new InvalidOperationException("token_destination_rejected");
+            string reason = ValidateMove(context.State, context.Node.PlayerId, tokenItemId, destinationLocationId, operationProfileId);
+            if (reason.Length > 0) throw new InvalidOperationException(reason);
             var item = new ItemZoneQuery(types).FindItem(context.State, tokenItemId);
             if (item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId != context.Node.PlayerId) throw new InvalidOperationException("transfer_permission_denied");
             var parent = context.State.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == destinationLocationId);
@@ -53,10 +79,14 @@ namespace YC.Domain.Movement
 
     public static class MapOperationEffectExecutor
     {
+        public const string TokenDefinitionVersion = "2.0.0";
+        public static string ValidateSavedVersion(string type,string version,bool runtimeNode=false) => type!=LuaDomainEffectTypeIds.OperateToken || version==TokenDefinitionVersion || !runtimeNode&&string.IsNullOrEmpty(version) ? "" : "token_move_contract_version_unsupported";
         public static void Register(EffectRegistry registry, IMapQueryService map = null, TokenMovementProfileRegistry tokenProfiles = null)
         {
+            ItemTransferEffectExecutor.Register(registry);
+            if (tokenProfiles != null || map != null) registry.TokenMovementProfiles = tokenProfiles ?? new TokenMovementProfileRegistry(map);
             if (!registry.TryGet(LuaDomainEffectTypeIds.PlaceRoad, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.PlaceRoad, context => ExecuteRoad(context, map), EffectExecutorKind.Atomic, "v1") { Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.PlaceRoad, spec.NormalizedArguments) });
-            if (!registry.TryGet(LuaDomainEffectTypeIds.OperateToken, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.OperateToken, context => ExecuteToken(context, map, tokenProfiles), EffectExecutorKind.Atomic, "v1") { Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.OperateToken, spec.NormalizedArguments) });
+            if (!registry.TryGet(LuaDomainEffectTypeIds.OperateToken, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.OperateToken, SpecializedItemMovement.ExecuteToken, EffectExecutorKind.IntrinsicFlow, TokenDefinitionVersion) { Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.OperateToken, spec.NormalizedArguments) });
         }
         public static string ValidateArguments(string typeId, NormalizedValue args)
         {
@@ -77,26 +107,6 @@ namespace YC.Domain.Movement
             string item = service.PlaceRoad(context, route);
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true), "routeId", NormalizedValue.CreateString(route), "roadItemId", NormalizedValue.CreateString(item)));
         }
-        private static EffectStepResult ExecuteToken(EffectExecutionContext context, IMapQueryService map, TokenMovementProfileRegistry tokenProfiles)
-        {
-            var args = context.Node.NormalizedArguments;
-            string error = ValidateArguments(LuaDomainEffectTypeIds.OperateToken, args);
-            if (error.Length > 0) return EffectStepResult.Failed(error);
-            if (Text(args, "player") != context.Node.PlayerId.ToString(System.Globalization.CultureInfo.InvariantCulture)) return EffectStepResult.Failed("invalid_player");
-            var profiles = tokenProfiles ?? new TokenMovementProfileRegistry(map);
-            string itemId = Text(args, "tokenItemId"), destination = Text(args, "destinationLocationId"), profile = Text(args, "operationProfileId");
-            var item = new ItemZoneQuery().FindItem(context.State, itemId);
-            if (item?.PhysicalKind != ItemPhysicalKind.Token || !ItemTypeRegistry.CreateBuiltIn().HasOperationProfile(item.TypeId, profile)) return EffectStepResult.Failed("operation_profile_rejected");
-            if (item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId != context.Node.PlayerId) return EffectStepResult.Failed("transfer_permission_denied");
-            if (!profiles.GetDestinationLocationIds(context.State, itemId, profile).Contains(destination)) return EffectStepResult.Failed("token_destination_rejected");
-            var original = Object("zoneId", NormalizedValue.CreateString(item.ZoneId), "slotId", NormalizedValue.CreateString(item.SlotId), "locationId", NormalizedValue.CreateString(TokenMovementProfileRegistry.GetLocationId(context.State, itemId)));
-            var moved = profiles.Move(context, itemId, destination, profile);
-            var result = Object("changed", NormalizedValue.CreateBoolean(moved.Changed), "tokenItemId", NormalizedValue.CreateString(itemId), "originalPosition", original,
-                "destinationLocationId", NormalizedValue.CreateString(destination), "destination", Object("zoneId", NormalizedValue.CreateString(item.ZoneId), "slotId", NormalizedValue.CreateString(item.SlotId)));
-            return EffectStepResult.Completed(result)
-                .AddEvent(new EffectEventRequest { EventId = StableIdFactory.Create("event", context.Node.EffectId, "token.moved", itemId), EventType = "token.moved",
-                    SourceEffectId = context.Node.EffectId, OwnerNodeId = context.Node.EffectId, TargetEntityId = itemId, PlayerId = context.Node.PlayerId, DefinitionVersion = "v1", Visibility = "public", SemanticKey = "moved",
-                    Payload = result.Clone() });
-        }
+
     }
 }

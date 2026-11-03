@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System;
 using NUnit.Framework;
 using YC.Domain.Effects;
@@ -58,7 +58,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             using var f = new AgnesContentTestFixture(); f.Formal(); f.Choose(1, "A08", "1"); f.Choose(5, "A05");
             string target = f.Action("entrepreneur.A08.tactic.quick").OptionId;
             f.Cleanup(); f.StartCleanupOption(); f.Answer("continue"); f.Restore("A05付1至0战术选择待答");
-            Assert.That(f.Stored, Is.Zero); f.Answer(target);
+            Assert.That(f.Stored, Is.Zero);
+            var branchOwner = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == f.Open.OwnerEffectId);
+            Assert.That(branchOwner.NestedGroupSizes.All(size => size == 1), Is.True);
+            Assert.That(branchOwner.NestedEffects.All(e => e.EffectTypeId == AbilityActionExecutor.DirectTypeId), Is.True);
+            Assert.That(branchOwner.ContinuationContext, Is.Null);
+            Assert.That(branchOwner.ContinuationHandlerId, Is.Empty);
+            Assert.That(f.State.EffectRuntime.AbilityActionInvocations.Any(i => i.ActionId == "entrepreneur.A08.tactic.quick"), Is.False);
+            f.AnswerValue(NormalizedValue.CreateArray(new[] { NormalizedValue.CreateStableReference("candidate", target) }.ToList()));
             // 只回答两次Place，新义务须先成为同窗独立条目，不能自动移除或挂成A05未完成子树。
             f.Answer(f.Open.CandidateIds.First()); f.Answer(f.Open.CandidateIds.First());
             f.Restore("A05同收尾新必做条目待选择"); f.StartCleanupObligation();
@@ -82,6 +89,30 @@ namespace YC.Tests.EditMode.ExpansionRules
             var track = f.State.EffectRuntime.UsageTrackBindings.Single(b => b.TrackId == "entrepreneur.A08.track" && b.PlayerId == 1);
             Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == track.MarkerItemId).SlotId, Is.EqualTo("unused"));
         }
+        [Test] public void A05FrozenRealBranchRechecksTargetAfterSourceExits()
+        {
+            using var f = new AgnesContentTestFixture(); f.Formal(); f.Choose(1, "A08", "1"); f.Choose(5, "A05");
+            string target = f.Action("entrepreneur.A08.tactic.quick").OptionId;
+            f.Cleanup(); f.StartCleanupOption(); f.Answer("continue");
+            var request = f.Open; int mapCount = f.State.Map.Influences.Count;
+            string sourceItem = f.Registry.QuerySources(f.State, 1).First(x => x.ActiveFaceId == "A08").ItemId;
+            var exit = IsolatedEntrepreneurTransfer.ToRetired(f.State, f.Registry, 1, sourceItem);
+            string requestId = request.GetStableInteractionId();
+            // 仅隔离竞争响应：接受真实答案后，InteractionAnswered响应沿正式转移服务退出来源，
+            // 再让冻结InvokeAction复验。不给旧答案改revision，也不改Host状态或来源权限。
+            f.Registry.RegisterEventHandler(new EffectEventHandlerRegistration("qy013.a05.exit_before_invoke", "InteractionAnswered", "", "qy013.a05.exit_before_invoke",
+                c => YC.Domain.Effects.ItemTransferEffectExecutor.Text(c.Event.Payload, "requestId") == requestId
+                    ? new System.Collections.Generic.List<EffectSpec> { exit } : new System.Collections.Generic.List<EffectSpec>()));
+            Assert.That(f.Engine.TrySubmitInteraction(requestId, 1, request.StateRevision,
+                NormalizedValue.CreateStableReference("candidate", target), out string reason), Is.True, reason);
+            var result = f.Engine.RunUntilQuiescent();
+            Assert.That(result.Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage);
+            Assert.That(f.State.EffectRuntime.AbilityActionInvocations.Any(i => i.ActionId == "entrepreneur.A08.tactic.quick"), Is.False);
+            Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == AbilityActionExecutor.DirectTypeId && n.Status == EffectNodeStatus.Failed), Is.True);
+            Assert.That(f.State.Map.Influences.Count, Is.EqualTo(mapCount));
+            Assert.That(f.Stored, Is.Zero, "先付的收尾费用按原规则保留");
+        }
+
         [Test] public void FreeQuantityChoiceRestoresSameRequestAndDeliversOnce()
         {
             using var f = new AgnesContentTestFixture(); f.Host("return A.gainCommand(ctx,{},2)"); f.Start();

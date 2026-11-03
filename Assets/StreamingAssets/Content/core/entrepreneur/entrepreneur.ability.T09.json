@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.ability.T09",
   "contentType": "entrepreneur_ability",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "displayName": "第五号企业家",
   "artwork": "artwork/entrepreneurs/T09.jpg",
   "expansionId": "infected",
@@ -29,8 +29,8 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.T09.departure",
       "script": "lua/entrepreneurs/fifth_number_response.lua",
-      "version": "1.0.1",
-      "completionHandlerId": "entrepreneur.T09.departure.completed",
+      "version": "2.0.0",
+      "completionHandlerId": "",
       "presentation": {
         "description": {
           "key": "core:entrepreneur.T.store.description"
@@ -77,7 +77,7 @@
       "abilityId": "entrepreneur.T09.departure",
       "kind": "event",
       "handlerRef": "entrepreneur.T09.departure",
-      "declarationVersion": "1.1.0",
+      "declarationVersion": "2.0.0",
       "authorizationPolicy": "controller",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -356,8 +356,8 @@
     {
       "handlerId": "entrepreneur.T09.departure",
       "script": "lua/entrepreneurs/fifth_number_response.lua",
-      "version": "1.0.1",
-      "completionHandlerId": "entrepreneur.T09.departure.completed"
+      "version": "2.0.0",
+      "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.T09.cleanup",

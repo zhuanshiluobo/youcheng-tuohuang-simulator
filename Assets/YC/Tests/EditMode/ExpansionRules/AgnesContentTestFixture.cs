@@ -328,7 +328,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             for (int guard = 0; guard < 20 && State.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"); guard++)
             {
                 var q = Open; var node = State.EffectRuntime.EffectNodes.Single(n => n.EffectId == q.OwnerEffectId);
-                if (!new[] { EffectTypeIds.PlaceInfluence, EffectTypeIds.MoveInfluence, EffectTypeIds.RemoveInfluence, ContentPrimitiveEffectExecutor.SelectInfluence }.Contains(node.EffectTypeId)) return;
+                if (!new[] { EffectTypeIds.PlaceInfluence, EffectTypeIds.MoveInfluence, EffectTypeIds.RemoveInfluence, EffectTypeIds.ReplaceInfluence }.Contains(node.EffectTypeId)) return;
                 Assert.That(q.AllowDecline, Is.False); Answer(q.CandidateIds.First());
             }
         }

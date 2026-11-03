@@ -166,24 +166,15 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(rendered.Any(t => t.StartsWith(role.DisplayName, StringComparison.Ordinal)), Is.True);
                 Assert.That(rendered.Any(t => t.StartsWith(custom.DisplayName, StringComparison.Ordinal)), Is.True);
 
-                canvas = new GameObject("动作展示隔离画布", typeof(RectTransform), typeof(Canvas));
                 var dialogType = Type.GetType("YC.Presentation.CharacterCardEffectChoiceDialog, Assembly-CSharp", true);
-                dialog = Activator.CreateInstance(dialogType, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                    null, new object[] { dialogs, (RectTransform)canvas.transform }, null);
-                dialogType.GetMethod("BindGameplayText").Invoke(dialog, new object[] { (Func<GameplayTextRef, GameplayTextDocument>)Resolve,
-                    (Action<Component, GameplayTextDocument, bool>)Render });
-                var optionType = Type.GetType("YC.Presentation.EffectDialogOption, Assembly-CSharp", true);
-                var choice = Activator.CreateInstance(optionType, new object[] { special.DisplayName, (Action)(() => { }), true });
-                optionType.GetField("StableId").SetValue(choice, special.OptionId);
-                optionType.GetField("SourceLabel").SetValue(choice, special.DisplayName);
-                optionType.GetField("DescriptionLabel").SetValue(choice, special.Description);
-                optionType.GetField("LabelDocument").SetValue(choice, AbilityActionTextDocuments.Name(special, Resolve));
-                optionType.GetField("DescriptionDocument").SetValue(choice, bodyDocument);
-                var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(optionType)); list.Add(choice);
-                rendered.Clear();
-                dialogType.GetMethod("ShowExecutionChoices").Invoke(dialog, new object[] { "隔离动作", "仅验证已有列表消费", list, (Func<bool>)(() => true) });
-                Assert.That(rendered, Does.Contain(special.DisplayName));
-                Assert.That(rendered, Does.Contain(special.Description));
+                Assert.That(dialogType.GetMethod("ShowExecutionChoices"), Is.Null, "普通特殊行动不得回到客户端命令列表。");
+                var begin = YC.Application.Interactions.SpecialActionChoiceCommand.Create(1, state.EffectRuntime.StateRevision, catalog.ContentPackHash);
+                Assert.That(YC.Application.Interactions.SpecialActionChoiceCommand.Handle(state, registry, begin, null).Succeeded, Is.True);
+                var sourceChoice = state.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId.Length > 0 && n.EffectTypeId == LuaDomainEffectTypeIds.Choice &&
+                    state.EffectRuntime.EffectNodes.Any(p => p.EffectId == n.ParentEffectId && p.EffectTypeId == OrdinarySpecialActionChoice.TypeId));
+                Assert.That(sourceChoice.NestedEffects.Any(n => n.EffectTypeId == AbilityActionExecutor.TypeId &&
+                    ItemTransferEffectExecutor.Text(n.NormalizedArguments, "optionId") == special.OptionId), Is.True, "非内置特殊来源必须绑定真实调用。");
+                Assert.That(state.EffectRuntime.AbilityActionInvocations, Is.Empty, "选择前不得调用或支付。");
                 artifacts.RecordContent("非内置声明实际生产装配", input, catalog.ContentPackHash);
                 artifacts.WriteLabeledText("角色及非角色实际候选和动态消费者", JsonConvert.SerializeObject(new { role, custom, special, rendered, rawName, normalGameCoverage = false }, Formatting.Indented));
             }

@@ -19,7 +19,7 @@ namespace YC.Infrastructure.Lua
                 throw new InvalidOperationException("city_destination_source_inactive");
             var bound = new LuaHandlerDefinition(handler.SubscriptionId, "CandidateSetBuilding", draft.CandidateKind,
                 new LuaScriptDefinition(handler.Script.ContentId, source.AbilityId, handler.Script.HandlerId,
-                    handler.Script.DefinitionVersion, handler.Script.Source, handler.Script.ContentHash),
+                    handler.Script.DefinitionVersion, handler.Script.Source, handler.Script.ContentHash, handler.Script.EntryId),
                 handler.Role, handler.Priority, source.ItemId, source.AbilityId, responseKind: "candidatePatches");
             var ruleEvent = new RuleEvent { EventId = StableIdFactory.Create("city-candidate-query", draft.CandidateSetId, source.SourceKey),
                 EventType = "CandidateSetBuilding", PlayerId = source.AuthorizedPlayerId, SourceEffectId = draft.SourceEffectId,

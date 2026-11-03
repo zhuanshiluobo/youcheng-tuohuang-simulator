@@ -231,24 +231,32 @@ namespace YC.Tests.EditMode
                 var controller = type.GetMethod("Bind").Invoke(null, new object[] { view, catalog,
                     (Action<string>)(id => clicks.Add(presenter.CreateBeginUseCommand(1, id))), noop, noop, noop, noop, noop, noop, noop, noop });
                 Assert.That(controller, Is.Not.Null);
-                var render = type.GetMethod("RenderCharacterQuickAction"); var model = presenter.BuildView(f.State, 1);
+                type.GetProperty("DeclaredActionRequested").SetValue(controller,
+                    (Action<AbilityActionOption>)(option => clicks.Add(presenter.CreateBeginUseCommand(1, option.SourceRef.ItemId))));
+                // 当前面板消费正式能力候选；仅有实体投影不能代替注册表的声明行动投影。
+                CharacterCardPanelViewModel Model() => presenter.BuildProjectedView(f.State, 1,
+                    GameStateViewProjector.Project(f.State, GameStateViewer.Player(1), null, f.Registry.QueryActions(f.State, 1), f.Registry));
+                var render = type.GetMethod("RenderCharacterQuickAction"); var model = Model();
                 render.Invoke(controller, new object[] { model });
                 var rows = (IDictionary)type.GetField("characterRows", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(controller);
                 Assert.That(rows.Count, Is.EqualTo(2));
-                var ids = model.CoveredCards.Select(card => card.CardId).ToArray();
-                var retained = rows[ids[1]];
-                foreach (var id in ids)
+                var options = model.DeclaredQuickActions.ToArray();
+                var ids = options.Select(option => option.SourceRef.ItemId).ToArray();
+                Assert.That(ids, Is.EquivalentTo(model.CoveredCards.Select(card => card.CardId)));
+                var retained = rows[options[1].OptionId];
+                foreach (var option in options)
                 {
-                    var button = (Button)rows[id].GetType().GetProperty("Button").GetValue(rows[id]);
+                    var row = rows[option.OptionId];
+                    var button = (Button)row.GetType().GetProperty("Button").GetValue(row);
                     // 盖放当轮可能被规则锁定；此处仅测逐行绑定，规则可用性另由正式投影验证。
-                    rows[id].GetType().GetMethod("SetAvailable").Invoke(rows[id], new object[] { true });
+                    row.GetType().GetMethod("SetAvailable").Invoke(row, new object[] { true });
                     button.onClick.Invoke();
                 }
                 Assert.That(clicks.Select(command => command.TargetId), Is.EqualTo(ids));
-                render.Invoke(controller, new object[] { model }); Assert.That(rows[ids[1]], Is.SameAs(retained));
-                Transfer(f, ids[0]); render.Invoke(controller, new object[] { presenter.BuildView(f.State, 1) });
-                Assert.That(rows.Count, Is.EqualTo(1)); Assert.That(rows[ids[1]], Is.SameAs(retained));
-                Transfer(f, ids[1]); render.Invoke(controller, new object[] { presenter.BuildView(f.State, 1) });
+                render.Invoke(controller, new object[] { model }); Assert.That(rows[options[1].OptionId], Is.SameAs(retained));
+                Transfer(f, ids[0]); render.Invoke(controller, new object[] { Model() });
+                Assert.That(rows.Count, Is.EqualTo(1)); Assert.That(rows[options[1].OptionId], Is.SameAs(retained));
+                Transfer(f, ids[1]); render.Invoke(controller, new object[] { Model() });
                 Assert.That(rows.Count, Is.Zero);
                 Assert.That(((Button)viewType.GetProperty("UseCharacterButton").GetValue(view)).gameObject.activeSelf, Is.False);
             }
@@ -381,10 +389,13 @@ namespace YC.Tests.EditMode
         [Test, Category("原生Unity")]
         public void ActualMobileHotseatCoverSelectionKeepsRowsAndSubmitsOnce()
         {
+            var coverEvidence = YC.Tests.EditMode.ExpansionRules.IsolatedTestArtifacts.BeginCase();
+            try
+            {
             var prepared = Production();
             Run(prepared, EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1));
             prepared.State.Phase = GamePhase.CharacterCover;
-            using (var native = new NativeExploreScene(prepared))
+            using (var native = new NativeExploreScene(prepared, coverEvidence.InputsDirectory))
             {
                 var dialog = Read(native.Mobile, "characterCoverChoiceDialog");
                 Assert.That(Read(dialog, "IsShowing"), Is.EqualTo(true));
@@ -401,7 +412,7 @@ namespace YC.Tests.EditMode
                 var stages = new List<object> { new { Stage = "盖牌只选中", Milliseconds = watch.Elapsed.TotalMilliseconds,
                     RowsBefore = original.Count, RowsAfter = after.Count, RetainedRows = original.Count(pair => after.ContainsKey(pair.Key) && ReferenceEquals(after[pair.Key], pair.Value)),
                     Commands = native.Observed.Commands.Count, Selected = Read(native.Mobile, "selectedCoverCardId") } };
-                var root = Environment.GetEnvironmentVariable("NMC_HOTSEAT_EVIDENCE") ?? Path.Combine(Environment.CurrentDirectory, "Logs/HotseatInteractionResponse/方法原件");
+                var root = coverEvidence.ResultsDirectory;
                 Directory.CreateDirectory(root); string evidence = Path.Combine(root, "盖牌分段原件.json");
                 File.WriteAllText(evidence, JsonConvert.SerializeObject(stages, Formatting.Indented));
                 Assert.That(native.Observed.Commands, Is.Empty); Assert.That(Snapshot(native.Session.State), Is.EqualTo(before));
@@ -432,6 +443,7 @@ namespace YC.Tests.EditMode
                 Assert.That(native.Observed.Last.CommandResult.Succeeded && native.Observed.Last.AppliedLocally, Is.True);
                 Assert.That(Read(native.Mobile, "coverSubmissionInFlight"), Is.EqualTo(false));
             }
+            } finally { coverEvidence.Finish(); }
         }
 
         [Test, Category("原生Unity")]
@@ -591,7 +603,9 @@ namespace YC.Tests.EditMode
             private readonly GameObject contextRoot;
             private readonly UnityEngine.SceneManagement.Scene scene;
             private readonly object previousContext;
-            public NativeExploreScene(Fixture prepared = null)
+            private readonly object previousSaveController;
+            private GameObject saveRoot;
+            public NativeExploreScene(Fixture prepared = null, string isolatedInputs = null)
             {
                 var f = prepared ?? Production();
                 var contextType = ProductionType("GameLaunchContext");
@@ -607,6 +621,17 @@ namespace YC.Tests.EditMode
                 Write(Context, "Players", f.State.Players.Select(player => new PlayerSeat { PlayerId = player.PlayerId, Color = player.Color }).ToList());
                 try
                 {
+                // EditMode手动启动Mobile不会自动运行保存组件Awake。只为本场景夹具提供真实且独立的保存依赖，
+                // 不写用户persistentDataPath，不验证正常启动生命周期，也不改场景/预制体。
+                var saveType = ProductionType("MatchSaveController");
+                var saveInstance = saveType.GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
+                previousSaveController = saveInstance.GetValue(null);
+                saveRoot = new GameObject("场景组件隔离保存依赖"); saveRoot.SetActive(false);
+                var save = saveRoot.AddComponent(saveType);
+                var storeType = Type.GetType("YC.Infrastructure.Persistence.MatchSaveStore, Assembly-CSharp", true);
+                string directory = isolatedInputs == null ? Path.Combine(Directory.GetCurrentDirectory(), "TestResults/IsolatedRuns/SceneSaveDependencies", Guid.NewGuid().ToString("N")) : Path.Combine(isolatedInputs, "场景隔离保存依赖");
+                Write(save, "store", Activator.CreateInstance(storeType, new object[] { directory }));
+                saveInstance.SetValue(null, save);
                 scene = EditorSceneManager.OpenScene("Assets/Scenes/SampleScene.unity", OpenSceneMode.Additive);
                 Mobile = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren(
                     ProductionType("MobileCityInteractionController"), true)).Single();
@@ -621,6 +646,7 @@ namespace YC.Tests.EditMode
                 catch
                 {
                     if (scene.IsValid()) EditorSceneManager.CloseScene(scene, true);
+                    ReleaseSaveDependency();
                     instance.SetValue(null, previousContext);
                     UnityEngine.Object.DestroyImmediate(contextRoot);
                     throw;
@@ -630,8 +656,18 @@ namespace YC.Tests.EditMode
             {
                 (Read(Mobile, "commandSubmission") as IDisposable)?.Dispose();
                 EditorSceneManager.CloseScene(scene, true);
+                ReleaseSaveDependency();
                 ProductionType("GameLaunchContext").GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, previousContext);
                 UnityEngine.Object.DestroyImmediate(contextRoot);
+            }
+            private void ReleaseSaveDependency()
+            {
+                if (saveRoot == null) return;
+                // inactive对象不依赖Unity自动OnDestroy，显式释放本夹具订阅后恢复原单例。
+                var saveType = ProductionType("MatchSaveController");
+                var save = saveRoot.GetComponent(saveType); Call(save, "OnDestroy");
+                UnityEngine.Object.DestroyImmediate(saveRoot); saveRoot = null;
+                saveType.GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, previousSaveController);
             }
         }
 
@@ -748,9 +784,8 @@ namespace YC.Tests.EditMode
             return f;
         }
         private static void Cover(Fixture f, string id) { Run(f, EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); Answer(f, id); }
-        private static void Transfer(Fixture f, string id) => Run(f, EffectSpec.Create(CharacterLifecycleService.TransferTypeId,
-            ItemTransferEffectExecutor.Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"),
-                "cardInstanceId", NormalizedValue.CreateString(id), "recipientPlayer", NormalizedValue.CreateString("2")), 1));
+        private static void Transfer(Fixture f, string id) => Run(f, CharacterCardMovement.Create(f.State, 1, id,
+            f.State.ItemZones.Zones.Single(z => z.LocalZoneId == "hand" && z.OwnerPlayerId == 2).ZoneId));
         private static InteractionRequest Open(Fixture f) => f.State.EffectRuntime.InteractionRequests.Last(request => request.Status == "open" && !request.IsInternalMainlineInteraction());
         private static void Run(Fixture f, EffectSpec spec) { new EffectTreeExecutor(f.State, f.Registry).CreateRoot(spec); Pump(f); }
         private static void Pump(Fixture f) => Assert.That(new EffectTreeExecutor(f.State, f.Registry).RunUntilQuiescent().Faulted, Is.False, f.State.EffectRuntime.LastFaultMessage);

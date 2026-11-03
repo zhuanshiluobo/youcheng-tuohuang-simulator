@@ -55,12 +55,12 @@ namespace YC.Presentation
             if (labelDocument != null) labelDocument.ClearBinding();
         }
 
-        public void RenderDraft(string resource, int inventory, int amount, int? price, bool showInventoryPreview = true)
+        public void RenderDraft(string resource, int inventory, int amount, int? price, bool showInventoryPreview = true, bool showResourceIdentity = true)
         {
             RestoreStandards();
             if (resourceIcon != null)
             {
-                var index = resourceNames == null ? -1 : System.Array.IndexOf(resourceNames, resource);
+                var index = !showResourceIdentity || resourceNames == null ? -1 : System.Array.IndexOf(resourceNames, resource);
                 resourceIndex = index;
                 resourceIcon.sprite = index < 0 || resourceIcons == null || index >= resourceIcons.Length ? null : resourceIcons[index];
                 resourceIcon.gameObject.SetActive(resourceIcon.sprite != null);
@@ -72,6 +72,12 @@ namespace YC.Presentation
                 if (showInventoryPreview) draftPreview.text = string.Format(price.HasValue ? salePreviewFormat : inventoryPreviewFormat,
                     inventory, Mathf.Max(0, inventory - amount), price.GetValueOrDefault() * amount);
             }
+        }
+
+        public void RenderCountLimit(int maximum,string format)
+        {
+            if(draftPreview==null)return;
+            draftPreview.gameObject.SetActive(true);draftPreview.text=string.Format(format,maximum);
         }
 
         public Text Label => label;

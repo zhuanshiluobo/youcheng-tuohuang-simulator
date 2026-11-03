@@ -28,7 +28,6 @@ namespace YC.Presentation
         public int Revision;
         public Func<bool> IsCurrent;
         public bool ExecuteImmediately;
-        public bool PreserveTemplateColors;
         public string SourceLabel;
         public string DescriptionLabel;
         public GameplayTextDocument LabelDocument;
@@ -49,6 +48,7 @@ namespace YC.Presentation
         public Func<string, string> SourceLabel;
         public Func<string, string> DescriptionLabel;
         public Func<string, Sprite> CardSprite;
+        public Func<string, string> ResolveCardDefinition;
         public Action<string> Inspect;
         public bool InspectGameBoxCharacter;
         public Func<string, Texture2D> CharacterBack;
@@ -61,6 +61,7 @@ namespace YC.Presentation
         public string ConfirmLabel;
         public string CancelLabel;
         public bool IsEffectPage = true;
+        public bool IsCardSelection;
         public string CardPickerHint;
         public bool AllowStageFolding;
         public bool ReadOnly;
@@ -73,10 +74,7 @@ namespace YC.Presentation
         internal static bool IsExecutionChoice(InteractionRequestProjection request) =>
             request != null && request.AnswerSchema == "candidate_id" && request.MinSelections == 1 && request.MaxSelections == 1 &&
             (request.InteractionTypeId == "effect.choice.execute" ||
-             request.PromptParameters?.Properties.Find(value => value.Name == "choiceIntent")?.Value?.StringValue == "choice_execute" ||
-             request.InteractionTypeId == "facility.entry.choice" &&
-                 (request.PromptKey == "facility.entry.choose_vehicle_action" || request.PromptKey == "facility.rhodes_office.entry") ||
-             request.InteractionTypeId == "lua.choice" && request.PromptKey == "facility.entry.choose_influence_branch");
+             request.PromptParameters?.Properties.Find(value => value.Name == "choiceIntent")?.Value?.StringValue == "choice_execute");
 
         internal static bool IsInfluenceMapTarget(string promptKey) =>
             promptKey == "effect.influence.remove.choose_target" || promptKey == "effect.influence.replace.choose_target" ||
@@ -85,18 +83,38 @@ namespace YC.Presentation
             promptKey == "character.liskarm.tactic.choose_target" || promptKey == "character.texas.tactic.choose_removal";
 
         internal static bool IsInfluenceMapTarget(InteractionRequestProjection request) => request != null &&
-            (IsInfluenceMapTarget(request.PromptKey) || request.InteractionTypeId == "effect.influence.remove.target" ||
+            (IsInfluenceSelection(request, "remove") || IsInfluenceSelection(request, "replace") ||
+             IsInfluenceMapTarget(request.PromptKey) || request.InteractionTypeId == "effect.influence.replace.target" || request.InteractionTypeId == "effect.influence.remove.target" ||
              request.InteractionTypeId == "effect.influence.place.target" || request.InteractionTypeId == "effect.influence.move.target");
+
+        internal static bool IsInfluenceSelection(InteractionRequestProjection request) =>
+            IsInfluenceSelection(request, "remove") || IsInfluenceSelection(request, "replace") || IsInfluenceSelection(request, "move");
+
+        internal static bool IsInfluenceSelection(InteractionRequestProjection request, string operation) =>
+            request?.PromptParameters?.Properties.Find(p => p.Name == "interactionSemantic")?.Value?.StringValue == YC.Domain.Effects.InfluenceSelectionFlow.InteractionSemantic &&
+            request.PromptParameters.Properties.Find(p => p.Name == "influenceOperation")?.Value?.StringValue == operation &&
+            request.PromptParameters.Properties.Find(p => p.Name == "selectionApiVersion")?.Value?.IntegerValue == 3 &&
+            request.PromptParameters.Properties.Find(p => p.Name == "ownerEffectTypeId")?.Value?.StringValue == "effect.influence." + operation;
 
         internal static bool IsInfluenceMapArray(InteractionRequestProjection request) =>
             request?.AnswerSchema == "candidate_id_array" && IsInfluenceMapTarget(request);
 
-        internal bool HasCardArtwork()
+        internal bool IsRewardCardSelection => Request?.InteractionTypeId == YC.Domain.Influence.RewardAcquisitionFlow.InteractionTypeId;
+
+        internal bool ShouldUseCardPicker() => IsCardSelection || IsRewardCardSelection;
+
+        internal void BindCardSemantics(CardVisualCatalog cards)
         {
-            if (CardSprite == null || Request?.CandidateIds == null) return false;
-            foreach (var id in Request.CandidateIds)
-                if (!string.IsNullOrEmpty(id) && CardSprite(id) != null) return true;
-            return false;
+            if (ResolveCardDefinition == null) ResolveCardDefinition = id =>
+            {
+                var declared = GameplayExpansionUi.CandidateDefinition(Request, id);
+                return string.IsNullOrEmpty(declared) ? id : declared;
+            };
+            if (IsCardSelection || ExecuteImmediately || Request?.VisibleToViewer != true ||
+                Request.CandidateIds == null || Request.CandidateIds.Count == 0) return;
+            if (Request.InteractionTypeId == "effect.choice.execute" ||
+                Request.PromptParameters?.Properties.Find(value => value.Name == "choiceIntent")?.Value?.StringValue == "choice_execute") return;
+            IsCardSelection = Request.CandidateIds.All(id => !string.IsNullOrEmpty(id) && cards.IsCardDefinition(ResolveCardDefinition(id)));
         }
 
         internal GameplayTextDocument ResolvePromptDocument()
@@ -150,6 +168,8 @@ namespace YC.Presentation
         public int MaximumTotal = -1;
         public bool ExclusiveChoice;
         public bool ShowInventoryPreview = true;
+        public bool HideResourceIdentity;
+        public string CountLimitFormat;
         public string LabelNamePrefix = "Resource Label ";
         public string DecreaseNamePrefix = "Decrease ";
         public string ValueNamePrefix = "Value ";
@@ -179,6 +199,9 @@ namespace YC.Presentation
         public Func<bool> IsCurrent;
         public Func<bool> CanConfirm;
         public Func<bool> CanEdit;
+        public Func<bool> CanCancel;
+        // API-38仅有序草稿使用；成功后再更新控件镜像，拒绝时不截断为另一合法值。
+        public Func<int, int, bool> TrySetAmount;
         public Func<IReadOnlyList<int>, bool> IsValidAllocation;
         public Action<bool> DraftValidityChanged;
         internal GameplayTextDocument ResolvePromptDocument() => PromptDocument ?? EffectDialogTextDocuments.ResolvePrompt(Request, ResolveText);
@@ -350,72 +373,87 @@ namespace YC.Presentation
                 return;
             }
 
+            if (options.Any(option => option != null && !option.ExecuteImmediately))
+                throw new InvalidOperationException("[ordinary_option_row_retired] 非卡牌业务必须提供真实逻辑执行分支。");
+
             for (var i = 0; i < options.Count; i++)
             {
                 var option = options[i];
                 if (option == null) continue;
-                if (option.ExecuteImmediately)
-                {
-                    var effectRow = ResolveView(content).CreateEffectRow();
-                    effectRow.BeginInputRead = () => registry.BeginInputRead?.Invoke();
-                    effectRow.gameObject.name = buttonNamePrefix + i;
-                    if (!string.IsNullOrEmpty(option.StableId))
-                        YC.PlayerJourney.PlayerAutomationId.Attach(effectRow.StatusButton.gameObject, option.StableId);
-                    var executionInvoked = false;
-                    effectRow.Bind(new UiEffectRowView.Binding
-                    {
-                        StableItemId = option.StableId,
-                        RequestId = option.RequestId,
-                        Revision = option.Revision,
-                        RowMode = UiEffectRowView.Mode.ChoiceExecute,
-                        RightStatus = UiEffectRowView.Status.Use,
-                        Enabled = option.Enabled,
-                        Title = option.Label,
-                        Description = option.DescriptionLabel,
-                        Source = option.SourceLabel
-                    }, (_, __) => effectRow != null && effectRow.gameObject.activeInHierarchy &&
-                        !GameplayHudFrame.EffectInputSuspended && (option.IsCurrent == null || option.IsCurrent()), null,
-                    _ => { if (executionInvoked) return; executionInvoked = true; beforeSelect?.Invoke(); option.Select?.Invoke(); });
-                    if (option.LabelDocument != null)
-                        RenderEffectRowDocument(effectRow.TitleText, option.LabelDocument, renderText);
-                    if (option.DescriptionDocument != null)
-                        RenderEffectRowDocument(effectRow.DescriptionText, option.DescriptionDocument, renderText);
-                    continue;
-                }
-                var row = ResolveView(content).CreateOptionRow(content);
-                row.ResetSelection();
-                row.gameObject.name = buttonNamePrefix + i;
-                row.Label.text = option.Label;
-                if (option.LabelDocument != null &&
-                    !row.TryRenderGameplayText(option.LabelDocument, null, renderText, out var reason))
-                    Debug.LogWarning("选项正式标签未接入：" + reason, row);
-                var button = row.Button;
+                var effectRow = ResolveView(content).CreateEffectRow();
+                effectRow.BeginInputRead = () => registry.BeginInputRead?.Invoke();
+                effectRow.gameObject.name = buttonNamePrefix + i;
                 if (!string.IsNullOrEmpty(option.StableId))
-                    YC.PlayerJourney.PlayerAutomationId.Attach(button.gameObject, option.StableId);
-                button.onClick.RemoveAllListeners();
-                button.interactable = option.Enabled;
-                if (!option.PreserveTemplateColors)
-                    row.Background.color = option.Enabled ? Color.white : new Color(.75f, .75f, .75f, 1f);
-                if (!option.Enabled)
+                    YC.PlayerJourney.PlayerAutomationId.Attach(effectRow.StatusButton.gameObject, option.StableId);
+                var executionInvoked = false;
+                effectRow.Bind(new UiEffectRowView.Binding
                 {
-                    continue;
-                }
+                    StableItemId = option.StableId,
+                    RequestId = option.RequestId,
+                    Revision = option.Revision,
+                    RowMode = UiEffectRowView.Mode.ChoiceExecute,
+                    RightStatus = UiEffectRowView.Status.Use,
+                    Enabled = option.Enabled,
+                    Title = option.Label,
+                    Description = option.DescriptionLabel,
+                    Source = option.SourceLabel
+                }, (_, __) => effectRow != null && effectRow.gameObject.activeInHierarchy &&
+                    !GameplayHudFrame.EffectInputSuspended && (option.IsCurrent == null || option.IsCurrent()), null,
+                _ => { if (executionInvoked) return; executionInvoked = true; beforeSelect?.Invoke(); option.Select?.Invoke(); });
+                if (option.LabelDocument != null)
+                    RenderEffectRowDocument(effectRow.TitleText, option.LabelDocument, renderText);
+                if (option.DescriptionDocument != null)
+                    RenderEffectRowDocument(effectRow.DescriptionText, option.DescriptionDocument, renderText);
 
-                var select = option.Select;
-                var invoked = false;
+            }
+        }
+
+        public void AddCardActions(RectTransform panel, InteractionRequestProjection request, string itemId,
+            Sprite sprite, string itemLabel, IReadOnlyList<EffectDialogOption> actions, Func<bool> isCurrent)
+        {
+            var binding = selectionBinding = new object();
+            var shellView = ResolveView(panel);
+            bool Current() => ReferenceEquals(selectionBinding, binding) && view == shellView &&
+                shellView.gameObject.activeInHierarchy && (isCurrent == null || isCurrent());
+            shellView.ConfigureSelectionMode(true);
+            shellView.ResourceSummaryText.gameObject.SetActive(false);
+            shellView.ConfigureCardScroll(shellView.LayoutProfile.SelectionCardSize, shellView.LayoutProfile.SelectionMinimumCardWidth);
+            var card = shellView.CreateFacilityCard();
+            card.gameObject.name = "Card Action Subject";
+            CardArtworkView.Set(card.CardImage, sprite);
+            card.CardImage.color = sprite == null ? Color.clear : Color.white;
+            card.FallbackLabel.text = itemLabel;
+            card.FallbackLabel.gameObject.SetActive(sprite == null);
+            if (sprite == null) Debug.LogWarning("[card_action_artwork_missing] request=" + request.InteractionId + " item=" + itemId);
+            if (card.SelectionImage != null) card.SelectionImage.enabled = false;
+            else card.Outline.enabled = false;
+            card.Button.onClick.RemoveAllListeners();
+            card.Button.interactable = true;
+            card.ConfigureSingleClickInspection(() =>
+            {
+                if (!Current() || sprite == null) return;
+                openingDetails = true;
+                try { CardImagePreviewUtility.Open(ref cardViewer, shellView.transform.parent, sprite); }
+                finally { openingDetails = false; }
+                cardViewer?.SetReturn(() =>
+                {
+                    if (isCurrent != null && !isCurrent()) Hide();
+                    else GameplayHudFrame.Active?.ResumeEffectPage();
+                }, () => ReferenceEquals(selectionBinding, binding) && (isCurrent == null || isCurrent()));
+            }, Current);
+            var submitted = false;
+            for (var i = 0; i < actions.Count; i++)
+            {
+                var option = actions[i];
+                var button = CreateButton(panel, "Card Action " + option.StableId, option.Label, 18, i == 0);
+                YC.PlayerJourney.PlayerAutomationId.Attach(button.gameObject, option.StableId);
+                button.interactable = option.Enabled;
                 button.onClick.AddListener(() =>
                 {
                     using var inputRead = registry.BeginInputRead?.Invoke();
-                    using var input = Workflows.UiRegressionMetrics.Measure("option.click");
-                    if (invoked || !button.isActiveAndEnabled || !button.IsInteractable() ||
-                        (option.IsCurrent != null && !option.IsCurrent()))
-                    {
-                        return;
-                    }
-
-                    invoked = true;
-                    beforeSelect?.Invoke();
-                    select?.Invoke();
+                    if (submitted || !Current() || !button.IsInteractable() || option.IsCurrent != null && !option.IsCurrent()) return;
+                    submitted = true;
+                    option.Select?.Invoke();
                 });
             }
         }
@@ -435,9 +473,9 @@ namespace YC.Presentation
             shellView.ConfigureSelectionMode(spec.ReadOnly, spec.CardPickerHint);
             shellView.ResourceSummaryText.text = string.Format(profile.SelectionSummaryFormat,
                 selected.Count, request.MinSelections, request.MaxSelections);
-            var cardMode = false;
-            foreach (var candidate in candidates)
-                if (spec.CardSprite != null && spec.CardSprite(candidate) != null) { cardMode = true; break; }
+            var cardMode = spec.ShouldUseCardPicker();
+            if (!cardMode && !spec.ExecuteImmediately)
+                throw new InvalidOperationException("[ordinary_option_row_retired] 目标选择必须使用正式卡牌、玩家或地图页面；非卡牌业务须提供真实逻辑分支。");
             var content = cardMode
                 ? shellView.ConfigureCardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth)
                 : shellView.ConfigureOptionScroll("Selection Scroll", profile.OptionsScrollBottomWithBack,
@@ -485,107 +523,75 @@ namespace YC.Presentation
             {
                 var id = candidates[i];
                 if (string.IsNullOrEmpty(id) || !seen.Add(id)) continue;
-                var optionDocument = cardMode ? null : spec.ResolveOptionDocument(id);
-                var sourceDocument = cardMode ? null : spec.SourceDocument?.Invoke(id);
-                var label = optionDocument == null ? (spec.Label == null ? id : spec.Label(id)) : null;
-                if (cardMode)
+                var label = spec.Label == null ? id : spec.Label(id);
+                var card = shellView.CreateFacilityCard();
+                card.gameObject.name = (spec.OptionNamePrefix ?? "Selection Card ") + i;
+                YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "selection.card." + id);
+                var sprite = spec.CardSprite == null ? null : spec.CardSprite(id);
+                if (sprite == null && (spec.IsCardSelection || spec.IsRewardCardSelection))
+                    Debug.LogWarning((spec.IsRewardCardSelection ? "[reward_card_artwork_missing]" : "[card_artwork_missing]") +
+                        " request=" + request.InteractionId + " item=" + id);
+                CardArtworkView.Set(card.CardImage, sprite);
+                card.CardImage.color = sprite == null ? Color.clear : Color.white;
+                card.FallbackLabel.text = label;
+                card.FallbackLabel.gameObject.SetActive(sprite == null);
+                if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
+                else card.Outline.enabled = selected.Contains(id);
+                selectionBindings.Add(() =>
                 {
-                    var card = shellView.CreateFacilityCard();
-                    card.gameObject.name = (spec.OptionNamePrefix ?? "Selection Card ") + i;
-                    YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "selection.card." + id);
-                    var sprite = spec.CardSprite == null ? null : spec.CardSprite(id);
-                    CardArtworkView.Set(card.CardImage, sprite);
-                    card.CardImage.color = sprite == null ? Color.clear : Color.white;
-                    card.FallbackLabel.text = label;
-                    card.FallbackLabel.gameObject.SetActive(sprite == null);
                     if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
                     else card.Outline.enabled = selected.Contains(id);
-                    selectionBindings.Add(() =>
-                    {
-                        if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
-                        else card.Outline.enabled = selected.Contains(id);
-                    });
-                    card.Button.onClick.RemoveAllListeners();
-                    card.PointerInteraction.ConfigureClick(card.Button, null);
-                    card.PointerInteraction.ConfigureDrag(null, null, null, null);
-                    card.Button.interactable = spec.ReadOnly ||
-                        !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
-                    card.Button.onClick.AddListener(() =>
-                    {
-                        using var inputRead = registry.BeginInputRead?.Invoke();
-                        using var input = Workflows.UiRegressionMetrics.Measure("selection.click");
-                        if (!spec.ReadOnly && CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
-                            spec.Select?.Invoke(id);
-                    });
-                    void OpenDetails()
-                    {
-                            if (CanAct() && spec.Inspect != null) { spec.Inspect(id); return; }
-                            if (!CanAct() || sprite == null) return;
-                            var gameBoxFaces = spec.ReadOnly && spec.InspectGameBoxCharacter;
-                            var back = gameBoxFaces ? spec.CharacterBack?.Invoke(id) : null;
-                            if (gameBoxFaces && back == null) return;
-                            var savedScroll = shellView.ScrollPosition;
-                            openingDetails = true;
-                            try
-                            {
-                                if (cardViewer == null)
-                                    cardViewer = registry.InstantiateCardViewer(shellView.transform.parent as RectTransform);
-                                if (gameBoxFaces) cardViewer.OpenGameBoxCharacter(id, sprite, back);
-                                else CardImagePreviewUtility.Open(ref cardViewer, shellView.transform.parent, sprite);
-                            }
-                            finally { openingDetails = false; }
-                            if (cardViewer == null) return;
-                            cardViewer.SetReturn(() =>
-                            {
-                                if (spec.IsCurrent != null && !spec.IsCurrent())
-                                {
-                                    Hide();
-                                    return;
-                                }
-                                if (spec.IsEffectPage) GameplayHudFrame.Active?.ResumeEffectPage();
-                                else if (shellView != null)
-                                {
-                                    if (spec.ReadOnly) GameplayHudFrame.Active?.ShowPage(shellView.gameObject, false);
-                                    else GameplayHudFrame.Active?.ShowStagePage(shellView.gameObject);
-                                    shellView.gameObject.SetActive(true);
-                                    shellView.RestoreScrollPosition(savedScroll);
-                                    UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(card.Button.gameObject);
-                                }
-                            }, () => shellView != null && (spec.IsCurrent == null || spec.IsCurrent()));
-                    }
-                    if (spec.ReadOnly) card.ConfigureSingleClickInspection(OpenDetails, CanAct);
-                    else card.ConfigureInspection(OpenDetails, CanAct);
-                }
-                else
+                });
+                card.Button.onClick.RemoveAllListeners();
+                card.PointerInteraction.ConfigureClick(card.Button, null);
+                card.PointerInteraction.ConfigureDrag(null, null, null, null);
+                card.Button.interactable = spec.ReadOnly ||
+                    !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
+                card.Button.onClick.AddListener(() =>
                 {
-                    var row = shellView.CreateOptionRow(content, spec.SourceLabel != null || sourceDocument != null);
-                    row.gameObject.name = (spec.OptionNamePrefix ?? "Selection Option ") + i;
-                    if (spec.SourceLabel != null)
-                        row.SetSourceAndDescription(spec.SourceLabel(id), spec.DescriptionLabel == null ? label : spec.DescriptionLabel(id));
-                    else if (optionDocument == null) row.Label.text = label;
-                    if (optionDocument != null || sourceDocument != null)
-                    {
-                        if (!row.TryRenderGameplayText(optionDocument, sourceDocument, spec.RenderText, out var reason))
+                    using var inputRead = registry.BeginInputRead?.Invoke();
+                    using var input = Workflows.UiRegressionMetrics.Measure("selection.click");
+                    if (!spec.ReadOnly && CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
+                        spec.Select?.Invoke(id);
+                });
+                void OpenDetails()
+                {
+                        if (CanAct() && spec.Inspect != null) { spec.Inspect(id); return; }
+                        if (!CanAct() || sprite == null) return;
+                        var gameBoxFaces = spec.ReadOnly && spec.InspectGameBoxCharacter;
+                        var back = gameBoxFaces ? spec.CharacterBack?.Invoke(id) : null;
+                        if (gameBoxFaces && back == null) return;
+                        var savedScroll = shellView.ScrollPosition;
+                        openingDetails = true;
+                        try
                         {
-                            Debug.LogWarning("选项正式正文未接入：" + id + " / " + reason, row);
-                            var fallback = spec.Label == null ? id : spec.Label(id);
-                            if (spec.SourceLabel != null)
-                                row.SetSourceAndDescription(spec.SourceLabel(id), spec.DescriptionLabel == null ? fallback : spec.DescriptionLabel(id));
-                            else row.Label.text = fallback;
+                            if (cardViewer == null)
+                                cardViewer = registry.InstantiateCardViewer(shellView.transform.parent as RectTransform);
+                            if (gameBoxFaces) cardViewer.OpenGameBoxCharacter(id, sprite, back);
+                            else CardImagePreviewUtility.Open(ref cardViewer, shellView.transform.parent, sprite);
                         }
-                    }
-                    row.SetSelected(selected.Contains(id));
-                    selectionBindings.Add(() => row.SetSelected(selected.Contains(id)));
-                    row.Button.onClick.RemoveAllListeners();
-                    row.Button.interactable = !spec.ReadOnly && (spec.CanSelect == null || spec.CanSelect(id));
-                    row.Button.onClick.AddListener(() =>
-                    {
-                        using var inputRead = registry.BeginInputRead?.Invoke();
-                        using var click = Workflows.UiRegressionMetrics.Measure("selection.click");
-                        if (CanAct() && (spec.CanSelect == null || spec.CanSelect(id)))
-                            spec.Select?.Invoke(id);
-                    });
+                        finally { openingDetails = false; }
+                        if (cardViewer == null) return;
+                        cardViewer.SetReturn(() =>
+                        {
+                            if (spec.IsCurrent != null && !spec.IsCurrent())
+                            {
+                                Hide();
+                                return;
+                            }
+                            if (spec.IsEffectPage) GameplayHudFrame.Active?.ResumeEffectPage();
+                            else if (shellView != null)
+                            {
+                                if (spec.ReadOnly) GameplayHudFrame.Active?.ShowPage(shellView.gameObject, false);
+                                else GameplayHudFrame.Active?.ShowStagePage(shellView.gameObject);
+                                shellView.gameObject.SetActive(true);
+                                shellView.RestoreScrollPosition(savedScroll);
+                                UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(card.Button.gameObject);
+                            }
+                        }, () => shellView != null && (spec.IsCurrent == null || spec.IsCurrent()));
                 }
+                if (spec.ReadOnly) card.ConfigureSingleClickInspection(OpenDetails, CanAct);
+                else card.ConfigureInspection(OpenDetails, CanAct);
             }
             if (seen.Count == 0)
                 CreateText(content, "Selection Empty", profile.SelectionEmptyText, 18, TextAnchor.MiddleCenter);
@@ -701,7 +707,8 @@ namespace YC.Presentation
                     else valueTexts[i].text = values[i].ToString();
                     rows[i].RenderDraft(spec.Labels[i], Maximum(i), values[i],
                         spec.UnitPrices != null && i < spec.UnitPrices.Count ? (int?)spec.UnitPrices[i] : null,
-                        spec.ShowInventoryPreview);
+                        spec.ShowInventoryPreview,!spec.HideResourceIdentity);
+                    if(spec.CountLimitFormat!=null)rows[i].RenderCountLimit(Maximum(i),spec.CountLimitFormat);
                     var editable = !submitted && (spec.CanEdit == null || spec.CanEdit());
                     if (rows[i].ValueInput != null) rows[i].ValueInput.interactable = editable;
                     decreases[i].interactable = editable && values[i] > 0;
@@ -710,6 +717,7 @@ namespace YC.Presentation
                 }
                 if (cancelButton != null && !string.IsNullOrEmpty(spec.CancelDraftLabel))
                     cancelButton.GetComponentInChildren<Text>().text = total > 0 ? spec.CancelDraftLabel : spec.CancelLabel;
+                if(cancelButton!=null)cancelButton.interactable=!submitted && (spec.CanCancel==null || spec.CanCancel());
                 var snapshot = new List<int>(values).AsReadOnly();
                 if (summary.gameObject.activeSelf && spec.FormatSummary != null)
                     summary.text = spec.FormatSummary(snapshot);
@@ -743,7 +751,8 @@ namespace YC.Presentation
                     row.ValueInput.onValueChanged.AddListener(value =>
                     {
                         if (!CanAct() || (spec.CanEdit != null && !spec.CanEdit())) return;
-                        validInputs[index] = int.TryParse(value, out var amount) && amount >= 0 && amount <= Maximum(index);
+                        validInputs[index] = int.TryParse(value, out var amount) && amount >= 0 && amount <= Maximum(index) &&
+                            (spec.TrySetAmount == null || spec.TrySetAmount(index,amount));
                         if (validInputs[index])
                         {
                             if (spec.ExclusiveChoice && amount > 0) Array.Clear(values, 0, values.Length);
@@ -765,6 +774,7 @@ namespace YC.Presentation
                 decreases[i].onClick.AddListener(() =>
                 {
                     if (!CanAct() || (spec.CanEdit != null && !spec.CanEdit()) || values[index] <= 0) return;
+                    if(spec.TrySetAmount!=null && !spec.TrySetAmount(index,values[index]-1))return;
                     values[index]--; validInputs[index] = true; refresh();
                 });
                 increases[i] = row.IncreaseButton;
@@ -773,6 +783,7 @@ namespace YC.Presentation
                 increases[i].onClick.AddListener(() =>
                 {
                     if (!CanAct() || (spec.CanEdit != null && !spec.CanEdit()) || values[index] >= Maximum(index) || !spec.CanIncreaseTotal(Total(), values[index])) return;
+                    if(spec.TrySetAmount!=null && !spec.TrySetAmount(index,values[index]+1))return;
                     if (spec.ExclusiveChoice) Array.Clear(values, 0, values.Length);
                     values[index]++; validInputs[index] = true; refresh();
                 });
@@ -782,6 +793,7 @@ namespace YC.Presentation
             {
                 if (!CanAct() || !Valid() || !Array.TrueForAll(validInputs, valid => valid)) return;
                 submitted = true;
+                if(spec.TrySetAmount!=null)refresh();
                 var result = new List<int>(values).AsReadOnly();
                 if (spec.CloseBeforeConfirm) Hide();
                 spec.Confirm?.Invoke(result);
@@ -792,8 +804,9 @@ namespace YC.Presentation
                 cancelButton = cancel;
                 cancel.onClick.AddListener(() =>
                 {
-                    if (!CanAct()) return;
+                    if (!CanAct() || spec.CanCancel!=null && !spec.CanCancel()) return;
                     submitted = true;
+                    if(spec.TrySetAmount!=null)refresh();
                     if (spec.CloseBeforeCancel) Hide();
                     spec.Cancel();
                 });

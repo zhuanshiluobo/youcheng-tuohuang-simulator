@@ -12,7 +12,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 namespace YC.Infrastructure.Lua
 {
     /// <summary>本次授权调用的纯来源快照；完整集合留在VM读取侧，分页不进入状态广播。</summary>
-    public static class SourceFactsLuaCatalog
+    public static partial class SourceFactsLuaCatalog
     {
         public const string Version = "source_facts.v1.6.0.0";
         public const int PageSize = 4;
@@ -29,6 +29,8 @@ namespace YC.Infrastructure.Lua
         }
         // 只由私有目录入口登记本次上下文对象；SourceKey、事件 payload 和同名 owner 都不能制造此身份。
         private static readonly ConditionalWeakTable<EffectEventHandlerContext, HostCall> HostCalls = new ConditionalWeakTable<EffectEventHandlerContext, HostCall>();
+        internal static bool IsPreviewInvocation(EffectEventHandlerContext context) =>
+            HostCalls.TryGetValue(context, out var call) && (call.Preview || call.Call.OwnerNode == null);
         internal static void BindHostCall(EffectEventHandlerContext context, AbilityActionCallContext call, LuaHandlerDefinition handler, EffectRegistry registry)
         {
             HostCalls.Add(context, new HostCall { Registry = registry, HandlerId = handler.Script.HandlerId, HandlerHash = handler.Script.ContentHash,

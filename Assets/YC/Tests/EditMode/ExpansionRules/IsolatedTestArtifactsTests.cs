@@ -11,6 +11,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         private IsolatedTestArtifacts artifacts;
         [SetUp] public void Begin() => artifacts = IsolatedTestArtifacts.BeginCase();
         [TearDown] public void Finish() => artifacts?.Finish();
+        [Test] public void FinishKeepsObservationAndLeavesFinalStatusToTheRunner()
+        {
+            var entry = artifacts; entry.Finish(); artifacts = null;
+            Assert.That(File.Exists(Path.Combine(entry.ResultsDirectory, "case-finish-observation.json")), Is.True);
+            Assert.That(File.Exists(Path.Combine(entry.ResultsDirectory, "case-result.json")), Is.False, "实际TestFinished之前不能发布终态");
+            Assert.Throws<IOException>(() => entry.Finish());
+        }
         [Test] public void DuplicateLabelsKeepBothFilesAndAnExactCollisionFailsWithoutChangingTheFirst()
         {
             string first = artifacts.WriteLabeledText("重复标签", "第一次现场");

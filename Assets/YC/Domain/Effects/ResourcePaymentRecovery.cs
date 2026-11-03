@@ -16,6 +16,9 @@ namespace YC.Domain.Effects
             reason = "payment_v2_raw_fields_missing";
             if (p?["IsCommitted"]?.Type == JTokenType.Boolean && (bool)p["IsCommitted"] && p["FinalReceipt"] is JObject oldFinal && oldFinal.Property("CostReceiptPolicyVersion") == null)
             { reason = "payment_token_receipt_legacy_requires_migration"; return false; }
+            if (p?["IsCommitted"]?.Type == JTokenType.Boolean && (bool)p["IsCommitted"] && p["FinalReceipt"]?["CostReceiptPolicyVersion"]?.Type == JTokenType.String &&
+                (string)p["FinalReceipt"]["CostReceiptPolicyVersion"] != ResourcePaymentSourceService.TokenCostContractVersion)
+            { reason = "payment_cost_receipt_contract_version_unsupported"; return false; }
             bool Fields(JObject o, params string[] names) => o != null && names.All(n => o.Property(n) != null);
             bool Integer(JToken v, int min, int max) => v?.Type == JTokenType.Integer && long.TryParse(v.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out long n) && n >= min && n <= max;
             bool Cost(JToken v) => v is JObject c && PaymentResources.Types.All(t => Integer(c[t.ToString()], 0, int.MaxValue));
@@ -49,6 +52,8 @@ namespace YC.Domain.Effects
         public static bool TryValidateNode(GameState state, EffectRegistry registry, EffectNodeRuntimeState node, out string reason)
         {
             reason = "payment_v2_state_invalid:" + node.EffectId; var p = node.Payment;
+            if (p?.IsCommitted == true && p.FinalReceipt != null && p.FinalReceipt.CostReceiptPolicyVersion != ResourcePaymentSourceService.TokenCostContractVersion)
+            { reason = "payment_cost_receipt_contract_version_unsupported"; return false; }
             // 正式准备入口已有独立的 Preparation 身份及显式 EnableV2 合同；旧合法准备不含此新标记。
             // 标记只区分原 Build 内新建的付款段，不能把未标记的旧内嵌付款重解释为 v2。
             if(node.EffectTypeId==FacilityBuildEffectExecutor.PaymentTypeId && p?.Preparation==null &&
@@ -158,10 +163,10 @@ namespace YC.Domain.Effects
             if (cost == null) return receipt.ItemIds.Count == 0 && receipt.TokenTransfer == null && receipt.TokenArguments == null;
             var args = receipt.TokenArguments; var transfer = receipt.TokenTransfer;
             if (receipt.ItemIds.Any(id => !state.ItemZones.Items.Any(i => i.ItemId == id && i.OwnerSubject.Kind == ItemSubjectKind.Player && i.OwnerSubject.PlayerId == owner.PlayerId))) return false;
-            if (transfer == null || args == null || ValidateTokenArguments(args).Length > 0 || transfer.Request?.OperationId != ResourcePaymentSourceService.TokenOperationId(owner, receipt.Rule) ||
+            if (transfer == null || args == null || Number(args, "apiVersion") != 4 || !ItemTransferService.TryTokenCostArguments(args, out _, out _) || transfer.Request?.OperationId != ResourcePaymentSourceService.TokenOperationId(owner, receipt.Rule) ||
                 Text(args, "operationProfileId") != cost.OperationProfileId || Number(args, "requiredCount") != (long)cost.CountPerUnit * PaymentResources.Total(receipt.Allocation) ||
-                !Value(args, "itemIds").Items.Select(i => i.StringValue).SequenceEqual(receipt.ItemIds)) return false;
-            var zone = state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == Text(Value(args, "expectedSource"), "zoneId"));
+                !Value(Value(args, "selector"), "itemIds").Items.Select(i => i.StringValue).SequenceEqual(receipt.ItemIds)) return false;
+            var zone = state.ItemZones.Zones.SingleOrDefault(z => z.ZoneId == Text(Value(Value(args, "selector"), "expectedSource"), "zoneId"));
             if (zone?.ParentKind != ZoneParentKind.Item || zone.ParentId != cost.CardInstanceId || zone.LocalZoneId != cost.LocalZoneId ||
                 (cost.DestinationKind == "original_supply" ? Text(Value(args, "destination"), "kind") != "original_supply" :
                     !state.ItemZones.Zones.Any(z => z.ZoneId == Text(Value(args, "destination"), "zoneId") && z.TemplateId == "core.zone.box_retired"))) return false;

@@ -48,7 +48,8 @@ namespace YC.Domain.Items
             : value is JArray array ? new JArray(array.Select(CanonicalBatchValue)) : value.DeepClone();
         public static string LocalStateDigest(ItemInstanceState item) => "yc.item-local-state.sha256.v1:" +
             CanonicalHash(JToken.FromObject(item.LocalState));
-        // token不限方块。v3提供无序库存的原子转移；地图、轨道及奖励取得仍遵守各自生命周期。
+        // 付款内部无序库存事务不限方块，私有批次3不是旧公开MoveItem v3执行节点。
+        // 新物品参数统一v4；地图、轨道及奖励取得仍遵守各自生命周期。
         // 这些操作配置不是token的全集定义，卡牌也不会因共用底层事务获得token操作许可。
         public static bool IsTokenProfile(string profile) => profile == "core.cube_storage" || profile == "core.player_marker_storage" || profile == "core.token_storage";
         public static bool IsTokenKind(ItemPhysicalKind kind) => kind == ItemPhysicalKind.Cube || kind == ItemPhysicalKind.Token;
@@ -56,10 +57,10 @@ namespace YC.Domain.Items
         public bool TryPlanTokens(GameState state, AbilitySourceRef source, NormalizedValue args, IEnumerable<AbilitySourceDeclaration> declarations,
             string operationId, out ItemTransferBatchRequest batch, out string reason)
         {
-            batch = null; reason = ValidateTokenArguments(args);
-            if (reason.Length > 0) return false;
+            batch = null;
+            if (!TryTokenCostArguments(args, out args, out reason)) return false;
             int player = int.Parse(Text(args, "player"), System.Globalization.CultureInfo.InvariantCulture);
-            var ids = Value(args, "itemIds").Items.Select(i => i.StringValue).ToList();
+            var ids = TokenCostIds(args).Items.Select(i => i.StringValue).ToList();
             if (ids.Count != Number(args, "requiredCount")) { reason = ids.Count < Number(args, "requiredCount") ? "insufficient_items" : "transfer_count_mismatch"; return false; }
             var legs = new List<ItemTransferRequest>();
             foreach (string id in ids)
@@ -68,10 +69,10 @@ namespace YC.Domain.Items
                 if (item == null) { reason = "unknown_item"; return false; }
                 string destination = Text(Value(args, "destination"), "kind") == "original_supply" ? item.OriginalSupplyZoneId : Text(Value(args, "destination"), "zoneId");
                 if (string.IsNullOrEmpty(destination)) { reason = "original_supply_missing"; return false; }
-                if (query.FindZone(state, Text(Value(args, "expectedSource"), "zoneId")) == null) { reason = "source_zone_changed"; return false; }
+                if (query.FindZone(state, TokenCostSource(args)) == null) { reason = "source_zone_changed"; return false; }
                 if (query.FindZone(state, destination) == null) { reason = "destination_rejected"; return false; }
                 var leg = new ItemTransferRequest { ExecutingPlayerId = player, ItemIds = new List<string> { id },
-                    ExpectedSource = new ItemPositionRef { ZoneId = Text(Value(args, "expectedSource"), "zoneId") }, Destination = new ZoneRef { ZoneId = destination },
+                    ExpectedSource = new ItemPositionRef { ZoneId = TokenCostSource(args) }, Destination = new ZoneRef { ZoneId = destination },
                     InsertionKind = "unordered", OperationProfileId = Text(args, "operationProfileId"), RequiredCount = 1 };
                 reason = CardMarkerCarrier.ValidateTransferWithSource(state, source, leg, declarations);
                 if (reason.Length > 0) return false;
@@ -107,7 +108,7 @@ namespace YC.Domain.Items
                     var item = query.FindItem(state, id);
                     if (item == null || !IsTokenKind(item.PhysicalKind)) return Invalid("token_transfer_item_kind_rejected");
                     if (state.ItemZones.Zones.Any(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == id && state.ItemZones.Items.Any(i => i.ZoneId == z.ZoneId))) return Invalid("carrier_exit_requires_lifecycle");
-                    if (state.EffectRuntime.UsageTrackBindings.Any(b => b.MarkerItemId == id)) return Invalid("usage_track_host_managed");
+                    if (UsageTracks.HasCurrentMarker(state, id)) return Invalid("usage_track_host_managed");
                 }
                 var valid = ValidateCore(state, leg, false, false, false); if (!valid.IsValid) return valid;
                 touched.Add(from.ZoneId); touched.Add(to.ZoneId);
@@ -146,9 +147,9 @@ namespace YC.Domain.Items
             if (owner.EffectTypeId == TypeId)
             {
                 var args = owner.NormalizedArguments;
-                if (ValidateTokenArguments(args).Length > 0 || Text(args, "player") != owner.PlayerId.ToString(System.Globalization.CultureInfo.InvariantCulture) || batch.OperationId != owner.EffectId + ":move" ||
-                    !ids.SequenceEqual(Value(args, "itemIds").Items.Select(i => i.StringValue)) || ids.Count != Number(args, "requiredCount") ||
-                    batch.Transfers.Any(t => t.ExpectedSource.ZoneId != Text(Value(args, "expectedSource"), "zoneId") || t.OperationProfileId != Text(args, "operationProfileId") ||
+                if (!TryTokenCostArguments(args, out args, out _) || Text(args, "player") != owner.PlayerId.ToString(System.Globalization.CultureInfo.InvariantCulture) || batch.OperationId != owner.EffectId + ":move" ||
+                    !ids.SequenceEqual(TokenCostIds(args).Items.Select(i => i.StringValue)) || ids.Count != Number(args, "requiredCount") ||
+                    batch.Transfers.Any(t => t.ExpectedSource.ZoneId != TokenCostSource(args) || t.OperationProfileId != Text(args, "operationProfileId") ||
                         Text(Value(args, "destination"), "kind") != "original_supply" && t.Destination.ZoneId != Text(Value(args, "destination"), "zoneId"))) return false;
             }
             reason = ""; return true;
@@ -310,47 +311,6 @@ namespace YC.Domain.Items
             // 不在每一段提交；外层Kernel对工作副本和位置收据做一次RuleCommit。
             GameStateCloneService.CopyTo(context.State, preview);
             return moved;
-        }
-        // 等待前只接受真实实例和授权端点；尚未到源区的实例必须有同一实际custody/去向响应。
-        // 不改实例位置来模拟规划成功，也不把此意向检查当作转移提交。
-        public string ValidateTokenWaitIntent(EffectExecutionContext context, AbilitySourceRef source, NormalizedValue args)
-        {
-            string invalid = ValidateTokenArguments(args); if (invalid.Length > 0) return invalid;
-            int actor = context.Node.PlayerId; var state = context.State;
-            if (Text(args, "player") != actor.ToString(System.Globalization.CultureInfo.InvariantCulture)) return "transfer_permission_denied";
-            var ids = Value(args, "itemIds").Items.Select(i => i.StringValue).ToList(); int required = Number(args, "requiredCount");
-            if (ids.Count != required) return ids.Count < required ? "insufficient_items" : "transfer_count_mismatch";
-            var from = query.FindZone(state, Text(Value(args, "expectedSource"), "zoneId"));
-            if (from == null) return "source_zone_changed";
-            var itemTypes = ItemTypeRegistry.CreateBuiltIn();
-            var forbidden = new[] { "core.zone.influence_slots", "core.zone.score_track", "core.zone.board_marker_track", "core.zone.covered_cubes", FacilityLayerQuery.CellTemplate, FacilityLayerQuery.CoveredTemplate };
-            foreach (string id in ids)
-            {
-                var item = query.FindItem(state, id);
-                if (item == null) return "unknown_item";
-                if (!IsTokenKind(item.PhysicalKind) || !itemTypes.HasOperationProfile(item.TypeId, Text(args, "operationProfileId"))) return "token_transfer_item_kind_rejected";
-                if (state.EffectRuntime.UsageTrackBindings.Any(b => b.MarkerItemId == id) || state.InfluenceLocks.Any(b => b.Active && b.SourceItemId == id)) return "usage_track_host_managed";
-                string destination = Text(Value(args, "destination"), "kind") == "original_supply" ? item.OriginalSupplyZoneId : Text(Value(args, "destination"), "zoneId");
-                if (string.IsNullOrEmpty(destination)) return "original_supply_missing";
-                var to = query.FindZone(state, destination); if (to == null || from.ZoneId == to.ZoneId) return "token_transfer_zone_invalid";
-                foreach (var zone in new[] { from, to })
-                {
-                    if (forbidden.Contains(zone.TemplateId) || templates.Find(zone.TemplateId)?.OrderingKind != ZoneOrderingKind.Unordered) return "operation_profile_rejected";
-                    if (Text(args, "operationProfileId") == "core.token_storage" && !new[] { "core.zone.box_reserve", "core.zone.box_retired", "core.zone.effect_staging" }.Contains(zone.TemplateId)) return "operation_profile_rejected";
-                    if (zone.TemplateId == "core.zone.effect_staging" && !InfluenceDepartureProtocol.IsWithin(state, context.Node.EffectId, zone.OwnerEffectId)) return "transfer_permission_denied";
-                }
-                if (Text(args, "operationProfileId") == "core.token_storage" && item.ControllerSubject.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId != actor) return "transfer_permission_denied";
-                var leg = new ItemTransferRequest { ExecutingPlayerId = actor, ItemIds = new List<string> { id }, ExpectedSource = new ItemPositionRef { ZoneId = from.ZoneId },
-                    Destination = new ZoneRef { ZoneId = to.ZoneId }, RequiredCount = 1, OperationProfileId = Text(args, "operationProfileId"), InsertionKind = "unordered" };
-                invalid = CardMarkerCarrier.ValidateTransferIntentWithSource(state, source, leg, context.Registry.AbilityDeclarations); if (invalid.Length > 0) return invalid;
-                if (item.ZoneId == from.ZoneId) continue;
-                var pending = state.EffectRuntime.DeferredResponses.Where(r => r.Status == DeferredResponseStatus.Pending && r.ReservedItemId == id &&
-                    r.ReservationZoneId == item.ZoneId && r.AnsweringPlayerId == actor &&
-                    (from.ParentKind == ZoneParentKind.Item && r.SourceCardInstanceId == from.ParentId || r.OriginalSupplyZoneId == from.ZoneId)).ToList();
-                if (pending.Count != 1 || !context.Registry.TryGetDeferredResponseDestination(pending[0].DestinationHandlerId, out var registration) ||
-                    !registration.TryValidateDeferredDestination(state, pending[0], out _)) return "source_zone_changed";
-            }
-            return "";
         }
         // 多个已选定来源的原生事务消费：不接受source参数，每段仍从实际执行节点复核来源。
         // 一次副本提交覆盖所有token；不挪用单节点transferBatchReceipt槽位覆盖前一来源。

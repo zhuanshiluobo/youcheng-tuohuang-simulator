@@ -2,7 +2,7 @@
   "enabled": true,
   "definitionId": "entrepreneur.round.D.1",
   "contentType": "entrepreneur_round",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "displayName": "蒂亚戈·H·罗德里格斯·第1回合",
   "artwork": "artwork/entrepreneurs/D01.jpg",
   "expansionId": "infected",
@@ -27,7 +27,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D01.exchange",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D01.exchange.completed",
       "presentation": {
         "description": {
@@ -60,7 +60,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D02.exchange",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D02.exchange.completed",
       "presentation": {
         "description": {
@@ -93,7 +93,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.D01",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -107,7 +107,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D01.immediate.1",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D01.immediate.1.completed",
       "presentation": {
         "description": {
@@ -121,7 +121,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.face.D02",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "",
       "presentation": {
         "description": {
@@ -135,7 +135,7 @@
       "skillType": "normal",
       "subscriptionId": "entrepreneur.D02.immediate.1",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D02.immediate.1.completed",
       "presentation": {
         "description": {
@@ -150,7 +150,7 @@
       "abilityId": "entrepreneur.face.D01",
       "kind": "setup",
       "handlerRef": "entrepreneur.face.D01",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -168,7 +168,7 @@
       "abilityId": "entrepreneur.D01.immediate",
       "kind": "setup",
       "handlerRef": "entrepreneur.D01.immediate.1",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -186,7 +186,7 @@
       "abilityId": "entrepreneur.D01.exchange",
       "kind": "cleanup",
       "handlerRef": "entrepreneur.D01.exchange",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -208,7 +208,7 @@
       "abilityId": "entrepreneur.face.D02",
       "kind": "setup",
       "handlerRef": "entrepreneur.face.D02",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -226,7 +226,7 @@
       "abilityId": "entrepreneur.D02.immediate",
       "kind": "setup",
       "handlerRef": "entrepreneur.D02.immediate.1",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -244,7 +244,7 @@
       "abilityId": "entrepreneur.D02.exchange",
       "kind": "cleanup",
       "handlerRef": "entrepreneur.D02.exchange",
-      "declarationVersion": "1.7.0",
+      "declarationVersion": "1.8.0",
       "authorizationPolicy": "active_selection",
       "effectiveZones": [
         "core.zone.entrepreneur_active"
@@ -339,37 +339,37 @@
     {
       "handlerId": "entrepreneur.face.D01",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.D01.immediate.1",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D01.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.D01.exchange",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D01.exchange.completed"
     },
     {
       "handlerId": "entrepreneur.face.D02",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": ""
     },
     {
       "handlerId": "entrepreneur.D02.immediate.1",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D02.immediate.1.completed"
     },
     {
       "handlerId": "entrepreneur.D02.exchange",
       "script": "lua/entrepreneurs/tiago.lua",
-      "version": "1.7.0",
+      "version": "1.8.0",
       "completionHandlerId": "entrepreneur.D02.exchange.completed"
     }
   ]

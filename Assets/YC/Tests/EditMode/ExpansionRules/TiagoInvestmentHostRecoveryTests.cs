@@ -17,6 +17,104 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TearDown] public void End() => f.Dispose();
         private static string Dice(GameState state) => JsonConvert.SerializeObject(state.EffectRuntime.EffectNodes
             .Where(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice).Select(n => new { n.EffectId, n.NormalizedResult }).ToList());
+        [Test] public void DirectFourUsesHostSaleSemanticsAndAccumulatesOnlyCommittedBatchesAcrossRecovery()
+        {
+            f.CreateSelectedHost(new[] { "D03", "D07" }, initialReputation: 5,
+                startingResources: new ResourceSet { GoldVoucher = 50, Originium = 3 });
+            f.OpenSelectedWindow(false); f.StartQuick("entrepreneur.D07.quick", "api07.sale"); f.ToPointChoice(); f.Answer("4");
+            Assert.That(Text(f.Open.PromptParameters, "interactionSemantic"), Is.EqualTo(ContentPrimitiveEffectExecutor.ResourceSaleSemantic));
+            var legacy = GameStateCloneService.DeepClone(f.State);
+            legacy.EffectRuntime.InteractionRequests.Single(q => q.InteractionId == f.Open.InteractionId).PromptParameters = Object();
+            Assert.That(ContentPrimitiveEffectExecutor.TryValidateContentContinuations(legacy, out var legacyReason), Is.False);
+            Assert.That(legacyReason, Is.EqualTo("resource_sale_interaction_semantics_missing"));
+            int gold = f.State.FindPlayer(1).Resources.GoldVoucher;
+            var first = f.Open; f.Restore("出售首次待答"); f.Answer("sale|originium|1");
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 3));
+            var next = f.Engine.GetNode(f.Open.OwnerEffectId);
+            Assert.That(Number(next.ContinuationContext, "saleSoldCount"), Is.EqualTo(1));
+            Assert.That(Number(next.ContinuationContext, "saleRevenue"), Is.EqualTo(3));
+            Assert.That(f.Engine.TrySubmitInteraction(first.GetStableInteractionId(), 1, first.StateRevision,
+                NormalizedValue.CreateString("sale|originium|1"), out _), Is.False);
+            f.Restore("出售第二批待答"); f.Answer("sale|originium|1");
+            next = f.Engine.GetNode(f.Open.OwnerEffectId);
+            Assert.That(Number(next.ContinuationContext, "saleSoldCount"), Is.EqualTo(2));
+            Assert.That(Number(next.ContinuationContext, "saleRevenue"), Is.EqualTo(6));
+            f.Answer("sale|originium|0"); f.Restore("出售正式结束"); f.Drain();
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 6));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => Text(n.ContinuationContext, "stage") == "extra_paid"), Is.EqualTo(1),
+                "完整出售只组织一次原额外费用条件。");
+            int reputation = f.Reputation;
+            f.Confirm(false); f.Drain();
+            Assert.That(f.Reputation, Is.EqualTo(reputation));
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 6));
+        }
+        [Test] public void DirectPointBranchExecutesOnceAndCompletionCannotIssueItsRewardAgain()
+        {
+            f.CreateSelectedHost(new[] { "D07" }, initialReputation: 3,
+                startingResources: new ResourceSet { GoldVoucher = 50 });
+            f.OpenSelectedWindow(false); f.StartQuick("entrepreneur.D07.quick", "api41.points.once"); f.ToPointChoice();
+            var request = f.Open; string owner = request.OwnerEffectId;
+            var node = f.Engine.GetNode(owner);
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(node.NestedGroupSizes.Count, Is.EqualTo(8)); Assert.That(node.NestedGroupSizes, Is.All.GreaterThan(0));
+            Assert.That(node.ChildEffectIds, Is.Empty, "待选点数不得提前执行正文。");
+            int gold = f.State.FindPlayer(1).Resources.GoldVoucher;
+            f.Restore("真实点数分支待答"); f.Answer("2");
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 15));
+            var gain = f.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == owner && n.EffectTypeId == ResourceEffectTypeIds.Gain);
+            Assert.That(gain.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(Number(gain.NormalizedArguments, "amount"), Is.EqualTo(15));
+            string before = RuleStateDigestService.Compute(f.State);
+            Assert.That(f.Engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision,
+                NormalizedValue.CreateString("2"), out _), Is.False);
+            Assert.That(RuleStateDigestService.Compute(f.State), Is.EqualTo(before));
+            f.Restore("真实点数收益后不重复"); f.Drain();
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 15));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.ParentEffectId == owner && n.EffectTypeId == ResourceEffectTypeIds.Gain), Is.EqualTo(1));
+        }
+        [Test] public void OldPointContinuationIdentityIsRejectedBeforeAnyBranchExecutes()
+        {
+            f.CreateSelectedHost(new[] { "D07" }, initialReputation: 3,
+                startingResources: new ResourceSet { GoldVoucher = 50 });
+            f.OpenSelectedWindow(false); f.StartQuick("entrepreneur.D07.quick", "api41.points.old"); f.ToPointChoice();
+            string owner = f.Open.OwnerEffectId;
+            int gold = f.State.FindPlayer(1).Resources.GoldVoucher;
+            var archive = YC.Application.Sessions.HostRecoveryService.CreateArchive(f.State);
+            var old = archive.Snapshot.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == owner);
+            old.ContinuationDefinitionVersion = "1.7.3";
+            old.ContinuationContext.Properties.Single(p => p.Name == "version").Value = NormalizedValue.CreateInteger(6);
+            var denied = YC.Application.Sessions.HostRecoveryService.RecoverJson(
+                YC.Application.Sessions.HostRecoveryService.SerializeArchive(archive), f.Registry);
+            Assert.That(denied.Succeeded, Is.False, denied.Diagnostic);
+            Assert.That(f.Engine.GetNode(owner).ChildEffectIds, Is.Empty);
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold));
+            f.Artifacts.WriteLabeledText("旧点数完成身份恢复拒绝", JsonConvert.SerializeObject(new { denied.Diagnostic, owner, gold,
+                scope = "隔离损坏归档负例，不声称两份历史恢复样本已找到或通过" }));
+        }
+        [Test] public void DirectExtraPointChoiceWaitsForTwoRealMarkersAndRestoresWithoutDuplicateGain()
+        {
+            f.CreateSelectedHost(new[] { "D01", "D03", "D06", "D07" }, initialReputation: 5,
+                startingResources: new ResourceSet { GoldVoucher = 50 });
+            f.OpenSelectedWindow(false); f.StartQuick("entrepreneur.D07.quick", "api41.points.extra"); f.ToPointChoice(4);
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice), Is.EqualTo(3));
+            int gold = f.State.FindPlayer(1).Resources.GoldVoucher;
+            f.Answer("2"); Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 15));
+            Assert.That(f.Open.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            int before = f.Reputation;
+            f.Restore("额外两枚真实费用未付"); f.Confirm(true);
+            Assert.That(f.Reputation, Is.EqualTo(before - 2));
+            var extra = f.Open; string owner = extra.OwnerEffectId;
+            Assert.That(extra.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(extra.CandidateIds, Does.Contain("2")); Assert.That(extra.CandidateIds.Count, Is.EqualTo(8));
+            Assert.That(f.Engine.GetNode(owner).NestedGroupSizes, Is.All.GreaterThan(0));
+            Assert.That(f.Engine.GetNode(owner).ChildEffectIds, Is.Empty);
+            f.Restore("额外两枚已付真实点数待选"); f.Answer("2");
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 30));
+            f.Restore("主额外同点收益后不重复"); f.Drain();
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 30));
+            Assert.That(f.Reputation, Is.EqualTo(before - 2));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.ParentEffectId == owner && n.EffectTypeId == ResourceEffectTypeIds.Gain), Is.EqualTo(1));
+        }
         [Test] public void OnceCleanupUsesTheFormalSourceAndOnePaymentThenRestoresWithoutRerolling()
         {
             f.CreateHost(); f.Restore("正式D09收尾来源待受理"); f.StartInvestment(); f.Restore("投资完整费用待确认"); f.ToPointChoice();
@@ -37,8 +135,62 @@ namespace YC.Tests.EditMode.ExpansionRules
             var storage = f.State.ItemZones.Zones.Single(z => z.ParentId == f.Carrier && z.LocalZoneId == "reputation");
             Assert.That(f.State.ItemZones.Items.Count(i => i.ZoneId == storage.ZoneId), Is.Zero);
             Assert.That(f.State.EffectRuntime.InteractionRequests.Where(q => q.Status == "open").All(q =>
-                Text(f.Engine.GetNode(q.OwnerEffectId).ContinuationContext, "stage") != "reputation_selected"), Is.True);
+                q.PromptKey != "core:entrepreneur.D.reputation.prompt"), Is.True);
             f.Restore("零供应不弹空数量且点数待答");
+        }
+        [TestCase(0)] [TestCase(1)] [TestCase(4)]
+        public void ReputationChoiceExecutesOnlyTheSelectedRealMovesAndContinuesOnceAcrossRecovery(int count)
+        {
+            f.CreateSelectedHost(new[] { "D01", "D03", "D06" }); f.OpenSelectedWindow(cleanup: true); f.StartInvestment(); f.ToReputationChoice();
+            var request = f.Open; string choiceId = request.OwnerEffectId, interaction = request.GetStableInteractionId();
+            var owner = f.Engine.GetNode(choiceId);
+            Assert.That(request.CandidateIds, Is.EqualTo(new[] { "1", "2", "3", "4" })); Assert.That(request.AllowDecline, Is.True);
+            Assert.That(owner.NestedGroupSizes, Is.EqualTo(new[] { 1, 2, 3, 4 })); Assert.That(owner.ContinuationContext, Is.Null);
+            Assert.That(owner.ContinuationHandlerId, Is.Empty); Assert.That(f.Reputation, Is.Zero);
+            Assert.That(f.State.EffectRuntime.InteractionRequests.Any(q => q.Status == "open" && Text(f.Engine.GetNode(q.OwnerEffectId).ContinuationContext, "stage") == "main_completed"), Is.False);
+            string dice = Dice(f.State), random = JsonConvert.SerializeObject(f.State.RandomRuntime);
+            f.Restore("真实声望正数分支待选"); Assert.That(f.Open.GetStableInteractionId(), Is.EqualTo(interaction));
+            Assert.That(f.Engine.TrySubmitInteraction(interaction, 1, f.Open.StateRevision, NormalizedValue.CreateString("0"), out _), Is.False);
+            if (count == 0) f.DeclineReputation();
+            else
+            {
+                Assert.That(f.Engine.TrySubmitInteraction(interaction, 1, f.Open.StateRevision,
+                    NormalizedValue.CreateArray(new[] { NormalizedValue.CreateStableReference("candidate", count.ToString()) }.ToList()), out string reason), Is.True, reason);
+                f.Drain();
+            }
+            Assert.That(f.Reputation, Is.EqualTo(count));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.ParentEffectId == choiceId && n.EffectTypeId == ItemTransferEffectExecutor.TypeId), Is.EqualTo(count));
+            Assert.That(Text(f.Engine.GetNode(f.Open.OwnerEffectId).ContinuationContext, "stage"), Is.EqualTo("main_completed"));
+            string pointRequest = f.Open.GetStableInteractionId(); f.Restore("声望完成且点数待选"); f.Drain();
+            Assert.That(f.Open.GetStableInteractionId(), Is.EqualTo(pointRequest)); Assert.That(f.Reputation, Is.EqualTo(count));
+            Assert.That(Dice(f.State), Is.EqualTo(dice)); Assert.That(JsonConvert.SerializeObject(f.State.RandomRuntime), Is.EqualTo(random));
+        }
+        [Test] public void ReputationSiblingMovesAndPointChoiceContinueAfterOneFrozenItemChangesSource()
+        {
+            f.CreateSelectedHost(new[] { "D01", "D03", "D06" }); f.OpenSelectedWindow(cleanup: true); f.StartInvestment(); f.ToReputationChoice();
+            var request = f.Open; string choiceId = request.OwnerEffectId, requestId = request.GetStableInteractionId();
+            var supply = f.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == 1);
+            string itemId = f.State.ItemZones.Items.Where(i => i.ZoneId == supply.ZoneId && i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 1)
+                .OrderBy(i => i.ItemId, StringComparer.Ordinal).First().ItemId;
+            string retired = f.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.box_retired").ZoneId;
+            // 仅隔离竞争响应：真实答案受理后，经完整转移服务使第一枚冻结实例换源；不改状态或revision。
+            const string exitType = "qy014.fixture.competing_marker_transfer";
+            f.Registry.Register(exitType, c => {
+                var moved = new YC.Domain.Items.ItemTransferService().RelocateItems(c, new YC.Domain.Items.ItemTransferRequest {
+                    ExecutingPlayerId = 1, ItemIds = new System.Collections.Generic.List<string> { itemId }, RequiredCount = 1,
+                    ExpectedSource = new YC.Domain.Items.ItemPositionRef { ZoneId = supply.ZoneId }, Destination = new YC.Domain.Items.ZoneRef { ZoneId = retired },
+                    InsertionKind = "unordered", OperationProfileId = "core.player_marker_storage" });
+                return EffectStepResult.Completed(Object("movedCount", NormalizedValue.CreateInteger(moved.MovedCount)));
+            });
+            f.Registry.RegisterEventHandler(new EffectEventHandlerRegistration("qy014.rep.competing_response", "InteractionAnswered", "", "qy014.rep.competing_response",
+                c => Text(c.Event.Payload, "requestId") == requestId ? new System.Collections.Generic.List<EffectSpec> { EffectSpec.Create(exitType, playerId: 1) }
+                    : new System.Collections.Generic.List<EffectSpec>()));
+            Assert.That(f.Engine.TrySubmitInteraction(requestId, 1, request.StateRevision, NormalizedValue.CreateString("4"), out string reason), Is.True, reason); f.Drain();
+            var moves = f.State.EffectRuntime.EffectNodes.Where(n => n.ParentEffectId == choiceId && n.EffectTypeId == ItemTransferEffectExecutor.TypeId).ToList();
+            Assert.That(moves.Count, Is.EqualTo(4)); Assert.That(moves.Count(n => n.Status == EffectNodeStatus.Completed), Is.EqualTo(3));
+            Assert.That(moves.Count(n => n.Status == EffectNodeStatus.Failed), Is.EqualTo(1)); Assert.That(f.Engine.GetNode(choiceId).Status, Is.EqualTo(EffectNodeStatus.Failed));
+            Assert.That(f.Reputation, Is.EqualTo(3)); Assert.That(f.State.ItemZones.Items.Single(i => i.ItemId == itemId).ZoneId, Is.EqualTo(retired));
+            Assert.That(Text(f.Engine.GetNode(f.Open.OwnerEffectId).ContinuationContext, "stage"), Is.EqualTo("main_completed"));
         }
         [Test] public void DecliningTheInvestmentDoesNotSpendMoneyRollDiceOrGainReputation()
         {
@@ -253,7 +405,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             int score = f.State.FindPlayer(1).Score; string random = JsonConvert.SerializeObject(f.State.RandomRuntime);
             f.StartExchange("token-r2.first"); f.Restore("token费用首次受理未提交"); f.Confirm(true);
             var first = f.State.EffectRuntime.EffectNodes.Single(n => TiagoInvestmentTestFixture.IsTokenTransfer(n) && n.Status == EffectNodeStatus.Completed);
-            f.AssertCommittedTokenCost(first, 2, "original_supply"); var firstIds = Value(first.NormalizedArguments, "itemIds").Items.Select(v => v.StringValue).ToArray();
+            f.AssertCommittedTokenCost(first, 2, "original_supply"); var firstIds = Value(first.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue).ToArray();
             string id = first.EffectId; f.Restore("token转移完成后回同一重复窗口"); f.Drain();
             f.AssertCommittedTokenCost(f.Engine.GetNode(id), 2, "original_supply");
             Assert.That(f.Reputation, Is.EqualTo(2)); Assert.That(f.State.FindPlayer(1).Score, Is.EqualTo(score + 1));
@@ -261,7 +413,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var transfers = f.State.EffectRuntime.EffectNodes.Where(n => TiagoInvestmentTestFixture.IsTokenTransfer(n) && n.Status == EffectNodeStatus.Completed).ToList();
             Assert.That(transfers.Count, Is.EqualTo(2));
             var second = transfers.Single(n => n.EffectId != id); f.AssertCommittedTokenCost(second, 2, "original_supply");
-            Assert.That(Value(second.NormalizedArguments, "itemIds").Items.Select(v => v.StringValue).Intersect(firstIds), Is.Empty);
+            Assert.That(Value(second.NormalizedResult, "movedItemIds").Items.Select(v => v.StringValue).Intersect(firstIds), Is.Empty);
             Assert.That(f.Reputation, Is.Zero); Assert.That(f.State.FindPlayer(1).Score, Is.EqualTo(score + 2));
             Assert.That(JsonConvert.SerializeObject(f.State.RandomRuntime), Is.EqualTo(random));
             f.Restore("两次真实token费用/得分完成不重复"); f.Drain();
@@ -286,7 +438,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             TiagoInvestmentTestFixture.AssertTokenCost(quick.Effects.Single().NestedEffectGroups[0].Single(), 3, "retired");
             var main = f.Rolled(faces, new[] { 2, 5 }).Effects.Single();
             var reward = f.Invoke(faces: faces, continuation: main.ContinuationContext, result: NormalizedValue.CreateString("2"));
-            TiagoInvestmentTestFixture.AssertTokenCost(reward.Effects[1].NestedEffectGroups[0][0], 2, "original_supply");
+            Assert.That(reward.IsSuccess, Is.True, reward.Diagnostic);
+            TiagoInvestmentTestFixture.AssertTokenCost(reward.Effects.Single().NestedEffectGroups[0].Single(), 2, "original_supply");
         }
     }
 }

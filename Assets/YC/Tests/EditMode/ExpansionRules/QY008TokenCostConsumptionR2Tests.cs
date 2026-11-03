@@ -124,13 +124,20 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void ProofMatchesRequestedTokensRatherThanWholePositionListLength()
         {
-            Setup(); var ids = state.ItemZones.Items.Where(i => i.ZoneId == FindZone(state, "supply", 1).ZoneId).Take(2).Select(i => i.ItemId).ToList();
-            var first = Run(TokenSpec(1, ids.Take(1), FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 1)); string firstId = first.EffectId;
-            var second = Run(TokenSpec(1, ids.Skip(1), FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 1));
-            first = Engine.GetNode(firstId);
-            // 构造附加位置证据的合同控制，不声称此安排执行了真实空载体离场。
-            first.PositionChanges.Add(GameStateCloneService.DeepClone(second.PositionChanges.Single()));
+            // 当前v4阳性必须有真实载体离场；旧“借另一节点位置证据仍有效”的人工安排撤销。
+            Setup(firstCount: 2, discardFirstCarrier: true);
+            var first = Run(TokenSpec(1, selected[0], zones[0], null, 2)); string firstId = first.EffectId;
+            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == carriers[0]).ZoneId, Is.EqualTo(FindZone(state, "discard", 1).ZoneId));
+            var tree = state.EffectRuntime.EffectNodes.Where(n => InfluenceDepartureProtocol.IsWithin(state, n.EffectId, first.EffectId));
+            Assert.That(tree.Sum(n => n.PositionChanges.Count), Is.GreaterThan(2));
+            Assert.That(Number(first.NormalizedResult, "movedCount"), Is.EqualTo(2));
+            Assert.That(ItemMovementV4.TryValidateState(state, first, out string reason), Is.True, reason);
             Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, first), Is.True);
+            var id = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "supply", 1).ZoneId).ItemId;
+            var second = Run(TokenSpec(1, new[] { id }, FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 1));
+            first = Engine.GetNode(firstId);
+            first.PositionChanges.Add(GameStateCloneService.DeepClone(second.PositionChanges.Single()));
+            Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, first), Is.False, "另一节点的合法移动也不能冒充本节点的生命周期收据。");
             first.PositionChanges.Add(GameStateCloneService.DeepClone(first.PositionChanges[0]));
             Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, first), Is.False);
         }
@@ -139,9 +146,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Setup(); string id = state.ItemZones.Items.First(i => i.ZoneId == FindZone(state, "supply", 1).ZoneId).ItemId;
             Run(TokenSpec(1, new[] { id }, FindZone(state, "supply", 1).ZoneId, FindZone(state, "retired").ZoneId, 1));
             var returned = Run(TokenSpec(1, new[] { id }, FindZone(state, "retired").ZoneId, null, 1));
+            Assert.That(ItemMovementV4.TryValidateState(state, returned, out string reason), Is.True, reason);
+            Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(state, returned), Is.True);
             var bad = GameStateCloneService.DeepClone(state); bad.ItemZones.Items.Single(i => i.ItemId == id).OriginalSupplyZoneId = FindZone(state, "retired").ZoneId;
             var node = bad.EffectRuntime.EffectNodes.Single(n => n.EffectId == returned.EffectId);
-            Assert.That(ItemTransferService.TryValidateBatchReceipt(node, out _), Is.True);
+            Assert.That(ItemMovementV4.TryValidateState(bad, node, out _), Is.False);
             Assert.That(AbilityActionExecutor.HasCommittedTokenTransfer(bad, node), Is.False);
         }
         [Test] public void TwoTokenSourcesAndResourceSurchargesCommitOnceAndRecoverTheirExactRequests()

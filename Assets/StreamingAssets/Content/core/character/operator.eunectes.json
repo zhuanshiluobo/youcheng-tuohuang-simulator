@@ -1,7 +1,7 @@
 {
   "definitionId": "operator.eunectes",
   "contentType": "character",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "displayName": "森蚺",
   "expansionId": "enterprise",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "normal",
       "subscriptionId": "content.operator.eunectes.tactic",
       "script": "lua/characters/operator.eunectes.tactic.lua",
-      "version": "2.0.1",
+      "version": "2.1.0",
       "completionHandlerId": "content.operator.eunectes.tactic.completed",
       "cleanupScript": "",
       "hasSpecialZone": false,

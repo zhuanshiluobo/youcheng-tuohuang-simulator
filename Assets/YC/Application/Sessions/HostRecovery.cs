@@ -173,9 +173,12 @@ namespace YC.Application.Sessions
                     if (!TryValidateRetiredCardMarkerRawState(state, out string retiredMarkerReason)) return Fault(null, SnapshotInvalid, retiredMarkerReason);
                     if (!HasCurrentStateProtocol(state)) return Fault(null, SnapshotInvalid, "host_state_protocol_or_required_fields_missing");
                     if (!HasRawAbilityActionState(state)) return Fault(null, SnapshotInvalid, "ability_action.v1:raw_fields_missing");
+                    if (!LuaEntryMemoryStore.HasRawFields(state)) return Fault(null, SnapshotInvalid, "lua_memory_raw_fields_missing");
                     if (!HasRawPersistentSourceFacts(state, out string persistentFactsReason)) return Fault(null, SnapshotInvalid, persistentFactsReason);
                     if (!YC.Domain.Rules.EntrepreneurRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "entrepreneur_selection.v1:raw_fields_missing");
-                    if (!UsageTrackRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "usage_tracks.v1:raw_fields_missing_or_legacy_naming");
+                    if (!UsageTrackRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "usage_tracks.v2:raw_fields_missing_or_legacy_naming");
+                    if (!YC.Domain.Items.ItemMovementV4.HasRawFields(state)) return Fault(null, SnapshotInvalid, ItemMovementV4.ContractVersion+":raw_fields_missing");
+                    if (!InfluenceDepartureCompletion.HasRawFields(state)) return Fault(null, SnapshotInvalid, "departure_completion:raw_fields_missing");
                     if (!CleanupObligation.HasRawFields(state)) return Fault(null,SnapshotInvalid,"cleanup_obligation.v1:raw_fields_missing");
                     if (!CleanupSourceRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "cleanup_source.v1:raw_fields_missing");
                     if (!RewardGrantEffectExecutor.HasRawFields(state)) return Fault(null, SnapshotInvalid, "reward_grant.v1:raw_fields_missing");
@@ -192,8 +195,8 @@ namespace YC.Application.Sessions
                         return Fault(null, SnapshotInvalid, "legacy_player_order_missing");
                     if (!HasRawRouteTollFields(state, out string tollDiagnostic))
                         return Fault(null, SnapshotInvalid, tollDiagnostic);
-                    if (!HasRawResourcePaymentFields(state))
-                        return Fault(null, SnapshotInvalid, "付款准备缺少原始身份、代次或事件进度字段。");
+                    if (!HasRawResourcePaymentFields(state, out string paymentDiagnostic))
+                        return Fault(null, SnapshotInvalid, paymentDiagnostic);
                     if (registry?.SetupRecipe != null && (state["SetupRecipe"] is not JObject || state["ContentDefinitions"] is not JObject))
                         return Fault(null, SnapshotInvalid, "content_snapshot_missing：缺少原始本局配方或有效定义快照。");
                     if (state["EntitySchemaVersion"] == null)
@@ -237,7 +240,7 @@ namespace YC.Application.Sessions
                         if (state["EffectRuntime"]?["EffectNodes"] is JArray nodes && nodes.Any(node => node["ContinuationData"] == null))
                             return Fault(null, ItemZoneStateMigrator.Unsupported, "节点缺少 ContinuationData；不能默认补齐未完成节点。");
                         if (state["EffectRuntime"]?["EffectNodes"] is JArray mapNodes && mapNodes.Any(node => (string)node["DefinitionVersion"] == "v1" &&
-                            new[] { InfluenceEffectTypeIds.PlaceInfluence, InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.MoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence, LuaDomainEffectTypeIds.PlaceRoad, LuaDomainEffectTypeIds.OperateToken, ContentPrimitiveEffectExecutor.SelectInfluence }.Contains((string)node["EffectTypeId"]) && node["PositionChanges"] is not JArray))
+                            new[] { InfluenceEffectTypeIds.PlaceInfluence, InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.MoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence, LuaDomainEffectTypeIds.PlaceRoad, LuaDomainEffectTypeIds.OperateToken }.Contains((string)node["EffectTypeId"]) && node["PositionChanges"] is not JArray))
                             return Fault(null, SnapshotInvalid, "地图节点缺少原始位置结果，不能默认补齐。");
                         if (state["EffectRuntime"]?["EffectNodes"] is JArray enterpriseNodes && enterpriseNodes.Any(node =>
                             YC.Domain.Enterprises.EnterpriseEffectExecutor.IsEnterpriseType((string)node["EffectTypeId"]) && (string)node["DefinitionVersion"] == "v1" &&
@@ -246,7 +249,7 @@ namespace YC.Application.Sessions
                              frozen.Any(selection => selection["EnterpriseDefinitionId"] == null || selection["UnlockedByPlayerId"] == null || selection["Candidate"] is not JObject candidate ||
                                  new[] { "CandidateId", "EnterpriseItemId", "SpecialId", "CurrentLevel", "EffectiveLevelCeiling", "DisplayNameKey" }.Any(key => candidate[key] == null)))))
                             return Fault(null, SnapshotInvalid, "企业节点缺少原始到达收据或冻结快照，不能默认补齐。");
-                        if (state["EffectRuntime"]?["EffectNodes"] is JArray resultNodes && resultNodes.Any(node => (string)node["DefinitionVersion"] == "v1" && new[] { ItemTransferEffectExecutor.TypeId, LuaDomainEffectTypeIds.MoveFacilityCard, LuaDomainEffectTypeIds.MoveCharacterCard, DeckShuffleEffectExecutor.TypeId, LuaDomainEffectTypeIds.ShuffleFacilityDeck, LuaDomainEffectTypeIds.Repeat }.Contains((string)node["EffectTypeId"]) && (node["PositionChanges"] == null || node["ShuffleInputItemIds"] == null)))
+                        if (state["EffectRuntime"]?["EffectNodes"] is JArray resultNodes && resultNodes.Any(node => (string)node["DefinitionVersion"] == "v1" && new[] { ItemTransferEffectExecutor.TypeId, LuaDomainEffectTypeIds.MoveFacilityCard, LuaDomainEffectTypeIds.MoveCharacterCard, DeckShuffleEffectExecutor.TypeId, LuaDomainEffectTypeIds.ShuffleFacilityDeck }.Contains((string)node["EffectTypeId"]) && (node["PositionChanges"] == null || node["ShuffleInputItemIds"] == null)))
                             return Fault(null, ItemZoneStateMigrator.Unsupported, "节点缺少 Host 位置或洗牌结果，不能补默认结果。");
                     }
                     if (state["ItemZones"]?["FacilityLayerVersion"] == null)
@@ -272,8 +275,9 @@ namespace YC.Application.Sessions
             }
         }
 
-        private static bool HasRawResourcePaymentFields(JObject state)
+        private static bool HasRawResourcePaymentFields(JObject state, out string diagnostic)
         {
+            diagnostic = "付款准备缺少原始身份、代次或事件进度字段。";
             if (state["EffectRuntime"]?["EffectNodes"] is not JArray nodes) return false;
             bool Fields(JObject value, params string[] names) => value != null && names.All(name => value.Property(name) != null);
             foreach (var node in nodes)
@@ -281,7 +285,11 @@ namespace YC.Application.Sessions
                 if (node["Payment"] is not JObject payment) continue;
                 if ((int?)payment["PaymentProtocolVersion"] == 2)
                 {
-                    if (!ResourcePaymentRecovery.HasRawFields(payment, out _)) return false;
+                    if (!ResourcePaymentRecovery.HasRawFields(payment, out string reason))
+                    {
+                        if (reason == "payment_cost_receipt_contract_version_unsupported") diagnostic = reason;
+                        return false;
+                    }
                     continue;
                 }
                 if ((int?)payment["PaymentProtocolVersion"] != 1) return false;
@@ -444,8 +452,140 @@ namespace YC.Application.Sessions
         private static bool TryValidateRetiredCardMarkerRawState(JObject state, out string diagnostic)
         {
             diagnostic = "";
-            string NodeReason(JObject node)
+            string NodeReason(JObject node, bool runtimeNode = false)
             {
+                string allocationRaw=AllocationEffects.ValidateRaw(node,runtimeNode);if(allocationRaw.Length>0)return allocationRaw;
+                string retiredType = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(node.Value<string>("EffectTypeId"), null);
+                if (retiredType.Length > 0) return retiredType;
+                string insertionRaw = ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, runtimeNode); if (insertionRaw.Length > 0) return insertionRaw;
+                string pairRaw = CarrierTokenPairReturnChoice.ValidateRaw(node, runtimeNode); if (pairRaw.Length > 0) return pairRaw;
+                string itemInputRaw = ItemMoveInputNormalization.ValidateRaw(node); if (itemInputRaw.Length > 0) return itemInputRaw;
+                string itemMoveVersion = ItemMovementV4.ValidateSavedVersion(node.Value<string>("EffectTypeId"), node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)), node.Value<string>("DefinitionVersion"), runtimeNode);
+                if (itemMoveVersion.Length > 0) return itemMoveVersion;
+                string buildExecutionVersion=FacilityBuildContract.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if(buildExecutionVersion.Length>0)return buildExecutionVersion;
+                string doubleUseSourceVersion=YC.Domain.Cards.CharacterDoubleUseConsumption.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if(doubleUseSourceVersion.Length>0)return doubleUseSourceVersion;
+                string coverVersion = YC.Domain.Cards.CharacterCoverEffectExecutor.ValidateSavedVersion(node.Value<string>("EffectTypeId"), node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if (coverVersion.Length > 0) return coverVersion;
+                string returnMarkerVersion = ContentLifecycleEffectExecutor.ValidateSavedReturnMarkerVersion(node.Value<string>("EffectTypeId"), node.Value<string>("DefinitionVersion"), runtimeNode);
+                if (returnMarkerVersion.Length > 0) return returnMarkerVersion;
+                string characterMoveVersion = YC.Domain.Cards.CharacterCardMovement.ValidateSavedVersion(node.Value<string>("EffectTypeId"),
+                    node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)), node.Value<string>("DefinitionVersion"), runtimeNode);
+                if (characterMoveVersion.Length > 0) return characterMoveVersion;
+                string markerOperationVersion=PlayerMarkerOperation.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if(markerOperationVersion.Length>0)return markerOperationVersion;
+                string tokenMoveVersion=YC.Domain.Movement.MapOperationEffectExecutor.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if(tokenMoveVersion.Length>0)return tokenMoveVersion;
+                string supplyVersion=ItemTransferEffectExecutor.ValidateSavedSupplyVersion(node.Value<string>("EffectTypeId"),node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                if(supplyVersion.Length>0)return supplyVersion;
+                if(!ItemTransferEffectExecutor.HasRawSupplyFlowFields(node))return "facility_supply_raw_fields_invalid";
+                string influenceType = node.Value<string>("EffectTypeId");
+                if (influenceType == ExplorationEffectTypeIds.Explore)
+                {
+                    bool declaredExplore = node["NormalizedArguments"]?["Properties"] is JArray exploreFields && exploreFields.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "targetMode" || (string)p["Name"] == "apiVersion");
+                    bool progressedExplore = node["ContinuationData"]?["Properties"] is JArray exploreData && exploreData.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "exploreContractProtocolVersion") || (string)node["FlowStage"] == "selection" || (string)node["FlowStage"] == "execution";
+                    if (declaredExplore || progressedExplore)
+                    {
+                        if (!HasRawNormalizedFields(node["NormalizedArguments"] as JObject, 0) || node["PlayerId"]?.Type != JTokenType.Integer ||
+                            node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
+                            node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray) return "explore_contract_raw_fields_invalid";
+                        var exploreArgs = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        string invalidExplore = ExplorationContract.ValidateArguments(exploreArgs);
+                        if (invalidExplore.Length > 0) return invalidExplore;
+                        if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
+                            node["Status"]?.Type != JTokenType.Integer || node["PendingOutcome"]?.Type != JTokenType.Integer ||
+                            !HasRawNormalizedFields(node["NormalizedResult"] as JObject, 0) || !HasRawNormalizedFields(node["ContinuationData"] as JObject, 0) ||
+                            node["ChildEffectIds"] is not JArray)) return "explore_contract_raw_fields_invalid";
+                    }
+                }
+                if (influenceType == YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build)
+                {
+                    bool declaredBuild = node["NormalizedArguments"]?["Properties"] is JArray buildFields && buildFields.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "targetMode" || (string)p["Name"] == "apiVersion");
+                    bool progressedBuild = node["ContinuationData"]?["Properties"] is JArray buildData && buildData.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "buildContractProtocolVersion");
+                    var buildRequests = runtimeNode && state["EffectRuntime"]?["InteractionRequests"] is JArray allBuildRequests
+                        ? allBuildRequests.OfType<JObject>().Where(r => (string)r["OwnerEffectId"] == (string)node["EffectId"]).ToList() : new List<JObject>();
+                    bool publishedBuild = buildRequests.Any(r => r["PromptParameters"]?["Properties"] is JArray fields && fields.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "interactionSemantic" && (string)p["Value"]?["StringValue"] == FacilityBuildContract.Semantic));
+                    if (declaredBuild || progressedBuild || publishedBuild)
+                    {
+                        if (!HasRawNormalizedFields(node["NormalizedArguments"] as JObject, 0) || node["PlayerId"]?.Type != JTokenType.Integer ||
+                            node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
+                            node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray)
+                            return "build_contract_raw_fields_invalid";
+                        var buildArgs = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        string invalidBuild = FacilityBuildContract.ValidateArguments(buildArgs);
+                        if (invalidBuild.Length > 0) return invalidBuild;
+                        if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
+                            !HasRawNormalizedFields(node["ContinuationData"] as JObject, 0) || node["ChildEffectIds"] is not JArray))
+                            return "build_contract_raw_fields_invalid";
+                        foreach (var request in buildRequests)
+                            if (new[] { "AnsweringPlayerId", "CandidateSetVersion", "StateRevision", "AnsweredAtRevision", "MinSelections", "MaxSelections" }.Any(k => request[k]?.Type != JTokenType.Integer) ||
+                                new[] { "InteractionId", "RequestId", "OwnerEffectId", "InteractionTypeId", "CandidateSetId", "CandidateResolutionId", "AnswerSchema", "Status" }.Any(k => request[k]?.Type != JTokenType.String) ||
+                                request["AllowDecline"]?.Type != JTokenType.Boolean || request["CandidateIds"] is not JArray ||
+                                !HasRawNormalizedFields(request["PromptParameters"] as JObject, 0) || !HasRawNormalizedFields(request["NormalizedAnswer"] as JObject, 0))
+                                return "build_contract_request_raw_fields_invalid";
+                    }
+                }
+                if (InfluenceSelectionFlow.Operation(influenceType).Length > 0)
+                {
+                    bool declared = node["NormalizedArguments"]?["Properties"] is JArray rawFields && rawFields.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "targetMode" || (string)p["Name"] == "apiVersion" && p["Value"]?["IntegerValue"]?.Type == JTokenType.Integer && p["Value"].Value<long>("IntegerValue") == 3);
+                    bool progressed = node["ContinuationData"]?["Properties"] is JArray dataFields && dataFields.OfType<JObject>().Any(p => (string)p["Name"] == "selectionProtocolVersion");
+                    var ownRequests = runtimeNode && state["EffectRuntime"]?["InteractionRequests"] is JArray allRequests
+                        ? allRequests.OfType<JObject>().Where(r => (string)r["OwnerEffectId"] == (string)node["EffectId"]).ToList() : new List<JObject>();
+                    bool published = ownRequests.Any(r => r["PromptParameters"]?["Properties"] is JArray promptFields && promptFields.OfType<JObject>().Any(p =>
+                        (string)p["Name"] == "interactionSemantic" && (string)p["Value"]?["StringValue"] == InfluenceSelectionFlow.InteractionSemantic));
+                    if (declared || progressed || published)
+                    {
+                        if (!HasRawNormalizedFields(node["NormalizedArguments"] as JObject, 0) || node["PlayerId"]?.Type != JTokenType.Integer ||
+                            node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
+                            node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray)
+                            return "influence_selection_raw_fields_invalid";
+                        var args = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        string invalid = InfluenceSelectionFlow.ValidateArguments(influenceType, args);
+                        if (invalid.Length > 0) return invalid;
+                        if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
+                            !HasRawNormalizedFields(node["ContinuationData"] as JObject, 0) || node["ChildEffectIds"] is not JArray))
+                            return "influence_selection_raw_fields_invalid";
+                        foreach (var request in ownRequests)
+                        {
+                            if (new[] { "AnsweringPlayerId", "CandidateSetVersion", "StateRevision", "AnsweredAtRevision", "MinSelections", "MaxSelections" }.Any(k => request[k]?.Type != JTokenType.Integer) ||
+                                new[] { "InteractionId", "RequestId", "OwnerEffectId", "InteractionTypeId", "CandidateSetId", "CandidateResolutionId", "AnswerSchema", "Status" }.Any(k => request[k]?.Type != JTokenType.String) ||
+                                request["AllowDecline"]?.Type != JTokenType.Boolean || request["CandidateIds"] is not JArray ||
+                                !HasRawNormalizedFields(request["PromptParameters"] as JObject, 0) || !HasRawNormalizedFields(request["NormalizedAnswer"] as JObject, 0))
+                                return "influence_selection_request_raw_fields_invalid";
+                        }
+                    }
+                }
+                if (node.Value<string>("EffectTypeId") == LuaDomainEffectTypeIds.ShuffleFacilityDeck)
+                {
+                    var arguments = node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)) ?? NormalizedValue.CreateNull();
+                    string shuffleReason = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(LuaDomainEffectTypeIds.ShuffleFacilityDeck, arguments);
+                    if (shuffleReason.Length > 0) return shuffleReason;
+                }
+                if(node.Value<string>("EffectTypeId")==CityStyleMarkerReturnChoice.TypeId)
+                {
+                    string reason=CityStyleMarkerReturnChoice.ValidateSavedVersion(node.Value<string>("DefinitionVersion"),runtimeNode);
+                    if(reason.Length>0)return reason;
+                }
+                if(node.Value<string>("EffectTypeId")==LuaDomainEffectTypeIds.Choice)
+                {
+                    string reason=GenericLuaEffectExecutor.ValidateSavedChoiceVersion(node.Value<string>("DefinitionVersion"),runtimeNode);
+                    if(reason.Length>0)return reason;
+                }
+                if (node.Value<string>("EffectTypeId") == LuaDomainEffectTypeIds.ExecuteMainAction)
+                {
+                    var arguments = node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                    string actionReason = GenericLuaEffectExecutor.ValidateMainActionArguments(arguments);
+                    if (actionReason.Length > 0) return actionReason;
+                    actionReason = GenericLuaEffectExecutor.ValidateSavedMainActionVersion(node.Value<string>("DefinitionVersion"), runtimeNode);
+                    if (actionReason.Length > 0) return actionReason;
+                }
                 if (node.Value<string>("EffectTypeId") == ContentPrimitiveEffectExecutor.RetiredMarkerLoadTypeId)
                     return ContentPrimitiveEffectExecutor.RetiredMarkerLoadReason;
                 if (node["FixedDelivery"] is JToken receipt && receipt.Type != JTokenType.Null)
@@ -458,10 +598,27 @@ namespace YC.Application.Sessions
                     return ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason;
                 if (node["NestedEffects"] is JArray nested)
                     foreach (var child in nested.OfType<JObject>()) { string found = NodeReason(child); if (found.Length > 0) return found; }
+                if (node["SettlementWindow"] is JObject window && window["Entries"] is JArray entries)
+                    foreach (var entry in entries.OfType<JObject>())
+                        if (entry["Effects"] is JArray effects)
+                            foreach (var spec in effects.OfType<JObject>()) { string found = NodeReason(spec); if (found.Length > 0) return found; }
                 return "";
             }
             if (state?["EffectRuntime"]?["EffectNodes"] is JArray nodes)
-                foreach (var node in nodes.OfType<JObject>()) { diagnostic = NodeReason(node); if (diagnostic.Length > 0) return false; }
+                foreach (var node in nodes.OfType<JObject>()) { diagnostic = NodeReason(node, true); if (diagnostic.Length > 0) return false; }
+            // 只沿真实规格载体检查；不扫描 Lua 上下文或事件载荷中的同名数据。
+            if (state?["EffectRuntime"]?["DeferredResponses"] is JArray responses)
+                foreach (var response in responses.OfType<JObject>())
+                    if (response["PendingBody"] is JArray body)
+                        foreach (var spec in body.OfType<JObject>()) { diagnostic = NodeReason(spec); if (diagnostic.Length > 0) return false; }
+            if (state?["EffectRuntime"]?["InfluenceDepartureBatches"] is JArray batches)
+                foreach (var batch in batches.OfType<JObject>())
+                    if (batch["Offers"] is JArray offers)
+                        foreach (var offer in offers.OfType<JObject>())
+                            if (offer["Body"] is JObject spec) { diagnostic = NodeReason(spec); if (diagnostic.Length > 0) return false; }
+            if (state?["EffectRuntime"]?["InfluencePlaceMappings"] is JArray mappings)
+                foreach (var mapping in mappings.OfType<JObject>())
+                    if (mapping["OriginalSpec"] is JObject spec) { diagnostic = NodeReason(spec); if (diagnostic.Length > 0) return false; }
             if (state?["ItemZones"]?["Zones"] is JArray zones && zones.OfType<JObject>().Any(z => z.Value<string>("LocalZoneId") == "fixed_delivery"))
             { diagnostic = ContentPrimitiveEffectExecutor.RetiredFixedDeliveryReason; return false; }
             return true;
@@ -1257,7 +1414,7 @@ namespace YC.Application.Sessions
                 !EffectTreeExecutor.TryValidateDeferredResponses(state, registry, out diagnostic)) return false;
             if (ItemZoneLegacyProjection.IsActive(state) && !new ItemZoneQuery().TryValidate(state, out diagnostic)) return false;
             if (!EffectContinuationContext.TryValidate(state.EffectRuntime, out diagnostic)) return false;
-            if (!ContentTransactionEffectExecutor.TryValidateRuntime(state, out diagnostic)) return false;
+            if (!ContentTransactionEffectExecutor.TryValidateRuntime(state, out diagnostic, registry)) return false;
             if (ItemZoneLegacyProjection.IsActive(state) && !YC.Domain.Cards.CharacterLifecycleService.TryValidate(state, out diagnostic)) return false;
             if (registry?.SetupRecipe != null && (state.SetupRecipe == null || state.ContentDefinitions == null)) { diagnostic = "content_snapshot_missing"; return false; }
             if (state.SetupRecipe != null)
@@ -1282,9 +1439,14 @@ namespace YC.Application.Sessions
                         var marker = state.ItemZones.Items.Find(i => i.ItemId == declaration.InfluenceMarkerId);
                         int ordinal = player.DeclaredCityStyles.Where(d => d.CityStyleId == declaration.CityStyleId).ToList().IndexOf(declaration);
                         var track = state.ItemZones.Zones.Find(z => z.ParentKind == ZoneParentKind.Item && z.ParentId == styleItem?.ItemId && z.LocalZoneId == "declaration_" + player.PlayerId + "_" + ordinal);
-                        bool returned = track != null && state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ContentLifecycleEffectExecutor.ReturnMarkerTypeId && n.PlayerId == player.PlayerId &&
-                            n.PositionChanges.Any(c => c.ItemId == declaration.InfluenceMarkerId && c.From.ZoneId == track.ZoneId &&
-                                state.ItemZones.Zones.Any(z => z.ZoneId == c.To.ZoneId && z.LocalZoneId == "supply" && z.OwnerPlayerId == player.PlayerId)));
+                        // 记录保留原始宣告实例；后续真实位置收据可由任意合法执行者产生，目标不限于供应。
+                        bool returned = track != null && state.EffectRuntime.EffectNodes.Any(n => {
+                            if(!ItemMovementV4.IsV4(n.EffectTypeId,n.NormalizedArguments))return false;
+                            var receipt=n.ItemMovementV4?.Receipt??n.CommonItemMovementV4?.Receipt;
+                            return receipt?.Result?.Changed==true&&receipt.Items.Any(f=>f.ItemId==declaration.InfluenceMarkerId&&f.From.ZoneId==track.ZoneId&&
+                                n.PositionChanges.Any(c=>c.ItemId==f.ItemId&&c.From.ZoneId==f.From.ZoneId&&c.To.ZoneId==f.To.ZoneId)&&state.ItemZones.Zones.Any(z=>z.ZoneId==f.To.ZoneId))&&
+                                ItemMovementV4.TryValidateState(state,n,out _);
+                        });
                         if (string.IsNullOrEmpty(declaration.DeclarationId) || styleItem?.DefinitionId != declaration.CityStyleId ||
                             marker?.TypeId != "core.player_marker" || marker.OwnerSubject.PlayerId != player.PlayerId || track == null || marker.ZoneId != track.ZoneId && !returned ||
                             declaration.UsedFacilityIds.Count != declaration.UsedCityBoardSlotIndexes.Count || declaration.UsedFacilityIds.Count != declaration.UsedFacilityIds.Distinct().Count() ||
@@ -1332,9 +1494,23 @@ namespace YC.Application.Sessions
                     diagnostic = YC.Domain.Cards.CharacterCoverEffectExecutor.ValidateArguments(node.NormalizedArguments);
                     if (diagnostic.Length > 0) return false;
                 }
+                if (!InfluenceSelectionFlow.TryValidateNode(state, node, out diagnostic)) return false;
+                if (node.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && ItemTransferEffectExecutor.Value(node.NormalizedArguments,"targets") != null)
+                {
+                    diagnostic = InfluenceEffectExecutor.ValidateRemoveSpec(EffectSpec.Create(node.EffectTypeId,node.NormalizedArguments,node.PlayerId));
+                    if (diagnostic.Length > 0) return false;
+                }
                 if (!TryValidateCoverSpecs(node.NestedEffects, out diagnostic)) return false;
+                if (!TryValidateResourceVersion(node.EffectTypeId, node.DefinitionVersion, node.NormalizedArguments, out diagnostic)) return false;
+                if (!ResourcePaymentInsertionService.ValidateItemSelectionSaved(state, node)) { diagnostic = "payment_insertion_item_choice_invalid"; return false; }
+                if (!GenericLuaEffectExecutor.ValidateSavedImmediateMainAction(state, node)) { diagnostic = "immediate_main_action_state_invalid"; return false; }
+                if (!OrdinarySpecialActionChoice.ValidateSaved(state, node)) { diagnostic = "ordinary_special_choice_state_invalid"; return false; }
+                if (!ImmediateSpecialActionFlow.ValidateSaved(state, node)) { diagnostic = "immediate_special_state_invalid"; return false; }
+                if (!CarrierTokenPairReturnChoice.ValidateSaved(state, node)) { diagnostic = "carrier_pair_choice_state_invalid"; return false; }
+                if (!TransferCountChoiceFlow.TryValidateSaved(state, node)) { diagnostic = "transfer_count_state_invalid"; return false; }
+                if (node.EffectTypeId == ResourceExchangeFlow.TypeId && !ResourceExchangeFlow.ValidateSaved(state, node, out diagnostic)) return false;
                 if (registry != null && registry.TryGet(node.EffectTypeId, out var effectRegistration) &&
-                    new[] { ItemTransferEffectExecutor.TypeId, LuaDomainEffectTypeIds.MoveFacilityCard, LuaDomainEffectTypeIds.MoveCharacterCard, DeckShuffleEffectExecutor.TypeId, LuaDomainEffectTypeIds.ShuffleFacilityDeck, LuaDomainEffectTypeIds.Repeat, InfluenceEffectTypeIds.PlaceInfluence, InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.MoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence, LuaDomainEffectTypeIds.PlaceRoad, LuaDomainEffectTypeIds.OperateToken, ContentPrimitiveEffectExecutor.SelectInfluence }.Contains(node.EffectTypeId) &&
+                    new[] { ItemTransferEffectExecutor.TypeId, LuaDomainEffectTypeIds.MoveFacilityCard, LuaDomainEffectTypeIds.MoveCharacterCard, DeckShuffleEffectExecutor.TypeId, LuaDomainEffectTypeIds.ShuffleFacilityDeck, InfluenceEffectTypeIds.PlaceInfluence, InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.MoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence, LuaDomainEffectTypeIds.PlaceRoad, LuaDomainEffectTypeIds.OperateToken }.Contains(node.EffectTypeId) &&
                     node.DefinitionVersion != effectRegistration.DefinitionVersion && !ItemTransferEffectExecutor.CanRestoreLegacy(state, node) && !InfluenceEffectExecutor.CanRestoreLegacy(state, node) && node.Status != EffectNodeStatus.Completed && node.Status != EffectNodeStatus.Failed)
                 { diagnostic = ItemZoneStateMigrator.Unsupported + ": " + node.EffectTypeId; return false; }
                 if (ItemZoneLegacyProjection.IsActive(state) && (node.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence || node.EffectTypeId == InfluenceEffectTypeIds.ReplaceInfluence) &&
@@ -1393,15 +1569,68 @@ namespace YC.Application.Sessions
             return true;
         }
 
+        private static bool TryValidateResourceVersion(string typeId, string version, NormalizedValue args, out string diagnostic)
+        {
+            diagnostic = string.Empty;
+            if (typeId == CarrierTokenPairReturnChoice.TypeId || typeId == CarrierTokenPairReturnChoice.SecondTypeId)
+            {
+                if (!string.IsNullOrEmpty(version) && version != CarrierTokenPairReturnChoice.Version) { diagnostic = "carrier_pair_choice_version_unsupported"; return false; }
+                diagnostic = CarrierTokenPairReturnChoice.ValidateArguments(typeId, args); return diagnostic.Length == 0;
+            }
+            if (typeId == OrdinarySpecialActionChoice.TypeId)
+            {
+                if (!string.IsNullOrEmpty(version) && version != OrdinarySpecialActionChoice.Version) { diagnostic = "ordinary_special_choice_version_unsupported"; return false; }
+                diagnostic = OrdinarySpecialActionChoice.ValidateArguments(args); return diagnostic.Length == 0;
+            }
+            if (typeId == ResourcePaymentInsertionService.PickItemTypeId)
+            {
+                if (!string.IsNullOrEmpty(version) && version != ResourcePaymentInsertionService.PickItemVersion) { diagnostic = "payment_insertion_pick_version_unsupported"; return false; }
+                diagnostic = ResourcePaymentInsertionService.ValidatePickArguments(args); return diagnostic.Length == 0;
+            }
+            if (typeId == ImmediateSpecialActionFlow.TypeId && !string.IsNullOrEmpty(version) && version != ImmediateSpecialActionFlow.Version)
+            { diagnostic = "immediate_special_version_unsupported"; return false; }
+            if (typeId == TransferCountChoiceFlow.TypeId || typeId == TransferCountChoiceFlow.SequenceTypeId)
+            {
+                if (!string.IsNullOrEmpty(version) && version != TransferCountChoiceFlow.Version)
+                { diagnostic = "transfer_count_version_unsupported"; return false; }
+                diagnostic = TransferCountChoiceFlow.ValidateArguments(typeId, args);
+                return diagnostic.Length == 0;
+            }
+            if (typeId == ResourceExchangeFlow.TypeId)
+            {
+                if (!string.IsNullOrEmpty(version) && version != ResourceExchangeFlow.DefinitionVersion)
+                { diagnostic = "resource_exchange_definition_version_mismatch"; return false; }
+                diagnostic = ResourceExchangeFlow.ValidateArguments(args);
+                return diagnostic.Length == 0;
+            }
+            if (typeId != ResourceEffectTypeIds.Gain) return true;
+            if (!string.IsNullOrEmpty(version) && version != ResourceEffectExecutor.GainDefinitionVersion &&
+                !ResourceEffectExecutor.CanRestoreLegacyGain(typeId, version, args))
+            { diagnostic = "resource_gain_definition_version_mismatch"; return false; }
+            diagnostic = ResourceEffectExecutor.ValidateGainArguments(args);
+            return diagnostic.Length == 0;
+        }
+
         private static bool TryValidateCoverSpecs(IEnumerable<EffectSpecRuntimeState> specs, out string diagnostic)
         {
             diagnostic = string.Empty;
             foreach (var spec in specs)
             {
+                if (!TryValidateResourceVersion(spec.EffectTypeId, spec.DefinitionVersion, spec.NormalizedArguments, out diagnostic)) return false;
+                if (InfluenceSelectionFlow.IsSelection(spec.EffectTypeId, spec.NormalizedArguments))
+                {
+                    diagnostic = InfluenceSelectionFlow.ValidateSavedSpec(spec);
+                    if (diagnostic.Length > 0) return false;
+                }
                 if (spec.EffectTypeId == YC.Domain.Cards.CharacterCoverEffectExecutor.EffectTypeId &&
                     ItemTransferEffectExecutor.Value(spec.NormalizedArguments, "apiVersion") != null)
                 {
                     diagnostic = YC.Domain.Cards.CharacterCoverEffectExecutor.ValidateArguments(spec.NormalizedArguments);
+                    if (diagnostic.Length > 0) return false;
+                }
+                if (spec.EffectTypeId == InfluenceEffectTypeIds.RemoveInfluence && ItemTransferEffectExecutor.Value(spec.NormalizedArguments,"targets") != null)
+                {
+                    diagnostic = InfluenceEffectExecutor.ValidateRemoveSpec(EffectSpec.Create(spec.EffectTypeId,spec.NormalizedArguments,spec.PlayerId));
                     if (diagnostic.Length > 0) return false;
                 }
                 if (!TryValidateCoverSpecs(spec.NestedEffects, out diagnostic)) return false;

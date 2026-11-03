@@ -1,12 +1,12 @@
 return function(ctx)
     if ctx.eventType == 'PlayerCleanupStarted' then
-        return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='self',count=2})}
+        return {Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer=ctx.playerId,subjectFilter='self',count=2 })}
     end
     local function place()
         return Effect.PlaceInfluence({ executingPlayer = ctx.playerId, influenceSource = 'player_supply', ownerSubject = ctx.playerId })
     end
     local function remove()
-        return Effect.SelectInfluence({ player = ctx.playerId, operation = 'remove', subjectFilter = 'any', count = 1 })
+        return Effect.RemoveInfluence({ apiVersion=3, targetMode='select', executingPlayer= ctx.playerId, subjectFilter = 'any', count = 1 })
     end
     local branches = {
         { id = 'place_place_place', effects = { place(), place(), place() } },

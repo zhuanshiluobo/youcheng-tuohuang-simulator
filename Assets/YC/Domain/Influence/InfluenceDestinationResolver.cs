@@ -218,7 +218,16 @@ namespace YC.Domain.Influence
             return id;
         }
 
-        public static bool HasStorageChoice(EffectSpec spec, int player, string card, string item) => TryFindStorageChoice(spec, player, card, item, out _, out _, out _, out _);
+        public static bool HasStorageChoice(EffectSpec spec, int player, string card, string item)
+        {
+            if (spec == null || player < 1 || spec.PlayerId > 0 && spec.PlayerId != player) return false;
+            if (spec.EffectTypeId == ContentPrimitiveEffectExecutor.StoreRemoved)
+                return Text(spec.NormalizedArguments, "cardInstanceId") == card && Text(spec.NormalizedArguments, "influenceItemId") == item &&
+                    Text(spec.NormalizedArguments, "localZoneId").Length > 0 &&
+                    ResourceLossEffectExecutor.TryReadPlayer(Value(spec.NormalizedArguments, "player"), out int actor) && actor == player;
+            // 这里只识别真实去向效果；是否选择／放弃及回答编码均由Choice自身处理。
+            return spec.NestedEffectGroups.SelectMany(group => group).Any(child => HasStorageChoice(child, player, card, item));
+        }
         private static bool TryFindStorageChoice(EffectSpec spec, int inheritedPlayer, string cardId, string itemId,
             out int answeringPlayer, out string localZone, out string storeOption, out string declineOption)
         {

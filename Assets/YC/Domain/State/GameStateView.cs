@@ -265,6 +265,7 @@ namespace YC.Domain.State
         public string DeclarationId = string.Empty;
         public string CityStyleItemId = string.Empty;
         public string InfluenceMarkerId = string.Empty;
+        public string CurrentMarkerItemId = string.Empty;
         public string CityStyleId = string.Empty;
         public string UnlockedSpecialActionId = string.Empty;
         public List<string> UsedFacilityIds = new List<string>();
@@ -413,7 +414,6 @@ namespace YC.Domain.State
     public sealed class EffectNodeView
     {
         public YC.Domain.Presentation.EffectPresentationDefinition Presentation;
-        public int RequestedCount = -1, CompletedCount = -1;
         public string EffectId = string.Empty;
         public string ParentEffectId = string.Empty;
         public string EffectTypeId = string.Empty;
@@ -748,6 +748,8 @@ namespace YC.Domain.State
                         DeclarationId = declaration.DeclarationId,
                         CityStyleItemId = declaration.CityStyleItemId,
                         InfluenceMarkerId = declaration.InfluenceMarkerId,
+                        ProjectedCurrentMarkerItemId = !string.IsNullOrEmpty(declaration.CurrentMarkerItemId) ? declaration.CurrentMarkerItemId :
+                            string.IsNullOrEmpty(declaration.MarkerArea) ? "" : declaration.InfluenceMarkerId,
                         CityStyleId = declaration.CityStyleId,
                         UnlockedSpecialActionId = declaration.UnlockedSpecialActionId,
                         UsedFacilityIds = new List<string>(declaration.UsedFacilityIds),
@@ -975,6 +977,7 @@ namespace YC.Domain.State
                             DeclarationId = declaration.DeclarationId,
                             CityStyleItemId = declaration.CityStyleItemId,
                             InfluenceMarkerId = declaration.InfluenceMarkerId,
+                            CurrentMarkerItemId = declaration.GetCurrentMarkerItemId(),
                             CityStyleId = declaration.CityStyleId,
                             UnlockedSpecialActionId = declaration.UnlockedSpecialActionId,
                             UsedFacilityIds = new List<string>(declaration.UsedFacilityIds),
@@ -1324,11 +1327,7 @@ namespace YC.Domain.State
                     BlockerIds = source.BlockerIds == null ? new List<string>() : new List<string>(source.BlockerIds)
                 });
                 EffectNodeView projected = destination[destination.Count - 1];
-                if (source.EffectTypeId == "effect.flow.repeat" && (viewer.IsHost || viewer.PlayerId == source.PlayerId))
-                {
-                    projected.RequestedCount = YC.Domain.Effects.ItemTransferEffectExecutor.Number(source.ContinuationData, "requestedCount", -1);
-                    projected.CompletedCount = YC.Domain.Effects.ItemTransferEffectExecutor.Number(source.ContinuationData, "completedCount", -1);
-                }
+
                 if (!visibleNodeIds.Contains(projected.ParentEffectId)) projected.ParentEffectId = string.Empty;
                 for (int j = projected.ChildEffectIds.Count - 1; j >= 0; j--)
                 {

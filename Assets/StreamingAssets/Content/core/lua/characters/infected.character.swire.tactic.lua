@@ -36,15 +36,24 @@ local function store_next(ctx, c)
         -- 选择的是对手；其供应已空就跳过，不补选、不再选择标记实例。
         table.sort(markers, function(a, b) return a.id < b.id end)
         if #markers > 0 then
-            return { tag(Effect.StorePlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = markers[1].id,
-                cardItemId = c.source, localZoneId = 'markers' }), c, 'stored') }
+            local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
+            if #storage ~= 1 then error('marker_storage_missing') end
+            return { tag(Effect.MoveItem({ apiVersion = 4, operation = 'transfer', player = ctx.playerId,
+                selector = { mode = 'explicit', itemIds = { markers[1].id }, expectedSource = { zoneId = supplies[1].id } },
+                destination = { zoneId = storage[1].id }, insertion = { kind = 'unordered' }, requiredCount = 1,
+                operationProfileId = 'core.player_marker_storage', carrierPolicy = 'preserve' }), c, 'stored') }
         end
     end
     return {}
 end
 local function return_marker(ctx, c, id)
-    return { tag(Effect.ReturnPlayerMarker({ apiVersion = 1, player = ctx.playerId, markerItemId = id,
-        cardItemId = c.source, localZoneId = 'markers' }), c, 'marker_returned') }
+    local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
+    if #storage ~= 1 then error('marker_storage_missing') end
+    c.returnedMarkerId = id
+    return { tag(Effect.MoveItem({ apiVersion = 4, operation = 'transfer', player = ctx.playerId,
+        selector = { mode = 'explicit', itemIds = { id }, expectedSource = { zoneId = storage[1].id } },
+        destination = { kind = 'original_supply' }, insertion = { kind = 'unordered' }, requiredCount = 1,
+        operationProfileId = 'core.player_marker_storage', carrierPolicy = 'preserve' }), c, 'marker_returned') }
 end
 
 return function(ctx)
@@ -76,12 +85,13 @@ return function(ctx)
         return store_next(ctx, c)
     elseif c.stage == 'stored' then
         return store_next(ctx, c)
-    elseif c.stage == 'marker_selected' then
-        local id = ctx.payload.normalizedResult; if id == nil then return {} end
-        return return_marker(ctx, c, id)
     elseif c.stage == 'marker_returned' then
         if ctx.payload.outcome ~= 'completed' then return {} end
-        c.originalOwner = ctx.payload.normalizedResult.originalOwner
+        local result = ctx.payload.normalizedResult
+        if type(result) ~= 'table' or result.outcome ~= 'completed' or result.changed ~= true or result.movedCount ~= 1 or
+            type(result.movedItemIds) ~= 'table' or #result.movedItemIds ~= 1 or result.movedItemIds[1] ~= c.returnedMarkerId or
+            type(result.originalOwner) ~= 'string' then error('swire_marker_return_result_invalid') end
+        c.originalOwner = result.originalOwner
         return { tag(Effect.GainResource({ recipient = ctx.playerId, resourceType = 'gold_voucher', amount = 6 }), c, 'gold_received') }
     elseif c.stage == 'gold_received' then
         local ids = {}
@@ -99,7 +109,7 @@ return function(ctx)
         if type(result) ~= 'table' or not has(c.upgradeCandidates, result.selectedEnterpriseItemId) then
             error('swire_upgrade_selection_missing')
         end
-        return { Effect.UpgradeEnterpriseForPlayer({ apiVersion = 1, player = ctx.playerId, targetPlayer = c.originalOwner,
+        return { Effect.UpgradeEnterprise({ apiVersion = 2, player = ctx.playerId, targetPlayer = c.originalOwner,
             enterpriseItemId = result.selectedEnterpriseItemId, levels = 1 }) }
     elseif c.stage ~= 'start' then return {} end
     local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
@@ -115,5 +125,12 @@ return function(ctx)
     if #ids == 0 then return {} end
     -- 本牌只容纳玩家标记，原主决定返供和升级受益人；相同原主无须按实例ID另选。
     if #owners == 1 then return return_marker(ctx, c, ids[1]) end
-    return { choose(ctx, c, 'marker_selected', ids, labels, 'core:interaction.marker.return.choose', 0, 1) }
+    local branches, options = {}, {}
+    for _, id in ipairs(ids) do
+        branches[#branches + 1] = { id = id, effects = return_marker(ctx, copy(c), id) }
+        options[#options + 1] = { candidateId = id, label = labels[id] }
+    end
+    return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
+        minSelections = 0, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = 'core:interaction.marker.return.choose' }),
+        { interaction = { prompt = Text.Ref('core:interaction.marker.return.choose'), options = options } }) }
 end

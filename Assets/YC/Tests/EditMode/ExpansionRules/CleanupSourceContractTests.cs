@@ -256,7 +256,7 @@ rightEffects={Effect.GainScore({player=ctx.playerId,amount=1})}})} end";
         {
             const string body = @"return function(ctx) return {Effect.Condition({ruleCondition=true,decisionPlayer=ctx.playerId,
 leftEffects={tokenTransfer(ctx.payload.sourceItemId,3)},
-rightEffects={Effect.SelectInfluence({player=ctx.playerId,operation='remove',subjectFilter='self',count=1,requiredCount=1})}})} end";
+rightEffects={Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1})}})} end";
             f = new CleanupSourceTestFixture(artifacts, initialMarkers: 3, bodyOverride: body, storageResponse: true, concurrent: concurrent);
             var map = YC.Domain.Maps.StaticMapDefinitions.Resolve(f.State.MapId);
             string slot = YC.Domain.Influence.InfluenceService.GetLocationSlotId(map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount > 0).LocationId, 0);
@@ -308,7 +308,7 @@ leftEffects={tokenTransfer(ctx.payload.sourceItemId,3)},
 rightEffects={Effect.GainScore({player=ctx.playerId,amount=1})}})} end";
             f=new CleanupSourceTestFixture(artifacts,initialMarkers:3,bodyOverride:body,storageResponse:true,concurrent:concurrent);
             const string code=@"return function(ctx) if ctx.payload.effectTypeId~='effect.cleanup.source.invoke' then return {} end
-return {Effect.SelectInfluence({player=ctx.playerId,operation='remove',ownerFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end";
+return {Effect.RemoveInfluence({apiVersion=3,targetMode='select',executingPlayer=ctx.playerId,subjectFilter='self',count=1,requiredCount=1,requireCompleteSelection=true,allowDecline=false})} end";
             new LuaEffectEventDispatcher(f.Registry).Register(new LuaHandlerDefinition("qy007.late-cleanup","EffectCompleted","",
                 new LuaScriptDefinition("qy007.late-cleanup","qy007.late-cleanup","qy007.late-cleanup","1.0.0",code,LuaContentHasher.ComputeSha256(code)),EffectHandlerRole.Observer));
             var map=YC.Domain.Maps.StaticMapDefinitions.Resolve(f.State.MapId);

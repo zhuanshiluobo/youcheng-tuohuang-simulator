@@ -21,19 +21,16 @@ local function zone(localId, player)
     if #values ~= 1 then error('content_zone_missing:' .. localId) end
     return values[1].id
 end
-local function has(values, id)
-    for _, value in ipairs(values or {}) do if value == id then return true end end; return false
-end
-local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
-    local options = {}; for _, id in ipairs(ids) do options[#options + 1] = { candidateId = id, label = labels[id] } end
-    return tag(Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, options = ids,
-        minSelections = minimum or 1, maxSelections = 1, interactionType = kind or 'lua.choice', promptKey = prompt }),
-        { interaction = { prompt = Text.Ref(prompt), options = options } }), context, stage)
-end
-
 local function current_binding(ctx, source)
     for _, binding in ipairs(PlayerData.Get(ctx.playerId).bindings) do if binding.characterItemId == source then return binding end end
     return nil
+end
+local function move(ctx, id, destination, reveal)
+    local item = Global.Content.GetInstance(id)
+    if item == nil then error('character_move_source_missing') end
+    return Effect.MoveCharacterCard({ apiVersion = 2, player = ctx.playerId, itemRefs = {{ itemId = id }},
+        expectedSource = { zoneId = item.zoneId, slotId = item.slotId }, destination = { zoneId = destination },
+        insertion = { kind = 'unordered' }, operationProfileId = 'core.character_card_transfer', requiredCount = 1, reveal = reveal == true })
 end
 return function(ctx)
     local c = state(ctx); if c == nil then return {} end
@@ -48,18 +45,17 @@ return function(ctx)
         }), { interaction = { prompt = Text.Ref('core:condition.character.jessica.binding_settlement', { cost = c.cost }) } }), c, 'settlement_paid') }
     elseif c.stage == 'start' then
         return { Effect.WithPresentation(Effect.Condition({ leftEffects = { Effect.LoseScore({ player = ctx.playerId, amount = 2 }) },
-            rightEffects = { tag(Effect.ChooseBuild({ player = ctx.playerId, sourceZone = 'supply', paymentMode = 'free', includeStoredFacilities = true }), c, 'built') }
+            rightEffects = { tag(Effect.Build({ apiVersion=3, targetMode='select', player = ctx.playerId, sourceKind = 'supply', paymentMode = 'free', includeStoredFacilities = true , consumeMainAction=false , allowDecline=false }), c, 'built') }
         }), { interaction = { prompt = Text.Ref('core:condition.infected.character.jessica_the_liberated.tactic') } }) }
     elseif c.stage == 'built' then
-        if ctx.payload.outcome ~= 'completed' or ctx.payload.normalizedResult.builtItemId == nil then return {} end
+        if ctx.payload.outcome ~= 'completed' or ctx.payload.normalizedResult.outcome ~= 'built' or ctx.payload.normalizedResult.builtItemId == '' then return {} end
         return { tag(Effect.BindCharacterToFacility({ apiVersion = 1, player = ctx.playerId, characterItemId = c.source,
             facilityItemId = ctx.payload.normalizedResult.builtItemId }), c, 'done') }
     elseif c.stage == 'settlement_paid' then
         if ctx.payload.outcome ~= 'completed' or ctx.payload.normalizedResult.outcome ~= 'condition_met' then return {} end
         local binding = current_binding(ctx, c.source)
         if binding == nil or binding.bindingId ~= c.binding or binding.facilityItemId ~= c.facility then error('character_binding_source_changed') end
-        return { tag(Effect.MoveCharacterCardToZone({ apiVersion = 1, player = ctx.playerId, cardItemId = c.source,
-            destinationZoneId = zone('discard', ctx.playerId) }), c, 'done') }
+        return { tag(move(ctx, c.source, zone('discard', ctx.playerId)), c, 'done') }
     end
     return {}
 end

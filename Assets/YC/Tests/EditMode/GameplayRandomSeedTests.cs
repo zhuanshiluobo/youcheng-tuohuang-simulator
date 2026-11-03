@@ -9,6 +9,7 @@ using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Maps;
+using YC.Domain.Items;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Infrastructure.Multiplayer;
@@ -169,10 +170,16 @@ namespace YC.Tests.EditMode
             Assert.That(resumedKernel.RunUntilQuiescent().Faulted, Is.False);
             Assert.That(resumed.RandomRuntime.Streams.Single().RequestsConsumed, Is.EqualTo(1UL));
             Assert.That(Number(resumedKernel.GetNode(nextId).NormalizedResult, "diceResult"), Is.EqualTo(4));
-            var shuffle = State(); shuffle.EntitySchemaVersion = 0; shuffle.Players.Add(new PlayerState { PlayerId = 1 });
-            shuffle.Decks.FacilityDeck.AddRange(new[] { "a", "b", "c", "d" });
+            var shuffle = State(); var map = StaticMapDefinitions.CreateThreePlayerMap();
+            shuffle.MapId = map.MapId;
+            shuffle.RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2 };
+            shuffle.Players.Add(new PlayerState { PlayerId = 1 }); shuffle.Players.Add(new PlayerState { PlayerId = 2 });
+            shuffle = new ItemZoneStateFactory().CreateForSetup(shuffle, map, Enumerable.Range(1, 4).Select(index =>
+                new ItemRecipeEntry { EntryId = "seed_facility_" + index, DefinitionId = "building_00" + index,
+                    TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" }).ToList());
             var shuffleKernel = new EffectTreeExecutor(shuffle, registry);
-            var spec = new EffectSpec(LuaDomainEffectTypeIds.ShuffleFacilityDeck, Object("player", NormalizedValue.CreateString("1"))) { PlayerId = 1 };
+            var spec = new EffectSpec(LuaDomainEffectTypeIds.ShuffleFacilityDeck, Object("apiVersion", NormalizedValue.CreateInteger(1),
+                "player", NormalizedValue.CreateString("1"), "deckZone", Object("zoneId", NormalizedValue.CreateString(FindZone(shuffle, "facility_deck").ZoneId)))) { PlayerId = 1 };
             shuffleKernel.CreateRoot(spec);
             Assert.That(shuffleKernel.RunUntilQuiescent().Faulted, Is.False);
             Assert.That(shuffle.RandomRuntime.Streams.Single().RequestsConsumed, Is.EqualTo(3UL));
@@ -229,10 +236,9 @@ namespace YC.Tests.EditMode
             var legacy = JObject.Parse(json); ((JObject)legacy["Snapshot"]).Remove("RandomStateRequired");
             ((JObject)legacy["Snapshot"]["State"]).Remove("RandomRuntime");
             var old = HostRecoveryService.RecoverJson(legacy.ToString());
-            Assert.That(old.Succeeded, Is.True, old.Diagnostic);
-            Assert.That(old.State.RandomRuntime, Is.Null);
-            Assert.That(old.State.EventDeckSeed, Is.EqualTo(42));
-            Reject(() => GameplayRandomRuntime.Next(old.State, GameplayRandomRuntime.Dice, 6));
+            // 当前全局协议明确拒绝缺少原始字段的旧封套，不再靠默认值接纳。
+            Assert.That(old.Succeeded, Is.False);
+            Assert.That(old.Diagnostic, Is.EqualTo("host_envelope_raw_fields_missing"));
         }
     }
 }

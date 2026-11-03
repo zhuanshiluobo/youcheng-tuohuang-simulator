@@ -12,7 +12,7 @@ using UnityEngine;
 namespace YC.Presentation
 {
     /// <summary>角色牌非地图参数的专用结算弹窗；不读取或修改共享游戏状态。</summary>
-    internal sealed class CharacterCardEffectChoiceDialog
+    internal sealed partial class CharacterCardEffectChoiceDialog
     {
         public Func<string, string> ResolveCharacterDefinition { get; set; }
         public Action<InteractionRequestProjection, GameplayTextDocument, Action<Component, GameplayTextDocument, bool>, Func<bool>, Action, Action> RenderPaymentConfirmation { get; set; }
@@ -66,27 +66,6 @@ namespace YC.Presentation
         {
             get { return shell.IsShowing || players != null && players.gameObject.activeInHierarchy ||
                 ownsPaymentConfirmation && IsPaymentConfirmationShowing?.Invoke() == true; }
-        }
-
-        public void ShowSecondEffectStep(CharacterCardPanelViewModel model, Action strategy, Action tactic,
-            Action finish, Func<bool> isCurrent, Action cancel)
-        {
-            if (!model.IsSecondEffectDecision && !model.IsSecondEffectExecution)
-                throw new InvalidOperationException("首次角色使用必须通过 CardViewer 的显式使用模式。");
-            var options = new List<EffectDialogOption>
-            {
-                new EffectDialogOption(layoutProfile.CharacterStrategyLabel, strategy, model.CanUseStrategy)
-                    { StableId = "action.character.strategy", IsCurrent = isCurrent },
-                new EffectDialogOption(layoutProfile.CharacterTacticLabel, tactic, model.CanUseTactic)
-                    { StableId = "action.character.tactic", IsCurrent = isCurrent }
-            };
-            if (model.IsSecondEffectDecision)
-                options.Add(new EffectDialogOption(layoutProfile.CharacterFinishLabel, finish)
-                    { StableId = "action.character.finish", IsCurrent = isCurrent });
-            ShowOptionsCore(layoutProfile.CharacterUseTitle,
-                model.IsSecondEffectDecision ? layoutProfile.CharacterSecondEffectDescription :
-                    layoutProfile.CharacterUseDescription, options,
-                model.IsSecondEffectDecision || model.IsSecondEffectExecution ? null : cancel, null, false);
         }
 
         public void ShowOptions(
@@ -178,6 +157,15 @@ namespace YC.Presentation
             }
         }
 
+        public void ShowCardActions(InteractionRequestProjection request, string title, string description,
+            string itemId, string definitionId, string itemLabel, IReadOnlyList<EffectDialogOption> actions, Func<bool> isCurrent)
+        {
+            if (players != null) players.Close();
+            var panel = PreparePage(layoutProfile.SelectionPanelSize, true, true);
+            EffectDialogShell.AddHeading(panel, title, description);
+            shell.AddCardActions(panel, request, itemId, cards.GetCharacterFront(definitionId), itemLabel, actions, isCurrent);
+        }
+
         public void ShowSelection(string title, string description, EffectDialogSelectionSpec spec,
             bool preserveScroll)
         {
@@ -194,8 +182,15 @@ namespace YC.Presentation
             }
             if (players != null) players.Close();
             var scroll = preserveScroll ? shell.ScrollPosition : 1f;
-            if (spec.CardSprite == null) spec.CardSprite = id => cards.GetFacility(id) ?? cards.GetCharacterFront(id) ?? cards.GetEvent(id);
-            var panel = PreparePage(layoutProfile.SelectionPanelSize, spec.IsEffectPage, spec.HasCardArtwork());
+            spec.BindCardSemantics(cards);
+            if (spec.CardSprite == null) spec.CardSprite = id =>
+            {
+                var definitionId = spec.ResolveCardDefinition(id);
+                if (spec.IsRewardCardSelection)
+                    return cards.GetAward(definitionId);
+                return cards.GetFacility(definitionId) ?? cards.GetCharacterFront(definitionId) ?? cards.GetEvent(definitionId) ?? cards.GetAward(definitionId);
+            };
+            var panel = PreparePage(layoutProfile.SelectionPanelSize, spec.IsEffectPage, spec.ShouldUseCardPicker());
             EffectDialogShell.AddHeading(panel, title, description);
             if (spec.PromptDocument != null)
             {
@@ -330,42 +325,6 @@ namespace YC.Presentation
             });
         }
 
-        public void ShowExecutionChoices(string title, string description,
-            IReadOnlyList<EffectDialogOption> options, Func<bool> isCurrent)
-        {
-            var candidates = new List<string>();
-            var byId = new Dictionary<string, EffectDialogOption>();
-            foreach (var option in options)
-            {
-                candidates.Add(option.StableId);
-                byId.Add(option.StableId, option);
-            }
-            ShowSelection(title, description, new EffectDialogSelectionSpec
-            {
-                Request = new InteractionRequestProjection
-                {
-                    VisibleToViewer = true, CandidateIds = candidates,
-                    MinSelections = 1, MaxSelections = 1, AllowDecline = true
-                },
-                ExecuteImmediately = true,
-                Label = id => string.IsNullOrEmpty(byId[id].SourceLabel) ? byId[id].Label : byId[id].SourceLabel,
-                DescriptionLabel = id => byId[id].DescriptionLabel,
-                SourceDocument = id => byId[id].LabelDocument,
-                OptionDocument = id => byId[id].DescriptionDocument,
-                RenderText = renderText,
-                CanSelect = id => byId[id].Enabled,
-                Select = id =>
-                {
-                    if (!byId.TryGetValue(id, out var option) || !option.Enabled || !isCurrent() ||
-                        option.IsCurrent?.Invoke() == false) return;
-                    Hide();
-                    option.Select?.Invoke();
-                },
-                Cancel = Hide, IsCurrent = isCurrent, IsEffectPage = false,
-                OptionNamePrefix = "Special Action Option "
-            }, true);
-        }
-
         public void ShowCoverSelection(
             IReadOnlyList<string> candidateIds,
             string selectedId,
@@ -411,6 +370,7 @@ namespace YC.Presentation
                   new EffectDialogSelectionSpec
                   {
                       IsEffectPage = false,
+                      IsCardSelection = true,
                       AllowStageFolding = true,
                       CardPickerHint = layoutProfile.CharacterCoverSelectionHint,
                       Request = request,
@@ -482,6 +442,7 @@ namespace YC.Presentation
                 layoutProfile.BuildFacilitySelectionDescription,
                 new EffectDialogSelectionSpec
                 {
+                    IsCardSelection = true,
                     Request = request,
                     SelectedIds = string.IsNullOrEmpty(selectedId) ? new string[0] : new[] { selectedId },
                     Label = id =>
@@ -508,72 +469,11 @@ namespace YC.Presentation
                 true);
         }
 
-        public void ShowBuildSlots(
-            IReadOnlyList<BuildFacilitySlotOptionResult> slots,
-            Func<bool> isCurrent,
-            Action<int> select,
-            Action cancel)
-        {
-            var options = new List<EffectDialogOption>();
-            if (slots != null)
-                for (var i = 0; i < slots.Count; i++)
-                {
-                    var slot = slots[i];
-                    if (slot == null) continue;
-                    var label = string.Format(layoutProfile.BuildSlotLabelFormat,
-                        slot.CityBoardSlotIndex + 1);
-                    if (!slot.IsLegal && !string.IsNullOrEmpty(slot.Reason))
-                        label += "（" + string.Format(layoutProfile.BuildUnavailableReasonFormat,
-                            slot.Reason) + "）";
-                    var slotIndex = slot.CityBoardSlotIndex;
-                    options.Add(new EffectDialogOption(label,
-                        () => select?.Invoke(slotIndex), slot.IsLegal)
-                    {
-                        IsCurrent = isCurrent
-                    });
-                }
-            ShowOptions(layoutProfile.BuildSlotSelectionTitle,
-                layoutProfile.BuildFacilitySelectionDescription, options, cancel,
-                layoutProfile.BuildCancelLabel);
-        }
 
-        public void ShowBuildPayments(
-            BuildFacilityOptionQueryResult option,
-            Func<bool> isCurrent,
-            Action<string> select,
-            Action cancel)
-        {
-            if (option == null) return;
-            var facility = FacilityCardDatabase.Get(option.FacilityId);
-            var goldCost = facility == null ? 0 : facility.GoldVoucherCost;
-            var quote = BuildPaymentQuote(option, facility, goldCost);
-            var options = new List<EffectDialogOption>
-            {
-                new EffectDialogOption(layoutProfile.BuildPaymentResourcesLabel,
-                    () => select?.Invoke("resources"), option.ResourcesPayment.IsAvailable)
-                { IsCurrent = isCurrent },
-                new EffectDialogOption(layoutProfile.BuildPaymentGoldLabel,
-                    () => select?.Invoke("gold"), option.GoldPayment.IsAvailable)
-                { IsCurrent = isCurrent }
-            };
-            ShowOptions(layoutProfile.BuildPaymentSelectionTitle, quote, options, cancel,
-                layoutProfile.BuildCancelLabel);
-        }
 
-        private string BuildPaymentQuote(
-            BuildFacilityOptionQueryResult option,
-            FacilityCardDefinition facility,
-            int goldCost)
-        {
-            var original = facility == null ? new ResourceSet() : facility.ResourceCost;
-            var current = option.EffectiveResourceCost;
-            var originalText = string.Format(layoutProfile.BuildResourceCostFormat,
-                original.Originium, original.OriginiumShard, original.Iron, original.PureOriginium);
-            var currentText = string.Format(layoutProfile.BuildResourceCostFormat,
-                current.Originium, current.OriginiumShard, current.Iron, current.PureOriginium);
-            return string.Format(layoutProfile.BuildPaymentQuoteFormat,
-                originalText, currentText, goldCost);
-        }
+
+
+
 
         private static BuildFacilityOptionQueryResult FindBuildOption(
             IReadOnlyList<BuildFacilityOptionQueryResult> options,
@@ -585,23 +485,7 @@ namespace YC.Presentation
             return null;
         }
 
-        public void ShowBuildQuote(
-            string summary,
-            Func<bool> isCurrent,
-            Action confirm,
-            Action back,
-            Action cancel)
-        {
-            var options = new List<EffectDialogOption>
-            {
-                new EffectDialogOption(layoutProfile.BuildConfirmLabel, confirm)
-                { IsCurrent = isCurrent },
-                new EffectDialogOption(layoutProfile.BuildBackLabel, back)
-                { IsCurrent = isCurrent }
-            };
-            ShowOptions(layoutProfile.BuildConfirmationTitle, summary, options, cancel,
-                layoutProfile.BuildCancelLabel);
-        }
+
 
         public void ShowResourceSale(
             IReadOnlyList<string> labels,

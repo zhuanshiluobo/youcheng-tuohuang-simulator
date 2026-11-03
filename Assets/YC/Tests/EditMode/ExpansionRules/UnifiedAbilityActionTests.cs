@@ -78,7 +78,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             artifacts.RecordContent("统一行动装载内容", fixtureRoot, pack.ContentHash);
         }
         [TearDown] public void RecordActualTestResult() => artifacts?.Finish();
-        private GameState State(int gold = 20, bool realMap = false, int companyCount = 0, ExternalContentPack content = null)
+        private GameState State(int gold = 20, bool realMap = false, int companyCount = 0, ExternalContentPack content = null, bool publicContracts = false)
         {
             var pack = content ?? this.pack;
             registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
@@ -87,6 +87,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var map = realMap ? StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId) : new GameMapDefinition { MapId = "qy002.isolated", MinPlayers = 2, MaxPlayers = 2,
                 Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true } },
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } } };
+            var mapQuery = new MapQueryService(map); var influence = new InfluenceService(mapQuery);
+            InfluenceEffectExecutor.Register(registry, influence);
+            ContentPrimitiveEffectExecutor.Register(registry, mapQuery, influence);
             var source = new GameState { GameId = "qy002.isolated", ContentPackHash = pack.ContentHash, MapId = map.MapId,
                 ContentDefinitions = new GameContentDefinitions { UsageTracks = pack.ActiveDefinitions.SelectMany(d => d.UsageTracks).ToList(), Facilities = pack.CreateFacilities().ToList(), Components = pack.ActiveDefinitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition { DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"], CubeAppearance = d.CubeAppearance }).ToList(), Characters = pack.CreateCharacters().ToList(), AbilitySources = registry.AbilityDeclarations.ToList(),
                     Awards = ContentLifecycleLuaCatalog.CreateAwards(pack), CityStyles = pack.CreateCityStyles().ToList(), SpecialActions = pack.CreateSpecialActions().ToList() },
@@ -98,7 +101,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 new ItemRecipeEntry { EntryId = "style", DefinitionId = "city_style_source_stone_industrial_hub", TypeId = "core.board_card", Quantity = 1, InitialZoneRole = "city_styles" },
                 new ItemRecipeEntry { EntryId = "support", DefinitionId = "infected.award.permanent_support", TypeId = "core.award_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "reserve" },
                 new ItemRecipeEntry { EntryId = "quickAward", DefinitionId = "infected.award.enterprise_special", TypeId = "core.award_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "reserve" },
-                new ItemRecipeEntry { EntryId = "contract", DefinitionId = CompanyInfluenceRules.ContractDefinitionId, TypeId = "core.contract_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "reserve" },
+                new ItemRecipeEntry { EntryId = "contract", DefinitionId = CompanyInfluenceRules.ContractDefinitionId, TypeId = ItemTypeRegistry.ContractTokenTypeId, Quantity = publicContracts ? 2 : 1, PerPlayer = !publicContracts, InitialZoneRole = publicContracts ? "contracts" : "reserve" },
                 new ItemRecipeEntry { EntryId = "company", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = companyCount, InitialZoneRole = "company_markers" },
                 new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" } }.Concat(new[] { (0, "blue"), (3, "red"), (4, "blue"), (6, "yellow"), (7, "yellow"), (8, "red") }.Select(cell => new ItemRecipeEntry { EntryId = "qy003.style.facility." + cell.Item1, DefinitionId = pack.CreateFacilities().First(f => f.Color == cell.Item2).FacilityId, TypeId = "core.facility_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_cell_" + cell.Item1 })).ToList());
             state.Phase = GamePhase.ActionRound1; state.Round = 1; state.ActionRound = 1; state.StartPlayerId = 1; state.CurrentPlayerId = 1;
@@ -133,7 +136,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 policy.CallerAbilityId = (string)support["abilitySources"][0]["abilityId"];
                 policy.CallerHandlerRef = (string)support["abilitySources"][0]["handlerRef"];
                 support["abilities"][0]["script"] = script;
-                support["abilityHandlers"] = JArray.FromObject(new[] { new ExternalAbilityHandler { HandlerId = policy.CallerHandlerRef, Script = script, Version = "1.0.0" } });
+                support["abilityHandlers"] = JArray.FromObject(new[] { new ExternalAbilityHandler { HandlerId = policy.CallerHandlerRef, Script = script, Version = (string)support["abilities"][0]["version"] } });
                 support["abilitySources"][0]["allowedOperations"] = new JArray("action.invoke:" + BudgetPolicy);
                 support["actionCallPolicies"] = JArray.FromObject(new[] { policy });
             }
@@ -475,17 +478,12 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase(0, 0)][TestCase(1, 0)][TestCase(2, 1)][TestCase(3, 1)][TestCase(4, 2)]
         public void ActualContractLuaCountsEachRegionAndEachHolderWithoutGeneratingActions(int count, int expected)
         {
-            var state = State(realMap: true, companyCount: count); var map = StaticMapDefinitions.Resolve(state.MapId);
+            var state = State(realMap: true, companyCount: count, publicContracts: true); var map = StaticMapDefinitions.Resolve(state.MapId);
             var region = map.Regions.First(r => map.Locations.Where(l => l.RegionId == r.RegionId).Sum(l => l.InfluenceSlotCount) >= 4);
             var slots = map.Locations.Where(l => l.RegionId == region.RegionId).SelectMany(l => Enumerable.Range(0, l.InfluenceSlotCount).Select(i => InfluenceService.GetLocationSlotId(l.LocationId, i))).ToArray();
             // 隔离计数场景仅经原生容器转移维护Order和位置收据，不计公司安置资格或正常游戏验收。
             const string setup = "qy007.i01.contract.count.fixture";
             registry.Register(setup, c => {
-                var contract = c.State.ItemZones.Items.Single(i => i.DefinitionId == CompanyInfluenceRules.ContractDefinitionId && i.OwnerSubject.PlayerId == c.Node.PlayerId);
-                new ItemTransferService().RelocateItems(c, new ItemTransferRequest { ExecutingPlayerId = c.Node.PlayerId,
-                    ItemIds = new List<string> { contract.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = contract.ZoneId },
-                    Destination = new ZoneRef { ZoneId = FindZone(c.State, "rewards", c.Node.PlayerId).ZoneId },
-                    InsertionKind = "unordered", RequiredCount = 1, OperationProfileId = "core.reward_card_transfer" });
                 int index = 0;
                 if (c.Node.PlayerId == 1) foreach (var company in c.State.ItemZones.Items.Where(i => i.TypeId == "infected.company_marker").ToList())
                 {
@@ -498,7 +496,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 return EffectStepResult.Completed();
             });
             var engine = new EffectTreeExecutor(state, registry);
-            foreach (int player in new[] { 1, 2 }) { engine.CreateRoot(EffectSpec.Create(setup, playerId: player)); Run(engine); }
+            foreach (int player in new[] { 1, 2 })
+            {
+                engine.CreateRoot(EffectSpec.Create(RewardAcquisitionFlow.TypeId, Object("apiVersion", NormalizedValue.CreateInteger(1),
+                    "player", NormalizedValue.CreateString(player.ToString()), "poolRole", NormalizedValue.CreateString("contracts")), player)); Run(engine);
+                engine.CreateRoot(EffectSpec.Create(setup, playerId: player)); Run(engine);
+            }
             artifacts.WriteLabeledText("地区计数原生安置后状态", JsonConvert.SerializeObject(state));
             registry.RegisterAbilityQueryContract("scoringModifiers.v1", (q, s, values) => values.Items.All(i => Text(i, "kind") == "influence_delta" && Number(i, "playerId") == s.AuthorizedPlayerId && Number(i, "delta") >= 0) ? "" : "invalid_delta");
             var source = registry.QuerySources(state, queryKind: "scoringModifiers.v1").Where(s => s.DefinitionId == CompanyInfluenceRules.ContractDefinitionId).ToList(); Assert.That(source.Count, Is.EqualTo(2));
@@ -511,12 +514,115 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             Assert.That(state.ItemZones.Items.Where(i => i.TypeId == "infected.company_marker").All(i => i.OwnerSubject.Kind == ItemSubjectKind.Company), Is.True);
         }
+        [TestCase(false)][TestCase(true)]
+        public void OrdinarySpecialHostChoiceRestoresAndReplaysWithoutDoubleCostOrBudget(bool decline)
+        {
+            var state = State(); string marker = DeclareStyleFixture(state, 1);
+            var option = registry.QuerySpecialActionSources(state, 1, false).Single(o => o.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub);
+            var command = SpecialActionChoiceCommand.Create(1, state.EffectRuntime.StateRevision, registry.ContentPackHash);
+            command.CommandId = "api41.ordinary.choice." + decline;
+            Assert.That(SpecialActionChoiceCommand.Handle(state, registry, command, null).Succeeded, Is.True);
+            Assert.That(state.EffectRuntime.AbilityActionInvocations, Is.Empty);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(20));
+            state = Restore(state, "API41普通特殊行动来源待答");
+            Assert.That(SpecialActionChoiceCommand.Handle(state, registry, command, null).Succeeded, Is.True, "同一命令复用待答，不能新增根");
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == OrdinarySpecialActionChoice.TypeId), Is.EqualTo(1));
+            var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(request.MinSelections, Is.Zero); Assert.That(request.CandidateIds, Does.Contain(option.OptionId));
+            var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 2, request.StateRevision, NormalizedValue.CreateString(option.OptionId), out _), Is.False);
+            var answer = decline ? NormalizedValue.CreateBoolean(false) : NormalizedValue.CreateString(option.OptionId);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, answer, out string reason), Is.True, reason);
+            Run(engine);
+            var root = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == OrdinarySpecialActionChoice.TypeId);
+            Assert.That(root.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(Text(root.NormalizedResult, "outcome"), Is.EqualTo(decline ? "cancelled" : "completed"));
+            Assert.That(state.EffectRuntime.AbilityActionInvocations.Count, Is.EqualTo(decline ? 0 : 1));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(decline ? 20 : 14));
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(decline ? 0 : 1));
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(decline ? 1 : 2));
+            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker).SlotId, Is.EqualTo(decline ? "2" : "used_from_2"));
+            state = Restore(state, "API41普通特殊行动完成或放弃后");
+            Assert.That(SpecialActionChoiceCommand.Handle(state, registry, command, null).Succeeded, Is.True);
+            Run(new EffectTreeExecutor(state, registry));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == OrdinarySpecialActionChoice.TypeId), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.AbilityActionInvocations.Count, Is.EqualTo(decline ? 0 : 1));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(decline ? 20 : 14));
+        }
+
+        [Test] public void ImmediateMainActionReportsActualAuthorizedSpecialAndKeepsItsOwnBudgetReward()
+        {
+            var state = State(); string marker = DeclareStyleFixture(state, 1);
+            var engine = new EffectTreeExecutor(state, registry);
+            string root = engine.CreateRoot(EffectSpec.Create(LuaDomainEffectTypeIds.ExecuteMainAction,
+                Object("player", NormalizedValue.CreateString("1"), "executionMode", NormalizedValue.CreateString("immediate"),
+                    "allowedActionTypes", Strings(new[] { "special" })), 1)); Run(engine);
+            var request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open");
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString("special"), out string reason), Is.True, reason); Run(engine);
+            request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open");
+            string selectedSource = registry.QuerySpecialActionSources(state, 1, true).Single(o => o.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub).OptionId;
+            Assert.That(request.CandidateIds, Does.Contain(selectedSource));
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(selectedSource), out reason), Is.True, reason);
+            Until(engine, () => state.EffectRuntime.EffectNodes.Any(n => n.Payment?.IsCommitted == true));
+            Assert.That(engine.GetNode(root).Status, Is.Not.EqualTo(EffectNodeStatus.Completed));
+            state = Restore(state, "API18即时特殊行动已付待正文"); engine = new EffectTreeExecutor(state, registry); Run(engine);
+            Assert.That(Text(engine.GetNode(root).NormalizedResult, "outcome"), Is.EqualTo("completed"));
+            Assert.That(Value(engine.GetNode(root).NormalizedResult, "executed").BooleanValue, Is.True);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(14));
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(3), "保留源石工业中枢正文自身发的2次额度，即时包装本身不发额度。");
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.Zero);
+            Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker).SlotId, Is.EqualTo("used_from_2"));
+            state = Restore(state, "API18即时特殊行动完成不重放");
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(3));
+        }
+        // 最小执行上下文的规则隔离断言，不是完整Host存档或正常对局；本批只准备源码。
+        [TestCase(EffectNodeStatus.Completed, EffectPendingOutcome.Completed)]
+        [TestCase(EffectNodeStatus.Failed, EffectPendingOutcome.Failed)]
+        public void ImmediateSpecialResumeUsesTheSameBusinessChildAsRecovery(EffectNodeStatus childStatus, EffectPendingOutcome outcome)
+        {
+            var state = new GameState { Players = new List<PlayerState> { new PlayerState { PlayerId = 1 } } };
+            var owner = new EffectNodeRuntimeState { EffectId = "flow", EffectTypeId = ImmediateSpecialActionFlow.TypeId,
+                DefinitionVersion = ImmediateSpecialActionFlow.Version, PlayerId = 1, FlowStage = "executing", NormalizedArguments = Object() };
+            var choice = new EffectNodeRuntimeState { EffectId = "choice", ParentEffectId = owner.EffectId,
+                EffectTypeId = LuaDomainEffectTypeIds.Choice, PlayerId = 1, Status = childStatus, FailureReason = "selected_action_failed" };
+            var response = new EffectNodeRuntimeState { EffectId = "response", ParentEffectId = owner.EffectId,
+                EffectTypeId = ResourceEffectTypeIds.Gain, PlayerId = 1, Status = EffectNodeStatus.Completed };
+            owner.ChildEffectIds.AddRange(new[] { response.EffectId, choice.EffectId });
+            state.EffectRuntime.EffectNodes.AddRange(new[] { owner, response, choice });
+            var receipt = new DispatchReceipt { Succeeded = true, AttachedEffectIds = new List<string> { response.EffectId } };
+            state.EffectRuntime.DispatchReceipts.Add(receipt);
+            var localRegistry = new EffectRegistry();
+            var context = (EffectExecutionContext)System.Activator.CreateInstance(typeof(EffectExecutionContext),
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null,
+                new object[] { state, owner, localRegistry, null }, null);
+
+            Assert.That(ImmediateSpecialActionFlow.ValidateSaved(state, owner), Is.True, "恢复查询只要求一个实际业务Choice");
+            var step = ImmediateSpecialActionFlow.Execute(context);
+            Assert.That(step.PendingOutcome, Is.EqualTo(outcome)); Assert.That(step.FlowStage, Is.EqualTo("finished"));
+            Assert.That(Text(step.NormalizedResult, "choiceEffectId"), Is.EqualTo(choice.EffectId));
+            Assert.That(Text(step.NormalizedResult, "outcome"), Is.EqualTo(childStatus == EffectNodeStatus.Completed ? "completed" : "failed"));
+            Assert.That(step.FailureReason, Is.EqualTo(childStatus == EffectNodeStatus.Failed ? choice.FailureReason : ""));
+            Assert.That(owner.ChildEffectIds, Is.EqualTo(new[] { response.EffectId, choice.EffectId }), "不删除／重排响应子节点");
+
+            choice.Status = EffectNodeStatus.Blocked;
+            Assert.That(ImmediateSpecialActionFlow.Execute(context).HasPendingOutcome, Is.False, "业务选择未完成仍须等待");
+            choice.Status = childStatus;
+            receipt.Succeeded = false;
+            Assert.That(ImmediateSpecialActionFlow.ValidateSaved(state, owner), Is.False);
+            Assert.That(ImmediateSpecialActionFlow.Execute(context).FailureReason, Is.EqualTo("immediate_special_child_invalid"), "失败收据不能隐藏额外子节点");
+            state.EffectRuntime.DispatchReceipts.Clear();
+            Assert.That(ImmediateSpecialActionFlow.Execute(context).FailureReason, Is.EqualTo("immediate_special_child_invalid"), "无收据子节点不能冒充响应");
+        }
+
         [Test] public void ExistingAuthorizedStylePrimitiveRunsTheSameNativeFrameAndKeepsSharedTrack()
         {
             var state = State(); string marker = DeclareStyleFixture(state, 1);
             var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(EffectSpec.Create(CharacterContentEffectExecutor.Prefix + "immediate_special", playerId: 1)); Run(engine);
             var request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open");
-            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(marker), out string reason), Is.True, reason);
+            string selectedSource = registry.QuerySpecialActionSources(state, 1, true).Single(o => o.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub).OptionId;
+            Assert.That(request.CandidateIds, Does.Contain(selectedSource));
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(selectedSource), out string reason), Is.True, reason);
             Until(engine, () => state.EffectRuntime.EffectNodes.Any(n => n.Payment?.IsCommitted == true));
             state = Restore(state, "旧授予样式入口费用后"); engine = new EffectTreeExecutor(state, registry); Run(engine);
             Assert.That(state.EffectRuntime.AbilityActionInvocations.Single().CallPolicyRef, Is.EqualTo(AbilityLegacyStyleBridge.PolicyRef));
