@@ -98,10 +98,50 @@ namespace YC.Domain.Facilities
         }
         public static string Digest(GameState state, string zoneId)
         {
+            if (ReadOnlyStateQueryScope.IsActiveFor(state))
+            {
+                // 仅在调用方声明的同步只读作用域中复用成员索引；不缓存摘要或区域字段值。
+                if (!ReadOnlyStateQueryScope.TryRead<ZoneDigestIndex>(state, ZoneDigestIndexKey, out var index))
+                {
+                    index = new ZoneDigestIndex(state);
+                    ReadOnlyStateQueryScope.Store(state, ZoneDigestIndexKey, index);
+                }
+                _ = index.Zones[zoneId].Single(z => true);
+                var ordered = index.Orders.Value[zoneId].SingleOrDefault(o => true);
+                IEnumerable<string> actual = index.Members.Value[zoneId];
+                if (ordered == null) actual = actual.OrderBy(id => id, StringComparer.Ordinal);
+                else
+                {
+                    if (ordered.ItemIds == null || ordered.OrderRevision < 0 ||
+                        ordered.ItemIds.Distinct(StringComparer.Ordinal).Count() != ordered.ItemIds.Count ||
+                        !new HashSet<string>(actual, StringComparer.Ordinal).SetEquals(ordered.ItemIds))
+                        throw new InvalidOperationException("facility_order_invalid");
+                    actual = ordered.ItemIds;
+                }
+                return DigestMembers(zoneId, ordered?.OrderRevision ?? 0, actual);
+            }
             var zone = state.ItemZones.Zones.Single(z => z.ZoneId == zoneId);
             var order = state.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == zoneId);
             var members = order == null ? state.ItemZones.Items.Where(i => i.ZoneId == zoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList() : Ordered(state, zoneId);
-            var text = new StringBuilder().Append(zoneId.Length).Append(':').Append(zoneId).Append(':').Append(order?.OrderRevision ?? 0);
+            return DigestMembers(zoneId, order?.OrderRevision ?? 0, members);
+        }
+        private static readonly object ZoneDigestIndexKey = new object();
+        private sealed class ZoneDigestIndex
+        {
+            internal readonly ILookup<string, ZoneInstanceState> Zones;
+            internal readonly Lazy<ILookup<string, ZoneOrderState>> Orders;
+            internal readonly Lazy<ILookup<string, string>> Members;
+            internal ZoneDigestIndex(GameState state)
+            {
+                Zones = state.ItemZones.Zones.ToLookup(z => z.ZoneId, StringComparer.Ordinal);
+                // 顺序/成员在原检查点才读取，缺区域和坏顺序同时存在时也保留原拒绝先后。
+                Orders = new Lazy<ILookup<string, ZoneOrderState>>(() => state.ItemZones.Orders.ToLookup(o => o.ZoneId, StringComparer.Ordinal));
+                Members = new Lazy<ILookup<string, string>>(() => state.ItemZones.Items.ToLookup(i => i.ZoneId, i => i.ItemId, StringComparer.Ordinal));
+            }
+        }
+        private static string DigestMembers(string zoneId, int revision, IEnumerable<string> members)
+        {
+            var text = new StringBuilder().Append(zoneId.Length).Append(':').Append(zoneId).Append(':').Append(revision);
             foreach (var id in members) text.Append(':').Append(id.Length).Append(':').Append(id);
             using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(text.ToString()))).Replace("-", "").ToLowerInvariant();
         }
@@ -125,8 +165,12 @@ namespace YC.Domain.Facilities
             return zone?.TemplateId == SupplyTemplate && ResolveSupply(state, zone.ZoneId).TopItemId == itemId;
         }
         public static IReadOnlyList<FacilityTowerAdjacency> ResolveTowerAdjacency(GameState state, int playerId)
+            => ResolveTowerAdjacency(state, ResolveCity(state, playerId));
+
+        // 调用方已在同次同步只读操作内解析完整城市时，复用该份事实，避免再次扫全局物品/区域。
+        public static IReadOnlyList<FacilityTowerAdjacency> ResolveTowerAdjacency(GameState state, IReadOnlyList<FacilityCellLayerSnapshot> cells)
         {
-            var cells = ResolveCity(state, playerId); var result = new List<FacilityTowerAdjacency>();
+            var result = new List<FacilityTowerAdjacency>();
             int width = BuildFacilityService.CityBoardSlotCountPerRow;
             foreach (var cell in cells)
             foreach (var id in cell.AllItemIds)

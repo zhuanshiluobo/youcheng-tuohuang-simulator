@@ -15,7 +15,7 @@ namespace YC.Domain.Effects
             var state = context.State; var node = context.Node;
             var request = state.EffectRuntime.InteractionRequests.SingleOrDefault(r => r.GetStableInteractionId() == interactionId && r.OwnerEffectId == node.EffectId && r.AnsweringPlayerId == node.PlayerId && r.Status == "answered");
             var item = state.ItemZones.Items.SingleOrDefault(i => i.ItemId == itemId && i.ControllerSubject.Kind == ItemSubjectKind.Player && i.ControllerSubject.PlayerId == node.PlayerId);
-            if (request == null || item == null || !MatchesSelection(request, item, faceId, candidateId) || !context.Registry.AbilityDeclarations.Any(d => d.DefinitionId == item.DefinitionId && d.ActiveFaceId == faceId && d.AuthorizationPolicy == "active_selection"))
+            if (request == null || item == null || !MatchesSelection(request, item, faceId, candidateId) || !context.Registry.ContainsAbilityDeclaration(d => d.DefinitionId == item.DefinitionId && d.ActiveFaceId == faceId && d.AuthorizationPolicy == "active_selection"))
                 throw new InvalidOperationException("ability_selection_authorization_invalid");
             var properties = item.LocalState.Properties;
             Put(properties, "activeFaceId", NormalizedValue.CreateString(faceId));
@@ -34,17 +34,22 @@ namespace YC.Domain.Effects
                 grants.Items.Select(v => v.StringValue).Distinct().Count() != grants.Items.Count)) return false;
             var receipt = Value(item.LocalState, "sourceSelectionReceipt");
             if (Text(item.LocalState, "activationAuthorizationRef").Length > 0 && receipt == null) return false;
-            int selectingPlayer = state.EffectRuntime.InteractionRequests.Find(r => r.GetStableInteractionId() == Text(receipt, "requestId"))?.AnsweringPlayerId ?? -1;
-            if (receipt != null && (receipt.Kind != NormalizedValueKind.Object || receipt.Properties.Count != 5 ||
+            // 未选面物品没有来源收据，不应为每个物品遍历整局全部历史请求。
+            // 具备授权引用但缺收据的分支仍在上方拒绝；有收据时完整核验不变。
+            if (receipt == null) { reason = ""; return true; }
+            string requestId = Text(receipt, "requestId");
+            int selectingPlayer = state.EffectRuntime.InteractionRequests.Find(r => r.GetStableInteractionId() == requestId)?.AnsweringPlayerId ?? -1;
+            if (receipt.Kind != NormalizedValueKind.Object || receipt.Properties.Count != 5 ||
                 receipt.Properties.Any(p => !new[] { "protocolVersion", "requestId", "ownerEffectId", "candidateId", "faceId" }.Contains(p.Name)) ||
-                selectingPlayer < 0 || !HasSelectedFaceReceipt(state, item, Text(item.LocalState, "activeFaceId"), selectingPlayer))) return false;
+                selectingPlayer < 0 || !HasSelectedFaceReceipt(state, item, Text(item.LocalState, "activeFaceId"), selectingPlayer)) return false;
             reason = ""; return true;
         }
         public static bool HasSelectedFaceReceipt(GameState state, ItemInstanceState item, string face, int player)
         {
             var receipt = Value(item.LocalState, "sourceSelectionReceipt");
             if (Number(receipt, "protocolVersion") != 1 || Text(receipt, "faceId") != face || Text(receipt, "ownerEffectId") != Text(item.LocalState, "activationAuthorizationRef")) return false;
-            var request = state.EffectRuntime.InteractionRequests.SingleOrDefault(r => r.GetStableInteractionId() == Text(receipt, "requestId") && r.OwnerEffectId == Text(receipt, "ownerEffectId") && r.AnsweringPlayerId == player && r.Status == "answered");
+            string requestId = Text(receipt, "requestId"), ownerId = Text(receipt, "ownerEffectId");
+            var request = state.EffectRuntime.InteractionRequests.SingleOrDefault(r => r.GetStableInteractionId() == requestId && r.OwnerEffectId == ownerId && r.AnsweringPlayerId == player && r.Status == "answered");
             return request != null && MatchesSelection(request, item, face, Text(receipt, "candidateId"));
         }
         private static bool MatchesSelection(InteractionRequest request, ItemInstanceState item, string face, string candidate)
@@ -60,7 +65,7 @@ namespace YC.Domain.Effects
         {
             var item = context.State.ItemZones.Items.SingleOrDefault(i => i.ItemId == ruleOwnerItemId && i.ControllerSubject.Kind == ItemSubjectKind.Player && i.ControllerSubject.PlayerId == context.Node.PlayerId);
             var sources = grantingSources.ToList();
-            if (item == null || sources.Any(s => s.AuthorizedPlayerId != context.Node.PlayerId || !AbilitySourceService.IsCurrent(context.State, context.Registry.AbilityDeclarations, s)))
+            if (item == null || sources.Any(s => s.AuthorizedPlayerId != context.Node.PlayerId || !context.Registry.IsCurrentAbilitySource(context.State, s)))
                 throw new InvalidOperationException("ability_shared_grant_invalid");
             Put(item.LocalState.Properties, "grantingSourceRefs", Strings(sources.Select(s => s.SourceKey).Distinct().OrderBy(id => id, StringComparer.Ordinal)));
             context.State.EffectRuntime.AbilityActionProtocolVersion = 1;

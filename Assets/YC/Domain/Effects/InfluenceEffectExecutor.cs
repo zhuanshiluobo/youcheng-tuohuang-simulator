@@ -313,9 +313,10 @@ namespace YC.Domain.Effects
         {
             EffectRegistration ignored;
             if (registry.TryGet(typeId, out ignored)) return;
-            registry.Register(new EffectRegistration(typeId, context => { CharacterLifecycleService.ResumeDeferredDependencies(context); return handler(context); }, executorKind, DefinitionVersion)
+            registry.Register(new EffectRegistration(typeId, context => { if(executor.influenceService.HasExternalStateCallbacks)ExecutionWorkRetentionScope.Expose(context.State); CharacterLifecycleService.ResumeDeferredDependencies(context); return handler(context); }, executorKind, DefinitionVersion)
             {
-                Validator = validator
+                Validator = validator,
+                ExecutionDoesNotRetainState = true
             });
         }
 
@@ -796,6 +797,7 @@ namespace YC.Domain.Effects
 
         internal static List<string> SubjectCandidates(EffectExecutionContext context)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.subject_candidates");
             var args = context.Node.NormalizedArguments;
             string filter = ItemTransferEffectExecutor.Text(args, "subjectFilter", ItemTransferEffectExecutor.Text(args, "ownerFilter", "any"));
             var excluded = ItemTransferEffectExecutor.Value(args, "excludedSubjectKeys")?.Items?.Select(value => value.StringValue).ToList();
@@ -904,12 +906,15 @@ namespace YC.Domain.Effects
                 DependencyKind = DeferredDependencyKind.ExactItemUse, ItemIds = moves.Select(move => move.InfluenceId).ToList() })) return CharacterLifecycleService.DeferredDependencyWait();
             if (moves.Any(move => !candidates.Contains(move.InfluenceId))) return EffectStepResult.Failed("invalid_influence_target");
             // 先在隔离预览中按同一业务校验整组；任何失败不提交前半组。
-            var preview = GameStateCloneService.DeepClone(context.State);
-            var previewContext = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(node => node.EffectId == context.Node.EffectId), context.Registry);
-            foreach (var move in moves)
+            if (moves.Count > 1)
             {
-                var result = influenceService.Move(previewContext, move.InfluenceId, move.TargetSlotId);
-                if (!result.Succeeded) return EffectStepResult.Failed(result.StableFailureCode);
+                var preview = GameStateCloneService.DeepClone(context.State);
+                var previewContext = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(node => node.EffectId == context.Node.EffectId), context.Registry);
+                foreach (var move in moves)
+                {
+                    var result = influenceService.Move(previewContext, move.InfluenceId, move.TargetSlotId);
+                    if (!result.Succeeded) return EffectStepResult.Failed(result.StableFailureCode);
+                }
             }
             var subjects = new List<string>();
             foreach (var move in moves)
@@ -917,6 +922,7 @@ namespace YC.Domain.Effects
                 var item = new ItemZoneQuery().FindItem(context.State, move.InfluenceId);
                 move.FromSlotId = item.SlotId;
                 var result = influenceService.Move(context, move.InfluenceId, move.TargetSlotId);
+                if (!result.Succeeded) return EffectStepResult.Failed(result.StableFailureCode);
                 if (moves.Count == 1) return EffectStepResult.Completed(Result(result, "moved", "")).AddEvent(Event(context.Node, InfluenceEventTypeIds.InfluenceMoved, move.InfluenceId, "moved", MovementPayload(context.Node, Result(result, "moved", ""), moves)));
                 subjects.AddRange(result.OriginalSubjectKeys);
             }
@@ -1563,6 +1569,9 @@ namespace YC.Domain.Effects
                    causeKind == InfluenceCauseKinds.OtherIntrinsicFlow;
         }
 
+        // 只认可这个固定静态函数本身，替换或多播委托仍按普通回调撤销历史证明。
+        private static readonly Func<EffectSpec,string> NativeReadOnlyPlacementValidator = ValidatePlace;
+        internal static bool IsNativeReadOnlyPlacementValidator(Func<EffectSpec,string> validator) => validator == NativeReadOnlyPlacementValidator;
         private static string ValidatePlace(EffectSpec spec) { return ValidateKeys(spec, new[] { "targetLocationId", "itemTypeId", "subjectFilter", "excludedSubjectKeys", "causeKind", "executingPlayer", "influenceSource", "ownerSubject", "replaceEffectId", "targetSlot", "targetSlotId", "candidateScope" }, new[] { "executingPlayer", "influenceSource", "ownerSubject" }); }
         public static string ValidateRemoveSpec(EffectSpec spec) => ValidateRemove(spec);
         private static string ValidateRemove(EffectSpec spec)

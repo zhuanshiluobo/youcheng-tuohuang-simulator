@@ -56,9 +56,10 @@ namespace YC.Application.Sessions
 
             if (state.Map != null && state.Map.Influences != null)
             {
-                for (var i = 0; i < state.Map.Influences.Count; i++)
+                var influences = state.Map.Influences.ToArray();
+                for (var i = 0; i < influences.Length; i++)
                 {
-                    var influence = state.Map.Influences[i];
+                    var influence = influences[i];
                     if (influence == null || string.IsNullOrEmpty(influence.SlotId))
                     {
                         continue;
@@ -76,9 +77,10 @@ namespace YC.Application.Sessions
 
             if (state.Decks != null && state.Decks.FacilitySupply != null)
             {
-                for (var i = 0; i < state.Decks.FacilitySupply.Count; i++)
+                var supply = state.Decks.FacilitySupply.ToArray();
+                for (var i = 0; i < supply.Length; i++)
                 {
-                    snapshot.FacilitySupply.Add(state.Decks.FacilitySupply[i]);
+                    snapshot.FacilitySupply.Add(supply[i]);
                 }
             }
 

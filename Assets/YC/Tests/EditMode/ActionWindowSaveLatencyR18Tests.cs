@@ -57,6 +57,13 @@ namespace YC.Tests.EditMode
             session.RegisterHandler(new AnswerInteractionCommandHandler(f.Registry, f.Rounds));
             session.ExecutionTimings.Enabled = true;
             var frozen = session.CaptureStableSavePoint(); long captures = session.ExecutionTimings.Snapshot()["recovery.capture.calls"];
+            Require(R18Field(session,"latestRecoveryCapture")==null && R18Field(session,"previousRecoveryCapture")==null,
+                "热座保存将完整图挂入了未启用的联机确认窗口");
+            var asynchronous=session.CaptureStableSavePointAsync().GetAwaiter().GetResult();
+            Require(R18Field(session,"latestRecoveryCapture")==null && R18Field(session,"previousRecoveryCapture")==null,
+                "异步热座保存保留了额外确认图");
+            Require(!ReferenceEquals(frozen.Archive.Snapshot.State,asynchronous.Archive.Snapshot.State),"两次保存导出共享可变图");
+            captures = session.ExecutionTimings.Snapshot()["recovery.capture.calls"];
             var option = f.Registry.GetSettlementOptions(session.State, 1).Single(o => o.SourceItemId == f.CardId && o.CleanupRequest != null);
             Require(session.Submit(CleanupSourceCommand.Create(1, "r18.local.invoke", option.CleanupRequest, session.State.EffectRuntime.StateRevision)).Succeeded, "真实行动未执行");
             R16Answer(session, "r18.local.pay");
@@ -96,8 +103,13 @@ namespace YC.Tests.EditMode
 
 #if !YC_WINDOW_EXECUTION_OFFLINE
         [Test]
+        public void LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletes()
+            => LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletesCore();
+#else
+        public Task LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletes()
+        { LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletesCore(); return Task.CompletedTask; }
 #endif
-        public async Task LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletes()
+        private void LocalSerializationUsesCapturedStateAndCopiedHeaderWhileNextLegalChoiceCompletesCore()
         {
             var f = R16LocalFixture("r18-local-serialize"); var session = new GameSession(f.State);
             session.RegisterHandler(new InvokeSettlementOptionCommandHandler(f.Registry));
@@ -110,7 +122,7 @@ namespace YC.Tests.EditMode
             string name = header.Seats[0].PlayerName;
             var pending = MatchSaveData.CreateFromLocalCaptureAsync(header, capture);
             header.Seats[0].PlayerName = "后续改动"; header.GameId = "后续改动";
-            R16Answer(session, "r18.async.choice"); var saved = await pending; saved.Validate();
+            R16Answer(session, "r18.async.choice"); var saved = pending.GetAwaiter().GetResult(); saved.Validate();
             Require(saved.Seats[0].PlayerName == name && saved.GameId == source.GameId && string.IsNullOrEmpty(saved.SimulationCheckpointJson), "后台保存使用了后续头信息或混入联机上下文");
             var recovered = HostRecoveryService.RecoverJson(saved.ArchiveJson, f.Registry);
             Require(recovered.Succeeded && recovered.State.FindPlayer(1).Resources.PureOriginium == 0 &&

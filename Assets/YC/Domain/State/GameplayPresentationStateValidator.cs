@@ -89,6 +89,7 @@ namespace YC.Domain.State
         // 这里只校验共享显示元数据；Window/Payment业务约束复用各自唯一规则校验器。
         public static bool TryValidate(EffectRuntimeState runtime, out string reason)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("runtime.presentation");
             reason = string.Empty;
             foreach (var node in runtime.EffectNodes)
                 if (!TryValidateSpecMetadata(node.Presentation, node.Settlement, out reason) || !ValidateNested(node.NestedEffects, 0, out reason)) return false;

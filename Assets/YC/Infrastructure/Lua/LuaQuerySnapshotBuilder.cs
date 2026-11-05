@@ -14,10 +14,10 @@ namespace YC.Infrastructure.Lua
     internal static partial class LuaQuerySnapshotBuilder
     {
         internal const string HandDestinationMetadataVersion = "hand_destination_metadata.v1";
-        internal static void Stamp(GameState state, LuaFacadeSnapshot snapshot, int revision)
+        internal static void Stamp(GameState state, LuaFacadeSnapshot snapshot, int revision, bool includeFacilities = true)
         {
             snapshot.StateRevision = revision;
-            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) snapshot.GlobalFacilities = FacilityLayerLuaCatalog.CreateProjection(state);
+            if (includeFacilities && YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)) snapshot.GlobalFacilities = FacilityLayerLuaCatalog.CreateProjection(state);
             var enabled = state.RuleConfiguration?.EnabledExpansionIds;
             snapshot.EnabledDlcIdsAvailable = enabled != null;
             if (enabled != null) snapshot.EnabledDlcIds.AddRange(enabled);
@@ -130,6 +130,7 @@ namespace YC.Infrastructure.Lua
 
         internal static LuaSnapshotValue Content(GameState state, ItemZoneStateView visible, List<LuaSnapshotValue> instances)
         {
+            using var readScope = ReadOnlyStateQueryScope.Begin(state);
             var definitions = Definitions(state);
             var byDefinition = definitions.Items.ToDictionary(d => d.Get("id").StringValue, StringComparer.Ordinal);
             var byItem = visible.Items.ToDictionary(i => i.ItemId, StringComparer.Ordinal);
@@ -172,6 +173,7 @@ namespace YC.Infrastructure.Lua
 
         internal static LuaSnapshotValue CandidateContent(GameState state, CandidateSetDraft draft, int revision)
         {
+            using var readScope = ReadOnlyStateQueryScope.Begin(state);
             // 从本地当前状态物化本次来源池；这些只读查询资料不进入持久化Context。
             var definitions = Definitions(state);
             var byDefinition = definitions.Items.ToDictionary(d => d.Get("id").StringValue, StringComparer.Ordinal);

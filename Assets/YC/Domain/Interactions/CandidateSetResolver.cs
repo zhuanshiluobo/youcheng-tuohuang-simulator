@@ -239,6 +239,7 @@ namespace YC.Domain.Interactions
                 IList<CandidatePatch> patches;
                 try
                 {
+                    ExecutionWorkRetentionScope.Expose(state);
                     patches = policy.PatchProvider(new CandidatePolicyContext(draft.Clone(), policy, state));
                 }
                 catch (Exception exception)

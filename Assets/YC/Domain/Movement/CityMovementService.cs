@@ -24,6 +24,7 @@ namespace YC.Domain.Movement
         }
 
         private readonly InfluenceService influenceService;
+        internal bool HasExternalStateCallbacks => influenceService.HasExternalStateCallbacks;
         private readonly TravelCostService travelCostService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;

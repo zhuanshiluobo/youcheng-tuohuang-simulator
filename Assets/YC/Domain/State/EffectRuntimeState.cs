@@ -90,6 +90,7 @@ namespace YC.Domain.State
         private NormalizedValueEntry(bool cloneShell) { }
         // 仅供完整字段深拷贝；不会向外暴露尚未填完的对象。
         internal static NormalizedValueEntry CreateCloneShell() => new NormalizedValueEntry(true);
+        internal NormalizedValueEntry CreateShallowCloneShell() => (NormalizedValueEntry)MemberwiseClone();
 
         public NormalizedValueEntry Clone()
         {
@@ -102,7 +103,7 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class NormalizedValue
+    public sealed partial class NormalizedValue
     {
         public const int MaxDepth = 8;
         public const int MaxElements = 128;
@@ -127,6 +128,7 @@ namespace YC.Domain.State
         private NormalizedValue(bool cloneShell) { }
         // 克隆随后按元数据填入全部持久字段；不创建马上被覆盖的默认子树。
         internal static NormalizedValue CreateCloneShell() => new NormalizedValue(true);
+        internal NormalizedValue CreateShallowCloneShell() => (NormalizedValue)MemberwiseClone();
 
         public static NormalizedValue CreateNull()
         {
@@ -425,6 +427,11 @@ namespace YC.Domain.State
             }
         }
 
+        // UTF-8默认替换回退下，一个UTF-16码元最多占三个字节。
+        // 短串无需编码；边界区间仍使用原编码器精确计数。
+        private static bool FitsUtf8Limit(string value, int limit) =>
+            value.Length <= limit / 3 || value.Length <= limit && Encoding.UTF8.GetByteCount(value) <= limit;
+
         private static bool TryValidateString(string value, out string reason)
         {
             if (value == null)
@@ -433,7 +440,7 @@ namespace YC.Domain.State
                 return false;
             }
 
-            if (Encoding.UTF8.GetByteCount(value) > MaxStringBytes)
+            if (!FitsUtf8Limit(value, MaxStringBytes))
             {
                 reason = "字符串超出长度限制。";
                 return false;
@@ -451,7 +458,7 @@ namespace YC.Domain.State
                 return false;
             }
 
-            if (Encoding.UTF8.GetByteCount(value) > 128)
+            if (!FitsUtf8Limit(value, 128))
             {
                 reason = "对象属性名超出长度限制。";
                 return false;
@@ -478,8 +485,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class EffectNodeRuntimeState
+    public sealed class EffectNodeRuntimeState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public YC.Domain.Items.ItemMoveInputNormalizationV1 ItemMoveInput;
         public List<YC.Domain.Effects.AllocationOptionV1> AllocationOptions;
         public YC.Domain.Effects.AllocationStateV1 AllocationV1;
@@ -548,8 +556,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class EffectSpecRuntimeState
+    public sealed class EffectSpecRuntimeState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public YC.Domain.Items.ItemMoveInputNormalizationV1 ItemMoveInput;
         public List<YC.Domain.Effects.AllocationOptionV1> AllocationOptions;
         public YC.Domain.Effects.RequiredEffectOutcome RequiredOutcome;
@@ -622,8 +631,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class EffectBlockerRuntimeState
+    public sealed class EffectBlockerRuntimeState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string BlockerId = string.Empty;
         public string OwnerEffectId = string.Empty;
         public string TargetEffectId = string.Empty;
@@ -634,8 +644,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class MainlineNodeRuntimeState
+    public sealed class MainlineNodeRuntimeState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string NodeId = string.Empty;
         public string RoundExecutionId = string.Empty;
         public string NodeTypeId = string.Empty;
@@ -660,8 +671,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class InteractionRequest
+    public sealed class InteractionRequest : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public OperationCommandContext OperationContext;
         public GameplayInteractionPresentation Presentation;
         public const string MainlineCompletionInteractionPrefix = "round.mainline.complete:";
@@ -715,8 +727,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class RuleEvent
+    public sealed class RuleEvent : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public OperationCommandContext OperationContext;
         public string EventId = string.Empty;
         public string EventType = string.Empty;
@@ -736,8 +749,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class DispatchReceipt
+    public sealed class DispatchReceipt : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public YC.Domain.Effects.EventResponseAttachmentKind ActualAttachmentKind;
         public List<string> DeferredResponseIds = new List<string>();
         public string ReceiptId = string.Empty;
@@ -797,8 +811,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class RuleJournalEntry
+    public sealed class RuleJournalEntry : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public int CommitSequence;
         public int StateRevision;
         public string CommitId = string.Empty;
@@ -861,11 +876,25 @@ namespace YC.Domain.State
             return ApplyInternal(state, commandId, false, true, entries);
         }
 
-        private static RuleCommit ApplyInternal(
+        // 对照模式仍在独立图执行原完整提交，并逐字段核验完整结果；只跳过已受封闭写集保护的不变部分。
+        internal static RuleCommit ApplyPreparedSchedulingCommit(GameState state,string commandId,SchedulingCommitProof proof,params RuleJournalEntry[] entries)
+        {
+            GameState reference=null;
+            if(GameStateCloneService.IsSchedulingCopyVerificationEnabled)
+            {reference=GameStateCloneService.DeepClone(state);ApplyInternal(reference,commandId,false,true,entries);}
+            var result=ApplyInternalCore(state,commandId,false,true,proof,entries);
+            if(reference!=null && !GameStateCloneService.AreEquivalent(reference,state))
+                throw new InvalidOperationException("纯状态增量提交与原完整校验/提交结果不一致。");
+            return result;
+        }
+        private static RuleCommit ApplyInternal(GameState state,string commandId,bool allowPausedFault,bool finalizePreparedEffect,params RuleJournalEntry[] entries)
+            => ApplyInternalCore(state,commandId,allowPausedFault,finalizePreparedEffect,null,entries);
+        private static RuleCommit ApplyInternalCore(
             GameState state,
             string commandId,
             bool allowPausedFault,
             bool finalizePreparedEffect,
+            SchedulingCommitProof? schedulingProof,
             params RuleJournalEntry[] entries)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
@@ -875,7 +904,10 @@ namespace YC.Domain.State
             }
 
             EffectRuntimeState runtime = state.EffectRuntime;
-            ValidateCommitPreconditions(runtime, allowPausedFault);
+            bool schedulingDelta=!GameStateCloneService.FullSchedulingValidationRequested && schedulingProof.HasValue &&
+                schedulingProof.Value.Matches(state) && runtime.TryValidateSchedulingStatusDelta(schedulingProof.Value,out _);
+            using var statusDiagnostic=schedulingDelta ? GameStateCloneService.MeasureDiagnostic("kernel.validation.status_delta") : default;
+            if(!schedulingDelta) ValidateCommitPreconditions(runtime, allowPausedFault);
             int previousJournalCount = runtime.Journal.Count;
             int previousRevision = runtime.StateRevision;
             int previousNextSequence = runtime.NextCommitSequence;
@@ -883,7 +915,7 @@ namespace YC.Domain.State
             {
                 YC.Domain.Items.ItemZoneStateFactory.BindDerivedScoreMarkers(state);
                 string entityReason;
-                if (!new YC.Domain.Items.ItemZoneQuery().TryValidate(state, out entityReason))
+                if (!schedulingDelta && !new YC.Domain.Items.ItemZoneQuery().TryValidate(state, out entityReason))
                     throw new InvalidOperationException(entityReason);
             }
 
@@ -1132,13 +1164,16 @@ namespace YC.Domain.State
 
         public bool TryValidate(out string reason)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("runtime.validate");
             if (SchemaVersion <= 0 || SchemaVersion > CurrentSchemaVersion)
             {
                 reason = "运行状态 schemaVersion 不受支持。";
                 return false;
             }
 
+            using (GameStateCloneService.MeasureDiagnostic("runtime.windows"))
             if (!YC.Domain.Rules.OperationWindowService.TryValidateRuntime(this, out reason)) return false;
+            using (GameStateCloneService.MeasureDiagnostic("runtime.memory"))
             if (!LuaEntryMemoryStore.TryValidate(this, out reason)) return false;
 
             if (Status != EffectRuntimeStatus.Active && Status != EffectRuntimeStatus.PausedFault)
@@ -1161,11 +1196,13 @@ namespace YC.Domain.State
                 return false;
             }
 
+            using (GameStateCloneService.MeasureDiagnostic("runtime.deferred"))
             if (!TryValidateDeferredResponseStructure(out reason)) return false;
 
             int expectedSequence = 1;
             int previousRevision = 0;
             string previousCommitId = string.Empty;
+            using (GameStateCloneService.MeasureDiagnostic("runtime.journal"))
             for (int i = 0; i < Journal.Count; i++)
             {
                 RuleJournalEntry entry = Journal[i];
@@ -1206,6 +1243,7 @@ namespace YC.Domain.State
             }
 
             HashSet<string> nodeIds = new HashSet<string>(StringComparer.Ordinal);
+            using (GameStateCloneService.MeasureDiagnostic("runtime.nodes"))
             for (int i = 0; i < EffectNodes.Count; i++)
             {
                 EffectNodeRuntimeState node = EffectNodes[i];
@@ -1231,16 +1269,19 @@ namespace YC.Domain.State
                 foreach (var change in node.PositionChanges)
                     if (change == null || string.IsNullOrWhiteSpace(change.ItemId) || change.From == null || change.To == null || string.IsNullOrWhiteSpace(change.From.ZoneId) || string.IsNullOrWhiteSpace(change.To.ZoneId))
                     { reason = "移牌位置结果损坏。"; return false; }
-                if (node.ShuffleInputItemIds.Exists(string.IsNullOrWhiteSpace) || new HashSet<string>(node.ShuffleInputItemIds, StringComparer.Ordinal).Count != node.ShuffleInputItemIds.Count)
+                if ((node.ShuffleInputItemIds.Count != 0 || node.ShuffleInputItemIds.GetType() != typeof(List<string>)) &&
+                    (node.ShuffleInputItemIds.Exists(string.IsNullOrWhiteSpace) || new HashSet<string>(node.ShuffleInputItemIds, StringComparer.Ordinal).Count != node.ShuffleInputItemIds.Count))
                 { reason = "洗牌输入集合损坏。"; return false; }
-                if (node.EnterpriseArrivalReceipts.Any(receipt => receipt == null || string.IsNullOrWhiteSpace(receipt.EventId) || string.IsNullOrWhiteSpace(receipt.EnterpriseItemId) || receipt.PlayerId <= 0 ||
+                if ((node.EnterpriseArrivalReceipts.Count != 0 || node.EnterpriseArrivalReceipts.GetType() != typeof(List<YC.Domain.Enterprises.EnterpriseArrivalReceipt>)) &&
+                    (node.EnterpriseArrivalReceipts.Any(receipt => receipt == null || string.IsNullOrWhiteSpace(receipt.EventId) || string.IsNullOrWhiteSpace(receipt.EnterpriseItemId) || receipt.PlayerId <= 0 ||
                     receipt.OldLevel < 0 || receipt.OldLevel > 5 || receipt.NewLevel < 0 || receipt.NewLevel > 5 || Math.Abs(receipt.NewLevel - receipt.OldLevel) != 1) ||
-                    node.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId).Distinct().Count() != node.EnterpriseArrivalReceipts.Count)
+                    node.EnterpriseArrivalReceipts.Select(receipt => receipt.EventId).Distinct().Count() != node.EnterpriseArrivalReceipts.Count))
                 { reason = "企业到达收据损坏。"; return false; }
-                if (node.FrozenEnterpriseSpecials.Any(selection => selection?.Candidate == null || string.IsNullOrWhiteSpace(selection.EnterpriseDefinitionId) || selection.UnlockedByPlayerId <= 0 ||
+                if ((node.FrozenEnterpriseSpecials.Count != 0 || node.FrozenEnterpriseSpecials.GetType() != typeof(List<YC.Domain.Enterprises.FrozenEnterpriseSpecial>)) &&
+                    (node.FrozenEnterpriseSpecials.Any(selection => selection?.Candidate == null || string.IsNullOrWhiteSpace(selection.EnterpriseDefinitionId) || selection.UnlockedByPlayerId <= 0 ||
                     string.IsNullOrWhiteSpace(selection.Candidate.CandidateId) || string.IsNullOrWhiteSpace(selection.Candidate.EnterpriseItemId) || string.IsNullOrWhiteSpace(selection.Candidate.SpecialId) ||
                     selection.Candidate.CurrentLevel < 0 || selection.Candidate.CurrentLevel > 5 || selection.Candidate.EffectiveLevelCeiling < selection.Candidate.CurrentLevel || selection.Candidate.EffectiveLevelCeiling > 5) ||
-                    node.FrozenEnterpriseSpecials.Select(selection => selection.Candidate.CandidateId).Distinct().Count() != node.FrozenEnterpriseSpecials.Count)
+                    node.FrozenEnterpriseSpecials.Select(selection => selection.Candidate.CandidateId).Distinct().Count() != node.FrozenEnterpriseSpecials.Count))
                 { reason = "企业特效冻结快照损坏。"; return false; }
             }
 
@@ -1284,13 +1325,17 @@ namespace YC.Domain.State
             }
 
             if (!string.IsNullOrEmpty(ActiveMainNodeId) &&
-                !MainNodes.Exists(node => node != null && node.NodeId == ActiveMainNodeId))
+                !mainNodeIds.Contains(ActiveMainNodeId))
             {
                 reason = "活动主链节点不存在。";
                 return false;
             }
 
             HashSet<string> blockerIds = new HashSet<string>(StringComparer.Ordinal);
+            var knownInteractionIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var request in InteractionRequests)
+                if (request != null) knownInteractionIds.Add(request.GetStableInteractionId());
+            using (GameStateCloneService.MeasureDiagnostic("runtime.blockers"))
             for (int i = 0; i < Blockers.Count; i++)
             {
                 EffectBlockerRuntimeState blocker = Blockers[i];
@@ -1299,8 +1344,7 @@ namespace YC.Domain.State
                     !nodeIds.Contains(blocker.OwnerEffectId) ||
                     (!string.IsNullOrEmpty(blocker.TargetEffectId) && !nodeIds.Contains(blocker.TargetEffectId)) ||
                     (!string.IsNullOrEmpty(blocker.InteractionRequestId) &&
-                     !InteractionRequests.Exists(request => request != null &&
-                         request.GetStableInteractionId() == blocker.InteractionRequestId)))
+                     !knownInteractionIds.Contains(blocker.InteractionRequestId)))
                 {
                     reason = "Effect blocker 引用了不存在的节点/交互或包含重复 ID。";
                     return false;
@@ -1321,6 +1365,7 @@ namespace YC.Domain.State
                 }
             }
 
+            using (GameStateCloneService.MeasureDiagnostic("runtime.events"))
             for (int i = 0; i < RuleEvents.Count; i++)
             {
                 RuleEvent ruleEvent = RuleEvents[i];
@@ -1333,6 +1378,8 @@ namespace YC.Domain.State
                 }
             }
 
+            var requestCandidateIds = new HashSet<string>(StringComparer.Ordinal);
+            using (GameStateCloneService.MeasureDiagnostic("runtime.requests"))
             for (int i = 0; i < InteractionRequests.Count; i++)
             {
                 InteractionRequest request = InteractionRequests[i];
@@ -1341,7 +1388,7 @@ namespace YC.Domain.State
                      request.Status != "cancelled" && request.Status != "invalidated") ||
                     request.StateRevision < 0 || request.AnsweredAtRevision < 0 ||
                     request.MinSelections < 0 || request.MaxSelections < request.MinSelections ||
-                    request.CandidateIds == null || !HasUniqueIds(request.CandidateIds) ||
+                    request.CandidateIds == null || !HasUniqueIds(request.CandidateIds, requestCandidateIds) ||
                     (request.PromptParameters != null && !request.PromptParameters.IsValid()) ||
                     (request.NormalizedAnswer != null && !request.NormalizedAnswer.IsValid()))
                 {
@@ -1361,6 +1408,9 @@ namespace YC.Domain.State
                 }
             }
 
+            var candidatePoolIds = new HashSet<string>(StringComparer.Ordinal);
+            var candidateScratchIds = new HashSet<string>(StringComparer.Ordinal);
+            using (GameStateCloneService.MeasureDiagnostic("runtime.candidates"))
             for (int i = 0; i < CandidateResolutions.Count; i++)
             {
                 CandidateResolutionRecord record = CandidateResolutions[i];
@@ -1370,7 +1420,7 @@ namespace YC.Domain.State
                     return false;
                 }
 
-                if (!record.TryValidate(out reason))
+                if (!record.TryValidate(candidatePoolIds, candidateScratchIds, out reason))
                 {
                     if (string.IsNullOrEmpty(reason)) reason = "CandidateResolutionRecord 非法。";
                     return false;
@@ -1403,6 +1453,7 @@ namespace YC.Domain.State
             }
 
             HashSet<string> bindingIds = new HashSet<string>(StringComparer.Ordinal);
+            using (GameStateCloneService.MeasureDiagnostic("runtime.bindings"))
             for (int i = 0; i < ContinuationBindings.Count; i++)
             {
                 ContinuationBinding binding = ContinuationBindings[i];
@@ -1429,22 +1480,20 @@ namespace YC.Domain.State
             return GameplayPresentationStateValidator.TryValidate(this, out reason);
         }
 
-        private static bool HasUniqueIds(IList<string> ids)
+        private static bool HasUniqueIds(IList<string> ids, HashSet<string> seen)
         {
+            seen.Clear();
             for (int i = 0; i < ids.Count; i++)
             {
-                if (string.IsNullOrEmpty(ids[i])) return false;
-                for (int j = 0; j < i; j++)
-                {
-                    if (string.Equals(ids[i], ids[j], StringComparison.Ordinal)) return false;
-                }
+                if (string.IsNullOrEmpty(ids[i]) || !seen.Add(ids[i])) return false;
             }
 
             return true;
         }
 
         // 装配、Created 提升、终态解锁和恢复校验共用相同屏障谓词。
-        internal bool IsChildSchedulingEligible(EffectNodeRuntimeState owner, int childIndex)
+        internal bool IsChildSchedulingEligible(EffectNodeRuntimeState owner, int childIndex) => IsChildSchedulingEligible(owner,childIndex,null);
+        private bool IsChildSchedulingEligible(EffectNodeRuntimeState owner, int childIndex, Dictionary<string,EffectNodeRuntimeState> nodes)
         {
             if (owner == null || childIndex < 0 || childIndex >= owner.ChildEffectIds.Count) return false;
             var window = owner.SettlementWindow;
@@ -1456,7 +1505,8 @@ namespace YC.Domain.State
                 var entry = window.Entries.Find(e => e.TargetEffectId == childId);
                 if (entry != null)
                 {
-                    var recorded = EffectNodes.Find(n => n.EffectId == childId);
+                    var recorded = nodes==null ? EffectNodes.Find(n => n.EffectId == childId) :
+                        nodes.TryGetValue(childId,out var active) ? active : null;
                     if (recorded != null && IsSchedulingTerminal(recorded.Status)) return true;
                     if (!YC.Domain.Effects.SettlementEntryService.IsChildEligible(this, window, childId)) return false;
                     // once段同样由窗口串行门禁决定，不能等待本应在玩家段之后执行的系统步骤。
@@ -1473,7 +1523,8 @@ namespace YC.Domain.State
                 }
             for (int i = 0; i < barrier; i++)
             {
-                var previous = EffectNodes.Find(node => node != null && node.EffectId == owner.ChildEffectIds[i]);
+                var previous = nodes==null ? EffectNodes.Find(node => node != null && node.EffectId == owner.ChildEffectIds[i]) :
+                    nodes.TryGetValue(owner.ChildEffectIds[i],out var earlier) ? earlier : null;
                 if (previous == null || !IsSchedulingTerminal(previous.Status)) return false;
             }
             return YC.Domain.Rules.RoundExecutionService.IsEntranceSetupChildEligible(this, owner, childIndex);
@@ -1537,6 +1588,7 @@ namespace YC.Domain.State
 
         private bool TryValidateChildScheduling(out string reason)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("runtime.scheduling");
             reason = string.Empty;
             // 已进入新业务阶段的必需组不能被删除后退回“无组即顺序”的旧路径。
             foreach (var owner in EffectNodes)
@@ -1548,11 +1600,20 @@ namespace YC.Domain.State
             }
             if (!EffectNodes.Any(node => node.ChildSchedulingGroups.Count > 0)) return true;
             var nodes = EffectNodes.ToDictionary(node => node.EffectId, StringComparer.Ordinal);
+            var blockersByPair=new Dictionary<(string Owner,string Target),List<EffectBlockerRuntimeState>>();
+            foreach(var blocker in Blockers)
+                if(blocker!=null)
+                {
+                    var pair=(blocker.OwnerEffectId,blocker.TargetEffectId);
+                    if(!blockersByPair.TryGetValue(pair,out var values))blockersByPair.Add(pair,values=new List<EffectBlockerRuntimeState>());
+                    values.Add(blocker);
+                }
             foreach (var owner in EffectNodes)
             {
                 if (owner.ChildSchedulingGroups.Count == 0) continue;
                 var keys = new HashSet<string>(StringComparer.Ordinal);
                 var childIds = new HashSet<string>(StringComparer.Ordinal);
+                var ownedBlockerIds=new HashSet<string>(owner.BlockerIds,StringComparer.Ordinal);
                 int previousEnd = 0;
                 foreach (var group in owner.ChildSchedulingGroups)
                 {
@@ -1577,11 +1638,13 @@ namespace YC.Domain.State
                         child.ParentEffectId != owner.EffectId)
                     { reason = "独立子任务父节点包含缺失、重复或跨父的子节点。"; return false; }
                     if (child.Status != EffectNodeStatus.Created && child.Status != EffectNodeStatus.Faulted &&
-                        !IsChildSchedulingEligible(owner, i))
+                        !IsChildSchedulingEligible(owner, i,nodes))
                     { reason = "子节点越过未完成的顺序屏障。"; return false; }
-                    var blockers = Blockers.Where(blocker => blocker != null && blocker.OwnerEffectId == owner.EffectId &&
-                        blocker.TargetEffectId == childId && owner.BlockerIds.Contains(blocker.BlockerId)).ToList();
-                    if (blockers.Count == 0 || (!IsSchedulingTerminal(child.Status) && blockers.All(blocker => blocker.IsResolved)))
+                    bool hasBlocker=false,allResolved=true;
+                    if(blockersByPair.TryGetValue((owner.EffectId,childId),out var candidates))
+                        foreach(var blocker in candidates)
+                            if(ownedBlockerIds.Contains(blocker.BlockerId)) {hasBlocker=true;allResolved &= blocker.IsResolved;}
+                    if (!hasBlocker || (!IsSchedulingTerminal(child.Status) && allResolved))
                     { reason = "子任务缺少有效的父节点阻塞关系。"; return false; }
                     if (IsSchedulingTerminal(owner.Status) && !IsSchedulingTerminal(child.Status))
                     { reason = "父节点在全部子任务完成前进入终态。"; return false; }

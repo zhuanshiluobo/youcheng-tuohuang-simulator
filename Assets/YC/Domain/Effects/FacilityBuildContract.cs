@@ -165,7 +165,7 @@ namespace YC.Domain.Effects
                     expected.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "preparedPaymentOwnerEffectId", Value = NormalizedValue.CreateString(preparation.EffectId) });
                 }
                 expected.NormalizedArguments.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
-                if (child.NormalizedArguments.ToDeterministicString() != expected.NormalizedArguments.ToDeterministicString()) return false;
+                if (!child.NormalizedArguments.HasSameCanonicalValue(expected.NormalizedArguments)) return false;
             }
             error = ""; return true;
         }

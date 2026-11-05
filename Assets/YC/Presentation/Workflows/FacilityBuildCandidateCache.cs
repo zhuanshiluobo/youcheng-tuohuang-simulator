@@ -42,6 +42,19 @@ namespace YC.Presentation.Workflows
             return query.Query(state, player, snapshot, visibleState);
         }
 
+        public BuildFacilityOptionQueryResult QuerySelected(GameState state, int player, string facilityId, GameStateView visibleState)
+        {
+            if (state == null) { Invalidate(); return null; }
+            if (string.IsNullOrEmpty(facilityId)) return null;
+            if (!ItemZoneLegacyProjection.IsActive(state))
+                return state.Decks.FacilitySupply.Contains(facilityId) ? query.Query(state,player,facilityId,visibleState) : null;
+            var key=SourceKey(state);
+            if(snapshot==null || playerId!=player || sourceKey!=key)
+            { snapshot=query.QueryCandidates(state,player);playerId=player;sourceKey=key; }
+            var options=query.Query(state,player,snapshot,visibleState,facilityId);
+            return options.Count==0 ? null : options[0];
+        }
+
         private static string SourceKey(GameState state)
         {
             var key = new StringBuilder();

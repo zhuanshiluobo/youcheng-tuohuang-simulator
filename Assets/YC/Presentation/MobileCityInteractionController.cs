@@ -98,6 +98,7 @@ namespace YC.Presentation
 
         public bool CanEndCurrentAction()
         {
+            using var visibleRead = BeginVisibleRead();
             using var latency = InteractionLatencyTrace.Begin("gate.end_evaluate");
             if (!CanSubmitGameplayCommand) return TraceEndGate(false, "submit.unavailable");
             if (!string.IsNullOrEmpty(pendingEffectCommandId)) return TraceEndGate(false, "effect.command_pending");
@@ -198,6 +199,7 @@ namespace YC.Presentation
             eventChoiceDialog = new EventChoiceDialog(
                 gameplayInteractionHud.DialogRegistry,
                 GetUiCanvasTransform);
+            eventChoiceDialog.BeginReadScope = () => BeginVisibleRead();
 
 
             if (mapViewBinding == null)
@@ -557,6 +559,8 @@ namespace YC.Presentation
             interactionRouter.OnInfluenceSlotClicked(slotId);
         }
 
+        private bool completionWillBeRefreshedBySynchronization;
+
         private void CompleteActionCommandUi(string actionName)
         {
             using var visibleRead = BeginVisibleRead();
@@ -564,11 +568,19 @@ namespace YC.Presentation
             mapInteractionRouter.ClearConfirmation(false);
             ClearPendingDispatch();
             workflowView.ClearHighlights();
-            RefreshCityViewsFromState();
-            RefreshResourceDisplay();
-            RefreshInfluenceDisplay();
-            RefreshActionPanel();
-            RefreshFinalScoreFromState();
+            if (!completionWillBeRefreshedBySynchronization)
+            {
+                RefreshCityViewsFromState();
+                RefreshResourceDisplay();
+                RefreshInfluenceDisplay();
+                RefreshActionPanel();
+                RefreshFinalScoreFromState();
+            }
+            else
+            {
+                // 同一次同步稍后会执行RefreshAllFromState；仍立即处理高亮、入场响应及提示。
+                using var coalesced = UiRegressionMetrics.Measure("hud.completion_refresh_coalesced");
+            }
 
             if (facilityInteraction != null && facilityInteraction.Synchronize())
             {
@@ -921,7 +933,12 @@ namespace YC.Presentation
             bool permissionOnly;
             using (InteractionLatencyTrace.Begin("ui.permission_path")) permissionOnly = RefreshSimulationPermissionOnly();
             if (permissionOnly) { InteractionLatencyTrace.Point("ui.permission_only_return"); return; }
-            turnActionPresenter.SynchronizeFromState();
+            // 自动确认建设可在此同步调用中完成行动；其五项展示由下面同一次完整刷新覆盖。
+            // 凭据只在这个同步调用栈生效，异常和重入都会恢复，其他完成入口照常立即刷新。
+            bool previousCompletionRefresh = completionWillBeRefreshedBySynchronization;
+            completionWillBeRefreshedBySynchronization = true;
+            try { turnActionPresenter.SynchronizeFromState(); }
+            finally { completionWillBeRefreshedBySynchronization = previousCompletionRefresh; }
             // 只在联机同一观察者的普通发表刷新中保草稿；切人清理仍走原分支。
             var preserveRequestDraft = !viewerChanged && commandSubmission?.UsesDeterministicSimulation == true;
             var preserveMove = !viewerChanged && turnActionPresenter.MoveInteraction.CanResumePreparedDraft;
@@ -1139,27 +1156,36 @@ namespace YC.Presentation
                 return;
             }
 
-            var characterView = characterCardPresenter == null
-                ? null
-                : characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
+            CharacterCardPanelViewModel characterView;
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.characters"))
+                characterView = characterCardPresenter == null ? null : characterCardPresenter.BuildProjectedView(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState());
             ActionPanelViewModel actionViewModel;
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.model"))
             using (ActionPanelViewModelMarker.Auto())
             {
                 actionViewModel = turnActionPresenter.BuildActionPanelViewModel();
             }
             lastActionPanelPermissionModel = actionViewModel;
-            actionPanel.Render(actionViewModel);
-            actionPanel.RenderCharacterQuickAction(characterView);
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.rows"))
+            {
+                actionPanel.Render(actionViewModel);
+                actionPanel.RenderCharacterQuickAction(characterView);
+            }
             var visibleState = VisibleSaleState();
-            gameplayInteractionHud.Frame.Refresh(ReadUiStateWithTrace(), actionViewModel,
-                turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt(),
-                actionViewModel.AllCollectionLocationsSelected
-                    ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty,
-                visibleState);
-            gameplayInteractionHud.MainModules.Render(ReadUiStateWithTrace(), visibleState, localPlayerId,
-                gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
-            RefreshViewedCityPanel(characterView);
-            gameplayInteractionHud.ExpansionUi.Refresh();
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.frame"))
+                gameplayInteractionHud.Frame.Refresh(ReadUiStateWithTrace(), actionViewModel,
+                    turnActionPresenter.ActionPanelPresenter.GetUnavailableEndActionPrompt(),
+                    actionViewModel.AllCollectionLocationsSelected
+                        ? gameplayInteractionHud.ActionPanelView.AllCollectionLocationsSelectedText : string.Empty,
+                    visibleState);
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.modules"))
+            {
+                gameplayInteractionHud.MainModules.Render(ReadUiStateWithTrace(), visibleState, localPlayerId,
+                    gameplayInteractionHud.DialogRegistry.CardVisualCatalog);
+                RefreshViewedCityPanel(characterView);
+            }
+            using(new UiExecutionTimingScope(session?.ExecutionTimings,"hud.action_panel.expansion"))
+                gameplayInteractionHud.ExpansionUi.Refresh();
             ApplySubmissionPermission(actionViewModel);
             TraceVisibleBinding(visibleState);
             if (characterView != null && characterView.IsSecondEffectDecision)
@@ -1403,6 +1429,8 @@ namespace YC.Presentation
 
         private void SubmitCharacterCardCommand(GameCommand command, string localSuccessPrompt, string remotePrompt)
         {
+            using var visibleRead = BeginVisibleRead();
+            using var characterRead = characterCardPresenter?.BeginPresentationRead();
             if (!CanSubmitGameplayCommand) return;
             if (command != null && command.Kind == GameCommandKind.UseCharacterCard)
             {
@@ -1559,11 +1587,12 @@ namespace YC.Presentation
                 buildDialogStep = BuildDialogStep.Payments;
             else if (model.Phase == BuildFacilityDraftPhase.Confirming)
                 buildDialogStep = BuildDialogStep.Quote;
-            PresentBuildFacilityDialog();
+            PresentBuildFacilityModel(model);
         }
 
         private FacilityBuildDialogView facilityBuildPage;
         private int buildDialogGeneration;
+        private long buildDialogPresentation;
         private bool supplyInspectionActive;
 
         private void ShowBuildDraftInOriginalPanel(BuildFacilityDraftViewModel model)
@@ -1575,7 +1604,7 @@ namespace YC.Presentation
                 (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)) return;
             if (!buildDialogActive) { buildDialogActive = true; buildDialogGeneration++; }
             selectedBuildFacilityId = model.SelectedOption?.FacilityId ?? turnActionPresenter.BuildInteraction.FacilityId;
-            PresentBuildFacilityDialog();
+            PresentBuildFacilityModel(model);
         }
 
         private void HideBuildDraftInOriginalPanel()
@@ -1620,6 +1649,13 @@ namespace YC.Presentation
         {
             if (!buildDialogActive || turnActionPresenter == null || turnActionPresenter.BuildInteraction.DraftPlayerId != localPlayerId) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
+            PresentBuildFacilityModel(model);
+        }
+
+        // 模型只由紧邻的同步调用传入；不保存候选或跨输入复用模型。
+        private void PresentBuildFacilityModel(BuildFacilityDraftViewModel model)
+        {
+            if (!buildDialogActive || turnActionPresenter == null || turnActionPresenter.BuildInteraction.DraftPlayerId != localPlayerId) return;
             if (model == null) return;
             // 必要响应/异客分配暂用正式效果页；建设草稿留在原宿主，返回才刷新费用和按钮。
             if (ActionPaymentPreparation.HasBlockingChoice(ReadUiStateWithTrace(), localPlayerId)) return;
@@ -1638,12 +1674,14 @@ namespace YC.Presentation
                 selectedBuildFacilityId, BuildQuoteSummary(model), IsCurrentBuildDialog,
                 SelectBuildCardInPanel, SelectBuildSlotInPanel, PayBuildFacilityInPanel,
                 ConfirmBuildFacilityQuote, CancelBuildFacilityDialog);
+            buildDialogPresentation++;
             // 建设提示由建设页的底部信息区显示。
             SetPrompt(string.Empty);
         }
 
         private void PayBuildFacilityInPanel(string mode)
         {
+            using var visibleRead = BeginVisibleRead();
             if (!IsCurrentBuildDialog()) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model?.SelectedOption == null || model.SelectedOption.FacilityId != selectedBuildFacilityId) return;
@@ -1657,14 +1695,17 @@ namespace YC.Presentation
 
         private void SelectBuildCardInPanel(string id)
         {
+            using var visibleRead = BeginVisibleRead();
             if (!IsCurrentBuildDialog()) return;
             selectedBuildFacilityId = id;
+            long presentedBefore=buildDialogPresentation;
             turnActionPresenter.BuildInteraction.SelectFacility(id);
-            PresentBuildFacilityDialog();
+            if(buildDialogPresentation==presentedBefore)PresentBuildFacilityDialog();
         }
 
         private void SelectBuildSlotInPanel(int index)
         {
+            using var visibleRead = BeginVisibleRead();
             if (!IsCurrentBuildDialog()) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model.Phase != BuildFacilityDraftPhase.Dragging)
@@ -1755,6 +1796,7 @@ namespace YC.Presentation
 
         private void ConfirmBuildFacilityQuote()
         {
+            using var visibleRead = BeginVisibleRead();
             if (!IsCurrentBuildDialog()) return;
             var model = turnActionPresenter.BuildBuildFacilityDraftViewModel();
             if (model == null || model.Phase != BuildFacilityDraftPhase.Confirming ||

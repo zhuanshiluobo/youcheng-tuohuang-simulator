@@ -106,6 +106,7 @@ namespace YC.Domain.Enterprises
             abilities.Add(abilityId, factory);
         }
         public void Freeze() { frozen = true; }
+        internal bool HasEnterprise(string definitionId) => definitionId != null && enterprises.ContainsKey(definitionId);
         public EnterpriseDefinition FindEnterprise(string definitionId) => definitionId != null && enterprises.TryGetValue(definitionId, out var value) ? GameStateCloneService.DeepClone(value) : null;
         public int GetSpecialAbilityLevel(string definitionId, string abilityId) =>
             (definitionId != null && enterprises.TryGetValue(definitionId, out var value) ? value : null).Levels.Single(level => level.AbilityId == abilityId).Level;

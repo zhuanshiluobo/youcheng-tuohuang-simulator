@@ -15,8 +15,19 @@ namespace YC.Domain.Effects
             EffectSpec.Create(RemoveEffectTypeId, Object("apiVersion", NormalizedValue.CreateInteger(2), "executingPlayer", InfluenceEffectSpecFactory.PlayerReference(player),
                 "targets", Strings(targets), "requiredCount", NormalizedValue.CreateInteger(required), "reasonId", NormalizedValue.CreateString(reason)), player);
 
+        private bool CanDepartPreview(EffectExecutionContext context,List<string> targets,bool replace)
+        {
+            try
+            {
+                foreach(string id in targets)if(!influenceService.Depart(context,id,replace?"replace":"remove").Succeeded)return false;
+                return true;
+            }
+            catch(InvalidOperationException){return false;}
+        }
+
         private EffectStepResult ExecuteItemDepartureV2(EffectExecutionContext context, bool replace)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.departure.v2",context.Node.FlowStage);
             var node = context.Node; var state = context.State; var args = node.NormalizedArguments;
             var departures = state.EffectRuntime.InfluenceDepartures.Where(d => d.SourceEffectId == node.EffectId).ToList();
             if (node.FlowStage == "awaiting_destination_v2")
@@ -96,13 +107,18 @@ namespace YC.Domain.Effects
                 targets.Add(target);
             }
             // 同一个工作副本提交所有地图变更；先在独立预演副本验证完整集合。
-            var preview = GameStateCloneService.DeepClone(state);
+            var preview = GameStateCloneService.CreateItemWorldNodePreview(state,node.EffectId,out var reference);
             var previewContext = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(n => n.EffectId == node.EffectId), context.Registry);
-            try
+            bool previewValid=CanDepartPreview(previewContext,targets,replace);
+            if(reference!=null)
             {
-                foreach (string id in targets) if (!influenceService.Depart(previewContext, id, replace ? "replace" : "remove").Succeeded) return StrictRemovalFailed(required, "incomplete_influence_payment");
+                GameStateCloneService.VerifyItemWorldNodePreviewSource(state,reference);
+                var originalContext=new EffectExecutionContext(reference,reference.EffectRuntime.EffectNodes.Single(n=>n.EffectId==node.EffectId),context.Registry);
+                using var originalFactories=ItemTransferService.UseFullStructuralPreviewsForDiagnostics();
+                bool expectedValid=CanDepartPreview(originalContext,targets,replace);
+                GameStateCloneService.VerifyItemWorldNodePreviewResult(preview,reference,previewValid,expectedValid);
             }
-            catch (InvalidOperationException) { return StrictRemovalFailed(required, "incomplete_influence_payment"); }
+            if(!previewValid)return StrictRemovalFailed(required,"incomplete_influence_payment");
             string batchId = node.DepartureBatchId;
             var batch = batchId.Length == 0 ? null : state.EffectRuntime.InfluenceDepartureBatches.SingleOrDefault(b => b.BatchId == batchId && !b.Sealed && b.ProducerSteps.Contains(node.EffectId));
             if (batchId.Length > 0 && batch == null) throw new InvalidOperationException("departure_batch_producer_invalid");

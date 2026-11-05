@@ -188,7 +188,7 @@ namespace YC.Infrastructure.Lua
                     if (owningSource != null && handler.CompletionHandlerId.Length > 0 && !registry.HasEventHandler(handler.CompletionHandlerId))
                         dispatcher.RegisterContinuation(new LuaHandlerDefinition(handler.CompletionHandlerId, "EffectCompleted", "", new LuaScriptDefinition(contentId, ability, handler.CompletionHandlerId, handler.Version, source, hash, definition.Script.EntryId),
                             EffectHandlerRole.Continuation, contentInstanceId: instanceId, abilityId: ability));
-                    registry.RegisterAbilityHandler(handler.HandlerId, hash, call =>
+                    registry.RegisterNonRetainedSourceHandler(handler.HandlerId, hash, call =>
                     {
                         var bound = BindSource(definition, call.SourceRef.AbilityId);
                         return dispatcher.Invoke(bound, Context(call, bound, registry));
@@ -203,7 +203,7 @@ namespace YC.Infrastructure.Lua
                             context.Event.Payload.Properties.Sort((a,b) => StringComparer.Ordinal.Compare(a.Name,b.Name));
                             return dispatcher.InvokePlaceRewrite(bound, context);
                         });
-                    if (content.AbilitySources.Any(s => s.Kind == "ruleQuery" && s.HandlerRef == handler.HandlerId)) registry.RegisterAbilityPureHandler(handler.HandlerId, (call, query) =>
+                    if (content.AbilitySources.Any(s => s.Kind == "ruleQuery" && s.HandlerRef == handler.HandlerId)) registry.RegisterNonRetainedAbilityPureHandler(handler.HandlerId, (call, query) =>
                     {
                         var bound = BindSource(definition, call.SourceRef.AbilityId);
                         var context = Context(call, bound, registry);
@@ -237,6 +237,7 @@ namespace YC.Infrastructure.Lua
             CleanupSourceLuaCatalog.Register(registry, settlements);
             foreach (string eventType in Events.Where(e => e != "CandidateSetBuilding"))
             {
+                if (eventType == "EffectCompleted" && AbilityCompletionSourceCatalog.TryRegister(registry, pack.ContentHash)) continue;
                 string subscription = "ability-source.event." + eventType;
                 registry.RegisterEventHandler(new EffectEventHandlerRegistration(subscription, eventType, "", subscription, context =>
                 {
@@ -244,7 +245,7 @@ namespace YC.Infrastructure.Lua
                     foreach (var source in registry.QuerySources(context.State, eventType == "PlayerCleanupStarted" ? context.Event.PlayerId : -1,
                         eventType == "PlayerCleanupStarted" ? "cleanup" : "event", eventType))
                     {
-                        var declaration = registry.AbilityDeclarations.Single(d => d.AbilityId == source.AbilityId);
+                        var declaration = registry.GetAbilitySourceDeclaration(source.AbilityId);
                         if (!AbilityEventLuaFacts.MatchesCompletion(context.State, context.Event, declaration)) continue;
                         if (declaration.Kind == "event" && declaration.AllowedOperations.Any(p => p.StartsWith("response.", StringComparison.Ordinal))) continue;
                         EffectSpec root;
@@ -261,7 +262,9 @@ namespace YC.Infrastructure.Lua
                         effects.Add(root);
                     }
                     return effects;
-                }, EffectHandlerRole.Observer, definitionVersion: "1.0.0", contentHash: pack.ContentHash, contentId: "ability-source.catalog"));
+                }, EffectHandlerRole.Observer, definitionVersion: "1.0.0", contentHash: pack.ContentHash, contentId: "ability-source.catalog")
+                    // 这些路径只从真实来源构造脱离原图的Spec；可用性回调及收尾注入不作此声明。
+                    .WithNonRetainedStateContract(() => eventType != "PlayerCleanupStarted" && !registry.HasAvailabilityControlledEventSource(eventType)));
             }
         }
         private static LuaHandlerDefinition BindSource(LuaHandlerDefinition definition, string abilityId) => new LuaHandlerDefinition(definition.SubscriptionId,

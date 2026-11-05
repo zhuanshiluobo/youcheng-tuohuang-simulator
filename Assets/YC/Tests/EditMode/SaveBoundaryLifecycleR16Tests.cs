@@ -223,6 +223,35 @@ namespace YC.Tests.EditMode
         }
 
 #if !YC_WINDOW_EXECUTION_OFFLINE
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator HotseatAsyncExportKeepsItsFrozenRevisionWhileTheOwnerContinues()
+            => R16AwaitNative(HotseatAsyncExportKeepsItsFrozenRevisionWhileTheOwnerContinuesAsync());
+        private async Task HotseatAsyncExportKeepsItsFrozenRevisionWhileTheOwnerContinuesAsync()
+#else
+        public async Task HotseatAsyncExportKeepsItsFrozenRevisionWhileTheOwnerContinues()
+#endif
+        {
+            var fixture=R16LocalFixture("r16-local-background-export");var session=new GameSession(fixture.State);
+            fixture.Registry.Register(new EffectRegistration("qy008.r16.after_capture",ctx=>{
+                ctx.State.FindPlayer(1).Score+=5;return EffectStepResult.Completed();
+            },EffectExecutorKind.Atomic));
+            int revision=session.State.EffectRuntime.StateRevision,score=session.State.FindPlayer(1).Score;
+            var pending=session.CaptureStableSavePointAsync();
+            var engine=fixture.Rounds.CreateCommandExecutor(session.State);
+            engine.CreateRoot(EffectSpec.Create("qy008.r16.after_capture",playerId:1));
+            Require(!engine.RunUntilQuiescent().Faulted,"捕获后所属线程无法继续正常规则结算");
+            var captured=await pending;
+            Require(captured.Archive.Snapshot.State.EffectRuntime.StateRevision==revision &&
+                captured.Archive.Snapshot.State.FindPlayer(1).Score==score,"后台导出被后续规则推进替换或污染");
+            Require(session.State.FindPlayer(1).Score==score+5 && session.State.EffectRuntime.StateRevision>revision,
+                "导出覆盖了活动会话或冻结了所属线程");
+            captured.Archive.Snapshot.State.FindPlayer(1).Score=-1;
+            Require(session.State.FindPlayer(1).Score==score+5,"导出结果与活动状态共享可变玩家对象");
+            var latest=await session.CaptureStableSavePointAsync();
+            Require(latest.Archive.Snapshot.State.FindPlayer(1).Score==score+5,"后续异步捕获丢失新推进");
+        }
+
+#if !YC_WINDOW_EXECUTION_OFFLINE
         private static readonly string[] R16NativeSaveEntries = { "manual", "automatic", "leave" };
         [UnityEngine.TestTools.UnityTest]
         public System.Collections.IEnumerator NativeHotseatSaveEntrypointsDeferLeafCapture([ValueSource(nameof(R16NativeSaveEntries))] string entry)

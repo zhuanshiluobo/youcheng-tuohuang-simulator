@@ -11,7 +11,9 @@ namespace YC.Domain.Items
 {
     public sealed partial class ItemTransferService
     {
-        public static string MovementV4Digest(object value) => ItemMovementV4.ContractVersion + ":sha256:" + CanonicalHash(value == null ? JValue.CreateNull() : JToken.FromObject(value));
+        public static string MovementV4Digest(object value) => ItemMovementV4.ContractVersion + ":sha256:" +
+            (value is NormalizedValue normalized && Newtonsoft.Json.JsonConvert.DefaultSettings == null
+                ? CanonicalNormalizedHash(normalized) : CanonicalHash(value == null ? JValue.CreateNull() : JToken.FromObject(value)));
         internal static bool MarkerInventoryZone(ZoneInstanceState zone) => zone != null &&
             new[] { "core.zone.player_supply", "core.zone.card_cube_storage", "core.zone.board_marker_track", "core.zone.box_reserve", "core.zone.box_retired", "core.zone.effect_staging" }.Contains(zone.TemplateId) &&
             zone.VisibilityPolicyId != ItemZoneVisibility.SecretRetired;
@@ -76,8 +78,9 @@ namespace YC.Domain.Items
             var pending = context.State.EffectRuntime.DeferredResponses.Where(r => r.Status == DeferredResponseStatus.Pending && r.ReservedItemId == item.ItemId &&
                 r.ReservationZoneId == item.ZoneId && r.AnsweringPlayerId == context.Node.PlayerId &&
                 (source.ParentKind == ZoneParentKind.Item && r.SourceCardInstanceId == source.ParentId || r.OriginalSupplyZoneId == source.ZoneId)).ToList();
-            return pending.Count == 1 && context.Registry.TryGetDeferredResponseDestination(pending[0].DestinationHandlerId, out var registration) &&
-                registration.TryValidateDeferredDestination(context.State, pending[0], out _);
+            if(pending.Count!=1 || !context.Registry.TryGetDeferredResponseDestination(pending[0].DestinationHandlerId,out var registration)) return false;
+            ExecutionWorkRetentionScope.Expose(context.State);
+            return registration.TryValidateDeferredDestination(context.State, pending[0], out _);
         }
         private static ItemTransferRequest MarkerRequest(int player, NormalizedValue leg, MarkerMoveItemFactV4 fact) => new ItemTransferRequest {
             ExecutingPlayerId = player, ItemIds = new List<string> { fact.ItemId }, ExpectedSource = GameStateCloneService.DeepClone(fact.From),
@@ -116,14 +119,29 @@ namespace YC.Domain.Items
                 var valid = ValidateCore(context.State, request, false, false, false);
                 if (!valid.IsValid) return valid;
             }
-            var preview = GameStateCloneService.DeepClone(context.State);
+            var preview = StructuralPreview(context.State, "marker_v4", out var reference);
             var moved = ApplyMarkerPlan(preview, plan);
+            if (reference != null)
+            {
+                VerifyStructuralSource(context.State, reference);
+                var expected = ApplyMarkerPlan(reference, plan);
+                VerifyStructuralResult(preview, reference);
+                if (!GameStateCloneService.AreEquivalentPersistentValues(moved, expected, typeof(ItemTransferResult)))
+                    throw new InvalidOperationException("标记转移结构预检与原完整克隆的结果不一致。");
+            }
             foreach (var leg in ItemMovementV4.Legs(context.Node.NormalizedArguments))
             {
                 var ids = Value(Value(leg, "selector"), "itemIds").Items.Select(v => v.StringValue).ToList();
                 if (moved.MovedItemIds.Count(ids.Contains) < Number(leg, "requiredCount")) return Invalid("insufficient_items");
             }
-            if (!query.TryValidate(preview, out reason)) return Invalid(reason);
+            bool validPreview = query.TryValidate(preview, out reason);
+            if (reference != null)
+            {
+                bool expectedValid = query.TryValidate(reference, out string expectedReason);
+                if (expectedValid != validPreview || expectedReason != reason)
+                    throw new InvalidOperationException("标记转移结构校验与原完整克隆不一致。");
+            }
+            if (!validPreview) return Invalid(reason);
             return new ItemTransferValidationResult { IsValid = true };
         }
         private static ItemTransferResult ApplyMarkerPlan(GameState state, ItemMovementPlanV4 plan)

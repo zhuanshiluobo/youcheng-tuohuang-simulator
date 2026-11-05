@@ -7,6 +7,7 @@ using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Infrastructure.Lua;
 using YC.Tests.EditMode.ExpansionRules;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
@@ -23,6 +24,30 @@ namespace YC.Tests.EditMode
             Assert.That(actual.IsValid, Is.EqualTo(expected.IsValid));
             Assert.That(actual.ErrorCode, Is.EqualTo(expected.ErrorCode));
             Assert.That(actual.Reason, Is.EqualTo(expected.Reason));
+        }
+
+        [Test]
+        public void LuaFacilityProjectionMatchesFreshCityEvidenceAndSeesNextMutation()
+        {
+            var state=State();
+            string definition=Definition(state,d=>!d.Unique && !d.HasEntryEffect);
+            Put(state,Card(state,definition).ItemId,0);
+            string before=RuleStateDigestService.Compute(state);
+            var first=FacilityLayerLuaCatalog.CreateProjection(state);
+            foreach(var player in state.Players)
+            {
+                var cells=FacilityLayerQuery.ResolveCity(state,player.PlayerId);
+                Assert.That(FacilityLayerLuaCatalog.GetFactsDigest(first,"p"+player.PlayerId).StringValue,
+                    Is.EqualTo(FacilityLayerEvidence.Digest(state,player.PlayerId)));
+                Assert.That(FacilityLayerEvidence.Digest(player.PlayerId,cells),Is.EqualTo(FacilityLayerEvidence.Digest(state,player.PlayerId)));
+                Assert.That(Newtonsoft.Json.JsonConvert.SerializeObject(FacilityLayerQuery.ResolveTowerAdjacency(state,cells)),
+                    Is.EqualTo(Newtonsoft.Json.JsonConvert.SerializeObject(FacilityLayerQuery.ResolveTowerAdjacency(state,player.PlayerId))));
+            }
+            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(before));
+            Put(state,Card(state,definition).ItemId,1);
+            var second=FacilityLayerLuaCatalog.CreateProjection(state);
+            Assert.That(FacilityLayerLuaCatalog.GetFactsDigest(second,"p1").StringValue,
+                Is.Not.EqualTo(FacilityLayerLuaCatalog.GetFactsDigest(first,"p1").StringValue));
         }
 
         [Test]
@@ -138,6 +163,38 @@ namespace YC.Tests.EditMode
                 Assert.That(RuleStateDigestService.Compute(state), Is.EqualTo(before), "只读回调不能推进状态或收据。");
             }
             finally { YC.Infrastructure.Lua.LuaEffectEventDispatcher.CpuTimingSample = previous; }
+        }
+
+        [Test]
+        public void SharedSnapshotKeepsFreshLuaQueryBodiesAndExactResultsForEachCandidateAndPlayer()
+        {
+            var state=State();OwnInfluence(state);
+            string low=Definition(state,d=>!d.Unique && !d.HasEntryEffect);
+            string high=Definition(state,d=>!d.Unique && d.Score>FacilityCardDatabase.Get(state,low).Score);
+            Put(state,Card(state,low).ItemId,0);
+            var first=Card(state,high).ItemId;var second=Card(state,high,1).ItemId;
+            string baseline=RuleStateDigestService.Compute(state);
+            string Read(int player,string item)=>Newtonsoft.Json.JsonConvert.SerializeObject(Registry.FacilityBuildQueries.ResolveSlots(state,player,item));
+            var expected=new[]{Read(1,first),Read(1,second),Read(2,first)};
+            int stamps=0,executions=0;
+            var previous=YC.Infrastructure.Lua.LuaEffectEventDispatcher.CpuTimingSample;
+            YC.Infrastructure.Lua.LuaEffectEventDispatcher.CpuTimingSample=(phase,handler,ticks)=> {
+                if(phase=="lua.snapshot.stamp")stamps++;
+                if(phase=="lua.execute")executions++;
+            };
+            try
+            {
+                using(ReadOnlyStateQueryScope.Begin(state))
+                {
+                    var actual=new[]{Read(1,first),Read(1,second),Read(2,first)};
+                    Assert.That(actual,Is.EqualTo(expected));
+                    Assert.That(executions,Is.GreaterThan(stamps),"Lua正文仍逐候选执行，只复用共同快照");
+                }
+                int old=stamps;Read(1,first);
+                Assert.That(stamps,Is.GreaterThan(old),"同步作用域结束后必须重新物化");
+            }
+            finally {YC.Infrastructure.Lua.LuaEffectEventDispatcher.CpuTimingSample=previous;}
+            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(baseline));
         }
     }
 }

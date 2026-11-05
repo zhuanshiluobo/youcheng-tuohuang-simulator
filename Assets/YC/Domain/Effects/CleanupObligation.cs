@@ -35,7 +35,7 @@ namespace YC.Domain.Effects
         {
             if(registry.TryGet(ScheduleType,out _)) return;
             registry.Register(new EffectRegistration(ScheduleType,Schedule,EffectExecutorKind.IntrinsicFlow,Version));
-            registry.Register(new EffectRegistration(InvokeType,Invoke,EffectExecutorKind.IntrinsicFlow,Version));
+            registry.Register(new EffectRegistration(InvokeType,Invoke,EffectExecutorKind.IntrinsicFlow,Version) { ExecutionDoesNotRetainState=true });
             registry.RegisterSettlementSourceContract(new SettlementSourceContract(InvokeType,InvokeType,SettlementLocalId,
                 SettlementEntryService.CleanupOrder,"",SettlementWholeEffectPolicy.Required));
             registry.RegisterEventHandler(new EffectEventHandlerRegistration("cleanup.obligation.due","PlayerCleanupStarted","","cleanup.obligation.due",c=>
@@ -83,7 +83,7 @@ namespace YC.Domain.Effects
             if(!ActiveOrigin(c.State,c.Node,out var kind,out var id,out var owner,out var source,out var version) || source.AuthorizedPlayerId!=c.Node.PlayerId ||
                 !c.Registry.QuerySources(c.State,c.Node.PlayerId).Any(s=>CleanupSourceService.SourceProofDigest(s)==CleanupSourceService.SourceProofDigest(source)))
                 throw new InvalidOperationException("cleanup_obligation_origin_unauthorized");
-            var d=c.Registry.AbilityDeclarations.Single(x=>x.AbilityId==source.AbilityId && x.DefinitionId==source.DefinitionId);
+            var d=c.Registry.SelectSingleAbilityDeclaration(x=>x.AbilityId==source.AbilityId && x.DefinitionId==source.DefinitionId);
             string handler=Text(c.Node.NormalizedArguments,"handlerRef");int due=Number(c.Node.NormalizedArguments,"dueRound");
             if(!d.AllowedOperations.Contains("cleanup.defer:"+handler) || c.Registry.GetAbilityHandlerHash(handler).Length==0 || due<c.State.Round || due>c.State.MaxRounds)
                 throw new InvalidOperationException("cleanup_obligation_permission_or_due_invalid");
@@ -113,7 +113,7 @@ namespace YC.Domain.Effects
                 var step=EffectStepResult.Continue("body");foreach(var child in body) step.AddChild(child);return step;
             }
             if(c.Node.FlowStage!="body") throw new InvalidOperationException("cleanup_obligation_stage_invalid");
-            var nodes=c.State.EffectRuntime.EffectNodes.Where(n=>n.EffectId!=c.Node.EffectId && EffectExecutionBinding.Within(c.State,n.EffectId,c.Node.EffectId)).ToList();
+            var nodes=EffectDescendantQuery.Select(c.State,c.Node.EffectId,false,true,true);
             var expected=new HashSet<string>(nodes.Where(n=>n.EffectTypeId==EffectTypeIds.Condition && Text(n.NormalizedResult,"outcome")=="condition_not_met").Select(n=>Text(n.NormalizedResult,"failedChildId")));
             if(nodes.Any(n=>!CleanupSourceService.Terminal(n) || n.Status==EffectNodeStatus.Faulted || n.Status==EffectNodeStatus.Failed && !expected.Contains(n.EffectId) && n.EffectTypeId!=EffectTypeIds.Condition))
                 throw new InvalidOperationException("cleanup_obligation_body_unfulfilled");

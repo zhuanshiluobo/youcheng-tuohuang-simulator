@@ -234,8 +234,15 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void RecycleIsIdempotentAndLeavesPersistentCards()
         {
             var state = State(); var registry = Registry(tacticType: "persistent"); var cards = Ids(state, "hand", 1); Cover(state, registry, cards[0]); Use(state, registry, cards[0], "tactic"); Cover(state, registry, cards[1]); Use(state, registry, cards[1]); Cover(state, registry, cards[2]);
+            var reference=GameStateCloneService.DeepClone(state);
+            using(CharacterLifecycleService.UseFullRecycleCopiesForDiagnostics())
+            {
+                Run(reference,registry,EffectSpec.Create("test.recycle",playerId:1));
+                Run(reference,registry,EffectSpec.Create("test.recycle",playerId:1));
+            }
             var first = Run(state, registry, EffectSpec.Create("test.recycle", playerId: 1)); var second = Run(state, registry, EffectSpec.Create("test.recycle", playerId: 1));
             Assert.That(Number(first.NormalizedResult, "movedCount"), Is.EqualTo(2)); Assert.That(Number(second.NormalizedResult, "movedCount"), Is.Zero); Assert.That(Ids(state, "persistent", 1), Is.EqualTo(new[] { cards[0] }));
+            Assert.That(GameStateCloneService.AreEquivalent(state,reference),Is.True,"整批回收与原逐牌完整事务的所有持久字段必须一致");
         }
         [Test] public void TransferDuringModeKeepsCardInNewHoldersHandAfterOldFinish()
         {
@@ -457,7 +464,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(); var registry = Registry(); string card = Ids(state, "hand", 1)[0]; Cover(state, registry, card); Use(state, registry, card); string opponent = Ids(state, "hand", 2)[0];
             registry.Register("test.invalid_recycle", context => CharacterLifecycleService.Recycle(context, 1, false, new[] { card, opponent }));
+            var reference=GameStateCloneService.DeepClone(state);
+            using(CharacterLifecycleService.UseFullRecycleCopiesForDiagnostics())
+                Run(reference,registry,EffectSpec.Create("test.invalid_recycle",playerId:1));
             Assert.That(Run(state, registry, EffectSpec.Create("test.invalid_recycle", playerId: 1)).Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(Ids(state, "discard", 1), Does.Contain(card));
+            Assert.That(GameStateCloneService.AreEquivalent(state,reference),Is.True,"后张牌失败时，前张合法牌及全部持久字段须与原完整事务一致");
         }
         [TestCase(false)][TestCase(true)] public void DispatchReturnSourcesAndCurrentUseExclusionComeFromItsEntry(bool excludeCurrent)
         {

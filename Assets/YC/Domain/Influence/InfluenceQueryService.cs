@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.State;
 
@@ -57,11 +58,12 @@ namespace YC.Domain.Influence
             if (state == null) throw new ArgumentNullException(nameof(state));
             var results = new List<InfluencePlacement>();
             if (state.FindPlayer(playerId) == null) return results;
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var placements = state.Map.Influences.ToArray();
+            for (var i = 0; i < placements.Length; i++)
             {
-                if (state.Map.Influences[i].PlayerId == playerId)
+                if (placements[i].PlayerId == playerId)
                 {
-                    results.Add(state.Map.Influences[i]);
+                    results.Add(placements[i]);
                 }
             }
 
@@ -78,9 +80,10 @@ namespace YC.Domain.Influence
             }
 
             var counts = new Dictionary<int, int>();
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var placements = state.Map.Influences.ToArray();
+            for (var i = 0; i < placements.Length; i++)
             {
-                var placement = state.Map.Influences[i];
+                var placement = placements[i];
                 if (state.FindPlayer(placement.PlayerId) == null || !IsPlacementInRegion(placement, region))
                 {
                     continue;
@@ -137,6 +140,10 @@ namespace YC.Domain.Influence
             var requestedSlotValid = InfluenceSlotReference.TryParse(
                 mapQuery, slotId, out requestedSlot, out ignoredReason);
 
+            // 兼容投影的Count和下标都会重新构建全表；只固定本次查询，不跨调用缓存。
+            if (placements is LegacyPositionList<InfluencePlacement> projected)
+                placements = projected.ToArray();
+
             // 迁移期参数仍叫 sourceInfluenceId，但优先按实例身份查找，避免槽位移动后寻址漂移。
             for (var i = 0; i < placements.Count; i++)
             {
@@ -175,9 +182,10 @@ namespace YC.Domain.Influence
         {
             if (state.FindPlayer(playerId) == null) return 0;
             var count = 0;
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var placements = state.Map.Influences.ToArray();
+            for (var i = 0; i < placements.Length; i++)
             {
-                var placement = state.Map.Influences[i];
+                var placement = placements[i];
                 if (placement.PlayerId != playerId)
                 {
                     continue;

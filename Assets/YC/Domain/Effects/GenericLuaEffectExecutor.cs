@@ -116,7 +116,11 @@ namespace YC.Domain.Effects
                         ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic,
                     effectTypeIds[i] == LuaDomainEffectTypeIds.ExecuteMainAction ? ImmediateMainActionVersion : effectTypeIds[i]==LuaDomainEffectTypeIds.Choice ? ChoiceDefinitionVersion : "1.0.0")
                 {
-                    Validator = Validate
+                    Validator = Validate,
+                    ExecutionDoesNotRetainState = effectTypeIds[i] == LuaDomainEffectTypeIds.Choice || effectTypeIds[i] == LuaDomainEffectTypeIds.LoseScore,
+                    // Choice只生成脱离状态的结果/子式/请求，扣分仅写标量；实际外部回调仍撤销该证明。
+                    ExecutionPreservesUniqueReferences = effectTypeIds[i] == LuaDomainEffectTypeIds.Choice || effectTypeIds[i] == LuaDomainEffectTypeIds.LoseScore,
+                    ExecutionPreservesJournalPrefix = effectTypeIds[i] == LuaDomainEffectTypeIds.Choice || effectTypeIds[i] == LuaDomainEffectTypeIds.LoseScore
                 });
             }
         }

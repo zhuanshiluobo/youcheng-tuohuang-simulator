@@ -148,9 +148,10 @@ namespace YC.Domain.Facilities
         public bool HasReplaceableOpponentInfluence(GameState state, int playerId)
         {
             ValidateState(state);
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var influence = state.Map.Influences[i];
+                var influence = influences[i];
                 if (influence.PlayerId != playerId && !string.IsNullOrEmpty(influence.SlotId))
                 {
                     return true;
@@ -181,17 +182,18 @@ namespace YC.Domain.Facilities
         {
             ValidateState(state);
             var targetSlots = EnumerateInfluenceSlots();
-            for (var removeIndex = 0; removeIndex < state.Map.Influences.Count; removeIndex++)
+            var influences = state.Map.Influences.ToArray();
+            for (var removeIndex = 0; removeIndex < influences.Length; removeIndex++)
             {
-                var removeSlotId = state.Map.Influences[removeIndex].SlotId;
+                var removeSlotId = influences[removeIndex].SlotId;
                 if (string.IsNullOrEmpty(removeSlotId))
                 {
                     continue;
                 }
 
-                for (var sourceIndex = 0; sourceIndex < state.Map.Influences.Count; sourceIndex++)
+                for (var sourceIndex = 0; sourceIndex < influences.Length; sourceIndex++)
                 {
-                    var source = state.Map.Influences[sourceIndex];
+                    var source = influences[sourceIndex];
                     if (source.PlayerId != playerId || string.IsNullOrEmpty(source.SlotId))
                     {
                         continue;

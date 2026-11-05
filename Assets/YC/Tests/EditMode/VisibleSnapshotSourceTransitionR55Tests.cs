@@ -166,6 +166,109 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void LocalInputReadReusesOnlyWithinScopeAndExpiresOnRevisionViewerAndExit()
+        {
+            Set(launch,"Mode",LaunchMode.Local);Set(session,"View",null);
+            state.Players.Add(new PlayerState{PlayerId=1,HandCardIds=new List<string>{"本人私有牌"}});
+            state.Players.Add(new PlayerState{PlayerId=2});
+            GameStateView first;
+            using((IDisposable)Call(mobile,"BeginVisibleRead"))
+            {
+                first=(GameStateView)Call(mobile,"VisibleSaleState");
+                using((IDisposable)Call(mobile,"BeginVisibleRead"))
+                    Assert.That(Call(mobile,"VisibleSaleState"),Is.SameAs(first));
+                Assert.That(Call(mobile,"VisibleSaleState"),Is.SameAs(first));
+                state.EffectRuntime.StateRevision++;
+                var revised=(GameStateView)Call(mobile,"VisibleSaleState");
+                Assert.That(revised,Is.Not.SameAs(first));Assert.That(revised.StateRevision,Is.EqualTo(42));
+                Set(mobile,"localPlayerId",2);
+                var other=(GameStateView)Call(mobile,"VisibleSaleState");
+                Assert.That(other,Is.Not.SameAs(revised));Assert.That(other.ViewerPlayerId,Is.EqualTo(2));
+                Assert.That(other.Players.Single(p=>p.PlayerId==1).HandCardIds,Is.Empty);
+            }
+            Set(mobile,"localPlayerId",1);
+            using((IDisposable)Call(mobile,"BeginVisibleRead"))
+                Assert.That(Call(mobile,"VisibleSaleState"),Is.Not.SameAs(first));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DialogInputReadReusesWithinTheCallbackExpiresAtCommitAndDisposesAfterFailure(bool fail)
+        {
+            Set(launch, "Mode", LaunchMode.Local); Set(session, "View", null);
+            state.Players.Add(new PlayerState { PlayerId = 1 });
+            var registry = InactiveComponent("GameplayDialogRegistry");
+            var dialog = Activator.CreateInstance(Presentation("EventChoiceDialog"), new object[] { registry, (Func<RectTransform>)(() => null) });
+            Set(dialog, "BeginReadScope", (Func<IDisposable>)(() => (IDisposable)Call(mobile, "BeginVisibleRead")));
+            var root = new GameObject("R55隔离对话框输入", typeof(RectTransform), typeof(UnityEngine.UI.Button)); owned.Add(root);
+            var button = root.GetComponent<UnityEngine.UI.Button>();
+            GameStateView captured = null, afterCommit = null;
+            UnityEngine.Events.UnityAction callback = () =>
+            {
+                captured = (GameStateView)Call(mobile, "VisibleSaleState");
+                Assert.That(Call(mobile, "VisibleSaleState"), Is.SameAs(captured));
+                state.EffectRuntime.StateRevision++;
+                afterCommit = (GameStateView)Call(mobile, "VisibleSaleState");
+                Assert.That(afterCommit, Is.Not.SameAs(captured));
+                if (fail) throw new InvalidOperationException("隔离输入失败");
+            };
+            Call(dialog, "BindInput", button, callback);
+            if (fail) Assert.Throws<InvalidOperationException>(() => button.onClick.Invoke());
+            else button.onClick.Invoke();
+            Assert.That(captured, Is.Not.Null); Assert.That(afterCommit, Is.Not.Null);
+            Assert.That(Call(mobile, "VisibleSaleState"), Is.Not.SameAs(afterCommit), "输入返回或抛错后都不得保留投影");
+        }
+
+        [TestCase("revision")]
+        [TestCase("viewer")]
+        [TestCase("source")]
+        [TestCase("finished")]
+        [TestCase("instance")]
+        [TestCase("request")]
+        [TestCase("candidate")]
+        [TestCase("visibility")]
+        public void LocalCharacterViewerGuardChecksBoundFactsWithoutBuildingANewPlayerProjection(string change)
+        {
+            // 隔离生命周期核验；不创建正式游戏或替代正常角色行动验收。
+            Set(launch, "Mode", LaunchMode.Local);
+            var model = CharacterCardPanelViewModel.Empty(string.Empty);
+            Set(model, "UsesEntityLifecycle", true); Set(model, "CurrentUseId", "use-bound");
+            var use = new YC.Domain.Cards.CharacterUseRuntimeState { UseId = "use-bound", OwnerEffectId = "owner", CardInstanceId = model.CoveredCardId, ExecutingPlayerId = 1 };
+            state.CharacterUses.Add(use);
+            state.ItemZones.Items.Add(new YC.Domain.Items.ItemInstanceState { ItemId = model.CoveredCardId,
+                ControllerSubject = new YC.Domain.Items.ItemSubjectRef { Kind = YC.Domain.Items.ItemSubjectKind.Player, PlayerId = 1 } });
+            InteractionRequest boundRequest = null;
+            if (change == "candidate" || change == "visibility")
+            {
+                boundRequest = new InteractionRequest { InteractionId = "request-bound", OwnerEffectId = "owner", AnsweringPlayerId = 1,
+                    Visibility = GameStateVisibilityPolicy.Owner, Status = "open", InteractionTypeId = YC.Domain.Cards.CharacterLifecycleService.ModeInteractionTypeId,
+                    CandidateIds = new List<string> { "strategy" }, CandidateSetId = "candidate-bound", CandidateSetVersion = 1 };
+                state.EffectRuntime.InteractionRequests.Add(boundRequest);
+                Set(model, "CurrentUseSelection", new YC.Domain.Interactions.InteractionRequestProjection {
+                    InteractionId = boundRequest.InteractionId, OwnerEffectId = boundRequest.OwnerEffectId, InteractionTypeId = boundRequest.InteractionTypeId,
+                    CandidateSetId = boundRequest.CandidateSetId, CandidateSetVersion = boundRequest.CandidateSetVersion,
+                    CandidateIds = new List<string>(boundRequest.CandidateIds), StateRevision = boundRequest.StateRevision });
+            }
+            var key = (string)Call(mobile, "CharacterUseKey", model);
+            var guard = (Func<bool>)Call(mobile, "CreateCharacterViewerCurrentGuard", model, key);
+            // characterCardPresenter故意不装配；守卫的有效检查不得重建整个玩家投影。
+            for (int i = 0; i < 100; i++) Assert.That(guard(), Is.True);
+            switch (change)
+            {
+                case "revision": state.EffectRuntime.StateRevision++; break;
+                case "viewer": Set(mobile, "localPlayerId", 2); break;
+                case "source": Set(mobile, "commandSubmission", Submission(true)); BindWithoutPublication(); break;
+                case "finished": use.Finished = true; break;
+                case "instance": use.CardInstanceId = "other-instance"; break;
+                case "request": state.EffectRuntime.InteractionRequests.Add(new InteractionRequest { OwnerEffectId = "owner", AnsweringPlayerId = 1,
+                    Status = "open", InteractionTypeId = YC.Domain.Cards.CharacterLifecycleService.ModeInteractionTypeId }); break;
+                case "candidate": boundRequest.CandidateIds.Add("tactic"); break;
+                case "visibility": boundRequest.Visibility = "player:2"; break;
+            }
+            Assert.That(guard(), Is.False);
+        }
+
+        [Test]
         public void ExistingInspectionInstanceAndFaceCheckRemainsStrict()
         {
             var expected = new PlayerDetailEntry { EntryId = "detail", SourceItemId = "ability",

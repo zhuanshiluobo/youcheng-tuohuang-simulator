@@ -156,7 +156,7 @@ namespace YC.Domain.Effects
         private static bool ValidateTokenReceipt(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner, PaymentSourceReceipt receipt, out string reason)
         {
             reason = "payment_token_receipt_invalid";
-            if (registry != null && (!registry.AbilityDeclarations.Any(d => d.AbilityId == receipt.Rule.SourceRef.AbilityId && d.DefinitionId == receipt.Rule.SourceRef.DefinitionId &&
+            if (registry != null && (!registry.ContainsAbilityDeclaration(d => d.AbilityId == receipt.Rule.SourceRef.AbilityId && d.DefinitionId == receipt.Rule.SourceRef.DefinitionId &&
                 d.DeclarationVersion == receipt.Rule.SourceRef.DeclarationVersion && registry.GetAbilityHandlerHash(d.HandlerRef) == receipt.Rule.VersionRef.HandlerHash) ||
                 receipt.Rule.VersionRef.ContentPackHash != registry.ContentPackHash)) return false;
             var cost = receipt.Rule.ItemCost;

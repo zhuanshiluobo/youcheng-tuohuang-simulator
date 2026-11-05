@@ -287,7 +287,7 @@ namespace YC.Domain.Effects
                 !new[] { "available", "executing", "resolved" }.Contains(e.SettlementState) ||
                 JsonConvert.SerializeObject(e.Presentation) != JsonConvert.SerializeObject(r.Insertion.Presentation) ||
                 e.Effects?.Count != 1 || !ValidBody(owner, r, e.Effects[0])) return false;
-            if (registry != null && (r.VersionRef.ContentPackHash != registry.ContentPackHash || !registry.AbilityDeclarations.Any(d => d.DefinitionId == r.SourceRef.DefinitionId && d.AbilityId == r.SourceRef.AbilityId &&
+            if (registry != null && (r.VersionRef.ContentPackHash != registry.ContentPackHash || !registry.ContainsAbilityDeclaration(d => d.DefinitionId == r.SourceRef.DefinitionId && d.AbilityId == r.SourceRef.AbilityId &&
                 d.Kind == "ruleQuery" && d.QueryKinds.Contains(ResourcePaymentSourceService.QueryKind) && d.DeclarationVersion == r.VersionRef.DefinitionVersion && registry.GetAbilityHandlerHash(d.HandlerRef) == r.VersionRef.HandlerHash))) return false;
             foreach (var i in saved.Invocations)
             {

@@ -56,7 +56,7 @@ namespace YC.Domain.Effects
                 if (entryConditionError.Length > 0) return Fail(id + ":" + entryConditionError, out diagnostic);
                 if (registry != null)
                 {
-                    var declaration = registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == i.SourceRef.AbilityId && d.DefinitionId == i.SourceRef.DefinitionId);
+                    var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == i.SourceRef.AbilityId && d.DefinitionId == i.SourceRef.DefinitionId);
                     var action = declaration?.Actions.SingleOrDefault(a => a.ActionId == i.ActionId);
                     if (!registry.HasAbilityCatalog || action == null || i.SourceRef.DeclarationVersion != declaration.DeclarationVersion || i.VersionRef.ContentPackHash != registry.ContentPackHash ||
                         i.VersionRef.HandlerHash != registry.HandlerHash(action.BodyHandlerRef) || i.VersionRef.DefinitionVersion != declaration.DeclarationVersion) return Fail(id + ":frozen_content_mismatch", out diagnostic);
@@ -76,7 +76,7 @@ namespace YC.Domain.Effects
                     !runtime.EffectNodes.Any(n => n.EffectId == receipt.OwnerEffectId && n.PlayerId == receipt.PlayerId) ||
                     !state.ItemZones.Items.Any(i => i.ItemId == receipt.ItemId) || !runtime.RuleEvents.Any(e => e.EventId == receipt.TriggerEventId) ||
                     !runtime.DispatchReceipts.Any(r => r.EventId == receipt.TriggerEventId && r.AttachedEffectIds.Contains(receipt.OwnerEffectId))) return Fail("source_use_receipt_invalid", out diagnostic);
-                else if (registry != null && (receipt.VersionRef.ContentPackHash != registry.ContentPackHash || !registry.AbilityDeclarations.Any(d => d.AbilityId == receipt.AbilityId && d.DeclarationVersion == receipt.VersionRef.DefinitionVersion &&
+                else if (registry != null && (receipt.VersionRef.ContentPackHash != registry.ContentPackHash || !registry.ContainsAbilityDeclaration(d => d.AbilityId == receipt.AbilityId && d.DeclarationVersion == receipt.VersionRef.DefinitionVersion &&
                     registry.HandlerHash(d.HandlerRef) == receipt.VersionRef.HandlerHash))) return Fail("source_use_frozen_content_mismatch", out diagnostic);
             return true;
         }

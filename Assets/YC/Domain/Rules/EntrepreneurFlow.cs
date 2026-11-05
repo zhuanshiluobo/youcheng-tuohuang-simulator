@@ -147,7 +147,7 @@ namespace YC.Domain.Rules
             if (c.Node.FlowStage == "")
             {
                 if (group.SelectedCandidateId.Length > 0) throw new InvalidOperationException("entrepreneur_face_already_selected");
-                if (definition.Candidates.Any(f => !c.Registry.AbilityDeclarations.Any(d => d.DefinitionId == f.EntityDefinitionId && d.ActiveFaceId == f.FaceId && d.AuthorizationPolicy == "active_selection"))) throw new InvalidOperationException("entrepreneur_face_rules_missing");
+                if (definition.Candidates.Any(f => !c.Registry.ContainsAbilityDeclaration(d => d.DefinitionId == f.EntityDefinitionId && d.ActiveFaceId == f.FaceId && d.AuthorizationPolicy == "active_selection"))) throw new InvalidOperationException("entrepreneur_face_rules_missing");
                 group.OwnerEffectId = c.Node.EffectId;
                 return Choose(c, "selecting", FaceInteraction, group.Candidates.Select(f => f.CandidateId), Object("abilitySourceCandidates", NormalizedValue.CreateArray(group.Candidates.Select(f =>
                     Object("candidateId", NormalizedValue.CreateString(f.CandidateId), "itemId", NormalizedValue.CreateString(f.EntityItemId), "definitionId", NormalizedValue.CreateString(f.DefinitionId), "faceId", NormalizedValue.CreateString(f.FaceId))).ToList())));
@@ -167,7 +167,7 @@ namespace YC.Domain.Rules
                 AbilitySourceSelection.GrantSharedRules(c, player.AbilityItemId, shared.Where(s => player.RoundGroups.Any(g => g.Candidates.Any(f => f.EntityItemId == s.ItemId) && g.SelectedCandidateId.Length > 0)));
                 group.ImmediateEntries = Entries(c.Node.EffectId, definition.Candidates.Single(f => f.CandidateId == selected.CandidateId).ImmediateHandlerRefs);
                 var step = EffectStepResult.Continue("initializing");
-                foreach (var track in c.State.ContentDefinitions.UsageTracks.Where(t => t.DefinitionId == selected.DefinitionId && c.Registry.AbilityDeclarations.Any(d => d.DefinitionId == t.DefinitionId && d.ActiveFaceId == selected.FaceId && d.Actions.Any(a => a.UsageTrackId == t.TrackId)))) step.AddChild(UsageTracks.CreateInitialization(c.Node.PlayerId, item.ItemId, track.TrackId));
+                foreach (var track in c.State.ContentDefinitions.UsageTracks.Where(t => t.DefinitionId == selected.DefinitionId && c.Registry.ContainsAbilityDeclaration(d => d.DefinitionId == t.DefinitionId && d.ActiveFaceId == selected.FaceId && d.Actions.Any(a => a.UsageTrackId == t.TrackId)))) step.AddChild(UsageTracks.CreateInitialization(c.Node.PlayerId, item.ItemId, track.TrackId));
                 return step;
             }
             if (c.Node.FlowStage == "initializing")
@@ -193,7 +193,7 @@ namespace YC.Domain.Rules
                     continue;
                 }
                 if (entry.Status != "pending") throw new InvalidOperationException("entrepreneur_entry_receipt_missing");
-                var sources = c.Registry.QuerySources(c.State, c.Node.PlayerId).Where(s => s.ItemId == item && c.Registry.AbilityDeclarations.Any(d => d.AbilityId == s.AbilityId && d.Kind == "setup" && d.HandlerRef == entry.HandlerRef)).ToList();
+                var sources = c.Registry.QuerySources(c.State, c.Node.PlayerId).Where(s => s.ItemId == item && c.Registry.ContainsAbilityDeclaration(d => d.AbilityId == s.AbilityId && d.Kind == "setup" && d.HandlerRef == entry.HandlerRef)).ToList();
                 if (sources.Count != 1 || c.Registry.HandlerHash(entry.HandlerRef).Length == 0) throw new InvalidOperationException("entrepreneur_handler_source_missing_or_ambiguous:" + entry.HandlerRef);
                 var source = sources[0];
                 entry.SourceKey = source.SourceKey; entry.Status = "scheduled";
@@ -208,7 +208,7 @@ namespace YC.Domain.Rules
             if (c.Node.FlowStage == "")
             {
                 var source = c.Registry.QuerySources(c.State, c.Node.PlayerId).SingleOrDefault(s => s.SourceKey == Text(c.Node.NormalizedArguments, "sourceKey"));
-                if (source == null || !c.Registry.AbilityDeclarations.Any(d => d.AbilityId == source.AbilityId && d.Kind == "setup" && d.HandlerRef == Text(c.Node.NormalizedArguments, "handlerRef"))) throw new InvalidOperationException("entrepreneur_entry_source_invalid");
+                if (source == null || !c.Registry.ContainsAbilityDeclaration(d => d.AbilityId == source.AbilityId && d.Kind == "setup" && d.HandlerRef == Text(c.Node.NormalizedArguments, "handlerRef"))) throw new InvalidOperationException("entrepreneur_entry_source_invalid");
                 var entries = c.State.EntrepreneurSetup.Players.SelectMany(p => p.SetupEntries.Concat(p.RoundGroups.SelectMany(g => g.ImmediateEntries)));
                 var entry = entries.SingleOrDefault(e => e.EntryId == Text(c.Node.NormalizedArguments, "entryId") && e.OwnerEffectId == c.Node.ParentEffectId && e.HandlerRef == Text(c.Node.NormalizedArguments, "handlerRef") && e.SourceKey == source.SourceKey);
                 if (entry == null) throw new InvalidOperationException("entrepreneur_entry_authority_invalid");

@@ -43,7 +43,7 @@ namespace YC.Presentation.Workflows
         public bool CanCancelPreparedPayment => paymentPreparation.CanCancel;
         public bool TryCancelPreparedPayment(Action afterApplied)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             ClearFinalPaymentIntent();
             return paymentPreparation.Cancel(() => { CancelCore(false); afterApplied?.Invoke(); });
         }
@@ -160,7 +160,7 @@ namespace YC.Presentation.Workflows
 
         public override void Cancel()
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (paymentPreparation.IsInFlight || !string.IsNullOrEmpty(inFlightCommandId)) return;
             if (paymentPreparation.HasPreparation) { paymentPreparation.Cancel(() => CancelCore(false)); return; }
             inFlightCommandId = string.Empty;
@@ -201,7 +201,7 @@ namespace YC.Presentation.Workflows
 
         public void RefreshEffectBuild()
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (!IsEffectBuild || !selection.IsActive) return;
             ContinueFinalPaymentIntent();
             PresentDraft();
@@ -209,7 +209,7 @@ namespace YC.Presentation.Workflows
 
         public void SelectFacility(string facilityId)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (RejectMutationWhileSubmitting()) return;
             if (IsEffectBuild && EffectBuildScope?.Input == null) return;
             ClearFinalPaymentIntent();
@@ -231,7 +231,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginDrag(string facilityId)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (paymentPreparation.Current != null && paymentPreparation.Current.TargetId != facilityId)
             {
                 ClearFinalPaymentIntent();
@@ -350,14 +350,14 @@ namespace YC.Presentation.Workflows
 
         public void SelectPayment(string paymentMode)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (TryPreparePayment(paymentMode)) PresentDraft();
         }
 
         // 支付按钮使用此入口准备正式命令，成功后不刷新中间“已选支付方式”页面。
         public bool TryPreparePayment(string paymentMode)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             using var latency = InteractionLatencyTrace.Begin("build.try_prepare");
             if (RejectMutationWhileSubmitting()) return false;
             if (IsEffectBuild && EffectBuildScope?.Input == null) return false;
@@ -404,7 +404,7 @@ namespace YC.Presentation.Workflows
 
         private void OnPaymentPreparationChanged()
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             using var latency = InteractionLatencyTrace.Begin("build.payment_changed");
             if (!paymentPreparation.LastResolvedApplied) { ClearFinalPaymentIntent(); view.RefreshFromState(); PresentDraft(); return; }
             if ((paymentPreparation.LastResolvedOperation == "prepare_action" || paymentPreparation.LastResolvedOperation == "prepare_effect_build") && !string.IsNullOrEmpty(finalMode))
@@ -464,7 +464,7 @@ namespace YC.Presentation.Workflows
 
         public void CancelExplicitly()
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             if (RejectMutationWhileSubmitting())
             {
                 return;
@@ -550,7 +550,7 @@ namespace YC.Presentation.Workflows
 
         public override void NotifyInteractionCommandResolved(string gameId, string commandId, bool accepted, CommandErrorCode errorCode)
         {
-            using var presentation = DeferEffectBuildPresentation();
+            using var presentation = DeferBuildPresentation();
             using var latency = InteractionLatencyTrace.Begin("build.resolved", commandId);
             if (paymentPreparation.NotifyResolved(gameId, commandId, accepted)) return;
             if (string.IsNullOrEmpty(inFlightCommandId) || commandId != inFlightCommandId || gameId != context.CurrentState?.GameId) return;
@@ -834,8 +834,8 @@ namespace YC.Presentation.Workflows
 
         // 只合并同一工作流当前同步操作中的展示请求；命令、回执和刷新仍立即执行。
         // 不保留模型或候选，下次独立输入会从当时状态及本地草稿重新构造。
-        private PresentationBatch DeferEffectBuildPresentation() =>
-            IsEffectBuild ? new PresentationBatch(this) : default;
+        private PresentationBatch DeferBuildPresentation() =>
+            new PresentationBatch(this);
 
         private readonly struct PresentationBatch : IDisposable
         {

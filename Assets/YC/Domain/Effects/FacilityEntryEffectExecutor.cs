@@ -422,13 +422,14 @@ namespace YC.Domain.Effects
             EffectRegistration ignored;
             if (registry.TryGet(FacilityEntryEffectTypeIds.Build, out ignored)) return;
             var executor = new FacilityBuildEffectExecutor();
-            registry.Register(new EffectRegistration(PaymentTypeId, PayEntityCost, EffectExecutorKind.IntrinsicFlow));
+            registry.Register(new EffectRegistration(PaymentTypeId, PayEntityCost, EffectExecutorKind.IntrinsicFlow) { ExecutionDoesNotRetainState = true });
             registry.Register(new EffectRegistration(
                 FacilityEntryEffectTypeIds.Build,
                 executor.Execute,
                 EffectExecutorKind.IntrinsicFlow,
                 DefinitionVersion)
             {
+                ExecutionDoesNotRetainState = true,
                 Validator = ValidateSpec
             });
         }

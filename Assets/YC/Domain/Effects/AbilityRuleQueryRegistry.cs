@@ -9,10 +9,14 @@ namespace YC.Domain.Effects
     public sealed partial class EffectRegistry
     {
         private readonly Dictionary<string, Func<AbilityActionCallContext, AbilityQueryContext, NormalizedValue>> abilityPureHandlers = new Dictionary<string, Func<AbilityActionCallContext, AbilityQueryContext, NormalizedValue>>(StringComparer.Ordinal);
+        private readonly HashSet<string> nonRetainedPureHandlers = new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, Func<AbilityQueryContext, AbilitySourceRef, NormalizedValue, string>> pureQueryContracts = new Dictionary<string, Func<AbilityQueryContext, AbilitySourceRef, NormalizedValue, string>>(StringComparer.Ordinal);
         public void RegisterAbilityPureHandler(string handlerId, Func<AbilityActionCallContext, AbilityQueryContext, NormalizedValue> handler)
         { if (HasAbilityCatalog || string.IsNullOrEmpty(handlerId) || handler == null) throw new ArgumentException("ability_query_handler_invalid"); abilityPureHandlers.Add(handlerId, handler); }
         /// <summary>查询消费方必须登记返回类别、目标及合并规则验证；未接通类别明确拒绝。</summary>
+        /// <summary>显式合同：回调及嵌套调用不保留State/可变子对象，返回值也须完整脱离状态。普通注册保持原隔离。</summary>
+        public void RegisterNonRetainedAbilityPureHandler(string handlerId, Func<AbilityActionCallContext, AbilityQueryContext, NormalizedValue> handler)
+        { RegisterAbilityPureHandler(handlerId,handler); nonRetainedPureHandlers.Add(handlerId); }
         public void RegisterAbilityQueryContract(string queryKind, Func<AbilityQueryContext, AbilitySourceRef, NormalizedValue, string> validator)
         { if (string.IsNullOrEmpty(queryKind) || validator == null) throw new ArgumentException("ability_query_contract_invalid"); pureQueryContracts.Add(queryKind, validator); }
         public IReadOnlyList<AbilitySourceRef> QuerySources(GameState state, AbilityQueryContext query)
@@ -71,6 +75,10 @@ namespace YC.Domain.Effects
         {
             var declaration = SourceDeclaration(source);
             if (!abilityPureHandlers.TryGetValue(declaration.HandlerRef, out var handler)) throw new InvalidOperationException("ability_query_handler_missing");
+            bool isolated=nonRetainedPureHandlers.Contains(declaration.HandlerRef);
+            if(isolated)ExecutionWorkRetentionScope.NoteExternalStateCallback(state);
+            else ExecutionWorkRetentionScope.Expose(state);
+            using var lifetime=isolated ? GameStateCloneService.MeasureDiagnostic("ability.query.nonretained") : default;
             var value = handler(new AbilityActionCallContext { State = state, SourceRef = source, Arguments = query.Facts }, query);
             if (value?.Kind != NormalizedValueKind.Object || value.Properties.Count != 3 || Text(value, "queryId") != query.QueryId || Text(value, "basisDigest") != query.FactsDigest ||
                 Value(value, "items")?.Kind != NormalizedValueKind.Array) throw new InvalidOperationException("ability_query_return_invalid");

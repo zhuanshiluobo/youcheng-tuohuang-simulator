@@ -15,7 +15,7 @@ namespace YC.Domain.Effects
     {
         public const string TypeId = "effect.ability.source.resolve";
         public static void Register(EffectRegistry registry)
-        { if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0")); }
+        { if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, "1.0.0") { ExecutionDoesNotRetainState = true }); }
         public static EffectSpec Create(AbilitySourceRef source, RuleEvent trigger, string handler, bool cleanup, int round) => EffectSpec.Create(TypeId,
             Object("sourceKey", NormalizedValue.CreateString(source.SourceKey), "itemId", NormalizedValue.CreateString(source.ItemId), "abilityId", NormalizedValue.CreateString(source.AbilityId),
                 "authorizationRef", NormalizedValue.CreateString(source.AuthorizationRef), "handlerRef", NormalizedValue.CreateString(handler),
@@ -41,7 +41,7 @@ namespace YC.Domain.Effects
                 completed.Outcome = "completed"; return EffectStepResult.Completed(node.RequiredOutcome==null ? null : YC.Domain.Facilities.FacilityBuildJournal.WrappedResult(state,node));
             }
             if (node.FlowStage.Length > 0) throw new InvalidOperationException("ability_source_phase_invalid");
-            var declaration = context.Registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == Text(node.NormalizedArguments, "abilityId"));
+            var declaration = context.Registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == Text(node.NormalizedArguments, "abilityId"));
             if (declaration == null || declaration.HandlerRef != Text(node.NormalizedArguments, "handlerRef")) return EffectStepResult.Failed("ability_source_handler_invalid");
             var source = context.Registry.QuerySources(state, node.PlayerId).SingleOrDefault(s => s.SourceKey == Text(node.NormalizedArguments, "sourceKey"));
             // 已挂链义务有原来源证明；实际离场只撤销后续来源发现。
@@ -71,7 +71,7 @@ namespace YC.Domain.Effects
         {
             if (node.EffectTypeId != TypeId || node.Status != EffectNodeStatus.Completed && node.Status != EffectNodeStatus.Failed ||
                 state.EffectRuntime.AbilitySourceUses.Any(r => r.OwnerEffectId == node.EffectId) || !Text(node.NormalizedArguments, "scopeKey").StartsWith("cleanup:", StringComparison.Ordinal)) return;
-            var declaration = registry.AbilityDeclarations.Single(d => d.AbilityId == Text(node.NormalizedArguments, "abilityId"));
+            var declaration = registry.SelectSingleAbilityDeclaration(d => d.AbilityId == Text(node.NormalizedArguments, "abilityId"));
             var args = node.NormalizedArguments;
             var source = new AbilitySourceRef { SourceKey = Text(args, "sourceKey"), ItemId = Text(args, "itemId"), DefinitionId = Text(args, "definitionId"), AbilityId = declaration.AbilityId,
                 DeclarationVersion = declaration.DeclarationVersion, ActiveFaceId = Text(args, "activeFaceId"), AuthorizedPlayerId = node.PlayerId, AuthorizationRef = Text(args, "authorizationRef"),

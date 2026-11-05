@@ -37,7 +37,12 @@ namespace YC.Tests.EditMode
             DeferredEventResponseDescriptor Describe(EffectEventHandlerContext context, EffectSpec body) => new DeferredEventResponseDescriptor {
                 SourceEventId = context.Event.EventId, SourceDepartureEffectId = context.Event.SourceEffectId, SourceCardInstanceId = "fixture-card", AbilityId = "fixture-ability",
                 AnsweringPlayerId = 2, ReservedItemId = itemId, OriginalSupplyZoneId = context.State.ItemZones.Items.Single(i => i.ItemId == itemId).OriginalSupplyZoneId, DestinationHandlerId = "fixture-destination" };
-            bool Validate(GameState value, DeferredResponseState record, out string diagnostic) { diagnostic = ""; return value.ItemZones.Items.Any(i => i.ItemId == record.ReservedItemId); }
+            var validationStates = new List<(GameState state, int iron)>();
+            bool Validate(GameState value, DeferredResponseState record, out string diagnostic)
+            {
+                validationStates.Add((value, value.FindPlayer(2).Resources.Iron));
+                diagnostic = ""; return value.ItemZones.Items.Any(i => i.ItemId == record.ReservedItemId);
+            }
             registry.RegisterDeferredResponseDestination(new DeferredResponseDestinationRegistration("fixture-destination", "fixture-ability", Describe,
                 (work, root, response) => {
                     string oldZone = work.ItemZones.Items.Single(i => i.ItemId == itemId).ZoneId;
@@ -84,6 +89,8 @@ namespace YC.Tests.EditMode
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == itemId).ZoneId, Is.EqualTo(record.OriginalSupplyZoneId));
             Assert.That(state.FindPlayer(2).Resources.Iron, Is.EqualTo(1));
             Assert.That(executor.GetNode(record.ResponseRootEffectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            foreach(var observed in validationStates)
+                Assert.That(observed.state.FindPlayer(2).Resources.Iron, Is.EqualTo(observed.iron), "默认去向校验回调保留的旧工作图不能被后续步骤改写");
         }
 
         [Test]

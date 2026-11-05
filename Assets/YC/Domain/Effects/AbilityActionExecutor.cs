@@ -256,7 +256,7 @@ namespace YC.Domain.Effects
             return success ? EffectStepResult.Completed(NormalizedValue.CreateString(invocation.InvocationId)) : EffectStepResult.Failed(outcome);
         }
         private static bool SourceCurrent(GameState state, EffectRegistry registry, AbilityActionInvocation invocation) => invocation.CallPolicyRef == AbilityLegacyStyleBridge.PolicyRef
-            ? AbilityLegacyStyleBridge.SourceCurrent(state, invocation) : AbilitySourceService.IsCurrent(state, registry.AbilityDeclarations, invocation.SourceRef);
+            ? AbilityLegacyStyleBridge.SourceCurrent(state, invocation) : registry.IsCurrentAbilitySource(state, invocation.SourceRef);
         // 通用转移的已提交事实来自原执行节点/真实位置变化和原批次收据，不根据载体或物品名称推断费用。
         public static bool IsTokenTransferOperation(EffectNodeRuntimeState node)
         {

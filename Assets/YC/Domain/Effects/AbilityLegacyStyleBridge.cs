@@ -41,7 +41,7 @@ namespace YC.Domain.Effects
             string actionId = Text(node.NormalizedArguments, "actionId"), markerId = Text(node.NormalizedArguments, "markerId");
             var activation = state.EffectRuntime.EffectNodes.Find(n => n.EffectId == node.ParentEffectId);
             if (!IsBridge(node) || !ValidateParent(state, activation, node.PlayerId, actionId, markerId)) return null;
-            var declaration = registry.AbilityDeclarations.SingleOrDefault(d => d.Actions.Any(a => a.ActionId == actionId));
+            var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.Actions.Any(a => a.ActionId == actionId));
             var action = declaration?.Actions.Single(a => a.ActionId == actionId);
             if (action?.DirectCallPolicy != PolicyRef) return null;
             var item = state.ItemZones.Items.SingleOrDefault(i => i.DefinitionId == declaration.DefinitionId && state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.city_style_display"));

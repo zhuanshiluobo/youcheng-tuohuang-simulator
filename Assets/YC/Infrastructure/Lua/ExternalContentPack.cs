@@ -136,6 +136,28 @@ namespace YC.Infrastructure.Lua
         }
         public IReadOnlyList<ExternalContentDefinition> Definitions => definitions.Select(Clone).ToList().AsReadOnly();
         public IReadOnlyList<ExternalContentDefinition> ActiveDefinitions => activeDefinitions.Select(Clone).ToList().AsReadOnly();
+        // 定点查询仍返回完整独立定义；不为了一个来源复制整份目录，也不向调用方暴露私有定义。
+        public ExternalContentDefinition FindDefinition(string definitionId,string contentType=null,bool enabledOnly=false)
+        {
+            var selected=definitions.Find(d=>d.DefinitionId==definitionId && (contentType==null || d.ContentType==contentType) && (!enabledOnly || d.Enabled));
+            return selected==null?null:Clone(selected);
+        }
+
+        // 图片查找只消费不可变路径及独立切片，面选择和启用条件沿原目录的首匹配语义。
+        public bool TryGetDeclaredArtwork(string definitionId,string faceId,out string artwork,out ExternalArtworkSlice slice)
+        {
+            artwork=null;slice=null;
+            var definition=definitions.Find(d=>d.Enabled && d.DefinitionId==definitionId);
+            if(definition==null)return false;
+            if(string.IsNullOrEmpty(faceId))
+            {
+                artwork=definition.Artwork;slice=CloneSlice(definition.ArtworkSlice);return true;
+            }
+            var face=definition.Data["faces"]?.FirstOrDefault(f=>(string)f["faceId"]==faceId);
+            artwork=(string)face?["artwork"];
+            return !string.IsNullOrEmpty(artwork);
+        }
+
         private static ExternalContentDefinition Clone(ExternalContentDefinition value)
         {
             var result = JsonConvert.DeserializeObject<ExternalContentDefinition>(JsonConvert.SerializeObject(value));

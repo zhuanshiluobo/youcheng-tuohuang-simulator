@@ -199,7 +199,7 @@ namespace YC.Presentation
                     if (entries.Any(e => e.SourceItemId == player.AbilityItemId)) continue;
                     var item = view.ItemZones.Items.FirstOrDefault(i => i.ItemId == player.AbilityItemId);
                     var definition = item == null ? null : EntrepreneurCardPresentation.Definition(item.DefinitionId);
-                    var metadata = item == null ? null : ExternalContentRuntime.Pack.Definitions.FirstOrDefault(d => d.DefinitionId == item.DefinitionId);
+                    var metadata = item == null ? null : ExternalContentRuntime.Pack.FindDefinition(item.DefinitionId);
                     if (definition == null || metadata == null) continue;
                     var zones = view.ItemZones.Zones.Where(z => z.Zone.ParentId == item.ItemId &&
                         metadata.CardZones.Any(c => c.LocalZoneId == z.Zone.LocalZoneId &&
@@ -528,38 +528,42 @@ namespace YC.Presentation
             // Refresh 在实际内容变化或宿主被热座清空后才更新条目，避免每帧销毁布局。
             if (ReferenceEquals(renderedSnapshot, view) && contentKey == key && rows.Values.All(value => value != null) && DetailDocumentsAreBound()) return;
             renderedSnapshot = view;
-            RefreshSourceInspection(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.inspection")) RefreshSourceInspection(view);
             if (storageBrowser?.IsShowing == true && storageBrowserCurrent?.Invoke() != true)
             { storageBrowser.Hide(); InspectedItemIds = Array.Empty<string>(); }
             if (detailViewer?.IsShowing == true) { detailViewer.Hide(); InspectedItemIds = Array.Empty<string>(); }
             contentKey = key;
-            RefreshEntrepreneurCards(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.entrepreneurs")) RefreshEntrepreneurCards(view);
             var used = new HashSet<string>();
             var leftHost = hud.MainModules.GetLocalDetailHost(0);
             var rightHost = hud.MainModules.GetLocalDetailHost(1);
             int localEntryIndex = 0;
-            var entries = ProjectDetails(view);
+            IReadOnlyList<PlayerDetailEntry> entries;
+            using(UiRegressionMetrics.Measure("hud.expansion.detail_model")) entries = ProjectDetails(view);
             var snapshotIsCurrent = GuardSnapshot(view);
-            foreach (var entry in entries)
+            using(UiRegressionMetrics.Measure("hud.expansion.detail_rows"))
             {
-                var host = entry.DetailPlayerId == player ? (localEntryIndex++ % 2 == 0 ? leftHost : rightHost)
-                    : hud.MainModules.GetOpponentDetailHost(entry.DetailPlayerId);
-                var row = GetRow(host, entry.EntryId);
-                if (row == null) continue;
-                used.Add(entry.EntryId);
-                if (entry.DetailPlayerId == player) row.transform.SetAsLastSibling();
-                row.Bind(new UiEffectRowView.Binding { StableItemId = entry.EntryId, RequestId = view.GameId, Revision = view.StateRevision,
-                    RowMode = UiEffectRowView.Mode.PersistentDetail, Title = entry.DisplayName, Description = entry.EffectText,
-                    Markers = DetailMarkers(view, entry) },
-                    (request, revision) => snapshotIsCurrent() && view.GameId == request && view.StateRevision == revision,
-                    _ => InspectDetail(entry), null);
-                if (entry.EffectTextRef != null)
-                    RenderEnterpriseDetails(row.DescriptionText.GetComponent<GameplayTextView>(), ResolveGameplayText(entry.EffectTextRef), false);
+                foreach (var entry in entries)
+                {
+                    var host = entry.DetailPlayerId == player ? (localEntryIndex++ % 2 == 0 ? leftHost : rightHost)
+                        : hud.MainModules.GetOpponentDetailHost(entry.DetailPlayerId);
+                    var row = GetRow(host, entry.EntryId);
+                    if (row == null) continue;
+                    used.Add(entry.EntryId);
+                    if (entry.DetailPlayerId == player) row.transform.SetAsLastSibling();
+                    row.Bind(new UiEffectRowView.Binding { StableItemId = entry.EntryId, RequestId = view.GameId, Revision = view.StateRevision,
+                        RowMode = UiEffectRowView.Mode.PersistentDetail, Title = entry.DisplayName, Description = entry.EffectText,
+                        Markers = DetailMarkers(view, entry) },
+                        (request, revision) => snapshotIsCurrent() && view.GameId == request && view.StateRevision == revision,
+                        _ => InspectDetail(entry), null);
+                    if (entry.EffectTextRef != null)
+                        RenderEnterpriseDetails(row.DescriptionText.GetComponent<GameplayTextView>(), ResolveGameplayText(entry.EffectTextRef), false);
+                }
             }
-            RefreshCooperation(view);
-            RefreshQuickActions(view);
-            RefreshSettlementBar(view);
-            RefreshMapTokens(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.cooperation")) RefreshCooperation(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.quick_actions")) RefreshQuickActions(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.settlement")) RefreshSettlementBar(view);
+            using(UiRegressionMetrics.Measure("hud.expansion.map_tokens")) RefreshMapTokens(view);
             foreach (var id in rows.Keys.Where(id => !used.Contains(id)).ToArray())
             {
                 if (rows[id] != null) { rows[id].ClearBinding(); EnterpriseBoardItemView.Retire(rows[id].gameObject); }
@@ -588,7 +592,7 @@ namespace YC.Presentation
         {
             var counters = new Dictionary<Tuple<string, int>, int>();
             var source = view.ItemZones.Items.FirstOrDefault(i => i.ItemId == entry.SourceItemId);
-            var metadata = source == null ? null : ExternalContentRuntime.Pack.Definitions.FirstOrDefault(d => d.DefinitionId == source.DefinitionId);
+            var metadata = source == null ? null : ExternalContentRuntime.Pack.FindDefinition(source.DefinitionId);
             foreach (var zoneId in entry.StorageZoneIds)
             {
                 var zone = view.ItemZones.Zones.FirstOrDefault(z => z.Zone.ZoneId == zoneId)?.Zone;

@@ -267,7 +267,7 @@ namespace YC.Domain.Effects
             foreach (string type in ContentFlowTypeIds)
                 if (!registry.TryGet(type, out _)) registry.Register(new EffectRegistration(type, context => ExecuteContentFlow(context, mapQuery, influenceService),
                     type == StoreRemoved ? EffectExecutorKind.Atomic : EffectExecutorKind.IntrinsicFlow,
-                    "v1"));
+                    "v1") { ExecutionDoesNotRetainState = type == ClearRouteRoad && (influenceService == null || !influenceService.HasExternalStateCallbacks) });
         }
         private static void Register(EffectRegistry registry, string type, Func<EffectExecutionContext, EffectStepResult> execute)
         {

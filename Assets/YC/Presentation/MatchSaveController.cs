@@ -367,7 +367,8 @@ namespace YC.Presentation
                     }
                     finally { MatchSaveTraceScope.Point(trace, "save.capture.end"); }
                     if (epoch != generation) return false;
-                    version = dirty;
+                    // 捕获导出期间允许继续操作。沿用请求时版本；期间新增dirty必须触发后续保存，
+                    // 不能把较早快照写完时的最新dirty误标为已经保存。
                     MatchSaveTraceScope.Source(operationTrace, export.Archive.Snapshot.State.EffectRuntime?.StateRevision ?? 0);
                     var header = CreateLocalSaveHeader(export);
                     using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext))

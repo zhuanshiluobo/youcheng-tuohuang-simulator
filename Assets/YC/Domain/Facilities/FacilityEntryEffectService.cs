@@ -208,9 +208,10 @@ namespace YC.Domain.Facilities
         {
             var neighborSlots = GetOrthogonalNeighborSlotIndexes(BuildFacilityService.CoreCommandTowerCityBoardSlotIndex);
             var count = 0;
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            var facilities = state.Map.Facilities.ToArray();
+            for (var i = 0; i < facilities.Length; i++)
             {
-                var placement = state.Map.Facilities[i];
+                var placement = facilities[i];
                 if (placement.PlayerId == playerId && neighborSlots.Contains(placement.CityBoardSlotIndex))
                 {
                     count += 1;
@@ -224,9 +225,10 @@ namespace YC.Domain.Facilities
         {
             var result = new List<string>();
             var neighbors = GetOrthogonalNeighborSlotIndexes(sourceSlotIndex);
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            var facilities = state.Map.Facilities.ToArray();
+            for (var i = 0; i < facilities.Length; i++)
             {
-                var placement = state.Map.Facilities[i];
+                var placement = facilities[i];
                 if (placement.PlayerId != playerId || !neighbors.Contains(placement.CityBoardSlotIndex))
                 {
                     continue;
@@ -302,9 +304,10 @@ namespace YC.Domain.Facilities
 
         private static bool IsFacilityBuilt(GameState state, string facilityId)
         {
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            var facilities = state.Map.Facilities.ToArray();
+            for (var i = 0; i < facilities.Length; i++)
             {
-                if (state.Map.Facilities[i].FacilityCardId == facilityId)
+                if (facilities[i].FacilityCardId == facilityId)
                 {
                     return true;
                 }

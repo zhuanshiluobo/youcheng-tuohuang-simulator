@@ -210,7 +210,7 @@ namespace YC.Presentation.Validation
                         recoveryRetired = !PerformanceMode && NetworkMode && (NetworkStopResolvedTerminalStep(stack) || NetworkStopPlannedShortStep(stack) || NetworkRetireCompetitionStep(stack) || NetworkRetireResolvedStep(stack));
                         if (!recoveryRetired)
                         {
-                            moved = stack.Peek().MoveNext();
+                            using (MeasureFixtureWork("driver.move_next.inclusive")) moved = stack.Peek().MoveNext();
                             if (moved) current = stack.Peek().Current;
                         }
                     }
@@ -306,6 +306,7 @@ namespace YC.Presentation.Validation
 
         private IEnumerator Run()
         {
+            InitializeFullGamePerformance();
             if (PerformanceMode) { yield return PerformanceRun(); yield break; }
             Require(selectedCase == "normal-flow" || CoverageMode || SaveResumeMode, "验证入口必须是正常菜单流程");
             string requestedRuleMode = Argument("--yc-ui-rule-mode=")?.ToLowerInvariant();
@@ -378,6 +379,7 @@ namespace YC.Presentation.Validation
             if (!NetworkMode) Require(State.Players.Count == ExpectedLocalPlayerCount, "正常开局人数与房间配置不符");
             if (EntrepreneurUiMode && !NetworkMode) Require(State.RuleConfiguration.RuleModeId == "entrepreneur", "正式开局未采用企业家模式");
             ObserveGateway(mobile);
+            BindFullGameTiming();
             ObserveGateway(Read(mobile, "turnActionPresenter"));
             ObserveGateway(Read(mobile, "influenceActionPresenter"));
             if (LocalFullGameResumeMode) RecordLocalFullGameResumeBoundary();
@@ -2401,9 +2403,9 @@ namespace YC.Presentation.Validation
             int actor = LocalPlayer;
             string actionWindow = State.Round + ":" + State.ActionRound + ":" + actor;
             yield return TryVisibleQuickAction();
-            if (driverQuickActionPerformed) yield break;
+            if (driverQuickActionPerformed || Request != null) yield break;
             yield return TryVisibleSharedSpecialAction();
-            if (driverQuickActionPerformed) yield break;
+            if (driverQuickActionPerformed || Request != null) yield break;
             if (!new MainActionBudgetService().HasAvailableMainAction(State, actor) && mobile.CanEndCurrentAction())
             {
                 Append("决策变化.jsonl", new { State.GameId, State.Round, State.ActionRound, PlayerId = actor,
@@ -2994,8 +2996,10 @@ namespace YC.Presentation.Validation
                 yield return Press(hud.ActionPanelView.DeployButton, "正常部署推进");
                 string slot = ChooseDeploySlot(influence.GetLegalPlacementSlotIds(State, actor));
                 observed.Target = slot;
+                int deployCommandsBefore = commands.Count;
                 yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署选择");
-                yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
+                if (commands.Count == deployCommandsBefore)
+                    yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
                 yield return ResolveObservedInfluenceAction(observed);
                 if (!observed.KnownSupplyRejectionHandled) yield break;
                 deployUnavailable = true;
@@ -3532,8 +3536,10 @@ namespace YC.Presentation.Validation
             var influence = (YC.Domain.Influence.InfluenceService)Read(mobile, "influenceService");
             string slot = ChooseDeploySlot(influence.GetLegalPlacementSlotIds(State, actor));
             deployObservation.Target = slot;
+            int deployCommandsBefore = commands.Count;
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署选择");
-            yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
+            if (commands.Count == deployCommandsBefore)
+                yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, slot, "正常部署确认");
             yield return ResolveObservedInfluenceAction(deployObservation);
             if (deployObservation.KnownSupplyRejectionHandled) { yield return SalesAction(); yield break; }
             if (!deployObservation.Completed) yield break;
@@ -3940,19 +3946,24 @@ namespace YC.Presentation.Validation
                 AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount, Stage = stage, Description = description,
                 Path = targetPath, Callback = callback, Returned = returned });
             Boundary("PointerDown", false);
-            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerDownHandler);
+            var performanceSample = BeginFullGameSample("ui", description);
+            using (MeasureFixtureWork("input.callback")) ExecuteEvents.Execute(target, data, ExecuteEvents.pointerDownHandler);
             Boundary("PointerDown", true);
             Boundary("PointerUp", false);
-            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerUpHandler);
+            using (MeasureFixtureWork("input.callback")) ExecuteEvents.Execute(target, data, ExecuteEvents.pointerUpHandler);
             Boundary("PointerUp", true);
             Boundary("PointerClick", false);
-            ExecuteEvents.Execute(target, data, ExecuteEvents.pointerClickHandler);
+            using (MeasureFixtureWork("input.callback")) ExecuteEvents.Execute(target, data, ExecuteEvents.pointerClickHandler);
             Boundary("PointerClick", true);
             RememberSubmittedControl(originalControlKey, originalCommandsBefore);
             if (NetworkMode) yield return AwaitOriginalControlCommandChain();
             Boundary("ObserveAndSave", false);
             if (NetworkMode) NetworkObserveEnterpriseDraft("原控件PointerClick后", null);
-            if (!NetworkMode || !DeferContentDifferences || mobile == null || session == null || networkTransport == null)
+            if (FullGamePerformance && mobile != null && session != null)
+                Append("性能控件返回摘要.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Stage = stage, LocalPlayer,
+                    Revision = State.EffectRuntime.StateRevision, State.Round, RequestId = Request?.InteractionId,
+                    RequestType = Request?.InteractionTypeId, FullStateDump = false });
+            else if (!NetworkMode || !DeferContentDifferences || mobile == null || session == null || networkTransport == null)
                 Write("最近控件同步返回.json", ObserveSafely());
             else Append("本地控件返回摘要.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), Frame = Time.frameCount,
                 Stage = stage, OriginalControl = targetPath, LocalPlayer, Revision = State.EffectRuntime.StateRevision,
@@ -3960,6 +3971,7 @@ namespace YC.Presentation.Validation
                 FullStateDump = false, PerControlFourReplicaBarrier = false });
             Boundary("ObserveAndSave", true);
             yield return Settle();
+            EndFullGameSample(performanceSample);
         }
         private IEnumerator AwaitOriginalControlCommandChain()
         {
@@ -4130,11 +4142,13 @@ namespace YC.Presentation.Validation
             int originalCommandsBefore = commands.Count;
             Append("控件事件.jsonl", new { Index = ++eventNumber, Frame = Time.frameCount, Stage = stage, Description = description,
                 Input = "真实MapButtonView.OnPointerClick", Kind = kind.ToString(), Id = id, ScreenX = point.x, ScreenY = point.y });
-            ExecuteEvents.Execute(target.gameObject, Pointer(point), ExecuteEvents.pointerClickHandler);
+            var performanceSample = BeginFullGameSample("ui.map", description);
+            using (MeasureFixtureWork("input.callback")) ExecuteEvents.Execute(target.gameObject, Pointer(point), ExecuteEvents.pointerClickHandler);
             RememberSubmittedControl(originalControlKey, originalCommandsBefore);
             if (NetworkMode) yield return AwaitOriginalControlCommandChain();
             if (!DeferContentDifferences) Write("最近控件同步返回.json", ObserveSafely());
             yield return Settle();
+            EndFullGameSample(performanceSample);
         }
         private static object MapInputDiagnostics(MapButtonView button)
         {
@@ -4226,6 +4240,7 @@ namespace YC.Presentation.Validation
         }
         private void SaveCapture(string name)
         {
+            using var timing=MeasureFixtureWork("fixture.capture");
             var file = (++captureNumber).ToString("00") + "-" + name + ".png";
             var texture = ScreenCapture.CaptureScreenshotAsTexture();
             if (texture == null) throw new InvalidOperationException("真实渲染截图为空");
@@ -4283,7 +4298,10 @@ namespace YC.Presentation.Validation
                 var before = driver.State.EffectRuntime.StateRevision;
                 if (driver.NetworkMode) driver.NetworkBeginObserveCommand(command, before);
                 var localBefore = driver.LocalFirstHarvestStopMode ? driver.CaptureOriginalUiSubmission(command) : null;
-                var result = inner.Submit(command); // 原适配器、真实提交、准确回执和正常同步保持原顺序。
+                var sample = driver.BeginFullGameSample("command", command.Kind.ToString());
+                WorkflowSubmissionResult result;
+                try { result = inner.Submit(command); } // 原适配器、真实提交、准确回执和正常同步保持原顺序。
+                finally { driver.EndFullGameSample(sample, command.CommandId); }
                 if (driver.NetworkMode)
                 {
                     driver.NetworkObserveCommand(command, result, before);
@@ -4311,9 +4329,17 @@ namespace YC.Presentation.Validation
         { if (component == null) return null; var path = component.name; for (var p = component.transform.parent; p != null; p = p.parent) path = p.name + "/" + path; return path; }
         private static object[] Parents(Transform target)
         { var values = new List<object>(); for (var p = target; p != null; p = p.parent) values.Add(new { p.name, p.gameObject.activeSelf, p.gameObject.activeInHierarchy }); return values.ToArray(); }
-        private void Write(string name, object value) => File.WriteAllText(Path.Combine(output, name), JsonConvert.SerializeObject(value, Formatting.Indented));
+        private void Write(string name, object value)
+        {
+            using var timing=MeasureFixtureWork("fixture.write");
+            // 后期完整证据可超过百MB；流式保留同样字段/格式，避免先分配整份UTF-16文本。
+            using var text = new StreamWriter(Path.Combine(output, name), false, new System.Text.UTF8Encoding(false));
+            using var writer = new JsonTextWriter(text);
+            JsonSerializer.CreateDefault(new JsonSerializerSettings { Formatting = Formatting.Indented }).Serialize(writer, value);
+        }
         private void Append(string name, object value)
         {
+            using var timing=MeasureFixtureWork("fixture.append");
             if (!appendLogs.TryGetValue(name, out var writer))
             {
                 // 始终持有共享追加句柄；只读采证必须共享写入，不能在真实命令回执中抢占日志。
@@ -4326,6 +4352,8 @@ namespace YC.Presentation.Validation
         private void Finish(Exception failure)
         {
             if (finished) return; finished = true;
+            fullGamePerformanceLog?.Dispose(); fullGamePerformanceLog = null;
+            UnbindFullGameTiming();
             if (failure == null && NetworkMode && !string.IsNullOrEmpty(networkTerminalStrictFailure))
                 failure = new InvalidOperationException(networkTerminalStrictFailure);
             if (failure == null && errors.Count > 0) failure = DeferContentDifferences && NetworkHasResolvedTerminal()

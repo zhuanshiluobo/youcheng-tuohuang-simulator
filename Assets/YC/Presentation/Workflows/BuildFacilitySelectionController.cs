@@ -293,14 +293,13 @@ namespace YC.Presentation
 
         private BuildFacilityOptionQueryResult QueryOption(GameState state, string facilityId)
         {
-            if (IsEffectBuild) return QueryOptions(state).FirstOrDefault(option => option.FacilityId == facilityId &&
+            if (string.IsNullOrEmpty(facilityId)) return null;
+            if (IsEffectBuild) return optionQuery.QueryForEffectBuild(state, PlayerId, GetVisibleState?.Invoke(), effectBuildOwner, facilityId).FirstOrDefault(option =>
                 (facilityId != FacilityId || string.IsNullOrEmpty(selectedSourceZoneId) || selectedSourceZoneId == option.SourceZoneId));
             if (isAdditionalBuild) return optionQuery.QueryForAdditionalBuild(state, PlayerId, facilityId);
-            foreach (var option in candidates.Query(state, PlayerId, GetVisibleState?.Invoke()))
-                if (option.FacilityId == facilityId)
-                    return facilityId == FacilityId && !string.IsNullOrEmpty(selectedSourceZoneId) &&
-                        selectedSourceZoneId != option.SourceZoneId ? null : option;
-            return null;
+            var selected=candidates.QuerySelected(state,PlayerId,facilityId,GetVisibleState?.Invoke());
+            return selected!=null && facilityId==FacilityId && !string.IsNullOrEmpty(selectedSourceZoneId) &&
+                selectedSourceZoneId!=selected.SourceZoneId ? null : selected;
         }
 
         public BuildFacilityOptionQueryResult SelectedOption(IReadOnlyList<BuildFacilityOptionQueryResult> options)

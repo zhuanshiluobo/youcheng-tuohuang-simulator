@@ -34,8 +34,9 @@ namespace YC.Domain.Items
     }
 
     [Serializable]
-    public sealed class ItemInstanceState
+    public sealed class ItemInstanceState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string ItemId = string.Empty;
         public string DefinitionId = string.Empty;
         public string TypeId = string.Empty;

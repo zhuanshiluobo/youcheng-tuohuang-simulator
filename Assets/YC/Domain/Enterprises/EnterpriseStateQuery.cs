@@ -43,9 +43,13 @@ namespace YC.Domain.Enterprises
             if (state?.FindPlayer(executingPlayerId) == null || state.FindPlayer(unlockedByPlayerId) == null) throw new InvalidOperationException("invalid_player");
             if (levelDelta < 0) throw new InvalidOperationException("enterprise_candidate_delta_invalid");
             var result = new List<EnterpriseSpecialCandidate>();
+            // 入口已解析并验证本次完整活动集合。同步循环内没有写入/回调，
+            // 无需为每家企业重新扫描所有物品与区域；仍逐个核验实例唯一性和定义。
             foreach (string enterpriseItemId in GetEnterpriseItemIds(state, enterpriseItemIds))
             {
-                var definition = RequireDefinition(state, enterpriseItemId);
+                var item = state.ItemZones.Items.SingleOrDefault(value => value.ItemId == enterpriseItemId);
+                var definition = definitions.FindEnterprise(item?.DefinitionId);
+                if (definition == null) throw new InvalidOperationException("enterprise_definition_missing");
                 int currentLevel = GetLevel(state, unlockedByPlayerId, enterpriseItemId);
                 if (currentLevel == MissingCooperationLevel) continue;
                 int effectiveLevelCeiling = (int)Math.Min(5L, (long)currentLevel + levelDelta);
@@ -58,10 +62,22 @@ namespace YC.Domain.Enterprises
 
         public IReadOnlyList<string> GetEnterpriseItemIds(GameState state, IReadOnlyList<string> requested = null)
         {
-            if (state.ItemZones.Items.Any(item => state.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.enterprise_display" &&
+            // 只缓存本次同步遍历中已经查询过的区域，保留原Find的首匹配及异常语义。
+            var templates = new Dictionary<string,string>(StringComparer.Ordinal);
+            string Template(string zoneId)
+            {
+                if (zoneId == null) return state.ItemZones.Zones.Find(zone => zone.ZoneId == zoneId)?.TemplateId;
+                if (!templates.TryGetValue(zoneId,out string value))
+                {
+                    value=state.ItemZones.Zones.Find(zone => zone.ZoneId == zoneId)?.TemplateId;
+                    templates.Add(zoneId,value);
+                }
+                return value;
+            }
+            if (state.ItemZones.Items.Any(item => Template(item.ZoneId) == "core.zone.enterprise_display" &&
                 state.ItemZones.Zones.Any(zone => zone.ParentKind == ZoneParentKind.Item && zone.ParentId == item.ItemId && zone.LocalZoneId.StartsWith("cooperation_", StringComparison.Ordinal)) &&
-                definitions.FindEnterprise(item.DefinitionId) == null)) throw new InvalidOperationException("enterprise_definition_missing");
-            var ids = state.ItemZones.Items.Where(item => definitions.FindEnterprise(item.DefinitionId) != null && state.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.enterprise_display")
+                !definitions.HasEnterprise(item.DefinitionId))) throw new InvalidOperationException("enterprise_definition_missing");
+            var ids = state.ItemZones.Items.Where(item => definitions.HasEnterprise(item.DefinitionId) && Template(item.ZoneId) == "core.zone.enterprise_display")
                 .Select(item => item.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList();
             if (requested == null) return ids.AsReadOnly();
             if (requested.Distinct(StringComparer.Ordinal).Count() != requested.Count || requested.Any(id => !ids.Contains(id))) throw new InvalidOperationException("enterprise_not_active");

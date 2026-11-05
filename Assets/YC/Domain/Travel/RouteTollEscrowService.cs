@@ -500,7 +500,7 @@ namespace YC.Domain.Travel
             left.SelectionOwnerEffectId == right.SelectionOwnerEffectId && left.SelectionSessionId == right.SelectionSessionId &&
             left.SelectionRevision == right.SelectionRevision && left.PayerPlayerId == right.PayerPlayerId &&
             left.StartAvailableGoldVoucher == right.StartAvailableGoldVoucher && left.OriginalAmount == right.OriginalAmount &&
-            left.FrozenPayments.ToDeterministicString() == right.FrozenPayments.ToDeterministicString();
+            left.FrozenPayments.HasSameCanonicalValue(right.FrozenPayments);
 
         private static string ReservationId(GameState state, EffectNodeRuntimeState owner) =>
             StableIdFactory.Create("route-toll-reservation", state.GameId, owner.EffectId, Protocol);

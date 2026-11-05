@@ -25,7 +25,7 @@ namespace YC.Domain.Effects
                 if (spec.EffectTypeId == AbilitySourceEffectExecutor.TypeId)
                 {
                     ability = Text(spec.NormalizedArguments, "abilityId"); card = Text(spec.NormalizedArguments, "itemId"); sourceKey = Text(spec.NormalizedArguments, "sourceKey");
-                    declaration = registry.AbilityDeclarations.Single(s => s.AbilityId == ability);
+                    declaration = registry.SelectSingleAbilityDeclaration(s => s.AbilityId == ability);
                     if (declaration.AllowedOperations.Contains("response.destination")) kind = "destination";
                     if (declaration.AllowedOperations.Contains("response.optional_effect"))
                     { if (kind.Length > 0) throw new InvalidOperationException("response_kind_conflict"); kind = "optional_effect"; }
@@ -63,7 +63,7 @@ namespace YC.Domain.Effects
             bool bypass = work.RuleConfiguration.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Concurrent &&
                 OperationWindowService.TryResolveSingleMainWindowOnWorking(work, e, out _) &&
                 (handler.AttachmentKind == EventResponseAttachmentKind.DeferredPlayerResponse ||
-                 registry.AbilityDeclarations.Any(a => a.AbilityId == ability && a.AllowedOperations.Contains("response.self")));
+                 registry.ContainsAbilityDeclaration(a => a.AbilityId == ability && a.AllowedOperations.Contains("response.self")));
             OperationWindowService.TryResolveSingleMainWindowOnWorking(work, e, out var mainContext);
             var rootSpec = SettlementEntryService.CreateCleanupSegment(spec.PlayerId, id, Array.Empty<EffectSpec>());
             rootSpec.SourceId = "departure-response:" + card;
@@ -83,7 +83,7 @@ namespace YC.Domain.Effects
                 PendingBody = new List<EffectSpecRuntimeState> { spec.ToRuntimeState() }, SubscriptionId = handler.SubscriptionId,
                 DefinitionVersion = handler.DefinitionVersion, HandlerHash = handler.ContentHash };
             response.SourceRef = sourceKey.Length > 0 ? GameStateCloneService.DeepClone(registry.QuerySources(work, spec.PlayerId).Single(s => s.SourceKey == sourceKey)) : null;
-            response.VersionRef = new AbilityVersionRef { ContentPackHash = registry.ContentPackHash, DefinitionVersion = response.SourceRef?.DeclarationVersion ?? handler.DefinitionVersion, HandlerHash = sourceKey.Length > 0 ? registry.HandlerHash(registry.AbilityDeclarations.Single(a => a.AbilityId == ability).HandlerRef) : handler.ContentHash, ExecutorVersion = InfluenceDepartureProtocol.Version };
+            response.VersionRef = new AbilityVersionRef { ContentPackHash = registry.ContentPackHash, DefinitionVersion = response.SourceRef?.DeclarationVersion ?? handler.DefinitionVersion, HandlerHash = sourceKey.Length > 0 ? registry.HandlerHash(registry.SelectSingleAbilityDeclaration(a => a.AbilityId == ability).HandlerRef) : handler.ContentHash, ExecutorVersion = InfluenceDepartureProtocol.Version };
             work.EffectRuntime.DeferredResponses.Add(response);
             if (kind == "destination") d.ResponseIds.Add(id);
             attached.Add(rootId); responseIds.Add(id);
@@ -106,7 +106,7 @@ namespace YC.Domain.Effects
                 }
             }
             foreach (var batch in work.EffectRuntime.InfluenceDepartureBatches.Where(b => b.Sealed))
-            foreach (var offer in batch.Offers.Where(o => !work.EffectRuntime.DeferredResponses.Any(r => r.ProtocolVersion == 1 && r.BatchId == batch.BatchId && r.SourceKey == o.SourceKey)).ToList())
+            foreach (var offer in FindUnqueuedDepartureOffers(work, batch))
             {
                 if (!InfluenceDepartureProtocol.DestinationsSettled(work, offer.EventIds)) continue;
                 var source = registry.QuerySources(work, -1, "event").SingleOrDefault(v => v.SourceKey == offer.SourceKey);
@@ -229,32 +229,35 @@ namespace YC.Domain.Effects
             }
             FlushDepartureResponses(work, entries);
         }
-        internal static bool ValidateDepartureResponse(GameState state, DeferredResponseState r, EffectRegistry registry, out string reason)
+        internal static bool ValidateDepartureResponse(GameState state, DeferredResponseState r, EffectRegistry registry, out string reason) =>
+            ValidateDepartureResponse(state, r, registry, out reason, null);
+
+        private static bool ValidateDepartureResponse(GameState state, DeferredResponseState r, EffectRegistry registry, out string reason, DeferredValidationIndex index)
         {
             reason = "departure_response_invalid";
             if (r.VersionRef == null || r.VersionRef.ExecutorVersion != InfluenceDepartureProtocol.Version || r.SourceKey.Length > 0 && (r.SourceRef?.SourceKey != r.SourceKey || r.SourceRef?.AbilityId != r.AbilityId || r.SourceRef?.ItemId != r.SourceCardInstanceId) || r.ProtocolVersion != 1 || !new[] { "destination", "optional_effect" }.Contains(r.Kind) || r.PendingBody == null || r.PendingBody.Count != 1 || r.SourceEventIds == null || r.SourceEventIds.Count == 0 ||
                 r.SourceEventIds.Distinct().Count() != r.SourceEventIds.Count || !Enum.IsDefined(typeof(DeferredResponseStatus), r.Status)) return false;
             var runtime = state.EffectRuntime;
-            if (r.BatchId.Length > 0 && !InfluenceDepartureProtocol.ValidBatchPayload(state,r)) return false;
-            var originalEvent = runtime.RuleEvents.SingleOrDefault(e => e.EventId == r.SourceEventId);
+            if (r.BatchId.Length > 0 && !(index == null ? InfluenceDepartureProtocol.ValidBatchPayload(state,r) : index.ValidBatchPayload(r))) return false;
+            var originalEvent = index == null ? runtime.RuleEvents.SingleOrDefault(e => e.EventId == r.SourceEventId) : index.Events.ForKey(r.SourceEventId).SingleOrDefault(_ => true);
             string identity = r.BatchId.Length > 0 ? r.BatchId : Text(originalEvent?.Payload, "departureId");
             if (r.DeferredResponseId != StableIdFactory.Create("departure_response", identity, r.SourceCardInstanceId, r.AbilityId, r.SourceKey) ||
                 r.ResponseRootEffectId != StableIdFactory.Create("departure_response_root", r.DeferredResponseId) ||
                 r.SourceKey.Length > 0 && (r.SourceRef.AuthorizedPlayerId != r.AnsweringPlayerId || Text(r.PendingBody[0].NormalizedArguments, "sourceKey") != r.SourceKey || Text(r.PendingBody[0].NormalizedArguments, "itemId") != r.SourceCardInstanceId || Text(r.PendingBody[0].NormalizedArguments, "abilityId") != r.AbilityId)) return false;
-            var root = runtime.EffectNodes.SingleOrDefault(n => n.EffectId == r.ResponseRootEffectId);
+            var root = index == null ? runtime.EffectNodes.SingleOrDefault(n => n.EffectId == r.ResponseRootEffectId) : index.Nodes.ForKey(r.ResponseRootEffectId).SingleOrDefault(_ => true);
             if (root == null || root.ParentEffectId.Length > 0 || root.PlayerId != r.AnsweringPlayerId || r.AnsweringPlayerId < 1 ||
-                r.SourceEventIds.Any(id => !runtime.RuleEvents.Any(e => e.EventId == id && e.EventType == InfluenceEventTypeIds.InfluenceRemoved)) ||
-                !runtime.RuleEvents.Any(e => e.EventId == r.SourceEventId && e.SourceEffectId == r.SourceOperationEffectId) ||
-                !runtime.DispatchReceipts.Any(receipt => receipt.EventId == r.SourceEventId && receipt.SubscriptionId == r.SubscriptionId && receipt.Succeeded && receipt.AttachedEffectIds.Contains(root.EffectId) && receipt.DeferredResponseIds.Contains(r.DeferredResponseId))) return false;
+                r.SourceEventIds.Any(id => !(index == null ? runtime.RuleEvents : index.Events.ForKey(id)).Any(e => e.EventId == id && e.EventType == InfluenceEventTypeIds.InfluenceRemoved)) ||
+                !(index == null ? runtime.RuleEvents : index.Events.ForKey(r.SourceEventId)).Any(e => e.EventId == r.SourceEventId && e.SourceEffectId == r.SourceOperationEffectId) ||
+                !(index == null ? runtime.DispatchReceipts : index.Receipts.ForKey(r.SourceEventId)).Any(receipt => receipt.EventId == r.SourceEventId && receipt.SubscriptionId == r.SubscriptionId && receipt.Succeeded && receipt.AttachedEffectIds.Contains(root.EffectId) && receipt.DeferredResponseIds.Contains(r.DeferredResponseId))) return false;
             if (r.IsBypass && (root.OperationContext?.OriginMainOperationWindowId != r.OriginMainOperationWindowId || root.OperationContext?.MainWindowPlayerIdAtCreation != r.MainWindowPlayerIdAtCreation || r.MainWindowPlayerIdAtCreation < 1)) return false;
-            if (!r.IsBypass && !r.RequiresProducerCompletion || IsRequiredEventLocation(state, r.SourceOperationEffectId) && !r.RequiresProducerCompletion) return false;
+            if (!r.IsBypass && !r.RequiresProducerCompletion || IsRequiredEventLocation(state, r.SourceOperationEffectId, index) && !r.RequiresProducerCompletion) return false;
             if (registry != null)
             {
                 var handler = registry.FindEventHandler(r.SubscriptionId);
                 if (handler == null || handler.DefinitionVersion != r.DefinitionVersion || handler.ContentHash != r.HandlerHash || r.VersionRef.ContentPackHash != registry.ContentPackHash) return false;
                 if (r.SourceKey.Length > 0)
                 {
-                    var declaration = registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == r.AbilityId && d.DefinitionId == r.SourceRef.DefinitionId);
+                    var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == r.AbilityId && d.DefinitionId == r.SourceRef.DefinitionId);
                     if (declaration == null || declaration.DeclarationVersion != r.SourceRef.DeclarationVersion || r.VersionRef.DefinitionVersion != declaration.DeclarationVersion || r.VersionRef.HandlerHash != registry.HandlerHash(declaration.HandlerRef)) return false;
                     if (r.IsBypass && !declaration.AllowedOperations.Contains("response.self") && handler.AttachmentKind != EventResponseAttachmentKind.DeferredPlayerResponse) return false;
                 }
@@ -262,19 +265,19 @@ namespace YC.Domain.Effects
             }
             if (r.Kind == "optional_effect")
             {
-                if (r.Status == DeferredResponseStatus.Pending && !InfluenceDepartureProtocol.DestinationsSettled(state, r.SourceEventIds))
+                if (r.Status == DeferredResponseStatus.Pending && !(index == null ? InfluenceDepartureProtocol.DestinationsSettled(state, r.SourceEventIds) : index.DestinationsSettled(r.SourceEventIds)))
                 { reason = "departure_optional_before_destination"; return false; }
                 if (r.DepartureId.Length > 0 || r.ReservedItemId.Length > 0 || r.ReservationZoneId.Length > 0 || r.OriginalSupplyZoneId.Length > 0 || r.SourceDepartureEffectId.Length > 0 || r.DestinationHandlerId.Length > 0 ||
                     !new[] { DeferredResponseStatus.Pending, DeferredResponseStatus.Queued, DeferredResponseStatus.Ineligible, DeferredResponseStatus.EffectCompleted }.Contains(r.Status)) return false;
             }
             else
             {
-                var d = InfluenceDepartureProtocol.Find(state, r.DepartureId);
+                var d = index == null ? InfluenceDepartureProtocol.Find(state, r.DepartureId) : index.Departures.ForKey(r.DepartureId).SingleOrDefault(_ => true);
                 if (d == null || !d.ResponseIds.Contains(r.DeferredResponseId) || r.ReservedItemId != d.ItemId || r.SourceDepartureEffectId != d.SourceEffectId || r.OriginalSupplyZoneId != d.OriginalSupplyZoneId ||
                     r.Status == DeferredResponseStatus.Pending && d.CustodyRootId != root.EffectId ||
                     r.Status == DeferredResponseStatus.Queued && r.ReservationZoneId.Length > 0) return false;
             }
-            if (r.RequestId.Length > 0 && !runtime.InteractionRequests.Any(q => q.RequestId == r.RequestId && q.AnsweringPlayerId == r.AnsweringPlayerId && InfluenceDepartureProtocol.IsWithin(state, q.OwnerEffectId, root.EffectId))) return false;
+            if (r.RequestId.Length > 0 && !(index == null ? runtime.InteractionRequests : index.Requests.ForKey(r.RequestId)).Any(q => q.RequestId == r.RequestId && q.AnsweringPlayerId == r.AnsweringPlayerId && (index == null ? InfluenceDepartureProtocol.IsWithin(state, q.OwnerEffectId, root.EffectId) : index.IsWithin(q.OwnerEffectId, root.EffectId)))) return false;
             if (r.Status == DeferredResponseStatus.Pending && IsTerminal(root.Status) || r.Status != DeferredResponseStatus.Pending && r.Status != DeferredResponseStatus.Queued && root.Status != EffectNodeStatus.Completed) return false;
             reason = ""; return true;
         }

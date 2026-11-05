@@ -35,7 +35,10 @@ namespace YC.Infrastructure.Lua
                     }
                     return effects;
                 }, EffectHandlerRole.Observer, contentInstanceId: declaration.DefinitionId, abilityId: declaration.AbilityId,
-                    definitionVersion: declaration.DeclarationVersion, contentHash: handlerHash, contentId: declaration.DefinitionId));
+                    definitionVersion: declaration.DeclarationVersion, contentHash: handlerHash, contentId: declaration.DefinitionId)
+                    // 此固定观察器只查询来源并构造独立Spec；正文预检另收完整独立副本，
+                    // 不把当前工作图交给来源正文或返回给外部持有者。完整图内别名检查仍保留。
+                    .WithNonRetainedStateContract(() => true));
             }
         }
     }

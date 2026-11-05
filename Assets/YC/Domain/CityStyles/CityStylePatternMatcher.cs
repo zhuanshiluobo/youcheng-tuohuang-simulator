@@ -167,9 +167,10 @@ namespace YC.Domain.CityStyles
             var usedSlots = BuildUsedSlotSet(player);
             bool entityState = YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state);
             var usedInstances = new HashSet<string>(player.DeclaredCityStyles.SelectMany(declaration => declaration.UsedFacilityIds), StringComparer.Ordinal);
-            for (var i = 0; i < state.Map.Facilities.Count; i++)
+            var facilities = state.Map.Facilities.ToArray();
+            for (var i = 0; i < facilities.Length; i++)
             {
-                var placement = state.Map.Facilities[i];
+                var placement = facilities[i];
                 if (placement.PlayerId != player.PlayerId ||
                     placement.CityBoardSlotIndex < 0 ||
                     placement.CityBoardSlotIndex >= BuildFacilityService.CityBoardSlotCount ||

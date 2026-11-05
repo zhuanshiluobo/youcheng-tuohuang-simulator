@@ -6,8 +6,9 @@ namespace YC.Domain.State
     public enum OperationWindowLifecycle { Open, Closed }
 
     [Serializable]
-    public sealed class OperationWindowState
+    public sealed class OperationWindowState : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string OperationWindowId = string.Empty;
         public int WindowGeneration = 1;
         public string WindowKind = string.Empty;
@@ -25,8 +26,9 @@ namespace YC.Domain.State
 
     /// <summary>一次真实规则命令的因果快照；不含网络身份和本机查看者。</summary>
     [Serializable]
-    public sealed class OperationCommandContext
+    public sealed class OperationCommandContext : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string OperationWindowId = string.Empty;
         public int WindowGeneration;
         public string WindowKind = string.Empty;

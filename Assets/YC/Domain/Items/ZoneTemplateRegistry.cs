@@ -106,7 +106,7 @@ namespace YC.Domain.Items
         {
             reasonCode = string.Empty;
             if (declaration == null) return Reject("cardZones_required", out reasonCode);
-            var template = Find(declaration.ZoneTemplateId);
+            var template = FindRules(declaration.ZoneTemplateId);
             if (template == null || !template.AllowExternalCardBinding) return Reject("zoneTemplateId_rejected", out reasonCode);
             if (!MatchesType(carrierTypeId, template.AllowedCarrierTypeIds)) return Reject("carrierTypeId_rejected", out reasonCode);
             if (string.IsNullOrWhiteSpace(declaration.LocalZoneId)) return Reject("localZoneId_required", out reasonCode);
@@ -118,8 +118,8 @@ namespace YC.Domain.Items
             if (template.AcceptedTypeIds.Count > 0 && declaration.AcceptedTypeIds.Count == 0) return Reject("acceptedTypeIds_rejected", out reasonCode);
             foreach (string typeId in declaration.AcceptedTypeIds)
             {
-                var type = types.Find(typeId);
-                if (type == null || !declaration.AcceptedItemKinds.Contains(type.PhysicalKind) ||
+                var kind = types.FindPhysicalKind(typeId);
+                if (!kind.HasValue || !declaration.AcceptedItemKinds.Contains(kind.Value) ||
                     (template.AcceptedTypeIds.Count > 0 && !MatchesType(typeId, template.AcceptedTypeIds))) return Reject("acceptedTypeIds_rejected", out reasonCode);
             }
             if (declaration.CapacityPolicy != "bounded" && declaration.CapacityPolicy != "unbounded") return Reject("capacityPolicy_rejected", out reasonCode);
@@ -170,7 +170,7 @@ namespace YC.Domain.Items
             }
             frozen = true;
         }
-        private bool MatchesType(string typeId, List<string> allowed) => allowed.Exists(parent => types.IsAssignableTo(typeId, parent));
+        private bool MatchesType(string typeId, IEnumerable<string> allowed) => allowed.Any(parent => types.IsAssignableTo(typeId, parent));
         private static bool IsPolicy(string value, params string[] allowed) => Array.IndexOf(allowed, value) >= 0;
         private static bool Reject(string code, out string reasonCode) { reasonCode = code; return false; }
 

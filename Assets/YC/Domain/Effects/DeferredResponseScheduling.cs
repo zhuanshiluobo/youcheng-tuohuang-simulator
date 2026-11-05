@@ -51,6 +51,7 @@ namespace YC.Domain.Effects
             var required = new List<EffectSpec>();
             foreach (var spec in specs)
             {
+                ExecutionWorkRetentionScope.Expose(work);
                 var descriptor = handler.DescribeDeferredResponse(context, spec);
                 if (descriptor == null || descriptor.AnsweringPlayerId < 1 || descriptor.AnsweringPlayerId == mainContext.MainWindowPlayerIdAtCreation)
                 { required.Add(spec); continue; }
@@ -103,6 +104,7 @@ namespace YC.Domain.Effects
                     OriginalSupplyZoneId = descriptor.OriginalSupplyZoneId, DestinationHandlerId = descriptor.DestinationHandlerId };
                 work.EffectRuntime.DeferredResponses.Add(response);
                 registry.TryGetDeferredResponseDestination(response.DestinationHandlerId, out var destination);
+                ExecutionWorkRetentionScope.Expose(work);
                 var adopted = destination.AdoptPendingDestination(work, root, response);
                 if (adopted == null || adopted.MovedCount != 1 || string.IsNullOrEmpty(response.ReservationZoneId) ||
                     !work.ItemZones.Items.Any(i => i.ItemId == response.ReservedItemId && i.ZoneId == response.ReservationZoneId))
@@ -119,15 +121,15 @@ namespace YC.Domain.Effects
             return true;
         }
 
-        private static bool IsRequiredEventLocation(GameState state, string effectId)
+        private static bool IsRequiredEventLocation(GameState state, string effectId, DeferredValidationIndex index = null)
         {
             var runtime = state.EffectRuntime; var visited = new HashSet<string>(StringComparer.Ordinal);
-            var child = runtime.EffectNodes.Find(n => n.EffectId == effectId);
+            var child = index == null ? runtime.EffectNodes.Find(n => n.EffectId == effectId) : index.Nodes.FindFirst(effectId);
             while (child != null && visited.Add(child.EffectId))
             {
-                if (runtime.MainNodes.Any(m => m.ExecutionEffectId == child.EffectId &&
+                if ((index == null ? runtime.MainNodes : index.MainNodes.ForKey(child.EffectId)).Any(m => m.ExecutionEffectId == child.EffectId &&
                     m.NodeTypeId != YC.Domain.Rules.RoundMainlineNodeTypeIds.PlayerActionWindow && m.NodeTypeId != YC.Domain.Rules.RoundMainlineNodeTypeIds.PlayerCleanupWindow)) return true;
-                var parent = runtime.EffectNodes.Find(n => n.EffectId == child.ParentEffectId);
+                var parent = index == null ? runtime.EffectNodes.Find(n => n.EffectId == child.ParentEffectId) : index.Nodes.FindFirst(child.ParentEffectId);
                 if (parent?.EffectTypeId == EffectTypeIds.Condition)
                 {
                     if (!parent.FlowStage.StartsWith("right:", StringComparison.Ordinal)) return true;
@@ -147,6 +149,7 @@ namespace YC.Domain.Effects
                 throw new KernelException(EffectFaultCodes.UnknownEventHandler, "旁路去向处理器未登记。");
             var context = new EffectExecutionContext(work, node, registry, limits,
                 dependencies => TryAttachDeferredResponseDependenciesOnWorking(work, node.EffectId, dependencies, entries));
+            ExecutionWorkRetentionScope.Expose(work);
             var result = registration.CompleteDeferredDestination(context, response);
             if (result?.Completed != true || !work.ItemZones.Items.Any(i => i.ItemId == response.ReservedItemId && i.ZoneId == result.DestinationZoneId) ||
                 work.ItemZones.Items.Any(i => i.ZoneId == response.ReservationZoneId))
@@ -159,11 +162,13 @@ namespace YC.Domain.Effects
         {
             diagnostic = "deferred_response_state_invalid";
             if (state?.EffectRuntime?.DeferredResponses == null || registry == null) return false;
+            var index = DeferredValidationIndex.TryCreate(state);
+            using var indexed = index == null ? default : GameStateCloneService.MeasureDiagnostic("deferred.validation.index");
             var ids = new HashSet<string>(StringComparer.Ordinal); var roots = new HashSet<string>(StringComparer.Ordinal);
             var reserved = new HashSet<string>(StringComparer.Ordinal);
             foreach (var response in state.EffectRuntime.DeferredResponses)
             {
-                if (response?.ProtocolVersion == 1) { if (!ValidateDepartureResponse(state, response, registry, out diagnostic)) return false; continue; }
+                if (response?.ProtocolVersion == 1) { if (!ValidateDepartureResponse(state, response, registry, out diagnostic, index)) return false; continue; }
                 if (response == null || string.IsNullOrEmpty(response.DeferredResponseId) || !ids.Add(response.DeferredResponseId) ||
                     string.IsNullOrEmpty(response.ResponseRootEffectId) || !roots.Add(response.ResponseRootEffectId) ||
                     !Enum.IsDefined(typeof(DeferredResponseStatus), response.Status) || response.AnsweringPlayerId < 1 ||
@@ -184,6 +189,7 @@ namespace YC.Domain.Effects
                     !registry.TryGetDeferredResponseDestination(response.DestinationHandlerId, out var registration) || registration.AbilityId != response.AbilityId ||
                     receipt == null || sourceEvent == null || observer == null || observer.HandlerId != receipt.HandlerId || observer.EventType != sourceEvent.EventType ||
                     observer.AttachmentKind != EventResponseAttachmentKind.DeferredPlayerResponse || observer.DescribeDeferredResponse == null || observer.AbilityId != response.AbilityId) return false;
+                ExecutionWorkRetentionScope.Expose(state);
                 if (!registration.TryValidateDeferredDestination(state, response, out diagnostic)) return false;
             }
             diagnostic = string.Empty; return true;

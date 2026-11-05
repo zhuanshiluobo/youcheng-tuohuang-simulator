@@ -172,6 +172,7 @@ namespace YC.Domain.Rules
 
         public static void Synchronize(GameState state)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("operation.sync");
             if (state?.EffectRuntime == null) return;
             var runtime = state.EffectRuntime;
             var model = new Model(state);
@@ -207,12 +208,18 @@ namespace YC.Domain.Rules
         }
 
         public static bool TryValidateRuntime(EffectRuntimeState runtime, out string diagnostic)
+            => TryValidateRuntimeCore(runtime,true,out diagnostic);
+        // 只由内核的闭合状态切换凭据使用；既有历史上下文仍由上一完整校验负责。
+        internal static bool TryValidateSchedulingWindows(EffectRuntimeState runtime,out string diagnostic)
+            => TryValidateRuntimeCore(runtime,false,out diagnostic);
+        private static bool TryValidateRuntimeCore(EffectRuntimeState runtime,bool validateHistory,out string diagnostic)
         {
             diagnostic = "operation_window_state_invalid";
             if (runtime == null || runtime.OperationWindows == null || runtime.OperationWindowSchemaVersion < 0 || runtime.OperationWindowSchemaVersion > SchemaVersion ||
                 runtime.NextOperationWindowOrdinal < 1 || runtime.OperationWindows.Count > MaximumOpenWindows + MaximumClosedWindows) return false;
-            if (runtime.EffectNodes == null || runtime.EffectNodes.Any(n => n == null) || runtime.RuleEvents == null || runtime.RuleEvents.Any(e => e == null) ||
-                runtime.InteractionRequests == null || runtime.InteractionRequests.Any(r => r == null)) return false;
+            if (runtime.EffectNodes == null || runtime.RuleEvents == null || runtime.InteractionRequests == null) return false;
+            if (validateHistory && (runtime.EffectNodes.Any(n => n == null) || runtime.RuleEvents.Any(e => e == null) ||
+                runtime.InteractionRequests.Any(r => r == null))) return false;
             if (runtime.OperationWindowSchemaVersion == 0 && (runtime.OperationWindows.Count != 0 || runtime.CurrentOperationContext != null)) return false;
             var ids = new HashSet<string>(StringComparer.Ordinal); var ordinals = new HashSet<long>();
             foreach (var window in runtime.OperationWindows)
@@ -227,13 +234,24 @@ namespace YC.Domain.Rules
             }
             if (runtime.OperationWindows.Count(w => w.Lifecycle == OperationWindowLifecycle.Open) > MaximumOpenWindows ||
                 runtime.OperationWindows.Count(w => w.Lifecycle == OperationWindowLifecycle.Closed) > MaximumClosedWindows) return false;
-            var contexts = runtime.EffectNodes.SelectMany(n => new[] { n.OperationContext, n.ContinuationOperationContext })
-                .Concat(runtime.RuleEvents.Select(e => e.OperationContext)).Concat(runtime.InteractionRequests.Select(r => r.OperationContext));
-            if (runtime.CurrentOperationContext != null) contexts = contexts.Concat(new[] { runtime.CurrentOperationContext });
-            foreach (var context in contexts.Where(c => c != null))
+            if (validateHistory)
             {
-                var facts = context.WindowFacts;
-                if (string.IsNullOrEmpty(context.OperationWindowId) || context.WindowGeneration < 1 || string.IsNullOrEmpty(context.WindowKind) ||
+                foreach(var node in runtime.EffectNodes)
+                    if(!ValidOperationContext(runtime,node.OperationContext) || !ValidOperationContext(runtime,node.ContinuationOperationContext))return false;
+                foreach(var ruleEvent in runtime.RuleEvents)
+                    if(!ValidOperationContext(runtime,ruleEvent.OperationContext))return false;
+                foreach(var request in runtime.InteractionRequests)
+                    if(!ValidOperationContext(runtime,request.OperationContext))return false;
+            }
+            if(!ValidOperationContext(runtime,runtime.CurrentOperationContext))return false;
+            diagnostic = string.Empty; return true;
+        }
+
+        private static bool ValidOperationContext(EffectRuntimeState runtime,OperationCommandContext context)
+        {
+            if(context==null)return true;
+            var facts=context.WindowFacts;
+            if (string.IsNullOrEmpty(context.OperationWindowId) || context.WindowGeneration < 1 || string.IsNullOrEmpty(context.WindowKind) ||
                     string.IsNullOrEmpty(context.SourceEffectId) || context.ActingPlayerId < 1 || string.IsNullOrEmpty(context.SourceCommandId) ||
                     string.IsNullOrEmpty(context.OriginMainOperationWindowId) || context.MainWindowPlayerIdAtCreation < -1 || context.MainWindowPlayerIdAtCreation == 0 ||
                     runtime.OperationWindowSchemaVersion != SchemaVersion || facts == null || facts.OperationWindowId != context.OperationWindowId ||
@@ -241,10 +259,9 @@ namespace YC.Domain.Rules
                     facts.Lifecycle != OperationWindowLifecycle.Open || facts.OpenedOrdinal < 1 || facts.OpenedOrdinal >= runtime.NextOperationWindowOrdinal ||
                     facts.AuthorizedPlayerIds == null || !SortedPlayers(facts.AuthorizedPlayerIds) || !facts.AuthorizedPlayerIds.Contains(context.ActingPlayerId) ||
                     facts.AvailablePlayerIds == null || !SortedPlayers(facts.AvailablePlayerIds) || !facts.AvailablePlayerIds.Contains(context.ActingPlayerId)) return false;
-                if (context.OriginMainOperationWindowId != (string.IsNullOrEmpty(facts.ParentOperationWindowId)
-                    ? facts.OperationWindowId : facts.ParentOperationWindowId)) return false;
-            }
-            diagnostic = string.Empty; return true;
+            if (context.OriginMainOperationWindowId != (string.IsNullOrEmpty(facts.ParentOperationWindowId)
+                ? facts.OperationWindowId : facts.ParentOperationWindowId)) return false;
+            return true;
         }
 
         public static bool TryValidate(GameState state, out string diagnostic)
@@ -285,7 +302,16 @@ namespace YC.Domain.Rules
             diagnostic = string.Empty; return true;
         }
 
-        private static bool SortedPlayers(List<int> players) => players.All(p => p > 0) && players.SequenceEqual(players.Distinct().OrderBy(p => p));
+        private static bool SortedPlayers(List<int> players)
+        {
+            int previous = 0;
+            foreach (int player in players)
+            {
+                if (player <= previous) return false;
+                previous = player;
+            }
+            return true;
+        }
         private static bool IsWithin(EffectRuntimeState runtime, string nodeId, string ancestorId)
         {
             var seen = new HashSet<string>(StringComparer.Ordinal);

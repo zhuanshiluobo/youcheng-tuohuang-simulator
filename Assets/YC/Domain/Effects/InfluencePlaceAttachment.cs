@@ -30,6 +30,15 @@ namespace YC.Domain.Effects
     }
     public sealed partial class EffectRegistry
     {
+        [ThreadStatic] private static bool useFullResponsePreviewDigests;
+        public static IDisposable UseFullResponsePreviewDigestsForDiagnostics() => new FullResponsePreviewDigestScope();
+        private sealed class FullResponsePreviewDigestScope : IDisposable
+        {
+            private readonly bool previous = useFullResponsePreviewDigests;
+            private bool closed;
+            internal FullResponsePreviewDigestScope() { useFullResponsePreviewDigests = true; }
+            public void Dispose() { if (closed) return; closed = true; useFullResponsePreviewDigests = previous; }
+        }
         private readonly Dictionary<string, Func<GameState, AbilitySourceRef, NormalizedValue, InfluencePlaceRewrite>> influencePlaceHandlers = new Dictionary<string, Func<GameState, AbilitySourceRef, NormalizedValue, InfluencePlaceRewrite>>(StringComparer.Ordinal);
         public void RegisterInfluencePlaceHandler(string handlerRef, Func<GameState, AbilitySourceRef, NormalizedValue, InfluencePlaceRewrite> handler)
         { if (HasAbilityCatalog || handler == null || influencePlaceHandlers.ContainsKey(handlerRef)) throw new InvalidOperationException("influence_place_handler_duplicate"); influencePlaceHandlers.Add(handlerRef, handler); }
@@ -78,13 +87,21 @@ namespace YC.Domain.Effects
             var trigger = view.EffectRuntime.RuleEvents.Single(e => e.EventId == observer.Event.EventId);
             var call = new AbilityActionCallContext { State = view, OwnerNode = view.EffectRuntime.EffectNodes.Single(n => n.EffectId == trigger.OwnerNodeId),
                 SourceRef = GameStateCloneService.DeepClone(source), Arguments = Object() };
-            string before = RuleStateDigestService.Compute(view);
+            // 独立保留全部字段；快速匹配失败仍计算原完整摘要，保持日志文案等摘要排除项的语义。
+            using var baseline = useFullResponsePreviewDigests ? null : GameStateCloneService.CaptureReadOnlyQueryBaseline(view);
+            string before = useFullResponsePreviewDigests ? RuleStateDigestService.Compute(view) : null;
             eventResponsePreviews.Add(call, new EventResponsePreview { Trigger = trigger, HandlerId = handler, HandlerHash = HandlerHash(handler) });
             try
             {
                 // 只构造并丢弃返回式，不建立执行器、请求或收据。
                 var body = ConstructAbilityBody(handler, call);
-                if (RuleStateDigestService.Compute(view) != before) throw new InvalidOperationException("response_preview_mutated_state");
+                using (GameStateCloneService.MeasureDiagnostic("response.preview.read_only_guard"))
+                if (baseline != null && baseline.HasIdenticalFieldsTo(view))
+                {
+                    using var exact = GameStateCloneService.MeasureDiagnostic("response.preview.identical_fields");
+                }
+                else if (RuleStateDigestService.Compute(view) != (before ?? baseline.ComputeRuleDigest()))
+                    throw new InvalidOperationException("response_preview_mutated_state");
                 return body.Count > 0;
             }
             finally { eventResponsePreviews.Remove(call); }
@@ -101,7 +118,7 @@ namespace YC.Domain.Effects
                     response.SourceKey == source.SourceKey && response.SourceEventId == observer.Event.EventId && receipt.DeferredResponseIds.Contains(response.DeferredResponseId));
         }
         internal InfluencePlaceRewrite RewriteInfluencePlace(GameState state, AbilitySourceRef source, NormalizedValue facts)
-        { if (!influencePlaceHandlers.TryGetValue(AbilityDeclarations.Single(d => d.AbilityId == source.AbilityId).HandlerRef, out var h)) throw new InvalidOperationException("influence_place_handler_missing"); return h(GameStateCloneService.DeepClone(state), GameStateCloneService.DeepClone(source), facts.Clone()); }
+        { if (!influencePlaceHandlers.TryGetValue(SelectSingleAbilityDeclaration(d => d.AbilityId == source.AbilityId).HandlerRef, out var h)) throw new InvalidOperationException("influence_place_handler_missing"); return h(GameStateCloneService.DeepClone(state), GameStateCloneService.DeepClone(source), facts.Clone()); }
     }
     public static class InfluencePlaceAttachment
     {
@@ -125,6 +142,16 @@ namespace YC.Domain.Effects
         {
             reason = "influence_place_mapping_invalid";
             if (state.EffectRuntime.InfluencePlaceMappings == null) return false;
+            if (state.EffectRuntime.InfluencePlaceMappings.Count == 0) {reason="";return true;}
+            // 只属于这次完整校验。旧实现为每条历史映射、每个放置节点逐级Find全表，
+            // 在后期变成映射数×节点数×祖先深度×全表长度；同次用首匹配索引保持Find语义。
+            var nodes = new Dictionary<string,EffectNodeRuntimeState>(StringComparer.Ordinal);
+            var placeNodes = new List<EffectNodeRuntimeState>();
+            foreach(var node in state.EffectRuntime.EffectNodes)
+            {
+                if(node.EffectId!=null && !nodes.ContainsKey(node.EffectId))nodes.Add(node.EffectId,node);
+                if(node.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence)placeNodes.Add(node);
+            }
             var ids = new HashSet<string>();
             foreach (var m in state.EffectRuntime.InfluencePlaceMappings)
             {
@@ -132,6 +159,7 @@ namespace YC.Domain.Effects
                     m.Sources == null || m.HandlerHashes == null || m.Sources.Count == 0 || m.Sources.Count != m.HandlerHashes.Count || m.ResultContract != "place_result" || m.PermissionContract != "inherit_original") return false;
                 var root = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == m.ActualRootEffectId && n.ParentEffectId == m.ParentEffectId && n.PlayerId == m.OriginalSpec.PlayerId);
                 if (root == null || root.SourceId != m.OriginalSpec.SourceId || m.Sources.Select(s=>s?.SourceKey).Distinct().Count()!=m.Sources.Count) return false;
+                var leaves=EffectDescendantQuery.SelectFromExistingIndex(placeNodes,nodes,root.EffectId);
                 try
                 {
                     var original=EffectRegistry.FromRuntimeSpec(m.OriginalSpec);
@@ -139,7 +167,7 @@ namespace YC.Domain.Effects
                     EffectSpec FromNode(EffectNodeRuntimeState n) => EffectRegistry.FromRuntimeSpec(new EffectSpecRuntimeState { EffectTypeId=n.EffectTypeId, NormalizedArguments=n.NormalizedArguments,
                         PlayerId=n.PlayerId, AllowDecline=n.AllowDecline, DecisionPlayerId=n.DecisionPlayerId, NestedEffects=n.NestedEffects, NestedGroupSizes=n.NestedGroupSizes });
                     EffectTreeExecutor.ValidatePlaceReplacement(original,FromNode(root));
-                    foreach(var leaf in state.EffectRuntime.EffectNodes.Where(n=>n.EffectTypeId==InfluenceEffectTypeIds.PlaceInfluence && InfluenceDepartureProtocol.IsWithin(state,n.EffectId,root.EffectId)))
+                    foreach(var leaf in leaves)
                         EffectTreeExecutor.ValidatePlaceReplacement(original,FromNode(leaf));
                 }
                 catch(InvalidOperationException) { return false; }
@@ -152,13 +180,17 @@ namespace YC.Domain.Effects
                         !state.ItemZones.Items.Any(item=>item.ItemId==source.ItemId && item.DefinitionId==source.DefinitionId) || m.HandlerHashes[i].Length==0) return false;
                     if(registry!=null)
                     {
-                        var declaration=registry.AbilityDeclarations.SingleOrDefault(d=>d.AbilityId==source.AbilityId && d.DefinitionId==source.DefinitionId);
+                        var declaration=registry.SelectSingleOrDefaultAbilityDeclaration(d=>d.AbilityId==source.AbilityId && d.DefinitionId==source.DefinitionId);
                         if(declaration==null || declaration.DeclarationVersion!=source.DeclarationVersion || source.ActiveFaceId!=declaration.ActiveFaceId || !declaration.QueryKinds.Contains("influence_place_attaching.v1") ||
                             registry.HandlerHash(declaration.HandlerRef)!=m.HandlerHashes[i]) return false;
                     }
                 }
                 if (m.SelectedLeafEffectId.Length > 0)
-                { var leaf = ResultNode(state, root.EffectId); if (leaf == null || leaf.EffectId != m.SelectedLeafEffectId || m.ResultReceipt == null || leaf.NormalizedResult.ToDeterministicString() != m.ResultReceipt.ToDeterministicString()) return false; }
+                {
+                    if(leaves.Count>1)throw new InvalidOperationException("logical_place_multiple_leaves");
+                    var leaf=leaves.SingleOrDefault();
+                    if (leaf == null || leaf.EffectId != m.SelectedLeafEffectId || m.ResultReceipt == null || !leaf.NormalizedResult.HasSameCanonicalValue(m.ResultReceipt)) return false;
+                }
             }
             reason = ""; return true;
         }
@@ -184,7 +216,7 @@ namespace YC.Domain.Effects
             InfluenceDestinationResolver.Set(facts, "originalSourceRef", originalSource == null ? NormalizedValue.CreateNull() : Object("sourceKey", NormalizedValue.CreateString(originalSource.SourceKey), "itemId", NormalizedValue.CreateString(originalSource.ItemId), "abilityId", NormalizedValue.CreateString(originalSource.AbilityId), "declarationVersion", NormalizedValue.CreateString(originalSource.DeclarationVersion)));
             EffectSpec replacement = null; string signature = "";
             var mapping = new InfluencePlaceMapping { LogicalOperationId = id, ActualRootEffectId = id, ParentEffectId = parent, OriginalSpec = original.ToRuntimeState() };
-            foreach (var source in registry.QuerySources(work, original.PlayerId, "ruleQuery").Where(s => registry.AbilityDeclarations.Single(d => d.AbilityId == s.AbilityId).QueryKinds.Contains("influence_place_attaching.v1") && !processed.Contains(s.SourceKey)))
+            foreach (var source in registry.QuerySources(work, original.PlayerId, "ruleQuery").Where(s => registry.SelectSingleAbilityDeclaration(d => d.AbilityId == s.AbilityId).QueryKinds.Contains("influence_place_attaching.v1") && !processed.Contains(s.SourceKey)))
             {
                 // 每个来源接收同一草稿的副本。回调只构造替代模板，不取得执行上下文。
                 var result = registry.RewriteInfluencePlace(work, source, facts.Clone());
@@ -195,7 +227,7 @@ namespace YC.Domain.Effects
                 string digest = PlaceSemanticSignature(result.Effect);
                 if (replacement != null && digest != signature) throw new InvalidOperationException("influence_place_rewrite_conflict");
                 replacement = result.Effect; signature = digest; mapping.Sources.Add(GameStateCloneService.DeepClone(source));
-                mapping.HandlerHashes.Add(registry.HandlerHash(registry.AbilityDeclarations.Single(d => d.AbilityId == source.AbilityId).HandlerRef));
+                mapping.HandlerHashes.Add(registry.HandlerHash(registry.SelectSingleAbilityDeclaration(d => d.AbilityId == source.AbilityId).HandlerRef));
             }
             if (replacement == null) return original;
             // 原完成续接只保留在替代根；叶节点始终发布真实Placed。

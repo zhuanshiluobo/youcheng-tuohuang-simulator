@@ -41,7 +41,7 @@ namespace YC.Domain.Cards
                 registry.Register(new EffectRegistration(
                     EffectTypeId,
                     Execute,
-                    EffectExecutorKind.IntrinsicFlow, SharedCoverDefinitionVersion) { Validator = spec => ItemTransferEffectExecutor.Value(spec.NormalizedArguments,"apiVersion")==null ? "" : ValidateArguments(spec.NormalizedArguments) });
+                    EffectExecutorKind.IntrinsicFlow, SharedCoverDefinitionVersion) { ExecutionDoesNotRetainState = true, Validator = spec => ItemTransferEffectExecutor.Value(spec.NormalizedArguments,"apiVersion")==null ? "" : ValidateArguments(spec.NormalizedArguments) });
             }
         }
 

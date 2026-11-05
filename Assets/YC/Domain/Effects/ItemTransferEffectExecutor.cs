@@ -117,8 +117,8 @@ namespace YC.Domain.Effects
         public static void Register(EffectRegistry registry)
         {
             if (registry.TryGet(TypeId, out _)) return;
-            registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.Atomic, TransferDefinitionVersion));
-            registry.RegisterItemTransferEntryCostPreview((state, source, spec) => {
+            registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.Atomic, TransferDefinitionVersion) { ExecutionDoesNotRetainState = true, ExecutionPreservesJournalPrefix = true });
+            registry.RegisterNativeItemTransferEntryCostPreview((state, source, spec) => {
                 if (Text(spec.NormalizedArguments, "player") != source.AuthorizedPlayerId.ToString(CultureInfo.InvariantCulture)) return "transfer_permission_denied";
                 // 原生v4与有限旧输入规范后使用同一费用预检；原输入记录只供一致性复验。
                 var args = spec.NormalizedArguments;
@@ -131,7 +131,7 @@ namespace YC.Domain.Effects
             });
             registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.MoveFacilityCard, ExecuteFacility, EffectExecutorKind.IntrinsicFlow,FacilityMoveDefinitionVersion));
             registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.MoveCharacterCard, ExecuteCharacter, EffectExecutorKind.IntrinsicFlow, CharacterCardMovement.DefinitionVersion));
-            registry.Register(new EffectRegistration(RefillTypeId, ExecuteRefillCommon,EffectExecutorKind.IntrinsicFlow,SupplyDefinitionVersion));
+            registry.Register(new EffectRegistration(RefillTypeId, ExecuteRefillCommon,EffectExecutorKind.IntrinsicFlow,SupplyDefinitionVersion) { ExecutionDoesNotRetainState = true, ExecutionPreservesJournalPrefix = true });
             registry.Register(new EffectRegistration(RefreshTypeId, ExecuteRefreshCommon,EffectExecutorKind.IntrinsicFlow,SupplyDefinitionVersion));
         }
         // Host 组合工厂；内容脚本由其归属任务装配，不识别具体企业或角色 ID。
@@ -251,10 +251,21 @@ namespace YC.Domain.Effects
         private static bool Reference(NormalizedValue value, string key, string optional = "") => value?.Kind == NormalizedValueKind.Object && Text(value, key).Length > 0 && value.Properties.All(entry => (entry.Name == key || entry.Name == optional) && entry.Value.Kind == NormalizedValueKind.String);
         public static ZoneInstanceState FindZone(GameState state, string local, int player = -1) => state.ItemZones.Zones.Single(zone => zone.LocalZoneId == local &&
             (local != "covered" || zone.TemplateId == "core.zone.character_covered") && (player < 0 || zone.OwnerPlayerId == player));
-        public static NormalizedValue Value(NormalizedValue value, string name) => value?.Properties?.Find(entry => entry.Name == name)?.Value;
-        public static string Text(NormalizedValue value, string name, string fallback = "") => Value(value, name)?.Kind == NormalizedValueKind.String ? Value(value, name).StringValue : fallback;
-        public static int Number(NormalizedValue value, string name, int fallback = 0) => Value(value, name)?.Kind == NormalizedValueKind.Integer ? (int)Value(value, name).IntegerValue : fallback;
-        public static bool Flag(NormalizedValue value, string name) => Value(value, name)?.Kind == NormalizedValueKind.Boolean && Value(value, name).BooleanValue;
+        public static NormalizedValue Value(NormalizedValue value, string name)
+        {
+            var properties = value?.Properties;
+            if (properties == null) return null;
+            // 保留Find的首个匹配/空项错误语义，避免每次字段读取分配捕获name的闭包。
+            for (int i = 0; i < properties.Count; i++)
+                if (properties[i].Name == name) return properties[i].Value;
+            return null;
+        }
+        public static string Text(NormalizedValue value, string name, string fallback = "")
+        { var field = Value(value, name); return field?.Kind == NormalizedValueKind.String ? field.StringValue : fallback; }
+        public static int Number(NormalizedValue value, string name, int fallback = 0)
+        { var field = Value(value, name); return field?.Kind == NormalizedValueKind.Integer ? (int)field.IntegerValue : fallback; }
+        public static bool Flag(NormalizedValue value, string name)
+        { var field = Value(value, name); return field?.Kind == NormalizedValueKind.Boolean && field.BooleanValue; }
         public static NormalizedValue Strings(IEnumerable<string> ids) => NormalizedValue.CreateArray(ids.Select(NormalizedValue.CreateString).ToList());
         public static NormalizedValue Object(params object[] values)
         {

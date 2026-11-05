@@ -42,6 +42,9 @@ namespace YC.Application.Sessions
                     throw new InvalidOperationException("published_view_not_ready_or_wrong_viewer");
                 return GameStateCloneService.DeepClone(View);
             }
+            // 本次同步只读投影内的多个来源查询共享公共Lua事实；退出即释放，
+            // 不跨命令、帧或工作副本缓存规则响应和可变状态。
+            using var queryScope = ReadOnlyStateQueryScope.Begin(State);
             return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer), settlementProjectionProvider?.GetAbilityActions(State, viewer), PaymentProjectionRegistry);
         }
 

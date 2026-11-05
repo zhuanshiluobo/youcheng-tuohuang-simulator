@@ -10,7 +10,7 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 namespace YC.Domain.Effects
 {
     /// <summary>轨道位置只有ItemZones一份事实。调用使用002唯一激活步骤；初始化与全体复位是独立可恢复Effect。</summary>
-    public static class UsageTracks
+    public static partial class UsageTracks
     {
         public const string Version = "2.0.0", InitializeTypeId = "effect.usage_track.initialize", ResetTypeId = "effect.usage_track.reset_all";
         public static string BindingId(string item, string track, int player) => StableIdFactory.Create("usage-binding", item, track, player.ToString(CultureInfo.InvariantCulture));
@@ -63,7 +63,11 @@ namespace YC.Domain.Effects
         public static void Register(EffectRegistry registry, IEnumerable<UsageTrackDeclaration> declarations = null)
         {
             if (!registry.TryGet(InitializeTypeId, out _)) registry.Register(InitializeTypeId, Initialize, EffectExecutorKind.IntrinsicFlow);
-            if (!registry.TryGet(ResetTypeId, out _)) registry.Register(ResetTypeId, Reset, EffectExecutorKind.IntrinsicFlow);
+            if (!registry.TryGet(ResetTypeId, out _))
+            {
+                registry.RegisterWithIndependentStateWrites(ResetTypeId, Reset, EffectExecutorKind.IntrinsicFlow);
+                registry.Get(ResetTypeId).ExecutionPreservesJournalPrefix = true;
+            }
             foreach (var declaration in declarations ?? registry.ContentDefinitions?.UsageTracks ?? new List<UsageTrackDeclaration>())
             {
                 var existing = registry.UsageProvider(declaration.TrackId);
@@ -140,15 +144,7 @@ namespace YC.Domain.Effects
                 if (!progress.RequiredObligationIds.Contains(cleanup.ExecutionEffectId)) progress.RequiredObligationIds.Add(cleanup.ExecutionEffectId);
             }
             if(runtime.CleanupObligations.Any(r=>r.DueRound<=progress.RoundNumber && progress.ParticipantIds.Contains(r.PlayerId) && r.Status!="completed")) return false;
-            var roots = new HashSet<string>(progress.RequiredObligationIds);
-            bool IsObligation(EffectNodeRuntimeState n)
-            {
-                var visited = new HashSet<string>();
-                while (n != null && visited.Add(n.EffectId)) { if (roots.Contains(n.EffectId)) return true; n = runtime.EffectNodes.Find(p => p.EffectId == n.ParentEffectId); }
-                return false;
-            }
-            foreach (var node in runtime.EffectNodes.Where(IsObligation).ToList()) if (!progress.RequiredObligationIds.Contains(node.EffectId)) progress.RequiredObligationIds.Add(node.EffectId);
-            if (progress.RequiredObligationIds.Any(id => !runtime.EffectNodes.Any(n => n.EffectId == id && (n.Status == EffectNodeStatus.Completed || n.Status == EffectNodeStatus.Failed)))) return false;
+            if (!CleanupObligationsComplete(runtime, progress)) return false;
             if (runtime.InfluenceDepartureBatches.Any(b => !b.Sealed) || runtime.DeferredResponses.Any(r => r.Status == DeferredResponseStatus.Pending || r.ProtocolVersion == 1 && r.Status == DeferredResponseStatus.Queued) || runtime.InteractionRequests.Any(r => r.Status == "open" && progress.RequiredObligationIds.Contains(r.OwnerEffectId))) return false;
             if (runtime.AbilityActionInvocations.Any(i => i.Phase != "completed" && progress.ParticipantIds.Contains(i.SourceRef.AuthorizedPlayerId))) return false;
             reason = ""; return true;
@@ -190,7 +186,7 @@ namespace YC.Domain.Effects
         public static void RegisterResetBinding(EffectRegistry registry)
         {
             if (registry.TryGet(ResetBindingTypeId, out _)) return;
-            registry.Register(ResetBindingTypeId, context =>
+            registry.RegisterWithIndependentStateWrites(ResetBindingTypeId, context =>
             {
                 var progress = context.State.EffectRuntime.UsageTrackResets.SingleOrDefault(r => r.OwnerEffectId == context.Node.ParentEffectId);
                 if (progress == null || !BarrierReady(context.State, progress, out _)) throw new InvalidOperationException("usage_reset_boundary_required");
@@ -202,6 +198,7 @@ namespace YC.Domain.Effects
                 if (transition != null) Move(context, binding, transition.ToSlotId);
                 progress.ProcessedBindingIds.Add(binding.BindingId); return EffectStepResult.Completed();
             });
+            registry.Get(ResetBindingTypeId).ExecutionPreservesJournalPrefix = true;
         }
         public static IReadOnlyList<UsageTrackView> Project(GameState state, int player = -1) => state.EffectRuntime.UsageTrackBindings.Where(b => player < 0 || b.PlayerId == player).Select(b =>
         {

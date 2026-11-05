@@ -10,15 +10,7 @@ namespace YC.Infrastructure.Lua
     {
         public const string Version = "ability_events.v2.1.0.3";
         public static bool MatchesCompletion(GameState state, RuleEvent ruleEvent, AbilitySourceDeclaration declaration)
-        {
-            if (ruleEvent.EventType != "EffectCompleted") return true;
-            var node = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == ruleEvent.SourceEffectId);
-            return node != null && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments) &&
-                !(node.EffectTypeId == ExplorationEffectTypeIds.Explore && ExplorationContract.IsV3(node.NormalizedArguments)) &&
-                node.CompletedEventId == ruleEvent.EventId &&
-                declaration.CompletedEffectTypes.Contains(node.EffectTypeId) && node.EffectTypeId != AbilitySourceEffectExecutor.TypeId &&
-                (declaration.CompletionPolicy == "terminal" || node.Status == EffectNodeStatus.Completed || node.PendingOutcome == EffectPendingOutcome.Completed);
-        }
+            => AbilityCompletionSourceCatalog.MatchesCompletion(state, ruleEvent, declaration);
 
         public static NormalizedValue Enrich(GameState state, RuleEvent ruleEvent, NormalizedValue original)
         {

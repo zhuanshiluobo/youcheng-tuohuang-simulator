@@ -56,8 +56,13 @@ namespace YC.Domain.Movement
             var parent = InfluenceSubjectQuery.GetMapParent(state, item.ZoneId);
             if (parent?.TemplateId != "core.zone.map_location") return Array.Empty<string>();
             return Map(state).GetAdjacentLocations(parent.LocalZoneId).Where(location => state.Map.OpenLocationIds.Contains(location.LocationId) &&
-                DestinationAllowed(state, tokenItemId, location.LocationId) && state.ItemZones.Zones.Exists(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == location.LocationId))
+                AllowsDestination(state, tokenItemId, location.LocationId) && state.ItemZones.Zones.Exists(zone => zone.TemplateId == "core.zone.map_location" && zone.LocalZoneId == location.LocationId))
                 .Select(location => location.LocationId).OrderBy(id => id, StringComparer.Ordinal).ToList().AsReadOnly();
+        }
+        private bool AllowsDestination(GameState state,string itemId,string locationId)
+        {
+            ExecutionWorkRetentionScope.Expose(state);
+            return DestinationAllowed(state,itemId,locationId);
         }
         public ItemTransferResult Move(EffectExecutionContext context, string tokenItemId, string destinationLocationId, string operationProfileId)
         {
@@ -85,7 +90,7 @@ namespace YC.Domain.Movement
         {
             ItemTransferEffectExecutor.Register(registry);
             if (tokenProfiles != null || map != null) registry.TokenMovementProfiles = tokenProfiles ?? new TokenMovementProfileRegistry(map);
-            if (!registry.TryGet(LuaDomainEffectTypeIds.PlaceRoad, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.PlaceRoad, context => ExecuteRoad(context, map), EffectExecutorKind.Atomic, "v1") { Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.PlaceRoad, spec.NormalizedArguments) });
+            if (!registry.TryGet(LuaDomainEffectTypeIds.PlaceRoad, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.PlaceRoad, context => ExecuteRoad(context, map), EffectExecutorKind.Atomic, "v1") { ExecutionDoesNotRetainState = true, Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.PlaceRoad, spec.NormalizedArguments) });
             if (!registry.TryGet(LuaDomainEffectTypeIds.OperateToken, out _)) registry.Register(new EffectRegistration(LuaDomainEffectTypeIds.OperateToken, SpecializedItemMovement.ExecuteToken, EffectExecutorKind.IntrinsicFlow, TokenDefinitionVersion) { Validator = spec => ValidateArguments(LuaDomainEffectTypeIds.OperateToken, spec.NormalizedArguments) });
         }
         public static string ValidateArguments(string typeId, NormalizedValue args)

@@ -14,8 +14,9 @@ namespace YC.Domain.Items
         private readonly ItemZoneQuery query;
         public ItemTransferService(ItemTypeRegistry types = null, ZoneTemplateRegistry templates = null)
         {
-            this.types = types ?? ItemTypeRegistry.CreateBuiltIn();
-            this.templates = templates ?? ZoneTemplateRegistry.CreateBuiltIn(this.types);
+            // 默认声明已冻结且没有对局引用；复用查询入口的同一份内建声明，避免每次移动重建整个区模板表。
+            this.types = types ?? ItemZoneQuery.BuiltInTypes;
+            this.templates = templates ?? (types == null ? ItemZoneQuery.BuiltInTemplates : ZoneTemplateRegistry.CreateBuiltIn(this.types));
             query = new ItemZoneQuery(this.types, this.templates);
         }
         public ItemTransferValidationResult Validate(GameState state, ItemTransferRequest request) =>
@@ -28,6 +29,7 @@ namespace YC.Domain.Items
         private ItemTransferValidationResult ValidateCoreWithRewardAcquisition(GameState state, ItemTransferRequest request,
             bool checkCapacity, bool checkPreview, bool allowLayerMovement, bool allowRewardTokenAcquisition)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("transfer.validate");
             if (!query.TryValidate(state, out var reason)) throw new InvalidOperationException("item_state_invalid: " + reason);
             if (request == null || request.ItemIds == null || request.ExpectedSource == null || request.Destination == null || request.RequiredCount < 0)
                 return Invalid("invalid_transfer_request");
@@ -109,7 +111,7 @@ namespace YC.Domain.Items
             if (checkCapacity && (capacity >= 0 && outside.Count + request.ItemIds.Count > capacity || slotted && outside.Any(item => item.SlotId == request.DestinationSlotId))) return Invalid("destination_rejected");
             if (!checkPreview) return new ItemTransferValidationResult { IsValid = true };
             // 工作预览捕获载体环等结构约束；不触碰原成员或 OrderRevision。
-            var preview = GameStateCloneService.DeepClone(state);
+            var preview = state.CreateItemTransferPreview();
             var moved = Apply(preview, request);
             if (moved.MovedCount < request.RequiredCount) return Invalid("insufficient_items");
             if (!query.TryValidate(preview, out reason)) return Invalid("destination_rejected");
@@ -145,9 +147,22 @@ namespace YC.Domain.Items
             // 在窄入口内预演结构约束，不扩大任何普通转移权限。
             if (!query.Accepts(destination, item) || work.ItemZones.Items.Any(i => i.ZoneId == destination.ZoneId))
                 throw new InvalidOperationException("deferred_reservation_destination_rejected");
-            var preview = GameStateCloneService.DeepClone(work);
+            var preview = StructuralPreview(work, "deferred_reservation", out var reference);
             Apply(preview, request);
-            if (!query.TryValidate(preview, out var reason)) throw new InvalidOperationException(reason);
+            if (reference != null)
+            {
+                VerifyStructuralSource(work, reference);
+                Apply(reference, request);
+                VerifyStructuralResult(preview, reference);
+            }
+            bool validPreview = query.TryValidate(preview, out var reason);
+            if (reference != null)
+            {
+                bool expectedValid = query.TryValidate(reference, out string expectedReason);
+                if (expectedValid != validPreview || expectedReason != reason)
+                    throw new InvalidOperationException("延后交接结构校验与原完整克隆不一致。");
+            }
+            if (!validPreview) throw new InvalidOperationException(reason);
             var result = Apply(work, request);
             root.PositionChanges.AddRange(GameStateCloneService.DeepClone(result.PositionChanges));
             return result;

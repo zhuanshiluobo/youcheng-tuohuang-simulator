@@ -136,7 +136,10 @@ namespace YC.Domain.Effects
         public static string DeclarationDigest(EffectNodeRuntimeState n) => Digest(new object[] { n.NormalizedArguments,n.AllocationOptions,n.NestedGroupSizes,n.NestedEffects });
         public static void Register(EffectRegistry registry)
         {
-            if(!registry.TryGet(TypeId,out _))registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, ExecutorVersion) { Validator = spec => { ValidateSpec(spec,registry);return ""; } });
+            if(!registry.TryGet(TypeId,out _))registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, ExecutorVersion) { ExecutionDoesNotRetainState = true,
+                ExecutionPreservesUniqueReferences = EffectRegistry.BuiltinFlowPublicationProofsEnabled,
+                ExecutionPreservesJournalPrefix = EffectRegistry.BuiltinFlowPublicationProofsEnabled,
+                Validator = spec => { ValidateSpec(spec,registry);return ""; } });
         }
         public static bool IsConsumedFailure(EffectNodeRuntimeState owner,EffectNodeRuntimeState child) => owner.EffectTypeId==TypeId && owner.AllocationV1?.Result?.Outcome=="stopped_on_failure" && owner.AllocationV1.Executions.Any(e=>e.State=="failed" && e.Roots.Any(r=>r.EffectId==child.EffectId && r.State=="Failed"));
 

@@ -97,6 +97,7 @@ namespace YC.Domain.Effects
         }
         public static void ValidateNode(GameState state, EffectRegistry registry, EffectNodeRuntimeState node, EffectExecutionBinding binding)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("execution.validate");
             if (binding == null)
             {
                 if (node.ContinuationContext != null && node.ContinuationScopeRootEffectId == node.EffectId &&

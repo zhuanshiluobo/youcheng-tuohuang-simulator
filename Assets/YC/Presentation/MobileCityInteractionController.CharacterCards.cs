@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Interactions;
 using YC.Domain.Presentation;
 using YC.Domain.Rules;
+using YC.Domain.State;
 using YC.Presentation.Workflows;
 
 namespace YC.Presentation
@@ -449,6 +451,8 @@ namespace YC.Presentation
                 gameplayInteractionHud.ExpansionUi.ResolveGameplayText(characterCardPresenter.GetEffectUnavailableReasonText(model, true)), current,
                 effect =>
                 {
+                    using var visibleRead = BeginVisibleRead();
+                    using var characterRead = characterCardPresenter?.BeginPresentationRead();
                     if (!current() || !CanSubmitGameplayCommand || !string.IsNullOrEmpty(characterUseCommandId) ||
                         !string.IsNullOrEmpty(pendingEffectCommandId)) return;
                     // 源包 plot 明确映射到工程 Tactic，不能按按钮索引选择。
@@ -484,8 +488,29 @@ namespace YC.Presentation
             var owner = session; var state = simulated ? commandSubmission.PublishedState : session?.State; var visible = VisibleSaleState();
             var player = localPlayerId; var game = state?.GameId; var content = state?.ContentPackHash;
             var revision = UiReadState()?.EffectRuntime?.StateRevision ?? 0;
+            var snapshotCurrent = !simulated && model.UsesEntityLifecycle && !string.IsNullOrEmpty(model.CurrentUseId) && visible != null
+                ? CreateVisibleSnapshotGuard(visible) : null;
             return () =>
             {
+                if (snapshotCurrent != null)
+                {
+                    // 正式用牌的状态由同一绑定版本及实际实例/请求决定；Update不再重建整局投影。
+                    if (!snapshotCurrent() || CharacterUseKey(model) != key) return false;
+                    var use = state.CharacterUses.LastOrDefault(value => value.ExecutingPlayerId == player && !value.Finished && !value.SelectionCancelled);
+                    if (use == null || use.UseId != model.CurrentUseId || use.CardInstanceId != model.CoveredCardId ||
+                        !state.ItemZones.Items.Any(item => item.ItemId == use.CardInstanceId && item.ControllerSubject.PlayerId == player)) return false;
+                    var request = state.EffectRuntime.InteractionRequests.FirstOrDefault(value => value.AnsweringPlayerId == player &&
+                        value.OwnerEffectId == use.OwnerEffectId && value.Status == "open" &&
+                        GameStateVisibilityPolicy.IsVisible(value.Visibility, value.AnsweringPlayerId, GameStateViewer.Player(player)) &&
+                        (value.InteractionTypeId == CharacterLifecycleService.ModeInteractionTypeId ||
+                         value.InteractionTypeId == CharacterLifecycleService.OrderInteractionTypeId ||
+                         value.InteractionTypeId == CharacterLifecycleService.SecondModeInteractionTypeId));
+                    var boundSelection = model.CurrentUseSelection;
+                    return boundSelection == null ? request == null : request != null && request.GetStableInteractionId() == boundSelection.InteractionId &&
+                        request.StateRevision == boundSelection.StateRevision && request.CandidateSetId == boundSelection.CandidateSetId && request.CandidateSetVersion == boundSelection.CandidateSetVersion &&
+                        request.InteractionTypeId == boundSelection.InteractionTypeId && request.OwnerEffectId == boundSelection.OwnerEffectId &&
+                        request.CandidateIds.SequenceEqual(boundSelection.CandidateIds);
+                }
                 var currentState = simulated ? commandSubmission?.PublishedState : session?.State;
                 if (owner == null || !ReferenceEquals(session, owner) || !ReferenceEquals(currentState, state) ||
                     localPlayerId != player || currentState?.GameId != game || currentState?.ContentPackHash != content) return false;
@@ -560,6 +585,8 @@ namespace YC.Presentation
 
         private void BeginCharacterEffect(string effectMode)
         {
+            using var visibleRead = BeginVisibleRead();
+            using var characterRead = characterCardPresenter?.BeginPresentationRead();
             if (!string.IsNullOrEmpty(characterUseCommandId)) return;
             var view = characterCardPresenter == null
                 ? null

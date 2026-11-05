@@ -593,6 +593,8 @@ namespace YC.Domain.Facilities
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
             if (read == null) throw new ArgumentNullException(nameof(read));
+            using var projections = ReadOnlyStateQueryScope.Begin(state);
+            using var payments = YC.Domain.Effects.ResourcePaymentCostPreview.BeginReadOnlyStoredMarkerQuery(state);
             var query = new ReadOnlyQuery(this, state, playerId, observedSupplyOrNull);
             try { return read(query); }
             finally { query.Close(); }

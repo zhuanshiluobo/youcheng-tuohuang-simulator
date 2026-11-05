@@ -279,6 +279,35 @@ namespace YC.Tests.EditMode
             Assert.That(projectionReads, Is.EqualTo(2), "下一次刷新必须重新读取状态");
         }
 
+        [TestCase("find")]
+        [TestCase("list")]
+        [TestCase("count")]
+        [TestCase("all")]
+        public void BoundProjectionIsReadOncePerQueryAndRefreshedOnTheNextCall(string operation)
+        {
+            var state = CreateState();
+            var first = new InfluencePlacement { InfluenceId = "influence.first", PlayerId = 1, SlotId = LocationSlot("A-01", 0), LocationId = "A-01" };
+            var current = new List<InfluencePlacement> { first };
+            int reads = 0;
+            state.Map.Influences.Bind(() => { reads++; return current; });
+            var query = CreateService();
+            void Check(bool present)
+            {
+                switch (operation)
+                {
+                    case "find": Assert.That(query.FindInfluence(state, first.InfluenceId), present ? Is.SameAs(first) : Is.Null); break;
+                    case "list": Assert.That(query.ListByPlayer(state, 1).Count, Is.EqualTo(present ? 1 : 0)); break;
+                    case "count": Assert.That(query.CountInRegion(state, 1, "A", false), Is.EqualTo(present ? 1 : 0)); break;
+                    case "all": Assert.That(query.CountAllPlayersInRegion(state, "A", false).ContainsKey(1), Is.EqualTo(present)); break;
+                }
+            }
+            Check(true);
+            Assert.That(reads, Is.EqualTo(1));
+            current = new List<InfluencePlacement>();
+            Check(false);
+            Assert.That(reads, Is.EqualTo(2), "每次查询必须读取最新投影，不能缓存上次结果");
+        }
+
         private static InfluenceQueryService CreateService()
         {
             return new InfluenceQueryService(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));

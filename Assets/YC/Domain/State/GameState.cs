@@ -51,6 +51,25 @@ namespace YC.Domain.State
         public List<GameLogEntry> Logs = new List<GameLogEntry>();
         public EffectRuntimeState EffectRuntime = new EffectRuntimeState();
 
+        // 仅供封闭物品转移预检、历史收据重演及实体工厂的物品/区域创建事务。
+        // 写集完整脱离；规则历史等其它字段只读借用，预览不得发布或交给规则处理器。
+        // 普通深克隆及事务执行/提交仍使用GameStateCloneService。
+        internal GameState CreateItemTransferPreview()
+        {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("transfer.preview");
+            var preview=(GameState)MemberwiseClone();
+            preview.ItemZones=GameStateCloneService.DeepClone(ItemZones);
+            preview.CharacterUses=GameStateCloneService.DeepClone(CharacterUses);
+            preview.CharacterCoverSlots=GameStateCloneService.DeepClone(CharacterCoverSlots);
+            preview.FacilityCharacterBindings=GameStateCloneService.DeepClone(FacilityCharacterBindings);
+            // Bind只改这三组兼容投影对象；不能让其闭包重新绑定到原状态。
+            preview.Players=GameStateCloneService.DeepClone(Players);
+            preview.Map=GameStateCloneService.DeepClone(Map);
+            preview.Decks=GameStateCloneService.DeepClone(Decks);
+            ItemZoneLegacyProjection.Bind(preview);
+            return preview;
+        }
+
         // 兼容后续内核代码的语义名称；真正的持久化字段只有 EffectRuntime。
         public EffectRuntimeState EffectRuntimeState
         {

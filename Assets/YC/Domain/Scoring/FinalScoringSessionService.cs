@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Newtonsoft.Json;
 using YC.Domain.Effects;
 using YC.Domain.Rules;
 using YC.Domain.State;
@@ -159,7 +158,7 @@ namespace YC.Domain.Scoring
                 var root = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == source.OwnerEffectId);
                 if (root?.Status != EffectNodeStatus.Completed || source.Outcome != "completed" || source.SourceRef == null || source.VersionRef == null || !Within(state, root.EffectId, session.OwnerEffectId)) throw new InvalidOperationException("final_scoring_source_incomplete");
                 var validatedEvidenceScopes = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var effect in state.EffectRuntime.EffectNodes.Where(n => n.Status == EffectNodeStatus.Completed && Within(state, n.EffectId, root.EffectId)).OrderBy(n => n.EffectId, StringComparer.Ordinal))
+                foreach (var effect in EffectDescendantQuery.Select(state, root.EffectId, true, false, false).OrderBy(n => n.EffectId, StringComparer.Ordinal))
                 {
                     var evidence = Value(effect.ContinuationContext, "scoringEvidence");
                     if (evidence != null)
@@ -208,9 +207,10 @@ namespace YC.Domain.Scoring
         {
             if (validator == null) throw new InvalidOperationException("final_scoring_layer_evidence_validator_required");
             if (state == null || evidence == null) throw new ArgumentNullException("state_or_evidence");
-            var work = GameStateCloneService.DeepClone(state); string before = JsonConvert.SerializeObject(work);
+            var work = GameStateCloneService.DeepClone(state);
+            var before = GameStateCloneService.DeepClone(work);
             string reason = validator(work, evidence.Clone());
-            if (before != JsonConvert.SerializeObject(work)) throw new InvalidOperationException("final_scoring_layer_validator_mutated_state");
+            if (!GameStateCloneService.AreEquivalent(before, work)) throw new InvalidOperationException("final_scoring_layer_validator_mutated_state");
             if (!string.IsNullOrEmpty(reason)) throw new InvalidOperationException(reason);
         }
         public static bool IsScoreEffect(EffectNodeRuntimeState node) => node.EffectTypeId == ResourceEffectTypeIds.GainScore || node.EffectTypeId == LuaDomainEffectTypeIds.LoseScore;
@@ -224,6 +224,8 @@ namespace YC.Domain.Scoring
             throw new InvalidOperationException("final_scoring_score_result_invalid");
         }
         public static bool Terminal(EffectNodeRuntimeState node) => node != null && (node.Status == EffectNodeStatus.Completed || node.Status == EffectNodeStatus.Failed);
+        public static IDisposable UseFullDescendantTraversalForDiagnostics() => EffectDescendantQuery.Diagnose(true, false);
+        public static IDisposable VerifyDescendantTraversalForDiagnostics() => EffectDescendantQuery.Diagnose(false, true);
         public static bool Within(GameState state, string nodeId, string ancestor)
         {
             var visited = new HashSet<string>(StringComparer.Ordinal);

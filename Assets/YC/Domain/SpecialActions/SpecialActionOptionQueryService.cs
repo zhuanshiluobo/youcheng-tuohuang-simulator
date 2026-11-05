@@ -115,9 +115,10 @@ namespace YC.Domain.SpecialActions
                 return result;
             }
 
-            for (var i = 0; i < state.Map.Influences.Count; i++)
+            var influences = state.Map.Influences.ToArray();
+            for (var i = 0; i < influences.Length; i++)
             {
-                var influence = state.Map.Influences[i];
+                var influence = influences[i];
                 if (influence != null && influence.PlayerId != playerId && !string.IsNullOrEmpty(influence.SlotId))
                 {
                     result.Add(influence.SlotId);

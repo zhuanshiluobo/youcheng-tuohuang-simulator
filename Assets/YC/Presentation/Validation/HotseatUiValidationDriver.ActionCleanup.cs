@@ -139,7 +139,18 @@ namespace YC.Presentation.Validation
             yield return Press(button, "同来源快速行动已结清，优先补合法特殊入口缺口");
             var projected = (Read(mobile, "turnActionPresenter") as TurnActionPresenter)?.CityStyleInteraction.QuerySpecialActions().Options
                 .SingleOrDefault(value => value.DeclaredAction?.OptionId == option.OptionId && value.CanUse);
-            Require(projected != null, "原特殊页面没有对应本人当前正式候选，不能点击旧行");
+            if (projected == null)
+            {
+                CheckContent(false, "原特殊页面没有对应本人当前正式候选，不能点击旧行");
+                Append("共用轨道特殊入口差异.jsonl", new { visible.GameId, visible.Round, visible.StateRevision,
+                    Player = visible.ViewerPlayerId, PriorOption = option,
+                    CurrentFormal = CurrentPaymentView()?.AbilityActions,
+                    ActualPage = (Read(mobile, "turnActionPresenter") as TurnActionPresenter)?.CityStyleInteraction.QuerySpecialActions().Options,
+                    Selected = false, Passed = false, StateReplaced = false });
+                // 可选入口不可对应不终止本局；回到原页签，下一步重新读本人的真实合法候选。
+                if (Request == null) yield return Press(MarkedButton("action.tab.0"), "可选特殊入口未对应后返回原主要行动页签");
+                yield break;
+            }
             string stable = projected.DeclarationMarkerId + ":" + projected.SpecialActionId;
             var row = FindObjectsOfType<UiEffectRowView>().SingleOrDefault(value => value.ItemId == stable &&
                 Read(value, "mode") is UiEffectRowView.Mode mode && mode == UiEffectRowView.Mode.ChoiceExecute);

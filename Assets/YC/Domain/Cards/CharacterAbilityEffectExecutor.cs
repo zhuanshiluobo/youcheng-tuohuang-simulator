@@ -117,7 +117,7 @@ namespace YC.Domain.Cards
                     ActivationEffectTypeId,
                     ExecuteActivation,
                     EffectExecutorKind.IntrinsicFlow,
-                    CharacterAbilityCatalog.CurrentDefinitionVersion));
+                    CharacterAbilityCatalog.CurrentDefinitionVersion) {ExecutionDoesNotRetainState=true});
             }
 
             if (!registry.TryGet(AbilityEffectTypeId, out _))

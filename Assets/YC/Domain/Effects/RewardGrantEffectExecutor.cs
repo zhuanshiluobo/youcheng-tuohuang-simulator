@@ -99,7 +99,7 @@ namespace YC.Domain.Effects
             }
             if (node.FlowStage.Length > 0) throw new InvalidOperationException("reward_grant_receipt_missing");
             var source = Authority(state, node, context.Registry, out string authorityId);
-            var declaration = context.Registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == source?.AbilityId && d.DefinitionId == source.DefinitionId);
+            var declaration = context.Registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == source?.AbilityId && d.DefinitionId == source.DefinitionId);
             if (declaration == null || source.AuthorizedPlayerId != node.PlayerId || !AbilitySourceService.IsCurrent(state, context.Registry.AbilityDeclarations, source) ||
                 !HandlerAllowed(node, declaration, context.Registry) || !Permitted(declaration, args, node.PlayerId)) return EffectStepResult.Failed("reward_grant_permission_denied");
             if (state.EffectRuntime.EffectNodes.Any(n => n.RewardGrant?.AuthorityEffectId == authorityId && n.RewardGrant.OperationId == Text(args, "operationId"))) return EffectStepResult.Failed("reward_grant_operation_reused");

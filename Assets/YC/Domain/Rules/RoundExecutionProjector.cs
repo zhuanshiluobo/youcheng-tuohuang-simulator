@@ -12,6 +12,7 @@ namespace YC.Domain.Rules
     {
         public bool Project(GameState state)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("round.project");
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));

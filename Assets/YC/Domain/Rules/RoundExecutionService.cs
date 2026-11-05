@@ -706,6 +706,7 @@ namespace YC.Domain.Rules
 
         private ValidationResult RunActiveMainline(GameState state)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("round.advance");
             var result = RunActiveMainlineCore(state);
             if (result.IsValid) OperationWindowService.Synchronize(state);
             return result;
@@ -1033,7 +1034,7 @@ namespace YC.Domain.Rules
             ExpansionSetupFlow.Register(effectRegistry);
             if (!effectRegistry.TryGet(PlayerEntranceTaskTypeId, out _))
                 effectRegistry.Register(PlayerEntranceTaskTypeId, ExecuteEntrancePlayerTask, EffectExecutorKind.IntrinsicFlow);
-            if (!effectRegistry.TryGet(PlayerCharacterRecyclingTypeId, out _)) effectRegistry.Register(PlayerCharacterRecyclingTypeId, context =>
+            if (!effectRegistry.TryGet(PlayerCharacterRecyclingTypeId, out _)) effectRegistry.RegisterWithoutStateRetention(PlayerCharacterRecyclingTypeId, context =>
             {
                 var player = context.State.FindPlayer(context.Node.PlayerId);
                 var recycled = InfectedRoundRules.RecycleCharacters(context, player.PlayerId);
@@ -1047,7 +1048,7 @@ namespace YC.Domain.Rules
                 effectRegistry.Register(new EffectRegistration(
                     MainlineEffectTypeId,
                     ExecuteMainlineStage,
-                    EffectExecutorKind.IntrinsicFlow));
+                    EffectExecutorKind.IntrinsicFlow) { ExecutionDoesNotRetainState = true });
             }
         }
 
@@ -1091,6 +1092,9 @@ namespace YC.Domain.Rules
                 throw new InvalidOperationException("主链节点不存在：" + mainNodeId);
             }
 
+            // 收尾提供者可由外部注册并保留原始状态，仍保持原完整隔离。
+            if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.PlayerCleanupWindow)
+                ExecutionWorkRetentionScope.Expose(context.State);
             if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup)
                 return ExecuteEntranceSetup(context, mainNode);
 
@@ -1365,6 +1369,7 @@ namespace YC.Domain.Rules
                         AppendLifecycleEvents(context.State, context.Node, mainNode, prepare);
                         return prepare;
                     }
+                    ExecutionWorkRetentionScope.Expose(context.State);
                     var queries = new ScoringModifierQueryService(new YC.Domain.Maps.MapQueryService(
                         YC.Domain.Maps.StaticMapDefinitions.Resolve(context.State.MapId)), context.Registry);
                     return new FinalScoringSessionService(queries, FacilityLayerEvidence.Validate).Advance(context, mainNode,
@@ -1764,6 +1769,7 @@ namespace YC.Domain.Rules
                 return;
             }
 
+            ExecutionWorkRetentionScope.Expose(state);
             FinalScoringResult result = finalScoringService.Resolve(state);
             if (result.Succeeded)
             {

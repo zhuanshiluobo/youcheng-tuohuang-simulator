@@ -195,7 +195,7 @@ namespace YC.Presentation.Validation
         private readonly HashSet<string> submittedControlKeys = new HashSet<string>(StringComparer.Ordinal);
         private int deferredDifferenceCount, runtimeErrorsCaptured;
         private bool deferContentDifferencesRequested;
-        private bool DeferContentDifferences => (NetworkMode || PerformanceMode) && deferContentDifferencesRequested;
+        private bool DeferContentDifferences => (NetworkMode || PerformanceMode || FullGamePerformance) && deferContentDifferencesRequested;
 
         private void CheckContent(bool condition, string message)
         {
@@ -277,6 +277,7 @@ namespace YC.Presentation.Validation
             JsonConvert.SerializeObject(new {
                 CandidateSetVersion = Request?.CandidateSetVersion,
                 Candidates = Request?.CandidateIds,
+                MapInputOwners = identity.StartsWith("map:",StringComparison.Ordinal) ? OriginalMapControlOwners(Read(mobile,"interactionRouter") as InteractionRouter) : null,
                 Choices = new[] { "characterAbilityInteraction", "facilityInteraction", "specialActionInteraction" }
                     .Select(field => (Read(Read(mobile, field), "selectedCandidates") as IEnumerable)?.Cast<object>().Select(value => Convert.ToString(value)).ToArray()).ToArray(),
                 Players = FindObjectsOfType<PlayerSelectionPageView>().Where(page => page.isActiveAndEnabled)
@@ -284,6 +285,10 @@ namespace YC.Presentation.Validation
                 Enterprises = FindObjectsOfType<EnterpriseSelectionDialogView>().Where(page => page.IsShowing)
                     .Select(page => page.Draft.SelectedIds.ToArray()).ToArray(),
                 RouteLocations = Route?.Draft?.SelectedLocationIds, RouteIds = Route?.Draft?.ConfirmedRouteIds });
+        private static string[] OriginalMapControlOwners(InteractionRouter router) =>
+            (Read(router,"registrations") as IEnumerable)?.Cast<object>().Select(r=>Read(r,"Interaction") as IInteraction)
+                .Where(i=>i?.IsActive==true).Select(i=>i.Id+"|"+i.GetType().FullName)
+                .Distinct(StringComparer.Ordinal).OrderBy(id=>id,StringComparer.Ordinal).ToArray();
         private void CheckOriginalControlNotRepeated(string key)
         {
             if (key != null && submittedControlKeys.Contains(key))

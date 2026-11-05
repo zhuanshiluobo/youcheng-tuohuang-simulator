@@ -56,7 +56,7 @@ namespace YC.Domain.Harvest
                     {
                         string invalid = ValidateReturn(context, result.SourceRef, result.Items);
                         if (invalid.Length > 0) throw new InvalidOperationException(invalid);
-                        var declaration = registry.AbilityDeclarations.Single(d => d.AbilityId == result.SourceRef.AbilityId && d.DefinitionId == result.SourceRef.DefinitionId);
+                        var declaration = registry.SelectSingleAbilityDeclaration(d => d.AbilityId == result.SourceRef.AbilityId && d.DefinitionId == result.SourceRef.DefinitionId);
                         registry.RegisterCollectionQueryHandlerVersion(declaration.HandlerRef, result.VersionRef.HandlerHash);
                         queried.Add(new CollectionQuerySource(result.SourceRef, result.VersionRef));
                         if (result.SourceRef.AuthorizedPlayerId != query.PlayerId || result.SourceRef.SourceKey != source.SourceKey)

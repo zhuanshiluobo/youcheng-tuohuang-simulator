@@ -101,6 +101,7 @@ namespace YC.Domain.Effects
         }
         public static ItemTransferResult Resolve(EffectExecutionContext context, InfluenceDepartureRecord d, string destination)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.depart.resolve");
             var item = context.State.ItemZones.Items.Single(i => i.ItemId == d.ItemId);
             if (d.Status != "open" || item.ZoneId != d.CustodyZoneId || !IsWithin(context.State, context.Node.EffectId, d.CustodyRootId)) throw new InvalidOperationException("departure_custody_required");
             var r = Response(context.State, context.Node.EffectId);
@@ -110,27 +111,77 @@ namespace YC.Domain.Effects
             d.DestinationZoneId = destination; d.Status = r == null ? "returned" : "stored";
             return moved;
         }
+        internal sealed class ValidationLookup<T> where T : class
+        {
+            private readonly List<T> source;
+            private readonly Func<T, string> key;
+            private ILookup<string, T> index;
+            private bool inspected;
+            internal ValidationLookup(List<T> source, Func<T, string> key) { this.source = source; this.key = key; }
+            internal T FindFirst(string id)
+            {
+                if (source == null || source.GetType() != typeof(List<T>)) return source.Find(value => key(value) == id);
+                return ForKey(id).FirstOrDefault();
+            }
+            internal IEnumerable<T> ForKey(string id)
+            {
+                if (!inspected)
+                {
+                    inspected = true;
+                    if (source != null && source.GetType() == typeof(List<T>) && !source.Exists(value => value == null))
+                        index = source.ToLookup(key, StringComparer.Ordinal);
+                }
+                return index == null ? source.Where(value => key(value) == id) : index[id];
+            }
+        }
         public static bool Validate(GameState state, out string reason)
         {
             reason = "departure_protocol_invalid";
             var runtime = state.EffectRuntime;
             if (runtime.InfluenceDepartures == null || runtime.InfluenceDepartureBatches == null) return false;
+            // 只在本次同步完整校验内建索引；按键保留原顺序和重复项，Single仍拒绝重复。
+            // 空/损坏输入在原首次使用位置回旧查询，保持原短路和异常先后。
+            var nodes = new ValidationLookup<EffectNodeRuntimeState>(runtime.EffectNodes, n => n.EffectId);
+            var items = new ValidationLookup<ItemInstanceState>(state.ItemZones?.Items, i => i.ItemId);
+            var zones = new ValidationLookup<ZoneInstanceState>(state.ItemZones?.Zones, z => z.ZoneId);
+            var events = new ValidationLookup<RuleEvent>(runtime.RuleEvents, e => e.EventId);
+            var responses = new ValidationLookup<DeferredResponseState>(runtime.DeferredResponses, r => r.DeferredResponseId);
+            var departures = new ValidationLookup<InfluenceDepartureRecord>(runtime.InfluenceDepartures, d => d.DepartureId);
+            var receipts = new ValidationLookup<DispatchReceipt>(runtime.DispatchReceipts, r => r.EventId);
+            ValidationLookup<ItemPositionChange> positions = null;
+            bool HasPosition(string itemId, string from, string to)
+            {
+                if (positions == null)
+                {
+                    bool safe = runtime.EffectNodes != null && runtime.EffectNodes.GetType() == typeof(List<EffectNodeRuntimeState>);
+                    if (safe)
+                        for (int i = 0; i < runtime.EffectNodes.Count; i++)
+                        {
+                            var node = runtime.EffectNodes[i];
+                            if (node == null || node.PositionChanges == null || node.PositionChanges.GetType() != typeof(List<ItemPositionChange>) || node.PositionChanges.Exists(p => p == null)) { safe = false; break; }
+                        }
+                    if (!safe)
+                        return runtime.EffectNodes.Any(n => n.PositionChanges.Any(p => p.ItemId == itemId && p.From?.ZoneId == from && p.To?.ZoneId == to));
+                    positions = new ValidationLookup<ItemPositionChange>(runtime.EffectNodes.SelectMany(n => n.PositionChanges).ToList(), p => p.ItemId);
+                }
+                return positions.ForKey(itemId).Any(p => p.From?.ZoneId == from && p.To?.ZoneId == to);
+            }
             var ids = new HashSet<string>(); var held = new HashSet<string>();
             foreach (var d in runtime.InfluenceDepartures)
             {
                 if (d == null || d.ProtocolVersion != 1 || d.OperationIndex < 0 || d.DepartureId != StableIdFactory.Create("departure", d.SourceEffectId, d.OperationIndex.ToString(System.Globalization.CultureInfo.InvariantCulture)) || !ids.Add(d.DepartureId) || d.OriginalSubject == null || d.OriginalPosition == null ||
                     d.ResponseIds == null || d.EventIds == null || d.CurrentIndex < 0 || d.CurrentIndex > d.ResponseIds.Count ||
                     !new[] { "open", "stored", "returned" }.Contains(d.Status) || !new[] { "remove", "replace" }.Contains(d.CauseKind)) return false;
-                var op = runtime.EffectNodes.Find(n => n.EffectId == d.SourceEffectId);
-                var item = state.ItemZones.Items.Find(i => i.ItemId == d.ItemId);
+                var op = nodes.FindFirst(d.SourceEffectId);
+                var item = items.FindFirst(d.ItemId);
                 if (op == null || item == null || !new[] { InfluenceEffectTypeIds.RemoveInfluence, InfluenceEffectTypeIds.ReplaceInfluence }.Contains(op.EffectTypeId) ||
-                    item.OriginalSupplyZoneId != d.OriginalSupplyZoneId || !state.ItemZones.Zones.Any(z => z.ZoneId == d.OriginalSupplyZoneId) ||
+                    item.OriginalSupplyZoneId != d.OriginalSupplyZoneId || !zones.ForKey(d.OriginalSupplyZoneId).Any() ||
                     !op.PositionChanges.Any(p => p.ItemId == d.ItemId && p.From?.ZoneId == d.OriginalPosition.ZoneId && p.From?.SlotId == d.OriginalPosition.SlotId) ||
-                    !d.EventIds.Any(id => runtime.RuleEvents.Any(e => e.EventId == id && e.SourceEffectId == op.EffectId && e.EventType == InfluenceEventTypeIds.InfluenceRemoved && Text(e.Payload, "departureId") == d.DepartureId)) ||
-                    d.EventIds.Distinct().Count() != d.EventIds.Count || d.EventIds.Any(id => !runtime.RuleEvents.Any(e => e.EventId == id && e.SourceEffectId == d.SourceEffectId && Text(e.Payload, "departureId") == d.DepartureId && Number(e.Payload, "eventProtocolVersion") == 2)) ||
-                    d.ResponseIds.Distinct().Count() != d.ResponseIds.Count || d.ResponseIds.Any(id => !runtime.DeferredResponses.Any(r => r.DeferredResponseId == id && r.DepartureId == d.DepartureId))) return false;
-                if (d.Status == "open" && (!held.Add(d.ItemId) || item.ZoneId != d.CustodyZoneId || !state.ItemZones.Zones.Any(z => z.ZoneId == item.ZoneId && z.OwnerEffectId == d.CustodyRootId && z.LocalZoneId == "removed_influence") || !string.IsNullOrEmpty(d.DestinationZoneId))) return false;
-                if (d.Status != "open" && (string.IsNullOrEmpty(d.DestinationZoneId) || !runtime.EffectNodes.Any(n => n.PositionChanges.Any(p => p.ItemId == d.ItemId && p.From?.ZoneId == d.CustodyZoneId && p.To?.ZoneId == d.DestinationZoneId)))) return false;
+                    !d.EventIds.Any(id => events.ForKey(id).Any(e => e.SourceEffectId == op.EffectId && e.EventType == InfluenceEventTypeIds.InfluenceRemoved && Text(e.Payload, "departureId") == d.DepartureId)) ||
+                    d.EventIds.Distinct().Count() != d.EventIds.Count || d.EventIds.Any(id => !events.ForKey(id).Any(e => e.SourceEffectId == d.SourceEffectId && Text(e.Payload, "departureId") == d.DepartureId && Number(e.Payload, "eventProtocolVersion") == 2)) ||
+                    d.ResponseIds.Distinct().Count() != d.ResponseIds.Count || d.ResponseIds.Any(id => !responses.ForKey(id).Any(r => r.DepartureId == d.DepartureId))) return false;
+                if (d.Status == "open" && (!held.Add(d.ItemId) || item.ZoneId != d.CustodyZoneId || !zones.ForKey(item.ZoneId).Any(z => z.OwnerEffectId == d.CustodyRootId && z.LocalZoneId == "removed_influence") || !string.IsNullOrEmpty(d.DestinationZoneId))) return false;
+                if (d.Status != "open" && (string.IsNullOrEmpty(d.DestinationZoneId) || !HasPosition(d.ItemId, d.CustodyZoneId, d.DestinationZoneId))) return false;
             }
             foreach (var b in runtime.InfluenceDepartureBatches)
             {
@@ -138,19 +189,19 @@ namespace YC.Domain.Effects
                     b.BatchId != StableIdFactory.Create("departure_batch", b.OwnerEffectId) || b.ProducerSteps.Distinct().Count() != b.ProducerSteps.Count ||
                     b.FinishedSteps.Distinct().Count() != b.FinishedSteps.Count || b.FinishedSteps.Any(id => !b.ProducerSteps.Contains(id)) ||
                     b.Sealed && b.ProducerSteps.Count != b.FinishedSteps.Count || b.DepartureIds.Distinct().Count() != b.DepartureIds.Count ||
-                    b.DepartureIds.Any(id => !runtime.InfluenceDepartures.Any(d => d.DepartureId == id && d.BatchId == b.BatchId)) ||
-                    b.ResponseIds.Any(id => !runtime.DeferredResponses.Any(r => r.DeferredResponseId == id && r.BatchId == b.BatchId)) ||
+                    b.DepartureIds.Any(id => !departures.ForKey(id).Any(d => d.BatchId == b.BatchId)) ||
+                    b.ResponseIds.Any(id => !responses.ForKey(id).Any(r => r.BatchId == b.BatchId)) ||
                     b.Offers.Any(o => o == null || o.Body == null || o.EventIds == null || o.DepartureIds == null || o.DepartureIds.Count == 0 || o.DepartureIds.Count != o.EventIds.Count || o.DepartureIds.Distinct().Count() != o.DepartureIds.Count ||
-                        o.DepartureIds.Any(id => !b.DepartureIds.Contains(id)) || o.EventIds.Any(id => !runtime.RuleEvents.Any(e => e.EventId == id && e.EventType == InfluenceEventTypeIds.InfluenceRemoved && o.DepartureIds.Contains(Text(e.Payload, "departureId")))))) return false;
+                        o.DepartureIds.Any(id => !b.DepartureIds.Contains(id)) || o.EventIds.Any(id => !events.ForKey(id).Any(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved && o.DepartureIds.Contains(Text(e.Payload, "departureId")))))) return false;
                 if (!b.DepartureIds.SequenceEqual(runtime.InfluenceDepartures.Where(d => d.BatchId == b.BatchId).Select(d => d.DepartureId)) ||
                     !b.ResponseIds.SequenceEqual(runtime.DeferredResponses.Where(r => r.BatchId == b.BatchId).Select(r => r.DeferredResponseId))) return false;
                 foreach (var offer in b.Offers)
                 {
-                    if (offer.EventId != offer.EventIds[0] || !runtime.DispatchReceipts.Any(r => r.EventId == offer.EventId && r.SubscriptionId == offer.SubscriptionId)) return false;
+                    if (offer.EventId != offer.EventIds[0] || !receipts.ForKey(offer.EventId).Any(r => r.SubscriptionId == offer.SubscriptionId)) return false;
                     for (int index = 0; index < offer.DepartureIds.Count; index++)
                     {
-                        var departure = runtime.InfluenceDepartures.Single(d => d.DepartureId == offer.DepartureIds[index]);
-                        if (!runtime.RuleEvents.Any(e => e.EventId == offer.EventIds[index] && e.SourceEffectId == departure.SourceEffectId &&
+                        var departure = departures.ForKey(offer.DepartureIds[index]).Single();
+                        if (!events.ForKey(offer.EventIds[index]).Any(e => e.SourceEffectId == departure.SourceEffectId &&
                             e.EventType == InfluenceEventTypeIds.InfluenceRemoved && Text(e.Payload, "departureId") == departure.DepartureId)) return false;
                     }
                 }

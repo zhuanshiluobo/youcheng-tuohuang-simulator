@@ -143,8 +143,6 @@ namespace YC.Infrastructure.Lua
         private LuaSnapshotValue(LuaSnapshotValueKind kind)
         {
             Kind = kind;
-            Items = new List<LuaSnapshotValue>();
-            Properties = new List<LuaSnapshotEntry>();
         }
 
         public static LuaSnapshotValue Null { get; } = new LuaSnapshotValue(LuaSnapshotValueKind.Null);
@@ -152,8 +150,12 @@ namespace YC.Infrastructure.Lua
         public bool BooleanValue { get; private set; }
         public long IntegerValue { get; private set; }
         public string StringValue { get; private set; }
-        public List<LuaSnapshotValue> Items { get; }
-        public List<LuaSnapshotEntry> Properties { get; }
+        private List<LuaSnapshotValue> items;
+        private List<LuaSnapshotEntry> properties;
+        // 标量占输入快照的大多数；只有实际访问集合时才分配独立可变列表。
+        // 公共API仍始终返回非null且保持同一实例，数组/对象及附加字段语义不变。
+        public List<LuaSnapshotValue> Items => System.Threading.LazyInitializer.EnsureInitialized(ref items);
+        public List<LuaSnapshotEntry> Properties => System.Threading.LazyInitializer.EnsureInitialized(ref properties);
 
         public static LuaSnapshotValue Boolean(bool value)
         {
@@ -198,9 +200,10 @@ namespace YC.Infrastructure.Lua
 
         public LuaSnapshotValue Get(string name)
         {
-            for (int i = 0; i < Properties.Count; i++)
+            if (properties == null) return Null;
+            for (int i = 0; i < properties.Count; i++)
             {
-                if (string.Equals(Properties[i].Name, name, StringComparison.Ordinal)) return Properties[i].Value;
+                if (string.Equals(properties[i].Name, name, StringComparison.Ordinal)) return properties[i].Value;
             }
 
             return Null;
@@ -274,11 +277,39 @@ namespace YC.Infrastructure.Lua
         public List<string> TurnOrder { get; } = new List<string>();
         public List<string> EnabledDlcIds { get; } = new List<string>();
         public List<LuaPlayerSnapshot> Players { get; } = new List<LuaPlayerSnapshot>();
-        public LuaSnapshotValue GlobalFacilities { get; set; } = LuaSnapshotValue.Object(null);
+        private LuaSnapshotValue globalFacilities=LuaSnapshotValue.Object(null);
+        [NonSerialized] private Func<LuaSnapshotValue> globalFacilitiesFactory;
+        public LuaSnapshotValue GlobalFacilities
+        {
+            get { if(globalFacilitiesFactory!=null) {var build=globalFacilitiesFactory;globalFacilitiesFactory=null;globalFacilities=build();}return globalFacilities; }
+            set { globalFacilitiesFactory=null;globalFacilities=value; }
+        }
+        internal void DeferGlobalFacilities(Func<LuaSnapshotValue> build) => globalFacilitiesFactory=build??throw new ArgumentNullException(nameof(build));
         public LuaSnapshotValue GlobalScoring { get; set; } = LuaSnapshotValue.Null;
-        public LuaSnapshotValue GlobalMap { get; set; } = LuaSnapshotValue.Object(null);
-        public LuaSnapshotValue GlobalContent { get; set; } = LuaSnapshotValue.Object(null);
+        private LuaSnapshotValue globalMap=LuaSnapshotValue.Object(null);
+        [NonSerialized] private Func<LuaSnapshotValue> globalMapFactory;
+        public LuaSnapshotValue GlobalMap
+        {
+            get { if(globalMapFactory!=null) {var build=globalMapFactory;globalMapFactory=null;globalMap=build();}return globalMap; }
+            set { globalMapFactory=null;globalMap=value; }
+        }
+        internal void DeferGlobalMap(Func<LuaSnapshotValue> build) => globalMapFactory=build??throw new ArgumentNullException(nameof(build));
+        private LuaSnapshotValue globalContent=LuaSnapshotValue.Object(null);
+        [NonSerialized] private Func<LuaSnapshotValue> globalContentFactory;
+        public LuaSnapshotValue GlobalContent
+        {
+            get { if(globalContentFactory!=null) {var build=globalContentFactory;globalContentFactory=null;globalContent=build();}return globalContent; }
+            set { globalContentFactory=null;globalContent=value; }
+        }
+        internal void DeferGlobalContent(Func<LuaSnapshotValue> build) => globalContentFactory=build??throw new ArgumentNullException(nameof(build));
         public LuaSnapshotValue EventPayload { get; set; } = LuaSnapshotValue.Null;
+
+        // 构造器只在Dispatcher的本次同步Invoke内有效；不把GameState引用留给后续调用或缓存。
+        internal int DeferredQueryMask => (globalFacilitiesFactory!=null?1:0) | (globalMapFactory!=null?2:0) | (globalContentFactory!=null?4:0);
+        internal void MaterializeDeferredQueries()
+        {var facilities=GlobalFacilities;var map=GlobalMap;var content=GlobalContent;}
+        internal void ReleaseDeferredQueries()
+        {globalFacilitiesFactory=null;globalMapFactory=null;globalContentFactory=null;}
 
         public static LuaFacadeSnapshot FromInvocation(
             string playerId,

@@ -396,9 +396,10 @@ namespace YC.Domain.Cards
                 }
 
                 var options = new List<string>();
-                for (var influenceIndex = 0; influenceIndex < state.Map.Influences.Count; influenceIndex++)
+                var influences = state.Map.Influences.ToArray();
+                for (var influenceIndex = 0; influenceIndex < influences.Length; influenceIndex++)
                 {
-                    var influence = state.Map.Influences[influenceIndex];
+                    var influence = influences[influenceIndex];
                     if (influence.PlayerId == delayed.PlayerId)
                     {
                         options.Add(influence.SlotId);

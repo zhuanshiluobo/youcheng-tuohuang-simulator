@@ -11,6 +11,17 @@ namespace YC.Domain.Items
 {
     public sealed partial class ItemTransferService
     {
+        [ThreadStatic] private static bool verifyRecoveryReplayCopies;
+        [ThreadStatic] private static bool fullRecoveryReplayForDiagnostics;
+        public static IDisposable VerifyRecoveryReplayCopies() => new RecoveryReplayVerificationScope(true,false);
+        public static IDisposable UseFullRecoveryReplayForDiagnostics() => new RecoveryReplayVerificationScope(false,true);
+        private sealed class RecoveryReplayVerificationScope : IDisposable
+        {
+            private readonly bool previous=verifyRecoveryReplayCopies,previousFull=fullRecoveryReplayForDiagnostics;
+            private bool closed;
+            internal RecoveryReplayVerificationScope(bool verify,bool full){verifyRecoveryReplayCopies=verify;fullRecoveryReplayForDiagnostics=full;}
+            public void Dispose(){if(closed)return;closed=true;verifyRecoveryReplayCopies=previous;fullRecoveryReplayForDiagnostics=previousFull;}
+        }
         private static bool CommonPlanMatches(GameState state, EffectNodeRuntimeState node, CommonItemMovementPlanV4 plan)
         {
             var legs = ItemMovementV4.Legs(ItemMovementV4.CommonArguments(state, node)).ToList();
@@ -106,25 +117,36 @@ namespace YC.Domain.Items
                 if(!checkedOrderZones.Add(id)||before==null||Number(expected,"orderRevision")!=before.Revision||(Text(expected,"expectedTopItemId").Length>0&&Text(expected,"expectedTopItemId")!=(before.HasOrder?before.ItemIds.FirstOrDefault()??"":""))||Text(expected,"digest")!=FacilityPlacementMovement.OrderDigest(before))return false;
             }
             // 用已封存的真实前态顺序和逐枚事实演算，不从当前移动后的源区重新规划。
-            var replay = GameStateCloneService.DeepClone(state);
-            foreach (var fact in allFacts) { var item = replay.ItemZones.Items.Single(i => i.ItemId == fact.ItemId); item.ZoneId = fact.From.ZoneId; item.SlotId = fact.From.SlotId; item.ControllerSubject = GameStateCloneService.DeepClone(fact.Controller); }
-            foreach (var before in r.OrdersBefore)
+            bool ReplayMatches(GameState replay)
             {
-                var order = replay.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == before.ZoneId);
-                if (before.HasOrder != (order != null)) return false;
-                if (order != null) { order.ItemIds = before.ItemIds.ToList(); order.OrderRevision = before.Revision; }
-                else if (!before.ItemIds.OrderBy(id => id, StringComparer.Ordinal).SequenceEqual(replay.ItemZones.Items.Where(i => i.ZoneId == before.ZoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal)))
+                foreach (var fact in allFacts) { var item = replay.ItemZones.Items.Single(i => i.ItemId == fact.ItemId); item.ZoneId = fact.From.ZoneId; item.SlotId = fact.From.SlotId; item.ControllerSubject = GameStateCloneService.DeepClone(fact.Controller); }
+                foreach (var before in r.OrdersBefore)
                 {
-                    // 其他实例之后可被合法移动；历史无序成员不与当前全区成员绑定，仅逐枚证据复验。
-                    if (before.ItemIds.Any(id => allFacts.Any(f => f.ItemId == id && f.From.ZoneId != before.ZoneId))) return false;
+                    var order = replay.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == before.ZoneId);
+                    if (before.HasOrder != (order != null)) return false;
+                    if (order != null) { order.ItemIds = before.ItemIds.ToList(); order.OrderRevision = before.Revision; }
+                    else if (!before.ItemIds.OrderBy(id => id, StringComparer.Ordinal).SequenceEqual(replay.ItemZones.Items.Where(i => i.ZoneId == before.ZoneId).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal)))
+                    {
+                        // 其他实例之后可被合法移动；历史无序成员不与当前全区成员绑定，仅逐枚证据复验。
+                        if (before.ItemIds.Any(id => allFacts.Any(f => f.ItemId == id && f.From.ZoneId != before.ZoneId))) return false;
+                    }
                 }
+                foreach (var f in r.LifecycleItems)
+                    Apply(replay, new ItemTransferRequest { ItemIds = new List<string> { f.ItemId }, ExpectedSource = f.From, Destination = new ZoneRef { ZoneId = f.To.ZoneId }, InsertionKind = state.ItemZones.Orders.Any(o => o.ZoneId == f.To.ZoneId) ? "bottom" : "unordered", DestinationSlotId = f.To.SlotId });
+                var computed = new List<ItemPositionChange>();
+                foreach (var transfer in plan.Transfers) if (!NoChange(replay, transfer)) computed.AddRange(Apply(replay, transfer).PositionChanges);
+                if (MovementV4Digest(MergeResults(computed)) != MovementV4Digest(r.Result)) return false;
+                foreach (var after in r.OrdersAfter.Where(o => o.HasOrder)) if (!SameOrder(replay, after)) return false;
+                return true;
             }
-            foreach (var f in r.LifecycleItems)
-                Apply(replay, new ItemTransferRequest { ItemIds = new List<string> { f.ItemId }, ExpectedSource = f.From, Destination = new ZoneRef { ZoneId = f.To.ZoneId }, InsertionKind = state.ItemZones.Orders.Any(o => o.ZoneId == f.To.ZoneId) ? "bottom" : "unordered", DestinationSlotId = f.To.SlotId });
-            var computed = new List<ItemPositionChange>();
-            foreach (var transfer in plan.Transfers) if (!NoChange(replay, transfer)) computed.AddRange(Apply(replay, transfer).PositionChanges);
-            if (MovementV4Digest(MergeResults(computed)) != MovementV4Digest(r.Result)) return false;
-            foreach (var after in r.OrdersAfter.Where(o => o.HasOrder)) if (!SameOrder(replay, after)) return false;
+            var referenceState=verifyRecoveryReplayCopies?GameStateCloneService.DeepClone(state):null;
+            bool matches=ReplayMatches(fullRecoveryReplayForDiagnostics?GameStateCloneService.DeepClone(state):state.CreateItemTransferPreview());
+            if(referenceState!=null)
+            {
+                if(!GameStateCloneService.AreEquivalent(state,referenceState))throw new InvalidOperationException("历史移牌重演修改了原状态。");
+                if(matches!=ReplayMatches(referenceState))throw new InvalidOperationException("历史移牌重演与完整副本结果不一致。");
+            }
+            if(!matches)return false;
             if (node.PositionChanges.Count != r.Result.PositionChanges.Count + r.LifecycleItems.Count || node.PositionChanges.Select(c => c.ItemId).Distinct().Count() != node.PositionChanges.Count ||
                 node.PositionChanges.Any(c => !allFacts.Any(f => f.ItemId == c.ItemId && MovementV4Digest(f.From) == MovementV4Digest(c.From) && MovementV4Digest(f.To) == MovementV4Digest(c.To)))) return false;
             int offset = 0, index = 0;

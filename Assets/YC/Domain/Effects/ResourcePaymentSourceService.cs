@@ -60,7 +60,7 @@ namespace YC.Domain.Effects
             if (state == null || registry == null || owner == null || !PaymentResources.Valid(gross)) throw new ArgumentException("payment_query_invalid");
             BindCostQueries(state, registry);
             if (owner.Payment?.AllowsSubstitution == false || owner.Payment == null && Value(owner.NormalizedArguments, "allowSubstitution")?.Kind == NormalizedValueKind.Boolean && !Flag(owner.NormalizedArguments, "allowSubstitution")) return Array.Empty<PaymentSourceRule>();
-            if (!registry.HasAbilityCatalog || !registry.AbilityDeclarations.Any(d => d.Kind == "ruleQuery" && d.QueryKinds.Contains(QueryKind))) return Array.Empty<PaymentSourceRule>();
+            if (!registry.HasAbilityCatalog || !registry.ContainsAbilityDeclaration(d => d.Kind == "ruleQuery" && d.QueryKinds.Contains(QueryKind))) return Array.Empty<PaymentSourceRule>();
             Register(registry);
             string build = BuildIdentity(state, owner); string purpose = build.Length > 0 ? "build" : owner.Payment?.SourceKind ?? "pay";
             var facts = Object("paymentId", NormalizedValue.CreateString(owner.EffectId), "paymentGeneration", NormalizedValue.CreateInteger(owner.Payment?.PaymentGeneration ?? 1),
@@ -71,7 +71,15 @@ namespace YC.Domain.Effects
                 ContentVersion = registry.ContentPackHash, MapId = state.MapId, StateRevision = state.EffectRuntime.StateRevision,
                 SubjectPlayerId = owner.PlayerId, Purpose = purpose, Facts = facts };
             var result = new List<PaymentSourceRule>();
-            foreach (var response in registry.QueryRules(state, query))
+            // 返回合同原本就只接收本人来源。先限定真实授权来源，避免为其余玩家
+            // 构建完整Lua快照并执行随后必定丢弃的响应；全局QueryRules语义保持。
+            var responses = new List<AbilityRuleQueryResult>();
+            foreach (var paymentSource in registry.QuerySources(state, query).Where(s=>s.AuthorizedPlayerId==owner.PlayerId))
+            {
+                var scoped=GameStateCloneService.DeepClone(query);scoped.SourceRef=paymentSource;
+                responses.AddRange(registry.QueryRules(state,scoped));
+            }
+            foreach (var response in responses)
             {
                 if (response.SourceRef.AuthorizedPlayerId != owner.PlayerId) continue;
                 foreach (var value in response.Items.Items)

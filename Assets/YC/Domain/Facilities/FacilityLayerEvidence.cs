@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json;
 using YC.Domain.Effects;
@@ -12,9 +13,10 @@ namespace YC.Domain.Facilities
     public static class FacilityLayerEvidence
     {
         public const string Version = "1.0.0";
-        public static string Digest(GameState state, int playerId) => FacilityBuildQueryService.Hash(
+        public static string Digest(GameState state, int playerId) => Digest(playerId, FacilityLayerQuery.ResolveCity(state, playerId));
+        public static string Digest(int playerId, IReadOnlyList<FacilityCellLayerSnapshot> cells) => FacilityBuildQueryService.Hash(
             Version + "|" + playerId.ToString(CultureInfo.InvariantCulture) + "|" +
-            JsonConvert.SerializeObject(FacilityLayerQuery.ResolveCity(state, playerId)));
+            JsonConvert.SerializeObject(cells));
         public static string Validate(GameState state, NormalizedValue evidence)
         {
             if (evidence?.Kind != NormalizedValueKind.Object || !evidence.IsValid() ||

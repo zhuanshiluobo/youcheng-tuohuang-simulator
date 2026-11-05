@@ -13,6 +13,35 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class InfluencePlacementQueryTests
     {
+        [Test]
+        public void MovementCandidatesKeepSingleSlotRulesAndReadEachProjectionOnce()
+        {
+            var f=new Fixture(true);f.Occupy("route:R0:0");f.AddRoad("R1");
+            var item=f.State.ItemZones.Items.First(value=>value.SlotId=="route:R0:0");
+            var expected=f.AllSlots().Where(slot=>f.Service.ValidateItemPlacement(f.State,item.OwnerSubject,slot).Succeeded).OrderBy(slot=>slot,StringComparer.Ordinal).ToArray();
+            int influences=0,tokens=0,roads=0;
+            Observe(f.State.Map.Influences,()=>influences++);Observe(f.State.Map.ResourceTokens,()=>tokens++);Observe(f.State.Map.RoadRouteIds,()=>roads++);
+            var first=f.Service.GetLegalMovementSlotIds(f.State,item.ItemId);
+            Assert.That(first,Is.EqualTo(expected));Assert.That(influences,Is.EqualTo(1));Assert.That(tokens,Is.EqualTo(1));Assert.That(roads,Is.EqualTo(1));
+            var changed=first.First();int revision=f.State.EffectRuntime.StateRevision;f.Occupy(changed);
+            Assert.That(f.State.EffectRuntime.StateRevision,Is.EqualTo(revision));
+            Assert.That(f.Service.GetLegalMovementSlotIds(f.State,item.ItemId),Does.Not.Contain(changed));
+            Assert.That(first,Does.Contain(changed));
+        }
+
+        [Test]
+        public void MovementCustomPlacementHookIsStillCalledForEverySlotAndCanChangeBetweenCalls()
+        {
+            var f=new Fixture(true);f.Occupy("route:R0:0");
+            var item=f.State.ItemZones.Items.First(value=>value.SlotId=="route:R0:0");
+            int calls=0;f.Service.PlacementAllowed=(state,slot)=>{calls++;return true;};
+            var first=f.Service.GetLegalMovementSlotIds(f.State,item.ItemId);
+            Assert.That(calls,Is.EqualTo(f.AllSlots().Count()));Assert.That(first,Is.Not.Empty);
+            f.Service.PlacementAllowed=(state,slot)=>false;
+            Assert.That(f.Service.GetLegalMovementSlotIds(f.State,item.ItemId),Is.Empty);
+            Assert.That(first,Is.Not.Empty);
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void BatchCandidatesMatchFreshSingleSlotValidationInMapOrder(bool entityMode)

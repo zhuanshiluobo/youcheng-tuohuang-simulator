@@ -25,6 +25,21 @@ namespace YC.Tests.EditMode
     public sealed class BuildPaymentProjectionTests
     {
         [Test]
+        public void SynchronousMainBuildPreparationPresentsFinalDraftOnceAndRetainsExactCommand()
+        {
+            var f=new Fixture();var port=new Port(f);var view=new View();
+            var workflow=new BuildInteraction(f,port,view,new InteractionFlowCoordinator(),()=>true,_=>{});
+            workflow.GetVisibleState=()=>f.Visible;
+            workflow.Begin();view.Shows=0;
+            workflow.SelectFacility(f.Item.ItemId);
+            Assert.That(port.Commands.Count,Is.EqualTo(1));
+            Assert.That(port.Commands[0].Parameters["operation"],Is.EqualTo("prepare_action"));
+            Assert.That(view.Shows,Is.EqualTo(1));
+            Assert.That(view.Last.SelectedOption.FacilityId,Is.EqualTo(f.Item.ItemId));
+            Assert.That(view.Last.PaymentPreparation.PaymentId,Is.EqualTo(f.Visible.PreparedActionPayments.Single().PaymentId));
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(18));
+        }
+        [Test]
         public void RealProjectionKeepsIndependentGoldQuoteAndSelectionWithoutHiddenRuntime()
         {
             var f = new Fixture();
@@ -367,6 +382,8 @@ namespace YC.Tests.EditMode
         }
         private sealed class View : ITurnActionView
         {
+            public int Shows;
+            public BuildFacilityDraftViewModel Last;
             public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights) { }
             public void ClearHighlights() { }
             public void RefreshFromState() { }
@@ -375,7 +392,7 @@ namespace YC.Tests.EditMode
             public void RefreshActionPanel() { }
             public void ShowPendingChoice() { }
             public void CompleteMainActionPresentation(string name) { }
-            public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model) { }
+            public void ShowBuildFacilityDraft(BuildFacilityDraftViewModel model) { Shows++;Last=model; }
             public void HideBuildFacilityDraft() { }
             public void ShowCityStyleOptions(CityStyleOptionsViewModel model) { }
         }

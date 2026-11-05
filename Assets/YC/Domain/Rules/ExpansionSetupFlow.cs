@@ -35,7 +35,7 @@ namespace YC.Domain.Rules
             if (!registry.TryGet(PreparationTypeId, out _)) registry.Register(new EffectRegistration(PreparationTypeId, c => PrepareEnterprises(c, hostNext ?? (max => GameplayRandomRuntime.Next(c.State, GameplayRandomRuntime.EnterprisePreparation, max))), EffectExecutorKind.IntrinsicFlow, "2.0.0"));
             if (!registry.TryGet(EnterpriseSelectionTypeId, out _)) registry.Register(EnterpriseSelectionTypeId, ExecuteEnterpriseSelection, EffectExecutorKind.IntrinsicFlow);
             if (!registry.TryGet(RetentionTypeId, out _)) registry.Register(RetentionTypeId, RetainBasicCharacters, EffectExecutorKind.IntrinsicFlow);
-            if (!registry.TryGet(RoundPreparationTypeId, out _)) registry.Register(new EffectRegistration(RoundPreparationTypeId, PrepareRound, EffectExecutorKind.IntrinsicFlow, "2.0.0"));
+            if (!registry.TryGet(RoundPreparationTypeId, out _)) registry.Register(new EffectRegistration(RoundPreparationTypeId, PrepareRound, EffectExecutorKind.IntrinsicFlow, "2.0.0") { ExecutionDoesNotRetainState = true });
             if (!registry.TryGet(InitialInfluenceTypeId, out _)) registry.Register(InitialInfluenceTypeId, InitialInfluence, EffectExecutorKind.IntrinsicFlow);
         }
         public static EffectSpec PreparationSpec(int player, bool concurrent = true) => EffectSpec.Create(PreparationTypeId,

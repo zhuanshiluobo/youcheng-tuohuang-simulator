@@ -6,7 +6,7 @@ using YC.Domain.State;
 
 namespace YC.Domain.Effects
 {
-    public static class ResourcePaymentCostPreview
+    public static partial class ResourcePaymentCostPreview
     {
         public const string DemandQueryKind = "resource_payment_demand.v1";
         public static bool TryDeclaredDemand(GameState state, EffectRegistry registry, AbilitySourceRef source, string actionId, out ResourcePaymentDemandState demand, out string reason)
@@ -71,8 +71,33 @@ namespace YC.Domain.Effects
             var allocated = new ResourceSet();
             bool Visit(int index)
             {
+                // 乐观上界只排除必然付不起的组合：忽略来源费用、共享配额和物品冲突，
+                // 可替代数量只会被高估。可能成功的分支仍由原TryBuild完整复验。
+                foreach (var type in PaymentResources.Types)
+                {
+                    long available = (long)state.FindPlayer(owner.PlayerId).Resources.Get(type) + allocated.Get(type);
+                    for (int next=index; next<rules.Count; next++)
+                        if (rules[next].AllowedResourceTypes.Contains(type)) available += Math.Max(0, Math.Min(rules[next].MaxUnits,rules[next].QuotaLimit));
+                    if (available < gross.Get(type)) return false;
+                }
                 if (index == rules.Count)
                 {
+                    // TryBuild的最终余额为gross-替代分配+来源费用。先用同一算式拒绝
+                    // 必然余额不足的叶子，避免为这些组合克隆整局并再次查询全部Lua来源。
+                    // 物品、配额、授权与正式付款合同仍只由原TryBuild决定。
+                    foreach(var type in PaymentResources.Types)
+                    {
+                        long final=(long)gross.Get(type)-allocated.Get(type);
+                        long balance=state.FindPlayer(owner.PlayerId).Resources.Get(type);
+                        if(final<0 || final>balance)return false;
+                        foreach(var draft in chosen)
+                        {
+                            long units=PaymentResources.Types.Sum(t=>(long)draft.Allocation.Get(t));
+                            long sourceCost=(long)draft.Rule.UnitResourceCost.Get(type)*units;
+                            if(sourceCost>balance-final)return false;
+                            final+=sourceCost;
+                        }
+                    }
                     var copy = GameStateCloneService.DeepClone(state);
                     var node = copy.EffectRuntime.EffectNodes.Find(n => n.EffectId == owner.EffectId);
                     if (node == null) { node = GameStateCloneService.DeepClone(owner); copy.EffectRuntime.EffectNodes.Add(node); }

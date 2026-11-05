@@ -80,6 +80,41 @@ namespace YC.Infrastructure.Lua
                 catch (Exception) { } // 诊断监听不得替换业务结果或原始异常。
             }
         }
+        [ThreadStatic] private static bool eagerQuerySnapshots, verifyDeferredQuerySnapshots;
+        public static IDisposable UseEagerQuerySnapshotsForDiagnostics() => new QuerySnapshotMode(true,false);
+        public static IDisposable VerifyDeferredQuerySnapshotsForDiagnostics() => new QuerySnapshotMode(false,true);
+        private sealed class QuerySnapshotMode : IDisposable
+        {
+            private readonly bool eager=eagerQuerySnapshots,verify=verifyDeferredQuerySnapshots;
+            private bool closed;
+            internal QuerySnapshotMode(bool full,bool compare){eagerQuerySnapshots=full;verifyDeferredQuerySnapshots=compare;}
+            public void Dispose(){if(closed)return;closed=true;eagerQuerySnapshots=eager;verifyDeferredQuerySnapshots=verify;}
+        }
+        private static Func<LuaSnapshotValue> CheckedQueryFactory(Func<LuaSnapshotValue> build)
+        {
+            if(!verifyDeferredQuerySnapshots)return build;
+            var expected=build();
+            return ()=> {
+                var actual=build();
+                if(Newtonsoft.Json.JsonConvert.SerializeObject(actual)!=Newtonsoft.Json.JsonConvert.SerializeObject(expected))
+                    throw new InvalidOperationException("延后Lua只读快照与原提前构建结果不一致。");
+                return actual;
+            };
+        }
+        private LuaInvocationResult InvokeScript(LuaScriptDefinition definition,LuaInvocationContext context)
+        {
+            try
+            {
+                var result=host.Invoke(definition,context);
+                int unused=context.FacadeSnapshot.DeferredQueryMask;
+                if((unused&1)!=0)using(GameStateCloneService.MeasureDiagnostic("lua.snapshot.deferred.unused_facilities")){}
+                if((unused&2)!=0)using(GameStateCloneService.MeasureDiagnostic("lua.snapshot.deferred.unused_map")){}
+                if((unused&4)!=0)using(GameStateCloneService.MeasureDiagnostic("lua.snapshot.deferred.unused_content")){}
+                if(result.IsSuccess && verifyDeferredQuerySnapshots)context.FacadeSnapshot.MaterializeDeferredQueries();
+                return result;
+            }
+            finally {context.FacadeSnapshot?.ReleaseDeferredQueries();}
+        }
         private readonly MoonSharpLuaRuntimeHost host;
         private readonly LuaEffectSpecCompiler compiler;
         private readonly EffectRegistry registry;
@@ -289,9 +324,9 @@ namespace YC.Infrastructure.Lua
             EffectEventHandlerContext handlerContext)
         {
             LuaInvocationContext invocationContext;
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) invocationContext = CreateInvocationContext(definition, handlerContext);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) invocationContext = CreateInvocationContextCore(definition, handlerContext,true);
             LuaInvocationResult invocation;
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = host.Invoke(definition.Script, invocationContext);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = InvokeScript(definition.Script, invocationContext);
             if (!invocation.IsSuccess)
             {
                 throw new KernelException(
@@ -343,20 +378,23 @@ namespace YC.Infrastructure.Lua
         internal NormalizedValue InvokeAbilityQuery(LuaHandlerDefinition definition, EffectEventHandlerContext handlerContext)
         {
             LuaInvocationContext context;
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) context = CreateInvocationContext(definition, handlerContext);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.context", definition)) context = CreateInvocationContextCore(definition, handlerContext,true);
             context.ResponseKind = "abilityRuleQuery";
             LuaInvocationResult invocation;
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = host.Invoke(definition.Script, context);
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.execute", definition)) invocation = InvokeScript(definition.Script, context);
             if (!invocation.IsSuccess || invocation.AbilityQueryResult == null) throw new InvalidOperationException("ability_query_lua_invalid:" + invocation.Diagnostic);
             return invocation.AbilityQueryResult;
         }
 
-        private LuaInvocationContext CreateInvocationContext(
+        private LuaInvocationContext CreateInvocationContext(LuaHandlerDefinition definition,EffectEventHandlerContext handlerContext)
+            => CreateInvocationContextCore(definition,handlerContext,false);
+        private LuaInvocationContext CreateInvocationContextCore(
             LuaHandlerDefinition definition,
-            EffectEventHandlerContext handlerContext)
+            EffectEventHandlerContext handlerContext,bool allowDeferredQueries)
         {
             RuleEvent ruleEvent = handlerContext.Event;
             GameState state = handlerContext.State;
+            bool deferQueries=allowDeferredQueries && !eagerQuerySnapshots && !ReadOnlyStateQueryScope.IsActiveFor(state);
             int playerId = ruleEvent.PlayerId >= 0 ? ruleEvent.PlayerId : handlerContext.OwnerNode.PlayerId;
             string playerKey = ToPlayerKey(playerId);
             PlayerState player = state.FindPlayer(playerId);
@@ -374,10 +412,30 @@ namespace YC.Infrastructure.Lua
             };
 
             AttachAllocationResult(snapshot,definition,handlerContext);
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.stamp", definition)) LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision);
             if (state.FinalScoring?.Session != null && YC.Domain.Scoring.FinalScoringSessionService.Within(
                 state, handlerContext.OwnerNode.EffectId, state.FinalScoring.Session.OwnerEffectId))
                 snapshot.GlobalScoring = FinalScoringLuaProjection.Build(state, handlerContext.OwnerNode, playerId);
+            // 仅BuildFacilityService已有的同步只读作用域内复用公共部分。
+            // 每次调用仍独立生成事件/版本/来源事实/记忆；不同Dispatcher和玩家视角分别物化。
+            var commonKey=Tuple.Create(this,playerId,ruleEvent.PlayerId);
+            if (ReadOnlyStateQueryScope.TryRead<LuaFacadeSnapshot>(state,commonKey,out var common))
+            {
+                snapshot.StateRevision=common.StateRevision;
+                snapshot.EnabledDlcIdsAvailable=common.EnabledDlcIdsAvailable;
+                snapshot.EnabledDlcIds.AddRange(common.EnabledDlcIds);
+                snapshot.GlobalFacilities=common.GlobalFacilities;
+                snapshot.TurnOrder.AddRange(common.TurnOrder);
+                snapshot.Players.AddRange(common.Players);
+                snapshot.GlobalMap=common.GlobalMap;snapshot.GlobalContent=common.GlobalContent;
+            }
+            else
+            {
+            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.stamp", definition)) LuaQuerySnapshotBuilder.Stamp(state, snapshot, state.EffectRuntime.StateRevision,!deferQueries);
+            if(deferQueries && YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state))
+                snapshot.DeferGlobalFacilities(CheckedQueryFactory(()=> {
+                    using var sample=CpuTimingSample==null ? default(CpuSample) : new CpuSample("lua.snapshot.facilities",definition);
+                    return FacilityLayerLuaCatalog.CreateProjection(state);
+                }));
             IList<int> turnOrder = state.EffectRuntime.PlayerOrderSnapshot;
             if (turnOrder != null && turnOrder.Count > 0)
             {
@@ -419,7 +477,11 @@ namespace YC.Infrastructure.Lua
                 }
             }
 
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.map", definition)) snapshot.GlobalMap = CreateMapSnapshot(state);
+            if(deferQueries) snapshot.DeferGlobalMap(CheckedQueryFactory(()=> {
+                using var sample=CpuTimingSample==null ? default(CpuSample) : new CpuSample("lua.snapshot.map",definition);
+                return CreateMapSnapshot(state);
+            }));
+            else using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.map", definition)) snapshot.GlobalMap = CreateMapSnapshot(state);
             var facilities = new List<LuaSnapshotValue>();
             // 兼容列表的每次读取都会重新投影。索引仅属于当前调用，不能按 revision 跨调用复用。
             var placements = state.Map?.Facilities?.ToArray() ?? Array.Empty<FacilityPlacement>();
@@ -464,7 +526,14 @@ namespace YC.Infrastructure.Lua
                     new LuaSnapshotEntry("id", LuaSnapshotValue.String(item.ItemId)), new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(item.DefinitionId)),
                     new LuaSnapshotEntry("zoneId", LuaSnapshotValue.String(item.ZoneId)), new LuaSnapshotEntry("typeId", LuaSnapshotValue.String(item.TypeId)),
                     new LuaSnapshotEntry("owner", LuaSnapshotValue.String(ToPlayerKey(item.ControllerSubject.PlayerId))) }));
-            using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.content", definition)) snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
+            if(deferQueries) snapshot.DeferGlobalContent(CheckedQueryFactory(()=> {
+                using var sample=CpuTimingSample==null ? default(CpuSample) : new CpuSample("lua.snapshot.content",definition);
+                return LuaQuerySnapshotBuilder.Content(state,visible,facilities);
+            }));
+            else using (CpuTimingSample == null ? default(CpuSample) : new CpuSample("lua.snapshot.content", definition)) snapshot.GlobalContent = LuaQuerySnapshotBuilder.Content(state, visible, facilities);
+            // 宿主仅把这些快照转换为Lua只读门面；后续调用不写其中列表。
+            ReadOnlyStateQueryScope.Store(state,commonKey,snapshot);
+            }
 
             var invocationGold = player?.Resources == null ? null : RouteTollEscrowService.QueryBalance(state, player.PlayerId);
             SourceFactsLuaCatalog.BindReceiptInvocation(handlerContext,state,registry,definition);

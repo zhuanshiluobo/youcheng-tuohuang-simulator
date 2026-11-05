@@ -23,10 +23,14 @@ namespace YC.Domain.Influence
         private readonly InfluenceQueryService queryService;
         // 后续锁定规则在组合根接入；内核只认位置禁令，不认卡名。
         private Func<GameState, string, bool> additionalPlacementAllowed = (state, slot) => true;
+        private bool hasCustomPlacementAllowed;
+        // 外部规则构造器和任何接收State的自定义回调继续关闭私有工作图复用。
+        internal bool HasExternalStateCallbacks => mapQuery==null || hasCustomPlacementAllowed ||
+            !(roadCoverageQuery is RuntimeStateRoadCoverageQuery || roadCoverageQuery is NoInfluenceRoadCoverageQuery);
         public Func<GameState, string, bool> PlacementAllowed
         {
             get => (state, slot) => InfluenceLockRules.PlacementAllowed(state, slot) && additionalPlacementAllowed(state, slot);
-            set => additionalPlacementAllowed = value ?? ((state, slot) => true);
+            set { hasCustomPlacementAllowed = value != null; additionalPlacementAllowed = value ?? ((state, slot) => true); }
         }
 
         public InfluenceOperationResult ValidateItemPlacement(GameState state, ItemSubjectRef owner, string slotId)
@@ -105,12 +109,34 @@ namespace YC.Domain.Influence
         {
             var item = new ItemZoneQuery().FindItem(state, itemId);
             if (item == null || !new ItemZoneQuery().IsInfluence(state, itemId)) return Array.Empty<string>();
-            var slots = state.ItemZones.Zones.Where(zone => zone.TemplateId == "core.zone.influence_slots").SelectMany(zone => zone.LegalSlotIds);
-            return slots.Where(slot => ValidateItemPlacement(state, item.OwnerSubject, slot).Succeeded).OrderBy(slot => slot, StringComparer.Ordinal).ToList().AsReadOnly();
+            var slots = state.ItemZones.Zones.Where(zone => zone.TemplateId == "core.zone.influence_slots").SelectMany(zone => zone.LegalSlotIds).ToArray();
+            return GetLegalMovementSlotsInOrder(state,itemId,slots,item.OwnerSubject).OrderBy(slot => slot, StringComparer.Ordinal).ToList().AsReadOnly();
+        }
+
+        // 仅本次同步候选构建复用事实，不按revision缓存。自定义钩子/道路查询仍逐槽读取原状态。
+        internal IReadOnlyList<string> GetLegalMovementSlotsInOrder(GameState state,string itemId,IReadOnlyList<string> slots,ItemSubjectRef fixedOwner=null)
+        {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.move_candidates");
+            ValidateState(state);
+            var result=new List<string>();
+            if(slots.Count==0)return result;
+            bool pureBuiltIn=!hasCustomPlacementAllowed && (roadCoverageQuery is RuntimeStateRoadCoverageQuery || roadCoverageQuery is NoInfluenceRoadCoverageQuery);
+            if(!pureBuiltIn)
+            {
+                foreach(var slot in slots)
+                    if(ValidateItemPlacement(state,fixedOwner??new ItemZoneQuery().FindItem(state,itemId).OwnerSubject,slot).Succeeded)result.Add(slot);
+                return result;
+            }
+            var owner=fixedOwner??new ItemZoneQuery().FindItem(state,itemId).OwnerSubject;
+            var snapshot=owner.Kind==ItemSubjectKind.Player?placementRule.CreateQuerySnapshot(state,owner.PlayerId):null;
+            foreach(var slot in slots)
+                if(ValidateItemPlacement(state,owner,slot,snapshot).Succeeded)result.Add(slot);
+            return result;
         }
 
         public InfluenceOperationResult Depart(EffectExecutionContext context, string itemId, string operationKind)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.depart.transfer");
             if (operationKind != "remove" && operationKind != "replace") throw new InvalidOperationException("invalid_departure_kind");
             var item = new ItemZoneQuery().FindItem(context.State, itemId);
             if (item == null || !new ItemZoneQuery().IsInfluence(context.State, itemId)) return Failure(InfluenceFailureCode.InfluenceNotFound, "influence_not_found", -1, itemId, false);

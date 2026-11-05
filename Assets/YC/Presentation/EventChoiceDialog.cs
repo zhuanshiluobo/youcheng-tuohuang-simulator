@@ -18,6 +18,16 @@ namespace YC.Presentation
         private EventChoiceDialogView view;
         private bool callbackDispatched;
         private Color choiceHighlightColor;
+        public Func<IDisposable> BeginReadScope { private get; set; }
+
+        private void BindInput(Button button, UnityEngine.Events.UnityAction callback)
+        {
+            button.onClick.AddListener(() =>
+            {
+                using var readScope = BeginReadScope?.Invoke();
+                callback();
+            });
+        }
 
         public EventChoiceDialog(GameplayDialogRegistry configuredRegistry, Func<RectTransform> configuredParent)
         {
@@ -144,7 +154,7 @@ namespace YC.Presentation
                   row.Root.gameObject.name = "Choice " + (i + 1);
                   YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
                 row.Label.text = card.ChoiceDescriptions[i];
-                row.Button.onClick.AddListener(() => InvokeStep(
+                BindInput(row.Button,() => InvokeStep(
                     () => onChoiceSelected?.Invoke(capturedIndex)));
             }
 
@@ -200,7 +210,7 @@ namespace YC.Presentation
                     i,
                     card.ChoiceRewards.Count,
                     hoverColor);
-                row.Button.onClick.AddListener(() => InvokeStep(
+                BindInput(row.Button,() => InvokeStep(
                     () => onChoiceSelected?.Invoke(capturedIndex)));
             }
 
@@ -339,7 +349,7 @@ namespace YC.Presentation
                 var row = view.CreatePathRow(view.ExplorePathHost);
                 row.Root.gameObject.name = "Path Choice " + (i + 1);
                 row.Label.text = pathChoices[i].Label;
-                row.Button.onClick.AddListener(() => InvokeStep(
+                BindInput(row.Button,() => InvokeStep(
                     () => onPathSelected?.Invoke(capturedIndex)));
             }
         }
@@ -378,7 +388,7 @@ namespace YC.Presentation
                 layout.ExplorePaymentFirstRouteOffset,
                 layout.ExplorePaymentPanelRowStep);
 
-            view.ExploreConfirmButton.onClick.AddListener(() => InvokeStep(onConfirm));
+            BindInput(view.ExploreConfirmButton,() => InvokeStep(onConfirm));
         }
 
         public void ShowConditionPayment(InteractionRequestProjection request, GameplayTextDocument description,
@@ -404,12 +414,12 @@ namespace YC.Presentation
             view.ConditionPaymentExecuteButton.interactable = execute != null &&
                 (canPay?.Kind != NormalizedValueKind.Boolean || canPay.BooleanValue);
             view.ConditionPaymentDeclineButton.gameObject.SetActive(decline != null);
-            view.ConditionPaymentExecuteButton.onClick.AddListener(() =>
+            BindInput(view.ConditionPaymentExecuteButton,() =>
             {
                 if (isCurrent() && view != null && view.ConditionPaymentExecuteButton.IsInteractable())
                     InvokeTerminal(execute);
             });
-            if (decline != null) view.ConditionPaymentDeclineButton.onClick.AddListener(() =>
+            if (decline != null) BindInput(view.ConditionPaymentDeclineButton,() =>
             {
                 if (isCurrent()) InvokeTerminal(decline);
             });
@@ -448,7 +458,7 @@ namespace YC.Presentation
                     row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, model.GoldVoucherAmount);
                     button = row.Button;
                 }
-                button.onClick.AddListener(() =>
+                BindInput(button,() =>
                 {
                     if (model.IsCurrent()) InvokeTerminal(() => model.SelectRecipient?.Invoke(subjectKey));
                 });
@@ -462,7 +472,7 @@ namespace YC.Presentation
             if (string.IsNullOrEmpty(model.SelectedSubjectKey))
                 view.ResourcePaymentReceiverText.text = hasPlayers ? view.ResourcePaymentPlayerPrompt : view.ResourcePaymentBankPrompt;
             view.ResourcePaymentCancelButton.gameObject.SetActive(model.Remove != null);
-            if (model.Remove != null) view.ResourcePaymentCancelButton.onClick.AddListener(() =>
+            if (model.Remove != null) BindInput(view.ResourcePaymentCancelButton,() =>
             {
                 if (model.IsCurrent()) InvokeTerminal(model.Remove);
             });
@@ -510,7 +520,7 @@ namespace YC.Presentation
                         : getPlayerDisplayName(selectedRecipientPlayerId.Value);
                 receiverLabel = string.Format(view.ResourcePaymentSelectedFormat, selectedName, amount);
                 view.ResourcePaymentCancelButton.gameObject.SetActive(onPaymentRemoved != null);
-                view.ResourcePaymentCancelButton.onClick.AddListener(() => InvokeTerminal(onPaymentRemoved));
+                BindInput(view.ResourcePaymentCancelButton,() => InvokeTerminal(onPaymentRemoved));
             }
             view.ResourcePaymentReceiverText.text = receiverLabel;
             ConfigureClose(onCancel, true);
@@ -519,7 +529,7 @@ namespace YC.Presentation
             {
                 view.ResourcePaymentBankButton.gameObject.SetActive(true);
                 view.ResourcePaymentBankLabel.text = string.Format(view.ResourcePaymentBankFormat, amount);
-                view.ResourcePaymentBankButton.onClick.AddListener(() => InvokeTerminal(onBankSelected));
+                BindInput(view.ResourcePaymentBankButton,() => InvokeTerminal(onBankSelected));
                 if (selectedRecipientPlayerId.HasValue) view.ResourcePaymentBankButton.Select();
                 return;
             }
@@ -534,7 +544,7 @@ namespace YC.Presentation
                     view.ResourcePaymentRecipientHost);
                 row.Root.gameObject.name = "Pay Player " + recipientPlayerId;
                 row.Label.text = string.Format(view.ResourcePaymentPlayerFormat, playerName, amount);
-                row.Button.onClick.AddListener(() => InvokeTerminal(
+                BindInput(row.Button,() => InvokeTerminal(
                     () => onRecipientSelected?.Invoke(recipientPlayerId)));
                 if (selectedRecipientPlayerId == recipientPlayerId) row.Button.Select();
             }
@@ -566,8 +576,8 @@ namespace YC.Presentation
                 (cardName ?? "角色牌") + "的第一个效果已结算。剩余：" +
                 (remainingEffectName ?? string.Empty);
             view.CharacterContinueLabel.text = "发动" + (remainingEffectName ?? "第二效果");
-            view.CharacterContinueButton.onClick.AddListener(() => InvokeTerminal(onContinue));
-            view.CharacterFinishButton.onClick.AddListener(() => InvokeTerminal(onFinish));
+            BindInput(view.CharacterContinueButton,() => InvokeTerminal(onContinue));
+            BindInput(view.CharacterFinishButton,() => InvokeTerminal(onFinish));
         }
 
         public void Hide()
@@ -632,7 +642,7 @@ namespace YC.Presentation
             Action request = terminal
                 ? (Action)(() => InvokeTerminal(onClose))
                 : () => InvokeStep(onClose);
-            view.CloseButton.onClick.AddListener(() => request());
+            BindInput(view.CloseButton,() => request());
             view.CloseInputHandler.Configure(() => request());
         }
 
@@ -707,7 +717,7 @@ namespace YC.Presentation
                     recipient.Label.text = getPlayerDisplayName == null
                         ? recipientPlayerId.ToString()
                         : getPlayerDisplayName(recipientPlayerId);
-                    recipient.Button.onClick.AddListener(() => InvokeStep(
+                    BindInput(recipient.Button,() => InvokeStep(
                         () => onPaymentRecipientSelected?.Invoke(routeId, recipientPlayerId)));
                 }
             }

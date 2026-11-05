@@ -29,6 +29,33 @@ namespace YC.Tests.EditMode
             target.GetType().GetMethod(name, Flags).Invoke(target, args);
 
         [Test]
+        public void DriverControlIdentitySeparatesDifferentWorkflowsButKeepsSameWorkflowStable()
+        {
+            var router=new InteractionRouter(_=>{});var deploy=new DriverOwner("deploy");var dispatch=new DriverOwner("dispatch");
+            router.Register(deploy);router.Register(dispatch);deploy.Active=true;
+            var driver=Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp",true);
+            string[] Owners()=>(string[])driver.GetMethod("OriginalMapControlOwners",Flags).Invoke(null,new object[]{router});
+            var first=Owners();Assert.That(Owners(),Is.EqualTo(first));
+            deploy.Active=false;dispatch.Active=true;Assert.That(Owners(),Is.Not.EqualTo(first));
+            dispatch.Active=false;deploy.Active=true;Assert.That(Owners(),Is.EqualTo(first),"同一流程重新呈现不能伪造新提交资格");
+        }
+
+        private sealed class DriverOwner : InteractionBase
+        {
+            private readonly string id;public bool Active;
+            public DriverOwner(string id){this.id=id;}
+            public override string Id=>id;
+            public override InteractionPriority Priority=>InteractionPriority.ActiveAction;
+            public override bool IsActive=>Active;
+            public override InteractionResult OnLocationClicked(string id)=>InteractionResult.Passthrough;
+            public override InteractionResult OnInfluenceSlotClicked(string id)=>InteractionResult.Passthrough;
+            public override InteractionResult OnMobileCityClicked()=>InteractionResult.Passthrough;
+            public override InteractionResult OnEscape()=>InteractionResult.Passthrough;
+            public override InteractionPresentation BuildPresentation()=>InteractionPresentation.Empty;
+            public override void Cancel(){}
+        }
+
+        [Test]
         public void RecordedRequiredMapFirstClickKeepsHighlightsDespiteUnrenderedOptionalRequest()
         {
             using var f = new Fixture(true);

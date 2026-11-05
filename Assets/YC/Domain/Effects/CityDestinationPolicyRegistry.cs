@@ -49,7 +49,7 @@ namespace YC.Domain.Effects
             {
                 var source=evidence.SourceRef;var version=evidence.VersionRef;
                 // 只消费002已交付的公开声明；不依赖008运行中目录的私有字段/方法。
-                var declaration=AbilityDeclarations.FirstOrDefault(d=>d.AbilityId==source.AbilityId&&d.DefinitionId==source.DefinitionId);
+                var declaration=SelectFirstOrDefaultAbilityDeclaration(d=>d.AbilityId==source.AbilityId&&d.DefinitionId==source.DefinitionId);
                 var item=state.ItemZones?.Items.Find(i=>i.ItemId==source.ItemId);
                 var zone=state.ItemZones?.Zones.Find(z=>z.ZoneId==source.EffectiveZoneId);
                 if (declaration==null || item?.DefinitionId!=source.DefinitionId || zone==null ||
@@ -70,10 +70,12 @@ namespace YC.Domain.Effects
             var query=new AbilityQueryContext {QueryId=draft.CandidateSetId,QueryKind=CityDestinationQueryService.QueryKind,
                 MapId=state.MapId,ContentVersion=state.ContentPackHash,FactsDigest=digest,SubjectPlayerId=draft.ExecutingPlayerId};
             var result=new List<CityDestinationExclusion>();
+            // 来源可用性及目的地提供者可接收并保留原始State；查询前关闭私有工作图复用。
+            ExecutionWorkRetentionScope.Expose(state);
             // 全局发现；规则来源的授权玩家与正在移动的玩家严格分开。
             foreach(var source in QuerySources(state,query).OrderBy(x=>x.SourceKey,StringComparer.Ordinal))
             {
-                var declaration=AbilityDeclarations.Single(d=>d.AbilityId==source.AbilityId&&d.DefinitionId==source.DefinitionId);
+                var declaration=SelectSingleAbilityDeclaration(d=>d.AbilityId==source.AbilityId&&d.DefinitionId==source.DefinitionId);
                 if(!cityDestinationHandlers.TryGetValue(declaration.HandlerRef,out var handler))
                     throw new InvalidOperationException("city_destination_provider_missing:"+declaration.HandlerRef);
                 var patches=handler.Invoke(state,draft.Clone(),GameStateCloneService.DeepClone(source));

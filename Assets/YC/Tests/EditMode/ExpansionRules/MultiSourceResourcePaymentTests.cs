@@ -22,6 +22,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         private List<PaymentSourceRule> rules;
         private string markerZone;
         private List<string> markerIds;
+        private readonly List<int> queriedPlayers=new List<int>();
+        private int failingQueryPlayer=-1;
         private static object FixtureProperty(string name)
         {
             // 参数化方法的Property保存在父测试上；不能把256库存专项默默降成默认6枚。
@@ -39,6 +41,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [SetUp] public void SetUp()
         {
+            queriedPlayers.Clear();failingQueryPlayer=-1;
             f = new PaymentTestFixture((int)(FixtureProperty("paymentMarkerInventory") ?? 6),
                 FixtureProperty("paymentFormalMap") != null ? YC.Domain.Maps.StaticMapDefinitions.CreateThreePlayerMap() : null);
             f.Artifacts.WriteLabeledText("实际隔离库存数量", JsonConvert.SerializeObject(new {
@@ -60,8 +63,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 if (i == 1) declaration.AllowedOperations.Add("carrier.transfer.original_supply:test.payment.source_1:markers:core.player_marker");
                 declarations.Add(declaration);
                 f.Registry.RegisterAbilityHandler(handler, "test.payment.hash_" + i, _ => Array.Empty<EffectSpec>());
-                f.Registry.RegisterAbilityPureHandler(handler, (call, query) => Object("queryId", NormalizedValue.CreateString(query.QueryId), "basisDigest", NormalizedValue.CreateString(query.FactsDigest),
-                    "items", NormalizedValue.CreateArray(new[] { Rule(index) })));
+                f.Registry.RegisterAbilityPureHandler(handler, (call, query) => {
+                    queriedPlayers.Add(call.SourceRef.AuthorizedPlayerId);
+                    if(call.SourceRef.AuthorizedPlayerId==failingQueryPlayer)throw new InvalidOperationException("隔离来源查询故意失败");
+                    return Object("queryId", NormalizedValue.CreateString(query.QueryId), "basisDigest", NormalizedValue.CreateString(query.FactsDigest),
+                        "items", NormalizedValue.CreateArray(new[] { Rule(index) }));
+                });
             }
             f.Registry.FreezeAbilityCatalog(declarations); f.State.ContentDefinitions.AbilitySources = declarations;
         }
@@ -74,6 +81,20 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (index == 1) value.Properties.Add(new NormalizedValueEntry { Name = "itemCost", Value = Object("localZoneId", NormalizedValue.CreateString("markers"), "countPerUnit", NormalizedValue.CreateInteger(1), "destinationKind", NormalizedValue.CreateString("original_supply")) });
             value.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
             return value;
+        }
+        [Test]
+        public void PaymentQueriesOnlyItsOwnersActualSourcesAndStillPropagatesOwnFailures()
+        {
+            Assert.That(f.Registry.QuerySources(f.State,-1,"ruleQuery",queryKind:ResourcePaymentSourceService.QueryKind)
+                .Any(s=>s.AuthorizedPlayerId==2),Is.True,"夹具中须实际存在另一玩家的有效来源");
+            string before=RuleStateDigestService.Compute(f.State);queriedPlayers.Clear();failingQueryPlayer=2;
+            var owner=new EffectNodeRuntimeState{EffectId="isolated.payment.owner",PlayerId=1,EffectTypeId=ResourceEffectTypeIds.Pay};
+            Assert.That(ResourcePaymentSourceService.Query(f.State,f.Registry,owner,new ResourceSet{Iron=1}).Count,Is.EqualTo(2));
+            Assert.That(queriedPlayers,Is.EqualTo(new[]{1,1}));
+            Assert.That(RuleStateDigestService.Compute(f.State),Is.EqualTo(before));
+            failingQueryPlayer=1;
+            Assert.That(Assert.Throws<InvalidOperationException>(()=>ResourcePaymentSourceService.Query(f.State,f.Registry,owner,new ResourceSet{Iron=1})).Message,
+                Is.EqualTo("隔离来源查询故意失败"));
         }
         private EffectNodeRuntimeState OpenPayment()
         {

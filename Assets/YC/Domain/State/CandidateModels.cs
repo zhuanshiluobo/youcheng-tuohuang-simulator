@@ -97,8 +97,9 @@ namespace YC.Domain.State
     }
 
     [Serializable]
-    public sealed class CandidateResolutionRecord
+    public sealed class CandidateResolutionRecord : IStateCloneShell
     {
+        object IStateCloneShell.CloneStateShell() => MemberwiseClone();
         public string CandidateSetId = string.Empty;
         public int Version;
         public int StateRevision;
@@ -140,6 +141,10 @@ namespace YC.Domain.State
         }
 
         public bool TryValidate(out string reason)
+            => TryValidate(new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal), out reason);
+
+        // 批量Runtime校验只在该次调用内复用两个工作集合，不为每条历史记录反复分配桶数组。
+        internal bool TryValidate(HashSet<string> pool, HashSet<string> scratch, out string reason)
         {
             if (string.IsNullOrEmpty(CandidateSetId) || Version < 0 || StateRevision < 0 ||
                 string.IsNullOrEmpty(CandidateKind) || CandidatePoolIds == null ||
@@ -155,8 +160,8 @@ namespace YC.Domain.State
                 reason = "设施候选来源证明与完整候选不一致。";
                 return false;
             }
-            if (!HasUniqueIds(CandidatePoolIds) || !HasUniqueIds(DefaultCandidateIds) ||
-                !HasUniqueIds(FinalCandidateIds))
+            if (!HasUniqueIds(CandidatePoolIds, pool) || !HasUniqueIds(DefaultCandidateIds, scratch) ||
+                !HasUniqueIds(FinalCandidateIds, scratch))
             {
                 reason = "候选解析记录包含重复候选 ID。";
                 return false;
@@ -164,7 +169,7 @@ namespace YC.Domain.State
 
             for (int i = 0; i < DefaultCandidateIds.Count; i++)
             {
-                if (!CandidatePoolIds.Contains(DefaultCandidateIds[i]))
+                if (!pool.Contains(DefaultCandidateIds[i]))
                 {
                     reason = "基础候选超出 hard constraint 候选池。";
                     return false;
@@ -173,7 +178,7 @@ namespace YC.Domain.State
 
             for (int i = 0; i < FinalCandidateIds.Count; i++)
             {
-                if (!CandidatePoolIds.Contains(FinalCandidateIds[i]))
+                if (!pool.Contains(FinalCandidateIds[i]))
                 {
                     reason = "最终候选超出 hard constraint 候选池。";
                     return false;
@@ -184,7 +189,7 @@ namespace YC.Domain.State
             {
                 AppliedCandidatePatch patch = AppliedPatches[i];
                 if (patch == null || patch.CandidateIds == null || patch.ResultingCandidateIds == null ||
-                    !HasUniqueIds(patch.CandidateIds) || !HasUniqueIds(patch.ResultingCandidateIds))
+                    !HasUniqueIds(patch.CandidateIds, scratch) || !HasUniqueIds(patch.ResultingCandidateIds, scratch))
                 {
                     reason = "候选解析记录包含非法 patch。";
                     return false;
@@ -195,15 +200,12 @@ namespace YC.Domain.State
             return true;
         }
 
-        private static bool HasUniqueIds(IList<string> ids)
+        private static bool HasUniqueIds(IList<string> ids, HashSet<string> seen)
         {
+            seen.Clear();
             for (int i = 0; i < ids.Count; i++)
             {
-                if (string.IsNullOrEmpty(ids[i])) return false;
-                for (int j = 0; j < i; j++)
-                {
-                    if (string.Equals(ids[i], ids[j], StringComparison.Ordinal)) return false;
-                }
+                if (string.IsNullOrEmpty(ids[i]) || !seen.Add(ids[i])) return false;
             }
 
             return true;

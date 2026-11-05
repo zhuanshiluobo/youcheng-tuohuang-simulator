@@ -66,15 +66,15 @@ namespace YC.Domain.Scoring
             var result = new List<ScoringModifierRecord>();
             foreach (var source in registry.QuerySources(state, query).OrderBy(s => s.SourceKey, StringComparer.Ordinal))
             {
-                var declaration = registry.AbilityDeclarations.Single(d => d.AbilityId == source.AbilityId);
+                var declaration = registry.SelectSingleAbilityDeclaration(d => d.AbilityId == source.AbilityId);
                 if (!declaration.AllowedOperations.Contains(ScoringModifierProtocol.Permission(request.Pass))) continue;
                 if (request.PlayerId >= 0 && source.AuthorizedPlayerId != request.PlayerId) continue;
                 query.SourceRef = source;
                 // 即使错误的受信处理器试图改状态，也只能触及这个临时副本，并会被完整比较拒绝。
                 var work = GameStateCloneService.DeepClone(state);
-                string before = JsonConvert.SerializeObject(work);
+                using var before = GameStateCloneService.CaptureReadOnlyQueryBaseline(work);
                 var returned = registry.QueryRules(work, query);
-                if (before != JsonConvert.SerializeObject(work)) throw new InvalidOperationException("scoring_query_mutated_state");
+                if (!before.HasEquivalentFieldsTo(work)) throw new InvalidOperationException("scoring_query_mutated_state");
                 foreach (var row in returned)
                 {
                     if (queriedSources != null && queriedSources.All(s => s.Source.SourceKey != row.SourceRef.SourceKey)) queriedSources.Add(new ScoringSourceRecord { Source = row.SourceRef, Version = row.VersionRef });

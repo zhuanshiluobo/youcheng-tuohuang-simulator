@@ -11,7 +11,7 @@ namespace YC.Domain.State
     /// null 标记、UTF-8 字节长度（大端）和 UTF-8 字节。kind 同时作为
     /// 输出命名空间，完整 SHA-256 以小写十六进制输出。
     /// </summary>
-    public static class StableIdFactory
+    public static partial class StableIdFactory
     {
         private const string ProtocolVersion = "nmc.stable-id.v1";
 
@@ -19,6 +19,15 @@ namespace YC.Domain.State
         {
             ValidateKind(kind);
 
+            var scope = currentReuseScope;
+            bool cacheable = CanReuseInput(kind, components);
+            if (cacheable && TryReuse(scope, kind, components, out var reused))
+            {
+                using var diagnostic = GameStateCloneService.MeasureDiagnostic("stable_id.reuse");
+                return reused;
+            }
+
+            using var computation = GameStateCloneService.MeasureDiagnostic("stable_id.compute");
             byte[] input = EncodeCanonicalInput(kind, components);
             byte[] hash;
             using (SHA256 sha256 = SHA256.Create())
@@ -26,7 +35,9 @@ namespace YC.Domain.State
                 hash = sha256.ComputeHash(input);
             }
 
-            return kind + "_" + ToLowerHex(hash);
+            string result = kind + "_" + ToLowerHex(hash);
+            if (cacheable) Remember(scope, kind, components, result);
+            return result;
         }
 
         public static byte[] EncodeCanonicalInput(string kind, string[] components)
@@ -101,13 +112,14 @@ namespace YC.Domain.State
 
         private static string ToLowerHex(byte[] bytes)
         {
-            StringBuilder builder = new StringBuilder(bytes.Length * 2);
+            const string digits = "0123456789abcdef";
+            var characters = new char[bytes.Length * 2];
             for (int i = 0; i < bytes.Length; i++)
             {
-                builder.Append(bytes[i].ToString("x2"));
+                characters[i * 2] = digits[bytes[i] >> 4];
+                characters[i * 2 + 1] = digits[bytes[i] & 15];
             }
-
-            return builder.ToString();
+            return new string(characters);
         }
     }
 }

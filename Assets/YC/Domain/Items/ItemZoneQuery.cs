@@ -39,13 +39,20 @@ namespace YC.Domain.Items
             }
         }
         private static readonly Lazy<BuiltInSchema> DefaultSchema = new Lazy<BuiltInSchema>(() => new BuiltInSchema());
+        internal static ItemTypeRegistry BuiltInTypes => DefaultSchema.Value.Types;
+        internal static ZoneTemplateRegistry BuiltInTemplates => DefaultSchema.Value.Templates;
         private readonly ItemTypeRegistry types;
+        private readonly bool usesBuiltInValidation;
+        public static IDisposable UseFullValidationSnapshotsForDiagnostics() => EntityValidationSnapshot.UseFullForDiagnostics();
+        public static IDisposable VerifyValidationSnapshotsForDiagnostics() => EntityValidationSnapshot.VerifyForDiagnostics();
         private readonly ZoneTemplateRegistry templates;
         private enum CharacterBackKind { Unknown, Basic, Operator, Generated }
         public ItemZoneQuery(ItemTypeRegistry types = null, ZoneTemplateRegistry templates = null)
         {
             this.types = types ?? DefaultSchema.Value.Types;
-            this.templates = templates ?? (types == null ? DefaultSchema.Value.Templates : ZoneTemplateRegistry.CreateBuiltIn(this.types));
+            this.templates = templates ?? (ReferenceEquals(this.types,DefaultSchema.Value.Types) ? DefaultSchema.Value.Templates : ZoneTemplateRegistry.CreateBuiltIn(this.types));
+            // 显式传入同一份冻结内建定义的内部转移检查也可复用；自定义注册表仍走原路径。
+            usesBuiltInValidation = ReferenceEquals(this.types,DefaultSchema.Value.Types) && ReferenceEquals(this.templates,DefaultSchema.Value.Templates);
         }
         public ItemInstanceState FindItem(GameState state, string itemId) => GameStateCloneService.DeepClone(state?.ItemZones?.Items?.Find(item => item != null && item.ItemId == itemId));
         public ZoneInstanceState FindZone(GameState state, string zoneId) => GameStateCloneService.DeepClone(state?.ItemZones?.Zones?.Find(zone => zone != null && zone.ZoneId == zoneId));
@@ -79,7 +86,20 @@ namespace YC.Domain.Items
 
         public bool TryValidate(GameState state, out string reasonCode)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("entity.validate");
             using var sample = new ValidationSample(ValidationTimingSample);
+            if(usesBuiltInValidation && EntityValidationSnapshot.TryReuse(state))
+            {
+                if(EntityValidationSnapshot.VerificationRequested && !TryValidateCore(state,out var originalReason))
+                    throw new InvalidOperationException("物品区域有效输入快照与原完整校验不一致："+originalReason);
+                reasonCode=string.Empty;return true;
+            }
+            bool valid=TryValidateCore(state,out reasonCode);
+            if(valid && usesBuiltInValidation)EntityValidationSnapshot.Remember(state);
+            return valid;
+        }
+        private bool TryValidateCore(GameState state,out string reasonCode)
+        {
             reasonCode = string.Empty;
             if (state == null || state.EntitySchemaVersion != GameProtocolVersions.Entity || state.ItemZones == null) return Reject("EntitySchemaVersion_unsupported", out reasonCode);
             var runtime = state.ItemZones;

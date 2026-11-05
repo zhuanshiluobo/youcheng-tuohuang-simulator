@@ -150,7 +150,7 @@ namespace YC.Domain.Effects
                 {
                     var expected = RouteResourceSelectionEffectExecutor.CreateExploration(node.PlayerId, node.SourceId, Flag(node.NormalizedArguments, "consumeMainAction"), Text(node.NormalizedArguments, "targetLocationId"));
                     if (children[0].EffectTypeId != expected.EffectTypeId || children[0].DefinitionVersion != RouteResourceSelectionEffectExecutor.DefinitionVersion ||
-                        children[0].NormalizedArguments.ToDeterministicString() != expected.NormalizedArguments.ToDeterministicString()) return false;
+                        !children[0].NormalizedArguments.HasSameCanonicalValue(expected.NormalizedArguments)) return false;
                     var selector = children[0];
                     if (Value(selector.ContinuationData, "routeSelection") != null)
                     {
@@ -182,7 +182,7 @@ namespace YC.Domain.Effects
             if (limit.Length > 0 && target != limit) return false;
             var expected = ExplorationEffectSpecFactory.ExploreFinalized(root.PlayerId, owner.EffectId, session.SessionId, commitment.CommitmentId,
                 commitment.AcceptedAtStateRevision, target, "", !Flag(root.NormalizedArguments, "consumeMainAction"), Flag(root.NormalizedArguments, "consumeMainAction"), root.SourceId);
-            return expected.NormalizedArguments.ToDeterministicString() == actual.NormalizedArguments.ToDeterministicString();
+            return expected.NormalizedArguments.HasSameCanonicalValue(actual.NormalizedArguments);
         }
         private static bool TryResult(GameState state, EffectNodeRuntimeState node, IMapQueryService map, out NormalizedValue result)
         {

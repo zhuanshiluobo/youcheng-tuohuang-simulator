@@ -26,13 +26,23 @@ namespace YC.Domain.Effects
         public static IReadOnlyList<AbilitySourceRef> QuerySources(GameState state, IEnumerable<AbilitySourceDeclaration> declarations,
             int playerId = -1, string kind = "", string eventType = "", string queryKind = "", bool includeCharacterActivation = false)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("source.query");
             var result = new List<AbilitySourceRef>();
             if (state?.ItemZones == null || declarations == null) return result;
+            SourceQueryFacts facts = null;
+            bool factsInspected = false;
             foreach (var declaration in declarations.OrderBy(d => d.AbilityId, StringComparer.Ordinal))
             {
-                foreach (var item in state.ItemZones.Items.Where(i => i.DefinitionId == declaration.DefinitionId).OrderBy(i => i.ItemId, StringComparer.Ordinal))
+                // 排序枚举完成后才建本次索引；完整授权解析及最终过滤次序不变。
+                if (!factsInspected)
                 {
-                    var zone = state.ItemZones.Zones.Find(z => z.ZoneId == item.ZoneId);
+                    bool plainDeclarations = declarations.GetType() == typeof(List<AbilitySourceDeclaration>) || declarations.GetType() == typeof(AbilitySourceDeclaration[]);
+                    facts = plainDeclarations ? SourceQueryFacts.TryCreate(state, playerId) : null; factsInspected = true;
+                }
+                var matchingItems = facts == null ? state.ItemZones.Items.Where(i => i.DefinitionId == declaration.DefinitionId) : facts.Items[declaration.DefinitionId];
+                foreach (var item in matchingItems.OrderBy(i => i.ItemId, StringComparer.Ordinal))
+                {
+                    var zone = facts == null ? state.ItemZones.Zones.Find(z => z.ZoneId == item.ZoneId) : facts.Zones[item.ZoneId].FirstOrDefault();
                     if (zone == null || !declaration.EffectiveZones.Contains(zone.TemplateId)) continue;
                     if (item.TypeId == "entrepreneur.ability_card" || item.TypeId == "entrepreneur.round_card")
                     {
@@ -41,7 +51,8 @@ namespace YC.Domain.Effects
                     }
                     string face = Text(item.LocalState, "activeFaceId");
                     if (declaration.ActiveFaceId.Length > 0 && face != declaration.ActiveFaceId) continue;
-                    foreach (var player in state.Players.Where(p => playerId < 0 || p.PlayerId == playerId).OrderBy(p => p.PlayerId))
+                    var players = facts == null ? state.Players.Where(p => playerId < 0 || p.PlayerId == playerId).OrderBy(p => p.PlayerId) : (IEnumerable<PlayerState>)facts.Players;
+                    foreach (var player in players)
                     {
                         string authorization = ResolveAuthorization(state, declaration, item, zone, player.PlayerId,includeCharacterActivation);
                         if (authorization.Length == 0) continue;
@@ -56,10 +67,30 @@ namespace YC.Domain.Effects
                     }
                 }
             }
-            foreach (var source in result) source.GrantingSourceRefs = source.GrantingSourceRefs.Where(key => result.Any(s => s.SourceKey == key && s.AuthorizedPlayerId == source.AuthorizedPlayerId)).ToList();
+            var grantSources = new HashSet<(string SourceKey, int Player)>(result.Select(source => (source.SourceKey, source.AuthorizedPlayerId)));
+            foreach (var source in result) source.GrantingSourceRefs = source.GrantingSourceRefs.Where(key => grantSources.Contains((key, source.AuthorizedPlayerId))).ToList();
             var byAbility = declarations.ToDictionary(d => d.AbilityId, StringComparer.Ordinal);
             return result.Where(source => (kind.Length == 0 || byAbility[source.AbilityId].Kind == kind) &&
                 (eventType.Length == 0 || byAbility[source.AbilityId].ObservedEvents.Contains(eventType)) && (queryKind.Length == 0 || byAbility[source.AbilityId].QueryKinds.Contains(queryKind))).ToList();
+        }
+
+        // 只活到本次同步查询结束。保留重复项及首匹配区域，不缓存来源资格或授权结果；
+        // null/派生根集合及自定义声明枚举仍沿原扫描，完整解析所有声明后才过滤kind/event/query及授予来源。
+        private sealed class SourceQueryFacts
+        {
+            internal ILookup<string, ItemInstanceState> Items;
+            internal ILookup<string, ZoneInstanceState> Zones;
+            internal PlayerState[] Players;
+            internal static SourceQueryFacts TryCreate(GameState state, int playerId)
+            {
+                var items = state.ItemZones.Items; var zones = state.ItemZones.Zones; var players = state.Players;
+                if (items == null || zones == null || players == null || items.GetType() != typeof(List<ItemInstanceState>) ||
+                    zones.GetType() != typeof(List<ZoneInstanceState>) || players.GetType() != typeof(List<PlayerState>) ||
+                    items.Exists(value => value == null) || zones.Exists(value => value == null) || players.Exists(value => value == null)) return null;
+                return new SourceQueryFacts { Items = items.ToLookup(item => item.DefinitionId, StringComparer.Ordinal),
+                    Zones = zones.ToLookup(zone => zone.ZoneId, StringComparer.Ordinal),
+                    Players = players.Where(player => playerId < 0 || player.PlayerId == playerId).OrderBy(player => player.PlayerId).ToArray() };
+            }
         }
 
         private static string ResolveAuthorization(GameState state, AbilitySourceDeclaration declaration, ItemInstanceState item, ZoneInstanceState zone, int player,bool includeCharacterActivation)

@@ -96,7 +96,7 @@ namespace YC.Domain.Effects
             var parent=context.State.EffectRuntime.EffectNodes.Find(n=>n.EffectId==context.Node.ParentEffectId);
             if(parent==null || IsEventChild(context.State,context.Node.EffectId) || !IsSelection(parent.EffectTypeId,parent.NormalizedArguments))return ids;
             var service=context.Registry.InfluenceService ?? new InfluenceService(new MapQueryService(StaticMapDefinitions.Resolve(context.State.MapId)));
-            ids.RemoveAll(id=>!InScope(context.State,service.FindInfluence(context.State,id),Scope(parent)));return ids;
+            FilterByScope(context.State,service,ids,Scope(parent));return ids;
         }
         internal static bool ParentDistinctSubjects(EffectExecutionContext context,IEnumerable<string> targets)
         {
@@ -218,6 +218,7 @@ namespace YC.Domain.Effects
         }
         internal static EffectStepResult Execute(EffectExecutionContext context, InfluenceService influenceService)
         {
+            using var diagnostic=GameStateCloneService.MeasureDiagnostic("influence.selection",context.Node.FlowStage);
             if (!IsSelection(context.Node.EffectTypeId, context.Node.NormalizedArguments)) return EffectStepResult.Failed("influence_selection_arguments_invalid");
             if(Value(context.Node.ContinuationData,"selectionProtocolVersion")==null && context.Node.FlowStage=="")
             {
@@ -287,12 +288,22 @@ namespace YC.Domain.Effects
                 ? new InfluenceSubjectQuery().GetCandidateItemIds(context.State, node.PlayerId, filter, excluded).ToList()
                 : context.State.Map.Influences.Where(item => InfluenceSubjectQuery.Matches(LegacySubjectKey(item), node.PlayerId, filter) && !excluded.Contains(LegacySubjectKey(item)))
                     .Select(item => InfluenceIdentity.GetStableId(context.State, item)).ToList();
-            ids.RemoveAll(id => !InScope(context.State, service.FindInfluence(context.State, id), scope));
+            FilterByScope(context.State, service, ids, scope);
             if (Text(args, "distinctPolicy") == "instance") ids.RemoveAll(selected.Contains);
             var candidates = new List<string>();
+            bool entityMovement = operation == "move" && ids.Count > 0 && ItemZoneLegacyProjection.IsActive(context.State);
+            var movementSlots = entityMovement ? map.Map.Locations.SelectMany(location => Enumerable.Range(0,Math.Max(0,location.InfluenceSlotCount))
+                .Select(slot => InfluenceService.GetLocationSlotId(location.LocationId,slot)))
+                .Concat(map.Map.Routes.SelectMany(route => Enumerable.Range(0,Math.Max(0,route.InfluenceSlotCount))
+                    .Select(slot => InfluenceService.GetRouteSlotId(route.RouteId,slot)))).ToArray() : null;
             foreach (var id in ids)
             {
                 if (operation != "move") { candidates.Add(id); continue; }
+                if(entityMovement)
+                {
+                    foreach(var slot in service.GetLegalMovementSlotsInOrder(context.State,id,movementSlots))candidates.Add("move|"+id+"|"+slot);
+                    continue;
+                }
                 var placement = service.FindInfluence(context.State, id);
                 foreach (var location in map.Map.Locations)
                     for (int slot = 0; slot < location.InfluenceSlotCount; slot++) AddMoveCandidate(candidates, context, service, id, InfluenceService.GetLocationSlotId(location.LocationId, slot), placement);
@@ -340,13 +351,21 @@ namespace YC.Domain.Effects
             if (scope == "routes") return placement.RouteId.Length > 0;
             return state.Map.ResourceTokens.Any(token => placement.LocationId == token.LocationId);
         }
+        private static void FilterByScope(GameState state, InfluenceService service, List<string> ids, string scope)
+        {
+            // 无范围约束时不需要查位置；有约束时仅在这次同步过滤内固定投影。
+            if (scope.Length == 0) return;
+            var placements = state.Map.Influences.ToArray();
+            ids.RemoveAll(id => !InScope(state, service.FindInfluence(state, id, placements), scope));
+        }
         private static EffectStepResult CompleteInfluenceSelection(EffectExecutionContext context, InfluenceService service, string operation, string filter, int count, int required, string scope)
         {
             if (operation == "move" || required != count) return EffectStepResult.Failed("complete_selection_arguments_invalid");
             var node = context.Node;
             var selected = Value(node.ContinuationData, "selectedItemIds")?.Items.Select(v => v.StringValue).ToList() ?? new List<string>();
             int index = Number(node.ContinuationData, "nextIndex", 0), completed = Number(node.ContinuationData, "completedCount", 0);
-            var candidates = new InfluenceSubjectQuery().GetCandidateItemIds(context.State, node.PlayerId, filter, ReadStrings(node.NormalizedArguments, "excludedSubjectKeys")).Where(id => InScope(context.State, service.FindInfluence(context.State, id), scope)).OrderBy(id => id, StringComparer.Ordinal).ToList();
+            var candidates = new InfluenceSubjectQuery().GetCandidateItemIds(context.State, node.PlayerId, filter, ReadStrings(node.NormalizedArguments, "excludedSubjectKeys")).OrderBy(id => id, StringComparer.Ordinal).ToList();
+            FilterByScope(context.State, service, candidates, scope);
             var allowedIds = Value(node.NormalizedArguments, "candidateIds");
             if (allowedIds != null) candidates.RemoveAll(id => !allowedIds.Items.Any(v => v.StringValue == id));
             if (node.FlowStage == "")

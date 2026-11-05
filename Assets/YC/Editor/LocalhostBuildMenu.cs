@@ -64,10 +64,47 @@ namespace YC.Editor
         [MenuItem("YC/Build/Localhost Development Simulator")]
         public static void BuildLocalhostDevelopment()
         {
-            BuildLocalhost(
-                DevelopmentOutputDirectory,
-                BuildOptions.Development,
-                "Localhost development simulator build succeeded");
+            var directory = DevelopmentOutputDirectory;
+            var arguments = Environment.GetCommandLineArgs();
+            int requested = Array.IndexOf(arguments, "-ycDevelopmentOutput");
+            if (requested >= 0)
+            {
+                if (requested + 1 >= arguments.Length) throw new BuildFailedException("缺少开发包输出目录。");
+                directory = Path.GetFullPath(arguments[requested + 1]);
+                if (!directory.StartsWith(Path.GetFullPath("Builds") + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                    Directory.Exists(directory) || File.Exists(directory))
+                    throw new BuildFailedException("开发包输出必须是项目 Builds 内尚不存在的子目录。");
+            }
+            bool optimize = arguments.Contains("-ycOptimizeDevelopmentCode");
+            var previous = PlayerSettings.GetAdditionalCompilerArgumentsForGroup(BuildTargetGroup.Standalone) ?? Array.Empty<string>();
+            var compilerArguments = optimize ? previous.Concat(new[] { "-optimize+" }).ToArray() : previous;
+            bool succeeded = false;
+            try
+            {
+                if (optimize) PlayerSettings.SetAdditionalCompilerArgumentsForGroup(BuildTargetGroup.Standalone, compilerArguments);
+                // Development条件编译、诊断及完整夹具均保留；只独立调整托管编译优化。
+                BuildLocalhost(directory, BuildOptions.Development, "开发测试包构建成功");
+                succeeded = true;
+            }
+            finally
+            {
+                if (optimize) PlayerSettings.SetAdditionalCompilerArgumentsForGroup(BuildTargetGroup.Standalone, previous);
+                if (Directory.Exists(directory))
+                    File.WriteAllText(Path.Combine(directory, "ManagedCompilerOptions.json"),
+                        JsonUtility.ToJson(new ManagedCompilerBuildRecord
+                        {
+                            OptimizationRequested = optimize, DevelopmentBuild = true, BuildSucceeded = succeeded,
+                            PreviousArguments = previous, BuildArguments = compilerArguments,
+                            RestoredArguments = PlayerSettings.GetAdditionalCompilerArgumentsForGroup(BuildTargetGroup.Standalone) ?? Array.Empty<string>()
+                        }, true));
+            }
+        }
+
+        [Serializable]
+        private sealed class ManagedCompilerBuildRecord
+        {
+            public bool OptimizationRequested, DevelopmentBuild, BuildSucceeded;
+            public string[] PreviousArguments, BuildArguments, RestoredArguments;
         }
 
         [MenuItem("YC/Build/Release")]

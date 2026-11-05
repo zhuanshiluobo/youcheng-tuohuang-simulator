@@ -23,8 +23,12 @@ namespace YC.Domain.Items
                 throw new InvalidOperationException("departure_handoff_permission_denied");
             var request = new ItemTransferRequest { ItemIds = new List<string> { item.ItemId }, ExpectedSource = new ItemPositionRef { ZoneId = item.ZoneId },
                 Destination = new ZoneRef { ZoneId = destination }, InsertionKind = "unordered", OperationProfileId = "core.cube_storage", RequiredCount = 1, ExecutingPlayerId = nextRoot.PlayerId };
-            var preview = GameStateCloneService.DeepClone(work); Apply(preview, request);
-            if (!query.TryValidate(preview, out var reason)) throw new InvalidOperationException(reason);
+            var preview = StructuralPreview(work,"departure_custody",out var reference); Apply(preview, request);
+            if(reference!=null)
+            {
+                VerifyStructuralSource(work,reference);Apply(reference,request);
+            }
+            if (!ValidateStructuralPreview(query,preview,reference,out var reason)) throw new InvalidOperationException(reason);
             var result = Apply(work, request); nextRoot.PositionChanges.AddRange(GameStateCloneService.DeepClone(result.PositionChanges));
             if (!final) { d.CustodyRootId = nextRoot.EffectId; d.CustodyZoneId = destination; }
             return result;

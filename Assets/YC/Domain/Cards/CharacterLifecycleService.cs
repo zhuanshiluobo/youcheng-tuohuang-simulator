@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -117,7 +117,7 @@ namespace YC.Domain.Cards
         }
         private static void RegisterOnce(EffectRegistry registry, string id, Func<EffectExecutionContext, EffectStepResult> execute, EffectExecutorKind kind = EffectExecutorKind.Atomic)
         {
-            if (!registry.TryGet(id, out _)) registry.Register(new EffectRegistration(id, context => { ResumeDeferredDependencies(context); return execute(context); }, kind, DefinitionVersion));
+            if (!registry.TryGet(id, out _)) registry.Register(new EffectRegistration(id, context => { ResumeDeferredDependencies(context); return execute(context); }, kind, DefinitionVersion) {ExecutionDoesNotRetainState=id==UseTypeId || id==QuickActionTypeId});
         }
         public static int GetActionRoundSequence(GameState state)
         {
@@ -422,15 +422,27 @@ namespace YC.Domain.Cards
         }
         public static string MoveCard(EffectExecutionContext context, string itemId, string destinationZoneId)
         {
-            if (CardMoveDependencyQueries(context.State, new[] { itemId }, destinationZoneId)
-                .Any(query => { query.OwnerEffectId = context.Node.EffectId; return EffectTreeExecutor.GetDeferredResponseDependencies(context.State, query).Count > 0; }))
+            if (HasCardMoveDependencies(context,itemId,destinationZoneId))
                 return "deferred_response_pending";
-            var preview = GameStateCloneService.DeepClone(context.State);
+            var preview=CreateCardMovePreview(context,true,out var reference,out bool narrow);
+            using var branch=narrow?GameStateCloneService.MeasureDiagnostic("character.node_preview"):default;
             var work = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(value => value.EffectId == context.Node.EffectId), context.Registry);
             string reason = MoveCardCore(work, itemId, destinationZoneId);
-            if (reason.Length == 0) GameStateCloneService.CopyTo(context.State, preview);
+            if(reference!=null)
+            {
+                GameStateCloneService.VerifyItemWorldNodePreviewSource(context.State,reference);
+                using var originalFactories=ItemTransferService.UseFullStructuralPreviewsForDiagnostics();
+                var original=new EffectExecutionContext(reference,reference.EffectRuntime.EffectNodes.Single(node=>node.EffectId==context.Node.EffectId),context.Registry);
+                string expected=MoveCardCore(original,itemId,destinationZoneId);
+                if(reason!=expected)throw new InvalidOperationException("角色移动预演与原完整克隆诊断不一致。");
+                GameStateCloneService.VerifyItemWorldNodePreviewResult(preview,reference,reason.Length==0,expected.Length==0);
+            }
+            if (reason.Length == 0) PublishCardMovePreview(context,preview,narrow,reference!=null);
             return reason;
         }
+        private static bool HasCardMoveDependencies(EffectExecutionContext context,string itemId,string destinationZoneId) =>
+            CardMoveDependencyQueries(context.State,new[]{itemId},destinationZoneId)
+                .Any(query=>{query.OwnerEffectId=context.Node.EffectId;return EffectTreeExecutor.GetDeferredResponseDependencies(context.State,query).Count>0;});
         private static string MoveCardCore(EffectExecutionContext context, string itemId, string destinationZoneId)
         {
             string error = PrepareCardCarrierExit(context, itemId, destinationZoneId);
@@ -608,7 +620,7 @@ namespace YC.Domain.Cards
             if (registry != null)
             {
                 var registration = registry.FindEventHandler(binding.SubscriptionId);
-                var declaration = registry.AbilityDeclarations.SingleOrDefault(d => d.AbilityId == source.AbilityId && d.DefinitionId == source.DefinitionId);
+                var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == source.AbilityId && d.DefinitionId == source.DefinitionId);
                 if (registry.ContentPackHash != binding.ContentPackHash || registration == null || registration.Role != EffectHandlerRole.Observer ||
                     registration.HandlerId != binding.HandlerId || registration.ContentHash != binding.HandlerHash || registration.DefinitionVersion != binding.HandlerVersion ||
                     registration.AbilityId != source.AbilityId || registration.EventType != trigger.EventType ||
@@ -872,6 +884,15 @@ namespace YC.Domain.Cards
             return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true)));
         }
         // 主链显式指定回收范围；持续区从不参加回收，重复调用由真实区域自然幂等。
+        [ThreadStatic] private static bool fullRecycleCopies;
+        public static IDisposable UseFullRecycleCopiesForDiagnostics() => new FullRecycleCopyScope();
+        private sealed class FullRecycleCopyScope : IDisposable
+        {
+            private readonly bool previous=fullRecycleCopies;
+            private bool closed;
+            internal FullRecycleCopyScope(){fullRecycleCopies=true;}
+            public void Dispose(){if(closed)return;closed=true;fullRecycleCopies=previous;}
+        }
         public static EffectStepResult Recycle(EffectExecutionContext context, int playerId, bool includeDiscard, IEnumerable<string> coveredItemIds)
         {
             ResumeDeferredDependencies(context);
@@ -879,23 +900,66 @@ namespace YC.Domain.Cards
             var pendingIds = new List<string>(coveredItemIds ?? Array.Empty<string>());
             if (includeDiscard) pendingIds.AddRange(context.State.ItemZones.Items.Where(item => item.ZoneId == FindZone(context.State, "discard", playerId).ZoneId).Select(item => item.ItemId));
             if (TryAwaitCardMoves(context, pendingIds, FindZone(context.State, "hand", playerId).ZoneId)) return DeferredDependencyWait();
-            var preview = GameStateCloneService.DeepClone(context.State);
+            // 真实自定义枚举可能执行代码；保留原两次枚举、原完整预演和发布。
+            bool nativeIds=coveredItemIds==null || coveredItemIds.GetType()==typeof(string[]) || coveredItemIds.GetType()==typeof(List<string>);
+            var preview=CreateCardMovePreview(context,nativeIds,out var reference,out bool narrow);
+            using var branch=narrow?GameStateCloneService.MeasureDiagnostic("character.node_preview"):default;
             var work = new EffectExecutionContext(preview, preview.EffectRuntime.EffectNodes.Single(node => node.EffectId == context.Node.EffectId), context.Registry);
+            string error=RecyclePreview(work,playerId,includeDiscard,coveredItemIds,out int moved);
+            if(reference!=null)
+            {
+                GameStateCloneService.VerifyItemWorldNodePreviewSource(context.State,reference);
+                using var originalCopies=UseFullRecycleCopiesForDiagnostics();
+                using var originalFactories=ItemTransferService.UseFullStructuralPreviewsForDiagnostics();
+                var original=new EffectExecutionContext(reference,reference.EffectRuntime.EffectNodes.Single(node=>node.EffectId==context.Node.EffectId),context.Registry);
+                string expected=RecyclePreview(original,playerId,includeDiscard,coveredItemIds,out int expectedMoved);
+                if(error!=expected || moved!=expectedMoved)throw new InvalidOperationException("角色回收预演与原完整克隆诊断不一致。");
+                GameStateCloneService.VerifyItemWorldNodePreviewResult(preview,reference,error.Length==0,expected.Length==0);
+            }
+            if(error.Length>0)return EffectStepResult.Failed(error);
+            PublishCardMovePreview(context,preview,narrow,reference!=null);
+            return EffectStepResult.Completed(Object("movedCount", NormalizedValue.CreateInteger(moved), "changed", NormalizedValue.CreateBoolean(moved > 0)));
+        }
+        private static string RecyclePreview(EffectExecutionContext work,int playerId,bool includeDiscard,IEnumerable<string> coveredItemIds,out int moved)
+        {
+            var preview=work.State;
             var hand = FindZone(preview, "hand", playerId);
             var ids = new List<string>(coveredItemIds ?? Array.Empty<string>());
             if (includeDiscard) ids.AddRange(preview.ItemZones.Items.Where(item => item.ZoneId == FindZone(preview, "discard", playerId).ZoneId).Select(item => item.ItemId));
-            int moved = 0;
+            moved = 0;
             foreach (string id in ids.Distinct().ToList())
             {
                 var item = preview.ItemZones.Items.Find(value => value.ItemId == id);
-                if (item == null) return EffectStepResult.Failed("unknown_item");
+                if (item == null) return "unknown_item";
                 if (item.ZoneId == hand.ZoneId) continue;
                 var source = preview.ItemZones.Zones.Single(zone => zone.ZoneId == item.ZoneId);
-                if (source.OwnerPlayerId != playerId || source.LocalZoneId != "covered" && source.LocalZoneId != "discard") return EffectStepResult.Failed("character_recycle_source_invalid");
-                string reason = MoveCard(work, id, hand.ZoneId); if (reason.Length > 0) return EffectStepResult.Failed(reason); moved++;
+                if (source.OwnerPlayerId != playerId || source.LocalZoneId != "covered" && source.LocalZoneId != "discard") return "character_recycle_source_invalid";
+                // 仍逐牌验证真实依赖和离场规则；任意失败丢弃整批。
+                string reason = fullRecycleCopies ? MoveCard(work,id,hand.ZoneId) :
+                    HasCardMoveDependencies(work,id,hand.ZoneId) ? "deferred_response_pending" : MoveCardCore(work,id,hand.ZoneId);
+                if (reason.Length > 0) return reason; moved++;
             }
-            GameStateCloneService.CopyTo(context.State, preview);
-            return EffectStepResult.Completed(Object("movedCount", NormalizedValue.CreateInteger(moved), "changed", NormalizedValue.CreateBoolean(moved > 0)));
+            return "";
+        }
+        [ThreadStatic] private static bool fullCharacterItemWorldPreviews;
+        public static IDisposable UseFullCharacterItemWorldPreviewsForDiagnostics() => new FullCharacterItemWorldScope();
+        private sealed class FullCharacterItemWorldScope:IDisposable
+        {
+            private readonly bool previous=fullCharacterItemWorldPreviews;
+            private bool closed;
+            internal FullCharacterItemWorldScope(){fullCharacterItemWorldPreviews=true;}
+            public void Dispose(){if(closed)return;closed=true;fullCharacterItemWorldPreviews=previous;}
+        }
+        private static GameState CreateCardMovePreview(EffectExecutionContext context,bool allowNarrow,out GameState reference,out bool narrow)
+        {
+            reference=null;narrow=false;
+            if(!allowNarrow || fullRecycleCopies || fullCharacterItemWorldPreviews)return GameStateCloneService.DeepClone(context.State);
+            return GameStateCloneService.CreateItemWorldNodePreviewForPublication(context.State,context.Node.EffectId,out reference,out narrow);
+        }
+        private static void PublishCardMovePreview(EffectExecutionContext context,GameState preview,bool narrow,bool verify)
+        {
+            if(narrow)GameStateCloneService.CopyItemWorldNodePreviewTo(context.State,preview,context.Node.EffectId,verify);
+            else GameStateCloneService.CopyTo(context.State,preview);
         }
         public static EffectSpec CreateDoubleUseInsertion(int player, string useId, string sourceId)
         {

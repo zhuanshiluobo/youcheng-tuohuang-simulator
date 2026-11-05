@@ -17,7 +17,7 @@ namespace YC.Domain.Items
     }
 
     // 仅新输入的有限语法归一化；恢复入口从不据此升级旧节点或旧收据。
-    public static class ItemMoveInputNormalization
+    public static partial class ItemMoveInputNormalization
     {
         public const string InvalidProvenance = "item_move_input_normalization_invalid";
         public static string ValidateRaw(JObject node) => node["ItemMoveInput"] is JToken input && input.Type != JTokenType.Null &&
@@ -86,6 +86,21 @@ namespace YC.Domain.Items
         }
 
         public static bool TryValidate(string type, NormalizedValue args, ItemMoveInputNormalizationV1 input, out string reason)
+        {
+            if (input == null) { reason = ""; return true; }
+            var memo = Newtonsoft.Json.JsonConvert.DefaultSettings == null ? currentValidationMemo : null;
+            if (memo != null && memo.Matches(type, args, input))
+            {
+                using var diagnostic = GameStateCloneService.MeasureDiagnostic("item_move_input.reuse");
+                reason = "";
+                return true;
+            }
+            bool valid = TryValidateUncached(type, args, input, out reason);
+            if (valid) memo?.Remember(type, args, input);
+            return valid;
+        }
+
+        private static bool TryValidateUncached(string type, NormalizedValue args, ItemMoveInputNormalizationV1 input, out string reason)
         {
             reason = "";
             if (input == null) return true; // 原生v4没有旧输入；此记录不授予额外权限。

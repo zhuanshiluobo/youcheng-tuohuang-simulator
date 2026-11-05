@@ -577,6 +577,12 @@ namespace YC.Domain.Effects
         public string DefinitionVersion { get; }
         public EffectExecutorKind ExecutorKind { get; }
         public Func<EffectExecutionContext, EffectStepResult> Executor { get; }
+        // 仅内置注册入口使用；处理器和返回值不得向外保留工作图的可变引用。
+        internal bool ExecutionDoesNotRetainState { get; set; }
+        // 更窄的内置合同：从独立图开始，封闭写集及内核提交不会创建共享可变引用。
+        internal bool ExecutionPreservesUniqueReferences { get; set; }
+        // 独立合同：执行器及内核封闭写集只追加日志，不改已有日志前缀。
+        internal bool ExecutionPreservesJournalPrefix { get; set; }
         public Func<EffectSpec, string> Validator { get; set; }
 
         internal void Validate(EffectSpec spec)
@@ -598,6 +604,7 @@ namespace YC.Domain.Effects
 
             if (Validator != null)
             {
+                if (!InfluenceEffectExecutor.IsNativeReadOnlyPlacementValidator(Validator)) ExecutionWorkRetentionScope.InvalidateAllJournalProofs();
                 string reason = Validator(spec);
                 if (!string.IsNullOrEmpty(reason))
                 {
@@ -656,6 +663,26 @@ namespace YC.Domain.Effects
         public string ContentHash { get; }
         public string ContentId { get; }
         public Func<EffectEventHandlerContext, IList<EffectSpec>> Handler { get; }
+        private Func<bool> stateNotRetained;
+        // 仅Domain内生成的封闭只读观察器可取得；公开回调没有此默认声明。
+        internal bool HandlerPreservesUniqueReferences { get; set; }
+        // 与引用独立性分开：不建立别名的处理器仍可能合法修改旧日志。
+        internal bool HandlerPreservesJournalPrefix { get; set; }
+        /// <summary>声明回调及其嵌套调用不保留State或任何可变子对象；条件不成立时保持默认独立图隔离。</summary>
+        public EffectEventHandlerRegistration WithNonRetainedStateContract(Func<bool> condition)
+        {
+            stateNotRetained = condition ?? throw new ArgumentNullException(nameof(condition));
+            HandlerPreservesUniqueReferences = false; // 外部重设条件即撤销内置只读证明。
+            HandlerPreservesJournalPrefix = false;
+            return this;
+        }
+        // 显式回调合同：返回true时，Handler及其嵌套调用不向外保留State或其可变子对象。
+        // 默认回调仍允许持有旧独立工作图；判定异常只关闭优化，不替代业务结果。
+        internal bool DoesNotRetainWorkingState()
+        {
+            try { return stateNotRetained?.Invoke() == true; }
+            catch (Exception) { return false; }
+        }
         public string EffectTypeFilter { get; set; } = string.Empty;
         public string SourceEffectFilter { get; set; } = string.Empty;
 
@@ -716,7 +743,9 @@ namespace YC.Domain.Effects
             Register(new EffectRegistration(
                 EffectTypeIds.Condition,
                 ExecuteCondition,
-                EffectExecutorKind.IntrinsicFlow, CardMarkerCarrier.Version));
+                EffectExecutorKind.IntrinsicFlow, CardMarkerCarrier.Version) { ExecutionDoesNotRetainState = true,
+                    ExecutionPreservesUniqueReferences = BuiltinFlowPublicationProofsEnabled,
+                    ExecutionPreservesJournalPrefix = BuiltinFlowPublicationProofsEnabled });
         }
 
         public void Register(EffectRegistration registration)
@@ -737,6 +766,19 @@ namespace YC.Domain.Effects
             string definitionVersion = "v1")
         {
             Register(new EffectRegistration(effectTypeId, executor, executorKind, definitionVersion));
+        }
+
+        internal void RegisterWithIndependentStateWrites(string effectTypeId,Func<EffectExecutionContext,EffectStepResult> executor,
+            EffectExecutorKind executorKind=EffectExecutorKind.Atomic,string definitionVersion="v1")
+        {
+            Register(new EffectRegistration(effectTypeId,executor,executorKind,definitionVersion)
+                {ExecutionDoesNotRetainState=true,ExecutionPreservesUniqueReferences=true});
+        }
+
+        internal void RegisterWithoutStateRetention(string effectTypeId, Func<EffectExecutionContext, EffectStepResult> executor,
+            EffectExecutorKind executorKind = EffectExecutorKind.Atomic, string definitionVersion = "v1")
+        {
+            Register(new EffectRegistration(effectTypeId, executor, executorKind, definitionVersion) { ExecutionDoesNotRetainState = true });
         }
 
         public bool TryGet(string effectTypeId, out EffectRegistration registration)
@@ -1209,21 +1251,94 @@ namespace YC.Domain.Effects
         private readonly EffectRuntimeLimits limits;
         private readonly Action<GameState, EffectNodeRuntimeState> nodeTerminalObserver;
         private string lastDiagnostic = string.Empty;
+        public static IDisposable UseFullExecutionCopiesForDiagnostics() => ExecutionWorkRetentionScope.DisableRecycling();
+        public static IDisposable VerifyIndependentExecutionWritesForDiagnostics() => ExecutionWorkRetentionScope.VerifyIndependentWrites();
 
-        // 仅供一次同步 Run 的状态调度提交使用；执行器及终态观察器从不取得此图。
-        // 每步仍从最近成功状态完整重置，失败图不发布；不跨 Run、线程或重入共享。
+        // 仅供一次同步Run使用。纯状态提交及已审计且没有向外暴露引用的执行，可把
+        // 独占图交给紧邻推进；普通执行、外部观察器、失败和跨Run仍重新完整同步。
         private sealed class SchedulingWork : IDisposable
         {
+            internal readonly bool AllowStatusPublication;
+            public SchedulingWork() : this(false) { }
+            internal SchedulingWork(bool allowStatusPublication){AllowStatusPublication=allowStatusPublication;}
             private GameState work;
+            private GameState publishedTo;
+            private bool publishedStatus, reuseThisAdvance;
 
+            public void BeginAdvance()
+            {
+                reuseThisAdvance=publishedStatus;
+                publishedStatus=false;
+            }
+
+            private bool preparedFromPublishedWork;
+            private GameState validatedState;
+            private int validatedRevision=-1,validatedSteps=-1;
+            internal void NoteValidatedPublication(GameState committed)
+            {
+                if(AllowStatusPublication && committed.EffectRuntime.Status==EffectRuntimeStatus.Active)
+                {validatedState=committed;validatedRevision=committed.EffectRuntime.StateRevision;validatedSteps=committed.EffectRuntime.StepCount;}
+                else ForgetValidatedPublication();
+            }
+            internal void ForgetValidatedPublication(){validatedState=null;validatedRevision=-1;validatedSteps=-1;}
+
+            internal SchedulingCommitProof? CaptureStatusProof(string nodeId)
+            {
+                if(!preparedFromPublishedWork || GameStateCloneService.FullSchedulingValidationRequested || work?.EffectRuntime==null ||
+                    work.EffectRuntime.SchemaVersion!=EffectRuntimeState.CurrentSchemaVersion)return null;
+                int index=work.EffectRuntime.EffectNodes.FindIndex(n=>n.EffectId==nodeId);
+                return index<0 ? (SchedulingCommitProof?)null : new SchedulingCommitProof(work,work.EffectRuntime.EffectNodes[index],index);
+            }
             public GameState Prepare(GameState committed)
             {
+                // 同一Run内紧邻的成功提交已经完整校验；全量独立复制也保留这份基线。
+                // 初次进入/跨Run/没有真实提交/别名目标均没有凭据，后续仍须未暴露的私有纯状态路径。
+                bool recycledBaseline=work!=null && reuseThisAdvance && ReferenceEquals(publishedTo,committed) &&
+                    work.EffectRuntime.StateRevision==committed.EffectRuntime.StateRevision;
+                preparedFromPublishedWork=AllowStatusPublication && ReferenceEquals(validatedState,committed) &&
+                    validatedRevision==committed.EffectRuntime.StateRevision && validatedSteps==committed.EffectRuntime.StepCount;
                 if (work == null) work = GameStateCloneService.DeepClone(committed);
-                else GameStateCloneService.CopyTo(work, committed);
+                else if(!reuseThisAdvance || !ReferenceEquals(publishedTo,committed)) GameStateCloneService.CopyTo(work, committed);
+                if(preparedFromPublishedWork && !recycledBaseline)
+                {using var baseline=GameStateCloneService.MeasureDiagnostic("kernel.status.baseline_from_fresh_copy");}
+                reuseThisAdvance=false;
                 return work;
             }
 
-            public void Dispose() { work = null; }
+            public void PublishedStatus(GameState committed) {publishedTo=committed;publishedStatus=true;}
+
+            internal bool KeepUnescapedExecution(GameState completedWork, GameState committed,bool preservesUniqueReferences=false)
+            {
+                if (!AllowStatusPublication) return false;
+                if ((!preservesUniqueReferences || GameStateCloneService.IsSchedulingCopyVerificationEnabled || ExecutionWorkRetentionScope.VerifyUniqueWrites) &&
+                    !GameStateCloneService.HasUniqueMutableReferences(completedWork))
+                {
+                    if(preservesUniqueReferences)throw new InvalidOperationException("内置独立引用写入合同产生了共享可变引用。");
+                    using var rejected = GameStateCloneService.MeasureDiagnostic("kernel.work_recycle_aliased");
+                    return false;
+                }
+                if (GameStateCloneService.IsSchedulingCopyVerificationEnabled && !GameStateCloneService.AreEquivalent(completedWork, committed))
+                    throw new InvalidOperationException("无外部引用的私有执行图与完整发布结果不一致。");
+                if(preservesUniqueReferences){using var proof=GameStateCloneService.MeasureDiagnostic("kernel.independent_execution_writes");}
+                using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.recycled_execution_work");
+                work = completedWork; publishedTo = committed; publishedStatus = true;
+                return true;
+            }
+
+            // 只交出刚完成纯状态或无外部引用执行发布的私有图；交出即脱离缓存，失败图不再使用。
+            // 目标图已证无别名，发布时没有把工作图中的可变对象共享给目标。
+            public GameState TakeForExecution(GameState committed)
+            {
+                if(!AllowStatusPublication || !reuseThisAdvance || work==null || !ReferenceEquals(publishedTo,committed) ||
+                    work.EffectRuntime.StateRevision!=committed.EffectRuntime.StateRevision)return null;
+                if(GameStateCloneService.IsSchedulingCopyVerificationEnabled && !GameStateCloneService.AreEquivalent(work,committed))
+                    throw new InvalidOperationException("纯调度私有图与已发布状态不一致。");
+                using var diagnostic=GameStateCloneService.MeasureDiagnostic("kernel.reused_execution_work");
+                var result=work;work=null;publishedTo=null;publishedStatus=false;reuseThisAdvance=false;
+                return result;
+            }
+
+            public void Dispose() { work = null;publishedTo=null;publishedStatus=false;reuseThisAdvance=false;preparedFromPublishedWork=false;ForgetValidatedPublication(); }
         }
 
         public EffectTreeExecutor(
@@ -1414,7 +1529,7 @@ namespace YC.Domain.Effects
                 value.Status == "open" && value.InteractionTypeId == YC.Domain.Cards.CharacterContentEffectExecutor.CleanupInteractionTypeId);
             if (string.IsNullOrEmpty(useId) && !cleanupOption)
             {
-                if (registry.HasAbilityCatalog && registry.AbilityDeclarations.Any(d => d.Actions.Count > 0 &&
+                if (registry.HasAbilityCatalog && registry.ContainsAbilityDeclaration(d => d.Actions.Count > 0 &&
                     state.ItemZones.Items.Any(item => item.ItemId == option.SourceItemId && item.DefinitionId == d.DefinitionId)))
                 { diagnostic = "旧快速入口已迁移，请使用最新宿主候选。"; return false; }
                 bool created = TryCreatePlayerActionEffect(playerId, ContentLifecycleEffectExecutor.AwardSpec(playerId, option.SourceItemId, false), "", option.SourceItemId, out _);
@@ -1620,6 +1735,8 @@ namespace YC.Domain.Effects
 
         private bool Advance(SchedulingWork schedulingWork)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.schedule");
+            schedulingWork?.BeginAdvance();
             using var saveActivity = EffectSaveActivity.Enter(state);
             if (Runtime.Status != EffectRuntimeStatus.Active) return false;
             if (Runtime.EffectNodes.Count > limits.MaxNodeCount)
@@ -1647,9 +1764,9 @@ namespace YC.Domain.Effects
                 if (TryMigrateCharacterSecondMode()) return true;
                 if (TryPromoteCreated(out nodeId, schedulingWork)) return true;
                 if (TryStartReady(out nodeId, schedulingWork)) return true;
-                if (TryExecuteRunning(out nodeId)) return true;
+                if (TryExecuteRunning(out nodeId, schedulingWork)) return true;
                 if (Runtime.Status != EffectRuntimeStatus.Active) return false;
-                if (TryResumeBlocked(out nodeId)) return true;
+                if (TryResumeBlocked(out nodeId, schedulingWork)) return true;
                 if (TryRefreshFacilityInteractions()) return true;
 
                 if (HasNonTerminalNodes() && !HasOpenInteraction() && !SettlementEntryService.HasPendingPlayerSelection(Runtime) &&
@@ -1704,8 +1821,14 @@ namespace YC.Domain.Effects
 
         public EffectRunReport RunUntilQuiescent(int maxSteps = -1)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.run");
+            using var stableIds = StableIdFactory.BeginSynchronousReuseScope();
+            using var inputValidation = YC.Domain.Items.ItemMoveInputNormalization.BeginSynchronousValidationScope();
+            using var entityValidation = YC.Domain.Items.EntityValidationSnapshot.Begin();
             using var saveActivity = EffectSaveActivity.Enter(state);
-            using var schedulingWork = new SchedulingWork();
+            bool uniqueTarget = GameStateCloneService.HasUniqueMutableReferences(state);
+            using var uniqueCopy = GameStateCloneService.BeginUniqueCopyTarget(state, uniqueTarget);
+            using var schedulingWork = new SchedulingWork(uniqueTarget);
             string timingDiagnostic = TimingHandlerRegistry.ValidateBindings(state, registry);
             if (Runtime.Status == EffectRuntimeStatus.Active && !string.IsNullOrEmpty(timingDiagnostic))
                 Fault("timing_binding_invalid", timingDiagnostic, string.Empty, string.Empty);
@@ -1721,7 +1844,10 @@ namespace YC.Domain.Effects
 
             while (steps < budget && Runtime.Status == EffectRuntimeStatus.Active)
             {
+                int beforeRevision=Runtime.StateRevision;
                 if (!Advance(schedulingWork)) break;
+                if(Runtime.StateRevision>beforeRevision)schedulingWork.NoteValidatedPublication(state);
+                else schedulingWork.ForgetValidatedPublication();
                 steps++;
             }
 
@@ -2257,7 +2383,7 @@ namespace YC.Domain.Effects
             return false;
         }
 
-        private bool TryExecuteRunning(out string nodeId)
+        private bool TryExecuteRunning(out string nodeId, SchedulingWork schedulingWork)
         {
             nodeId = string.Empty;
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
@@ -2268,7 +2394,7 @@ namespace YC.Domain.Effects
                     nodeId = node.EffectId;
                     try
                     {
-                        ExecuteNode(nodeId);
+                        ExecuteNode(nodeId, schedulingWork);
                         return Runtime.Status == EffectRuntimeStatus.Active;
                     }
                     catch (KernelException exception)
@@ -2287,7 +2413,7 @@ namespace YC.Domain.Effects
             return false;
         }
 
-        private bool TryResumeBlocked(out string nodeId)
+        private bool TryResumeBlocked(out string nodeId, SchedulingWork schedulingWork)
         {
             nodeId = string.Empty;
             for (int i = 0; i < Runtime.EffectNodes.Count; i++)
@@ -2297,7 +2423,10 @@ namespace YC.Domain.Effects
                 nodeId = node.EffectId;
                 string currentNodeId = nodeId;
                 if (HasUnresolvedBlocker(Runtime, node)) continue;
-                GameState work = GameStateCloneService.DeepClone(state);
+                GameState work = (ExecutionWorkRetentionScope.RecyclingDisabled ? null : schedulingWork?.TakeForExecution(state)) ?? GameStateCloneService.DeepClone(state);
+                // 这里只执行内核自己的解阻/终态逻辑；所有外部状态回调仍令凭据失效。
+                using var retention = !ExecutionWorkRetentionScope.RecyclingDisabled && schedulingWork?.AllowStatusPublication==true
+                    ? new ExecutionWorkRetentionScope(work) : null;
                 EffectNodeRuntimeState workingNode = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == currentNodeId);
                 ResolveTerminalTargetBlockersOnWorking(work.EffectRuntime, workingNode);
                 if (HasUnresolvedBlocker(work.EffectRuntime, workingNode)) continue;
@@ -2314,14 +2443,19 @@ namespace YC.Domain.Effects
                 }
 
                 CommitPreparedWork(work, "effect.resume:" + nodeId, entries, eventStart, receiptStart, new[] { nodeId });
+                if(retention?.CanRecycle==true && schedulingWork.KeepUnescapedExecution(work,state))
+                {
+                    using var recycled=GameStateCloneService.MeasureDiagnostic("kernel.recycled_resume_work");
+                }
                 return true;
             }
 
             return false;
         }
 
-        private void ExecuteNode(string nodeId)
+        private void ExecuteNode(string nodeId, SchedulingWork schedulingWork)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.execute");
             EffectNodeRuntimeState source = GetNode(nodeId);
             string retiredContract = ContentPrimitiveEffectExecutor.RetiredExecutionOwnerReason(state, source);
             if (retiredContract.Length > 0) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, retiredContract);
@@ -2331,8 +2465,20 @@ namespace YC.Domain.Effects
             if (!string.IsNullOrEmpty(source.DefinitionVersion) && source.DefinitionVersion != registration.DefinitionVersion && !ItemTransferEffectExecutor.CanRestoreLegacy(state, source) && !InfluenceEffectExecutor.CanRestoreLegacy(state, source) &&
                 !ResourceEffectExecutor.CanRestoreLegacyGain(source.EffectTypeId, source.DefinitionVersion, source.NormalizedArguments))
                 throw new KernelException(EffectFaultCodes.DefinitionVersionMismatch, "Effect 定义版本与存档不匹配：" + source.EffectTypeId + "。请使用原定义恢复；不支持重新解释旧节点。");
-            GameState work = GameStateCloneService.DeepClone(state);
+            GameState work = schedulingWork?.TakeForExecution(state) ?? GameStateCloneService.DeepClone(state);
             EffectNodeRuntimeState node = work.EffectRuntime.EffectNodes.Find(candidate => candidate.EffectId == nodeId);
+            // 仅已审计内置处理器且没有执行授权/持久来源/结算元数据才获凭据；普通注册保持完整隔离。
+            // 续接元数据本身只被复制及校验；真正分发回调时仍按回调合同Expose。
+            // 可选门只创建脱离原图的请求；接受后执行同一处理器，未知回调仍使凭据失效。
+            bool auditedExecution = !ExecutionWorkRetentionScope.RecyclingDisabled && registration.ExecutionDoesNotRetainState && schedulingWork?.AllowStatusPublication == true &&
+                source.ExecutionBinding == null && source.PersistentSourceFacts == null && source.Settlement == null;
+            if(!auditedExecution)
+            {
+                string reason=ExecutionWorkRetentionScope.RecyclingDisabled ? "disabled" : !registration.ExecutionDoesNotRetainState ? "executor" : schedulingWork?.AllowStatusPublication!=true ? "shape" : "metadata";
+                using var notRecycled=GameStateCloneService.MeasureDiagnostic("kernel.work_ineligible."+reason,source.EffectTypeId);
+            }
+            if (!registration.ExecutionPreservesJournalPrefix) ExecutionWorkRetentionScope.InvalidateAllJournalProofs();
+            using var retention = auditedExecution ? new ExecutionWorkRetentionScope(work, state, registration.ExecutionPreservesJournalPrefix) : null;
 
             if (ItemTransferEffectExecutor.CanRestoreLegacy(work, node)) node.DefinitionVersion = registration.DefinitionVersion;
             if (ResourceEffectExecutor.CanRestoreLegacyGain(node.EffectTypeId, node.DefinitionVersion, node.NormalizedArguments))
@@ -2390,6 +2536,8 @@ namespace YC.Domain.Effects
             {
                 EffectExecutionBinding.ValidateNode(work, registry, node, node.ExecutionBinding);
                 AbilityActionExecutor.ObserveBodyStep(work, node);
+                using (GameStateCloneService.MeasureDiagnostic("kernel.executor"))
+                using (GameStateCloneService.MeasureDiagnostic("executor", node.EffectTypeId))
                 result = registration.Executor(new EffectExecutionContext(work, node, registry, limits,
                     dependencies => TryAttachDeferredResponseDependenciesOnWorking(work, nodeId, dependencies, entries),
                     (targets, reason) => AttachCompletionDependenciesOnWorking(work, nodeId, targets, reason, entries)));
@@ -2415,6 +2563,16 @@ namespace YC.Domain.Effects
             }
 
             ApplyStepResult(work, node, result, entries);
+            bool trustIndependentWrites=registration.ExecutionPreservesUniqueReferences && retention?.CanTrustIndependentWrites==true;
+            if(registration.ExecutionPreservesUniqueReferences && retention?.CanRecycle==true && !trustIndependentWrites)
+            {using var downgraded=GameStateCloneService.MeasureDiagnostic("kernel.unique_write_proof_downgraded");}
+            if (retention?.CanRecycle == true && work.EffectRuntime.Status == EffectRuntimeStatus.Active &&
+                schedulingWork.KeepUnescapedExecution(work, state,trustIndependentWrites))
+            {
+                using var recycled=GameStateCloneService.MeasureDiagnostic("kernel.recycled_executor",node.EffectTypeId);
+                if(!string.IsNullOrEmpty(source.ContinuationHandlerId)){using var continuation=GameStateCloneService.MeasureDiagnostic("kernel.recycled_continuation_work");}
+                if(source.AllowDecline){using var optional=GameStateCloneService.MeasureDiagnostic("kernel.recycled_optional_executor",node.EffectTypeId);}
+            }
         }
 
         private void ApplyStepResult(
@@ -2423,6 +2581,7 @@ namespace YC.Domain.Effects
             EffectStepResult result,
             List<RuleJournalEntry> entries)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.apply");
             ValidateResult(result);
             int eventStart = work.EffectRuntime.RuleEvents.Count;
             int receiptStart = work.EffectRuntime.DispatchReceipts.Count;
@@ -2653,6 +2812,7 @@ namespace YC.Domain.Effects
             EffectNodeRuntimeState defaultOwner,
             List<RuleJournalEntry> entries)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.dispatch");
             if (requests == null) return;
             for (int i = 0; i < requests.Count; i++)
             {
@@ -2793,7 +2953,21 @@ namespace YC.Domain.Effects
                 IList<EffectSpec> specs;
                 try
                 {
-                    specs = handler.Handler(new EffectEventHandlerContext(work, ruleEvent, owner, handler));
+                    using (GameStateCloneService.MeasureDiagnostic("kernel.handler"))
+                    using (GameStateCloneService.MeasureDiagnostic("event_handler", handler.SubscriptionId))
+                    {
+                        if (ExecutionWorkRetentionScope.IsTracking(work))
+                        {
+                            bool nonRetained = handler.DoesNotRetainWorkingState();
+                            if (!nonRetained || !handler.HandlerPreservesUniqueReferences)
+                                ExecutionWorkRetentionScope.NoteExternalStateCallback(work);
+                            else if (!handler.HandlerPreservesJournalPrefix)
+                                ExecutionWorkRetentionScope.InvalidateAllJournalProofs();
+                            if(!nonRetained)ExecutionWorkRetentionScope.Expose(work);
+                        }
+                        else if (!handler.HandlerPreservesJournalPrefix) ExecutionWorkRetentionScope.InvalidateAllJournalProofs();
+                        specs = handler.Handler(new EffectEventHandlerContext(work, ruleEvent, owner, handler));
+                    }
                 }
                 catch (KernelException)
                 {
@@ -2981,6 +3155,8 @@ namespace YC.Domain.Effects
                     spec = GameStateCloneService.DeepClone(spec);
                     EffectExecutionBinding.ApplyToSpec(work, registry, spec, owner.ExecutionBinding);
                 }
+                if(spec.ExecutionBinding!=null || spec.PersistentSourceFacts!=null || spec.Settlement!=null)
+                    ExecutionWorkRetentionScope.Expose(work);
                 EffectSpec preparedSpec = PrepareInfluenceAttachment(work, spec, id, owner.EffectId);
                 EffectNodeRuntimeState child = CreateNode(preparedSpec, id, owner.RoundId, owner.EffectId);
                 child.OperationContext = (operationContext ?? OperationCause(work, owner))?.Clone();
@@ -3643,7 +3819,11 @@ namespace YC.Domain.Effects
                     if (window.Context.Kind == SettlementEntryService.ResourcePayment && !string.IsNullOrEmpty(window.ResumeFlowStage))
                     {
                         windowOwner.FlowStage = window.ResumeFlowStage;
-                        if (resumePayment) ReopenSuspendedPaymentOnWorking(work, windowOwner, window);
+                        if (resumePayment)
+                        {
+                            ExecutionWorkRetentionScope.Expose(work);
+                            ReopenSuspendedPaymentOnWorking(work, windowOwner, window);
+                        }
                     }
                 }
                 if (window.Context.Kind == SettlementEntryService.PlayerCleanup && window.Entries.Count > 0 &&
@@ -3672,6 +3852,9 @@ namespace YC.Domain.Effects
 
             if (nodeTerminalObserver != null)
             {
+                if (!ExecutionWorkRetentionScope.IsReadOnlyRoundObserver(nodeTerminalObserver, node))
+                    ExecutionWorkRetentionScope.NoteExternalStateCallback(work);
+                if (ExecutionWorkRetentionScope.IsTracking(work) && !ExecutionWorkRetentionScope.IsAuditedRoundObserver(nodeTerminalObserver, node)) ExecutionWorkRetentionScope.Expose(work);
                 nodeTerminalObserver(work, node);
             }
             ActivateAffectedEntranceOwners(work, node.EffectId, entries);
@@ -4024,7 +4207,8 @@ namespace YC.Domain.Effects
                     node.Status = status;
                 },
                 new[] { nodeId },
-                schedulingWork);
+                schedulingWork,
+                true);
         }
 
         private void CommitNewState(
@@ -4032,11 +4216,16 @@ namespace YC.Domain.Effects
             List<RuleJournalEntry> entries,
             Action<GameState> mutation,
             IList<string> touchedNodeIds,
-            SchedulingWork schedulingWork = null)
+            SchedulingWork schedulingWork = null,
+            bool statusOnly = false)
         {
             GameState work = schedulingWork == null
                 ? GameStateCloneService.DeepClone(state)
                 : schedulingWork.Prepare(state);
+            SchedulingCommitProof? statusProof=statusOnly && schedulingWork!=null && touchedNodeIds?.Count==1
+                ? schedulingWork.CaptureStatusProof(touchedNodeIds[0]) : null;
+            using var retention = statusOnly && schedulingWork?.AllowStatusPublication==true
+                ? new ExecutionWorkRetentionScope(work) : null;
             mutation(work);
             if (entries.Count == 0)
             {
@@ -4048,7 +4237,13 @@ namespace YC.Domain.Effects
                 });
             }
 
-            CommitPreparedWork(work, commandId, entries, -1, -1, touchedNodeIds);
+            CommitPreparedWork(work, commandId, entries, -1, -1, touchedNodeIds,
+                statusOnly && schedulingWork?.AllowStatusPublication==true ? touchedNodeIds[0] : null,statusProof);
+            if(statusOnly && schedulingWork!=null)
+            {
+                if(retention?.CanRecycle==true) schedulingWork.PublishedStatus(state);
+                else schedulingWork.Dispose();
+            }
         }
 
         private void CommitPreparedWork(
@@ -4057,14 +4252,24 @@ namespace YC.Domain.Effects
             IList<RuleJournalEntry> entries,
             int eventStart,
             int receiptStart,
-            IList<string> touchedNodeIds)
+            IList<string> touchedNodeIds,
+            string statusPublicationNodeId = null,
+            SchedulingCommitProof? statusValidationProof = null)
         {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("kernel.commit");
             using var saveActivity = EffectSaveActivity.Enter(state);
             if (work == null || work.EffectRuntime == null) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, "工作状态为空。");
-            if (!YC.Domain.Cards.CharacterLifecycleService.ValidateRetainedBasicCharacters(work, out string retentionReason))
+            bool unchangedStaticConstraints=!GameStateCloneService.FullSchedulingValidationRequested && statusValidationProof.HasValue &&
+                ExecutionWorkRetentionScope.IsTracking(work) && statusValidationProof.Value.Matches(work,false);
+            if(unchangedStaticConstraints) { using var reuse=GameStateCloneService.MeasureDiagnostic("kernel.validation.status_static_constraints"); }
+            using (GameStateCloneService.MeasureDiagnostic("kernel.retention"))
+            if ((!unchangedStaticConstraints || GameStateCloneService.IsSchedulingCopyVerificationEnabled) && !YC.Domain.Cards.CharacterLifecycleService.ValidateRetainedBasicCharacters(work, out string retentionReason))
                 throw new KernelException(EffectFaultCodes.InvalidRuntimeState, retentionReason);
-            if (!InfluenceDepartureProtocol.Validate(work, out var departureReason)) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, departureReason);
+            using (GameStateCloneService.MeasureDiagnostic("kernel.departure"))
+            if ((!unchangedStaticConstraints || GameStateCloneService.IsSchedulingCopyVerificationEnabled) && !InfluenceDepartureProtocol.Validate(work, out var departureReason)) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, departureReason);
+            using (GameStateCloneService.MeasureDiagnostic("kernel.attachment"))
             if (!InfluencePlaceAttachment.Validate(work, registry, out var attachmentReason)) throw new KernelException(EffectFaultCodes.InvalidRuntimeState, attachmentReason);
+            using (GameStateCloneService.MeasureDiagnostic("kernel.deferred"))
             if (!TryValidateDeferredResponses(work, registry, out string deferredReason))
                 throw new KernelException(EffectFaultCodes.InvalidRuntimeState, deferredReason);
             var commitEntries = entries == null ? new List<RuleJournalEntry>() : new List<RuleJournalEntry>(entries);
@@ -4083,7 +4288,9 @@ namespace YC.Domain.Effects
             RuleCommit commit;
             try
             {
-                commit = RuleCommit.ApplyPreparedEffectCommit(work, commandId ?? string.Empty, commitEntries.ToArray());
+                commit = statusValidationProof.HasValue && ExecutionWorkRetentionScope.IsTracking(work)
+                    ? RuleCommit.ApplyPreparedSchedulingCommit(work,commandId ?? string.Empty,statusValidationProof.Value,commitEntries.ToArray())
+                    : RuleCommit.ApplyPreparedEffectCommit(work, commandId ?? string.Empty, commitEntries.ToArray());
             }
             catch (InvalidOperationException exception)
             {
@@ -4140,7 +4347,9 @@ namespace YC.Domain.Effects
                 }
             }
 
-            GameStateCloneService.CopyTo(state, work);
+            using var journalPublication = ExecutionWorkRetentionScope.BeginJournalPublication(work, state);
+            if(statusPublicationNodeId==null || !ExecutionWorkRetentionScope.IsTracking(work) || !GameStateCloneService.TryPublishSchedulingState(state,work,statusPublicationNodeId))
+                GameStateCloneService.CopyTo(state, work);
         }
 
         private static string BoundFaultMessage(string message)

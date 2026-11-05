@@ -284,7 +284,7 @@ namespace YC.Application.Gameplay
         }
 
         public IReadOnlyList<BuildFacilityOptionQueryResult> QueryForEffectBuild(GameState state, int playerId,
-            GameStateView visibleState, string selectionOwnerEffectId)
+            GameStateView visibleState, string selectionOwnerEffectId, string selectedFacilityId = null)
         {
             if (!EffectBuildScope.TryReadEffectBuildScope(state, visibleState, playerId, selectionOwnerEffectId, out var scope))
                 return Array.Empty<BuildFacilityOptionQueryResult>();
@@ -294,6 +294,7 @@ namespace YC.Application.Gameplay
                 for (int i = 0; i < scope.Selection.CandidateIds.Count; i++)
                 {
                     var id = scope.Selection.CandidateIds[i];
+                    if (selectedFacilityId != null && id != selectedFacilityId) continue;
                     var definitionId = definitions.Items[i].StringValue;
                     var definition = FacilityCardDatabase.Get(state, definitionId);
                     if (!scope.TryGetCandidateSourceZoneId(id, out var sourceZoneId)) return Array.Empty<BuildFacilityOptionQueryResult>();
@@ -439,12 +440,13 @@ namespace YC.Application.Gameplay
         public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId, FacilityBuildCandidateSnapshot snapshot)
             => Query(state, playerId, snapshot, null);
 
-        public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId, FacilityBuildCandidateSnapshot snapshot, GameStateView visibleState)
+        public IReadOnlyList<BuildFacilityOptionQueryResult> Query(GameState state, int playerId, FacilityBuildCandidateSnapshot snapshot, GameStateView visibleState, string selectedFacilityId = null)
         {
             if (state == null || snapshot == null) throw new ArgumentNullException();
             return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
                 var result = new List<BuildFacilityOptionQueryResult>(snapshot.Candidates.Count);
                 foreach (var candidate in snapshot.Candidates)
+                    if (selectedFacilityId == null || candidate.ItemId == selectedFacilityId)
                     result.Add(Query(state, playerId, candidate.ItemId, true, query, candidate, visibleState));
                 return result.AsReadOnly();
             });

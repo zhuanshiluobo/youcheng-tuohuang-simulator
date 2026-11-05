@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -23,6 +24,19 @@ namespace YC.Domain.Presentation
         };
         private static readonly Regex KeyPattern = new Regex(@"^[a-z][a-z0-9_.-]*:[a-zA-Z0-9_.-]+$", RegexOptions.CultureInvariant);
         private static readonly HashSet<string> Kinds = new HashSet<string> { "integer", "text", "player", "item", "definition", "resource", "location" };
+        // 只缓存封闭显示合同的类型信息；不保存显示内容、玩家或对局对象。
+        private sealed class DisplayFields
+        {
+            internal readonly FieldInfo[] Ordered;
+            internal readonly Dictionary<string, FieldInfo> ByName;
+            internal DisplayFields(Type type)
+            {
+                Ordered=type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+                ByName=Ordered.ToDictionary(f=>Camel(f.Name),StringComparer.Ordinal);
+            }
+        }
+        private static readonly ConcurrentDictionary<Type, DisplayFields> FieldPlans = new ConcurrentDictionary<Type, DisplayFields>();
+        private static DisplayFields FieldsFor(Type type) => FieldPlans.GetOrAdd(type,t=>new DisplayFields(t));
         public static bool IsKey(string key) => key != null && KeyPattern.IsMatch(key);
         public static bool IsArgumentKind(string kind) => kind != null && Kinds.Contains(kind);
         public static T Clone<T>(T source) where T : class
@@ -74,7 +88,12 @@ namespace YC.Domain.Presentation
         {
             Require(depth <= NormalizedValue.MaxDepth, "显示声明嵌套过深。");
             if (source == null) return; // nullable 覆盖不提供；空 key 从不代表空覆盖。
-            if (type == typeof(string)) { Require(System.Text.Encoding.UTF8.GetByteCount((string)source) <= 32768, "显示字符串过长。"); return; }
+            if (type == typeof(string))
+            {
+                string text=(string)source;
+                Require(text.Length <= 32768 / 3 || System.Text.Encoding.UTF8.GetByteCount(text) <= 32768, "显示字符串过长。");
+                return;
+            }
             if (type == typeof(int) || type == typeof(long) || type == typeof(bool)) return;
             if (type == typeof(NormalizedValue)) { Require(((NormalizedValue)source).IsValid(), "显示参数无效。"); return; }
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
@@ -85,7 +104,7 @@ namespace YC.Domain.Presentation
                 return;
             }
             Require(Types.Contains(type), "非显示合同类型。");
-            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance)) ValidateObject(field.GetValue(source), field.FieldType, depth + 1);
+            foreach (var field in FieldsFor(type).Ordered) ValidateObject(field.GetValue(source), field.FieldType, depth + 1);
             var reference = source as GameplayTextRef;
             if (reference != null)
             {
@@ -142,7 +161,7 @@ namespace YC.Domain.Presentation
             { var values = new List<NormalizedValue>(); foreach (var item in (IList)source) values.Add(Write(item, type.GetGenericArguments()[0], depth + 1)); return NormalizedValue.CreateArray(values); }
             Require(Types.Contains(type), "非显示合同类型。");
             var entries = new List<NormalizedValueEntry>();
-            foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var field in FieldsFor(type).Ordered)
             { var value = field.GetValue(source); if (value != null) entries.Add(new NormalizedValueEntry { Name = Camel(field.Name), Value = Write(value, field.FieldType, depth + 1) }); }
             return NormalizedValue.CreateObject(entries);
         }
@@ -168,7 +187,7 @@ namespace YC.Domain.Presentation
             }
             Require(Types.Contains(type) && source.Kind == NormalizedValueKind.Object, "显示字段应为白名单 DTO 对象。");
             var target = Activator.CreateInstance(type);
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToDictionary(f => Camel(f.Name), StringComparer.Ordinal);
+            var fields = FieldsFor(type).ByName;
             Require(source.Properties != null && source.Properties.Count <= fields.Count, "显示对象字段集合无效。");
             string previous = null;
             foreach (var entry in source.Properties)

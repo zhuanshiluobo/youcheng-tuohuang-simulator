@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.IO;
+using System.Globalization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YC.Domain.Effects;
@@ -32,22 +34,154 @@ namespace YC.Domain.Items
     }
     public sealed partial class ItemTransferService
     {
+        private sealed class CanonicalNormalizedResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+        {
+            protected override IList<Newtonsoft.Json.Serialization.JsonProperty> CreateProperties(Type type, Newtonsoft.Json.MemberSerialization serialization)
+                => base.CreateProperties(type, serialization).OrderBy(property => property.PropertyName, StringComparer.Ordinal).ToList();
+        }
+        private static readonly JsonSerializerSettings CanonicalNormalizedSettings = new JsonSerializerSettings {
+            ContractResolver = new CanonicalNormalizedResolver()
+        };
+        private static readonly bool DirectNormalizedShape = HasDirectNormalizedShape();
+        [ThreadStatic] private static HashSet<NormalizedValue> normalizedHashPath;
+        private static bool HasDirectNormalizedShape()
+        {
+            bool Shape(Type type, string[] names) => type.GetProperties().Length == 0 &&
+                type.GetCustomAttributes(typeof(JsonObjectAttribute), true).Length == 0 &&
+                type.GetCustomAttributes(typeof(JsonConverterAttribute), true).Length == 0 &&
+                type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+                    .All(field => field.GetCustomAttributes(typeof(JsonPropertyAttribute), true).Length == 0 &&
+                        field.GetCustomAttributes(typeof(JsonIgnoreAttribute), true).Length == 0) &&
+                type.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance).Select(field => field.Name)
+                    .OrderBy(name => name, StringComparer.Ordinal).SequenceEqual(names);
+            return Shape(typeof(NormalizedValue), new[] { "BooleanValue", "IntegerValue", "Items", "Kind", "Properties", "ReferenceId", "ReferenceType", "StringValue" }) &&
+                Shape(typeof(NormalizedValueEntry), new[] { "Name", "Value" });
+        }
+        // NormalizedValue的封闭字段图只有DTO/List/标量；直接按同一JSON契约排序输出，
+        // 不缓存可变值。自定义全局序列化设置仍沿原JToken分支，以保留转换器语义。
+        private static string CanonicalNormalizedHash(NormalizedValue value)
+        {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("canonical.hash");
+            var path = normalizedHashPath ?? new HashSet<NormalizedValue>(); normalizedHashPath = null;
+            try
+            {
+                if (DirectNormalizedShape)
+                {
+                    using var text = new StringWriter(CultureInfo.InvariantCulture);
+                    using var writer = new JsonTextWriter(text) { Formatting = Formatting.None };
+                    if (WriteNormalizedCanonical(writer, value, path, 0))
+                    { writer.Flush(); return HashCanonicalText(text.ToString()); }
+                }
+                // 非标准容器/循环/未来新增字段交回完整序列化器；不放宽错误输入的合同。
+                return HashCanonicalText(JsonConvert.SerializeObject(value, Formatting.None, CanonicalNormalizedSettings));
+            }
+            finally { path.Clear(); if (normalizedHashPath == null) normalizedHashPath = path; }
+        }
+        private static bool WriteNormalizedCanonical(JsonWriter writer, NormalizedValue value, HashSet<NormalizedValue> path, int depth)
+        {
+            if (value == null) { writer.WriteNull(); return true; }
+            if (depth > 64 || !path.Add(value)) return false;
+            try
+            {
+                if (value.Items != null && value.Items.GetType() != typeof(List<NormalizedValue>) ||
+                    value.Properties != null && value.Properties.GetType() != typeof(List<NormalizedValueEntry>)) return false;
+                writer.WriteStartObject();
+                writer.WritePropertyName("BooleanValue"); writer.WriteValue(value.BooleanValue);
+                writer.WritePropertyName("IntegerValue"); writer.WriteValue(value.IntegerValue);
+                writer.WritePropertyName("Items");
+                if (value.Items == null) writer.WriteNull();
+                else
+                {
+                    writer.WriteStartArray();
+                    foreach (var item in value.Items) if (!WriteNormalizedCanonical(writer, item, path, depth + 1)) return false;
+                    writer.WriteEndArray();
+                }
+                writer.WritePropertyName("Kind"); writer.WriteValue((int)value.Kind);
+                writer.WritePropertyName("Properties");
+                if (value.Properties == null) writer.WriteNull();
+                else
+                {
+                    writer.WriteStartArray();
+                    foreach (var entry in value.Properties)
+                    {
+                        if (entry == null) { writer.WriteNull(); continue; }
+                        writer.WriteStartObject(); writer.WritePropertyName("Name"); writer.WriteValue(entry.Name);
+                        writer.WritePropertyName("Value"); if (!WriteNormalizedCanonical(writer, entry.Value, path, depth + 1)) return false;
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
+                }
+                writer.WritePropertyName("ReferenceId"); writer.WriteValue(value.ReferenceId);
+                writer.WritePropertyName("ReferenceType"); writer.WriteValue(value.ReferenceType);
+                writer.WritePropertyName("StringValue"); writer.WriteValue(value.StringValue);
+                writer.WriteEndObject(); return true;
+            }
+            finally { path.Remove(value); }
+        }
         public const int BatchReceiptProtocolVersion = 2;
         public const string BatchRequestDigestVersion = "yc.transfer-batch.sha256.v2";
         public const int TokenTransferProtocolVersion = 3;
         public const string TokenRequestDigestVersion = "yc.token-transfer.sha256.v1";
         public static string BatchRequestDigest(ItemTransferBatchRequest batch) => batch?.ProtocolVersion == TokenTransferProtocolVersion
             ? TokenRequestDigestVersion + ":" + CanonicalHash(JToken.FromObject(batch))
-            : BatchRequestDigestVersion + ":" + FacilityBuildQueryService.Hash(CanonicalBatchValue(JToken.FromObject(batch)).ToString(Formatting.None));
+            : BatchRequestDigestVersion + ":" + FacilityBuildQueryService.Hash(CanonicalBatchText(JToken.FromObject(batch)));
         private static string CanonicalHash(JToken value)
         {
-            using (var sha = SHA256.Create()) return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(CanonicalBatchValue(value).ToString(Formatting.None))).Select(b => b.ToString("x2")));
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("canonical.hash");
+            return HashCanonicalText(CanonicalBatchText(value));
         }
-        private static JToken CanonicalBatchValue(JToken value) => value is JObject obj
-            ? new JObject(obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => new JProperty(p.Name, CanonicalBatchValue(p.Value))))
-            : value is JArray array ? new JArray(array.Select(CanonicalBatchValue)) : value.DeepClone();
-        public static string LocalStateDigest(ItemInstanceState item) => "yc.item-local-state.sha256.v1:" +
-            CanonicalHash(JToken.FromObject(item.LocalState));
+        private static string HashCanonicalText(string value)
+        {
+            using (var sha = SHA256.Create()) return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(value)).Select(b => b.ToString("x2")));
+        }
+        // 保持原Ordinal排序和Json.NET标量格式，直接输出，避免每次校验再复制整棵JToken树。
+        private static string CanonicalBatchText(JToken value)
+        {
+            using var text = new StringWriter(CultureInfo.InvariantCulture);
+            using var writer = new JsonTextWriter(text) { Formatting = Formatting.None };
+            WriteCanonicalBatch(writer, value);
+            writer.Flush(); return text.ToString();
+        }
+        private static void WriteCanonicalBatch(JsonWriter writer, JToken value)
+        {
+            if (value is JObject obj)
+            {
+                writer.WriteStartObject();
+                foreach (var property in obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal))
+                { writer.WritePropertyName(property.Name); WriteCanonicalBatch(writer, property.Value); }
+                writer.WriteEndObject();
+            }
+            else if (value is JArray array)
+            {
+                writer.WriteStartArray();
+                foreach (var item in array) WriteCanonicalBatch(writer, item);
+                writer.WriteEndArray();
+            }
+            else value.WriteTo(writer);
+        }
+        public static string LocalStateDigest(ItemInstanceState item)
+        {
+            const string prefix = "yc.item-local-state.sha256.v1:";
+            // 与旧JToken规范JSON完全相同的封闭字段写入；全局设置、null、派生容器、
+            // 环及未来字段继续原分支，保持原错误类型、先后与消息。
+            if (JsonConvert.DefaultSettings == null && item.LocalState != null && DirectNormalizedShape &&
+                TryDirectLocalStateHash(item.LocalState, out string hash)) return prefix + hash;
+            return prefix + CanonicalHash(JToken.FromObject(item.LocalState));
+        }
+        private static bool TryDirectLocalStateHash(NormalizedValue value, out string hash)
+        {
+            using var diagnostic = GameStateCloneService.MeasureDiagnostic("canonical.hash");
+            hash = null;
+            var path = normalizedHashPath ?? new HashSet<NormalizedValue>(); normalizedHashPath = null;
+            try
+            {
+                using var text = new StringWriter(CultureInfo.InvariantCulture);
+                using var writer = new JsonTextWriter(text) { Formatting = Formatting.None };
+                if (!WriteNormalizedCanonical(writer, value, path, 0)) return false;
+                writer.Flush(); hash = HashCanonicalText(text.ToString()); return true;
+            }
+            finally { path.Clear(); if (normalizedHashPath == null) normalizedHashPath = path; }
+        }
         // 付款内部无序库存事务不限方块，私有批次3不是旧公开MoveItem v3执行节点。
         // 新物品参数统一v4；地图、轨道及奖励取得仍遵守各自生命周期。
         // 这些操作配置不是token的全集定义，卡牌也不会因共用底层事务获得token操作许可。
@@ -114,7 +248,7 @@ namespace YC.Domain.Items
                 touched.Add(from.ZoneId); touched.Add(to.ZoneId);
             }
             if (ids.Count > MaximumTokenCount) return Invalid("token_transfer_count_exceeded");
-            var preview = GameStateCloneService.DeepClone(state); var moved = ApplyBatch(preview, batch);
+            var preview = state.CreateItemTransferPreview(); var moved = ApplyBatch(preview, batch);
             if (moved.MovedCount != ids.Count) return Invalid("insufficient_items");
             foreach (string zoneId in touched)
             {
@@ -273,7 +407,7 @@ namespace YC.Domain.Items
                         return Invalid("facility_layer_overlay_invalid");
                 }
             }
-            var preview = GameStateCloneService.DeepClone(state);
+            var preview = state.CreateItemTransferPreview();
             ApplyBatch(preview, batch);
             if (!query.TryValidate(preview, out invalid)) return Invalid(invalid);
             return new ItemTransferValidationResult { IsValid = true };

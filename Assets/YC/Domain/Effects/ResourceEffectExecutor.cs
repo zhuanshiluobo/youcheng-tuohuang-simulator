@@ -134,7 +134,11 @@ namespace YC.Domain.Effects
             registry.Register(new EffectRegistration(typeId, executor.Execute, executor.isPaymentExecutor ? EffectExecutorKind.IntrinsicFlow : EffectExecutorKind.Atomic,
                 executor.isPaymentExecutor ? PaymentDefinitionVersion : typeId == ResourceEffectTypeIds.Gain ? GainDefinitionVersion : DefinitionVersion)
             {
-                Validator = executor.ValidateSpec
+                Validator = executor.ValidateSpec,
+                ExecutionDoesNotRetainState = true,
+                // 三种非付款执行只更新资源/分数标量，并构造独立结果；付款保留原完整图复核。
+                ExecutionPreservesUniqueReferences = !executor.isPaymentExecutor,
+                ExecutionPreservesJournalPrefix = !executor.isPaymentExecutor
             });
         }
 
@@ -257,9 +261,12 @@ namespace YC.Domain.Effects
             if (state?.FindPlayer(player)?.Resources.CanPay(cost) == true) return true;
             var registry = ResourcePaymentSourceService.CostQueryRegistry(state);
             if (registry == null) return false;
-            return ResourcePaymentCostPreview.CanPay(state, registry, new EffectNodeRuntimeState {
+            if (ResourcePaymentCostPreview.TryReadStoredMarkerQuery(state,registry,player,cost,out bool cached)) return cached;
+            bool payable = ResourcePaymentCostPreview.CanPay(state, registry, new EffectNodeRuntimeState {
                 EffectId = StableIdFactory.Create("resource-feasibility", state.GameId, player.ToString(CultureInfo.InvariantCulture)),
                 EffectTypeId = ResourceEffectTypeIds.Pay, PlayerId = player }, cost);
+            ResourcePaymentCostPreview.RecordStoredMarkerQuery(state,registry,player,cost,payable);
+            return payable;
         }
         public static bool CanPay(GameState state, EffectRegistry registry, EffectNodeRuntimeState owner, ResourceSet cost) =>
             ResourcePaymentCostPreview.CanPay(state, registry, owner, cost);

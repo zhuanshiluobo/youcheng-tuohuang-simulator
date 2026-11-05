@@ -23,7 +23,12 @@ namespace YC.Tests.EditMode.ExpansionRules
     public sealed class ScoringModifierContractTests
     {
         private FinalScoringTestFixture fixture;
-        [TearDown] public void FinishArtifacts() => fixture?.Finish();
+        [TearDown] public void FinishArtifacts()
+        {
+            var completed = fixture;
+            fixture = null;
+            completed?.Finish();
+        }
         [TestCase(0, 0)] [TestCase(1, 0)] [TestCase(2, 1)] [TestCase(3, 1)] [TestCase(4, 2)] [TestCase(5, 2)]
         public void InstalledContractLuaCountsEachHolderOnce(int count, int expected)
         {
@@ -105,6 +110,39 @@ namespace YC.Tests.EditMode.ExpansionRules
             string before = JsonConvert.SerializeObject(fixture.State); Assert.Throws<InvalidOperationException>(() => fixture.Snapshot());
             Assert.That(JsonConvert.SerializeObject(fixture.State), Is.EqualTo(before));
         }
+        [TestCase("score")]
+        [TestCase("log")]
+        [TestCase("inactive_value")]
+        public void LayerValidatorRejectsEveryPersistentMutationAndKeepsOriginalIsolated(string mutation)
+        {
+            var state = new GameState { Players = { new PlayerState { PlayerId = 1 } } };
+            state.Logs.Add(new GameLogEntry { Message = "原始日志" });
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState { EffectId = "guard", NormalizedArguments = NormalizedValue.CreateString("原始参数") });
+            var before = GameStateCloneService.DeepClone(state);
+            var error = Assert.Throws<InvalidOperationException>(() => FinalScoringSessionService.ValidateLayerFacts(
+                state, NormalizedValue.CreateString("证据"), (work, evidence) =>
+                {
+                    switch (mutation)
+                    {
+                        case "score": work.Players[0].Score++; break;
+                        case "log": work.Logs[0].Message = "篡改日志"; break;
+                        case "inactive_value": work.EffectRuntime.EffectNodes[0].NormalizedArguments.Items.Add(NormalizedValue.CreateString("闲置字段也属于持久状态")); break;
+                    }
+                    return "";
+                }));
+            Assert.That(error.Message, Is.EqualTo("final_scoring_layer_validator_mutated_state"));
+            Assert.That(GameStateCloneService.AreEquivalent(before, state), Is.True);
+        }
+
+        [Test] public void LayerValidatorPreservesReadOnlyResultsAndEvidenceIsolation()
+        {
+            var state = new GameState();
+            var evidence = NormalizedValue.CreateString("证据");
+            FinalScoringSessionService.ValidateLayerFacts(state, evidence, (work, copy) => { copy.Items.Add(NormalizedValue.CreateString("私有证据")); return ""; });
+            Assert.That(evidence.Items, Is.Empty);
+            Assert.That(Assert.Throws<InvalidOperationException>(() => FinalScoringSessionService.ValidateLayerFacts(state, evidence, (work, copy) => "原校验错误")).Message, Is.EqualTo("原校验错误"));
+        }
+
         [Test] public void MultipleResourceProfilesForSamePlayerReject()
         {
             var script = FinalScoringTestFixture.ReturnItem("{kind='resource_profile',playerId=me,profileId='replace',entries={{resourceType='Iron',units=4,points=1}}}");

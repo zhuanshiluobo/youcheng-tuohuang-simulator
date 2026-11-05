@@ -123,6 +123,7 @@ namespace YC.Domain.Effects
                     EffectExecutorKind.IntrinsicFlow,
                     DefinitionVersion)
                 {
+                    ExecutionDoesNotRetainState = true,
                     Validator = ValidateSpec
                 });
             }
@@ -132,6 +133,7 @@ namespace YC.Domain.Effects
 
         private EffectStepResult Execute(EffectExecutionContext context)
         {
+            if(influenceService.HasExternalStateCallbacks || movementService.HasExternalStateCallbacks)ExecutionWorkRetentionScope.Expose(context.State);
             string targetLocationId;
             bool waiveBaseCost;
             bool consumeMainAction;
@@ -545,6 +547,7 @@ namespace YC.Domain.Effects
                 EffectExecutorKind.Atomic,
                 DefinitionVersion)
             {
+                ExecutionDoesNotRetainState = true,
                 Validator = spec => spec == null || spec.NormalizedArguments == null || spec.NormalizedArguments.Kind != NormalizedValueKind.Object
                     ? "城市位置提交 Effect 参数必须是对象。"
                     : string.Empty

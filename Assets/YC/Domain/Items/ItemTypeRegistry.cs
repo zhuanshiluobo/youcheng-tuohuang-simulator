@@ -17,12 +17,23 @@ namespace YC.Domain.Items
     {
         public const string ContractTokenTypeId = "core.contract_token";
         public const string RewardTokenAcquisitionProfileId = "core.reward_token_acquire";
-        private readonly Dictionary<string, ItemTypeDefinition> definitions;
-        public ItemTypeRegistry() { definitions = new Dictionary<string, ItemTypeDefinition>(StringComparer.Ordinal); }
-        private ItemTypeRegistry(Dictionary<string, ItemTypeDefinition> source)
-        { definitions = new Dictionary<string, ItemTypeDefinition>(source, StringComparer.Ordinal); }
+        private Dictionary<string, ItemTypeDefinition> definitions;
+        private Dictionary<string, HashSet<string>> ancestors;
+        private Dictionary<string, HashSet<string>> inheritedProfiles;
+        private bool sharesBuiltInStorage;
+        public ItemTypeRegistry()
+        {
+            definitions = new Dictionary<string, ItemTypeDefinition>(StringComparer.Ordinal);
+            ancestors = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            inheritedProfiles = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        }
+        private ItemTypeRegistry(ItemTypeRegistry source)
+        {
+            definitions = source.definitions; ancestors = source.ancestors; inheritedProfiles = source.inheritedProfiles;
+            sharesBuiltInStorage = true;
+        }
         // 注册时复制、读出口继续复制；这些私有内建定义没有任何可变引用出口。
-        // 每个新注册器独享索引和frozen标志，追加自定义类型不会污染其他注册器。
+        // 每个新注册器独立管理frozen标志，首次追加时分离索引，不污染其他注册器。
         private static readonly Lazy<ItemTypeRegistry> BuiltIn = new Lazy<ItemTypeRegistry>(BuildBuiltIn);
         private bool frozen;
         public IReadOnlyList<ItemTypeDefinition> Definitions => new List<ItemTypeDefinition>(System.Linq.Enumerable.Select(definitions.Values, value => GameStateCloneService.DeepClone(value))).AsReadOnly();
@@ -64,7 +75,21 @@ namespace YC.Domain.Items
                     (profile == "core.facility_card_transfer" && definition.TypeId != "core.facility_card" && !IsAssignableTo(definition.BaseTypeId, "core.facility_card")))
                     return Reject("operation_profile_rejected", out reasonCode);
             }
-            definitions.Add(definition.TypeId, GameStateCloneService.DeepClone(definition));
+            var stored = GameStateCloneService.DeepClone(definition);
+            var parents = string.IsNullOrEmpty(stored.BaseTypeId) ? new HashSet<string>(StringComparer.Ordinal) :
+                new HashSet<string>(ancestors[stored.BaseTypeId], StringComparer.Ordinal);
+            parents.Add(stored.TypeId);
+            var profiles = new HashSet<string>(stored.OperationProfileIds, StringComparer.Ordinal);
+            if (!string.IsNullOrEmpty(stored.BaseTypeId)) profiles.UnionWith(inheritedProfiles[stored.BaseTypeId]);
+            if(sharesBuiltInStorage)
+            {
+                definitions=new Dictionary<string,ItemTypeDefinition>(definitions,StringComparer.Ordinal);
+                ancestors=new Dictionary<string,HashSet<string>>(ancestors,StringComparer.Ordinal);
+                inheritedProfiles=new Dictionary<string,HashSet<string>>(inheritedProfiles,StringComparer.Ordinal);
+                sharesBuiltInStorage=false;
+            }
+            definitions.Add(stored.TypeId, stored);
+            ancestors.Add(stored.TypeId, parents); inheritedProfiles.Add(stored.TypeId, profiles);
             return true;
         }
 
@@ -73,28 +98,18 @@ namespace YC.Domain.Items
             typeId != null && definitions.TryGetValue(typeId, out var value) ? value.PhysicalKind : (ItemPhysicalKind?)null;
         public bool IsAssignableTo(string typeId, string baseTypeId)
         {
-            var visited = new HashSet<string>(StringComparer.Ordinal);
-            while (!string.IsNullOrEmpty(typeId) && definitions.TryGetValue(typeId, out var value) && visited.Add(typeId))
-            {
-                if (typeId == baseTypeId) return true;
-                typeId = value.BaseTypeId;
-            }
-            return false;
+            return !string.IsNullOrEmpty(typeId) && ancestors.TryGetValue(typeId, out var values) && values.Contains(baseTypeId);
         }
         public bool HasOperationProfile(string typeId, string profileId)
         {
-            var visited = new HashSet<string>(StringComparer.Ordinal);
-            while (!string.IsNullOrEmpty(typeId) && definitions.TryGetValue(typeId, out var value) && visited.Add(typeId))
-            {
-                if (value.OperationProfileIds.Contains(profileId)) return true;
-                typeId = value.BaseTypeId;
-            }
-            return false;
+            return !string.IsNullOrEmpty(typeId) && inheritedProfiles.TryGetValue(typeId, out var values) && values.Contains(profileId);
         }
         public void Freeze() { frozen = true; }
         private static bool Reject(string code, out string reasonCode) { reasonCode = code; return false; }
 
-        public static ItemTypeRegistry CreateBuiltIn() => new ItemTypeRegistry(BuiltIn.Value.definitions);
+        // 私有集合只在注册时创建，之后不修改；新注册器首次追加时复制索引。
+        // 不缓存任意查询键，也不持有对局状态。公开Find/Definitions继续返回独立副本。
+        public static ItemTypeRegistry CreateBuiltIn() => new ItemTypeRegistry(BuiltIn.Value);
         private static ItemTypeRegistry BuildBuiltIn()
         {
             var registry = new ItemTypeRegistry();

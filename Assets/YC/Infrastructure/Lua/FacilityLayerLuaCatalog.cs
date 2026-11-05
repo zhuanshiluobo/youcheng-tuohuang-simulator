@@ -50,7 +50,7 @@ namespace YC.Infrastructure.Lua
                 var slot=build==null ? null : FacilityBuildJournal.SelectedSlot(build);
                 if(slot?.IsOverlay!=true) return new List<EffectSpec>();
                 var authorization=slot.OverlayAuthorization;
-                var declaration=registry.AbilityDeclarations.SingleOrDefault(d=>d.AbilityId==slot.RequiredResponseAbilityId && d.DefinitionId==authorization.DefinitionId);
+                var declaration=registry.FindAbilitySourceDeclaration(slot.RequiredResponseAbilityId, authorization.DefinitionId);
                 if(declaration==null) throw new InvalidOperationException("facility_required_response_declaration_missing");
                 // 旧合同由同一slot查询能力的正式直接响应装配；Journal仍核唯一必做叶、身份及足额。
                 // 此目录只为新的setup响应创建SourceUse，不抢占原直接响应或替缺失响应放行。
@@ -101,15 +101,15 @@ namespace YC.Infrastructure.Lua
                     E("topItemId", S(c.TopItemId)), E("coveredZoneId", S(c.CoveredZoneId)),
                     E("coveredItemIds", Strings(c.CoveredItemIds)), E("allItemIds", Strings(c.AllItemIds)),
                     E("orderDigest", S(c.OrderDigest)), E("orderRevision", N(c.OrderRevision))));
-                var towers = FacilityLayerQuery.ResolveTowerAdjacency(state, player.PlayerId).Select(t => O(
+                var towers = FacilityLayerQuery.ResolveTowerAdjacency(state, cells).Select(t => O(
                     E("towerItemId", S(t.TowerItemId)), E("slotIndex", N(t.SlotIndex)),
                     E("adjacentTopItemIds", Strings(t.AdjacentTopItemIds))));
                 players.Add(E("p" + player.PlayerId.ToString(CultureInfo.InvariantCulture), O(
                     E("cells", A(cellValues)), E("allItemIds", Strings(cells.SelectMany(c => c.AllItemIds))),
-                    E("factsDigest", S(FacilityLayerEvidence.Digest(state, player.PlayerId))),
+                    E("factsDigest", S(FacilityLayerEvidence.Digest(player.PlayerId, cells))),
                     E("topItemIds", Strings(cells.Where(c => c.TopItemId.Length > 0).Select(c => c.TopItemId))),
                     E("declaredItemIds", Strings(used.OrderBy(id => id, StringComparer.Ordinal))),
-                    E("currentDeclaredTopSlots", A(FacilityLayerQuery.CurrentDeclaredTopSlots(state, player.PlayerId).Select(N))),
+                    E("currentDeclaredTopSlots", A(cells.Where(c => used.Contains(c.TopItemId)).Select(c => N(c.SlotIndex)))),
                     E("towers", A(towers)))));
             }
             var supply = FacilityLayerQuery.Supply(state).Select(s => O(

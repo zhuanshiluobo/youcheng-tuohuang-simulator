@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -309,12 +309,7 @@ namespace YC.Presentation
         /// <summary>按真实面身份读取已登记正面，不能降级为另一面。</summary>
         public static Sprite GetDeclaredCardArtwork(string definitionId, string faceId = "")
         {
-            var definition = Pack.Definitions.FirstOrDefault(d => d.Enabled && d.DefinitionId == definitionId);
-            if (definition == null) return null;
-            if (string.IsNullOrEmpty(faceId)) return LoadSprite(definition.Artwork, definition.ArtworkSlice);
-            var face = definition.Data["faces"]?.FirstOrDefault(f => (string)f["faceId"] == faceId);
-            var artwork = (string)face?["artwork"];
-            return string.IsNullOrEmpty(artwork) ? null : LoadSprite(artwork, null);
+            return Pack.TryGetDeclaredArtwork(definitionId,faceId,out var artwork,out var slice)?LoadSprite(artwork,slice):null;
         }
 
         private static Sprite LoadSprite(string relative, ExternalArtworkSlice slice)

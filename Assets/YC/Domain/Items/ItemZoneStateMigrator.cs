@@ -146,14 +146,20 @@ namespace YC.Domain.Items
             if (owner == null || owner.Status == EffectNodeStatus.Completed || owner.Status == EffectNodeStatus.Failed || owner.Status == EffectNodeStatus.Faulted) { reasonCode = "OwnerEffectId_required"; return false; }
             if (declaration == null || declaration.ZoneTemplateId != "core.zone.effect_staging" || string.IsNullOrWhiteSpace(declaration.LocalZoneId) || !ItemZoneVisibility.IsKnown(declaration.VisibilityPolicyId))
             { reasonCode = "zoneTemplateId_rejected"; return false; }
-            var copy = GameStateCloneService.DeepClone(state);
+            var copy = ItemTransferService.StructuralPreview(state, "factory_effect_staging", out var reference, out var narrow);
             string id = StableIdFactory.Create("zone", state.GameId, declaration.ZoneTemplateId, ownerEffectId, declaration.LocalZoneId);
             if (copy.ItemZones.Zones.Exists(zone => zone.ZoneId == id)) { reasonCode = "LocalZoneId_duplicate"; return false; }
-            copy.ItemZones.Zones.Add(new ZoneInstanceState { ZoneId = id, TemplateId = declaration.ZoneTemplateId, LocalZoneId = declaration.LocalZoneId, ParentKind = ZoneParentKind.Zone,
+            var created = new ZoneInstanceState { ZoneId = id, TemplateId = declaration.ZoneTemplateId, LocalZoneId = declaration.LocalZoneId, ParentKind = ZoneParentKind.Zone,
                 ParentId = Zone(copy, "table").ZoneId, OwnerEffectId = ownerEffectId, OwnerPlayerId = state.EffectRuntime.EffectNodes.Find(node => node.EffectId == ownerEffectId).PlayerId,
-                VisibilityPolicyId = declaration.VisibilityPolicyId, Configuration = GameStateCloneService.DeepClone(declaration) });
-            if (!new ItemZoneQuery(types, templates).TryValidate(copy, out reasonCode)) return false;
-            GameStateCloneService.CopyTo(state, copy);
+                VisibilityPolicyId = declaration.VisibilityPolicyId, Configuration = GameStateCloneService.DeepClone(declaration) };
+            copy.ItemZones.Zones.Add(created);
+            if(reference!=null)
+            {
+                ItemTransferService.VerifyStructuralSource(state,reference);
+                reference.ItemZones.Zones.Add(GameStateCloneService.DeepClone(created));
+            }
+            if (!ItemTransferService.ValidateStructuralPreview(new ItemZoneQuery(types, templates),copy,reference,out reasonCode)) return false;
+            ItemTransferService.PublishStructuralPreview(state, copy, narrow);
             zoneId = id;
             return true;
         }
@@ -166,13 +172,18 @@ namespace YC.Domain.Items
             if (node == null || node.Status == EffectNodeStatus.Completed || node.Status == EffectNodeStatus.Failed || node.Status == EffectNodeStatus.Faulted)
             { reasonCode = "sourceEffectId_rejected"; return false; }
             if (string.IsNullOrWhiteSpace(businessKey) || string.IsNullOrWhiteSpace(definitionId) || types.Find(typeId) == null) { reasonCode = "setup_recipe_entry_invalid"; return false; }
-            var copy = GameStateCloneService.DeepClone(state);
+            var copy = ItemTransferService.StructuralPreview(state, "factory_granted_item", out var reference, out var narrow);
             string entry = sourceEffectId + "/" + businessKey;
             string id = StableIdFactory.Create("item", state.GameId, definitionId, entry, "0");
             if (copy.ItemZones.Items.Exists(item => item.ItemId == id)) { reasonCode = "duplicate_item_id"; return false; }
             AddItem(copy, definitionId, typeId, entry, 0, zoneId, owner ?? new ItemSubjectRef());
-            if (!new ItemZoneQuery(types, templates).TryValidate(copy, out reasonCode)) return false;
-            GameStateCloneService.CopyTo(state, copy);
+            if(reference!=null)
+            {
+                ItemTransferService.VerifyStructuralSource(state,reference);
+                AddItem(reference, definitionId, typeId, entry, 0, zoneId, owner ?? new ItemSubjectRef());
+            }
+            if (!ItemTransferService.ValidateStructuralPreview(new ItemZoneQuery(types, templates),copy,reference,out reasonCode)) return false;
+            ItemTransferService.PublishStructuralPreview(state, copy, narrow);
             itemId = id;
             return true;
         }
@@ -301,20 +312,26 @@ for (int cell = 0; cell < BuildFacilityService.CityBoardSlotCount; cell++)
         };
         internal static void BindDerivedScoreMarkers(GameState state)
         {
+            // 分数槽位值未变时保留原不可变字符串；避免每个提交都使完整字段基线失效。
+            void BindMarker(ItemInstanceState item)
+            {
+                string slot="score_"+(state.FindPlayer(item.OwnerSubject.PlayerId)?.Score ?? throw new InvalidOperationException("score_owner_invalid")).ToString(CultureInfo.InvariantCulture);
+                if(!string.Equals(item.SlotId,slot,StringComparison.Ordinal))item.SlotId=slot;
+            }
             var items = state.ItemZones.Items;
             var zones = state.ItemZones.Zones;
             // 畸形对象图沿用原入口和错误行为；合法图索引保留Find的首个匹配语义。
             if (items == null || zones == null || items.Any(item => item == null || item.ZoneId == null) || zones.Any(zone => zone == null || zone.ZoneId == null))
             {
                 foreach (var item in items.Where(item => zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.score_track"))
-                    item.SlotId = "score_" + (state.FindPlayer(item.OwnerSubject.PlayerId)?.Score ?? throw new InvalidOperationException("score_owner_invalid")).ToString(CultureInfo.InvariantCulture);
+                    BindMarker(item);
                 return;
             }
             var byId = new Dictionary<string, ZoneInstanceState>(StringComparer.Ordinal);
             foreach (var zone in zones)
                 if (!byId.ContainsKey(zone.ZoneId)) byId.Add(zone.ZoneId, zone);
             foreach (var item in items.Where(item => byId.TryGetValue(item.ZoneId, out var zone) && zone.TemplateId == "core.zone.score_track"))
-                item.SlotId = "score_" + (state.FindPlayer(item.OwnerSubject.PlayerId)?.Score ?? throw new InvalidOperationException("score_owner_invalid")).ToString(CultureInfo.InvariantCulture);
+                BindMarker(item);
         }
     }
 

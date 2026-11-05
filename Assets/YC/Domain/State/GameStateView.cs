@@ -490,6 +490,9 @@ namespace YC.Domain.State
         }
 
         public static GameStateView Project(GameState state, GameStateViewer viewer, IReadOnlyList<YC.Domain.Cards.CharacterSettlementOption> settlementOptions, IReadOnlyList<YC.Domain.Effects.AbilityActionOption> abilityActions = null, YC.Domain.Effects.EffectRegistry paymentRegistry = null)
+            => ProjectWithReadOnlyRuntime(state,viewer,settlementOptions,abilityActions,paymentRegistry);
+
+        private static GameStateView ProjectCore(GameState state, GameStateViewer viewer, IReadOnlyList<YC.Domain.Cards.CharacterSettlementOption> settlementOptions, IReadOnlyList<YC.Domain.Effects.AbilityActionOption> abilityActions, YC.Domain.Effects.EffectRegistry paymentRegistry, bool copyState)
         {
             var view = new GameStateView
             {
@@ -510,7 +513,12 @@ namespace YC.Domain.State
             };
 
             if (state == null) return view;
-            if (ItemZoneLegacyProjection.IsActive(state)) state = GameStateCloneService.DeepClone(state);
+            if (copyState && ItemZoneLegacyProjection.IsActive(state))
+            {
+                using var copy=GameStateCloneService.MeasureDiagnostic("projection.full_state_snapshot");
+                state = GameStateCloneService.DeepClone(state);
+            }
+            using var queryScope = ReadOnlyStateQueryScope.Begin(state);
             view.ItemZones = new ItemZoneQuery().Project(state, viewer);
             view.CubeColors = view.ItemZones.Items.Where(i => i.PhysicalKind == ItemPhysicalKind.Cube).Select(i => CubeAppearance.Resolve(state, i.ItemId)).ToList();
             view.UsageTracks = YC.Domain.Effects.UsageTracks.Project(state).Where(t => view.ItemZones.Items.Any(i => i.ItemId == t.Binding.SourceItemId) && view.ItemZones.Zones.Any(z => z.Zone.ZoneId == t.Binding.ZoneId && z.IdentitiesVisible)).ToList();

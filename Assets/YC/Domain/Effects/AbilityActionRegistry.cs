@@ -15,6 +15,7 @@ namespace YC.Domain.Effects
     {
         private List<AbilitySourceDeclaration> abilityDeclarations = new List<AbilitySourceDeclaration>();
         private readonly Dictionary<string, Func<AbilityActionCallContext, IList<EffectSpec>>> abilityBodies = new Dictionary<string, Func<AbilityActionCallContext, IList<EffectSpec>>>(StringComparer.Ordinal);
+        private readonly HashSet<string> nonRetainedSourceBodies = new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> abilityHandlerHashes = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityActionCallPolicy> actionCallPolicies = new Dictionary<string, AbilityActionCallPolicy>(StringComparer.Ordinal);
         private readonly Dictionary<string, IAbilityActionUsageProvider> actionUsageProviders = new Dictionary<string, IAbilityActionUsageProvider>(StringComparer.Ordinal);
@@ -47,7 +48,10 @@ namespace YC.Domain.Effects
             actionTextResolver != null ? actionTextResolver(reference) : throw new InvalidOperationException("action_text_resolver_missing");
         private Func<GameState, AbilitySourceRef, AbilityActionDeclaration, IList<EffectSpec>, string> actionCostPreview;
         private Func<GameState, AbilitySourceRef, EffectSpec, string> itemTransferEntryCostPreview;
+        private bool nativeItemTransferEntryCostPreview;
         // 005最终通用转移合同的纯预览接点；不在调用端重造权限、选物或转移规划。
+        internal void RegisterNativeItemTransferEntryCostPreview(Func<GameState, AbilitySourceRef, EffectSpec, string> preview)
+        { RegisterItemTransferEntryCostPreview(preview); nativeItemTransferEntryCostPreview=true; }
         public void RegisterItemTransferEntryCostPreview(Func<GameState, AbilitySourceRef, EffectSpec, string> preview)
         { if (preview == null || itemTransferEntryCostPreview != null) throw new ArgumentException("item_transfer_cost_preview_duplicate_or_null"); itemTransferEntryCostPreview = preview; }
         public string PreviewItemTransferEntryCost(GameState state, AbilitySourceRef source, EffectSpec cost)
@@ -55,6 +59,7 @@ namespace YC.Domain.Effects
             if (state == null || source == null || cost?.EffectTypeId != ItemTransferEffectExecutor.TypeId ||
                 cost.PlayerId >= 0 && cost.PlayerId != source.AuthorizedPlayerId || !AbilitySourceService.IsCurrent(state, abilityDeclarations, source)) return "entry_cost_source_invalid";
             if (itemTransferEntryCostPreview == null) return "item_transfer_cost_preview_not_registered";
+            if(!nativeItemTransferEntryCostPreview)ExecutionWorkRetentionScope.Expose(state);
             return itemTransferEntryCostPreview(state, source, cost) ?? throw new InvalidOperationException("item_transfer_cost_preview_invalid");
         }
         public void RegisterActionCostPreview(Func<GameState, AbilitySourceRef, AbilityActionDeclaration, IList<EffectSpec>, string> preview)
@@ -66,7 +71,14 @@ namespace YC.Domain.Effects
             return actionCostPreview != null ? actionCostPreview(state, source, action, payment) :
                 AbilityActionExecutor.PreviewCost(state, this, source, payment);
         }
-        public IReadOnlyList<AbilitySourceDeclaration> AbilityDeclarations => abilityDeclarations.Select(GameStateCloneService.DeepClone).ToList();
+        public IReadOnlyList<AbilitySourceDeclaration> AbilityDeclarations
+        {
+            get
+            {
+                using var sample = GameStateCloneService.MeasureDiagnostic("ability.catalog.copy");
+                return abilityDeclarations.Select(GameStateCloneService.DeepClone).ToList();
+            }
+        }
         // 跨层只暴露所需标量/独立集合，完整可变声明继续由公开属性防御复制。
         public string GetAbilitySourceHandlerHash(string abilityId) => GetAbilityHandlerHash(abilityDeclarations.Single(d => d.AbilityId == abilityId).HandlerRef);
         public bool HasAbilitySourceKind(string abilityId, string kind) => abilityDeclarations.Any(d => d.AbilityId == abilityId && d.Kind == kind);
@@ -83,6 +95,12 @@ namespace YC.Domain.Effects
         {
             if (HasAbilityCatalog || string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(hash) || handler == null) throw new ArgumentException("ability_handler_invalid_or_frozen");
             abilityBodies.Add(id, handler); abilityHandlerHashes.Add(id, hash); abilityHandlerVersions.Add(id,version);
+        }
+        /// <summary>回调、嵌套调用及返回式不保留State或可变子对象。只用于无Action且无直接调用策略的来源正文；其他调用仍默认隔离。</summary>
+        public void RegisterNonRetainedSourceHandler(string id, string hash, Func<AbilityActionCallContext, IList<EffectSpec>> handler, string version="1.0.0")
+        {
+            RegisterAbilityHandler(id, hash, handler, version);
+            nonRetainedSourceBodies.Add(id);
         }
         public void RegisterActionCallPolicy(AbilityActionCallPolicy policy)
         {
@@ -222,8 +240,16 @@ namespace YC.Domain.Effects
             a.GrantingSourceRefs != null && b.GrantingSourceRefs != null && a.GrantingSourceRefs.SequenceEqual(b.GrantingSourceRefs);
         internal IAbilityActionUsageProvider UsageProvider(string track) => actionUsageProviders.TryGetValue(track, out var provider) ? provider : null;
         internal bool TryCallPolicy(string id, out AbilityActionCallPolicy policy) => actionCallPolicies.TryGetValue(id ?? "", out policy);
-        internal IList<EffectSpec> ConstructAbilityBody(string handler, AbilityActionCallContext context) => abilityBodies.TryGetValue(handler, out var body)
-            ? body(context) : throw new InvalidOperationException("ability_handler_missing:" + handler);
+        internal IList<EffectSpec> ConstructAbilityBody(string handler, AbilityActionCallContext context)
+        {
+            if (!abilityBodies.TryGetValue(handler, out var body)) throw new InvalidOperationException("ability_handler_missing:" + handler);
+            bool detached = nonRetainedSourceBodies.Contains(handler) && context?.SourceRef != null && context.Action == null &&
+                !actionCallPolicies.Values.Any(policy => policy.CallerAbilityId == context.SourceRef.AbilityId && policy.CallerHandlerHash == HandlerHash(handler));
+            if(detached)ExecutionWorkRetentionScope.NoteExternalStateCallback(context?.State);
+            else ExecutionWorkRetentionScope.Expose(context?.State);
+            using var sample = detached ? GameStateCloneService.MeasureDiagnostic("ability.body.nonretained_source") : default;
+            return body(context);
+        }
         public IReadOnlyList<AbilityActionOption> QueryActions(GameState state, int playerId, string windowId = "", string contentVersion = "")
             => QueryActionOptions(state,playerId,windowId,contentVersion,null);
         public IReadOnlyList<AbilityActionOption> QuerySpecialActionSources(GameState state, int player, bool immediate) =>
