@@ -1,68 +1,10 @@
-2026-11-03用户允许基线测试、正常对局夹具仍暂停。本批API-41按真实分支、普通／即时行动、数量／付款与载物组合的规则及Host恢复基线结项；全部44项提升为40完成／4部分（API-07、25、42、44），原39项仍37完成／2部分。core2.1.70修复艾格尼丝冻结模块身份、数量Flow多余整式放弃页与即时特殊行动零参输入；186个不同基线全名最近结果通过，原13项12项同名后续通过、1项明确替代验证，累计未处置0／明确替代22。实际99枚、17候选选2、28组合七条首组路径分别有原件；不计正常页面、视觉、联机或断线重发验收。见[本批结项与边界](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E5%9F%BA%E7%BA%BF%E9%AA%8C%E6%94%B6%E7%BB%93%E9%A1%B9%E4%B8%8EAPI-44%E5%8E%9F%E5%A4%B1%E8%B4%A5%E9%97%AD%E7%8E%AF-20261103.md)。
-
-API-41续作core2.1.68：即时特殊行动执行与恢复共用业务子节点查询，只在辨认唯一Choice时排除成功分发收据所属的响应；不删除响应、不改内核等待／执行顺序，不改费用、次数或额度。新增实现身份immediate_special.response_children.v1.0.1纳入内容指纹，执行定义2.1.0保持。两项定向规则断言仅准备源码，夹具仍暂停、13项原失败仍开放；44项39完成／5部分保持。见[本批子节点边界](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E5%8D%B3%E6%97%B6%E7%89%B9%E6%AE%8A%E8%A1%8C%E5%8A%A8%E5%93%8D%E5%BA%94%E4%B8%8E%E6%81%A2%E5%A4%8D%E4%B8%80%E8%87%B4%E6%80%A7-20261102.md)。
-
-API-44续作core2.1.67：付款实物草稿在DTO反序列化前严格核对必需字段及实际JSON类型，拒绝默认补齐和字符串／数字强转；完整合法的原协议1形状保持。恢复校验身份payment_insertion.item_draft_shape.v1.0.1纳入内容指纹，无付款／选择规则或UI资产改动。新增15项定向断言源码未执行；夹具继续暂停，原13项失败仍全部开放，39完成／5部分保持。见[本批恢复边界](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-44%E4%BB%98%E6%AC%BE%E5%AE%9E%E7%89%A9%E8%8D%89%E7%A8%BF%E5%8E%9F%E5%A7%8B%E6%81%A2%E5%A4%8D%E6%A0%A1%E9%AA%8C-20261102.md)。
-
-API-43续作：两个普通模板及最后的创建／退化入口已清零。EffectDialogShell与FacilityBuildDialog仅局部删除16个子对象／75个序列化对象，CardPicker仅清除空字段；其他存续对象原样保持。旧全局Pending第二模式菜单无正式恢复消费者，已移除；现行首模式卡面与Host第二模式续接保留。core2.1.66及领域／Lua／答案协议保持，夹具与正常验收仍暂停，当前不以编译／静态结果关闭13项失败或补记正常页面通过。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-43%E6%99%AE%E9%80%9A%E6%A8%A1%E6%9D%BF%E8%B5%84%E4%BA%A7%E4%B8%8E%E5%85%A5%E5%8F%A3%E6%B8%85%E9%9B%B6-20261102.md)。
-
-core2.1.66：多萝西定义2.2.0、计谋／来源2.3.0，完成处理器改为content.operator.dorothy.tactic.cleanup_pair_return_completed，context协议3。新增载物首组与实际成对返还正式文本，初始与捕获规则不变；旧上下文／旧处理器不冒充新合同，当前尚无运行恢复验收。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E5%A4%9A%E8%90%9D%E8%A5%BF%E5%AE%8C%E6%95%B4%E7%BB%84%E5%90%88%E4%B8%8E%E6%95%B0%E9%87%8F%E7%BB%AD%E6%8E%A5%E6%A0%A1%E9%AA%8C-20261102.md)。
-
-core2.1.65：特殊行动来源的费用／正文／后继描述沿正式声明，由core:interaction.special.action_details三个text参数组织；UI控制器不拼固定业务文案。普通选择1.0.0、即时来源2.1.0及内容指纹同步。旧执行模板已清理，普通模板仍待；运行验收暂停，见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E6%99%AE%E9%80%9A%E7%89%B9%E6%AE%8A%E8%A1%8C%E5%8A%A8%E4%B8%8E%E6%89%A7%E8%A1%8C%E6%A8%A1%E6%9D%BF%E6%B8%85%E7%90%86-20261102.md)。
-
-API-41续作core2.1.64：多萝西计谋2.2.0使用cleanup_transfer_completed实际移动结果；艾格尼丝相关4定义／24处身份已同步，数量值回调退役。新增数量组、来源组、实物组及草稿编辑标签均在core正式文本目录，未写入UI控制器固定文案。当前只有编译／静态核对，运行／恢复验收暂停，见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E6%95%B0%E9%87%8F%E4%BB%98%E6%AC%BE%E4%B8%8E%E5%8D%B3%E6%97%B6%E8%A1%8C%E5%8A%A8%E7%9C%9F%E5%AE%9E%E5%88%86%E6%94%AF-20261102.md)。
-
 # DIY 内容开发：JSON 编写与隔离装配
 
-API-41坎诺特计谋续作（core2.1.63）：三种资源直接承载全部玩家的真实Flow.ExchangeResource；到达每位玩家时读取当前库存，原每批最多50的PayResource（禁止替代）→GainResource及付款前响应保持。characters.cannot.tactic.completed只在真实Choice全部完成后发最后1分，不读取选项值生成兑换；全0仍得1分，付款失败不发对应收益／最后得分。坎诺特定义2.1.0／计谋1.4.0，原策略及use来源不变；无UI改动。原39项37完成／2部分、全部44项38完成／6部分及13项基线失败未关闭保持。见[实施与验证](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E5%9D%8E%E8%AF%BA%E7%89%B9%E5%8A%A8%E6%80%81%E5%85%91%E6%8D%A2%E7%9C%9F%E5%AE%9E%E5%88%86%E6%94%AF-20261102.md)。
+本文依据当前读取器、活动目录及 core `2.2.2` 对应实现说明作者合同。独立 DIY 包使用 `nomadcity.diy` schema 1；core 内容清单与定义使用另一套格式，不要混用。
 
-API-41极境策略续作（core2.1.62）：并列最少候选直接承载获得4资源的真实分支，删除值→收益完成回调。GainResource执行2.0.0，显式apiVersion=2的minimum_balance资格在落账前按当前钱包复验；失效不发收益。极境定义1.1.0／策略1.4.0，完成处理器清空；旧普通无资格1.0.0收益可恢复，旧身份夹带新资格在执行前拒绝。Choice3.1.0及移动合同保持，无UI改动。API-41整项仍部分，原39项37完成／2部分、全部44项38完成／6部分保持。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E6%9E%81%E5%A2%83%E6%9C%80%E5%B0%91%E8%B5%84%E6%BA%90%E7%9C%9F%E5%AE%9E%E5%88%86%E6%94%AF-20261102.md)。
+配套文档：[包体作者指南](DIY包体作者指南.md)、[Lua API](DIY内容开发-Lua%20API.md)、[Event 与处理器](DIY内容开发-Event.md)、[安装与发布](DIY内容安装与发布说明.md)。
 
-API-41蒂亚戈点数续作（core2.1.61）：主／额外点数菜单已改真实效果分支；删除main_selected／extra_selected值分派，main_completed只在实际主分支结束后组织原额外条件，出售仍由实际累计回执完成后续接且不重复继续。需要选额外点数时，原两枚费用的真实Condition成功后才由Lua构造冻结点数分支，MoveItem只移动确定费用实例；未提高指令、深度或分支预算。上下文7，五定义1.9.0、34处能力／处理器及17处来源声明1.8.0同步，Choice3.1.0保持。其他逻辑业务及模板资产仍待，38完成／6部分不变。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E8%92%82%E4%BA%9A%E6%88%88%E7%82%B9%E6%95%B0%E7%9C%9F%E5%AE%9E%E5%88%86%E6%94%AF-20261102.md)，原失败及验证结果逐批保留。
-
-上一阶段API-43通用卡牌语义续作：角色／设施通用选择按正式候选声明或当前可见投影解析定义，再按已安装的角色／设施／事件／奖赏类型固定卡牌页；删除HasCardArtwork，不再探测是否存在图片来决定页面。逻辑执行分支及玩家页优先级保持，缺图保留同一真实候选卡位和诊断；类型判断不调用Host实例解析器。未改领域、Lua、内容、场景、预制体、布局或静态文案，普通模板及其余业务迁移仍待；38完成／6部分口径不变。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-43%E9%80%9A%E7%94%A8%E5%8D%A1%E7%89%8C%E8%AF%AD%E4%B9%89%E5%88%86%E6%B5%81-20261102.md)。
-
-上一阶段API-43卡牌缺图续作：盖放选择、建设选牌、弃牌／盖放浏览、只读卡牌集合、企业家选牌、已盖放可用角色和游戏盒非事件卡牌页已显式声明真实卡牌语义，不再由贴图是否存在决定回落普通条目；缺图保留同一候选卡位与真实标签，逐实例输出诊断。只改必要UI源码及夹具，未改场景／预制体／布局／静态文案／素材或规则；普通模板、其余通用候选分流和业务迁移仍待，API-43／44仍部分，38完成／6部分不变。见[本轮实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-43%E5%8D%A1%E7%89%8C%E7%BC%BA%E5%9B%BE%E4%B8%8D%E9%80%80%E6%96%87%E5%AD%97%E7%BB%AD%E4%BD%9C-20261102.md)。
-
-正常测试夹具续作：次数式交易驾驶策略按正式单价、本人实际库存与声明次数生成可付有序计划，不预支尚未发生的出售收入；没有完整可付计划时通过原结束控件结束当前效果，不调整游戏候选、预算或付款资格。API-38／Lin正式规则、Lua／JSON协议与core2.1.60内容保持；同局005仍读取原core56包与原存档，不能据夹具修复声称规则变更或正常验收已完成。见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-07%E6%9E%97%E8%AE%A1%E8%B0%8B%E6%AC%A1%E6%95%B0%E5%BE%AA%E7%8E%AF%E4%BF%AE%E5%A4%8D-20261102.md)。
-
-宿主设施UI退役续作：旧FacilityEffectInteractionUiCoordinator／Adapter已移除，旧PendingCardSession不是可恢复设施界面入口；现行设施UI只消费正式InteractionRequest并提交AnswerInteraction。共用Dialog／Shell、正常建设付款和卡牌组件保留。core2.1.60／Choice3.1.0、包内容哈希与Lua／JSON协议均保持；本轮仅宿主UI和必要测试变化。普通模板资产及其余业务仍待收口，不能据此宣称整体退役。见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-43%E6%97%A7%E8%AE%BE%E6%96%BD%E5%8D%8F%E8%B0%83%E5%99%A8%E9%80%80%E5%BD%B9-20261102.md)。
-
-core2.1.60清理续作：删去坎诺特策略、设施出售、杰西卡计谋中无调用的旧选择辅助；正式返回函数逐字保持，出售v2／建设v3、参数／答案／回调与能力版本不变，实际脚本及包哈希更新。已删除旧建设页的三个无消费者方法及独占报价辅助，现行建设付款和卡牌入口保持。API-43仍部分实施，模板资产及其他消费者尚未全部清理；正常局005冻结core56。见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-43%E6%AD%BB%E8%BE%85%E5%8A%A9%E4%B8%8E%E6%97%A7%E5%BB%BA%E8%AE%BE%E9%A1%B5%E6%B8%85%E7%90%86-20261102.md)。
-
-缪尔赛思去向更新（core2.1.59／角色与计谋2.1.0）：character.card.destination展示一张真实流形和两个实际去向动作，两个Choice分支各自直接包含同一实例到本人hand／discard的MoveCharacterCard；删除destination_selected纯值回调，原额外盖放与可选回收保持。正式interaction.card.destination.choose的card参数声明为item并绑定当前实例，用观察者投影解析卡面；hand／discard是动作ID，不能当两张候选卡。缺图保留单卡动作页与诊断，旧core58待答档不迁写，不把旧值合同解释成新移动分支。Choice3.1.0及公共移动协议不变。见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-42%E7%BC%AA%E5%B0%94%E8%B5%9B%E6%80%9D%E5%8D%95%E5%8D%A1%E5%8F%8C%E5%8E%BB%E5%90%91-20261102.md)。
-
-上一阶段API-42奖赏显示续作（core58）：梅兰德四级RewardAcquisitionFlow的reward.choose沿真实候选实例使用卡牌页，卡面按正式contentType=award及定义的artwork／artworkSpriteId解析；缺图保留原卡位和真实候选标签并输出诊断，不借用其他类型图片。答案仍是原奖赏实例ID，contracts自动取得不改。core2.1.58／Choice3.1.0及Lua／JSON协议不变；缪尔赛思单卡双去向和正常完整卡面验收仍待。见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-42%E6%A2%85%E5%85%B0%E5%BE%B7%E5%A5%96%E8%B5%8F%E5%8D%A1%E9%A1%B5-20261102.md)。
-
-当前续作core2.1.58／Choice3.1.0：蒂亚戈声望的合法正数数量直接承载原逐枚MoveItem，0改由Choice放弃后继续原点数页；不使用空分支或数量值回调。独立移动及失败边界、原骰子／投资／主额外点数／出售流程保持。A05真实战术分支及agnes1.8.3保持；正常局005仍冻结core2.1.56，不热换。
-
-
-当前续作core2.1.55／Choice3.1.0：淬羽赫默策略的公开一级样式及T09离场存放均改为真实效果分支，删除仅为值分派的完成回调。公开样式沿原激活、付款、来源及响应；T09放弃归Choice、不创建Store子效果，实际离场保管与默认去向仍由原协议处理。T05／T06全员升级只将当前正式企业展示区实例交给原Flow，原资格与完整升级子树保持。正常局004继续冻结core2.1.52，其余API-41及API-42～44未完成。
-
-
-当前续作core2.1.53／Choice3.1.0：林与诗怀雅返还候选直接承载精确实例到原供应的MoveItem效果。放弃由Choice结束，实际移动成功结果才继续原后续；诗怀雅同原主自动返还与升级受益人／顺序保持。原初始标记及旧Choice保存拒绝合同保持，其余API-41及API-42～44仍待。
-
-2026-11-01当前可选分支：core2.1.52／Choice3.1.0，真实branches允许minSelections=0、maxSelections=1；正数数量选项直接存放标记，放弃取消当前可选操作，不使用空effects或伪造移动。旧Choice3.0.0及更早节点／待执行规格拒绝恢复。该参数属于Lua Choice，不能仅在JSON中添加提示键或choiceIntent伪装执行分支；详见[Lua Choice](DIY内容开发-Lua%20API.md#43-choice-三种互斥写法)。
-
-2026-11-01后续实施：core2.1.50；MoveItem4.15.0／item.move.v4.3保持，MoveFacilityCard执行6.0.0（cycle_supply显式apiVersion=4），补槽／刷新2.3.0，ReturnCityStyleMarker执行4.0.0（显式apiVersion=2），Choice执行2.0.0。三个移动接口均不自行或组织补选请求；马丁／德克萨斯在Lua中选择真实设施，街区管理通过独立Flow.ChooseCityStyleMarkerReturn组织真实返还分支。旧阶段包装内选择结论仅为历史。 四份martin_rounds定义及全部同脚本绑定同步至1.3.1；德克萨斯定义1.0.2／策略1.3.2及完成处理器；街区管理定义／宣告1.0.2。文本资产新增实际样式／标记的分支描述，布局资产不变。详见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-31%E6%98%BE%E5%BC%8F%E5%8C%85%E8%A3%85%E4%B8%8E%E5%A4%96%E9%83%A8%E7%9C%9F%E5%AE%9E%E9%80%89%E6%8B%A9-20261101.md)。
-
-2026-11-01 上一阶段合同：core2.1.51／Choice执行3.0.0，非空真实分支在省略类型或lua.choice时走逻辑执行页，明确指定的真实卡牌／玩家类型保留。旧Choice2.0.0执行节点和待执行规格拒绝恢复。仅填写JSON提示键、interactionSemantic／choiceIntent不能替代真实分支；普通业务迁移和模板清理尚未全部完成，见[首阶段实施](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-41%E9%80%BB%E8%BE%91%E5%88%86%E6%94%AF%E9%A6%96%E9%98%B6%E6%AE%B5-20261101.md)。无交互移动边界同时包括MoveItem、MoveFacilityCard、ReturnCityStyleMarker，选择由外部Lua／独立流程负责。MoveFacilityCard的cycle_supply用显式v4，ReturnCityStyleMarker用显式v2，均要求单枚selector.explicit及expectedSource。街区管理用Flow.ChooseCityStyleMarkerReturn创建真实返还分支，设施回底由Lua Choice选择真实设施并沿用正式供应卡牌页。参数与页面限制见[Lua API 5.2](DIY内容开发-Lua%20API.md#52-物品与角色生命周期)，迁移依据见[升级计划4.16.8](../../prompt/Lua-API/Lua-API升级计划-20261029.md#4168-2026-11-01-移动选择迁出后的模板回流复核)。
-
-2026-11-01用户纠正（优先于此前合同）：`MoveItem`只是已经确定的完整移动效果，不能发起选择。选择由上层Lua／业务流程拥有，确认实际实例和源位置后才创建显式MoveItem；补牌的top是确定取顶，不是玩家选择。此前item.move.v4.2的select、默认标记选择以及MoveItem主盖放选择记录均为已撤销设计，不能作为当前可用能力或完成依据。当前实现纠正为core2.1.49／MoveItem4.15.0／item.move.v4.3；设施5.0.0、供应2.2.0、盖放4.0.0、样式返还3.0.0。 JSON不保存或注入临时选择进度，旧选择移动节点及旧执行定义不自动升级；见[职责纠正](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-31%E7%A7%BB%E5%8A%A8%E4%B8%8E%E9%80%89%E6%8B%A9%E8%81%8C%E8%B4%A3%E7%BA%A0%E6%AD%A3-20261101.md)。
-
-> 2026-11-01 当前合同收口：core2.1.48，实体2，物品执行4.14.0、设施4.1.0、补槽/刷新2.1.0、盖放3.1.0、付款策略resource_token_cost.v2；旧合同/字段缺失明确拒绝，原档不改。后文按日期保留的阶段版本为迁移历史，现行可用表及API-32共同写法为当前作者合同。验证、历史原件和正常覆盖按层记录；本轮仅收口原API01～39，新增API40～44未实施。历史样本已从归档按原SHA恢复，旧正向明确替代为现行旧内容拒绝反例，既有失败追踪0未处置/15明确替代。见[当前验证与边界](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-06%E5%8E%86%E5%8F%B2%E5%BD%92%E6%A1%A3%E6%A0%B7%E6%9C%AC%E4%B8%8E%E6%97%A7%E5%86%85%E5%AE%B9%E6%8B%92%E7%BB%9D-20261101.md)。
-
-
-更新：2026-10-29。核对基线：`3a398b86a1a5433714dd5dc4a9fc55aa4a68213a` 及本次工作区生产源码。
-
-配套 [Lua API](DIY内容开发-Lua%20API.md)。本版依据当前 `ExternalContentPack`、活动目录、领域定义和正式内容文件编写；[Lua效果系统API初稿](../../docs/设计/Lua效果系统API初稿.md) 仅作为设计背景。旧文档中的固定内容数量、企业/企业家“只有未启用模板”等阶段性结论不能作为当前合同。
-
-目标是让内容作者独立维护 JSON、Lua 和已获准的素材，由装配方接入完整内容包。**文件可被解析、能力可被注册、内容可正常入局、画面已验收，是四个不同结果。**
-
-2026-10-30 API 升级中，core 包版本为 `2.1.18`；蒂亚戈共享处理器升级为 `1.7.2`，阿格妮丝共享模块为 `1.8.2`，阿米娅计谋正文为 `1.0.1`。雷神工业定义／五级特殊能力为 `1.0.2`；城建开拓区定义为 `1.1.2`，特殊能力／处理器为 `1.0.2`，两处洗牌均使用显式 v1 合同。统一 Build v3 已实现，范围选择与指定实例使用唯一合同；原 14 处 ChooseBuild 正式调用已迁移，马丁 rounds 四份定义／对应能力及处理器为 `1.2.4`。原合法直接 Build 保留；参见[统一建设合同](../../prompt/Lua-API/API-11统一建设合同-20261030.md)。API-18 即时执行定义为 `1.1.0`，刻俄柏定义／计谋能力为 `2.0.4`，只有真实执行成功才进入转交续接；旧即时定义及旧内容身份不重新解释。脚本、正式文本与定义由实际装载器重新计算内容哈希，不手填旧哈希。旧内容身份的在途续接不自动改写；已退役 `MoveCharacterCardToZone`／`effect.content.transaction.move_character`、`TransferCharacterCard`／`effect.character.transfer`、`ChooseExplore`／`effect.exploration.choose`、`ChooseBuild`／`effect.facility.choose_build`、`SelectInfluence`／`effect.influence.select_action`、`Repeat`（包括 count=0/1 的旧规格）、`RetainCharacter`、`ReleaseFacilityBinding`、`ExecuteMainAction` 的 `grant_budget/facility_entry` 和 `ShuffleFacilityDeck` 的无版本旧规格在恢复前拒绝。当前已实施范围及验证边界见[实施记录](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/Lua-API%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%96%BD%E8%AE%B0%E5%BD%95-20261029.md)。
-
-API-08 为三种基础影响力操作加入 apiVersion=3、targetMode='select' 的选择合同，并将 influence.selection.v3.1 加入活动内容身份。JSON 定义继续按原 script／handler 装配；选择字段在 Lua 效果声明中提供，不向内容定义添加临时选择进度或客户端草稿。显式 Remove v2、参数不混用及恢复范围见[API-08合同](../../prompt/Lua-API/API-08影响力操作选择合同-20261030.md)，API-09 已把 33 个正式文件的 46 处 SelectInfluence 调用迁往三类基础操作，API-10 已停止旧公开／编译／默认执行入口，旧节点及其续接按 influence_selection_api_retired 拒绝；正式运行验证结果另见实施记录。
-
+内容作者独立维护 JSON、Lua 和已获准的素材，由正式包加载和活动装配接入。文件可被解析、能力可被注册、内容可正常入局、画面已验收，是四个不同结果。
 
 ## 1. 隔离开发的实际边界
 
@@ -200,7 +142,7 @@ DIY工作区/示例角色/
       "subscriptionId": "diy.demo.strategy",
       "script": "lua/diy/demo.strategy.lua",
       "version": "1.0.0",
-      "completionHandlerId": "diy.demo.strategy.done",
+      "completionHandlerId": "",
       "cleanupScript": ""
     },
     {
@@ -257,7 +199,48 @@ DIY工作区/示例角色/
 }
 ```
 
-策略脚本使用 [Lua API 第 4.4 节](DIY内容开发-Lua%20API.md#44-完成回调可复制示例)，存为 `lua/diy/demo.strategy.lua`。计谋脚本使用该文第 4.1 节“支付换分数”完整脚本，存为 `lua/diy/demo.tactic.lua`。
+策略脚本存为 `lua/diy/demo.strategy.lua`。选择的两项直接包含真实收益，不需要纯值选择或完成回调；参数见 [Lua 逻辑分支](DIY内容开发-Lua%20API.md#42-effectchoice逻辑分支)。
+
+```lua
+return function(ctx)
+    if ctx.eventType ~= 'CharacterEffectActivated' then return {} end
+    return {
+        Effect.WithPresentation(
+            Effect.Choice({player=ctx.playerId, branches={
+                {id='originium', effects={
+                    Effect.GainResource({recipient=ctx.playerId, resourceType='originium', amount=2})
+                }},
+                {id='iron', effects={
+                    Effect.GainResource({recipient=ctx.playerId, resourceType='iron', amount=2})
+                }}
+            }}),
+            {interaction={
+                prompt=Text.Ref('core:diy.demo.choose_resource'),
+                options={
+                    {candidateId='originium', label=Text.Ref('core:diy.demo.choose_originium')},
+                    {candidateId='iron', label=Text.Ref('core:diy.demo.choose_iron')}
+                }
+            }}
+        )
+    }
+end
+```
+
+计谋脚本存为 `lua/diy/demo.tactic.lua`。付款成功才执行得分；参数见 [Lua 条件式](DIY内容开发-Lua%20API.md#41-effectcondition)。
+
+```lua
+return function(ctx)
+    if ctx.eventType ~= 'CharacterEffectActivated' then return {} end
+    return {
+        Effect.Condition({
+            leftEffects={
+                Effect.PayResource({payer=ctx.playerId, resourceType='gold_voucher', amount=2})
+            },
+            rightEffects={Effect.GainScore({recipient=ctx.playerId, amount=1})}
+        })
+    }
+end
+```
 
 配套文案文件 `presentation/diy.demo.zh-CN.json`：
 
@@ -272,7 +255,7 @@ DIY工作区/示例角色/
     },
     "core:diy.demo.use.description": {
       "parameters": {},
-      "template": "策略：选择获得2源岩或2铁。计谋：支付2金券，获得1分。"
+      "template": "策略：选择获得2源岩或2异铁。计谋：支付2金券，获得1分。"
     },
     "core:diy.demo.choose_resource": {
       "parameters": {},
@@ -284,7 +267,7 @@ DIY工作区/示例角色/
     },
     "core:diy.demo.choose_iron": {
       "parameters": {},
-      "template": "获得2铁"
+      "template": "获得2异铁"
     }
   }
 }
@@ -336,7 +319,7 @@ DIY工作区/示例角色/
 
 `settlement.entryKind` 为 `optional_insertion/cleanup_order`；`localId` 必须以 `abilityId + "."` 开头；必须有 availability handler，optional_insertion 还要有 offer handler；cleanup_order 的 `wholeEffectPolicy` 为 `optional/required`。
 
-## 6. `abilitySources`、处理器与调用策略
+## 6. `abilitySources`、处理器与行动调用
 
 这套声明用于同一物理内容上的行动、事件、收尾、纯查询等来源；不是另一份状态。Host 结合真实实例位置、控制者、选面和调用收据确定是否有效。
 
@@ -399,7 +382,7 @@ DIY工作区/示例角色/
 
 此对象应放入 `abilityHandlers`，并由真实来源的 handlerRef、action 或 `cleanup.defer:` 引用。它是格式片段，不能只加处理器就期待自动执行。
 
-普通效果 Lua 现支持持久化 `ctx.memory`，无需在 JSON 新增 `memory` 字段。A 记录、B 使用同一份数据时，让两个合法处理器的 `script` 指向**同一包内路径**；它们可以有不同 handlerId／abilityId。索引按包 ID 和脚本路径建立，不按卡牌、能力或玩家隔离；不同路径复制相同代码不会共享，同脚本的完成回调会继续使用原数据。脚本返回 `{effects={...}, memory={...}}` 才覆写，省略保留、空 table 清空。完整用法、数据预算与保存边界见 [Lua API 第 2.5 节](DIY内容开发-Lua%20API.md#25-ctxmemory同一-lua-入口的持久化数据)。
+普通效果 Lua 支持持久化 `ctx.memory`，无需在 JSON 新增 `memory` 字段。A 记录、B 使用同一份数据时，让两个合法处理器的 `script` 指向**同一包内路径**；它们可以有不同 handlerId／abilityId。索引按包 ID 和脚本路径建立，不按卡牌、能力或玩家隔离；不同路径复制相同代码不会共享，同脚本的完成回调会继续使用原数据。脚本返回 `{effects={...}, memory={...}}` 才覆写，省略保留、空 table 清空。完整用法、数据预算与保存边界见 [Lua API 第 1.4 节](DIY内容开发-Lua%20API.md#14-ctxmemory)。
 
 需要按玩家或具体牌实例区分时，由 Lua 在 memory 内组织字段。不要往 JSON 填任意 memoryId，也不要靠更换路径或哈希静默迁移旧存档；入口数据保存在 Host 对局存档中，同入口脚本哈希不一致明确拒绝。查询／表现入口的返回合同保持不变。
 
@@ -437,13 +420,25 @@ DIY工作区/示例角色/
 - slots 如提供必须为字符串数组；不是任意 UI 槽位位置表。
 - 牌被移动/覆盖/退役时，其携带物由 carrierExitPolicy 合同处理，不能默默丢失或复制。
 
+`zoneTemplateId` 指已登记的区域模板，例如 `core.zone.card_cube_storage`，不是当前对局的区域实例 ID。`localZoneId` 是该载体内部的区域名；Lua 真正移动物品时，应查询并传入实例的 `zoneId`，不能把模板 ID 当作目的地。
+
+`visibilityPolicyId` 控制区域内物品身份的可见性，并同时受父区域／载体可见性限制：
+
+| 值 | 对玩家的实际作用 |
+| --- | --- |
+| `core.public_items` | 允许公开区域内物品；不会越过私有父区域直接公开隐藏载体内容 |
+| `core.owner_items` | 只向区域所属玩家展示；牌上区域以载体当前控制者为准，不是只看卡牌原所有者 |
+| `core.hidden_items` | 不向玩家公开内部物品身份；不等于授予脚本读取隐藏牌堆顺序的权限 |
+
+`core.secret_retired_count` 是宿主内部退役区域策略，外部 `cardZones` 声明不接受。区域数量／元数据与物品身份分别投影；设置 owner 并不保证其他玩家看不到数量，也不能据此推断整个玩家详情条目、标题或来源卡面会被隐藏。
+
 普通新内容不应声明自己不需要的存储区。标记进入/离开真实区域用当前转移/支付合同；本版不提供旧 `LoadCardMarkers` 或 `PayCardMarkers` 写法。
 
 ### 7.2 `usageTracks`
 
 主要字段为 `protocolVersion, version, trackId, cardZoneLocalId, slots, initialSlotId, activationTransitions, resetTransitions, resetBoundary, initializationPolicy, usageGroupScope`。transition 项为 `{fromSlotId,toSlotId}`。trackId 在有效内容中全局唯一，区域与全部槽位要匹配；行动通过 usageTrackId 绑定。
 
-次数状态由 Host 按实际标记位置和行动激活维护。不能在 Lua 中修改一个全局变量当成“每回合一次”，也不能通过普通 MoveItem 手动挪动宿主管理的使用标记。收尾后复位时点应使用现有 resetBoundary，不得把某张牌的结束事件当成全局收尾已完成。
+次数状态由 Host 按实际标记位置和行动激活维护，不能在 Lua 中修改一个全局变量当成“每回合一次”。当前 `MoveItem` v4 的 `core.player_marker_storage` 允许在合法玩家标记区域／轨道间直接转移，并根据真实落点同步资格及适用的轨道绑定；仍需满足槽位、容量、所有者和同玩家标记互斥等检查，不等于任意标记或旧移动版本都可绕过轨道保护。直接移动不补发行动收益，也不清除本回合已有的使用收据；挪回可用格不保证已用行动可以再次发动。参数见 [Lua API 物品移动](DIY内容开发-Lua%20API.md#81-effectmoveitem-v4单组转移)。收尾后自动复位时点使用现有 resetBoundary，不得把某张牌的结束事件当成全局收尾已完成。
 
 ## 8. 其他类型的编写入口
 
@@ -496,6 +491,12 @@ core 2.2.0 的事件 `data` 使用 `eventChoiceSchemaVersion: 1` 和唯一的 `c
 | contract/award | 获取策略、持有区域、激活/清理生命周期；GrantReward 目标还要求 `acquisitionPolicy='content_granted'` 和精确来源授权；[ContentLifecycleLuaCatalog](../../Assets/YC/Infrastructure/Lua/ContentLifecycleLuaCatalog.cs) |
 
 高级类型的字段应随实际玩法合同交付；本文不把“共同外壳能反序列化”描述成任意自定义企业或组件已经能开局。
+
+### 8.5 干员特派的配方与前置事件
+
+正式开局配方 `operatorDrawCount` 是干员特派的基础抽牌数量，默认 2，合法范围为整数 1～99。内置感染者配方设为 3；其 `setupRecipeComposition[].overrides` 明确包含 operatorDrawCount。基础配方的 `minimumOperatorDrawByPlayerCount` 可按人数提供最低值，内置双人局为 3。最终合并值随本局冻结，Flow.DispatchOperator v2 在运行时读取该值，不另行按扩展名强制覆盖。
+
+这是正式开局配方字段，不属于仅允许追加事件牌的 DIY append-recipe 格式。DIY 模式／扩展可通过 `ruleBindings` 绑定 `OperatorDispatchStarting`；内容能力可在 `observedEvents` 声明该事件，角色能力仍须满足 persistent 与 observerSubjectPolicy 等既有约束。该事件采用纯补丁返回 `{drawCountDelta=整数}`，不返回 Effect，不消费使用次数，不挂接响应子树；增减值范围 -99～99，合并后最终数量必须为 1～99。DIY 绑定使用 `diy.rule_bindings.dispatch.v1`，禁止 completion；角色订阅要求 self，禁止为此事件配置 eventResponseAttachments。完整字段及示例见 [Event 干员特派前置事件](DIY内容开发-Event.md#46-干员特派前置事件)和 [Lua API 的 Flow 接口](DIY内容开发-Lua%20API.md#10-flow包含业务的组合流程)。
 
 ## 9. 共享 Lua 模块冻结
 
@@ -572,7 +573,7 @@ UI 选材唯一入口为 [可用UI素材 README](../../游城拓荒/可用UI素�
 | PresentationContentHash | 表现内容身份，按其消费合同使用 |
 | Lua 内容哈希 | 冻结正文/装配正文身份；continuation 和恢复依赖它 |
 
-实际读取的 JSON、Lua、图片及相关表现输入会参与内容身份。修改后应建新局；要恢复旧待答，保留原包。不同版本的 Choice、转移协议或剔除接口不能静默迁移。不要手改存档中的 hash 或 handler 版本来绕过检查。
+实际读取的 JSON、Lua、图片及相关表现输入会参与内容身份，宿主规则实现指纹也参与活动内容身份。例如城市物品转移 `item_mobile_city_transfer` 与采集计划实现有独立身份；core 包版本字符串相同不保证活动哈希相同或旧存档兼容。修改后应建新局；要恢复旧待答，保留原包。不同版本的 Choice、转移协议或剔除接口不能静默迁移。不要手改存档中的 hash 或 handler 版本来绕过检查。
 
 ## 12. 验证与交付清单
 
@@ -588,9 +589,8 @@ UI 选材唯一入口为 [可用UI素材 README](../../游城拓荒/可用UI素�
 
 交付包应说明：新增/替换定义和入口、所需宿主版本、规则与表现依赖、实际卡图来源、装配清单增量、正式配方变化、Lua 完成回调、剔除项检查结果、已测/未测/失败与原因。不要只交两段脚本而省略进入游戏的路径。
 
-本版新增示例是文档材料；未向生产 core 清单、配方或资产写入，也不宣称缺少实际卡图的示例已正常开局验收。
+本文示例用于说明字段，不会自动安装到正式内容中。第 4 节卡图路径和第 9 节模块哈希必须替换为包内实际资源与摘要；没有完整资源及实际对局验证，不能把示例视为可直接发布的包。
 
-本版检查记录：六个 JSON 代码块通过语法与重复键检查，文档本地链接已核对。第 4 节角色的来源字段通过当前 `ValidateRaw/ValidateAndLoad`，配套文案在内存内容快照中通过引用校验；未为示例代选卡图，未声称该完整新角色包通过开局、正常 UI 或联机验收。第 9 节哈希占位必须由作者替换为实际值。
 
 ## 13. 当前源码入口
 
@@ -603,32 +603,4 @@ UI 选材唯一入口为 [可用UI素材 README](../../游城拓荒/可用UI素�
 | 使用轨道 | [UsageTrackContent.cs](../../Assets/YC/Infrastructure/Lua/UsageTrackContent.cs) |
 | 冻结模块 | [FrozenLuaModules.cs](../../Assets/YC/Infrastructure/Lua/FrozenLuaModules.cs) |
 | 运行时路径与图片装配 | [ExternalContentRuntime.cs](../../Assets/YC/Presentation/ExternalContentRuntime.cs) |
-| 必须剔除/避免的旧链路 | [待移除与未完成事项](../../prompt/企业家内容实施规划-20261019/04-高风险语义与回归清单.md) |
-
-统一 Explore v3 的选择／已确认方案、执行者、行动政策和 Host 封存／路费托管合同见[API-14](../../prompt/Lua-API/API-14统一探索合同-20261030.md)；三处正式正文已迁移，梅兰德二级及定义为 1.0.2，载具仓库数量清单组为 1.0.1，马丁共享 rounds 正文对应定义／处理器为 1.2.4。旧探索节点及其挂接子链在恢复前拒绝，不清空收据或自动退款。
-
-API-19／20及API-23／24：当前共同角色转移语义为character_move.v2.2，MoveCharacterCard执行定义2.2.0、MoveItem执行定义3.2.0；真实source/recipient及JSON能力2.0.4参与内容身份。公共手牌目标区域元数据不包含对手牌身份／顶部／牌序。旧转交节点及其待执行规格／已挂接响应在恢复前拒绝；完整MoveItem v4仍属于后续实现，不因合同已交付而成为可用能力。
-
-API-24角色区域移动的5文件／7业务调用已迁移到统一v2，公开展示仅在显式reveal=true且有实际移动时生成。赫拉格定义／计谋为2.0.4／2.0.1，杰西卡2.1.2／2.0.3，缪尔赛思2.0.3／2.0.2；普通及感染罗德岛定义／对应特殊能力均2.0.1。其他能力与来源声明结构不变，正文哈希由实际装载计算；旧ToZone节点及其待执行／已挂接响应在恢复前拒绝，不改写旧档案。旧共同2.1.0／3.1.0明确角色移动不能按新展示语义重放。完整MoveItem v4、分页及后续轨道能力仍待实现。
-
-2026-11-01 / 历史归档补记：此前缺失的两份指定历史输入已从清理归档原字节恢复；原正向实际0/2因旧内容身份被拒绝，新拒绝反例与真实来源事实同组6/6。原GameId、修订和故障保持，旧正向不称通过。此前按日期记录的“缺失/2未关闭/13替代”是当时事实；当前为0未处置/15明确替代。见[原件与逐例关系](https://github.com/zhuanshiluobo/youcheng-tuohuang-simulator/blob/481f980ae9bee5c6a90fa44cd9bd15a0bd4d9f2a/prompt/Lua-API/API-06%E5%8E%86%E5%8F%B2%E5%BD%92%E6%A1%A3%E6%A0%B7%E6%9C%AC%E4%B8%8E%E6%97%A7%E5%86%85%E5%AE%B9%E6%8B%92%E7%BB%9D-20261101.md)。
-
-### 付款草稿恢复数据的字段类型（core2.1.67）
-
-PaymentInsertionItems是运行时归档草稿，不是内容定义字段。非null草稿必须保留全部正式字段及实际JSON类型；不能依赖缺字段的默认初始化或Json.NET自动强转。运行时草稿不得放入待执行效果定义。合法完整的原协议1形状保持；缺失／null可选对象仍交由具体运行阶段校验。归档错误在反序列化前明确拒绝，不补写原件，不改变正式文本、卡面声明或页面顺序。新恢复校验身份为payment_insertion.item_draft_shape.v1.0.1，尚未进行运行恢复验收。
-
-### 即时特殊行动的内部响应边界（core2.1.68）
-
-本版本仅统一执行与恢复对业务Choice子节点的辨认；成功分发收据登记的响应仍保留并沿原内核顺序结算。没有新增内容定义字段、正式文本、卡面声明、Lua公开构造器或答案协议。执行定义2.1.0保持，实现身份immediate_special.response_children.v1.0.1纳入内容指纹；未进行本批运行恢复或正常页面验收。
-
-### 冻结模块正式身份与基线范围（core2.1.70）
-
-entrepreneur.agnes冻结模块登记为1.9.0，模块表和四处scriptDependencies的sha256均与实际安装UTF-8字节一致。装载器原有严格摘要校验保持；没有改Lua正文或把字节换行归一化后当作安装摘要。内容版本core2.1.68→2.1.69修复此登记，core2.1.70同时记录数量Choice放弃与即时零参执行修复。
-
-没有新增JSON内容字段、正式文本或卡面声明。17枚付款和99枚数量为明确的规则隔离库存，28组合为八组隔离库存的候选总数，不计正常局覆盖。真实卡面、场景实际显示、正常普通／赠送行动与断线重发仍由API-44保留缺口。
-
-## 干员特派的配方与前置事件
-
-正式开局配方 `operatorDrawCount` 是干员特派的基础抽牌数量，默认 2，合法范围为整数 1～99。内置感染者配方设为 3；其 `setupRecipeComposition[].overrides` 明确包含 operatorDrawCount。基础配方的 `minimumOperatorDrawByPlayerCount` 可按人数提供最低值，内置双人局为 3。最终合并值随本局冻结，Flow.DispatchOperator v2 在运行时读取该值，不另行按扩展名强制覆盖。
-
-这是正式开局配方字段，不属于仅允许追加事件牌的 DIY append-recipe 格式。DIY 模式／扩展可通过 `ruleBindings` 绑定 `OperatorDispatchStarting`；内容能力可在 `observedEvents` 声明该事件，角色能力仍须满足 persistent 与 observerSubjectPolicy 等既有约束。该事件采用纯补丁返回 `{drawCountDelta=整数}`，不返回 Effect，不消费使用次数，不挂接响应子树；增减值范围 -99～99，合并后最终数量必须为 1～99。DIY 绑定使用 `diy.rule_bindings.dispatch.v1`，禁止 completion；角色订阅要求 self，禁止为此事件配置 eventResponseAttachments。完整字段及示例见设计目录内的 Event、Lua API 文档。
+| 当前不开放的 Lua 入口 | [Lua API 编写检查](DIY内容开发-Lua%20API.md#13-不开放的名称与编写检查) |

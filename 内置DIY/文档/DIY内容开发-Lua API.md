@@ -2,6 +2,8 @@
 
 本文说明当前内容宿主实际开放的 Lua 合同，适用于 core `2.2.2` 对应实现。API 名称、字段大小写和版本均有校验；未列出的字段不能靠猜测添加。`apiVersion` 是某个接口的输入协议版本，不是内容包版本。
 
+运行兼容性还取决于宿主实现和活动内容哈希，不能仅凭 core 包版本相同判断存档可恢复。城市物品转移与采集计划的实现身份也参与活动内容指纹。
+
 配套文档：[JSON 编写](DIY内容开发-JSON编写.md)、[Event 与处理器](DIY内容开发-Event.md)。
 
 ## 1. 入口、数据和执行规则
@@ -110,7 +112,7 @@ end
 | `PlayerData.Get(player)` | 玩家引用或玩家键 | 授权可见的玩家事实；不是完整可写状态 |
 | `PlayerData.GetScore(player)` | 同上 | 当前分数 |
 | `PlayerData.GetResources(player)` | 同上 | `originium/originiumShard/iron/pureOriginium/goldVoucher`，均为整数 |
-| `PlayerData.GetCityLocation(player)` | 同上 | 城市所在地点 ID |
+| `PlayerData.GetCityLocation(player)` | 同上 | 城市所在地图地点 ID；城市不在地图停靠区时返回空字符串 `""`，不是 nil |
 | `PlayerData.GetHand(player)` / `PlayerData.GetDiscard(player)` | 同上 | 实际卡牌 ID 数组；其他玩家私有信息受调用权限限制 |
 | `PlayerData.GetBuiltFacilities(player)` | 同上 | 已建设施快照；需要叠层时使用设施专门查询 |
 
@@ -400,9 +402,11 @@ UI：替代分配页 → 必要时选择真实消耗实例 → 确认／放弃�
 | `Effect.ChooseResources` | 必填 `player`、`amount` 整数 1～99；没有资源种类自定义参数 | 三种基础资源数量分配页 → 合计恰好 amount → 确认 → 真正获得资源；不含至纯源石／金券 |
 | `Effect.SellResource` 批量 | 必填 `apiVersion=2,player,saleMode='batch',pricePolicy='core.resource_sale'`；可选 `interactionType`（默认 `lua.choice`）、`promptKey`（省略为 `effect.resource.sell`；当前正式内容统一显式用 `core:interaction.sale.batch`） | 统一出售数量页 → 调整源岩／源石碎片／异铁／至纯源石四行、查看单价及预计收益 → 确认本批；全 0 结束 |
 | `Effect.SellResource` 全部某资源 | 必填 `apiVersion=1,player,targetPlayer,resourceType,saleMode='all',unitPrice`；类型限三种基础资源，单价 1～99 | 无独立页面，读取指定玩家该资源钱包总量，清零并增加金券；不是按扣除预留后的可用量结算 |
-| `Effect.Collect` | 必填 `apiVersion=1,player,scope='extra'`；目前无其他 scope | 地图额外采集选点／选路 → 航道费用及收款方小窗 → 核对总费用 → 确认 → 采集及响应 |
+| `Effect.Collect` | 必填 `apiVersion=1,player,scope='extra'`；目前无其他 scope | 地图额外采集选点／选路 → 需要付路费时选择费用及收款方 → 核对并确认 → 采集及响应；城市离图时仅可选免费采集点，不选择航道或收款方 |
 
 出售 v2 的 Host 语义是 `resource_sale_batch`，不是把“资源×数量”字符串送给纯 Choice。一次调用结算一次提交，结果含 `soldCount/revenue/finished`；需要连续交易时按完成结果续接。贸易街区、坎诺特和蒂亚戈共用此页面及提示合同。`ChooseResources` 则会发放资源，不能当作纯 UI 使用。
+
+普通采集和 `Collect` 额外采集都允许城市不在地图上，但只能采集**原合法采集集合中的免费点**。合法采集资格和 `collection_free_locations.v1` 的免路费贡献分别计算，再取交集；有本人影响力不等于自动免路费。没有城市起点时，提交需走路线的地点或任何已确认航道都会失败（`collection_city_not_on_map`）。没有可采集的免费点时可以按原流程确认空采集；不会凭空获得资源。探索不适用这项无城市例外。
 
 ## 6. 城市、设施、探索和主要行动
 
@@ -473,6 +477,8 @@ select 不接受 `routeIds/recipients`。UI：select 走地图选目标／选路
 | `declinePromptKey` | 空 | 前置执行／放弃提示键 |
 
 UI：可选执行／放弃 → 移动前响应 → 未指定目标时地图选点 → 基础费用付款（免除时跳过）→ 影响力离场及响应 → 城市移动 → 入场／事件子效果。`clearInfluencePolicy='move'` 时还需逐枚选择合法目的槽。`movementMode/candidateScope/sourceInfluencePolicy` 虽仍在构造白名单，但当前归一化不保留、不控制执行；不要填写它们期待产生另一条流程。
+
+`MoveCity` 仍是正式城市移动流程：城市须在地图上，目的地须相邻，并通过停靠、目标政策及其他规则复验。免基础费用、指定 `targetLocationId` 或修改候选都不会取消相邻要求。`city_destination` 的原始池只包含本次相邻候选；`Candidate.Add` 填入池外的非相邻点会使候选查询失败，不会扩展移动范围。需要直接离图、回图或跨不相邻地点转移城市物品时，使用第 8.1.1 节的 `MoveItem` 合同。
 
 ### 6.4 设施操作与主行动
 
@@ -610,11 +616,38 @@ Effect.MoveItem({
 | `core.cube_storage` | 合法方块存取；需精确载体来源授权 |
 | `core.player_marker_storage` | 玩家标记存取／轨道移动；同步当前实际权限，遵守互斥 |
 | `core.token_storage` | 其他已登记 Token 的合法库存转移 |
-| `core.mobile_city_move` | 移动城市实例在合法区域间转移；遵守来源、目标、容量及载体规则。仅移动实例，不自动执行城市移动行动、路费、入场效果或城市移动事件；城市有活动绑定标记时直接转移会拒绝，须通过城市移动流程处理标记跟随 |
+| `core.mobile_city_move` | `core.mobile_city` 城市实例的直接转移；遵守来源、目标、容量及载体规则，不执行城市移动行动。存在绑定该城市的活动影响力禁放标记时，跨区域直接转移拒绝；详见 8.1.1 |
 
-企业同一实例中，同一玩家跨合作等级／子区最多一枚标记；第一条宣告与其 usage 区共享互斥域。允许零枚；企业无合作标记时等级状态是 `-1`，没有升级／特效资格。直接移动不补发到达奖励、不自动宣告计分、不重置已使用次数。供应区仍检查原所有者／原供应资格。
+企业同一实例中，同一玩家跨合作等级／子区最多一枚标记；第一条宣告与其 usage 区共享互斥域。允许零枚；企业无合作标记时等级状态是 `-1`，没有升级／特效资格。直接移动不补发到达奖励、不自动宣告计分，也不清除本回合已有的使用收据；仅把标记挪回可用格，不保证已用行动可以再次发动。供应区仍检查原所有者／原供应资格。
 
 结果含 `outcome/changed/movedCount/movedItemIds/receiptId/reasonCode`。必要时通过 `SourceData.GetTransferReceiptPage` 读完整收据；不要把简要列表当作可写状态。目标过期时失败，不重新补选；多个独立单枚步骤不会自动合并成一笔原子移动。
+
+### 8.1.1 城市物品：离图、回图与直接转移
+
+使用 v4 `transfer`，指定城市真实实例、当前源区域和目标区域。以下三个 ID 变量均须从当前授权查询／事件事实取得；`destinationZoneId` 是区域 ID，不是地图地点 ID：
+
+```lua
+Effect.MoveItem({
+    apiVersion=4, player=ctx.playerId, operation='transfer',
+    selector={mode='explicit', itemIds={cityItemId},
+        expectedSource={zoneId=currentCityZoneId}},
+    destination={zoneId=destinationZoneId},
+    insertion={kind='unordered'},
+    operationProfileId='core.mobile_city_move', requiredCount=1
+})
+```
+
+| 用途 | 目标与限制 |
+| --- | --- |
+| 移出地图 | 可用本人城市面板下现有的 `localZoneId='city_reserve'` 区域；其模板为 `core.zone.city_dock`，容量 1。用 `Global.Content.FindZones` 查询真实区域 ID，不自行拼接 |
+| 回到地图／直接换地点 | 指定目标地图地点下真实的 `core.zone.city_dock` 区域；该区域必须存在、可进入且容量足够。转移本身不检查城市移动行动的相邻条件，因此可跨不相邻地点 |
+| 其他容器 | 只可使用允许 `MobileCity` 的既有区域，例如 `core.zone.box_reserve`、`core.zone.box_retired`、`core.zone.effect_staging`；仍须满足访问和暂存区所属效果链等校验。`core.zone.player_supply` 不接收城市 |
+
+该 profile 不支持 `destination={kind='original_supply'}`；回城储备区或地图都要填真实 `zoneId`。`transfer_batch` 也可使用同一 profile，遵守第 8.2 节的共同预检和数量限制。
+
+执行不弹选择页，也不会自动支付城市移动费用、消费主行动、清理影响力、在原位放置影响力、发动入场效果或发布 `BeforeCityMove/CityMoveCompleted`。城市离图后地图不再显示该棋子，`PlayerData.GetCityLocation` 返回 `""`；个人城市面板及其中设施不会随棋子转移。城市回到地图停靠区后，地点查询与地图显示按实际新位置更新。
+
+若存在 `Active=true` 且绑定该城市实例的影响力禁放标记（`InfluenceLock`），跨区域转移失败，原因 `city_bound_marker_requires_city_move`，不会擅自移动或解绑标记。需要标记跟随的正式城市移动使用 `MoveCity`；同一区域不变更位置的请求不因这项跨区保护被拒绝。
 
 ### 8.2 批量及专门共同操作
 
@@ -867,7 +900,7 @@ Effect.WithPresentation(
 
 `Candidate.Add({ids,reasonCode})`、`Candidate.Remove({ids,reasonCode})`、`Candidate.Intersect({ids,reasonCode})` 返回候选补丁。`ids` 为该次候选协议中的真实 ID 数组；`reasonCode` 为可诊断原因字符串。返回补丁数组，不返回 Effect。分别表示添加允许候选、去除候选、与声明集合取交集；添加仍受宿主原始池及授权限制。
 
-只在 `CandidateSetBuilding` 的 `candidatePatches` 入口中可用，当前角色持续候选修正针对正式设施建设候选。它不是打开选择页：Host 完成候选计算后由原业务显示原选择页。
+只在宿主登记的候选补丁入口中可用：持续角色的 `CandidateSetBuilding` 用于正式设施建设候选；DIY 模式／扩展的同名 `ruleBindings` 目前支持 `city_destination` 和 `facility.build.card`。通用来源的 `queryKinds={'city_destination.v1'}` 则只允许 `Candidate.Remove` 作硬排除。这些入口都不打开选择页，页面仍由原业务创建；城市候选补丁不能越过相邻候选池或复活硬排除点。订阅和 payload 见 [Event 候选集入口](DIY内容开发-Event.md#7-候选集入口)。
 
 ### 12.2 纯规则查询和影响力附着
 
@@ -945,7 +978,7 @@ end
 
 编写时依次核对：
 
-1. JSON 注册的脚本、处理器、文案、来源和调用策略完整，命名空间及输入版本在本文内。
+1. JSON 注册的脚本、处理器、文案、来源和行动入口完整，命名空间及输入版本在本文内；不要添加已取消的行动调用许可配置。
 2. 每次调用只使用该模式允许字段，ID 来自真实查询／事件，区分定义、实例、区域、主体与候选 ID。
 3. 需要纯选择时用第 3 节；点击后执行规则的业务菜单用真实逻辑分支；移动前完成选择，不回流普通文字模板。
 4. 条件成本按足量合同提交，续接先检查结果再发收益，区分完成、无变化、放弃和失败。

@@ -176,6 +176,8 @@
 
 `CityMoveCompleted`：`playerId` 是移动玩家整数，`sourceLocationId/targetLocationId` 是起终点 ID。
 
+此事件及 `BeforeCityMove` 属于正式城市移动流程。`MoveItem` 使用 `core.mobile_city_move` 直接转移城市物品时，两者都不会发布，也不执行城市入场正文；不能用订阅 `CityMoveCompleted` 的脚本推断所有城市位置变更。需要观察该物品转移的结果时，使用对应 `MoveItem` 的完成续接／收据。
+
 `FacilityPlaced` 的实际建设事实，以及对应实际 Build 完成载荷附加的 `buildFacts`：
 
 | 字段 | 含义 |
@@ -365,6 +367,10 @@ return {Candidate.Remove({ids=idsToExclude,reasonCode='diy.rule.excluded'})}
 
 通用 `queryKinds` 中的 `city_destination.v1` 是一个特殊路由：实际以 CandidateSetBuilding 的候选补丁协议调用来源，只允许 `Candidate.Remove` 作硬排除，**不返回 `{queryId,basisDigest,items}`**。它与一般设施候选修正共享候选语法，但权能不同。
 
+DIY 模式／扩展也可通过 `ruleBindings` 订阅 `CandidateSetBuilding`，当前 `candidateKind` 只开放 `city_destination` 和 `facility.build.card`，采用普通候选补丁合同。此绑定与上述 `queryKinds` 硬排除路由不同，登记字段见 [包体作者指南](DIY包体作者指南.md#规则绑定)。两种入口均为只读，不挂接 Effect 或写入 memory。
+
+城市目的地 payload 中，`context.startLocationId` 是出发地点，`context.destinations` 每项含 `candidateId/locationId` 映射；应向 `Candidate.*.ids` 回传其中的 **candidateId**，不是直接填 locationId。当前 `MoveCity` 传入的池仅含相邻地点；向补丁添加池外地点会拒绝整个候选查询，不能借此实现非相邻移动。普通补丁完成后还会应用硬排除、目标政策及正式移动校验。
+
 ## 8. 纯查询和附着改写
 
 ### 8.1 纯查询公共字段
@@ -387,7 +393,7 @@ return {
 
 | queryKind | facts／返回项 | 边界 |
 | --- | --- | --- |
-| `collection_free_locations.v1` | facts：`purpose/sourceEffectId/selectionSessionId/startLocationId/legalLocationIds`；items 每项 `{kind='free_location',locationId=真实地点}` | 只与原合法采集集合取交集，免路费不授予额外采集目标 |
+| `collection_free_locations.v1` | facts：`purpose` 为 `normal/extra`；`sourceEffectId/selectionSessionId` 为本次来源／会话；`startLocationId` 为城市地点，城市离图时为 `""`；`legalLocationIds` 为原合法采集地点数组。items 每项 `{kind='free_location',locationId=真实地点}` | 只与原合法采集集合取交集，免路费不授予额外采集目标；无城市时仍调用此查询，只允许采集交集中的免费点 |
 | `built_facilities.v1` | facts：`player/baseItemIds/allCityItemIds/stateRevision`；items 为真实设施实例 ID 数组 | 必须确在该玩家城市，不能计入其他玩家／库存设施 |
 | `facility.build.sources.v1` | facts 提供 `requestedSource/candidatePoolIds` 等当前来源请求；items 为允许建设的真实实例 ID | 限于当前来源的正式候选池，不能凭返回任意 ID 扩大建设权限 |
 | `facility.build.slot.v1` | facts：`player/newItemId/definitionId/newScore/cells`；每格含 `slotIndex/cellZoneId/topItemId/topScore/orderDigest`；返回叠建项见下文 | Host 复验层序、旧顶牌、叠建授权和必做响应 |
@@ -397,6 +403,8 @@ return {
 | `city_destination.v1` | 特殊候选 Remove 协议，见第 7 节 | 不是普通三字段返回 |
 | `influence_place_attaching.v1` | 专门 keep／replace 协议，见 8.5 | 不是普通三字段返回 |
 | `payment_substitution.v1` | 仍列于来源声明允许名称中 | 当前正式资源替代使用 resource_payment_substitution.v1；不要仅凭该旧名在白名单就按新协议编写，未接通消费方会拒绝 |
+
+免费采集按当前起点及查询来源计算：城市所在地点若本来合法，默认免费；城市离图时没有这项默认贡献，但来源仍可为其他合法点提供免费资格。无城市的采集不接受需走路线的目标或已确认航道，可确认空采集。脚本应容许 `facts.startLocationId == ''`，不要把空起点当成整个查询无效；探索不采用该例外。
 
 叠建返回项：`slotIndex` 为 0～11；`expectedTopItemId` 为本次 cells 对应真实旧顶牌；`orderDigest` 原样回传；`removalPrecondition={operation='remove',ownerFilter='self',requiredCount=1}` 声明实际必须完成的移除；`requiredResponseAbilityId` 为已登记的必做响应能力。它们描述候选资格及后续义务，不是立即移除／立即建设。
 
