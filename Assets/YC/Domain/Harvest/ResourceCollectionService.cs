@@ -243,11 +243,6 @@ namespace YC.Domain.Harvest
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "该玩家本轮采集阶段已经提交过采集。");
             }
 
-            if (string.IsNullOrEmpty(player.CityLocationId))
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidSource, "玩家城市不在场上，无法采集。");
-            }
-
             var uniqueLocationIds = NormalizeLocationIds(locationIds);
             if (uniqueLocationIds.Count != (locationIds == null ? 0 : locationIds.Count))
             {
@@ -312,7 +307,7 @@ namespace YC.Domain.Harvest
             var routeEligible = legacyPlan ? selectedLocations : free.LegalLocationIds.Where(id => !free.FreeLocationIds.Contains(id)).ToArray();
             var facts = routeTollService.ReadRouteFacts(state, playerId);
             var graph = RouteResourceSelectionService.QueryGraph(mapQuery, facts, state.FindPlayer(playerId).CityLocationId,
-                confirmedRoutes ?? Array.AsReadOnly(new string[0]), routeEligible, routeTargets, selectedLocations.Count == 0);
+                confirmedRoutes ?? Array.AsReadOnly(new string[0]), routeEligible, routeTargets, selectedLocations.Count == 0, true);
             if (!graph.IsValid) return ValidationResult.Failure(CommandErrorCode.InvalidTarget, graph.Diagnostic);
             var byId = facts.ToDictionary(f => f.RouteId, StringComparer.Ordinal);
             if (requestedRecipients != null) foreach (var pair in requestedRecipients)
@@ -429,6 +424,13 @@ namespace YC.Domain.Harvest
             try { result.FreeLocations = QueryFree(state, playerId, "normal"); }
             catch (Exception error) when (error is ArgumentException || error is InvalidOperationException)
             { return ResourceCollectionSelectionQuery.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, error.Message)); }
+            if (string.IsNullOrEmpty(player.CityLocationId))
+            {
+                if (confirmedPaidRouteIds != null && confirmedPaidRouteIds.Count != 0)
+                    return ResourceCollectionSelectionQuery.Failure(ValidationResult.Failure(CommandErrorCode.InvalidTarget, "collection_city_not_on_map"));
+                result.CandidateLocationIds.AddRange(result.FreeLocations.FreeLocationIds);
+                return result;
+            }
             var pathSearch = new MapPathSearchService(mapQuery);
             var reachablePaths = pathSearch.FindReachablePaths(
                 player.CityLocationId,

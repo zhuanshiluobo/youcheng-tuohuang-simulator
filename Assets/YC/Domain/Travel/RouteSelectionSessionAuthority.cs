@@ -32,6 +32,8 @@ namespace YC.Domain.Travel
             if (existing != null) return TryRestore(state, ownerNode, out session, out _);
             var player = state.FindPlayer(options.PlayerId);
             if (player == null || player.CityLocationId != options.StartLocationId || player.Resources.GoldVoucher < 0) return Invalid("route_selection_start_invalid");
+            if (string.IsNullOrEmpty(options.StartLocationId) &&
+                (options.SchemaVersion != CollectionPlanService.ProtocolVersion || options.Purpose == RouteSelectionPurpose.Exploration)) return Invalid("route_selection_start_invalid");
             int startGold = player.Resources.GoldVoucher;
             if (options.Purpose == RouteSelectionPurpose.NormalHarvest)
             {
@@ -78,7 +80,8 @@ namespace YC.Domain.Travel
                 || session.PlayerId != ownerNode.PlayerId || state.FindPlayer(session.PlayerId) == null || session.MapId != state.MapId) { session = null; return Invalid("route_selection_restore_invalid"); }
             var locations = new HashSet<string>(Service.Map(state).Map.Locations.Select(l => l.LocationId), StringComparer.Ordinal);
             var restoredUpperBound = session.SelectableLocationUpperBound;
-            if (!locations.Contains(session.StartLocationId) || session.SelectableLocationUpperBound.Any(id => !locations.Contains(id)) ||
+            bool missingCityHarvest = string.IsNullOrEmpty(session.StartLocationId) && session.SchemaVersion == CollectionPlanService.ProtocolVersion && session.Purpose != RouteSelectionPurpose.Exploration;
+            if ((!missingCityHarvest && !locations.Contains(session.StartLocationId)) || session.SelectableLocationUpperBound.Any(id => !locations.Contains(id)) ||
                 session.CollectionFreeLocations != null && session.CollectionFreeLocations.LegalLocationIds.Any(id => !locations.Contains(id) || !restoredUpperBound.Contains(id))) { session = null; return Invalid("route_selection_restore_location_invalid"); }
             var protocolMarker = Value(ownerNode.NormalizedArguments, "collectionPlanProtocol");
             if (protocolMarker != null && (protocolMarker.Kind != NormalizedValueKind.Integer || Integer(ownerNode.NormalizedArguments,"collectionPlanProtocol",-1) != session.SchemaVersion))
@@ -185,6 +188,8 @@ namespace YC.Domain.Travel
                     lines.Add(new RouteTollPlanLine { RouteId = routeId, ReceiverSubjectKey = subject, GoldVoucherAmount = amount });
                 }
                 var original = Decode(Text(record, "originalRoutes")); var effective = Decode(Text(record, "effectiveRoutes")); var charge = Decode(Text(record, "chargeRoutes"));
+                if (string.IsNullOrEmpty(session.StartLocationId) && (original.Count != 0 || effective.Count != 0 || charge.Count != 0 || Decode(Text(record, "prunedFreeRoutes")).Count != 0))
+                    return Invalid("collection_city_not_on_map");
                 var pruned = original.Where(id => !effective.Contains(id)).ToArray();
                 if (original.Distinct(StringComparer.Ordinal).Count() != original.Count || effective.Distinct(StringComparer.Ordinal).Count() != effective.Count || charge.Distinct(StringComparer.Ordinal).Count() != charge.Count
                     || charge.Any(id => !original.Contains(id) || !effective.Contains(id)) || !lines.Select(l => l.RouteId).SequenceEqual(charge) || lines.Sum(l => l.GoldVoucherAmount) != Integer(record, "totalCost", -1)

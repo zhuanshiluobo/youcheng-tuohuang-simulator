@@ -6,16 +6,185 @@ using NUnit.Framework;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Harvest;
+using YC.Domain.Influence;
+using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.State;
 using YC.Domain.Rules;
 using YC.Domain.Travel;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class CollectionPlanLifecycleTests
     {
         private static int Total(ResourceSet r)=>r.GoldVoucher+r.Originium+r.OriginiumShard+r.Iron+r.PureOriginium;
+
+        [TestCase("")][TestCase("v4_bound")][TestCase("v4_committed")]
+        public void LuaCityMoveV4TransfersAndRestoresWithoutRunningCityAction(string stage)
+        {
+            using(var f=new CollectionPlanTestFixture())
+            {
+                var city=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==1);
+                string id=city.ItemId, dock=city.ZoneId, oldLocation=f.State.FindPlayer(1).CityLocationId;
+                string reserve=f.State.ItemZones.Zones.Single(z=>z.LocalZoneId=="city_reserve"&&z.OwnerPlayerId==1).ZoneId;
+                string source="return function(ctx) return {Effect.MoveItem({apiVersion=4,player=ctx.playerId,operation='transfer',"+
+                    "selector={mode='explicit',itemIds={'"+id+"'},expectedSource={zoneId='"+dock+"'}},"+
+                    "destination={zoneId='"+reserve+"'},insertion={kind='unordered'},operationProfileId='core.mobile_city_move',requiredCount=1})} end";
+                var lua=new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition("city.v4","city.v4","city.v4","1",source,LuaContentHasher.ComputeSha256(source)),
+                    new LuaInvocationContext("city","city","p1",0,"1",2,0,0));
+                Assert.That(lua.IsSuccess,Is.True,lua.Diagnostic);
+                Assert.That(new LuaEffectSpecCompiler().TryCompile(lua,new LuaEffectCompilationContext{PlayerId=1},out var specs,out var error),Is.True,error?.Diagnostic);
+                var engine=new EffectTreeExecutor(f.State,f.Registry);string effectId=engine.CreateRoot(specs.Single());
+                for(int i=0;engine.GetNode(effectId).FlowStage!=stage&&i<25;i++)Assert.That(engine.Advance(),Is.True);
+                Assert.That(engine.GetNode(effectId).FlowStage,Is.EqualTo(stage));
+                f.Restore("城市转移中");engine=new EffectTreeExecutor(f.State,f.Registry);
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                var node=engine.GetNode(effectId);
+                Assert.That(node.Status,Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(f.State.FindPlayer(1).CityLocationId,Is.Empty);
+                Assert.That(node.CommonItemMovementV4.Receipt.Items.Single().ItemId,Is.EqualTo(id));
+                Assert.That(node.PositionChanges.Count,Is.EqualTo(1));
+                Assert.That(f.State.EffectRuntime.RuleEvents.Any(e=>e.EventType=="CityMoveCompleted"),Is.False);
+                f.Restore("城市转移完成");engine=new EffectTreeExecutor(f.State,f.Registry);
+                string back=engine.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{id},reserve,dock,required:1,profile:"core.mobile_city_move"));
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(back).Status,Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(f.State.FindPlayer(1).CityLocationId,Is.EqualTo(oldLocation));
+                f.Restore("城市返回完成");
+            }
+        }
+
+        [Test]
+        public void CityMoveV4StillChecksItemTypeAndDestinationCapacity()
+        {
+            using(var f=new CollectionPlanTestFixture())
+            {
+                var city=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==1);
+                var other=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==2);
+                var engine=new EffectTreeExecutor(f.State,f.Registry);
+                string blocked=engine.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{city.ItemId},city.ZoneId,other.ZoneId,required:1,profile:"core.mobile_city_move"));
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(blocked).Status,Is.EqualTo(EffectNodeStatus.Failed));
+                Assert.That(engine.GetNode(blocked).PositionChanges,Is.Empty);
+                var marker=f.State.ItemZones.Items.First(i=>i.TypeId=="core.player_marker"&&i.OwnerSubject.PlayerId==1);
+                string wrong=engine.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{marker.ItemId},marker.ZoneId,other.ZoneId,required:1,profile:"core.mobile_city_move"));
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(wrong).Status,Is.EqualTo(EffectNodeStatus.Failed));
+                Assert.That(engine.GetNode(wrong).PositionChanges,Is.Empty);
+            }
+        }
+
+        [Test]
+        public void LuaCityMoveV4BatchMovesTheSelectedCitiesAtomically()
+        {
+            using(var f=new CollectionPlanTestFixture())
+            {
+                var cities=f.State.ItemZones.Items.Where(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId<=2).OrderBy(i=>i.OwnerSubject.PlayerId).ToArray();
+                string retired=f.State.ItemZones.Zones.Single(z=>z.TemplateId=="core.zone.box_retired").ZoneId;
+                string legs=string.Join(",",cities.Select(city=>"{selector={mode='explicit',itemIds={'"+city.ItemId+"'},expectedSource={zoneId='"+city.ZoneId+"'}},"+
+                    "destination={zoneId='"+retired+"'},insertion={kind='unordered'},operationProfileId='core.mobile_city_move',requiredCount=1}"));
+                string source="return function(ctx) return {Effect.MoveItem({apiVersion=4,player=ctx.playerId,operation='transfer_batch',transfers={"+legs+"},expectedOrders={}})} end";
+                var lua=new MoonSharpLuaRuntimeHost().Invoke(new LuaScriptDefinition("city.batch","city.batch","city.batch","1",source,LuaContentHasher.ComputeSha256(source)),
+                    new LuaInvocationContext("city","city","p1",0,"1",2,0,0));
+                Assert.That(lua.IsSuccess,Is.True,lua.Diagnostic);
+                Assert.That(new LuaEffectSpecCompiler().TryCompile(lua,new LuaEffectCompilationContext{PlayerId=1},out var specs,out var error),Is.True,error?.Diagnostic);
+                var engine=new EffectTreeExecutor(f.State,f.Registry);string id=engine.CreateRoot(specs.Single());
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(id).Status,Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(engine.GetNode(id).CommonItemMovementV4.Receipt.Items.Count,Is.EqualTo(2));
+                Assert.That(f.State.FindPlayer(1).CityLocationId,Is.Empty);
+                Assert.That(f.State.FindPlayer(2).CityLocationId,Is.Empty);
+                f.Restore("批量城市转移完成");
+            }
+        }
+
+        [Test]
+        public void DirectCityTransferRejectsActiveBoundMarkerWithoutCorruptingRecovery()
+        {
+            using(var f=new CollectionPlanTestFixture())
+            {
+                f.Registry.Register("fixture.city.lock",c=>InfluenceLockRules.Create(c,"infected.component.influence_lock_token"),EffectExecutorKind.IntrinsicFlow);
+                var engine=new EffectTreeExecutor(f.State,f.Registry);
+                string locked=engine.CreateRoot(EffectSpec.Create("fixture.city.lock",playerId:1));
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(locked).Status,Is.EqualTo(EffectNodeStatus.Completed));
+                var city=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==1);
+                string reserve=f.State.ItemZones.Zones.Single(z=>z.LocalZoneId=="city_reserve"&&z.OwnerPlayerId==1).ZoneId;
+                string move=engine.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{city.ItemId},city.ZoneId,reserve,required:1,profile:"core.mobile_city_move"));
+                Assert.That(engine.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(engine.GetNode(move).Status,Is.EqualTo(EffectNodeStatus.Failed));
+                Assert.That(engine.GetNode(move).FailureReason,Is.EqualTo("city_bound_marker_requires_city_move"));
+                Assert.That(engine.GetNode(move).PositionChanges,Is.Empty);
+                Assert.That(InfluenceLockRules.Validate(f.State),Is.True);
+                f.Restore("绑定标记拒绝直接转移");
+            }
+        }
+
+        [TestCase(false,StaticMapDefinitions.FourPlayerMapId)]
+        [TestCase(true,StaticMapDefinitions.FourPlayerMapId)]
+        [TestCase(false,StaticMapDefinitions.ThreePlayerMapId)]
+        [TestCase(true,StaticMapDefinitions.ThreePlayerMapId)]
+        public void MissingCityOnlyAllowsFreeCollectionAcrossRestore(bool extra,string mapId)
+        {
+            using(var f=new CollectionPlanTestFixture(mapId:mapId))
+            {
+                string free=f.RemotePoint();
+                string paid=f.Map.Map.Locations.First(l=>!l.IsRedZone&&l.LocationId!=free&&l.InfluenceSlotCount>0&&f.State.Players.All(p=>p.CityLocationId!=l.LocationId)).LocationId;
+                f.Put(1,free,true);f.Put(1,paid,false);
+                var city=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==1);
+                string reserve=f.State.ItemZones.Zones.Single(z=>z.LocalZoneId=="city_reserve"&&z.OwnerPlayerId==1).ZoneId;
+                var movement=new EffectTreeExecutor(f.State,f.Registry);
+                string moveId=movement.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{city.ItemId},city.ZoneId,reserve,required:1,profile:"core.mobile_city_move"));
+                Assert.That(movement.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                Assert.That(movement.GetNode(moveId).Status,Is.EqualTo(EffectNodeStatus.Completed));
+                Assert.That(f.State.FindPlayer(1).CityLocationId,Is.Empty);
+                var direct=new ResourceCollectionService(f.Map){RuleRegistry=f.Registry};
+                Assert.That(direct.CanCollect(f.State,1,new[]{paid},Array.Empty<string>(),null).IsValid,Is.False);
+                Assert.That(direct.QuerySelection(f.State,1,Array.Empty<string>()).CandidateLocationIds,Is.EquivalentTo(new[]{free}));
+                int before=Total(f.State.FindPlayer(1).Resources);
+                int reward=new ResourceTokenService().FindToken(f.State.Map,free).Amount;
+                f.Harvest(extra,out _);f.Restore("无车采集等待");
+                var owner=f.State.EffectRuntime.EffectNodes.Last(n=>n.EffectTypeId==RouteResourceSelectionEffectExecutor.TypeId&&n.PlayerId==1);
+                var authority=new RouteSelectionSessionAuthority(f.Map,f.Registry);
+                Assert.That(authority.TryRestore(f.State,owner,out var session,out var binding).IsValid,Is.True);
+                var service=new RouteResourceSelectionService(f.Map,f.Registry);
+                var draft=new RouteSelectionDraft(session.SessionId,0,Array.Empty<string>(),Array.Empty<string>(),Array.Empty<RouteRecipientChoice>());
+                var projection=service.Query(f.State,session,draft,session.CollectionFreeLocations.LegalLocationIds);
+                Assert.That(projection.Validation.IsValid,Is.True,projection.Validation.Reason);
+                Assert.That(projection.LocationOptions.Single(o=>o.LocationId==free).CanSelect,Is.True);
+                Assert.That(projection.LocationOptions.Single(o=>o.LocationId==paid).CanSelect,Is.False);
+                Assert.That(projection.RouteOptions.Any(o=>o.IsFrontier||o.IsAutomaticallySelectedFreeRoute),Is.False);
+                var invalid=new RouteSelectionDraft(session.SessionId,0,Array.Empty<string>(),new[]{free,paid},Array.Empty<RouteRecipientChoice>());
+                Assert.That(service.TryFinalize(f.State,session,binding,invalid,session.CollectionFreeLocations.LegalLocationIds,out _).IsValid,Is.False);
+                string route=f.Map.Map.Routes.First().RouteId;
+                var withRoute=new RouteSelectionDraft(session.SessionId,0,new[]{route},new[]{free},Array.Empty<RouteRecipientChoice>());
+                Assert.That(service.TryFinalize(f.State,session,binding,withRoute,session.CollectionFreeLocations.LegalLocationIds,out _).IsValid,Is.False);
+                var engine=new EffectTreeExecutor(f.State,f.Registry);f.Submit(engine,free);
+                Assert.That(Total(f.State.FindPlayer(1).Resources),Is.EqualTo(before+reward));
+                Assert.That(f.State.FindPlayer(1).HasCollectedResourcesThisRound,Is.EqualTo(!extra));
+                f.Restore("无车采集完成");
+                Assert.That(Total(f.State.FindPlayer(1).Resources),Is.EqualTo(before+reward));
+            }
+        }
+
+        [Test]
+        public void MissingCityWithoutFreeLocationsCanFinishEmptyHarvest()
+        {
+            using(var f=new CollectionPlanTestFixture())
+            {
+                var city=f.State.ItemZones.Items.Single(i=>i.PhysicalKind==ItemPhysicalKind.MobileCity&&i.OwnerSubject.PlayerId==1);
+                string reserve=f.State.ItemZones.Zones.Single(z=>z.LocalZoneId=="city_reserve"&&z.OwnerPlayerId==1).ZoneId;
+                var movement=new EffectTreeExecutor(f.State,f.Registry);
+                movement.CreateRoot(ItemMovementV4.TransferSpec(1,new[]{city.ItemId},city.ZoneId,reserve,required:1,profile:"core.mobile_city_move"));
+                Assert.That(movement.RunUntilQuiescent().Faulted,Is.False,f.State.EffectRuntime.LastFaultMessage);
+                int before=Total(f.State.FindPlayer(1).Resources);
+                var engine=f.Harvest(false,out _);f.Submit(engine);
+                Assert.That(f.State.FindPlayer(1).HasCollectedResourcesThisRound,Is.True);
+                Assert.That(Total(f.State.FindPlayer(1).Resources),Is.EqualTo(before));
+                f.Restore("无车空采集完成");
+            }
+        }
 
         [TestCase(false,StaticMapDefinitions.FourPlayerMapId)]
         [TestCase(true,StaticMapDefinitions.FourPlayerMapId)]

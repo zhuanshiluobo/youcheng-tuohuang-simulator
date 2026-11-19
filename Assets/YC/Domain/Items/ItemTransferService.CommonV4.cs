@@ -26,6 +26,10 @@ namespace YC.Domain.Items
                 !new[] { "core.zone.box_reserve", "core.zone.box_retired", "core.zone.effect_staging" }.Contains(from.TemplateId))
             { reason = "token_storage_requires_lifecycle"; return false; }
             if (from == null || to == null) { reason = "source_zone_changed"; return false; }
+            // 普通转移不执行城市移动的绑定标记跟随流程，不能留下无法恢复的失配状态。
+            if (request.OperationProfileId == "core.mobile_city_move" && from.ZoneId != to.ZoneId &&
+                context.State.InfluenceLocks.Any(binding => binding.Active && request.ItemIds.Contains(binding.BoundCityItemId)))
+            { reason = "city_bound_marker_requires_city_move"; return false; }
             if (ItemMovementV4.StyleReturnOperation(context.Node.NormalizedArguments) && request.ItemIds.Any(id => !CityStyleMarkerReturn.EligibleSource(context.State, context.Node.PlayerId, id, from.ZoneId)))
             { reason = "city_style_marker_return_not_permitted"; return false; }
             // 普通库存转移不猜测部署/盖放/地图/建设授权；这些策略由各自operation继续补齐。

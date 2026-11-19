@@ -299,6 +299,7 @@ namespace YC.Infrastructure.Lua
             fingerprint.Append("|resource_payment.").Append(ResourceEffectExecutor.PaymentDefinitionVersion);
             fingerprint.Append("|resource_payment_choice.").Append(ResourcePaymentChoiceEffectExecutor.DefinitionVersion);
             fingerprint.Append("|item_transfer_executor.").Append(ItemTransferEffectExecutor.TransferDefinitionVersion).Append("|token_transfer.").Append(ItemTransferService.TokenTransferProtocolVersion.ToString(CultureInfo.InvariantCulture)).Append('|').Append(ItemTransferService.TokenRequestDigestVersion);
+            fingerprint.Append("|item_mobile_city_transfer.").Append(ItemMovementV4.MobileCityTransferVersion);
             fingerprint.Append("|payment_protocol.2|payment_demand.1|payment_sources.1|payment_total_max.").Append(ResourcePaymentDemandParser.MaximumTotal.ToString(CultureInfo.InvariantCulture));
             fingerprint.Append('|').Append(ResourcePaymentDraftHost.SourceQueryVersion).Append(".protocol.").Append(ResourcePaymentDraftHost.SourceQueryProtocolVersion.ToString(CultureInfo.InvariantCulture))
                 .Append(".page_size.").Append(ResourcePaymentDraftHost.SourceQueryItemPageSize.ToString(CultureInfo.InvariantCulture));

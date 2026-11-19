@@ -120,7 +120,8 @@ namespace YC.Domain.Travel
                 routeSelected = partition.RouteRequiredLocationIds;
                 result.CollectionFreeLocations = session.CollectionFreeLocations;
             }
-            var graph = QueryGraph(map, facts, session.StartLocationId, draft.ConfirmedRouteIds, routeEligible, routeSelected, draft.ConfirmEmptySelection);
+            var graph = QueryGraph(map, facts, session.StartLocationId, draft.ConfirmedRouteIds, routeEligible, routeSelected, draft.ConfirmEmptySelection,
+                session.SchemaVersion == CollectionPlanService.ProtocolVersion && session.Purpose != RouteSelectionPurpose.Exploration);
             if (partition != null && draft.SelectedLocationIds.Count > 0 && routeSelected.Count == 0 && graph.IsValid)
             {
                 // 图的零需求不是玩家的空采集：S仍完整保留，且不改变ConfirmEmptySelection。
@@ -312,8 +313,15 @@ namespace YC.Domain.Travel
             return Hash(fields);
         }
 
-        internal static RouteGraphResult QueryGraph(IMapQueryService map, IReadOnlyList<RouteSelectionRouteOption> facts, string start, IReadOnlyList<string> confirmed, IReadOnlyList<string> eligible, IReadOnlyList<string> selected, bool empty)
+        internal static RouteGraphResult QueryGraph(IMapQueryService map, IReadOnlyList<RouteSelectionRouteOption> facts, string start, IReadOnlyList<string> confirmed, IReadOnlyList<string> eligible, IReadOnlyList<string> selected, bool empty, bool allowMissingCity = false)
         {
+            if (allowMissingCity && string.IsNullOrEmpty(start))
+            {
+                // 城市不在地图上时没有航道起点；只有免费采集分区可以绕过路线。
+                if (confirmed.Count != 0 || selected.Count != 0)
+                    return new RouteGraphResult { IsValid = false, Diagnostic = "collection_city_not_on_map" };
+                return new RouteGraphResult { IsValid = true, HasFinalPlan = empty };
+            }
             return RouteSelectionGraphQuery.Query(map.Map.Locations.Select(l => l.LocationId).ToArray(), facts.Select(f => new RouteGraphRoute(f.RouteId, f.CoveredLocationIds, f.FreeReason != RouteFreeReason.None, f.TollGoldVoucherAmount)).ToArray(), start, confirmed, eligible, selected, empty);
         }
 
@@ -360,6 +368,11 @@ namespace YC.Domain.Travel
 
         private static IReadOnlyList<RouteConnectivityLink> Witness(IMapQueryService map, IReadOnlyList<RouteSelectionRouteOption> facts, IReadOnlyList<string> effective, string start)
         {
+            if (string.IsNullOrEmpty(start))
+            {
+                if (effective.Count != 0) throw new ArgumentException("collection_city_not_on_map");
+                return Array.AsReadOnly(new RouteConnectivityLink[0]);
+            }
             var retained = new HashSet<string>(effective, StringComparer.Ordinal);
             var adjacency = new Dictionary<string, List<RouteSelectionRouteOption>>(StringComparer.Ordinal);
             foreach (var location in map.Map.Locations) adjacency.Add(location.LocationId, new List<RouteSelectionRouteOption>());

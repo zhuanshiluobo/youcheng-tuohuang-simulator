@@ -12,7 +12,7 @@ namespace YC.Domain.Harvest
     public static class CollectionPlanService
     {
         public const int ProtocolVersion = 2;
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
         public static CollectionQueryContext Context(GameState state, RouteSelectionSession session, IReadOnlyList<string> legal)
             => new CollectionQueryContext(session.PlayerId, session.Purpose == RouteSelectionPurpose.ExtraHarvest ? "extra" : "normal",
                 session.OwnerEffectId, session.SessionId, session.StartLocationId, state.ContentPackHash, legal);

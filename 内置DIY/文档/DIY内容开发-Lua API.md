@@ -592,7 +592,7 @@ Effect.MoveItem({
 | `selector` | 必填 | `explicit` 或 `top`，结构见下表 |
 | `destination` | 必填 | `{zoneId=真实区域ID,mustBeEmpty?=布尔}`，默认不额外要求全区为空；或 Token 使用 `{kind='original_supply'}` 回各自真实原供应 |
 | `insertion` | 必填 | `{kind='unordered'}` 无序区、`{kind='top'}` 顶、`{kind='bottom'}` 底、`{kind='slot',slotId=真实槽位}`；必须匹配区域结构。original_supply 只允许 unordered |
-| `operationProfileId` | 必填 | 下表六种转移 profile 之一；决定物品类型和来源／目的域规则，不是任意权限开关 |
+| `operationProfileId` | 必填 | 下表转移 profile 之一；决定物品类型和来源／目的域规则，不是任意权限开关 |
 | `requiredCount` | 必填 | 0～99；本笔必须满足的最低数量，top 不得超过 count。正数不足整笔失败；0 允许合法零变化 |
 | `carrierPolicy` | 默认 `preserve` | 仅此值；载物仍遵守载体生命周期自动离场策略 |
 | `reveal` | 默认 false | 仅角色牌 profile 可用；真实移动后公开展示事实并等待响应，不是额外确认 |
@@ -610,6 +610,7 @@ Effect.MoveItem({
 | `core.cube_storage` | 合法方块存取；需精确载体来源授权 |
 | `core.player_marker_storage` | 玩家标记存取／轨道移动；同步当前实际权限，遵守互斥 |
 | `core.token_storage` | 其他已登记 Token 的合法库存转移 |
+| `core.mobile_city_move` | 移动城市实例在合法区域间转移；遵守来源、目标、容量及载体规则。仅移动实例，不自动执行城市移动行动、路费、入场效果或城市移动事件；城市有活动绑定标记时直接转移会拒绝，须通过城市移动流程处理标记跟随 |
 
 企业同一实例中，同一玩家跨合作等级／子区最多一枚标记；第一条宣告与其 usage 区共享互斥域。允许零枚；企业无合作标记时等级状态是 `-1`，没有升级／特效资格。直接移动不补发到达奖励、不自动宣告计分、不重置已使用次数。供应区仍检查原所有者／原供应资格。
 

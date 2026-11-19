@@ -24,7 +24,8 @@ namespace YC.Domain.Items
     }
     public static partial class ItemMovementV4
     {
-        internal static readonly string[] TransferProfiles = { "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", "core.cube_storage", "core.player_marker_storage", "core.token_storage" };
+        public const string MobileCityTransferVersion = "1.0.0";
+        internal static readonly string[] TransferProfiles = { "core.facility_card_transfer", "core.character_card_transfer", "core.reward_card_transfer", "core.cube_storage", "core.player_marker_storage", "core.token_storage", "core.mobile_city_move" };
         internal static string ValidateCommonArguments(NormalizedValue args)
         {
             if (args == null || !args.IsValid() || !IsV4(TypeId, args) || !int.TryParse(Text(args, "player"), NumberStyles.None, CultureInfo.InvariantCulture, out int player) || player < 1)
