@@ -239,7 +239,7 @@ namespace YC.Domain.Effects
             return record?.SourceEffectId == selection.EffectId && record.ExecutingPlayerId == selection.PlayerId &&
                 record.CandidateKind == FacilityBuildCandidateQuery.CandidateKind && record.FinalCandidateIds.SequenceEqual(input.CandidateIds) &&
                 Text(input.PromptParameters, "sourceZone") == source &&
-                (source != "deck" || Text(input.PromptParameters, "expectedSourceZoneId") == sourceZoneId) &&
+                (source != "deck" && !FacilityBuildContract.IsExplicitAuto(selection.NormalizedArguments) || Text(input.PromptParameters, "expectedSourceZoneId") == sourceZoneId) &&
                 FacilitySelectionEffectExecutor.ValidateEffectBuildSource(state, selection, targetId, sourceZoneId, mode, requireCurrentSource, registry);
         }
 
@@ -336,7 +336,8 @@ namespace YC.Domain.Effects
         }
 
         public static bool TryQuote(GameState state, int playerId, string actionKind, string targetId, NormalizedValue arguments,
-            out ResourceSet cost, out string reason, EffectRegistry registry = null, string sourceEffectId = "")
+            out ResourceSet cost, out string reason, EffectRegistry registry = null, string sourceEffectId = "",
+            FacilityBuildQueryService buildQueries = null)
         {
             cost = null; reason = "payment_preparation_arguments_invalid";
             if (arguments?.Kind != NormalizedValueKind.Object || !arguments.TryValidate(out _) || state.FindPlayer(playerId) == null) return false;
@@ -364,12 +365,16 @@ namespace YC.Domain.Effects
             var definition = FacilityCardDatabase.Get(state, item.DefinitionId);
             var player = state.FindPlayer(playerId);
             int slot = Number(arguments, "cityBoardSlotIndex", -1);
-            if (definition == null || FacilityCardDatabase.PlayerHasBuiltUniqueFacility(state, player, definition) ||
-                BuildFacilityService.FindFirstEmptyCityBoardSlot(state, playerId) < 0 || slot >= 0 &&
-                !BuildFacilityService.CreateForEffectTree().ValidatePaidPlacement(state, playerId, item.ItemId, slot).IsValid)
+            if (definition == null) { reason = "invalid_build_slot"; return false; }
+            // 马丁可在满板时叠建；付款准备必须与实际建设共用已注册的层级、唯一设施和必做响应规则。
+            var queries = buildQueries ?? registry?.FacilityBuildQueries ?? new FacilityBuildQueryService();
+            var built = queries.ResolveBuiltFacts(state, playerId, sourceEffectId);
+            var legalSlots = queries.ResolveSlots(state, playerId, item.ItemId, sourceEffectId);
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacilityForInstances(state, player, definition, built.ItemIds) ||
+                legalSlots.Count == 0 || slot >= 0 && !legalSlots.Any(candidate => candidate.SlotIndex == slot))
             { reason = "invalid_build_slot"; return false; }
             cost = mode == BuildFacilityService.PaymentModeGold ? new ResourceSet { GoldVoucher = definition.GoldVoucherCost } :
-                new FacilityBuildCostService().GetEffectiveResourceCost(state, player, definition);
+                new FacilityBuildCostService().GetEffectiveResourceCostForInstances(state, player, definition, built.ItemIds);
             reason = ""; return true;
         }
     }
@@ -481,6 +486,7 @@ namespace YC.Domain.Effects
                 var spec = FacilityBuildEffectSpecFactory.Build(playerId, p.TargetId, -1, Text(p.ActionArguments, "paymentMode"), false,
                     parent.SourceId, Flag(parent.NormalizedArguments,"consumeMainAction"), Text(p.ActionArguments, "expectedSourceZoneId"),
                     FacilityBuildContract.SourceKind(parent), Text(parent.NormalizedArguments,"sourceKey"));
+                FacilityBuildContract.ApplyExplicitSlot(parent, spec);
                 var maximum = Value(parent.NormalizedArguments, "maxGoldVoucherCost");
                 if (maximum != null) spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "maxGoldVoucherCost", Value = maximum.Clone() });
                 spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "preparedPaymentOwnerEffectId", Value = NormalizedValue.CreateString(owner.EffectId) });
@@ -501,9 +507,10 @@ namespace YC.Domain.Effects
             preparationOwnerEffectId = paymentOwnerEffectId = interactionId = "";
             diagnostic = "payment_preparation_context_invalid";
             if (expectedRevision != Runtime.StateRevision) { diagnostic = "state_revision_mismatch"; return false; }
+            string budgetType = actionKind == "build" ? YC.Domain.Rules.MainActionBudgetService.Build : actionKind == "city_move" ? YC.Domain.Rules.MainActionBudgetService.MoveCity : null;
             if (string.IsNullOrEmpty(commandId) || Runtime.Status != EffectRuntimeStatus.Active ||
                 state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2 ||
-                !new MainActionBudgetService().ValidateCanSpend(state, playerId).IsValid) return false;
+                budgetType == null || !new MainActionBudgetService().ValidateCanSpend(state, playerId, budgetType).IsValid) return false;
             var window = Runtime.MainNodes.Find(main => main.NodeId == Runtime.ActiveMainNodeId &&
                 main.NodeTypeId == RoundMainlineNodeTypeIds.PlayerActionWindow && main.PlayerId == playerId);
             var operation = Runtime.OperationWindows.Find(value => value.SourceMainNodeId == window?.NodeId &&
@@ -585,10 +592,12 @@ namespace YC.Domain.Effects
             var source = GetNode(preparationOwnerEffectId);
             if (string.IsNullOrEmpty(commandId) || !ResourcePaymentPreparationService.IsCurrentPreparation(state, source, playerId) ||
                 source.Status != EffectNodeStatus.Blocked || !ResourcePaymentPreparationService.CanConfirm(state, source, registry) ||
-                ResourcePaymentPreparationService.HasPendingResponse(state, source) || !new MainActionBudgetService().ValidateCanSpend(state, playerId).IsValid) return false;
+                ResourcePaymentPreparationService.HasPendingResponse(state, source)) return false;
             var preparation = source.Payment.Preparation;
             string kind = actionSpec?.EffectTypeId == FacilityEntryEffectTypeIds.Build ? "build" :
                 actionSpec?.EffectTypeId == CityMoveEffectTypeIds.Move ? "city_move" : "";
+            string budgetType = kind == "build" ? YC.Domain.Rules.MainActionBudgetService.Build : kind == "city_move" ? YC.Domain.Rules.MainActionBudgetService.MoveCity : null;
+            if (budgetType == null || !new MainActionBudgetService().ValidateCanSpend(state, playerId, budgetType).IsValid) return false;
             string target = kind == "build" ? Text(actionSpec.NormalizedArguments, "facilityId") :
                 Value(actionSpec?.NormalizedArguments, "targetLocation")?.ReferenceId ?? "";
             if (kind != preparation.ActionKind || target != preparation.TargetId || actionSpec.PlayerId != playerId ||

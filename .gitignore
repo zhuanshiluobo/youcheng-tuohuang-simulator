@@ -15,6 +15,8 @@
 *.user
 *.userprefs
 *.csproj
+!/tools/packaging/EventPackValidator/EventPackValidator.csproj
+!/tools/packaging/DiyPackTool/DiyPackTool.csproj
 *.sln
 *.suo
 *.tmp
@@ -47,6 +49,10 @@ Thumbs.db
 /tmp_*
 /.codex-tmp/
 /tools/__pycache__/
+/tools/packaging/EventPackValidator/bin/
+/tools/packaging/EventPackValidator/obj/
+/tools/packaging/DiyPackTool/bin/
+/tools/packaging/DiyPackTool/obj/
 __pycache__/
 *.pyc
 /Assets/InitTestScene*.unity

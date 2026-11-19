@@ -427,6 +427,7 @@ namespace YC.Presentation
             if (sprite == null) Debug.LogWarning("[card_action_artwork_missing] request=" + request.InteractionId + " item=" + itemId);
             if (card.SelectionImage != null) card.SelectionImage.enabled = false;
             else card.Outline.enabled = false;
+            card.SetSelectionEffect(false, false, false);
             card.Button.onClick.RemoveAllListeners();
             card.Button.interactable = true;
             card.ConfigureSingleClickInspection(() =>
@@ -455,6 +456,46 @@ namespace YC.Presentation
                     submitted = true;
                     option.Select?.Invoke();
                 });
+            }
+        }
+
+        public void AddEnterpriseBoardArtwork(RectTransform panel, GameBoxEnterpriseBoardItemView template,
+            IReadOnlyList<string> ids, IReadOnlyList<Sprite> sprites, string hint, Func<bool> isCurrent, Action close)
+        {
+            var binding = selectionBinding = new object();
+            var shellView = ResolveView(panel);
+            var profile = shellView.LayoutProfile;
+            shellView.ConfigureSelectionMode(true, hint);
+            shellView.ResourceSummaryText.gameObject.SetActive(false);
+            shellView.ConfigureEnterpriseBoardScroll(profile.SelectionCardSize, profile.SelectionMinimumCardWidth, template);
+            bool Current() => view == shellView && ReferenceEquals(selectionBinding, binding) &&
+                (isCurrent == null || isCurrent());
+            shellView.ConfigureBackgroundDismiss(() => { if (Current()) close?.Invoke(); });
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var id = ids[i];
+                var sprite = sprites[i];
+                var item = shellView.CreateEnterpriseBoardItem(template);
+                void Inspect()
+                {
+                    if (!Current() || !shellView.gameObject.activeInHierarchy || sprite == null) return;
+                    var savedScroll = shellView.ScrollPosition;
+                    openingDetails = true;
+                    try
+                    {
+                        if (cardViewer == null) cardViewer = registry.InstantiateCardViewer(shellView.transform.parent as RectTransform);
+                        cardViewer.OpenInspect(sprite, () =>
+                        {
+                            if (!Current()) { Hide(); return; }
+                            if (GameplayHudFrame.Active != null) GameplayHudFrame.Active.ShowPage(shellView.gameObject, false);
+                            else shellView.gameObject.SetActive(true);
+                            shellView.RestoreScrollPosition(savedScroll);
+                            UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(item.gameObject);
+                        }, Current);
+                    }
+                    finally { openingDetails = false; }
+                }
+                item.Bind(id, sprite, Inspect, Current);
             }
         }
 
@@ -537,10 +578,12 @@ namespace YC.Presentation
                 card.FallbackLabel.gameObject.SetActive(sprite == null);
                 if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
                 else card.Outline.enabled = selected.Contains(id);
+                card.SetSelectionEffect(!spec.ReadOnly, spec.CanSelect == null || spec.CanSelect(id), selected.Contains(id));
                 selectionBindings.Add(() =>
                 {
                     if (card.SelectionImage != null) card.SelectionImage.enabled = selected.Contains(id);
                     else card.Outline.enabled = selected.Contains(id);
+                    card.SetSelectionEffect(!spec.ReadOnly, spec.CanSelect == null || spec.CanSelect(id), selected.Contains(id));
                 });
                 card.Button.onClick.RemoveAllListeners();
                 card.PointerInteraction.ConfigureClick(card.Button, null);
@@ -642,6 +685,28 @@ namespace YC.Presentation
                     cancel.onClick.AddListener(Cancel);
                 }
             }
+            if (cardMode && !spec.ReadOnly)
+            {
+                var expansion = registry.GetComponentInParent<GameplayExpansionUi>(true);
+                if (expansion != null && expansion.CanPreviewPreparationEnterprises(request))
+                {
+                    var preview = shellView.AcquirePreparationPreviewButton();
+                    YC.PlayerJourney.PlayerAutomationId.Attach(preview.gameObject, "preparation.inspect_enterprises");
+                    preview.onClick.AddListener(() => {
+                        using var inputRead = registry.BeginInputRead?.Invoke();
+                        if (!CanAct()) return;
+                        float position = shellView.ScrollPosition;
+                        bool CurrentSource() => ReferenceEquals(selectionBinding, currentBinding) && view == shellView &&
+                            (spec.IsCurrent == null || spec.IsCurrent());
+                        bool noFrame = GameplayHudFrame.Active == null;
+                        if (expansion.OpenPreparationEnterprisePreview(request, shellView.transform.parent as RectTransform, CurrentSource, () => {
+                            if (!CurrentSource()) { Hide(); return; }
+                            if (noFrame) shellView.gameObject.SetActive(true);
+                            shellView.RestoreScrollPosition(position);
+                        }) && noFrame) shellView.gameObject.SetActive(false);
+                    });
+                }
+            }
         }
 
         private static void RenderEffectRowDocument(Text label, GameplayTextDocument document,
@@ -650,6 +715,7 @@ namespace YC.Presentation
             var host = label == null ? null : label.GetComponent<GameplayTextView>();
             if (host == null || render == null)
                 throw new InvalidOperationException("选择执行条目缺少正式玩法文档宿主或渲染入口。");
+            host.SetVisibilityBindingGuard(GameplayHudFrame.Active?.CreateEffectPageVisibilityGuard(host.transform));
             render(host, document, false);
         }
 

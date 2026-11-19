@@ -48,7 +48,7 @@ def main():
     wrappers = host.split("public static IReadOnlyCollection<string> SupportedEffectConstructors =>", 1)[1].split(";", 1)[0]
     flow_catalog = host.split("public static IReadOnlyCollection<string> SupportedFlowConstructors =>", 1)[1].split(";", 1)[0]
     flows = re.findall(r'"(\w+)"', flow_catalog)
-    document = ROOT / "docs/设计/DIY内容开发-Lua API.md"
+    document = ROOT / "内置DIY/文档/DIY内容开发-Lua API.md"
     availability = availability_report(document.read_text(encoding="utf-8-sig"),
                                        set(names) | set(re.findall(r'"(\w+)"', wrappers)), set(flows))
     availability.update(document=document.relative_to(ROOT).as_posix(),

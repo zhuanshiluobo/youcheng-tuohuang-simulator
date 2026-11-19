@@ -22,35 +22,150 @@ namespace YC.Infrastructure.Lua
 
         public static void Register(EffectRegistry registry)
         {
-            RegisterCards(registry, new[] { EventColor.Green, EventColor.Red, EventColor.Yellow }.SelectMany(EventCardDatabase.GetCardIds).Select(EventCardDatabase.Get));
+            var cards = new[] { EventColor.Green, EventColor.Red, EventColor.Yellow }.SelectMany(EventCardDatabase.GetCardIds).Select(EventCardDatabase.Get).ToList();
+            RegisterCards(registry, cards, cards.Any(card => card?.EventChoiceSchemaVersion == 1) ? ExternalContentPack.Current : null);
         }
         public static void Register(EffectRegistry registry, ExternalContentPack pack) => RegisterCards(registry, pack.CreateEvents(), pack);
         private static void RegisterCards(EffectRegistry registry, IEnumerable<EventCardDefinition> cards, ExternalContentPack pack = null)
         {
             if (registry == null) throw new ArgumentNullException(nameof(registry));
 
-            var dispatcher = new LuaEffectEventDispatcher(registry);
+            var definitions = cards.ToList();
+            var dispatcher = new LuaEffectEventDispatcher(registry, compiler: definitions.Any(card => card?.EventChoiceSchemaVersion == 1)
+                ? new LuaEffectSpecCompiler(presentationPack: pack ?? throw new InvalidOperationException("事件选择缺少冻结内容包。")) : null);
             PlayerEntranceLuaCatalog.Register(registry);
             RegisterCityMoveObserver(dispatcher, registry);
-            foreach (var card in cards)
+            foreach (var card in definitions)
             {
                 if (card == null) continue;
 
-                string subscriptionId = "lua:event-card:" + card.CardId;
-                if (registry.HasEventHandler(subscriptionId)) continue;
-                var external = pack?.ActiveDefinitions.Single(d => d.DefinitionId == card.CardId || d.RuntimeId == card.CardId);
-                var scriptDefinition = external?.Data["effectScript"] == null ? CreateDefinition(card) : new LuaScriptDefinition(external.DefinitionId, card.CardId, subscriptionId, external.Version,
-                     pack.GetContentScript("event", external.DefinitionId), LuaContentHasher.ComputeSha256(pack.GetContentScript("event", external.DefinitionId)), pack.GetScriptEntryId((string)external.Data["effectScript"]));
-                dispatcher.Register(new LuaHandlerDefinition(
-                    subscriptionId,
-                    EventCardEffectEventTypeIds.Resolved,
-                    card.CardId,
-                    scriptDefinition,
-                    EffectHandlerRole.Primary,
-                    0,
-                    string.Empty,
-                    card.CardId));
+                if (card.EventChoiceSchemaVersion != 1 || pack == null)
+                    throw new InvalidOperationException("事件定义版本不受支持：" + card.CardId);
+                var content = pack.ActiveDefinitions.Single(d => d.ContentType == "event" && (d.DefinitionId == card.CardId || d.RuntimeId == card.CardId));
+                foreach (var choice in card.Choices)
+                    RegisterChoice(dispatcher, registry, pack, content, card.CardId, choice.ChoiceId, choice.Script, choice.Version, choice.CompletionHandlerId);
+                if (card.Choices.Count == 0)
+                    RegisterChoice(dispatcher, registry, pack, content, card.CardId, "", card.ImmediateResolve.Script, card.ImmediateResolve.Version, "");
             }
+        }
+
+        internal static string CompletionAbilityId(ExternalContentPack pack, ExternalContentDefinition content, string handlerId) =>
+            StableIdFactory.Create("event-completion-ability", pack.GetDefinitionSourcePackId(content.DefinitionId), content.DefinitionId, handlerId);
+
+        internal static LuaScriptDefinition CreateCompletionDefinition(ExternalContentPack pack, ExternalContentDefinition content, string handlerId)
+        {
+            var handler = content.AbilityHandlers.Single(value => value.HandlerId == handlerId);
+            string source = pack.GetScript(handler.Script);
+            return new LuaScriptDefinition(content.DefinitionId, CompletionAbilityId(pack, content, handlerId), handler.HandlerId,
+                handler.Version, source, LuaContentHasher.ComputeSha256(source), pack.GetScriptEntryId(handler.Script));
+        }
+
+        private static void RegisterChoice(LuaEffectEventDispatcher dispatcher, EffectRegistry registry, ExternalContentPack pack,
+            ExternalContentDefinition content, string cardId, string choiceId, string path, string version, string completionHandlerId)
+        {
+            string owner = pack.GetDefinitionSourcePackId(content.DefinitionId);
+            string subscriptionId = StableIdFactory.Create("event-choice-handler", owner, content.DefinitionId, choiceId);
+            if (registry.HasEventHandler(subscriptionId)) return;
+            string route = choiceId.Length == 0 ? StableIdFactory.Create("event-choice-immediate", cardId)
+                : EventCardOptionIdFactory.CreateChoice(cardId, choiceId);
+            LuaScriptDefinition completion = string.IsNullOrEmpty(completionHandlerId) ? null : CreateCompletionDefinition(pack, content, completionHandlerId);
+            string abilityId = completion?.AbilityId ?? StableIdFactory.Create("event-choice-ability", owner, content.DefinitionId, choiceId);
+            if (completion != null)
+            {
+                string completionSubscription = StableIdFactory.Create("event-choice-continuation", owner, content.DefinitionId, completionHandlerId);
+                if (!registry.HasEventHandler(completionSubscription))
+                    dispatcher.RegisterContinuation(new LuaHandlerDefinition(completionSubscription, "EffectCompleted", "", completion,
+                        EffectHandlerRole.Continuation, contentInstanceId: cardId, abilityId: abilityId));
+            }
+            string source = pack.GetScript(path);
+            var script = new LuaScriptDefinition(content.DefinitionId, abilityId, subscriptionId, version, source,
+                LuaContentHasher.ComputeSha256(source), pack.GetScriptEntryId(path));
+            var definition = new LuaHandlerDefinition(subscriptionId, EventCardEffectEventTypeIds.Resolved, route, script,
+                EffectHandlerRole.Primary, contentInstanceId: cardId, abilityId: abilityId,
+                completionHandlerId: completionHandlerId, continuationTarget: completion);
+            RegisterChoiceHandler(registry, dispatcher, definition, cardId);
+        }
+
+        // 对纯地图选点先取得宿主合法候选；原选点完成后先放基础影响力，再进入 Lua 完成续接。
+        // 不增加 Lua 构造器或参数，普通奖励仍按基础影响力、Lua 效果的顺序排队。
+        private static void RegisterChoiceHandler(EffectRegistry registry, LuaEffectEventDispatcher dispatcher,
+            LuaHandlerDefinition definition, string cardId)
+        {
+            registry.RegisterEventHandler(new EffectEventHandlerRegistration(definition.SubscriptionId, definition.EventType,
+                definition.RouteKey, definition.Script.HandlerId, context =>
+                {
+                    var effects = dispatcher.Invoke(definition, context).ToList();
+                    string primary = ItemTransferEffectExecutor.Text(context.Event.Payload, "primaryInfluenceSlotId");
+                    EffectSpec Primary() => InfluenceEffectSpecFactory.PlaceInfluence(context.Event.PlayerId, primary,
+                        "event_card_primary:" + cardId, causeKind: InfluenceCauseKinds.OtherIntrinsicFlow);
+                    if (effects.Count == 1 && TryReadPaidPlacement(effects[0], out var paidPlacement))
+                    {
+                        if (registry.InfluenceService == null) throw new InvalidOperationException("event_choice_influence_service_missing");
+                        var legal = registry.InfluenceService.GetLegalPlacementSlotIds(context.State, context.Event.PlayerId)
+                            .Where(id => id != primary);
+                        var scope = ItemTransferEffectExecutor.Value(paidPlacement.NormalizedArguments, "candidateScope");
+                        if (scope != null)
+                        {
+                            var allowed = new HashSet<string>((scope.Items ?? new List<NormalizedValue>()).Select(value =>
+                                value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue), StringComparer.Ordinal);
+                            legal = legal.Where(allowed.Contains);
+                        }
+                        if (!legal.Any()) return new[] { EmptyInfluenceSelection(context.Event.PlayerId) };
+                    }
+                    if (effects.Count == 1 && IsInfluencePreselection(effects[0]))
+                    {
+                        var choice = effects[0];
+                        if (registry.InfluenceService == null) throw new InvalidOperationException("event_choice_influence_service_missing");
+                        var available = new HashSet<string>(registry.InfluenceService.GetLegalPlacementSlotIds(context.State, context.Event.PlayerId), StringComparer.Ordinal);
+                        var options = ItemTransferEffectExecutor.Value(choice.NormalizedArguments, "options");
+                        var eligible = options.Items.Select(value => value.Kind == NormalizedValueKind.StableReference ? value.ReferenceId : value.StringValue)
+                            .Where(id => !string.IsNullOrEmpty(id) && id != primary && available.Contains(id))
+                            .Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.Ordinal).ToList();
+                        options.Items.Clear();
+                        foreach (string id in eligible) options.Items.Add(NormalizedValue.CreateString(id));
+                        if (eligible.Count == 0) choice.CompletionHandlerId = string.Empty;
+                        else foreach (string unused in eligible)
+                            choice.NestedEffectGroups.Add(string.IsNullOrEmpty(primary) ? new List<EffectSpec>() : new List<EffectSpec> { Primary() });
+                        return effects;
+                    }
+                    if (!string.IsNullOrEmpty(primary)) effects.Insert(0, Primary());
+                    return effects;
+                }, EffectHandlerRole.Primary, definition.Priority, definition.ContentInstanceId,
+                definition.AbilityId, definition.Script.DefinitionVersion, definition.Script.ContentHash, definition.Script.ContentId));
+        }
+
+        private static bool TryReadPaidPlacement(EffectSpec spec, out EffectSpec placement)
+        {
+            placement = null;
+            if (spec?.EffectTypeId != EffectTypeIds.Condition || spec.NestedEffectGroups == null || spec.NestedEffectGroups.Count != 2 ||
+                spec.NestedEffectGroups[0].Count != 1 || spec.NestedEffectGroups[0][0].EffectTypeId != ResourceEffectTypeIds.Pay ||
+                spec.NestedEffectGroups[1].Count != 1) return false;
+            var candidate = spec.NestedEffectGroups[1][0];
+            if (candidate.EffectTypeId != InfluenceEffectTypeIds.PlaceInfluence ||
+                ItemTransferEffectExecutor.Value(candidate.NormalizedArguments, "targetSlotId") != null ||
+                ItemTransferEffectExecutor.Value(candidate.NormalizedArguments, "targetLocationId") != null) return false;
+            var owner = ItemTransferEffectExecutor.Value(candidate.NormalizedArguments, "ownerSubject");
+            if (ItemTransferEffectExecutor.Text(owner, "subjectType") != "player" ||
+                ItemTransferEffectExecutor.Number(owner, "playerId", -1) != candidate.PlayerId) return false;
+            placement = candidate;
+            return true;
+        }
+
+        private static EffectSpec EmptyInfluenceSelection(int playerId) => EffectSpec.Create(LuaDomainEffectTypeIds.Choice,
+            ItemTransferEffectExecutor.Object("player", NormalizedValue.CreateStableReference("player", playerId.ToString(CultureInfo.InvariantCulture)),
+                "interactionType", NormalizedValue.CreateString("effect.influence.place.target"),
+                "options", ItemTransferEffectExecutor.Strings(Array.Empty<string>()),
+                "minSelections", NormalizedValue.CreateInteger(1), "maxSelections", NormalizedValue.CreateInteger(1)), playerId);
+
+        private static bool IsInfluencePreselection(EffectSpec spec)
+        {
+            var options = ItemTransferEffectExecutor.Value(spec?.NormalizedArguments, "options");
+            return spec != null && spec.EffectTypeId == LuaDomainEffectTypeIds.Choice &&
+                ItemTransferEffectExecutor.Text(spec.NormalizedArguments, "interactionType") == "effect.influence.place.target" &&
+                ItemTransferEffectExecutor.Number(spec.NormalizedArguments, "minSelections", 1) == 1 &&
+                ItemTransferEffectExecutor.Number(spec.NormalizedArguments, "maxSelections", 1) == 1 &&
+                options?.Kind == NormalizedValueKind.Array && !string.IsNullOrEmpty(spec.CompletionHandlerId) &&
+                spec.NestedEffectGroups.Count == 0 && spec.Children.Count == 0;
         }
 
         private static void RegisterCityMoveObserver(
@@ -95,201 +210,5 @@ end";
         /// 为指定内容创建稳定脚本定义。测试和工具可用它检查版本、哈希和源码，
         /// 运行时注册仍通过 <see cref="Register"/> 进入统一 dispatcher。
         /// </summary>
-        public static LuaScriptDefinition CreateDefinition(string cardId)
-        {
-            EventCardDefinition card = EventCardDatabase.Get(cardId);
-            if (card == null) throw new ArgumentException("事件牌不存在：" + cardId, nameof(cardId));
-            return CreateDefinition(card);
-        }
-
-        public static LuaScriptDefinition CreateDefinition(EventCardDefinition card)
-        {
-            if (card == null) throw new ArgumentNullException(nameof(card));
-            string source = CreateScriptSource(card);
-            string handlerId = "lua.event_card." + card.CardId;
-            return new LuaScriptDefinition(
-                card.CardId,
-                card.CardId,
-                handlerId,
-                DefinitionVersion,
-                source,
-                LuaContentHasher.ComputeSha256(source));
-        }
-
-        public static string CreateScriptSource(EventCardDefinition card)
-        {
-            if (card == null) throw new ArgumentNullException(nameof(card));
-
-            var builder = new StringBuilder();
-            builder.AppendLine("return function(ctx)");
-            builder.AppendLine("    local payload = ctx.payload");
-            builder.AppendLine("    local effects = {}");
-            builder.AppendLine("    if payload.primaryInfluenceSlotId ~= nil and payload.primaryInfluenceSlotId ~= '' then");
-            builder.AppendLine(
-                "        table.insert(effects, Effect.PlaceInfluence({ executingPlayer = ctx.playerId, " +
-                "influenceSource = " + LuaString("event_card_primary:" + card.CardId) +
-                ", ownerSubject = ctx.playerId, targetSlotId = payload.primaryInfluenceSlotId, causeKind = " +
-                LuaString(InfluenceCauseKinds.OtherIntrinsicFlow) + " }))");
-            builder.AppendLine("    end");
-
-            for (int optionIndex = 0; optionIndex < card.ChoiceDescriptions.Count; optionIndex++)
-            {
-                builder.AppendLine(
-                    "    if tonumber(payload.optionIndex) == " +
-                    optionIndex.ToString(CultureInfo.InvariantCulture) + " then");
-                AppendResourceGains(
-                    builder,
-                    card.ChoiceRewards[optionIndex],
-                    "event_card.reward:" + card.CardId);
-
-                IReadOnlyList<EventEffect> pendingEffects = card.ChoicePendingEffects[optionIndex];
-                ResourceSet costs = CollectCosts(pendingEffects);
-                bool rulePayment = EventEffectUtility.HasInfluencePayment(pendingEffects);
-                if (rulePayment) builder.AppendLine("        local outerEffects = effects; effects = {}");
-                else AppendResourcePayments(builder, costs, "event_card.cost:" + card.CardId);
-
-                int slotCursor = 1;
-                for (int effectIndex = 0; effectIndex < pendingEffects.Count; effectIndex++)
-                {
-                    EventEffect effect = pendingEffects[effectIndex];
-                    if (effect == null || effect.Amount <= 0) continue;
-
-                    switch (effect.Kind)
-                    {
-                        case EventEffectKind.GainScore:
-                            AppendScoreGain(builder, effect.Amount, "event_card.score:" + card.CardId);
-                            break;
-                        case EventEffectKind.GrantResource:
-                            AppendScopedResourceGain(builder, effect, card.CardId);
-                            break;
-                        case EventEffectKind.PlaceInfluence:
-                            for (int amountIndex = 0; amountIndex < effect.Amount; amountIndex++)
-                            {
-                                AppendInfluencePlacement(
-                                    builder,
-                                    slotCursor++,
-                                    "event_card_pending:" + card.CardId);
-                            }
-                            break;
-                    }
-                }
-
-                if (rulePayment)
-                {
-                    string costFields = string.Join(", ", costs.Enumerate().Select(pair => pair.Key.ToString() + " = " + pair.Value.ToString(CultureInfo.InvariantCulture)));
-                    builder.AppendLine("        local rightEffects = effects; effects = outerEffects");
-                    builder.AppendLine("        table.insert(effects, Effect.WithPresentation(Effect.Condition({ leftEffects = { Effect.PayResource({ player = ctx.playerId, cost = { " + costFields + " } }) }, rightEffects = rightEffects }), { interaction = { prompt = Text.Ref('core:condition.event.event_yellow_04.payment') } }))");
-                }
-                builder.AppendLine("    end");
-            }
-
-            builder.AppendLine("    return effects");
-            builder.AppendLine("end");
-            return builder.ToString();
-        }
-
-        private static void AppendResourceGains(StringBuilder builder, ResourceSet reward, string reasonId)
-        {
-            if (reward == null) return;
-            foreach (KeyValuePair<ResourceType, int> pair in reward.Enumerate())
-            {
-                if (pair.Value <= 0) continue;
-                builder.AppendLine(
-                    "        table.insert(effects, Effect.GainResource({ recipient = ctx.playerId, resourceType = " +
-                    LuaString(pair.Key.ToString()) + ", amount = " +
-                    pair.Value.ToString(CultureInfo.InvariantCulture) + ", reasonId = " + LuaString(reasonId) + " }))");
-            }
-        }
-
-        private static void AppendResourcePayments(StringBuilder builder, ResourceSet costs, string reasonId)
-        {
-            if (costs == null) return;
-            foreach (KeyValuePair<ResourceType, int> pair in costs.Enumerate())
-            {
-                if (pair.Value <= 0) continue;
-                builder.AppendLine(
-                    "        table.insert(effects, Effect.PayResource({ recipient = ctx.playerId, resourceType = " +
-                    LuaString(pair.Key.ToString()) + ", amount = " +
-                    pair.Value.ToString(CultureInfo.InvariantCulture) + ", reasonId = " + LuaString(reasonId) + " }))");
-            }
-        }
-
-        private static void AppendScoreGain(StringBuilder builder, int amount, string reasonId)
-        {
-            builder.AppendLine(
-                "        table.insert(effects, Effect.GainScore({ recipient = ctx.playerId, amount = " +
-                amount.ToString(CultureInfo.InvariantCulture) + ", reasonId = " + LuaString(reasonId) + " }))");
-        }
-
-        private static void AppendScopedResourceGain(StringBuilder builder, EventEffect effect, string cardId)
-        {
-            if (effect.TargetScope != EventEffectTargetScope.Opponents &&
-                effect.TargetScope != EventEffectTargetScope.Self)
-            {
-                return;
-            }
-
-            string reasonId = effect.TargetScope == EventEffectTargetScope.Opponents
-                ? "event_card.opponent_reward:" + cardId
-                : "event_card.pending_reward:" + cardId;
-            if (effect.TargetScope == EventEffectTargetScope.Self)
-            {
-                builder.AppendLine(
-                    "        table.insert(effects, Effect.GainResource({ recipient = ctx.playerId, resourceType = " + LuaString(effect.ResourceType.ToString()) +
-                    ", amount = " + effect.Amount.ToString(CultureInfo.InvariantCulture) +
-                    ", reasonId = " + LuaString(reasonId) + " }))");
-                return;
-            }
-
-            builder.AppendLine("        for _, opponent in ipairs(GameData.GetPlayers()) do");
-            builder.AppendLine("            if opponent.playerId ~= ctx.playerId then");
-            builder.AppendLine(
-                "                table.insert(effects, Effect.GainResource({ recipient = opponent, resourceType = " + LuaString(effect.ResourceType.ToString()) +
-                ", amount = " + effect.Amount.ToString(CultureInfo.InvariantCulture) +
-                ", reasonId = " + LuaString(reasonId) + " }))");
-            builder.AppendLine("            end");
-            builder.AppendLine("        end");
-        }
-
-        private static void AppendInfluencePlacement(StringBuilder builder, int slotIndex, string sourceId)
-        {
-            builder.AppendLine(
-                "        table.insert(effects, Effect.PlaceInfluence({ executingPlayer = ctx.playerId, " +
-                "influenceSource = " + LuaString(sourceId) +
-                ", ownerSubject = ctx.playerId, targetSlotId = payload.selectedInfluenceSlotIds[" +
-                slotIndex.ToString(CultureInfo.InvariantCulture) + "], causeKind = " +
-                LuaString(InfluenceCauseKinds.OtherIntrinsicFlow) + " }))");
-        }
-
-        private static ResourceSet CollectCosts(IReadOnlyList<EventEffect> effects)
-        {
-            var costs = new ResourceSet();
-            if (effects == null) return costs;
-            for (int i = 0; i < effects.Count; i++)
-            {
-                EventEffect effect = effects[i];
-                if (effect == null || effect.Kind != EventEffectKind.PlaceInfluence || effect.CostAmount <= 0)
-                {
-                    continue;
-                }
-
-                costs.Set(
-                    effect.CostResourceType,
-                    costs.Get(effect.CostResourceType) + effect.CostAmount);
-            }
-
-            return costs;
-        }
-
-
-
-        private static string LuaString(string value)
-        {
-            return "'" + (value ?? string.Empty)
-                .Replace("\\", "\\\\")
-                .Replace("'", "\\'")
-                .Replace("\r", "\\r")
-                .Replace("\n", "\\n") + "'";
-        }
     }
 }

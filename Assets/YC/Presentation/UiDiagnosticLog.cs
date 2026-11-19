@@ -92,7 +92,7 @@ namespace YC.Presentation
 
         public static string GetLogDirectory()
         {
-            return Path.Combine(UnityEngine.Application.persistentDataPath, DirectoryName);
+            return Path.Combine(ExternalContentRuntime.UserContentDataRoot, DirectoryName);
         }
 
         public static string GetLatestLogPath()

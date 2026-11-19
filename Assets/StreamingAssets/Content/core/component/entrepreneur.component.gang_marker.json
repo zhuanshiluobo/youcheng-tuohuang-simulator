@@ -25,7 +25,5 @@
     "instanceTypeId": "entrepreneur.gang_marker",
     "quantityPolicy": "finite"
   },
-  "applicableModes": [
-    "entrepreneur"
-  ]
+  "requiredMechanisms": ["entrepreneur_selection.v1"]
 }

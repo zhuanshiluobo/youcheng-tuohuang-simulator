@@ -38,7 +38,7 @@ namespace YC.Domain.Travel
             var phase = CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation);
             if (!phase.IsValid) return phase;
             if (state.CurrentPlayerId != playerId) return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
-            var budget = new MainActionBudgetService().ValidateCanSpend(state, playerId);
+            var budget = new MainActionBudgetService().ValidateCanSpend(state, playerId, YC.Domain.Rules.MainActionBudgetService.Explore);
             if (!budget.IsValid) return budget;
             IMapQueryService map;
             try { map = Map(state); }

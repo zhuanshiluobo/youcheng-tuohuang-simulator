@@ -7,9 +7,11 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using YC.Application.Sessions;
 using YC.Domain.Facilities;
 using YC.Domain.Effects;
 using YC.Domain.Rules;
+using YC.Domain.Presentation;
 using YC.Domain.State;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
@@ -127,10 +129,11 @@ namespace YC.Tests.PlayMode
         {
             yield return (IEnumerator)typeof(GameplayMainHudPlayModeTests)
                 .GetMethod("ClearLaunchContext", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            ConfigureLaunch("SampleScene");
             yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
             var controller = UnityEngine.Object.FindObjectOfType(T("MobileCityInteractionController"));
-            var session = Field(controller, "session");
+            var session = (GameSession)Field(controller, "session");
             var state = (GameState)Property(session, "State");
             var playerId = (int)Field(controller, "localPlayerId");
             PrepareBuildState(state, playerId);
@@ -138,6 +141,8 @@ namespace YC.Tests.PlayMode
             player.RemainingMainActionsThisTurn = 0;
             player.ActedMainActionThisTurn = true;
             PrepareSupply(state, FacilityCardDatabase.BoroughAdministrativeDistrict);
+            // 本项是隔离状态夹具：手动布置后显式发布投影，不作为正常对局验收。
+            session.RefreshLocalProjection(GameStateViewer.Player(playerId));
             Call(controller, "SynchronizeInteractionFromState");
             var hud = Field(controller, "gameplayInteractionHud");
             var actionView = Property(hud, "ActionPanelView");
@@ -170,8 +175,11 @@ namespace YC.Tests.PlayMode
             Assert.That(player.Resources.Iron, Is.EqualTo(resources.Iron));
             Assert.That(player.Resources.PureOriginium, Is.EqualTo(resources.PureOriginium));
             Assert.That(player.Resources.GoldVoucher, Is.EqualTo(resources.GoldVoucher));
-            Assert.That(((Text)Field(page, "supplyDeckText")).text,
-                Is.EqualTo(string.Format((string)Field(page, "supplyDeckFormat"), deck.Length)));
+            var visibleDecks = GameStateViewProjector.ProjectForPlayer(state, playerId).Decks;
+            var deckDocument = (GameplayTextDocument)Field(Field(page, "supplyDeckDocument"), "document");
+            Assert.That(deckDocument.Runs.OfType<NumberRun>().Select(number => number.Value), Is.EqualTo(new long[] {
+                visibleDecks.FacilityDeckRedCount, visibleDecks.FacilityDeckYellowCount,
+                visibleDecks.FacilityDeckBlueCount, visibleDecks.FacilityDeckRainbowCount }));
             var colors = (Color[])Field(page, "availableHubColors");
             var ids = new[] { FacilityCardDatabase.ExtensionHubRed, FacilityCardDatabase.ExtensionHubYellow,
                 FacilityCardDatabase.ExtensionHubBlue };
@@ -197,6 +205,7 @@ namespace YC.Tests.PlayMode
             Assert.That(page.gameObject.activeSelf, Is.False);
             player.ActedMainActionThisTurn = false;
             player.RemainingMainActionsThisTurn = 1;
+            session.RefreshLocalProjection(GameStateViewer.Player(playerId));
             Call(controller, "SynchronizeInteractionFromState");
             Assert.That(((Text)Field(actionView, "buildButtonLabel")).text,
                 Is.EqualTo(Field(actionView, "buildActionLabel")), "恢复主要行动后应回到建设入口。");
@@ -366,6 +375,27 @@ namespace YC.Tests.PlayMode
             var placementUi = Field(controller, "facilityBuildPlacement");
             var placementPage = (Component)Field(placementUi, "page");
             Assert.That(placementPage.gameObject.activeInHierarchy, Is.True, "付款后必须进入城市选位页面。");
+            var requestId = request.GetStableInteractionId();
+            var availableSlots = request.CandidateIds.ToArray();
+            ((Button)Field(placementPage, "viewCityStyles")).onClick.Invoke();
+            yield return null;
+            var styleDialog = Field(Field(controller, "workflowView"), "cityStyleDeclarationDialog");
+            var stylePage = (Component)Field(styleDialog, "view");
+            Assert.That(stylePage.gameObject.activeInHierarchy, Is.True, "已付款后仍可临时查看城市样式。");
+            Assert.That(placementPage.gameObject.activeInHierarchy, Is.False, "查看时只收起放置页。");
+            var previewModel = Field(styleDialog, "model");
+            Assert.That(Property(previewModel, "DeclareMode"), Is.False);
+            Assert.That(Property(previewModel, "TryUseSpecialAction"), Is.Null);
+            Assert.That(state.EffectRuntime.InteractionRequests.Single(item => item.Status == "open" &&
+                item.InteractionTypeId == "facility.build.placement").GetStableInteractionId(), Is.EqualTo(requestId));
+            ((Button)Property(stylePage, "ViewFacilitySupply")).onClick.Invoke();
+            yield return null;
+            Assert.That(placementPage.gameObject.activeInHierarchy, Is.True, "返回后必须继续原必答放置页。");
+            request = state.EffectRuntime.InteractionRequests.Single(item => item.Status == "open" &&
+                item.InteractionTypeId == "facility.build.placement");
+            Assert.That(request.GetStableInteractionId(), Is.EqualTo(requestId));
+            Assert.That(request.CandidateIds, Is.EqualTo(availableSlots));
+            Assert.That(player.Resources.GoldVoucher, Is.EqualTo(gold ? 100 - definition.GoldVoucherCost : 100), "查看不能重复扣费。");
             var slots = (Button[])Field(placementPage, "citySlots");
             var slot = int.Parse(request.CandidateIds[0]);
             Assert.That(slots[slot].interactable, Is.True);

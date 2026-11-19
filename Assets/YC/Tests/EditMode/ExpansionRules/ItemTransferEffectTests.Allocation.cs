@@ -162,7 +162,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase("nodes")][TestCase("nested_roots")][TestCase("depth")][TestCase("normalized")][TestCase("cycle")][TestCase("children")]
         public void AllocationPreservesExistingBudgetsBeforeOpeningTheRequest(string budget)
         {
-            var s=State();var r=AllocationRegistry();var spec=AllocationSpec(99,false,99,new[]{Digit(1)});EffectRuntimeLimits limits=null;
+            var s=State(validMapIdentity:true);var r=AllocationRegistry();var spec=AllocationSpec(99,false,99,new[]{Digit(1)});EffectRuntimeLimits limits=null;
             if(budget=="nodes")limits=new EffectRuntimeLimits(10000,64,10,4096,16384);
             if(budget=="nested_roots")spec.NestedEffectGroups[0][0]=EffectSpec.Condition(Enumerable.Range(0,17).Select(_=>Digit(1)).ToArray(),Array.Empty<EffectSpec>());
             if(budget=="depth")for(int i=0;i<17;i++)spec.NestedEffectGroups[0][0]=EffectSpec.Condition(new[]{spec.NestedEffectGroups[0][0]},Array.Empty<EffectSpec>());

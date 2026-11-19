@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
@@ -59,6 +60,39 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Assert.That(state.Decks.EventDeckYellow, Does.Contain("enterprise.event.cave_ruins"));
                 Assert.That(state.Decks.EventDeckRed, Does.Contain("enterprise.event.collection_platform"));
             }
+        }
+
+        [Test]
+        public void RecipeMapRestrictionsFollowSlotsRatherThanHardCodedEventIds()
+        {
+            // 独立目录快照：交换两张牌的地图限制，验证装配器读取配方而非卡牌名单。
+            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets", "StreamingAssets", "Content", "core"));
+            var recipes = (List<GameSetupRecipe>)typeof(ExternalContentPack)
+                .GetField("setupRecipes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(pack);
+            var standard = recipes.Single(r => r.RecipeId == "standard");
+            standard.Entries.Single(e => e.DefinitionId == "event_green_01").ApplicableMapIds.Add(StaticMapDefinitions.FourPlayerMapId);
+            standard.Entries.Single(e => e.DefinitionId == "event_green_06").ApplicableMapIds.Clear();
+            var config = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.ThreePlayerMapId };
+            var ids = ActiveContentCatalogBuilder.Build(pack, config).SetupRecipe.Entries.Select(e => e.DefinitionId).ToArray();
+            Assert.That(ids, Does.Not.Contain("event_green_01"));
+            Assert.That(ids, Does.Contain("event_green_06"));
+            standard.Entries.Single(e => e.DefinitionId == "event_green_01").ApplicableMapIds.Add("missing-map");
+            Assert.That(Assert.Throws<InvalidOperationException>(() => ActiveContentCatalogBuilder.Build(pack, config)).Message,
+                Is.EqualTo("setup_recipe_map_restriction_invalid"));
+        }
+
+        [Test]
+        public void ConflictingRecipeParametersRequireAnExplicitSupersession()
+        {
+            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets", "StreamingAssets", "Content", "core"));
+            var manifest = (JObject)typeof(ExternalContentPack)
+                .GetField("manifestSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(pack);
+            var infected = ((JArray)manifest["setupRecipeComposition"]).OfType<JObject>().Single(x => (string)x["recipeId"] == "infected");
+            infected["supersedes"] = new JArray();
+            var config = new GameRuleConfiguration { PlayerCount = 3, MapId = StaticMapDefinitions.ThreePlayerMapId,
+                EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
+            Assert.That(Assert.Throws<InvalidOperationException>(() => ActiveContentCatalogBuilder.Build(pack, config)).Message,
+                Does.StartWith("setup_recipe_parameter_conflict:"));
         }
 
         [TestCase(StaticMapDefinitions.ThreePlayerMapId)]

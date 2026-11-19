@@ -1,0 +1,29 @@
+{
+  "definitionId": "example.events.dream",
+  "contentType": "event",
+  "version": "1.0.0",
+  "displayName": "好梦在何方（试验）",
+  "expansionId": "example.events.green",
+  "replaces": {"expansionId": "core", "contentType": "event", "definitionId": "event_green_01"},
+  "enabled": true,
+  "artwork": "artwork/purple-events.png",
+  "artworkSpriteId": "example.events.dream-face",
+  "tags": ["example"],
+  "playerMarkerZones": [],
+  "abilities": [],
+  "applicableModes": [],
+  "requiredCapabilities": ["event.choices.v1", "event.artwork_buttons.v1"],
+  "data": {
+    "description": "测试替换事件：示例脚本不解释卡图中未确认的资源符号。",
+    "color": 0,
+    "resourceType": 0,
+    "resourceAmount": 1,
+    "representativeResourceType": 0,
+    "representativeResourceAmount": 1,
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
+      {"choiceId": "first", "description": "试验：获得 4 异铁。", "button": {"topPercent": 64, "bottomPercent": 77.5}, "script": "lua/dream.first.lua", "version": "1.0.0"},
+      {"choiceId": "second", "description": "获得 4 金券和 1 分。", "button": {"topPercent": 77.5, "bottomPercent": 92.5}, "script": "lua/dream.second.lua", "version": "1.0.0"}
+    ]
+  }
+}

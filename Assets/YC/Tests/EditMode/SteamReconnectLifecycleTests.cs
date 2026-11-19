@@ -19,6 +19,40 @@ namespace YC.Tests.EditMode
     public sealed class SteamReconnectLifecycleTests
     {
         [Test]
+        public void ManualReconnectNeverDisconnectsHealthySessionAndRetriesOriginalSteamIdentity()
+        {
+            using (var fixture = new Fixture())
+            {
+                var client = Target("Mirror.NetworkClient");
+                var state = client.GetField("connectState", Statics);
+                var original = state.GetValue(null);
+                int disconnected = 0;
+                Subscribe(fixture.Runtime, "LocalClientDisconnected", (Action)(() => disconnected++));
+                try
+                {
+                    state.SetValue(null, Enum.Parse(state.FieldType, "Connected"));
+                    Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                    Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.False);
+                    Assert.That(disconnected, Is.Zero, "主动操作不能切断健康链路。");
+                    state.SetValue(null, original);
+                    Call(fixture.Runtime, "OnLocalNetworkDisconnected");
+                    Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.True);
+                    Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.True);
+                    Assert.That(Read(fixture.Runtime, "HasClientReconnectIdentity"), Is.True);
+                    Assert.That(Call(fixture.Room, "GetCurrentRoom"), Is.Not.Null);
+                    Assert.That(fixture.Leaves, Is.Zero); Assert.That(fixture.Terminal, Is.Zero);
+                    Assert.That(disconnected, Is.EqualTo(1));
+                    Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.True);
+                    Assert.That(disconnected, Is.EqualTo(1), "重复点击不得重复发布物理断线。");
+                    fixture.Account = 303;
+                    Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                    Assert.That(fixture.Leaves, Is.Zero);
+                }
+                finally { state.SetValue(null, original); }
+            }
+        }
+
+        [Test]
         public void SteamDisconnectKeepsOriginalLobbySeatAndValidatesConnectedCallback()
         {
             using (var fixture = new Fixture())
@@ -54,20 +88,93 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void SteamExitDeadlineAndUnavailableIdentityCannotReviveOldSession()
+        public void SteamTimeoutKeepsOriginalRoomForExplicitRetry()
         {
             using (var fixture = new Fixture())
             {
                 Call(fixture.Runtime, "OnLocalNetworkDisconnected");
                 Set(fixture.Runtime, "localReconnectDeadline", Time.unscaledTime - 1f);
                 Set(fixture.Runtime, "nextLocalReconnectTime", Time.unscaledTime - 1f); Call(fixture.Runtime, "Update");
-                Assert.That(fixture.Failure, Is.EqualTo("simulation_steam_reconnect_timeout"));
-                Assert.That(fixture.Terminal, Is.EqualTo(1)); Assert.That(fixture.Leaves, Is.EqualTo(1));
-                Assert.That(Read(fixture.Runtime, "HasClientReconnectIdentity"), Is.False);
-                Call(fixture.Runtime, "OnLocalNetworkConnected"); Call(fixture.Runtime, "OnLocalNetworkDisconnected"); Call(fixture.Runtime, "Update");
-                Assert.That(Call(fixture.Runtime, "TryBeginClientReconnect"), Is.False); Assert.That(fixture.Connected, Is.EqualTo(0));
-                Assert.That(fixture.Terminal, Is.EqualTo(1));
+                Assert.That(fixture.Failure, Is.Null);
+                Assert.That(fixture.Terminal, Is.Zero); Assert.That(fixture.Leaves, Is.Zero);
+                Assert.That(Read(fixture.Runtime, "HasClientReconnectIdentity"), Is.True);
+                Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.False);
+                Assert.That(Read(fixture.Runtime, "IsClientReconnectWaitingForRetry"), Is.True);
+                Assert.That(((RoomState)Call(fixture.Room, "GetCurrentRoom")).GameId, Is.EqualTo("steam-original-game"));
+                Call(fixture.Runtime, "OnLocalNetworkConnected");
+                Assert.That(fixture.Connected, Is.Zero, "暂停期间的旧连接回调不能恢复会话。");
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.True);
+                Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.True);
+                Assert.That(Read(fixture.Runtime, "IsClientReconnectWaitingForRetry"), Is.False);
+                float deadline = (float)Get(fixture.Runtime, "localReconnectDeadline");
+                Assert.That(deadline, Is.GreaterThan(Time.unscaledTime));
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.True);
+                Assert.That((float)Get(fixture.Runtime, "localReconnectDeadline"), Is.EqualTo(deadline));
+                Assert.That(fixture.Terminal, Is.Zero); Assert.That(fixture.Leaves, Is.Zero);
             }
+        }
+
+        [Test]
+        public void SteamTimeoutStopsAnInFlightConnectionWithoutEndingTheRoom()
+        {
+            using (var fixture = new Fixture())
+            {
+                var client = Target("Mirror.NetworkClient");
+                var state = client.GetField("connectState", Statics); var original = state.GetValue(null);
+                var managerType = Target("Mirror.NetworkManager"); object manager = fixture.Root.AddComponent(managerType);
+                var mode = managerType.GetProperty("mode", Members);
+                Set(fixture.Runtime, "networkManager", manager);
+                try
+                {
+                    Call(fixture.Runtime, "OnLocalNetworkDisconnected");
+                    mode.GetSetMethod(true).Invoke(manager, new[] { Enum.Parse(mode.PropertyType, "ClientOnly") });
+                    state.SetValue(null, Enum.Parse(state.FieldType, "Connecting"));
+                    Set(fixture.Runtime, "localReconnectDeadline", Time.unscaledTime - 1f);
+                    Set(fixture.Runtime, "nextLocalReconnectTime", Time.unscaledTime - 1f); Call(fixture.Runtime, "Update");
+                    Assert.That(ReadMember(client, null, "isConnecting"), Is.False);
+                    Assert.That(Read(fixture.Runtime, "IsClientReconnectWaitingForRetry"), Is.True);
+                    Call(fixture.Runtime, "OnLocalNetworkDisconnected");
+                    Assert.That(fixture.Terminal, Is.Zero); Assert.That(fixture.Leaves, Is.Zero);
+                    Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.True);
+                    Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.True);
+                }
+                finally { state.SetValue(null, original); }
+            }
+        }
+
+        [Test]
+        public void SteamTimeoutDoesNotAllowRetryAfterRoomOrAccountChanges()
+        {
+            using (var fixture = new Fixture())
+            {
+                Call(fixture.Runtime, "OnLocalNetworkDisconnected");
+                Set(fixture.Runtime, "localReconnectDeadline", Time.unscaledTime - 1f);
+                Set(fixture.Runtime, "nextLocalReconnectTime", Time.unscaledTime - 1f); Call(fixture.Runtime, "Update");
+                fixture.Account = 303;
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                fixture.Account = 202; fixture.Owner = 999;
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                Call(fixture.Room, "RefreshRoom");
+                Assert.That(Call(fixture.Room, "GetCurrentRoom"), Is.Null);
+                Assert.That(Read(fixture.Runtime, "IsClientReconnectWaitingForRetry"), Is.False);
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                Assert.That(fixture.Disbanded, Is.EqualTo(1));
+            }
+            using (var fixture = new Fixture())
+            {
+                Call(fixture.Runtime, "OnLocalNetworkDisconnected");
+                Set(fixture.Runtime, "localReconnectDeadline", Time.unscaledTime - 1f);
+                Set(fixture.Runtime, "nextLocalReconnectTime", Time.unscaledTime - 1f); Call(fixture.Runtime, "Update");
+                Call(fixture.Room, "Shutdown");
+                Assert.That(Call(fixture.Runtime, "TryRequestClientReconnect"), Is.False);
+                Call(fixture.Runtime, "OnLocalNetworkConnected");
+                Assert.That(fixture.Connected, Is.Zero); Assert.That(fixture.Leaves, Is.EqualTo(1));
+            }
+        }
+
+        [Test]
+        public void SteamExitAndUnavailableIdentityCannotReviveOldSession()
+        {
             using (var fixture = new Fixture())
             {
                 Call(fixture.Runtime, "OnLocalNetworkDisconnected"); Call(fixture.Room, "Shutdown");
@@ -86,6 +193,36 @@ namespace YC.Tests.EditMode
                 Call(fixture.Runtime, "OnLocalNetworkDisconnected"); fixture.Owner = 999;
                 Call(fixture.Runtime, "OnLocalNetworkConnected");
                 Assert.That(fixture.Failure, Is.EqualTo("simulation_steam_host_changed")); Assert.That(fixture.Connected, Is.EqualTo(0));
+            }
+        }
+
+        [Test]
+        public void SteamTimeoutDuringConfirmedRecoveryKeepsSessionAndManualRetryAvailable()
+        {
+            var group = typeof(ConfirmedSimulationRecoveryTests).GetMethod("CreateGroup", Statics).Invoke(null, new object[] { false });
+            var sessions = (GameSession[])Get(group, "Sessions"); var registries = (EffectRegistry[])Get(group, "Registries");
+            var coordinators = (DeterministicSimulationCoordinator[])Get(group, "Coordinators");
+            using (var fixture = new Fixture(false, sessions[1].State.GameId, true))
+            {
+                object transport = fixture.Root.AddComponent(Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport"));
+                ConfigureTransport(transport, fixture, sessions[1], registries[1], coordinators[1], false);
+                try
+                {
+                    Call(transport, "OnCheckpointClientDisconnected");
+                    WaitForBackground(coordinators[1], () => coordinators[1].LastFault != null);
+                    Set(transport, "recoveryRequested", true);
+                    long applied = coordinators[1].LastAppliedSequence;
+                    Set(fixture.Runtime, "localReconnectDeadline", Time.unscaledTime - 1f);
+                    Set(fixture.Runtime, "nextLocalReconnectTime", Time.unscaledTime - 1f); Call(fixture.Runtime, "Update");
+                    Assert.That(Read(transport, "IsRecoveringConfirmedPrefix"), Is.True);
+                    Assert.That(Read(transport, "IsAwaitingLocalSimulationConnectionRecovery"), Is.True);
+                    Assert.That(Read(transport, "CanRequestLocalConnectionRecovery"), Is.True);
+                    Assert.That(Call(transport, "TryRequestLocalConnectionRecovery"), Is.True);
+                    Assert.That(Read(transport, "SimulationCoordinator"), Is.SameAs(coordinators[1]));
+                    Assert.That(coordinators[1].LastAppliedSequence, Is.EqualTo(applied));
+                    Assert.That(fixture.Terminal, Is.Zero); Assert.That(fixture.Leaves, Is.Zero);
+                }
+                finally { Call(transport, "Shutdown"); }
             }
         }
 
@@ -132,6 +269,7 @@ namespace YC.Tests.EditMode
                     SimulationProtocolFaultDto observed = null;
                     Subscribe(transport, "SimulationProtocolFaulted", (Action<SimulationProtocolFaultDto>)(fault => observed = fault));
                     Call(transport, "OnCheckpointClientDisconnected");
+                    WaitForBackground(coordinators[1], () => observed != null);
                     Assert.That(observed.FaultCode, Is.EqualTo("simulation_connection_lost"));
                     Assert.That(Read(transport, "IsAwaitingLocalSimulationConnectionRecovery"), Is.True);
                     Assert.That(Call(transport, "CanAwaitLocalSimulationConnectionRecovery", observed), Is.True);
@@ -148,7 +286,7 @@ namespace YC.Tests.EditMode
             using (var fixture = new Fixture(true, sessions[0].State.GameId, true))
             {
                 object transport = fixture.Root.AddComponent(Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport"));
-                ConfigureTransport(transport, fixture, sessions[0], registries[0], coordinators[0], true);
+                var hostCoordinator = ConfigureTransport(transport, fixture, sessions[0], registries[0], coordinators[0], true);
                 var provider = Target("YC.Infrastructure.Multiplayer.OnlineRoomServiceProvider");
                 string activeName = provider.GetField("active", Statics) != null ? "active" : "Active";
                 object previous = ReadMember(provider, null, activeName); SetMember(provider, null, activeName, fixture.Room);
@@ -167,7 +305,7 @@ namespace YC.Tests.EditMode
                         object bindings = Get(transport, "bindings"); object[] args = { 111, 0 };
                         Assert.That(Call(bindings, "TryGetPlayer", args), Is.True); Assert.That(args[1], Is.EqualTo(1));
                         Call(transport, "OnServerDisconnected", connection);
-                        Assert.That(coordinators[0].IsRecoveringConfirmedPrefix, Is.True);
+                        Assert.That(hostCoordinator.IsRecoveringConfirmedPrefix, Is.True);
                         Call(transport, "RequestConfirmedRecovery"); Assert.That(Read(transport, "IsRecoveringConfirmedPrefix"), Is.True);
                     }
                     finally { connections.Remove(111); SetMember(server, null, "active", false); SetMember(provider, null, activeName, previous); Call(transport, "Shutdown"); }
@@ -184,9 +322,20 @@ namespace YC.Tests.EditMode
                 object transport = fixture.Root.AddComponent(transportType); SetMember(transportType, null, "Instance", transport);
                 var state = new GameState { GameId = "steam-original-game", ContentPackHash = "ended-content", Phase = GamePhase.GameOver,
                     FinalScoring = new FinalScoringState { IsResolved = true } };
-                Set(transport, "session", new GameSession(state)); Set(transport, "initialized", true);
+                state.Players.Add(new PlayerState { PlayerId = 1 });
+                var session = new GameSession(state);
+                var options = DeterministicSimulationSessionOptions.CreateInitial(false, 1, session, new[] { 1 });
+                var coordinator = new DeterministicSimulationCoordinator(session, options); coordinator.Begin();
+                Set(transport, "session", session); Set(transport, "initialized", true); Set(transport, "simulationOptions", options);
+                var identity = new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
+                    SimulationEpoch = 1, MembershipVersion = 1, CheckpointId = "fixture.completed" };
+                var channel = Activator.CreateInstance(Target("YC.Infrastructure.Multiplayer.SimulationCheckpointChannel"), identity,
+                    new InitialSimulationCheckpointInstaller(session, new EffectRegistry(), GameStateViewer.Player(1)), null, new[] { 1 });
+                Set(transport, "checkpointChannel", channel); Set(transport, "mode", LaunchMode.Client); Set(transport, "localPlayerId", 1);
+                Call(transport, "AttachSimulation", coordinator, false);
                 try
                 {
+                    WaitForBackground(coordinator, () => coordinator.TryReadPublishedSnapshot(out _));
                     Assert.That(Read(transport, "HasCompletedSettlement"), Is.True);
                     Call(fixture.Runtime, "OnLocalNetworkDisconnected");
                     Assert.That(Read(fixture.Runtime, "IsReconnectingClient"), Is.False);
@@ -198,15 +347,31 @@ namespace YC.Tests.EditMode
             }
         }
 
-        private static void ConfigureTransport(object transport, Fixture fixture, GameSession session, EffectRegistry registry,
+        private static DeterministicSimulationCoordinator ConfigureTransport(object transport, Fixture fixture, GameSession session, EffectRegistry registry,
             DeterministicSimulationCoordinator coordinator, bool host)
         {
             var options = coordinator.SessionOptions; var room = (RoomState)Call(fixture.Room, "GetCurrentRoom");
             Call(transport, "InitializeDeterministicSimulation", session, host ? LaunchMode.Host : LaunchMode.Client, options.LocalPlayerId,
                 room.Seats.ToList(), options, host ? null : new InitialSimulationCheckpointInstaller(session, registry, GameStateViewer.Player(options.LocalPlayerId)),
                 host ? (Func<string>)(() => HostRecoveryService.SerializeArchive(session.CreateHostArchive())) : null);
-            Call(transport, "AttachSimulation", coordinator, false);
+            if (host) coordinator = (DeterministicSimulationCoordinator)Read(transport, "SimulationCoordinator");
+            else Call(transport, "AttachSimulation", coordinator, false);
+            WaitForBackground(coordinator, () => coordinator.TryReadPublishedSnapshot(out _));
             Call(transport, "ConfigureConfirmedRecovery", new SimulationConfirmedRecoveryInstaller(session, registry, GameStateViewer.Player(options.LocalPlayerId), options));
+            return coordinator;
+        }
+
+        private static void WaitForBackground(DeterministicSimulationCoordinator coordinator, Func<bool> condition)
+        {
+            var elapsed = System.Diagnostics.Stopwatch.StartNew();
+            while (elapsed.Elapsed < TimeSpan.FromSeconds(15))
+            {
+                coordinator.DrainMainThreadNotifications(128);
+                if (condition()) return;
+                if (coordinator.BackgroundExecutionException != null) throw coordinator.BackgroundExecutionException;
+                System.Threading.Thread.Sleep(5);
+            }
+            Assert.Fail("等待 Steam 重连夹具的后台快照或协议通知超时。");
         }
 
         // 仅隔离 Steam socket 地址读取；认证、冻结席位绑定和恢复方法均为实际生产对象。

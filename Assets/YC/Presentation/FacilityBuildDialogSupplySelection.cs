@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using YC.Domain.State;
 
 namespace YC.Presentation
 {
@@ -11,7 +12,7 @@ namespace YC.Presentation
         [SerializeField] private string supplySelectLabel;
         [SerializeField] private string supplySelectQuote;
 
-        public void ShowSupplySelection(FacilitySupplySelectionModel model, CardVisualCatalog catalog,
+        public void ShowSupplySelection(FacilitySupplySelectionModel model, GameStateView visible, int playerId, CardVisualCatalog catalog,
             string selectedId, Func<bool> isCurrent, Action<string> select, Action confirmSelection,
             Action decline, Action<GameplayTextView> renderPrompt = null)
         {
@@ -30,8 +31,11 @@ namespace YC.Presentation
             for (int i = 0; i < citySlots.Length; i++)
             {
                 citySlots[i].interactable = false; citySlots[i].onClick.RemoveAllListeners(); slotSelection[i].enabled = false;
-                // 纯选择不显示上一建设草稿的城市卡。
-                cityCards[i].enabled = false;
+                // 供应选择只读展示当前玩家城市，不能沿用上次草稿，也不能清空现有设施。
+                var placement = visible.Map.Facilities.FirstOrDefault(f => f.PlayerId == playerId && f.CityBoardSlotIndex == i);
+                var sprite = placement == null ? null : catalog.GetFacility(placement.FacilityCardId);
+                CardArtworkView.Set(cityCards[i], sprite);
+                cityCards[i].enabled = sprite != null;
             }
             foreach (var slot in fixedSupplySlots) slot.gameObject.SetActive(false);
             foreach (var slot in model.Slots)
@@ -58,6 +62,7 @@ namespace YC.Presentation
                     card.FallbackLabel.text = item.DefinitionId;
                     if (card.SelectionImage != null) card.SelectionImage.enabled = id == selectedId && model.CanSelect(id);
                     card.Button.interactable = model.CanSelect(id);
+                    card.SetSelectionEffect(card.Button.interactable, card.Button.interactable, id == selectedId);
                     card.Button.onClick.RemoveAllListeners();
                     card.Button.onClick.AddListener(() => { if (Current() && model.CanSelect(id)) select(id); });
                     card.ConfigureInspection(() =>

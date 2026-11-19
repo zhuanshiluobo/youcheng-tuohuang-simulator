@@ -230,12 +230,6 @@
         "$ref": "#/$defs/abilityHandler"
       }
     },
-    "actionCallPolicies": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/actionCallPolicy"
-      }
-    },
     "cubeAppearance": {
       "type": "object",
       "required": [
@@ -274,11 +268,14 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "enum": [
-          "standard",
-          "entrepreneur"
-        ]
+        "type": "string",
+        "minLength": 1
       }
+    },
+    "requiredMechanisms": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
     },
     "requiredCapabilities": {
       "type": "array",
@@ -289,7 +286,69 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "properties": { "contentType": { "const": "event" } }, "required": ["contentType"] },
+      "then": { "properties": { "data": { "$ref": "#/$defs/eventChoiceData" } } }
+    }
+  ],
   "$defs": {
+    "eventStableText": {
+      "type": "string", "minLength": 1, "maxLength": 128,
+      "pattern": "^(?=.*\\S)[^\\r\\n\\u0000]+$"
+    },
+    "eventLuaPath": {
+      "type": "string", "minLength": 1,
+      "pattern": "^(?![\\\\/])(?!.*:)(?!.*[\\\\/]{2})(?!.*(?:^|[\\\\/])\\.{1,2}(?:[\\\\/]|$))[^\\u0000-\\u001f\\u007f-\\u009f]+\\.lua$",
+      "description": "所属包内相对 Lua 路径；正式加载器另校验重解析点、文件存在及语法。"
+    },
+    "eventChoiceButton": {
+      "type": "object", "additionalProperties": false,
+      "required": ["topPercent", "bottomPercent"],
+      "properties": {
+        "topPercent": { "type": "number", "minimum": 0, "maximum": 100 },
+        "bottomPercent": { "type": "number", "minimum": 0, "maximum": 100 }
+      },
+      "x-nmc-invariant": "两个值必须有限且 topPercent < bottomPercent；同一卡内的半开区间互不重叠。"
+    },
+    "eventChoice": {
+      "type": "object", "additionalProperties": false,
+      "required": ["choiceId", "description", "button", "script", "version"],
+      "properties": {
+        "choiceId": { "$ref": "#/$defs/eventStableText" },
+        "description": { "type": "string", "pattern": "\\S" },
+        "button": { "$ref": "#/$defs/eventChoiceButton" },
+        "script": { "$ref": "#/$defs/eventLuaPath" },
+        "version": { "$ref": "#/$defs/eventStableText" },
+        "completionHandlerId": { "type": "string", "maxLength": 128, "pattern": "^$|^(?=.*\\S)[^\\r\\n\\u0000]+$" }
+      }
+    },
+    "eventChoiceData": {
+      "type": "object", "additionalProperties": false,
+      "required": ["description", "color", "resourceType", "resourceAmount", "representativeResourceType", "representativeResourceAmount", "eventChoiceSchemaVersion", "choices"],
+      "properties": {
+        "cardId": { "$ref": "#/$defs/eventStableText" },
+        "name": { "type": "string" },
+        "description": { "type": "string", "pattern": "\\S" },
+        "color": { "type": "integer", "minimum": 0, "maximum": 2 },
+        "resourceType": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "resourceAmount": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "representativeResourceType": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "representativeResourceAmount": { "type": "integer", "minimum": 1, "maximum": 2147483647 },
+        "eventChoiceSchemaVersion": { "const": 1 },
+        "choices": { "type": "array", "maxItems": 16, "items": { "$ref": "#/$defs/eventChoice" } },
+        "immediateResolve": {
+          "type": "object", "additionalProperties": false, "required": ["script", "version"],
+          "properties": { "script": { "$ref": "#/$defs/eventLuaPath" }, "version": { "$ref": "#/$defs/eventStableText" } }
+        }
+      },
+      "allOf": [{
+        "if": { "properties": { "choices": { "maxItems": 0 } }, "required": ["choices"] },
+        "then": { "required": ["immediateResolve"] },
+        "else": { "not": { "required": ["immediateResolve"] } }
+      }],
+      "x-nmc-invariant": "choiceId 在本卡唯一；完成处理器属于本定义；脚本和百分比由正式加载器进行跨字段、文件与语法验证。"
+    },
     "abilitySource": {
       "type": "object",
       "additionalProperties": false,
@@ -377,6 +436,14 @@
           },
           "uniqueItems": true
         },
+        "responseKinds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
         "allowedOperations": {
           "description": "载体v2许可：carrier.load / carrier.store / carrier.pay.original_supply / carrier.pay.retired，后接:目标definitionId:实际localZoneId:接受typeId；不得使用通配符。",
           "type": "array",
@@ -442,9 +509,6 @@
             "character_action_round"
           ]
         },
-        "directCallPolicy": {
-          "type": "string"
-        },
         "presentationRef": {
           "type": "string",
           "minLength": 1
@@ -477,41 +541,6 @@
         },
         "completionHandlerId": {
           "type": "string"
-        }
-      }
-    },
-    "actionCallPolicy": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "policyRef",
-        "callerAbilityId",
-        "targetActionId"
-      ],
-      "properties": {
-        "policyRef": {
-          "type": "string"
-        },
-        "callerAbilityId": {
-          "type": "string"
-        },
-        "targetActionId": {
-          "type": "string"
-        },
-        "callerHandlerRef": {
-          "type": "string"
-        },
-        "callerHandlerHash": {
-          "type": "string"
-        },
-        "omitEntryCost": {
-          "type": "boolean"
-        },
-        "omitEntryAfterEffects": {
-          "type": "boolean"
-        },
-        "omitMainAction": {
-          "type": "boolean"
         }
       }
     },

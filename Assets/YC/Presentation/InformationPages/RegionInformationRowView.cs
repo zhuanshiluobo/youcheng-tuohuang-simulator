@@ -18,11 +18,11 @@ namespace YC.Presentation
         private readonly List<InformationValueCell> participants = new List<InformationValueCell>();
         public bool IsConfigured => region != null && region.IsConfigured && points != null &&
             participantTemplate != null && participantTemplate.IsConfigured && empty != null && empty.IsConfigured;
-        public void Render(RegionInformationRow row, IReadOnlyList<PlayerState> players)
+        public void Render(RegionInformationRow row, IReadOnlyList<PlayerState> players, bool waitingForPreview = false)
         {
             region.Render(RegionInformationPageView.RegionColor(row.RegionId),
                 string.IsNullOrEmpty(regionLabelFormat) ? row.Label : string.Format(regionLabelFormat, row.RegionId));
-            points.text = string.Format(pointsFormat, row.Points);
+            points.text = string.Format(pointsFormat, waitingForPreview ? unknown : row.Points.ToString());
             while (participants.Count < players.Count)
             {
                 var cell = Instantiate(participantTemplate, participantTemplate.transform.parent, false);
@@ -34,7 +34,9 @@ namespace YC.Presentation
                 participants[i].gameObject.SetActive(i < players.Count);
                 if (i >= players.Count) continue;
                 row.Influence.TryGetValue(players[i].PlayerId, out var count);
-                participants[i].Render(RegionInformationPageView.PlayerColor(players[i].Color), count.ToString());
+                var display = row.InfluenceDisplay != null && row.InfluenceDisplay.TryGetValue(players[i].PlayerId, out var parts)
+                    ? parts : count.ToString();
+                participants[i].Render(RegionInformationPageView.PlayerColor(players[i].Color), waitingForPreview ? unknown : display);
             }
             empty.Render(InfluenceMarker2DColor.Empty, row.EmptySlots?.ToString() ?? unknown);
         }

@@ -351,7 +351,7 @@ namespace YC.Application.Sessions
             if (OnBackgroundMainThread) return TryCreateBackgroundProposal(command, out proposal, out validation);
             proposal = null;
             validation = new ValidationResult(false, CommandErrorCode.WrongPhase, "当前模拟未就绪或已停止。");
-            if (!begun || stopped || recoveryFrozen || command == null) return false;
+            if (!begun || stopped || recoveryFrozen || coordinatedReconnectBarrier || command == null) return false;
             if (pendingLocal != null) { validation = new ValidationResult(false, CommandErrorCode.WrongPhase, "上一条本地命令尚未执行。"); return false; }
             if (command.PlayerId != options.LocalPlayerId) { validation = new ValidationResult(false, CommandErrorCode.InvalidPlayer, "只能提交本人命令。"); return false; }
             int revision = session.State.EffectRuntime?.StateRevision ?? 0;
@@ -378,7 +378,7 @@ namespace YC.Application.Sessions
             var result = new SimulationProposalResultDto { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch, MembershipVersion = options.MembershipVersion,
                 Status = OperationAdmissionStatus.Rejected, ErrorCode = CommandErrorCode.WrongPhase, Reason = "当前模拟不受理提案。",
                 HostSequencedThrough = LastSequencedSequence, ExpectedClientSubmissionSequence = sequencer?.ReadNextSubmissionSequence(verifiedSourcePlayerId) ?? 1 };
-            if (!begun || stopped || recoveryFrozen || sequencer == null) return result;
+            if (!begun || stopped || recoveryFrozen || coordinatedReconnectBarrier || sequencer == null) return result;
             try { result.Proposal = OperationCommandCanonicalizer.SnapshotProposal(proposal); OperationCommandCanonicalizer.CanonicalProposalDigest(result.Proposal); }
             catch (ArgumentException exception) { result.ErrorCode = CommandErrorCode.UnknownCommand; result.Reason = exception.Message; return result; }
             var owned = result.Proposal;

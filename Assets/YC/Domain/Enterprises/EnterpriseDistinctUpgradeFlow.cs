@@ -25,9 +25,8 @@ namespace YC.Domain.Enterprises
             if (context.ChildNodes.Any(n => n.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("enterprise_upgrade_failed");
             int count = Number(node.NormalizedArguments, "count");
             if (selected.Count == count) return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true))).WithFlowStage("finished");
-            var candidates = context.State.ItemZones.Items.Where(i => !selected.Contains(i.ItemId) &&
-                context.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.enterprise_display"))
-                .Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList();
+            var query = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions);
+            var candidates = query.GetEnterpriseItemIds(context.State).Where(id => !selected.Contains(id) && query.CanUpgrade(context.State, node.PlayerId, id)).ToList();
             if (candidates.Count < count - selected.Count) return EffectStepResult.Failed("insufficient_distinct_enterprises");
             if (node.FlowStage == "choose_enterprise")
             {

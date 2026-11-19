@@ -33,7 +33,13 @@ namespace YC.Domain.Effects
                 frozenSource.HandlerRef != handler || frozenSource.DeclarationVersion != declaration.DeclarationVersion || frozenSource.ActiveFaceId != declaration.ActiveFaceId)
                 return false;
             var setup = state.EntrepreneurSetup;
-            if (setup == null || setup.ProtocolVersion != 1 || setup.SetupProtocolVersion != 3 || setup.ContentVersion != ContentPackHash) return false;
+            if (setup == null || setup.ProtocolVersion != 1 ||
+                setup.SetupProtocolVersion != 3 && setup.SetupProtocolVersion != 4 || setup.ContentVersion != ContentPackHash) return false;
+            if (setup.SetupProtocolVersion == 4)
+            {
+                var setupOwner = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == setup.OwnerEffectId);
+                if (!EntrepreneurFlow.IsFrameworkSetupOwner(state, setupOwner)) return false;
+            }
             var player = setup.Players.SingleOrDefault(p => p.PlayerId == node.PlayerId);
             var definition = state.ContentDefinitions.Entrepreneurs.SingleOrDefault(d => d.DefinitionId == player?.DefinitionId);
             var owner = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == node.ParentEffectId && n.PlayerId == node.PlayerId);

@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using NUnit.Framework;
 using YC.Application.Setup;
 using YC.Domain.Cards;
@@ -7,6 +9,7 @@ using YC.Domain.Facilities;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
@@ -244,21 +247,28 @@ namespace YC.Tests.EditMode
             state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
             state.Decks.EventDeckGreen.Add("event_green_01");
-            var handler = CreateFourPlayerHandler();
+            var handler = CreateFourPlayerEventFixture(state);
 
-            var placeResult = handler.Handle(state, InitialLocationCommand(1, "G-01"));
+            var placeResult = PlaceFirstEntrance(state, handler, "G-01");
+            Assert.That(placeResult.Succeeded, Is.True, placeResult.Validation?.Reason);
             Assert.That(state.PendingCardSession, Is.Null);
             Assert.That(state.PendingChoice, Is.Null);
             Assert.That(state.EffectRuntime.InteractionRequests.Exists(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId), Is.True);
 
-            var resolveResult = handler.Handle(state, EntranceEventCommand(1, "0"));
+            var request = state.EffectRuntime.InteractionRequests.Find(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId);
+            int before = state.FindPlayer(1).Resources.OriginiumShard;
+            var numeric = handler.Handle(state, EntranceEventCommand(state, 1, "0"));
+            Assert.That(numeric.Succeeded, Is.False, "新事件不能把数字下标猜成稳定选择。");
+            Assert.That(numeric.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(before));
+            var resolveResult = handler.Handle(state, EntranceEventCommand(state, 1, request.CandidateIds[0]));
 
             Assert.That(placeResult.Succeeded, Is.True);
-            Assert.That(resolveResult.Succeeded, Is.True);
-            Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == EventCardEffectEventTypeIds.Resolved && e.RouteKey == "event_green_01"), Is.True);
+            Assert.That(resolveResult.Succeeded, Is.True, resolveResult.Validation?.Reason);
+            Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == EventCardEffectEventTypeIds.Resolved && e.RouteKey == request.CandidateIds[0]), Is.True);
             Assert.That(state.PendingChoice, Is.Null);
             Assert.That(state.PendingCardSession, Is.Null);
-            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(3));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(before + 3));
             Assert.That(state.CurrentPlayerId, Is.EqualTo(2));
             Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(1));
             Assert.That(state.Map.ResourceTokens[0].LocationId, Is.EqualTo("G-01"));
@@ -303,16 +313,19 @@ namespace YC.Tests.EditMode
             state.StartPlayerId = 1;
             state.CurrentPlayerId = 1;
             state.Decks.EventDeckGreen.Add("event_green_01");
-            var handler = CreateFourPlayerHandler();
+            var handler = CreateFourPlayerEventFixture(state);
 
-            handler.Handle(state, InitialLocationCommand(1, "G-01"));
-            var result = handler.Handle(state, EntranceEventCommand(1, "9"));
+            var placeResult = PlaceFirstEntrance(state, handler, "G-01");
+            Assert.That(placeResult.Succeeded, Is.True, placeResult.Validation?.Reason);
+            int before = state.FindPlayer(1).Resources.OriginiumShard;
+            int current = state.CurrentPlayerId;
+            var result = handler.Handle(state, EntranceEventCommand(state, 1, "9"));
 
             Assert.That(result.Succeeded, Is.False);
             Assert.That(result.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.InvalidTarget));
             Assert.That(state.EffectRuntime.InteractionRequests.Exists(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId), Is.True);
-            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.Zero);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.OriginiumShard, Is.EqualTo(before));
+            Assert.That(state.CurrentPlayerId, Is.EqualTo(current));
         }
 
         private static SetupCommandHandler CreateHandler()
@@ -323,6 +336,30 @@ namespace YC.Tests.EditMode
         private static SetupCommandHandler CreateFourPlayerHandler()
         {
             return PlayerEntranceMainlineTests.Handler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+        }
+
+        private static SetupCommandHandler CreateFourPlayerEventFixture(GameState state)
+        {
+            var pack = ExternalContentPack.Load(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core"));
+            state.ContentDefinitions = new GameContentDefinitions { Events = pack.CreateEvents().ToList() };
+            var handler = new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()));
+            EventCardLuaCatalog.Register(handler.EffectRegistry, pack);
+            return handler;
+        }
+
+        private static CommandResult PlaceFirstEntrance(GameState state, SetupCommandHandler handler, string location)
+        {
+            state.GameId = "fixture.entrance.stable_choice";
+            state.UseSeatTurnOrder = true;
+            var start = new RoundExecutionService(handler.EffectRegistry).StartEntrance(state);
+            Assert.That(start.IsValid, Is.True, start.Reason);
+            var request = state.EffectRuntime.InteractionRequests.Find(item => item.Status == "open" &&
+                item.AnsweringPlayerId == 1 && item.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId);
+            Assert.That(request, Is.Not.Null, "真实入场主链必须先生成本人选点请求。");
+            var command = InitialLocationCommand(1, location);
+            command.Parameters["interactionId"] = request.GetStableInteractionId();
+            command.Parameters["expectedRevision"] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return handler.Handle(state, command);
         }
 
         private static GameState CreateState(GamePhase phase)
@@ -398,14 +435,20 @@ namespace YC.Tests.EditMode
             };
         }
 
-        private static GameCommand EntranceEventCommand(int playerId, string optionId)
+        private static GameCommand EntranceEventCommand(GameState state, int playerId, string optionId)
         {
-            return new GameCommand
+            var request = state.EffectRuntime.InteractionRequests.Find(item => item.Status == "open" &&
+                item.AnsweringPlayerId == playerId && item.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId);
+            Assert.That(request, Is.Not.Null);
+            var command = new GameCommand
             {
                 Kind = GameCommandKind.ResolveEntranceEvent,
                 PlayerId = playerId,
                 OptionIds = { optionId }
             };
+            command.Parameters["interactionId"] = request.GetStableInteractionId();
+            command.Parameters["expectedRevision"] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return command;
         }
 
         private static void AssertCardsHaveDisplayText(System.Collections.Generic.IEnumerable<string> cardIds)

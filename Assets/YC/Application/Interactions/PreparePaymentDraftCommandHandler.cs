@@ -26,7 +26,7 @@ namespace YC.Application.Interactions
             string operation = Read("operation");
             // 效果准备由当前正式请求许可；不拿主要行动阶段拒绝其他阶段的真实授予。
             bool sourceEdit = new[] { "begin_source_edit", "cancel_source_edit", "withdraw_source", "save_source" }.Contains(operation);
-            if (operation != "prepare_effect_build" && operation != "cancel_effect_build" && operation != "select_total" && operation != "change_payment_mode" && !sourceEdit)
+            if (operation == "prepare_action" || operation == "cancel_action")
             {
                 var phase = CommandPhasePolicy.ValidatePhase(state, command.Kind);
                 if (!phase.IsValid) return CommandResult.Invalid(phase);

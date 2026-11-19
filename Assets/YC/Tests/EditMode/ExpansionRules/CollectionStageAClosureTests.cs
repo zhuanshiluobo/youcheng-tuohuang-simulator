@@ -130,7 +130,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             using(var f=new CollectionPlanTestFixture(configure:(token,replacements,manifest)=>{
                 ((JArray)token["abilitySources"]).Add(JObject.FromObject(new AbilitySourceDeclaration {AbilityId="qy009.real-response",Kind="event",HandlerRef="qy009.real-response",DeclarationVersion="1.0.0",AuthorizationPolicy="owner",PresentationRef=CollectionPlanTestFixture.Token,
-                    EffectiveZones=new List<string>{"core.zone.box_reserve"},ObservedEvents=new List<string>{"InfluenceRemoved"},AllowedOperations=new List<string>{"response.optional_effect","response.self"}}));
+                    EffectiveZones=new List<string>{"core.zone.box_reserve"},ObservedEvents=new List<string>{"InfluenceRemoved"},ResponseKinds=new List<string>{"response.optional_effect","response.self"}}));
                 ((JArray)token["abilityHandlers"]).Add(new JObject{["handlerId"]="qy009.real-response",["version"]="1.0.0",["script"]="lua/qy009_real_response.lua"});
                 replacements["lua/qy009_real_response.lua"]=@"return function(ctx) if ctx.payload.ownerPlayerId~=tonumber(string.sub(ctx.playerId,2)) or ctx.payload.itemTypeId~='entrepreneur.gang_marker' then return {} end
 local location=string.match(ctx.payload.fromSlotId,'^location:(.+):%d+$');if not location then return {} end

@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.character.flowing_shape_gamma",
   "contentType": "character",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "displayName": "流形丙",
   "expansionId": "infected",
   "replaces": null,
@@ -30,7 +30,7 @@
       "skillType": "one_shot",
       "subscriptionId": "content.infected.character.flowing_shape_gamma.tactic",
       "script": "lua/characters/infected.character.flowing_shape_gamma.tactic.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": "",
       "cleanupScript": "",
       "hasSpecialZone": false,
@@ -76,7 +76,6 @@
           "usageTrackId": "",
           "lifecyclePolicy": "position",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 0,
           "presentationRef": "infected.character.flowing_shape_gamma",
           "presentation": {

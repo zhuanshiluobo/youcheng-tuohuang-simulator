@@ -19,6 +19,7 @@ namespace YC.Presentation
         private GameLaunchContext context;
         private MatchSaveData preparedLocalSource;
         private string preparedLocalArchive, preparedLocalContinuation, preparedLocalContentHash;
+        private long preparedLocalContentGeneration;
         private GameSessionBootstrapper.Result preparedLocalResult;
         private int generation, dirty, saved;
         private bool saving, leaving, allowQuit;
@@ -43,11 +44,16 @@ namespace YC.Presentation
             return weakObservation == null ? MatchSaveWeakSnapshot.Disabled(performance.Weak, performance.DisableAutomatic, queue) : weakObservation.ReadSnapshot(queue);
         }
         private SimulationPublishedSnapshot completedHostSnapshot;
+        private GameSessionRecoveryExport completedPrivateCapture;
+        private long completedPrivateEpoch;
+        private int completedPrivateMembership;
+        private bool completedPrivateAutomaticPending;
         private MatchSaveData completedHostHeader;
         private int completedHostSaveGeneration = -1;
         private MirrorCommandTransport saveTransport;
         private Action<SimulationCommandAppliedDto> networkApplied;
         private Action<SimulationWindowSavePoint> networkWindowSaved;
+        private Action<long> privateHostCommitted;
         private WindowAutoSaveQueue windowAutoSaves = new WindowAutoSaveQueue();
         private int hostMutationVersion, savedHostMutationVersion;
         private Action<DeterministicSimulationCoordinator> networkRecovered;
@@ -84,18 +90,26 @@ namespace YC.Presentation
             ClearPreparedLocalRestore(); Unbind(); saveLifetime.Dispose(); UnityEngine.Application.wantsToQuit -= WantsToQuit; Instance = null;
         }
         public Task<System.Collections.Generic.List<MatchSaveSlot>> ListSlotsAsync() => store.ListAsync();
+        public Task<System.Collections.Generic.List<MatchSaveSlot>> ListSlotPreviewsAsync() => store.ListPreviewsAsync();
         public Task Delete(int slot) => store.DeleteAsync(slot);
-        public MatchSaveData Read(int slot)
+        public MatchSaveData Read(int slot) => ReadCore(slot, null);
+        public MatchSaveData ReadWithValidation(int slot, MatchSaveData.ValidationScope validation)
+        {
+            if (validation == null) throw new ArgumentNullException(nameof(validation));
+            return ReadCore(slot, validation);
+        }
+        private MatchSaveData ReadCore(int slot, MatchSaveData.ValidationScope validation)
         {
             ClearPreparedLocalRestore();
-            var data = store.Read(slot);
-            var prepared = GameSessionBootstrapper.Restore(null, data);
-            store.EnsureResumeCapacity(data.GameId); store.SetRestoreSource(slot, data.GameId);
+            var data = store.ReadForResume(slot, validation, out var observation);
+            var prepared = validation == null ? GameSessionBootstrapper.Restore(null, data) : GameSessionBootstrapper.RestoreWithValidation(null, data, validation);
+            store.EnsureResumeCapacityForRead(data.GameId, observation); store.SetRestoreSource(slot, data.GameId);
             if (data.Mode == LaunchMode.Local)
             {
                 preparedLocalSource = data; preparedLocalArchive = data.ArchiveJson;
                 preparedLocalContinuation = data.ContinuationJson;
                 preparedLocalContentHash = ExternalContentRuntime.Pack.ContentHash;
+                preparedLocalContentGeneration = ExternalContentRuntime.ContentGeneration;
                 preparedLocalResult = prepared;
             }
             return data;
@@ -107,7 +121,8 @@ namespace YC.Presentation
             var result = preparedLocalResult;
             bool matches = result != null && ReferenceEquals(data, preparedLocalSource) && data.Mode == LaunchMode.Local &&
                 ReferenceEquals(data.ArchiveJson, preparedLocalArchive) && ReferenceEquals(data.ContinuationJson, preparedLocalContinuation) &&
-                data.LocalPlayerId == result.LocalPlayerId && preparedLocalContentHash == installedContentHash;
+                data.LocalPlayerId == result.LocalPlayerId && preparedLocalContentHash == installedContentHash &&
+                preparedLocalContentGeneration == ExternalContentRuntime.ContentGeneration;
             ClearPreparedLocalRestore();
             if (!matches) return null;
             data.Validate(); // 头/席位可能被调用方修改；保留进入地图前的完整存档约束。
@@ -116,7 +131,7 @@ namespace YC.Presentation
         internal void ClearPreparedLocalRestore()
         {
             preparedLocalSource = null; preparedLocalArchive = null; preparedLocalContinuation = null;
-            preparedLocalContentHash = null; preparedLocalResult = null;
+            preparedLocalContentHash = null; preparedLocalContentGeneration = 0; preparedLocalResult = null;
         }
         public void Bind(GameSession value, GameLaunchContext launch)
         {
@@ -141,9 +156,17 @@ namespace YC.Presentation
                     if (AutomaticSavingEnabled && !leaving && Current() && point.GameId == launch.GameId && point.LocalPlayerId == launch.LocalPlayerId && windowAutoSaves.Enqueue(point) && performance.Performance)
                         peakAutomaticWindowSaves = Math.Max(peakAutomaticWindowSaves, windowAutoSaves.Count);
                 };
-                saveTransport.SimulationCommandApplied += networkApplied;
-                saveTransport.AutomaticSavePointConfirmed += networkWindowSaved;
-                saveTransport.SimulationRecoveryCompleted += networkRecovered;
+                if (saveTransport.UsesPrivateTransport)
+                {
+                    privateHostCommitted = _ => { if (Current()) { hostMutationVersion++; ClearCompletedHostSave(); } };
+                    saveTransport.PrivateHostCommitted += privateHostCommitted;
+                }
+                else
+                {
+                    saveTransport.SimulationCommandApplied += networkApplied;
+                    saveTransport.AutomaticSavePointConfirmed += networkWindowSaved;
+                    saveTransport.SimulationRecoveryCompleted += networkRecovered;
+                }
             }
             store.BeginMatch(launch.Mode == LaunchMode.Local ? session.State.GameId : launch.GameId, launch.RestoreData == null);
             weakObservation?.Bind(launch.Mode == LaunchMode.Local ? session.State.GameId : launch.GameId);
@@ -153,6 +176,8 @@ namespace YC.Presentation
         private void ClearCompletedHostSave()
         {
             completedHostSnapshot = null; completedHostHeader = null; completedHostSaveGeneration = -1;
+            completedPrivateCapture = null; completedPrivateEpoch = 0; completedPrivateMembership = 0;
+            completedPrivateAutomaticPending = false;
         }
         public void Unbind()
         {
@@ -164,8 +189,9 @@ namespace YC.Presentation
                 saveTransport.SimulationCommandApplied -= networkApplied;
                 saveTransport.AutomaticSavePointConfirmed -= networkWindowSaved;
                 saveTransport.SimulationRecoveryCompleted -= networkRecovered;
+                saveTransport.PrivateHostCommitted -= privateHostCommitted;
             }
-            saveTransport = null; networkApplied = null; networkRecovered = null; networkWindowSaved = null;
+            saveTransport = null; networkApplied = null; networkRecovered = null; networkWindowSaved = null; privateHostCommitted = null;
             windowAutoSaves = new WindowAutoSaveQueue(); hostMutationVersion = savedHostMutationVersion = 0;
             generation++; session = null; context = null; dirty = saved = 0; saving = leaving = false;
             ClearCompletedHostSave(); lastFailure = null; retryAt = 0f; allowQuit = false; observationSaveId = 0;
@@ -178,6 +204,21 @@ namespace YC.Presentation
             {
                 if (!CanSave || context != launch || context.Mode != LaunchMode.Host || context.IsCompletedSessionDetached)
                     throw new InvalidOperationException("当前对局没有可保留的房主终局确认存档。");
+                if (saveTransport?.UsesPrivateTransport == true)
+                {
+                    if (!saveTransport.TryReadPrivateTerminalCapture(out var capture, out bool automaticPending))
+                        throw new InvalidOperationException("终局尚未由全部原席位确认。");
+                    var state = capture?.Archive?.Snapshot?.State;
+                    if (state?.FinalScoring?.IsResolved != true || state.GameId != context.GameId ||
+                        state.Phase != GamePhase.FinalScoring && state.Phase != GamePhase.GameOver)
+                        throw new InvalidOperationException("私密终局检查点不属于当前对局。");
+                    completedPrivateCapture = capture; completedPrivateEpoch = saveTransport.PrivateSessionEpoch;
+                    completedPrivateMembership = saveTransport.PrivateMembershipVersion;
+                    completedPrivateAutomaticPending = automaticPending;
+                    completedHostHeader = CreateHostSaveHeader(); completedHostHeader.ContentHash = state.ContentPackHash;
+                    completedHostSaveGeneration = generation;
+                    return true;
+                }
                 var snapshot = ReadHostSaveSnapshot();
                 if (!snapshot.IsCurrentBoundaryConfirmed) throw new InvalidOperationException("终局窗口尚未由规定副本完整确认。");
                 if (!snapshot.FinalScoringResolved || snapshot.Phase != GamePhase.FinalScoring && snapshot.Phase != GamePhase.GameOver)
@@ -219,9 +260,17 @@ namespace YC.Presentation
         private async void LateUpdate()
         {
             if (!AutomaticSavingEnabled || !CanSave || saving || leaving || Time.unscaledTime < retryAt) return;
-            if (context.Mode == LaunchMode.Host ? windowAutoSaves.Count == 0 : dirty == saved) return;
+            if (context.IsCompletedSessionDetached && completedPrivateCapture != null)
+            {
+                if (!completedPrivateAutomaticPending) return;
+                int retainedEpoch = generation;
+                if (!await SaveCore(-1, true) && retainedEpoch == generation) retryAt = Time.unscaledTime + 2f;
+                return;
+            }
+            bool privateHost = context.Mode == LaunchMode.Host && saveTransport?.UsesPrivateTransport == true;
+            if (privateHost ? !saveTransport.PrivateAutomaticSaveReady : context.Mode == LaunchMode.Host ? windowAutoSaves.Count == 0 : dirty == saved) return;
             int epoch = generation;
-            bool ok = context.Mode == LaunchMode.Host ? await SaveAutomaticWindow() : await SaveCore(-1, true);
+            bool ok = context.Mode == LaunchMode.Host && !privateHost ? await SaveAutomaticWindow() : await SaveCore(-1, true);
             if (!ok && epoch == generation) retryAt = Time.unscaledTime + 2f;
         }
         private async Task<bool> SaveAutomaticWindow()
@@ -347,7 +396,26 @@ namespace YC.Presentation
             try
             {
                 Task write;
-                if (context?.Mode == LaunchMode.Host)
+                long privateSavedSequence = -1;
+                bool retainedPrivate = context?.Mode == LaunchMode.Host && context.IsCompletedSessionDetached &&
+                    completedPrivateCapture != null && completedHostHeader != null && completedHostSaveGeneration == generation;
+                if (context?.Mode == LaunchMode.Host && (retainedPrivate || saveTransport?.UsesPrivateTransport == true))
+                {
+                    GameSessionRecoveryExport capture;
+                    if (retainedPrivate) capture = completedPrivateCapture;
+                    else if (!saveTransport.TryCapturePrivateHostSave(out capture, out var reason))
+                        throw new InvalidOperationException("私密联机保存点尚未就绪：" + reason);
+                    var source = capture.Archive.Snapshot.State;
+                    var header = retainedPrivate ? GameStateCloneService.DeepClone(completedHostHeader) : CreateHostSaveHeader();
+                    header.SavedUtcTicks = DateTime.UtcNow.Ticks; header.ContentHash = source.ContentPackHash;
+                    privateSavedSequence = source.PrivateCommandLedger.CommittedSequence;
+                    long privateEpoch = retainedPrivate ? completedPrivateEpoch : saveTransport.PrivateSessionEpoch;
+                    int privateMembership = retainedPrivate ? completedPrivateMembership : saveTransport.PrivateMembershipVersion;
+                    using (NetworkExecutionObservation.Begin("save.enqueue_sync", observationContext))
+                        write = store.SavePreparedWithValidationAsync(validation => MatchSaveData.CreateFromPrivateCaptureAsync(header, capture,
+                            privateEpoch, privateMembership, validation), source.GameId, source.ContentPackHash, slot, saveLifetime.Token, operationTrace, weak);
+                }
+                else if (context?.Mode == LaunchMode.Host)
                 {
                     var snapshot = context.IsCompletedSessionDetached ? ReadRetainedHostSnapshot() : ReadHostSaveSnapshot();
                     var header = context.IsCompletedSessionDetached ? GameStateCloneService.DeepClone(completedHostHeader) : CreateHostSaveHeader();
@@ -378,6 +446,9 @@ namespace YC.Presentation
                 NetworkExecutionObservation.ObserveCompletion(write, observationContext);
                 using (NetworkExecutionObservation.Begin("save.await_resume", observationContext)) await write;
                 if (epoch != generation) return false;
+                if (automatic && privateSavedSequence >= 0) saveTransport?.ConfirmPrivateAutomaticSaveWritten(privateSavedSequence);
+                if (automatic && completedPrivateCapture?.Archive?.Snapshot?.State?.PrivateCommandLedger?.CommittedSequence == privateSavedSequence)
+                    completedPrivateAutomaticPending = false;
                 saved = version; savedHostMutationVersion = hostVersion; lastFailure = null;
                 weakSuccess = true;
                 MatchSaveTraceScope.Point(trace, "save.complete");
@@ -426,7 +497,15 @@ namespace YC.Presentation
             if (!CanSave) { action(); return; }
             var epoch = generation; leaving = true;
             if (context.Mode == LaunchMode.Local) session.CommandsSuspended = true;
-            // 离开不创建保存：取消队列中尚未开始的请求，已进入原子写盘的请求安全完成。
+            // 终局已经由全体确认并保留时，先让已有自动写盘结束；尚未入队的终局点尝试写入一次。
+            if (context.IsCompletedSessionDetached && completedPrivateCapture != null && AutomaticSavingEnabled)
+            {
+                while (epoch == generation && saving) await Task.Yield();
+                if (epoch != generation) return;
+                if (completedPrivateAutomaticPending) await SaveCore(-1, true);
+                if (epoch != generation) return;
+            }
+            // 普通离开不新增保存：取消队列中尚未开始的请求，已进入原子写盘的请求安全完成。
             // 此后到 Unbind 期间也不再接收窗口自动保存点。
             saveLifetime.Cancel();
             windowAutoSaves = new WindowAutoSaveQueue();
@@ -445,7 +524,13 @@ namespace YC.Presentation
         private bool WantsToQuit()
         {
             if (allowQuit || !CanSave) return true;
-            RequestLeave(() => { allowQuit = true; UnityEngine.Application.Quit(); }); return false;
+            // FlushAsync 可以同步完成；在 wantsToQuit 回调内重入 Quit 会被外层 false 否决。
+            RequestLeave(() => { allowQuit = true; StartCoroutine(QuitAfterLeave()); }); return false;
+        }
+        private System.Collections.IEnumerator QuitAfterLeave()
+        {
+            yield return null;
+            if (allowQuit) UnityEngine.Application.Quit();
         }
     }
 }

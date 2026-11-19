@@ -108,7 +108,6 @@
           "usageTrackId": "",
           "lifecyclePolicy": "position",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 0,
           "presentationRef": "infected.character.amiya",
           "presentation": {

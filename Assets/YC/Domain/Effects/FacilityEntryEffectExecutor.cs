@@ -109,6 +109,7 @@ namespace YC.Domain.Effects
     public sealed class FacilityEntryEffectExecutor
     {
         public const string DefinitionVersion = "1.3.0";
+        public const string EnterpriseDeclinePolicyVersion = "facility_entry.enterprise_decline.v1.0.0";
         private const string ActivatedStage = "activated";
 
         public static void Register(EffectRegistry registry)
@@ -293,6 +294,11 @@ namespace YC.Domain.Effects
             IList<EffectNodeRuntimeState> children = context.ChildNodes;
             for (int i = 0; i < children.Count; i++)
             {
+                // 企业入场特效可以合法放弃其条件费用；设施已经建成，不能将该选择升级成建设故障。
+                // 其他失败及 Faulted 仍沿原路径保留，不能吞掉真实规则故障。
+                if (children[i].Status == EffectNodeStatus.Failed &&
+                    children[i].EffectTypeId == LuaDomainEffectTypeIds.ActivateEnterpriseSpecial &&
+                    children[i].FailureReason == "player_declined") continue;
                 if (children[i].Status == EffectNodeStatus.Failed || children[i].Status == EffectNodeStatus.Faulted) return true;
             }
 
@@ -367,7 +373,7 @@ namespace YC.Domain.Effects
 
     public sealed class FacilityBuildEffectExecutor
     {
-        public const string DefinitionVersion = "2.2.0";
+        public const string DefinitionVersion = "2.3.0";
 
         public const string PlacementInteractionType = "facility.build.placement";
         public const int PlacementObservationProtocolVersion = 2;
@@ -487,7 +493,7 @@ namespace YC.Domain.Effects
                 if (!result.Succeeded) return EffectStepResult.Failed(result.Validation.ErrorCode.ToString(), NormalizedValue.CreateString(result.Validation.Reason));
                 if (!reserve && ReadBool(context.Node.NormalizedArguments, "consumeMainAction", true))
                 {
-                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Build);
                 }
                 FacilityPlacement placement = null;
                 for (int i = 0; i < context.State.Map.Facilities.Count; i++)
@@ -598,7 +604,7 @@ namespace YC.Domain.Effects
                 string expectedSource = Text(node.NormalizedArguments, "expectedSourceZoneId");
                 if (expectedSource.Length > 0 && item.ZoneId != expectedSource) return RejectInitial("source_zone_changed");
                 bool reserve = ReadBool(node.NormalizedArguments, "reserveForFree", false);
-                if(!reserve && ReadBool(node.NormalizedArguments,"consumeMainAction",true) && !new MainActionBudgetService().ValidateCanSpend(state,node.PlayerId).IsValid) return RejectInitial("main_action_budget_unavailable");
+                if(!reserve && ReadBool(node.NormalizedArguments,"consumeMainAction",true) && !new MainActionBudgetService().ValidateCanSpend(state,node.PlayerId,YC.Domain.Rules.MainActionBudgetService.Build).IsValid) return RejectInitial("main_action_budget_unavailable");
                 string sourceKind = Text(node.NormalizedArguments, "sourceKind", reserve ? "reserve" : "supply");
                 FacilityBuildSourceAuthorization authorization;
                 try { authorization = queries.AuthorizeSource(state, node.PlayerId, item.ItemId, sourceKind, node.EffectId, Text(node.NormalizedArguments, "sourceKey")); }
@@ -746,7 +752,7 @@ namespace YC.Domain.Effects
             if (stage == "score")
             {
                 if (ReadBool(node.NormalizedArguments, "consumeMainAction", true) && !ReadBool(node.NormalizedArguments, "reserveForFree", false))
-                    new MainActionBudgetService().SpendCompletedMainAction(state, node.PlayerId);
+                    new MainActionBudgetService().SpendCompletedMainAction(state, node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Build);
                 var step = EffectStepResult.Continue("awaiting_entry").AddEventBeforeChildren(FacilityBuildJournal.PlacedEvent(context));
                 if (facts.EntryRequired) step.AddChild(FacilityEntryEffectSpecFactory.Activate(node.PlayerId, facility.FacilityId, selected,
                     FacilityLayerQuery.CitySlot(state, selected), node.SourceId));
@@ -774,6 +780,13 @@ namespace YC.Domain.Effects
                 PromptParameters = Object("facilityId", NormalizedValue.CreateString(facility.FacilityId),
                     "facilityItemId", NormalizedValue.CreateString(Value(context.Node.ContinuationData, "selectedItemIds").Items[0].StringValue),
                     "candidateSlots", NormalizedValue.CreateArray(values)) };
+            var preparationOwner = context.State.EffectRuntime.EffectNodes.Find(n => n.EffectId == context.Node.ParentEffectId);
+            if (preparationOwner != null && FacilityBuildContract.IsExplicitAuto(preparationOwner.NormalizedArguments))
+            {
+                request.PromptParameters.Properties.Add(new NormalizedValueEntry { Name = "fixedFacilityId",
+                    Value = Value(preparationOwner.NormalizedArguments, "facilityId").Clone() });
+                request.PromptParameters.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
+            }
             request.CandidateIds.AddRange(candidates.Select(c => c.SlotIndex.ToString(CultureInfo.InvariantCulture)));
             return EffectStepResult.Continue("awaiting_placement").AddInteraction(PrepareInteraction(context, request));
         }

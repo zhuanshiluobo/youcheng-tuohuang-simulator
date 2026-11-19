@@ -119,7 +119,7 @@ namespace YC.Application.Sessions
         {
             var runtime = state?.EffectRuntime;
             return state != null && state.UseSeatTurnOrder && state.Phase == GamePhase.Entrance && state.Round == 0 &&
-                state.RuleConfiguration != null && state.RuleConfiguration.TryValidate(out _) && !string.IsNullOrEmpty(state.ContentPackHash) &&
+                state.RuleConfiguration != null && state.RuleConfiguration.TryValidateFrozenShape(out _) && !string.IsNullOrEmpty(state.ContentPackHash) &&
                 state.LaunchPlayerOrder != null && TurnOrderService.IsValidPlayerOrder(state.LaunchPlayerOrder, state.Players.Select(player => player.PlayerId)) &&
                 GameplayRandomRuntime.TryValidate(state.RandomRuntime, state.GameId, state.EventDeckSeed, out _) &&
                 state.ItemZones != null && state.ItemZones.Items.Count == 0 && state.ItemZones.Zones.Count == 0 &&

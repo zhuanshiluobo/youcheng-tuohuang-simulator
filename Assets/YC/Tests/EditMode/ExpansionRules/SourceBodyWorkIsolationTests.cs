@@ -32,8 +32,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(engine.GetNode(id).Status,Is.EqualTo(EffectNodeStatus.Failed));
             Assert.That(engine.GetNode(id).FailureReason,Is.EqualTo("player_declined"));
         }
-        [TestCase("default", false)][TestCase("detached", false)][TestCase("action", false)][TestCase("policy", false)]
-        [TestCase("default", true)][TestCase("detached", true)][TestCase("action", true)][TestCase("policy", true)]
+        [TestCase("default", false)][TestCase("detached", false)][TestCase("action", false)]
+        [TestCase("default", true)][TestCase("detached", true)][TestCase("action", true)]
         public void SourceContractRecyclesOnlyItsDeclaredScopeAndKeepsOtherCallbacksIsolated(string mode, bool optional)
         {
             using var fixture = new PaymentTestFixture();
@@ -48,8 +48,6 @@ namespace YC.Tests.EditMode.ExpansionRules
             };
             if (mode == "default") fixture.Registry.RegisterAbilityHandler(handler, hash, body);
             else fixture.Registry.RegisterNonRetainedSourceHandler(handler, hash, body);
-            if (mode == "policy") fixture.Registry.RegisterActionCallPolicy(new AbilityActionCallPolicy
-                { PolicyRef = "isolated.policy", CallerAbilityId = ability, CallerHandlerHash = hash, TargetActionId = "isolated.action" });
             var construct = typeof(EffectRegistry).GetMethod("ConstructAbilityBody", BindingFlags.Instance | BindingFlags.NonPublic);
             Func<EffectExecutionContext, EffectStepResult> execute = context =>
             {

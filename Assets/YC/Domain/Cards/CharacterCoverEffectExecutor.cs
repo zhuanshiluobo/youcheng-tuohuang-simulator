@@ -159,12 +159,10 @@ namespace YC.Domain.Cards
         }
 
         private static NormalizedValue CreatePublicPayload(
-            GameState state,
             int playerId,
-            string cardId,
-            bool allPlayersCovered)
+            bool allPlayersCovered,
+            int coverIndex)
         {
-            int coverIndex = state.EffectRuntime.PlayerOrderSnapshot.IndexOf(playerId);
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
             {
                 new NormalizedValueEntry { Name = "allPlayersCovered", Value = NormalizedValue.CreateBoolean(allPlayersCovered) },
@@ -174,9 +172,8 @@ namespace YC.Domain.Cards
             });
         }
 
-        private static NormalizedValue CreatePrivatePayload(GameState state, int playerId, string cardId)
+        private static NormalizedValue CreatePrivatePayload(string cardId, int coverIndex)
         {
-            int coverIndex = state.EffectRuntime.PlayerOrderSnapshot.IndexOf(playerId);
             return NormalizedValue.CreateObject(new List<NormalizedValueEntry>
             {
                 new NormalizedValueEntry { Name = "cardInstanceRef", Value = NormalizedValue.CreateStableReference("character_card", cardId ?? string.Empty) },

@@ -1,65 +1,58 @@
 {
   "definitionId": "event_red_05",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "深层矿床（4）",
   "artwork": "artwork/sheets/event_red_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_red_05",
-    "name": "深层矿床（4）",
     "description": "一批来历不明的至纯源石突然在黑市流通。你追根溯源找到了产出地，但发现其中的矿物已被开采殆尽。不过，你还是很快占据了这片地区，你专业的拓荒团队证明了你的直觉，地下深层探测到了更丰富的高纯度源石储备！",
     "color": 2,
     "resourceType": 3,
     "resourceAmount": 1,
     "representativeResourceType": 3,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "先试着采集一些深层矿物样本：获得 1 源岩、1 至纯源石",
-      "让矿业机械逐步挖开坚硬岩层：获得 3 源石碎片、2 异铁",
-      "向联邦提出拨款请求以协助建设：获得 18 金券；所有对手获得 3 金券"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 1,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 1,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "先试着采集一些深层矿物样本：获得 1 源岩、1 至纯源石",
+        "button": {
+          "topPercent": 65.833333,
+          "bottomPercent": 74.666667
+        },
+        "script": "lua/events/choices/event_red_05.choice_01.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 3,
-        "iron": 2,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_02",
+        "description": "让矿业机械逐步挖开坚硬岩层：获得 3 源石碎片、2 异铁",
+        "button": {
+          "topPercent": 74.666667,
+          "bottomPercent": 82.5
+        },
+        "script": "lua/events/choices/event_red_05.choice_02.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 18
+        "choiceId": "choice_03",
+        "description": "向联邦提出拨款请求以协助建设：获得 18 金券；所有对手获得 3 金券",
+        "button": {
+          "topPercent": 82.5,
+          "bottomPercent": 95.0
+        },
+        "script": "lua/events/choices/event_red_05.choice_03.lua",
+        "version": "1.0.0"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      [],
-      [
-        {
-          "kind": 2,
-          "resourceType": 4,
-          "amount": 3,
-          "targetScope": 2,
-          "costResourceType": 0,
-          "costAmount": 0
-        }
-      ]
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_red_005"
+  "artworkSpriteId": "event_red_005",
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

@@ -33,12 +33,25 @@ namespace YC.Tests.PlayMode.ExpansionRules
         {
             var launch = Type("GameLaunchContext").GetMethod("Ensure").Invoke(null, null);
             var config = new GameRuleConfiguration { PlayerCount = count,
+                OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                 MapId = count == 3 ? StaticMapDefinitions.ThreePlayerMapId : StaticMapDefinitions.FourPlayerMapId };
             var seats = Enumerable.Range(1, count).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "界面验收" + id }).ToList();
             Call(launch, "Configure", LaunchMode.Local, 1, "", seats, config);
             yield return SceneManager.LoadSceneAsync(count == 3 ? "ThreePlayerScene" : "SampleScene");
             yield return null;
             Assert.That(Find("GameplayInteractionHudView"), Is.Not.Null);
+        }
+        internal static IEnumerator ReturnToMenu()
+        {
+            var name = SceneManager.GetActiveScene().name;
+            if (name != "SampleScene" && name != "ThreePlayerScene") yield break;
+            Type("GameLaunchContext").GetMethod("ReturnToStartScene", BindingFlags.Public | BindingFlags.Static)
+                .Invoke(null, new object[] { "StartScene" });
+            var transition = Type("SceneTransitionContext").GetProperty("IsTransitionInProgress", BindingFlags.Public | BindingFlags.Static);
+            var until = Time.realtimeSinceStartup + 60f;
+            while ((SceneManager.GetActiveScene().name != "StartScene" || (bool)transition.GetValue(null)) && Time.realtimeSinceStartup < until)
+                yield return null;
+            Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("StartScene"), "隔离测试必须正常离局以释放内容快照。");
         }
         internal static object Registry => Property(Find("GameplayInteractionHudView"), "DialogRegistry");
         internal static void PresentEnterprise(Component page, EnterpriseSelectionProjection projection, bool fromEffect)
@@ -134,6 +147,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             if (page != null) { GameplayUiReworkFixture.Call(page, "ClearPresentation"); UnityEngine.Object.Destroy(page.gameObject); }
             if (profiler != null) { profiler.Finish(completed); UnityEngine.Object.Destroy(profiler.gameObject); }
             yield return null;
+            yield return GameplayUiReworkFixture.ReturnToMenu();
         }
         [UnityTest] public IEnumerator ThreePlayerScene_BrowseAndMultiSelectUseActualRegistry() => Verify(3);
         [UnityTest] public IEnumerator SampleScene_BrowseAndMultiSelectUseActualRegistry() => Verify(4);

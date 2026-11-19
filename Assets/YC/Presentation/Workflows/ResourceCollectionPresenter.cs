@@ -151,6 +151,14 @@ namespace YC.Presentation.Workflows
             }
 
             RefreshPresentation();
+            // 历史采集任务仍由此控制器处理；与当前采集流程一致，首次默认选择城市所在免费资源点。
+            if (IsActive && selection.HasCandidateLocation(player.CityLocationId) &&
+                selection.IsFreeLocation(player.CityLocationId) &&
+                !ContainsString(selection.SelectedLocationIds, player.CityLocationId))
+            {
+                selection.ToggleLocation(player.CityLocationId, IsLocationAvailable);
+                RefreshPresentation();
+            }
             view.ShowPrompt(BuildStatus());
         }
 
@@ -234,9 +242,7 @@ namespace YC.Presentation.Workflows
                 return false;
             }
 
-            var state = context.CurrentState;
-            var player = state == null ? null : state.FindPlayer(context.LocalPlayerId);
-            return player == null || player.CityLocationId != locationId;
+            return true;
         }
 
         public void SelectRoutePayment(string routeId)

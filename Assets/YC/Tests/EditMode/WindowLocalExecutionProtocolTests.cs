@@ -162,6 +162,58 @@ Effect.Choice({interactionType='effect.choice.execute',player=ctx.playerId,branc
             group.Write("retained-confirmed-recovery", point);
         }
 #if !YC_WINDOW_EXECUTION_OFFLINE
+        [TestCase(false)] [TestCase(true)]
+#endif
+        public void CoordinatedReconnectWaitsForEveryReplicaAndPreservesWindowTail(bool hostOwnsWindow)
+        {
+            using var group = new NetworkGroup("coordinated-reconnect-" + hostOwnsWindow, Payment, hostOwnsWindow: hostOwnsWindow);
+            group.Invoke("coordinated.invoke"); group.AnswerAll("coordinated.answer.");
+            long tail = group.Actor.LastAppliedSequence;
+            group.HoldPeer = true;
+            Require(!group.Host.RequestCoordinatedReconnect(99, Guid.NewGuid().ToString("N")), "未认证玩家被允许请求重连");
+            string request = Guid.NewGuid().ToString("N");
+            int reconnectPlayer = hostOwnsWindow ? 2 : 2;
+            Require(group.Host.RequestCoordinatedReconnect(reconnectPlayer, request), "原玩家的重连请求未接纳");
+            Require(!group.Host.RequestCoordinatedReconnect(reconnectPlayer, Guid.NewGuid().ToString("N")), "并发重连请求绕过窗口门闩");
+            group.Exchange(() => group.Actor.TryReadPublishedSnapshot(out var snapshot) && snapshot.WindowExecution?.BoundaryPending == true);
+            Require(group.CoordinatedReady.Count == 0 && group.Host.ValidatedThroughSequence == 0,
+                "仍有副本未确认时提前允许断开");
+            group.HoldPeer = false;
+            group.Exchange(() => group.CoordinatedReady.Count == 1 && group.AllConfirmed(tail));
+            Require(group.CoordinatedReady[0].RequestId == request && group.CoordinatedReady[0].RequestingPlayerId == reconnectPlayer,
+                "安全边界通知改变了请求身份");
+            Require(group.Host.IsRecoveringConfirmedPrefix && !group.Host.IsStopped && group.Host.ReadPendingTail().Count == 0,
+                "安全边界没有冻结或仍有未确认尾段");
+            group.Host.PeerDisconnected(reconnectPlayer);
+            var point = group.Host.CreateConfirmedRecoveryCheckpointAsync(tail, 2).GetAwaiter().GetResult();
+            Require(!group.Host.IsStopped && point.Baseline.ConfirmedGlobalSequence == tail &&
+                point.Archive.Snapshot.State.FindPlayer(1).Resources.PureOriginium == 1,
+                "安全断开导致停局或丢失已确认收益");
+            group.CheckNoFault();
+        }
+#if !YC_WINDOW_EXECUTION_OFFLINE
+        [Test]
+#endif
+        public void CoordinatedReconnectCancellationOnlyAcceptsOriginalPlayerAndCanResume()
+        {
+            using var group = new NetworkGroup("coordinated-cancel", Payment);
+            group.Invoke("cancel.invoke"); group.AnswerAll("cancel.answer."); long tail = group.Actor.LastAppliedSequence;
+            string request = Guid.NewGuid().ToString("N");
+            Require(group.Host.RequestCoordinatedReconnect(2, request), "重连申请未进入安全交接");
+            group.Exchange(() => group.CoordinatedReady.Count == 1 && group.AllConfirmed(tail));
+            group.Host.CancelCoordinatedReconnect(1, request);
+            bool barrier = false;
+            Require(group.Host.TryQueryPaymentSourcePage(1, new PaymentSourcePageRequest { RequestId = "cancel.wrong.actor", Query = new PaymentSourceQuery { PlayerId = 1 } }, _ => barrier = true), "无法排入只读屏障");
+            group.Wait(() => barrier);
+            Require(group.Host.IsRecoveringConfirmedPrefix, "其他玩家取消了重连人的安全冻结");
+            group.Host.CancelCoordinatedReconnect(2, request);
+            group.Exchange(() => !group.Host.IsRecoveringConfirmedPrefix && group.Actor.TryReadPublishedSnapshot(out var snapshot) &&
+                snapshot.WindowExecution?.IsActive == true && snapshot.WindowExecution.OwnerPlayerId == 1);
+            Require(group.Host.ValidatedThroughSequence == tail && group.View(1).Players.Single(p => p.PlayerId == 1).Resources.PureOriginium == 1,
+                "取消重连时改写了已确认操作");
+            group.CheckNoFault();
+        }
+#if !YC_WINDOW_EXECUTION_OFFLINE
         [Test]
 #endif
         public void BackgroundLogCapacityStopsWithoutClearingOrConfirmingTail()
@@ -251,6 +303,7 @@ Effect.Choice({interactionType='effect.choice.execute',player=ctx.playerId,branc
             internal readonly List<SimulationProposalResultDto> Rejected = new List<SimulationProposalResultDto>();
             internal readonly List<object> Timings = new List<object>();
             internal readonly List<SimulationWindowSavePoint> AutomaticSavePoints = new List<SimulationWindowSavePoint>();
+            internal readonly List<CoordinatedReconnectMessage> CoordinatedReady = new List<CoordinatedReconnectMessage>();
             private readonly List<IsolatedTestArtifacts> artifacts = new List<IsolatedTestArtifacts>();
             private readonly CleanupSourceTestFixture[] fixtures;
             private readonly GameSession[] sessions;
@@ -349,6 +402,9 @@ Effect.Choice({interactionType='effect.choice.execute',player=ctx.playerId,branc
                 Host.WindowExecutionGranted += value => Broadcast("grant",i=>nodes[i].ReceiveWindowExecutionGrant(value));
                 Host.CommandValidationPrefixAdvanced += value => Broadcast("validation",i=>nodes[i].ReceiveValidationPrefix(value));
                 Host.WindowExecutionConfirmed += value => Broadcast("confirmed",i=>nodes[i].ReceiveWindowExecutionConfirmation(value));
+                Host.CoordinatedReconnectYieldRequested += value => { int index=Array.IndexOf(playerIds,value.WindowOwnerPlayerId);
+                    if(index>=0)Enqueue("coordinated-yield",index,()=>nodes[index].YieldWindowForReconnect(value.GrantId)); };
+                Host.CoordinatedReconnectReady += value => CoordinatedReady.Add(value);
                 Host.WindowExecutionRecordProduced += value => Broadcast("stream-record",i=>nodes[i].ReceiveWindowExecutionRecord(0,true,value));
                 Host.WindowExecutionSealProduced += value => Broadcast("seal",i=>nodes[i].ReceiveWindowExecutionSeal(0,true,value));
                 Actor.WindowExecutionRecordProduced += value => { ActorRecords.Add(value);if(!hostOwnsWindow)Enqueue("stream-record",0,()=>Host.ReceiveWindowExecutionRecord(1,false,value)); };

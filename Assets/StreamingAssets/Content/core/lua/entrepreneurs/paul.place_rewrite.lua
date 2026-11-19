@@ -70,6 +70,14 @@ local function has_grant(ctx, expected)
     end
     return false
 end
+local function has_supply_piece(player, type_id)
+    for _, supply in ipairs(Global.Content.FindZones({templateId='core.zone.player_supply', owner=player})) do
+        for _, item in ipairs(Global.Content.FindInstances({zoneId=supply.id, typeId=type_id})) do
+            if item.ownerSubject == player then return true end
+        end
+    end
+    return false
+end
 return function(ctx)
     if official_ability(ctx) == nil then return {operation='keep'} end
     local a = ctx.payload.facts.arguments
@@ -84,12 +92,18 @@ return function(ctx)
     local root
     if has_grant(ctx, {P03={groupId='entrepreneur.group.P.3',candidateId='entrepreneur.candidate.P03',definitionId='entrepreneur.round.P.3'},P04={groupId='entrepreneur.group.P.3',candidateId='entrepreneur.candidate.P04',definitionId='entrepreneur.round.P.3'}}) then root = place('entrepreneur.gang_marker')
     else
+        -- 前两回合可以用帮派标记代替普通标记；供应区已无帮派时保留原放置效果。
+        if not has_supply_piece(ctx.playerId, 'entrepreneur.gang_marker') then return {operation='keep'} end
+        if not has_supply_piece(ctx.playerId, 'core.player_marker') then
+            root = place('entrepreneur.gang_marker')
+        else
         root = Effect.WithPresentation(Effect.Choice({player=ctx.playerId, interactionType='effect.choice.execute', branches={
             {id='ordinary',effects={place('core.player_marker')}},
             {id='gang',effects={place('entrepreneur.gang_marker')}}}}), {interaction={
             prompt=Text.Ref('core:entrepreneur.P.place.type'),options={
                 {candidateId='ordinary',label=Text.Ref('core:entrepreneur.P.place.ordinary')},
                 {candidateId='gang',label=Text.Ref('core:entrepreneur.P.place.gang')}}}})
+        end
     end
     return {operation='replace',effect=root,resultContract='place_result',permissionContract='inherit_original'}
 end

@@ -294,7 +294,7 @@ if ($plan.EvaluationMode -eq 'whole-game-health') {
                 'effect.operator.dispatch' { if ($result.accepted) { Add-ObservedCoverage 'dispatch_character' (Normalize-CoverageDefinition $result.selectedOperatorItemId) '' $node.EffectId } }
                 'effect.facility.build' { if ($result -is [string] -and $result) { Add-ObservedCoverage 'facility_built' (Normalize-CoverageDefinition $result) '' $node.EffectId } }
                 'effect.event_card.resolve' { Add-ObservedCoverage 'event_resolved' (Normalize-CoverageDefinition $result.cardId) '' $node.EffectId
-                    if ($null -ne $result.selectedOptionIndex) { Add-ObservedCoverage 'event_option' (Normalize-CoverageDefinition $result.cardId) ([string]$result.selectedOptionIndex) $node.EffectId } }
+                    if ($result.selectedChoiceId) { Add-ObservedCoverage 'event_option' (Normalize-CoverageDefinition $result.cardId) ([string]$result.selectedChoiceId) $node.EffectId } }
                 'effect.city_style.special_action.activate' { Add-ObservedCoverage 'special_action_used' $args.specialActionId '' $node.EffectId }
             }
         }

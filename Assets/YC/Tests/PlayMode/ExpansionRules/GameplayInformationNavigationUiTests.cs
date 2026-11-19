@@ -15,6 +15,7 @@ using YC.Application.Sessions;
 using YC.Domain.Effects;
 using YC.Domain.Enterprises;
 using YC.Domain.State;
+using YC.Domain.Presentation;
 using YC.Infrastructure.Multiplayer;
 using YC.Presentation;
 using YC.Presentation.Workflows;
@@ -64,6 +65,27 @@ namespace YC.Tests.PlayMode.ExpansionRules
             yield return f.Click(ButtonObject(Read(f.Hud, "ActionPanelView"), "BuildButton"), "实际建设入口");
             var buildPage = (Component)Read(f.Gameplay, "facilityBuildPage");
             Assert.That(buildPage != null && buildPage.gameObject.activeInHierarchy, Is.True, stage);
+            yield return Settle();
+            var deckView = Visible.Decks;
+            var deckLabel = (Text)Read(buildPage, "supplyDeckText");
+            var documentView = Read(buildPage, "supplyDeckDocument");
+            var document = (GameplayTextDocument)Read(documentView, "document");
+            var displayed = document.Runs.OfType<NumberRun>().Select(number => (int)number.Value).ToArray();
+            Assert.That(displayed, Is.EqualTo(new[] { deckView.FacilityDeckRedCount, deckView.FacilityDeckYellowCount,
+                deckView.FacilityDeckBlueCount, deckView.FacilityDeckRainbowCount }));
+            var configuredFont = (Font)Read(Read(Read(documentView, "style"), "FontRoles"), "UiNumber");
+            var numericFragments = deckLabel.GetComponentsInChildren<Text>(false).Where(text => text != deckLabel && text.font == configuredFont).ToArray();
+            Assert.That(numericFragments.Select(text => text.text), Is.EqualTo(displayed.Select(value => value.ToString())));
+            Assert.That(numericFragments.All(text => text.fontStyle == FontStyle.Normal), Is.True);
+            var rainbowLabel = numericFragments.Last();
+            var rainbowEffect = rainbowLabel.GetComponent(T("RainbowCountTextEffect"));
+            Assert.That(rainbowEffect, Is.Not.Null);
+            var mesh = rainbowLabel.canvasRenderer.GetMesh();
+            int rainbowFirst = (int)Read(rainbowEffect, "firstCharacter");
+            Assert.That(mesh, Is.Not.Null);
+            Assert.That(mesh.vertexCount, Is.GreaterThanOrEqualTo((rainbowFirst + 1) * 4));
+            Assert.That(mesh.colors32.Skip(rainbowFirst * 4).Take(4).Distinct().Count(), Is.GreaterThan(1), "实际彩色数字须呈现多色艺术字。");
+            yield return f.Capture("实际建设页四色数量与艺术字", buildPage);
             var ids = ((IEnumerable)Read(buildPage, "SupplyItemIds")).Cast<string>().Where(id => !string.IsNullOrEmpty(id)).ToArray();
             Assert.That(ids, Is.Not.Empty);
             var candidate = ids.Select(id => HotseatUiInputDriver.Marker("build.candidate." + id))
@@ -75,7 +97,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             yield return f.Click(candidate, "选择真实设施候选");
             var selection = (BuildFacilitySelectionController)Read(Read(Presenter, "BuildInteraction"), "selection");
             Assert.That(selection.IsActive, Is.True);
-            Assert.That((string)Read(f.Gameplay, "selectedBuildFacilityId"), Is.EqualTo(selectedDefinition), "实际选中的报价卡必须保留");
+            Assert.That((string)Read(f.Gameplay, "selectedBuildFacilityId"), Is.EqualTo(selectedItemId), "实际选中的报价卡实例必须保留");
             f.Record("真实建设报价选择", new { selectedItemId, selectedDefinition, selection.FacilityId,
                 note = "资源不足仍能选择报价卡；可支付草稿FacilityId允许为空，返回时分别核对两者不变" });
             var draft = DraftSnapshot(selection);
@@ -161,6 +183,128 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
 
         [UnityTest]
+        public IEnumerator LocalConnectionSettingsUsesScenePrefabAndCannotStartNetworkReconnect()
+        {
+            f = new GameplayPageAcceptanceFixture(); completed = false;
+            Stage("局内设置连接状态页");
+            yield return f.Start(4, _ => Settle());
+            var settings = Active("GameSettingsMenuView").Single();
+            Assert.That(settings, Is.Not.Null);
+            yield return f.Click(ButtonObject(f.Frame, "SettingsButton"), "对局顶栏设置入口");
+            yield return f.Click(ButtonObject(settings, "PlaceholderTabButton"), "连接状态页签");
+            var status = ((GameObject)Read(settings, "FutureContentObject")).GetComponent(T("GameConnectionStatusView"));
+            Assert.That(status, Is.Not.Null);
+            Assert.That(status.gameObject.activeInHierarchy, Is.True);
+            var reconnect = (Button)Read(status, "reconnectButton");
+            var list = (Text)Read(status, "playerStatuses");
+            Assert.That(reconnect, Is.Not.Null); Assert.That(list, Is.Not.Null);
+            Assert.That(reconnect.interactable, Is.False);
+            Assert.That(list.text, Is.EqualTo(Read(status, "localGameText")));
+            foreach (var size in GameplayPageAcceptanceFixture.Sizes)
+            {
+                yield return f.Resolution(size);
+                yield return Settle();
+                yield return f.Capture("本地对局连接状态页", status);
+            }
+            yield return f.Click(ButtonObject(settings, "HeaderCloseButton"), "关闭设置");
+            Assert.That(((GameObject)Read(settings, "OverlayObject")).activeSelf, Is.False);
+            completed = true;
+        }
+
+        [UnityTest]
+        public IEnumerator BuildAndCityStyleButtonsPreserveOriginalWorkflow()
+        {
+            f = new GameplayPageAcceptanceFixture(); completed = false;
+            Stage("正式开局后打开建设");
+            yield return f.Start(4, _ => Settle());
+            yield return f.Click(HotseatUiInputDriver.Marker("action.tab.0"), "主要行动页签");
+            yield return f.Click(ButtonObject(Read(f.Hud, "ActionPanelView"), "BuildButton"), "建设入口");
+            var build = (Component)Read(f.Gameplay, "facilityBuildPage");
+            Assert.That(build.gameObject.activeInHierarchy, Is.True);
+            var ids = ((IEnumerable)Read(build, "SupplyItemIds")).Cast<string>().Where(id => !string.IsNullOrEmpty(id)).ToArray();
+            var candidate = ids.Select(id => HotseatUiInputDriver.Marker("build.candidate." + id))
+                .FirstOrDefault(button => button != null && button.GetComponent<Button>()?.interactable == true);
+            Assert.That(candidate, Is.Not.Null, "本局未出现可查看的设施候选");
+            yield return f.Click(candidate, "选择设施报价");
+            var selection = (BuildFacilitySelectionController)Read(Read(Presenter, "BuildInteraction"), "selection");
+            var draft = DraftSnapshot(selection);
+            var state = StateFingerprint();
+            var buildSwitch = ButtonObject(build, "viewCityStyles");
+            var buildCancel = ButtonObject(build, "cancel");
+            using (var submits = new RuleSubmitCounter())
+            {
+                foreach (var size in GameplayPageAcceptanceFixture.Sizes)
+                {
+                    yield return f.Resolution(size);
+                    yield return Settle();
+                    Assert.That(ScreenRect((RectTransform)buildSwitch.transform).xMax,
+                        Is.LessThanOrEqualTo(ScreenRect((RectTransform)buildCancel.transform).xMin + 1));
+                    yield return f.Capture("建设页切换按钮", build);
+                }
+                Stage("建设草稿中查看城市样式再返回");
+                yield return f.Click(buildSwitch, "建设中查看城市样式");
+                var style = Active("CityStyleDeclarationPreviewView").Single();
+                var styleDialog = Read(Read(f.Gameplay, "workflowView"), "cityStyleDeclarationDialog");
+                var styleModel = (CityStyleOptionsViewModel)Read(styleDialog, "model");
+                Assert.That(build.gameObject.activeInHierarchy, Is.False);
+                Assert.That(styleModel.DeclareMode, Is.False);
+                Assert.That(styleModel.ConfirmSelection, Is.Null);
+                Assert.That(styleModel.TryUseSpecialAction, Is.Null);
+                var styleSwitch = ButtonObject(style, "ViewFacilitySupply");
+                var styleConfirm = ButtonObject(style, "ConfirmDeclarationButton");
+                Assert.That(ScreenRect((RectTransform)styleSwitch.transform).xMax,
+                    Is.LessThanOrEqualTo(ScreenRect((RectTransform)styleConfirm.transform).xMin + 1));
+                yield return f.Capture("建设中查看城市样式", style);
+                yield return f.Click(styleSwitch, "返回建设页的设施供应区");
+                Assert.That(build.gameObject.activeInHierarchy, Is.True);
+                Assert.That(DraftSnapshot(selection), Is.EqualTo(draft));
+                Assert.That(StateFingerprint(), Is.EqualTo(state));
+                Assert.That(submits.Calls, Is.Zero);
+                yield return f.Capture("返回原建设草稿", build);
+            }
+            yield return f.Click(buildCancel, "取消未付款的建设草稿");
+            Stage("城市样式宣告中查看设施供应区");
+            yield return f.Click(HotseatUiInputDriver.Marker("action.tab.2"), "城市样式页签");
+            yield return f.Click(ButtonObject(Read(f.Hud, "ActionPanelView"), "DeclareCityStyleButton"), "城市样式入口");
+            var originalStyle = Active("CityStyleDeclarationPreviewView").Single();
+            var dialog = Read(Read(f.Gameplay, "workflowView"), "cityStyleDeclarationDialog");
+            var model = (CityStyleOptionsViewModel)Read(dialog, "model");
+            Assert.That(model.DeclareMode, Is.True, "正式入口未进入宣告草稿");
+            var cards = ((IEnumerable)Read(originalStyle, "options")).Cast<Component>().ToArray();
+            Assert.That(cards.Length, Is.GreaterThan(1));
+            yield return f.Click(ButtonObject(cards[1], "Button"), "选择实际城市样式");
+            var selectedStyle = (string)Read(dialog, "CurrentCityStyleId");
+            var slots = ((IEnumerable)Read(dialog, "SelectedSlotIndexes")).Cast<int>().ToArray();
+            state = StateFingerprint();
+            using (var submits = new RuleSubmitCounter())
+            {
+                yield return f.Click(ButtonObject(originalStyle, "ViewFacilitySupply"), "宣告中查看设施供应区");
+                var inspection = (Component)Read(f.Gameplay, "styleSupplyInspectionPage");
+                Assert.That(inspection.gameObject.activeInHierarchy, Is.True);
+                Assert.That(originalStyle.gameObject.activeInHierarchy, Is.False);
+                Assert.That(((Button)Read(inspection, "confirm")).gameObject.activeSelf, Is.False);
+                Call(f.Gameplay, "RefreshBuildFacilityDialog");
+                yield return Settle();
+                Assert.That(inspection.gameObject.activeInHierarchy, Is.True, "供应刷新不能使原样式流程丢失");
+                yield return f.Capture("宣告中查看设施供应区", inspection);
+                yield return f.Click(ButtonObject(inspection, "viewCityStyles"), "返回原城市样式宣告");
+                Assert.That(originalStyle.gameObject.activeInHierarchy, Is.True);
+                Assert.That(Read(dialog, "CurrentCityStyleId"), Is.EqualTo(selectedStyle));
+                Assert.That(((IEnumerable)Read(dialog, "SelectedSlotIndexes")).Cast<int>(), Is.EqualTo(slots));
+                Assert.That(StateFingerprint(), Is.EqualTo(state));
+                Assert.That(submits.Calls, Is.Zero);
+                yield return f.Capture("恢复原城市样式宣告", originalStyle);
+                yield return f.Click(ButtonObject(originalStyle, "ViewFacilitySupply"), "再次查看设施供应区");
+                yield return f.Click(ButtonObject(inspection, "cancel"), "关闭只读设施供应区");
+                Assert.That(originalStyle.gameObject.activeInHierarchy, Is.True);
+                Assert.That(Read(dialog, "CurrentCityStyleId"), Is.EqualTo(selectedStyle));
+                Assert.That(StateFingerprint(), Is.EqualTo(state));
+                Assert.That(submits.Calls, Is.Zero);
+            }
+            completed = true;
+        }
+
+        [UnityTest]
         public IEnumerator GameBoxEventsUseIndependentLandscapeBrowsingAndCityReturnHint()
         {
             f = new GameplayPageAcceptanceFixture(); completed = false;
@@ -227,6 +371,37 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 yield return PressSurface((Component)Read(list, "dismiss"), "事件列表空白返回游戏盒");
                 Assert.That(box.gameObject.activeInHierarchy, Is.True);
                 Assert.That((bool)Read(list, "IsShowing"), Is.False);
+
+                Stage("游戏盒企业合作板列表的原图显示");
+                var boards = ((IEnumerable)Call(box, "Cards", GameBoxCardKind.EnterpriseCooperation)).Cast<GameBoxCardState>().ToArray();
+                var boardImages = ((IEnumerable)Call(box, "Images", GameBoxCardKind.EnterpriseCooperation)).Cast<Sprite>().ToArray();
+                Assert.That(boards, Is.Not.Empty, "本局没有可查看的合作板时不注入候选。");
+                Assert.That(boardImages.Length, Is.EqualTo(boards.Length));
+                yield return f.Click(ButtonObject(Read(box, "EnterprisePile"), "InspectButton"), "查看全部企业合作板");
+                var boardPage = Active("EffectDialogShellView").Single();
+                Assert.That(boardPage.GetComponentsInChildren(T("FacilityEffectCardView"), false), Is.Empty,
+                    "合作板列表不能使用设施卡槽条目。");
+                var boardItems = boardPage.GetComponentsInChildren(T("GameBoxEnterpriseBoardItemView"), false).Cast<Component>().ToArray();
+                Assert.That(boardItems.Length, Is.EqualTo(boards.Length));
+                for (int i = 0; i < boardItems.Length; i++)
+                {
+                    Assert.That(Read(boardItems[i], "Sprite"), Is.SameAs(boardImages[i]));
+                    Assert.That(HotseatUiInputDriver.Marker("gamebox.enterprise." + boards[i].InstanceId).transform.IsChildOf(boardPage.transform), Is.True);
+                    CheckEventArtwork(boardItems[i]);
+                }
+                yield return f.Capture("原窗口企业合作板原图列表", boardPage);
+                yield return f.Click(ButtonObject(boardItems[0], "inspectButton"), "查看企业合作板详情", button: PointerEventData.InputButton.Right);
+                var boardViewer = Active("CardViewer").Single();
+                Assert.That(Read(boardViewer, "DisplayedSprite"), Is.SameAs(boardImages[0]));
+                yield return f.Click(boardViewer.gameObject, "企业合作板详情返回", ScreenRect((RectTransform)Read(boardViewer, "Window")).center);
+                Assert.That(Active("EffectDialogShellView").Single(), Is.SameAs(boardPage));
+                var boardRow = ((ScrollRect)Read(boardPage, "OptionScroll")).content.GetComponent<HorizontalLayoutGroup>();
+                Assert.That(boardRow.childAlignment, Is.EqualTo(Read(Read(box, "EnterpriseBoardItemPrefab"), "ArtworkAlignment")),
+                    "详情返回后应保留合作板列表的排列配置。");
+                var boardWindow = ScreenRect((RectTransform)Read(boardPage, "Panel"));
+                var emptyPoint = new Vector2(boardWindow.xMin + boardWindow.width * .1f, boardWindow.center.y);
+                yield return f.Click(boardPage.gameObject, "企业合作板列表空白返回", emptyPoint);
+                Assert.That(box.gameObject.activeInHierarchy, Is.True);
                 yield return PressSurface((Component)Read(box, "dismiss"), "游戏盒空白正常关闭");
                 Assert.That(box.gameObject.activeInHierarchy, Is.False);
                 Assert.That(StateFingerprint(), Is.EqualTo(state));

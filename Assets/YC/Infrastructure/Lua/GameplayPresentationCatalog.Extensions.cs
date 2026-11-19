@@ -118,6 +118,44 @@ namespace YC.Infrastructure.Lua
                 AddTextDocument(document, packId, path, readArtwork);
             }
         }
+        internal void AddDiyPresentation(string packId, JObject declaration, Func<string, JObject> readJson, Func<string, byte[]> readArtwork)
+        {
+            Fields(declaration, packId + "/presentation", "schemaVersion", "texts", "icons", "defaults");
+            Require(Version(declaration, 1) && declaration["texts"] is JArray textsArray &&
+                declaration["icons"]?.Type == JTokenType.String && declaration["defaults"]?.Type == JTokenType.String,
+                "presentation_manifest_invalid:" + packId);
+            Require(((JArray)declaration["texts"]).All(t => t.Type == JTokenType.String), "presentation_text_paths_invalid:" + packId);
+            var paths = ((JArray)declaration["texts"]).Values<string>().ToArray();
+            Require(paths.Length > 0 && paths.All(p => !string.IsNullOrWhiteSpace(p)) && paths.Distinct(StringComparer.Ordinal).Count() == paths.Length,
+                "presentation_text_paths_invalid:" + packId);
+            foreach (string path in paths) AddTextDocument(readJson(path), packId, path, readArtwork);
+            string iconPath = (string)declaration["icons"]; var iconDocument = readJson(iconPath);
+            Require(Version(iconDocument, 1) && iconDocument["icons"] is JArray, "presentation_icons_schema_invalid:" + packId + "/" + iconPath);
+            Fields(iconDocument, packId + "/" + iconPath, "schemaVersion", "assets", "icons");
+            AddAssetsAndIcons(iconDocument, packId, packId + "/" + iconPath, readArtwork, false);
+            string defaultPath = (string)declaration["defaults"]; var defaults = readJson(defaultPath);
+            Fields(defaults, packId + "/" + defaultPath, "schemaVersion", "effectTypes", "interactions", "outcomes");
+            Require(Version(defaults, 1) && defaults["effectTypes"] is JObject && defaults["interactions"] is JObject && defaults["outcomes"] is JObject,
+                "presentation_defaults_schema_invalid:" + packId);
+            bool Owned(string key) => key.StartsWith(packId + ".", StringComparison.Ordinal) || key.StartsWith(packId + ":", StringComparison.Ordinal);
+            foreach (var entry in ((JObject)defaults["effectTypes"]).Properties())
+            {
+                Require(Owned(entry.Name) && !effects.ContainsKey(entry.Name), "presentation_default_duplicate_or_foreign:" + entry.Name);
+                effects.Add(entry.Name, ReadDto<EffectPresentationDefinition>(entry.Value));
+            }
+            foreach (var entry in ((JObject)defaults["interactions"]).Properties())
+            {
+                Require(Owned(entry.Name) && !interactions.ContainsKey(entry.Name), "presentation_default_duplicate_or_foreign:" + entry.Name);
+                interactions.Add(entry.Name, ReadDto<GameplayInteractionPresentation>(entry.Value));
+            }
+            foreach (var entry in ((JObject)defaults["outcomes"]).Properties())
+            {
+                Require(Owned(entry.Name) && !outcomes.ContainsKey(entry.Name), "presentation_default_duplicate_or_foreign:" + entry.Name);
+                outcomes.Add(entry.Name, ReadDto<GameplayTextRef>(entry.Value));
+            }
+            HasExtensions = true;
+            if (SchemaVersion == 0) SchemaVersion = 1;
+        }
         internal void ValidateAllReferences()
         {
             foreach (var icon in icons.Values)

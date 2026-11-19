@@ -3,5 +3,5 @@ return function(ctx)
     return {Effect.LoseScore({player=ctx.playerId,amount=2}),
         Effect.GainResource({player=ctx.playerId,resourceType='PureOriginium',amount=1}),
         Effect.GainResource({player=ctx.playerId,resourceType='GoldVoucher',amount=15}),
-        Flow.DispatchOperator({apiVersion=1,player=ctx.playerId,drawCount=3})}
+        Flow.DispatchOperator({apiVersion=2,player=ctx.playerId,deckZoneId = Global.Content.FindZones({localZoneId='operator_deck'})[1].id})}
 end

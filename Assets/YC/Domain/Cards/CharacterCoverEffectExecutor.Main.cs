@@ -136,8 +136,13 @@ namespace YC.Domain.Cards
                 r.BindingsBefore!=null&&r.BindingsAfter!=null&&ItemTransferService.MovementV4Digest(r.BindingsBefore)==ItemTransferService.MovementV4Digest(r.BindingsAfter)&&
                 ItemTransferService.MovementV4Digest(node.NormalizedResult)==ItemTransferService.MovementV4Digest(CreateResult(node.PlayerId,"",false));
         }
-        internal static EffectEventRequest CreateMainCoveredEvent(GameState state,EffectNodeRuntimeState owner,string card)=>new EffectEventRequest{
-            EventId=StableIdFactory.Create("event",owner.EffectId,"CharacterCardCovered",owner.PlayerId.ToString(CultureInfo.InvariantCulture)),EventType="CharacterCardCovered",SourceEffectId=owner.EffectId,OwnerNodeId=owner.EffectId,PlayerId=owner.PlayerId,
-            Visibility=GameStateVisibilityPolicy.Public,ResponseKind=RuleEventResponseKind.Effects,SemanticKey=owner.PlayerId.ToString(CultureInfo.InvariantCulture),Payload=CreatePublicPayload(state,owner.PlayerId,card,AreAllPlayersCovered(state)),HostOnlyPayload=CreatePrivatePayload(state,owner.PlayerId,card)};
+        internal static EffectEventRequest CreateMainCoveredEvent(GameState state,EffectNodeRuntimeState owner,string card)
+        {
+            var task=state.EffectRuntime.EffectNodes.Single(n=>n.EffectId==owner.ParentEffectId);
+            int index=ReadInteger(task.NormalizedArguments,"coverIndex",0);
+            return new EffectEventRequest{
+                EventId=StableIdFactory.Create("event",owner.EffectId,"CharacterCardCovered",owner.PlayerId.ToString(CultureInfo.InvariantCulture)),EventType="CharacterCardCovered",SourceEffectId=owner.EffectId,OwnerNodeId=owner.EffectId,PlayerId=owner.PlayerId,
+                Visibility=GameStateVisibilityPolicy.Public,ResponseKind=RuleEventResponseKind.Effects,SemanticKey=owner.PlayerId.ToString(CultureInfo.InvariantCulture),Payload=CreatePublicPayload(owner.PlayerId,AreAllPlayersCovered(state),index),HostOnlyPayload=CreatePrivatePayload(card,index)};
+        }
     }
 }

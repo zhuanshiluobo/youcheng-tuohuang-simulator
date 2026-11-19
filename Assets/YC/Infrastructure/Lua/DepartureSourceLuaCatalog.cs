@@ -12,7 +12,7 @@ namespace YC.Infrastructure.Lua
     {
         public static void Register(EffectRegistry registry, ExternalContentPack pack)
         {
-            foreach (var declaration in registry.AbilityDeclarations.Where(d => d.Kind == "event" && d.AllowedOperations.Any(p => p.StartsWith("response.", StringComparison.Ordinal))))
+            foreach (var declaration in registry.AbilityDeclarations.Where(d => d.Kind == "event" && d.ResponseKinds.Count > 0))
             foreach (string eventType in declaration.ObservedEvents)
             {
                 if (eventType != InfluenceEventTypeIds.InfluenceRemoved && eventType != InfluenceEventTypeIds.InfluenceReplaced) throw new InvalidOperationException("departure_response_event_invalid");
@@ -30,7 +30,7 @@ namespace YC.Infrastructure.Lua
                         if (AbilitySourceEffectExecutor.IsConsumed(context.State, source, "event:" + context.Event.EventId)) continue;
                         var root = AbilitySourceEffectExecutor.Create(source, context.Event, declaration.HandlerRef, false, context.State.Round);
                         // 真正的离场可选收益先登记来源事实；库存相关正文等同批去向结清后再预检/构造。
-                        if ((declaration.AllowedOperations.Contains("response.optional_effect") && InfluenceDepartureProtocol.ForEvent(context.State, context.Event) != null) ||
+                        if ((declaration.ResponseKinds.Contains("response.optional_effect") && InfluenceDepartureProtocol.ForEvent(context.State, context.Event) != null) ||
                             registry.HasEventResponseBody(context, root, source)) effects.Add(root);
                     }
                     return effects;

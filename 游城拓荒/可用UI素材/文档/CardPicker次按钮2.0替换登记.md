@@ -20,7 +20,7 @@ CardPicker 原包其余六张图继续按各自登记用途使用。新图不扩
 
 ## 当前项目参数快照
 
-只读核对 `Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab` 的 `Secondary Action/Button Artwork`：RawImage fileID `346028464777822654` 仍引用旧图 `Assets/YC/Presentation/Enterprise/Artwork/selection-button-secondary.png`，GUID `b2b6b6af52cb4b87b5619aa82d2aa5e1`，其字节与已撤出可用库的旧图相同。
+2026-11-13 用户明确授权换图后，`Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardPickerDialog.prefab` 的 `Secondary Action/Button Artwork`（RawImage fileID `346028464777822654`）已引用 `Assets/YC/Presentation/CardPicker/Artwork/botton-secondary-v2.0.png`，GUID `25541315d395423fbeaa982be76b7a80`；项目图与可用库原图字节一致。原次按钮图未删除或覆盖。
 
 | 项目 | 当前源 Prefab/导入参数 |
 | --- | --- |
@@ -32,6 +32,6 @@ CardPicker 原包其余六张图继续按各自登记用途使用。新图不扩
 | 选中/禁用 | `(0.9607843,0.9607843,0.9607843,1)` / `(0.42,0.42,0.42,0.65)` |
 | 状态驱动 | Button ColorTint，TargetGraphic 指向上述 RawImage，FadeDuration=0.1，独立状态 Sprite 均为空 |
 
-此渲染链不使用 Sprite 切片、PPU 或 Image 每单位像素倍率；不要把其他按钮的 Sprite/Sliced 参数套到该图。上述为当前源资产快照，不是不可变样式规范，也不是新图已接入的证明。完整数据及文件指纹见[替换参数](../参数/项目实际用法/CardPicker次按钮2.0替换登记.json)。
+此渲染链不使用 Sprite 切片、PPU 或 Image 每单位像素倍率；不要把其他按钮的 Sprite/Sliced 参数套到该图。上述为当前源资产快照，不是不可变样式规范，也不能代替运行画面验收。完整数据及文件指纹见[替换参数](../参数/项目实际用法/CardPicker次按钮2.0替换登记.json)。
 
-本次只完成可用库替换和文档登记，没有修改 Unity 贴图、场景或预制体。后续具体换图任务须核对实际资产来源及场景覆盖，并进行正常流程视觉验收；不能把源 Prefab 静态记录当作所有运行入口已通过。
+本次只换绑指定源 Prefab 的次按钮贴图，未改变场景、按钮布局、映射或交互；已检查对局 HUD 引用与两个相关场景的覆盖情况。带图形设备的 EditMode 夹具验证了取消按钮响应；正常流程视觉验收仍待完成，不能把源 Prefab 静态记录或夹具通过当作所有运行入口已通过。

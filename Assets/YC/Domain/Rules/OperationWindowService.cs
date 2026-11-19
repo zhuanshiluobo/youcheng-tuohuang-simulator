@@ -131,6 +131,28 @@ namespace YC.Domain.Rules
                     n.SettlementWindow.Context.PlayerId == command.PlayerId && n.SettlementWindow.Entries.Any(e => e.OptionId == optionId));
                 if (owner != null) { source = model.NodeScope(owner); commandSource = owner; }
             }
+            if (source == null && command.Kind == GameCommandKind.CollectResource && state.Phase == GamePhase.ResourceCollection)
+            {
+                // 历史采集任务直接归主链效果所有，沿用其已登记的 effect_input 窗口。
+                var main = state.EffectRuntime.MainNodes.Find(m => m.NodeId == state.EffectRuntime.ActiveMainNodeId &&
+                    m.NodeTypeId == RoundMainlineNodeTypeIds.Collection && !Terminal(m.Status));
+                var owner = main == null ? null : state.EffectRuntime.EffectNodes.Find(n => n.EffectId == main.ExecutionEffectId &&
+                    n.EffectTypeId == RoundExecutionService.MainlineEffectTypeId && !Terminal(n.Status));
+                var tasks = owner == null ? Array.Empty<InteractionRequest>() : state.EffectRuntime.InteractionRequests.Where(r =>
+                    r.Status == "open" && r.OwnerEffectId == owner.EffectId && r.InteractionTypeId == "collection.task" &&
+                    r.AnsweringPlayerId == command.PlayerId).ToArray();
+                if (tasks.Length == 1 && state.EffectRuntime.PlayerOrderSnapshot.Contains(command.PlayerId) &&
+                    !state.FindPlayer(command.PlayerId).HasCollectedResourcesThisRound &&
+                    !state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.InteractionTypeId == "route_resource.selection" &&
+                        IsWithin(state.EffectRuntime, r.OwnerEffectId, owner.EffectId)))
+                {
+                    if (state.RuleConfiguration?.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Sequential &&
+                        state.CurrentPlayerId != command.PlayerId)
+                        return Reject(CommandErrorCode.NotCurrentPlayer, "请按当前玩家顺序采集。", out validation);
+                    source = model.RequestScope(tasks[0]);
+                    commandSource = owner;
+                }
+            }
             if (source == null)
             {
                 string kind = command.Kind == GameCommandKind.CoverCharacterCard ? RoundMainlineNodeTypeIds.CharacterCover :

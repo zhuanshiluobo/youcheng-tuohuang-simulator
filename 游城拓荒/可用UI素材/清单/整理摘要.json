@@ -1,7 +1,7 @@
 {
-  "date": "2026-11-01",
-  "packages": 24,
-  "sourceMembers": 4008,
+  "date": "2026-11-16",
+  "packages": 28,
+  "sourceMembers": 4035,
   "allowedSourceImageMembers": 1893,
   "uniqueFiles": 1396,
   "sourceReadPolicy": "后续未经用户明确授权不得读取原档案",
@@ -39,12 +39,11 @@
   "currentStandards": "清单/当前用途标准.json",
   "initialDate": "2026-10-08",
   "latestIncrement": {
-    "source": "游城拓荒/UI素材/botton-secondary-v2.0.png",
-    "newFiles": 1,
-    "removedFiles": 1,
-    "basis": "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
-    "standard": "P01",
-    "zipPackageCountUnchanged": true,
-    "sourceMemberCountUnchanged": true
-  }
+    "source": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX-v8.zip",
+    "componentFiles": 5,
+    "imageFiles": 0,
+    "basis": "用户要求完整更新v8并保留原有meta"
+  },
+  "componentFiles": 5,
+  "totalUsableFiles": 1401
 }

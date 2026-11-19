@@ -122,6 +122,31 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
+        public void RestrictedDeployAndDispatchBudgetsDriveActualCommandsAndSpendMatchingBatches()
+        {
+            var f = Dispatch(); var budget = new MainActionBudgetService();
+            budget.EndActionTurn(f.State, 1);
+            budget.GrantAdditionalMainActions(f.State, 1, 1, new[] { "deploy" });
+            budget.GrantAdditionalMainActions(f.State, 1, 1, new[] { "dispatch" });
+            Assert.That(budget.ValidateCanSpend(f.State, 1, "build").IsValid, Is.False);
+            var deploy = new DeployInfluenceCommandHandler(f.Influence, new RoundAdvanceService(f.Round), f.Registry);
+            var result = deploy.Handle(f.State, new GameCommand { Kind = GameCommandKind.DeployInfluence, PlayerId = 1, TargetId = Slot("quay") });
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
+            Assert.That(budget.ValidateCanSpend(f.State, 1, "deploy").IsValid, Is.False);
+            Assert.That(budget.ValidateCanSpend(f.State, 1, "dispatch").IsValid, Is.True);
+            string source = f.State.Map.Influences.Single(value => value.PlayerId == 1).InfluenceId;
+            var dispatch = new DispatchInfluenceCommandHandler(f.Influence, new RoundAdvanceService(f.Round), f.Registry);
+            result = dispatch.Handle(f.State, DispatchCommand(source, Slot("pier")));
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            if (f.State.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" && !request.IsInternalMainlineInteraction()))
+                Answer(f, NormalizedValue.CreateBoolean(false));
+            Assert.That(f.State.ItemZones.Items.Single(item => item.ItemId == source).SlotId, Is.EqualTo(Slot("pier")));
+            Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero);
+            Assert.That(f.State.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(2));
+        }
+
+        [Test]
         public void ConfirmedDispatchCanMoveAgainAndRecoveredSecondRequestDoesNotRepeatFirstMove()
         {
             var f = Dispatch(); var source = Place(f, 1, Slot("quay"));
@@ -302,7 +327,7 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         private static Fixture Dispatch()
         {
-            var map = new GameMapDefinition { MapId = "main_action_preselection.dispatch", MinPlayers = 2, MaxPlayers = 4,
+            var map = new GameMapDefinition { MapId = StaticMapDefinitions.FourPlayerMapId, MinPlayers = 2, MaxPlayers = 4,
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor" } },
                 Locations = new[] { "quay", "pier", "mine" }.Select(id => new MapLocationDefinition {
                     LocationId = id, RegionId = "harbor", InfluenceSlotCount = 2, CanDockCity = true }).ToList() };

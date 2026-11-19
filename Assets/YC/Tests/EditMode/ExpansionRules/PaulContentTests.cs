@@ -507,5 +507,51 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.Registry.QuerySources(f.State, 1, "event", "FinalScoringStarted").Count(s => s.AbilityId == "entrepreneur.P08.bonus"), Is.EqualTo(1));
             // 实际特殊收益/控制者归属消费由统一终局组合继续验证，不用本纯查询假称已入账。
         }
+        [Test] public void RegionPreviewSplitsGangAndScoringModifiersWithoutChangingState()
+        {
+            f = new PaulContentTestFixture();
+            f.Choose(5, "P05"); f.Choose(7, "P08"); f.DockCity(f.Location);
+            f.Place(f.Location, 0, type: "entrepreneur.gang_marker");
+            f.Place(f.Location, 1, type: "entrepreneur.gang_marker");
+            var map = new MapQueryService(f.Map);
+            string region = f.Map.Locations.Single(value => value.LocationId == f.Location).RegionId;
+            string before = JsonConvert.SerializeObject(f.State);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var preview = RegionInformationQuery.CreatePreview(f.State, map, f.Registry);
+            watch.Stop(); TestContext.WriteLine("保罗正式效果的区控预览耗时：{0} 毫秒", watch.ElapsedMilliseconds);
+            var row = RegionInformationQuery.Build(f.State, map, preview).Single(value => value.RegionId == region);
+            Assert.That(row.InfluenceDisplay[1], Is.EqualTo("0+5"));
+            Assert.That(row.Influence[1], Is.EqualTo(5));
+            Assert.That(row.Points, Is.EqualTo(f.Map.Regions.Single(value => value.RegionId == region).ScoreValue + 1));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before), "预览不得结算收益或修改对局。");
+        }
+
+        [Test] public void RegionPreviewKeepsResultsWithSyntheticCompletedHistory()
+        {
+            f = new PaulContentTestFixture(); f.Choose(5, "P05"); f.Choose(7, "P08");
+            f.DockCity(f.Location); f.Place(f.Location, 0, type: "entrepreneur.gang_marker");
+            var map = new MapQueryService(f.Map);
+            string region = f.Map.Locations.Single(value => value.LocationId == f.Location).RegionId;
+            RegionInformationRow Read()
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                var preview = RegionInformationQuery.CreatePreview(f.State, map, f.Registry);
+                watch.Stop();
+                TestContext.WriteLine("历史效果节点 {0} 个时预览耗时 {1} 毫秒（隔离夹具）",
+                    f.State.EffectRuntime.EffectNodes.Count, watch.ElapsedMilliseconds);
+                return RegionInformationQuery.Build(f.State, map, preview).Single(value => value.RegionId == region);
+            }
+            var baseline = Read();
+            foreach (int target in new[] { 1000, 4000 })
+            {
+                while (f.State.EffectRuntime.EffectNodes.Count < target)
+                    f.State.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState {
+                        EffectId = "fixture.completed." + f.State.EffectRuntime.EffectNodes.Count,
+                        EffectTypeId = "fixture.completed", Status = EffectNodeStatus.Completed });
+                var actual = Read();
+                Assert.That(actual.InfluenceDisplay[1], Is.EqualTo(baseline.InfluenceDisplay[1]));
+                Assert.That(actual.Points, Is.EqualTo(baseline.Points));
+            }
+        }
     }
 }

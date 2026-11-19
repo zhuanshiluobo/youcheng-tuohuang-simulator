@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Domain.Effects;
+using YC.Domain.Items;
 using YC.Domain.Rules;
 using YC.Domain.Scoring;
 using YC.Domain.State;
@@ -14,6 +15,49 @@ namespace YC.Tests.EditMode.ExpansionRules
 {
     public sealed class FinalScoringRecoveryTests
     {
+        [TestCase(false)] [TestCase(true)]
+        public void FinishedScoringWithActualCityLocationRestoresFromSnapshotAndJournal(bool stateAfter)
+        {
+            fixture = new FinalScoringTestFixture(includeCities: true);
+            var location = fixture.Definition.Locations.First(value => value.RegionId == fixture.RegionId);
+            var parent = fixture.State.ItemZones.Zones.Single(value => value.TemplateId == "core.zone.map_location" && value.LocalZoneId == location.LocationId);
+            var dock = fixture.State.ItemZones.Zones.Single(value => value.TemplateId == "core.zone.city_dock" && value.ParentId == parent.ZoneId);
+            var city = fixture.State.ItemZones.Items.Single(value => value.PhysicalKind == ItemPhysicalKind.MobileCity && value.OwnerSubject.PlayerId == 1);
+            typeof(ItemZoneStateMigrator).GetMethod("SetPosition", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .Invoke(null, new object[] { fixture.State, city, dock.ZoneId });
+            Assert.That(fixture.State.FindPlayer(1).CityLocationId, Is.EqualTo(location.LocationId));
+            var initial = HostRecoveryService.CreateArchive(fixture.State);
+            fixture.Start(); fixture.Pump();
+            Assert.That(fixture.State.FinalScoring.IsResolved, Is.True);
+            var archive = stateAfter ? initial : HostRecoveryService.CreateArchive(fixture.State);
+            if (stateAfter) HostRecoveryService.AppendJournal(archive, fixture.State);
+            string json = HostRecoveryService.SerializeArchive(archive);
+            string originalResult = JsonConvert.SerializeObject(fixture.State.FinalScoring);
+            var typed = HostRecoveryService.Recover(archive, fixture.Registry);
+            Assert.That(typed.Succeeded, Is.True, typed.Diagnostic);
+            var recovered = HostRecoveryService.RecoverJson(json, fixture.Registry);
+            Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
+            Assert.That(recovered.State.FindPlayer(1).CityLocationId, Is.EqualTo(location.LocationId));
+            Assert.That(JsonConvert.SerializeObject(recovered.State.FinalScoring), Is.EqualTo(originalResult));
+            Assert.That(HostRecoveryService.SerializeArchive(archive), Is.EqualTo(json), "恢复不得更改原归档");
+            var damaged = JObject.Parse(json);
+            var saved = stateAfter ? (JObject)((JArray)damaged["Journal"]["Entries"]).Last(value => value["StateAfter"] is JObject)["StateAfter"]
+                                   : (JObject)damaged["Snapshot"]["State"];
+            var control = saved["FinalScoring"]["Session"]["Control"];
+            string originalBasis = (string)control["BasisDigest"];
+            Assert.That((string)control["RulesDigest"], Is.Not.EqualTo(new string('0', 64)));
+            control["BasisDigest"] = new string('0', 64);
+            var refused = HostRecoveryService.RecoverJson(damaged.ToString(Formatting.None), fixture.Registry);
+            Assert.That(refused.Succeeded, Is.False, "投影绑定不能放行被篡改的计分依赖");
+            Assert.That(refused.Diagnostic, Does.Contain("final_scoring_control_snapshot_invalid"));
+            control["BasisDigest"] = originalBasis;
+            control["RulesDigest"] = new string('0', 64);
+            refused = HostRecoveryService.RecoverJson(damaged.ToString(Formatting.None), fixture.Registry);
+            Assert.That(refused.Succeeded, Is.False, "快照身份未改变时仍须核验真实规则依赖");
+            Assert.That(refused.Diagnostic, Does.Contain("final_scoring_control_dependency_changed"));
+            Assert.That(HostRecoveryService.SerializeArchive(archive), Is.EqualTo(json), "坏档测试不得修改原归档");
+        }
+
         [TestCase("InfluenceCountFacts",false)] [TestCase("PhysicalCountFacts",false)] [TestCase("CityCountFacts",false)]
         [TestCase("InfluenceCountFacts",true)] [TestCase("PhysicalCountFacts",true)] [TestCase("CityCountFacts",true)]
         public void CurrentCountFactListsMustBePresentInSnapshotAndEveryRealStateAfter(string field,bool stateAfter)

@@ -22,6 +22,7 @@ namespace YC.Presentation
         private readonly GameplayDialogRegistry registry;
         private readonly RectTransform parent;
         private readonly IGameCommandPort port;
+        private readonly BuildFacilityOptionQueryService buildOptions;
         private readonly Action refresh;
         private readonly Action<string> prompt;
         private readonly Dictionary<string, Flow> flows = new Dictionary<string, Flow>();
@@ -39,10 +40,11 @@ namespace YC.Presentation
 
         public FacilityBuildRequestUiCoordinator(Func<GameState> state, Func<GameStateView> visible, Func<int> player,
             GameplayDialogRegistry registry, RectTransform parent, IGameCommandPort port, Func<bool> canSubmit,
-            Action refresh, Action<string> prompt)
+            Action refresh, Action<string> prompt, BuildFacilityOptionQueryService buildOptions)
         {
             this.state = state; this.visible = visible; this.player = player; this.registry = registry;
             this.parent = parent; this.port = port; this.canSubmit = canSubmit; this.refresh = refresh; this.prompt = prompt;
+            this.buildOptions = buildOptions ?? throw new ArgumentNullException(nameof(buildOptions));
         }
         public override string Id => "facility.build.request.ui";
         public override InteractionPriority Priority => InteractionPriority.PendingResolution;
@@ -88,7 +90,7 @@ namespace YC.Presentation
                 var context = new ScopeContext(state, flow.Player);
                 flow.Workflow = new BuildInteraction(context,
                     new ScopePort(port, () => CanOperate(flow)), new View(this, flow), new InteractionFlowCoordinator(),
-                    () => false, _ => Refresh(flow));
+                    () => false, _ => Refresh(flow), buildOptions);
                 flow.Workflow.GetVisibleState = visible;
             }
             bool changedFlow = active != flow;
@@ -113,7 +115,7 @@ namespace YC.Presentation
                 var inputId = scope.Input.InteractionId; var revision = scope.VisibleState.StateRevision;
                 bool Current() => active == flow && CanOperate(flow) && !flow.Workflow.IsSubmissionInFlight &&
                     TryScope(flow, out var current) && current.Input?.InteractionId == inputId && current.VisibleState.StateRevision == revision;
-                page.RefreshSupplyStatus(state(), flow.Player, scope.VisibleState.Decks.FacilityDeckCount);
+                page.RefreshSupplyStatus(state(), flow.Player, scope.VisibleState.Decks);
                 page.Show(model, state().Map.Facilities.ToArray(), flow.Player, registry.CardVisualCatalog,
                     registry.EffectDialogLayoutProfile, flow.Workflow.FacilityId, string.Empty, Current,
                     id => { if (Current()) flow.Workflow.SelectFacility(id); }, _ => { },

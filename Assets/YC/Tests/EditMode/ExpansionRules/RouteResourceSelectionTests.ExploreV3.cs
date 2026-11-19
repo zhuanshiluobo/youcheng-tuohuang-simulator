@@ -7,6 +7,7 @@ using NUnit.Framework;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
+using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
@@ -32,6 +33,30 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var engine = new EffectTreeExecutor(state, registry); string root = engine.CreateRoot(CompileLua("Effect.Explore({" + fields + "})"));
             Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage); return root;
+        }
+        [Test]
+        public void GrantedExploreAtFourPlayerRoundStartCanSelectOpenRedZoneAndComplete()
+        {
+            Production(out var state, out var registry, out var exploration, 4);
+            state.Round = 3; state.Phase = GamePhase.RoundStart; state.CurrentPlayerId = 2;
+            state.FindPlayer(1).Resources.GoldVoucher = 40;
+            Assert.That(exploration.GetSelectableLocationIds(state, 1, true), Does.Not.Contain("E-03"),
+                "效果授予探索也不能提前进入尚未开放的红区");
+            state.Round = 4;
+            Assert.That(exploration.GetSelectableLocationIds(state, 1), Is.Empty, "回合开始不能直接发起普通主要行动");
+            Assert.That(exploration.GetSelectableLocationIds(state, 1, true), Does.Contain("E-03"),
+                "四人局第4回合，效果授予玩家探索时红区已开放");
+            var path = exploration.FindDefaultPath(state, 1, "E-03");
+            Assert.That(path, Is.Not.Null);
+            string root = StartExploreV3(state, registry, ExploreSelect.Replace("'A-01'", "'E-03'"));
+            var request = Selection(state);
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(1));
+            Submit(state, registry, request, SelectionAnswer(request, "E-03", path.RouteIds.ToArray()));
+            FinishEvents(state, registry);
+            Assert.That(Text(ExploreRoot(state, root).NormalizedResult, "outcome"), Is.EqualTo("completed"));
+            Assert.That(Text(ExploreRoot(state, root).NormalizedResult, "targetLocationId"), Is.EqualTo("E-03"));
+            Assert.That(state.Map.ResourceTokens.Any(token => token.LocationId == "E-03"), Is.True);
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.Zero);
         }
         [TestCase(false, false)][TestCase(false, true)][TestCase(true, false)][TestCase(true, true)]
         public void ExploreV3BothModesReserveRespondSettleAndConsumeOnlyTheirDeclaredAction(bool explicitPlan, bool consumes)

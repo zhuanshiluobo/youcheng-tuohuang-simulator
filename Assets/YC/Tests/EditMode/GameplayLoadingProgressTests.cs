@@ -21,7 +21,7 @@ namespace YC.Tests.EditMode
             // 复用规则隔离夹具创建真实 coordinator，验证发布状态而不是伪造 UI 权限。
             const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
             var fixture = typeof(DeterministicSimulationCoordinatorTests);
-            var group = fixture.GetMethod("ActionGroup", flags).Invoke(null, new object[] { null, 2, 4096 });
+            var group = fixture.GetMethod("ActionGroup", flags).Invoke(null, new object[] { null, 2, 4096, false });
             if (confirmed) group.GetType().GetMethod("Seal", flags).Invoke(group, new object[] { 0L, true });
             var peers = (DeterministicSimulationCoordinator[])group.GetType().GetField("Coordinators", flags).GetValue(group);
             try

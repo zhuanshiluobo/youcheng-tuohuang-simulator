@@ -59,7 +59,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     const string path = "entrepreneur/entrepreneur.round.A.3.json";
                     var json = JObject.Parse(File.ReadAllText(Path.Combine(f.Pack.RootPath, path)));
                     var source = json["abilitySources"].Single(v => (string)v["abilityId"] == "entrepreneur.A06.departure");
-                    ((JArray)source["allowedOperations"]).Single(v => (string)v == "response.batch").Remove();
+                    ((JArray)source["responseKinds"]).Single(v => (string)v == "response.batch").Remove();
                     f.Pack = f.Pack.CreateWithOverrides(new Dictionary<string, string> { [path] = json.ToString() });
                     f.Artifacts.WriteLabeledText("非批次通用协议隔离", "只在内存内容副本移除response.batch，实际A06 Lua不变；不声称正式A06的默认声明为非批次。");
                 }
@@ -161,8 +161,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 {
                     var response = f.State.EffectRuntime.DeferredResponses.First(r => r.Kind == "destination" && r.Status == DeferredResponseStatus.Pending);
                     var request = f.State.EffectRuntime.InteractionRequests.Single(q => q.Status == "open" && InfluenceDepartureProtocol.IsWithin(f.State, q.OwnerEffectId, response.ResponseRootEffectId));
-                    string answer = scenario == "store-zero" || scenario == "t09-store" || scenario == "batch-mixed" && answered == 0 ? "store" : "decline";
-                    Answer(request, NormalizedValue.CreateString(answer)); answered++;
+                    bool store = scenario == "store-zero" || scenario == "t09-store" || scenario == "batch-mixed" && answered == 0;
+                    Answer(request, store ? NormalizedValue.CreateString("store") : NormalizedValue.CreateBoolean(false)); answered++;
                     Capture("去向回答后" + answered);
                     if (f.State.EffectRuntime.DeferredResponses.Any(r => r.Kind == "destination" && (r.Status == DeferredResponseStatus.Pending || r.Status == DeferredResponseStatus.Queued)))
                     { Need(calls.Count == 0, "批次尚有相关去向待答时收益Lua已读取库存"); Restore("批次中途Host"); }

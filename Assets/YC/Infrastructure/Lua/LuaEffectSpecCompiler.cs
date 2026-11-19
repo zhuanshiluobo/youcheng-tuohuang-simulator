@@ -19,6 +19,7 @@ namespace YC.Infrastructure.Lua
         public string ContentInstanceId { get; set; } = string.Empty;
         public string AbilityId { get; set; } = string.Empty;
         public string CompletionHandlerId { get; set; } = string.Empty;
+        internal LuaScriptDefinition ContinuationTarget { get; set; }
         public string StableKeyPrefix { get; set; } = string.Empty;
         public int PlayerId { get; set; } = -1;
     }
@@ -71,7 +72,8 @@ namespace YC.Infrastructure.Lua
         {
             Register(new LuaEffectTypeRegistration(AbilityActionExecutor.DirectTypeId,
                 spec => ItemTransferEffectExecutor.Number(spec.RawArguments, "apiVersion") != 1 ||
-                    new[] { "itemId", "actionId", "callPolicyRef" }.Any(field => string.IsNullOrEmpty(ItemTransferEffectExecutor.Text(spec.RawArguments, field))) ? "action_direct_arguments_invalid" : "",
+                    new[] { "itemId", "actionId" }.Any(field => string.IsNullOrEmpty(ItemTransferEffectExecutor.Text(spec.RawArguments, field))) ||
+                    new[] { "omitEntryCost", "omitEntryAfterEffects", "omitMainAction" }.Any(field => ItemTransferEffectExecutor.Value(spec.RawArguments, field) is NormalizedValue value && value.Kind != NormalizedValueKind.Boolean) ? "action_direct_arguments_invalid" : "",
                 CreateRawArguments));
             Register(new LuaEffectTypeRegistration(ResourceCollectionEffectExecutor.TypeId, spec => ResourceCollectionEffectExecutor.ValidateArguments(spec.RawArguments), CreateRawArguments));
             Register(new LuaEffectTypeRegistration(ResourcePaymentInsertionService.PickItemTypeId, spec => ResourcePaymentInsertionService.ValidatePickArguments(spec.RawArguments), CreateRawArguments));
@@ -689,6 +691,22 @@ namespace YC.Infrastructure.Lua
                         ability.AbilityId, handler.CompletionHandlerId, handler.Version, source, LuaContentHasher.ComputeSha256(source)));
                 }
             if (presentationPack != null)
+                foreach (var definition in presentationPack.ActiveDefinitions.Where(d => d.ContentType == "event" && (int?)d.Data["eventChoiceSchemaVersion"] == 1))
+                foreach (string handlerId in (definition.Data["choices"] as Newtonsoft.Json.Linq.JArray ?? new Newtonsoft.Json.Linq.JArray())
+                    .Select(choice => (string)choice["completionHandlerId"]).Where(id => !string.IsNullOrEmpty(id)).Distinct(StringComparer.Ordinal))
+                {
+                    var target = EventCardLuaCatalog.CreateCompletionDefinition(presentationPack, definition, handlerId);
+                    abilityCompletionScripts.Add(target.AbilityId, target);
+                }
+            if (presentationPack?.DiyComposition != null)
+                foreach (var item in (presentationPack.Manifest["diyRuleBindings"] as Newtonsoft.Json.Linq.JArray ?? new Newtonsoft.Json.Linq.JArray()).OfType<Newtonsoft.Json.Linq.JObject>())
+                {
+                    if (item["completion"] == null) continue;
+                    var target = DiyRuleBindingCatalog.CreateCompletionDefinition(presentationPack, item);
+                    if (abilityCompletionScripts.ContainsKey(target.AbilityId)) throw new InvalidOperationException("diy_rule_binding_completion_conflict:" + target.AbilityId);
+                    abilityCompletionScripts.Add(target.AbilityId, target);
+                }
+            if (presentationPack != null)
                 foreach (var definition in presentationPack.ActiveDefinitions)
                 foreach (var ability in definition.Abilities)
                 {
@@ -725,6 +743,15 @@ namespace YC.Infrastructure.Lua
         }
 
         public LuaEffectTypeCatalog Catalog { get { return catalog; } }
+
+        // 仅宿主冻结的准备步骤可登记完成目标；Lua 不能修改该索引。
+        internal void RegisterPreparationCompletion(string abilityId, LuaScriptDefinition target)
+        {
+            if (string.IsNullOrEmpty(abilityId) || target == null || target.AbilityId != abilityId ||
+                abilityCompletionScripts.ContainsKey(abilityId))
+                throw new InvalidOperationException("preparation_completion_conflict:" + abilityId);
+            abilityCompletionScripts.Add(abilityId, target);
+        }
 
         public bool TryCompile(
             LuaInvocationResult invocation,
@@ -826,12 +853,22 @@ namespace YC.Infrastructure.Lua
                 spec.SourceId = string.IsNullOrEmpty(context.SourceId) ? invocation.ContentId : context.SourceId;
                 spec.StableKey = BuildStableKey(context.StableKeyPrefix, i);
                 spec.CompletionHandlerId = context.CompletionHandlerId ?? string.Empty;
+                var continuationTarget = context.ContinuationTarget;
+                if (continuationTarget != null &&
+                    (!abilityCompletionScripts.TryGetValue(context.AbilityId ?? string.Empty, out var targetDeclaration) ||
+                     targetDeclaration.HandlerId != continuationTarget.HandlerId || targetDeclaration.ContentId != continuationTarget.ContentId ||
+                     targetDeclaration.DefinitionVersion != continuationTarget.DefinitionVersion || targetDeclaration.ContentHash != continuationTarget.ContentHash ||
+                     context.CompletionHandlerId != continuationTarget.HandlerId))
+                {
+                    fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, "完成处理器与正式登记不一致。", i);
+                    return false;
+                }
                 if (!string.IsNullOrEmpty(sourceSpec.CompletionHandlerId))
                 {
                     if (!abilityCompletionScripts.TryGetValue(context.AbilityId ?? string.Empty, out var declared) ||
                         sourceSpec.CompletionHandlerId != declared.HandlerId ||
-                        invocation.ContentId != declared.ContentId || invocation.DefinitionVersion != declared.DefinitionVersion ||
-                        invocation.ContentHash != declared.ContentHash ||
+                        (continuationTarget == null && (invocation.ContentId != declared.ContentId || invocation.DefinitionVersion != declared.DefinitionVersion ||
+                        invocation.ContentHash != declared.ContentHash)) ||
                         (context.CompletionHandlerId != declared.HandlerId && invocation.HandlerId != declared.HandlerId))
                     {
                         fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, "显式完成绑定必须匹配本能力声明及当前同内容续接。", i);
@@ -839,13 +876,13 @@ namespace YC.Infrastructure.Lua
                     }
                     spec.CompletionHandlerId = sourceSpec.CompletionHandlerId;
                 }
-                spec.ContinuationContentId = invocation.ContentId ?? string.Empty;
+                spec.ContinuationContentId = continuationTarget?.ContentId ?? invocation.ContentId ?? string.Empty;
                 spec.ContinuationContentInstanceId = context.ContentInstanceId ?? string.Empty;
                 spec.ContinuationAbilityId = string.IsNullOrEmpty(context.AbilityId)
                     ? invocation.HandlerId
                     : context.AbilityId;
-                spec.ContinuationDefinitionVersion = invocation.DefinitionVersion ?? string.Empty;
-                spec.ContinuationContentHash = invocation.ContentHash ?? string.Empty;
+                spec.ContinuationDefinitionVersion = continuationTarget?.DefinitionVersion ?? invocation.DefinitionVersion ?? string.Empty;
+                spec.ContinuationContentHash = continuationTarget?.ContentHash ?? invocation.ContentHash ?? string.Empty;
                 if (!BindContextContinuation(spec, out string contextError))
                 { fault = new LuaEffectCompilationFault(LuaFailureCode.InvalidEffectSpec, contextError, i); return false; }
 

@@ -7,6 +7,8 @@ using YC.Domain.Events;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Assembly-CSharp")]
+
 namespace YC.Application.Sessions
 {
     /// <summary>固定捕获只在Application内部可读；旧公开导出仍遵守原会话的保留窗口。</summary>
@@ -235,15 +237,20 @@ namespace YC.Application.Sessions
 
         public bool TryPrepareConfirmedRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
             GameStateViewer viewer, out PreparedGameSessionRecovery prepared, out string fault)
-            => TryPrepareRecoveryState(restored, continuation, viewer, out prepared, out fault);
+            => TryPrepareRecoveryState(restored, continuation, viewer, false, out prepared, out fault);
 
         /// <summary>本地热座按当前操作者即时投影，恢复时不固定某一玩家的展示快照。</summary>
         public bool TryPrepareLocalRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
             out PreparedGameSessionRecovery prepared, out string fault)
-            => TryPrepareRecoveryState(restored, continuation, null, out prepared, out fault);
+            => TryPrepareRecoveryState(restored, continuation, null, false, out prepared, out fault);
+
+        // 只供启动装配转交 RecoverJson 和 ReadContinuation 刚创建的独占结果；调用后不得再修改传入对象。
+        internal bool TryPrepareOwnedRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
+            GameStateViewer? viewer, out PreparedGameSessionRecovery prepared, out string fault)
+            => TryPrepareRecoveryState(restored, continuation, viewer, true, out prepared, out fault);
 
         private bool TryPrepareRecoveryState(GameState restored, GameSessionLogContinuationDto continuation,
-            GameStateViewer? viewer, out PreparedGameSessionRecovery prepared, out string fault)
+            GameStateViewer? viewer, bool owned, out PreparedGameSessionRecovery prepared, out string fault)
         {
             prepared = null; fault = string.Empty;
             try
@@ -252,8 +259,8 @@ namespace YC.Application.Sessions
                 if (restored == null || continuation == null || restored.GameId != activeState.GameId ||
                     restored.ContentPackHash != activeState.ContentPackHash || restored.EventDeckSeed != activeState.EventDeckSeed)
                     throw new InvalidOperationException("recovery_session_identity_mismatch");
-                var detached = GameStateCloneService.DeepClone(restored);
-                var detachedContinuation = GameStateCloneService.DeepClone(continuation);
+                var detached = owned ? restored : GameStateCloneService.DeepClone(restored);
+                var detachedContinuation = owned ? continuation : GameStateCloneService.DeepClone(continuation);
                 var preparedLog = RestoreContinuation(detachedContinuation, detached);
                 if (detached.RandomRuntime != null && !GameplayRandomRuntime.TryValidate(detached.RandomRuntime,
                     detached.GameId, detached.EventDeckSeed, out string reason)) throw new InvalidOperationException(reason);

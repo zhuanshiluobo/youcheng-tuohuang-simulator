@@ -216,6 +216,8 @@ namespace YC.Domain.Effects
                         "rowIds", Strings(rows.Keys), "rowMaximums", NormalizedValue.CreateObject(rows.Select(x => new NormalizedValueEntry { Name = x.Key, Value = NormalizedValue.CreateInteger(x.Value) }).ToList())),
                     Presentation = new GameplayInteractionPresentation { Prompt = rule.Insertion.Presentation.Description } };
                 request.CandidateIds.AddRange(rows.Keys);
+                foreach (var type in rule.AllowedResourceTypes)
+                    request.Presentation.QuantityRows.Add(ResourcePaymentSubstitutionEffectExecutor.ResourceRow(type));
                 return EffectStepResult.Continue("allocating").AddInteraction(request);
             }
             var answer = c.GetLatestInteractionAnswer();

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "recipeId": "example.events.green",
+  "expansionId": "example.events.green",
+  "entries": [{
+    "entryId": "example.events.support",
+    "definitionId": "example.events.support",
+    "quantity": 1,
+    "initialZoneRole": "event_green",
+    "applicableMapIds": ["map-three-players", "map-four-players"]
+  }]
+}

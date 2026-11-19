@@ -202,6 +202,12 @@ namespace YC.Domain.Effects
                 }
                 if (selected.Count < minSelections || selected.Count > maxSelections)
                     return EffectStepResult.Failed("lua_choice_answer_invalid");
+                if (InfluencePlaceChoiceAvailability.TryFilter(context.State, context.Node, candidates, out var liveCandidates) &&
+                    selected.Any(value => !liveCandidates.Contains(value.StringValue)))
+                {
+                    if (liveCandidates.Count == 0) return EffectStepResult.Failed("insufficient_items");
+                    return EffectStepResult.Continue("awaiting_choice").AddInteraction(ChoiceInteraction(context, liveCandidates, minSelections, maxSelections, true));
+                }
                 if (context.Node.NestedGroupSizes.Count > 0)
                 {
                     if (minSelections == 0 && selected.Count == 0)
@@ -220,6 +226,18 @@ namespace YC.Domain.Effects
                     selected.Count == 0 ? NormalizedValue.CreateNull() : maxSelections == 1 ? selected[0] : NormalizedValue.CreateArray(selected)));
             }
 
+            bool filteredPresentation = false;
+            if (InfluencePlaceChoiceAvailability.TryFilter(context.State, context.Node, candidates, out var availableCandidates))
+            {
+                if (availableCandidates.Count == 0) return EffectStepResult.Failed("insufficient_items");
+                filteredPresentation = availableCandidates.Count != candidates.Count;
+                candidates = availableCandidates;
+            }
+            return EffectStepResult.Continue("awaiting_choice").AddInteraction(ChoiceInteraction(context, candidates, minSelections, maxSelections, filteredPresentation));
+        }
+
+        private static EffectInteractionSpec ChoiceInteraction(EffectExecutionContext context, IReadOnlyList<string> candidates, int minSelections, int maxSelections, bool filterPresentation)
+        {
             var interaction = new EffectInteractionSpec
             {
                 InteractionTypeId = ResolveChoiceInteractionType(ReadString(context.Node.NormalizedArguments, "interactionType", ""),
@@ -235,8 +253,9 @@ namespace YC.Domain.Effects
             interaction.CandidateIds.AddRange(candidates);
             if (interaction.InteractionTypeId == LuaDomainEffectTypeIds.ChoiceExecutionInteraction || interaction.InteractionTypeId == "character.ability.choice.reward")
                 interaction.PromptParameters = ItemTransferEffectExecutor.Object("choiceIntent", NormalizedValue.CreateString("choice_execute"));
-
-            return EffectStepResult.Continue("awaiting_choice").AddInteraction(interaction);
+            if (filterPresentation && context.Node.Presentation?.Interaction != null)
+                interaction.Presentation = GameplayPresentationNormalizer.ProjectInteraction(context.Node.Presentation.Interaction, true, candidates);
+            return interaction;
         }
 
         public static string ValidateChoiceArguments(NormalizedValue arguments)

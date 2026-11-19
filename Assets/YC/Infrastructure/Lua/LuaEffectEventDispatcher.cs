@@ -23,7 +23,8 @@ namespace YC.Infrastructure.Lua
             string abilityId = "",
             string completionHandlerId = "",
             bool allowOtherPlayerReads = false,
-            string responseKind = "effects")
+            string responseKind = "effects",
+            LuaScriptDefinition continuationTarget = null)
         {
             if (string.IsNullOrEmpty(subscriptionId)) throw new ArgumentException("Lua 订阅 ID 不能为空。", nameof(subscriptionId));
             if (string.IsNullOrEmpty(eventType)) throw new ArgumentException("Lua Event 类型不能为空。", nameof(eventType));
@@ -39,6 +40,7 @@ namespace YC.Infrastructure.Lua
             CompletionHandlerId = completionHandlerId ?? string.Empty;
             AllowOtherPlayerReads = allowOtherPlayerReads;
             ResponseKind = responseKind ?? "effects";
+            ContinuationTarget = continuationTarget;
         }
 
         public string SubscriptionId { get; }
@@ -52,6 +54,7 @@ namespace YC.Infrastructure.Lua
         public string CompletionHandlerId { get; }
         public bool AllowOtherPlayerReads { get; }
         public string ResponseKind { get; }
+        internal LuaScriptDefinition ContinuationTarget { get; }
     }
 
     /// <summary>
@@ -135,6 +138,13 @@ namespace YC.Infrastructure.Lua
         public void Register(LuaHandlerDefinition definition)
         {
             if (definition == null) throw new ArgumentNullException(nameof(definition));
+            if (definition.EventType == YC.Domain.Cards.OperatorDispatchFlow.StartingEvent)
+            {
+                if (definition.CompletionHandlerId.Length > 0) throw new ArgumentException("dispatch_patch_completion_not_supported");
+                registry.RegisterOperatorDispatchCountPolicy(definition.SubscriptionId, CandidateSourceIdentity(definition.Script),
+                    (context, payload) => new[] { InvokeOperatorDispatchPatch(definition, context, payload) });
+                return;
+            }
             var registration = new EffectEventHandlerRegistration(
                 definition.SubscriptionId,
                 definition.EventType,
@@ -148,6 +158,23 @@ namespace YC.Infrastructure.Lua
                 definition.Script.DefinitionVersion,
                 definition.Script.ContentHash,
                 definition.Script.ContentId);
+            registry.RegisterEventHandler(registration);
+        }
+
+        /// <summary>按已有完成事件合同过滤真实效果，再调用冻结的 Lua 观察器。</summary>
+        internal void RegisterCompletionObserver(LuaHandlerDefinition definition, string effectType,
+            AbilitySourceDeclaration completionFilter)
+        {
+            if (definition == null || definition.EventType != "EffectCompleted" || string.IsNullOrEmpty(effectType) || completionFilter == null)
+                throw new ArgumentException("diy_completion_observer_invalid");
+            var registration = new EffectEventHandlerRegistration(definition.SubscriptionId, definition.EventType, definition.RouteKey,
+                definition.Script.HandlerId,
+                context => AbilityCompletionSourceCatalog.MatchesCompletion(context.State, context.Event, completionFilter)
+                    ? Invoke(definition, context) : Array.Empty<EffectSpec>(),
+                definition.Role, definition.Priority, definition.ContentInstanceId,
+                string.IsNullOrEmpty(definition.AbilityId) ? definition.Script.AbilityId : definition.AbilityId,
+                definition.Script.DefinitionVersion, definition.Script.ContentHash, definition.Script.ContentId)
+            { EffectTypeFilter = effectType };
             registry.RegisterEventHandler(registration);
         }
 
@@ -173,8 +200,12 @@ namespace YC.Infrastructure.Lua
                 definition.Priority,
                 definition.ContentInstanceId,
                 definition.AbilityId,
-                definition.Script.HandlerId));
+                definition.Script.HandlerId,
+                CandidateSourceIdentity(definition.Script)));
         }
+
+        internal static string CandidateSourceIdentity(LuaScriptDefinition script) =>
+            StableIdFactory.Create("lua-candidate-source", script.EntryId, script.DefinitionVersion, script.ContentHash);
 
         public IList<CandidatePatch> InvokePersistentCandidatePatches(LuaHandlerDefinition definition, GameState state, CandidateSetDraft draft, string cardInstanceId)
         {
@@ -343,6 +374,7 @@ namespace YC.Infrastructure.Lua
                     ? definition.Script.AbilityId
                     : definition.AbilityId,
                 CompletionHandlerId = definition.CompletionHandlerId,
+                ContinuationTarget = definition.ContinuationTarget,
                 StableKeyPrefix = definition.SubscriptionId,
                 PlayerId = handlerContext.Event.PlayerId
             };

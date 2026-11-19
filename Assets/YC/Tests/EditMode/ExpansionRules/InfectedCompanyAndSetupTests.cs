@@ -59,16 +59,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                     if (!paths.Values<string>().Contains(path) && !inventoryDefinitions.Contains(path)) paths.Add(path);
                 }
             }
-            string originals = Path.Combine(Directory.GetCurrentDirectory(), "游城拓荒/企业扩");
-            foreach (var pair in new[] { ("企业合作板 2行4列.jpg", "sheets/enterprise_boards.jpg"), ("罗德岛干员牌.jpg", "sheets/operator_faces.jpg"),
-                ("工程科.png", "departments/engineering.png"), ("防卫科.png", "departments/defense.png"), ("结构科.png", "departments/structural.png"), ("公路.jpg", "enterprise_road.jpg") })
-                Copy(Path.Combine(originals, pair.Item1), Path.Combine(fixtureRoot, "artwork", pair.Item2));
-            string infected = Path.Combine(Directory.GetCurrentDirectory(), "游城拓荒/感染者扩");
-            foreach (var pair in new[] {
-                ("2410077427276854351", "enterprises/infected_stonehoove_security.jpg"), ("2410077427276855138", "enterprises/infected_maylander_foundation.jpg"),
-                ("2411202693612143350", "enterprises/infected_rhodes_island.jpg"), ("2411202693612147496", "components/infected_company_marker.png"),
-                ("2411202693633912505", "components/infected_lifetime_security.png") })
-                Copy(Directory.GetFiles(infected).Single(f => Path.GetFileName(f).Contains(pair.Item1)), Path.Combine(fixtureRoot, "artwork", pair.Item2));
+            // 当前正式内容已包含这些图片；测试只使用隔离副本中的正式素材，不再回取历史素材目录。
+            foreach (string path in new[] { "sheets/enterprise_boards.jpg", "sheets/operator_faces.jpg", "departments/engineering.png",
+                "departments/defense.png", "departments/structural.png", "enterprise_road.jpg", "enterprises/infected_stonehoove_security.jpg",
+                "enterprises/infected_maylander_foundation.jpg", "enterprises/infected_rhodes_island.jpg", "components/infected_company_marker.png",
+                "components/infected_lifetime_security.png" })
+                Assert.That(File.Exists(Path.Combine(fixtureRoot, "artwork", path)), Is.True, "正式内容缺少：" + path);
 
             // 后继尚未交付的内容只在隔离测试包内生成。每个所测能力真实返回并执行Effect，不写生产占位。
             var recipe = JObject.Parse(File.ReadAllText(Path.Combine(Content, "recipes/infected.json")));
@@ -85,7 +81,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     definition["data"]["acquisitionRole"] = role == "hand" ? "initial" : role == "flowing_shapes" ? "generated" : "operator_deck";
                     definition["data"]["instanceTypeId"] = definition["itemTypeId"].DeepClone();
                     definition["abilities"] = new JArray(new[] { "strategy", "tactic" }.Select(mode => FixtureAbility(id, mode,
-                        role == "hand" && mode == "strategy" ? "return { Flow.DispatchOperator({ apiVersion=1, player=ctx.playerId, drawCount=3, excludedReturnItemIds={ctx.payload.cardInstanceRef} }) }" : "return { Effect.GainScore({recipient=ctx.playerId, amount=1}) }")));
+                        role == "hand" && mode == "strategy" ? "return { Flow.DispatchOperator({ apiVersion=2, player=ctx.playerId, deckZoneId=Global.Content.FindZones({localZoneId='operator_deck'})[1].id, excludedReturnItemIds={ctx.payload.cardInstanceRef} }) }" : "return { Effect.GainScore({recipient=ctx.playerId, amount=1}) }")));
                 }
                 else if (category == "award")
                 {
@@ -333,21 +329,46 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test]
         public void RealPreparationWithoutRhodesStillLetsFixtureAmiyaDispatchFromSameSixteen()
         {
-            var state = State(4, false); Run(state, ExpansionSetupFlow.PreparationSpec(1));
-            while (Open(state) != null)
+            var fixturePack = pack;
+            try
             {
-                var request = Open(state); var id = request.CandidateIds.FirstOrDefault(c => !state.ItemZones.Items.Any(i => i.ItemId == c && i.DefinitionId == Rhodes)) ?? request.CandidateIds[0]; Answer(state, id);
+            pack = ExternalContentPack.Current; catalogs.Clear();
+            var state = State(4, false);
+            // 此用例仅隔离验证企业条件组件；入场及盖放通过新准备合同正常推进。
+            state.Phase = GamePhase.Setup; state.Round = 0; state.ActionRound = 0;
+            state.SetupRecipe.Preparation = FixturePreparationPlan.Create(state.RuleConfiguration.RuleModeId, true);
+            registry.SetupRecipe = GameStateCloneService.DeepClone(state.SetupRecipe);
+            var mapQuery = new MapQueryService(map); var influence = new InfluenceService(mapQuery);
+            PlayerEntranceLuaCatalog.Register(registry); PlayerEntranceEffectExecutor.Register(registry, mapQuery);
+            EventCardEffectExecutor.Register(registry, mapQuery, influence, new EventDeckService(), new ResourceTokenService());
+            RoundStartedRedZoneRule.Register(registry, mapQuery);
+            var rounds = new RoundExecutionService(registry);
+            var started = rounds.StartEntrance(state); Assert.That(started.IsValid, Is.True, started.Reason);
+            string amiya = Item(state, "infected.character.amiya", 1).ItemId;
+            for (int guard = 0; guard < 120 && state.Phase != GamePhase.ActionRound1; guard++)
+            {
+                RoundExecutionService.RefreshConcurrentInteractionRevisions(state);
+                var request = Open(state); Assert.That(request, Is.Not.Null, state.EffectRuntime.LastFaultMessage);
+                var candidates = request.CandidateIds.Where(c => request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
+                    !state.ItemZones.Items.Any(i => i.ItemId == c && i.DefinitionId == Rhodes));
+                if (request.InteractionTypeId == ExpansionSetupFlow.BasicCharacterInteraction && request.AnsweringPlayerId == 1)
+                    candidates = candidates.Where(id => id != amiya);
+                if (request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId && request.AnsweringPlayerId == 1)
+                    candidates = candidates.OrderByDescending(id => id == amiya);
+                var choices = candidates.Take(Math.Max(1, request.MinSelections)).ToArray();
+                Answer(state, choices);
+                Assert.That(rounds.Advance(state).IsValid, Is.True);
             }
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             Assert.That(In(state, "enterprises").Select(id => state.ItemZones.Items.Single(i => i.ItemId == id).DefinitionId), Does.Not.Contain(Rhodes));
             Assert.That(In(state, "operator_deck").Count, Is.EqualTo(16));
-            string amiya = Item(state, "infected.character.amiya", 1).ItemId;
-            Run(state, ExpansionSetupFlow.RetentionSpec(1)); Answer(state, Open(state).CandidateIds.Where(id => id != amiya).Take(4).Concat(new[] { amiya }).ToArray());
-            Run(state, EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); Answer(state, amiya);
             Run(state, CharacterLifecycleService.CreateUseSpec(1, amiya, "strategy"));
             Assert.That(state.ItemZones.Items.Count(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "dispatch_candidates")), Is.EqualTo(3));
             state = Restore(state); Answer(state, Open(state).CandidateIds.First(id => id != "decline"));
             Assert.That(Open(state).CandidateIds, Does.Not.Contain(amiya)); Answer(state, Open(state).CandidateIds[0]);
             Assert.That(In(state, "operator_deck").Count, Is.EqualTo(15)); Assert.That(state.ItemZones.Zones.Count(z => z.LocalZoneId == "operator_deck"), Is.EqualTo(1));
+            }
+            finally { pack = fixturePack; catalogs.Clear(); }
         }
         [Test]
         public void CompanyPlacementRejectsRoutesUnexploredOccupiedCityClosedAndLockedPoints()
@@ -507,9 +528,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(In(state, "covered", 1), Is.Empty);
         }
         [Test]
-        public void InfectedOrdinaryDispatchOverridesInheritedTwoCardRequest()
+        public void InfectedOrdinaryDispatchReadsComposedDrawCount()
         {
-            var state = State(); Run(state, OperatorDispatchFlow.CreateSpec(1, 2));
+            var state = State(); Run(state, OperatorDispatchFlow.CreateSpec(1, FindZone(state, "operator_deck").ZoneId));
             Assert.That(state.ItemZones.Items.Count(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "dispatch_candidates")), Is.EqualTo(3));
             state = Restore(state); Answer(state, Open(state).CandidateIds[0]); Answer(state, Open(state).CandidateIds[0]);
             Assert.That(In(state, "operator_deck").Count, Is.EqualTo(15));

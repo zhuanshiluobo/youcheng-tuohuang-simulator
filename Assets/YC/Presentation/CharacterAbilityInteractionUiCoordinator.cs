@@ -58,7 +58,8 @@ namespace YC.Presentation
         private int mapSelectionVersion;
         public Func<GameStateView> GetVisibleState { private get; set; }
         public GameplayExpansionUi ExpansionUi { private get; set; }
-        public Action<InteractionRequestProjection> RenderUseSelection { private get; set; }
+        // 只有原卡面真正接管请求（或宿主自动接续）后才返回 true；暂时不可显示时允许同一请求重试。
+        public Func<InteractionRequestProjection, bool> RenderUseSelection { private get; set; }
         public Action ClearUseSelection { private get; set; }
         private bool ownsUseSelection;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
@@ -181,13 +182,15 @@ namespace YC.Presentation
             if (dedicatedUseSelection)
             {
                 if (sameRequest && !needsRefresh && projection.StateRevision == renderedRevision && ownsUseSelection) return;
-                if (ownsUseSelection && !sameRequest) ClearUseSelection?.Invoke();
+                if (ownsUseSelection && !sameRequest) { ownsUseSelection = false; ClearUseSelection?.Invoke(); }
                 renderedInteractionId = projection.InteractionId;
                 renderedRevision = projection.StateRevision;
                 needsRefresh = false;
-                ownsPresentation = ownsUseSelection = true;
+                ownsPresentation = true;
                 clearHighlights(); dialog.Hide();
-                RenderUseSelection(projection);
+                var previouslyOwned = ownsUseSelection;
+                ownsUseSelection = RenderUseSelection(projection);
+                if (!ownsUseSelection && previouslyOwned) ClearUseSelection?.Invoke();
                 setPrompt(RequestPrompt(projection));
                 return;
             }
@@ -565,15 +568,17 @@ namespace YC.Presentation
             var state = getState();
             var requestGameId = state?.GameId;
             var optionalExecution = IsOptionalExecutionChoice(projection);
+            var playerSelection = PlayerSelectionRequestAdapter.Build(projection, state, getLocalPlayerId(), selectedCandidates);
+            var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
             bool Current() => optionalExecution || EffectDialogSelectionSpec.IsExecutionChoice(projection)
                 ? requestGameId == getState()?.GameId && projection.StateRevision == renderedRevision &&
                   TryGetRequest(out var current) && IsCurrentPresentedRequest(current) &&
                   InteractionCommandIntent.SameContract(requestGameId, projection, renderedGameId, renderedRequest)
                 : IsCurrent(projection);
-            if (optionalExecution)
+            if (optionalExecution && playerSelection == null)
             {
                 if (ExpansionUi != null) dialog.BindGameplayText(ExpansionUi.ResolveGameplayText, ExpansionUi.RenderEnterpriseDetails);
-                var options = projection.CandidateIds.Select(id => new EffectDialogOption(RequestLabel(id, projection), () =>
+                var options = projection.CandidateIds.Select(id => new EffectDialogOption(ResolveActionChoiceLabel(projection, id, visible), () =>
                 {
                     if (Current()) SubmitCandidates(projection, new[] { id });
                 })
@@ -581,14 +586,13 @@ namespace YC.Presentation
                     StableId = id, RequestId = projection.InteractionId, Revision = projection.StateRevision,
                     ExecuteImmediately = true, IsCurrent = Current,
                     LabelDocument = dialog.ResolveGameplayText(GameplayCandidateLabelResolver.Resolve(projection, id)),
-                    DescriptionDocument = dialog.ResolveGameplayText(projection.Presentation?.Options.Find(value => value.CandidateId == id)?.Description)
+                    DescriptionDocument = ResolveActionChoiceDescription(projection, id, visible)
                 }).ToArray();
                 // 沿原执行条目与结束当前请求入口；不伪改0..1合同，也不增加确认或取消页。
                 dialog.ShowOptions(projection, RequestTitle(projection), RequestPrompt(projection), options,
                     projection.AllowDecline ? (Action)(() => { if (Current()) SubmitDecline(projection); }) : null);
                 return;
             }
-            var visible = GetVisibleState?.Invoke() ?? ExpansionUi?.VisibleView();
             var displayRequest = CharacterCardDisplayOrder.ForDisplay(state, projection, id =>
             {
                 return CharacterCardDisplayOrder.ResolveDefinition(state, ResolveCandidateDefinition(projection, id, visible));
@@ -600,10 +604,11 @@ namespace YC.Presentation
                 ExecuteImmediately = EffectDialogSelectionSpec.IsExecutionChoice(projection),
                 ConfirmLabel = projection.InteractionTypeId == "setup.basic_character.discard" ? ExpansionUi?.Copy.DiscardConfirmLabel : null,
                 SelectedIds = selectedCandidates,
-                Players = PlayerSelectionRequestAdapter.Build(projection,getState(),getLocalPlayerId(),selectedCandidates),
+                Players = playerSelection,
                 PlayerSelectionChanged = ids =>
                 { selectedCandidates.Clear(); foreach (var id in PlayerSelectionRequestAdapter.CandidateIds(projection,ids)) selectedCandidates.Add(id); },
-                Label = candidateId => RequestLabel(candidateId, projection),
+                Label = candidateId => EffectDialogSelectionSpec.IsExecutionChoice(projection)
+                    ? ResolveActionChoiceLabel(projection, candidateId, visible) : RequestLabel(candidateId, projection),
                 ResolveCardDefinition = id => ResolveCandidateDefinition(projection, id, visible),
                 CardSprite = candidateId =>
                 {
@@ -632,9 +637,14 @@ namespace YC.Presentation
                         selectedCandidates.Add(candidateId);
                     specification.RefreshSelection?.Invoke();
                 },
-                Confirm = () => SubmitCandidates(projection,
-                    projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id))),
-                Cancel = null
+                Confirm = () =>
+                {
+                    var selected = projection.CandidateIds.FindAll(id => selectedCandidates.Contains(id));
+                    if (selected.Count == 0 && projection.AllowDecline) SubmitDecline(projection);
+                    else SubmitCandidates(projection, selected);
+                },
+                Cancel = optionalExecution && playerSelection != null && projection.AllowDecline
+                    ? (Action)(() => { if (Current()) SubmitDecline(projection); }) : null
             };
             if (specification.Players == null && ExpansionUi != null)
             {
@@ -652,6 +662,8 @@ namespace YC.Presentation
                         if (description != null) references.Add(description);
                         return GameplayExpansionUi.ResolveEnterpriseDetails(references, ExpansionUi.ResolveGameplayText);
                     };
+                else if (EffectDialogSelectionSpec.IsExecutionChoice(projection))
+                    specification.OptionDocument = id => ResolveActionChoiceDescription(projection, id, visible);
             }
             dialog.ShowSelection(RequestTitle(projection), specification.PromptDocument == null ? RequestPrompt(projection) : null,
                 specification, preserveScroll);
@@ -660,6 +672,46 @@ namespace YC.Presentation
         private static bool IsOptionalExecutionChoice(InteractionRequestProjection request) =>
             request != null && request.InteractionTypeId == "effect.choice.execute" && request.AnswerSchema == "candidate_id" &&
             request.MinSelections == 0 && request.MaxSelections == 1 && request.AllowDecline;
+
+        private AbilityActionOption OwnProjectedSpecialAction(InteractionRequestProjection request, string id, GameStateView visible)
+        {
+            if (visible == null || visible.GameId != getState()?.GameId || visible.ViewerPlayerId != getLocalPlayerId() ||
+                request?.CandidateIds?.Contains(id) != true || !GameplayHudFrame.MatchesSummaryRequest(request, visible)) return null;
+            var matches = visible.AbilityActions?.Where(option => option != null && option.OptionId == id && option.EntryKind == "special" &&
+                option.SourceRef?.AuthorizedPlayerId == getLocalPlayerId()).Take(2).ToArray();
+            return matches?.Length == 1 ? matches[0] : null;
+        }
+
+        private string ResolveActionChoiceLabel(InteractionRequestProjection request, string id, GameStateView visible)
+        {
+            if (GameplayCandidateLabelResolver.Resolve(request, id) != null) return RequestLabel(id, request);
+            var name = OwnProjectedSpecialAction(request, id, visible)?.DisplayName;
+            return string.IsNullOrEmpty(name) ? RequestLabel(id, request) : name;
+        }
+
+        private GameplayTextDocument ResolveActionChoiceDescription(InteractionRequestProjection request, string id, GameStateView visible)
+        {
+            var description = request.Presentation?.Options?.Find(option => option.CandidateId == id)?.Description;
+            var fallback = dialog.ResolveGameplayText(description);
+            if (description != null && description.Key != ImmediateSpecialActionFlow.ActionDetailsTextKey) return fallback;
+            var action = OwnProjectedSpecialAction(request, id, visible);
+            if (action == null) return fallback;
+            var parts = new[] {
+                (action.EntryCostDescriptionRef, action.EntryCostDescription),
+                (action.DescriptionRef, action.Description),
+                (action.EntryAfterEffectsDescriptionRef, action.EntryAfterEffectsDescription)
+            };
+            var runs = new List<GameplayTextRun>();
+            foreach (var (reference, plain) in parts)
+            {
+                var document = dialog.ResolveGameplayText(reference);
+                if (document == null && string.IsNullOrEmpty(plain)) continue;
+                if (runs.Count > 0) runs.Add(new LineBreak());
+                if (document != null) runs.AddRange(document.Runs);
+                else runs.Add(new TextRun(plain));
+            }
+            return runs.Count == 0 ? fallback : new GameplayTextDocument(runs);
+        }
 
         private static string ResolveCandidateDefinition(InteractionRequestProjection request, string id, GameStateView visible)
         {
@@ -692,7 +744,7 @@ namespace YC.Presentation
                 if (string.IsNullOrEmpty(id) || !request.CandidateIds.Contains(id) || limits.ContainsKey(id) ||
                     limit?.Kind != NormalizedValueKind.Integer || limit.IntegerValue < 0 || limit.IntegerValue > 99 || document == null)
                     throw new InvalidOperationException("付款分配投影的授权行或统一文案不完整。");
-                ids.Add(id); labels.Add(FormatResource(id == nameof(ResourceType.OriginiumShard) ? "originium-shard" : id.ToLowerInvariant()));
+                ids.Add(id); labels.Add(document.ToPlainText());
                 maximums.Add((int)limit.IntegerValue); limits.Add(id, (int)limit.IntegerValue);
             }
             if (ids.Count != request.CandidateIds.Count) throw new InvalidOperationException("付款分配候选与授权行不一致。");
@@ -919,9 +971,9 @@ namespace YC.Presentation
                         request.InteractionTypeId == "character.use.second_mode" ? ExpansionUi.Description(CharacterLifecycleService.SecondModeInteractionTypeId) : copy.OrderPrompt) +
                         (item == null ? string.Empty : "\n" + string.Format(copy.CurrentCharacterFormat, ExpansionUi.CardName(item.DefinitionId)));
                 case "operator.dispatch.choose": return copy.DispatchPrompt;
-                case "operator.dispatch.return": return copy.DispatchReturnPrompt;
-                case "operator.replace.choose":
-                case "operator.replace.hand": return copy.ReplacePrompt;
+                case "operator.dispatch.return":
+                case "operator.replace.hand": return copy.DispatchReturnPrompt;
+                case "operator.replace.choose": return copy.ReplacePrompt;
                 case "setup.basic_character.keep": return copy.LegacyKeepUnsupported;
                 case "setup.basic_character.discard": return string.Format(copy.DiscardPrompt, request.MinSelections);
                 case "round.supply.retire": return copy.SupplyPrompt;

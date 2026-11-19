@@ -323,7 +323,7 @@ def lua_calls(text, names):
 
 def inputs():
     result = {}
-    for directory in ["Assets", "docs", "tools/validation"]:
+    for directory in ["Assets", "docs", "内置DIY/文档", "tools/validation"]:
         for p in sorted((ROOT / directory).rglob("*")):
             if p.is_file() and p.suffix in {".cs", ".lua", ".json", ".md", ".py"} and p.name not in {Path(__file__).name, REVIEW.name, "audit_lua_api_upgrade.py"}:
                 result[p.relative_to(ROOT).as_posix()] = read(p)

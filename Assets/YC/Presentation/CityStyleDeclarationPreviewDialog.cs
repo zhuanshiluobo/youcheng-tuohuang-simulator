@@ -93,6 +93,9 @@ namespace YC.Presentation
             get { return selectingFacilities; }
         }
 
+        internal bool OwnsPage(GameObject page) => page != null && view != null && view.gameObject == page &&
+            model != null && pageBinding != null;
+
         public string CurrentCityStyleId
         {
             get
@@ -231,6 +234,10 @@ namespace YC.Presentation
 
             var page = pageBinding;
             view.CloseButton.onClick.AddListener(() => { if (CurrentPage(page)) Hide(); });
+            view.ViewFacilitySupply.onClick.AddListener(() => {
+                if (CurrentPage(page) && !GameplayHudFrame.InformationInputBlockedThisFrame)
+                    GameplayHudFrame.Active?.InspectFacilitySupplyRequested?.Invoke(view.gameObject);
+            });
             view.RenderMode(model);
             confirmDeclarationButton.onClick.AddListener(() => {
                 if (!CurrentPage(page)) return;

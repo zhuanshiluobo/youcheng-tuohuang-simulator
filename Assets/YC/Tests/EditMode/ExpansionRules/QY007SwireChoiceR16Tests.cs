@@ -181,10 +181,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             int ownBefore = levels.GetLevel(state, 1, board.ItemId), otherBefore = levels.GetLevel(state, 3, board.ItemId);
             int untouchedBefore = levels.GetLevel(state, 2, board.ItemId), gold = state.FindPlayer(1).Resources.GoldVoucher;
             Cleanup(state);
-            Assert.That(Open(state).CandidateIds, Is.EquivalentTo(Markers(state).Select(i => i.ItemId)));
+            Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "p2", "p3" }));
+            var presentation = Open(state).Presentation;
+            Assert.That(presentation.Options.Select(o => o.CandidateId), Is.EquivalentTo(Open(state).CandidateIds));
+            Assert.That(presentation.Options.All(o => o.Label.Arguments.Count == 1 &&
+                o.Label.Arguments[0].Kind == "player" && o.Label.Arguments[0].Value.ReferenceId == o.CandidateId), Is.True);
             string markerRequest = Open(state).GetStableInteractionId();
             state = Restore(state); Assert.That(Open(state).GetStableInteractionId(), Is.EqualTo(markerRequest));
-            Submit(state, Strings(new[] { markerId }), false);
+            Submit(state, Strings(new[] { "p3" }), false);
             AdvanceUntil(state, () => state.ItemZones.Items.Single(i => i.ItemId == markerId).ZoneId == FindZone(state, "supply", 3).ZoneId);
             state = Restore(state); Run(state);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 6));
@@ -228,6 +232,37 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(new EnterpriseStateQuery(Registry.EnterpriseDefinitions).GetLevel(state, 2, board.ItemId), Is.EqualTo(2));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 6));
             Assert.That(Markers(state), Is.Empty);
+        }
+
+        [Test]
+        public void SwireCleanupMaylanderAwardCanBeUsedInTheSameCleanup()
+        {
+            // 正式诗怀雅、企业、授勋内容的隔离前置，不计正常对局验收。
+            typeof(InfectedCharacterEffectsTests).GetField("includeMaylanderAndAwards", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fixture, true);
+            var state = State();
+            var board = state.ItemZones.Items.Single(i => i.DefinitionId == "infected.enterprise.maylander_foundation");
+            var track = state.ItemZones.Zones.Single(z => z.ParentId == board.ItemId && z.LocalZoneId == "cooperation_1");
+            state.ItemZones.Items.Single(i => i.ZoneId == track.ZoneId).SlotId = "level_3";
+            var award = state.ItemZones.Items.Single(i => i.DefinitionId == "infected.award.permanent_support");
+            Start(state); Select(state, "p2"); Cleanup(state);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("enterprise.upgrade"));
+            Assert.That(Open(state).CandidateIds, Does.Contain(board.ItemId));
+            Select(state, board.ItemId);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("reward.choose"));
+            Assert.That(Open(state).CandidateIds, Does.Contain(award.ItemId));
+            Select(state, award.ItemId);
+            Assert.That(Open(state), Is.Null);
+            var option = Registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == award.ItemId);
+            Assert.That(option.IsEnabled, Is.True, option.DisabledReasonCode);
+            state = Restore(state);
+            option = Registry.GetSettlementOptions(state, 1).Single(o => o.SourceItemId == award.ItemId);
+            int gold = state.FindPlayer(1).Resources.GoldVoucher;
+            Assert.That(Engine(state).TryInvokeCharacterSettlementOption(1, option.OptionId, "", option.StateRevision, out _, out string reason), Is.True, reason);
+            Run(state);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold + 3));
+            Assert.That(Open(state), Is.Not.Null, "授勋正文应继续请求自选资源");
+            state = Restore(state);
+            Assert.That(Open(state), Is.Not.Null);
         }
 
         [Test]

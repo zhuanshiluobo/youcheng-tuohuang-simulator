@@ -61,6 +61,7 @@ namespace YC.Tests.EditMode
         {
             var state = new GameState
             {
+                MapId = StaticMapDefinitions.CreateFourPlayerMap().MapId,
                 Phase = GamePhase.ResourceCollection,
                 Round = 1,
                 StartPlayerId = 1,
@@ -510,6 +511,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                MapId = StaticMapDefinitions.CreateFourPlayerMap().MapId,
                 Phase = GamePhase.ResourceCollection,
                 Round = 1,
                 StartPlayerId = 1,
@@ -561,6 +563,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                MapId = "collection-query",
                 Phase = GamePhase.ResourceCollection,
                 Round = 1,
                 StartPlayerId = 1,

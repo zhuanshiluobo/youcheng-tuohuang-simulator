@@ -309,8 +309,10 @@ namespace YC.Presentation.Validation
             InitializeFullGamePerformance();
             if (PerformanceMode) { yield return PerformanceRun(); yield break; }
             Require(selectedCase == "normal-flow" || CoverageMode || SaveResumeMode, "验证入口必须是正常菜单流程");
-            string requestedRuleMode = Argument("--yc-ui-rule-mode=")?.ToLowerInvariant();
-            Require(string.IsNullOrEmpty(requestedRuleMode) || requestedRuleMode == "standard" || requestedRuleMode == "entrepreneur", "UI测试规则模式参数无效");
+            string requestedRuleMode = RequestedUiRuleMode;
+            Require(DiyIdentifiers.ValidIdentity(requestedRuleMode) &&
+                (requestedRuleMode == "standard" || requestedRuleMode == "entrepreneur" ||
+                 NetworkMode && !string.IsNullOrEmpty(Argument("--yc-test-content-root="))), "UI测试规则模式参数无效或缺少隔离内容根");
             Require(!LocalFullGameResumeMode || !NetworkMode && selectedCase == "full-game", "本地同局恢复只允许本地full-game，不复用入场/移城专项用例");
             if (NetworkMode) NetworkConfigureShortRun();
             Write("运行身份.json", new { Case = selectedCase, ProcessId = System.Diagnostics.Process.GetCurrentProcess().Id,
@@ -388,7 +390,7 @@ namespace YC.Presentation.Validation
             {
                 yield return NetworkBindGameplay();
                 Require(State.Players.Count == 4, "正常开局人数不是四人");
-                if (EntrepreneurUiMode) Require(State.RuleConfiguration.RuleModeId == "entrepreneur", "正式联机开局未采用企业家模式");
+                Require(State.RuleConfiguration.RuleModeId == requestedRuleMode, "正式联机开局未采用请求的模式");
             }
             if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")))
             {
@@ -408,6 +410,7 @@ namespace YC.Presentation.Validation
             if (CampaignMode) LoadCampaign();
             if (NetworkMode && !string.IsNullOrEmpty(Argument("--yc-network-resume-game-id=")) ||
                 LocalFullGameResumeMode && !string.IsNullOrEmpty(Argument("--yc-local-resume-play-policy="))) LoadResumedPlayPolicy();
+            if (NetworkMode) yield return NetworkProbeManualReconnect();
             yield return Capture("正常开局首个请求");
             if (SaveResumeMode) { yield return SaveResumeRun(); yield break; }
             for (int step = 0; CampaignMode || step < (SalesMode ? 900 : 150); step++)
@@ -1545,15 +1548,31 @@ namespace YC.Presentation.Validation
             {
                 var card = EventCardDatabase.Get(State, PaymentField(request, "cardId")?.StringValue ?? "");
                 bool needsFuel = CampaignMode && State.Round <= 3 && NeedsMoveFuel(PlayProgress(LocalPlayer));
-                int preferred = PreferredEntranceEventOption(card, State.Phase == GamePhase.Entrance, needsFuel);
-                var option = FindObjectsOfType<PlayerAutomationId>().Where(v => v.Id.StartsWith("event.option.") && v.GetComponent<Button>()?.IsInteractable() == true)
-                    .OrderBy(v => v.Id == "event.option." + preferred ? 0 : 1).ThenBy(v => v.Id).FirstOrDefault();
+                string preferred = PreferredEventControl(card, request, State.Phase == GamePhase.Entrance || needsFuel);
+                var option = FindObjectsOfType<PlayerAutomationId>().Where(v =>
+                        v.Id.StartsWith("event.choice.", StringComparison.Ordinal) &&
+                        v.GetComponent<Button>()?.IsInteractable() == true)
+                    .OrderBy(v => v.Id == preferred ? 0 : 1).ThenBy(v => v.Id, StringComparer.Ordinal).FirstOrDefault();
                 Require(option != null, "正常事件请求没有对应事件按钮");
+                // 仅在验收驱动中记录自然出现的多选事件原页面；不重建界面、不改请求或候选。
+                if (!PerformanceMode && card?.Choices != null && card.Choices.Count >= 4)
+                {
+                    yield return new WaitForEndOfFrame();
+                    var current = Request;
+                    if (current == null || current.InteractionId != request.InteractionId ||
+                        current.StateRevision != request.StateRevision || option == null ||
+                        !option.gameObject.activeInHierarchy || option.GetComponent<Button>()?.IsInteractable() != true)
+                        yield break;
+                    SaveCapture("多选事件选择前");
+                    Write(captureNumber.ToString("00") + "-多选事件选择前.json", ObserveSafely());
+                }
+                bool requestedChoice = card != null && option.Id.StartsWith("event.choice.", StringComparison.Ordinal) &&
+                    requestedCampaignPriorities.Contains(EventCardOptionIdFactory.CreateChoice(card.CardId,
+                        option.Id.Substring("event.choice.".Length)));
                 Append("决策变化.jsonl", new { State.GameId, State.Round, PlayerId = LocalPlayer,
                     Policy = PlayPolicyVersion, Action = "事件牌选项", Card = card?.CardId, Name = card?.Name,
-                    PreferredIndex = preferred, ActualControl = option.Id,
-                    Reason = State.Phase == GamePhase.Entrance ? "入场除废弃矿坑外优先3碎；只选当前真实按钮" :
-                        needsFuel ? "前三回合移城尚缺燃料，在本次正式事件选项中优先补碎片" : "后续事件沿当前正式候选处理" });
+                    PreferredControl = preferred, ActualControl = option.Id,
+                    Reason = requestedChoice ? "优先覆盖当前本人可见且合法的缺口" : State.Phase == GamePhase.Entrance || needsFuel ? "按当前可见选项文案优先补碎片，并只点击真实候选按钮" : "后续事件沿当前正式候选处理" });
                 yield return Press(option.GetComponent<Button>(), "正常随机事件首次选择");
             }
             else if (CampaignMode && new[] { CharacterLifecycleService.ModeInteractionTypeId,
@@ -1613,9 +1632,18 @@ namespace YC.Presentation.Validation
             }
             else if (request?.InteractionTypeId == "character.card.destination")
             {
-                var subject = request.Presentation?.Prompt?.Arguments.SingleOrDefault(value => value.Name == "card" && value.Kind == "item");
+                // 原路由请求可不含展示文案；卡面由角色交互协调器的本人展示投影补全。
+                // 只接受与当前正式请求、局及修订一致的实际展示投影，不猜测卡牌身份。
+                var renderer = Read(mobile, "characterAbilityInteraction");
+                var rendered = Read(renderer, "renderedRequest") as InteractionRequestProjection;
+                var renderedGame = Read(renderer, "renderedGameId") as string;
+                Require(InteractionCommandIntent.SameContract(State.GameId, request, renderedGame, rendered) &&
+                    rendered.StateRevision == request.StateRevision && request.AnsweringPlayerId == LocalPlayer,
+                    "流形去向页展示投影与当前本人正式请求不一致");
+                var subject = rendered.Presentation?.Prompt?.Arguments.SingleOrDefault(value => value.Name == "card" && value.Kind == "item");
                 var cards = FindObjectsOfType<FacilityEffectCardView>().Where(value => value.name == "Card Action Subject").ToArray();
-                Require(subject?.Value?.Kind == NormalizedValueKind.StableReference && cards.Length == 1 && cards[0].CardImage.texture != null,
+                Require(subject?.Value?.Kind == NormalizedValueKind.StableReference && subject.Value.ReferenceType == "item" &&
+                    cards.Length == 1 && cards[0].CardImage.texture != null,
                     "流形去向页缺少单张真实卡面，保留现场");
                 var actions = FindObjectsOfType<PlayerAutomationId>().Where(value => request.CandidateIds.Contains(value.Id) &&
                     value.GetComponent<Button>()?.IsInteractable() == true).ToArray();
@@ -1727,8 +1755,9 @@ namespace YC.Presentation.Validation
                                 ? SelectInfluencePlacementTarget(request, available)
                                 : PreferVisibleMapTarget(available);
                             Require(next != null, "地图多选缺少尚未选取的正式高亮槽位");
+                            // 首击只建立待确认标记；对同一真实目标完成二次确认后，才是多选草稿的一项。
+                            yield return MapPressWithFreshConfirmation(request, WorkflowHighlightTargetKind.InfluenceSlot, next.TargetId, true);
                             selectedSlots.Add(next.TargetId);
-                            yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, next.TargetId, "正常地图多选不同影响力槽位");
                             if (selectedSlots.Count < request.MaxSelections)
                                 Require(commands.Count == before && FindObjectsOfType<MapButtonView>().Any(button =>
                                     button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot && button.TargetId == next.TargetId && button.IsSelected),
@@ -1791,11 +1820,11 @@ namespace YC.Presentation.Validation
         {
             var normal = RankInfluencePlacementSlots(buttons.Select(button => button.TargetId));
             if (normal.Count > 0) return buttons.First(button => button.TargetId == normal[0]);
-            // 用户授权的例外只用于无法跳过的正式强制放置；主动部署和调度仍执行原策略。
-            if (request == null || !request.VisibleToViewer || request.AnsweringPlayerId != LocalPlayer ||
-                request.MinSelections <= 0 || request.AllowDecline || mobile.CanEndCurrentAction() ||
-                request.InteractionTypeId != "effect.influence.place.target" || Request?.InteractionId != request.InteractionId ||
-                State.EffectRuntime.StateRevision != request.StateRevision) return null;
+            // 只对本人当前不可跳过的正式放置或移动目标兜底；主动部署和调度仍执行原策略。
+            if (request == null || !CanUseRequiredInfluenceTarget(request.InteractionTypeId, request.VisibleToViewer,
+                request.AnsweringPlayerId == LocalPlayer, request.MinSelections > 0, request.AllowDecline,
+                mobile.CanEndCurrentAction(), Request?.InteractionId == request.InteractionId,
+                State.EffectRuntime.StateRevision == request.StateRevision)) return null;
             var map = new MapQueryService(StaticMapDefinitions.Resolve(State.MapId));
             string city = State.FindPlayer(LocalPlayer).CityLocationId;
             var resources = new HashSet<string>(State.Map.ResourceTokens.Select(value => value.LocationId));
@@ -1812,7 +1841,20 @@ namespace YC.Presentation.Validation
                     (ownLocations.Contains(value.Slot.LocationId) || value.Slot.LocationId == city))
                 .OrderBy(value => value.Slot.LocationId == city ? 1 : 0).ThenBy(value => value.Button.TargetId).ToArray();
             var selected = exceptions.FirstOrDefault();
-            if (selected == null) return null;
+            if (selected == null)
+            {
+                // 强制请求的正式候选可能只剩策略原本回避的航道；测试中断标准要求沿真实合法候选继续。
+                var forced = buttons.Where(button => button.IsInteractive && IsMapTargetVisible(button) &&
+                    request.CandidateIds.Contains(button.TargetId)).OrderBy(button => button.TargetId, StringComparer.Ordinal).FirstOrDefault();
+                if (forced == null) return null;
+                Append("强制影响力例外.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), State.GameId, State.Round,
+                    PlayerId = LocalPlayer, OriginalRequest = request, City = city, OwnLocations = ownLocations.ToArray(),
+                    VisibleLegalSlots = buttons.Where(button => button.IsInteractive && IsMapTargetVisible(button) &&
+                        request.CandidateIds.Contains(button.TargetId)).Select(button => button.TargetId).ToArray(),
+                    SelectedSlot = forced.TargetId, OriginalPolicyHadNoCandidate = true,
+                    Reason = "正式强制请求无可跳过后继，按当前可见合法候选继续并记录策略变化" });
+                return forced;
+            }
             Append("强制影响力例外.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), State.GameId, State.Round,
                 PlayerId = LocalPlayer, OriginalRequest = request, City = city, OwnLocations = ownLocations.ToArray(),
                 VisibleLegalSlots = buttons.Where(button => button.IsInteractive && IsMapTargetVisible(button) &&
@@ -1820,7 +1862,7 @@ namespace YC.Presentation.Validation
                 SelectedSlot = selected.Button.TargetId, SelectedLocation = selected.Slot.LocationId,
                 AtCity = selected.Slot.LocationId == city, AlreadyOwnLocation = ownLocations.Contains(selected.Slot.LocationId),
                 CommandStart = commands.Count, CanEnd = false, NormalPolicyCandidateCount = normal.Count,
-                Reason = "强制放置不可跳过且常规策略无可选目标；按用户授权优先避开脚下，允许已有己方影响力的资源点。仅选择原可见合法槽位。" });
+                Reason = "必答影响力目标不可跳过且常规策略无可选目标；优先避开脚下，只选择原请求中可见的合法槽位。" });
             return selected.Button;
         }
 
@@ -1830,25 +1872,51 @@ namespace YC.Presentation.Validation
             Require(pairs.Length > 0 && pairs.All(pair => pair.Parts.Length == 3), "原影响力移动候选结构不完整");
             var sources = pairs.Select(pair => pair.Parts[1]).Distinct().ToDictionary(id => id,
                 id => new ItemZoneQuery().FindItem(State, id)?.SlotId);
-            var source = FindObjectsOfType<MapButtonView>().Where(button => button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot &&
-                button.IsInteractive && sources.Values.Contains(button.TargetId)).OrderBy(button => IsMapTargetVisible(button) ? 0 : 1)
-                .ThenBy(button => button.TargetId).FirstOrDefault();
-            if (source == null) throw new DriverContinuationPendingException("角色移动当前来源阶段没有原候选对应地图高亮");
-            string sourceSlot = source.TargetId, sourceId = sources.Single(pair => pair.Value == sourceSlot).Key;
             int before = commands.Count, revision = State.EffectRuntime.StateRevision;
-            yield return Capture("角色影响力移动原地图来源");
-            yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, sourceSlot, "角色移动来源原首击");
-            if (FindObjectsOfType<MapButtonView>().Any(button => button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot &&
-                button.TargetId == sourceSlot && button.IsInteractive && button.IsSelected))
-                yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, sourceSlot, "角色移动来源原二击");
+            Require(request.VisibleToViewer && request.AnsweringPlayerId == LocalPlayer && request.StateRevision == revision &&
+                request.Status == "open" && Request?.InteractionId == request.InteractionId, "角色移动请求不是本人当前可见请求");
+            var coordinator = Read(mobile, "characterAbilityInteraction");
+            string sourceId = Read(coordinator, "influenceMoveSourceId") as string;
+            string sourceSlot = Read(coordinator, "influenceMoveSourceSlotId") as string;
+            if (string.IsNullOrEmpty(sourceId))
+            {
+                var source = FindObjectsOfType<MapButtonView>().Where(button => button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot &&
+                    button.IsInteractive && sources.Values.Contains(button.TargetId)).OrderBy(button => IsMapTargetVisible(button) ? 0 : 1)
+                    .ThenBy(button => button.TargetId).FirstOrDefault();
+                if (source == null) throw new DriverContinuationPendingException("角色移动当前来源阶段没有原候选对应地图高亮");
+                sourceSlot = source.TargetId; sourceId = sources.Single(pair => pair.Value == sourceSlot).Key;
+                yield return Capture("角色影响力移动原地图来源");
+                yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, sourceSlot, "角色移动来源原首击");
+                if (FindObjectsOfType<MapButtonView>().Any(button => button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot &&
+                    button.TargetId == sourceSlot && button.IsInteractive && button.IsSelected))
+                    yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, sourceSlot, "角色移动来源原二击");
+            }
+            else
+            {
+                Require((string)Read(coordinator, "renderedGameId") == State.GameId &&
+                    (string)Read(coordinator, "renderedInteractionId") == request.InteractionId &&
+                    sources.TryGetValue(sourceId, out string currentSlot) && currentSlot == sourceSlot,
+                    "原移动来源草稿不属于当前请求或当前实例位置");
+                Append("决策变化.jsonl", new { State.GameId, State.Round, PlayerId = LocalPlayer,
+                    Action = "沿原移动来源草稿继续", request.InteractionId, SourceId = sourceId, SourceSlot = sourceSlot });
+            }
             Require(commands.Count == before && State.EffectRuntime.StateRevision == revision && Request?.InteractionId == request.InteractionId,
                 "角色移动来源只能修改本地草稿，不能提前提交或结束正式请求");
             var allowed = pairs.Where(pair => pair.Parts[1] == sourceId).ToArray();
             var targetButtons = FindObjectsOfType<MapButtonView>().Where(button => button.TargetKind == WorkflowHighlightTargetKind.InfluenceSlot &&
                 button.IsInteractive && allowed.Any(pair => pair.Parts[2] == button.TargetId)).ToArray();
-            var target = RankInfluencePlacementSlots(targetButtons.Select(button => button.TargetId))
-                .Select(id => targetButtons.First(button => button.TargetId == id)).FirstOrDefault();
+            var preferred = RankInfluencePlacementSlots(targetButtons.Select(button => button.TargetId));
+            var visible = targetButtons.Where(IsMapTargetVisible).ToArray();
+            bool mandatoryCurrent = request.MinSelections > 0 && !request.AllowDecline && !mobile.CanEndCurrentAction() &&
+                Request?.InteractionId == request.InteractionId && State.EffectRuntime.StateRevision == request.StateRevision;
+            string targetId = ChooseVisibleMoveTarget(preferred, visible.Select(button => button.TargetId), mandatoryCurrent);
+            var target = visible.FirstOrDefault(button => button.TargetId == targetId);
             if (target == null) throw new DriverContinuationPendingException("来源已选，目标阶段未形成正式候选对应地图高亮");
+            if (!preferred.Contains(targetId))
+                Append("强制影响力例外.jsonl", new { AtUtc = DateTime.UtcNow.ToString("o"), State.GameId, State.Round,
+                    PlayerId = LocalPlayer, OriginalRequest = request, SourceId = sourceId, SourceSlot = sourceSlot,
+                    VisibleLegalSlots = visible.Select(button => button.TargetId).ToArray(), SelectedSlot = targetId,
+                    Reason = "必答移动的常规策略无可见目标；从原请求及实际高亮的合法目标继续。" });
             string targetSlot = target.TargetId, answer = allowed.Single(pair => pair.Parts[2] == targetSlot).Id;
             yield return Capture("角色影响力移动原地图目标");
             yield return MapPress(WorkflowHighlightTargetKind.InfluenceSlot, targetSlot, "角色移动目标原首击");
@@ -2253,13 +2321,16 @@ namespace YC.Presentation.Validation
             }
             return request?.PromptKey == "facility.entry.sell_resources" ? "trade-sale" : "other-sale";
         }
-        private static int PreferredEntranceEventOption(EventCardDefinition card, bool entrance, bool needsFuel)
+        private string PreferredEventControl(EventCardDefinition card, InteractionRequestProjection request, bool preferShards)
         {
-            if (card == null) return 0;
-            if (entrance) return card.Name.StartsWith("废弃矿坑", StringComparison.Ordinal) ? 0 :
-                card.ChoiceRewards.FindIndex(reward => reward != null && reward.OriginiumShard == 3);
-            if (!needsFuel) return 0;
-            return Enumerable.Range(0, card.ChoiceRewards.Count).OrderByDescending(index => card.ChoiceRewards[index]?.OriginiumShard ?? 0).FirstOrDefault();
+            if (card?.EventChoiceSchemaVersion != 1 || card.Choices == null || request?.CandidateIds == null) return "";
+            var eligible = card.Choices.Where(choice => choice != null && request.CandidateIds.Contains(
+                EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId))).ToList();
+            var preferred = CampaignMode ? eligible.FirstOrDefault(choice => requestedCampaignPriorities.Contains(
+                EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId))) : null;
+            if (preferred == null && preferShards) preferred = eligible.FirstOrDefault(choice => (choice.Description ?? "").Contains("源石碎片"));
+            preferred = preferred ?? eligible.FirstOrDefault();
+            return preferred == null ? "" : "event.choice." + preferred.ChoiceId;
         }
         private bool NeedsMoveFuel(PlayerPlayProgress progress) => progress.Moves < (progress.Entrance == "B-01" ? 3 : 2) &&
             State.FindPlayer(progress.PlayerId).Resources.OriginiumShard < new TravelCostService(new MapQueryService(StaticMapDefinitions.Resolve(State.MapId))).GetCityMoveBaseCost().OriginiumShard;
@@ -2469,6 +2540,134 @@ namespace YC.Presentation.Validation
                 "主要移城入口尚未地图两击，却已提交最终移动");
             RecordVisiblePaymentSummary();
         }
+        private bool auditBuildDraftNavigation, auditBuildPlacementNavigation, auditStyleNavigation;
+        private bool attemptedBuildDraftNavigation, attemptedBuildPlacementNavigation, attemptedStyleNavigation;
+        private bool CrossNavigationAudit => NetworkMode && Argument("--yc-cross-navigation-audit=") == "true";
+
+        // 仅在本局真实可见的建设草稿或待放置请求中点击原控件，不创建候选或改动对局。
+        private IEnumerator AuditFacilityCrossNavigation(string scope, Action passed)
+        {
+            var page = CurrentBuildPage();
+            var button = page == null ? null : Read(page, "viewCityStyles") as Button;
+            Require(page != null, scope + "的原设施页面不可用");
+            if (button == null || !button.IsInteractable())
+            {
+                CheckContent(false, scope + "的城市样式查看按钮不可用");
+                yield break;
+            }
+            var owner = (Read(mobile, "turnActionPresenter") as TurnActionPresenter)?.BuildInteraction;
+            var selection = owner == null ? null : Read(owner, "selection") as BuildFacilitySelectionController;
+            var facility = selection?.FacilityId;
+            var phase = selection?.Phase;
+            var slot = selection?.CityBoardSlotIndex;
+            var payment = selection?.PaymentMode;
+            var selectedPageItem = Read(mobile, "selectedBuildFacilityId") as string;
+            string originalRequest = Request?.InteractionId;
+            int beforeCommands = commands.Count;
+            yield return Press(button, scope + "查看城市样式");
+            var dialog = Read(Read(mobile, "workflowView"), "cityStyleDeclarationDialog") as CityStyleDeclarationPreviewDialog;
+            var view = dialog == null ? null : Read(dialog, "view") as CityStyleDeclarationPreviewView;
+            bool showing = view != null && view.isActiveAndEnabled && view.gameObject.activeInHierarchy;
+            if (!showing)
+            {
+                CheckContent(false, scope + "没有打开实际城市样式页面");
+                if (!page.gameObject.activeInHierarchy)
+                    throw new DriverContentDifferenceException(scope + "的原设施页面及样式页面均不可用，需重新读取原流程");
+                if (!(commands.Count == beforeCommands && Request?.InteractionId == originalRequest &&
+                    (Read(mobile, "selectedBuildFacilityId") as string) == selectedPageItem &&
+                    selection?.FacilityId == facility && selection?.Phase == phase && selection?.CityBoardSlotIndex == slot && selection?.PaymentMode == payment))
+                    throw new DriverContentDifferenceException(scope + "未打开样式时原草稿或待答请求发生变化");
+                yield break;
+            }
+            yield return Capture(scope + "查看城市样式");
+            bool clean = !page.gameObject.activeInHierarchy;
+            CheckContent(clean, scope + "查看样式时原设施页面没有收起");
+            if (view.ViewFacilitySupply == null || !view.ViewFacilitySupply.IsInteractable())
+            {
+                CheckContent(false, scope + "的样式页面没有可用返回按钮");
+                if (view.CloseButton == null || !view.CloseButton.IsInteractable())
+                    throw new DriverContentDifferenceException(scope + "的样式页面没有合法关闭入口");
+                yield return Press(view.CloseButton, scope + "通过原关闭入口返回");
+                if (!page.gameObject.activeInHierarchy)
+                    throw new DriverContentDifferenceException(scope + "关闭样式后没有返回原设施页面");
+                if (!(commands.Count == beforeCommands && Request?.InteractionId == originalRequest &&
+                    (Read(mobile, "selectedBuildFacilityId") as string) == selectedPageItem &&
+                    selection?.FacilityId == facility && selection?.Phase == phase && selection?.CityBoardSlotIndex == slot && selection?.PaymentMode == payment))
+                    throw new DriverContentDifferenceException(scope + "关闭样式后原草稿或待答请求发生变化");
+                yield break;
+            }
+            yield return Press(view.ViewFacilitySupply, scope + "返回原设施页面");
+            if (!(page.isActiveAndEnabled && page.gameObject.activeInHierarchy && CurrentBuildPage() == page))
+                throw new DriverContentDifferenceException(scope + "没有返回原设施页面");
+            if (!(commands.Count == beforeCommands && Request?.InteractionId == originalRequest &&
+                (Read(mobile, "selectedBuildFacilityId") as string) == selectedPageItem &&
+                selection?.FacilityId == facility && selection?.Phase == phase && selection?.CityBoardSlotIndex == slot && selection?.PaymentMode == payment))
+                throw new DriverContentDifferenceException(scope + "往返后原草稿或待答请求发生变化");
+            if (!clean) yield break;
+            Append("页面互查正常流程.jsonl", new { State.GameId, State.Round, PlayerId = LocalPlayer, Scope = scope,
+                RequestId = originalRequest, FacilityId = facility, Phase = phase?.ToString(), Slot = slot, PaymentMode = payment,
+                LocalCommandsAdded = commands.Count - beforeCommands, Passed = true });
+            yield return Capture(scope + "返回原设施页面");
+            passed?.Invoke();
+        }
+
+        // 正式宣告已选择样式与设施后临时浏览供应区，再由原控件返回并继续原宣告。
+        private IEnumerator AuditStyleCrossNavigation(CityStyleDeclarationPreviewDialog dialog, CityStyleDeclarationPreviewView view, Action passed)
+        {
+            Require(dialog != null && view != null, "原城市样式宣告页面不可用");
+            if (view.ViewFacilitySupply == null || !view.ViewFacilitySupply.IsInteractable())
+            {
+                CheckContent(false, "城市样式宣告中的设施供应区按钮不可用");
+                yield break;
+            }
+            string style = dialog.CurrentCityStyleId;
+            var slots = dialog.SelectedSlotIndexes.ToArray();
+            bool canConfirm = dialog.CanConfirm;
+            string originalRequest = Request?.InteractionId;
+            int beforeCommands = commands.Count;
+            yield return Press(view.ViewFacilitySupply, "样式宣告中查看设施供应区");
+            var page = Read(mobile, "styleSupplyInspectionPage") as FacilityBuildDialogView;
+            var returnButton = page == null ? null : Read(page, "viewCityStyles") as Button;
+            var confirm = page == null ? null : Read(page, "confirm") as Button;
+            if (page == null || !page.isActiveAndEnabled || !page.gameObject.activeInHierarchy)
+            {
+                CheckContent(false, "样式宣告后没有显示设施供应区");
+                if (!view.gameObject.activeInHierarchy)
+                    throw new DriverContentDifferenceException("原样式宣告和设施供应区均不可用，需重新读取原流程");
+                if (!(dialog.CurrentCityStyleId == style && dialog.SelectedSlotIndexes.SequenceEqual(slots) && dialog.CanConfirm == canConfirm &&
+                    commands.Count == beforeCommands && Request?.InteractionId == originalRequest))
+                    throw new DriverContentDifferenceException("未打开供应区时原样式宣告或待答请求发生变化");
+                yield break;
+            }
+            yield return Capture("样式宣告中查看设施供应区");
+            bool clean = !view.gameObject.activeInHierarchy && confirm != null && !confirm.gameObject.activeSelf;
+            CheckContent(clean, "样式宣告后的设施供应区不是预期的只读页面");
+            if (returnButton == null || !returnButton.IsInteractable())
+            {
+                CheckContent(false, "设施供应区没有可用的返回样式按钮");
+                var close = Read(page, "cancel") as Button;
+                if (close == null || !close.IsInteractable())
+                    throw new DriverContentDifferenceException("设施供应区没有合法关闭入口");
+                yield return Press(close, "通过原关闭入口返回样式宣告");
+                if (!view.gameObject.activeInHierarchy)
+                    throw new DriverContentDifferenceException("关闭供应区后没有返回原样式宣告");
+                if (!(dialog.CurrentCityStyleId == style && dialog.SelectedSlotIndexes.SequenceEqual(slots) && dialog.CanConfirm == canConfirm &&
+                    commands.Count == beforeCommands && Request?.InteractionId == originalRequest))
+                    throw new DriverContentDifferenceException("关闭供应区后原样式宣告或待答请求发生变化");
+                yield break;
+            }
+            yield return Press(returnButton, "返回原城市样式宣告");
+            if (!(view.isActiveAndEnabled && view.gameObject.activeInHierarchy && dialog.CurrentCityStyleId == style &&
+                dialog.SelectedSlotIndexes.SequenceEqual(slots) && dialog.CanConfirm == canConfirm &&
+                commands.Count == beforeCommands && Request?.InteractionId == originalRequest))
+                throw new DriverContentDifferenceException("查看设施供应区后原样式宣告或待答请求发生变化");
+            if (!clean) yield break;
+            Append("页面互查正常流程.jsonl", new { State.GameId, State.Round, PlayerId = LocalPlayer, Scope = "样式宣告",
+                StyleId = style, Slots = slots, RequestId = originalRequest, LocalCommandsAdded = commands.Count - beforeCommands, Passed = true });
+            yield return Capture("恢复原城市样式宣告");
+            passed?.Invoke();
+        }
+
         private IEnumerator CampaignDeclareStyle()
         {
             var dialog = Read(Read(mobile, "workflowView"), "cityStyleDeclarationDialog");
@@ -2519,6 +2718,11 @@ namespace YC.Presentation.Validation
                 yield return PointerSequence(handler.gameObject, "正常宣告选择本人设施槽" + index);
             }
             Require((bool)Read(dialog, "CanConfirm"), "正式组合有效但真实宣告控件不能确认");
+            if (CrossNavigationAudit && !attemptedStyleNavigation)
+            {
+                attemptedStyleNavigation = true;
+                yield return AuditStyleCrossNavigation((CityStyleDeclarationPreviewDialog)dialog, view, () => auditStyleNavigation = true);
+            }
             yield return Press(view.ConfirmDeclarationButton, "正常城市样式首次宣告确认");
             if (chosen == plannedStyle || reservedSlots != null && selected.Intersect(reservedSlots).Any())
             { playerStyleTargets.Remove(LocalPlayer); playerStyleLayouts.Remove(LocalPlayer); }
@@ -2980,6 +3184,11 @@ namespace YC.Presentation.Validation
                 yield return Press(CurrentBuildButton("build.candidate." + chosen.FacilityId), "实际供应区选择" + chosen.DefinitionId);
                 Require(!commands.Skip(before).Any(record => (Read(record, "Command") as GameCommand)?.Kind == GameCommandKind.BuildFacility),
                     "仅选择设施准备费用，不应已经提交最终建设");
+                if (CrossNavigationAudit && !attemptedBuildDraftNavigation)
+                {
+                    attemptedBuildDraftNavigation = true;
+                    yield return AuditFacilityCrossNavigation("建设草稿", () => auditBuildDraftNavigation = true);
+                }
                 RecordVisiblePaymentSummary();
                 yield break;
             }
@@ -3057,6 +3266,11 @@ namespace YC.Presentation.Validation
             var page = CurrentBuildPage();
             Require(page != null, "正式建设放置请求未显示原建设面板，保留当前层级，不切换宿主");
             RestoreBuildObservation(request, false);
+            if (CrossNavigationAudit && !attemptedBuildPlacementNavigation)
+            {
+                attemptedBuildPlacementNavigation = true;
+                yield return AuditFacilityCrossNavigation("建设放置待答", () => auditBuildPlacementNavigation = true);
+            }
             if (CampaignMode)
             {
                 var facility = FacilityCardDatabase.Get(State, lastBuildItem);
@@ -4378,6 +4592,12 @@ namespace YC.Presentation.Validation
                 catch (Exception coverageError) { Write("行动收尾覆盖导出错误.json", coverageError.ToString()); if (failure == null) failure = coverageError; }
             foreach (var writer in appendLogs.Values) writer.Dispose();
             appendLogs.Clear();
+            if (CrossNavigationAudit)
+                Write("页面互查覆盖.json", new { GameId = session?.State?.GameId, ContentHash = session?.State?.ContentPackHash,
+                    BuildDraft = auditBuildDraftNavigation, PlacementRequest = auditBuildPlacementNavigation,
+                    StyleDeclaration = auditStyleNavigation, AttemptedBuildDraft = attemptedBuildDraftNavigation,
+                    AttemptedPlacementRequest = attemptedBuildPlacementNavigation, AttemptedStyleDeclaration = attemptedStyleNavigation,
+                    Scope = "仅记录本局正式可见控件的往返；未自然出现的流程保留缺口。" });
             Write("验证结果.json", new { Case = selectedCase, Passed = failure == null, Stage = stage, Error = failure?.ToString(),
                 DriverContinuationPending = failure is DriverContinuationPendingException,
                 DeferredContentDifferences = deferredDifferenceCount, ContentDifferencesNeverCountedAsPassed = true,
@@ -4397,7 +4617,7 @@ namespace YC.Presentation.Validation
                 TargetPagesCovered = SalesMode && TargetPagesCovered, SettlementStripObserved = stripObserved, Coverage = SalesMode ? coverage : null,
                 AmiyaCovered = amiyaCovered, AmiyaSourcesByPlayer = activatedAmiyaByPlayer, NormalActionEndChecks = actionChecks,
                 ActualHarvestOrder = harvestOrder, Screenshots = screenshots, RuntimeErrors = errors,
-                Boundary = NetworkMode ? "四个可见独立Player从正常菜单创建/加入真实本地Mirror四人" + (EntrepreneurUiMode ? "企业家" : "标准") + "双扩局；每端只点本人可见原控件，真实Raycast与原指针回调；联机Applied和四端确认前缀采证，不直接提交、不注入状态或随机。" : SaveResumeMode ? "可见独立Player正常菜单建房、入场、原设置保存、原主页读取、合法移城继续；原控件内部指针事件，非外部鼠标，非物理Esc。无直接保存或恢复API、无状态注入、无随机覆盖。" :
+                Boundary = NetworkMode ? "四个可见独立Player从正常菜单创建/加入真实本地Mirror四人房间，模式为" + RequestedUiRuleMode + "；每端只点本人可见原控件，真实Raycast与原指针回调；联机Applied和四端确认前缀采证，不直接提交、不注入状态或随机。" : SaveResumeMode ? "可见独立Player正常菜单建房、入场、原设置保存、原主页读取、合法移城继续；原控件内部指针事件，非外部鼠标，非物理Esc。无直接保存或恢复API、无状态注入、无随机覆盖。" :
                     "可见独立Player从正常主菜单创建" + ExpectedLocalPlayerCount + "人房间；正式控件内部指针事件，无状态注入、无固定随机种子。非外部鼠标命中。",
                 SourceWrites = false, AssetsRebuilt = false, ForcedRefresh = false, StateReplacementCount = 0 });
             UnityEngine.Application.logMessageReceived -= OnLog;

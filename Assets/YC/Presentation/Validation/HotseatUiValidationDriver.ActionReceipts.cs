@@ -19,7 +19,7 @@ namespace YC.Presentation.Validation
     {
         private sealed class ObservedAction
         {
-            public string GameId, ContentHash, Scope, Key, Source, Target, RequestId, OwnerId, Window, BeforeDigest;
+            public string GameId, ContentHash, Scope, Key, Source, Target, RequestId, RequestContract, OwnerId, Window, BeforeDigest;
             public int Actor, Revision, SubmissionRevision, BeforeCommands, RequestRevision;
             public GameCommandKind Kind;
             public HashSet<string> BeforeNodes, BeforeInfluences;
@@ -79,7 +79,8 @@ namespace YC.Presentation.Validation
                 Window = ActionWindow(kind, actor), BeforeDigest = RuleStateDigestService.Compute(State),
                 BeforeNodes = new HashSet<string>(State.EffectRuntime.EffectNodes.Select(n => n.EffectId)),
                 BeforeInfluences = new HashSet<string>(State.Map.Influences.Select(n => n.InfluenceId)),
-                RequestId = request?.InteractionId, OwnerId = request?.OwnerEffectId, RequestRevision = request?.StateRevision ?? -1 };
+                RequestId = request?.InteractionId, RequestContract = InteractionCommandIntent.ContractKey(request),
+                OwnerId = request?.OwnerEffectId, RequestRevision = request?.StateRevision ?? -1 };
             action.BeforeBoundary = CaptureRejectedActionBoundary(action);
             if (action.BeforeBoundary.Diagnostics.Length > 0)
             {
@@ -120,6 +121,18 @@ namespace YC.Presentation.Validation
             throw new InvalidOperationException("主行动原确认未获准确完成依据：" + reason + "；已保首个回执，不重试或记完成");
         }
 
+        private static bool SameObservedRequest(string capturedId, string capturedContract, int capturedRevision,
+            GameCommand command, int receiptRevision, bool network, int submittedRevision, string submittedContract)
+        {
+            if (capturedId == null) return true;
+            if (command == null || !command.Parameters.TryGetValue("interactionId", out var id) || id != capturedId ||
+                !command.Parameters.TryGetValue("expectedRevision", out var token) ||
+                !int.TryParse(token, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out int expected)) return false;
+            if (!network) return expected == capturedRevision;
+            return !string.IsNullOrEmpty(capturedContract) && capturedContract == submittedContract &&
+                submittedRevision >= capturedRevision && submittedRevision == receiptRevision && expected == submittedRevision;
+        }
+
         private WorkflowSubmissionResult ReadObservedActionIdentity(ObservedAction action)
         {
             if (commands.Count != action.BeforeCommands + 1) StopObservedAction(action, "new_command_count_mismatch");
@@ -134,9 +147,15 @@ namespace YC.Presentation.Validation
                 action.SubmissionRevision = (int)Read(action.Receipt, "BeforeRevision");
                 action.Scope = action.GameId + ":" + action.ContentHash + ":" + action.SubmissionRevision + ":" + action.Actor + ":" + action.Kind;
             }
-            bool request = action.RequestId == null || action.Command != null &&
-                action.Command.Parameters.TryGetValue("interactionId", out var id) && id == action.RequestId &&
-                action.Command.Parameters.TryGetValue("expectedRevision", out var rev) && rev == action.RequestRevision.ToString();
+            var networkRecord = NetworkMode ? action.Receipt as NetworkCommandRecord : null;
+            bool networkRequestIdentity = !NetworkMode || networkRecord != null && networkRecord.StepId == networkActiveStepId &&
+                !networkRecord.RetiredByRecovery && !networkRecord.RejectedByCompetition && !networkRecord.ContentRejected;
+            bool request = networkRequestIdentity && SameObservedRequest(action.RequestId, action.RequestContract, action.RequestRevision,
+                action.Command, action.SubmissionRevision, NetworkMode, networkRecord?.SubmittedRequestRevision ?? -1, networkRecord?.SubmittedRequestContract);
+            if (request && NetworkMode && action.RequestId != null && networkRecord.SubmittedRequestRevision != action.RequestRevision)
+                Append("行动请求实际版本.jsonl", new { action.GameId, action.Command.CommandId, action.RequestId,
+                    CapturedRevision = action.RequestRevision, SubmittedRevision = networkRecord.SubmittedRequestRevision,
+                    SameRequestContract = true, OriginalCommandUnchanged = true });
             if (!unique || !revision || !request || action.Command?.Kind != action.Kind || action.Command.PlayerId != action.Actor ||
                 (action.Command.SourceId ?? "") != action.Source || (action.Command.TargetId ?? "") != action.Target)
                 StopObservedAction(action, "receipt_identity_mismatch");
@@ -343,10 +362,24 @@ namespace YC.Presentation.Validation
                 r.InteractionId == action.RequestId && r.AnsweringPlayerId == action.Actor && r.Status == "answered");
             if (action.Key == "action:harvest")
                 return answered && (State.FindPlayer(action.Actor)?.HasCollectedResourcesThisRound == true ||
+                    CompletedHarvestBeforeRoundAdvance(State, action.OwnerId, action.Command?.CommandId, action.Actor, action.BeforeBoundary.Round) ||
                     (State.Phase == GamePhase.FinalScoring || State.Phase == GamePhase.GameOver) && State.FinalScoring?.IsResolved == true);
             if (action.Key == "action:explore" && action.Locations != null)
                 return answered && action.Locations.Length > 0 && action.Locations.All(id => State.Map.ResourceTokens.Any(t => t.LocationId == id));
             return answered;
+        }
+
+        private static bool CompletedHarvestBeforeRoundAdvance(GameState state, string ownerId, string commandId, int actor, int beforeRound)
+        {
+            if (state == null || state.Round <= beforeRound || string.IsNullOrEmpty(ownerId) || string.IsNullOrEmpty(commandId)) return false;
+            var node = state.EffectRuntime.EffectNodes.SingleOrDefault(value => value.EffectId == ownerId);
+            if (node == null || node.EffectTypeId != RouteResourceSelectionEffectExecutor.TypeId ||
+                node.Status != EffectNodeStatus.Completed || node.PlayerId != actor ||
+                node.ContinuationOperationContext?.SourceCommandId != commandId) return false;
+            var changed = ItemTransferEffectExecutor.Value(node.NormalizedResult, "changed");
+            var locations = ItemTransferEffectExecutor.Value(node.NormalizedResult, "collectedLocationIds");
+            return changed?.Kind == NormalizedValueKind.Boolean && changed.BooleanValue &&
+                locations?.Kind == NormalizedValueKind.Array && locations.Items != null && locations.Items.Count > 0;
         }
 
         private void ObserveActionReceipts()

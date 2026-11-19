@@ -50,6 +50,9 @@ namespace YC.Infrastructure.Multiplayer
         private bool checkpointInstallationSent;
         private Func<DeterministicSimulationCoordinator> savedCoordinatorFactory;
         private readonly Dictionary<int, string> checkpointConnectionTokens = new Dictionary<int, string>();
+        private readonly Dictionary<int, CheckpointOutbound> checkpointOutbound = new Dictionary<int, CheckpointOutbound>();
+        private readonly HashSet<int> checkpointFlowPeers = new HashSet<int>();
+        private const int MaximumCheckpointRetriesWithoutProgress = 8;
         private const int MaximumCheckpointEnvelopeCharacters = 4096;
         private DeterministicSimulationSessionOptions simulationOptions;
         private DeterministicSimulationCoordinator simulationCoordinator;
@@ -73,8 +76,12 @@ namespace YC.Infrastructure.Multiplayer
         private readonly HashSet<int> recoveryInstalled = new HashSet<int>();
         private bool recoveryRequested, recoveryFinished, recoveryFailed, recoveryCommitIssued;
         private float nextConfirmedRecoveryRequestTime;
+        private float nextRecoveryProgressTime;
         private bool confirmedRecoveryRequestPending;
         private bool localConnectionRecoveryPending;
+        private string coordinatedReconnectRequest = string.Empty;
+        private CoordinatedReconnectMessage approvedCoordinatedReconnect;
+        public bool IsCoordinatedReconnectPending => !string.IsNullOrEmpty(coordinatedReconnectRequest) || !string.IsNullOrEmpty(privateReconnectRequest);
         private string localConnectionRecoveryGameId;
         private long localConnectionRecoveryEpoch;
         private int localConnectionRecoveryMembership;
@@ -85,8 +92,27 @@ namespace YC.Infrastructure.Multiplayer
             string.IsNullOrEmpty(LocalSimulationConnectionRecoveryFailureCode) && simulationOptions != null &&
             session != null && simulationOptions.GameId == localConnectionRecoveryGameId &&
             simulationOptions.MembershipVersion == localConnectionRecoveryMembership &&
-            (simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch || simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch + 1);
+            (simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch || simulationOptions.SimulationEpoch == localConnectionRecoveryEpoch + 1) &&
+            RecoverySessionContentMatches();
+
+        private bool RecoverySessionContentMatches()
+        {
+            // 恢复换代时新后台执行器可能尚未发布首个快照；此时继续等待，真正安装仍严格核验内容。
+            if (simulationCoordinator?.IsBackgroundExecutionEnabled == true &&
+                !simulationCoordinator.TryReadPublishedSnapshot(out _)) return true;
+            var current = session.State;
+            return current != null && current.GameId == simulationOptions.GameId && current.ContentPackHash == simulationOptions.ContentPackHash;
+        }
         private Action detachSimulationEvents;
+        private sealed class CheckpointOutbound : IDisposable
+        {
+            internal string Token, Header;
+            internal SimulationCheckpointEnvelope Envelope;
+            internal SimulationCheckpointSendWindow Window;
+            internal float LastRetryTime;
+            internal int Retries;
+            public void Dispose() => Window?.Dispose();
+        }
         private sealed class ProtocolAssembly
         {
             private readonly GameStateViewTransfer.Assembler assembler = new GameStateViewTransfer.Assembler();
@@ -134,19 +160,20 @@ namespace YC.Infrastructure.Multiplayer
         private int ReadPublishedRevision() => simulationCoordinator != null && simulationCoordinator.TryReadPublishedSnapshot(out var snapshot)
             ? snapshot.StateRevision : 0;
         public static MirrorCommandTransport Instance { get; private set; }
-        public bool IsSynchronizing => initialized && (IsAwaitingLocalSimulationConnectionRecovery || IsRecoveringConfirmedPrefix ||
-            simulationCoordinator == null || simulationCoordinator.IsStopped || simulationCoordinator.IsRecoveringConfirmedPrefix || simulationCoordinator.HasPendingLocalApplication);
+        public bool IsSynchronizing => initialized && (privateMode ? !IsPrivateRoomReady || HasPendingPrivateCommand :
+            IsAwaitingLocalSimulationConnectionRecovery || IsRecoveringConfirmedPrefix || simulationCoordinator == null ||
+            simulationCoordinator.IsStopped || simulationCoordinator.IsRecoveringConfirmedPrefix || simulationCoordinator.HasPendingLocalApplication);
         public bool IsInitialSimulationCheckpointConfigured => checkpointChannel != null;
         public bool HasInstalledInitialSimulationCheckpoint => checkpointChannel != null && checkpointChannel.IsInstalled && !checkpointChannel.IsStopped;
         public bool IsInitialSimulationCheckpointInstalledByPeer(int playerId) => checkpointChannel != null && checkpointChannel.IsPeerInstalled(playerId);
         // 仅供加载页观察；成功接收/安装与规则边界就绪仍由原协议判定。
-        public string InitialLoadingGameId => simulationOptions?.GameId;
-        public int InitialLoadingReceivedBytes => checkpointChannel?.ReceivedBytes ?? 0;
-        public int InitialLoadingTotalBytes => checkpointChannel?.ExpectedBytes ?? 0;
-        public bool IsInitialLoadingStateInstalled => mode == LaunchMode.Host
+        public string InitialLoadingGameId => privateMode ? privateGameId : simulationOptions?.GameId;
+        public int InitialLoadingReceivedBytes => privateMode ? privateClient?.ReceivedViewBytes ?? 0 : checkpointChannel?.ReceivedBytes ?? 0;
+        public int InitialLoadingTotalBytes => privateMode ? privateClient?.TotalViewBytes ?? 0 : checkpointChannel?.ExpectedBytes ?? 0;
+        public bool IsInitialLoadingStateInstalled => privateMode ? privateClient?.HasInstalledView == true : mode == LaunchMode.Host
             ? checkpointChannel?.IsHostArchivePrepared == true : HasInstalledInitialSimulationCheckpoint;
-        public int InitialLoadingPlayerCount => simulationOptions?.FrozenPlayerIds?.Count ?? 0;
-        public int InitialLoadingReadyPlayerCount => simulationOptions == null ? 0 :
+        public int InitialLoadingPlayerCount => privateMode ? privatePlayers.Length : simulationOptions?.FrozenPlayerIds?.Count ?? 0;
+        public int InitialLoadingReadyPlayerCount => privateMode ? PrivateReadyPlayers : simulationOptions == null ? 0 :
             simulationOptions.FrozenPlayerIds.Count(id => id == localPlayerId
                 ? IsInitialLoadingStateInstalled : checkpointChannel?.IsPeerInstalled(id) == true);
         public string InitialLoadingFailure { get; private set; }
@@ -171,6 +198,11 @@ namespace YC.Infrastructure.Multiplayer
                 !seats.Select(seat => seat.PlayerId).OrderBy(id => id).SequenceEqual(options.FrozenPlayerIds.OrderBy(id => id)) ||
                 launchMode == LaunchMode.Host && (installer != null || createHostArchive == null) || launchMode == LaunchMode.Client && (installer == null || createHostArchive != null))
                 throw new ArgumentException("simulation_transport_configuration_invalid");
+            // 新准备合同的任意阶段都可能包含玩家私密信息。当前确定性副本会向每个客户端
+            // 发送完整存档；安全的私密传输接入前，无论是否启用企业准备都必须拒绝。
+            if (launchMode == LaunchMode.Host && (session.State.SetupRecipe?.Preparation != null || session.State.PrivateCommandLedger != null ||
+                session.State.RandomRuntime?.AlgorithmVersion == GameplayRandomRuntime.PrivateAlgorithmVersion))
+                throw new InvalidOperationException("preparation_private_replica_transport_unavailable");
             // 构造仅核配置，不 Begin/Submit/投影；通过校验后再注册确定性模拟通道。
             var prepared = savedCoordinator != null && launchMode == LaunchMode.Host ? savedCoordinator() : new DeterministicSimulationCoordinator(session, options);
             var identity = savedIdentity?.Snapshot() ?? new SimulationCheckpointEnvelope { GameId = options.GameId, ContentPackHash = options.ContentPackHash,
@@ -194,7 +226,7 @@ namespace YC.Infrastructure.Multiplayer
             {
                 bindings.ReplaceLobbySeats(seats.Select(seat => new KeyValuePair<int, ulong>(seat.PlayerId, seat.SteamId)));
                 NetworkServer.OnConnectedEvent += OnServerConnected; NetworkServer.OnDisconnectedEvent += OnServerDisconnected;
-                NetworkServer.RegisterHandler<SimulationCheckpointRequestMessage>(OnCheckpointRequest, false);
+                NetworkServer.ReplaceHandler<SimulationCheckpointRequestMessage>(OnCheckpointRequest, false);
                 NetworkServer.RegisterHandler<SimulationCheckpointInstalledMessage>(OnCheckpointInstalled, false);
                 NetworkServer.RegisterHandler<SimulationCheckpointErrorMessage>(OnCheckpointPeerError, false);
                 NetworkServer.RegisterHandler<SimulationProtocolPartMessage>(OnSimulationClientPart, false);
@@ -218,7 +250,7 @@ namespace YC.Infrastructure.Multiplayer
             }
         }
 
-        public bool HasCompletedSettlement => initialized && simulationCoordinator != null &&
+        public bool HasCompletedSettlement => UsesPrivateTransport ? HasPrivateCompletedSettlement : initialized && simulationCoordinator != null &&
             simulationCoordinator.TryReadPublishedSnapshot(out var snapshot) && snapshot.FinalScoringResolved &&
             (snapshot.Phase == GamePhase.FinalScoring || snapshot.Phase == GamePhase.GameOver);
 
@@ -227,6 +259,7 @@ namespace YC.Infrastructure.Multiplayer
             get
             {
                 if (!HasCompletedSettlement) return false;
+                if (UsesPrivateTransport && !CanDetachPrivateCompletedSession) return false;
                 if (simulationOptions != null && (simulationCoordinator == null || simulationCoordinator.ValidatedThroughSequence < simulationCoordinator.LastAppliedSequence ||
                     !simulationCoordinator.IsBoundaryPermitted(simulationCoordinator.LastAppliedSequence))) return false;
                 if (mode != LaunchMode.Host) return true;
@@ -264,7 +297,19 @@ namespace YC.Infrastructure.Multiplayer
 
         private void Update()
         {
+            if (privateMode) { UpdatePrivateTransport(); return; }
             if (!initialized || checkpointChannel == null || !IsCheckpointSessionCurrent()) return;
+            if (approvedCoordinatedReconnect != null)
+            {
+                // Mirror 的收到消息回调仍在传输层 Tick 中；等到 Update 再断开，避免销毁正在枚举的客户端。
+                var approved = approvedCoordinatedReconnect; approvedCoordinatedReconnect = null;
+                if (approved.RequestId == coordinatedReconnectRequest)
+                {
+                    coordinatedReconnectRequest = string.Empty;
+                    if (!(MirrorNetworkRuntime.Instance?.TryReconnectAfterHostPause() ?? false))
+                        SendSimulationClient("coordinated-reconnect-cancel", approved);
+                }
+            }
             if (mode == LaunchMode.Host) RefreshPendingLocalBindings();
             try
             {
@@ -284,6 +329,10 @@ namespace YC.Infrastructure.Multiplayer
             using (NetworkExecutionObservation.Begin("recovery.poll", ReadObservationContext(), false)) PollConfirmedRecovery();
             if (mode == LaunchMode.Client && NetworkClient.isConnected && IsRecoveringConfirmedPrefix && !recoveryFailed && confirmedRecoveryRequestPending)
                 RequestConfirmedRecovery();
+            if (mode == LaunchMode.Client && NetworkClient.isConnected && IsRecoveringConfirmedPrefix && !recoveryFailed &&
+                recoveryNotice?.CheckpointFlowVersion == SimulationCheckpointEnvelope.BoundedTransferVersion && recoveryAssembler != null &&
+                preparedRecovery == null && !recoveryPreparationPending && Time.unscaledTime >= nextRecoveryProgressTime)
+                SendRecoveryProgress(recoveryAssembler.BufferedBytes);
             if (mode == LaunchMode.Client && NetworkClient.isConnected && !checkpointInstallationSent && !checkpointChannel.IsStopped)
                 RequestCheckpoint();
         }
@@ -292,6 +341,7 @@ namespace YC.Infrastructure.Multiplayer
         {
             appliedLocally = false;
             if (command == null) throw new ArgumentNullException(nameof(command));
+            if (privateMode) return SubmitPrivateCommand(command);
             if (simulationOptions != null)
             {
                 if (simulationCoordinator == null || mode == LaunchMode.Client && !NetworkClient.isConnected) return Invalid("完整模拟尚未就绪。");
@@ -312,6 +362,9 @@ namespace YC.Infrastructure.Multiplayer
 
         public void Shutdown()
         {
+            ShutdownPrivateTransport();
+            coordinatedReconnectRequest = string.Empty;
+            approvedCoordinatedReconnect = null;
             InitialLoadingFailure = null;
             NetworkExecutionObservation.Event("simulation.shutdown", ReadObservationContext());
             transportGeneration++; recoveryPreparationPending = recoveryCompletionPending = false;
@@ -323,6 +376,8 @@ namespace YC.Infrastructure.Multiplayer
             confirmedRecoveryRequestPending = false;
             checkpointChannel?.Stop(); checkpointChannel = null; checkpointHostConnection = null;
             checkpointConnectionTokens.Clear(); nextCheckpointRequestTime = 0f;
+            foreach (var pending in checkpointOutbound.Values) pending.Dispose();
+            checkpointOutbound.Clear(); checkpointFlowPeers.Clear(); nextRecoveryProgressTime = 0f;
             checkpointInstallationSent = false;
             savedCoordinatorFactory = null;
             pendingLocalBindings.Clear();
@@ -339,7 +394,9 @@ namespace YC.Infrastructure.Multiplayer
             NetworkClient.OnDisconnectedEvent -= OnCheckpointClientDisconnected;
             if (NetworkServer.active)
             {
-                NetworkServer.UnregisterHandler<SimulationCheckpointRequestMessage>();
+                // 房间可能继续存在并开始下一局；新场景就绪前暂不处理请求，客户端按原协议重试。
+                RegisterEarlyCheckpointHandler();
+                RegisterEarlyPrivateHandler();
                 NetworkServer.UnregisterHandler<SimulationCheckpointInstalledMessage>();
                 NetworkServer.UnregisterHandler<SimulationCheckpointErrorMessage>();
                 NetworkServer.UnregisterHandler<SimulationProtocolPartMessage>();
@@ -364,6 +421,12 @@ namespace YC.Infrastructure.Multiplayer
             if (Instance != this) return;
             Shutdown();
             Instance = null;
+        }
+
+        internal static void RegisterEarlyCheckpointHandler()
+        {
+            // 客户端可能先进入游戏场景。没有会话时不接纳、不缓存内容；避免 Mirror 将合法的早到消息误判为未知类型。
+            NetworkServer.ReplaceHandler<SimulationCheckpointRequestMessage>((_, __) => { }, false);
         }
 
         private void OnServerConnected(NetworkConnectionToClient connection)
@@ -400,8 +463,10 @@ namespace YC.Infrastructure.Multiplayer
                     identity,
                     out var expectedPlayerId))
             {
-                if (!(connection is LocalConnectionToClient) && simulationOptions != null && launchSeats != null &&
-                    launchSeats.Any(seat => seat != null && seat.SteamId == identity && simulationOptions.FrozenPlayerIds.Contains(seat.PlayerId)))
+                if (!(connection is LocalConnectionToClient) && launchSeats != null &&
+                    launchSeats.Any(seat => seat != null && seat.SteamId == identity &&
+                        (simulationOptions?.FrozenPlayerIds.Contains(seat.PlayerId) == true ||
+                         privateMode && privatePlayers.Contains(seat.PlayerId))))
                 {
                     if (!pendingLocalBindings.ContainsKey(connection.connectionId))
                     {
@@ -421,7 +486,7 @@ namespace YC.Infrastructure.Multiplayer
             }
             if (connection is LocalConnectionToClient)
             {
-                MarkGameStateSynchronized(playerId, true);
+                if (!privateMode) MarkGameStateSynchronized(playerId, true);
                 return;
             }
         }
@@ -429,6 +494,7 @@ namespace YC.Infrastructure.Multiplayer
         private void OnServerDisconnected(NetworkConnectionToClient connection)
         {
             if (connection == null) return;
+            if (privateMode) ForgetPrivatePeer(connection.connectionId);
             pendingLocalBindings.Remove(connection.connectionId);
             if (bindings.TryGetPlayer(connection.connectionId, out var playerId))
             {
@@ -437,6 +503,8 @@ namespace YC.Infrastructure.Multiplayer
                 recoveryPrepared.Remove(playerId); recoveryInstalled.Remove(playerId);
             }
             checkpointConnectionTokens.Remove(connection.connectionId);
+            ForgetCheckpointOutbound(connection.connectionId);
+            checkpointFlowPeers.Remove(connection.connectionId);
             protocolPeers.Remove(connection.connectionId);
             if (simulationCoordinator != null && playerId > 0)
             {
@@ -502,6 +570,8 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnCheckpointClientDisconnected()
         {
+            coordinatedReconnectRequest = string.Empty;
+            approvedCoordinatedReconnect = null;
             NetworkExecutionObservation.Event("recovery.connection_lost_callback", ReadObservationContext());
             checkpointHostConnection = null; checkpointInstallationSent = false;
             confirmedRecoveryRequestPending = simulationOptions != null && simulationCoordinator != null;
@@ -543,6 +613,39 @@ namespace YC.Infrastructure.Multiplayer
             return true;
         }
 
+        public bool CanRequestLocalConnectionRecovery
+        {
+            get
+            {
+                if (privateMode) return CanRequestPrivateReconnect();
+                var runtime = MirrorNetworkRuntime.Instance;
+                var fault = simulationCoordinator?.LastFault;
+                return initialized && mode == LaunchMode.Client && simulationOptions != null && simulationCoordinator != null && session != null &&
+                    !HasCompletedSettlement && recoveryInstaller != null && recoveryInstaller.IsBoundTo(session, simulationOptions) && !recoveryFailed &&
+                    runtime != null && !NetworkServer.active && runtime.HasClientReconnectIdentity &&
+                    (runtime.IsLocalTestMode || runtime.ClientReconnectGameId == simulationOptions.GameId) &&
+                    (fault == null || fault.FaultCode == "simulation_connection_lost") &&
+                    (runtime.IsReconnectingClient || !NetworkClient.isConnected && !NetworkClient.isConnecting ||
+                        NetworkClient.isConnected && !IsRecoveringConfirmedPrefix && !IsCoordinatedReconnectPending &&
+                        checkpointInstallationSent && IsBoundCheckpointHost(clientConnectionToken) && !simulationCoordinator.IsStopped) &&
+                    (!IsRecoveringConfirmedPrefix || runtime.IsReconnectingClient ||
+                        runtime.IsClientReconnectWaitingForRetry && !NetworkClient.isConnected && !NetworkClient.isConnecting);
+            }
+        }
+
+        public bool TryRequestLocalConnectionRecovery()
+        {
+            if (privateMode) return TryRequestPrivateReconnect();
+            if (!CanRequestLocalConnectionRecovery) return false;
+            var runtime = MirrorNetworkRuntime.Instance;
+            if (runtime.IsReconnectingClient || !NetworkClient.isConnected) return runtime.TryRequestClientReconnect();
+            coordinatedReconnectRequest = Guid.NewGuid().ToString("N");
+            SendSimulationClient("coordinated-reconnect-request", new CoordinatedReconnectMessage { GameId = simulationOptions.GameId,
+                SimulationEpoch = simulationOptions.SimulationEpoch, MembershipVersion = simulationOptions.MembershipVersion,
+                RequestingPlayerId = localPlayerId, RequestId = coordinatedReconnectRequest });
+            return true;
+        }
+
         public bool CanAwaitLocalSimulationConnectionRecovery(SimulationProtocolFaultDto fault) => IsAwaitingLocalSimulationConnectionRecovery &&
             fault != null && fault.ProtocolVersion == OperationCommandProtocol.Version && fault.FaultCode == "simulation_connection_lost" && fault.RequiresRecovery &&
             fault.GameId == localConnectionRecoveryGameId && fault.SimulationEpoch == localConnectionRecoveryEpoch && fault.MembershipVersion == localConnectionRecoveryMembership;
@@ -560,17 +663,22 @@ namespace YC.Infrastructure.Multiplayer
             if (session != null && simulationOptions?.GameId == checkpointChannel.Identity.GameId &&
                 simulationOptions.ContentPackHash == checkpointChannel.Identity.ContentPackHash) return true;
             checkpointChannel.Stop(); checkpointHostConnection = null; checkpointConnectionTokens.Clear();
+            foreach (var pending in checkpointOutbound.Values) pending.Dispose();
+            checkpointOutbound.Clear(); checkpointFlowPeers.Clear();
             PublishCheckpointFault("checkpoint_session_changed"); return false;
         }
 
-        private void RequestCheckpoint()
+        private void RequestCheckpoint(bool progress = false)
         {
             if (simulationOptions != null && simulationCoordinator != null) return;
             if (!IsCheckpointSessionCurrent() || mode != LaunchMode.Client || !NetworkClient.isConnected || checkpointInstallationSent) return;
             if (checkpointHostConnection == null) BindCheckpointHost();
             if (!ReferenceEquals(checkpointHostConnection, NetworkClient.connection)) return;
-            float now = ReadUnscaledTime(); if (now < nextCheckpointRequestTime) return;
-            NetworkClient.Send(new SimulationCheckpointRequestMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
+            float now = ReadUnscaledTime(); if (!progress && now < nextCheckpointRequestTime) return;
+            var request = checkpointChannel.Identity;
+            request.TransportFlowVersion = SimulationCheckpointEnvelope.BoundedTransferVersion;
+            request.TransportReceivedBytes = checkpointChannel.BufferedBytes;
+            NetworkClient.Send(new SimulationCheckpointRequestMessage { EnvelopeJson = JsonConvert.SerializeObject(request),
                 PlayerId = localPlayerId, ConnectionToken = clientConnectionToken }, Channels.Reliable);
             nextCheckpointRequestTime = now + CheckpointRequestInterval;
         }
@@ -590,6 +698,50 @@ namespace YC.Infrastructure.Multiplayer
             catch (JsonException) { return false; }
         }
 
+        private void ForgetCheckpointOutbound(int connectionId)
+        {
+            if (!checkpointOutbound.TryGetValue(connectionId, out var pending)) return;
+            checkpointOutbound.Remove(connectionId);
+            pending.Dispose();
+        }
+
+        private string ContinueCheckpointTransfer(NetworkConnectionToClient connection, string token,
+            SimulationCheckpointEncodedTransfer transfer, int receivedBytes)
+        {
+            if (connection == null || transfer == null || string.IsNullOrEmpty(token)) return "checkpoint_send_binding_invalid";
+            var envelope = transfer.Envelope;
+            if (!checkpointOutbound.TryGetValue(connection.connectionId, out var pending) || pending.Token != token ||
+                !SimulationCheckpointEnvelope.SamePayload(pending.Envelope, envelope))
+            {
+                if (receivedBytes != 0) return "checkpoint_progress_invalid";
+                ForgetCheckpointOutbound(connection.connectionId);
+                envelope.TransportFlowVersion = SimulationCheckpointEnvelope.BoundedTransferVersion;
+                envelope.TransportReceivedBytes = 0;
+                pending = new CheckpointOutbound { Token = token, Envelope = envelope, Header = JsonConvert.SerializeObject(envelope),
+                    Window = new SimulationCheckpointSendWindow(transfer), LastRetryTime = ReadUnscaledTime() };
+                checkpointOutbound.Add(connection.connectionId, pending);
+            }
+            int before = pending.Window.AcknowledgedBytes;
+            if (!pending.Window.TryAcknowledge(receivedBytes)) return "checkpoint_progress_invalid";
+            float now = ReadUnscaledTime();
+            if (pending.Window.AcknowledgedBytes > before) { pending.Retries = 0; pending.LastRetryTime = now; }
+            while (pending.Window.TryTake(out var part)) SendCheckpointPart(connection, pending, part);
+            if (pending.Window.AcknowledgedBytes == before && pending.Window.SentBytes > pending.Window.AcknowledgedBytes &&
+                now - pending.LastRetryTime >= CheckpointRequestInterval)
+            {
+                if (pending.Retries >= MaximumCheckpointRetriesWithoutProgress) return "checkpoint_transfer_stalled";
+                pending.LastRetryTime = now; pending.Retries++;
+                foreach (var part in pending.Window.Unacknowledged()) SendCheckpointPart(connection, pending, part);
+            }
+            return string.Empty;
+        }
+
+        private static void SendCheckpointPart(NetworkConnectionToClient connection, CheckpointOutbound pending, SimulationCheckpointPart part)
+        {
+            connection.Send(new SimulationCheckpointPartMessage { EnvelopeJson = pending.Header, Offset = part.Offset,
+                Payload = part.Payload, ConnectionToken = pending.Token }, Channels.Reliable);
+        }
+
         private void OnCheckpointRequest(NetworkConnectionToClient connection, SimulationCheckpointRequestMessage message)
         {
             if (simulationOptions != null && (checkpointChannel == null || simulationOptions.SimulationEpoch != checkpointChannel.Identity.SimulationEpoch || recoveryRequested ||
@@ -597,6 +749,12 @@ namespace YC.Infrastructure.Multiplayer
             if (!IsCheckpointSessionCurrent() || !IsBoundCheckpointClient(connection, message.PlayerId) ||
                 string.IsNullOrEmpty(message.ConnectionToken) || message.ConnectionToken.Length > 64 ||
                 !TryReadCheckpointEnvelope(message.EnvelopeJson, out var request)) return;
+            if (request.TransportFlowVersion != SimulationCheckpointEnvelope.BoundedTransferVersion)
+            {
+                connection.Send(new SimulationCheckpointErrorMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
+                    ConnectionToken = message.ConnectionToken, FaultCode = "checkpoint_client_update_required" }, Channels.Reliable);
+                return;
+            }
             if (!checkpointChannel.TryCreateHostTransfer(message.PlayerId, message.ConnectionToken, request, out var transfer, out var fault))
             {
                 connection.Send(new SimulationCheckpointErrorMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
@@ -604,10 +762,15 @@ namespace YC.Infrastructure.Multiplayer
                 return;
             }
             checkpointConnectionTokens[connection.connectionId] = message.ConnectionToken;
-            string envelopeJson = JsonConvert.SerializeObject(transfer.Envelope);
-            foreach (var part in transfer.Split())
-                connection.Send(new SimulationCheckpointPartMessage { EnvelopeJson = envelopeJson, Offset = part.Offset,
-                    Payload = part.Payload, ConnectionToken = message.ConnectionToken }, Channels.Reliable);
+            checkpointFlowPeers.Add(connection.connectionId);
+            if (checkpointChannel.IsPeerInstalled(message.PlayerId)) return;
+            var sendFault = ContinueCheckpointTransfer(connection, message.ConnectionToken, transfer, request.TransportReceivedBytes);
+            if (!string.IsNullOrEmpty(sendFault))
+            {
+                ForgetCheckpointOutbound(connection.connectionId);
+                connection.Send(new SimulationCheckpointErrorMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
+                    ConnectionToken = message.ConnectionToken, FaultCode = sendFault }, Channels.Reliable);
+            }
         }
 
         private void OnCheckpointPart(SimulationCheckpointPartMessage message)
@@ -621,7 +784,11 @@ namespace YC.Infrastructure.Multiplayer
             try { result = checkpointChannel.ReceivePart(message.ConnectionToken, envelope, message.Offset, message.Payload); }
             catch (Exception exception) when (!(exception is OutOfMemoryException))
             { checkpointChannel.Stop(); PublishCheckpointFault("checkpoint_install_exception:" + exception.Message, true); return; }
-            if (result.Status == SimulationCheckpointReceiveStatus.Buffered) return;
+            if (result.Status == SimulationCheckpointReceiveStatus.Buffered)
+            {
+                if (envelope.TransportFlowVersion == SimulationCheckpointEnvelope.BoundedTransferVersion) RequestCheckpoint(true);
+                return;
+            }
             if (result.Status == SimulationCheckpointReceiveStatus.Installed || result.Status == SimulationCheckpointReceiveStatus.AlreadyInstalled)
             {
                 NetworkClient.Send(new SimulationCheckpointInstalledMessage { EnvelopeJson = JsonConvert.SerializeObject(result.Envelope),
@@ -648,7 +815,10 @@ namespace YC.Infrastructure.Multiplayer
             if (!IsCheckpointSessionCurrent() || !IsBoundCheckpointClient(connection, message.PlayerId) ||
                 !checkpointConnectionTokens.TryGetValue(connection.connectionId, out var token) || token != message.ConnectionToken ||
                 !TryReadCheckpointEnvelope(message.EnvelopeJson, out var envelope) ||
+                !checkpointOutbound.TryGetValue(connection.connectionId, out var pending) || pending.Token != token ||
+                !SimulationCheckpointEnvelope.SamePayload(pending.Envelope, envelope) || pending.Window.SentBytes != pending.Window.TotalBytes ||
                 !checkpointChannel.TryConfirmInstalled(message.PlayerId, message.ConnectionToken, envelope, out var duplicate, out _) || duplicate) return;
+            ForgetCheckpointOutbound(connection.connectionId);
             foreach (Action<int, SimulationCheckpointEnvelope> observer in SimulationCheckpointInstalledByPeer?.GetInvocationList() ?? Array.Empty<Delegate>())
                 try { observer(message.PlayerId, envelope.Snapshot()); } catch (Exception exception) { Debug.LogException(exception); }
             if (simulationCoordinator != null)
@@ -727,6 +897,8 @@ namespace YC.Infrastructure.Multiplayer
             Action<WindowExecutionConfirmation> streamConfirmed = value => { if (simulationCoordinator == coordinator) BroadcastSimulation("stream-confirmed", value); };
             Action<WindowExecutionRangeMessage> streamMissing = value => { if (simulationCoordinator == coordinator) SendWindowExecutionRangeControl("stream-missing", value); };
             Action<WindowExecutionRangeMessage> streamRange = value => { if (simulationCoordinator == coordinator) SendWindowExecutionRangeControl("stream-range", value); };
+            Action<CoordinatedReconnectMessage> reconnectYield = value => { if (simulationCoordinator == coordinator) SendCoordinatedReconnect("coordinated-reconnect-yield", value.WindowOwnerPlayerId, value); };
+            Action<CoordinatedReconnectMessage> reconnectReady = value => { if (simulationCoordinator == coordinator) SendCoordinatedReconnect("coordinated-reconnect-ready", value.RequestingPlayerId, value); };
             coordinator.SimulationCommandApplied += applied; coordinator.CommandValidationPrefixAdvanced += validated;
             coordinator.AutomaticSavePointConfirmed += autoSave;
             coordinator.OperationWindowPermissionChanged += permission; coordinator.SimulationProtocolFaulted += fault;
@@ -737,6 +909,7 @@ namespace YC.Infrastructure.Multiplayer
             coordinator.WindowExecutionGranted += streamGrant; coordinator.WindowExecutionRecordProduced += streamRecord;
             coordinator.WindowExecutionSealProduced += streamSeal; coordinator.WindowExecutionReadyProduced += streamReady;
             coordinator.WindowExecutionConfirmed += streamConfirmed; coordinator.WindowExecutionMissingRequested += streamMissing; coordinator.WindowExecutionRangeProduced += streamRange;
+            coordinator.CoordinatedReconnectYieldRequested += reconnectYield; coordinator.CoordinatedReconnectReady += reconnectReady;
             detachSimulationEvents = () => {
                 coordinator.ConfigureWaitStageObservation(null);
                 coordinator.ConfigurePerformanceReplayCapture(null);
@@ -750,6 +923,7 @@ namespace YC.Infrastructure.Multiplayer
                 coordinator.WindowExecutionGranted -= streamGrant; coordinator.WindowExecutionRecordProduced -= streamRecord;
                 coordinator.WindowExecutionSealProduced -= streamSeal; coordinator.WindowExecutionReadyProduced -= streamReady;
                 coordinator.WindowExecutionConfirmed -= streamConfirmed; coordinator.WindowExecutionMissingRequested -= streamMissing; coordinator.WindowExecutionRangeProduced -= streamRange;
+                coordinator.CoordinatedReconnectYieldRequested -= reconnectYield; coordinator.CoordinatedReconnectReady -= reconnectReady;
             };
             coordinator.ConfigureRequestContractValidation(checkpointChannel.Identity.RequestContractVersion);
             coordinator.ConfigureWindowExecution(checkpointChannel.Identity.WindowExecutionVersion);
@@ -894,6 +1068,18 @@ namespace YC.Infrastructure.Multiplayer
                     SendSimulationHost(connection, purpose, value);
         }
 
+        private void SendCoordinatedReconnect(string purpose, int targetPlayer, CoordinatedReconnectMessage value)
+        {
+            if (mode != LaunchMode.Host || value == null) return;
+            foreach (var connection in NetworkServer.connections.Values)
+                if (!(connection is LocalConnectionToClient) && bindings.TryGetPlayer(connection.connectionId, out int player) && player == targetPlayer)
+                    SendSimulationHost(connection, purpose, value);
+        }
+
+        private bool ValidCoordinatedReconnect(CoordinatedReconnectMessage value) => value != null &&
+            value.ProtocolVersion == OperationCommandProtocol.Version && CurrentSimulationIdentity(value.GameId, value.SimulationEpoch, value.MembershipVersion) &&
+            Guid.TryParseExact(value.RequestId, "N", out _) && simulationOptions.FrozenPlayerIds.Contains(value.RequestingPlayerId);
+
         private void ProtocolFault(string code, string diagnostic)
         {
             if (simulationOptions == null) return;
@@ -942,11 +1128,13 @@ namespace YC.Infrastructure.Multiplayer
             if (NetworkExecutionObservation.Enabled && part.Purpose == "proposal" && part.Offset == 0)
                 NetworkExecutionObservation.Event("protocol.proposal_first_part", ReadObservationContext(), "transfer=" + part.TransferId + ";bytes=" + part.TotalBytes);
             if (part.Purpose == "confirmed-recovery") { ReceiveRecoveryClientControl(connection, part); return; }
-            if (simulationCoordinator == null || simulationCoordinator.IsStopped || mode != LaunchMode.Host || !ValidProtocolHeader(part) ||
+            if (simulationCoordinator == null || mode != LaunchMode.Host || !ValidProtocolHeader(part) ||
                 !bindings.TryGetPlayer(connection == null ? -1 : connection.connectionId, out var playerId) || !IsBoundCheckpointClient(connection, playerId) ||
                 !checkpointChannel.IsPeerInstalled(playerId) && !(recoveryFinished && recoveryInstalled.Contains(playerId)) || !checkpointConnectionTokens.TryGetValue(connection.connectionId, out var token) || token != part.ConnectionToken ||
                 part.Purpose != "proposal" && part.Purpose != "window-ready" && part.Purpose != "missing-range" && part.Purpose != "payment-source-query" &&
-                part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-ready" && part.Purpose != "stream-missing" && part.Purpose != "stream-range") return;
+                part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-ready" && part.Purpose != "stream-missing" && part.Purpose != "stream-range" &&
+                part.Purpose != "coordinated-reconnect-request" && part.Purpose != "coordinated-reconnect-cancel") return;
+            if (simulationCoordinator.IsStopped && part.Purpose != "coordinated-reconnect-request" && part.Purpose != "coordinated-reconnect-cancel") return;
             if (!protocolPeers.TryGetValue(connection.connectionId, out var assembler)) { assembler = new ProtocolAssembly(); protocolPeers.Add(connection.connectionId, assembler); }
             if (!assembler.Append(part, out var json)) { ProtocolFault("simulation_frame_invalid", "规定副本的协议分片冲突或无效。"); return; }
             if (json == null) return;
@@ -954,7 +1142,18 @@ namespace YC.Infrastructure.Multiplayer
                 ReadObservationContext(), part.Purpose == "proposal");
             try
             {
-                if (part.Purpose == "stream-record") simulationCoordinator.ReceiveWindowExecutionRecord(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRecord>(json));
+                if (part.Purpose == "coordinated-reconnect-request" || part.Purpose == "coordinated-reconnect-cancel")
+                {
+                    var request = JsonConvert.DeserializeObject<CoordinatedReconnectMessage>(json);
+                    if (!ValidCoordinatedReconnect(request) || request.RequestingPlayerId != playerId ||
+                        request.WindowOwnerPlayerId != 0 || !string.IsNullOrEmpty(request.GrantId)) return;
+                    if (part.Purpose == "coordinated-reconnect-cancel") simulationCoordinator.CancelCoordinatedReconnect(playerId, request.RequestId);
+                    else if (recoveryFailed || HasCompletedSettlement || recoveryInstaller == null || !recoveryInstaller.IsBoundTo(session, simulationOptions) ||
+                        !simulationOptions.FrozenPlayerIds.All(id => id == localPlayerId || checkpointChannel.IsPeerInstalled(id) || recoveryFinished && recoveryInstalled.Contains(id)) ||
+                        !simulationCoordinator.RequestCoordinatedReconnect(playerId, request.RequestId))
+                        SendSimulationHost(connection, "coordinated-reconnect-refused", request);
+                }
+                else if (part.Purpose == "stream-record") simulationCoordinator.ReceiveWindowExecutionRecord(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRecord>(json));
                 else if (part.Purpose == "stream-seal") simulationCoordinator.ReceiveWindowExecutionSeal(playerId, false, JsonConvert.DeserializeObject<WindowExecutionSeal>(json));
                 else if (part.Purpose == "stream-ready") simulationCoordinator.ReceiveWindowExecutionReady(playerId, JsonConvert.DeserializeObject<WindowExecutionReadyMessage>(json));
                 else if (part.Purpose == "stream-missing") simulationCoordinator.ReceiveWindowExecutionMissing(playerId, false, JsonConvert.DeserializeObject<WindowExecutionRangeMessage>(json));
@@ -1002,10 +1201,12 @@ namespace YC.Infrastructure.Multiplayer
             if (NetworkExecutionObservation.Enabled && part.Purpose == "ordered" && part.Offset == 0)
                 NetworkExecutionObservation.Event("protocol.ordered_first_part", ReadObservationContext(), "transfer=" + part.TransferId + ";bytes=" + part.TotalBytes);
             if (part.Purpose == "confirmed-recovery") { ReceiveRecoveryHostControl(part); return; }
-            if (simulationCoordinator == null || simulationCoordinator.IsStopped || mode != LaunchMode.Client || !ValidProtocolHeader(part) || !IsBoundCheckpointHost(part.ConnectionToken) ||
+            if (simulationCoordinator == null || mode != LaunchMode.Client || !ValidProtocolHeader(part) || !IsBoundCheckpointHost(part.ConnectionToken) ||
                 part.Purpose != "ordered" && part.Purpose != "proposal-result" && part.Purpose != "boundary" && part.Purpose != "window-permit" &&
                 part.Purpose != "validation-prefix" && part.Purpose != "range" && part.Purpose != "stop" && part.Purpose != "payment-source-page" &&
-                part.Purpose != "stream-grant" && part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-confirmed" && part.Purpose != "stream-missing" && part.Purpose != "stream-range") return;
+                part.Purpose != "stream-grant" && part.Purpose != "stream-record" && part.Purpose != "stream-seal" && part.Purpose != "stream-confirmed" && part.Purpose != "stream-missing" && part.Purpose != "stream-range" &&
+                part.Purpose != "coordinated-reconnect-yield" && part.Purpose != "coordinated-reconnect-ready" && part.Purpose != "coordinated-reconnect-refused") return;
+            if (simulationCoordinator.IsStopped && part.Purpose != "coordinated-reconnect-refused") return;
             if (!protocolHost.Append(part, out var json)) { ProtocolFault("simulation_frame_invalid", "Host协议分片冲突或无效。"); return; }
             if (json == null) return;
             replayCapture?.RecordProtocol(part.Purpose, json, "received");
@@ -1013,6 +1214,19 @@ namespace YC.Infrastructure.Multiplayer
             {
                 switch (part.Purpose)
                 {
+                    case "coordinated-reconnect-yield":
+                        var yieldNotice = JsonConvert.DeserializeObject<CoordinatedReconnectMessage>(json);
+                        if (ValidCoordinatedReconnect(yieldNotice) && yieldNotice.WindowOwnerPlayerId == localPlayerId && !string.IsNullOrEmpty(yieldNotice.GrantId))
+                            simulationCoordinator.YieldWindowForReconnect(yieldNotice.GrantId);
+                        break;
+                    case "coordinated-reconnect-ready":
+                    case "coordinated-reconnect-refused":
+                        var reconnectNotice = JsonConvert.DeserializeObject<CoordinatedReconnectMessage>(json);
+                        if (!ValidCoordinatedReconnect(reconnectNotice) || reconnectNotice.RequestingPlayerId != localPlayerId ||
+                            reconnectNotice.WindowOwnerPlayerId != 0 || !string.IsNullOrEmpty(reconnectNotice.GrantId) || reconnectNotice.RequestId != coordinatedReconnectRequest) break;
+                        if (part.Purpose == "coordinated-reconnect-refused") coordinatedReconnectRequest = string.Empty;
+                        else approvedCoordinatedReconnect = reconnectNotice;
+                        break;
                     case "stream-grant": simulationCoordinator.ReceiveWindowExecutionGrant(JsonConvert.DeserializeObject<WindowExecutionGrant>(json)); break;
                     case "stream-record": simulationCoordinator.ReceiveWindowExecutionRecord(0, true, JsonConvert.DeserializeObject<WindowExecutionRecord>(json)); break;
                     case "stream-seal": simulationCoordinator.ReceiveWindowExecutionSeal(0, true, JsonConvert.DeserializeObject<WindowExecutionSeal>(json)); break;
@@ -1079,7 +1293,8 @@ namespace YC.Infrastructure.Multiplayer
                 float now = ReadUnscaledTime(); if (now < nextConfirmedRecoveryRequestTime) return;
                 nextConfirmedRecoveryRequestTime = now + CheckpointRequestInterval;
                 var request = new SimulationRecoveryNoticeDto { GameId = simulationOptions.GameId, SimulationEpoch = simulationOptions.SimulationEpoch + 1,
-                    SourceSimulationEpoch = simulationOptions.SimulationEpoch, MembershipVersion = simulationOptions.MembershipVersion, Phase = SimulationRecoveryPhase.Request };
+                    SourceSimulationEpoch = simulationOptions.SimulationEpoch, MembershipVersion = simulationOptions.MembershipVersion,
+                    CheckpointFlowVersion = SimulationCheckpointEnvelope.BoundedTransferVersion, Phase = SimulationRecoveryPhase.Request };
                 NetworkExecutionObservation.Event("recovery.request_sent", ReadObservationContext());
                 SendRecoveryClient(request);
             }
@@ -1103,7 +1318,8 @@ namespace YC.Infrastructure.Multiplayer
                 var b = checkpoint.Baseline;
                 var notice = new SimulationRecoveryNoticeDto { GameId = b.GameId, SimulationEpoch = b.SimulationEpoch, MembershipVersion = b.MembershipVersion,
                     SourceSimulationEpoch = b.SourceSimulationEpoch, CheckpointId = b.CheckpointId, ConfirmedGlobalSequence = b.ConfirmedGlobalSequence,
-                    MetadataDigest = b.MetadataDigest, Phase = SimulationRecoveryPhase.Prepare, ResumeAllowed = !coordinator.IsStopped };
+                    MetadataDigest = b.MetadataDigest, CheckpointFlowVersion = SimulationCheckpointEnvelope.BoundedTransferVersion,
+                    Phase = SimulationRecoveryPhase.Prepare, ResumeAllowed = !coordinator.IsStopped };
                 var envelope = RecoveryEnvelope(notice); envelope.ContentPackHash = simulationOptions.ContentPackHash;
                 // 只读脱离活动会话的 checkpoint；JSON和分包准备不占用运输帧。
                 string json = await Task.Run(() => SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint));
@@ -1134,7 +1350,16 @@ namespace YC.Infrastructure.Multiplayer
             GameId = recoveryNotice.GameId, SimulationEpoch = recoveryNotice.SimulationEpoch, MembershipVersion = recoveryNotice.MembershipVersion,
             SourceSimulationEpoch = recoveryNotice.SourceSimulationEpoch, CheckpointId = recoveryNotice.CheckpointId,
             ConfirmedGlobalSequence = recoveryNotice.ConfirmedGlobalSequence, MetadataDigest = recoveryNotice.MetadataDigest,
-            ResumeAllowed = recoveryNotice.ResumeAllowed, Phase = phase };
+            ResumeAllowed = recoveryNotice.ResumeAllowed, CheckpointFlowVersion = recoveryNotice.CheckpointFlowVersion, Phase = phase };
+
+        private void SendRecoveryProgress(int receivedBytes)
+        {
+            if (recoveryNotice == null || recoveryNotice.CheckpointFlowVersion != SimulationCheckpointEnvelope.BoundedTransferVersion) return;
+            var notice = RecoveryNotice(SimulationRecoveryPhase.Receiving);
+            notice.CheckpointReceivedBytes = receivedBytes;
+            SendRecoveryClient(notice);
+            nextRecoveryProgressTime = ReadUnscaledTime() + CheckpointRequestInterval;
+        }
 
         private void SendRecoveryClient(SimulationRecoveryNoticeDto notice)
         {
@@ -1154,15 +1379,18 @@ namespace YC.Infrastructure.Multiplayer
 
         private void SendRecoveryPackage(NetworkConnectionToClient connection)
         {
-            if (recoveryTransfer == null || recoveryFailed || connection == null || !bindings.TryGetPlayer(connection.connectionId, out var id) ||
+            if (recoveryTransfer == null || recoveryFailed || connection == null || !checkpointFlowPeers.Contains(connection.connectionId) ||
+                !bindings.TryGetPlayer(connection.connectionId, out var id) ||
                 !IsBoundCheckpointClient(connection, id) || !simulationOptions.FrozenPlayerIds.Contains(id) ||
                 !checkpointConnectionTokens.TryGetValue(connection.connectionId, out var token)) return;
             SendRecoveryHost(connection, RecoveryNotice(SimulationRecoveryPhase.Prepare));
-            var envelope = recoveryTransfer.Envelope;
-            string header = JsonConvert.SerializeObject(envelope);
-            foreach (var part in recoveryTransfer.Split()) connection.Send(new SimulationCheckpointPartMessage {
-                EnvelopeJson = header, Offset = part.Offset, Payload = part.Payload, ConnectionToken = token }, Channels.Reliable);
-            if (recoveryCommitIssued) SendRecoveryHost(connection, RecoveryNotice(SimulationRecoveryPhase.Commit));
+            if (recoveryPrepared.Contains(id))
+            {
+                if (recoveryCommitIssued) SendRecoveryHost(connection, RecoveryNotice(SimulationRecoveryPhase.Commit));
+                return;
+            }
+            var fault = ContinueCheckpointTransfer(connection, token, recoveryTransfer, 0);
+            if (!string.IsNullOrEmpty(fault)) FailConfirmedRecovery(fault, "恢复检查点发送失败。");
         }
 
         private bool ValidRecoveryHeader(SimulationProtocolPartMessage part) => initialized && simulationOptions != null &&
@@ -1176,7 +1404,8 @@ namespace YC.Infrastructure.Multiplayer
             notice.ProtocolVersion == OperationCommandProtocol.Version && notice.GameId == recoveryNotice.GameId && notice.SimulationEpoch == recoveryNotice.SimulationEpoch &&
             notice.SourceSimulationEpoch == recoveryNotice.SourceSimulationEpoch && notice.MembershipVersion == recoveryNotice.MembershipVersion &&
             notice.CheckpointId == recoveryNotice.CheckpointId && notice.ConfirmedGlobalSequence == recoveryNotice.ConfirmedGlobalSequence &&
-            notice.MetadataDigest == recoveryNotice.MetadataDigest && notice.ResumeAllowed == recoveryNotice.ResumeAllowed;
+            notice.MetadataDigest == recoveryNotice.MetadataDigest && notice.ResumeAllowed == recoveryNotice.ResumeAllowed &&
+            notice.CheckpointFlowVersion == recoveryNotice.CheckpointFlowVersion;
 
         private void ReceiveRecoveryClientControl(NetworkConnectionToClient connection, SimulationProtocolPartMessage part)
         {
@@ -1197,11 +1426,36 @@ namespace YC.Infrastructure.Multiplayer
                     if (notice.SourceSimulationEpoch <= 0 || notice.SourceSimulationEpoch >= long.MaxValue || notice.SimulationEpoch != notice.SourceSimulationEpoch + 1) return;
                     if (notice.SourceSimulationEpoch != simulationOptions.SimulationEpoch && (!IsRecoveringConfirmedPrefix || recoveryNotice == null || notice.SourceSimulationEpoch != recoveryNotice.SourceSimulationEpoch)) return;
                     checkpointConnectionTokens[connection.connectionId] = part.ConnectionToken;
+                    if (notice.CheckpointFlowVersion != SimulationCheckpointEnvelope.BoundedTransferVersion)
+                    {
+                        connection.Send(new SimulationCheckpointErrorMessage { EnvelopeJson = JsonConvert.SerializeObject(checkpointChannel.Identity),
+                            ConnectionToken = part.ConnectionToken, FaultCode = "checkpoint_client_update_required" }, Channels.Reliable);
+                        return;
+                    }
+                    checkpointFlowPeers.Add(connection.connectionId);
                     Debug.Log("[LocalMirrorLifecycle] 已认证连接接纳确认前缀请求；玩家=" + player + "，连接=" + connection.connectionId + "，源代次=" + notice.SourceSimulationEpoch);
                     RequestConfirmedRecovery(); if (recoveryNotice != null) SendRecoveryPackage(connection); return;
                 }
                 if (!checkpointConnectionTokens.TryGetValue(connection.connectionId, out var token) || token != part.ConnectionToken || !SameRecoveryNotice(notice) || recoveryFinished || recoveryFailed) return;
-                if (notice.Phase == SimulationRecoveryPhase.Prepared) { recoveryPrepared.Add(player); TryCommitAllRecoveredMembers(); }
+                if (notice.Phase == SimulationRecoveryPhase.Receiving)
+                {
+                    if (recoveryTransfer == null || !checkpointOutbound.ContainsKey(connection.connectionId)) return;
+                    var fault = ContinueCheckpointTransfer(connection, token, recoveryTransfer, notice.CheckpointReceivedBytes);
+                    if (!string.IsNullOrEmpty(fault)) FailConfirmedRecovery(fault, "恢复检查点发送失败。");
+                }
+                else if (notice.Phase == SimulationRecoveryPhase.Prepared)
+                {
+                    if (!recoveryPrepared.Contains(player))
+                    {
+                        if (!checkpointOutbound.TryGetValue(connection.connectionId, out var pending) || pending.Token != token ||
+                            pending.Window.SentBytes != pending.Window.TotalBytes || recoveryTransfer == null ||
+                            !SimulationCheckpointEnvelope.SamePayload(pending.Envelope, recoveryTransfer.Envelope)) return;
+                        ForgetCheckpointOutbound(connection.connectionId);
+                        recoveryPrepared.Add(player);
+                    }
+                    if (recoveryCommitIssued) SendRecoveryHost(connection, RecoveryNotice(SimulationRecoveryPhase.Commit));
+                    else TryCommitAllRecoveredMembers();
+                }
                 else if (notice.Phase == SimulationRecoveryPhase.Installed && recoveryCommitIssued) { recoveryInstalled.Add(player); TryReleaseRecoveredMembers(); }
                 else if (notice.Phase == SimulationRecoveryPhase.Failed) FailConfirmedRecovery(notice.ErrorCode, notice.Reason);
             }
@@ -1229,6 +1483,7 @@ namespace YC.Infrastructure.Multiplayer
                         notice.SimulationEpoch != notice.SourceSimulationEpoch + 1 || recoveryInstaller == null) throw new ArgumentException("recovery_prepare_identity_invalid");
                     bool notify = !IsRecoveringConfirmedPrefix; recoveryRequested = true; recoveryFinished = recoveryFailed = recoveryCommitIssued = false;
                     recoveryPrepared.Clear(); recoveryInstalled.Clear(); preparedRecovery = null; recoveryNotice = notice; receivedRecoveryEnvelope = null;
+                    nextRecoveryProgressTime = ReadUnscaledTime() + CheckpointRequestInterval;
                     simulationCoordinator.BeginConfirmedRecovery();
                     var envelope = RecoveryEnvelope(notice); envelope.ContentPackHash = simulationOptions.ContentPackHash;
                     recoveryAssembler = new SimulationCheckpointTransfer.Assembler(envelope);
@@ -1252,9 +1507,16 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (mode != LaunchMode.Client || recoveryNotice == null || recoveryFailed || recoveryPreparationPending || !IsBoundCheckpointHost(part.ConnectionToken)) return;
             if (preparedRecovery != null)
-            { if (!SimulationCheckpointEnvelope.SamePayload(receivedRecoveryEnvelope, envelope)) FailConfirmedRecovery("recovery_payload_conflict", "重复恢复包与已准备原包冲突。"); return; }
+            {
+                if (!SimulationCheckpointEnvelope.SamePayload(receivedRecoveryEnvelope, envelope))
+                    FailConfirmedRecovery("recovery_payload_conflict", "重复恢复包与已准备原包冲突。");
+                else SendRecoveryClient(RecoveryNotice(SimulationRecoveryPhase.Prepared));
+                return;
+            }
             if (recoveryAssembler == null) return;
-            if (!recoveryAssembler.TryAppend(envelope, part.Offset, part.Payload, out var json, out var fault)) { FailConfirmedRecovery(fault, "恢复检查点组装失败。"); return; }
+            if (!recoveryAssembler.TryAppendReliable(envelope, part.Offset, part.Payload, out var json, out var fault)) { FailConfirmedRecovery(fault, "恢复检查点组装失败。"); return; }
+            if (envelope.TransportFlowVersion == SimulationCheckpointEnvelope.BoundedTransferVersion)
+                SendRecoveryProgress(json == null ? recoveryAssembler.BufferedBytes : part.Offset + part.Payload.Length);
             if (json == null) return;
             receivedRecoveryEnvelope = envelope.Snapshot();
             long generation = transportGeneration;
@@ -1325,7 +1587,8 @@ namespace YC.Infrastructure.Multiplayer
         {
             if (pendingLocalBindings.Count == 0) return;
             var room = OnlineRoomServiceProvider.GetActive()?.GetCurrentRoom();
-            if (room == null || !room.HasStarted || launchSeats == null || simulationOptions != null && room.GameId != simulationOptions.GameId) return;
+            if (room == null || !room.HasStarted || launchSeats == null || simulationOptions != null && room.GameId != simulationOptions.GameId ||
+                privateMode && room.GameId != privateGameId) return;
             // 仅更新已冻结玩家的认证连接事实，不能从重连消息增删玩家或更换身份。
             foreach (var expected in launchSeats)
             foreach (var current in room.Seats)

@@ -1,0 +1,29 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.completed",
+  "version": "1.0.0",
+  "displayName": "完成事件模式示例",
+  "author": "游城拓荒",
+  "description": "复用基础配方，演示按效果类型观察完成事件。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "diy.rule_modes.v1", "diy.rule_bindings.completed.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "ruleModes": [{
+    "modeId": "example.completed.mode",
+    "displayName": "完成事件模式示例",
+    "description": "每次城市移动效果成功完成后获得 1 分，用于演示规则绑定。",
+    "requires": ["core"],
+    "applicableMapIds": ["map-three-players", "map-four-players"],
+    "setupRecipeRefs": [{"packId": "core", "recipeId": "standard"}],
+    "ruleBindings": [{
+      "bindingId": "example.completed.city_score",
+      "eventType": "EffectCompleted",
+      "completedEffectTypes": ["effect.city.move"],
+      "script": "lua/city-score.lua",
+      "version": "1.0.0"
+    }]
+  }],
+  "definitions": [],
+  "setupRecipes": []
+}

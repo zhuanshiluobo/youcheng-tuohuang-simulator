@@ -274,7 +274,7 @@ namespace YC.Domain.Effects
 
                 if (consumeMainAction)
                 {
-                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Explore);
                 }
                 return EffectStepResult.Completed(NormalizedValue.CreateObject(new List<NormalizedValueEntry>
                 {
@@ -362,7 +362,7 @@ namespace YC.Domain.Effects
             var settled = escrowService.TrySettle(context.State, node, out var completedReceipt, out bool delivered);
             if (!settled.IsValid) throw new KernelException("route_toll_settlement_failed", settled.Reason);
             if (delivered && consumeAction)
-                new MainActionBudgetService().SpendCompletedMainAction(context.State, node.PlayerId);
+                new MainActionBudgetService().SpendCompletedMainAction(context.State, node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Explore);
             var result = EffectStepResult.Completed(NormalizedValue.CreateObject(new List<NormalizedValueEntry> {
                 new NormalizedValueEntry { Name = "outcome", Value = NormalizedValue.CreateString("completed") },
                 new NormalizedValueEntry { Name = "targetLocationId", Value = NormalizedValue.CreateString(target) },

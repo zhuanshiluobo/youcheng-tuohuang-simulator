@@ -47,16 +47,22 @@ namespace YC.Presentation
             public YC.Domain.Presentation.IGameplayTextCatalogSnapshot GameplayTextCatalog;
             public IReadOnlyDictionary<string, string> GameplayDefinitionNames;
             public GameplayTextResolver TextResolver;
+            public ExternalContentPack FrozenPack;
         }
 
         public static Result BuildForGameplay(GameLaunchContext launchContext,
             bool useRightCardSmokeState, bool prepareSharedCityStyleSmokeState)
         {
-            if (!IsNetworkLaunch(launchContext))
-                return Build(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState);
-            if (useRightCardSmokeState || prepareSharedCityStyleSmokeState)
-                throw new System.InvalidOperationException("deterministic_network_launch_disallows_smoke_state");
-            return Build(launchContext, false, false, launchContext.Mode == LaunchMode.Client);
+            Result result;
+            if (!IsNetworkLaunch(launchContext)) result = Build(launchContext, useRightCardSmokeState, prepareSharedCityStyleSmokeState);
+            else
+            {
+                if (useRightCardSmokeState || prepareSharedCityStyleSmokeState)
+                    throw new System.InvalidOperationException("deterministic_network_launch_disallows_smoke_state");
+                result = Build(launchContext, false, false, launchContext.Mode == LaunchMode.Client);
+            }
+            ExternalContentRuntime.BindGameplayPack(result.FrozenPack);
+            return result;
         }
 
         public static Result Build(
@@ -88,8 +94,16 @@ namespace YC.Presentation
             return BuildCore(context, false, false, false, data);
         }
 
+        public static Result RestoreWithValidation(GameLaunchContext context, MatchSaveData data, MatchSaveData.ValidationScope validation)
+        {
+            if (validation == null) throw new System.ArgumentNullException(nameof(validation));
+            validation.Validate(data);
+            return BuildCore(context, false, false, false, data, validation);
+        }
+
         private static Result BuildCore(GameLaunchContext launchContext, bool useRightCardSmokeState,
-            bool prepareSharedCityStyleSmokeState, bool deferRuleInitialization, MatchSaveData restore)
+            bool prepareSharedCityStyleSmokeState, bool deferRuleInitialization, MatchSaveData restore,
+            MatchSaveData.ValidationScope validation = null)
         {
             using var totalTiming = YC.Presentation.Workflows.UiRegressionMetrics.Measure("assembly.bootstrap_total");
             if (deferRuleInitialization && (launchContext == null || launchContext.Mode != LaunchMode.Client ||
@@ -118,7 +132,7 @@ namespace YC.Presentation
                 ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent;
             ActiveContentCatalog activeCatalog;
             using (YC.Presentation.Workflows.UiRegressionMetrics.Measure("assembly.active_catalog"))
-                activeCatalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, configuration);
+                activeCatalog = ExternalContentRuntime.BuildActiveCatalog(configuration);
             if (restore != null && activeCatalog.ContentPackHash != restore.ContentHash)
                 throw new System.InvalidOperationException("存档的内容版本与当前配置不一致，请使用保存时的内容包。");
             var textResolver = new GameplayTextResolver(activeCatalog.TextCatalog, cacheScopeId: "catalog:" + activeCatalog.ContentPackHash);
@@ -130,6 +144,11 @@ namespace YC.Presentation
                 throw new System.IO.InvalidDataException("玩法文案目录语法错误：" + source + ":" + error.TextKey + "@" + error.Position + "：" + error.Message, error);
             }
             configuration.ContentPackHash = activeCatalog.ContentPackHash;
+            // 房间种子可由所有成员读取。采用新准备合同的房主另持私密随机状态，
+            // 从装配第一步起即使用它；客户端继续等待本人视图，不获得该密钥。
+            bool privateHostStart = restore == null && launchMode == LaunchMode.Host && activeCatalog.SetupRecipe.Preparation != null;
+            var initialRandom = privateHostStart ? launchContext.GetOrCreateHostPrivateRandom() :
+                restoreMetadata?.RandomState ?? launchContext.InitialRandomState;
             var state = useRightCardSmokeState
                 ? RightCardSmokeStateFactory.CreateInitialState(
                     launchMode,
@@ -144,7 +163,7 @@ namespace YC.Presentation
                     players,
                     configuration, eventDeckSeed, activeCatalog.SetupRecipe, activeCatalog.ContentDefinitions,
                     restoreMetadata?.LaunchPlayerOrder ?? launchContext.LaunchPlayerOrder, restore?.GameId ?? launchContext.GameId,
-                    restoreMetadata?.RandomState ?? launchContext.InitialRandomState);
+                    initialRandom, activeCatalog);
             if (useRightCardSmokeState)
             {
                 state.GameId = launchContext.GameId;
@@ -281,23 +300,23 @@ namespace YC.Presentation
 
             if (restore != null)
             {
-                var recovered = HostRecoveryService.RecoverJson(restore.ArchiveJson, effectRegistry);
+                var recovered = HostRecoveryService.RecoverJsonForBootstrap(restore.ArchiveJson, effectRegistry);
                 if (!recovered.Succeeded) throw new System.InvalidOperationException(recovered.FaultCode + ":" + recovered.Diagnostic);
                 if (recovered.State.GameId != restore.GameId || recovered.State.ContentPackHash != activeCatalog.ContentPackHash ||
                     recovered.State.MapId != restore.MapId || recovered.State.EventDeckSeed != eventDeckSeed ||
                     Newtonsoft.Json.JsonConvert.SerializeObject(recovered.State.RuleConfiguration) != Newtonsoft.Json.JsonConvert.SerializeObject(configuration))
                     throw new System.InvalidOperationException("存档恢复身份不一致。");
-                if (restore.Mode == LaunchMode.Host)
+                if (restore.Mode == LaunchMode.Host && string.IsNullOrEmpty(restore.PrivateCheckpointJson))
                 {
-                    var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(restore.SimulationCheckpointJson);
+                    var baseline = validation == null ? SimulationConfirmedRecoveryInstaller.ReadBaseline(restore.SimulationCheckpointJson) : validation.ReadRecoveryBaseline(restore);
                     OperationCommandCanonicalizer.ValidateRecoveryBaseline(MatchSaveData.OptionsFor(baseline, true, localPlayerId), baseline, recovered.State);
                 }
                 var continuation = SimulationConfirmedRecoveryInstaller.ReadContinuation(restore.ContinuationJson);
                 PreparedGameSessionRecovery prepared;
                 string fault;
-                bool ready = launchMode == LaunchMode.Local
-                    ? session.TryPrepareLocalRecoveryState(recovered.State, continuation, out prepared, out fault)
-                    : session.TryPrepareConfirmedRecoveryState(recovered.State, continuation, GameStateViewer.Player(localPlayerId), out prepared, out fault);
+                // 两个对象均为本次读档刚创建且未交给其他消费者，可以独占移交，避免复制整份历史。
+                bool ready = session.TryPrepareOwnedRecoveryState(recovered.State, continuation,
+                    launchMode == LaunchMode.Local ? (GameStateViewer?)null : GameStateViewer.Player(localPlayerId), out prepared, out fault);
                 if (!ready ||
                     !session.TryCommitPreparedRecovery(prepared, out fault)) throw new System.InvalidOperationException(fault);
             }
@@ -308,6 +327,9 @@ namespace YC.Presentation
                 var entrance = roundExecutionService.StartEntrance(session.State);
                 if (!entrance.IsValid) throw new System.InvalidOperationException(entrance.Reason);
             }
+            if (privateHostStart) session.BeginPrivateCommandAuthority(false);
+            else if (restore?.Mode == LaunchMode.Host && !string.IsNullOrEmpty(restore.PrivateCheckpointJson))
+                session.BeginPrivateCommandAuthority(true);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             if (launchContext != null && launchMode == LaunchMode.Host)
@@ -325,6 +347,7 @@ namespace YC.Presentation
             return new Result
             {
                 Session = session,
+                FrozenPack = activeCatalog.FrozenPack,
                 ActivePresentation = activePresentation,
                 EffectRegistry = effectRegistry,
                 MapQuery = mapQuery,

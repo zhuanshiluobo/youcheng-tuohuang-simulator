@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -9,12 +10,14 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.TestTools;
 using UnityEngine.UI;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
+using YC.Domain.Presentation;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
@@ -94,11 +97,15 @@ namespace YC.Tests.EditMode
             var fixture = CreateCoordinator(state);
             var request = new InteractionRequest
             {
-                InteractionId = "character-page-recovery", InteractionTypeId = "lua.choice", Status = "open",
+                InteractionId = "character-page-recovery", InteractionTypeId = "operator.dispatch.choose", Status = "open",
                 Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 8,
-                CandidateIds = new List<string> { "originium", "iron" }, MinSelections = 1, MaxSelections = 1,
-                PromptKey = "character.elysium.strategy.choose_resource"
+                CandidateSetId = "character-page-candidates", CandidateSetVersion = 3,
+                CandidateIds = new List<string> { "opaque-texas", "opaque-liskarm" }, MinSelections = 1, MaxSelections = 1,
+                PromptKey = "operator.dispatch.choose"
             };
+            request.PromptParameters.Properties.Add(new NormalizedValueEntry { Name = "candidateDefinitionIds",
+                Value = NormalizedValue.CreateArray(new List<NormalizedValue> {
+                    NormalizedValue.CreateString("texas"), NormalizedValue.CreateString("liskarm") }) });
             state.EffectRuntime.InteractionRequests.Add(request);
             var commands = new List<YC.Domain.Commands.GameCommand>();
             var renderer = CreateGenericRenderer(state, fixture.Dialog, commands);
@@ -112,7 +119,7 @@ namespace YC.Tests.EditMode
             Assert.That(commands, Is.Empty);
             ClickButton(GetOverlay(fixture.Dialog), "Confirm Selection");
             Assert.That(commands, Has.Count.EqualTo(1));
-            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "originium" }));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "opaque-liskarm" }));
             renderer.Clear();
         }
 
@@ -342,6 +349,93 @@ namespace YC.Tests.EditMode
             Assert.That(commands, Has.Count.EqualTo(1));
             Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { choice }));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(before));
+            renderer.Clear();
+        }
+
+        [Test]
+        public void OptionalEffect_LostDialogReopensForTheSameOutstandingRequest()
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest {
+                InteractionId = "optional-page-recovery", InteractionTypeId = "action.decline_effect", Status = "open",
+                Visibility = "owner", AnsweringPlayerId = 1, StateRevision = 3, AllowDecline = true,
+                CandidateSetId = "optional-page-candidates", CandidateSetVersion = 1,
+                CandidateIds = new List<string> { "continue", "decline" }, MinSelections = 1, MaxSelections = 1,
+                PromptKey = "character.tin_man.purchase.12" };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var type = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(_ => { }) });
+            var projection = InteractionRequestProjector.ProjectForPlayer(request, 1);
+            renderer.Render(projection);
+            Assert.That((bool)fixture.Dialog.GetType().GetProperty("IsShowing").GetValue(fixture.Dialog), Is.True);
+            fixture.Dialog.GetType().GetMethod("Hide").Invoke(fixture.Dialog, null);
+            renderer.Render(projection);
+            Assert.That((bool)fixture.Dialog.GetType().GetProperty("IsShowing").GetValue(fixture.Dialog), Is.True,
+                "原请求仍开放且未提交时，丢失的确认页面应能重新显示");
+            Assert.That(commands, Is.Empty, "重新显示不能代替玩家提交答案");
+            var row = FindChild(GetOverlay(fixture.Dialog), "Character Effect Option 0");
+            var effectRow = row.GetComponent(Type.GetType("YC.Presentation.UiEffectRowView, Assembly-CSharp", true));
+            ((Button)effectRow.GetType().GetProperty("StatusButton").GetValue(effectRow)).onClick.Invoke();
+            Assert.That(commands.Count, Is.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "continue" }));
+            renderer.Clear();
+        }
+
+        [Test]
+        public void ConditionPayment_LostDialogReopensWithoutSubmittingAnAnswer()
+        {
+            var state = CreateState();
+            var fixture = CreateCoordinator(state);
+            var request = new InteractionRequest {
+                InteractionId = "condition-page-recovery", OwnerEffectId = "condition-owner", SourceNodeId = "condition-source",
+                InteractionTypeId = "action.decline_effect", Status = "open", Visibility = "owner", AnsweringPlayerId = 1,
+                StateRevision = 3, AllowDecline = true, CandidateSetId = "condition-page-candidates", CandidateSetVersion = 1,
+                CandidateIds = new List<string> { "continue", "decline" }, MinSelections = 1, MaxSelections = 1,
+                PromptParameters = ItemTransferEffectExecutor.Object("sourceKind", NormalizedValue.CreateString("condition")),
+                Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:entrepreneur.D.extra.condition") } };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            state.EffectRuntime.StateRevision = request.StateRevision;
+            var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var type = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
+            var renderer = (IInteractionRequestRenderer)Activator.CreateInstance(type,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), fixture.Dialog,
+                    new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
+                    new Action<YC.Domain.Commands.GameCommand>(command => commands.Add(command)), new Action<string>(_ => { }) });
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var expansion = hud.GetComponentInChildren(Type.GetType("YC.Presentation.GameplayExpansionUi, Assembly-CSharp", true), true);
+            Assert.That(expansion, Is.Not.Null);
+            type.GetProperty("ExpansionUi").SetValue(renderer, expansion);
+            type.GetProperty("GetVisibleState").SetValue(renderer, new Func<GameStateView>(() => visible));
+            type.GetProperty("GetVisibleRequests").SetValue(renderer, new Func<IReadOnlyList<InteractionRequest>>(() => state.EffectRuntime.InteractionRequests));
+            var document = new GameplayTextDocument(Array.Empty<GameplayTextRun>());
+            type.GetMethod("BindGameplayText").Invoke(renderer, new object[] {
+                new Func<GameplayTextRef, GameplayTextDocument>(_ => document),
+                new Action<InteractionRequestProjection, GameplayTextDocument>((_, __) => { }) });
+            bool showing = false; int shows = 0; Action execute = null;
+            fixture.Dialog.GetType().GetProperty("IsPaymentConfirmationShowing").SetValue(fixture.Dialog, new Func<bool>(() => showing));
+            fixture.Dialog.GetType().GetProperty("HidePaymentConfirmation").SetValue(fixture.Dialog, new Action(() => showing = false));
+            fixture.Dialog.GetType().GetProperty("RenderPaymentConfirmation").SetValue(fixture.Dialog,
+                new Action<InteractionRequestProjection, GameplayTextDocument, Action<Component, GameplayTextDocument, bool>, Func<bool>, Action, Action>(
+                    (_, __, ___, current, confirm, ____) => { if (current()) { showing = true; shows++; execute = confirm; } }));
+            var projection = InteractionRequestProjector.ProjectForPlayer(request, 1);
+            renderer.Render(projection);
+            Assert.That(showing, Is.True);
+            showing = false; // 模拟共享付款页面丢失，原请求与版本未改变。
+            renderer.Render(projection);
+            Assert.That(showing, Is.True);
+            Assert.That(shows, Is.EqualTo(2));
+            Assert.That(commands, Is.Empty);
+            execute();
+            Assert.That(commands.Count, Is.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "continue" }));
+            renderer.Render(projection);
+            Assert.That(commands.Count, Is.EqualTo(1), "重画不能重复提交仍在途的确认");
             renderer.Clear();
         }
 
@@ -668,6 +762,56 @@ namespace YC.Tests.EditMode
                 new Action<IReadOnlyList<WorkflowHighlight>>(_ => { }), new Action(() => { }),
                 new Action<YC.Domain.Commands.GameCommand>(commands.Add), new Action<string>(_ => { })
             });
+        }
+
+        [UnityTest]
+        public IEnumerator OptionalPlayerExecutionUsesExistingPlayerPageAndSubmitsOneValidAnswer()
+        {
+            yield return new EnterPlayMode();
+            foreach (string action in new[] { "select", "cancel", "confirm-empty" })
+            {
+            // 隔离界面合同：复用原玩家页，不执行真实对局或效果正文。
+            var state = CreateState();
+            state.Players.Add(new PlayerState { PlayerId = 2, Name = "夹具乙" });
+            state.Players.Add(new PlayerState { PlayerId = 3, Name = "夹具丙" });
+            state.LaunchPlayerOrder.AddRange(new[] { 1, 2, 3 });
+            state.EffectRuntime.StateRevision = 8;
+            var request = new InteractionRequest {
+                InteractionId = "fixture.swire.owner", SourceNodeId = "fixture.node", OwnerEffectId = "fixture.node",
+                InteractionTypeId = "effect.choice.execute", Status = "open", Visibility = "owner",
+                AnsweringPlayerId = 1, StateRevision = 8, CandidateSetId = "fixture.owners", CandidateSetVersion = 1,
+                CandidateIds = new List<string> { "p2", "p3" }, MinSelections = 0, MaxSelections = 1,
+                AllowDecline = true, AnswerSchema = "candidate_id", PromptKey = "core:interaction.marker.return.choose",
+                Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.marker.return.choose") }
+            };
+            foreach (var id in request.CandidateIds)
+                request.Presentation.Options.Add(new GameplayOptionPresentation {
+                    CandidateId = id, Label = new GameplayTextRef("core:interaction.player.name",
+                        new GameplayTextArgument { Name = "player", Kind = "player", Value = NormalizedValue.CreateStableReference("player", id) }) });
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var fixture = CreateCoordinator(state);
+            var commands = new List<YC.Domain.Commands.GameCommand>();
+            var renderer = CreateGenericRenderer(state, fixture.Dialog, commands);
+            var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
+            renderer.GetType().GetProperty("GetVisibleState").SetValue(renderer, new Func<GameStateView>(() => visible));
+            renderer.Render(InteractionRequestProjector.ProjectForPlayer(request, 1));
+            var page = (Component)fixture.Dialog.GetType().GetField("players", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(fixture.Dialog);
+            Assert.That(page, Is.Not.Null, "带真实玩家引用的执行分支应复用原玩家页");
+            Assert.That(page.gameObject.activeInHierarchy, Is.True);
+            var pageType = page.GetType();
+            var cancel = (Button)pageType.GetProperty("CancelButton").GetValue(page);
+            Assert.That(cancel.gameObject.activeSelf, Is.True, "可放弃的请求应保留取消入口");
+            if (action == "select") pageType.GetMethod("Choose").Invoke(page, new object[] { 3 });
+            pageType.GetMethod(action == "cancel" ? "Cancel" : "Confirm").Invoke(page, null);
+            Assert.That(commands, Has.Count.EqualTo(1));
+            if (action == "select") Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { "p3" }));
+            else Assert.That(commands[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter], Is.EqualTo("false"));
+            renderer.Clear();
+            UnityEngine.Object.Destroy(canvasObject);
+            canvasObject = null;
+            yield return null;
+            }
+            yield return new ExitPlayMode();
         }
 
         [TearDown]

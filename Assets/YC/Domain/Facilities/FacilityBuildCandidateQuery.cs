@@ -55,6 +55,8 @@ namespace YC.Domain.Facilities
             internal Func<GameState, CandidateSetDraft, string, IList<CandidatePatch>> Handler;
         }
         private readonly List<Policy> policies = new List<Policy>();
+        // 本局模式与扩展的只读候选策略，与角色持续能力共用正式候选计算。
+        public CandidatePolicyRegistry GameplayCandidatePolicies { get; } = new CandidatePolicyRegistry();
         public FacilityBuildQueryService Queries { get; private set; } = new FacilityBuildQueryService();
         public void UseQueries(FacilityBuildQueryService queries) { Queries = queries ?? throw new ArgumentNullException(nameof(queries)); }
         private static readonly ItemTypeRegistry Types = CreateTypes();
@@ -113,6 +115,7 @@ namespace YC.Domain.Facilities
                     "stateRevision", NormalizedValue.CreateInteger(state.EffectRuntime?.StateRevision ?? stateRevision)) };
             if(options.ExpectedSourceZoneId.Length>0) { draft.Context.Properties.Add(new NormalizedValueEntry { Name="expectedSourceZoneId",Value=NormalizedValue.CreateString(options.ExpectedSourceZoneId) }); draft.Context.Properties.Sort((a,b)=>StringComparer.Ordinal.Compare(a.Name,b.Name)); }
             var registry = new CandidatePolicyRegistry();
+            foreach (var policy in GameplayCandidatePolicies.GetMatching(CandidateKind)) registry.Register(policy);
             foreach (var mode in active)
             foreach (var policy in policies.Where(policy => policy.Kind == CandidateKind && policy.AbilityId == mode.AbilityId))
             {

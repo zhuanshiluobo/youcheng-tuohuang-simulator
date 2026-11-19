@@ -25,7 +25,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Project = Path.GetFullPath(Directory.GetCurrentDirectory());
                 if (!File.Exists(Path.Combine(Project, "Assets/StreamingAssets/Content/core/pack.json"))) throw new IOException("isolated_test_project_required");
                 Id = Environment.GetEnvironmentVariable("YC_ISOLATED_TEST_RUN_ID");
-                if (string.IsNullOrEmpty(Id)) Id = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffffffZ", CultureInfo.InvariantCulture) + "-" + Guid.NewGuid().ToString("N");
+                // 运行时间已写入 run.json；缩短默认目录名，避免深层隔离工程触发 Windows 路径长度限制。
+                if (string.IsNullOrEmpty(Id)) Id = "r" + Guid.NewGuid().ToString("N").Substring(0, 16);
                 if (!Regex.IsMatch(Id, @"\A[a-zA-Z0-9][a-zA-Z0-9_-]{0,95}\z") || Reserved(Id)) throw new IOException("isolated_test_run_id_invalid");
                 string resultsParent = Path.GetFullPath(Path.Combine(Project, "TestResults/IsolatedRuns")), inputsParent = Path.GetFullPath(Path.Combine(Project, "Logs/IsolatedRuns"));
                 EnsureParent(resultsParent, Project); EnsureParent(inputsParent, Project);
@@ -108,7 +109,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             run = shared.Value;
             TestId = id; TestName = name; identityOrigin = origin;
-            CaseId = Hash(Encoding.UTF8.GetBytes(TestId + "|" + TestName)).Substring(0, 16) + "-" + Guid.NewGuid().ToString("N");
+            // 用例目录也缩短随机段；目录创建仍拒绝已有目标，避免不同运行互相覆盖。
+            CaseId = Hash(Encoding.UTF8.GetBytes(TestId + "|" + TestName)).Substring(0, 16) + "-" + Guid.NewGuid().ToString("N").Substring(0, 12);
             ResultsDirectory = Path.Combine(run.Results, CaseId); InputsDirectory = Path.Combine(run.Inputs, CaseId);
             CreateDirectory(ResultsDirectory, run.Project); CreateDirectory(InputsDirectory, run.Project);
             WriteText("case-start.json", JsonConvert.SerializeObject(Identity("开始"), Formatting.Indented));

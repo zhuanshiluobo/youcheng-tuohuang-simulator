@@ -141,7 +141,9 @@ namespace YC.Domain.Effects
                     bool unified = unifiedTarget != null && ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "itemId") == entry.SourceItemId &&
                         ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "abilityId") == entry.AbilityId &&
                         ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "definitionId") == item.DefinitionId &&
-                        ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "triggerEventId") == context.TriggerId &&
+                        (ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "triggerEventId") == context.TriggerId ||
+                         CleanupSourceRecovery.HasReconcileReceipt(state, window, unifiedTarget.EffectId,
+                            ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "triggerEventId"))) &&
                         (registry?.AbilityDeclarations ?? state.ContentDefinitions?.AbilitySources)?.Any(d => d.DefinitionId == item.DefinitionId && d.AbilityId == entry.AbilityId && d.Kind == "cleanup" &&
                             d.DeclarationVersion == ItemTransferEffectExecutor.Text(unifiedTarget.NormalizedArguments, "declarationVersion")) == true;
                     if (!activation && !award && !unified) return false;
@@ -153,7 +155,8 @@ namespace YC.Domain.Effects
                         declaration.SourceEffectId != entry.SourceEffectId || declaration.WholeEffectPolicy != entry.WholeEffectPolicy ||
                         !runtime.DispatchReceipts.Any(r => r.EventId == trigger.EventId && r.Succeeded && r.AttachedEffectIds.Contains(target.EffectId) &&
                             (r.AbilityId == entry.AbilityId || award && r.HandlerId == "content.reward.player_cleanup" ||
-                                unified && r.HandlerId == "ability-source.event.PlayerCleanupStarted"))) return false;
+                                unified && r.HandlerId == "ability-source.event.PlayerCleanupStarted")) &&
+                        !(unified && CleanupSourceRecovery.HasReconcileReceipt(state, window, target.EffectId))) return false;
                     if (target.EffectTypeId.StartsWith("timing.handler.", StringComparison.Ordinal))
                     {
                         var binding = source.TimingBindings.Find(b => b.BindingId == ItemTransferEffectExecutor.Text(target.NormalizedArguments, "bindingId") &&

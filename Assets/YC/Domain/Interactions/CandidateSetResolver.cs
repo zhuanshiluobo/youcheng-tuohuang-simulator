@@ -32,7 +32,8 @@ namespace YC.Domain.Interactions
             int priority = 0,
             string sourceContentInstanceId = "",
             string sourceAbilityId = "",
-            string handlerId = "")
+            string handlerId = "",
+            string sourceVersionIdentity = "")
         {
             if (string.IsNullOrEmpty(subscriptionId)) throw new ArgumentException("候选策略订阅 ID 不能为空。", nameof(subscriptionId));
             if (string.IsNullOrEmpty(candidateKind)) throw new ArgumentException("候选类型不能为空。", nameof(candidateKind));
@@ -45,6 +46,7 @@ namespace YC.Domain.Interactions
             SourceContentInstanceId = sourceContentInstanceId ?? string.Empty;
             SourceAbilityId = sourceAbilityId ?? string.Empty;
             HandlerId = string.IsNullOrEmpty(handlerId) ? subscriptionId : handlerId;
+            SourceVersionIdentity = sourceVersionIdentity ?? string.Empty;
         }
 
         public string SubscriptionId { get; private set; }
@@ -55,6 +57,7 @@ namespace YC.Domain.Interactions
         public string SourceContentInstanceId { get; private set; }
         public string SourceAbilityId { get; private set; }
         public string HandlerId { get; private set; }
+        public string SourceVersionIdentity { get; private set; }
     }
 
     public sealed class CandidateSortPolicy
@@ -75,6 +78,12 @@ namespace YC.Domain.Interactions
     {
         private readonly List<CandidatePolicyRegistration> registrations = new List<CandidatePolicyRegistration>();
         private readonly List<CandidateSortPolicy> sortPolicies = new List<CandidateSortPolicy>();
+
+        public CandidatePolicyRegistration FindRegistration(string subscriptionId) =>
+            registrations.Find(item => string.Equals(item.SubscriptionId, subscriptionId, StringComparison.Ordinal));
+
+        public bool HasMatchingRegistration(string candidateKind) =>
+            registrations.Exists(item => item.CandidateKind == candidateKind || item.CandidateKind == "*");
 
         public void Register(CandidatePolicyRegistration registration)
         {

@@ -5,6 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using NUnit.Framework;
+using YC.Domain.Rules;
 using YC.Domain.State;
 
 namespace YC.Tests.EditMode.ExpansionRules
@@ -62,32 +63,51 @@ namespace YC.Tests.EditMode.ExpansionRules
             finally { CultureInfo.CurrentCulture = prior; }
         }
         [Test]
+        public void ContentLockSnapshotUsesNewDigestVersion()
+        {
+            // 独立参考编码器逐字段写入；为完整字段编码比较填充可选扩展字段。
+            // 这些字段为空时的 R956 旧摘要由 PreparationR956SaveFixtureTests 单独验证。
+            var state = new GameState { GameId = "event-choice-digest-version", PreparationRuntime = new PreparationRuntimeState(), PrivateCommandLedger = new PrivateCommandLedger() };
+            Assert.That(RuleStateDigestService.DigestVersion, Is.EqualTo("yc.rule-state.sha256.v3"));
+            Assert.That(RuleStateDigestService.Compute(state), Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(state)));
+            Assert.That(RuleStateDigestService.Compute(state), Is.Not.EqualTo(LegacyRuleStateDigestReference.Compute(state)));
+            state.RuleConfiguration = new YC.Domain.Rules.GameRuleConfiguration();
+            string before = RuleStateDigestService.Compute(state);
+            state.RuleConfiguration.LockedContentPacks.Add(new YC.Domain.Rules.ContentPackLock { PackId = "demo.pack", Version = "1.0.0", ContentHash = new string('a', 64) });
+            Assert.That(RuleStateDigestService.Compute(state), Is.Not.EqualTo(before));
+            var clone = state.RuleConfiguration.Clone(); clone.LockedContentPacks[0].Version = "2.0.0";
+            Assert.That(state.RuleConfiguration.LockedContentPacks[0].Version, Is.EqualTo("1.0.0"));
+        }
+
+        [Test]
         public void StreamingUtf8KeepsLongSurrogateBoundariesNullsAndInvalidInputBehavior()
         {
-            var state = new GameState {GameId = new string('雪',1023)+"😀"+new string('x',4096), ContentPackHash=null};
+            var state = new GameState {GameId = new string('雪',1023)+"😀"+new string('x',4096), ContentPackHash=null,
+                PreparationRuntime = new PreparationRuntimeState(), PrivateCommandLedger = new PrivateCommandLedger()};
             state.Logs.Add(new GameLogEntry{Message="本地日志正文应继续排除"});
-            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.Compute(state)));
+            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(state)));
             state.GameId="invalid\ud800";
             Assert.Throws<EncoderFallbackException>(()=>RuleStateDigestService.Compute(state));
-            Assert.Throws<EncoderFallbackException>(()=>LegacyRuleStateDigestReference.Compute(state));
+            Assert.Throws<EncoderFallbackException>(()=>LegacyRuleStateDigestReference.ComputeCurrent(state));
             state.GameId="after invalid text";
-            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.Compute(state)));
+            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(state)));
         }
 
         [Test]
         public void RepeatedShortTextsPastWorkingSetCapacityKeepBytesAndLaterInputChanges()
         {
-            var state=new GameState{GameId="isolated.digest.short-texts",ContentPackHash=new string('雪',129)};
+            var state=new GameState{GameId="isolated.digest.short-texts",ContentPackHash=new string('雪',129),
+                PreparationRuntime = new PreparationRuntimeState(), PrivateCommandLedger = new PrivateCommandLedger()};
             for(int i=0;i<5000;i++)
             {
                 string text=i.ToString("D6",CultureInfo.InvariantCulture)+new string('雪',120+i%3);
                 state.Decks.CharacterDeck.Values.Add(text);state.Decks.CharacterDiscard.Values.Add(text);
             }
             var before=RuleStateDigestService.Compute(state);
-            Assert.That(before,Is.EqualTo(LegacyRuleStateDigestReference.Compute(state)));
+            Assert.That(before,Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(state)));
             state.Decks.CharacterDiscard.Values[0]="changed";
             Assert.That(RuleStateDigestService.Compute(state),Is.Not.EqualTo(before));
-            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.Compute(state)));
+            Assert.That(RuleStateDigestService.Compute(state),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(state)));
         }
     }
 }

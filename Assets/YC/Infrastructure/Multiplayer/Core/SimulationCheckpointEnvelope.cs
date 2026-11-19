@@ -20,6 +20,8 @@ namespace YC.Infrastructure.Multiplayer
         public const string GzipVersion = "gzip.v1";
         public const string Utf8ArchiveDigestVersion = "yc.initial-checkpoint.sha256-utf8.v1";
         public const string GzipDigestVersion = "yc.simulation-checkpoint.gzip.sha256.v1";
+        // 版本 2 同时要求支持安全窗口交接，防止旧客户端忽略房主交权请求。
+        public const int BoundedTransferVersion = 2;
 
         public int ProtocolVersion = CurrentProtocolVersion;
         // 线上会话能力；缺字段的旧信封保持0，不能靠内容hash推断新请求语义。
@@ -40,6 +42,9 @@ namespace YC.Infrastructure.Multiplayer
         public int DecodedByteCount;
         public string EncodedDigestVersion = GzipDigestVersion;
         public string EncodedDigest = string.Empty;
+        // 仅传输协商与累计接收进度，不属于存档内容、摘要或规则身份。
+        public int TransportFlowVersion;
+        public int TransportReceivedBytes;
 
         public SimulationCheckpointEnvelope Snapshot() => (SimulationCheckpointEnvelope)MemberwiseClone();
 

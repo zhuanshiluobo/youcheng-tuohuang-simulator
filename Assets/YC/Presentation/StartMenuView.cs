@@ -15,6 +15,7 @@ namespace YC.Presentation
         [SerializeField] private Vector2 localGamePositionWithoutSave;
         [SerializeField] private Button onlineModeButton;
         [SerializeField] private Button achievementsButton;
+        [SerializeField] private Button diyContentButton;
         [SerializeField] private Button quitGameButton;
         [SerializeField] private Button creatorSiteButton;
         [SerializeField] private Button officialSiteButton;
@@ -33,6 +34,7 @@ namespace YC.Presentation
         public Button LoadGameButton => loadGameButton;
         public Button OnlineModeButton => onlineModeButton;
         public Button AchievementsButton => achievementsButton;
+        public Button DiyContentButton => diyContentButton;
         public Button QuitGameButton => quitGameButton;
         public Button CreatorSiteButton => creatorSiteButton;
         public Button OfficialSiteButton => officialSiteButton;
@@ -67,7 +69,7 @@ namespace YC.Presentation
                 return false;
             }
 
-            if (startGameButton == null || onlineModeButton == null || achievementsButton == null || quitGameButton == null ||
+            if (startGameButton == null || onlineModeButton == null || achievementsButton == null || diyContentButton == null || quitGameButton == null ||
                 creatorSiteButton == null || officialSiteButton == null || wikiButton == null)
             {
                 reason = "主菜单按钮引用不完整。";

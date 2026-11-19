@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nomadcity.diy/pack.schema.v1",
+  "title": "NoMadCity 独立 DIY 包清单 v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schemaVersion", "packId", "version", "displayName", "author", "description", "contentApiVersion", "requiredCapabilities"],
+  "properties": {
+    "format": {"const": "nomadcity.diy"},
+    "schemaVersion": {"const": 1},
+    "contentApiVersion": {"const": 1},
+    "packId": {"$ref": "#/$defs/packId"},
+    "version": {"$ref": "#/$defs/version"},
+    "displayName": {"$ref": "#/$defs/text"},
+    "author": {"$ref": "#/$defs/text"},
+    "description": {"$ref": "#/$defs/text"},
+    "requiredCapabilities": {"$ref": "#/$defs/strings"},
+    "dependencies": {"type": "array", "items": {"$ref": "#/$defs/dependency"}},
+    "ruleModes": {"type": "array", "items": {"$ref": "#/$defs/mode"}},
+    "expansions": {"type": "array", "items": {"$ref": "#/$defs/expansion"}},
+    "definitions": {"$ref": "#/$defs/strings"},
+    "setupRecipes": {"$ref": "#/$defs/strings"},
+    "presentation": {"type": "object"},
+    "artworkSlices": {"$ref": "#/$defs/text"},
+    "luaModules": {"type": "array"},
+    "scriptDependencies": {"type": "array"}
+  },
+  "anyOf": [
+    {"required": ["ruleModes"], "properties": {"ruleModes": {"minItems": 1}}},
+    {"required": ["expansions"], "properties": {"expansions": {"minItems": 1}}}
+  ],
+  "allOf": [
+    {"if": {"properties": {"requiredCapabilities": {"not": {"contains": {"const": "diy.rule_bindings.completed.v1"}}}}},
+     "then": {"properties": {"ruleModes": {"items": {"$ref": "#/$defs/requireCompletedCapability"}}, "expansions": {"items": {"$ref": "#/$defs/requireCompletedCapability"}}}}}
+  ],
+  "$defs": {
+    "requireCompletedCapability": {
+      "if": {"required": ["ruleBindings"], "properties": {"ruleBindings": {"contains": {"required": ["eventType"], "properties": {"eventType": {"const": "EffectCompleted"}}}}}},
+      "then": {"required": ["requiredCapabilities"], "properties": {"requiredCapabilities": {"contains": {"const": "diy.rule_bindings.completed.v1"}}}}
+    },
+    "text": {"type": "string", "minLength": 1, "pattern": "\\S"},
+    "packId": {"type": "string", "maxLength": 128, "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$", "not": {"const": "core"}},
+    "identity": {"type": "string", "maxLength": 192, "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$"},
+    "version": {"type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"},
+    "strings": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "dependency": {
+      "type": "object", "additionalProperties": false, "required": ["packId", "versionRange"],
+      "properties": {
+        "packId": {"type": "string", "maxLength": 128, "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"},
+        "versionRange": {"type": "string", "pattern": "^(=[0-9]+\\.[0-9]+\\.[0-9]+|>=[0-9]+\\.[0-9]+\\.[0-9]+ <[0-9]+\\.[0-9]+\\.[0-9]+)$"}
+      }
+    },
+    "recipeRef": {
+      "type": "object", "additionalProperties": false, "required": ["packId", "recipeId"],
+      "properties": {"packId": {"type": "string", "maxLength": 128, "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"}, "recipeId": {"$ref": "#/$defs/identity"}}
+    },
+    "preparationValue": {
+      "oneOf": [
+        {"type": "null"}, {"type": "boolean"},
+        {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+        {"type": "string", "maxLength": 1024},
+        {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/preparationValue"}},
+        {"$ref": "#/$defs/preparationObject"}
+      ]
+    },
+    "preparationObject": {"type": "object", "maxProperties": 128, "additionalProperties": {"$ref": "#/$defs/preparationValue"}},
+    "preparationScript": {"type": "string", "maxLength": 512, "pattern": "^lua/.+\\.lua$"},
+    "preparationCompletion": {
+      "type": "object", "additionalProperties": false, "required": ["handlerId", "handlerVersion", "script"],
+      "properties": {"handlerId": {"$ref": "#/$defs/identity"}, "handlerVersion": {"$ref": "#/$defs/version"}, "script": {"$ref": "#/$defs/preparationScript"}}
+    },
+    "preparationStep": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stepId", "sourcePackId", "sourcePackVersion", "kind", "handlerId", "handlerVersion", "execution"],
+      "properties": {
+        "stepId": {"$ref": "#/$defs/identity"},
+        "sourcePackId": {"type": "string", "maxLength": 128, "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$"},
+        "sourcePackVersion": {"$ref": "#/$defs/version"}, "kind": {"enum": ["builtin", "lua"]},
+        "handlerId": {"$ref": "#/$defs/identity"}, "handlerVersion": {"$ref": "#/$defs/version"},
+        "execution": {"enum": ["once", "eachInOrder", "eachIndependent"]},
+        "script": {"$ref": "#/$defs/preparationScript"}, "completion": {"$ref": "#/$defs/preparationCompletion"},
+        "arguments": {"$ref": "#/$defs/preparationObject"}
+      },
+      "allOf": [{"if": {"properties": {"kind": {"const": "lua"}}}, "then": {"required": ["script"]},
+        "else": {"not": {"anyOf": [{"required": ["script"]}, {"required": ["completion"]}]}}}]
+    },
+    "preparationPool": {
+      "type": "object", "additionalProperties": false, "required": ["kind"],
+      "properties": {"kind": {"enum": ["all", "fixed", "requiredRandom"]},
+        "candidateDefinitionIds": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/identity"}},
+        "requiredDefinitionIds": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/identity"}},
+        "count": {"type": "integer", "minimum": 0, "maximum": 256}}
+    },
+    "preparation": {
+      "type": "object", "additionalProperties": false, "required": ["version"],
+      "properties": {
+        "version": {"const": 1},
+        "beforeDistribution": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/preparationStep"}},
+        "betweenDistributionAndConfirmation": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/preparationStep"}},
+        "afterConfirmation": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/preparationStep"}},
+        "distributionInputs": {"type": "array", "items": {
+          "type": "object", "additionalProperties": false, "required": ["stepId", "effectTypeId", "effectStableKey", "resultField", "playerScope", "target"],
+          "properties": {"stepId": {"$ref": "#/$defs/identity"}, "effectTypeId": {"$ref": "#/$defs/identity"},
+            "effectStableKey": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[!-~]+$"},
+            "resultField": {"$ref": "#/$defs/identity"}, "playerScope": {"enum": ["once", "each"]},
+            "target": {"enum": ["candidateDefinitionIds", "requiredDefinitionIds", "candidateCount", "extraRandomCount"]}}
+        }},
+        "enterprise": {"type": "object", "additionalProperties": false, "required": ["pool", "playerCounts"],
+          "properties": {"pool": {"$ref": "#/$defs/preparationPool"},
+            "playerCounts": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false,
+              "required": ["playerCount", "draw", "keep", "finalCount"], "properties": {
+                "playerCount": {"type": "integer", "minimum": 2, "maximum": 4}, "draw": {"type": "integer", "minimum": 1, "maximum": 64},
+                "keep": {"type": "integer", "minimum": 1, "maximum": 64}, "extraRandom": {"type": "integer", "minimum": 0, "maximum": 64},
+                "finalCount": {"type": "integer", "minimum": 1, "maximum": 64}}}},
+            "fixed": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["definitionId"],
+              "properties": {"definitionId": {"$ref": "#/$defs/identity"}, "ownerOrderIndex": {"type": "integer", "minimum": -1, "maximum": 3}, "requireConfirmation": {"type": "boolean"}}}}}},
+        "cityStyles": {"type": "object", "additionalProperties": false, "required": ["levelOne", "levelTwo"],
+          "properties": {"levelOne": {"$ref": "#/$defs/preparationPool"}, "levelTwo": {"$ref": "#/$defs/preparationPool"}}}
+      }
+    },
+    "ruleBinding": {
+      "type": "object", "additionalProperties": false, "required": ["bindingId", "eventType", "script", "version"],
+      "properties": {
+          "bindingId": {"$ref": "#/$defs/identity"}, "eventType": {"enum": ["PlayerCleanupStarted", "RoundStarted", "RoundEnded", "CharacterCardCovered", "CharacterCoverCompleted", "CharacterUseFinished", "CollectionStarted", "OperatorDispatchStarting", "CityMoveCompleted", "FacilityPlaced", "FinalScoringStarted", "CandidateSetBuilding", "EffectCompleted"]},
+        "candidateKind": {"enum": ["city_destination", "facility.build.card"]},
+          "completedEffectTypes": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[A-Za-z0-9._-]+$", "not": {"anyOf": [{"const": "effect.ability.source.resolve"}, {"pattern": "[\\r\\n]"}]}}},
+          "completionPolicy": {"enum": ["succeeded", "terminal"]},
+        "script": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/text"},
+        "completion": {
+          "type": "object", "additionalProperties": false, "required": ["handlerId", "script", "version"],
+          "properties": {"handlerId": {"$ref": "#/$defs/identity"}, "script": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/text"}}
+        }
+      },
+      "allOf": [{
+        "if": {"properties": {"eventType": {"const": "CandidateSetBuilding"}}},
+        "then": {"required": ["candidateKind"], "not": {"required": ["completion"]}},
+        "else": {"not": {"required": ["candidateKind"]}}
+        }, {
+          "if": {"properties": {"eventType": {"const": "EffectCompleted"}}},
+          "then": {"required": ["completedEffectTypes"]},
+          "else": {"not": {"anyOf": [{"required": ["completedEffectTypes"]}, {"required": ["completionPolicy"]}]}}
+        }, {
+          "if": {"properties": {"eventType": {"const": "OperatorDispatchStarting"}}},
+          "then": {"not": {"required": ["completion"]}}
+        }]
+    },
+    "mode": {
+      "type": "object", "additionalProperties": false, "required": ["modeId", "displayName", "description", "setupRecipeRefs"],
+      "properties": {
+        "modeId": {"$ref": "#/$defs/identity"}, "displayName": {"$ref": "#/$defs/text"}, "description": {"$ref": "#/$defs/text"},
+        "requires": {"$ref": "#/$defs/strings"}, "conflicts": {"$ref": "#/$defs/strings"}, "preparationOrder": {"type": "integer", "minimum": 0, "maximum": 2147483647}, "requiredCapabilities": {"$ref": "#/$defs/strings"}, "applicableMapIds": {"$ref": "#/$defs/strings"}, "mechanisms": {"$ref": "#/$defs/strings"},
+        "setupRecipeRefs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/recipeRef"}},
+        "ruleBindings": {"type": "array", "items": {"$ref": "#/$defs/ruleBinding"}}, "preparation": {"$ref": "#/$defs/preparation"}
+      }
+    },
+    "expansion": {
+      "type": "object", "additionalProperties": false, "required": ["expansionId", "displayName", "description"],
+      "properties": {
+        "expansionId": {"$ref": "#/$defs/identity"}, "displayName": {"$ref": "#/$defs/text"}, "description": {"$ref": "#/$defs/text"},
+        "applicableModes": {"$ref": "#/$defs/strings"}, "requires": {"$ref": "#/$defs/strings"}, "conflicts": {"$ref": "#/$defs/strings"}, "requiredCapabilities": {"$ref": "#/$defs/strings"},
+        "ruleBindings": {"type": "array", "items": {"$ref": "#/$defs/ruleBinding"}}
+      }
+    }
+  }
+}

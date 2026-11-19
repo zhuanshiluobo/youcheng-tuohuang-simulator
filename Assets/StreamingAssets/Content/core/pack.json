@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "packId": "core",
-  "version": "2.1.70",
+  "version": "2.2.2",
   "definitions": [
     "character/liskarm.json",
     "character/elysium.json",
@@ -145,25 +145,51 @@
     "item_transfer.v1",
     "deck_shuffle.v1",
     "character_lifecycle.v1",
-    "gameplay_presentation.v1"
+    "gameplay_presentation.v1",
+    "event.choices.v1",
+    "event.artwork_buttons.v1"
   ],
   "expansionDependencies": [
+    {
+      "expansionId": "core",
+      "displayName": "基础内容",
+      "description": "基础游戏内容。",
+      "requires": []
+    },
     {
       "requiredCapabilities": [
         "enterprise_rules.v1"
       ],
       "expansionId": "enterprise",
+      "displayName": "企业扩展",
+      "description": "加入企业及相关内容。",
       "requires": [
         "core"
-      ]
+      ],
+      "setupRecipeRefs": [{ "packId": "core", "recipeId": "enterprise" }]
     },
     {
       "requiredCapabilities": [
         "infected_rules.v1"
       ],
       "expansionId": "infected",
+      "displayName": "感染者扩展",
+      "description": "加入感染者及相关内容。",
       "requires": [
         "enterprise"
+      ],
+      "setupRecipeRefs": [{ "packId": "core", "recipeId": "infected" }]
+    }
+  ],
+  "mechanismDeclarations": [
+    {
+      "mechanismId": "entrepreneur_selection.v1",
+      "requires": ["enterprise", "infected"],
+      "requiredCapabilities": [
+        "entrepreneur_selection.v1", "card_markers.v2", "departure_claims.v2", "resource_payment.v2",
+        "cleanup_repeat.v1", "collection_queries.v1", "facility_layers.v1", "final_scoring.v2",
+        "entrepreneur_content.T.v1", "entrepreneur_content.A.v1", "entrepreneur_content.D.v1",
+        "entrepreneur_content.P.v1", "entrepreneur_content.M.v1", "entrepreneur_ui.v1", "host_recovery.v5", "room_protocol.v6"
       ]
     }
   ],
@@ -172,6 +198,33 @@
     "recipes/enterprise.json",
     "recipes/infected.json",
     "recipes/entrepreneur.json"
+  ],
+  "setupRecipeComposition": [
+    {
+      "recipeId": "standard",
+      "role": "base",
+      "minimumOperatorDrawByPlayerCount": { "2": 3 }
+    },
+    {
+      "recipeId": "enterprise",
+      "role": "contribution",
+      "requiresExpansions": ["enterprise"],
+      "overrides": ["recipeId", "initialBasicCharacterCount", "basicCharacterKeepCount", "maxRetainedBasicCharacterCount", "cityStyleLevelOneDrawCount", "cityStyleLevelTwoDrawCount", "enterpriseEntrance"]
+    },
+    {
+      "recipeId": "infected",
+      "role": "contribution",
+      "requiresExpansions": ["infected"],
+      "supersedes": ["enterprise"],
+      "overrides": ["recipeId", "initialBasicCharacterCount", "basicCharacterKeepCount", "maxRetainedBasicCharacterCount", "operatorDrawCount"],
+      "unconditionalZones": ["operator_deck"]
+    },
+    {
+      "recipeId": "entrepreneur",
+      "role": "contribution",
+      "requiresExpansions": ["enterprise", "infected"],
+      "after": ["infected"]
+    }
   ],
   "presentation": {
     "schemaVersion": 1,
@@ -324,9 +377,9 @@
   "luaModules": [
     {
       "moduleId": "entrepreneur.agnes",
-      "version": "1.9.0",
+      "version": "1.10.0",
       "script": "lua/entrepreneurs/agnes.lua",
-      "sha256": "246301217e03e527151ad6b0ef3e3d8ce64ef5ba250985b913445d37bf73a5d2"
+      "sha256": "26b677e2d58a59e44c060a78b00ffb4d58fefceddae50341742f86c4e6be6f4d"
     },
     {
       "moduleId": "entrepreneur.M.award_grant",
@@ -354,8 +407,8 @@
       "modules": [
         {
           "moduleId": "entrepreneur.agnes",
-          "version": "1.9.0",
-          "sha256": "246301217e03e527151ad6b0ef3e3d8ce64ef5ba250985b913445d37bf73a5d2",
+          "version": "1.10.0",
+          "sha256": "26b677e2d58a59e44c060a78b00ffb4d58fefceddae50341742f86c4e6be6f4d",
           "alias": "agnes"
         }
       ]
@@ -366,8 +419,8 @@
       "modules": [
         {
           "moduleId": "entrepreneur.agnes",
-          "version": "1.9.0",
-          "sha256": "246301217e03e527151ad6b0ef3e3d8ce64ef5ba250985b913445d37bf73a5d2",
+          "version": "1.10.0",
+          "sha256": "26b677e2d58a59e44c060a78b00ffb4d58fefceddae50341742f86c4e6be6f4d",
           "alias": "agnes"
         }
       ]
@@ -378,8 +431,8 @@
       "modules": [
         {
           "moduleId": "entrepreneur.agnes",
-          "version": "1.9.0",
-          "sha256": "246301217e03e527151ad6b0ef3e3d8ce64ef5ba250985b913445d37bf73a5d2",
+          "version": "1.10.0",
+          "sha256": "26b677e2d58a59e44c060a78b00ffb4d58fefceddae50341742f86c4e6be6f4d",
           "alias": "agnes"
         }
       ]
@@ -420,8 +473,8 @@
       "modules": [
         {
           "moduleId": "entrepreneur.agnes",
-          "version": "1.9.0",
-          "sha256": "246301217e03e527151ad6b0ef3e3d8ce64ef5ba250985b913445d37bf73a5d2",
+          "version": "1.10.0",
+          "sha256": "26b677e2d58a59e44c060a78b00ffb4d58fefceddae50341742f86c4e6be6f4d",
           "alias": "agnes"
         }
       ]
@@ -429,29 +482,27 @@
   ],
   "ruleModes": [
     {
+      "modeId": "standard",
+      "displayName": "标准模式",
+      "description": "使用标准开局规则。",
+      "requires": ["core"],
+      "requiredCapabilities": [],
+      "setupRecipeRefs": [{ "packId": "core", "recipeId": "standard" }]
+    },
+    {
       "modeId": "entrepreneur",
+      "displayName": "企业家",
+      "description": "使用企业家开局与回合规则。",
+      "mechanisms": ["entrepreneur_selection.v1"],
       "requires": [
         "enterprise",
         "infected"
       ],
-      "requiredCapabilities": [
-        "entrepreneur_selection.v1",
-        "card_markers.v2",
-        "departure_claims.v2",
-        "resource_payment.v2",
-        "cleanup_repeat.v1",
-        "collection_queries.v1",
-        "facility_layers.v1",
-        "final_scoring.v2",
-        "entrepreneur_content.T.v1",
-        "entrepreneur_content.A.v1",
-        "entrepreneur_content.D.v1",
-        "entrepreneur_content.P.v1",
-        "entrepreneur_content.M.v1",
-        "entrepreneur_ui.v1",
-        "host_recovery.v5",
-        "room_protocol.v6"
-      ]
+      "setupRecipeRefs": [
+        { "packId": "core", "recipeId": "standard" },
+        { "packId": "core", "recipeId": "entrepreneur" }
+      ],
+      "requiredCapabilities": []
     }
   ]
 }

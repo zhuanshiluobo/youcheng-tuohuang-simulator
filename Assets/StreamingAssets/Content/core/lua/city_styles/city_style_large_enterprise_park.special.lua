@@ -1,7 +1,7 @@
 return function(ctx)
     local candidates = {}
-    for _, item in ipairs(Global.Content.FindInstances()) do
-        if item.contentType == 'enterprise' then
+    for _, display in ipairs(Global.Content.FindZones({ templateId = 'core.zone.enterprise_display' })) do
+        for _, item in ipairs(Global.Content.FindInstances({ zoneId = display.id, contentType = 'enterprise' })) do
             table.insert(candidates, item.id)
         end
     end

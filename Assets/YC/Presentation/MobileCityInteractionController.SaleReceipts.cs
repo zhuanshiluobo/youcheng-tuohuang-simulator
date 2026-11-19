@@ -32,7 +32,7 @@ namespace YC.Presentation
 
         private bool RefreshSimulationPermissionOnly()
         {
-            if (commandSubmission?.UsesDeterministicSimulation != true) return false;
+            if (commandSubmission?.UsesNetworkProjection != true) return false;
             var hasResult = simulationUiResultRequiresSynchronization;
             simulationUiResultRequiresSynchronization = false;
             var view = VisibleSaleState();
@@ -100,7 +100,7 @@ namespace YC.Presentation
 
         private bool CanSubmitGameplayCommand => UiReadState() != null && gameplayAdapter?.CanSubmitCommands == true;
         private bool HasLocalOperationPermission(GameState state) => state != null &&
-            (commandSubmission?.UsesDeterministicSimulation == true
+            (commandSubmission?.UsesNetworkProjection == true
                 ? CanSubmitGameplayCommand : state.CurrentPlayerId == localPlayerId);
 
         // 旧展示端口仍需要 GameState；此副本只来自本人 View，不替换或裁剪模拟会话的 State。
@@ -113,7 +113,7 @@ namespace YC.Presentation
                 return session.State;
             }
             var view = VisibleSaleState();
-            var simulation = commandSubmission?.UsesDeterministicSimulation == true ? commandSubmission.PublishedState : session.State;
+            var simulation = commandSubmission?.UsesNetworkProjection == true ? commandSubmission.PublishedState : session.State;
             if (view == null || simulation == null) return null;
             if (ReferenceEquals(uiReadView, view) && ReferenceEquals(uiReadSession, session) &&
                 ReferenceEquals(uiReadSimulationState, simulation))
@@ -140,6 +140,8 @@ namespace YC.Presentation
                 allowed && model.CanDeploy, allowed && model.CanDispatch, allowed && model.CanExplore,
                 allowed && model.CanMoveCity, allowed && model.CanBuild || model.CanViewFacilitySupply,
                 allowed && model.CanEndAction, allowed && model.CanUseSpecialAction);
+            gameplayInteractionHud?.ActionPanelView?.SetBuildSupplyMode(
+                model.CanViewFacilitySupply && (!CanBeginGameplayAction || !model.CanBuild));
             var endButton = gameplayInteractionHud?.Frame?.EndActionButton;
             if (!allowed && endButton != null) endButton.interactable = false;
         }
@@ -174,7 +176,7 @@ namespace YC.Presentation
             var boundLaunch = GameLaunchContext.Instance;
             var launchMode = boundLaunch?.Mode;
             var localRead = ShouldControlCurrentPlayerLocally();
-            var simulated = boundSubmission?.UsesDeterministicSimulation == true;
+            var simulated = boundSubmission?.UsesNetworkProjection == true;
             var boundView = simulated ? boundSubmission.PublishedView : boundSession.View;
             var boundState = simulated ? boundSubmission.PublishedState : boundSession.State;
             if (boundState == null || simulated && boundView == null) return () => false;
@@ -188,7 +190,7 @@ namespace YC.Presentation
                 if (!ReferenceEquals(session, boundSession) || !ReferenceEquals(commandSubmission, boundSubmission) ||
                     !ReferenceEquals(GameLaunchContext.Instance, boundLaunch) || boundLaunch?.Mode != launchMode ||
                     boundLaunch?.IsLeavingGameplay == true || localRead != ShouldControlCurrentPlayerLocally() ||
-                    simulated != (commandSubmission?.UsesDeterministicSimulation == true) || viewer != localPlayerId)
+                    simulated != (commandSubmission?.UsesNetworkProjection == true) || viewer != localPlayerId)
                     return false;
                 var currentView = simulated ? boundSubmission.PublishedView : boundSession.View;
                 if (!ReferenceEquals(currentView, boundView) ||
@@ -203,7 +205,7 @@ namespace YC.Presentation
 
         private GameStateView VisibleSaleState()
         {
-            if (commandSubmission?.UsesDeterministicSimulation == true) return commandSubmission.PublishedView;
+            if (commandSubmission?.UsesNetworkProjection == true) return commandSubmission.PublishedView;
             if (session?.State == null) return null;
             if (session.View != null)
                 return session.View.ViewerRole == GameStateViewerRole.Player && session.View.ViewerPlayerId == localPlayerId &&
@@ -268,6 +270,22 @@ namespace YC.Presentation
                 view.ViewerPlayerId != viewer || view.GameId != simulation.GameId ||
                 view.ContentPackHash != simulation.ContentPackHash ||
                 view.StateRevision != (simulation.EffectRuntime?.StateRevision ?? 0)) return null;
+            return FromVisibleView(view, simulation.ContentDefinitions, viewer);
+        }
+
+        // 私密联机不能要求客户端持有完整模拟；调用方必须先以正式接收器核验对局和内容身份。
+        internal static GameState CreateFromPrivateView(GameStateView view, YC.Domain.Rules.GameContentDefinitions content,
+            int viewer, string gameId, string contentHash)
+        {
+            if (view == null || content == null || viewer <= 0 || string.IsNullOrEmpty(gameId) || string.IsNullOrEmpty(contentHash) ||
+                view.ViewerRole != GameStateViewerRole.Player || view.ViewerPlayerId != viewer || view.GameId != gameId ||
+                view.ContentPackHash != contentHash || view.RuleConfiguration?.ContentPackHash != contentHash) return null;
+            try { return view.HasValidPlayerOrderAndSlots() ? FromVisibleView(view, content, viewer) : null; }
+            catch (Exception error) when (!(error is OutOfMemoryException)) { return null; }
+        }
+
+        private static GameState FromVisibleView(GameStateView view, YC.Domain.Rules.GameContentDefinitions content, int viewer)
+        {
             var projected = GameStateViewProjector.ToClientState(view);
             projected.EffectRuntime = new EffectRuntimeState
             {
@@ -277,7 +295,7 @@ namespace YC.Presentation
             };
             projected.EffectRuntime.InteractionRequests.AddRange(
                 VisibleInteractionRequestSource.Read(null, view, viewer));
-            projected.ContentDefinitions = GameStateCloneService.DeepClone(simulation.ContentDefinitions);
+            projected.ContentDefinitions = GameStateCloneService.DeepClone(content);
             return projected;
         }
     }

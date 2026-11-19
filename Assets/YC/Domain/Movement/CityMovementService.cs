@@ -163,14 +163,13 @@ namespace YC.Domain.Movement
                 return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "未知玩家。");
             }
 
-            if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+            // 效果内移动由上层效果树授权时机和玩家；主动移动仍须处于本人行动轮。
+            if (!allowPendingEffect)
             {
-                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "城市移动只能在行动轮阶段进行。");
-            }
-
-            if (state.CurrentPlayerId != playerId)
-            {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
+                if (state.Phase != GamePhase.ActionRound1 && state.Phase != GamePhase.ActionRound2)
+                    return ValidationResult.Failure(CommandErrorCode.WrongPhase, "城市移动只能在行动轮阶段进行。");
+                if (state.CurrentPlayerId != playerId)
+                    return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
             }
 
             if (state.HasPendingChoice() && !allowPendingEffect)
@@ -180,7 +179,7 @@ namespace YC.Domain.Movement
 
             if (!allowPendingEffect)
             {
-                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId);
+                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId, YC.Domain.Rules.MainActionBudgetService.MoveCity);
                 if (!budgetValidation.IsValid)
                 {
                     return budgetValidation;
@@ -732,15 +731,18 @@ namespace YC.Domain.Movement
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空，无法进入尚未揭示的资源点。");
             }
 
+            // 正式移动只检查牌堆存在；揭示前不读取隐藏事件的选项或奖励。
+            if (selectedOptionIndex == -1) return ValidationResult.Success;
+
             var card = EventCardDatabase.Get(state, PeekEventCardId(state.Decks, eventColor));
             if (card == null)
             {
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应事件牌数据不存在。");
             }
 
-            if (card.ChoiceRewards.Count <= 0)
+            if (card.EventChoiceSchemaVersion != 0 || card.ChoiceRewards == null || card.ChoiceRewards.Count <= 0)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "城市移动事件牌没有可用选项。");
+                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件选择必须通过正式请求处理。");
             }
 
             if (selectedOptionIndex >= card.ChoiceRewards.Count)

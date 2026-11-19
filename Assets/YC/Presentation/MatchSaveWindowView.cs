@@ -161,7 +161,7 @@ namespace YC.Presentation
             nextMemberButton.gameObject.SetActive(false);
             try
             {
-                slots = await MatchSaveController.Ensure().ListSlotsAsync();
+                slots = await MatchSaveController.Ensure().ListSlotPreviewsAsync();
                 if (this == null || !isActiveAndEnabled) return;
                 ownedManualSlot = -1;
                 if (mode == Mode.Save)
@@ -371,12 +371,16 @@ namespace YC.Presentation
         private async void LoadSelected()
         {
             if (busy || selected < 0 || menu == null) return;
+            int loadingSlot = selected;
             SetBusy(true);
             message.text = loadingHint;
+            // 行信息已显示；确认时会重新读取并校验原文件，预览列表不必占用内存到恢复完成。
+            slots = null;
             try
             {
-                var data = MatchSaveController.Ensure().Read(selected);
-                await menu.RestoreMatch(data);
+                using var validation = new MatchSaveData.ValidationScope(reuseUnchangedValidation: true);
+                var data = MatchSaveController.Ensure().ReadWithValidation(loadingSlot, validation);
+                await menu.RestoreMatchWithValidation(data, validation);
                 window.Hide();
             }
             catch (Exception ex)
@@ -384,7 +388,15 @@ namespace YC.Presentation
                 Debug.LogException(ex);
                 MatchSaveController.Instance?.ClearPreparedLocalRestore();
                 GameLaunchContext.Instance?.ClearRestore();
-                message.text = string.Format(errorFormat, ex.Message);
+                if (this != null && isActiveAndEnabled)
+                {
+                    await RefreshSlots();
+                    if (this != null && isActiveAndEnabled)
+                    {
+                        if (slots != null && loadingSlot < slots.Count && slots[loadingSlot].Exists) selected = loadingSlot;
+                        message.text = string.Format(errorFormat, ex.Message);
+                    }
+                }
             }
             finally { if (this != null) SetBusy(false); }
         }

@@ -78,8 +78,17 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string relative in manifest["definitions"].Values<string>())
             {
                 var j = JObject.Parse(replacements.TryGetValue(relative,out var explicitOverride) ? explicitOverride : File.ReadAllText(Path.Combine(BaselineInputRoot, relative)));
+                bool changed = false;
                 if (j["applicableModes"] is JArray modes && modes.Values<string>().Contains("entrepreneur"))
-                { if (!modes.Values<string>().Contains("standard")) modes.Add("standard"); replacements[relative] = j.ToString(); }
+                { if (!modes.Values<string>().Contains("standard")) { modes.Add("standard"); changed = true; } }
+                // 本夹具在私有 standard 配方中直接检验企业家效果，不运行企业家开局选择机制。
+                // 新准备框架按机制筛选定义；只从隔离副本移除这一门槛，保证原先的效果测试前提仍成立。
+                if (j["requiredMechanisms"] is JArray required)
+                {
+                    var gate = required.FirstOrDefault(value => (string)value == "entrepreneur_selection.v1");
+                    if (gate != null) { gate.Remove(); changed = true; }
+                }
+                if (changed) replacements[relative] = j.ToString();
             }
             var handlers = (JArray)manifest["settlementHandlers"];
             foreach (string face in new[] { "P03", "P04" })
@@ -98,6 +107,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             ExpansionSetupFlow.Register(Registry); Rounds = new RoundExecutionService(Registry);
             Map = StaticMapDefinitions.Resolve(mapId);
             var recipe = Catalog.SetupRecipe;
+            // 仅隔离配方开启企业家流程；配置仍与冻结的 standard 目录保持一致，便于真实恢复校验。
+            recipe.Mechanisms.Add("entrepreneur_selection.v1");
             if (!setupOnly)
                 foreach (var location in Map.Locations.Where(l => !l.IsRedZone))
                     recipe.Add("qy015.isolated.resource." + location.LocationId, "core.resource_point", "core.resource_point_token", "location/" + location.LocationId);
@@ -105,7 +116,6 @@ namespace YC.Tests.EditMode.ExpansionRules
             State = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1,
                 new List<PlayerSeat> { new PlayerSeat { PlayerId = 1, PlayerName = "保罗隔离甲" }, new PlayerSeat { PlayerId = 2, PlayerName = "隔离乙" } },
                 config, 47, recipe, Catalog.ContentDefinitions, new List<int> { 1, 2 }, "qy015.content." + Guid.NewGuid().ToString("N"), null);
-            State.RuleConfiguration.RuleModeId = "entrepreneur";
             if (!setupOnly)
             {
                 foreach (var token in State.ItemZones.Items.Where(i => i.TypeId == "core.resource_point_token"))
@@ -129,8 +139,9 @@ namespace YC.Tests.EditMode.ExpansionRules
                 var d = Registry.AbilityDeclarations.Single(x => x.AbilityId == s.AbilityId);
                 return new List<EffectSpec> { AbilitySourceEffectExecutor.Create(s, c.Event, d.HandlerRef, false, c.State.Round) };
             }, EffectHandlerRole.Observer));
-            if(setupOnly) { var mapQuery=new MapQueryService(Map); PlayerEntranceLuaCatalog.Register(Registry); PlayerEntranceEffectExecutor.Register(Registry,mapQuery); EventCardEffectExecutor.Register(Registry,mapQuery,new InfluenceService(mapQuery),new EventDeckService(),new ResourceTokenService()); RoundStartedRedZoneRule.Register(Registry,mapQuery); var launch=Rounds.StartEntrance(State); Assert.That(launch.IsValid,Is.True,launch.Reason); }
-            else Run(ExpansionSetupFlow.PreparationSpec(1, false));
+            FixturePreparationPlan.AttachEntrepreneur(State, Registry, (string)Pack.Manifest["version"]);
+            if(setupOnly) { var mapQuery=new MapQueryService(Map); PlayerEntranceLuaCatalog.Register(Registry); PlayerEntranceEffectExecutor.Register(Registry,mapQuery); EventCardEffectExecutor.Register(Registry,mapQuery,new InfluenceService(mapQuery),new EventDeckService(),new ResourceTokenService()); RoundStartedRedZoneRule.Register(Registry,mapQuery); }
+            var launch=Rounds.StartEntrance(State); Assert.That(launch.IsValid,Is.True,launch.Reason);
             for (int guard = 0; State.EntrepreneurSetup?.Stage != "complete" && guard < 40; guard++)
             {
                 var q = Open.LastOrDefault(x => x.InteractionTypeId == EntrepreneurFlow.PreviewInteraction || x.InteractionTypeId == EntrepreneurFlow.ChooseInteraction);

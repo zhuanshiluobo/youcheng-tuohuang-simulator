@@ -39,13 +39,42 @@ namespace YC.Domain.Effects
                 return false;
             }
 
-            return int.TryParse(
+            if (!int.TryParse(
                        candidateId.Substring(prefix.Length),
-                       NumberStyles.Integer,
+                       NumberStyles.None,
                        CultureInfo.InvariantCulture,
-                       out optionIndex) &&
-                   optionIndex >= 0 && optionIndex < optionCount;
+                       out int parsed) || parsed < 0 || parsed >= optionCount ||
+                !string.Equals(candidateId, Create(cardId, parsed), StringComparison.Ordinal)) return false;
+            optionIndex = parsed;
+            return true;
         }
+
+        // 供新协议装配时使用；旧候选仍由上面的接口处理，不能按旧索引猜测新身份。
+        public static string CreateChoice(string cardId, string choiceId)
+        {
+            if (!IsValidChoiceIdentity(cardId) || !IsValidChoiceIdentity(choiceId))
+                throw new ArgumentException("事件定义 ID 与选择 ID 必须是有效的稳定身份。");
+            return StableIdFactory.Create("event-choice", cardId, choiceId);
+        }
+
+        public static bool TryReadChoice(string candidateId, string cardId, IReadOnlyList<string> choiceIds, out string choiceId)
+        {
+            choiceId = string.Empty;
+            if (string.IsNullOrEmpty(candidateId) || !IsValidChoiceIdentity(cardId) || choiceIds == null) return false;
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            string match = null;
+            foreach (var id in choiceIds)
+            {
+                if (!IsValidChoiceIdentity(id) || !seen.Add(id)) return false;
+                if (string.Equals(candidateId, CreateChoice(cardId, id), StringComparison.Ordinal)) match = id;
+            }
+            if (match == null) return false;
+            choiceId = match;
+            return true;
+        }
+
+        private static bool IsValidChoiceIdentity(string value) => !string.IsNullOrWhiteSpace(value) &&
+            value.Length <= 128 && value.IndexOfAny(new[] { '\r', '\n', '\0' }) < 0;
     }
 
     public static class EventCardEffectSpecFactory
@@ -85,12 +114,74 @@ namespace YC.Domain.Effects
     /// </summary>
     public sealed class EventCardEffectExecutor
     {
-        public const string DefinitionVersion = "1.0.0";
+        public const string DefinitionVersion = "2.0.0";
         public const string OptionInteractionTypeId = "event_card.option";
         public const string InfluenceInteractionTypeId = "event_card.influence_targets";
 
+        /// <summary>恢复时只核验持久身份，不按旧数字选项重建未完成节点。</summary>
+        public static bool TryValidateSaved(GameState state, EffectNodeRuntimeState node, out string diagnostic)
+        {
+            diagnostic = string.Empty;
+            if (node == null || node.EffectTypeId != EventCardEffectTypeIds.Resolve ||
+                node.Status == EffectNodeStatus.Completed || node.Status == EffectNodeStatus.Failed) return true;
+            if (node.DefinitionVersion != DefinitionVersion)
+            {
+                diagnostic = "event_card_restore_version_unsupported：未完成的事件牌使用旧执行版本，请使用原内容和原版本恢复。";
+                return false;
+            }
+            if (string.IsNullOrEmpty(node.FlowStage)) return true;
+            string outcome = ReadString(node.NormalizedResult, "outcome", "");
+            if (outcome == "skipped_existing_resource") return true;
+            string cardId = ReadString(node.NormalizedResult, "cardId", "");
+            var card = EventCardDatabase.Get(state, cardId);
+            if (card == null) { diagnostic = "event_card_restore_definition_missing：事件定义不在原局内容快照中。"; return false; }
+            if (card.EventChoiceSchemaVersion != 1)
+            {
+                diagnostic = "event_card_restore_schema_unsupported：旧事件选择格式不能自动恢复，请保留原存档并使用原版本。";
+                return false;
+            }
+            if (card.Choices == null) { diagnostic = "event_card_restore_choices_missing"; return false; }
+            if (node.PendingOutcome == EffectPendingOutcome.None && node.FlowStage == "awaiting_option")
+            {
+                var requests = state.EffectRuntime.InteractionRequests.Where(request => request != null &&
+                    request.OwnerEffectId == node.EffectId && request.InteractionTypeId == OptionInteractionTypeId &&
+                    (request.Status == "open" || request.Status == "answered")).ToList();
+                if (requests.Count != 1 || requests[0].CandidateSetVersion != 2 || requests[0].CandidateIds == null ||
+                    !requests[0].CandidateIds.SequenceEqual(card.Choices.Select(choice => EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId))))
+                { diagnostic = "event_card_restore_candidates_mismatch：事件选择与原局内容快照不一致。"; return false; }
+                if (requests[0].Status == "answered" && (!TryReadSingleCandidate(requests[0].NormalizedAnswer, out string answer) ||
+                    !requests[0].CandidateIds.Contains(answer)))
+                { diagnostic = "event_card_restore_answer_mismatch：已保存的事件选择无效。"; return false; }
+                return true;
+            }
+            if (node.PendingOutcome == EffectPendingOutcome.None && node.FlowStage == "resolving_immediate")
+            {
+                if (card.Choices.Count == 0 && card.ImmediateResolve != null) return true;
+                diagnostic = "event_card_restore_immediate_mismatch"; return false;
+            }
+            if (node.PendingOutcome == EffectPendingOutcome.None && node.FlowStage == "resolving_choice")
+            {
+                string choiceId = ReadString(node.NormalizedResult, "selectedChoiceId", "");
+                string optionId = ReadString(node.NormalizedResult, "selectedOptionId", "");
+                if (card.Choices.Count == 0 ? card.ImmediateResolve != null && choiceId == "" && optionId == "" :
+                    EventCardOptionIdFactory.TryReadChoice(optionId, card.CardId, card.Choices.Select(choice => choice.ChoiceId).ToList(), out var selected) && selected == choiceId)
+                    return true;
+                diagnostic = "event_card_restore_choice_mismatch：进行中的选择不属于原事件定义。"; return false;
+            }
+            if (outcome == "resolved")
+            {
+                string choiceId = ReadString(node.NormalizedResult, "selectedChoiceId", "");
+                string optionId = ReadString(node.NormalizedResult, "selectedOptionId", "");
+                bool valid = card.Choices.Count == 0 ? card.ImmediateResolve != null && choiceId == "" && optionId == "" :
+                    EventCardOptionIdFactory.TryReadChoice(optionId, card.CardId, card.Choices.Select(choice => choice.ChoiceId).ToList(), out var savedChoice) && savedChoice == choiceId;
+                if (valid) return true;
+                diagnostic = "event_card_restore_choice_mismatch：已保存的选择不属于原事件定义。"; return false;
+            }
+            diagnostic = "event_card_restore_stage_unsupported：未完成事件的阶段不受支持。";
+            return false;
+        }
+
         private readonly IMapQueryService mapQuery;
-        private readonly InfluenceService influenceService;
         private readonly EventDeckService eventDeckService;
         private readonly ResourceTokenService resourceTokenService;
 
@@ -101,7 +192,7 @@ namespace YC.Domain.Effects
             ResourceTokenService resourceTokenService)
         {
             this.mapQuery = mapQuery ?? throw new ArgumentNullException(nameof(mapQuery));
-            this.influenceService = influenceService ?? throw new ArgumentNullException(nameof(influenceService));
+            if (influenceService == null) throw new ArgumentNullException(nameof(influenceService));
             this.eventDeckService = eventDeckService ?? throw new ArgumentNullException(nameof(eventDeckService));
             this.resourceTokenService = resourceTokenService ?? throw new ArgumentNullException(nameof(resourceTokenService));
         }
@@ -162,87 +253,31 @@ namespace YC.Domain.Effects
             {
                 return EffectStepResult.Failed("card_definition_missing");
             }
+            if (card.EventChoiceSchemaVersion != 1 || card.Choices == null)
+                return EffectStepResult.Failed("event_choice_schema_unsupported");
 
             if (stage == "awaiting_option")
             {
-                string optionId;
-                int optionIndex;
-                if (!TryReadSingleCandidate(context.GetLatestInteractionAnswer(), out optionId) ||
-                    !EventCardOptionIdFactory.TryRead(optionId, card.CardId, card.ChoiceDescriptions.Count, out optionIndex))
-                {
+                if (!TryReadSingleCandidate(context.GetLatestInteractionAnswer(), out string optionId) ||
+                    !EventCardOptionIdFactory.TryReadChoice(optionId, card.CardId,
+                        card.Choices.Select(choice => choice.ChoiceId).ToList(), out string choiceId))
                     return EffectStepResult.Failed("invalid_option");
-                }
-
-                SetResult(context.Node, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, null);
-                int requiredInfluenceCount = CountInfluenceTargets(card.ChoicePendingEffects[optionIndex]);
-                if (requiredInfluenceCount <= 0)
-                {
-                    return Resolve(context, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, new List<string>());
-                }
-
-                var candidates = BuildInfluenceCandidates(
-                    context.State,
-                    context.Node.PlayerId,
-                    targetLocationId,
-                    card.ChoicePendingEffects[optionIndex],
-                    primaryInfluenceSlotId);
-                if (candidates.Count < requiredInfluenceCount)
-                {
-                    return EffectStepResult.Failed("insufficient_influence_targets");
-                }
-
-                // 付费影响力由条件式右侧的基础放置节点选点，先确认付款，再请求目标。
-                // 已保存的 awaiting_influence 仍沿原分支恢复，保留此前提交的目标。
-                if (EventEffectUtility.HasInfluencePayment(card.ChoicePendingEffects[optionIndex]))
-                    return Resolve(context, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, new List<string>());
-
-                var influenceInteraction = new EffectInteractionSpec
-                {
-                    InteractionTypeId = InfluenceInteractionTypeId,
-                    Visibility = "public",
-                    PromptKey = "event_card.choose_influence_targets",
-                    AnsweringPlayerId = context.Node.PlayerId,
-                    CandidateSetId = "event-card-influence:" + context.Node.EffectId,
-                    CandidateSetVersion = 1,
-                    MinSelections = requiredInfluenceCount,
-                    MaxSelections = requiredInfluenceCount,
-                    AnswerSchema = "candidate_ids"
-                };
-                influenceInteraction.CandidateIds.AddRange(candidates);
-                return EffectStepResult.Continue("awaiting_influence")
-                    .AddInteraction(influenceInteraction);
+                SetChoiceResult(context.Node, card, targetLocationId, choiceId, optionId, primaryInfluenceSlotId);
+                return ResolveChoice(context, card, targetLocationId, choiceId, optionId, primaryInfluenceSlotId);
             }
 
             if (stage == "resolving_immediate")
+                return ResolveChoice(context, card, targetLocationId, string.Empty, string.Empty, primaryInfluenceSlotId);
+
+            if (stage == "resolving_choice")
             {
-                return Resolve(
-                    context,
-                    card,
-                    targetLocationId,
-                    -1,
-                    string.Empty,
-                    primaryInfluenceSlotId,
-                    new List<string>());
-            }
-
-            if (stage == "awaiting_influence")
-            {
-                var selectedSlots = ReadCandidates(context.GetLatestInteractionAnswer());
-                int optionIndex = ReadInteger(context.Node.NormalizedResult, "selectedOptionIndex", -1);
-                string optionId = ReadString(context.Node.NormalizedResult, "selectedOptionId", string.Empty);
-                if (optionIndex < 0 || optionIndex >= card.ChoicePendingEffects.Count)
-                {
-                    return EffectStepResult.Failed("invalid_option");
-                }
-
-                int requiredInfluenceCount = CountInfluenceTargets(card.ChoicePendingEffects[optionIndex]);
-                if (selectedSlots.Count != requiredInfluenceCount)
-                {
-                    return EffectStepResult.Failed("invalid_influence_targets");
-                }
-
-                SetResult(context.Node, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, selectedSlots);
-                return Resolve(context, card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, selectedSlots);
+                var failedTarget = context.ChildNodes.FirstOrDefault(child => child.Status == EffectNodeStatus.Failed &&
+                    child.EffectTypeId == LuaDomainEffectTypeIds.Choice &&
+                    ItemTransferEffectExecutor.Text(child.NormalizedArguments, "interactionType") == "effect.influence.place.target");
+                if (failedTarget != null) return EffectStepResult.Failed("insufficient_influence_targets", context.Node.NormalizedResult);
+                return EffectStepResult.Completed(ResultObject("cardId", card.CardId, "outcome", "resolved",
+                    "selectedChoiceId", ReadString(context.Node.NormalizedResult, "selectedChoiceId", ""),
+                    "selectedOptionId", ReadString(context.Node.NormalizedResult, "selectedOptionId", ""), "targetLocationId", targetLocationId));
             }
 
             return EffectStepResult.Failed("invalid_flow_stage");
@@ -301,6 +336,8 @@ namespace YC.Domain.Effects
             {
                 return EffectStepResult.Failed("card_definition_missing");
             }
+            if (card.EventChoiceSchemaVersion != 1 || card.Choices == null)
+                return EffectStepResult.Failed("event_choice_schema_unsupported");
 
             if (ItemZoneLegacyProjection.IsActive(context.State))
             {
@@ -319,8 +356,8 @@ namespace YC.Domain.Effects
                 context.State.Map.OpenLocationIds.Add(targetLocationId);
             }
 
-            SetResult(context.Node, card, targetLocationId, -1, string.Empty, primaryInfluenceSlotId, null);
-            bool hasChoiceInteraction = card.ChoiceDescriptions.Count > 0;
+            SetChoiceResult(context.Node, card, targetLocationId, string.Empty, string.Empty, primaryInfluenceSlotId);
+            bool hasChoiceInteraction = card.Choices.Count > 0;
             var step = EffectStepResult.Continue(hasChoiceInteraction ? "awaiting_option" : "resolving_immediate");
             step.AddEvent(new EffectEventRequest
             {
@@ -344,31 +381,26 @@ namespace YC.Domain.Effects
             return step;
         }
 
-        private static EffectStepResult Resolve(
-            EffectExecutionContext context,
-            EventCardDefinition card,
-            string targetLocationId,
-            int optionIndex,
-            string optionId,
-            string primaryInfluenceSlotId,
-            IReadOnlyList<string> selectedSlots)
+        private static EffectStepResult ResolveChoice(EffectExecutionContext context, EventCardDefinition card,
+            string targetLocationId, string choiceId, string optionId, string primaryInfluenceSlotId)
         {
-            var step = EffectStepResult.Completed(ResultObject(
-                "cardId", card.CardId,
-                "outcome", "resolved",
-                "selectedOptionId", optionId,
-                "selectedOptionIndex", optionIndex.ToString(CultureInfo.InvariantCulture),
-                "targetLocationId", targetLocationId));
+            int index = string.IsNullOrEmpty(choiceId) ? -1 : card.Choices.FindIndex(choice => choice.ChoiceId == choiceId);
+            if (card.Choices.Count == 0 ? card.ImmediateResolve == null || choiceId.Length != 0 : index < 0)
+                return EffectStepResult.Failed("invalid_option");
+            string routeKey = index < 0 ? StableIdFactory.Create("event-choice-immediate", card.CardId) : optionId;
+            if (!context.Registry.HasPrimaryEventHandler(EventCardEffectEventTypeIds.Resolved, routeKey))
+                return EffectStepResult.Failed("event_choice_handler_missing");
+            var step = EffectStepResult.Continue("resolving_choice");
             step.AddEvent(new EffectEventRequest
             {
                 EventId = StableIdFactory.Create("event", context.Node.EffectId, EventCardEffectEventTypeIds.Resolved, card.CardId, optionId),
                 EventType = EventCardEffectEventTypeIds.Resolved,
                 SourceEffectId = context.Node.EffectId,
                 OwnerNodeId = context.Node.EffectId,
-                RouteKey = card.CardId,
+                RouteKey = routeKey,
                 TargetEntityId = targetLocationId,
                 PlayerId = context.Node.PlayerId,
-                Payload = CreateResolvedPayload(card, targetLocationId, optionIndex, optionId, primaryInfluenceSlotId, selectedSlots),
+                Payload = CreateResolvedChoicePayload(card, targetLocationId, choiceId, index, optionId, primaryInfluenceSlotId),
                 ResponseKind = RuleEventResponseKind.Effects,
                 DefinitionVersion = DefinitionVersion,
                 Visibility = "public",
@@ -380,10 +412,8 @@ namespace YC.Domain.Effects
         private static EffectInteractionSpec CreateOptionInteraction(EffectNodeRuntimeState node, EventCardDefinition card)
         {
             var candidates = new List<string>();
-            for (int i = 0; i < card.ChoiceDescriptions.Count; i++)
-            {
-                candidates.Add(EventCardOptionIdFactory.Create(card.CardId, i));
-            }
+            foreach (var choice in card.Choices)
+                candidates.Add(EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId));
 
             var interaction = new EffectInteractionSpec
             {
@@ -393,126 +423,13 @@ namespace YC.Domain.Effects
                 PromptParameters = ResultObject("cardId", card.CardId, "cardName", card.Name, "cardDescription", card.Description),
                 AnsweringPlayerId = node.PlayerId,
                 CandidateSetId = "event-card-options:" + node.EffectId,
-                CandidateSetVersion = 1,
+                CandidateSetVersion = 2,
                 MinSelections = 1,
                 MaxSelections = 1,
                 AnswerSchema = "candidate_id"
             };
             interaction.CandidateIds.AddRange(candidates);
             return interaction;
-        }
-
-        private List<string> BuildInfluenceCandidates(
-            GameState state,
-            int playerId,
-            string originLocationId,
-            IReadOnlyList<EventEffect> effects,
-            string reservedPrimarySlotId)
-        {
-            int required = CountInfluenceTargets(effects);
-            var result = new List<string>();
-            var reserved = new HashSet<string>(StringComparer.Ordinal);
-            if (!string.IsNullOrEmpty(reservedPrimarySlotId)) reserved.Add(reservedPrimarySlotId);
-
-            for (int locationIndex = 0; locationIndex < mapQuery.Map.Locations.Count; locationIndex++)
-            {
-                MapLocationDefinition location = mapQuery.Map.Locations[locationIndex];
-                for (int slotIndex = 0; slotIndex < location.InfluenceSlotCount; slotIndex++)
-                {
-                    AddCandidate(state, playerId, originLocationId, effects, reserved,
-                        InfluenceService.GetLocationSlotId(location.LocationId, slotIndex), result);
-                }
-            }
-            for (int routeIndex = 0; routeIndex < mapQuery.Map.Routes.Count; routeIndex++)
-            {
-                MapRouteDefinition route = mapQuery.Map.Routes[routeIndex];
-                for (int slotIndex = 0; slotIndex < route.InfluenceSlotCount; slotIndex++)
-                {
-                    AddCandidate(state, playerId, originLocationId, effects, reserved,
-                        InfluenceService.GetRouteSlotId(route.RouteId, slotIndex), result);
-                }
-            }
-
-            result.Sort(StringComparer.Ordinal);
-            if (result.Count > 64) result.RemoveRange(64, result.Count - 64);
-            return result;
-        }
-
-        private void AddCandidate(
-            GameState state,
-            int playerId,
-            string originLocationId,
-            IReadOnlyList<EventEffect> effects,
-            HashSet<string> reserved,
-            string slotId,
-            List<string> result)
-        {
-            if (reserved.Contains(slotId) || FindInfluenceAtSlot(state, slotId) != null) return;
-            InfluenceSlotReference slot;
-            string reason;
-            if (!InfluenceSlotReference.TryParse(mapQuery, slotId, out slot, out reason)) return;
-            if (!IsInAnyScope(effects, originLocationId, slot)) return;
-            if (slot.Kind == InfluenceSlotKind.Location)
-            {
-                if (!resourceTokenService.HasResourceToken(state.Map, slot.LocationId) && slot.LocationId != originLocationId) return;
-                if (HasOpponentCityAtLocation(state, playerId, slot.LocationId)) return;
-            }
-            else
-            {
-                for (int i = 0; i < state.Map.RoadRouteIds.Count; i++)
-                {
-                    if (state.Map.RoadRouteIds[i] == slot.RouteId) return;
-                }
-            }
-
-            if (influenceService.CanPlace(state, playerId, slotId).IsValid)
-            {
-                result.Add(slotId);
-            }
-        }
-
-        private bool IsInAnyScope(IReadOnlyList<EventEffect> effects, string originLocationId, InfluenceSlotReference slot)
-        {
-            bool hasInfluenceEffect = false;
-            for (int i = 0; i < effects.Count; i++)
-            {
-                EventEffect effect = effects[i];
-                if (effect == null || effect.Kind != EventEffectKind.PlaceInfluence || effect.Amount <= 0) continue;
-                hasInfluenceEffect = true;
-                if (effect.TargetScope == EventEffectTargetScope.None ||
-                    effect.TargetScope == EventEffectTargetScope.CurrentLocationOrAdjacentRoute &&
-                    ((slot.Kind == InfluenceSlotKind.Location && slot.LocationId == originLocationId) || RouteCoversLocation(slot.RouteId, originLocationId)) ||
-                    effect.TargetScope == EventEffectTargetScope.AdjacentRoute &&
-                    slot.Kind == InfluenceSlotKind.Route && RouteCoversLocation(slot.RouteId, originLocationId))
-                {
-                    return true;
-                }
-            }
-
-            return !hasInfluenceEffect;
-        }
-
-        private bool RouteCoversLocation(string routeId, string locationId)
-        {
-            MapRouteDefinition route;
-            try { route = mapQuery.GetRoute(routeId); }
-            catch (ArgumentException) { return false; }
-            return (route.CoveredLocationIds != null && route.CoveredLocationIds.Contains(locationId)) ||
-                   route.FromLocationId == locationId || route.ToLocationId == locationId;
-        }
-
-        private static int CountInfluenceTargets(IReadOnlyList<EventEffect> effects)
-        {
-            int result = 0;
-            if (effects == null) return result;
-            for (int i = 0; i < effects.Count; i++)
-            {
-                if (effects[i] != null && effects[i].Kind == EventEffectKind.PlaceInfluence)
-                {
-                    result += Math.Max(0, effects[i].Amount);
-                }
-            }
-            return result;
         }
 
         private static NormalizedValue CreateRevealPayload(EventCardDefinition card, string targetLocationId)
@@ -526,31 +443,25 @@ namespace YC.Domain.Effects
                 "optionIds", CreateOptionIds(card));
         }
 
-        private static NormalizedValue CreateResolvedPayload(
-            EventCardDefinition card,
-            string targetLocationId,
-            int optionIndex,
-            string optionId,
-            string primaryInfluenceSlotId,
-            IReadOnlyList<string> selectedSlots)
+        private static NormalizedValue CreateResolvedChoicePayload(EventCardDefinition card, string targetLocationId,
+            string choiceId, int optionIndex, string optionId, string primaryInfluenceSlotId)
         {
             return ResultObjectWithValues(
                 "cardId", card.CardId,
+                "choiceId", choiceId,
                 "eventColor", card.Color.ToString(),
                 "optionId", optionId,
                 "optionIndex", optionIndex.ToString(CultureInfo.InvariantCulture),
-                "primaryInfluenceSlotId", string.IsNullOrEmpty(primaryInfluenceSlotId) ? string.Empty : primaryInfluenceSlotId,
-                "selectedInfluenceSlotIds", CreateStringArray(selectedSlots),
+                "primaryInfluenceSlotId", primaryInfluenceSlotId ?? string.Empty,
+                "selectedInfluenceSlotIds", CreateStringArray(Array.Empty<string>()),
                 "targetLocationId", targetLocationId);
         }
 
         private static NormalizedValue CreateOptionIds(EventCardDefinition card)
         {
             var ids = new List<NormalizedValue>();
-            for (int i = 0; i < card.ChoiceDescriptions.Count; i++)
-            {
-                ids.Add(NormalizedValue.CreateStableReference("option", EventCardOptionIdFactory.Create(card.CardId, i)));
-            }
+            foreach (var choice in card.Choices)
+                ids.Add(NormalizedValue.CreateStableReference("option", EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId)));
             return NormalizedValue.CreateArray(ids);
         }
 
@@ -593,26 +504,12 @@ namespace YC.Domain.Effects
             return NormalizedValue.CreateObject(entries);
         }
 
-        private static void SetResult(
-            EffectNodeRuntimeState node,
-            EventCardDefinition card,
-            string targetLocationId,
-            int optionIndex,
-            string optionId,
-            string primaryInfluenceSlotId,
-            IReadOnlyList<string> selectedSlots)
+        private static void SetChoiceResult(EffectNodeRuntimeState node, EventCardDefinition card, string targetLocationId,
+            string choiceId, string optionId, string primaryInfluenceSlotId)
         {
-            var entries = new List<NormalizedValueEntry>
-            {
-                Entry("cardId", NormalizedValue.CreateString(card.CardId)),
-                Entry("eventColor", NormalizedValue.CreateString(card.Color.ToString())),
-                Entry("selectedOptionId", NormalizedValue.CreateString(optionId ?? string.Empty)),
-                Entry("selectedOptionIndex", NormalizedValue.CreateInteger(optionIndex)),
-                Entry("targetLocationId", NormalizedValue.CreateString(targetLocationId)),
-                Entry("primaryInfluenceSlotId", NormalizedValue.CreateString(primaryInfluenceSlotId ?? string.Empty)),
-                Entry("selectedInfluenceSlotIds", CreateStringArray(selectedSlots))
-            };
-            node.NormalizedResult = NormalizedValue.CreateObject(entries);
+            node.NormalizedResult = ResultObjectWithValues("cardId", card.CardId, "eventColor", card.Color.ToString(),
+                "selectedChoiceId", choiceId ?? string.Empty, "selectedOptionId", optionId ?? string.Empty,
+                "targetLocationId", targetLocationId, "primaryInfluenceSlotId", primaryInfluenceSlotId ?? string.Empty);
         }
 
         private static NormalizedValueEntry Entry(string name, NormalizedValue value)
@@ -676,27 +573,6 @@ namespace YC.Domain.Effects
             return TryReadCandidate(answer, out candidateId);
         }
 
-        private static List<string> ReadCandidates(NormalizedValue answer)
-        {
-            var result = new List<string>();
-            if (answer == null) return result;
-            if (answer.Kind == NormalizedValueKind.Array)
-            {
-                if (answer.Items == null) return result;
-                for (int i = 0; i < answer.Items.Count; i++)
-                {
-                    string id;
-                    if (TryReadCandidate(answer.Items[i], out id) && !result.Contains(id)) result.Add(id);
-                }
-            }
-            else
-            {
-                string id;
-                if (TryReadCandidate(answer, out id)) result.Add(id);
-            }
-            return result;
-        }
-
         private static bool TryReadCandidate(NormalizedValue value, out string candidateId)
         {
             candidateId = string.Empty;
@@ -723,14 +599,6 @@ namespace YC.Domain.Effects
                 : fallback;
         }
 
-        private static int ReadInteger(NormalizedValue value, string name, int fallback)
-        {
-            NormalizedValue candidate;
-            return TryGet(value, name, out candidate) && candidate != null && candidate.Kind == NormalizedValueKind.Integer
-                ? (int)candidate.IntegerValue
-                : fallback;
-        }
-
         private static bool TryGet(NormalizedValue value, string name, out NormalizedValue result)
         {
             if (value != null && value.Kind == NormalizedValueKind.Object && value.Properties != null)
@@ -748,24 +616,5 @@ namespace YC.Domain.Effects
             return false;
         }
 
-        private static InfluencePlacement FindInfluenceAtSlot(GameState state, string slotId)
-        {
-            for (int i = 0; i < state.Map.Influences.Count; i++)
-            {
-                InfluencePlacement placement = state.Map.Influences[i];
-                if (placement != null && placement.SlotId == slotId) return placement;
-            }
-            return null;
-        }
-
-        private static bool HasOpponentCityAtLocation(GameState state, int playerId, string locationId)
-        {
-            for (int i = 0; i < state.Players.Count; i++)
-            {
-                PlayerState player = state.Players[i];
-                if (player != null && player.PlayerId != playerId && player.CityLocationId == locationId) return true;
-            }
-            return false;
-        }
     }
 }

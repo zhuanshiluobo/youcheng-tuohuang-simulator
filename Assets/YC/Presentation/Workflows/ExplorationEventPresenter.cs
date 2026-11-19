@@ -5,6 +5,7 @@ using YC.Domain.Cards;
 using YC.Domain.CardFlows;
 using YC.Domain.Commands;
 using YC.Domain.Exploration;
+using YC.Domain.Effects;
 using YC.Domain.Influence;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -689,12 +690,22 @@ namespace YC.Presentation.Workflows
 
         private void SubmitEntranceEventChoice(int choiceIndex)
         {
+            var card = optionSelection.PendingEventCard;
+            var request = context.CurrentState?.EffectRuntime?.InteractionRequests?.Find(item => item.Status == "open" &&
+                item.AnsweringPlayerId == context.LocalPlayerId && item.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId);
+            if (card?.Choices == null || choiceIndex < 0 || choiceIndex >= card.Choices.Count || request == null)
+            { view.ShowPrompt("当前事件选择已失效，请刷新后重试。"); return; }
+            string candidate = EventCardOptionIdFactory.CreateChoice(card.CardId, card.Choices[choiceIndex].ChoiceId);
+            if (!request.CandidateIds.Contains(candidate))
+            { view.ShowPrompt("当前事件选择已失效，请刷新后重试。"); return; }
             var command = new GameCommand
             {
                 Kind = GameCommandKind.ResolveEntranceEvent,
                 PlayerId = context.LocalPlayerId,
-                OptionIds = new List<string> { choiceIndex.ToString() }
+                OptionIds = new List<string> { candidate }
             };
+            command.Parameters["interactionId"] = request.InteractionId;
+            command.Parameters["expectedRevision"] = request.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
             influenceTargetSelection.AddCommandParameter(
                 command,
                 ExploreLocationCommandHandler.EventInfluenceSlotIdsParameter);

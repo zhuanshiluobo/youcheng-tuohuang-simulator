@@ -139,8 +139,9 @@ namespace YC.Presentation.Workflows
             string errorMessage,
             IReadOnlyList<int> legalSlotIndexes,
             Action<BuildFacilityIntent> dispatch,
-            bool isSupplySource = true)
+            bool isSupplySource = true, string fixedFacilityId = "")
         {
+            FixedFacilityId = fixedFacilityId ?? string.Empty;
             IsSupplySource = isSupplySource;
             Phase = phase;
             Options = options ?? new List<BuildFacilityOptionQueryResult>().AsReadOnly();
@@ -155,6 +156,7 @@ namespace YC.Presentation.Workflows
 
         public bool IsSupplySource { get; private set; }
         public bool IsEffectBuild { get; internal set; }
+        public string FixedFacilityId { get; internal set; } = string.Empty;
         public bool CanCancel { get; internal set; } = true;
         public PreparedActionPaymentView PaymentPreparation { get; internal set; }
         public BuildFacilityDraftPhase Phase { get; private set; }

@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Domain.Effects;
+using YC.Domain.Enterprises;
 using YC.Domain.State;
 using YC.Infrastructure.Lua;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
@@ -17,6 +19,89 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TearDown] public void End() => f.Dispose();
         private static string Dice(GameState state) => JsonConvert.SerializeObject(state.EffectRuntime.EffectNodes
             .Where(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice).Select(n => new { n.EffectId, n.NormalizedResult }).ToList());
+        [TestCase(3, 1), TestCase(7, 2)]
+        public void InvestmentUpgradePointsOfferActualPublicEnterprises(int point, int levels)
+        {
+            // D07 直选复用 D09 投资的同一正式点数分支；指定点数仅用于隔离定位，不计正常骰子或联机验收。
+            f.CreateSelectedHost(new[] { "D07" }, initialReputation: 3);
+            var display = f.State.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.enterprise_display");
+            Assert.That(display.OwnerPlayerId, Is.EqualTo(-1), "企业展示区是公共区域");
+            var query = new EnterpriseStateQuery(f.Registry.EnterpriseDefinitions);
+            var eligible = query.GetEnterpriseItemIds(f.State).Where(id =>
+                query.GetLevel(f.State, 1, id) != EnterpriseStateQuery.MissingCooperationLevel).ToArray();
+            Assert.That(eligible.Length, Is.GreaterThan(1), "夹具必须有至少两家本人可选企业");
+            f.OpenSelectedWindow(false);
+            f.StartQuick("entrepreneur.D07.quick", "tiago.public.enterprises." + point);
+            f.ToPointChoice();
+            Assert.That(f.Open.CandidateIds, Does.Contain(point.ToString()));
+            f.Answer(point.ToString());
+            var upgrade = f.State.EffectRuntime.InteractionRequests.SingleOrDefault(q =>
+                q.Status == "open" && q.AnsweringPlayerId == 1 && q.InteractionTypeId == "enterprise.upgrade");
+            Assert.That(upgrade, Is.Not.Null, "存在多家可升级企业时必须出现本人企业选择请求");
+            Assert.That(upgrade.CandidateIds, Is.EquivalentTo(eligible));
+            string chosen = upgrade.CandidateIds[0];
+            int before = query.GetLevel(f.State, 1, chosen);
+            f.Answer(chosen);
+            Assert.That(query.GetLevel(f.State, 1, chosen), Is.EqualTo(Math.Min(5, before + levels)));
+        }
+        [Test]
+        public void CleanupInvestmentPointThreeOffersPublicEnterpriseAndAppliesOnlyChosenUpgrade()
+        {
+            // 固定骰面只用于重现指定分支；付款、正式D09来源、点数选择和升级执行仍走真实规则。
+            var dice = new Queue<int>(new[] { 2, 4 }); // RollDice 回调是零基，实际点数为 3、5。
+            f.CreateSelectedHost(Array.Empty<string>(), isolatedDiceNext: _ => dice.Dequeue());
+            var query = new EnterpriseStateQuery(f.Registry.EnterpriseDefinitions);
+            var eligible = query.GetEnterpriseItemIds(f.State).Where(id =>
+                query.GetLevel(f.State, 1, id) != EnterpriseStateQuery.MissingCooperationLevel).ToArray();
+            Assert.That(eligible.Length, Is.GreaterThan(1));
+            var before = eligible.ToDictionary(id => id, id => query.GetLevel(f.State, 1, id));
+            f.State.Round = 1; // 本隔离用例未选择回合牌，需要建立合法收尾窗口。
+            f.OpenSelectedWindow(true); f.StartInvestment(); f.ToPointChoice();
+            Assert.That(f.Open.CandidateIds, Does.Contain("3"));
+            f.Answer("3");
+            var request = f.State.EffectRuntime.InteractionRequests.SingleOrDefault(q => q.Status == "open" &&
+                q.AnsweringPlayerId == 1 && q.InteractionTypeId == "enterprise.upgrade");
+            Assert.That(request, Is.Not.Null);
+            Assert.That(request.CandidateIds, Is.EquivalentTo(eligible));
+            string chosen = request.CandidateIds[0];
+            f.Answer(chosen);
+            Assert.That(query.GetLevel(f.State, 1, chosen), Is.EqualTo(Math.Min(5, before[chosen] + 1)));
+            foreach (string other in eligible.Where(id => id != chosen))
+                Assert.That(query.GetLevel(f.State, 1, other), Is.EqualTo(before[other]));
+        }
+        [TestCase(false), TestCase(true)]
+        public void PointZeroOffersOnlyAlreadyUnlockedEnterpriseSpecials(bool hasUnlockedSpecial)
+        {
+            // 隔离夹具预置合作等级以分别检查候选存在和不存在；不计正常回合或真实随机覆盖。
+            f.CreateSelectedHost(new[] { "D07" }, initialReputation: 3);
+            var query = new EnterpriseStateQuery(f.Registry.EnterpriseDefinitions);
+            if (hasUnlockedSpecial)
+            {
+                var possible = query.GetSpecialCandidates(f.State, 1, 1, 5, null).First();
+                var definition = f.Registry.EnterpriseDefinitions.FindEnterprise(f.State.ItemZones.Items
+                    .Single(item => item.ItemId == possible.EnterpriseItemId).DefinitionId);
+                int level = definition.Levels.Single(value => value.AbilityId == possible.SpecialId).Level;
+                var track = f.State.ItemZones.Zones.Single(z => z.ParentId == possible.EnterpriseItemId && z.LocalZoneId == "cooperation_1");
+                f.State.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId).SlotId = "level_" + level;
+            }
+            var expected = query.GetSpecialCandidates(f.State, 1, 1, 0, null).Select(c => c.CandidateId).ToArray();
+            Assert.That(expected.Length > 0, Is.EqualTo(hasUnlockedSpecial));
+            f.OpenSelectedWindow(false); f.StartQuick("entrepreneur.D07.quick", "tiago.special.zero." + hasUnlockedSpecial);
+            f.ToPointChoice(); f.Answer("0");
+            var requests = f.State.EffectRuntime.InteractionRequests.Where(q => q.Status == "open" &&
+                q.AnsweringPlayerId == 1 && q.InteractionTypeId == "enterprise.special").ToArray();
+            if (hasUnlockedSpecial)
+            {
+                Assert.That(requests, Has.Length.EqualTo(1));
+                Assert.That(requests[0].CandidateIds, Is.EquivalentTo(expected));
+            }
+            else
+            {
+                Assert.That(requests, Is.Empty);
+                var effect = f.State.EffectRuntime.EffectNodes.Last(n => n.EffectTypeId == LuaDomainEffectTypeIds.ActivateEnterpriseSpecial);
+                Assert.That(Text(effect.NormalizedResult, "reasonCode"), Is.EqualTo("no_candidates"));
+            }
+        }
         [Test] public void DirectFourUsesHostSaleSemanticsAndAccumulatesOnlyCommittedBatchesAcrossRecovery()
         {
             f.CreateSelectedHost(new[] { "D03", "D07" }, initialReputation: 5,
@@ -127,6 +212,78 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Restore("已付款两骰已保存及声望拒绝后"); f.Drain();
             Assert.That(Dice(f.State), Is.EqualTo(recorded)); Assert.That(JsonConvert.SerializeObject(f.State.RandomRuntime), Is.EqualTo(random));
             Assert.That(f.Open.CandidateIds, Is.EqualTo(options)); Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(46));
+        }
+        [Test] public void RoundSevenReportedFacesOfferInvestmentConfirmationAndContinueAfterRecovery()
+        {
+            // 复现该局保存的四个选面；这是隔离规则/投影验证，并非真实联机或正常开局验收。
+            f.CreateSelectedHost(new[] { "D01", "D03", "D06", "D08" },
+                startingResources: new ResourceSet { GoldVoucher = 100, Originium = 10, OriginiumShard = 10, Iron = 10 });
+            Assert.That(f.State.Round, Is.EqualTo(7));
+            f.OpenSelectedWindow(cleanup: true);
+            f.StartInvestment();
+            var request = f.Open;
+            Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(1));
+            Assert.That(request.Presentation.Prompt.Key, Is.EqualTo("core:entrepreneur.D.investment.condition"));
+            Assert.That(request.Presentation.Prompt.Arguments.Single(a => a.Name == "gold").Value.IntegerValue, Is.EqualTo(10));
+            Assert.That(request.CandidateIds, Does.Contain("continue"));
+            Assert.That(request.CandidateIds, Does.Contain("decline"));
+            var projection = YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1);
+            Assert.That(projection.VisibleToViewer, Is.True);
+            var coordinatorType = Type.GetType("YC.Presentation.MapEffectInteractionUiCoordinator, Assembly-CSharp", true);
+            var coordinator = Activator.CreateInstance(coordinatorType, new object[] {
+                new Func<GameState>(() => f.State), new Func<int>(() => 1), null, null, null, null, null });
+            Assert.That((bool)coordinatorType.GetMethod("CanRender").Invoke(coordinator, new object[] { projection }), Is.True);
+            f.Restore("第七回合基金投资条件待确认");
+            Assert.That(f.Open.GetStableInteractionId(), Is.EqualTo(request.GetStableInteractionId()));
+            f.ToPointChoice();
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(90));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.RollDice), Is.EqualTo(3));
+        }
+        [TestCase(false)] [TestCase(true)]
+        public void RoundSevenPointSixOffersExtraConditionWhetherTwoPointsWereExchangedFirst(bool exchangeFirst)
+        {
+            // 复现玩家报告的 6、4、6 组合；指定骰面仅用于隔离诊断，不计真实随机或联机验收。
+            var dice = new Queue<int>(new[] { 5, 3, 5 });
+            f.CreateSelectedHost(new[] { "D01", "D03", "D06", "D08" }, initialReputation: 6,
+                startingResources: new ResourceSet { GoldVoucher = 100, Originium = 10, OriginiumShard = 10, Iron = 10 },
+                isolatedDiceNext: _ => dice.Dequeue());
+            f.OpenSelectedWindow(cleanup: true);
+            if (exchangeFirst)
+            {
+                int score = f.State.FindPlayer(1).Score;
+                f.StartExchange("dice.exchange.first"); f.Confirm(true);
+                f.StartExchange("dice.exchange.second"); f.Confirm(true);
+                Assert.That(f.State.FindPlayer(1).Score, Is.EqualTo(score + 2));
+                Assert.That(f.Reputation, Is.Zero);
+            }
+            f.StartInvestment();
+            Assert.That(f.Open.Presentation?.Prompt?.Key, Is.EqualTo("core:entrepreneur.D.investment.condition"));
+            f.ToPointChoice(reputation: 4);
+            Assert.That(f.Open.CandidateIds, Does.Contain("6"));
+            Assert.That(f.Open.CandidateIds, Does.Contain("4"));
+            f.Answer("6");
+            bool placed = false, moved = false;
+            for (int step = 0; step < 8; step++)
+            {
+                var request = f.Open;
+                if (request.Presentation?.Prompt?.Key == "core:entrepreneur.D.extra.condition") break;
+                if (request.InteractionTypeId == "effect.influence.place.target") placed = true;
+                else if (request.InteractionTypeId.StartsWith("effect.influence.move.", StringComparison.Ordinal) ||
+                    request.InteractionTypeId == "character.ability.choice.move") moved = true;
+                else Assert.Fail("点数6后出现非预期请求：" + request.InteractionTypeId);
+                Assert.That(request.CandidateIds, Is.Not.Empty);
+                f.Answer(request.CandidateIds[0]);
+            }
+            Assert.That(placed, Is.True, "必须实际完成点数6的放置影响力");
+            Assert.That(moved, Is.True, "必须实际完成点数6的移动影响力");
+            Assert.That(f.Open.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(f.Open.Presentation?.Prompt?.Key, Is.EqualTo("core:entrepreneur.D.extra.condition"));
+            int before = f.Reputation;
+            f.Confirm(true);
+            Assert.That(f.Reputation, Is.EqualTo(before - 2));
+            Assert.That(f.Open.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
+            Assert.That(f.Open.CandidateIds, Does.Contain("4"));
         }
         [Test] public void InvestmentCanRefuseAllReputationWithoutBlockingThePointChoice()
         {

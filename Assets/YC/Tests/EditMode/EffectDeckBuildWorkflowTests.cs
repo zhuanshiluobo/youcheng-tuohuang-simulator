@@ -57,6 +57,120 @@ namespace YC.Tests.EditMode
         // 仅资源生命周期定位：隔离授予不计正常页面/合法游戏流程验收，不保存或生成任何资产。
         [UnityTest]
         [Category("需要Unity")]
+        public IEnumerator ExplicitAutoOriginalBuildPageShowsOnlyFixedCardAndPaysGold()
+        {
+            nativeSceneSetup = EditorSceneManager.GetSceneManagerSetup();
+            for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
+                Assert.That(UnityEngine.SceneManagement.SceneManager.GetSceneAt(i).isDirty, Is.False);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            nativeCatalogs = new SceneRuntimeCatalogScope();
+            yield return new EnterPlayMode();
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            Type T(string name) => Type.GetType("YC.Presentation." + name + ", Assembly-CSharp", true);
+            object Read(object obj, string name) => obj.GetType().GetField(name, flags)?.GetValue(obj) ?? obj.GetType().GetProperty(name, flags)?.GetValue(obj);
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var registry = hud.GetComponentInChildren(T("GameplayDialogRegistry"), true);
+            Assert.That(AssetDatabase.GetAssetPath((UnityEngine.Object)Read(registry, "facilityBuildPrefab")),
+                Is.EqualTo("Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/FacilityBuildDialog.prefab"));
+            nativeRoot = new GameObject("指定设施付款隔离", typeof(RectTransform), typeof(Canvas));
+            var parent = (RectTransform)nativeRoot.transform;
+            var f = new Fixture(100, withMainWindow: false, isolatedHandlers: true, explicitAuto: true);
+            var target = f.Scope().FixedFacilityId;
+            Assert.That(f.Options().Select(o => o.FacilityId), Is.EqualTo(new[] { target }));
+            object coordinator = Activator.CreateInstance(T("FacilityBuildRequestUiCoordinator"), new object[] {
+                (Func<GameState>)(() => f.Public), (Func<GameStateView>)(() => f.Visible), (Func<int>)(() => 1), registry, parent,
+                f.Port, (Func<bool>)(() => true), (Action)(() => { }), (Action<string>)(_ => { }),
+                new BuildFacilityOptionQueryService(new BuildFacilityService(), f.Registry.FacilityBuildCandidates) });
+            nativeCoordinator = (IDisposable)coordinator;
+            var renderer = (IInteractionRequestRenderer)coordinator;
+            renderer.Render(f.Scope().ProjectInput()); yield return null;
+            void AssertOnlyTarget(object page)
+            {
+                var area = (Transform)Read(page, "candidates");
+                var cards = area.GetComponentsInChildren(T("FacilityEffectCardView"), false).Cast<Component>().ToArray();
+                Assert.That(cards.Length, Is.EqualTo(1));
+                var image = (UnityEngine.UI.RawImage)Read(cards[0], "CardImage");
+                var catalog = Read(registry, "CardVisualCatalog");
+                var definition = f.State.ItemZones.Items.Single(i => i.ItemId == target).DefinitionId;
+                var sprite = (Sprite)catalog.GetType().GetMethod("GetFacility").Invoke(catalog, new object[] { definition });
+                Assert.That(sprite, Is.Not.Null);
+                Assert.That(image.texture, Is.SameAs(sprite.texture));
+                Assert.That(((UnityEngine.UI.Button)Read(cards[0], "Button")).interactable, Is.False);
+            }
+            var page = Read(coordinator, "page"); AssertOnlyTarget(page);
+            var payments = ((IEnumerable)Read(page, "paymentRows")).Cast<object>().ToArray();
+            Assert.That(payments.All(row => ((UnityEngine.UI.Button)Read(row, "Button")).IsInteractable()), Is.True);
+            Assert.That(f.Commands, Is.Empty, "展示固定牌不能自动扣费或提交选牌");
+            ((UnityEngine.UI.Button)Read(payments[1], "Button")).onClick.Invoke();
+            Assert.That(f.Results.All(r => r.Succeeded), Is.True, string.Join(";", f.Results.Select(r => r.LogMessage)));
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(90));
+            Assert.That(f.State.FindPlayer(1).Resources.Originium, Is.EqualTo(100));
+            renderer.Clear();
+            object placement = Activator.CreateInstance(T("FacilityBuildPlacementUiCoordinator"), new object[] {
+                (Func<GameState>)(() => f.Public), (Func<int>)(() => 1), registry, parent, (Action<GameCommand>)(_ => { }) });
+            placement.GetType().GetProperty("GetVisibleState").SetValue(placement, (Func<GameStateView>)(() => f.Visible));
+            var request = f.State.EffectRuntime.InteractionRequests.Single(q => q.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
+            ((IInteractionRequestRenderer)placement).Render(InteractionRequestProjector.ProjectForPlayer(request, 1));
+            yield return null; AssertOnlyTarget(Read(placement, "page"));
+            ((IInteractionRequestRenderer)placement).Clear();
+        }
+
+        [UnityTest, Category("需要Unity")]
+        public IEnumerator FreeSupplyPlacementRendersWithAnExistingFacilityStack()
+        {
+            // 隔离重建已有叠层与正式免费建设放置请求；不计正常联机验收。
+            nativeSceneSetup = EditorSceneManager.GetSceneManagerSetup();
+            Assert.That(nativeSceneSetup.All(scene => !scene.isLoaded || !scene.isActive || !UnityEngine.SceneManagement.SceneManager.GetActiveScene().isDirty), Is.True);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            nativeCatalogs = new SceneRuntimeCatalogScope();
+            yield return new EnterPlayMode();
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            Type T(string name) => Type.GetType("YC.Presentation." + name + ", Assembly-CSharp", true);
+            object Read(object obj, string name) => obj.GetType().GetField(name, flags)?.GetValue(obj) ?? obj.GetType().GetProperty(name, flags)?.GetValue(obj);
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var registry = hud.GetComponentInChildren(T("GameplayDialogRegistry"), true);
+            nativeRoot = new GameObject("叠层后建设放置隔离", typeof(RectTransform), typeof(Canvas));
+            var f = new Fixture(0, withMainWindow: false, sourceZone: "supply", paymentMode: "free", includeInfected: true);
+            var selection = f.State.EffectRuntime.InteractionRequests.Single(q => q.Status == "open");
+            var answer = EffectInteractionCommands.Answer(InteractionRequestProjector.ProjectForPlayer(selection, 1), 1, new[] { selection.CandidateIds.First() });
+            var accepted = f.Session.Submit(answer); Assert.That(accepted.Succeeded, Is.True, accepted.LogMessage);
+            var request = f.State.EffectRuntime.InteractionRequests.Single(q => q.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
+            Assert.That(Text(request.PromptParameters, "fixedFacilityId"), Is.Empty);
+            var cell = FacilityLayerQuery.ResolveCity(f.State, 1).First(c => c.CoveredZoneId.Length > 0);
+            var available = f.State.ItemZones.Items.Where(i => FacilityLayerQuery.IsFacility(i) &&
+                f.State.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "facility_deck")).Take(2).ToArray();
+            Assert.That(available.Length, Is.EqualTo(2));
+            void Position(YC.Domain.Items.ItemInstanceState item, string zone)
+            {
+                foreach (var order in f.State.ItemZones.Orders) if (order.ItemIds.Remove(item.ItemId)) order.OrderRevision++;
+                item.ZoneId = zone; item.ControllerSubject = YC.Domain.Items.ItemSubjectRef.Player(1);
+                var destination = f.State.ItemZones.Orders.SingleOrDefault(o => o.ZoneId == zone);
+                if (destination != null) { destination.ItemIds.Add(item.ItemId); destination.OrderRevision++; }
+            }
+            if (cell.TopItemId.Length == 0) Position(available[0], cell.CellZoneId);
+            Position(available[1], cell.CoveredZoneId);
+            Assert.That(FacilityLayerQuery.ResolveCity(f.State, 1).Any(c => c.CoveredItemIds.Count > 0), Is.True);
+            f.Refresh(1);
+            var commands = new List<GameCommand>();
+            object placement = Activator.CreateInstance(T("FacilityBuildPlacementUiCoordinator"), new object[] {
+                (Func<GameState>)(() => f.Public), (Func<int>)(() => 1), registry, (RectTransform)nativeRoot.transform,
+                (Action<GameCommand>)(command => commands.Add(command)) });
+            placement.GetType().GetProperty("GetVisibleState").SetValue(placement, (Func<GameStateView>)(() => f.Visible));
+            ((IInteractionRequestRenderer)placement).Render(InteractionRequestProjector.ProjectForPlayer(request, 1));
+            yield return null;
+            var page = (Component)Read(placement, "page"); Assert.That(page.gameObject.activeInHierarchy, Is.True);
+            int slot = int.Parse(request.CandidateIds.First());
+            ((UnityEngine.UI.Button[])Read(page, "citySlots"))[slot].onClick.Invoke();
+            ((UnityEngine.UI.Button)Read(page, "confirm")).onClick.Invoke();
+            Assert.That(commands.Count, Is.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { slot.ToString() }));
+            ((IInteractionRequestRenderer)placement).Clear();
+        }
+
+        [UnityTest]
+        [Category("需要Unity")]
         public IEnumerator NativeSharedBuildPageReusesOriginalPrefabAcrossFlowsAndReleasesOnDispose()
         {
             nativeSceneSetup = EditorSceneManager.GetSceneManagerSetup();
@@ -90,7 +204,8 @@ namespace YC.Tests.EditMode
                 .Where(component => component.gameObject.scene.IsValid() && component.transform.IsChildOf(rootRect)).ToArray();
             object coordinator = Activator.CreateInstance(coordinatorType, new object[] {
                 (Func<GameState>)(() => readState), (Func<GameStateView>)(() => readView), (Func<int>)(() => 1),
-                registry, rootRect, fixture.Port, (Func<bool>)(() => false), (Action)(() => { }), (Action<string>)(_ => { }) });
+                registry, rootRect, fixture.Port, (Func<bool>)(() => false), (Action)(() => { }), (Action<string>)(_ => { }),
+                new BuildFacilityOptionQueryService(new BuildFacilityService(), fixture.Registry.FacilityBuildCandidates) });
             nativeCoordinator = (IDisposable)coordinator;
             var render = coordinatorType.GetMethod("Render");
             var clear = coordinatorType.GetMethod("Clear");
@@ -581,7 +696,8 @@ namespace YC.Tests.EditMode
             var type = Type.GetType("YC.Presentation.FacilityBuildRequestUiCoordinator, Assembly-CSharp", true);
             var renderer = Activator.CreateInstance(type, new object[] {
                 (Func<GameState>)(() => f.Public), (Func<GameStateView>)(() => f.Visible), (Func<int>)(() => 1),
-                null, null, f.Port, (Func<bool>)(() => true), (Action)(() => { }), (Action<string>)(_ => { }) });
+                null, null, f.Port, (Func<bool>)(() => true), (Action)(() => { }), (Action<string>)(_ => { }),
+                new BuildFacilityOptionQueryService(new BuildFacilityService(), f.Registry.FacilityBuildCandidates) });
             return (bool)type.GetMethod("CanRender").Invoke(renderer, new object[] { input });
         }
 
@@ -605,7 +721,7 @@ namespace YC.Tests.EditMode
             public void SetLocalPlayerId(int id) { }
             public Fixture(int gold, GamePhase phase = GamePhase.Cleanup, bool withMainWindow = true, bool isolatedHandlers = false,
                 string sourceZone = "deck", string grantScript = null, bool includeInfected = false, string paymentMode = "auto",
-                int playerCount = 3, int seed = 321)
+                int playerCount = 3, int seed = 321, bool explicitAuto = false)
             {
                 IsolatedHandlers = isolatedHandlers;
                 var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
@@ -639,7 +755,17 @@ namespace YC.Tests.EditMode
                     State.FindPlayer(1).RemainingMainActionsThisTurn = 0;
                 }
                 var executor = new EffectTreeExecutor(State, Registry);
-                if (grantScript == null)
+                if (explicitAuto)
+                {
+                    var item = State.ItemZones.Items.First(i => i.ZoneId == State.ItemZones.Zones.Single(z => z.LocalZoneId == "facility_deck").ZoneId &&
+                        FacilityCardDatabase.Get(State, i.DefinitionId)?.GoldVoucherCost == 10);
+                    State.FindPlayer(1).Resources = new ResourceSet { GoldVoucher = gold, Originium = 100, OriginiumShard = 100, Iron = 100, PureOriginium = 100 };
+                    Owner = executor.CreateRoot(EffectSpec.Create(FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3),
+                        "targetMode", NormalizedValue.CreateString("explicit"), "player", NormalizedValue.CreateString("1"),
+                        "facilityId", NormalizedValue.CreateString(item.ItemId), "sourceKind", NormalizedValue.CreateString("deck"),
+                        "paymentMode", NormalizedValue.CreateString("auto"), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
+                }
+                else if (grantScript == null)
                     Owner = executor.CreateRoot(EffectSpec.Create(YC.Domain.Facilities.FacilityEntryEffectTypeIds.Build, Object("apiVersion", NormalizedValue.CreateInteger(3), "targetMode", NormalizedValue.CreateString("select"), "player", NormalizedValue.CreateString((1).ToString(System.Globalization.CultureInfo.InvariantCulture)), "paymentMode", NormalizedValue.CreateString(sourceZone == "reserve" ? "free" : paymentMode), "allowDecline", NormalizedValue.CreateBoolean(true), "sourceKind", NormalizedValue.CreateString(sourceZone), "consumeMainAction", NormalizedValue.CreateBoolean(false)), 1));
                 else
                 {

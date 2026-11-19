@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nomadcity.diy/append-recipe.schema.v1",
+  "title": "NoMadCity DIY 事件追加配方 v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "recipeId", "expansionId", "entries"],
+  "properties": {
+    "schemaVersion": {"const": 1},
+    "recipeId": {"$ref": "#/$defs/identity"},
+    "expansionId": {"$ref": "#/$defs/identity"},
+    "applicableModes": {"$ref": "#/$defs/strings"},
+    "entries": {"type": "array", "items": {"$ref": "#/$defs/entry"}}
+  },
+  "$defs": {
+    "identity": {"type": "string", "maxLength": 192, "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*$"},
+    "strings": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1, "pattern": "\\S"}},
+    "entry": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entryId", "definitionId", "quantity", "initialZoneRole"],
+      "properties": {
+        "entryId": {"$ref": "#/$defs/identity"}, "definitionId": {"$ref": "#/$defs/identity"},
+        "quantity": {"type": "integer", "minimum": 1, "maximum": 128},
+        "initialZoneRole": {"enum": ["event_green", "event_red", "event_yellow"]},
+        "applicableMapIds": {"$ref": "#/$defs/strings"}
+      }
+    }
+  }
+}

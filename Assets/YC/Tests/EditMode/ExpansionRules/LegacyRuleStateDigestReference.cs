@@ -20,7 +20,12 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false, true);
         private static readonly ConcurrentDictionary<Type, TypePlan> Plans = new ConcurrentDictionary<Type, TypePlan>();
 
-        public static string Compute(GameState state)
+        public static string Compute(GameState state) => ComputeVersion(state, DigestVersion);
+
+        // 复用独立的旧编码器验证新版本的字节写入；旧 v1 入口仍保留以验证版本隔离。
+        public static string ComputeCurrent(GameState state) => ComputeVersion(state, RuleStateDigestService.DigestVersion);
+
+        private static string ComputeVersion(GameState state, string version)
         {
             if (state == null) throw new ArgumentNullException(nameof(state));
             using (var hash = SHA256.Create())
@@ -32,7 +37,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     using (var writer = new BinaryWriter(buffer, Utf8, true))
                     {
                         WriteText(writer, "YC.RULE.STATE");
-                        WriteText(writer, DigestVersion);
+                        WriteText(writer, version);
                         WriteValue(writer, state, new HashSet<object>(ReferenceComparer.Instance), true, false);
                         writer.Flush();
                     }

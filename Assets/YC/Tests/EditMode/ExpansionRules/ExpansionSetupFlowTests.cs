@@ -19,11 +19,33 @@ using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
+    // 旧专项夹具迁入正式准备合同，继续验证各规则行为而不另造分发参数。
+    internal static class FixturePreparationPlan
+    {
+        internal static PreparationFlowPlan Create(string mode, bool enterprise, bool entrepreneur = false)
+        {
+            string path = Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core/preparation/official-v1.json");
+            var modes = (JArray)JObject.Parse(File.ReadAllText(path))["modes"];
+            var variant = modes.OfType<JObject>().Single(item => (string)item["modeId"] == (entrepreneur ? "entrepreneur" : "standard") &&
+                (entrepreneur || (((JArray)item["requires"]).Values<string>().Contains("enterprise") == enterprise)));
+            return DiyPreparationDeclaration.Parse((JObject)variant["preparation"], mode, "fixture.official")
+                .Resolve((pack, version, script) => throw new InvalidOperationException("官方准备声明不应读取测试脚本"));
+        }
+
+        internal static void AttachEntrepreneur(GameState state, EffectRegistry registry, string coreVersion)
+        {
+            state.SetupRecipe.Preparation = Create(state.RuleConfiguration.RuleModeId, true, true);
+            registry.SetupRecipe = GameStateCloneService.DeepClone(state.SetupRecipe);
+            EntrepreneurFlow.RegisterPreparationSteps(registry, state.SetupRecipe.Preparation, coreVersion);
+        }
+    }
+
     public sealed class ExpansionSetupFlowTests
     {
         private static ExternalContentPack installed;
@@ -67,6 +89,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 }
                 recipe.Entries.Add(new SetupRecipeEntry { EntryId = "test.operators", DefinitionId = definitions.Characters[0].CardId, TypeId = "core.operator_card", InitialZoneRole = "operator_deck", Quantity = 8, Condition = new SetupRecipeCondition { Kind = "enterprise_selected", RuntimeId = "test.rhodes" } });
             }
+            recipe.Preparation = FixturePreparationPlan.Create(config.RuleModeId, enterprise);
             boards.Freeze();
             registry = new EffectRegistry(); catalog.Register(registry); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
             if (enterprise) registry.EnterpriseDefinitions = boards;
@@ -124,7 +147,41 @@ namespace YC.Tests.EditMode.ExpansionRules
             mainline = Mainline(state, registry);
             var started = mainline.StartEntrance(state);
             Assert.That(started.IsValid, Is.True, started.Reason);
-            return state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == ExpansionSetupFlow.PreparationTypeId);
+            return state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == PreparationFrameworkFlow.TypeId);
+        }
+
+        private static void SeedEnterpriseBoardsForRoundRule(GameState state)
+        {
+            // 仅为红区升级的隔离规则测试构造已选企业和零级标记，不计正常开局覆盖。
+            var boardZone = FindZone(state, "enterprises").ZoneId;
+            foreach (string definition in new[] { "test.penguin", "test.blacksteel", "test.wild", "test.karlan" })
+            {
+                var board = state.ItemZones.Items.Single(item => item.DefinitionId == definition);
+                MoveFixtureItem(state, board, boardZone, string.Empty);
+                foreach (int player in state.Players.Select(value => value.PlayerId).ToArray())
+                {
+                    var declaration = new CardZoneDefinition { LocalZoneId = "cooperation_" + player,
+                        ZoneTemplateId = "core.zone.board_marker_track", AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube },
+                        AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded", OrderingKind = ZoneOrderingKind.Track,
+                        VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer",
+                        CarrierExitPolicyId = "core.preserve_contents" };
+                    Assert.That(new ItemZoneStateFactory().TryCreateCardZone(state, board.ItemId, declaration, out string zone, out string reason), Is.True, reason);
+                    var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" &&
+                        item.OwnerSubject.PlayerId == player && item.ZoneId == FindZone(state, "supply", player).ZoneId);
+                    MoveFixtureItem(state, marker, zone, "level_0");
+                }
+            }
+            Valid(state);
+        }
+
+        private static void MoveFixtureItem(GameState state, ItemInstanceState item, string zone, string slot)
+        {
+            foreach (var order in state.ItemZones.Orders)
+                if (order.ItemIds.Remove(item.ItemId)) order.OrderRevision++;
+            item.ZoneId = zone;
+            item.SlotId = slot;
+            var destination = state.ItemZones.Orders.SingleOrDefault(order => order.ZoneId == zone);
+            if (destination != null) { destination.ItemIds.Add(item.ItemId); destination.OrderRevision++; }
         }
         private static void AnswerCurrentRequest(GameState state, EffectRegistry registry, RoundExecutionService mainline,
             InteractionRequest request, params string[] selected)
@@ -144,6 +201,28 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(result.Succeeded, Is.True, request.InteractionTypeId + " / " + result.Validation?.Reason);
             Valid(state);
         }
+        [Test]
+        public void RedZoneUpgradeSkipsCappedBoardsAndPlayersWithoutEligibleBoards()
+        {
+            var state = State(3, out var registry, 7, true); SeedEnterpriseBoardsForRoundRule(state);
+            var boards = In(state, "enterprises").ToArray();
+            void SetLevel(string board, int player, int level)
+            {
+                var track = state.ItemZones.Zones.Single(zone => zone.ParentId == board && zone.LocalZoneId == "cooperation_" + player);
+                state.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId).SlotId = "level_" + level;
+            }
+            SetLevel(boards[0], 1, 5); foreach (string board in boards) SetLevel(board, 2, 5);
+            state.Round = 5; var mainline = Mainline(state, registry);
+            var created = mainline.CreateRound(state, state.Round, 1); Assert.That(created.IsValid, Is.True, created.Reason);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("round.enterprise.upgrade")); Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(1));
+            Assert.That(Open(state).CandidateIds, Does.Not.Contain(boards[0]));
+            Answer(state, registry, Open(state).CandidateIds[0]);
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("round.enterprise.upgrade")); Assert.That(Open(state).AnsweringPlayerId, Is.EqualTo(3));
+            Answer(state, registry, Open(state).CandidateIds[0]);
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.InteractionTypeId == "round.enterprise.upgrade"), Is.EqualTo(2));
+            Restore(state, registry);
+        }
+
         [TestCase(2)] [TestCase(3)] [TestCase(4)]
         public void FormalCoreRecipeCreatesFiveCardsAndPreservesChosenMap(int players)
         {
@@ -172,7 +251,14 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void MissingFormalExpansionContentBlocksLaunch(string expansion)
         {
             var config = Configuration(3, expansion == "enterprise" ? new[] { "core", "enterprise" } : new[] { "core", "enterprise", "infected" });
-            Assert.That(() => ActiveContentCatalogBuilder.Build(Installed(), config), Throws.InvalidOperationException.With.Message.EqualTo("content_not_ready"));
+            // 正式感染者内容现已可用；在独立内存快照中模拟缺失，继续验证缺内容不得开局。
+            var pack = TestPack();
+            var definitions = (List<ExternalContentDefinition>)typeof(ExternalContentPack)
+                .GetField("definitions", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(pack);
+            var missing = definitions.Where(definition => definition.ExpansionId == expansion).ToArray();
+            Assert.That(missing, Is.Not.Empty);
+            foreach (var definition in missing) definition.Enabled = false;
+            Assert.That(() => ActiveContentCatalogBuilder.Build(pack, config), Throws.InvalidOperationException.With.Message.EqualTo("content_not_ready"));
         }
         [Test]
         public void RuleAndFingerprintMismatchesAreExplicit()
@@ -180,7 +266,25 @@ namespace YC.Tests.EditMode.ExpansionRules
             var config = Configuration(); config.ContentPackHash = "wrong";
             Assert.That(() => ActiveContentCatalogBuilder.Build(Installed(), config), Throws.InvalidOperationException.With.Message.EqualTo("content_version_mismatch"));
             config.ContentPackHash = ""; config.RuleModeId = "entrepreneur";
-            Assert.That(() => ActiveContentCatalogBuilder.Build(Installed(), config), Throws.InvalidOperationException.With.Message.EqualTo("rule_mode_not_implemented"));
+            Assert.That(() => ActiveContentCatalogBuilder.Build(Installed(), config), Throws.InvalidOperationException.With.Message.EqualTo("missing_entrepreneur_dependency"));
+        }
+        [Test]
+        public void RegionPreviewRequiresAuthenticatedSeatAndCurrentRevision()
+        {
+            var state = State(2, out var registry);
+            state.Round = 1; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1;
+            var bindings = new YC.Infrastructure.Multiplayer.SteamIdentityBindingRegistry();
+            bindings.ReplaceLobbySeats(new[] { new KeyValuePair<int, ulong>(1, 111), new KeyValuePair<int, ulong>(2, 222) });
+            Assert.That(bindings.TryBindConnection(11, 111, out _), Is.True);
+            var publisher = new YC.Infrastructure.Multiplayer.PrivatePlayerViewPublisher(new GameSession(state), registry, bindings, 1);
+            Assert.That(publisher.TryBind(11, "区控连接"), Is.True);
+            string before = JsonConvert.SerializeObject(state);
+            int revision = state.EffectRuntime.StateRevision;
+            Assert.That(publisher.TryQueryRegionPreview(11, "区控连接", revision, out var preview), Is.True);
+            Assert.That(preview.Regions.Count, Is.EqualTo(StaticMapDefinitions.Resolve(state.MapId).Regions.Count));
+            Assert.That(publisher.TryQueryRegionPreview(11, "错误连接", revision, out _), Is.False);
+            Assert.That(publisher.TryQueryRegionPreview(11, "区控连接", revision + 1, out _), Is.False);
+            Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(before), "查看区控不能修改房主状态。");
         }
         [TestCase(5, false)] [TestCase(7, false)] [TestCase(8, false)] [TestCase(8, true)]
         public void InitialDiscardKeepsUnselectedFiveAndRecoveryDoesNotRepeatRetirement(int basics, bool retireAmiya)
@@ -325,7 +429,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var randomBounds = new List<int>();
             var registry = new EffectRegistry();
             DeckShuffleEffectExecutor.Register(registry, max => { randomBounds.Add(max); return 0; });
-            ExpansionSetupFlow.Register(registry, max => max - 1);
+            ExpansionSetupFlow.Register(registry);
+            PreparationFrameworkFlow.Register(registry, max => max - 1);
             ActiveContentCatalogBuilder.Build(Installed(), Configuration(2)).Register(registry);
             ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
             registry.EnterpriseDefinitions = originalRegistry.EnterpriseDefinitions;
@@ -360,11 +465,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(selections.Mode, Is.EqualTo(EffectChildSchedulingMode.Independent));
             Assert.That(selections.ChildEffectIds.Select(id => engine.GetNode(id).PlayerId), Is.EqualTo(new[] { 1, 2 }));
             Assert.That(selections.ChildEffectIds.Select(id => engine.GetNode(id).Status), Has.All.EqualTo(EffectNodeStatus.Completed));
-            var upgradeSteps = childIds.Except(selections.ChildEffectIds).ToArray();
+            var upgradeSteps = childIds.Where(id => engine.GetNode(id).EffectTypeId == DeckShuffleEffectExecutor.TypeId ||
+                engine.GetNode(id).EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise).ToArray();
             var shuffleIds = upgradeSteps.Where(id => engine.GetNode(id).EffectTypeId == DeckShuffleEffectExecutor.TypeId).ToArray();
             Assert.That(shuffleIds.Length, Is.EqualTo(shouldShuffle ? 1 : 0));
             Assert.That(upgradeSteps.Length, Is.EqualTo(shouldShuffle ? 5 : 4));
-            Assert.That(childIds.Length, Is.EqualTo(selections.ChildEffectIds.Count + upgradeSteps.Length));
+            Assert.That(childIds.Length, Is.EqualTo(selections.ChildEffectIds.Count + upgradeSteps.Length + 2));
             Assert.That(randomBounds, Is.Empty);
             if (shouldShuffle)
             {
@@ -398,7 +504,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(advance.IsValid, Is.True, advance.Reason);
             state = Restore(state, registry); engine = mainline.CreateCommandExecutor(state);
             for (int repeat = 0; repeat < 2; repeat++) Assert.That(engine.RunUntilQuiescent().Faulted, Is.False);
-            Assert.That(engine.GetNode(rootId).ChildEffectIds, Is.EqualTo(childIds));
+            Assert.That(engine.GetNode(rootId).ChildEffectIds.Take(childIds.Length), Is.EqualTo(childIds));
+            Assert.That(engine.GetNode(rootId).ChildEffectIds.Count, Is.EqualTo(childIds.Length + 1));
             Assert.That(randomBounds.Count, Is.EqualTo(shouldShuffle ? 7 : 0));
             Assert.That(In(state, "operator_deck"), Is.EqualTo(expectedOrder));
             Assert.That(state.ItemZones.Orders.Single(order => order.ZoneId == zoneId).OrderRevision, Is.EqualTo(initialRevision + (shouldShuffle ? 1 : 0)));
@@ -438,11 +545,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var boards = In(state, "enterprises"); Assert.That(boards.Count, Is.EqualTo(4));
             state = Restore(state, registry);
             preparation = state.EffectRuntime.EffectNodes.Single(node => node.EffectId == preparationId);
-            var dealt = Value(preparation.ContinuationData, "candidateEnterpriseItemIds").Items.Select(value => value.StringValue).ToArray();
-            int drawCount = players == 2 ? 4 : 2;
             foreach (int viewer in Enumerable.Range(1, players))
             {
-                var discarded = dealt.Skip((viewer - 1) * drawCount).Take(drawCount).Except(boards).ToArray();
+                var discarded = state.PreparationRuntime.Distribution.Assignments.Single(item => item.PlayerId == viewer).CandidateItemIds.Except(boards).ToArray();
                 Assert.That(discarded.Length, Is.EqualTo(players == 2 ? 2 : 1));
                 Assert.That(In(state, "secret_retired"), Is.SupersetOf(discarded));
                 var box = GameStateViewProjector.ProjectForPlayer(state, viewer).GameBox;
@@ -458,8 +563,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.ItemZones.Relations.Count(r => r.RelationTypeId == EnterpriseStateQuery.ActiveDepartmentRelation), Is.EqualTo(boardDefinitions.Contains("test.rhine") ? 1 : 0));
             if (players == 3)
             {
-                preparation = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == preparationId);
-                Assert.That(Value(preparation.ContinuationData, "candidateEnterpriseItemIds").Items.Select(v => v.StringValue), Does.Not.Contain(Text(preparation.ContinuationData, "randomEnterpriseItemId")));
+                var distribution = state.PreparationRuntime.Distribution;
+                Assert.That(distribution.Assignments.SelectMany(item => item.CandidateItemIds), Does.Not.Contain(distribution.ExtraItemIds.Single()));
             }
         }
 
@@ -482,17 +587,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             var other = GameStateViewProjector.ProjectForPlayer(state, 1);
             Assert.That(other.Interactions.Any(r => r.InteractionId == request.GetStableInteractionId()), Is.False);
             Assert.That(other.WaitingForPlayerIds, Does.Contain(2));
-            foreach (var view in new[] { owner, other })
             foreach (string secret in secretInstances)
-                Assert.That(JsonConvert.SerializeObject(view), Does.Not.Contain(secret));
+            {
+                Assert.That(JsonConvert.SerializeObject(owner), Does.Not.Contain(secret), "他人的私密回盒牌不能泄露。");
+                Assert.That(other.GameBox.Cards.Any(card => card.InstanceId == secret), Is.True, "本人可在游戏盒查看自己私密放回的牌。");
+            }
             Answer(state, registry, visible.CandidateIds.Take(2).ToArray());
             Assert.That(CharacterLifecycleService.GetRetainedBasicCharacterCount(state, 2), Is.EqualTo(5));
         }
         [TestCase(2)] [TestCase(3)] [TestCase(4)]
         public void RedZonePreparationResumesUpgradeBeforeSupplyRetirement(int players)
         {
-            var state = State(players, out var registry, 7, true); Run(state, registry, EffectSpec.Create(ExpansionSetupFlow.PreparationTypeId, playerId: 1));
-            while (Open(state) != null) Answer(state, registry, Open(state).CandidateIds.Take(Open(state).MinSelections).ToArray());
+            var state = State(players, out var registry, 7, true); SeedEnterpriseBoardsForRoundRule(state);
             state.Round = players == 4 ? 4 : players == 3 ? 5 : 6;
             var before = state.Players.ToDictionary(p => p.PlayerId, p => In(state, "enterprises").Sum(id => new EnterpriseStateQuery(registry.EnterpriseDefinitions).GetLevel(state, p.PlayerId, id)));
             var mainline = Mainline(state, registry);
@@ -526,6 +632,66 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var p in state.Players) Assert.That(In(state, "enterprises").Sum(id => new EnterpriseStateQuery(registry.EnterpriseDefinitions).GetLevel(state, p.PlayerId, id)), Is.EqualTo(before[p.PlayerId] + 1));
         }
         [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        public void OfficialEntrepreneurPreparationReachesCoverAndRestores(int players)
+        {
+            var config = Configuration(players, "core", "enterprise", "infected");
+            config.MapId = players == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId;
+            config.RuleModeId = "entrepreneur";
+            config.OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion;
+            var catalog = ActiveContentCatalogBuilder.Build(Installed(), config);
+            config.ContentPackHash = catalog.ContentPackHash;
+            var registry = new EffectRegistry();
+            catalog.Register(registry); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
+            var seats = Enumerable.Range(1, players).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "夹具玩家" + id }).ToList();
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
+            var mainline = Mainline(state, registry);
+            Assert.That(mainline.StartEntrance(state).IsValid, Is.True);
+            bool recoveredDuringPreparation = false;
+            for (int count = 0; count < 200 && state.Phase != GamePhase.CharacterCover; count++)
+            {
+                var request = Open(state);
+                Assert.That(request, Is.Not.Null, state.EffectRuntime.LastFaultMessage + " / " + state.Phase);
+                if (!recoveredDuringPreparation && state.PreparationRuntime?.Stage == "middle")
+                {
+                    string requestId = request.GetStableInteractionId();
+                    state = Restore(state, registry);
+                    request = state.EffectRuntime.InteractionRequests.Single(item => item.Status == "open" && item.GetStableInteractionId() == requestId);
+                    recoveredDuringPreparation = true;
+                }
+                int selectedCount = request.CandidateIds.Count == 0 ? 0 : Math.Max(1, request.MinSelections);
+                AnswerCurrentRequest(state, registry, mainline, request, request.CandidateIds.Take(selectedCount).ToArray());
+                var advanced = mainline.Advance(state); Assert.That(advanced.IsValid, Is.True, advanced.Reason);
+            }
+            Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover), state.EffectRuntime.LastFaultMessage);
+            Assert.That(recoveredDuringPreparation, Is.True);
+            Assert.That(state.PreparationRuntime.Stage, Is.EqualTo("complete"));
+            Assert.That(state.EntrepreneurSetup.Stage, Is.EqualTo("complete"));
+            Assert.That(state.EntrepreneurSetup.Players, Has.Count.EqualTo(players));
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == "setup.enterprise.prepare"), Is.False);
+            state = Restore(state, registry);
+            Assert.That(state.PreparationRuntime.Stage, Is.EqualTo("complete"));
+        }
+
+        [TestCase(PlayerStageSchedulingMode.Sequential, false)] [TestCase(PlayerStageSchedulingMode.Concurrent, false)]
+        [TestCase(PlayerStageSchedulingMode.Sequential, true)] [TestCase(PlayerStageSchedulingMode.Concurrent, true)]
+        public void NewContractWithoutPlanDoesNotFallBackToOldPreparation(PlayerStageSchedulingMode scheduling, bool enterprise)
+        {
+            var config = Configuration(3, enterprise ? new[] { "core", "enterprise" } : new[] { "core" });
+            config.MapId = StaticMapDefinitions.ThreePlayerMapId;
+            config.PlayerStageSchedulingMode = scheduling;
+            config.OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion;
+            var catalog = ActiveContentCatalogBuilder.Build(Installed(), config); config.ContentPackHash = catalog.ContentPackHash;
+            var registry = new EffectRegistry(); catalog.Register(registry); ResourceEffectExecutor.Register(registry);
+            var seats = Enumerable.Range(1, 3).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "夹具玩家" + id }).ToList();
+            var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
+            state.SetupRecipe.Preparation = null; // 仅用于隔离验证内容缺失，不能用于正常开局验收。
+            var result = Mainline(state, registry).StartEntrance(state);
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == "setup.enterprise.prepare"), Is.False);
+            Assert.That(result.Reason, Is.EqualTo("preparation_framework_missing"));
+        }
+
+        [TestCase(2)] [TestCase(3)] [TestCase(4)]
         public void FormalCoreEntranceReachesCoverThroughSingleMainline(int players)
         {
             var state = State(players, out var registry); var mainline = Mainline(state, registry);
@@ -553,14 +719,17 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var config = Configuration(players, enterprise ? new[] { "core", "enterprise" } : new[] { "core" });
             config.MapId = players == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId;
+            config.OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion;
             var catalog = ActiveContentCatalogBuilder.Build(Installed(), config); config.ContentPackHash = catalog.ContentPackHash;
-            var registry = new EffectRegistry(); ExpansionSetupFlow.Register(registry, upper => 0); catalog.Register(registry);
+            var registry = new EffectRegistry(); ExpansionSetupFlow.Register(registry); PreparationFrameworkFlow.Register(registry, upper => 0); catalog.Register(registry);
             ResourceEffectExecutor.Register(registry);
             var seats = Enumerable.Range(1, players).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "玩家" + id }).ToList();
             var state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, seats, config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
             var mainline = Mainline(state, registry);
             Assert.That(mainline.StartEntrance(state).IsValid, Is.True);
             Assert.That(state.EffectRuntime.MainNodes.Count(node => node.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(node => node.EffectTypeId == PreparationFrameworkFlow.TypeId), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == "setup.enterprise.prepare"), Is.False);
             var session = Session(state, registry, mainline);
             int discardedPlayers = 0, optionalInfluenceRequests = 0, submitted = 0;
             for (; submitted < 120 && state.Phase != GamePhase.CharacterCover; submitted++)
@@ -663,44 +832,46 @@ namespace YC.Tests.EditMode.ExpansionRules
                 "，最终阶段=" + state.Phase + "，当前玩家=" + state.CurrentPlayerId + "，恢复后金券/分数未重复增加。");
         }
         [Test]
-        public void RetiredCardsAreHiddenFromEveryPlayerIncludingOriginalHolder()
+        public void PrivatelyRetiredCardsAreVisibleOnlyToTheirHolder()
         {
             var state = State(3, out var registry, 8); Run(state, registry, ExpansionSetupFlow.RetentionSpec(1)); Answer(state, registry, Open(state).CandidateIds.Take(3).ToArray());
             var secrets = In(state, "secret_retired");
             foreach (int viewer in Enumerable.Range(1, 3))
             {
                 string projected = JsonConvert.SerializeObject(GameStateViewProjector.ProjectForPlayer(state, viewer));
-                foreach (string id in secrets) Assert.That(projected, Does.Not.Contain(id));
+                foreach (string id in secrets)
+                    if (viewer == 1)
+                        Assert.That(GameStateViewProjector.ProjectForPlayer(state, viewer).GameBox.Cards.Any(card => card.InstanceId == id), Is.True);
+                    else
+                        Assert.That(projected, Does.Not.Contain(id), "私密回盒牌不得泄露给其他玩家。");
             }
         }
         [Test]
         public void ExtraCollectionLeavesPhaseNormalQualificationAndStageGoldUntouched()
         {
-            var state = State(3, out var registry); state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1;
+            var state = State(3, out var registry); CompleteEntranceForCollection(state, registry);
+            state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1;
             state.FindPlayer(1).Resources.GoldVoucher = 7; state.FindPlayer(1).ResourceCollectionStartGoldVoucher = 3; state.FindPlayer(1).HasCollectedResourcesThisRound = true;
             var node = Run(state, registry, EffectSpec.Create(ResourceCollectionEffectExecutor.TypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "scope", NormalizedValue.CreateString("extra")), 1));
-            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed)); Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
+            AnswerCollection(state, registry);
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed), node.FailureReason); Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(7)); Assert.That(state.FindPlayer(1).ResourceCollectionStartGoldVoucher, Is.EqualTo(3)); Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
             Assert.That(Value(node.ContinuationData, "collectionStartGoldVoucherAmounts").Items.Count, Is.EqualTo(3));
         }
         [Test]
         public void ExtraCollectionRewardsRealEntranceTokenAndResumesWithoutDoubleReward()
         {
-            var state = State(3, out var registry); var mainline = Mainline(state, registry);
-            Assert.That(mainline.StartEntrance(state).IsValid, Is.True);
-            while (state.Phase != GamePhase.CharacterCover)
-            {
-                var request = Open(state); Assert.That(request, Is.Not.Null);
-                Answer(state, registry, request.CandidateIds.Take(request.MinSelections).ToArray()); Assert.That(mainline.Advance(state).IsValid, Is.True);
-            }
+            var state = State(3, out var registry); CompleteEntranceForCollection(state, registry);
             state.Phase = GamePhase.ActionRound2; state.FindPlayer(1).HasCollectedResourcesThisRound = true;
             state.FindPlayer(1).ResourceCollectionStartGoldVoucher = 0;
             string location = state.FindPlayer(1).CityLocationId;
             var token = state.Map.ResourceTokens.Single(t => t.LocationId == location);
             int before = state.FindPlayer(1).Resources.Get(token.ResourceType);
             var spec = EffectSpec.Create(ResourceCollectionEffectExecutor.TypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "scope", NormalizedValue.CreateString("extra")), 1);
-            var node = Run(state, registry, spec); Assert.That(Open(state).CandidateIds, Does.Contain(location));
-            state = Restore(state, registry); Answer(state, registry, location);
+            var node = Run(state, registry, spec);
+            string scope = Text(Open(state).PromptParameters, "scopeKey");
+            Assert.That(Open(state).CandidateIds, Does.Contain(RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Location, location)));
+            state = Restore(state, registry); AnswerCollection(state, registry, location);
             Assert.That(new EffectTreeExecutor(state, registry).GetNode(node.EffectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(state.FindPlayer(1).Resources.Get(token.ResourceType), Is.EqualTo(before + token.Amount));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound2)); Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
@@ -725,7 +896,31 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(invoked.IsSuccess, Is.True, invoked.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invoked, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic);
             Assert.That(Text(specs.Single().NormalizedArguments, "player"), Is.EqualTo("1"));
-            var state = State(3, out var registry); Assert.That(Run(state, registry, specs.Single()).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            var state = State(3, out var registry); CompleteEntranceForCollection(state, registry);
+            var node = Run(state, registry, specs.Single());
+            AnswerCollection(state, registry);
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed), node.FailureReason);
+        }
+        private static void CompleteEntranceForCollection(GameState state, EffectRegistry registry)
+        {
+            var mainline = Mainline(state, registry);
+            Assert.That(mainline.StartEntrance(state).IsValid, Is.True);
+            while (state.Phase != GamePhase.CharacterCover)
+            {
+                var request = Open(state); Assert.That(request, Is.Not.Null);
+                Answer(state, registry, request.CandidateIds.Take(request.MinSelections).ToArray());
+                Assert.That(mainline.Advance(state).IsValid, Is.True);
+            }
+        }
+        private static void AnswerCollection(GameState state, EffectRegistry registry, string location = "")
+        {
+            var request = Open(state);
+            Assert.That(request.InteractionTypeId, Is.EqualTo("route_resource.selection"));
+            string scope = Text(request.PromptParameters, "scopeKey");
+            var selected = new List<string> { RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Commit) };
+            if (!string.IsNullOrEmpty(location)) selected.Add(RouteSelectionAnswerCodec.Encode(scope, RouteSelectionCandidateKind.Location, location));
+            Assert.That(request.CandidateIds, Is.SupersetOf(selected));
+            Answer(state, registry, selected.ToArray());
         }
         [Test]
         public void DeclarationPublishesCommittedFacilityInstancesAndMarkerExactlyOnce()
@@ -797,10 +992,15 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase(0)] [TestCase(-1)]
         public void BuildingNonPositiveScoreFacilityPreservesScoreBeforeEntryEffect(int expectedScore)
         {
-            var state = State(3, out var registry); state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.FindPlayer(1).Resources.GoldVoucher = 100;
+            var state = State(3, out var registry); state.Round = 1; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.FindPlayer(1).Resources.GoldVoucher = 100;
             FacilityBuildEffectExecutor.Register(registry); FacilityEntryEffectExecutor.Register(registry);
             string facilityId = state.ContentDefinitions.Facilities.First(f => f.Score == expectedScore && !f.ReserveOnly).FacilityId;
             string facilityItemId = state.ItemZones.Items.Single(i => i.DefinitionId == facilityId).ItemId;
+            // 隔离规则夹具将目标移入真实供应槽，不以此冒充正常对局覆盖。
+            string supply = FindZone(state, "facility_supply_0").ZoneId;
+            foreach (var existing in state.ItemZones.Items.Where(item => item.ZoneId == supply && item.ItemId != facilityItemId).ToList())
+                MoveFixtureItem(state, existing, FindZone(state, "facility_deck").ZoneId, string.Empty);
+            MoveFixtureItem(state, state.ItemZones.Items.Single(item => item.ItemId == facilityItemId), supply, string.Empty);
             var built = Run(state, registry, FacilityBuildEffectSpecFactory.Build(1, facilityItemId, 0, BuildFacilityService.PaymentModeGold, false, "test.non_positive_score", false));
             Assert.That(built.Status, Is.EqualTo(EffectNodeStatus.Completed).Or.EqualTo(EffectNodeStatus.Blocked), built.FailureReason);
             Assert.That(state.Map.Facilities.Any(f => f.PlayerId == 1 && f.CityBoardSlotIndex == 0 && f.FacilityCardId == facilityId), Is.True);
@@ -823,7 +1023,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static ExternalContentPack TestPack()
         {
             // 只克隆内存测试目录，不写正式manifest或正式内容文件。
-            return (ExternalContentPack)typeof(ExternalContentPack).GetMethod("CreateActiveSnapshot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Installed(), new object[] { new[] { "core" }, "" });
+            return (ExternalContentPack)typeof(ExternalContentPack).GetMethod("CreateActiveSnapshot", BindingFlags.NonPublic | BindingFlags.Instance)
+                .Invoke(Installed(), new object[] { new[] { "core" }, "", "standard", null });
         }
         [Test]
         public void HostRecoveryRejectsMissingFrozenContentAndRecipeTampering()
@@ -832,6 +1033,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             var archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
             ((JObject)archive["Snapshot"]["State"]).Remove("SetupRecipe");
             Assert.That(HostRecoveryService.RecoverJson(archive.ToString(), registry).Diagnostic, Does.Contain("content_snapshot_missing"));
+            archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
+            archive["Snapshot"]["State"]["ContentDefinitions"] = JValue.CreateNull();
+            Assert.That(HostRecoveryService.RecoverJson(archive.ToString(), registry).Diagnostic, Does.Contain("content_snapshot_missing"),
+                "正式冻结配方不能把空内容快照当成可恢复状态。");
+            archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
+            var choice = (JObject)((JArray)archive["Snapshot"]["State"]["ContentDefinitions"]["Events"])
+                .SelectMany(card => (JArray)card["Choices"]).First();
+            choice.Remove("ChoiceId");
+            Assert.That(HostRecoveryService.RecoverJson(archive.ToString(), registry).Diagnostic, Does.Contain("event_choice_v1:raw_fields_missing"),
+                "事件身份缺失仍必须拒绝恢复。");
             archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
             archive["Snapshot"]["State"]["SetupRecipe"]["OperatorDrawCount"] = 99;
             Assert.That(HostRecoveryService.RecoverJson(archive.ToString(), registry).Diagnostic, Does.Contain("setup_recipe_restore_mismatch"));
@@ -842,7 +1053,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var pack = TestPack(); var manifest = pack.Manifest; manifest["requiredCapabilities"] = new JArray("missing.rules.v1"); typeof(ExternalContentPack).GetProperty("Manifest").SetValue(pack, manifest);
             Assert.That(() => ActiveContentCatalogBuilder.Build(pack, Configuration()), Throws.InvalidOperationException.With.Message.EqualTo("content_not_ready"));
             pack = TestPack(); manifest = pack.Manifest;
-            manifest["expansionDependencies"] = new JArray(new JObject { ["expansionId"] = "enterprise", ["requires"] = new JArray("core"), ["conflicts"] = new JArray("core") }); typeof(ExternalContentPack).GetProperty("Manifest").SetValue(pack, manifest);
+            ((JArray)manifest["expansionDependencies"]).OfType<JObject>().Single(item => (string)item["expansionId"] == "enterprise")["conflicts"] = new JArray("core"); typeof(ExternalContentPack).GetProperty("Manifest").SetValue(pack, manifest);
             Assert.That(() => ActiveContentCatalogBuilder.Build(pack, Configuration(3, "core", "enterprise")), Throws.InvalidOperationException.With.Message.EqualTo("expansion_conflict"));
         }
         private static void AddReplacement(ExternalContentPack pack, string id, bool enabled = true, bool changeRules = true)
@@ -850,7 +1061,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = pack.Definitions.Single(d => d.DefinitionId == "event_red_03");
             var leaf = JsonConvert.DeserializeObject<ExternalContentDefinition>(JsonConvert.SerializeObject(source)); leaf.DefinitionId = id; leaf.Enabled = enabled;
             leaf.Replaces = new ExternalReplacementReference { DefinitionId = "event_red_03", ContentType = "event", ExpansionId = "core" };
-            if (changeRules) leaf.Data["choiceRewards"][1]["goldVoucher"] = 9;
+            if (changeRules) leaf.Data["resourceAmount"] = 2;
             ((List<ExternalContentDefinition>)typeof(ExternalContentPack).GetField("definitions", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(pack)).Add(leaf);
         }
         [Test]
@@ -859,7 +1070,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var pack = TestPack(); AddReplacement(pack, "test.event.replacement"); var catalog = ActiveContentCatalogBuilder.Build(pack, Configuration());
             Assert.That(catalog.Definitions.Single(d => d.RuntimeId == "event_red_03").DefinitionId, Is.EqualTo("test.event.replacement"));
             Assert.That(catalog.SetupRecipe.Entries.Any(e => e.DefinitionId == "test.event.replacement"), Is.True);
-            Assert.That(catalog.ContentDefinitions.Events.Single(e => e.CardId == "test.event.replacement").ChoiceRewards[1].GoldVoucher, Is.EqualTo(9));
+            Assert.That(catalog.ContentDefinitions.Events.Single(e => e.CardId == "test.event.replacement").ResourceAmount, Is.EqualTo(2));
         }
         [Test]
         public void DisabledReplacementDoesNotChangeFingerprintOrSubscribe()

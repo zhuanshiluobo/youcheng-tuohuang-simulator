@@ -20,11 +20,35 @@ namespace YC.Infrastructure.Multiplayer
         private readonly System.Threading.SynchronizationContext mainContext = System.Threading.SynchronizationContext.Current;
         private static string OperatorIdentity(string name)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            // 多进程验收显式指定一次性身份时，不读写用户的 PlayerPrefs。
+            var fixture = ReadFixtureOperatorIdentity(Environment.GetCommandLineArgs());
+            if (fixture != null) return fixture;
+#endif
             var key = "YC.LocalTestIdentity." + name;
             var value = UnityEngine.PlayerPrefs.GetString(key, "");
             if (string.IsNullOrEmpty(value)) { value = Guid.NewGuid().ToString("N"); UnityEngine.PlayerPrefs.SetString(key, value); UnityEngine.PlayerPrefs.Save(); }
             return value;
         }
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        private static string ReadFixtureOperatorIdentity(string[] arguments)
+        {
+            const string prefix = "--yc-test-operator-id=";
+            string identity = null;
+            bool localTest = false;
+            foreach (var argument in arguments ?? Array.Empty<string>())
+            {
+                if (string.Equals(argument, LocalMirrorTestMode.CommandLineArgument, StringComparison.Ordinal)) localTest = true;
+                if (argument == null || !argument.StartsWith(prefix, StringComparison.Ordinal)) continue;
+                if (identity != null) throw new InvalidOperationException("测试身份参数重复。");
+                identity = argument.Substring(prefix.Length);
+            }
+            if (identity == null) return null;
+            if (!localTest || !Guid.TryParseExact(identity, "N", out var parsed))
+                throw new InvalidOperationException("隔离测试身份只允许在本地联机测试中使用 32 位十六进制 GUID。");
+            return parsed.ToString("N");
+        }
+#endif
         public Task<RoomState> CreateResumeRoomAsync(ResumeRoomOptions options)
         {
             options.Validate();

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "version": "official.preparation.v1",
+  "modes": [
+    {
+      "modeId": "standard",
+      "requires": ["core"],
+      "excludes": ["enterprise"],
+      "preparation": { "version": 1 }
+    },
+    {
+      "modeId": "standard",
+      "requires": ["enterprise"],
+      "preparation": {
+        "version": 1,
+        "enterprise": {
+          "pool": { "kind": "all" },
+          "playerCounts": [
+            { "playerCount": 2, "draw": 4, "keep": 2, "finalCount": 4 },
+            { "playerCount": 3, "draw": 2, "keep": 1, "extraRandom": 1, "finalCount": 4 },
+            { "playerCount": 4, "draw": 2, "keep": 1, "finalCount": 4 }
+          ]
+        }
+      }
+    },
+    {
+      "modeId": "entrepreneur",
+      "requires": ["enterprise", "infected"],
+      "preparation": {
+        "version": 1,
+        "betweenDistributionAndConfirmation": [
+          {
+            "stepId": "entrepreneur",
+            "sourcePackId": "core",
+            "sourcePackVersion": "2.2.2",
+            "kind": "builtin",
+            "handlerId": "core.preparation.entrepreneur",
+            "handlerVersion": "1.0.0",
+            "execution": "once"
+          }
+        ],
+        "enterprise": {
+          "pool": { "kind": "all" },
+          "playerCounts": [
+            { "playerCount": 2, "draw": 4, "keep": 2, "finalCount": 4 },
+            { "playerCount": 3, "draw": 2, "keep": 1, "extraRandom": 1, "finalCount": 4 },
+            { "playerCount": 4, "draw": 2, "keep": 1, "finalCount": 4 }
+          ]
+        }
+      }
+    }
+  ]
+}

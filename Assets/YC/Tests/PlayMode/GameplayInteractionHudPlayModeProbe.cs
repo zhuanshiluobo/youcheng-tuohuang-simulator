@@ -100,21 +100,19 @@ namespace YC.Tests.PlayMode
 
             var eventChoiceCount = 0;
             var eventDialog = new EventChoiceDialog(hud.DialogRegistry, () => canvas);
-            eventDialog.ShowEventCardOptions(
+            eventDialog.ShowEventCardOptionsWithStableIds(
                 new EventCardDefinition
                 {
                     CardId = "play-probe-event",
                     Name = "Event Play Probe",
                     Description = "EventChoiceDialog runtime prefab probe",
-                    ChoiceDescriptions = new List<string> { "Choose" },
-                    ChoiceRewards = new List<ResourceSet> { new ResourceSet() }
+                    EventChoiceSchemaVersion = 1,
+                    Choices = new List<EventCardChoice> { new EventCardChoice {
+                        ChoiceId = "probe", Description = "Choose", Script = "probe.lua", Version = "1",
+                        Button = new EventCardChoiceButton { TopPercent = 0, BottomPercent = 100 } } }
                 },
                 "Play Probe",
-                Array.Empty<ExplorePaymentChoice>(),
-                new Dictionary<string, int>(),
-                playerId => playerId.ToString(),
-                _ => eventChoiceCount++,
-                null);
+                _ => eventChoiceCount++);
             var eventView = RequireActiveDialog<EventChoiceDialogView>(
                 pageRoot,
                 "Event Choice Overlay");

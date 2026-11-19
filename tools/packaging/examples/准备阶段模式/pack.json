@@ -1,0 +1,36 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.preparation",
+  "version": "1.0.0",
+  "displayName": "准备阶段模式示例",
+  "author": "游城拓荒",
+  "description": "演示准备阶段按玩家顺序执行现有效果。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "diy.rule_modes.v1", "diy.preparation_flow.v1", "diy.multi_rule_modes.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "ruleModes": [{
+    "modeId": "example.preparation.mode",
+    "displayName": "准备阶段模式示例",
+    "description": "准备阶段每位玩家获得 1 异铁。",
+    "requires": ["core"],
+    "preparationOrder": 10,
+    "applicableMapIds": ["map-three-players", "map-four-players"],
+    "setupRecipeRefs": [{"packId": "core", "recipeId": "standard"}],
+    "preparation": {
+      "version": 1,
+      "beforeDistribution": [{
+        "stepId": "example.preparation.start_iron",
+        "sourcePackId": "example.preparation",
+        "sourcePackVersion": "1.0.0",
+        "kind": "lua",
+        "handlerId": "example.preparation.start_iron",
+        "handlerVersion": "1.0.0",
+        "execution": "eachInOrder",
+        "script": "lua/start-iron.lua"
+      }]
+    }
+  }],
+  "definitions": [],
+  "setupRecipes": []
+}

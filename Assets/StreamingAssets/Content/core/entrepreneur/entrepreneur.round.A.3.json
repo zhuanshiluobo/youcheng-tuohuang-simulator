@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.round_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [],
   "tags": [
     "entrepreneur-official"
@@ -105,7 +103,6 @@
           "usageTrackId": "entrepreneur.A06.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "entrepreneur.A05.call.A06",
           "sortOrder": 0,
           "presentationRef": "entrepreneur.A06.tactic",
           "presentation": {
@@ -136,7 +133,6 @@
           "usageTrackId": "entrepreneur.A06.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 1,
           "presentationRef": "entrepreneur.A06.tactic",
           "presentation": {
@@ -188,7 +184,6 @@
           "usageTrackId": "entrepreneur.A07.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "entrepreneur.A05.call.A07",
           "sortOrder": 0,
           "presentationRef": "entrepreneur.A07.tactic",
           "presentation": {
@@ -219,7 +214,6 @@
           "usageTrackId": "entrepreneur.A07.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 1,
           "presentationRef": "entrepreneur.A07.tactic",
           "presentation": {
@@ -258,12 +252,14 @@
         "InfluenceRemoved"
       ],
       "queryKinds": [],
-      "allowedOperations": [
-        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
-        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker",
+      "responseKinds": [
         "response.optional_effect",
         "response.batch",
         "response.self"
+      ],
+      "allowedOperations": [
+        "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
       ],
       "presentationRef": "entrepreneur.A06.departure",
       "actions": []
@@ -453,7 +449,6 @@
       "completionHandlerId": ""
     }
   ],
-  "actionCallPolicies": [],
   "cardZones": [
     {
       "localZoneId": "tactic_A06",

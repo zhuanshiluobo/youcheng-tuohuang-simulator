@@ -110,7 +110,7 @@
   },
   {
     "package": "Card-Picker-UI-v1.zip",
-    "version": "1.0其余六图；次按钮独立2.0替换",
+    "version": "1.0其余五图；次按钮2.0、选中框FX01替换",
     "sha256": "3d9cc4d45c17ae0dbcb93c1a6cea9ac686e0f8e48d72de38c39a1767b5e87190",
     "members": 11,
     "category": "多卡选择",
@@ -120,7 +120,8 @@
     ],
     "notes": [
       "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
-      "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
+      "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+      "2026-11-17 用户要求清除已由 SelectionFX 接管的旧选中贴图；CardPicker 旧选中框没有其他有效用途，退出可用候选。"
     ]
   },
   {
@@ -317,5 +318,73 @@
       "只登记可用素材与接入参数，本次未导入Unity、未改场景/Prefab、未执行游戏视觉验收。"
     ],
     "registeredAt": "2026-10-23"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "version": "未标版本；包内验证记录日期2026-11-13",
+    "sha256": "01ee85d521a7b7a8cb1971c89dcdab6dc0946b5d94f996c1e65f0e0f5819f8db",
+    "members": 8,
+    "category": "程序化选择状态组件",
+    "documents": [
+      "文档/SelectionFX程序化选择效果登记.md",
+      "文档/原始说明/NoMadCity-Unity-SelectionFX/README.zh-CN.md"
+    ],
+    "notes": [
+      "这是程序化UGUI组件包，没有PNG、原卡图、独立勾/锁贴图或预制体。",
+      "限定五类对象选中态采用 SelectionFX，按用户要求清除对应旧选中框；其他用途保持。",
+      "原说明中的安装、生成对照对象、徽标、键盘导航和不可选点击逻辑不是本次入库的执行指令；当前场景/Prefab及游戏规则保持其所有权。",
+      "包内源码保持原字节，148项离线检查已复跑；不代表C#/Shader编译、PlayMode、渲染或正常流程验收。"
+    ],
+    "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX.zip",
+    "registeredAt": "2026-11-16"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX (1).zip",
+    "version": "未标版本，用户指定 Shader 修正版",
+    "sha256": "7435a4c300aa85b412ebcea15b223d6fcd89de9163dd67f7928cff84175b1b49",
+    "members": 1,
+    "category": "仅登记并读取授权的 Shader 成员",
+    "documents": [
+      "文档/SelectionFX程序化选择效果登记.md"
+    ],
+    "notes": [
+      "仅导入指定的 Shader；其余包成员未替换。"
+    ],
+    "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX (1).zip",
+    "registeredAt": "2026-11-16"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "version": "v3",
+    "sha256": "28b9de92f0247ce08d4df4f845661c72691e101f2e045e3ab2c7897bb15596bc",
+    "members": 8,
+    "category": "程序化选择状态组件版本更新",
+    "documents": [
+      "文档/原始说明/NoMadCity-Unity-SelectionFX-v3/README.zh-CN.md",
+      "文档/SelectionFX程序化选择效果登记.md"
+    ],
+    "notes": [
+      "用户指定按 v3 更新脚本并保留项目原有 meta。",
+      "演示脚本只复制，禁止普通验证自动运行；不挂接正式界面。"
+    ],
+    "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX-v3.zip",
+    "registeredAt": "2026-11-16"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+    "version": "v8",
+    "sha256": "ea0cbc4de8cc32758aea07384bf384cacb44d172163e7bc83eaffd615c0e6fee",
+    "members": 10,
+    "category": "程序化选择状态组件版本更新",
+    "documents": [
+      "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md",
+      "文档/SelectionFX程序化选择效果登记.md"
+    ],
+    "notes": [
+      "用户指定完整更新代码并保留项目原有 meta。",
+      "演示及对齐工具不在普通测试中运行。"
+    ],
+    "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX-v8.zip",
+    "registeredAt": "2026-11-16"
   }
 ]

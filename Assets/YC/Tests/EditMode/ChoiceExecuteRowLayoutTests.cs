@@ -6,13 +6,42 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Newtonsoft.Json.Linq;
+using YC.Application.Presentation;
 using YC.Domain.Presentation;
+using YC.Domain.State;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
     public sealed class ChoiceExecuteRowLayoutTests
     {
         private const string SourcePath = "Assets/YC/Presentation/Effects/Prefabs/EffectRow.prefab";
+
+        [Test]
+        public void LargeEnterpriseParkActionDoesNotShrinkForEmptyCostAndAfterSections()
+        {
+            string core=Path.Combine(Environment.CurrentDirectory,"Assets/StreamingAssets/Content/core");
+            var definition=JObject.Parse(File.ReadAllText(Path.Combine(core,"city_style/city_style_large_enterprise_park.json")));
+            string description=(string)definition["data"]["specialAction"]["description"];
+            var catalog=ExternalContentPack.Load(core).Presentation;
+            var reference=new GameplayTextRef("core:interaction.special.action_details",
+                new GameplayTextArgument{Name="cost",Kind="text",Value=NormalizedValue.CreateString("")},
+                new GameplayTextArgument{Name="body",Kind="text",Value=NormalizedValue.CreateString(description)},
+                new GameplayTextArgument{Name="after",Kind="text",Value=NormalizedValue.CreateString("")});
+            var document=new GameplayTextResolver(catalog).Resolve(reference,new GameplayTextContext{Catalog=catalog});
+            Assert.That(document.ToPlainText(),Is.EqualTo(description));
+            using(var fixture=new RowFixture(900))
+            {
+                int baseSize=fixture.Body.fontSize;
+                fixture.Bind("ChoiceExecute",(string)definition["displayName"],description);
+                var host=fixture.BindDocument(fixture.Body,document);
+                fixture.Settle();
+                bool fitsAtBase=(bool)host.GetType().GetMethod("FitsAtFontSize").Invoke(host,new object[]{baseSize});
+                if(fitsAtBase)Assert.That(fixture.Body.fontSize,Is.EqualTo(baseSize));
+                Assert.That((bool)host.GetType().GetMethod("FitsAtFontSize").Invoke(host,new object[]{fixture.Body.fontSize}),Is.True);
+            }
+        }
 
         [TestCase(360f)] [TestCase(900f)]
         public void ExecuteRowsAllocateHorizontallyAndFitBodyWithoutShrinkingShortTitle(float width)
@@ -151,6 +180,72 @@ namespace YC.Tests.EditMode
                 Assert.That(fixture.Title.GetComponentsInChildren<Image>().Any(image => image.gameObject.activeSelf), Is.False);
                 Assert.That(fixture.Title.rectTransform.rect.width, Is.Zero.Within(.1f));
             }
+        }
+
+        [Test]
+        public void FoldedExecutionDocumentKeepsItsIconsOnlyForTheSameRequest()
+        {
+            var canvas = new GameObject("效果页收起夹具", typeof(RectTransform), typeof(Canvas));
+            var hud = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab"), canvas.transform, false);
+            var frameType = Type.GetType("YC.Presentation.GameplayHudFrame, Assembly-CSharp", true);
+            var frame = hud.GetComponentInChildren(frameType, true);
+            var shell = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/EffectDialogShell.prefab"),
+                ((Component)frame).transform, false);
+            try
+            {
+                if (!ReferenceEquals(frameType.GetProperty("Active").GetValue(null), frame))
+                    frameType.GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(frame, null);
+                frameType.GetMethod("SetRequest").Invoke(frame, new object[] { "fixture.choice", 12 });
+                frameType.GetMethod("ShowPage").Invoke(frame, new object[] { shell, true });
+                var rowObject = UnityEngine.Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(SourcePath), shell.transform, false);
+                var rowType = Type.GetType("YC.Presentation.UiEffectRowView, Assembly-CSharp", true);
+                var row = rowObject.GetComponent(rowType);
+                var bindingType = rowType.GetNestedType("Binding");
+                var binding = Activator.CreateInstance(bindingType);
+                bindingType.GetField("StableItemId").SetValue(binding, "fixture.option");
+                bindingType.GetField("RequestId").SetValue(binding, "fixture.choice");
+                bindingType.GetField("Revision").SetValue(binding, 12);
+                bindingType.GetField("RowMode").SetValue(binding, Enum.Parse(rowType.GetNestedType("Mode"), "ChoiceExecute"));
+                bindingType.GetField("Title").SetValue(binding, "候选");
+                rowType.GetMethod("Bind", new[] { bindingType, typeof(Func<string, int, bool>), typeof(Action<string>), typeof(Action<string>) })
+                    .Invoke(row, new object[] { binding, new Func<string, int, bool>((_, __) => true), null, new Action<string>(_ => { }) });
+                var body = (Text)rowType.GetProperty("DescriptionText").GetValue(row);
+                var textType = Type.GetType("YC.Presentation.GameplayTextView, Assembly-CSharp", true);
+                var rich = body.GetComponent(textType);
+                var style = AssetDatabase.LoadAssetAtPath("Assets/YC/Presentation/Text/Content/GameplayTextStyle.asset",
+                    Type.GetType("YC.Presentation.GameplayTextStyle, Assembly-CSharp", true));
+                var icons = AssetDatabase.LoadAssetAtPath("Assets/YC/Presentation/Text/Content/GameplayIconCatalog.asset",
+                    Type.GetType("YC.Presentation.GameplayIconCatalog, Assembly-CSharp", true));
+                textType.GetMethod("Configure").Invoke(rich, new object[] { body, style, icons, new ScoreCatalog() });
+                var document = new GameplayTextDocument(new GameplayTextRun[] {
+                    new TextRun("获得", new GameplayTextRunStyle()), new IconRun("core:resource.score", "分", 2) }, "folded-choice-fixture");
+                var shellType = Type.GetType("YC.Presentation.EffectDialogShell, Assembly-CSharp", true);
+                var render = shellType.GetMethod("RenderEffectRowDocument", BindingFlags.Static | BindingFlags.NonPublic);
+                Action<Component, GameplayTextDocument, bool> bind = (host, value, _) => textType.GetMethod("Bind").Invoke(host, new object[] { value });
+                render.Invoke(null, new object[] { body, document, bind });
+                Canvas.ForceUpdateCanvases();
+                Assert.That((bool)textType.GetProperty("HasDocument").GetValue(rich), Is.True);
+                frameType.GetMethod("SuspendEffectForInformation").Invoke(frame, null);
+                // EditMode 不保证自动触发普通 MonoBehaviour 的启停回调，显式执行同一组件生命周期。
+                textType.GetMethod("OnDisable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(rich, null);
+                Assert.That(shell.activeInHierarchy, Is.False);
+                Assert.That((bool)textType.GetProperty("HasDocument").GetValue(rich), Is.True);
+                frameType.GetMethod("ResumeEffectPage").Invoke(frame, null);
+                textType.GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(rich, null);
+                Canvas.ForceUpdateCanvases(); Canvas.ForceUpdateCanvases();
+                Assert.That((bool)textType.GetProperty("HasDocument").GetValue(rich), Is.True);
+                Assert.That(body.GetComponentsInChildren<Image>(true).Any(image => image.gameObject.activeInHierarchy && image.sprite != null), Is.True);
+                frameType.GetMethod("SuspendEffectForInformation").Invoke(frame, null);
+                textType.GetMethod("OnDisable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(rich, null);
+                frameType.GetMethod("SetRequest").Invoke(frame, new object[] { "fixture.next", 13 });
+                frameType.GetMethod("ShowPage").Invoke(frame, new object[] { shell, true });
+                textType.GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(rich, null);
+                Canvas.ForceUpdateCanvases();
+                Assert.That((bool)textType.GetProperty("HasDocument").GetValue(rich), Is.False, "换请求后不能复用旧图文。");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(canvas); }
         }
 
         [Test]

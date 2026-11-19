@@ -1,0 +1,26 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.cleanup",
+  "version": "1.0.0",
+  "displayName": "收尾规则示例",
+  "author": "游城拓荒",
+  "description": "演示在玩家收尾时通过现有效果获得一分。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "diy.rule_bindings.cleanup.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "expansions": [{
+    "expansionId": "example.cleanup.rules",
+    "displayName": "收尾得分示例",
+    "description": "玩家收尾时获得一分。",
+    "requires": ["core"],
+    "ruleBindings": [{
+      "bindingId": "example.cleanup.score",
+      "eventType": "PlayerCleanupStarted",
+      "script": "lua/cleanup.lua",
+      "version": "1.0.0"
+    }]
+  }],
+  "definitions": [],
+  "setupRecipes": []
+}

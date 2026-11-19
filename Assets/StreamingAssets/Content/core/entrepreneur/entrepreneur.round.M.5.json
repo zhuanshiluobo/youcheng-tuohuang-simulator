@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.round_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [],
   "tags": [
     "entrepreneur-official"
@@ -103,7 +101,6 @@
           "usageTrackId": "usage.entrepreneur.M.5",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 509,
           "presentationRef": "entrepreneur.face.M09",
           "presentation": {
@@ -163,7 +160,6 @@
           "usageTrackId": "usage.entrepreneur.M.5",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 510,
           "presentationRef": "entrepreneur.face.M10",
           "presentation": {

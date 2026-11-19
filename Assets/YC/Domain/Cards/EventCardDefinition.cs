@@ -252,6 +252,31 @@ namespace YC.Domain.Cards
     }
 
     [Serializable]
+    public sealed class EventCardChoiceButton
+    {
+        public double TopPercent;
+        public double BottomPercent;
+    }
+
+    [Serializable]
+    public sealed class EventCardChoice
+    {
+        public string ChoiceId = string.Empty;
+        public string Description = string.Empty;
+        public EventCardChoiceButton Button;
+        public string Script = string.Empty;
+        public string Version = string.Empty;
+        public string CompletionHandlerId = string.Empty;
+    }
+
+    [Serializable]
+    public sealed class EventCardImmediateResolve
+    {
+        public string Script = string.Empty;
+        public string Version = string.Empty;
+    }
+
+    [Serializable]
     public sealed class EventCardDefinition
     {
         public string CardId = string.Empty;
@@ -262,6 +287,9 @@ namespace YC.Domain.Cards
         public int ResourceAmount = 1;
         public ResourceType RepresentativeResourceType;
         public int RepresentativeResourceAmount = 1;
+        public int EventChoiceSchemaVersion;
+        public List<EventCardChoice> Choices = new List<EventCardChoice>();
+        public EventCardImmediateResolve ImmediateResolve;
         public List<string> ChoiceDescriptions = new List<string>();
         public List<ResourceSet> ChoiceRewards = new List<ResourceSet>();
         public List<List<EventEffect>> ChoicePendingEffects = new List<List<EventEffect>>();

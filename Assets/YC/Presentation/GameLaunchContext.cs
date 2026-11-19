@@ -19,7 +19,18 @@ namespace YC.Presentation
         public string GameId = string.Empty;
         public int EventDeckSeed;
         public GameplayRandomState InitialRandomState;
+        [NonSerialized] private GameplayRandomState hostPrivateInitialRandomState;
         public bool RandomReady => GameplayRandomRuntime.TryValidate(InitialRandomState, GameId, EventDeckSeed, out _);
+        internal GameplayRandomState GetOrCreateHostPrivateRandom()
+        {
+            if (Mode != LaunchMode.Host || !RandomReady || string.IsNullOrWhiteSpace(GameId))
+                throw new InvalidOperationException("private_random_host_context_invalid");
+            if (hostPrivateInitialRandomState == null) hostPrivateInitialRandomState = GameplayRandomRuntime.CreatePrivate(GameId);
+            if (hostPrivateInitialRandomState.GameId != GameId ||
+                !GameplayRandomRuntime.TryValidate(hostPrivateInitialRandomState, GameId, EventDeckSeed, out _))
+                throw new InvalidOperationException("private_random_host_context_invalid");
+            return hostPrivateInitialRandomState.Clone();
+        }
         public List<PlayerSeat> Players = new List<PlayerSeat>();
         public List<int> LaunchPlayerOrder = new List<int>();
         public YC.Domain.Rules.GameRuleConfiguration RuleConfiguration;
@@ -41,6 +52,8 @@ namespace YC.Presentation
             room.Resume.Validate();
             if (!room.HasStarted || mode == LaunchMode.Host && (data == null || data.GameId != room.Resume.GameId) ||
                 mode != LaunchMode.Host && mode != LaunchMode.Client) throw new InvalidOperationException("续局启动上下文无效。");
+            if (mode == LaunchMode.Host && room.Resume.IsPrivate && !room.Resume.MatchesPrivateSave(data))
+                throw new InvalidOperationException("私密续局房间与房主存档不匹配。");
             GameId = string.Empty;
             Configure(mode, playerId, room.RoomId, room.Seats, room.Configuration, room.LaunchPlayerOrder,
                 room.GameId, room.EventDeckSeed, room.RandomRuntime);
@@ -104,7 +117,7 @@ namespace YC.Presentation
         public void ConfigureNewLocal(int localPlayerId, string roomId, IList<PlayerSeat> players,
             GameRuleConfiguration configuration, int? explicitSeed = null, IReadOnlyList<int> explicitOrder = null)
         {
-            if (configuration == null || !configuration.TryValidate(out _)) throw new InvalidOperationException("room_protocol_mismatch");
+            if (configuration == null || !ValidateConfiguration(configuration, out _)) throw new InvalidOperationException("room_protocol_mismatch");
             var ids = players == null || players.Count == 0 ? new List<int> { localPlayerId } : players.Select(p => p.PlayerId).ToList();
             if (ids.Count != configuration.PlayerCount || ids.Any(id => id <= 0) || ids.Distinct().Count() != ids.Count)
                 throw new InvalidOperationException("unsupported_player_count");
@@ -119,6 +132,8 @@ namespace YC.Presentation
         public void Configure(LaunchMode mode, int localPlayerId, string roomId, IList<PlayerSeat> players,
             GameRuleConfiguration configuration, IReadOnlyList<int> launchPlayerOrder, string gameId, int seed, GameplayRandomState initialRandomState)
         {
+            if (mode != LaunchMode.Local && initialRandomState?.AlgorithmVersion == GameplayRandomRuntime.PrivateAlgorithmVersion)
+                throw new InvalidOperationException("private_random_must_not_enter_room_context");
             if (!GameplayRandomRuntime.TryValidate(initialRandomState, gameId, seed, out var randomReason))
                 throw new InvalidOperationException(randomReason);
             if (GameId == gameId)
@@ -133,7 +148,7 @@ namespace YC.Presentation
                 return;
             }
             if (configuration == null) throw new InvalidOperationException("room_protocol_mismatch");
-            if (!configuration.TryValidate(out var reason)) throw new InvalidOperationException(reason);
+            if (!ValidateConfiguration(configuration, out var reason)) throw new InvalidOperationException(reason);
             if (configuration.PlayerCount != (players == null || players.Count == 0 ? 1 : players.Count))
                 throw new InvalidOperationException("unsupported_player_count");
             if (launchPlayerOrder != null && !YC.Domain.Rules.TurnOrderService.IsValidPlayerOrder(
@@ -141,6 +156,7 @@ namespace YC.Presentation
                 throw new InvalidOperationException("launch_player_order_invalid");
             if (launchPlayerOrder == null) throw new InvalidOperationException("launch_player_order_invalid");
             MatchSaveController.Instance?.Unbind();
+            hostPrivateInitialRandomState = null;
             GameId = gameId;
             ClearRestore();
             EventDeckSeed = seed;
@@ -179,6 +195,19 @@ namespace YC.Presentation
                 if (subscribedRoomService != null)
                     subscribedRoomService.LobbyJoinRequested += OnLobbyJoinRequested;
             }
+        }
+
+        private static bool ValidateConfiguration(GameRuleConfiguration configuration, out string reason)
+        {
+            if (configuration?.LockedContentPacks == null || configuration.LockedContentPacks.Count == 0)
+            {
+                if (configuration == null) { reason = "room_protocol_mismatch"; return false; }
+                if (configuration.TryValidate(out reason)) return true;
+                if (!configuration.TryValidateStructure(out reason)) return false;
+                return OnlineRoomServiceProvider.ContentCapabilities.TryValidate(configuration, out reason);
+            }
+            if (!configuration.TryValidateFrozenShape(out reason)) return false;
+            return OnlineRoomServiceProvider.ContentCapabilities.TryValidate(configuration, out reason);
         }
 
         private void OnDestroy()
@@ -280,6 +309,8 @@ namespace YC.Presentation
 
         public static void ShutdownOnlineSession()
         {
+            // 未交接的本地读档结果可能仍持有完整对局；离局或加载失败返回时一起释放。
+            MatchSaveController.Instance?.ClearPreparedLocalRestore();
             MatchSaveController.Instance?.Unbind();
             Instance?.ClearRestore();
             if (Instance != null)
@@ -296,6 +327,7 @@ namespace YC.Presentation
                 Instance.GameId = string.Empty;
                 Instance.EventDeckSeed = 0;
                 Instance.InitialRandomState = null;
+                Instance.hostPrivateInitialRandomState = null;
                 Instance.Players.Clear();
                 Instance.LaunchPlayerOrder.Clear();
                 Instance.RuleConfiguration = null;

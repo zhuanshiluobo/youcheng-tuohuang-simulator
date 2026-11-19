@@ -13,28 +13,30 @@ namespace YC.Domain.Cards
     public static class OperatorDispatchFlow
     {
         public const string TypeId = "effect.operator.dispatch", ReplaceTypeId = "effect.operator.replace_hand";
+        public const string DefinitionVersion = "2.1.0";
+        public const string StartingEvent = "OperatorDispatchStarting";
+        public const int MaximumDrawCount = 99;
         public static void Register(EffectRegistry registry)
         {
-            if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, context => { CharacterLifecycleService.ResumeDeferredDependencies(context); return Execute(context); }, EffectExecutorKind.IntrinsicFlow));
+            if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, context => { CharacterLifecycleService.ResumeDeferredDependencies(context); return Execute(context); }, EffectExecutorKind.IntrinsicFlow, DefinitionVersion)
+                { Validator = spec => ValidateArguments(TypeId, spec.NormalizedArguments) });
             if (!registry.TryGet(ReplaceTypeId, out _)) registry.Register(new EffectRegistration(ReplaceTypeId, context => { CharacterLifecycleService.ResumeDeferredDependencies(context); return ReplaceHand(context); }, EffectExecutorKind.IntrinsicFlow));
         }
-        public static int GetDrawCount(GameState state) => state.RuleConfiguration?.EnabledExpansionIds.Contains("infected") == true || state.Players.Count == 2 ? 3 : 2;
-        public static EffectSpec CreateSpec(GameState state, int player, IEnumerable<string> excludedReturnItemIds = null, IEnumerable<string> allowedReturnZoneIds = null) =>
-            CreateSpec(player, GetDrawCount(state), excludedReturnItemIds, allowedReturnZoneIds);
-        public static EffectSpec CreateSpec(int player, int drawCount, IEnumerable<string> excludedReturnItemIds = null, IEnumerable<string> allowedReturnZoneIds = null)
+        public static int GetDrawCount(GameState state) => state.SetupRecipe?.OperatorDrawCount ?? 0;
+        public static EffectSpec CreateSpec(int player, string deckZoneId, IEnumerable<string> excludedReturnItemIds = null, IEnumerable<string> allowedReturnZoneIds = null)
         {
-            var args = Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)), "drawCount", NormalizedValue.CreateInteger(drawCount), "excludedReturnItemIds", Strings(excludedReturnItemIds ?? Array.Empty<string>()));
+            var args = Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString(player.ToString(CultureInfo.InvariantCulture)), "deckZoneId", NormalizedValue.CreateString(deckZoneId), "excludedReturnItemIds", Strings(excludedReturnItemIds ?? Array.Empty<string>()));
             if (allowedReturnZoneIds != null) args.Properties.Add(new NormalizedValueEntry { Name = "allowedReturnZoneIds", Value = Strings(allowedReturnZoneIds) });
             args.Properties.Sort((left, right) => StringComparer.Ordinal.Compare(left.Name, right.Name));
             var spec = EffectSpec.Create(TypeId, args, player); spec.Visibility = GameStateVisibilityPolicy.Owner; return spec;
         }
         public static string ValidateArguments(string typeId, NormalizedValue args)
         {
-            string[] keys = typeId == ReplaceTypeId ? new[] { "apiVersion", "player" } : new[] { "apiVersion", "player", "drawCount", "excludedReturnItemIds", "allowedReturnZoneIds" };
+            string[] keys = typeId == ReplaceTypeId ? new[] { "apiVersion", "player" } : new[] { "apiVersion", "player", "deckZoneId", "excludedReturnItemIds", "allowedReturnZoneIds" };
             if (args?.Kind != NormalizedValueKind.Object || args.Properties.Any(entry => entry.Name != "kind" && entry.Name != "effectTypeId" && !keys.Contains(entry.Name)) ||
-                Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Number(args, "apiVersion") != 1 || CharacterLifecycleService.ParsePlayer(Text(args, "player")) < 1) return "dispatch_arguments_invalid";
+                Value(args, "apiVersion")?.Kind != NormalizedValueKind.Integer || Number(args, "apiVersion") != (typeId == TypeId ? 2 : 1) || CharacterLifecycleService.ParsePlayer(Text(args, "player")) < 1) return "dispatch_arguments_invalid";
             if (typeId == ReplaceTypeId) return "";
-            if (Value(args, "drawCount")?.Kind != NormalizedValueKind.Integer || Number(args, "drawCount") != 2 && Number(args, "drawCount") != 3) return "dispatch_draw_count_invalid";
+            if (Value(args, "deckZoneId")?.Kind != NormalizedValueKind.String || string.IsNullOrWhiteSpace(Text(args, "deckZoneId"))) return "dispatch_deck_required";
             foreach (string key in new[] { "excludedReturnItemIds", "allowedReturnZoneIds" })
             {
                 var value = Value(args, key);
@@ -50,13 +52,33 @@ namespace YC.Domain.Cards
             if (CharacterLifecycleService.ParsePlayer(Text(context.Node.NormalizedArguments, "player")) != context.Node.PlayerId) return EffectStepResult.Failed("invalid_player");
             if (context.ChildNodes.Any(child => child.Status == EffectNodeStatus.Failed)) return EffectStepResult.Failed("dispatch_child_failed");
             var state = context.State; var node = context.Node; int player = node.PlayerId;
-            var deck = FindZone(state, "operator_deck");
+            var deck = new ItemZoneQuery().FindZone(state, Text(node.NormalizedArguments, "deckZoneId"));
+            if (!ValidDeck(state, deck, player)) return EffectStepResult.Failed("dispatch_deck_invalid");
             string stage = node.FlowStage;
-            if (stage == "" || stage == "draw_candidates")
+            if (stage == "")
             {
-                int drawCount = YC.Domain.Rules.InfectedRoundRules.IsEnabled(state) ? 3 : Number(node.NormalizedArguments, "drawCount");
+                int configured = GetDrawCount(state);
+                if (configured < 1 || configured > MaximumDrawCount) return EffectStepResult.Failed("dispatch_configured_draw_count_invalid");
+                var payload = Object("dispatchEffectId", NormalizedValue.CreateString(node.EffectId), "playerId", NormalizedValue.CreateInteger(player),
+                    "deckZoneId", NormalizedValue.CreateString(deck.ZoneId), "baseDrawCount", NormalizedValue.CreateInteger(configured));
+                int resolved;
+                try { resolved = context.Registry.ResolveOperatorDispatchCount(context, payload, configured); }
+                catch (InvalidOperationException) { return EffectStepResult.Failed("dispatch_count_patch_invalid"); }
+                Set(node, "baseDrawCount", NormalizedValue.CreateInteger(configured));
+                Set(node, "drawCount", NormalizedValue.CreateInteger(resolved));
+                Set(node, "drawCountDelta", NormalizedValue.CreateInteger(resolved - configured));
+                // 只读前置入口已同步收集完毕；留存事实不再分发普通效果响应。
+                return EffectStepResult.Continue("before_draw").AddEvent(new EffectEventRequest {
+                    EventType = StartingEvent, PlayerId = player, ResponseKind = RuleEventResponseKind.OperatorDispatchPatches, Visibility = GameStateVisibilityPolicy.Public,
+                    Payload = payload });
+            }
+            if (stage == "before_draw")
+            {
+                int drawCount = Number(node.ContinuationData, "drawCount");
+                if (drawCount < 1 || drawCount > MaximumDrawCount) return EffectStepResult.Failed("dispatch_draw_count_invalid");
                 var top = new ItemZoneQuery().GetTopItemIds(state, deck.ZoneId, drawCount).ToList();
-                if (top.Count == 0) return Result(context, false, "empty_deck");
+                if (top.Count == 0)
+                    return EffectStepResult.Continue("empty_deck_scored").AddChild(ResourceEffectSpecFactory.GainScore(player, 1));
                 if (ReturnCandidates(context).Count == 0) return Result(context, false, "no_candidates");
                 var declaration = new CardZoneDefinition { LocalZoneId = "dispatch_candidates", ZoneTemplateId = "core.zone.effect_staging",
                     AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Card }, AcceptedTypeIds = new List<string> { "core.operator_card" },
@@ -65,6 +87,7 @@ namespace YC.Domain.Cards
                 Set(context.Node, "stagingZoneId", NormalizedValue.CreateString(staging)); Set(context.Node, "selectedItemIds", Strings(top));
                 return EffectStepResult.Continue("choose_operator").AddChild(CharacterMove(player, top, deck.ZoneId, staging));
             }
+            if (stage == "empty_deck_scored") return Result(context, false, "empty_deck");
             string stagingZoneId = Text(node.ContinuationData, "stagingZoneId");
             if (stage == "choose_operator")
             {
@@ -105,8 +128,20 @@ namespace YC.Domain.Cards
             throw new InvalidOperationException("dispatch_stage_invalid");
         }
         private static EffectStepResult Result(EffectExecutionContext context, bool accepted, string reason = "") => EffectStepResult.Completed(Object(
-            "accepted", NormalizedValue.CreateBoolean(accepted), "changed", NormalizedValue.CreateBoolean(accepted || Flag(context.Node.ContinuationData, "declined")),
+            "accepted", NormalizedValue.CreateBoolean(accepted), "changed", NormalizedValue.CreateBoolean(accepted || reason == "empty_deck" || Flag(context.Node.ContinuationData, "declined")),
+            "deckZoneId", NormalizedValue.CreateString(Text(context.Node.NormalizedArguments, "deckZoneId")),
+            "drawCount", NormalizedValue.CreateInteger(Number(context.Node.ContinuationData, "drawCount")),
+            "scoreAwarded", NormalizedValue.CreateInteger(reason == "empty_deck" || Flag(context.Node.ContinuationData, "declined") ? 1 : 0),
             "selectedOperatorItemId", NormalizedValue.CreateString(Text(context.Node.ContinuationData, "selectedOperatorItemId")), "returnItemId", NormalizedValue.CreateString(Text(context.Node.ContinuationData, "returnItemId")), "reasonCode", NormalizedValue.CreateString(reason))).WithFlowStage("finished");
+
+        private static bool ValidDeck(GameState state, ZoneInstanceState deck, int player)
+        {
+            if (deck == null || deck.TemplateId != "core.zone.card_deck" || !ItemTransferService.CanAccess(state, deck, player, true)) return false;
+            var types = ItemTypeRegistry.CreateBuiltIn();
+            if (deck.Configuration?.AcceptedTypeIds?.Count > 0 && deck.Configuration.AcceptedTypeIds.Any(type => !types.IsAssignableTo(type, "core.operator_card"))) return false;
+            return Members(state, deck.ZoneId).All(id => types.IsAssignableTo(state.ItemZones.Items.Single(i => i.ItemId == id).TypeId, "core.operator_card"));
+        }
+
         private static List<string> ReturnCandidates(EffectExecutionContext context)
         {
             var args = context.Node.NormalizedArguments;
@@ -133,7 +168,8 @@ namespace YC.Domain.Cards
             if (error.Length > 0) return EffectStepResult.Failed(error);
             if (CharacterLifecycleService.ParsePlayer(Text(context.Node.NormalizedArguments, "player")) != context.Node.PlayerId) return EffectStepResult.Failed("invalid_player");
             var state = context.State; var node = context.Node; var deck = FindZone(state, "operator_deck"); var hand = FindZone(state, "hand", node.PlayerId);
-            var operators = Members(state, deck.ZoneId); var cards = Members(state, hand.ZoneId);
+            // 罗德岛自选只改变干员的抽取方式；换出范围与普通特派一致，包含本人手牌和弃牌区。
+            var operators = Members(state, deck.ZoneId); var cards = ReturnCandidates(context);
             if (operators.Count == 0 || cards.Count == 0) return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(false), "reasonCode", NormalizedValue.CreateString("no_candidates")));
             if (node.FlowStage == "") return Choose(context, "choose_operator", "operator.replace.choose", operators, false);
             if (node.FlowStage == "choose_operator")

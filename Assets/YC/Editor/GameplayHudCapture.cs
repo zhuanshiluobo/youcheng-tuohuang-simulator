@@ -617,7 +617,7 @@ namespace YC.Presentation.Editor
                     var card = dialogsComponent.CreateFacilityCard();
                     CardArtworkView.Set(card.CardImage, entries[i]);
                     card.FallbackLabel.gameObject.SetActive(false);
-                    card.SelectionImage.enabled = i < 2;
+                    card.SetSelectionEffect(true, true, i < 2);
                     card.DetailsButton.onClick.RemoveAllListeners();
                 }
                 dialogsComponent.ResourceSummaryText.text = string.Format(profile.SelectionSummaryFormat, 2, 2, 2);

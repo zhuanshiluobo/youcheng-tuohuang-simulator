@@ -16,6 +16,7 @@ using YC.Domain.SpecialActions;
 using YC.Domain.Enterprises;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
+using YC.Domain.Interactions;
 using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -46,8 +47,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var token = JObject.Parse(File.ReadAllText(tokenPath));
             var declaration = new AbilitySourceDeclaration { DefinitionId = Token, AbilityId = Ability, Kind = "quick", HandlerRef = "qy002.fixture.body", DeclarationVersion = "1.0.0",
                 EffectiveZones = new List<string> { "core.zone.box_reserve" }, AuthorizationPolicy = "owner", PresentationRef = Token,
-                AllowedOperations = new List<string> { "action.invoke:qy002.fixture.direct" }, Actions = new List<AbilityActionDeclaration> {
-                    new AbilityActionDeclaration { ActionId = Quick, EntryKind = "quick", BodyHandlerRef = "qy002.fixture.body", EntryCostRef = "qy002.fixture.cost", PresentationRef = Token, DirectCallPolicy = "qy002.fixture.direct" },
+                Actions = new List<AbilityActionDeclaration> {
+                    new AbilityActionDeclaration { ActionId = Quick, EntryKind = "quick", BodyHandlerRef = "qy002.fixture.body", EntryCostRef = "qy002.fixture.cost", PresentationRef = Token },
                     new AbilityActionDeclaration { ActionId = Special, EntryKind = "special", BodyHandlerRef = "qy002.fixture.body", EntryCostRef = "qy002.fixture.cost", EntryAfterEffectsRef = "qy002.fixture.after", PresentationRef = Token },
                     new AbilityActionDeclaration { ActionId = Caller, EntryKind = "quick", BodyHandlerRef = "qy002.fixture.call", PresentationRef = Token },
                     new AbilityActionDeclaration { ActionId = "qy002.fixture.once", EntryKind = "quick", BodyHandlerRef = "qy002.fixture.body", LifecyclePolicy = "once", PresentationRef = Token } } };
@@ -61,14 +62,13 @@ namespace YC.Tests.EditMode.ExpansionRules
                 ["body"] = "return function(ctx) if ctx.payload.abilityId=='qy002.fixture.event' and (ctx.eventType~='CollectionStarted' or ctx.payload.triggeringPlayerId~=1 or ctx.payload.triggerEventType~='CollectionStarted') then error('trigger_identity_lost') end; return { Effect.GainResource({recipient=ctx.playerId,resourceType='GoldVoucher',amount=5}) } end",
                 ["cost"] = "return function(ctx) return { Effect.PayResource({player=ctx.playerId,cost={GoldVoucher=3}}) } end",
                 ["after"] = "return function(ctx) return { Effect.GainScore({recipient=ctx.playerId,amount=1}) } end",
-                ["call"] = "return function(ctx) return { Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=ctx.payload.sourceItemId,actionId='qy002.fixture.quick',callPolicyRef='qy002.fixture.direct'}) } end",
+                ["call"] = "return function(ctx) return { Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=ctx.payload.sourceItemId,actionId='qy002.fixture.quick',omitEntryCost=true,omitEntryAfterEffects=true,omitMainAction=true}) } end",
                 ["query"] = "return function(ctx) local kind='fixture_fact'; if ctx.payload.facts.bad then kind='invalid' end; return {queryId=ctx.payload.queryId,basisDigest=ctx.payload.basisDigest,items={{kind=kind,playerId=ctx.payload.authorizedPlayerId}}} end" })
             {
                 string relative = "lua/qy002_fixture_" + pair.Key + ".lua"; replacements[relative] = pair.Value;
                 handlers.Add(new ExternalAbilityHandler { HandlerId = "qy002.fixture." + pair.Key, Script = relative, Version = "1.0.0" });
             }
             token["abilityHandlers"] = JArray.FromObject(handlers);
-            token["actionCallPolicies"] = JArray.FromObject(new[] { new AbilityActionCallPolicy { PolicyRef = "qy002.fixture.direct", CallerAbilityId = Ability, CallerHandlerRef = "qy002.fixture.call", TargetActionId = Quick, OmitEntryCost = true, OmitEntryAfterEffects = true, OmitMainAction = true } });
             replacements["component/" + Token + ".json"] = token.ToString();
             var manifestPath = Path.Combine(source, "pack.json"); var manifest = JObject.Parse(File.ReadAllText(manifestPath));
             if (!((JArray)manifest["definitions"]).Values<string>().Contains("component/" + Token + ".json")) ((JArray)manifest["definitions"]).Add("component/" + Token + ".json");
@@ -84,7 +84,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
             ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry); CharacterCoverEffectExecutor.Register(registry);
             CharacterCardLuaCatalog.Register(registry, pack); CityStyleLuaCatalog.Register(registry, pack); ContentLifecycleLuaCatalog.Register(registry, pack); AbilitySourceLuaCatalog.Register(registry, pack);
-            var map = realMap ? StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId) : new GameMapDefinition { MapId = "qy002.isolated", MinPlayers = 2, MaxPlayers = 2,
+            var map = realMap ? StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId) : new GameMapDefinition { MapId = StaticMapDefinitions.FourPlayerMapId, MinPlayers = 2, MaxPlayers = 2,
                 Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true } },
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } } };
             var mapQuery = new MapQueryService(map); var influence = new InfluenceService(mapQuery);
@@ -108,9 +108,82 @@ namespace YC.Tests.EditMode.ExpansionRules
             return state;
         }
         private AbilityActionOption Option(GameState state, string action = Quick) => registry.QueryActions(state, 1).Single(o => o.ActionId == action);
+        [Test]
+        public void PrivateFixtureFallbackUsesOnlyCurrentPlayersAvailableProjectedAbility()
+        {
+            var state = State(realMap: true);
+            EnterpriseEffectExecutor.Register(registry, LuaContentCatalog.CreateEnterpriseDefinitions(registry, pack.ActiveDefinitions, pack.GetScript, pack));
+            var award = state.ItemZones.Items.Single(i => i.DefinitionId == "infected.award.enterprise_special" && i.OwnerSubject.PlayerId == 1);
+            award.ZoneId = FindZone(state, "rewards", 1).ZoneId;
+            Assert.That(ContentLifecycleEffectExecutor.Acquisition(state, award.ItemId), Is.Null);
+            var view = GameStateViewProjector.Project(state, GameStateViewer.Player(1), null, registry.QueryActions(state, 1), registry);
+            var assembly = AppDomain.CurrentDomain.GetAssemblies().First(value => value.GetName().Name == "Assembly-CSharp");
+            var type = assembly.GetType("YC.Presentation.NetworkGameValidationDriver", true);
+            var method = type.GetMethod("PrivateFixtureAvailableAbility", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var root = new UnityEngine.GameObject("本人可用行动夹具");
+            try
+            {
+                var driver = root.AddComponent(type);
+                Assert.That(method.Invoke(driver, new object[] { view, 2 }), Is.Null, "不能代其他席位使用本人投影");
+                var action = (GameCommand)method.Invoke(driver, new object[] { view, 1 });
+                Assert.That(action, Is.Not.Null, "投影行动：" + JsonConvert.SerializeObject(view.AbilityActions) +
+                    "；原规则候选：" + JsonConvert.SerializeObject(registry.QueryActions(state, 1)));
+                Assert.That(action.Kind, Is.EqualTo(GameCommandKind.InvokeSettlementOption));
+                Assert.That(view.AbilityActions.Any(option => option.Enabled && option.OptionId == action.Parameters["optionId"] &&
+                    option.SourceRef.AuthorizedPlayerId == 1 && option.RequestRef.AnsweringPlayerId == 1), Is.True);
+                Assert.That(action.Parameters["optionId"], Is.EqualTo(view.AbilityActions.Single(option => option.SourceRef.ItemId == award.ItemId).OptionId));
+                action.CommandId = "private-fixture-available-action";
+                var result = AbilityActionCommand.Handle(state, registry, action);
+                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+                Assert.That(state.EffectRuntime.Status, Is.Not.EqualTo(EffectRuntimeStatus.PausedFault));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
         private EffectTreeExecutor Begin(GameState state, string command, out string owner, string action = Quick)
         { var engine = new EffectTreeExecutor(state, registry); owner = engine.CreateRoot(AbilityActionExecutor.Create(Option(state, action), command, Args)); return engine; }
         private void Run(EffectTreeExecutor engine) { var report = engine.RunUntilQuiescent(); Assert.That(report.Faulted, Is.False, engine.State.EffectRuntime.LastFaultMessage); }
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ClosedActionContinuationMatchesFullCopiesAndKeepsExternalProtocolsIsolated(bool customProtocol)
+        {
+            var seed = State();
+            var retainedInputs = new List<NormalizedValue>();
+            if (customProtocol)
+            {
+                // 仅在隔离夹具中安装外部参数回调，模拟其保留输入对象的最坏情况。
+                var protocols = (Dictionary<string, AbilityActionArgumentNormalizer>)typeof(EffectRegistry)
+                    .GetField("actionArgumentProtocols", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(registry);
+                protocols.Add("qy002.fixture.body", (NormalizedValue input, out NormalizedValue output) =>
+                {
+                    retainedInputs.Add(input);
+                    output = input.Clone();
+                    return "";
+                });
+            }
+            var expected = GameStateCloneService.DeepClone(seed);
+            var actual = GameStateCloneService.DeepClone(seed);
+            using (EffectTreeExecutor.UseFullExecutionCopiesForDiagnostics())
+            {
+                var baseline = Begin(expected, "memory.action.continuation", out _);
+                Run(baseline);
+            }
+            int recycled = 0;
+            using (GameStateCloneService.BeginTimingScope((name, _) =>
+                { if (name == "kernel.recycled_executor." + AbilityActionExecutor.TypeId) recycled++; }))
+            using (GameStateCloneService.VerifySchedulingPublicationCopies())
+            {
+                var optimized = Begin(actual, "memory.action.continuation", out _);
+                Run(optimized);
+            }
+            Assert.That(GameStateCloneService.AreEquivalent(actual, expected), Is.True, "费用、次数、事件及最终状态必须与完整复制一致。");
+            Assert.That(actual.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(22));
+            if (customProtocol)
+            {
+                Assert.That(retainedInputs, Is.Not.Empty);
+                Assert.That(recycled, Is.EqualTo(0), "可保留状态的外部参数回调不能获得复用凭据。");
+            }
+            else Assert.That(recycled, Is.GreaterThan(0), "封闭续接应实际复用工作图。");
+        }
         private GameState Restore(GameState state, string label)
         {
             var result = artifacts.Recover(state, label, registry); Assert.That(result.Succeeded, Is.True, result.Diagnostic); return result.State;
@@ -118,7 +191,6 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static void Until(EffectTreeExecutor engine, Func<bool> condition)
         { for (int i = 0; i < 50 && !condition(); i++) Assert.That(engine.Advance(), Is.True, engine.LastDiagnostic); Assert.That(condition(), Is.True); }
 
-        private const string BudgetPolicy = "qy002.r2.style.budget";
         private ExternalContentPack BudgetPack(bool omitMain)
         {
             string tokenPath = Path.Combine(fixtureRoot, "component/" + Token + ".json");
@@ -127,27 +199,21 @@ namespace YC.Tests.EditMode.ExpansionRules
             string tokenOriginal = File.ReadAllText(tokenPath), styleOriginal = File.ReadAllText(stylePath), supportOriginal = File.ReadAllText(supportPath);
             var token = JObject.Parse(tokenOriginal); var style = JObject.Parse(styleOriginal);
             string script = "lua/qy002_r2_call_style.lua";
-            string callerScript = "return function(ctx) for _,o in ipairs(ctx.payload.callableActions) do if o.actionId=='special_action.city_style.source_stone_industrial_hub' then return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=o.itemId,actionId=o.actionId,callPolicyRef=o.callPolicyRef})} end end; return {} end";
-            var policy = new AbilityActionCallPolicy { PolicyRef = BudgetPolicy, CallerAbilityId = "qy002.fixture.event", CallerHandlerRef = "qy002.r2.call_style", TargetActionId = SpecialActionDatabase.SourceStoneIndustrialHub, OmitMainAction = omitMain };
+            string callerScript = "return function(ctx) for _,o in ipairs(SourceData.GetCallableActions({actionId='special_action.city_style.source_stone_industrial_hub'}).items) do return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=o.itemId,actionId=o.actionId" + (omitMain ? ",omitMainAction=true" : "") + "})} end; return {} end";
             var support = JObject.Parse(supportOriginal);
             if (omitMain)
             {
                 // 只改隔离副本的正文；沿正式cleanup声明、真实持有物和结算窗口验证豁免。
-                policy.CallerAbilityId = (string)support["abilitySources"][0]["abilityId"];
-                policy.CallerHandlerRef = (string)support["abilitySources"][0]["handlerRef"];
+                string handlerRef = (string)support["abilitySources"][0]["handlerRef"];
                 support["abilities"][0]["script"] = script;
-                support["abilityHandlers"] = JArray.FromObject(new[] { new ExternalAbilityHandler { HandlerId = policy.CallerHandlerRef, Script = script, Version = (string)support["abilities"][0]["version"] } });
-                support["abilitySources"][0]["allowedOperations"] = new JArray("action.invoke:" + BudgetPolicy);
-                support["actionCallPolicies"] = JArray.FromObject(new[] { policy });
+                support["abilityHandlers"] = JArray.FromObject(new[] { new ExternalAbilityHandler { HandlerId = handlerRef, Script = script, Version = (string)support["abilities"][0]["version"] } });
             }
             else
             {
                 var caller = (JObject)((JArray)token["abilitySources"]).Single(s => (string)s["AbilityId"] == "qy002.fixture.event");
-                caller["HandlerRef"] = "qy002.r2.call_style"; caller["AllowedOperations"] = new JArray("action.invoke:" + BudgetPolicy);
+                caller["HandlerRef"] = "qy002.r2.call_style";
                 ((JArray)token["abilityHandlers"]).Add(JObject.FromObject(new ExternalAbilityHandler { HandlerId = "qy002.r2.call_style", Script = script, Version = "1.0.0" }));
-                ((JArray)token["actionCallPolicies"]).Add(JObject.FromObject(policy));
             }
-            style["abilitySources"][0]["actions"][0]["directCallPolicy"] = BudgetPolicy;
             string root = artifacts.CopyContent(fixtureRoot, "预算调用内容", new Dictionary<string, string> { ["component/" + Token + ".json"] = token.ToString(),
                 ["city_style/city_style_source_stone_industrial_hub.json"] = style.ToString(), ["award/infected.award.permanent_support.json"] = support.ToString(), [script] = callerScript });
             var content = ExternalContentPack.Load(root); artifacts.RecordContent("预算调用装载内容", root, content.ContentHash); return content;
@@ -174,7 +240,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = BudgetCall(available, restricted, waive, out var engine, out string marker, out var direct);
             bool allowed = waive || available > restricted;
-            var preview = registry.QueryAuthorizedActions(state, direct.ParentEffectId, BudgetPolicy).Single();
+            var preview = registry.QueryAuthorizedActions(state, direct.ParentEffectId, new AbilityActionExecutionOptions { OmitMainAction = waive })
+                .Single(option => option.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub);
             Assert.That(preview.Enabled, Is.EqualTo(allowed)); Run(engine);
             var invocation = state.EffectRuntime.AbilityActionInvocations.SingleOrDefault();
             Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker).SlotId, Is.EqualTo(allowed ? "used_from_2" : "2"));
@@ -185,6 +252,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(invocation != null, Is.EqualTo(allowed));
             if (allowed)
             {
+                Assert.That(invocation.OmitEntryCost, Is.False);
+                Assert.That(invocation.OmitEntryAfterEffects, Is.False);
+                Assert.That(invocation.OmitMainAction, Is.EqualTo(waive));
                 Assert.That(invocation.MainActionCommitted, Is.EqualTo(!waive));
                 Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(available + 2 - (waive ? 0 : 1)));
             }
@@ -212,6 +282,24 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).CharacterCardLockedThisTurn, Is.False);
             Assert.That(state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == CityStyleSpecialActionEffectTypeIds.GrantMainActions), Is.False);
             Restore(state, "R2激活前额度变化结果-" + afterPayment);
+        }
+        [TestCase(false)][TestCase(true)]
+        public void DirectActionRecoveryDoesNotRepeatPaymentOrBudgetConsumption(bool afterPayment)
+        {
+            var state = BudgetCall(1, 0, false, out var engine, out string marker, out _);
+            Until(engine, () => state.EffectRuntime.AbilityActionInvocations.Count == 1);
+            if (afterPayment) Until(engine, () => state.EffectRuntime.EffectNodes.Any(node => node.Payment?.IsCommitted == true));
+            state = Restore(state, "无许可调用在途恢复-" + afterPayment);
+            engine = new EffectTreeExecutor(state, registry); Run(engine);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(14));
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(2));
+            Assert.That(state.ItemZones.Items.Single(item => item.ItemId == marker).SlotId, Is.EqualTo("used_from_2"));
+            Assert.That(state.EffectRuntime.AbilityActionInvocations.Single().MainActionCommitted, Is.True);
+            state = Restore(state, "无许可调用完成恢复-" + afterPayment);
+            engine = new EffectTreeExecutor(state, registry); Run(engine);
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(14));
+            Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
         }
         [Test] public void R2CompletionCannotClaimACommitWhenTheRequiredBudgetIsGone()
         {
@@ -394,12 +482,29 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state = State(); var engine = Begin(state, "direct", out _, Caller); Run(engine);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(25)); Assert.That(state.EffectRuntime.AbilityActionInvocations.Count, Is.EqualTo(2));
-            Assert.That(state.EffectRuntime.AbilityActionInvocations.Last().CallPolicyRef, Is.EqualTo("qy002.fixture.direct"));
+            var direct = state.EffectRuntime.AbilityActionInvocations.Last();
+            Assert.That(direct.OmitEntryCost && direct.OmitEntryAfterEffects && direct.OmitMainAction, Is.True);
+        }
+        [Test] public void LuaDirectCallRejectsRetiredPolicyField()
+        {
+            const string source = "return function(ctx) return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId='fixture.item',actionId='fixture.action',callPolicyRef='old.policy'})} end";
+            var script = new LuaScriptDefinition("fixture.strict", "fixture.strict", "fixture.strict", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var result = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("fixture.strict", "AbilityInvoked", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.FailureCode, Is.EqualTo(LuaFailureCode.UnexpectedField));
+        }
+        [Test] public void LuaDirectCallCannotSubstituteAnotherPlayer()
+        {
+            const string source = "return function(ctx) return {Effect.InvokeAction({apiVersion=1,player='p2',itemId='fixture.item',actionId='fixture.action'})} end";
+            var script = new LuaScriptDefinition("fixture.actor", "fixture.actor", "fixture.actor", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            var result = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("fixture.actor", "AbilityInvoked", "p1", 0, "1.0.0", 2, 0, 0));
+            Assert.That(result.IsSuccess, Is.False);
+            Assert.That(result.FailureCode, Is.EqualTo(LuaFailureCode.InvalidTarget));
         }
         [Test] public void DirectRootAndClientSkipCostAreRejected()
         {
             var state = State(); var source = Option(state).SourceRef; var engine = new EffectTreeExecutor(state, registry);
-            string root = engine.CreateRoot(AbilityActionExecutor.CreateAuthorized(1, source.ItemId, Quick, "qy002.fixture.direct")); Run(engine);
+            string root = engine.CreateRoot(AbilityActionExecutor.CreateAuthorized(1, source.ItemId, Quick, true, true, true)); Run(engine);
             Assert.That(engine.GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(20));
             var command = AbilityActionCommand.Create(1, Option(state)); command.Parameters["skipCost"] = "true";
             Assert.That(AbilityActionCommand.Handle(state, registry, command).Succeeded, Is.False);
@@ -517,7 +622,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TestCase(false)][TestCase(true)]
         public void OrdinarySpecialHostChoiceRestoresAndReplaysWithoutDoubleCostOrBudget(bool decline)
         {
-            var state = State(); string marker = DeclareStyleFixture(state, 1);
+            // 房间合同只接受正式地图；此处仍是隔离状态，不计正常对局验收。
+            var state = State(realMap: true); string marker = DeclareStyleFixture(state, 1);
             var option = registry.QuerySpecialActionSources(state, 1, false).Single(o => o.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub);
             var command = SpecialActionChoiceCommand.Create(1, state.EffectRuntime.StateRevision, registry.ContentPackHash);
             command.CommandId = "api41.ordinary.choice." + decline;
@@ -530,6 +636,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             var request = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open");
             Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
             Assert.That(request.MinSelections, Is.Zero); Assert.That(request.CandidateIds, Does.Contain(option.OptionId));
+            var view = GameStateViewProjector.Project(state, GameStateViewer.Player(1), null, registry.QueryActions(state, 1), registry);
+            var projected = view.AbilityActions.Single(o => o.OptionId == option.OptionId);
+            Assert.That(projected.SourceRef.AuthorizedPlayerId, Is.EqualTo(1));
+            Assert.That(projected.DisplayName, Is.Not.Empty, "待答期间本人投影必须保留可显示的特殊行动来源");
+            Assert.That(view.Interactions.Any(i => i.InteractionId == request.GetStableInteractionId()), Is.True);
+            var projection = InteractionRequestProjector.ProjectForPlayer(request, 1, view, state.GameId);
+            var frameType = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Assembly-CSharp")
+                .GetType("YC.Presentation.GameplayHudFrame", true);
+            Assert.That((bool)frameType.GetMethod("MatchesSummaryRequest", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+                .Invoke(null, new object[] { projection, view }), Is.True, "正式待答与本人投影必须能建立展示绑定");
             var engine = new EffectTreeExecutor(state, registry);
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 2, request.StateRevision, NormalizedValue.CreateString(option.OptionId), out _), Is.False);
             var answer = decline ? NormalizedValue.CreateBoolean(false) : NormalizedValue.CreateString(option.OptionId);
@@ -625,7 +741,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(selectedSource), out string reason), Is.True, reason);
             Until(engine, () => state.EffectRuntime.EffectNodes.Any(n => n.Payment?.IsCommitted == true));
             state = Restore(state, "旧授予样式入口费用后"); engine = new EffectTreeExecutor(state, registry); Run(engine);
-            Assert.That(state.EffectRuntime.AbilityActionInvocations.Single().CallPolicyRef, Is.EqualTo(AbilityLegacyStyleBridge.PolicyRef));
+            Assert.That(state.EffectRuntime.AbilityActionInvocations.Single().OmitMainAction, Is.True);
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(14)); Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.Zero);
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(3)); Assert.That(state.ItemZones.Items.Single(i => i.ItemId == marker).SlotId, Is.EqualTo("used_from_2"));
             Assert.That(registry.QueryActions(state, 1).Single(o => o.ActionId == SpecialActionDatabase.SourceStoneIndustrialHub).Enabled, Is.False);
@@ -645,7 +761,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         private void RegisterCleanupSignal() => registry.Register("qy002.cleanup.signal", c => EffectStepResult.Completed().AddEvent(new EffectEventRequest { EventType = "PlayerCleanupStarted", PlayerId = 1 }));
         [Test] public void ActualQuickAwardWithoutAcquisitionRunsItsLuaAndReturnsTheRealItem()
         {
-            var state = State();
+            var state = State(realMap: true);
             EnterpriseEffectExecutor.Register(registry, LuaContentCatalog.CreateEnterpriseDefinitions(registry, pack.ActiveDefinitions, pack.GetScript, pack));
             var award = state.ItemZones.Items.Single(i => i.DefinitionId == "infected.award.enterprise_special" && i.OwnerSubject.PlayerId == 1);
             award.ZoneId = FindZone(state, "rewards", 1).ZoneId;
@@ -659,6 +775,43 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == ItemTransferEffectExecutor.TypeId), Is.EqualTo(1));
             Assert.That(registry.QueryActions(state, 1).Any(o => o.SourceRef.ItemId == award.ItemId), Is.False);
             Restore(state, "真实快速授勋正文及回盒");
+        }
+        [TestCase(1)] [TestCase(2)]
+        public void ActualQuickAwardSelectsUnlockedEnterpriseAndReturnsOnlyAfterResolution(int player)
+        {
+            var state = State(realMap: true); state.CurrentPlayerId = player;
+            EnterpriseEffectExecutor.Register(registry, LuaContentCatalog.CreateEnterpriseDefinitions(registry, pack.ActiveDefinitions, pack.GetScript, pack));
+            var factory = new ItemZoneStateFactory();
+            var display = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.enterprise_display");
+            var board = (ItemInstanceState)typeof(ItemZoneStateFactory).GetMethod("AddItem", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Invoke(factory, new object[] { state, "enterprise.fussen_bank", "core.board_card", "award.fixture.enterprise", 0, display.ZoneId, new ItemSubjectRef() });
+            for (int owner = 1; owner <= 2; owner++)
+            {
+                var declaration = new CardZoneDefinition { LocalZoneId = "cooperation_" + owner, ZoneTemplateId = "core.zone.board_marker_track",
+                    AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" },
+                    CapacityPolicy = "bounded", Capacity = 1, OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public,
+                    EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
+                Assert.That(factory.TryCreateCardZone(state, board.ItemId, declaration, out string track, out string reason), Is.True, reason);
+                var marker = state.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.OwnerSubject.PlayerId == owner && item.ZoneId == FindZone(state, "supply", owner).ZoneId);
+                typeof(ItemZoneStateMigrator).GetMethod("SetPosition", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                    .Invoke(null, new object[] { state, marker, track });
+                marker.SlotId = owner == player ? "level_1" : "level_0";
+            }
+            var award = state.ItemZones.Items.Single(item => item.DefinitionId == "infected.award.enterprise_special" && item.OwnerSubject.PlayerId == player);
+            award.ZoneId = FindZone(state, "rewards", player).ZoneId;
+            int before = state.FindPlayer(player).Resources.GoldVoucher;
+            var option = registry.QueryActions(state, player).Single(value => value.SourceRef.ItemId == award.ItemId);
+            var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(AbilityActionExecutor.Create(option, "award.unlocked.fixture", Args)); Run(engine);
+            var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open" && value.InteractionTypeId == "enterprise.special");
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(player));
+            Assert.That(state.ItemZones.Items.Single(item => item.ItemId == award.ItemId).ZoneId, Is.EqualTo(FindZone(state, "rewards", player).ZoneId));
+            var special = state.EffectRuntime.EffectNodes.Single(node => node.EffectTypeId == LuaDomainEffectTypeIds.ActivateEnterpriseSpecial)
+                .FrozenEnterpriseSpecials.Single(value => value.Candidate.SpecialId == "enterprise.fussen_bank.level_1.special").Candidate.CandidateId;
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), player, request.StateRevision, NormalizedValue.CreateString(special), out string failure), Is.True, failure);
+            Run(engine);
+            Assert.That(state.FindPlayer(player).Resources.GoldVoucher, Is.EqualTo(before + 8));
+            Assert.That(state.ItemZones.Items.Single(item => item.ItemId == award.ItemId).ZoneId, Is.EqualTo(FindZone(state, "retired").ZoneId));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(node => node.EffectTypeId == ItemTransferEffectExecutor.TypeId), Is.EqualTo(1));
         }
         [Test] public void ActualPersistentAwardWithoutAcquisitionKeepsOnceReceiptAcrossRecovery()
         {

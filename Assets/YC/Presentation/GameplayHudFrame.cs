@@ -156,6 +156,8 @@ namespace YC.Presentation
         private PageReturnContext actionPage, informationReturn;
         private GameObject informationPage;
         private bool informationNavigation;
+        internal Action<FacilityBuildDialogView> InspectCityStylesRequested;
+        internal Action<GameObject> InspectFacilitySupplyRequested;
         private string navigationGameId;
         private int navigationViewer = -1, informationReturnedFrame = -1;
         private readonly List<RectTransform> externalPages = new List<RectTransform>();
@@ -954,6 +956,19 @@ namespace YC.Presentation
             actionPage = new PageReturnContext { Page = page, Key = key, IsCurrent = isCurrent, Restore = restore };
         }
 
+        internal bool InformationReturnsToFacility(GameObject page) => informationNavigation && informationPage == page &&
+            informationReturn?.Page != null && informationReturn.Page.GetComponent<FacilityBuildDialogView>() != null &&
+            informationReturn.IsCurrent?.Invoke() == true;
+
+        internal bool RestoreCoveredInformationPage(GameObject page, GameObject coveringPage)
+        {
+            if (!informationNavigation || informationPage != page || visiblePage != coveringPage || page == null) return false;
+            informationReturnedFrame = Time.frameCount;
+            HidePage(coveringPage);
+            ShowPage(page, false);
+            return page.activeInHierarchy;
+        }
+
         public void ShowInformationPage(GameObject page)
         {
             if (page == null) return;
@@ -1169,6 +1184,19 @@ namespace YC.Presentation
         public void ResumeEffectPage()
         {
             if (effectSuspended) ToggleEffectPage();
+        }
+
+        // 正文可随同一请求的效果页暂时隐藏；请求或页面改变后不得恢复旧文档。
+        internal Func<bool> CreateEffectPageVisibilityGuard(Transform content)
+        {
+            var page = suspendedEffectPage;
+            var request = currentRequestId;
+            var revision = currentRevision;
+            if (page == null || content == null || string.IsNullOrEmpty(request) ||
+                suspendedRequestId != request || suspendedRevision != revision || !content.IsChildOf(page.transform)) return null;
+            return () => this != null && page != null && content != null && suspendedEffectPage == page &&
+                currentRequestId == request && suspendedRequestId == request && currentRevision == revision &&
+                suspendedRevision == revision && content.IsChildOf(page.transform);
         }
 
         public void SuspendEffectForMapInteraction()

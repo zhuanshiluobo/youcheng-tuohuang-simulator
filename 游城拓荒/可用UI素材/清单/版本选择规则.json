@@ -435,9 +435,19 @@
       ]
     },
     "Card-Picker-UI-v1.zip": {
-      "adoptedVersion": "1.0其余六图；次按钮独立2.0替换",
+      "adoptedVersion": "1.0其余五图；次按钮2.0、选中框FX01替换",
       "zipRoot": "card-picker-ui-v1",
       "rules": [
+        {
+          "pattern": "assets/card-selected.png",
+          "decision": "排除",
+          "scope": "CardPicker选中框",
+          "reason": "2026-11-17 用户要求清除已由 SelectionFX 接管的旧选中贴图；CardPicker 旧选中框没有其他有效用途，退出可用候选。",
+          "evidence": [
+            "2026-11-17 用户明确要求清除由 SelectionFX 取代的旧选中状态贴图",
+            "文档/SelectionFX程序化选择效果登记.md"
+          ]
+        },
         {
           "pattern": "assets/button-secondary.png",
           "decision": "排除",
@@ -453,7 +463,7 @@
           "pattern": "assets/*",
           "decision": "保留",
           "scope": "全部",
-          "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -462,7 +472,8 @@
       ],
       "notes": [
         "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
-        "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
+        "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选",
+        "2026-11-17 用户要求清除已由 SelectionFX 接管的旧选中贴图；CardPicker 旧选中框没有其他有效用途，退出可用候选。"
       ],
       "actualZipRoots": [
         "card-picker-ui-v1"
@@ -1173,6 +1184,53 @@
       ],
       "registeredAt": "2026-10-23",
       "authorization": "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材"
+    },
+    "NoMadCity-Unity-SelectionFX.zip": {
+      "adoptedVersion": "未标版本；包内验证记录日期2026-11-13",
+      "zipRoot": "NoMadCity-Unity-SelectionFX",
+      "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX.zip",
+      "rules": [],
+      "componentRules": [
+        {
+          "member": "Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+          "componentId": "SelectionFX.Shader",
+          "decision": "可用组件",
+          "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+          "purpose": "程序化切角边框、选中呼吸/扫光、不可选虚线与焦点外线"
+        },
+        {
+          "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+          "componentId": "SelectionFX.Graphic",
+          "decision": "可用组件",
+          "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+          "purpose": "MaskableGraphic状态与几何控制，不参与业务选择"
+        },
+        {
+          "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+          "componentId": "SelectionFX.Input",
+          "decision": "可用组件",
+          "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+          "purpose": "在已有可点击候选上转发hover与EventSystem焦点，不选择或提交"
+        },
+        {
+          "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+          "componentId": "SelectionFX.Inspector",
+          "decision": "可用组件",
+          "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+          "purpose": "SelectionEffectGraphic检查器，不含场景生成菜单"
+        }
+      ],
+      "referenceMembers": [
+        "Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+        "VALIDATION.txt",
+        "Tests/validate.py"
+      ],
+      "notes": [
+        "这是程序化UGUI组件包，没有PNG、原卡图、独立勾/锁贴图或预制体。",
+        "限定五类对象选中态采用 SelectionFX，按用户要求清除对应旧选中框；其他用途保持。",
+        "原说明中的安装、生成对照对象、徽标、键盘导航和不可选点击逻辑不是本次入库的执行指令；当前场景/Prefab及游戏规则保持其所有权。",
+        "包内源码保持原字节，148项离线检查已复跑；不代表C#/Shader编译、PlayMode、渲染或正常流程验收。"
+      ]
     }
   },
   "explicitDevelopmentOverrides": [
@@ -1670,8 +1728,28 @@
       "replacedAssetHashes": [
         "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2"
       ]
+    },
+    {
+      "id": "FX01",
+      "role": "五类候选对象的程序化选择装饰",
+      "expected": "NoMadCity-Unity-SelectionFX：Shader＋Graphic＋Input；Inspector可选，不含演示生成器",
+      "status": "组件入库完成；未导入项目，未修改现有UI和游戏规则",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；不自动替换现有状态素材或新增交互",
+      "basis": [
+        "2026-11-16 用户指定 C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX.zip 整理入库",
+        "文档/SelectionFX程序化选择效果登记.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "assetHashes": [],
+      "componentIds": [
+        "SelectionFX.Shader",
+        "SelectionFX.Graphic",
+        "SelectionFX.Input",
+        "SelectionFX.Inspector"
+      ],
+      "relationship": "可选组件增补，现有素材期望及其他用途标准保持，无旧候选被淘汰"
     }
   ],
   "authority": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
-  "updatedAt": "2026-11-01"
+  "updatedAt": "2026-11-16"
 }

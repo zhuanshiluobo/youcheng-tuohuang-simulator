@@ -65,8 +65,9 @@ namespace YC.Tests.EditMode
             Assert.IsFalse(Can("InsufficientResource", true, false));
         }
 
-        [Test]
-        public void ContentDifferenceIsRetainedWithoutEndingDriverOrOverwritingFirstEvidence()
+        [TestCase("network-full-game")]
+        [TestCase("full-game")]
+        public void ContentDifferenceIsRetainedWithoutEndingDriverOrOverwritingFirstEvidence(string selectedCase)
         {
             var host = new GameObject("R23 isolated fixture policy");
             string output = Path.Combine(Path.GetDirectoryName(UnityEngine.Application.dataPath), "Logs", "FixtureR23", Guid.NewGuid().ToString("N"));
@@ -74,7 +75,7 @@ namespace YC.Tests.EditMode
             object driver = host.AddComponent(Driver);
             try
             {
-                Set(driver, "selectedCase", "network-full-game"); Set(driver, "output", output);
+                Set(driver, "selectedCase", selectedCase); Set(driver, "output", output);
                 Set(driver, "deferContentDifferencesRequested", true);
                 Assert.DoesNotThrow(() => Call(driver, "CheckContent", false, "isolated-content-mismatch"));
                 string first = Path.Combine(output, "延后差异首次-0001.json");
@@ -110,6 +111,28 @@ namespace YC.Tests.EditMode
                 Assert.AreEqual(4, Get(driver, "ExpectedLocalPlayerCount"));
             }
             finally { UnityEngine.Object.DestroyImmediate(host); }
+        }
+
+        [Test]
+        public void RetainedTerminalExitRequiresHostRequestDetachmentAndExactResolvedGame()
+        {
+            var method = Driver.GetMethod("NetworkCanExitRetainedTerminal", Flags);
+            var state = new YC.Domain.State.GameState { GameId = "game", ContentPackHash = "hash", Round = 8, MaxRounds = 8,
+                Phase = YC.Domain.Rules.GamePhase.FinalScoring, FinalScoring = new YC.Domain.State.FinalScoringState { IsResolved = true } };
+            for (int i = 1; i <= 4; i++)
+            {
+                state.Players.Add(new YC.Domain.State.PlayerState { PlayerId = i });
+                state.FinalScoring.PlayerScores.Add(new YC.Domain.State.FinalPlayerScoreState { PlayerId = i });
+            }
+            bool Allowed(bool host, bool detached, string game = "game", string hash = "hash") =>
+                (bool)method.Invoke(null, new object[] { host, detached, state, game, hash });
+            Assert.That(Allowed(true, true), Is.True);
+            Assert.That(Allowed(false, true), Is.False);
+            Assert.That(Allowed(true, false), Is.False);
+            Assert.That(Allowed(true, true, "other"), Is.False);
+            Assert.That(Allowed(true, true, "game", "other"), Is.False);
+            state.FinalScoring.IsResolved = false;
+            Assert.That(Allowed(true, true), Is.False);
         }
     }
 }

@@ -283,6 +283,8 @@ namespace YC.Infrastructure.Multiplayer
                     RoomId = lobbyId.m_SteamID.ToString(), HostPlayerId = 1, LocalPlayerId = 1,
                     Configuration = new GameRuleConfiguration()
                 };
+                if (pendingResume == null && content is IRoomOfficialPreparationProvider preparation)
+                    currentRoom.Configuration.OfficialPreparationContract = preparation.NewGamePreparationContract(currentRoom.Configuration);
                 currentRoom.Configuration.ContentPackHash = content.GetContentPackHash(currentRoom.Configuration);
                 configurationService.TryOccupySeat(currentRoom, new PlayerSeat
                 {

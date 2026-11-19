@@ -54,6 +54,21 @@ namespace YC.Domain.Effects
         public const string AnswerSchema = "bounded_resource_allocation";
         public static readonly IReadOnlyList<ResourceType> BasicTypes = Array.AsReadOnly(new[] { ResourceType.Originium, ResourceType.OriginiumShard, ResourceType.Iron });
 
+        internal static GameplayQuantityRowPresentation ResourceRow(ResourceType type)
+        {
+            string icon;
+            switch (type)
+            {
+                case ResourceType.Originium: icon = "core:resource.orirock"; break;
+                case ResourceType.OriginiumShard: icon = "core:resource.originium_shard"; break;
+                case ResourceType.Iron: icon = "core:resource.iron"; break;
+                case ResourceType.PureOriginium: icon = "core:resource.pure_originium"; break;
+                case ResourceType.GoldVoucher: icon = "core:resource.gold_voucher"; break;
+                default: throw new ArgumentOutOfRangeException(nameof(type));
+            }
+            return new GameplayQuantityRowPresentation { RowId = type.ToString(), IconKey = icon, Label = new GameplayTextRef(icon + ".alt") };
+        }
+
         public static void Register(EffectRegistry registry) => Register(registry, ResourceAllocationAnswer.TryParseBounded);
 
         public static void Register(EffectRegistry registry, BoundedResourceAllocationDecoder decoder)
@@ -332,8 +347,7 @@ namespace YC.Domain.Effects
                     new GameplayTextArgument { Name = "maximum", Kind = "integer", Value = NormalizedValue.CreateInteger(maximum) }) } };
             foreach (var type in BasicTypes.Where(rule.AllowedResourceTypes.Contains))
             {
-                string icon = type == ResourceType.Originium ? "core:resource.orirock" : type == ResourceType.OriginiumShard ? "core:resource.originium_shard" : "core:resource.iron";
-                request.CandidateIds.Add(type.ToString()); request.Presentation.QuantityRows.Add(new GameplayQuantityRowPresentation { RowId = type.ToString(), IconKey = icon, Label = new GameplayTextRef(icon + ".alt") });
+                request.CandidateIds.Add(type.ToString()); request.Presentation.QuantityRows.Add(ResourceRow(type));
             }
             return EffectStepResult.Continue("allocating").AddInteraction(request);
         }

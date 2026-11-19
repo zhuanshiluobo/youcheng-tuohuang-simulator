@@ -256,6 +256,23 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InteractionRequests.Any(value => value.OwnerEffectId == ownerId && value.InteractionTypeId == ResourceEffectExecutor.PaymentConfirmationInteractionTypeId), Is.False);
         }
 
+        [Test]
+        public void ExistingPaymentChoiceCanBePreparedOutsideAnOrdinaryActionPhase()
+        {
+            state.Phase = GamePhase.ResourceCollection;
+            string ownerId = Run(ResourcePaymentChoiceEffectExecutor.Create(1, new[] { Mixed() }, "resource.payment.choice"));
+            var request = Open(); string selected = request.CandidateIds.Single();
+            var command = new GameCommand { Kind = GameCommandKind.PreparePaymentDraft, PlayerId = 1, CommandId = "payment.outside-phase" };
+            command.Parameters["operation"] = "select_cost";
+            command.Parameters["ownerEffectId"] = ownerId;
+            command.Parameters["interactionId"] = request.GetStableInteractionId();
+            command.Parameters["candidateId"] = selected;
+            command.Parameters["expectedRevision"] = state.EffectRuntime.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var result = new PreparePaymentDraftCommandHandler(registry).Handle(state, command);
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.SourceEffectId == ownerId && value.EventType == ResourcePaymentPreparationService.BeforeResourcePayment), Is.EqualTo(1));
+        }
+
         private void OpenMainWindow()
         {
             var builder = new RoundMainChainBuilder(); var order = new List<int> { 1, 2, 3 };
@@ -497,7 +514,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test]
         public void RusthammerGeneratedPaymentIsOneDeclaredRuleCondition()
         {
-            var definition = EventCardLuaCatalog.CreateDefinition(EventCardDatabase.Get(state, "event_yellow_04"));
+            var definition = LegacyEventLuaFixture.CreateDefinition("event_yellow_04");
             var context = new LuaInvocationContext("rusthammer", "EventCardResolved", "p1", 0, definition.DefinitionVersion, 2, 0, 0);
             context.FacadeSnapshot.EventPayload = LuaSnapshotValue.Object(new[] {
                         new LuaSnapshotEntry("optionIndex", LuaSnapshotValue.Integer(0)),
@@ -525,7 +542,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.FindPlayer(1).Resources.GoldVoucher = 8;
             string primary = InfluenceService.GetLocationSlotId("A-02", 0);
             string root = Run(EventCardEffectSpecFactory.Resolve(1, EventColor.Yellow, "A-02", primary));
-            Answer(EventCardOptionIdFactory.Create("event_yellow_04", 0));
+            Answer(EventCardOptionIdFactory.CreateChoice("event_yellow_04", "choice_01"));
             Assert.That(Open().InteractionTypeId, Is.EqualTo("action.decline_effect"));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" &&
                 request.InteractionTypeId == EventCardEffectExecutor.InfluenceInteractionTypeId), Is.False);
@@ -546,6 +563,44 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Engine().GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(state.Map.Influences.Count, Is.EqualTo(pay ? 2 : 1));
             Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(pay ? 4 : 8));
+        }
+
+        [TestCase(false)] [TestCase(true)]
+        public void EventInfluenceContinuationChecksStoredChoiceIdentity(bool tamperChoice)
+        {
+            // 仅隔离验证事件中间态；固定夹具牌堆不计正常对局验收。
+            var deck = FindZone(state, "event_red");
+            var order = state.ItemZones.Orders.Single(value => value.ZoneId == deck.ZoneId);
+            var card = state.ItemZones.Items.Single(item => item.DefinitionId == "event_red_01").ItemId;
+            order.ItemIds.Remove(card); order.ItemIds.Insert(0, card); order.OrderRevision++;
+            int goldBefore = state.FindPlayer(1).Resources.GoldVoucher;
+            string root = Run(EventCardEffectSpecFactory.Resolve(1, EventColor.Red, "A-02"));
+            Answer(EventCardOptionIdFactory.CreateChoice("event_red_01", "choice_03"));
+            var request = Open();
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.influence.place.target"));
+            Assert.That(request.CandidateIds, Is.Not.Empty);
+            if (tamperChoice)
+            {
+                var archive = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
+                var savedNode = archive["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"]
+                    .Single(value => (string)value["EffectId"] == root);
+                var choice = savedNode["NormalizedResult"]["Properties"].Single(value => (string)value["Name"] == "selectedChoiceId");
+                choice["Value"]["StringValue"] = "choice_01";
+                var rejected = HostRecoveryService.RecoverJson(archive.ToString(), registry);
+                Assert.That(rejected.Succeeded, Is.False);
+                Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(goldBefore));
+                return;
+            }
+            Restore();
+            request = Open();
+            Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, request.StateRevision,
+                NormalizedValue.CreateString(request.CandidateIds[0]), out string reason), Is.True, reason);
+            var report = Engine().RunUntilQuiescent();
+            Assert.That(report.Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(Engine().GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(goldBefore + 6));
+            Restore();
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(goldBefore + 6));
         }
 
         [Test]

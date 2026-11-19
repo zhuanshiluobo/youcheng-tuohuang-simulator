@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using YC.Domain.Effects;
 using YC.Domain.Presentation;
 using YC.Domain.State;
 
@@ -168,6 +169,8 @@ namespace YC.Application.Presentation
                         break;
                 }
             }
+            if (reference.Key == ImmediateSpecialActionFlow.ActionDetailsTextKey)
+                runs = WithoutEmptySpecialActionSections(runs);
             // 测量身份保留查看者隔离，但忽略颜色；不会拿常规字宽绘制粗体。
             var measure = new StringBuilder();
             Field(measure, catalog.ContentHash); Field(measure, scope); Field(measure, context.VisibilityScopeId); Field(measure, context.ViewerPlayerId.ToString(CultureInfo.InvariantCulture));
@@ -181,6 +184,30 @@ namespace YC.Application.Presentation
             var document = new GameplayTextDocument(runs, identity, Hash(measure.ToString()));
             documents.Add(identity, document); ResolvedDocumentCount++;
             return document;
+        }
+
+        // 费用、正文、后续是独立可选段；只丢弃模板产生的空段，参数自身的换行和图文样式原样保留。
+        private static List<GameplayTextRun> WithoutEmptySpecialActionSections(List<GameplayTextRun> runs)
+        {
+            var result = new List<GameplayTextRun>();
+            var section = new List<GameplayTextRun>();
+            void AppendSection()
+            {
+                bool hasContent = section.Exists(run => !(run is TextRun text) || !string.IsNullOrWhiteSpace(text.Text));
+                if (hasContent)
+                {
+                    if (result.Count > 0) result.Add(new LineBreak());
+                    result.AddRange(section);
+                }
+                section.Clear();
+            }
+            foreach (var run in runs)
+            {
+                if (run is LineBreak) AppendSection();
+                else section.Add(run);
+            }
+            AppendSection();
+            return result;
         }
 
         private void AddIcon(List<GameplayTextRun> runs, string key, int? value, GameplayTextRunStyle style, GameplayTextContext context, int depth)

@@ -41,6 +41,7 @@ namespace YC.Presentation
                 () => UiReadState(), () => localPlayerId, gameplayInteractionHud.DialogRegistry,
                 uiCanvas.transform as UnityEngine.RectTransform, SubmitPendingEffectCommand);
             facilityBuildPlacement.GetVisibleRequests = GetVisibleInteractionRequests;
+            facilityBuildPlacement.GetVisibleState = VisibleSaleState;
             turnActionPresenter.BuildInteraction.GetVisibleRequests = GetVisibleInteractionRequests;
             interactionRequestRouter.Register(facilityBuildPlacement);
             interactionRouter.Register(facilityBuildPlacement);
@@ -48,7 +49,8 @@ namespace YC.Presentation
             facilityBuildRequest = new FacilityBuildRequestUiCoordinator(
                 () => UiReadState(), VisibleSaleState, () => localPlayerId, gameplayInteractionHud.DialogRegistry,
                 uiCanvas.transform as UnityEngine.RectTransform, gameplayAdapter,
-                () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId), SynchronizeInteractionFromState, SetPrompt);
+                () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId), SynchronizeInteractionFromState, SetPrompt,
+                buildFacilityOptions);
             // 每次注册均在创建后绑定，确保首次Awake及重新装配使用同一付款来源入口。
             interactionRequestRouter.Register(facilityBuildRequest);
             interactionRouter.Register(facilityBuildRequest);
@@ -94,7 +96,7 @@ namespace YC.Presentation
         }
 
         private bool CanPreserveRequestDraftForRefresh() =>
-            commandSubmission?.UsesDeterministicSimulation == true && interactionRequestRouter != null &&
+            commandSubmission?.UsesNetworkProjection == true && interactionRequestRouter != null &&
             (enterpriseInteraction?.CanPreserveUnsubmittedDraft(interactionRequestRouter.CurrentRequest) == true ||
              enterpriseInteraction?.CanPreservePendingDraft(interactionRequestRouter.CurrentRequest) == true ||
              routeResourceSelection?.CanPreserveNormalHarvestDraft(interactionRequestRouter.CurrentRequest) == true ||

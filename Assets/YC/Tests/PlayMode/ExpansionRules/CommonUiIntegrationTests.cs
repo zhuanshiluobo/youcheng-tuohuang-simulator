@@ -99,7 +99,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Call(artifacts, "WriteLabeledText", "实际加载程序集", JsonConvert.SerializeObject(loaded, Formatting.Indented));
             state = (GameState)Call(foundation, "IsolatedState", 2, false, diy); registry = (EffectRegistry)Read(foundation, "registry");
             Assert.That(state.ContentPackHash, Is.EqualTo(pack.ContentHash));
-            engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false)); Pump();
+            var started = new RoundExecutionService(registry).StartEntrance(state);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            engine = new EffectTreeExecutor(state, registry); Pump();
             ConfigureAdapter(); Refresh();
             modeRenderer = Activator.CreateInstance(T("EntrepreneurSelectionUiCoordinator"), new object[] {
                 adapter, Registry, Read(frame, "ContentRect"), new Func<int>(() => viewer), new Action<GameCommand>(commands.Add), new Func<bool>(() => true) });

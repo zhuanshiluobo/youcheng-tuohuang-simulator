@@ -67,9 +67,10 @@ namespace YC.Tests.EditMode
             var dialog = Activator.CreateInstance(Runtime("EventChoiceDialog"), registry, new Func<RectTransform>(() => parent));
             var submitted = 0;
             var card = new EventCardDefinition { CardId = "feedback-test", Name = "事件测试",
-                ChoiceDescriptions = { "执行选项" }, ChoiceRewards = { new ResourceSet() } };
-            Call(dialog, "ShowEventCardOptions", card, "", null, null, null,
-                new Action<int>(_ => submitted++), null);
+                EventChoiceSchemaVersion = 1, Choices = { new EventCardChoice {
+                    ChoiceId = "feedback-choice", Description = "执行选项", Script = "fixture/choice.lua", Version = "1.0.0",
+                    Button = new EventCardChoiceButton { TopPercent = 10, BottomPercent = 90 } } } };
+            Call(dialog, "ShowEventCardOptionsWithStableIds", card, "", new Action<string>(_ => submitted++));
             var view = parent.GetComponentInChildren(Runtime("EventChoiceDialogView"), true);
             Assert.That(view.gameObject.activeSelf, Is.True);
             Call(dialog, "SuspendForMapInteraction");

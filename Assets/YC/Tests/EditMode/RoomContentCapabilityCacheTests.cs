@@ -67,6 +67,7 @@ namespace YC.Tests.EditMode
         }
 
         [TestCase("mode", "rule_mode_not_implemented")]
+        [TestCase("entrepreneurDependency", "missing_entrepreneur_dependency")]
         [TestCase("map", "room_protocol_mismatch")]
         [TestCase("count", "unsupported_player_count")]
         [TestCase("fourPlayerMap", "map_requires_four_player")]
@@ -81,7 +82,8 @@ namespace YC.Tests.EditMode
             configuration.ContentPackHash = provider.GetContentPackHash(configuration);
             switch (field)
             {
-                case "mode": configuration.RuleModeId = "entrepreneur"; break;
+                case "mode": configuration.RuleModeId = "missing.mode"; break;
+                case "entrepreneurDependency": configuration.RuleModeId = "entrepreneur"; break;
                 case "map": configuration.MapId = "missing-map"; break;
                 case "count": configuration.PlayerCount = 5; break;
                 case "fourPlayerMap": configuration.PlayerCount = 4; break;
@@ -114,6 +116,20 @@ namespace YC.Tests.EditMode
             Assert.That(Builds(provider), Is.EqualTo(1));
         }
 
+        [Test] public void StructurallyValidUnknownModeCanBeReadButCannotBecomeReadyOrLaunch()
+        {
+            var provider = Provider();
+            var authority = new RoomConfigurationService(provider, localPlayers: true);
+            var room = CreateRoom(authority, provider, false);
+            room.Configuration.RuleModeId = "missing.mode";
+            string payload = RoomStateSerializer.Serialize(room);
+            Assert.That(RoomStateSerializer.TryDeserialize(payload, out var received, out string reason), Is.True, reason);
+            Assert.That(provider.TryValidate(received.Configuration, out reason), Is.False);
+            Assert.That(reason, Is.EqualTo("rule_mode_not_implemented"));
+            Assert.That(authority.TryValidateLaunch(received, out reason), Is.False);
+            Assert.That(received.HasStarted, Is.False);
+        }
+
         [Test] public void NewInstalledSnapshotInvalidatesSuccessAndHostStillRejectsOldContent()
         {
             var snapshot = installed; var provider = Provider(() => snapshot);
@@ -134,6 +150,44 @@ namespace YC.Tests.EditMode
             Assert.That(Builds(provider), Is.EqualTo(previousBuilds + 1));
             var fresh = CreateRoom(authority, provider, false);
             Assert.That(authority.TryFreezeForLaunch(fresh, Request<StartConfiguredGameRequest>(fresh), out _, out reason), Is.True, reason);
+        }
+
+        [TestCase("binding")] [TestCase("button")] [TestCase("script")]
+        public void ChangedEventChoiceCannotJoinOrLaunchWithTheOldFingerprint(string change)
+        {
+            // 独立包夹具：正式核心内容只读；改变一个事件合同，检验房间冻结时的真实内容身份。
+            var snapshot = installed;
+            var provider = Provider(() => snapshot);
+            var authority = new RoomConfigurationService(provider, localPlayers: true);
+            var room = CreateRoom(authority, provider, false);
+            Assert.That(authority.TryValidateLaunch(room, out var reason), Is.True, reason);
+            string oldHash = room.Configuration.ContentPackHash;
+            string root = CopyContent();
+            string cardPath = Path.Combine(root, "event", "event_green_01.json");
+            var card = JObject.Parse(File.ReadAllText(cardPath));
+            var choices = (JArray)card["data"]["choices"];
+            if (change == "binding")
+            {
+                var first = choices[0]["script"].DeepClone();
+                choices[0]["script"] = choices[1]["script"].DeepClone();
+                choices[1]["script"] = first;
+                File.WriteAllText(cardPath, card.ToString());
+            }
+            else if (change == "button")
+            {
+                choices[0]["button"]["topPercent"] = (double)choices[0]["button"]["topPercent"] + 1;
+                File.WriteAllText(cardPath, card.ToString());
+            }
+            else
+            {
+                string script = ((string)choices[0]["script"]).Replace('/', Path.DirectorySeparatorChar);
+                File.AppendAllText(Path.Combine(root, script), "\n-- event choice fingerprint fixture\n");
+            }
+            snapshot = ExternalContentPack.Load(root);
+            Assert.That(provider.GetContentPackHash(room.Configuration), Is.Not.EqualTo(oldHash));
+            Assert.That(authority.TryFreezeForLaunch(room, Request<StartConfiguredGameRequest>(room), out _, out reason), Is.False);
+            Assert.That(reason, Is.EqualTo("content_version_mismatch"));
+            Assert.That(room.HasStarted, Is.False);
         }
 
         [Test] public void UnsupportedContentFailureIsCachedOnlyUntilSnapshotReplacement()

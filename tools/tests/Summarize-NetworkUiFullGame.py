@@ -1,4 +1,4 @@
-"""只读四端正常流程原件，生成本局联机验收汇总。"""
+"""只读从头开局的四端正常流程原件；原档续局应使用专门审计。"""
 import hashlib
 import json
 import pathlib
@@ -6,9 +6,16 @@ import sys
 
 root = pathlib.Path(sys.argv[1]).resolve()
 roles = ['host', 'client2', 'client3', 'client4']
+if any((root / role / '正常原档续局初始边界.json').exists() for role in roles):
+    raise SystemExit('本汇总只适用于从头开局；原档续局请使用 audit_diy_resume_run.py 核对原确认前缀。')
 
 def read(path):
     return json.loads(path.read_text(encoding='utf-8-sig'))
+
+for role in roles:
+    tail_path = root / role / '联机终局原回执清单.json'
+    if tail_path.exists() and read(tail_path).get('NormalCompetitionRejectedCommands'):
+        raise SystemExit('本局包含竞争下的旧前缀拒绝；请使用 audit_diy_competition_run.py 逐项核验拒绝与后继选择。')
 
 def lines(path):
     if not path.exists():

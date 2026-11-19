@@ -69,7 +69,9 @@ namespace YC.Infrastructure.Lua
             }
             else if (handler.Role == EffectHandlerRole.Continuation && context.OwnerNode.ContinuationHandlerId == handler.Script.HandlerId &&
                 context.OwnerNode.ContinuationContentHash == handler.Script.ContentHash && handler.Script.DefinitionVersion == context.Registration?.DefinitionVersion &&
-                registry.TryGetContinuation(handler.Script.HandlerId, context.Event.EventType, out var continuation) && ReferenceEquals(continuation, context.Registration) &&
+                registry.TryGetContinuation(handler.Script.HandlerId, context.Event.EventType, context.OwnerNode.ContinuationContentId,
+                    context.OwnerNode.ContinuationContentInstanceId, context.OwnerNode.ContinuationAbilityId, context.OwnerNode.ContinuationDefinitionVersion,
+                    context.OwnerNode.ContinuationContentHash, out var continuation) && ReferenceEquals(continuation, context.Registration) &&
                 state.EffectRuntime.RuleEvents.Any(e => ReferenceEquals(e, context.Event)) && context.Registration.HandlerId == handler.Script.HandlerId && context.Registration.ContentHash == handler.Script.ContentHash)
             {
                 if (!registry.TryResolveAbilityExecutionHandler(state, context.OwnerNode.EffectId, handler.AbilityId, handler.Script.ContentHash, out source, out _) &&

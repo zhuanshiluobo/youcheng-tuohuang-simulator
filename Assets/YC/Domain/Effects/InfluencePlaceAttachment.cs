@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using YC.Domain.Influence;
+using YC.Domain.Items;
 using YC.Domain.State;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
@@ -23,6 +24,35 @@ namespace YC.Domain.State
 }
 namespace YC.Domain.Effects
 {
+    /// <summary>替换放置的候选在实际开页和提交时按当前供应区复验，不改写冻结的分支。</summary>
+    internal static class InfluencePlaceChoiceAvailability
+    {
+        internal static bool TryFilter(GameState state, EffectNodeRuntimeState node, IReadOnlyList<string> options, out List<string> available)
+        {
+            available = null;
+            if (!ItemZoneLegacyProjection.IsActive(state) || node?.NestedGroupSizes == null || options == null ||
+                node.NestedGroupSizes.Count != options.Count || node.NestedGroupSizes.Any(size => size != 1) ||
+                node.NestedEffects.Count != options.Count || node.NestedEffects.Any(spec => spec.EffectTypeId != InfluenceEffectTypeIds.PlaceInfluence) ||
+                !state.EffectRuntime.InfluencePlaceMappings.Any(mapping => mapping.ActualRootEffectId == node.EffectId)) return false;
+            var result = new List<string>();
+            for (int index = 0; index < options.Count; index++)
+            {
+                var args = node.NestedEffects[index].NormalizedArguments;
+                var owner = Value(args, "ownerSubject");
+                var source = Value(args, "influenceSource");
+                string type = Text(args, "itemTypeId");
+                int player = Number(owner, "playerId", -1);
+                if (Text(owner, "subjectType") != "player" || player <= 0 ||
+                    Text(source, "kind") != "player_supply" || string.IsNullOrEmpty(type)) return false;
+                var supply = state.ItemZones.Zones.Find(zone => zone.TemplateId == "core.zone.player_supply" && zone.OwnerPlayerId == player);
+                if (supply != null && state.ItemZones.Items.Any(item => item.ZoneId == supply.ZoneId && item.TypeId == type &&
+                    item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == player)) result.Add(options[index]);
+            }
+            available = result;
+            return true;
+        }
+    }
+
     public sealed class InfluencePlaceRewrite
     {
         public string Operation = "keep", ResultContract = "", PermissionContract = "";

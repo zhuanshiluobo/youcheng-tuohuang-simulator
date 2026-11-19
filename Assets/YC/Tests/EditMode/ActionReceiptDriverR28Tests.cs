@@ -10,6 +10,7 @@ using NUnit.Framework;
 using UnityEngine;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
+using YC.Domain.Effects;
 using YC.Domain.Events;
 using YC.Domain.Interactions;
 using YC.Domain.Maps;
@@ -90,6 +91,104 @@ namespace YC.Tests.EditMode
             Assert.That(Call(driver,"FinishObservedAction",action),Is.EqualTo(false));Assert.That(Coverage("action:explore"),Is.Zero);
             node.Status=EffectNodeStatus.Completed;state.EffectRuntime.StateRevision=2;Call(driver,"ObserveActionReceipts");Assert.That(Coverage("action:explore"),Is.EqualTo(1));
             artifacts.WriteLabeledText("回答入口后继未提前完成",JsonConvert.SerializeObject(new{command,request,node,Completed=Coverage("action:explore"),NormalExplorationOrKernelRuleRetested=false}));
+        }
+    }
+
+    public sealed class HarvestRoundBoundaryFixtureTests
+    {
+        [Test]
+        public void OpenSpecialChoiceUsesItsVisibleCandidateInsteadOfRecheckingTheBlockedEntry()
+        {
+            var method = Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp", true)
+                .GetMethod("SharedSpecialChoiceMatches", BindingFlags.Static | BindingFlags.NonPublic);
+            var prior = new GameStateView { GameId = "game", ContentPackHash = "hash", ViewerPlayerId = 2, StateRevision = 5139 };
+            var current = new GameStateView { GameId = "game", ContentPackHash = "hash", ViewerPlayerId = 2, StateRevision = 5145 };
+            var option = new AbilityActionOption { OptionId = "special", Enabled = true,
+                SourceRef = new AbilitySourceRef { AuthorizedPlayerId = 2 } };
+            var request = new InteractionRequestProjection { VisibleToViewer = true, Status = "open", InteractionId = "request",
+                OwnerEffectId = "choice", AnsweringPlayerId = 2, StateRevision = 5145, InteractionTypeId = "effect.choice.execute",
+                AnswerSchema = "candidate_id", MinSelections = 0, MaxSelections = 1, CandidateIds = new List<string> { "special" } };
+            bool Match() => (bool)method.Invoke(null, new object[] { prior, current, request, option });
+            Assert.That(Match(), Is.True);
+            request.CandidateIds.Clear(); Assert.That(Match(), Is.False); request.CandidateIds.Add("special");
+            request.StateRevision--; Assert.That(Match(), Is.False); request.StateRevision++;
+            request.VisibleToViewer = false; Assert.That(Match(), Is.False); request.VisibleToViewer = true;
+            current.ViewerPlayerId = 3; Assert.That(Match(), Is.False); current.ViewerPlayerId = 2;
+            current.ContentPackHash = "other"; Assert.That(Match(), Is.False);
+        }
+
+        [Test]
+        public void SpecialChoiceReceiptAndEffectMustBelongToTheSameRequest()
+        {
+            var type = Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp", true);
+            var receiptMethod = type.GetMethod("AccurateSharedSpecialAnswer", BindingFlags.Static | BindingFlags.NonPublic);
+            var treeMethod = type.GetMethod("SharedSpecialEffectBelongsToRequest", BindingFlags.Static | BindingFlags.NonPublic);
+            var command = new GameCommand { Kind = GameCommandKind.AnswerInteraction, PlayerId = 2,
+                OptionIds = new List<string> { "special" } };
+            command.Parameters["interactionId"] = "request"; command.Parameters["expectedRevision"] = "5145";
+            var accepted = new WorkflowSubmissionResult(CommandResult.SuccessResult(new List<GameEvent>(), "受理"), true);
+            bool Match(WorkflowSubmissionResult result, bool network = false, int submitted = -1, string contract = null) =>
+                (bool)receiptMethod.Invoke(null, new object[] { "request", "contract", 5145, 2, "special", command, result,
+                    network ? 5147 : 5145, network, submitted, contract });
+            Assert.That(Match(accepted), Is.True);
+            command.OptionIds[0] = "other"; Assert.That(Match(accepted), Is.False); command.OptionIds[0] = "special";
+            Assert.That(Match(new WorkflowSubmissionResult(accepted.CommandResult, false)), Is.False);
+            command.Parameters["expectedRevision"] = "5147";
+            Assert.That(Match(accepted, true, 5147, "contract"), Is.True);
+            Assert.That(Match(accepted, true, 5147, "other"), Is.False);
+            var state = new GameState();
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState { EffectId = "choice" });
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState { EffectId = "child", ParentEffectId = "choice" });
+            state.EffectRuntime.EffectNodes.Add(new EffectNodeRuntimeState { EffectId = "old", ParentEffectId = "other-choice" });
+            bool Belongs(string effect) => (bool)treeMethod.Invoke(null, new object[] { state, effect, "choice" });
+            Assert.That(Belongs("child"), Is.True);
+            Assert.That(Belongs("old"), Is.False);
+            Assert.That((bool)treeMethod.Invoke(null, new object[] { state, "missing", "missing" }), Is.False);
+        }
+
+        [Test]
+        public void ConcurrentReceiptAllowsOnlyTheSameRequestAtItsActualSubmissionRevision()
+        {
+            var method = Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp", true)
+                .GetMethod("SameObservedRequest", BindingFlags.Static | BindingFlags.NonPublic);
+            var command = new GameCommand { Kind = GameCommandKind.AnswerInteraction, PlayerId = 1 };
+            command.Parameters["interactionId"] = "original"; command.Parameters["expectedRevision"] = "875";
+            bool Match(int before, bool network, int submitted, string contract) => (bool)method.Invoke(null,
+                new object[] { "original", "request-contract", 871, command, before, network, submitted, contract });
+            Assert.That(Match(875, true, 875, "request-contract"), Is.True);
+            Assert.That(Match(875, true, 875, "different-contract"), Is.False);
+            Assert.That(Match(876, true, 875, "request-contract"), Is.False);
+            Assert.That(Match(870, true, 870, "request-contract"), Is.False);
+            Assert.That(Match(875, false, -1, null), Is.False);
+            command.Parameters["interactionId"] = "other";
+            Assert.That(Match(875, true, 875, "request-contract"), Is.False);
+        }
+
+        [Test]
+        public void CompletedCollectionRemainsProvableAfterRoundFlagsReset()
+        {
+            var state = new GameState { Round = 2 };
+            var result = NormalizedValue.CreateObject(new List<NormalizedValueEntry> {
+                new NormalizedValueEntry { Name = "changed", Value = NormalizedValue.CreateBoolean(true) },
+                new NormalizedValueEntry { Name = "collectedLocationIds", Value = NormalizedValue.CreateArray(
+                    new List<NormalizedValue> { NormalizedValue.CreateString("B-03") }) } });
+            var node = new EffectNodeRuntimeState { EffectId = "collection", EffectTypeId = RouteResourceSelectionEffectExecutor.TypeId,
+                Status = EffectNodeStatus.Completed, PlayerId = 1, NormalizedResult = result,
+                ContinuationOperationContext = new OperationCommandContext { SourceCommandId = "answer" } };
+            state.EffectRuntime.EffectNodes.Add(node);
+            var method = Type.GetType("YC.Presentation.Validation.HotseatUiValidationDriver, Assembly-CSharp", true)
+                .GetMethod("CompletedHarvestBeforeRoundAdvance", BindingFlags.Static | BindingFlags.NonPublic);
+            bool Confirm(string owner, string command, int actor, int previousRound) =>
+                (bool)method.Invoke(null, new object[] { state, owner, command, actor, previousRound });
+            Assert.That(Confirm("collection", "answer", 1, 1), Is.True);
+            Assert.That(Confirm("collection", "answer", 1, 2), Is.False);
+            Assert.That(Confirm("collection", "other", 1, 1), Is.False);
+            Assert.That(Confirm("collection", "answer", 2, 1), Is.False);
+            node.Status = EffectNodeStatus.Blocked;
+            Assert.That(Confirm("collection", "answer", 1, 1), Is.False);
+            node.Status = EffectNodeStatus.Completed;
+            ItemTransferEffectExecutor.Value(result, "collectedLocationIds").Items.Clear();
+            Assert.That(Confirm("collection", "answer", 1, 1), Is.False);
         }
     }
 }

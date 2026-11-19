@@ -275,7 +275,7 @@ namespace YC.Tests.EditMode
             Assert.That(cardIds, Has.Count.EqualTo(EventCardDatabase.ExpectedDefinitionCount));
             for (int i = 0; i < cardIds.Count; i++)
             {
-                LuaScriptDefinition definition = EventCardLuaCatalog.CreateDefinition(cardIds[i]);
+                LuaScriptDefinition definition = LegacyEventLuaFixture.CreateDefinition(cardIds[i]);
                 Assert.That(definition.DefinitionVersion, Is.EqualTo(EventCardLuaCatalog.DefinitionVersion));
                 Assert.That(definition.HandlerId, Is.EqualTo("lua.event_card." + cardIds[i]));
                 Assert.That(definition.Source, Does.Contain("return function(ctx)"));
@@ -287,7 +287,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void EventCardLuaCatalog_CompilesPaymentInfluenceAndOpponentRewardFamilies()
         {
-            LuaScriptDefinition paymentDefinition = EventCardLuaCatalog.CreateDefinition("event_yellow_04");
+            LuaScriptDefinition paymentDefinition = LegacyEventLuaFixture.CreateDefinition("event_yellow_04");
             LuaInvocationResult paymentInvocation = InvokeEventCardScript(
                 paymentDefinition,
                 "0",
@@ -297,7 +297,7 @@ namespace YC.Tests.EditMode
             Assert.That(paymentInvocation.Effects[0].EffectTypeId, Is.EqualTo(ResourceEffectTypeIds.Pay));
             Assert.That(paymentInvocation.Effects[1].EffectTypeId, Is.EqualTo(InfluenceEffectTypeIds.PlaceInfluence));
 
-            LuaScriptDefinition opponentDefinition = EventCardLuaCatalog.CreateDefinition("event_red_05");
+            LuaScriptDefinition opponentDefinition = LegacyEventLuaFixture.CreateDefinition("event_red_05");
             LuaInvocationResult opponentInvocation = InvokeEventCardScript(opponentDefinition, "2", string.Empty);
             Assert.That(opponentInvocation.Status, Is.EqualTo(LuaInvocationStatus.Success), opponentInvocation.Diagnostic);
             Assert.That(opponentInvocation.Effects, Has.Count.EqualTo(2));

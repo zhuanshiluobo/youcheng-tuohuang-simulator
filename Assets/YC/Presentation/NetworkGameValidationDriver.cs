@@ -54,6 +54,16 @@ namespace YC.Presentation
         private bool finalHostExportStarted;
         private object lastCompletedHostProtocolSummary;
         private string boundGameId, terminationFailure;
+        private bool privateFixtureReconnectRequested, privateFixtureSawDisconnect, privateFixtureReconnected, privateFixtureMilestone;
+        private bool privateFixtureResumeStarted, privateFixtureInitialResumeView, privateFixtureFinalSeen, privateFixtureTerminalSaveRunning;
+        private long privateFixtureFinalSequence;
+        private int privateFixtureResults;
+        private int privateFixtureNoDecisionRevision = -1;
+        private string privateFixturePendingDecision;
+        private readonly HashSet<string> privateFixtureRejectedDecisions = new HashSet<string>(StringComparer.Ordinal);
+        private bool PrivateFixtureActive => LocalMirrorTestMode.IsPrivatePreparationFixture;
+        private bool PrivateFixtureResume => PrivateFixtureActive && Environment.GetCommandLineArgs().Contains("--yc-private-fixture-resume");
+        private bool PrivateFixtureFullGame => PrivateFixtureActive && Environment.GetCommandLineArgs().Contains("--yc-private-fixture-full-game");
         private bool WholeGameHealth => routePlan?.EvaluationMode == "whole-game-health";
         private bool UnboundedWholeGame => WholeGameHealth && !diagnosticSampleRequested;
         private bool ValidationDeadlineExceeded => !UnboundedWholeGame && validationTimeout > 0 && Time.realtimeSinceStartup - started > validationTimeout;
@@ -192,6 +202,9 @@ namespace YC.Presentation
                     networkAddress = runtime?.Manager?.networkAddress,
                     revision = latest?.StateRevision, round = latest?.Round, phase = latest?.Phase,
                     initialSnapshots, confirmations, commands, disconnected, reconnected,
+                    privateSave = PrivateFixtureActive ? subscribed?.ValidationPrivateSaveStatus() : null,
+                    saveQueue = PrivateFixtureActive ? MatchSaveController.Instance?.PerformanceSaveStatistics : null,
+                    saveFailure = PrivateFixtureActive ? MatchSaveController.Instance?.LastFailure : null,
                     visibleText = FindObjectsOfType<UnityEngine.UI.Text>().Where(t => t.isActiveAndEnabled).Select(t => t.text).ToArray()
                 });
             }
@@ -213,7 +226,10 @@ namespace YC.Presentation
             if (awaitingAcceptedSessionRecovery || recoveringSimulation) return;
             if (Time.realtimeSinceStartup < nextAction) return;
             nextAction = Time.realtimeSinceStartup + 0.15f;
+            if (PrivateFixtureFullGame && GameLaunchContext.Instance?.IsCompletedSessionDetached == true)
+            { CompletePrivateFixtureAfterDetach(); return; }
             if (SceneManager.GetActiveScene().name == "StartScene") { if (!observationOnly) PrepareRoom(); return; }
+            if (PrivateFixtureActive && subscribed?.UsesPrivateTransport == true) { DrivePrivateFixture(); return; }
             // 保留上方订阅；成员只在真实初始同步成功回调后消费当前投影。
             if (IsAwaitingClientInitialState) return;
             var controller = FindObjectOfType<MobileCityInteractionController>();
@@ -264,7 +280,7 @@ namespace YC.Presentation
                     {
                         try
                         {
-                            var catalog = ActiveContentCatalogBuilder.Build(ExternalContentRuntime.Pack, latest.RuleConfiguration);
+                            var catalog = ExternalContentRuntime.BuildActiveCatalog(latest.RuleConfiguration);
                             if (catalog.ContentPackHash != latest.ContentPackHash) throw new InvalidOperationException("活动目录与本局哈希不一致。");
                             Write("active-catalog.json", new { catalog.ContentPackHash, catalog.EnabledExpansionIds, catalog.RuleModeId,
                                 nativeDefinitions = catalog.ContentDefinitions,
@@ -374,6 +390,340 @@ namespace YC.Presentation
                 Finish("validation_submission_not_admitted:" + command.CommandId);
         }
 
+        // 隔离联机夹具直接走正式命令入口；它不代表正常菜单和界面验收。
+        private void DrivePrivateFixture()
+        {
+            var context = GameLaunchContext.Instance;
+            var controller = FindObjectOfType<MobileCityInteractionController>();
+            if (context == null || controller == null) return;
+            if (privateFixtureReconnectRequested && !NetworkClient.isConnected) privateFixtureSawDisconnect = true;
+            if (privateFixtureSawDisconnect && NetworkClient.isConnected && subscribed.IsPrivateRoomReady && !privateFixtureReconnected)
+            {
+                privateFixtureReconnected = true;
+                Write("private-reconnected.json", new { context.GameId, context.LocalPlayerId, utc = DateTime.UtcNow });
+            }
+            if (!subscribed.IsPrivateRoomReady) return;
+            var view = controller.ValidationView(context.LocalPlayerId);
+            if (view == null || view.ViewerRole != GameStateViewerRole.Player || view.ViewerPlayerId != context.LocalPlayerId ||
+                view.GameId != context.GameId) { FailPrivateFixture("private_fixture_view_identity_invalid"); return; }
+            if (PrivateFixtureResume && !privateFixtureInitialResumeView) return;
+            if (!TryAcceptRunView(view)) return;
+            latest = view;
+            if (view.IsPausedFault) { FailPrivateFixture("effect_fault:" + view.FaultCode); return; }
+            if (view.Players.Any(player => player.PlayerId != context.LocalPlayerId &&
+                (player.HandCardIds.Count != 0 || !string.IsNullOrEmpty(player.CoveredCharacterCardId))))
+            { FailPrivateFixture("opponent_private_cards_visible"); return; }
+            if (lastSavedRevision != view.StateRevision)
+            {
+                lastSavedRevision = view.StateRevision;
+                Append("private-projections.jsonl", new { utc = DateTime.UtcNow, view.GameId, view.ContentPackHash,
+                    view.ViewerPlayerId, view.StateRevision, view.Round, view.Phase, view.Interactions, view.Preparation });
+            }
+            if (context.Mode == LaunchMode.Client && context.LocalPlayerId == 3 && view.Round >= 1 && privateFixtureResults > 0 &&
+                !privateFixtureReconnectRequested && !subscribed.HasPendingPrivateCommand && subscribed.CanRequestLocalConnectionRecovery)
+            {
+                privateFixtureReconnectRequested = subscribed.TryRequestLocalConnectionRecovery();
+                if (privateFixtureReconnectRequested)
+                    Write("private-reconnect-request.json", new { context.GameId, context.LocalPlayerId, utc = DateTime.UtcNow });
+                return;
+            }
+            if (privateFixtureReconnectRequested && !privateFixtureReconnected) return;
+            if (!PrivateFixtureFullGame && view.Round >= 2 && !subscribed.HasPendingPrivateCommand && pendingSimulationCommand == null)
+            {
+                if (!privateFixtureMilestone)
+                {
+                    privateFixtureMilestone = true;
+                    Write("private-milestone.json", new { view.GameId, view.ContentPackHash, view.ViewerPlayerId, view.Round,
+                        view.Phase, view.StateRevision, commands, results = privateFixtureResults,
+                        reconnectRequested = privateFixtureReconnectRequested, reconnected = privateFixtureReconnected,
+                        Scope = "隔离命令夹具；不作为正常界面或 Steam 验收" });
+                }
+                string root = Path.GetDirectoryName(output);
+                if (context.Mode == LaunchMode.Host && new[] { "host", "client2", "client3", "client4" }
+                    .All(role => File.Exists(Path.Combine(root, role, "private-milestone.json"))))
+                    File.WriteAllText(Path.Combine(root, "private-stop.signal"), view.GameId);
+                if (File.Exists(Path.Combine(root, "private-stop.signal")))
+                {
+                    if (File.ReadAllText(Path.Combine(root, "private-stop.signal")) != view.GameId)
+                    { FailPrivateFixture("private_fixture_stop_identity_mismatch"); return; }
+                    Write("private-result.json", new { success = true, view.GameId, view.ContentPackHash, view.ViewerPlayerId,
+                        view.Round, results = privateFixtureResults, reconnected = privateFixtureReconnected });
+                    stopped = true; DetachTransport(); StartCoroutine(QuitAfterCapture(0));
+                }
+                return;
+            }
+            if (privateFixtureMilestone || subscribed.HasPendingPrivateCommand || pendingSimulationCommand != null || !controller.ValidationCanSubmit) return;
+            var request = view.Interactions.FirstOrDefault(item => item.Status == "open" && item.AnsweringPlayerId == context.LocalPlayerId &&
+                !item.Kind.StartsWith(InteractionRequest.MainlineCompletionInteractionPrefix, StringComparison.Ordinal) && item.Kind != "collection.task");
+            GameCommand command = null;
+            try
+            {
+                if (request != null)
+                {
+                    command = Answer(request, context.LocalPlayerId, view);
+                    ChooseUnrejectedSingleCandidate(command, request, view.StateRevision, privateFixtureRejectedDecisions);
+                }
+                else if (!string.IsNullOrEmpty(view.ActiveSettlementWindowId)) command = PrivateFixtureSettlement(view, context.LocalPlayerId);
+                else if (view.Phase == GamePhase.ResourceCollection)
+                {
+                    var own = view.Players.Single(player => player.PlayerId == context.LocalPlayerId);
+                    if (!own.HasCollectedResourcesThisRound)
+                    {
+                        command = new GameCommand { Kind = GameCommandKind.CollectResource, PlayerId = context.LocalPlayerId };
+                        if (!string.IsNullOrEmpty(own.CityLocationId)) command.OptionIds.Add(own.CityLocationId);
+                    }
+                }
+                else if (view.CurrentPlayerId == context.LocalPlayerId &&
+                    (view.Phase == GamePhase.Entrance || view.Phase == GamePhase.ActionRound1 || view.Phase == GamePhase.ActionRound2 || view.Phase == GamePhase.Cleanup))
+                {
+                    if (view.WaitingForPlayerIds.Any(id => id != context.LocalPlayerId)) return;
+                    var own = view.Players.Single(player => player.PlayerId == context.LocalPlayerId);
+                    command = (view.Phase == GamePhase.ActionRound1 || view.Phase == GamePhase.ActionRound2) && !own.ActedMainActionThisTurn
+                        ? PrivateFixtureMainAction(controller.ValidationPrivateState, context.LocalPlayerId, view.StateRevision)
+                            ?? PrivateFixtureAvailableAbility(view, context.LocalPlayerId)
+                        : new GameCommand { PlayerId = context.LocalPlayerId, Kind = GameCommandKind.EndAction };
+                }
+                if (command == null)
+                {
+                    if (view.CurrentPlayerId == context.LocalPlayerId &&
+                        (view.Phase == GamePhase.ActionRound1 || view.Phase == GamePhase.ActionRound2) &&
+                        privateFixtureNoDecisionRevision != view.StateRevision)
+                    {
+                        privateFixtureNoDecisionRevision = view.StateRevision;
+                        var own = controller.ValidationPrivateState?.FindPlayer(context.LocalPlayerId);
+                        Append("private-no-decision.jsonl", new { utc = DateTime.UtcNow, view.GameId, view.ViewerPlayerId,
+                            view.Round, view.Phase, view.StateRevision, CityLocationId = own?.CityLocationId,
+                            InfluenceSupply = own?.InfluenceSupply, ActedMainActionThisTurn = own?.ActedMainActionThisTurn,
+                            Scope = "隔离夹具未选出合法主要行动，保留对局继续观察" });
+                    }
+                    return;
+                }
+                string decision = PrivateFixtureDecisionKey(command, view.StateRevision);
+                if (privateFixtureRejectedDecisions.Contains(decision)) return;
+                command.CommandId = Guid.NewGuid().ToString("N");
+                privateFixturePendingDecision = decision;
+                pendingSimulationCommand = GameCommandDto.FromCommand(command);
+                Append("private-commands.jsonl", new { utc = DateTime.UtcNow, view.Round, view.Phase, view.StateRevision, command });
+                commands++; controller.SubmitValidationCommand(command);
+                if (!subscribed.HasPendingPrivateCommand) FailPrivateFixture("private_fixture_submission_not_admitted");
+            }
+            catch (Exception error) { FailPrivateFixture("private_fixture_driver:" + error.Message); }
+        }
+
+        private void OnPrivateFixtureCommandCompleted(PrivateCommandResult result)
+        {
+            if (!PrivateFixtureActive || stopped || result == null) return;
+            if (pendingSimulationCommand == null || pendingSimulationCommand.CommandId != result.CommandId ||
+                result.GameId != GameLaunchContext.Instance?.GameId || result.PlayerId != GameLaunchContext.Instance?.LocalPlayerId)
+            { FailPrivateFixture("private_fixture_result_identity_mismatch"); return; }
+            Append("private-results.jsonl", new { utc = DateTime.UtcNow, result });
+            pendingSimulationCommand = null;
+            if (result.Status == PrivateCommandStatus.Rejected)
+            {
+                if (result.Reason == "private_command_observation_stale" || result.Reason == "private_command_sequence_invalid") return;
+                privateFixtureRejectedDecisions.Add(privateFixturePendingDecision);
+                Append("private-differences.jsonl", new { utc = DateTime.UtcNow, result, Decision = privateFixturePendingDecision,
+                    Scope = "规则拒绝的夹具决策；保留证据并等待合法候选" });
+                Capture("夹具决策首次差异");
+                return;
+            }
+            privateFixtureResults++;
+        }
+        private static string PrivateFixtureDecisionKey(GameCommand command, int revision) => revision + "|" + command.Kind + "|" +
+            command.SourceId + "|" + command.TargetId + "|" + string.Join(",", command.OptionIds ?? new List<string>()) + "|" +
+            string.Join(",", (command.Parameters ?? new Dictionary<string, string>()).OrderBy(item => item.Key, StringComparer.Ordinal)
+                .Select(item => item.Key + "=" + item.Value));
+        private static void ChooseUnrejectedSingleCandidate(GameCommand command, InteractionView request, int revision, ISet<string> rejected)
+        {
+            if (command?.Kind != GameCommandKind.AnswerInteraction || command.OptionIds?.Count != 1 || request == null ||
+                request.MinSelections != 1 || request.MaxSelections != 1 || request.CandidateIds == null || rejected == null ||
+                !rejected.Contains(PrivateFixtureDecisionKey(command, revision))) return;
+            string first = command.OptionIds[0];
+            foreach (string candidate in request.CandidateIds.Where(value => !string.IsNullOrEmpty(value) && value != first))
+            {
+                command.OptionIds[0] = candidate;
+                if (!rejected.Contains(PrivateFixtureDecisionKey(command, revision))) return;
+            }
+            command.OptionIds[0] = first;
+        }
+        private static GameCommand PrivateFixtureSettlement(GameStateView view, int player)
+        {
+            if (view == null || string.IsNullOrEmpty(view.ActiveSettlementWindowId)) return null;
+            var option = view.CharacterSettlementOptions.Where(value => value.VisibleToViewer && value.IsEnabled &&
+                value.AnsweringPlayerId == player && value.StateRevision == view.StateRevision && value.WindowId == view.ActiveSettlementWindowId)
+                .OrderBy(value => value.RegistrationSequence).FirstOrDefault();
+            if (option != null) return EffectInteractionCommands.InvokeSettlementOption(player, option.OptionId, option.TargetUseId, option.StateRevision);
+            var end = view.SettlementEndAction;
+            if (end == null || end.WindowId != view.ActiveSettlementWindowId || end.StateRevision != view.StateRevision ||
+                !(string.IsNullOrEmpty(end.CurrentNodeEffectId) ? end.CanCloseCleanupWindow : end.CanStopCurrentNode)) return null;
+            var command = new GameCommand { PlayerId = player, Kind = GameCommandKind.EndAction };
+            command.Parameters["windowId"] = end.WindowId;
+            command.Parameters["currentNodeEffectId"] = end.CurrentNodeEffectId;
+            command.Parameters["interactionId"] = end.InteractionId;
+            command.Parameters["expectedRevision"] = end.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return command;
+        }
+        private GameCommand PrivateFixtureAvailableAbility(GameStateView view, int player)
+        {
+            if (view == null || view.ViewerPlayerId != player || !view.HasAbilityActionCatalog || view.AbilityActions == null) return null;
+            // 常规主要行动没有候选时，也可使用本人当前投影中允许的特殊或快速行动。
+            foreach (var option in view.AbilityActions.Where(value => value != null && value.Enabled &&
+                (value.EntryKind == "special" || value.EntryKind == "quick") && value.SourceRef?.AuthorizedPlayerId == player &&
+                value.RequestRef?.AnsweringPlayerId == player && value.VersionRef?.ContentPackHash == view.ContentPackHash &&
+                value.RequestRef.AllowedAnswers?.Contains(value.OptionId) == true)
+                .OrderBy(value => value.EntryKind == "special" ? 0 : 1).ThenBy(value => value.SortOrder)
+                .ThenBy(value => value.OptionId, StringComparer.Ordinal))
+            {
+                var candidate = AbilityActionCommand.Create(player, option);
+                if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, view.StateRevision))) return candidate;
+            }
+            return null;
+        }
+        private GameCommand PrivateFixtureMainAction(GameState state, int player, int revision)
+        {
+            if (state == null) return null;
+            var influence = new InfluenceService(new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)));
+            foreach (string slot in influence.GetLegalPlacementSlotIds(state, player))
+            {
+                var candidate = new GameCommand { Kind = GameCommandKind.DeployInfluence, PlayerId = player, TargetId = slot };
+                if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, revision)) && influence.CanPlace(state, player, slot).IsValid)
+                    return candidate;
+            }
+            foreach (var item in state.Map.Influences.Where(value => value.PlayerId == player))
+            {
+                string id = InfluenceIdentity.GetStableId(state, item);
+                foreach (string slot in influence.GetLegalMovementSlotIds(state, id))
+                {
+                    var candidate = new GameCommand { Kind = GameCommandKind.DispatchInfluence, PlayerId = player, SourceId = id, TargetId = slot };
+                    if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, revision)) &&
+                        influence.CanMoveAtomically(state, player, new[] { new InfluenceMoveRequest(id, slot) }).IsValid) return candidate;
+                }
+            }
+            // 地图拥挤或标记耗尽时，继续从当前公开状态寻找其他合法主要行动。
+            var map = StaticMapDefinitions.Resolve(state.MapId);
+            var query = new MapQueryService(map);
+            var owner = state.FindPlayer(player);
+            if (owner == null || string.IsNullOrEmpty(owner.CityLocationId)) return null;
+            var build = new YC.Domain.Facilities.BuildFacilityService();
+            // 新实体模型的槽位校验要求真实实例；旧展示列表可能只包含定义 ID。
+            var visibleSupply = YC.Domain.Items.ItemZoneLegacyProjection.IsActive(state)
+                ? state.ItemZones.Items.Where(item => YC.Domain.Facilities.FacilityLayerQuery.IsFacility(item) &&
+                    state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.TemplateId == YC.Domain.Facilities.FacilityLayerQuery.SupplyTemplate) &&
+                    YC.Domain.Facilities.FacilityLayerQuery.IsSupplyTop(state, item.ItemId)).Select(item => item.ItemId).ToArray()
+                : state.Decks.FacilitySupply.ToArray();
+            var facility = build.WithReadOnlyQuery(state, player, null, q => visibleSupply
+                .Where(id => q.ValidateFacility(id).IsValid)
+                .Select(id => new { id, paymentMode = new[] { YC.Domain.Facilities.BuildFacilityService.PaymentModeResources,
+                    YC.Domain.Facilities.BuildFacilityService.PaymentModeGold }.FirstOrDefault(mode => q.ValidatePaymentMode(id, mode).IsValid) })
+                .Where(candidate => candidate.paymentMode != null)
+                .SelectMany(candidate => Enumerable.Range(0, YC.Domain.Facilities.BuildFacilityService.CityBoardSlotCount)
+                    .Where(slot => q.ValidateCityBoardSlot(candidate.id, slot).IsValid)
+                    .Select(slot => new { candidate.id, candidate.paymentMode, slot })).FirstOrDefault());
+            if (facility != null)
+            {
+                var candidate = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = player };
+                candidate.Parameters["facilityId"] = facility.id;
+                candidate.Parameters["cityBoardSlotIndex"] = facility.slot.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                candidate.Parameters[BuildFacilityCommandHandler.PaymentModeParameter] = facility.paymentMode;
+                if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, revision))) return candidate;
+            }
+            var movement = new YC.Domain.Movement.CityMovementService(query, influence, new TravelCostService(query),
+                new YC.Domain.Cards.EventDeckService(), new YC.Domain.Cards.ResourceTokenService());
+            foreach (var location in query.GetAdjacentLocations(owner.CityLocationId))
+            {
+                var candidate = new GameCommand { Kind = GameCommandKind.MoveCity, PlayerId = player,
+                    TargetId = YC.Domain.Movement.CityMoveCandidateQueryService.CandidatePrefix + location.LocationId };
+                if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, revision)) &&
+                    movement.CanMoveCity(state, player, location.LocationId).IsValid) return candidate;
+            }
+            var exploration = new YC.Domain.Exploration.ExplorationService(query, influence,
+                new YC.Domain.Cards.EventDeckService(), new YC.Domain.Cards.ResourceTokenService());
+            foreach (var location in map.Locations)
+            {
+                IReadOnlyList<MapPath> paths;
+                try { paths = exploration.FindDefaultPathChoices(state, player, location.LocationId); }
+                catch (InvalidOperationException) { continue; }
+                foreach (var path in paths)
+                {
+                    if (!exploration.CanExplore(state, player, location.LocationId, path, -1, string.Empty,
+                        new Dictionary<string, int>(), validateEventOption: false).IsValid) continue;
+                    var candidate = new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = player, TargetId = location.LocationId };
+                    candidate.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] = string.Join(",", path.LocationIds);
+                    candidate.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] = string.Join(",", path.RouteIds);
+                    if (!privateFixtureRejectedDecisions.Contains(PrivateFixtureDecisionKey(candidate, revision))) return candidate;
+                }
+            }
+            return null;
+        }
+        private void OnPrivateFixtureViewInstalled(long sequence, GameStateView view)
+        {
+            if (PrivateFixtureFullGame && !stopped && !privateFixtureFinalSeen && view?.FinalScoring?.IsResolved == true &&
+                (view.Phase == GamePhase.FinalScoring || view.Phase == GamePhase.GameOver))
+            {
+                var current = GameLaunchContext.Instance;
+                if (current == null || view.GameId != current.GameId || view.ViewerPlayerId != current.LocalPlayerId ||
+                    view.ViewerRole != GameStateViewerRole.Player)
+                { FailPrivateFixture("private_fixture_terminal_view_identity_invalid"); return; }
+                latest = view; privateFixtureFinalSeen = true; privateFixtureFinalSequence = sequence;
+                Write("private-terminal-view.json", new { view.GameId, view.ContentPackHash, view.ViewerPlayerId,
+                    view.Round, view.Phase, view.StateRevision, Sequence = sequence, view.FinalScoring.IsResolved });
+            }
+            if (!PrivateFixtureResume || stopped || privateFixtureInitialResumeView) return;
+            var context = GameLaunchContext.Instance;
+            var resume = context?.ResumeInfo;
+            string expectedEpochText = Argument("--yc-private-fixture-expect-epoch=");
+            long expectedEpoch = 2;
+            if (resume?.IsPrivate != true || view == null || view.GameId != Argument("--yc-private-fixture-expect-game=") ||
+                view.ViewerRole != GameStateViewerRole.Player || view.ViewerPlayerId != context.LocalPlayerId ||
+                !long.TryParse(Argument("--yc-private-fixture-expect-sequence="), out var expected) || sequence != expected ||
+                expectedEpochText.Length > 0 && (!long.TryParse(expectedEpochText, out expectedEpoch) || expectedEpoch <= 1) ||
+                resume.ConfirmedGlobalSequence != expected || resume.SimulationEpoch != expectedEpoch || view.ContentPackHash != resume.ContentHash)
+            { FailPrivateFixture("private_fixture_resume_initial_view_mismatch"); return; }
+            privateFixtureInitialResumeView = true;
+            Write("private-initial-resume-view.json", new { view.GameId, view.ContentPackHash, view.ViewerPlayerId,
+                Sequence = sequence, resume.SimulationEpoch, view.StateRevision, view.Round, view.Phase,
+                Scope = "隔离命令夹具安装的本人恢复投影" });
+        }
+
+        private async void CompletePrivateFixtureAfterDetach()
+        {
+            if (stopped || privateFixtureTerminalSaveRunning) return;
+            if (!privateFixtureFinalSeen || latest == null)
+            { FailPrivateFixture("private_fixture_terminal_view_missing"); return; }
+            var context = GameLaunchContext.Instance;
+            if (context.Mode == LaunchMode.Host)
+            {
+                privateFixtureTerminalSaveRunning = true;
+                try
+                {
+                    var save = MatchSaveController.Instance;
+                    if (save == null) { FailPrivateFixture("private_fixture_terminal_save_missing"); return; }
+                    if (!await save.Save(0))
+                    {
+                        if (save.LastFailure == "正在写入存档，请稍候。") return;
+                        FailPrivateFixture("private_fixture_terminal_save:" + save.LastFailure); return;
+                    }
+                }
+                catch (Exception error) { FailPrivateFixture("private_fixture_terminal_save:" + error.Message); return; }
+                finally { privateFixtureTerminalSaveRunning = false; }
+            }
+            Write("private-result.json", new { success = true, latest.GameId, latest.ContentPackHash,
+                latest.ViewerPlayerId, latest.Round, latest.StateRevision, TerminalSequence = privateFixtureFinalSequence,
+                results = privateFixtureResults, reconnected = privateFixtureReconnected, detached = context.IsCompletedSessionDetached,
+                terminalManualSaveWritten = context.Mode == LaunchMode.Host,
+                Scope = "隔离命令夹具；不作为正常界面或 Steam 验收" });
+            stopped = true; DetachTransport(); StartCoroutine(QuitAfterCapture(0));
+        }
+        private void OnPrivateFixtureTransportFaulted(string reason) => FailPrivateFixture("private_fixture_transport:" + reason);
+        private void FailPrivateFixture(string reason)
+        {
+            if (stopped) return;
+            Write("private-failure.json", new { reason, utc = DateTime.UtcNow, latest?.GameId, latest?.StateRevision, latest?.Round, latest?.Phase });
+            Capture("私密联机夹具首次故障");
+            Debug.LogError("[PrivatePreparationFixture] " + reason);
+            stopped = true; // 留住首次故障现场，不自动退出或重试覆盖。
+        }
+
         private bool TryRecoverHostCheckpoint(MobileCityInteractionController controller, int player)
         {
             if (simulationCoordinator != null) return TryRecoverConfirmedCheckpoint(player);
@@ -437,20 +787,55 @@ namespace YC.Presentation
         {
             if (stopped || roomBusy || observationOnly) return;
             var service = OnlineRoomServiceProvider.GetActive(); var room = service?.GetCurrentRoom();
+            if (PrivateFixtureResume && Argument("--yc-private-fixture-role=") == "host" && room == null && !privateFixtureResumeStarted)
+            {
+                var menu = FindObjectOfType<StartMenuController>();
+                if (service == null || menu == null || !menu.CanOpenMatchSave) return;
+                privateFixtureResumeStarted = true; roomBusy = true;
+                try
+                {
+                    using var validation = new MatchSaveData.ValidationScope(reuseUnchangedValidation: true);
+                    var save = MatchSaveController.Ensure().ReadWithValidation(3, validation);
+                    if (save.GameId != Argument("--yc-private-fixture-expect-game=") ||
+                        string.IsNullOrEmpty(save.PrivateCheckpointJson) || !save.LocalTestNetwork)
+                        throw new InvalidOperationException("fixture_resume_save_identity_mismatch");
+                    await menu.RestoreMatchWithValidation(save, validation);
+                    var restoredRoom = service.GetCurrentRoom();
+                    if (restoredRoom?.Resume?.IsPrivate != true || restoredRoom.Resume.GameId != save.GameId)
+                        throw new InvalidOperationException("fixture_resume_room_invalid");
+                    Write("room.json", restoredRoom);
+                }
+                catch (Exception error) { FailPrivateFixture("private_fixture_resume:" + error.Message); }
+                finally { roomBusy = false; }
+                return;
+            }
             if (room == null || room.Configuration == null || room.HasStarted || room.LocalPlayerId <= 0 || room.HostPlayerId <= 0) return;
             RoomConfigurationRequest request = null;
-            var expectedExpansions = routePlan?.EnabledExpansionIds ?? (enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" });
+            var expectedExpansions = routePlan?.EnabledExpansionIds ??
+                (PrivateFixtureActive && Argument("--yc-private-fixture-mode=") == "entrepreneur"
+                    ? new List<string> { "core", "enterprise", "infected" }
+                    : enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" });
             string expectedMap = routePlan?.MapId ?? room.Configuration.MapId;
-            bool configurationMatches = room.Configuration.MapId == expectedMap && room.Configuration.RuleModeId == "standard" &&
+            string expectedMode = PrivateFixtureActive ? Argument("--yc-private-fixture-mode=") : "standard";
+            bool configurationMatches = room.Configuration.MapId == expectedMap && room.Configuration.RuleModeId == expectedMode &&
                 room.Configuration.EnabledExpansionIds.OrderBy(id => id).SequenceEqual(expectedExpansions.OrderBy(id => id));
             if (room.LocalPlayerId == room.HostPlayerId && !configurationMatches)
-                request = new ChangeRoomConfigurationRequest { MapId = expectedMap, RuleModeId = "standard", EnabledExpansionIds = expectedExpansions.ToList() };
+                request = new ChangeRoomConfigurationRequest { MapId = expectedMap, RuleModeId = expectedMode, EnabledExpansionIds = expectedExpansions.ToList() };
             else if (room.LocalPlayerId != room.HostPlayerId && configurationMatches)
             {
                 var seat = room.SeatSlots.Single(s => s.Occupant?.PlayerId == room.LocalPlayerId);
                 if (!seat.Occupant.IsReady || !NetworkClient.isConnected) return;
                 if (!seat.IsUserReady || seat.ReadyConfigurationRevision != room.Configuration.ConfigurationRevision)
                     request = new SetRoomReadyRequest { IsUserReady = true };
+            }
+            if (PrivateFixtureResume && room.LocalPlayerId == room.HostPlayerId && room.Resume != null &&
+                RoomReadinessPolicy.TryValidateStart(room, out _))
+            {
+                roomBusy = true;
+                try { await service.StartGameAsync(); }
+                catch (Exception error) { FailPrivateFixture("private_fixture_resume_start:" + error.Message); }
+                finally { roomBusy = false; }
+                return;
             }
             if (request == null) return;
             request.CommandId = Guid.NewGuid().ToString("N"); request.RoomId = room.RoomId;
@@ -462,10 +847,18 @@ namespace YC.Presentation
                 var reply = request is ChangeRoomConfigurationRequest configuration ? await service.ChangeConfigurationAsync(configuration) : await service.SetReadyAsync((SetRoomReadyRequest)request);
                 if (stopped) return;
                 Write("room-reply.json", reply);
-                if (!reply.Success && reply.ReasonCode != "configuration_stale" && reply.ReasonCode != "service_unavailable") Finish("room_request:" + reply.ReasonCode);
+                if (!reply.Success && reply.ReasonCode != "configuration_stale" && reply.ReasonCode != "service_unavailable")
+                {
+                    if (PrivateFixtureActive) FailPrivateFixture("room_request:" + reply.ReasonCode);
+                    else Finish("room_request:" + reply.ReasonCode);
+                }
                 if (reply.Success) { Write("room.json", reply.Snapshot); Capture("实际房间配置"); }
             }
-            catch (Exception error) { Finish("room_exception:" + error.Message); }
+            catch (Exception error)
+            {
+                if (PrivateFixtureActive) FailPrivateFixture("room_exception:" + error.Message);
+                else Finish("room_exception:" + error.Message);
+            }
             finally { roomBusy = false; }
         }
 
@@ -497,8 +890,14 @@ namespace YC.Presentation
             }
             else if (request.Kind == "character.cleanup.settlement" && request.AllowDecline)
                 command.Parameters[AnswerInteractionCommandHandler.AnswerValueParameter] = "false";
+            else if (request.Kind == "facility.build.normal" && request.AllowDecline)
+                // 效果建设先要准备付款，不能把设施 ID 当作已支付的直接答案。
+                command.Parameters[AnswerInteractionCommandHandler.AnswerValueParameter] = "false";
             else if (request.AnswerSchema == "resource_allocation" && total != null)
                 command.Parameters[AnswerInteractionCommandHandler.AnswerValueParameter] = "Originium=" + total.Substring(6);
+            else if (request.Kind == "character.use.mode" && request.CandidateIds.Contains("strategy"))
+                // 角色使用模式同时列出 cancel；选择策略才能继续本局，而不是反复开启后取消。
+                command.OptionIds.Add("strategy");
             else if (request.CandidateIds.Count > 0)
             {
                 var skip = request.CandidateIds.FirstOrDefault(c => c == "choice.skip" || c == "decline");
@@ -541,6 +940,12 @@ namespace YC.Presentation
             transport.SimulationProtocolFaulted += faultSubscription;
             transport.SimulationRecoveryStarted += recoveryStartedSubscription;
             transport.SimulationRecoveryCompleted += recoveryCompletedSubscription;
+            if (PrivateFixtureActive)
+            {
+                transport.PrivateCommandCompleted += OnPrivateFixtureCommandCompleted;
+                transport.PrivateTransportFaulted += OnPrivateFixtureTransportFaulted;
+                transport.PrivateViewInstalled += OnPrivateFixtureViewInstalled;
+            }
             // Ready 可能早于驱动订阅；仅接续同一真实已安装实例，不伪造初始事件。
             if (transport.SimulationCoordinator != null) OnSimulationReady(transport.SimulationCoordinator);
         }
@@ -801,6 +1206,9 @@ namespace YC.Presentation
             transport.SimulationProtocolFaulted -= faultSubscription;
             transport.SimulationRecoveryStarted -= recoveryStartedSubscription;
             transport.SimulationRecoveryCompleted -= recoveryCompletedSubscription;
+            transport.PrivateCommandCompleted -= OnPrivateFixtureCommandCompleted;
+            transport.PrivateTransportFaulted -= OnPrivateFixtureTransportFaulted;
+            transport.PrivateViewInstalled -= OnPrivateFixtureViewInstalled;
         }
 
         private bool StopValidation(string failure)
@@ -1212,6 +1620,12 @@ namespace YC.Presentation
         internal long ValidationViewReuseCount, ValidationViewFallbackCount, ValidationViewRejectedCount, ValidationViewLegacyCount;
         internal GameStateView ValidationView(int player)
         {
+            if (commandSubmission?.UsesPrivateTransport == true)
+            {
+                var own = commandSubmission.PublishedView;
+                return player == localPlayerId && own?.ViewerRole == GameStateViewerRole.Player && own.ViewerPlayerId == player
+                    ? own : null;
+            }
             if (commandSubmission?.UsesDeterministicSimulation != true)
             { ValidationViewLegacyCount++; return session?.ProjectFor(GameStateViewer.Player(player)); }
             var coordinator = MirrorCommandTransport.Instance?.SimulationCoordinator;
@@ -1237,6 +1651,7 @@ namespace YC.Presentation
         }
         internal bool ValidationCanSubmit => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId) &&
             commandSubmission?.CanSubmitForLocalPlayer == true;
+        internal GameState ValidationPrivateState => commandSubmission?.UsesPrivateTransport == true ? commandSubmission.PublishedState : null;
         internal bool ValidationReadyFor(DeterministicSimulationSessionOptions options) => options != null && session != null &&
             session.State.GameId == options.GameId && localPlayerId == options.LocalPlayerId &&
             GameLaunchContext.Instance?.LocalPlayerId == options.LocalPlayerId &&

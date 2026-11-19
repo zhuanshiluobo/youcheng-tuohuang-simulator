@@ -372,6 +372,62 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == FacilityEntryEffectTypeIds.Build || n.EffectTypeId == FacilityEntryEffectTypeIds.Activate), Is.False);
         }
 
+        [Test] public void ReplacingAUsedTopFacilityLeavesTheNewTopAvailableForStyleSelection()
+        {
+            // 覆盖和宣告状态仅为规则/视图隔离输入；不计正常对局验收。
+            var state = State(); string definition = Definition(state, d => !d.Unique && !d.HasEntryEffect);
+            string bottom = Card(state, definition).ItemId; Put(state, bottom, 0);
+            state.FindPlayer(1).DeclaredCityStyles.Add(new CityStyleDeclarationState { CityStyleId = "fixture.used",
+                UsedFacilityIds = { bottom }, UsedCityBoardSlotIndexes = { 0 } });
+            string top = Card(state, definition).ItemId; Overlay(state, top, 0);
+            var modelMethod = typeof(YC.Presentation.Workflows.CityStyleInteraction).GetMethod("BuildCityBoardSlots",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var slots = (System.Collections.Generic.IReadOnlyList<YC.Presentation.Workflows.CityBoardSlotViewModel>)modelMethod.Invoke(null, new object[] { state, 1 });
+            Assert.That(FacilityLayerQuery.CurrentDeclaredTopSlots(state, 1), Is.Empty);
+            var style = new YC.Domain.CityStyles.CityStyleDefinition { DeclarationRequirement = new YC.Domain.CityStyles.CityStyleRequirement { RequiredFacilityCount = 1 } };
+            Assert.That(new YC.Domain.CityStyles.CityStylePatternMatcher().MatchSelected(state, 1, style, new[] { 0 }).Succeeded, Is.True);
+            Assert.That(slots[0].Used, Is.False, "新顶层未用于宣告，不能继承底层的旧槽位标记");
+            var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
+            var client = GameStateViewProjector.ToClientState(visible);
+            var clientSlots = (System.Collections.Generic.IReadOnlyList<YC.Presentation.Workflows.CityBoardSlotViewModel>)modelMethod.Invoke(null, new object[] { client, 1 });
+            Assert.That(clientSlots[0].Used, Is.False, "客户端公开投影也必须按新顶层实例判断");
+        }
+
+        [Test] public void ActualCityPanelRotatesOnlyTheDeclaredTopAfterOverlayAndPromotion()
+        {
+            // 现有预制体和真实公开投影的隔离测试，不覆盖场景或静态资产。
+            var state = State(); string definition = Definition(state, d => !d.Unique && !d.HasEntryEffect);
+            string bottom = Card(state, definition).ItemId; Put(state, bottom, 0);
+            state.FindPlayer(1).DeclaredCityStyles.Add(new CityStyleDeclarationState {
+                CityStyleId = state.ContentDefinitions.CityStyles.First().CityStyleId,
+                UsedFacilityIds = { bottom }, UsedCityBoardSlotIndexes = { 0 } });
+            string top = Card(state, definition).ItemId; Overlay(state, top, 0);
+            var panelType = Type.GetType("YC.Presentation.BuildInfoPanel, Assembly-CSharp", true);
+            var helper = typeof(YC.Tests.EditMode.PresentationSelectionControllerTests).GetMethod("InstantiateBuildInfoPanel",
+                System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            object[] arguments = { panelType, null };
+            var panel = (UnityEngine.Component)helper.Invoke(null, arguments);
+            var canvas = (UnityEngine.GameObject)arguments[1];
+            try
+            {
+                void Refresh()
+                {
+                    panelType.GetMethod("Refresh").Invoke(panel, new object[] { state, 1 });
+                    panelType.GetMethod("RefreshViewedCity").Invoke(panel, new object[] { GameStateViewProjector.ProjectForPlayer(state, 1), 1 });
+                }
+                float Angle() => canvas.GetComponentsInChildren<UnityEngine.UI.Button>(true)
+                    .Single(button => button.name == "槽位 1").transform.localEulerAngles.z;
+                Refresh(); Assert.That(Angle(), Is.EqualTo(0).Within(.1f), "未宣告的新顶层应正向显示");
+                var cell = Cell(state, 0);
+                Run(state, EffectSpec.Create(ContentLifecycleEffectExecutor.RetireFacilityTypeId,
+                    Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString("1"),
+                        "facilityItemId", NormalizedValue.CreateString(top), "expectedCellZoneId", NormalizedValue.CreateString(cell.CellZoneId),
+                        "expectedOrderDigest", NormalizedValue.CreateString(cell.OrderDigest)), 1));
+                Refresh(); Assert.That(Angle(), Is.EqualTo(180).Within(.1f), "已宣告的旧设施重新露出时应恢复已用显示");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(canvas); }
+        }
+
         [Test] public void SameCityCoverAndPromotionKeepRealFacilityCharacterBinding()
         {
             var state = State(); string definition = Definition(state, d => !d.Unique && !d.HasEntryEffect);

@@ -123,11 +123,14 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void UnfinishedCombinationsRemainExplicitlyUnavailable()
+        public void ImplementedCombinationsAndMissingDependenciesAreDistinguished()
         {
             var configuration = Configuration(3, true); configuration.EnabledExpansionIds.Add("infected");
-            Assert.That(() => ActiveContentCatalogBuilder.Build(Installed, configuration), Throws.InvalidOperationException.With.Message.EqualTo("content_not_ready"));
+            var infected = ActiveContentCatalogBuilder.Build(Installed, configuration);
+            Assert.That(infected.Definitions.Any(definition => definition.ExpansionId == "infected"), Is.True);
             configuration = Configuration(3, true); configuration.RuleModeId = "entrepreneur";
+            Assert.That(() => ActiveContentCatalogBuilder.Build(Installed, configuration), Throws.InvalidOperationException.With.Message.EqualTo("missing_entrepreneur_dependency"));
+            configuration = Configuration(3, true); configuration.RuleModeId = "missing.mode";
             Assert.That(() => ActiveContentCatalogBuilder.Build(Installed, configuration), Throws.InvalidOperationException.With.Message.EqualTo("rule_mode_not_implemented"));
         }
 
@@ -168,13 +171,25 @@ namespace YC.Tests.EditMode.ExpansionRules
                     {
                         checkedSetup = true;
                         Assert.That(state.Players.All(p => CharacterLifecycleService.GetRetainedBasicCharacterCount(state, p.PlayerId) == 5), Is.True);
-                        Assert.That(state.ItemZones.Items.Count(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "secret_retired")), Is.EqualTo(enterprise ? players * 2 : 0));
+                        // secret_retired 同时包含本人可见的基础角色；企业板的弃选数量依实际发牌与保留规则计算。
+                        var secretItems = state.ItemZones.Items.Where(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "secret_retired")).ToArray();
+                        var secretBoards = secretItems.Where(i => i.TypeId == "core.board_card").ToArray();
+                        Assert.That(secretBoards.Length, Is.EqualTo(enterprise ? (players == 2 ? 4 : players) : 0));
+                        Assert.That(secretBoards.All(i => state.ContentDefinitions.EnterpriseDefinitionIds.Contains(i.DefinitionId)), Is.True);
                         Assert.That(state.ItemZones.Items.Count(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "enterprises")), Is.EqualTo(enterprise ? 4 : 0));
-                        var secretIds = state.ItemZones.Items.Where(i => state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.LocalZoneId == "secret_retired")).Select(i => i.ItemId).ToArray();
                         foreach (var seat in seats)
                         {
-                            string visible = JsonConvert.SerializeObject(GameStateViewProjector.ProjectForPlayer(state, seat.PlayerId));
-                            foreach (string secretId in secretIds) Assert.That(visible, Does.Not.Contain(secretId), "开局秘密回盒身份不能在原持有者投影中重新出现。");
+                            var view = GameStateViewProjector.ProjectForPlayer(state, seat.PlayerId);
+                            string visible = JsonConvert.SerializeObject(view);
+                            foreach (var board in secretBoards)
+                            {
+                                if (board.ControllerSubject.PlayerId == seat.PlayerId)
+                                    Assert.That(view.GameBox.Cards.Any(card => card.InstanceId == board.ItemId && card.PrivateForPlayerId == seat.PlayerId), Is.True,
+                                        "本人弃选的企业板应按游戏盒合同保留本人查看权：" + board.ItemId);
+                                else Assert.That(visible.Contains(board.ItemId), Is.False, "其他玩家弃选的企业板不能出现在本人投影中：" + board.ItemId);
+                            }
+                            foreach (var character in secretItems.Where(i => i.TypeId == "core.basic_character_card" && i.ControllerSubject.PlayerId != seat.PlayerId))
+                                Assert.That(visible.Contains(character.ItemId), Is.False, "其他玩家秘密回盒的基础角色不能出现在本人投影中：" + character.ItemId);
                         }
                     }
                     var request = state.EffectRuntime.InteractionRequests.FirstOrDefault(r => r.Status == "open" && !r.IsInternalMainlineInteraction());
@@ -250,7 +265,11 @@ namespace YC.Tests.EditMode.ExpansionRules
                     if (influence.CanMoveAtomically(state, player, new[] { new InfluenceMoveRequest(id, target) }).IsValid)
                         return new GameCommand { Kind = GameCommandKind.DispatchInfluence, PlayerId = player, SourceId = id, TargetId = target };
             }
-            return new GameCommand { Kind = GameCommandKind.DeployInfluence, PlayerId = player };
+            foreach (string target in influence.GetLegalPlacementSlotIds(state, player))
+                if (influence.CanPlace(state, player, target).IsValid)
+                    return new GameCommand { Kind = GameCommandKind.DeployInfluence, PlayerId = player, TargetId = target };
+            // 无可部署或调度目标时只尝试产品本身允许的结束；不构造无目标部署命令。
+            return new GameCommand { Kind = GameCommandKind.EndAction, PlayerId = player };
         }
 
         private static GameCommand Answer(InteractionRequest request)

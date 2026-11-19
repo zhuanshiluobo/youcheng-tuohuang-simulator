@@ -125,9 +125,9 @@ namespace YC.Tests.EditMode.ExpansionRules
                     OrderingKind = ordered ? ZoneOrderingKind.Track : ZoneOrderingKind.Unordered, VisibilityPolicyId = ItemZoneVisibility.Public,
                     EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
                 var source = new AbilitySourceDeclaration { DefinitionId = Definition, AbilityId = Ability, Kind = "quick", HandlerRef = "fixture.body", DeclarationVersion = "1.0.0", AuthorizationPolicy = "owner", PresentationRef = Definition,
-                    EffectiveZones = new List<string> { "core.zone.player_rewards" }, AllowedOperations = new List<string> { "carrier.transfer.original_supply:" + Definition + ":charges:core.player_marker", "cleanup.defer:fixture.due", "action.invoke:fixture.direct" },
+                    EffectiveZones = new List<string> { "core.zone.player_rewards" }, AllowedOperations = new List<string> { "carrier.transfer.original_supply:" + Definition + ":charges:core.player_marker", "cleanup.defer:fixture.due" },
                     Actions = new List<AbilityActionDeclaration> {
-                        new AbilityActionDeclaration { ActionId = Quick, EntryKind = "quick", EntryCostRef = "fixture.cost", BodyHandlerRef = "fixture.body", UsageTrackId = Track, PresentationRef = Definition, DirectCallPolicy = "fixture.direct" },
+                        new AbilityActionDeclaration { ActionId = Quick, EntryKind = "quick", EntryCostRef = "fixture.cost", BodyHandlerRef = "fixture.body", UsageTrackId = Track, PresentationRef = Definition },
                         new AbilityActionDeclaration { ActionId = Special, EntryKind = "special", BodyHandlerRef = "fixture.body", EntryAfterEffectsRef = "fixture.after", UsageTrackId = Track, PresentationRef = Definition },
                         new AbilityActionDeclaration { ActionId = "fixture.caller", EntryKind = "quick", BodyHandlerRef = "fixture.caller.body", PresentationRef = Definition }
                     } };
@@ -136,11 +136,10 @@ namespace YC.Tests.EditMode.ExpansionRules
  local c=ctx.payload.sourceItemId
  local t=SourceData.GetTransferableTokens({carrierItemId=c,localZoneId='charges',typeId='core.player_marker'}).items[1]
  return {Effect.MoveItem({apiVersion=3,player=ctx.playerId,itemIds={t.itemId},expectedSource={zoneId=t.zoneId},destination={kind='original_supply'},insertion={kind='unordered'},operationProfileId='core.player_marker_storage',requiredCount=1}),
- Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=c,actionId='fixture.quick',callPolicyRef='fixture.direct'})} end";
+ Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=c,actionId='fixture.quick',omitEntryCost=true,omitEntryAfterEffects=true,omitMainAction=true})} end";
                 var definition = new JObject { ["definitionId"] = Definition, ["contentType"] = "component", ["version"] = "1.0.0", ["displayName"] = "独立检验卡", ["expansionId"] = "core", ["itemTypeId"] = "core.operator_card", ["artwork"] = "", ["abilities"] = new JArray(),
                     ["data"] = new JObject { ["quantityPolicy"] = "finite", ["instanceTypeId"] = "core.operator_card" }, ["cardZones"] = Token(new[] { Zone("charges", "core.zone.card_cube_storage", false), Zone("usage", "core.zone.board_marker_track", true) }),
-                    ["usageTracks"] = Token(new[] { track }), ["abilitySources"] = Token(new[] { source }), ["abilityHandlers"] = new JArray(Handler("fixture.body", "body.lua", "fixture.body.completed"), Handler("fixture.cost", "cost.lua"), Handler("fixture.after", "after.lua"), Handler("fixture.due", "due.lua"), Handler("fixture.caller.body", "caller.lua")),
-                    ["actionCallPolicies"] = Token(new[] { new AbilityActionCallPolicy { PolicyRef = "fixture.direct", TargetActionId = Quick, CallerAbilityId = Ability, CallerHandlerRef = "fixture.caller.body", CallerHandlerHash = LuaContentHasher.ComputeSha256(caller), OmitEntryCost = true, OmitEntryAfterEffects = true, OmitMainAction = true } }) };
+                    ["usageTracks"] = Token(new[] { track }), ["abilitySources"] = Token(new[] { source }), ["abilityHandlers"] = new JArray(Handler("fixture.body", "body.lua", "fixture.body.completed"), Handler("fixture.cost", "cost.lua"), Handler("fixture.after", "after.lua"), Handler("fixture.due", "due.lua"), Handler("fixture.caller.body", "caller.lua")) };
                 string body = @"return function(ctx)
  if ctx.eventType=='EffectCompleted' then
   if ctx.payload.outcome~='completed' or ctx.payload.continuationContext==nil then return {} end

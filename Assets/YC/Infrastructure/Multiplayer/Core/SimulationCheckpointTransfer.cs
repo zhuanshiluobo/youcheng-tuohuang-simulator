@@ -25,15 +25,63 @@ namespace YC.Infrastructure.Multiplayer
         { this.envelope = envelope.Snapshot(); this.bytes = bytes; }
         public SimulationCheckpointEnvelope Envelope => envelope.Snapshot();
         public byte[] CopyEncodedBytes() => (byte[])bytes.Clone();
+        public SimulationCheckpointPart PartAt(int offset)
+        {
+            if (offset < 0 || offset >= bytes.Length || offset % SimulationCheckpointTransfer.ChunkBytes != 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            var part = new byte[Math.Min(SimulationCheckpointTransfer.ChunkBytes, bytes.Length - offset)];
+            Buffer.BlockCopy(bytes, offset, part, 0, part.Length);
+            return new SimulationCheckpointPart(envelope.Snapshot(), offset, part);
+        }
         public IEnumerable<SimulationCheckpointPart> Split()
         {
             for (int offset = 0; offset < bytes.Length; offset += SimulationCheckpointTransfer.ChunkBytes)
-            {
-                var part = new byte[Math.Min(SimulationCheckpointTransfer.ChunkBytes, bytes.Length - offset)];
-                Buffer.BlockCopy(bytes, offset, part, 0, part.Length);
-                yield return new SimulationCheckpointPart(envelope.Snapshot(), offset, part);
-            }
+                yield return PartAt(offset);
         }
+    }
+
+    /// <summary>每个连接独立限制未确认数据，只有接收端确认后才释放发送窗口。</summary>
+    public sealed class SimulationCheckpointSendWindow : IDisposable
+    {
+        public const int MaximumInFlightBytes = 4 * SimulationCheckpointTransfer.ChunkBytes;
+        private readonly SimulationCheckpointEncodedTransfer transfer;
+        private readonly int total;
+        public int SentBytes { get; private set; }
+        public int AcknowledgedBytes { get; private set; }
+        public int TotalBytes => total;
+
+        public SimulationCheckpointSendWindow(SimulationCheckpointEncodedTransfer transfer)
+        {
+            if (transfer == null) throw new ArgumentNullException(nameof(transfer));
+            this.transfer = transfer;
+            total = transfer.Envelope.EncodedByteCount;
+        }
+
+        public bool TryTake(out SimulationCheckpointPart part)
+        {
+            part = null;
+            if (SentBytes >= total) return false;
+            int nextLength = Math.Min(SimulationCheckpointTransfer.ChunkBytes, total - SentBytes);
+            if (SentBytes - AcknowledgedBytes + nextLength > MaximumInFlightBytes) return false;
+            part = transfer.PartAt(SentBytes);
+            SentBytes += nextLength;
+            return true;
+        }
+
+        public bool TryAcknowledge(int receivedBytes)
+        {
+            if (receivedBytes < 0 || receivedBytes > SentBytes ||
+                receivedBytes != total && receivedBytes % SimulationCheckpointTransfer.ChunkBytes != 0) return false;
+            if (receivedBytes > AcknowledgedBytes) AcknowledgedBytes = receivedBytes;
+            return true;
+        }
+
+        public IEnumerable<SimulationCheckpointPart> Unacknowledged()
+        {
+            for (int offset = AcknowledgedBytes; offset < SentBytes; offset += SimulationCheckpointTransfer.ChunkBytes)
+                yield return transfer.PartAt(offset);
+        }
+        public void Dispose() { }
     }
 
     public static class SimulationCheckpointTransfer
@@ -80,6 +128,33 @@ namespace YC.Infrastructure.Multiplayer
             public int BufferedBytes => received;
             public int ExpectedBytes => buffer?.Length ?? 0;
             public void Reset() { buffer = null; envelope = null; received = 0; }
+
+            // 运输重试允许已核验分片重复，也允许暂时跳过后续分片；不放宽原严格组装入口。
+            public bool TryAppendReliable(SimulationCheckpointEnvelope incoming, int offset, byte[] payload, out string archiveJson, out string faultCode)
+            {
+                archiveJson = null; faultCode = string.Empty;
+                if (buffer == null && offset > 0)
+                {
+                    if (incoming == null || !incoming.HasValidPayload() || !SimulationCheckpointEnvelope.SameIdentity(expected, incoming) ||
+                        !string.IsNullOrEmpty(expected.ArchiveDigest) && expected.ArchiveDigest != incoming.ArchiveDigest ||
+                        payload == null || payload.Length == 0 || payload.Length > ChunkBytes ||
+                        offset > incoming.EncodedByteCount - payload.Length || offset % ChunkBytes != 0 ||
+                        payload.Length != Math.Min(ChunkBytes, incoming.EncodedByteCount - offset))
+                        return Reject("checkpoint_chunk_conflict", out faultCode);
+                    return true;
+                }
+                if (buffer == null || offset == received) return TryAppend(incoming, offset, payload, out archiveJson, out faultCode);
+                if (incoming == null || !incoming.HasValidPayload() || !SimulationCheckpointEnvelope.SamePayload(envelope, incoming) ||
+                    payload == null || payload.Length == 0 || payload.Length > ChunkBytes || offset < 0 ||
+                    offset > incoming.EncodedByteCount - payload.Length || offset % ChunkBytes != 0 ||
+                    payload.Length != Math.Min(ChunkBytes, incoming.EncodedByteCount - offset))
+                    return Reject("checkpoint_chunk_conflict", out faultCode);
+                if (offset > received) return true;
+                if (offset + payload.Length > received) return Reject("checkpoint_chunk_conflict", out faultCode);
+                for (int i = 0; i < payload.Length; i++)
+                    if (buffer[offset + i] != payload[i]) return Reject("checkpoint_chunk_conflict", out faultCode);
+                return true;
+            }
 
             public bool TryAppend(SimulationCheckpointEnvelope incoming, int offset, byte[] payload, out string archiveJson, out string faultCode)
             {

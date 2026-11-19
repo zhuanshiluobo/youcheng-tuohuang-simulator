@@ -9,24 +9,56 @@ using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Domain.Rules
 {
-    /// <summary>原准备树的可恢复子流程。卡面正文仅调用冻结的来源处理器。</summary>
+    /// <summary>准备框架中的可恢复企业家子流程。卡面正文仅调用冻结的来源处理器。</summary>
     public static class EntrepreneurFlow
     {
         public const string SetupTypeId = "setup.entrepreneur.prepare", PlayerTypeId = "setup.entrepreneur.player";
         public const string PreviewTypeId = "setup.entrepreneur.preview", FaceTypeId = "round.entrepreneur.select", EntryTypeId = "effect.entrepreneur.entry";
         public const string ChooseInteraction = "setup.entrepreneur.choose", PreviewInteraction = "setup.enterprise.preview", FaceInteraction = "round.entrepreneur.choose";
+        public const string PreparationHandlerId = "core.preparation.entrepreneur";
         public static void Register(EffectRegistry registry)
         {
             foreach (var pair in new Dictionary<string, Func<EffectExecutionContext, EffectStepResult>> {
                 { SetupTypeId, Setup }, { PlayerTypeId, PlayerSetup }, { PreviewTypeId, Preview }, { FaceTypeId, SelectFace }, { EntryTypeId, Entry } })
                 if (!registry.TryGet(pair.Key, out _)) registry.Register(new EffectRegistration(pair.Key, pair.Value, EffectExecutorKind.IntrinsicFlow, EntrepreneurContent.Version));
         }
-        public static bool Enabled(GameState state) => state.RuleConfiguration?.RuleModeId == "entrepreneur";
+        public static bool Enabled(GameState state) => state?.SetupRecipe?.Mechanisms?.Contains("entrepreneur_selection.v1") == true ||
+            state?.RuleConfiguration?.ActiveRuleModeIds?.Contains("entrepreneur") == true; // 兼容尚无机制字段的旧存档。
+        public static void RegisterPreparationSteps(EffectRegistry registry, PreparationFlowPlan plan, string coreVersion)
+        {
+            if (registry == null || plan == null) throw new ArgumentNullException();
+            foreach (var step in plan.BeforeDistribution.Concat(plan.BetweenDistributionAndConfirmation).Concat(plan.AfterConfirmation)
+                .Where(value => value.Kind == "builtin" && value.HandlerId == PreparationHandlerId))
+            {
+                if (!plan.BetweenDistributionAndConfirmation.Contains(step) || step.SourcePackId != "core" ||
+                    step.SourcePackVersion != coreVersion || step.HandlerVersion != EntrepreneurContent.Version || step.Execution != "once" ||
+                    step.Arguments?.Kind != NormalizedValueKind.Object || step.Arguments.Properties.Count != 0)
+                    throw new InvalidOperationException("entrepreneur_preparation_declaration_invalid:" + step.StepId);
+                if (!registry.TryGetPreparationStep(step, out _))
+                    registry.RegisterPreparationStep(new PreparationStepRegistration(step,
+                        (context, arguments) => new List<EffectSpec> { SetupSpec(context.Node.PlayerId) }));
+            }
+        }
+
+        public static bool IsFrameworkSetupOwner(GameState state, EffectNodeRuntimeState owner)
+        {
+            if (state?.SetupRecipe?.Preparation == null || state.PreparationRuntime == null || owner?.EffectTypeId != SetupTypeId) return false;
+            var nodes = state.EffectRuntime.EffectNodes;
+            var step = nodes.SingleOrDefault(node => node.EffectId == owner.ParentEffectId && node.EffectTypeId == PreparationWindowFlow.StepTypeId);
+            var window = nodes.SingleOrDefault(node => node.EffectId == step?.ParentEffectId && node.EffectTypeId == PreparationWindowFlow.WindowTypeId);
+            var root = nodes.SingleOrDefault(node => node.EffectId == window?.ParentEffectId && node.EffectTypeId == PreparationFrameworkFlow.TypeId);
+            var declaration = state.SetupRecipe.Preparation.BetweenDistributionAndConfirmation.SingleOrDefault(item => item.StepId == Text(step?.NormalizedArguments, "stepId"));
+            return step != null && window != null && root != null && declaration != null &&
+                declaration.Kind == "builtin" && declaration.SourcePackId == "core" && declaration.HandlerId == PreparationHandlerId && declaration.Execution == "once" &&
+                Text(window.NormalizedArguments, "window") == PreparationWindowFlow.Middle &&
+                root.EffectId == state.PreparationRuntime.OwnerEffectId && root.ChildEffectIds.Contains(window.EffectId) &&
+                window.ChildEffectIds.Contains(step.EffectId) && step.ChildEffectIds.Contains(owner.EffectId) &&
+                state.FindPlayer(root.PlayerId) != null && owner.PlayerId == root.PlayerId && step.PlayerId == root.PlayerId;
+        }
         public static EffectSpec SetupSpec(int player) => EffectSpec.Create(SetupTypeId, playerId: player);
         public static EffectSpec FaceSpec(int player) => EffectSpec.Create(FaceTypeId, playerId: player);
         private static string Key(string category, params string[] ids) => StableIdFactory.Create(category, ids);
         private static bool Terminal(EffectNodeRuntimeState n) => n.Status == EffectNodeStatus.Completed || n.Status == EffectNodeStatus.Failed;
-        private static List<string> Ids(NormalizedValue v) => v?.Items?.Select(x => x.Kind == NormalizedValueKind.StableReference ? x.ReferenceId : x.StringValue).ToList() ?? new List<string>();
         private static EffectStepResult Choose(EffectExecutionContext c, string stage, string type, IEnumerable<string> ids, NormalizedValue parameters = null)
         {
             var request = new EffectInteractionSpec { InteractionTypeId = type, AnsweringPlayerId = c.Node.PlayerId, Visibility = "owner", PromptKey = type,
@@ -49,13 +81,15 @@ namespace YC.Domain.Rules
             {
                 if (c.State.EntrepreneurSetup != null) throw new InvalidOperationException("entrepreneur_setup_duplicate");
                 EntrepreneurContent.ValidateDefinitions(c.State.ContentDefinitions.Entrepreneurs);
-                var parent = c.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == c.Node.ParentEffectId && n.EffectTypeId == ExpansionSetupFlow.PreparationTypeId);
-                var order = c.State.EffectRuntime.PlayerOrderSnapshot.ToList(); int draw = order.Count == 2 ? 4 : 2;
-                var candidates = Ids(Value(parent.ContinuationData, "candidateEnterpriseItemIds"));
-                if (order.Count < 2 || order.Count > 4 || candidates.Count != draw * order.Count) throw new InvalidOperationException("entrepreneur_assignment_invalid");
-                c.State.EntrepreneurSetup = new EntrepreneurSetupState { OwnerEffectId = c.Node.EffectId, ContentVersion = c.State.ContentPackHash,
+                var order = c.State.EffectRuntime.PlayerOrderSnapshot.ToList();
+                if (!IsFrameworkSetupOwner(c.State, c.Node) || c.State.PreparationRuntime.Stage != "middle" ||
+                    !PreparationFrameworkFlow.TryValidateRuntime(c.State, c.Registry, out _, false))
+                    throw new InvalidOperationException("entrepreneur_framework_assignment_invalid");
+                var assignments = c.State.PreparationRuntime.Distribution.Assignments.Select(item => new EnterpriseCandidateAssignment {
+                    PlayerId = item.PlayerId, CandidateItemIds = item.CandidateItemIds.ToList() }).ToList();
+                c.State.EntrepreneurSetup = new EntrepreneurSetupState { OwnerEffectId = c.Node.EffectId, ContentVersion = c.State.ContentPackHash, SetupProtocolVersion = 4,
                     PlayerOrder = order.AsEnumerable().Reverse().ToList(), RemainingEntrepreneurs = c.State.ContentDefinitions.Entrepreneurs.Select(d => d.DefinitionId).OrderBy(id => id, StringComparer.Ordinal).ToList(),
-                    EnterpriseAssignments = order.Select((p, i) => new EnterpriseCandidateAssignment { PlayerId = p, CandidateItemIds = candidates.Skip(i * draw).Take(draw).ToList() }).ToList() };
+                    EnterpriseAssignments = assignments };
                 return EffectStepResult.Continue("previews").AddIndependentChildren("enterprise_candidate_previews", order.Select(p => EffectSpec.Create(PreviewTypeId, playerId: p)).ToList());
             }
             var setup = c.State.EntrepreneurSetup;

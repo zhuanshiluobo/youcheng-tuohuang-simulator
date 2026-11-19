@@ -43,6 +43,17 @@ namespace YC.Domain.Effects
                     i.SourceRef.RuleOwnerItemId != i.SourceRef.ItemId || i.RequestRef.AnsweringPlayerId != owner.PlayerId ||
                     i.RequestRef.AllowedAnswers == null || i.RequestRef.AllowedAnswers.Count != 1 || i.RequestRef.AllowedAnswers[0] != i.OptionId ||
                     owner.EffectTypeId == AbilityActionExecutor.TypeId && (i.OptionId != Text(owner.NormalizedArguments, "optionId") || i.RequestRef.InteractionId != Text(owner.NormalizedArguments, "requestId") || i.RequestRef.FactsDigest != Text(owner.NormalizedArguments, "factsDigest"))) return Fail(id + ":source_or_request_identity_invalid", out diagnostic);
+                if (owner.EffectTypeId == AbilityActionExecutor.DirectTypeId)
+                {
+                    if (Value(owner.NormalizedArguments, "callPolicyRef") != null ||
+                        Value(owner.NormalizedArguments, "player") != null && GenericLuaEffectExecutor.ReadPlayerId(owner.NormalizedArguments, -1) != owner.PlayerId ||
+                        new[] { "omitEntryCost", "omitEntryAfterEffects", "omitMainAction" }.Any(field => Value(owner.NormalizedArguments, field) is NormalizedValue value && value.Kind != NormalizedValueKind.Boolean) ||
+                        i.OmitEntryCost != Flag(owner.NormalizedArguments, "omitEntryCost") || i.OmitEntryAfterEffects != Flag(owner.NormalizedArguments, "omitEntryAfterEffects") ||
+                        i.OmitMainAction != Flag(owner.NormalizedArguments, "omitMainAction") || Text(owner.NormalizedArguments, "actionId") != i.ActionId ||
+                        !AbilityLegacyStyleBridge.IsBridge(owner) && Text(owner.NormalizedArguments, "itemId") != i.SourceRef.ItemId)
+                        return Fail(id + ":direct_options_invalid", out diagnostic);
+                }
+                else if (i.OmitEntryCost || i.OmitEntryAfterEffects || i.OmitMainAction) return Fail(id + ":ordinary_options_invalid", out diagnostic);
                 if ((i.Phase == "activated" || i.Phase == "body") && !i.ActivationCommitted || i.MainActionCommitted && !i.ActivationCommitted ||
                     i.Phase == "completed" && string.IsNullOrEmpty(i.Outcome) || i.Phase == "faulted" && (string.IsNullOrEmpty(i.FirstFaultPhase) || string.IsNullOrEmpty(i.FailureReason))) return Fail(id + ":receipt_phase_conflict", out diagnostic);
                 var children = AbilityActionExecutor.Descendants(state, owner.EffectId);
@@ -63,10 +74,10 @@ namespace YC.Domain.Effects
                     if (registry.NormalizeActionArguments(i.ActionId, Value(owner.NormalizedArguments, "arguments") ?? Object(), out _).Length > 0)
                         return Fail(id + ":arguments_invalid", out diagnostic);
                     if (action.UsageTrackId.Length > 0 && (string.IsNullOrEmpty(i.TrackBindingId) || registry.UsageProvider(action.UsageTrackId)?.DefinitionVersion != i.UsageProviderVersion)) return Fail(id + ":usage_provider_version_mismatch", out diagnostic);
-                    if (i.CallPolicyRef == AbilityLegacyStyleBridge.PolicyRef)
-                    { if (action.DirectCallPolicy != AbilityLegacyStyleBridge.PolicyRef || !AbilityLegacyStyleBridge.ValidateReceipt(state, i)) return Fail(id + ":legacy_style_grant_invalid", out diagnostic); }
-                    else if (i.CallPolicyRef.Length > 0 && (!registry.TryCallPolicy(i.CallPolicyRef, out var policy) || policy.TargetActionId != i.ActionId ||
-                        registry.ValidateActionCaller(state, i.ParentEffectId, policy, owner.PlayerId).Length > 0 || owner.ContinuationAbilityId != policy.CallerAbilityId || owner.ContinuationContentHash != policy.CallerHandlerHash)) return Fail(id + ":direct_policy_or_parent_invalid", out diagnostic);
+                    if (AbilityLegacyStyleBridge.IsBridge(owner))
+                    { if (action.EntryKind != "special" || !AbilityLegacyStyleBridge.ValidateReceipt(state, i)) return Fail(id + ":legacy_style_grant_invalid", out diagnostic); }
+                    else if (owner.EffectTypeId == AbilityActionExecutor.DirectTypeId && registry.ValidateActionCaller(state, i.ParentEffectId, owner.PlayerId, false).Length > 0)
+                        return Fail(id + ":direct_parent_invalid", out diagnostic);
                 }
             }
             foreach (var receipt in runtime.AbilitySourceUses)

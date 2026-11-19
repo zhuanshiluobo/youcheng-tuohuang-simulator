@@ -101,6 +101,7 @@ Assets/
 Packages/          依赖清单与包锁定文件
 ProjectSettings/   Unity 版本、产品、场景与工程配置
 tools/             测试入口、验证脚本与素材提取工具
+内置DIY/            DIY 开发文档与准备随安装包发布的源码包
 docs/              项目概览、规则、架构、设计、指南与历史记录
 ```
 
@@ -152,6 +153,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\Run-EditModeTests.ps1
 | [项目总览](docs/概览/项目总览.md) | 当前事实源：功能范围、验证记录与限制 |
 | [发布检查清单](docs/概览/发布检查清单.md) | 测试、构建与人工验收待办 |
 | [文档索引](docs/README.md) | 分类导航与事实源优先级 |
+| [DIY 开发入口](内置DIY/README.md) | 包体作者指南、JSON、Lua API、Event、Schema 和安装发布说明 |
 | [项目术语表](docs/规则/项目术语表.md) | 规则与代码术语对照 |
 | [规则总结](docs/规则/规则总结.md) | 基础版规则说明 |
 | [总体架构](docs/架构/总体架构.md) | 模块职责与分层约束 |

@@ -122,7 +122,6 @@
           "usageTrackId": "usage.city_style_city_construction_frontier",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "city_style_city_construction_frontier"
         }

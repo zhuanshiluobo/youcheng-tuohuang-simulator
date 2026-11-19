@@ -123,7 +123,7 @@ namespace YC.Application.Sessions
         public CommandResult RuleResult;
     }
 
-    public enum SimulationRecoveryPhase { Prepare, Prepared, Commit, Installed, Failed, Request }
+    public enum SimulationRecoveryPhase { Prepare, Prepared, Commit, Installed, Failed, Request, Receiving }
 
     [Serializable]
     public sealed class SimulationConfirmedCommandReceiptDto
@@ -170,6 +170,8 @@ namespace YC.Application.Sessions
         public string MetadataDigest = string.Empty;
         public SimulationRecoveryPhase Phase;
         public bool ResumeAllowed;
+        public int CheckpointFlowVersion;
+        public int CheckpointReceivedBytes;
         public string ErrorCode = string.Empty;
         public string Reason = string.Empty;
     }

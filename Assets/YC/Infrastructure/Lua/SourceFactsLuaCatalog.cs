@@ -81,10 +81,9 @@ namespace YC.Infrastructure.Lua
             var callable=new List<LuaSnapshotValue>();
             var sourceOperations = registry.GetAbilitySourceOperations(current.AbilityId);
             string callerHash=executionHandlerHash.Length>0?executionHandlerHash:registry.GetAbilitySourceHandlerHash(current.AbilityId);
-            if(includeCallableActions) foreach(string policy in registry.ActionCallPoliciesFor(current.AbilityId,callerHash))
-                foreach(var option in registry.PreviewAuthorizedActions(state,current,callerHash,policy,executionOwnerId))
+            if(includeCallableActions) foreach(var option in registry.PreviewAuthorizedActions(state,current,callerHash,executionOwnerId))
                     callable.Add(O(E("optionId",S(option.OptionId)),E("itemId",S(option.SourceRef.ItemId)),E("sourceKey",S(option.SourceRef.SourceKey)),
-                        E("actionId",S(option.ActionId)),E("callPolicyRef",S(policy)),E("enabled",LuaSnapshotValue.Boolean(option.Enabled)),E("disabledReason",S(option.DisabledReason)),
+                        E("actionId",S(option.ActionId)),E("enabled",LuaSnapshotValue.Boolean(option.Enabled)),E("disabledReason",S(option.DisabledReason)),
                         E("trackBindingId",S(option.TrackBindingId)),E("factsDigest",S(option.RequestRef.FactsDigest)),E("handlerHash",S(option.VersionRef.HandlerHash))));
             var payable=new HashSet<string>(StringComparer.Ordinal);
             var transferPermissions=new Dictionary<string,HashSet<string>>(StringComparer.Ordinal);
@@ -151,7 +150,9 @@ namespace YC.Infrastructure.Lua
                 handler.Role == EffectHandlerRole.Continuation && context.OwnerNode.ContinuationHandlerId == handler.Script.HandlerId &&
                 handler.Script.DefinitionVersion == context.Registration?.DefinitionVersion &&
                 context.OwnerNode.ContinuationContentHash == handler.Script.ContentHash &&
-                registry.TryGetContinuation(handler.Script.HandlerId, context.Event.EventType, out var continuation) && ReferenceEquals(continuation, context.Registration) &&
+                registry.TryGetContinuation(handler.Script.HandlerId, context.Event.EventType, context.OwnerNode.ContinuationContentId,
+                    context.OwnerNode.ContinuationContentInstanceId, context.OwnerNode.ContinuationAbilityId, context.OwnerNode.ContinuationDefinitionVersion,
+                    context.OwnerNode.ContinuationContentHash, out var continuation) && ReferenceEquals(continuation, context.Registration) &&
                 state.EffectRuntime.RuleEvents.Any(e => ReferenceEquals(e, context.Event)) &&
                 context.Registration?.HandlerId == handler.Script.HandlerId && context.Registration.ContentHash == handler.Script.ContentHash &&
                 registry.TryResolveAbilityExecutionHandler(state, context.OwnerNode.EffectId, handler.AbilityId, handler.Script.ContentHash, out var source, out _) &&

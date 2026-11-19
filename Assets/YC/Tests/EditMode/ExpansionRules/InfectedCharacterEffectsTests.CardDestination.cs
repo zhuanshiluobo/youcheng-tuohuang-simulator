@@ -49,12 +49,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                     NormalizedValue.CreateString(destination), out _), Is.False, "原动作不能重复移动或作用到下一张卡。");
                 state = Restore(state);
             }
-            if (Open(state) != null)
-            {
-                Assert.That(Open(state).PromptKey, Is.EqualTo("core:interaction.muelsyse.cover"));
-                Assert.That(Open(state).MinSelections, Is.Zero);
-            }
-            // 本用例止于三张真实获取后的原盖放边界；完整盖放／回收由既有生命周期用例验证。
+            Assert.That(Open(state), Is.Null, "行动轮分配完流形后不能立即发起额外盖放。");
+            // 完整盖放／回收由生命周期用例在后续角色盖放阶段验证。
             Assert.That(state.ItemZones.Items.Where(i => i.TypeId == "core.generated_character_card").Select(i => i.ItemId), Is.EquivalentTo(original));
             Assert.That(state.ItemZones.Items.Count(i => i.TypeId == "core.generated_character_card" && i.ZoneId == FindZone(state, destination, 1).ZoneId), Is.EqualTo(original.Length));
         }

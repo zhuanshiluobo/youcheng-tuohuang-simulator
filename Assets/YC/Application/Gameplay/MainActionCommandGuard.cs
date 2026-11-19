@@ -3,6 +3,7 @@ using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Effects;
+using YC.Domain.Facilities;
 using System.Linq;
 using System.Globalization;
 
@@ -52,16 +53,17 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
             }
 
-            return MainActionBudgetService.ValidateCanSpend(state, command.PlayerId);
+            return MainActionBudgetService.ValidateCanSpend(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.ActionTypeFor(command.Kind));
         }
 
-        internal static ValidationResult ValidateBuildQuote(GameState state, int playerId, string facilityItemId, GameStateView visibleState = null)
+        internal static ValidationResult ValidateBuildQuote(GameState state, int playerId, string facilityItemId,
+            GameStateView visibleState = null, FacilityBuildQueryService buildQueries = null)
         {
             var command = new GameCommand { Kind = GameCommandKind.BuildFacility, PlayerId = playerId, TargetId = facilityItemId ?? "" };
             if (visibleState != null) return ValidateVisibleBuildQuote(state, command, visibleState);
             if (state?.EffectRuntime == null || !state.HasPendingChoiceForActiveOperation()) return Validate(state, command);
             if (!CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind) || state.CurrentPlayerId != playerId ||
-                !MainActionBudgetService.ValidateCanSpend(state, playerId).IsValid || state.PendingChoice != null || state.PendingCardSession != null ||
+                !MainActionBudgetService.ValidateCanSpend(state, playerId, YC.Domain.Rules.MainActionBudgetService.Build).IsValid || state.PendingChoice != null || state.PendingCardSession != null ||
                 state.PendingCharacterEffect != null || state.PendingSpecialAction != null) return Validate(state, command);
             var owners = state.EffectRuntime.EffectNodes.Where(node => ResourcePaymentPreparationService.IsCurrentPreparation(state, node, playerId)).Take(2).ToList();
             if (owners.Count != 1) return Validate(state, command);
@@ -72,7 +74,8 @@ namespace YC.Application.Gameplay
                 state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" && !request.IsInternalMainlineInteraction() && request.OwnerEffectId != owner.EffectId) ||
                 !state.EffectRuntime.OperationWindows.Any(window => window.OperationWindowId == preparation.OperationWindowId &&
                     window.WindowGeneration == preparation.WindowGeneration && window.AvailablePlayerIds.Contains(playerId)) ||
-                !ResourcePaymentPreparationService.TryQuote(state, playerId, "build", facilityItemId, preparation.ActionArguments, out _, out _))
+                !ResourcePaymentPreparationService.TryQuote(state, playerId, "build", facilityItemId, preparation.ActionArguments,
+                    out _, out _, buildQueries: buildQueries))
                 return Validate(state, command);
             // 只报价两种支付方式；不制造另一个模式的最终确认身份，也不要求当前模式可付。
             return ValidationResult.Success;
@@ -88,7 +91,7 @@ namespace YC.Application.Gameplay
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "建设报价的本人可见状态已变化，请刷新后重试。");
             if (!CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind) || state.FindPlayer(command.PlayerId) == null ||
                 state.CurrentPlayerId != command.PlayerId) return Validate(state, command);
-            var budget = MainActionBudgetService.ValidateCanSpend(state, command.PlayerId);
+            var budget = MainActionBudgetService.ValidateCanSpend(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.Build);
             if (!budget.IsValid) return budget;
 
             var blocked = ValidationResult.Failure(CommandErrorCode.PendingChoiceRequired, "请先处理待选择项，再提交其他行动。");
@@ -149,7 +152,7 @@ namespace YC.Application.Gameplay
             if (state?.EffectRuntime == null || command == null || string.IsNullOrEmpty(command.CommandId) ||
                 command.Kind != GameCommandKind.BuildFacility && command.Kind != GameCommandKind.MoveCity ||
                 !CommandPhasePolicy.IsCommandAllowed(state.Phase, command.Kind) || state.CurrentPlayerId != command.PlayerId ||
-                !MainActionBudgetService.ValidateCanSpend(state, command.PlayerId).IsValid) return false;
+                !MainActionBudgetService.ValidateCanSpend(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.ActionTypeFor(command.Kind)).IsValid) return false;
             string preparationId = Read("paymentPreparationOwnerEffectId");
             var owner = state.EffectRuntime.EffectNodes.Find(node => node.EffectId == preparationId);
             if (string.IsNullOrEmpty(preparationId) || !ResourcePaymentPreparationService.IsCurrentPreparation(state, owner, command.PlayerId) ||

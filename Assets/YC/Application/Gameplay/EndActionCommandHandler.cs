@@ -49,21 +49,6 @@ namespace YC.Application.Gameplay
 
         public CommandResult Handle(GameState state, GameCommand command)
         {
-            if (FinalScoringSessionService.IsActiveOwner(state))
-            {
-                if (command?.Kind != GameCommandKind.EndAction || state.FindPlayer(command.PlayerId) == null) return Invalid(CommandErrorCode.InvalidTarget, "final_scoring_command_invalid");
-                if (advanceFinalScoring == null) return Invalid(CommandErrorCode.PendingChoiceRequired, "final_scoring_progress_connector_required");
-                var progress = advanceFinalScoring(state);
-                if (progress == null) return Invalid(CommandErrorCode.UnknownCommand, "final_scoring_progress_result_missing");
-                if (!progress.IsValid) return CommandResult.Invalid(progress);
-                return CommandResult.SuccessResult(new List<GameEvent>(), "终局流程已推进或保持等待。");
-            }
-            var phaseValidation = CommandPhasePolicy.ValidatePhase(state, command.Kind);
-            if (!phaseValidation.IsValid)
-            {
-                return CommandResult.Invalid(phaseValidation);
-            }
-
             if (!string.IsNullOrEmpty(state?.EffectRuntime?.ActiveSettlementWindowId) || !string.IsNullOrEmpty(Parameter(command, "windowId")))
             {
                 if (registry == null) return Invalid(CommandErrorCode.UnknownCommand, "settlement_registry_missing");
@@ -81,6 +66,21 @@ namespace YC.Application.Gameplay
                 }
                 else new RoundExecutionProjector().Project(state);
                 return CommandResult.SuccessResult(new List<GameEvent>(), "结算结束请求已处理。");
+            }
+
+            if (FinalScoringSessionService.IsActiveOwner(state))
+            {
+                if (command?.Kind != GameCommandKind.EndAction || state.FindPlayer(command.PlayerId) == null) return Invalid(CommandErrorCode.InvalidTarget, "final_scoring_command_invalid");
+                if (advanceFinalScoring == null) return Invalid(CommandErrorCode.PendingChoiceRequired, "final_scoring_progress_connector_required");
+                var progress = advanceFinalScoring(state);
+                if (progress == null) return Invalid(CommandErrorCode.UnknownCommand, "final_scoring_progress_result_missing");
+                if (!progress.IsValid) return CommandResult.Invalid(progress);
+                return CommandResult.SuccessResult(new List<GameEvent>(), "终局流程已推进或保持等待。");
+            }
+            var phaseValidation = CommandPhasePolicy.ValidatePhase(state, command.Kind);
+            if (!phaseValidation.IsValid)
+            {
+                return CommandResult.Invalid(phaseValidation);
             }
 
             var validation = roundAdvanceService.EndCompletedAction(state, command.PlayerId);
@@ -109,7 +109,7 @@ namespace YC.Application.Gameplay
                 }
             }, message);
         }
-        private static string Parameter(GameCommand command, string key) => command.Parameters.TryGetValue(key, out var value) ? value ?? string.Empty : string.Empty;
+        private static string Parameter(GameCommand command, string key) => command?.Parameters != null && command.Parameters.TryGetValue(key, out var value) ? value ?? string.Empty : string.Empty;
         private static CommandResult Invalid(CommandErrorCode code, string reason) => CommandResult.Invalid(ValidationResult.Failure(code, reason));
     }
 }

@@ -1,0 +1,303 @@
+{
+  "date": "2026-11-16",
+  "standardId": "FX01",
+  "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+  "version": "v8",
+  "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX-v8.zip",
+  "archiveSha256": "ea0cbc4de8cc32758aea07384bf384cacb44d172163e7bc83eaffd615c0e6fee",
+  "authorization": "用户指定 v8 包并要求按包内说明完整更新代码、保留现有 meta；2026-11-17 用户要求清除特效接管对象的旧选中贴图",
+  "status": "Unity 编辑器编译与隔离组件渲染检查通过；独立程序正常流程画面尚未验收",
+  "componentIds": [
+    "SelectionFX.Shader",
+    "SelectionFX.Graphic",
+    "SelectionFX.Input",
+    "SelectionFX.Inspector",
+    "SelectionFX.AlignmentEditor"
+  ],
+  "sourceDocuments": [
+    "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+  ],
+  "componentIndex": "清单/可用组件索引.json",
+  "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+  "relationship": "选中态替代限定对象的旧选中框；共享素材如仍服务其他用途则保留。CardPicker旧选中图无其他有效用途，退出可用候选。",
+  "declaredTarget": {
+    "engine": "Unity 2021.3+ / 2022.3 / Unity 6",
+    "ui": "UGUI / Unity UI",
+    "pipelines": "面向Built-in或URP Screen Space Overlay；均为原包目标，尚未在Unity验证",
+    "excludedClaims": [
+      "UI Toolkit",
+      "Camera/World Space兼容",
+      "HDRP/XR兼容",
+      "移动GPU兼容"
+    ]
+  },
+  "rendering": {
+    "shaderName": "NoMadCity/UI/ProceduralSelection",
+    "resourceLoadName": "NoMadCitySelection",
+    "resourceRelativePath": "Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+    "baseColor": "#FFB026",
+    "alpha": 1,
+    "graphicColorNote": "运行时默认白色，预制体现有序列化颜色及线宽保持原值；不自动运行预设。",
+    "lineWidth": 3,
+    "cornerCut": 7,
+    "glowRadius": 10,
+    "units": "Canvas本地单位，参考1920×1080 CanvasScaler；不保证固定物理像素",
+    "raycastTarget": false,
+    "extraCanvasChannels": [
+      "TexCoord1",
+      "TexCoord2",
+      "TexCoord3"
+    ],
+    "materialOwnership": "每组件独立材质，OnDisable释放；不保证跨组件合批",
+    "masking": "支持stencil Mask与RectMask2D硬裁切；不支持softness，不作Mask源",
+    "bloom": false,
+    "paddingFormula": "max(6,2*glowRadius)",
+    "geometry": "4顶点/2三角形；Selected且未ReducedMotion时逐帧更新",
+    "nonUniformScale": "可能变形，板与覆盖层保持等比"
+  },
+  "states": {
+    "available": "无新增选框，原游戏负责可用态",
+    "selected": "金属细节与亮边；双光点0.8秒半圈换位、停0.4秒",
+    "unavailable": "无新增选框，原游戏负责不可用原因和状态",
+    "focus": "效果不绘制额外焦点外框；原游戏负责键盘导航反馈",
+    "reducedMotion": "关闭呼吸、扫光和沿边动画，保留静态选中框"
+  },
+  "api": [
+    "SetState(Available/Selected/Unavailable)",
+    "SetHovered(bool)",
+    "SetFocused(bool)",
+    "SetReducedMotion(bool)"
+  ],
+  "placement": {
+    "overlay": "现有候选板的装饰子物体，SelectionEffectGraphic不叠加Image；锚点铺满真实板面/卡面，offset=0",
+    "zOrder": "原板之上，状态标记和文字之下",
+    "input": "SelectionEffectInput仅放现有可raycast候选/Button，绑定effect；不放无raycast装饰子物体",
+    "pooling": "关闭窗口、切候选和回池时调用方重置state/hover/focus，异步确认防旧回调"
+  },
+  "targets": [
+    {
+      "id": "enterprise-board",
+      "role": "企业整板",
+      "aspect": [
+        650,
+        1850
+      ],
+      "style": {
+        "lineWidth": 2,
+        "cornerCut": 7,
+        "glowRadius": 10
+      },
+      "constraints": "只选中真实整板；合作等级块不变、不发光"
+    },
+    {
+      "id": "enterprise-effect-row",
+      "role": "规则指定企业候选效果行",
+      "sourceRectsTopLeft": {
+        "5": [
+          160,
+          412,
+          482,
+          234
+        ],
+        "4": [
+          160,
+          674,
+          482,
+          228
+        ],
+        "3": [
+          160,
+          930,
+          482,
+          219
+        ],
+        "2": [
+          160,
+          1177,
+          482,
+          225
+        ],
+        "1": [
+          160,
+          1430,
+          482,
+          217
+        ]
+      },
+      "style": {
+        "lineWidth": 1.5,
+        "cornerCut": 4,
+        "glowRadius": 5
+      },
+      "mapping": "同boardScale/位置/滚动偏移；top-left anchor/pivot(0,1)时anchoredPosition=(rx*scale,-ry*scale)",
+      "constraints": "不将普通奖励行变为候选"
+    },
+    {
+      "id": "card",
+      "role": "真实卡面",
+      "aspect": [
+        12,
+        17
+      ],
+      "oldSelectedReference": {
+        "canvas": [
+          1054,
+          1493
+        ],
+        "safeRect": [
+          80,
+          130,
+          896,
+          1280
+        ]
+      },
+      "style": {
+        "lineWidth": 2,
+        "cornerCut": 5,
+        "glowRadius": 9
+      },
+      "constraints": "按实际卡面对齐，不按旧选中框整图；选中不改卡面大小位置；独立勾不叠旧图内勾"
+    },
+    {
+      "id": "city-pattern",
+      "role": "城市样式卡本体或现有候选区域",
+      "style": {
+        "lineWidthRange": [
+          1.5,
+          2
+        ],
+        "cornerCut": 5,
+        "glowRadius": 7
+      },
+      "constraints": "不是城市整面板；inspected不代表宣告或可提交；设施格预选独立"
+    },
+    {
+      "id": "rhine-department",
+      "role": "莱茵科室候选整板",
+      "aspect": [
+        516,
+        1000
+      ],
+      "sourcePreviewSize": [
+        280,
+        542.635659
+      ],
+      "style": {
+        "lineWidth": 2,
+        "cornerCut": 7,
+        "glowRadius": 9
+      },
+      "constraints": "2–5级奖励行不变选择按钮；当前科室不可重复确认；企业板固定，科室覆盖层与标记同内容滚动裁切"
+    }
+  ],
+  "badgePolicy": {
+    "included": false,
+    "bindings": [
+      "selectedBadge"
+    ],
+    "requirements": "保留独立静态状态表达；接入前核对已有合法素材/当前文案配置。缺少具体勾/锁/原因标记许可则报告缺项，不生成替图或恢复已撤销锁图标。"
+  },
+  "businessBoundary": "组件不负责单选排他、支付奖励、确认、资格校验、持久化或无障碍朗读；原包对不可选点击、键盘及徽标的建议服从当前项目合同。",
+  "validation": {
+    "date": "2026-11-16",
+    "offlineChecks": 4241,
+    "offlineResult": "PASS",
+    "scriptMember": "Tests/validate.py",
+    "scriptSha256": "387049d3c3704612af3218e889c8b0e7e64551fb4f92a47e298b7a2af85a0be2",
+    "method": "原包离线检查 4241 项；隔离 Unity 2022.3 编辑器编译、选择绑定 8 项及组件渲染测试 1 项通过；未运行演示或对齐工具",
+    "unityCSharpCompiled": true,
+    "shaderCompiled": true,
+    "playMode": false,
+    "normalGameplayAccepted": false,
+    "shaderScope": "编辑器 ShaderUtil 无错误且隔离组件正常渲染；尚未覆盖全部目标平台和变体"
+  },
+  "files": [
+    {
+      "member": "Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+      "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+      "decision": "可用组件",
+      "sha256": "b48337a31ff81faf82d6969393d7d198764a14fc15c8280f5bbe8e3f74809920",
+      "bytes": 6547,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+      "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+      "decision": "可用组件",
+      "sha256": "1b78af632887d21e357483aa114aa3f71fbb411376d5190fb93be087ce1d8324",
+      "bytes": 6332,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+      "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+      "decision": "可用组件",
+      "sha256": "ad0a1251fd7248a1bbe49d84145f0d2552b3cfce1e44f410d267ae1bb9dea644",
+      "bytes": 963,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+      "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+      "decision": "可用组件",
+      "sha256": "731152f216dd96920db60ce343d06ced72b00d87273b0d41826b53b4729e880d",
+      "bytes": 3067,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectAlignmentTools.cs",
+      "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectAlignmentTools.cs",
+      "decision": "可用组件",
+      "sha256": "50fa2201cc0fce29e83e2c6a77dfca6716f6a4421698079fc447bea9a65a8e81",
+      "bytes": 2773,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "README.zh-CN.md",
+      "catalogPath": "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md",
+      "decision": "说明",
+      "sha256": "c386e0c6b2b70a254ca114669a7ecec3c3cf27b25134bfd5b05f552f2afc071f",
+      "bytes": 26444,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "VALIDATION.txt",
+      "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v8/VALIDATION.txt",
+      "decision": "仅参考",
+      "sha256": "3e2b792c92aba700b74ea900a143e091c42c27edf2ed2daec951a9c80e0d47ae",
+      "bytes": 1464,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Tests/validate.py",
+      "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v8/Tests/validate.py",
+      "decision": "仅参考",
+      "sha256": "387049d3c3704612af3218e889c8b0e7e64551fb4f92a47e298b7a2af85a0be2",
+      "bytes": 8531,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+      "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v8/Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+      "decision": "仅参考",
+      "sha256": "2c78e139d3089458ed047393c0dd7795a4391f5c6ff665e48fb81b3517fb264a",
+      "bytes": 2469,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    },
+    {
+      "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectDemoControls.cs",
+      "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v8/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectDemoControls.cs",
+      "decision": "仅参考",
+      "sha256": "cf81fccda6bbf22a1180b04a8f0673fdeec28d495e5a9abee6f211de6247d728",
+      "bytes": 1673,
+      "sourcePackage": "NoMadCity-Unity-SelectionFX-v8.zip"
+    }
+  ],
+  "shaderReplacement": {
+    "sourceArchive": "C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX-v8.zip",
+    "archiveSha256": "ea0cbc4de8cc32758aea07384bf384cacb44d172163e7bc83eaffd615c0e6fee",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+    "sha256": "b48337a31ff81faf82d6969393d7d198764a14fc15c8280f5bbe8e3f74809920",
+    "bytes": 6547
+  }
+}

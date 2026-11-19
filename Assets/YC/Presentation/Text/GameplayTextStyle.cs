@@ -101,6 +101,7 @@ namespace YC.Presentation
                 case "Regular": font = run.WeightMode == "Bold" ? fontRoles.Emphasis : run.WeightMode == "Normal" ? fontRoles.Regular : hostFont != null ? hostFont : fontRoles.Regular; break;
                 case "SpecialWord": font = run.WeightMode == "Bold" ? fontRoles.Emphasis : fontRoles.SpecialWord; break;
                 case "EffectNumber": font = run.WeightMode == "Normal" ? fontRoles.UiNumber : fontRoles.EffectNumber; break;
+                case "UiNumber": font = fontRoles.UiNumber; break;
                 default: return false;
             }
             return font != null;

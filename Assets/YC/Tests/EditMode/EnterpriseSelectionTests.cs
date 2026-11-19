@@ -233,6 +233,28 @@ namespace YC.Tests.EditMode
                     DepartmentId = "department-2", EffectId = "special-2", Tier = 3, Available = false } }
         };
 
+        [Test]
+        public void RequiredEnterprisesStaySelectedAndStillNeedExplicitConfirmation()
+        {
+            var projection = Projection();
+            projection.MinSelections = 2; projection.MaxSelections = 2;
+            projection.Targets[1].Available = true;
+            projection.RequiredTargetIds = new[] { "first" };
+            var draft = new EnterpriseSelectionDraft();
+            draft.Refresh(projection);
+            Assert.That(draft.SelectedIds, Is.EqualTo(new[] { "first" }));
+            Assert.That(draft.CanConfirm, Is.False);
+            draft.Select("first");
+            Assert.That(draft.SelectedIds, Is.EqualTo(new[] { "first" }));
+            draft.Select("locked");
+            Assert.That(draft.CanConfirm, Is.True);
+            Assert.That(draft.TryBeginSubmit(out var intent), Is.True);
+            Assert.That(intent.TargetIds, Is.EqualTo(new[] { "first", "locked" }));
+            Assert.That(draft.Complete(intent), Is.True);
+            draft.Refresh(projection);
+            Assert.That(draft.SelectedIds, Is.EqualTo(new[] { "first", "locked" }));
+        }
+
         [TestCase(EnterpriseSelectionMode.Company)] [TestCase(EnterpriseSelectionMode.Effect)]
         [TestCase(EnterpriseSelectionMode.InitialDepartment)] [TestCase(EnterpriseSelectionMode.SwitchDepartment)]
         public void Draft_PreservesStableSelectionButNeverConfirmsAnUnavailableTarget(EnterpriseSelectionMode mode)

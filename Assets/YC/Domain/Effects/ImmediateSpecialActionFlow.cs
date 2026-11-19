@@ -15,6 +15,7 @@ namespace YC.Domain.Effects
     {
         public const string TypeId = CharacterContentEffectExecutor.Prefix + "immediate_special";
         public const string Version = "2.1.0";
+        public const string ActionDetailsTextKey = "core:interaction.special.action_details";
         public const string ResponseChildSelectionVersion = "immediate_special.response_children.v1.0.1";
         public const string EmptyArgumentsVersion = "immediate_special.empty_arguments.v1.0.1";
         // 内部零参效果沿用EffectSpec默认Null；空Object同样合法，其他非空实参仍拒绝。
@@ -81,7 +82,7 @@ namespace YC.Domain.Effects
                 activation.Presentation = source.DisplayNameRef == null ? null : new EffectPresentationDefinition { Started = source.DisplayNameRef.Clone() };
                 branches.Add(new List<EffectSpec> { activation });
                 if (source.DisplayNameRef != null) labels.Add(new GameplayOptionPresentation { CandidateId = source.OptionId, Label = source.DisplayNameRef.Clone(),
-                    Description = new GameplayTextRef("core:interaction.special.action_details",
+                    Description = new GameplayTextRef(ActionDetailsTextKey,
                         new GameplayTextArgument { Name = "cost", Kind = "text", Value = NormalizedValue.CreateString(source.EntryCostDescription ?? "") },
                         new GameplayTextArgument { Name = "body", Kind = "text", Value = NormalizedValue.CreateString(source.Description ?? "") },
                         new GameplayTextArgument { Name = "after", Kind = "text", Value = NormalizedValue.CreateString(source.EntryAfterEffectsDescription ?? "") }) });

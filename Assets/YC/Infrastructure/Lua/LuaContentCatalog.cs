@@ -62,6 +62,7 @@ namespace YC.Infrastructure.Lua
         public static void Register(EffectRegistry registry, ActiveContentCatalog catalog)
         {
             BindGameplayPresenter(registry, catalog.Pack);
+            DiyRuleBindingCatalog.Register(registry, catalog.Pack);
             PlayerEntranceLuaCatalog.Register(registry);
             EventCardLuaCatalog.Register(registry, catalog.Pack);
             CharacterCardLuaCatalog.Register(registry, catalog.Pack);

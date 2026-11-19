@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
+using YC.Infrastructure.Lua;
 using YC.Presentation;
 
 namespace YC.Editor
@@ -31,6 +32,11 @@ namespace YC.Editor
                     throw new InvalidOperationException(
                         "EventCharacterCardCatalog 的 SHA 或字段与 manifest 不一致。");
                 }
+
+                // 运行时规则来自正式内容包，旧编辑器目录只负责已有资产引用。
+                var pack = ExternalContentPack.Load(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core"));
+                if (pack.CreateEvents().Count == 0)
+                    throw new InvalidOperationException("正式内容包没有可用事件。");
 
                 ValidateGameSettingsPrefab(catalog);
                 ValidateSavedProductionSceneConnections();

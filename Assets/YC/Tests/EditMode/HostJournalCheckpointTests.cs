@@ -79,8 +79,8 @@ namespace YC.Tests.EditMode
         public void BatchCheckpointPreservesRealCommitsAndOnlyPublishesCompleteBatches()
         {
             var archive = Batch(out var state);
-            Assert.That(archive.Snapshot.SchemaVersion, Is.EqualTo(4));
-            Assert.That(archive.Journal.SchemaVersion, Is.EqualTo(4));
+            Assert.That(archive.Snapshot.SchemaVersion, Is.EqualTo(GameProtocolVersions.Host));
+            Assert.That(archive.Journal.SchemaVersion, Is.EqualTo(GameProtocolVersions.Journal));
             Assert.That(archive.Journal.Entries.Count, Is.EqualTo(3));
             Assert.That(archive.Journal.Entries.Take(2).All(entry => entry.StateAfter == null), Is.True);
             Assert.That(archive.Journal.Entries[0].StateRevision, Is.EqualTo(1));

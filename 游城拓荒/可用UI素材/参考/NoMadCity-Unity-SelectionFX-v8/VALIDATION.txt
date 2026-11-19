@@ -1,0 +1,24 @@
+NoMadCity Selection FX v8 / remove unintended extra white focus outline
+Date: 2026-11-16
+PASS: 4241 offline assertions including inherited animation, static-detail,
+selected-only geometry and opt-in alignment tests.
+PASS: Shader no longer contains focusLine / focused / d-7 outer-focus branch,
+including alpha and color contribution. Edge, inner keyline and glow remain.
+PASS: runtime SelectionEffectGraphic.cs byte-identical to v7 and v6.
+Input API unchanged; original UI objects/materials/visibility not modified.
+PASS: ZIP integrity.
+
+Code-supported diagnosis: v3-v7 draw a 1.5-unit focus line 7 local Canvas units
+outside the selected edge when focused. OnSelect forwarded by input can set
+focus from EventSystem, including mouse selection. User's supplied effect-row
+screenshot shows an outer pale line consistent with this; this is not proof
+that no original art/geometry mismatch also exists. v7 alignment cannot remove
+a Shader-generated focus line. v8 removes that exact extra-drawing behavior.
+
+No automatic reparenting needed for this fix. Existing v7 alignment tool remains
+optional and unused until a genuine RectTransform mismatch is established.
+
+NOT RUN: Unity C#/ShaderLab compilation, Play Mode, GPU rendering, build,
+actual project screenshots after patch, navigation/Mask/prefab tests.
+No Unity editor/compiler available. See README v8 for verification and fallback
+if an independent original frame remains. Do not claim project runtime fixed.

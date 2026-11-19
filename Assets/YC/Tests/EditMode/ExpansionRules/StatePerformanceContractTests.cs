@@ -213,7 +213,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var map = new GameMapDefinition
             {
-                MapId = "test.copy_map", MinPlayers = 2, MaxPlayers = 4,
+                // 夹具使用独立地图内容，但规则配置仍须采用正式支持的地图身份。
+                MapId = StaticMapDefinitions.FourPlayerMapId, MinPlayers = 2, MaxPlayers = 4,
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "north" } },
                 Locations = new List<MapLocationDefinition>
                 {

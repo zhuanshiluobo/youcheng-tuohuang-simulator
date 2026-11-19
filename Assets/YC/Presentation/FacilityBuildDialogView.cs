@@ -6,6 +6,7 @@ using YC.Application.Gameplay;
 using YC.Domain.Facilities;
 using YC.Domain.State;
 using YC.Domain.Items;
+using YC.Domain.Presentation;
 using System.Linq;
 using YC.Presentation.Workflows;
 
@@ -34,11 +35,25 @@ namespace YC.Presentation
         private void OnEnable()
         {
             if (GameplayHudFrame.Active != null) BindVerticalPageHost(GameplayHudFrame.Active.ContentRect);
+            if (supplyDeckDocument != null)
+            {
+                supplyDeckDocument.SetVisibilityBindingGuard(() => this != null);
+                supplyDeckDocument.TextFragmentRendered -= RenderDeckCountFragment;
+                supplyDeckDocument.TextFragmentRendered += RenderDeckCountFragment;
+            }
             Canvas.willRenderCanvases += ApplyVerticalPageBounds;
             ApplyVerticalPageBounds();
         }
-        private void OnDisable() => Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
-        private void OnDestroy() => Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
+        private void OnDisable()
+        {
+            Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
+            if (supplyDeckDocument != null) supplyDeckDocument.TextFragmentRendered -= RenderDeckCountFragment;
+        }
+        private void OnDestroy()
+        {
+            Canvas.willRenderCanvases -= ApplyVerticalPageBounds;
+            if (supplyDeckDocument != null) supplyDeckDocument.TextFragmentRendered -= RenderDeckCountFragment;
+        }
         private void ApplyVerticalPageBounds()
         {
             if (!verticalOffsetsCaptured || verticalPageHost == null || verticalPagePanel == null ||
@@ -78,6 +93,7 @@ namespace YC.Presentation
         [SerializeField] private Text reason;
         [SerializeField] private Button confirm;
         [SerializeField] private Button cancel;
+        [SerializeField] private Button viewCityStyles;
         [SerializeField] private Text candidatesHeading;
         [SerializeField] private Text confirmLabel;
         [SerializeField] private string supplyHeading = "设施供应区";
@@ -96,39 +112,85 @@ namespace YC.Presentation
         public IReadOnlyList<string> SupplyItemIds => supplyItemIds.AsReadOnly();
         public IReadOnlyList<RectTransform> SupplySlots => fixedSupplySlots.AsReadOnly();
         [SerializeField] private Text supplyDeckText;
+        [SerializeField] private GameplayTextView supplyDeckDocument;
         [SerializeField] private Text extensionHubsText;
         [SerializeField] private string supplyDeckFormat = "设施牌堆·{0}";
         [SerializeField] private string extensionHubFormat = "<color=#{0}>延伸枢纽</color>";
         [SerializeField] private string extensionHubSeparator = "·";
         [SerializeField] private UiResourceCostView ownedResources;
         [SerializeField] private Color[] availableHubColors;
+        [SerializeField] private Color rainbowDeckCountColor;
         [SerializeField] private Color usedHubColor = Color.gray;
         [SerializeField] private GameObject buildHint;
         [SerializeField] private GameObject supplyInspectionHint;
         [SerializeField] private string inspectionQuote = "请选择设施牌查看费用。";
         private CardViewer viewer;
 
-        public void RefreshSupplyStatus(GameState state, int playerId, int? visibleDeckCount = null)
+        public void RefreshSupplyStatus(GameState state, int playerId, PublicDeckStateView visibleDecks = null)
         {
             definitionState = state;
             if (state == null) return;
             visibleItems = new ItemZoneQuery().Project(state, GameStateViewer.Player(playerId));
-            supplyDeckText.text = string.Format(supplyDeckFormat, visibleDeckCount ?? state.Decks.FacilityDeck.Count);
-            ownedResources.SetCost(state.FindPlayer(playerId)?.Resources);
+            var deck = visibleDecks ?? GameStateViewProjector.ProjectForPlayer(state, playerId).Decks;
+            RefreshSupplyStatusDisplay(deck, state.FindPlayer(playerId)?.Resources,
+                state.Map.Facilities.Select(facility => facility.FacilityCardId));
+        }
+
+        // 效果中的供应选择只有玩家可见投影，不能沿用其他建设草稿的资源和牌堆显示。
+        internal void RefreshVisibleSupplyStatus(GameStateView view, int playerId)
+        {
+            if (view == null || view.ViewerPlayerId != playerId) return;
+            RefreshSupplyStatusDisplay(view.Decks, view.Players.FirstOrDefault(p => p.PlayerId == playerId)?.Resources,
+                view.Map.Facilities.Select(facility => facility.FacilityCardId));
+        }
+
+        private void RefreshSupplyStatusDisplay(PublicDeckStateView deck, ResourceSet resources, IEnumerable<string> builtFacilities)
+        {
+            var counts = new[] { deck.FacilityDeckRedCount, deck.FacilityDeckYellowCount, deck.FacilityDeckBlueCount, deck.FacilityDeckRainbowCount };
+            var marker = supplyDeckFormat.IndexOf("{0}", StringComparison.Ordinal);
+            if (marker < 0 || supplyDeckDocument == null || availableHubColors == null || availableHubColors.Length < 3)
+                throw new InvalidOperationException("设施牌堆数量需要已配置的混排文字、四色和数量占位符。");
+            var runs = new List<GameplayTextRun> { new TextRun(supplyDeckFormat.Substring(0, marker)) };
+            for (int i = 0; i < counts.Length; i++)
+            {
+                if (i != 0) runs.Add(new TextRun(extensionHubSeparator));
+                var color = i < 3 ? availableHubColors[i] : rainbowDeckCountColor;
+                runs.Add(new NumberRun(counts[i], new GameplayTextRunStyle("UiNumber", "Normal", Rgba(color))));
+            }
+            runs.Add(new TextRun(supplyDeckFormat.Substring(marker + 3)));
+            var document = new GameplayTextDocument(runs);
+            supplyDeckText.text = document.ToPlainText();
+            supplyDeckDocument.Bind(document);
+            ownedResources.SetCost(resources);
             var ids = new[] { FacilityCardDatabase.ExtensionHubRed, FacilityCardDatabase.ExtensionHubYellow,
                 FacilityCardDatabase.ExtensionHubBlue };
             var labels = new List<string>();
             for (var i = 0; i < ids.Length; i++)
             {
                 var used = false;
-                foreach (var facility in state.Map.Facilities)
-                    if (facility.FacilityCardId == ids[i]) { used = true; break; }
+                foreach (var facilityId in builtFacilities)
+                    if (facilityId == ids[i]) { used = true; break; }
                 if (!used)
                     labels.Add(string.Format(extensionHubFormat, ColorUtility.ToHtmlStringRGB(availableHubColors[i])));
             }
             extensionHubsText.text = labels.Count == 0
                 ? string.Format(extensionHubFormat, ColorUtility.ToHtmlStringRGB(usedHubColor))
                 : string.Join(extensionHubSeparator, labels);
+        }
+        private static uint Rgba(Color color)
+        {
+            Color32 value = color;
+            return ((uint)value.r << 24) | ((uint)value.g << 16) | ((uint)value.b << 8) | value.a;
+        }
+
+        private void RenderDeckCountFragment(Text text, GameplayTextRunStyle style)
+        {
+            var effect = text.GetComponent<RainbowCountTextEffect>();
+            bool rainbow = style.SemanticRole == "UiNumber" && style.ColorRgba == Rgba(rainbowDeckCountColor);
+            if (!rainbow) { if (effect != null) effect.enabled = false; return; }
+            if (effect == null) effect = text.gameObject.AddComponent<RainbowCountTextEffect>();
+            effect.enabled = true;
+            effect.SetCountSpan(0, text.text.Length, availableHubColors[0], availableHubColors[1], availableHubColors[2], rainbowDeckCountColor);
         }
         private bool submittingPayment;
         public void Show(BuildFacilityDraftViewModel model, IReadOnlyList<FacilityPlacement> facilities, int playerId, CardVisualCatalog catalog,
@@ -177,6 +239,7 @@ namespace YC.Presentation
                 card.FallbackLabel.text = FacilityCardDatabase.Get(definitionState, definitionId)?.Name ?? definitionId;
                 if (card.SelectionImage != null) card.SelectionImage.enabled = selected;
                 card.Button.interactable = click != null;
+                card.SetSelectionEffect(click != null, click != null, selected);
                 card.Button.onClick.RemoveAllListeners();
                 card.Button.onClick.AddListener(() => { if (Current()) click?.Invoke(); });
                 card.ConfigureInspection(() =>
@@ -193,8 +256,15 @@ namespace YC.Presentation
                 return card;
             }
             supplyItemIds.Clear();
-            foreach (var slot in fixedSupplySlots) slot.gameObject.SetActive(model.IsSupplySource);
-            if (model.IsSupplySource)
+            foreach (var slot in fixedSupplySlots) slot.gameObject.SetActive(model.IsSupplySource && string.IsNullOrEmpty(model.FixedFacilityId));
+            if (!string.IsNullOrEmpty(model.FixedFacilityId))
+            {
+                var slot = Instantiate(supplySlotTemplate, candidates, false); slot.gameObject.SetActive(true);
+                generated.Add(slot.gameObject);
+                var card = Card(model.FixedFacilityId, model.Facility.FacilityId, slot, !placing, null);
+                YC.PlayerJourney.PlayerAutomationId.Attach(card.Button.gameObject, "build.candidate." + model.FixedFacilityId);
+            }
+            else if (model.IsSupplySource)
             {
                 for (var index = 0; index < FacilitySupplyService.SupplySize; index++)
                 {
@@ -333,6 +403,9 @@ namespace YC.Presentation
                 model.Phase == BuildFacilityDraftPhase.Confirming && sameDraft && selectedOption.CanBuild;
             confirm.onClick.RemoveAllListeners(); confirm.onClick.AddListener(() => { if (Current()) commit(); });
             cancel.onClick.RemoveAllListeners(); cancel.onClick.AddListener(() => { if (Current()) dismiss(); });
+            if (viewCityStyles == null) throw new InvalidOperationException("设施页面缺少城市样式查看按钮。");
+            viewCityStyles.onClick.RemoveAllListeners();
+            viewCityStyles.onClick.AddListener(() => { if (Current()) GameplayHudFrame.Active?.InspectCityStylesRequested?.Invoke(this); });
             YC.PlayerJourney.PlayerAutomationId.Attach(confirm.gameObject, "build.confirm");
         }
 

@@ -131,7 +131,6 @@
           "usageTrackId": "",
           "lifecyclePolicy": "position",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 0,
           "presentationRef": "operator.passenger",
           "presentation": {

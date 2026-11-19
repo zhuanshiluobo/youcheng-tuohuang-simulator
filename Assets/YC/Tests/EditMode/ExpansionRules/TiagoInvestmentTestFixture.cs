@@ -326,16 +326,20 @@ namespace YC.Tests.EditMode.ExpansionRules
             State.EffectRuntime.CurrentRoundNumber = 1; State.EffectRuntime.CurrentRoundStartPlayerId = 1; State.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
             main.ExecutionEffectId = Engine.CreateRoot(EffectSpec.Create(RoundExecutionService.MainlineEffectTypeId, Object("mainNodeId", NormalizedValue.CreateString(main.NodeId)), 1)); main.Status = EffectNodeStatus.Running; Drain();
         }
-        internal void CreateSelectedHost(string[] faces, int initialReputation = 0, ResourceSet startingResources = null)
+        internal void CreateSelectedHost(string[] faces, int initialReputation = 0, ResourceSet startingResources = null,
+            Func<int, int> isolatedDiceNext = null)
         {
             PreparePack(); var map = StaticMapDefinitions.CreateThreePlayerMap(); var query = new MapQueryService(map);
             Registry = new EffectRegistry { ContentPackHash = Pack.ContentHash };
+            // 仅定位指定骰面所需的隔离注入；正常调用仍使用正式随机流。
+            if (isolatedDiceNext != null) DiceRollEffectExecutor.Register(Registry, isolatedDiceNext);
             ResourceEffectExecutor.Register(Registry); GenericLuaEffectExecutor.Register(Registry); ItemTransferEffectExecutor.Register(Registry);
             InfluenceEffectExecutor.Register(Registry, new InfluenceService(query)); ContentPrimitiveEffectExecutor.Register(Registry, query, Registry.InfluenceService);
             AbilitySourceLuaCatalog.Register(Registry, Pack); ExpansionSetupFlow.Register(Registry);
             EnterpriseEffectExecutor.Register(Registry, LuaContentCatalog.CreateEnterpriseDefinitions(Registry, Pack.ActiveDefinitions, Pack.GetScript, Pack));
             var definitions = GameContentDefinitions.CreateRegisteredStandard();
             definitions.AbilitySources = Registry.AbilityDeclarations.ToList(); definitions.Entrepreneurs = EntrepreneurContentCatalog.Read(Pack.Definitions);
+            definitions.EnterpriseDefinitionIds = Pack.ActiveDefinitions.Where(d => d.ContentType == "enterprise").Select(d => d.DefinitionId).ToList();
             definitions.Facilities = Pack.CreateFacilities().ToList(); definitions.Characters = Pack.CreateCharacters().ToList();
             definitions.UsageTracks = Pack.ActiveDefinitions.SelectMany(d => d.UsageTracks).ToList();
             definitions.Awards = ContentLifecycleLuaCatalog.CreateAwards(Pack); definitions.CityStyles = Pack.CreateCityStyles().ToList();
@@ -370,10 +374,12 @@ namespace YC.Tests.EditMode.ExpansionRules
                 if (order != null) order.ItemIds.Add(item.ItemId);
             }
             Registry.ContentDefinitions = GameStateCloneService.DeepClone(definitions);
+            FixturePreparationPlan.AttachEntrepreneur(State, Registry, (string)Pack.Manifest["version"]);
             Artifacts.WriteLabeledText("014选面测试初始隔离基线", Newtonsoft.Json.JsonConvert.SerializeObject(new { initialReputation, State,
                 limitation = "预置库存仅用于隔离边界；后续选面/行动/付款/随机/恢复全部走真实Host，正常覆盖为0" }));
             Rounds = new RoundExecutionService(Registry);
-            Engine.CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false)); Drain();
+            var started = Rounds.StartEntrance(State);
+            Assert.That(started.IsValid, Is.True, started.Reason);
             for (int step = 0; step < 40 && State.EffectRuntime.InteractionRequests.Any(q => q.Status == "open"); step++)
             {
                 var request = State.EffectRuntime.InteractionRequests.First(q => q.Status == "open");

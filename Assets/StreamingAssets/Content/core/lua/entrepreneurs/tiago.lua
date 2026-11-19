@@ -127,8 +127,9 @@ local function payment(ctx, c, count, destination)
 end
 local function enterprises(ctx)
     local ids = {}
-    for _, zone in ipairs(Global.Content.FindZones({ localZoneId = 'enterprises', owner = ctx.playerId })) do
-        for _, item in ipairs(Global.Content.FindInstances({ zoneId = zone.id })) do ids[#ids + 1] = item.id end
+    -- 企业展示区属于公共区域；玩家资格由企业升级效果按本人合作标记筛选。
+    for _, zone in ipairs(Global.Content.FindZones({ templateId = 'core.zone.enterprise_display' })) do
+        for _, item in ipairs(Global.Content.FindInstances({ zoneId = zone.id, contentType = 'enterprise' })) do ids[#ids + 1] = item.id end
     end
     table.sort(ids); return ids
 end

@@ -208,7 +208,7 @@ namespace YC.Presentation
             if (rendered != request.InteractionId) inFlight = string.Empty;
             if (!string.IsNullOrEmpty(inFlight)) return;
             if (rendered == request.InteractionId && revision == request.StateRevision && candidateVersion == request.CandidateSetVersion &&
-                ReferenceEquals(renderedProjection, request)) return;
+                ReferenceEquals(renderedProjection, request) && (!ownsDialog || dialog.IsShowing)) return;
             renderedProjection = request;
             rendered = request.InteractionId; revision = request.StateRevision;
             candidateVersion = request.CandidateSetVersion;

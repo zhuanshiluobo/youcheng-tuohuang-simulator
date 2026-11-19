@@ -204,7 +204,7 @@ namespace YC.PlayerJourney
                     target = markers.FirstOrDefault(m => m.Id == ability)?.gameObject;
                     if (target != null) { usedCharacter = true; result.characterActivations++; pendingAbility = characterTemplate + ":" + ability; }
                 }
-                if (target == null) target = markers.FirstOrDefault(m => m.Id.StartsWith("event.option."))?.gameObject;
+                if (target == null) target = markers.FirstOrDefault(m => m.Id.StartsWith("event.choice."))?.gameObject;
                 if (target == null && text.Contains("采集阶段：已选择"))
                     target = buttons.FirstOrDefault(b => b.name == "Pay Bank")?.gameObject ??
                         markers.FirstOrDefault(m => m.Id == "action.end")?.gameObject;

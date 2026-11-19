@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
@@ -18,8 +17,6 @@ namespace YC.Domain.Rules
     /// <summary>主链拥有的开局与盖牌前子树；没有独立的回合推进器。</summary>
     public static class ExpansionSetupFlow
     {
-        public const string PreparationTypeId = "setup.enterprise.prepare";
-        public const string EnterpriseSelectionTypeId = "setup.enterprise.select";
         public const string RetentionTypeId = "setup.basic_character.retain";
         public const string RoundPreparationTypeId = "round.prepare_cover";
         public const string InitialInfluenceTypeId = "setup.initial_influence";
@@ -28,25 +25,13 @@ namespace YC.Domain.Rules
         public const string LegacyBasicCharacterKeepInteraction = "setup.basic_character.keep";
         public const string SupplyRetirementInteraction = "round.supply.retire";
 
-        public static void Register(EffectRegistry registry, Func<int, int> hostNext = null)
+        public static void Register(EffectRegistry registry)
         {
 
             EntrepreneurFlow.Register(registry);
-            if (!registry.TryGet(PreparationTypeId, out _)) registry.Register(new EffectRegistration(PreparationTypeId, c => PrepareEnterprises(c, hostNext ?? (max => GameplayRandomRuntime.Next(c.State, GameplayRandomRuntime.EnterprisePreparation, max))), EffectExecutorKind.IntrinsicFlow, "2.0.0"));
-            if (!registry.TryGet(EnterpriseSelectionTypeId, out _)) registry.Register(EnterpriseSelectionTypeId, ExecuteEnterpriseSelection, EffectExecutorKind.IntrinsicFlow);
             if (!registry.TryGet(RetentionTypeId, out _)) registry.Register(RetentionTypeId, RetainBasicCharacters, EffectExecutorKind.IntrinsicFlow);
             if (!registry.TryGet(RoundPreparationTypeId, out _)) registry.Register(new EffectRegistration(RoundPreparationTypeId, PrepareRound, EffectExecutorKind.IntrinsicFlow, "2.0.0") { ExecutionDoesNotRetainState = true });
             if (!registry.TryGet(InitialInfluenceTypeId, out _)) registry.Register(InitialInfluenceTypeId, InitialInfluence, EffectExecutorKind.IntrinsicFlow);
-        }
-        public static EffectSpec PreparationSpec(int player, bool concurrent = true) => EffectSpec.Create(PreparationTypeId,
-            concurrent ? Object("setupProtocolVersion", NormalizedValue.CreateInteger(2)) : null, player);
-        public static EffectSpec EnterpriseSelectionSpec(int player, IReadOnlyList<string> candidates, int keepCount)
-        {
-            var spec = EffectSpec.Create(EnterpriseSelectionTypeId,
-                Object("candidateEnterpriseItemIds", Strings(candidates), "keepCount", NormalizedValue.CreateInteger(keepCount)), player);
-            spec.StableKey = "enterprise-selection:" + player.ToString(CultureInfo.InvariantCulture);
-            spec.Visibility = GameStateVisibilityPolicy.Owner;
-            return spec;
         }
         public static EffectSpec RetentionSpec(int player) => EffectSpec.Create(RetentionTypeId, playerId: player);
         public static EffectSpec RoundPreparationSpec(int player) => EffectSpec.Create(RoundPreparationTypeId, playerId: player);
@@ -73,216 +58,7 @@ namespace YC.Domain.Rules
             string id = Answer(context);
             return string.IsNullOrEmpty(id) ? new List<string>() : new List<string> { id };
         }
-        private static EffectStepResult ExecuteEnterpriseSelection(EffectExecutionContext context)
-        {
-            context.Node.Visibility = GameStateVisibilityPolicy.Owner;
-            var parent = context.State.EffectRuntime.EffectNodes.Find(node => node.EffectId == context.Node.ParentEffectId);
-            var group = parent?.ChildSchedulingGroups.FirstOrDefault(candidate => candidate.StableGroupKey == "initial_enterprise_selections");
-            if (parent?.EffectTypeId != PreparationTypeId || Number(parent.NormalizedArguments, "setupProtocolVersion") != 2 && Number(parent.ContinuationData, "setupProtocolVersion") != 3 ||
-                parent.FlowStage != "awaiting_initial_enterprise_tasks" || group == null ||
-                group.OwnerEffectId != parent.EffectId || group.ProtocolVersion != 1 || group.Mode != EffectChildSchedulingMode.Independent ||
-                !parent.ChildEffectIds.Contains(context.Node.EffectId) || !group.ChildEffectIds.Contains(context.Node.EffectId))
-                return EffectStepResult.Failed("enterprise_selection_outside_setup");
-            var candidates = ReadIds(Value(context.Node.NormalizedArguments, "candidateEnterpriseItemIds"));
-            int keep = Number(context.Node.NormalizedArguments, "keepCount");
-            int count = group.ChildEffectIds.Count, draw = count == 2 ? 4 : 2;
-            if (count < 2 || count > 4 || keep != (count == 2 ? 2 : 1) ||
-                !candidates.SequenceEqual(ReadIds(Value(parent.ContinuationData, "candidateEnterpriseItemIds"))
-                    .Skip(group.ChildEffectIds.IndexOf(context.Node.EffectId) * draw).Take(draw)))
-                return EffectStepResult.Failed("enterprise_selection_arguments_invalid");
-            if (context.State.FindPlayer(context.Node.PlayerId) == null || keep < 1 || candidates.Count < keep ||
-                candidates.Distinct().Count() != candidates.Count || candidates.Any(id =>
-                    !context.State.ItemZones.Items.Any(item => item.ItemId == id && context.Registry.EnterpriseDefinitions.FindEnterprise(item.DefinitionId) != null)))
-                return EffectStepResult.Failed("enterprise_selection_arguments_invalid");
-            if (context.Node.FlowStage == string.Empty)
-                return Choose(context, "awaiting_selection", EnterpriseChoiceInteraction, context.Node.PlayerId, candidates, keep, keep);
-            if (context.Node.FlowStage != "awaiting_selection") return EffectStepResult.Failed("enterprise_selection_stage_invalid");
-            var selected = Selected(context);
-            if (selected.Count != keep || selected.Distinct().Count() != keep || selected.Any(id => !candidates.Contains(id)))
-                return EffectStepResult.Failed("enterprise_choice_invalid");
-            Set(context.Node, "selectedEnterpriseItemIds", Strings(selected));
-            return EffectStepResult.Completed(Object("selectedEnterpriseItemIds", Strings(selected))).WithFlowStage("finished");
-        }
-        private static EffectStepResult PrepareEnterprises(EffectExecutionContext context, Func<int, int> next)
-        {
-            if (context.State.SetupRecipe?.EnterpriseEntrance != true) return EffectStepResult.Completed();
-            var node = context.Node;
-            var order = context.State.EffectRuntime.PlayerOrderSnapshot;
-            var definitions = context.Registry.EnterpriseDefinitions;
-            if (node.FlowStage == string.Empty)
-            {
-                var boards = context.State.ItemZones.Items.Where(i => definitions.FindEnterprise(i.DefinitionId) != null).Select(i => i.ItemId).OrderBy(id => id, StringComparer.Ordinal).ToList();
-                int draw = order.Count == 2 ? 4 : 2;
-                bool concurrent = Number(node.NormalizedArguments, "setupProtocolVersion") == 2;
-                if (boards.Count < draw * order.Count + (concurrent && order.Count == 3 ? 1 : 0)) return EffectStepResult.Failed("content_not_ready");
-                for (int index = boards.Count - 1; index > 0; index--) { int pick = next(index + 1); string swap = boards[index]; boards[index] = boards[pick]; boards[pick] = swap; }
-                Set(node, "candidateEnterpriseItemIds", Strings(boards.Take(draw * order.Count)));
-                Set(node, "unassignedEnterpriseItemIds", Strings(boards.Skip(draw * order.Count)));
-                Set(node, "selectedEnterpriseItemIds", Strings(Array.Empty<string>()));
-                Set(node, "initialEnterprisePlayerIds", NormalizedValue.CreateArray(new List<NormalizedValue>()));
-                if (EntrepreneurFlow.Enabled(context.State))
-                {
-                    Set(node, "setupProtocolVersion", NormalizedValue.CreateInteger(3));
-                    if (order.Count == 3)
-                    {
-                        var unassigned = boards.Skip(draw * order.Count).ToList();
-                        Set(node, "randomEnterpriseItemId", NormalizedValue.CreateString(unassigned[next(unassigned.Count)]));
-                    }
-                    return EffectStepResult.Continue("entrepreneur_setup").AddChild(EntrepreneurFlow.SetupSpec(node.PlayerId));
-                }
-                if (concurrent)
-                {
-                    if (order.Count == 3)
-                    {
-                        var unassigned = boards.Skip(draw * order.Count).ToList();
-                        Set(node, "randomEnterpriseItemId", NormalizedValue.CreateString(unassigned[next(unassigned.Count)]));
-                    }
-                    var tasks = order.Select((player, index) => EnterpriseSelectionSpec(player,
-                        boards.Skip(index * draw).Take(draw).ToArray(), order.Count == 2 ? 2 : 1)).ToList();
-                    return EffectStepResult.Continue("awaiting_initial_enterprise_tasks")
-                        .AddIndependentChildren("initial_enterprise_selections", tasks);
-                }
-                Set(node, "nextIndex", NormalizedValue.CreateInteger(0));
-                return EffectStepResult.Continue("choose_initial_enterprises");
-            }
-            if (node.FlowStage == "entrepreneur_setup")
-            {
-                if (Waiting(context)) return EffectStepResult.NoProgress("等待企业家设置。");
-                if (context.State.EntrepreneurSetup?.Stage != "complete") throw new InvalidOperationException("entrepreneur_setup_incomplete");
-                var original = ReadIds(Value(node.ContinuationData, "candidateEnterpriseItemIds")); int draw = order.Count == 2 ? 4 : 2;
-                return EffectStepResult.Continue("awaiting_initial_enterprise_tasks").AddIndependentChildren("initial_enterprise_selections",
-                    order.Select((player, index) => EnterpriseSelectionSpec(player, original.Skip(index * draw).Take(draw).ToList(), order.Count == 2 ? 2 : 1)).ToList());
-            }
-            if (node.FlowStage == "awaiting_initial_enterprise_tasks")
-            {
-                var tasks = context.ChildNodes.Where(t => t.EffectTypeId == EnterpriseSelectionTypeId).ToList();
-                if (tasks.Any(task => task.Status == EffectNodeStatus.Failed || task.Status == EffectNodeStatus.Faulted))
-                    return EffectStepResult.Failed("enterprise_selection_failed");
-                if (tasks.Any(task => task.Status != EffectNodeStatus.Completed)) return EffectStepResult.NoProgress("等待各玩家选择企业。");
-                if (Number(node.NormalizedArguments, "setupProtocolVersion") != 2 && Number(node.ContinuationData, "setupProtocolVersion") != 3 || tasks.Count(t => t.EffectTypeId == EnterpriseSelectionTypeId) != order.Count)
-                    return EffectStepResult.Failed("enterprise_selection_tasks_invalid");
-                var chosen = new List<string>();
-                var owners = NormalizedValue.CreateArray(new List<NormalizedValue>());
-                foreach (int player in order)
-                {
-                    var task = tasks.SingleOrDefault(child => child.PlayerId == player && child.EffectTypeId == EnterpriseSelectionTypeId);
-                    if (task == null) return EffectStepResult.Failed("enterprise_selection_tasks_invalid");
-                    var selected = ReadIds(Value(task.NormalizedResult, "selectedEnterpriseItemIds"));
-                    var candidates = ReadIds(Value(task.NormalizedArguments, "candidateEnterpriseItemIds"));
-                    if (selected.Count != (order.Count == 2 ? 2 : 1) || selected.Distinct().Count() != selected.Count || selected.Any(id => !candidates.Contains(id)))
-                        return EffectStepResult.Failed("enterprise_choice_invalid");
-                    chosen.AddRange(selected);
-                    foreach (string id in selected) owners.Items.Add(Object("enterpriseItemId", NormalizedValue.CreateString(id), "playerId", NormalizedValue.CreateInteger(player)));
-                }
-                if (order.Count == 3)
-                {
-                    string extra = Text(node.ContinuationData, "randomEnterpriseItemId");
-                    if (!ReadIds(Value(node.ContinuationData, "unassignedEnterpriseItemIds")).Contains(extra)) return EffectStepResult.Failed("enterprise_extra_invalid");
-                    chosen.Add(extra);
-                }
-                Set(node, "selectedEnterpriseItemIds", Strings(chosen));
-                Set(node, "initialEnterprisePlayerIds", owners);
-                PublishEnterprises(context, chosen);
-                return EffectStepResult.Continue("prepare_departments");
-            }
-            if (node.FlowStage == "choose_initial_enterprises" || node.FlowStage == "awaiting_initial_enterprises")
-            {
-                int index = Number(node.ContinuationData, "nextIndex");
-                int draw = order.Count == 2 ? 4 : 2, keep = order.Count == 2 ? 2 : 1;
-                if (index < order.Count)
-                {
-                    var candidates = ReadIds(Value(node.ContinuationData, "candidateEnterpriseItemIds")).Skip(index * draw).Take(draw).ToList();
-                    if (node.FlowStage == "choose_initial_enterprises") return Choose(context, "awaiting_initial_enterprises", EnterpriseChoiceInteraction, order[index], candidates, keep, keep);
-                    var selected = Selected(context);
-                    if (selected.Count != keep || selected.Distinct().Count() != keep || selected.Any(id => !candidates.Contains(id))) return EffectStepResult.Failed("enterprise_choice_invalid");
-                    var all = ReadIds(Value(node.ContinuationData, "selectedEnterpriseItemIds")); all.AddRange(selected);
-                    Set(node, "selectedEnterpriseItemIds", Strings(all));
-                    var owners = Value(node.ContinuationData, "initialEnterprisePlayerIds").Clone();
-                    foreach (string id in selected) owners.Items.Add(Object("enterpriseItemId", NormalizedValue.CreateString(id), "playerId", NormalizedValue.CreateInteger(order[index])));
-                    Set(node, "initialEnterprisePlayerIds", owners);
-                    Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1));
-                    return EffectStepResult.Continue("choose_initial_enterprises");
-                }
-                var chosen = ReadIds(Value(node.ContinuationData, "selectedEnterpriseItemIds"));
-                if (order.Count == 3)
-                {
-                    var undrawn = ReadIds(Value(node.ContinuationData, "unassignedEnterpriseItemIds"));
-                    if (undrawn.Count == 0) return EffectStepResult.Failed("content_not_ready");
-                    string extra = undrawn[next(undrawn.Count)]; chosen.Add(extra); Set(node, "randomEnterpriseItemId", NormalizedValue.CreateString(extra));
-                }
-                Set(node, "selectedEnterpriseItemIds", Strings(chosen));
-                PublishEnterprises(context, chosen);
-                Set(node, "nextIndex", NormalizedValue.CreateInteger(0));
-                return EffectStepResult.Continue("prepare_departments");
-            }
-            if (node.FlowStage == "prepare_departments" || node.FlowStage == "awaiting_department")
-            {
-                var boards = ReadIds(Value(node.ContinuationData, "selectedEnterpriseItemIds"));
-                var rhine = boards.Select(id => context.State.ItemZones.Items.Single(i => i.ItemId == id)).SingleOrDefault(i => definitions.FindEnterprise(i.DefinitionId)?.DepartmentRewardPolicy == "active_department");
-                if (rhine != null && !context.State.ItemZones.Relations.Any(r => r.RelationTypeId == EnterpriseStateQuery.ActiveDepartmentRelation && r.SourceItemId == rhine.ItemId))
-                {
-                    var departmentItems = context.State.ItemZones.Items.Where(i => definitions.FindDepartment(i.DefinitionId)?.EnterpriseRuntimeId == definitions.FindEnterprise(rhine.DefinitionId).RuntimeId).ToList();
-                    if (departmentItems.Count != 3) return EffectStepResult.Failed("content_not_ready");
-                    foreach (var item in departmentItems) ItemZoneStateMigrator.SetPosition(context.State, item, FindZone(context.State, "departments").ZoneId);
-                    var owner = Value(node.ContinuationData, "initialEnterprisePlayerIds").Items.Find(v => Text(v, "enterpriseItemId") == rhine.ItemId);
-                    string selected;
-                    if (owner == null) selected = departmentItems[next(departmentItems.Count)].ItemId;
-                    else
-                    {
-                        if (node.FlowStage == "prepare_departments") return Choose(context, "awaiting_department", "setup.department.choose", Number(owner, "playerId"), departmentItems.Select(i => i.ItemId), 1, 1);
-                        selected = Answer(context);
-                        if (!departmentItems.Any(i => i.ItemId == selected)) return EffectStepResult.Failed("department_choice_invalid");
-                    }
-                    context.State.ItemZones.Relations.Add(new ItemRelationState { RelationId = StableIdFactory.Create("relation", rhine.ItemId, EnterpriseStateQuery.ActiveDepartmentRelation), RelationTypeId = EnterpriseStateQuery.ActiveDepartmentRelation, SourceItemId = rhine.ItemId, TargetItemId = selected });
-                }
-                bool initializedOperators = ActivateConditionalComponents(context, boards);
-                var step = EffectStepResult.Continue("initial_upgrades");
-                if (initializedOperators)
-                {
-                    var shuffle = EffectSpec.Create(DeckShuffleEffectExecutor.TypeId,
-                        Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString(node.PlayerId.ToString(CultureInfo.InvariantCulture)),
-                            "deckZone", Object("zoneId", NormalizedValue.CreateString(FindZone(context.State, "operator_deck").ZoneId))), node.PlayerId);
-                    shuffle.StableKey = "initial_operator_deck_shuffle";
-                    step.AddChild(shuffle);
-                }
-                foreach (var owner in Value(node.ContinuationData, "initialEnterprisePlayerIds").Items) step.AddChild(EnterpriseEffectExecutor.UpgradeSpec(Number(owner, "playerId"), Text(owner, "enterpriseItemId"), 1));
-                return step;
-            }
-            if (node.FlowStage != "initial_upgrades" && node.FlowStage != "finished") throw new InvalidOperationException("enterprise_setup_stage_invalid");
-            if (Waiting(context)) return EffectStepResult.NoProgress("等待初始企业升级结算。");
-            return EffectStepResult.Completed(Object("changed", NormalizedValue.CreateBoolean(true)));
-        }
-        private static void PublishEnterprises(EffectExecutionContext context, List<string> boards)
-        {
-            if (boards.Count != 4 || boards.Distinct().Count() != 4) throw new InvalidOperationException("enterprise_board_count_invalid");
-            // 未选企业是各玩家已经看过的私密回盒牌，不能继续留在无人可见的备用区。
-            var order = context.State.EffectRuntime.PlayerOrderSnapshot;
-            var candidates = ReadIds(Value(context.Node.ContinuationData, "candidateEnterpriseItemIds"));
-            int draw = order.Count == 2 ? 4 : 2;
-            for (int index = 0; index < order.Count; index++)
-            foreach (string id in candidates.Skip(index * draw).Take(draw).Where(id => !boards.Contains(id)))
-            {
-                var discarded = context.State.ItemZones.Items.Single(item => item.ItemId == id);
-                discarded.ControllerSubject = ItemSubjectRef.Player(order[index]);
-                ItemZoneStateMigrator.SetPosition(context.State, discarded, FindZone(context.State, "secret_retired").ZoneId);
-            }
-            foreach (string id in boards)
-            {
-                var board = context.State.ItemZones.Items.Single(i => i.ItemId == id);
-                ItemZoneStateMigrator.SetPosition(context.State, board, FindZone(context.State, "enterprises").ZoneId);
-                foreach (int player in context.State.EffectRuntime.PlayerOrderSnapshot.ToArray())
-                {
-                    var declaration = new CardZoneDefinition { LocalZoneId = "cooperation_" + player, ZoneTemplateId = "core.zone.board_marker_track",
-                        AcceptedItemKinds = new List<ItemPhysicalKind> { ItemPhysicalKind.Cube }, AcceptedTypeIds = new List<string> { "core.player_marker" }, CapacityPolicy = "unbounded",
-                        OrderingKind = ZoneOrderingKind.Track, VisibilityPolicyId = ItemZoneVisibility.Public, EntryPolicyId = "core.explicit_transfer", ExitPolicyId = "core.explicit_transfer", CarrierExitPolicyId = "core.preserve_contents" };
-                    if (!new ItemZoneStateFactory().TryCreateCardZone(context.State, id, declaration, out string zoneId, out string reason)) throw new InvalidOperationException(reason);
-                    var marker = context.State.ItemZones.Items.FirstOrDefault(i => i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == player && i.ZoneId == FindZone(context.State, "supply", player).ZoneId);
-                    if (marker == null) throw new InvalidOperationException("insufficient_items");
-                    ItemZoneStateMigrator.SetPosition(context.State, marker, zoneId); marker.SlotId = "level_0";
-                }
-            }
-        }
-        private static bool ActivateConditionalComponents(EffectExecutionContext context, List<string> boards)
+        internal static bool ActivateConditionalComponents(EffectExecutionContext context, List<string> boards)
         {
             bool initializedOperators = false;
             var runtimeIds = boards.Select(id => context.Registry.EnterpriseDefinitions.FindEnterprise(context.State.ItemZones.Items.Single(i => i.ItemId == id).DefinitionId).RuntimeId).ToList();
@@ -392,7 +168,13 @@ namespace YC.Domain.Rules
                 if (context.State.SetupRecipe.EnterpriseEntrance && context.State.Round == openRound && index < order.Count)
                 {
                     if (node.FlowStage == "resolving_red_zone_upgrade") { if (Waiting(context)) return EffectStepResult.NoProgress("等待企业升级。"); Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1)); return EffectStepResult.Continue("choose_red_zone_upgrade"); }
-                    var candidates = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions).GetEnterpriseItemIds(context.State);
+                    var query = new EnterpriseStateQuery(context.Registry.EnterpriseDefinitions);
+                    var candidates = query.GetEnterpriseItemIds(context.State).Where(id => query.CanUpgrade(context.State, order[index], id)).ToList();
+                    if (candidates.Count == 0)
+                    {
+                        Set(node, "nextIndex", NormalizedValue.CreateInteger(index + 1));
+                        return EffectStepResult.Continue("choose_red_zone_upgrade");
+                    }
                     if (node.FlowStage == "choose_red_zone_upgrade") return Choose(context, "awaiting_red_zone_upgrade", "round.enterprise.upgrade", order[index], candidates, 1, 1);
                     string selected = Answer(context); if (!candidates.Contains(selected)) return EffectStepResult.Failed("enterprise_choice_invalid");
                     return EffectStepResult.Continue("resolving_red_zone_upgrade").AddChild(EnterpriseEffectExecutor.UpgradeSpec(order[index], selected, 1));

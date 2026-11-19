@@ -151,7 +151,8 @@ namespace YC.Presentation.Validation
             }
             Require(false, reason);
         }
-        private IEnumerator MapPressWithFreshConfirmation(InteractionRequestProjection request, WorkflowHighlightTargetKind kind, string id)
+        private IEnumerator MapPressWithFreshConfirmation(InteractionRequestProjection request, WorkflowHighlightTargetKind kind, string id,
+            bool allowDraftProgress = false)
         {
             var expected = new MapInputContext { Game = State.GameId, Player = LocalPlayer,
                 Revision = State.EffectRuntime.StateRevision, Request = GameStateCloneService.DeepClone(request) };
@@ -182,7 +183,11 @@ namespace YC.Presentation.Validation
                 Decision = draftProgressed ? "draft_progressed" : confirmation, Before = beforeConfirm, After = commands.Count,
                 DraftBefore = MapDraftEvidence(draftBefore), DraftAfter = MapDraftEvidence(draftAfter),
                 NewOriginalCommands = commands.Skip(beforeConfirm).ToArray(), CommandResubmitted = false });
-            if (draftProgressed) throw new DriverMapDraftProgressException();
+            if (draftProgressed)
+            {
+                if (allowDraftProgress) yield break;
+                throw new DriverMapDraftProgressException();
+            }
             if (confirmation == "pending") RequireMapReadiness(false, expected, target,
                 "同一必答地图请求正常确认没有产生原命令，待有界重读实际入口");
         }
@@ -195,7 +200,7 @@ namespace YC.Presentation.Validation
         private readonly HashSet<string> submittedControlKeys = new HashSet<string>(StringComparer.Ordinal);
         private int deferredDifferenceCount, runtimeErrorsCaptured;
         private bool deferContentDifferencesRequested;
-        private bool DeferContentDifferences => (NetworkMode || PerformanceMode || FullGamePerformance) && deferContentDifferencesRequested;
+        private bool DeferContentDifferences => (CampaignMode || PerformanceMode || FullGamePerformance) && deferContentDifferencesRequested;
 
         private void CheckContent(bool condition, string message)
         {

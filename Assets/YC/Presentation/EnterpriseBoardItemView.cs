@@ -100,7 +100,8 @@ namespace YC.Presentation
                 var id = target.Id;
                 item.Bind(area, draft.IsAvailable(target), draft.IsSelected(id), draft.IsPending, () => choose(id),
                     draft.Projection.ReadOnly, targetRoot, draft.Projection.Mode != EnterpriseSelectionMode.Effect,
-                    () => details(board.Id), canPreview);
+                    () => details(board.Id), canPreview, draft.Projection.Mode == EnterpriseSelectionMode.InitialDepartment ||
+                    draft.Projection.Mode == EnterpriseSelectionMode.SwitchDepartment);
             }
             foreach (var id in new List<string>(targets.Keys))
                 if (!valid.Contains(id)) { Retire(targets[id].gameObject); targets.Remove(id); }

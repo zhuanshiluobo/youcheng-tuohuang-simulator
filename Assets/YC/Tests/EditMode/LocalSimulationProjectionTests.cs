@@ -131,7 +131,8 @@ namespace YC.Tests.EditMode
                 setter.Invoke(null, new object[] { null });
                 host = new GameObject("LocalSimulationProjectionCheck");
                 var context = host.AddComponent(contextType);
-                var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 3 };
+                var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 3,
+                    OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion };
                 var players = new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 }, new PlayerSeat { PlayerId = 3 } };
                 contextType.GetMethod("ConfigureNewLocal").Invoke(context, new object[] { 1, "projection-registry-room", players, config, (int?)42, null });
                 var result = bootstrapperType.GetMethod("Build", BindingFlags.Static | BindingFlags.Public).Invoke(null, new[] { context, (object)false, false });

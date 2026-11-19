@@ -200,6 +200,62 @@ namespace YC.Tests.EditMode
             runtimeCatalogs?.Dispose(); runtimeCatalogs = null;
             artifacts?.Finish(); artifacts = null;
         }
+        [UnityTest] public IEnumerator DeclarationSlotSelectionSurvivesSupplyInspection()
+        {
+            // 隔离夹具提供满足宣告条件的设施，仅验证选中槽位与正式提交；不计正常对局覆盖。
+            runtimeCatalogs = new SceneRuntimeCatalogScope();
+            yield return new EnterPlayMode();
+            var launch = UnityEngine.Object.FindObjectOfType(T("GameLaunchContext")) as Component;
+            if (launch != null) UnityEngine.Object.Destroy(launch.gameObject);
+            yield return null;
+            ConfigureSceneLaunch("SampleScene");
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            yield return null;
+            var controller = UnityEngine.Object.FindObjectOfType(T("MobileCityInteractionController"));
+            var session = Field<object>(controller, "session");
+            var state = Get<GameState>(session, "State");
+            PrepareDeclarationState(state, CityStyleDatabase.MilitaryIndustrialArea, new[] { (0, "blue"), (1, "red") });
+            var player = state.FindPlayer(state.CurrentPlayerId);
+            Call(controller, "SynchronizeInteractionFromState");
+            var tabs = UnityEngine.Object.FindObjectOfType(T("UiMainActionTabs"));
+            Call(tabs, "Select", 2);
+            var hud = UnityEngine.Object.FindObjectOfType(T("GameplayInteractionHudView"));
+            var action = Get<object>(hud, "ActionPanelView");
+            yield return null;
+            Get<Button>(action, "DeclareCityStyleButton").onClick.Invoke();
+            yield return null;
+            var dialog = Field<object>(Field<object>(controller, "workflowView"), "cityStyleDeclarationDialog");
+            var page = Field<Component>(dialog, "view");
+            var model = Field<CityStyleOptionsViewModel>(dialog, "model");
+            Assert.That(model.DeclareMode, Is.True);
+            Call(dialog, "SelectCityStyle", model.Options.ToList().FindIndex(o => o.CityStyleId == CityStyleDatabase.MilitaryIndustrialArea));
+            var slots = Field<RectTransform[]>(page, "cityBoardSlotRoots");
+            foreach (var index in new[] { 0, 1 })
+                ExecuteEvents.Execute<IPointerClickHandler>(slots[index].gameObject,
+                    new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left }, ExecuteEvents.pointerClickHandler);
+            Assert.That(Get<bool>(dialog, "CanConfirm"), Is.True);
+            var selected = Get<IReadOnlyList<int>>(dialog, "SelectedSlotIndexes").ToArray();
+            var count = player.DeclaredCityStyles.Count;
+            var influence = player.InfluenceSupply;
+            Get<Button>(page, "ViewFacilitySupply").onClick.Invoke();
+            yield return null;
+            var supplyPage = Field<Component>(controller, "styleSupplyInspectionPage");
+            Assert.That(supplyPage.gameObject.activeInHierarchy, Is.True);
+            Assert.That(page.gameObject.activeInHierarchy, Is.False);
+            Field<Button>(supplyPage, "viewCityStyles").onClick.Invoke();
+            yield return null;
+            Assert.That(page.gameObject.activeInHierarchy, Is.True);
+            Assert.That(Get<IReadOnlyList<int>>(dialog, "SelectedSlotIndexes"), Is.EqualTo(selected));
+            Assert.That(Get<bool>(dialog, "CanConfirm"), Is.True);
+            Assert.That(player.DeclaredCityStyles.Count, Is.EqualTo(count));
+            Assert.That(player.InfluenceSupply, Is.EqualTo(influence));
+            Get<Button>(page, "ConfirmDeclarationButton").onClick.Invoke();
+            yield return null;
+            Assert.That(player.DeclaredCityStyles.Count, Is.EqualTo(count + 1));
+            Assert.That(player.InfluenceSupply, Is.EqualTo(influence - 1));
+        }
+
         [UnityTest] public IEnumerator RealSceneDeclarationUsesTheFormalCommandAndKeepsRepeatMarkersSeparate()
         {
             runtimeCatalogs = new SceneRuntimeCatalogScope();
@@ -298,7 +354,12 @@ namespace YC.Tests.EditMode
                 Assert.That(player.DeclaredCityStyles[1].RemainingSpecialActionUses,Is.Zero);
                 Assert.That(player.DeclaredCityStyles.Count,Is.EqualTo(2),"特殊行动不能成为第三次宣告。");
                 Debug.Log("军工正式行动后请求：" + string.Join(",",state.EffectRuntime.InteractionRequests.Where(r=>r.Status=="open").Select(r=>r.InteractionTypeId)));
-
+                if (scene == "SampleScene")
+                {
+                    // 两个独立场景使用不同的冻结玩法内容；先结束上一对局，再加载下一局。
+                    yield return new ExitPlayMode();
+                    yield return new EnterPlayMode();
+                }
             }
         }
         [UnityTest] public IEnumerator CompositeDeclarationAndActionRestoreTheAuthoritativePaymentAfterBrowsing()
@@ -347,7 +408,9 @@ namespace YC.Tests.EditMode
             var frame=UnityEngine.Object.FindObjectOfType(T("GameplayHudFrame"));
             Assert.That(Get<Button>(frame,"FoldButton").interactable,Is.True);
             var requestId=Field<string>(frame,"currentRequestId");var effectPage=Field<GameObject>(frame,"suspendedEffectPage");
-            effectPage.GetComponentsInChildren<Button>().Single(b=>b.name=="Increase 0").onClick.Invoke();
+            var editable = effectPage.GetComponentsInChildren<Button>().First(b =>
+                (b.name.StartsWith("Increase ", StringComparison.Ordinal) || b.name.StartsWith("Decrease ", StringComparison.Ordinal)) && b.IsActive() && b.IsInteractable());
+            editable.onClick.Invoke(); yield return null;
             var paymentCoordinator=Field<object>(controller,"specialActionInteraction");
             var selectedValues=Field<List<int>>(paymentCoordinator,"paymentValues").ToArray();
             Call(frame,"SuspendEffectForInformation");Assert.That(effectPage.activeSelf,Is.False);
@@ -447,8 +510,8 @@ namespace YC.Tests.EditMode
                 var eventButton = eventView.GetComponentsInChildren<MonoBehaviour>(true)
                     .Where(c => c != null && c.gameObject.activeInHierarchy &&
                         c.GetType().FullName == "YC.PlayerJourney.PlayerAutomationId" &&
-                        (string)c.GetType().GetField("Id").GetValue(c) == "event.option.0")
-                    .Select(c => c.GetComponent<Button>()).Single();
+                        ((string)c.GetType().GetField("Id").GetValue(c)).StartsWith("event.choice.", StringComparison.Ordinal))
+                    .Select(c => c.GetComponent<Button>()).First();
                 Assert.That(eventButton.IsActive() && eventButton.IsInteractable(), Is.True);
                 eventButton.onClick.Invoke(); yield return null;
                 yield return WaitForComposite(() => host.State.EffectRuntime.InteractionRequests.Single(r =>
@@ -560,8 +623,13 @@ namespace YC.Tests.EditMode
                 {
                     var zone = new ZoneInstanceState { ZoneId = "supply-zone-" + i, LocalZoneId = "facility_supply_" + i };
                     state.ItemZones.Zones.Add(zone);
+                    var order = new ZoneOrderState { ZoneId = zone.ZoneId };
+                    state.ItemZones.Orders.Add(order);
                     if (!string.IsNullOrEmpty(supply[i]))
+                    {
                         state.ItemZones.Items.Add(new ItemInstanceState { ItemId = "supply-item-" + i, ZoneId = zone.ZoneId, DefinitionId = supply[i] });
+                        order.ItemIds.Add("supply-item-" + i);
+                    }
                 }
                 void AssertCitySlot(int index, string id)
                 {
@@ -603,6 +671,7 @@ namespace YC.Tests.EditMode
                 Assert.That(Call(panel, "GetCityBoardSlotLabel", 0), Is.EqualTo(FacilityCardDatabase.Get(FacilityCardDatabase.IronRefinery).Name));
                 supply[1] = FacilityCardDatabase.BoroughAdministrativeDistrict;
                 state.ItemZones.Items.Add(new ItemInstanceState { ItemId = "supply-item-1", ZoneId = "supply-zone-1", DefinitionId = supply[1] });
+                state.ItemZones.Orders.Single(order => order.ZoneId == "supply-zone-1").ItemIds.Add("supply-item-1");
                 Refresh(2);
                 AssertCitySlot(0, FacilityCardDatabase.EquipmentWarehouse);
                 AssertCitySlot(2, string.Empty);
@@ -672,10 +741,14 @@ namespace YC.Tests.EditMode
             {
                 var values = Field<List<int>>(coordinator, "paymentValues").ToArray();
                 Assert.That(values.Length, Is.EqualTo(desired.Length));
-                int row = Enumerable.Range(0, values.Length).FirstOrDefault(i => values[i] != desired[i]);
                 if (values.SequenceEqual(desired)) break;
-                var button = CompositePaymentButton(frame, (values[row] < desired[row] ? "Increase " : "Decrease ") + row);
-                Assert.That(button.IsActive() && button.IsInteractable(), Is.True);
+                // 当前总额可能已满；先减少多选的材料，再增加目标材料。
+                int row = Enumerable.Range(0, values.Length).Where(i => values[i] > desired[i]).DefaultIfEmpty(-1).First();
+                if (row < 0) row = Enumerable.Range(0, values.Length).First(i => values[i] < desired[i]);
+                string buttonName = (values[row] < desired[row] ? "Increase " : "Decrease ") + row;
+                yield return WaitForComposite(() => CompositePaymentButton(frame, buttonName).IsActive() && CompositePaymentButton(frame, buttonName).IsInteractable(),
+                    "当前合法付款草稿未允许调整：" + buttonName);
+                var button = CompositePaymentButton(frame, buttonName);
                 button.onClick.Invoke(); yield return null;
             }
             Assert.That(Field<List<int>>(coordinator, "paymentValues"), Is.EqualTo(desired));

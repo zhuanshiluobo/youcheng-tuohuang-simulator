@@ -19,6 +19,25 @@ namespace YC.Tests.EditMode
 {
     public sealed class FacilityLuaCompositionTests
     {
+        // 此组设施效果使用正式事件选择协议；退出时恢复其他历史测试使用的资产目录。
+        private static void ResetEventDatabase() => typeof(EventCardDatabase)
+            .GetMethod("ResetForTests", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)
+            .Invoke(null, null);
+
+        [OneTimeSetUp]
+        public void UseCurrentEventCatalog()
+        {
+            ResetEventDatabase();
+            EventCardDatabase.InitializeExternal(ExternalContentPack.Current.CreateEvents());
+        }
+
+        [OneTimeTearDown]
+        public void RestoreEventCatalog()
+        {
+            ResetEventDatabase();
+            FacilityCardDatabaseSetUpFixture.InitializeEventAndCharacterCardDatabases();
+        }
+
         private static GameState State()
         {
             var state = new GameState { GameId = "facility-lua", MapId = StaticMapDefinitions.CreateFourPlayerMap().MapId,

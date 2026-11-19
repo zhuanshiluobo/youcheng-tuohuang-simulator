@@ -130,6 +130,12 @@ namespace YC.Presentation.Workflows
             ShowPreview(initialCityStyleId, false);
         }
 
+        public void OpenReadOnlyPreview(string initialCityStyleId)
+        {
+            if (context.CurrentState?.FindPlayer(context.LocalPlayerId) == null) return;
+            ShowPreview(initialCityStyleId, false, true);
+        }
+
         public void SubmitDeclare(
             string cityStyleId,
             IReadOnlyList<int> selectedSlotIndexes)
@@ -137,7 +143,7 @@ namespace YC.Presentation.Workflows
             TrySubmitDeclare(cityStyleId, selectedSlotIndexes);
         }
 
-        private void ShowPreview(string initialCityStyleId, bool declare)
+        private void ShowPreview(string initialCityStyleId, bool declare, bool readOnly = false)
         {
             var receipt = new Receipt();
             var playerId = context.LocalPlayerId;
@@ -183,7 +189,7 @@ namespace YC.Presentation.Workflows
                     declare ? (Func<string, IReadOnlyList<int>, bool>)((id, slots) =>
                         context.LocalPlayerId == playerId && context.CurrentState.GameId == gameId && TrySubmitDeclare(id, slots, receipt)) : null,
                     null, declare ? restoreBuildInteraction : (Action)null,
-                    string.IsNullOrEmpty(unavailable) ? (Func<string, string, int, int, bool>)((id, marker, originium, iron) =>
+                    !readOnly && string.IsNullOrEmpty(unavailable) ? (Func<string, string, int, int, bool>)((id, marker, originium, iron) =>
                         context.LocalPlayerId == playerId && context.CurrentState.GameId == gameId &&
                         TrySubmitSpecialAction(id, marker, originium, iron, receipt)) : null,
                     declare, refresh, key, state.EffectRuntime == null ? 0 : state.EffectRuntime.StateRevision, () => receipt.Status,
@@ -482,7 +488,17 @@ namespace YC.Presentation.Workflows
             const int cityBoardSlotCount = 12;
             var usedSlotIndexes = new HashSet<int>();
             var player = state == null ? null : state.FindPlayer(playerId);
-            if (player != null && player.DeclaredCityStyles != null)
+            if (player?.DeclaredCityStyles != null && ItemZoneLegacyProjection.IsActive(state))
+            {
+                // 叠放后只判断当前顶层实例；底层历史宣告不能占用新设施。
+                var usedInstances = new HashSet<string>(player.DeclaredCityStyles
+                    .Where(declaration => declaration?.UsedFacilityIds != null)
+                    .SelectMany(declaration => declaration.UsedFacilityIds), StringComparer.Ordinal);
+                foreach (var placement in state.Map.Facilities.Where(placement => placement.PlayerId == playerId &&
+                    !string.IsNullOrEmpty(placement.ContentInstanceId) && usedInstances.Contains(placement.ContentInstanceId)))
+                    usedSlotIndexes.Add(placement.CityBoardSlotIndex);
+            }
+            else if (player != null && player.DeclaredCityStyles != null)
             {
                 for (var declarationIndex = 0;
                      declarationIndex < player.DeclaredCityStyles.Count;

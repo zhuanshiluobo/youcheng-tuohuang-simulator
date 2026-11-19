@@ -114,21 +114,23 @@ return function(ctx)
     elseif c.stage ~= 'start' then return {} end
     local storage = Global.Content.FindZones({ parentId = c.source, localZoneId = 'markers' })
     if #storage ~= 1 then error('marker_storage_missing') end
-    local ids, labels, owners = {}, {}, {}
+    local owners, markersByOwner = {}, {}
     local markers = {}
     for _, item in ipairs(Global.Content.FindInstances({ zoneId = storage[1].id, typeId = 'core.player_marker' })) do markers[#markers + 1] = item end
     table.sort(markers, function(a, b) return a.id < b.id end)
     for _, item in ipairs(markers) do
-        ids[#ids + 1] = item.id; labels[item.id] = Text.Ref('core:interaction.marker.owner', { player = Text.Player(item.ownerSubject) })
-        if not has(owners, item.ownerSubject) then owners[#owners + 1] = item.ownerSubject end
+        if not has(owners, item.ownerSubject) then
+            owners[#owners + 1] = item.ownerSubject
+            markersByOwner[item.ownerSubject] = item.id
+        end
     end
-    if #ids == 0 then return {} end
+    if #owners == 0 then return {} end
     -- 本牌只容纳玩家标记，原主决定返供和升级受益人；相同原主无须按实例ID另选。
-    if #owners == 1 then return return_marker(ctx, c, ids[1]) end
+    if #owners == 1 then return return_marker(ctx, c, markersByOwner[owners[1]]) end
     local branches, options = {}, {}
-    for _, id in ipairs(ids) do
-        branches[#branches + 1] = { id = id, effects = return_marker(ctx, copy(c), id) }
-        options[#options + 1] = { candidateId = id, label = labels[id] }
+    for _, owner in ipairs(owners) do
+        branches[#branches + 1] = { id = owner, effects = return_marker(ctx, copy(c), markersByOwner[owner]) }
+        options[#options + 1] = { candidateId = owner, label = Text.Ref('core:interaction.player.name', { player = Text.Player(owner) }) }
     end
     return { Effect.WithPresentation(Effect.Choice({ player = ctx.playerId, branches = branches,
         minSelections = 0, maxSelections = 1, interactionType = 'effect.choice.execute', promptKey = 'core:interaction.marker.return.choose' }),

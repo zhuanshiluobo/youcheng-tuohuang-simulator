@@ -115,7 +115,6 @@
           "usageTrackId": "usage.city_style_core_commercial_area",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "city_style_core_commercial_area"
         }

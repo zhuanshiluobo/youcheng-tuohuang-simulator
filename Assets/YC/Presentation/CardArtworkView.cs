@@ -11,6 +11,9 @@ namespace YC.Presentation
             if (image == null) return;
             var faceLayout = image.GetComponentInParent<UiCardFaceLayoutGroup>();
             if (faceLayout != null) faceLayout.SetArtworkAspect(image.rectTransform, AspectRatio(sprite));
+            var eventLayout = image.GetComponentInParent<UiEventArtworkLayoutGroup>();
+            if (eventLayout != null) eventLayout.SetArtworkSize(image.rectTransform,
+                sprite == null || sprite.texture == null ? Vector2.zero : sprite.textureRect.size);
             var fitter = image.GetComponent<AspectRatioFitter>();
             if (fitter != null && sprite != null) fitter.aspectRatio = AspectRatio(sprite);
             image.texture = sprite == null ? null : sprite.texture;
@@ -35,6 +38,9 @@ namespace YC.Presentation
         public static void SetTexture(RawImage image, Texture texture)
         {
             if (image == null) return;
+            var eventLayout = image.GetComponentInParent<UiEventArtworkLayoutGroup>();
+            if (eventLayout != null) eventLayout.SetArtworkSize(image.rectTransform,
+                texture == null ? Vector2.zero : new Vector2(texture.width, texture.height));
             image.texture = texture;
             image.uvRect = new Rect(0f, 0f, 1f, 1f);
         }

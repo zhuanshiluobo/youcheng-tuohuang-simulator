@@ -23,7 +23,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(request.InteractionTypeId, Is.EqualTo("effect.choice.execute"));
             Assert.That(request.MinSelections, Is.Zero); Assert.That(request.MaxSelections, Is.EqualTo(1));
             Assert.That(request.AllowDecline, Is.True);
-            Assert.That(request.CandidateIds, Is.EquivalentTo(stored.Select(i => i.ItemId)));
+            Assert.That(request.CandidateIds, Is.EquivalentTo(key == "swire"
+                ? stored.Select(i => "p" + i.OwnerSubject.PlayerId) : stored.Select(i => i.ItemId)));
             var choice = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
             Assert.That(choice.ChildEffectIds, Is.Empty);
             Assert.That(choice.NestedGroupSizes, Is.All.EqualTo(1));
@@ -42,7 +43,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             else
             {
-                Answer(state, selectedId);
+                Answer(state, key == "swire" ? "p" + originalOwner : selectedId);
                 Assert.That(state.ItemZones.Items.Single(i => i.ItemId == selectedId).ZoneId,
                     Is.EqualTo(FindZone(state, "supply", originalOwner).ZoneId));
                 Assert.That(state.ItemZones.Items.Single(i => i.ItemId == stored.First().ItemId).ZoneId, Is.EqualTo(sourceZone));

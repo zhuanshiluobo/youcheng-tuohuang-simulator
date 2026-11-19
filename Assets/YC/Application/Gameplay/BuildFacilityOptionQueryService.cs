@@ -19,6 +19,7 @@ namespace YC.Application.Gameplay
         public InteractionView Input { get; }
         public PreparedActionPaymentView Payment { get; }
         public string RequestedPaymentMode { get; }
+        public string FixedFacilityId => ItemTransferEffectExecutor.Text(Selection.PromptParameters, "fixedFacilityId");
         public string OwnerEffectId => Selection.OwnerEffectId;
         public string SourceZone => ItemTransferEffectExecutor.Text(Selection.PromptParameters, "sourceZone");
         // 旧deck消费者只读兼容；供应多源必须按目标调用TryGetCandidateSourceZoneId。
@@ -37,6 +38,12 @@ namespace YC.Application.Gameplay
             sourceZoneId = string.Empty;
             int index = Selection.CandidateIds.IndexOf(targetItemId);
             if (index < 0) return false;
+            if (FixedFacilityId.Length > 0)
+            {
+                // Host 的单牌请求携带已验证来源；不把授权区域误限制为公共供应或卡牌存储区。
+                sourceZoneId = ItemTransferEffectExecutor.Text(Selection.PromptParameters, "expectedSourceZoneId");
+                return targetItemId == FixedFacilityId && sourceZoneId.Length > 0;
+            }
             if (SourceZone == "deck")
             {
                 sourceZoneId = ItemTransferEffectExecutor.Text(Selection.PromptParameters, "expectedSourceZoneId");
@@ -117,6 +124,9 @@ namespace YC.Application.Gameplay
                 (payment == null ? value.Status == "open" : value.InteractionId == payment.SelectionInteractionId)).Take(2).ToArray();
             if (selections.Length != 1) return false;
             var selection = selections[0];
+            if (FacilityBuildContract.IsExplicitAuto(parents[0].NormalizedArguments) &&
+                (selection.CandidateIds?.Count != 1 || selection.CandidateIds[0] != ItemTransferEffectExecutor.Text(parents[0].NormalizedArguments, "facilityId") ||
+                 ItemTransferEffectExecutor.Text(selection.PromptParameters, "fixedFacilityId") != selection.CandidateIds[0])) return false;
             if (string.IsNullOrEmpty(selection.InteractionId) || string.IsNullOrEmpty(selection.CandidateSetId) || selection.CandidateSetVersion < 1 ||
                 !GameStateVisibilityPolicy.IsVisible(selection.Visibility, playerId, GameStateViewer.Player(playerId)) ||
                 selection.CandidateIds == null || selection.CandidateIds.Count == 0 ||
@@ -289,6 +299,8 @@ namespace YC.Application.Gameplay
             if (!EffectBuildScope.TryReadEffectBuildScope(state, visibleState, playerId, selectionOwnerEffectId, out var scope))
                 return Array.Empty<BuildFacilityOptionQueryResult>();
             var definitions = ItemTransferEffectExecutor.Value(scope.Selection.PromptParameters, "candidateDefinitionIds");
+            int fixedSlot = scope.FixedFacilityId.Length == 0 ? -1 : ItemTransferEffectExecutor.Number(
+                visibleState.Effects.Single(e => e.EffectId == selectionOwnerEffectId).NormalizedArguments, "cityBoardSlotIndex", -1);
             return buildFacilityService.UseQueries(candidates.Queries).WithReadOnlyQuery<IReadOnlyList<BuildFacilityOptionQueryResult>>(state, playerId, null, query => {
                 var options = new List<BuildFacilityOptionQueryResult>(scope.Selection.CandidateIds.Count);
                 for (int i = 0; i < scope.Selection.CandidateIds.Count; i++)
@@ -309,6 +321,8 @@ namespace YC.Application.Gameplay
                             ValidationResult.Success : ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板槽位不可用。")));
                     if (structural.IsValid && !slots.Any(slot => slot.IsLegal))
                         structural = ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "城市面板没有合法建设槽位。");
+                    if (scope.FixedFacilityId.Length > 0 && fixedSlot >= 0 && !slots.Any(slot => slot.CityBoardSlotIndex == fixedSlot && slot.IsLegal))
+                        structural = ValidationResult.Failure(CommandErrorCode.OccupiedSlot, "指定的城市格已不可建设。");
                     var cost = query.GetEffectiveResourceCost(definitionId);
                     ValidationResult Payment(string mode) => !structural.IsValid ? structural : !scope.AllowsPaymentMode(mode) ?
                         ValidationResult.Failure(CommandErrorCode.InvalidTarget, "本次建设未授权该支付方式。") :
@@ -362,7 +376,7 @@ namespace YC.Application.Gameplay
             }
             if (requireMainAction)
             {
-                var actionValidation = MainActionCommandGuard.ValidateBuildQuote(state, playerId, facilityId ?? string.Empty, visibleState);
+                var actionValidation = MainActionCommandGuard.ValidateBuildQuote(state, playerId, facilityId ?? string.Empty, visibleState, candidates.Queries);
                 if (!actionValidation.IsValid)
                 {
                     facilityValidation = actionValidation;

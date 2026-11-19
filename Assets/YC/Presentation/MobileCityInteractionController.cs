@@ -261,6 +261,8 @@ namespace YC.Presentation
                 CompleteActionCommandUi,
                 GetPlayerDisplayName);
             workflowView.BindBuildDraftView(ShowBuildDraftInOriginalPanel, HideBuildDraftInOriginalPanel);
+            gameplayInteractionHud.Frame.InspectCityStylesRequested = InspectCityStylesFromFacility;
+            gameplayInteractionHud.Frame.InspectFacilitySupplyRequested = InspectFacilitySupplyFromCityStyle;
             resourceCollectionPresenter = new ResourceCollectionPresenter(
                 gameplayAdapter,
                 gameplayAdapter,
@@ -290,6 +292,7 @@ namespace YC.Presentation
                 influenceActionPresenter,
                 explorationEventPresenter,
                 () => CanStopCurrentEffect || CanUseSecondModeStop, buildFacilityOptions);
+            turnActionPresenter.MoveInteraction.DestinationRegistry = sessionEffectRegistry;
             turnActionPresenter.ActionPanelPresenter.CharacterCoverPrompt =
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile.CharacterCoverSelectionDescription;
             characterCardPresenter = new CharacterCardPanelPresenter(
@@ -338,7 +341,8 @@ namespace YC.Presentation
             var informationPages = gameplayInteractionHud.GetComponent<GameplayInformationPages>();
             if (informationPages != null)
                 informationPages.Configure(() => CurrentState, () => localPlayerId, mapQuery,
-                    gameplayInteractionHud.DialogRegistry, VisibleSaleState);
+                    gameplayInteractionHud.DialogRegistry, VisibleSaleState,
+                    () => commandSubmission?.ReadRegionControlPreview(CurrentState, localPlayerId, sessionEffectRegistry));
             EnsureSettingsMenu();
             ShowInitialPlacementChoices();
             facilityInteraction = new FacilityInteractionUiCoordinator(
@@ -424,6 +428,8 @@ namespace YC.Presentation
             if (!IsStartupInitialized || LoadingSceneController.IsBlockingGameplay(gameObject.scene)) return;
             PulseInteractionTrace();
             workflowView?.RefreshCityStylePreview();
+            if (styleSupplyInspectionActive && (workflowView == null || !workflowView.OwnsCityStylePreview(suspendedCityStylePage)))
+                CloseStyleSupplyInspection();
             gameplayInteractionHud?.Frame?.UpdateInteractionMessage(
                 (mapInteractionRouter != null && mapInteractionRouter.HasPendingConfirmation) ||
                 (interactionRouter != null && interactionRouter.HasPendingMapConfirmation));
@@ -454,10 +460,16 @@ namespace YC.Presentation
             StopInteractionTrace();
             uiShuttingDown = true;
             workflowView?.BeginShutdown();
+            if (gameplayInteractionHud?.Frame != null)
+            {
+                gameplayInteractionHud.Frame.InspectCityStylesRequested = null;
+                gameplayInteractionHud.Frame.InspectFacilitySupplyRequested = null;
+            }
             // 场景销毁只释放 UI 意图，不能把保存中的领域付款准备当成玩家主动取消。
             turnActionPresenter?.BeginShutdown();
             gameplayInteractionHud?.ExpansionUi?.BeginShutdown();
             if (facilityBuildPage != null) facilityBuildPage.Hide();
+            if (styleSupplyInspectionPage != null) styleSupplyInspectionPage.Hide();
             if (characterViewer != null) characterViewer.Dismiss();
             characterViewer = null;
             if (interactionRouter != null)
@@ -807,7 +819,7 @@ namespace YC.Presentation
                 }, (gameId, commandId, accepted, errorCode) =>
                 {
                     // 准确拒绝可能保持同一revision，仍须让原路由重新呈现已解除等待的请求。
-                    simulationUiResultRequiresSynchronization = commandSubmission?.UsesDeterministicSimulation == true;
+                    simulationUiResultRequiresSynchronization = commandSubmission?.UsesNetworkProjection == true;
                     using (InteractionLatencyTrace.Begin("callback.mobile.release_wait", commandId))
                         ReleaseRejectedSubmissionWait(gameId, commandId, accepted);
                     using (InteractionLatencyTrace.Begin("callback.mobile.cover_result", commandId))
@@ -865,8 +877,8 @@ namespace YC.Presentation
                 new YC.Domain.Travel.RouteResourceSelectionService(mapQuery),
                 eventChoiceDialog, workflowView, SubmitPendingEffectCommand, RefreshRouteSelectionDraft);
             routeResourceSelection.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
-            routeResourceSelection.IsNetworkSession = () => commandSubmission?.UsesDeterministicSimulation == true;
-            enterpriseInteraction.IsNetworkSession = () => commandSubmission?.UsesDeterministicSimulation == true;
+            routeResourceSelection.IsNetworkSession = () => commandSubmission?.UsesNetworkProjection == true;
+            enterpriseInteraction.IsNetworkSession = () => commandSubmission?.UsesNetworkProjection == true;
             characterAbilityInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
             enterpriseInteraction.CanSubmit = () => CanSubmitGameplayCommand && string.IsNullOrEmpty(pendingEffectCommandId);
             routeResourceSelection.RequiresExplicitRefresh = () => commandSubmission?.RequiresExplicitRefreshForCurrentResult == true;
@@ -940,7 +952,7 @@ namespace YC.Presentation
             try { turnActionPresenter.SynchronizeFromState(); }
             finally { completionWillBeRefreshedBySynchronization = previousCompletionRefresh; }
             // 只在联机同一观察者的普通发表刷新中保草稿；切人清理仍走原分支。
-            var preserveRequestDraft = !viewerChanged && commandSubmission?.UsesDeterministicSimulation == true;
+            var preserveRequestDraft = !viewerChanged && commandSubmission?.UsesNetworkProjection == true;
             var preserveMove = !viewerChanged && turnActionPresenter.MoveInteraction.CanResumePreparedDraft;
             var preserveBuild = !viewerChanged && turnActionPresenter.BuildInteraction.CanResumePreparedDraft;
             if (viewerChanged)
@@ -1541,6 +1553,14 @@ namespace YC.Presentation
 
         private void RefreshBuildFacilityDialog()
         {
+            if (styleSupplyInspectionActive && styleSupplyInspectionPage != null &&
+                styleSupplyInspectionPage.gameObject.activeInHierarchy)
+            {
+                if (turnActionPresenter != null && turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply &&
+                    workflowView != null && workflowView.OwnsCityStylePreview(suspendedCityStylePage))
+                    PresentStyleSupplyInspection();
+                else CloseStyleSupplyInspection();
+            }
             if (supplyInspectionActive)
             {
                 if (turnActionPresenter != null && turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply)
@@ -1594,6 +1614,76 @@ namespace YC.Presentation
         private int buildDialogGeneration;
         private long buildDialogPresentation;
         private bool supplyInspectionActive;
+        private FacilityBuildDialogView styleSupplyInspectionPage;
+        private GameObject suspendedCityStylePage;
+        private bool styleSupplyInspectionActive;
+        private string styleSupplySelectedId = string.Empty;
+        private int supplyInspectionGeneration;
+
+        private void InspectCityStylesFromFacility(FacilityBuildDialogView source)
+        {
+            if (source == null || uiShuttingDown || turnActionPresenter == null) return;
+            if (source == styleSupplyInspectionPage && styleSupplyInspectionActive)
+            {
+                CloseStyleSupplyInspection();
+                return;
+            }
+            if (!turnActionPresenter.BuildActionPanelViewModel().CanInspectCityStyles) return;
+            turnActionPresenter.CityStyleInteraction.OpenReadOnlyPreview(string.Empty);
+        }
+
+        private void InspectFacilitySupplyFromCityStyle(GameObject source)
+        {
+            if (source == null || uiShuttingDown || turnActionPresenter == null ||
+                workflowView == null || !workflowView.OwnsCityStylePreview(source)) return;
+            if (gameplayInteractionHud.Frame.InformationReturnsToFacility(source))
+            {
+                workflowView.CloseCityStylePreview();
+                return;
+            }
+            if (!turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply) return;
+            suspendedCityStylePage = source;
+            styleSupplyInspectionActive = true;
+            styleSupplySelectedId = string.Empty;
+            PresentStyleSupplyInspection();
+        }
+
+        private void PresentStyleSupplyInspection()
+        {
+            if (!styleSupplyInspectionActive || ReadUiStateWithTrace() == null || workflowView == null ||
+                !workflowView.OwnsCityStylePreview(suspendedCityStylePage)) return;
+            var owner = session;
+            var player = localPlayerId;
+            var source = suspendedCityStylePage;
+            bool Current() => styleSupplyInspectionActive && session == owner && localPlayerId == player &&
+                workflowView != null && workflowView.OwnsCityStylePreview(source) &&
+                turnActionPresenter != null && turnActionPresenter.BuildActionPanelViewModel().CanViewFacilitySupply;
+            var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Selecting,
+                supplyInspectionCandidates.Query(ReadUiStateWithTrace(), player), null, null, -1,
+                string.Empty, string.Empty, null, _ => { }, supplyInspectionCandidates.IsDefaultSupplySet);
+            if (styleSupplyInspectionPage == null)
+                styleSupplyInspectionPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
+            styleSupplyInspectionPage.RefreshSupplyStatus(ReadUiStateWithTrace(), player, VisibleSaleState()?.Decks);
+            styleSupplyInspectionPage.Show(model, ReadUiStateWithTrace().Map.Facilities.ToArray(), player,
+                gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
+                gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
+                styleSupplySelectedId, string.Empty, Current,
+                id => { if (Current()) { styleSupplySelectedId = id; PresentStyleSupplyInspection(); } },
+                _ => { }, _ => { }, () => { }, CloseStyleSupplyInspection, true);
+        }
+
+        private void CloseStyleSupplyInspection()
+        {
+            var source = suspendedCityStylePage;
+            var page = styleSupplyInspectionPage;
+            var canRestore = workflowView != null && workflowView.OwnsCityStylePreview(source);
+            styleSupplyInspectionActive = false;
+            suspendedCityStylePage = null;
+            styleSupplySelectedId = string.Empty;
+            if (canRestore && page != null)
+                gameplayInteractionHud?.Frame?.RestoreCoveredInformationPage(source, page.gameObject);
+            if (page != null) page.Hide();
+        }
 
         private void ShowBuildDraftInOriginalPanel(BuildFacilityDraftViewModel model)
         {
@@ -1627,7 +1717,10 @@ namespace YC.Presentation
                 string.Empty, string.Empty, null, _ => { }, supplyInspectionCandidates.IsDefaultSupplySet);
             if (facilityBuildPage == null)
                 facilityBuildPage = gameplayInteractionHud.DialogRegistry.InstantiateFacilityBuild(uiCanvas.transform as RectTransform);
-            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId);
+            var generation = supplyInspectionGeneration;
+            gameplayInteractionHud.Frame.RegisterActionPage(facilityBuildPage.gameObject, "supply:" + generation,
+                () => generation == supplyInspectionGeneration && Current(), PresentFacilitySupplyInspection);
+            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState()?.Decks);
             facilityBuildPage.Show(model, ReadUiStateWithTrace().Map.Facilities.ToArray(), player,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
@@ -1641,6 +1734,7 @@ namespace YC.Presentation
         {
             supplyInspectionCandidates?.Invalidate();
             supplyInspectionActive = false;
+            supplyInspectionGeneration++;
             selectedBuildFacilityId = string.Empty;
             if (facilityBuildPage != null) facilityBuildPage.Hide();
         }
@@ -1667,7 +1761,7 @@ namespace YC.Presentation
             gameplayInteractionHud.Frame.RegisterActionPage(facilityBuildPage.gameObject, generation.ToString(),
                 () => session == owner && localPlayerId == player && generation == buildDialogGeneration && IsCurrentBuildDialog(),
                 PresentBuildFacilityDialog);
-            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId);
+            facilityBuildPage.RefreshSupplyStatus(ReadUiStateWithTrace(), localPlayerId, VisibleSaleState()?.Decks);
             facilityBuildPage.Show(model, ReadUiStateWithTrace().Map.Facilities.ToArray(), localPlayerId,
                 gameplayInteractionHud.DialogRegistry.CardVisualCatalog,
                 gameplayInteractionHud.DialogRegistry.EffectDialogLayoutProfile,
@@ -1968,7 +2062,10 @@ namespace YC.Presentation
             var finalScore = FindObjectOfType<FinalScoreController>();
             if (finalScore != null)
             {
-                finalScore.RefreshFromState(ReadUiStateWithTrace());
+                var state = ReadUiStateWithTrace();
+                // 私密联机尚未安装本人投影时，等待正式视图回调再刷新；其他空状态仍保留错误诊断。
+                if (state == null && commandSubmission?.AwaitingInitialPrivateProjection == true) return;
+                finalScore.RefreshFromState(state);
             }
         }
 

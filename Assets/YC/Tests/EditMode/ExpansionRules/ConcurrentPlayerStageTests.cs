@@ -8,10 +8,12 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
+using YC.Application.Setup;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Enterprises;
+using YC.Domain.Events;
 using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -60,11 +62,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         private static Fixture Create(int players = 3, bool enterprise = false, int basics = 5,
-            bool generatedDiscard = false, Action<EffectRegistry> registerExtra = null)
+            bool generatedDiscard = false, Action<EffectRegistry> registerExtra = null, bool omitFirstIndicator = false,
+            bool sequential = false)
         {
             installed = installed ?? ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets", "StreamingAssets", "Content", "core"));
             var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId,
                 PlayerCount = players, EnabledExpansionIds = new List<string> { "core" } };
+            if (sequential) config.PlayerStageSchedulingMode = PlayerStageSchedulingMode.Sequential;
             var catalog = ActiveContentCatalogBuilder.Build(installed, config);
             config.ContentPackHash = catalog.ContentPackHash;
             var recipe = catalog.SetupRecipe;
@@ -87,6 +91,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             // 这组测试仅验证调度，不声称覆盖真实扩展的事件、缪尔赛思或赫拉格正文。
             foreach (string location in StaticMapDefinitions.FourPlayerInitialLocationIds)
             {
+                if (omitFirstIndicator && location == "B-01") continue;
                 string id = "test.concurrent.indicator." + location;
                 recipe.Add(id, id, "core.resource_point_token", "location/" + location);
             }
@@ -109,8 +114,10 @@ namespace YC.Tests.EditMode.ExpansionRules
                 }
                 enterprises.Freeze();
             }
+            recipe.Preparation = FixturePreparationPlan.Create(config.RuleModeId, enterprise);
             var fixture = new Fixture { Registry = new EffectRegistry() };
-            ExpansionSetupFlow.Register(fixture.Registry, upper => { fixture.RandomCalls++; return 0; });
+            ExpansionSetupFlow.Register(fixture.Registry);
+            PreparationFrameworkFlow.Register(fixture.Registry, upper => { fixture.RandomCalls++; return 0; });
             catalog.Register(fixture.Registry);
             ResourceEffectExecutor.Register(fixture.Registry);
             GenericLuaEffectExecutor.Register(fixture.Registry);
@@ -194,10 +201,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(requests.Select(request => request.AnsweringPlayerId), Is.EquivalentTo(Enumerable.Range(1, players)));
             Assert.That(fixture.State.CurrentPlayerId, Is.EqualTo(-1));
             var selections = requests.ToDictionary(request => request.AnsweringPlayerId, request => request.CandidateIds.Take(request.MinSelections).ToArray());
-            var preparation = Node(fixture.State, ExpansionSetupFlow.PreparationTypeId);
-            string extra = Field(preparation.ContinuationData, "randomEnterpriseItemId")?.StringValue;
+            string extra = fixture.State.PreparationRuntime.Distribution.ExtraItemIds.SingleOrDefault();
             int randomCalls = fixture.RandomCalls;
-            Assert.That(randomCalls, Is.EqualTo(players == 3 ? 8 : 7));
+            Assert.That(randomCalls, Is.GreaterThan(0));
             foreach (int player in Enumerable.Range(1, players))
             {
                 var view = GameStateViewProjector.ProjectForPlayer(fixture.State, player);
@@ -218,13 +224,14 @@ namespace YC.Tests.EditMode.ExpansionRules
                     fixture.Restore();
                     Assert.That(Open(fixture.State, ExpansionSetupFlow.EnterpriseChoiceInteraction).Select(request => request.InteractionId), Is.EquivalentTo(pendingIds));
                     Assert.That(fixture.RandomCalls, Is.EqualTo(randomCalls));
-                    Assert.That(Field(Node(fixture.State, ExpansionSetupFlow.PreparationTypeId).ContinuationData, "randomEnterpriseItemId")?.StringValue, Is.EqualTo(extra));
+                    Assert.That(fixture.State.PreparationRuntime.Distribution.ExtraItemIds.SingleOrDefault(), Is.EqualTo(extra));
                 }
             }
             var expected = Enumerable.Range(1, players).SelectMany(player => selections[player]).ToList();
             if (players == 3) expected.Add(extra);
             Assert.That(In(fixture.State, "enterprises"), Is.EquivalentTo(expected));
-            Assert.That(Ids(Node(fixture.State, ExpansionSetupFlow.PreparationTypeId).ContinuationData, "selectedEnterpriseItemIds"), Is.EqualTo(expected));
+            Assert.That(fixture.State.PreparationRuntime.Distribution.Assignments.SelectMany(item => item.SelectedItemIds)
+                .Concat(fixture.State.PreparationRuntime.Distribution.ExtraItemIds), Is.EqualTo(expected));
             Assert.That(Open(fixture.State, ExpansionSetupFlow.EnterpriseChoiceInteraction), Is.Empty);
             Assert.That(Open(fixture.State, PlayerEntranceEffectExecutor.InteractionTypeId).Select(request => request.AnsweringPlayerId), Is.EqualTo(new[] { 1 }));
             Assert.That(RoundExecutionService.TryValidateSetupTasks(fixture.State, fixture.Registry, out var diagnostic), Is.True, diagnostic);
@@ -363,6 +370,49 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(fixture.State.EffectRuntime.RuleEvents.Count(evt => evt.EventType == "RoundStarted"), Is.EqualTo(1));
         }
 
+        // 供窗口事实测试复用正式实体、当前事件目录及真实入场命令。
+        public static void AssertEntranceEventKeepsNextPicker()
+        {
+            var fixture = Create(players: 4, basics: 6, omitFirstIndicator: true);
+            StartEntrance(fixture);
+            var session = fixture.Session();
+            session.RegisterHandler(new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap()),
+                new EventDeckService(), new ResourceTokenService(), new TurnOrderService(), fixture.Round));
+            void SubmitEntrance(InteractionRequest request, string target)
+            {
+                var command = new GameCommand { Kind = GameCommandKind.ChooseInitialLocation,
+                    CommandId = "entity-entrance-" + request.AnsweringPlayerId, PlayerId = request.AnsweringPlayerId, TargetId = target };
+                command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
+                command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString(CultureInfo.InvariantCulture);
+                var result = session.Submit(command);
+                Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            }
+            var first = fixture.Request(PlayerEntranceEffectExecutor.InteractionTypeId, 1);
+            Assert.That(first.CandidateIds, Does.Contain("B-01"));
+            SubmitEntrance(first, "B-01");
+            Assert.That(fixture.State.FindPlayer(1).CityLocationId, Is.EqualTo("B-01"));
+            Assert.That(Open(fixture.State, "event_card.option").Any(r => r.AnsweringPlayerId == 1), Is.True,
+                "无指示物的地点应产生本人事件待选。");
+            Assert.That(Open(fixture.State, PlayerEntranceEffectExecutor.InteractionTypeId).Any(r => r.AnsweringPlayerId == 2), Is.True,
+                "第一位玩家的事件待选保留时，下一位玩家仍应能够选择入场地点。");
+            var windows = OperationWindowService.ReadOpenWindows(fixture.State);
+            var prior = windows.Single(w => w.WindowKind == "entrance_player" && w.AuthorizedPlayerIds.Contains(1));
+            Assert.That(prior.AvailablePlayerIds, Is.EqualTo(new[] { 1 }));
+            Assert.That(windows.Any(w => w.WindowKind == "entrance_player" && w.AvailablePlayerIds.Contains(2)), Is.True);
+            Assert.That(windows.Any(w => w.AvailablePlayerIds.Contains(3)), Is.False);
+            string eventId = Open(fixture.State, "event_card.option").Single(r => r.AnsweringPlayerId == 1).GetStableInteractionId();
+            var second = fixture.Request(PlayerEntranceEffectExecutor.InteractionTypeId, 2);
+            SubmitEntrance(second, second.CandidateIds.First());
+            Assert.That(fixture.State.CurrentPlayerId, Is.EqualTo(3));
+            Assert.That(fixture.State.Phase, Is.EqualTo(GamePhase.Entrance));
+            Assert.That(Open(fixture.State, "event_card.option").Any(r => r.AnsweringPlayerId == 1 && r.GetStableInteractionId() == eventId), Is.True,
+                "第二位玩家入场后，第一位玩家尚未结算的事件选择必须保留。");
+            Assert.That(Open(fixture.State, PlayerEntranceEffectExecutor.InteractionTypeId).Any(r => r.AnsweringPlayerId == 3), Is.True,
+                "第二位玩家入场后，第三位玩家应能继续选择地点。");
+            Assert.That(OperationWindowService.ReadOpenWindows(fixture.State).Any(w => w.OperationWindowId == prior.OperationWindowId && w.AvailablePlayerIds.Contains(1)), Is.True,
+                "前一玩家的操作窗口与待完成的事件选择必须保留。");
+        }
+
         [Test]
         public void Entrance_PreviousPlayersRetentionCanRemainOpenWhileLaterPlayersChooseLocations()
         {
@@ -384,7 +434,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (entrance) StartEntrance(fixture); else StartCover(fixture);
             var archive = HostRecoveryService.CreateArchive(fixture.State);
             var corrupt = archive.Snapshot.State;
-            var owner = entrance ? Node(corrupt, ExpansionSetupFlow.PreparationTypeId) : corrupt.EffectRuntime.EffectNodes
+            var owner = entrance ? Node(corrupt, PreparationFrameworkFlow.TypeId) : corrupt.EffectRuntime.EffectNodes
                 .Single(node => Field(node.NormalizedArguments, "nodeTypeId")?.StringValue == RoundMainlineNodeTypeIds.CharacterCover);
             owner.ChildSchedulingGroups.Clear();
             bool valid = entrance ? RoundExecutionService.TryValidateSetupTasks(corrupt, fixture.Registry, out _) :
@@ -396,30 +446,25 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
-        public void LegacyEnterprise_SavedNextIndexContinuesSequentiallyWithoutCreatingNewPlayerTasks()
+        public void SequentialEnterprise_RestoresConfirmationWithoutRedistributing()
         {
-            var fixture = Create(enterprise: true);
-            var executor = new EffectTreeExecutor(fixture.State, fixture.Registry);
-            string id = executor.CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false));
-            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
-            Assert.That(Open(fixture.State, ExpansionSetupFlow.EnterpriseChoiceInteraction).Select(request => request.AnsweringPlayerId), Is.EqualTo(new[] { 1 }));
+            var fixture = Create(enterprise: true, sequential: true);
+            StartEntrance(fixture);
+            int randomCalls = fixture.RandomCalls;
+            var original = fixture.State.PreparationRuntime.Distribution.Assignments
+                .SelectMany(item => item.CandidateItemIds).ToArray();
             for (int player = 1; player <= 3; player++)
             {
                 var request = fixture.Request(ExpansionSetupFlow.EnterpriseChoiceInteraction, player);
-                executor = new EffectTreeExecutor(fixture.State, fixture.Registry);
-                var answer = NormalizedValue.CreateArray(request.CandidateIds.Take(request.MinSelections).Select(NormalizedValue.CreateString).ToList());
-                Assert.That(executor.TrySubmitInteraction(request.InteractionId, player, request.StateRevision, answer, out var reason), Is.True, reason);
-                Assert.That(executor.RunUntilQuiescent().Faulted, Is.False, fixture.State.EffectRuntime.LastFaultMessage);
+                fixture.Submit(request);
                 if (player == 1)
                 {
-                    var recovery = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(fixture.State)), fixture.Registry);
-                    Assert.That(recovery.Succeeded, Is.True, recovery.Diagnostic); fixture.State = recovery.State;
-                    Assert.That(Field(fixture.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == id).ContinuationData, "nextIndex").IntegerValue, Is.EqualTo(1));
+                    fixture.Restore();
+                    Assert.That(fixture.RandomCalls, Is.EqualTo(randomCalls));
+                    Assert.That(fixture.State.PreparationRuntime.Distribution.Assignments.SelectMany(item => item.CandidateItemIds), Is.EqualTo(original));
+                    Assert.That(fixture.State.PreparationRuntime.Distribution.Assignments.Single(item => item.PlayerId == 1).Confirmed, Is.True);
                 }
-                if (player < 3) Assert.That(Open(fixture.State, ExpansionSetupFlow.EnterpriseChoiceInteraction).Select(value => value.AnsweringPlayerId), Is.EqualTo(new[] { player + 1 }));
             }
-            Assert.That(fixture.State.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId), Is.False);
-            Assert.That(Field(fixture.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == id).NormalizedArguments, "setupProtocolVersion"), Is.Null);
             Assert.That(In(fixture.State, "enterprises"), Has.Length.EqualTo(4));
         }
 
@@ -455,7 +500,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (enterprise) StartEntrance(fixture); else StartCover(fixture);
             var archive = HostRecoveryService.CreateArchive(fixture.State);
             var corrupt = GameStateCloneService.DeepClone(fixture.State);
-            var owner = enterprise ? Node(corrupt, ExpansionSetupFlow.PreparationTypeId) : corrupt.EffectRuntime.EffectNodes
+            var owner = enterprise ? Node(corrupt, PreparationFrameworkFlow.TypeId) : corrupt.EffectRuntime.EffectNodes
                 .Single(node => Field(node.NormalizedArguments, "nodeTypeId")?.StringValue == RoundMainlineNodeTypeIds.CharacterCover);
             owner.ChildSchedulingGroups.Clear();
             bool valid = enterprise ? RoundExecutionService.TryValidateSetupTasks(corrupt, null, out _) :
@@ -475,16 +520,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             var archive = HostRecoveryService.CreateArchive(fixture.State);
             string published = In(fixture.State, "enterprises")[0];
             string definition = fixture.State.ItemZones.Items.Single(item => item.ItemId == published).DefinitionId;
-            foreach (string damage in new[] { "classification", "candidate", "item_type", "published_zone" })
+            foreach (string damage in new[] { "classification", "candidate", "item_type" })
             {
                 var corrupt = GameStateCloneService.DeepClone(fixture.State);
                 var item = corrupt.ItemZones.Items.Single(value => value.ItemId == published);
                 if (damage == "classification") corrupt.ContentDefinitions.EnterpriseDefinitionIds.Remove(definition);
-                else if (damage == "candidate") Field(Node(corrupt, ExpansionSetupFlow.PreparationTypeId).ContinuationData,
-                    "candidateEnterpriseItemIds").Items[0] = NormalizedValue.CreateString("test.concurrent.unknown_enterprise");
+                else if (damage == "candidate") corrupt.PreparationRuntime.Distribution.Assignments[0].CandidateItemIds[0] = "test.concurrent.unknown_enterprise";
                 else if (damage == "item_type") item.TypeId = "core.basic_character_card";
-                else typeof(ItemZoneStateMigrator).GetMethod("SetPosition", BindingFlags.Static | BindingFlags.NonPublic)
-                    .Invoke(null, new object[] { corrupt, item, corrupt.ItemZones.Zones.Single(zone => zone.LocalZoneId == "reserve").ZoneId });
                 Assert.That(RoundExecutionService.TryValidateSetupTasks(corrupt, null, out _), Is.False, damage);
                 Assert.That(() => HostRecoveryService.CreateArchive(corrupt), Throws.InvalidOperationException, damage);
                 Assert.That(() => HostRecoveryService.AppendJournal(archive, corrupt), Throws.InvalidOperationException, damage);

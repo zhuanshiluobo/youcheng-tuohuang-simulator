@@ -124,7 +124,17 @@ namespace YC.Domain.Cards
 
         public int RemainingCount(DeckRuntimeState decks, EventColor color)
         {
-            return decks == null ? 0 : cardPoolService.RemainingCount(decks, EventCardPoolIds.FromColor(color));
+            if (decks == null) return 0;
+            if (decks.HasProjectedEventCounts)
+            {
+                switch (color)
+                {
+                    case EventColor.Green: return decks.ProjectedEventGreenCount;
+                    case EventColor.Yellow: return decks.ProjectedEventYellowCount;
+                    case EventColor.Red: return decks.ProjectedEventRedCount;
+                }
+            }
+            return cardPoolService.RemainingCount(decks, EventCardPoolIds.FromColor(color));
         }
 
         public string Peek(DeckRuntimeState decks, EventColor color)

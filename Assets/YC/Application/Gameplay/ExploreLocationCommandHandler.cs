@@ -350,7 +350,7 @@ namespace YC.Application.Gameplay
 
             if (consumeMainAction)
             {
-                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.Explore);
             }
 
             var card = EventCardDatabase.Get(state, result.EventCardId);

@@ -60,8 +60,9 @@ namespace YC.Domain.Exploration
             if (state == null) throw new ArgumentNullException(nameof(state));
             var player = state.FindPlayer(playerId);
             if (player == null || string.IsNullOrEmpty(player.CityLocationId) || player.InfluenceSupply <= 0
-                || !CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation).IsValid || state.CurrentPlayerId != playerId
-                || (!allowFacilityEntry && !MainActionBudgetService.ValidateCanSpend(state, playerId).IsValid)) return Array.AsReadOnly(new string[0]);
+                || (!allowFacilityEntry && (!CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation).IsValid ||
+                    state.CurrentPlayerId != playerId || !MainActionBudgetService.ValidateCanSpend(state, playerId, YC.Domain.Rules.MainActionBudgetService.Explore).IsValid)))
+                return Array.AsReadOnly(new string[0]);
             var tokens = new HashSet<string>(state.Map.ResourceTokens.ToArray().Select(t => t.LocationId), StringComparer.Ordinal);
             var occupied = new HashSet<string>(state.Map.Influences.ToArray().Select(i => i.SlotId), StringComparer.Ordinal);
             var opponentCities = new HashSet<string>(state.Players.Where(p => p.PlayerId != playerId).Select(p => p.CityLocationId), StringComparer.Ordinal);
@@ -77,8 +78,8 @@ namespace YC.Domain.Exploration
                 bool available;
                 if (!eventAvailable.TryGetValue(color, out available))
                 {
-                    var card = eventDeckService.RemainingCount(state.Decks, color) > 0 ? EventCardDatabase.Get(state, PeekEventCardId(state.Decks, color)) : null;
-                    available = card != null && card.ChoiceRewards.Count > 0;
+                    // 目标资格只依赖该颜色牌堆是否为空，不窥视未公开事件的奖励或按钮。
+                    available = eventDeckService.RemainingCount(state.Decks, color) > 0;
                     eventAvailable.Add(color, available);
                 }
                 if (available) result.Add(location.LocationId);
@@ -117,15 +118,13 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "探索玩家不存在。");
             }
 
-            var phaseValidation = CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation);
-            if (!phaseValidation.IsValid)
+            // 额外效果由其上层效果树授权玩家与执行时机；普通主要行动仍必须校验行动阶段及当前玩家。
+            if (!allowFacilityEntry)
             {
-                return phaseValidation;
-            }
-
-            if (state.CurrentPlayerId != playerId)
-            {
-                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
+                var phaseValidation = CommandPhasePolicy.ValidatePhase(state, GameCommandKind.ExploreLocation);
+                if (!phaseValidation.IsValid) return phaseValidation;
+                if (state.CurrentPlayerId != playerId)
+                    return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "当前不是该玩家的行动回合。");
             }
 
             if (state.HasPendingChoice() && !allowFacilityEntry)
@@ -135,7 +134,7 @@ namespace YC.Domain.Exploration
 
             if (!allowFacilityEntry)
             {
-                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId);
+                var budgetValidation = MainActionBudgetService.ValidateCanSpend(state, playerId, YC.Domain.Rules.MainActionBudgetService.Explore);
                 if (!budgetValidation.IsValid)
                 {
                     return budgetValidation;
@@ -179,20 +178,14 @@ namespace YC.Domain.Exploration
                 return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "对应颜色事件牌堆已空。");
             }
 
-            var card = EventCardDatabase.Get(state, PeekEventCardId(state.Decks, eventColor));
-            if (card == null)
+            EventCardDefinition card = null;
+            if (validateEventOption)
             {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件牌数据不存在。");
-            }
-
-            if (card.ChoiceRewards.Count <= 0)
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件没有可用选项。");
-            }
-
-            if (validateEventOption && (selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count))
-            {
-                return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "探索事件选项无效。");
+                // 旧同步入口只能处理旧夹具；正式事件在揭示后由效果树请求稳定选择。
+                card = EventCardDatabase.Get(state, PeekEventCardId(state.Decks, eventColor));
+                if (card == null || card.EventChoiceSchemaVersion != 0 || card.ChoiceRewards == null ||
+                    selectedOptionIndex < 0 || selectedOptionIndex >= card.ChoiceRewards.Count)
+                    return ValidationResult.Failure(CommandErrorCode.InvalidTarget, "事件选择必须通过正式请求处理。");
             }
 
             var slotValidation = ValidateExplorationInfluenceSlot(state, playerId, targetLocationId, influenceSlotId);

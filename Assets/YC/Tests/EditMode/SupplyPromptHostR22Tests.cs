@@ -20,6 +20,7 @@ using YC.Domain.Commands;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Interactions;
+using YC.Domain.Items;
 using YC.Domain.Presentation;
 using YC.Domain.State;
 using YC.Infrastructure.Lua;
@@ -70,9 +71,9 @@ namespace YC.Tests.EditMode
             Artifacts = IsolatedTestArtifacts.BeginCase();
             var installed = ExternalContentPack.Load(Installed);
             var method = typeof(ExternalContentPack).GetMethod("CreateActiveSnapshot", Flags, null,
-                new[] { typeof(IEnumerable<string>), typeof(string), typeof(string) }, null);
+                new[] { typeof(IEnumerable<string>), typeof(string), typeof(string), typeof(IEnumerable<string>) }, null);
             Pack = (ExternalContentPack)method.Invoke(installed, new object[] { new[] { "core", "enterprise", "infected" },
-                LuaContentHasher.ComputeSha256(installed.ContentHash + "|R22.UI.isolated"), "entrepreneur" });
+                LuaContentHasher.ComputeSha256(installed.ContentHash + "|R22.UI.isolated"), "entrepreneur", new[] { "entrepreneur_selection.v1" } });
             Artifacts.WriteLabeledText("R22隔离输入", "只读当前正式内容，在既有马丁夹具内合法转移摆牌；不是正常局。活动目录=" + Pack.ContentHash);
             Save(TestContext.CurrentContext.Test.Name + "-身份", new {
                 installed = installed.ContentHash, active = Pack.ContentHash,
@@ -178,9 +179,10 @@ namespace YC.Tests.EditMode
             Assert.That(commands.Count, Is.EqualTo(1)); Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { tops[0] }));
             Assert.That(Open(state).InteractionTypeId, Is.EqualTo("lua.choice"));
             Answer(state, NormalizedValue.CreateString(blueprint.ItemId));
-            var batch = state.EffectRuntime.EffectNodes.Single(n => n.TransferBatchRequest?.OperationId.StartsWith("martin:exchange:") == true);
+            var batch = state.EffectRuntime.EffectNodes.Single(IsActualMartinBatch);
             Assert.That(batch.Status, Is.EqualTo(EffectNodeStatus.Completed));
-            Assert.That(YC.Domain.Items.ItemTransferService.TryValidateBatchReceipt(batch, out var why), Is.True, why);
+            Assert.That(ItemMovementV4.TryValidateState(state, batch, out var why), Is.True, why);
+            Assert.That(batch.CommonItemMovementV4.Receipt.Items.Select(item => item.ItemId), Is.EquivalentTo(new[] { blueprint.ItemId, tops[0] }));
             Assert.That(state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open"), Is.False);
             Save("M05供应原确认回执及交换后继结清", new { receipts, batch, state, scope = "供应由原UI提交；后继图纸回答沿既有规则夹具，不计正常局" });
             Call(coordinator, "NotifyCommandSettled", commands[0].CommandId);
@@ -203,6 +205,34 @@ namespace YC.Tests.EditMode
                 return EffectStepResult.Continue("waiting").AddInteraction(request);
             }, EffectExecutorKind.IntrinsicFlow));
             Run(state, EffectSpec.Create(type, playerId: 1));
+        }
+
+        [UnityTest]
+        public IEnumerator SupplySelectionShowsCurrentPlayersCityAndResources()
+        {
+            yield return new EnterPlayMode(); PrepareInput();
+            state = State();
+            var tops = Enumerable.Range(0, 4).Select(slot => Supply(state, "building_015", slot).ItemId).ToArray();
+            GenericOptionalSupply(); CreateHud(); yield return null;
+            // 只构造可见投影以覆盖页面绑定；不声称这是完整对局或规则执行。
+            renderer.Clear();
+            current.Map.Facilities.Add(new FacilityPlacementView { PlayerId = 1, FacilityCardId = "reserve_001", CityBoardSlotIndex = 7 });
+            current.Map.Facilities.Add(new FacilityPlacementView { PlayerId = 2, FacilityCardId = "reserve_001", CityBoardSlotIndex = 6 });
+            current.Players.Single(p => p.PlayerId == 1).Resources.Originium = 13;
+            renderer.Render(Request); yield return null; Canvas.ForceUpdateCanvases(); yield return null;
+            var images = (RawImage[])Read(Page, "cityCards");
+            Assert.That(images[7].enabled && images[7].texture != null, Is.True, "应显示回答者已有的设施");
+            Assert.That(images[6].enabled, Is.False, "不能混入其他玩家的城市设施");
+            Assert.That(((Button[])Read(Page, "citySlots"))[7].interactable, Is.False, "供应选择不能修改城市");
+            var amounts = (Text[])Read(Read(Page, "ownedResources"), "amounts");
+            Assert.That(amounts[0].text, Is.EqualTo("13"));
+            Capture("供应选择正确显示城市-隔离组件.png");
+            Card(tops[0]).onClick.Invoke(); yield return null;
+            Assert.That(images[7].enabled && images[7].texture != null, Is.True, "更换供应选择后城市仍应显示");
+            Assert.That(Confirm.interactable, Is.True);
+            Assert.That(commands, Is.Empty, "选择供应牌不会立即提交");
+            yield return new WaitForSecondsRealtime(.45f);
+            Capture("供应选择选中效果-隔离组件.png");
         }
 
         [UnityTest]

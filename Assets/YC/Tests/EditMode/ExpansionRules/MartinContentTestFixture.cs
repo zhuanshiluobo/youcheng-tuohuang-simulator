@@ -60,7 +60,12 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string relative in definitions)
             {
                 var doc = JObject.Parse(File.ReadAllText(Path.Combine(baseline, relative)));
-                doc["applicableModes"] = new JArray("standard", "entrepreneur"); patches[relative] = doc.ToString();
+                // 此夹具在隔离的 standard 模式定位马丁正文；移除本夹具无法启动的选人机制门槛，
+                // 正式内容、脚本和真实模式配置均不修改，也不能将夹具结果当作正常开局验收。
+                doc["applicableModes"] = new JArray("standard", "entrepreneur");
+                if (doc["requiredMechanisms"] is JArray mechanisms)
+                    foreach (var entry in mechanisms.Where(value => (string)value == "entrepreneur_selection.v1").ToArray()) entry.Remove();
+                patches[relative] = doc.ToString();
             }
             patches["pack.json"] = manifest.ToString();
             string input = Artifacts.CopyContent(baseline, "马丁正式正文私有机制输入", patches);

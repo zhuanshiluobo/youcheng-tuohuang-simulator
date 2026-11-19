@@ -10,6 +10,7 @@ using YC.Domain.Effects;
 using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.State;
+using YC.Infrastructure.Multiplayer;
 using static YC.Domain.Effects.ItemTransferEffectExecutor;
 
 namespace YC.Tests.EditMode.ExpansionRules
@@ -41,7 +42,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             }
             return OpenTotalPayment();
         }
-        [Test, Property("paymentMarkerInventory", 19)]
+        [Test, Property("paymentMarkerInventory", 19), Property("paymentFormalMap", 1)]
         public void ChannelSessionUsesAuthenticatedIdentityAndReadsEveryTypedPageWithoutMutatingState()
         {
             var owner = ChannelInventory(); var session = new GameSession(f.State); session.ConfigurePaymentSourceQueries(f.Registry);
@@ -54,6 +55,19 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(session.QueryPaymentSourcePage(2, request).Page, Is.Null);
             request.Query = GameStateCloneService.DeepClone(q); request.Query.PlayerId = 2; request.RequestId = PaymentSourcePageProtocol.Id(request.Query);
             Assert.That(session.QueryPaymentSourcePage(2, request).Page, Is.Null);
+            var bindings = new SteamIdentityBindingRegistry();
+            bindings.ReplaceLobbySeats(new[] { new KeyValuePair<int, ulong>(1, 111), new KeyValuePair<int, ulong>(2, 222) });
+            Assert.That(bindings.TryBindConnection(11, 111, out _), Is.True);
+            Assert.That(bindings.TryBindConnection(22, 222, out _), Is.True);
+            var publisher = new PrivatePlayerViewPublisher(session, f.Registry, bindings, 1);
+            Assert.That(publisher.TryBind(11, "seat1"), Is.True);
+            Assert.That(publisher.TryBind(22, "seat2"), Is.True);
+            request.Query = GameStateCloneService.DeepClone(q); request.RequestId = PaymentSourcePageProtocol.Id(request.Query);
+            Assert.That(publisher.TryQueryPaymentSources(11, "seat1", request, out var own), Is.True);
+            Assert.That(own.Page, Is.Not.Null);
+            Assert.That(publisher.TryQueryPaymentSources(22, "seat2", request, out var other), Is.True);
+            Assert.That(other.Page, Is.Null);
+            Assert.That(publisher.TryQueryPaymentSources(11, "expired", request, out _), Is.False);
             inventory[0].LocalState = Object("clientOnly", NormalizedValue.CreateBoolean(true));
             Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
             f.Artifacts.WriteLabeledText("认证会话完整分页", JsonConvert.SerializeObject(pages.Select(p => new { p.Query, p.Response })));
@@ -71,6 +85,59 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var p in pages) Assert.That(cache.Read(scope, p.Query), Is.Not.Null);
             var clone = cache.Read(scope, pages[2].Query); clone.Sources.Clear(); Assert.That(cache.Read(scope, pages[2].Query).Sources.Count, Is.EqualTo(1));
             f.Artifacts.WriteLabeledText("乱序完整快照及缺页保持等待", JsonConvert.SerializeObject(pages.Select(p => p.Query)));
+        }
+
+        [Test, Property("paymentMarkerInventory", 19), Property("paymentFormalMap", 1)]
+        public void PrivatePaymentWireTransfersAllPagesOnlyToTheirAuthenticatedConnection()
+        {
+            var owner = ChannelInventory(); var session = new GameSession(f.State); session.ConfigurePaymentSourceQueries(f.Registry);
+            string game = f.State.GameId, content = f.State.ContentPackHash, before = JsonConvert.SerializeObject(f.State);
+            var pages = ChannelPages(session, owner);
+            var client = new PrivateClientPaymentChannel(game, content, "seat-one", 1, 1, 1);
+            var requests = new PrivatePayloadAssembler(game, content, "seat-one", 1, 1, 1, "payment-query");
+            long resultId = 0;
+            foreach (var expected in pages)
+            {
+                Assert.That(client.Read(expected.Query), Is.Null);
+                byte[] encoded = null;
+                while (client.TryTakeRequest(out var part))
+                {
+                    var forged = GameStateCloneService.DeepClone(part); forged.ConnectionToken = "seat-two";
+                    Assert.That(requests.Receive(forged, out _, out _), Is.EqualTo(PrivatePayloadReceiveStatus.Rejected));
+                    var status = requests.Receive(part, out var ack, out var completed);
+                    Assert.That(status, Is.Not.EqualTo(PrivatePayloadReceiveStatus.Rejected));
+                    Assert.That(client.Acknowledge(ack), Is.True);
+                    if (completed != null) encoded = completed;
+                }
+                Assert.That(encoded, Is.Not.Null);
+                string json = System.Text.Encoding.UTF8.GetString(encoded);
+                Assert.That(PrivatePaymentWireProtocol.TryDecodeRequest(json, out var envelope), Is.True);
+                Assert.That(PrivatePaymentWireProtocol.TryDecodeRequest("{\"ProtocolVersion\":1," + json.Substring(1), out _), Is.False);
+                Assert.That(envelope.PlayerId, Is.EqualTo(1));
+                var actual = session.QueryPaymentSourcePage(1, envelope.Request);
+                var wrongPlayer = GameStateCloneService.DeepClone(envelope.Request); wrongPlayer.Query.PlayerId = 2;
+                wrongPlayer.RequestId = PaymentSourcePageProtocol.Id(wrongPlayer.Query);
+                Assert.That(session.QueryPaymentSourcePage(1, wrongPlayer).Page, Is.Null);
+                var response = new PrivatePaymentResponseEnvelope { GameId = game, ContentPackHash = content, ConnectionToken = "seat-one",
+                    SessionEpoch = 1, MembershipVersion = 1, PlayerId = 1, Response = actual };
+                var sender = new PrivatePayloadSendWindow(game, content, "seat-one", 1, 1, 1, "payment-result", ++resultId,
+                    PrivatePaymentWireProtocol.Encode(response));
+                bool changed = false;
+                while (sender.TryTake(out var part))
+                {
+                    var forged = GameStateCloneService.DeepClone(part); forged.ConnectionToken = "seat-two";
+                    Assert.That(client.Receive(forged, out _, out _), Is.False);
+                    Assert.That(client.Receive(part, out var ack, out bool complete), Is.True, client.Failure);
+                    Assert.That(sender.TryAcknowledge(ack), Is.True);
+                    changed |= complete;
+                }
+                Assert.That(changed, Is.True);
+                var page = client.Read(expected.Query);
+                Assert.That(page, Is.Not.Null, client.Failure);
+                Assert.That(JsonConvert.SerializeObject(page), Is.EqualTo(JsonConvert.SerializeObject(expected.Response.Page)));
+            }
+            Assert.That(pages.Count, Is.EqualTo(6));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
         }
         [Test, Property("paymentMarkerInventory", 19)]
         public void ChannelCacheRejectsDisconnectedOldScopeAndOldGenerationEvenIfResponsesArriveLate()

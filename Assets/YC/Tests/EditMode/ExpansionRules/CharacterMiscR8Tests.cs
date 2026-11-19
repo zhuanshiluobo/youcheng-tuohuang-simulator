@@ -225,6 +225,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             {
                 const string definition = "infected.character.muelsyse";
                 Start(definition, "tactic"); Answer("hand"); Answer("hand"); Answer("discard");
+                Need(Open() == null, "行动轮分配流形后不应立即发起额外盖放");
+                State.Round = 2; State.ActionRound = 0; State.Phase = GamePhase.CharacterCover;
+                string primary = State.ItemZones.Items.First(i => i.ZoneId == Zone("hand", 1).ZoneId && i.TypeId == "core.basic_character_card").ItemId;
+                Run(EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); Answer(primary);
+                Need(Open()?.PromptKey == "core:interaction.muelsyse.cover", "角色盖放阶段未出现额外盖放");
                 string selected = Open().CandidateIds.First(); Answer(selected);
                 var cover = State.CharacterCoverSlots.Single(s => s.Reusable && s.SourceEffectId == "character-card:" + Card(definition).ItemId);
                 Need(cover.CardInstanceId == selected && Item(selected).ZoneId == Zone("covered", 1).ZoneId, "未实际盖放流形");

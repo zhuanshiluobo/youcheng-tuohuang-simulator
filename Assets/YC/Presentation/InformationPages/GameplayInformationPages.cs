@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using YC.Domain.Maps;
 using YC.Domain.State;
 using YC.Domain.Interactions;
+using YC.Domain.Scoring;
 
 namespace YC.Presentation
 {
@@ -19,6 +20,7 @@ namespace YC.Presentation
         private Func<GameState> state;
         private Func<int> viewer;
         private Func<GameStateView> visibleView;
+        private Func<RegionControlPreview> regionPreview;
         private IMapQueryService map;
         private GameplayDialogRegistry registry;
         private RegionInformationPageView region;
@@ -48,6 +50,8 @@ namespace YC.Presentation
         private int openedViewer;
         private string openedGameId, regionGameId;
         private int regionViewer;
+        private bool regionAwaitingPreview;
+        private float nextRegionPreviewRefresh;
         public RegionInformationPageView RegionPage => region;
         public GameBoxPageView GameBoxPage => box;
         public Button RegionButton => regionButton;
@@ -59,9 +63,9 @@ namespace YC.Presentation
                 regionPrefab.TryValidateConfiguration(out reason) && gameBoxPrefab.TryValidateConfiguration(out reason);
         }
         public void Configure(Func<GameState> current, Func<int> viewerId, IMapQueryService query, GameplayDialogRegistry dialogs,
-            Func<GameStateView> visible = null)
+            Func<GameStateView> visible = null, Func<RegionControlPreview> preview = null)
         {
-            state=current;viewer=viewerId;map=query;registry=dialogs;visibleView=visible;
+            state=current;viewer=viewerId;map=query;registry=dialogs;visibleView=visible;regionPreview=preview;
             regionButton.onClick.AddListener(OpenRegion); gameBoxButton.onClick.AddListener(OpenGameBox);
         }
         public void OpenRegion()
@@ -69,7 +73,7 @@ namespace YC.Presentation
             if(state?.Invoke()==null)return;
             if(region==null){region=Instantiate(regionPrefab, PageHost, false);region.SetClose(CloseRegion);}
             regionGameId=state().GameId;regionViewer=viewer();
-            region.Render(state(),map); Present(region.gameObject);
+            RenderRegion(); Present(region.gameObject);
         }
         public void OpenGameBox()
         {
@@ -85,7 +89,7 @@ namespace YC.Presentation
             if(region!=null && region.gameObject.activeSelf)
             {
                 if(regionGameId!=state().GameId || regionViewer!=viewer())InvalidateRegion();
-                else region.Render(state(),map);
+                else RenderRegion();
             }
             if(box==null)return;
             if(openedViewer!=viewer() || openedGameId!=state().GameId)
@@ -104,6 +108,26 @@ namespace YC.Presentation
                     else InvalidateGameBox();
                 }
             }
+        }
+        private void RenderRegion()
+        {
+            var current = state();
+            if (regionPreview == null) { regionAwaitingPreview = false; region.Render(current, map); return; }
+            var preview = regionPreview();
+            if (preview != null)
+            {
+                try { region.Render(current, map, preview, false); regionAwaitingPreview = false; return; }
+                catch (ArgumentException) { /* 快照已过期或不完整，等待下一次合法预览。 */ }
+                catch (OverflowException) { /* 数值异常时不把旧数字当成最新结果。 */ }
+            }
+            regionAwaitingPreview = true;
+            region.Render(current, map, null, true);
+        }
+        private void Update()
+        {
+            if (!regionAwaitingPreview || region == null || !region.gameObject.activeInHierarchy || Time.unscaledTime < nextRegionPreviewRefresh) return;
+            nextRegionPreviewRefresh = Time.unscaledTime + 1f;
+            if (state?.Invoke() != null) RenderRegion();
         }
         public void CloseRegion(){if(region!=null)CloseInformation(region.gameObject);}
         private void InvalidateRegion()
@@ -164,6 +188,13 @@ namespace YC.Presentation
             var panel=browser.PreparePage(PageHost,"Game Box Card Picker","Game Box Card List",
                 profile.SelectionPanelSize,profile.CharacterPanelPosition,true,false,true,cardPicker:true);
             EffectDialogShell.AddCountedHeading(panel,box.ListTitleFormat(kind),ids.Count,string.Empty);
+            if(kind==GameBoxCardKind.EnterpriseCooperation)
+            {
+                browser.AddEnterpriseBoardArtwork(panel,box.EnterpriseBoardItemPrefab,ids,images,
+                    box.InspectHintFor(kind),Current,ReturnToBox);
+                browser.RestoreScroll(position);
+                return;
+            }
             browser.AddSelection(panel,new EffectDialogSelectionSpec
             {
                 ReadOnly=true,IsEffectPage=false,IsCardSelection=true,CloseOnBackgroundClick=true,CardPickerHint=box.InspectHintFor(kind),

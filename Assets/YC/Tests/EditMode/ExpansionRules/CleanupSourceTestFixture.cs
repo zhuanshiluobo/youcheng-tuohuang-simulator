@@ -56,7 +56,7 @@ end
         internal ZoneInstanceState Storage => State.ItemZones.Zones.Single(z => z.ParentId == CardId && z.LocalZoneId == "markers");
 
         internal CleanupSourceTestFixture(IsolatedTestArtifacts artifacts, bool legacyResource = false, int initialMarkers = 6, bool mandatory = false, string bodyOverride = null, bool replenish = false, int playerCount = 3, bool storageResponse = false,
-            int markerSupply = 6, int additionalCarriers = 0, bool mixedMarkers = false, bool concurrent = false, bool inMemoryInput = false)
+            int markerSupply = 6, int additionalCarriers = 0, bool mixedMarkers = false, bool concurrent = false, bool inMemoryInput = false, bool lateGrant = false, bool lateRepeat = false)
         {
             Artifacts = artifacts;
             string installed = Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
@@ -66,6 +66,7 @@ end
             award["cardZones"] = t["cardZones"].DeepClone();
             var source = (JObject)award["abilitySources"][0]; source["repeatPolicy"] = legacyResource ? "once" : "unbounded";
             source["allowedOperations"] = new JArray("carrier.transfer.original_supply:" + Definition + ":markers:core.player_marker");
+            if (lateGrant) ((JArray)source["allowedOperations"]).Add("reward.grant:infected.award.score:core.award_card:1:self:core.zone.player_rewards");
             if (mixedMarkers)
             {
                 // 私有通用混合载体声明；不扩大正式T09卡面的接纳类型。
@@ -87,14 +88,24 @@ end" : @"return function(ctx)
  {id='resource',effects={Effect.GainResource({player=ctx.playerId,resourceType='pure_originium',amount=1})}}
  }})} }) }
 end"); // 普通条件使用当前默认版本；库存补充走真实MoveItem v3，不再声明固定交付字段。
+            if (lateGrant) body = @"return function(ctx)
+ return {Effect.GrantReward({apiVersion=1,player=ctx.playerId,definitionId='infected.award.score',
+ typeId='core.award_card',count=1,recipientPlayer=ctx.playerId,destination='core.zone.player_rewards',operationId='late-cleanup'})}
+end";
             body = WithTokenTransfers(body);
             var replacements = new Dictionary<string, string> {
                 ["award/" + Definition + ".json"] = award.ToString(),
                 ["lua/awards/" + Ability + ".lua"] = body, ["lua/settlements/" + Ability + ".lua"] = availability };
             const string requiredDefinition = "infected.award.score";
-            if (mandatory || replenish)
+            if (mandatory || replenish || lateGrant)
             {
                 var required = JObject.Parse(File.ReadAllText(Path.Combine(installed, "award/" + requiredDefinition + ".json")));
+                if (lateGrant)
+                {
+                    required["data"]["acquisitionPolicy"] = "content_granted";
+                    required["data"]["lifecycle"] = "persistent";
+                    required["data"]["randomAwardPool"] = false;
+                }
                 string requiredAbility = requiredDefinition + ".cleanup";
                 // 私有合成能力只改业务标识；保留原已登记的显示引用，不生成不存在的core文案键。
                 var ability = (JObject)award["abilities"][0].DeepClone();
@@ -106,12 +117,13 @@ end"); // 普通条件使用当前默认版本；库存补充走真实MoveItem v
                 var requiredSource = (JObject)source.DeepClone();
                 requiredSource["abilityId"] = requiredAbility; requiredSource["handlerRef"] = "content." + requiredAbility;
                 requiredSource["presentationRef"] = requiredAbility;
-                requiredSource["repeatPolicy"] = "once"; requiredSource["allowedOperations"] = replenish ?
+                requiredSource["repeatPolicy"] = lateGrant && lateRepeat ? "unbounded" : "once"; requiredSource["allowedOperations"] = replenish ?
                     new JArray("carrier.load:" + Definition + ":markers:core.player_marker") : new JArray();
                 required["abilities"] = new JArray(ability); required["abilitySources"] = new JArray(requiredSource);
                 replacements["award/" + requiredDefinition + ".json"] = required.ToString();
                 // 独立必选请求或真实补充正文，均经Lua；不存在测试专属C#卡面回调。
-                replacements["lua/awards/" + requiredDefinition + ".cleanup.lua"] = mandatory ?
+                replacements["lua/awards/" + requiredDefinition + ".cleanup.lua"] = lateGrant ?
+                    "return function(ctx) return {Effect.GainResource({player=ctx.playerId,resourceType='gold_voucher',amount=3})} end" : mandatory ?
                     "return function(ctx) return {Effect.Choice({player=ctx.playerId,options={'required'},minSelections=1,maxSelections=1})} end" :
                     "return function(ctx) local cards=Global.Content.FindInstances({definitionId='" + Definition + "',controller=ctx.playerId}) " +
                     "if #cards~=1 then error('replenish_fixture_carrier_missing:'..#cards) end " +
@@ -137,7 +149,8 @@ end"); // 普通条件使用当前默认版本；库存补充走真实MoveItem v
                 ((JArray)award["abilitySources"]).Add(JObject.FromObject(new AbilitySourceDeclaration {
                     AbilityId = storageAbility, Kind = "event", HandlerRef = storageHandler, DeclarationVersion = "1.0.0", AuthorizationPolicy = "controller",
                     EffectiveZones = new List<string> { "core.zone.player_rewards" }, ObservedEvents = new List<string> { "InfluenceRemoved" }, PresentationRef = Definition,
-                    AllowedOperations = new List<string> { "response.destination", "response.self", "carrier.store:" + Definition + ":markers:core.player_marker" } }));
+                    ResponseKinds = new List<string> { "response.destination", "response.self" },
+                    AllowedOperations = new List<string> { "carrier.store:" + Definition + ":markers:core.player_marker" } }));
                 award["abilityHandlers"] = new JArray(new JObject { ["handlerId"] = storageHandler, ["script"] = "lua/awards/qy008.storage.lua", ["version"] = "1.0.0", ["completionHandlerId"] = "" });
                 replacements["award/" + Definition + ".json"] = award.ToString();
                 replacements["lua/awards/qy008.storage.lua"] = @"return function(ctx)
@@ -179,10 +192,10 @@ return {Effect.Choice({player=ctx.playerId,interactionType='effect.choice.execut
                 Players = order.Select(id => new PlayerState { PlayerId = id, Name = "隔离玩家" + id, Resources = new ResourceSet { Originium = 4 } }).ToList() };
             var recipe = new List<ItemRecipeEntry> {
                 new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = Math.Max(markerSupply, initialMarkers), PerPlayer = true, InitialZoneRole = "supply" },
-                new ItemRecipeEntry { EntryId = "source", DefinitionId = Definition, TypeId = "core.award_card", Quantity = (legacyResource ? 2 : 1) + additionalCarriers, PerPlayer = true, InitialZoneRole = "rewards" } };
+                new ItemRecipeEntry { EntryId = "source", DefinitionId = Definition, TypeId = "core.award_card", Quantity = (legacyResource && !lateGrant ? 2 : 1) + additionalCarriers, PerPlayer = true, InitialZoneRole = "rewards" } };
             if (mixedMarkers) recipe.Add(new ItemRecipeEntry { EntryId = "gang", DefinitionId = "entrepreneur.component.gang_marker", TypeId = "entrepreneur.gang_marker", Quantity = 4, PerPlayer = true, InitialZoneRole = "supply" });
             foreach (var location in map.Locations.Where(l => !l.IsRedZone)) recipe.Add(new ItemRecipeEntry { EntryId = "resource_" + location.LocationId, DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
-            if (mandatory || replenish) recipe.Add(new ItemRecipeEntry { EntryId = "required", DefinitionId = requiredDefinition, TypeId = "core.award_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "rewards" });
+            if ((mandatory || replenish) && !lateGrant) recipe.Add(new ItemRecipeEntry { EntryId = "required", DefinitionId = requiredDefinition, TypeId = "core.award_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "rewards" });
             State = new ItemZoneStateFactory().CreateForSetup(initial, map, recipe,
                 new[] { new ItemCardZoneDeclaration { DefinitionId = Definition, CardZones = pack.Definitions.Single(d => d.DefinitionId == Definition).CardZones } });
             foreach (var location in map.Locations.Where(l => !l.IsRedZone)) State.Map.OpenLocationIds.Add(location.LocationId);

@@ -34,9 +34,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (observed != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(observed));
             artifacts.Finish();
         }
-        private static GameState State(int facilities = 9, string entryDefinition = null, int characters = 2, bool publicShape = false)
+        private static GameState State(int facilities = 9, string entryDefinition = null, int characters = 2, bool publicShape = false, bool validMapIdentity = false)
         {
-            var map = new GameMapDefinition { MapId = "test.transfer_map", MinPlayers = 2, MaxPlayers = 4,
+            var map = new GameMapDefinition { MapId = validMapIdentity ? StaticMapDefinitions.ThreePlayerMapId : "test.transfer_map", MinPlayers = 2, MaxPlayers = 4,
                 Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } },
                 Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true, InfluenceSlotCount = 2 } } };
             var source = new GameState { GameId = "game.transfer", MapId = map.MapId, ContentPackHash = "content.transfer", RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "content.transfer" },

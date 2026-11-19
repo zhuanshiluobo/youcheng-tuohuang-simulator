@@ -24,10 +24,14 @@ namespace YC.Domain.Items
         private static bool Layer(GameState state,string id)=>state.ItemZones.Zones.Any(z=>z.ZoneId==id&&(z.TemplateId==FacilityLayerQuery.CellTemplate||z.TemplateId==FacilityLayerQuery.CoveredTemplate));
         private static bool HasLayers(GameState state,NormalizedValue args)=>new[]{"transfer","transfer_batch"}.Contains(Text(args,"operation"))&&ItemMovementV4.Legs(args).Any(l=>Layer(state,Text(Value(Value(l,"selector"),"expectedSource"),"zoneId"))||Layer(state,Text(Value(l,"destination"),"zoneId")));
         private static bool MakeProof(GameState state,EffectNodeRuntimeState node,out FacilityPlacementProofV1 proof)
+            => MakeProofCore(state,node,false,out proof);
+        private static bool MakeProofCore(GameState state,EffectNodeRuntimeState node,bool allowCompletedLegacy,out FacilityPlacementProofV1 proof)
         {
             proof=null;var build=state.EffectRuntime.EffectNodes.SingleOrDefault(n=>n.EffectId==node.ParentEffectId);
+            // 2.2 建设已结清的共同转移收据仍按同一组冻结事实校验；旧在途建设不能被新版执行器接管。
+            bool completedLegacy=allowCompletedLegacy&&FacilityBuildContract.IsCompletedLegacy(build)&&node.Status==EffectNodeStatus.Completed;
             if(build?.EffectTypeId!=FacilityEntryEffectTypeIds.Build||!build.ChildEffectIds.Contains(node.EffectId)||build.PlayerId!=node.PlayerId||!Flag(build.ContinuationData,"paid")||
-                build.DefinitionVersion!=FacilityBuildEffectExecutor.DefinitionVersion)return false;
+                build.DefinitionVersion!=FacilityBuildEffectExecutor.DefinitionVersion&&!completedLegacy)return false;
             var facts=FacilityBuildJournal.Read(build);var slot=FacilityBuildJournal.SelectedSlot(build);
             if(facts==null||facts.BuildId!=build.EffectId||facts.BuilderId!=build.PlayerId||slot==null||slot.PlayerId!=build.PlayerId||slot.NewItemId!=facts.ItemId||
                 !state.ItemZones.Zones.Any(z=>z.ZoneId==slot.CellZoneId&&z.TemplateId==FacilityLayerQuery.CellTemplate&&z.OwnerPlayerId==build.PlayerId))return false;
@@ -70,7 +74,7 @@ namespace YC.Domain.Items
         public static bool ValidateHistory(GameState state,EffectNodeRuntimeState node,CommonItemMovementPlanV4 plan)
         {
             if(!HasLayers(state,node.NormalizedArguments))return plan.FacilityPlacement==null;
-            return plan.FacilityPlacement!=null&&MakeProof(state,node,out var expected)&&ItemTransferService.MovementV4Digest(expected)==ItemTransferService.MovementV4Digest(plan.FacilityPlacement);
+            return plan.FacilityPlacement!=null&&MakeProofCore(state,node,true,out var expected)&&ItemTransferService.MovementV4Digest(expected)==ItemTransferService.MovementV4Digest(plan.FacilityPlacement);
         }
         public static bool IsCommitted(GameState state,EffectNodeRuntimeState node,EffectNodeRuntimeState build)=>node?.ParentEffectId==build.EffectId&&node.Status==EffectNodeStatus.Completed&&
             node.CommonItemMovementV4?.FacilityPlacement?.BuildEffectId==build.EffectId&&node.CommonItemMovementV4.Receipt?.Result.MovedItemIds.Contains(FacilityBuildJournal.Read(build).ItemId)==true&&ItemMovementV4.TryValidateState(state,node,out _);

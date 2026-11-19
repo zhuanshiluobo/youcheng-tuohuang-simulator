@@ -76,11 +76,13 @@ namespace YC.Presentation.Workflows
         public EnterpriseBoardProjection FixedCompany;
         public EnterpriseBoardProjection[] Boards = Array.Empty<EnterpriseBoardProjection>();
         public EnterpriseSelectionTarget[] Targets = Array.Empty<EnterpriseSelectionTarget>();
+        public string[] RequiredTargetIds = Array.Empty<string>();
         internal EnterpriseSelectionProjection Copy()
         {
             var copy = (EnterpriseSelectionProjection)MemberwiseClone();
             copy.Boards = Boards.Select(b => b.Copy()).ToArray();
             copy.Targets = Targets.Select(t => t.Copy()).ToArray();
+            copy.RequiredTargetIds = (string[])RequiredTargetIds.Clone();
             copy.FixedCompany = FixedCompany?.Copy();
             return copy;
         }
@@ -121,7 +123,7 @@ namespace YC.Presentation.Workflows
             !string.IsNullOrEmpty(projection.RequestId) && !IsPending && !projection.ReadOnly &&
             projection.Mode != EnterpriseSelectionMode.BrowseDepartment &&
             selectedIds.Count >= projection.MinSelections && selectedIds.Count <= projection.MaxSelections &&
-            selectedIds.All(id => IsAvailable(Find(id)));
+            selectedIds.All(id => IsAvailable(Find(id))) && projection.RequiredTargetIds.All(selectedIds.Contains);
 
         public bool Refresh(EnterpriseSelectionProjection next)
         {
@@ -138,7 +140,19 @@ namespace YC.Presentation.Workflows
             projection = next.Copy();
             selectedIds.RemoveAll(id => !IsAvailable(Find(id)));
             if (selectedIds.Count > projection.MaxSelections) selectedIds.RemoveRange(projection.MaxSelections, selectedIds.Count - projection.MaxSelections);
-            if (!IsAvailable(Selected)) SelectedId = null;
+            foreach (string required in projection.RequiredTargetIds)
+            {
+                if (selectedIds.Contains(required)) continue;
+                while (selectedIds.Count >= projection.MaxSelections)
+                {
+                    int removable = selectedIds.FindLastIndex(id => !projection.RequiredTargetIds.Contains(id));
+                    if (removable < 0) break;
+                    selectedIds.RemoveAt(removable);
+                }
+                if (selectedIds.Count < projection.MaxSelections) selectedIds.Add(required);
+            }
+            if (!selectedIds.Contains(SelectedId) || !IsAvailable(Selected)) SelectedId = null;
+            if (SelectedId == null && selectedIds.Count > 0) SelectedId = selectedIds.Last();
             if (Find(InspectedId) == null) InspectedId = null;
             if ((projection.Mode == EnterpriseSelectionMode.InitialDepartment || projection.Mode == EnterpriseSelectionMode.SwitchDepartment ||
                  projection.Mode == EnterpriseSelectionMode.BrowseDepartment) && Inspected?.DepartmentId == projection.CurrentDepartmentId)
@@ -152,6 +166,7 @@ namespace YC.Presentation.Workflows
             left.CandidateSetId == right.CandidateSetId && left.CandidateSetVersion == right.CandidateSetVersion &&
             left.RequestContract == right.RequestContract && left.MinSelections == right.MinSelections &&
             left.MaxSelections == right.MaxSelections && left.CanCancel == right.CanCancel && left.ReadOnly == right.ReadOnly &&
+            left.RequiredTargetIds.SequenceEqual(right.RequiredTargetIds) &&
             left.CurrentDepartmentId == right.CurrentDepartmentId && left.Targets.Length == right.Targets.Length &&
             left.Targets.Zip(right.Targets, (a,b) => a.Id == b.Id && a.Available == b.Available && a.Cost == b.Cost).All(value => value);
 
@@ -167,11 +182,11 @@ namespace YC.Presentation.Workflows
             if (target == null) return false;
             InspectedId = id;
             if (projection.ReadOnly) return false;
-            if (!IsAvailable(target)) { selectedIds.Clear(); SelectedId = null; return false; }
-            if (selectedIds.Contains(id)) selectedIds.Remove(id);
+            if (!IsAvailable(target)) { selectedIds.RemoveAll(value => !projection.RequiredTargetIds.Contains(value)); SelectedId = selectedIds.LastOrDefault(); return false; }
+            if (selectedIds.Contains(id)) { if (!projection.RequiredTargetIds.Contains(id)) selectedIds.Remove(id); }
             else
             {
-                if (projection.MaxSelections == 1) selectedIds.Clear();
+                if (projection.MaxSelections == 1 && projection.RequiredTargetIds.Length == 0) selectedIds.Clear();
                 if (selectedIds.Count < projection.MaxSelections) selectedIds.Add(id);
             }
             SelectedId = selectedIds.LastOrDefault();
@@ -222,7 +237,7 @@ namespace YC.Presentation.Workflows
 
         private static void Validate(EnterpriseSelectionProjection value)
         {
-            if (value.Boards == null || value.Targets == null) throw new ArgumentException("候选投影不能为空。");
+            if (value.Boards == null || value.Targets == null || value.RequiredTargetIds == null) throw new ArgumentException("候选投影不能为空。");
             if (!Enum.IsDefined(typeof(EnterpriseSelectionMode), value.Mode)) throw new ArgumentException("未知选择模式。");
             if (value.Mode == EnterpriseSelectionMode.BrowseDepartment &&
                 (!value.ReadOnly || value.SubmissionAvailable || value.Targets.Any(target => target == null || target.Available)))
@@ -245,6 +260,9 @@ namespace YC.Presentation.Workflows
                     !effect && !company && string.IsNullOrEmpty(target.DepartmentId))
                     throw new ArgumentException("选择目标与当前模式不匹配。");
             }
+            if (value.RequiredTargetIds.Length > value.MaxSelections || value.RequiredTargetIds.Distinct(StringComparer.Ordinal).Count() != value.RequiredTargetIds.Length ||
+                value.RequiredTargetIds.Any(id => !value.Targets.Any(target => target.Id == id && target.Available)))
+                throw new ArgumentException("必选目标与候选或选择数量不一致。");
         }
     }
 }

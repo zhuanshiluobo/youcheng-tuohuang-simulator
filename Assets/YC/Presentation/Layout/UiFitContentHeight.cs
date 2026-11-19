@@ -9,6 +9,7 @@ namespace YC.Presentation
     {
         [SerializeField, Min(0f)] private float referenceWidth;
         [SerializeField] private bool centerVertically;
+        [SerializeField] private bool fitHeight = true;
         private Vector2 lastParentSize;
         private RectTransform Rect => (RectTransform)transform;
         private RectTransform Parent => transform.parent as RectTransform;
@@ -40,12 +41,13 @@ namespace YC.Presentation
         {
             if (Parent == null) return;
             var height = Mathf.Max(0f, LayoutUtility.GetPreferredHeight(Rect));
-            var scale = height > 0f ? Mathf.Min(1f, Mathf.Max(0f, Parent.rect.height) / height) : 1f;
+            var scale = fitHeight && height > 0f ? Mathf.Min(1f, Mathf.Max(0f, Parent.rect.height) / height) : 1f;
             if (referenceWidth > 0f) scale = Mathf.Min(scale, Mathf.Max(0f, Parent.rect.width) / referenceWidth);
             Rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             Rect.localScale = new Vector3(scale, scale, 1f);
             Rect.anchoredPosition = new Vector2((Parent.rect.width - Rect.rect.width * scale) * .5f,
-                centerVertically ? -(Parent.rect.height - height * scale) * .5f : 0f);
+                fitHeight ? (centerVertically ? -(Parent.rect.height - height * scale) * .5f : 0f) :
+                    Mathf.Clamp(Rect.anchoredPosition.y, 0f, Mathf.Max(0f, height * scale - Parent.rect.height)));
         }
     }
 }

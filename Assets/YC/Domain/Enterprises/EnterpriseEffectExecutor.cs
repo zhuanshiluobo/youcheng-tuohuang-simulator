@@ -24,7 +24,8 @@ namespace YC.Domain.Enterprises
                 if (!registry.TryGet(typeId, out _)) registry.Register(new EffectRegistration(typeId,
                     typeId == LuaDomainEffectTypeIds.SwitchDepartment ? (Func<EffectExecutionContext, EffectStepResult>)SwitchDepartment : typeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? Upgrade : ChangeLevel, EffectExecutorKind.IntrinsicFlow, typeId == LuaDomainEffectTypeIds.UpgradeEnterprise ? UpgradeDefinitionVersion : "v2.marker_state"));
             if (!registry.TryGet(UpgradeAllPlayersTypeId, out _))
-                registry.Register(new EffectRegistration(UpgradeAllPlayersTypeId, UpgradeAllPlayers, EffectExecutorKind.IntrinsicFlow, "v2.marker_state"));
+                // 该流程只冻结目标并顺序派生子节点；奖励和事件回调仍由内核单独隔离。
+                registry.RegisterWithoutStateRetention(UpgradeAllPlayersTypeId, UpgradeAllPlayers, EffectExecutorKind.IntrinsicFlow, "v2.marker_state");
             if (!registry.TryGet(IncompleteTypeId, out _)) registry.Register(IncompleteTypeId, context => SkipIncomplete(context, new[] { "abilityEffects" }));
             foreach (string eventType in new[] { LevelChangedEvent, DepartmentChangedEvent, "EnterpriseSpecialEffectActivated" })
             {
@@ -314,10 +315,14 @@ namespace YC.Domain.Enterprises
             var definitions = Value(node.ContinuationData, "upgradeCandidateDefinitionIds").Items.Select(value => value.StringValue).ToList();
             var candidates = query.GetEnterpriseItemIds(context.State).Where(id => ids.Contains(id) &&
                 context.State.ItemZones.Items.Single(item => item.ItemId == id).DefinitionId == definitions[ids.IndexOf(id)]).ToList();
-            // 集体升级选择的是企业；单人升级必须确有该玩家的合作标记。
-            // 回答前移出的候选只从原冻结范围收窄，不转而扩展到其他企业。
-            if (node.EffectTypeId != UpgradeAllPlayersTypeId)
-                candidates = candidates.Where(id => query.GetLevel(context.State, UpgradePlayer(node), id) != EnterpriseStateQuery.MissingCooperationLevel).ToList();
+            // 集体升级只要有任一玩家能升级就可选；单人升级按实际目标玩家判断。
+            // 回答前变化的候选只从原冻结范围收窄，不转而扩展到其他企业。
+            if (node.EffectTypeId == UpgradeAllPlayersTypeId)
+            {
+                var players = PlayerOrder(context.State, node.PlayerId);
+                candidates = candidates.Where(id => players.Any(player => query.CanUpgrade(context.State, player, id))).ToList();
+            }
+            else candidates = candidates.Where(id => query.CanUpgrade(context.State, UpgradePlayer(node), id)).ToList();
             string selected = node.FlowStage == "choose_enterprise" ? Answer(context) : string.Empty;
             if (candidates.Count == 0)
             {

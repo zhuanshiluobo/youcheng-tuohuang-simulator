@@ -23,6 +23,88 @@ namespace YC.Tests.EditMode
         private static object Invoke(object value, string method, params object[] args) =>
             value.GetType().GetMethods(Members).Single(m => m.Name == method && m.GetParameters().Length == args.Length).Invoke(value, args);
 
+        [TestCase(1, false), TestCase(1, true), TestCase(2, false), TestCase(2, true)]
+        [Category("需要Unity")]
+        public void PendingBeginUseThenSameRequestCanOpenAndAnswerOriginalCard(int actionRound, bool orderSelection)
+        {
+            // 隔离组件时序夹具：手动控制命令等待，不视为正常联机对局验收。
+            var root = new GameObject("角色用牌回执时序夹具", typeof(RectTransform), typeof(Canvas));
+            var events = new GameObject("角色用牌回执时序指针", typeof(EventSystem));
+            var hudPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            var viewerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/CardViewer.prefab");
+            var viewer = UnityEngine.Object.Instantiate(viewerPrefab, root.transform).GetComponent(Runtime("CardViewer"));
+            viewer.GetType().GetMethod("Awake", Members).Invoke(viewer, null);
+            var texture = new Texture2D(2, 3); var sprite = Sprite.Create(texture, new Rect(0, 0, 2, 3), Vector2.one * .5f);
+            try
+            {
+                var hudView = hudPrefab.GetComponent(Runtime("GameplayInteractionHudView"));
+                var registry = hudView.GetType().GetProperty("DialogRegistry").GetValue(hudView);
+                var dialog = Activator.CreateInstance(Runtime("CharacterCardEffectChoiceDialog"), Members, null,
+                    new[] { registry, root.transform }, null);
+                var state = new GameState { GameId = "character-use-pending-receipt", Round = 1, ActionRound = actionRound,
+                    Phase = actionRound == 1 ? GamePhase.ActionRound1 : GamePhase.ActionRound2,
+                    EffectRuntime = new EffectRuntimeState { StateRevision = 7 } };
+                state.Players.Add(new PlayerState { PlayerId = 1 });
+                var request = new InteractionRequest { RequestId = "same-request", InteractionTypeId = orderSelection
+                        ? CharacterLifecycleService.OrderInteractionTypeId : CharacterLifecycleService.ModeInteractionTypeId,
+                    OwnerEffectId = "same-use-owner", AnsweringPlayerId = 1, StateRevision = 7, Status = "open", Visibility = "owner",
+                    CandidateSetId = "same-candidates", CandidateSetVersion = 1, MinSelections = 1, MaxSelections = 1,
+                    AnswerSchema = orderSelection ? "candidate_ids" : "candidate_id" };
+                request.CandidateIds.AddRange(orderSelection ? new[] { "strategy-first", "tactic-first" } : new[] { "strategy", "tactic" });
+                state.EffectRuntime.InteractionRequests.Add(request);
+                var sent = new List<GameCommand>();
+                var coordinator = Activator.CreateInstance(Runtime("CharacterAbilityInteractionUiCoordinator"), Members, null,
+                    new object[] { (Func<GameState>)(() => state), (Func<int>)(() => 1), dialog,
+                        (Action<IReadOnlyList<WorkflowHighlight>>)(_ => {}), (Action)(() => {}),
+                        (Action<GameCommand>)(command => sent.Add(command)), (Action<string>)(_ => {}) }, null);
+                coordinator.GetType().GetProperty("GetVisibleRequests").SetValue(coordinator,
+                    (Func<IReadOnlyList<InteractionRequest>>)(() => state.EffectRuntime.InteractionRequests));
+                coordinator.GetType().GetProperty("CanSubmit").SetValue(coordinator, (Func<bool>)(() => true));
+                bool waitingForUseCommand = true;
+                int attempts = 0;
+                Func<InteractionRequestProjection, bool> render = projection =>
+                {
+                    attempts++;
+                    if (waitingForUseCommand) return false;
+                    var bridge = new ChoiceBridge { Request = projection, Coordinator = coordinator };
+                    var handlerType = typeof(Action<>).MakeGenericType(Runtime("CardViewerEffect"));
+                    var handler = Delegate.CreateDelegate(handlerType, bridge,
+                        typeof(ChoiceBridge).GetMethod("Choose").MakeGenericMethod(Runtime("CardViewerEffect")));
+                    var open = viewer.GetType().GetMethods().Single(m => m.Name == "OpenCharacter" && m.GetParameters()[5].ParameterType == typeof(string));
+                    open.Invoke(viewer, new object[] { "same-card", sprite, true, true, "", "",
+                        (Func<bool>)(() => request.StateRevision == projection.StateRevision), handler, (Action)(() => {}) });
+                    return true;
+                };
+                coordinator.GetType().GetProperty("RenderUseSelection").SetValue(coordinator, render);
+                var projection = InteractionRequestProjector.ProjectForPlayer(request, 1);
+                Invoke(coordinator, "Render", projection);
+                Assert.That(attempts, Is.EqualTo(1));
+                Assert.That((string)viewer.GetType().GetProperty("CardId").GetValue(viewer), Is.Null.Or.Empty);
+                waitingForUseCommand = false;
+                Invoke(coordinator, "Render", projection);
+                Assert.That(attempts, Is.EqualTo(2), "命令回执解除等待后，同一请求必须再次尝试打开原卡面");
+                Assert.That((string)viewer.GetType().GetProperty("CardId").GetValue(viewer), Is.EqualTo("same-card"));
+                Invoke(coordinator, "Render", projection);
+                Assert.That(attempts, Is.EqualTo(2), "已接管的相同请求不能重复打开页面");
+                var button = (Button)viewer.GetType().GetProperty("StrategyButton").GetValue(viewer);
+                var pointer = new PointerEventData(events.GetComponent<EventSystem>()) { button = PointerEventData.InputButton.Left };
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+                Assert.That(sent, Has.Count.EqualTo(1));
+                Assert.That(sent[0].Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
+                Assert.That(sent[0].OptionIds, Is.EqualTo(new[] { orderSelection ? "strategy-first" : "strategy" }));
+                Assert.That(sent[0].Parameters["interactionId"], Is.EqualTo(projection.InteractionId));
+                Assert.That(sent[0].Parameters["expectedRevision"], Is.EqualTo("7"));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root); UnityEngine.Object.DestroyImmediate(events);
+                UnityEngine.Object.DestroyImmediate(sprite); UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
         [TestCase("strategy", "strategy-first"), TestCase("tactic", "tactic-first")]
         [Category("需要Unity")]
         public void ExistingCardButtonSubmitsTheExactOrderCandidateOnceWithoutAnotherSelectionPage(string mode, string expected)
@@ -56,7 +138,7 @@ namespace YC.Tests.EditMode
                 coordinator.GetType().GetProperty("GetVisibleRequests").SetValue(coordinator,
                     (Func<IReadOnlyList<InteractionRequest>>)(() => state.EffectRuntime.InteractionRequests));
                 coordinator.GetType().GetProperty("CanSubmit").SetValue(coordinator, (Func<bool>)(() => true));
-                Action<InteractionRequestProjection> render = projection =>
+                Func<InteractionRequestProjection, bool> render = projection =>
                 {
                     var bridge = new ChoiceBridge { Request = projection, Coordinator = coordinator };
                     var handlerType = typeof(Action<>).MakeGenericType(Runtime("CardViewerEffect"));
@@ -65,6 +147,7 @@ namespace YC.Tests.EditMode
                     var open = viewer.GetType().GetMethods().Single(m => m.Name == "OpenCharacter" && m.GetParameters()[5].ParameterType == typeof(string));
                     open.Invoke(viewer, new object[] { "same-card", sprite, true, true, "", "",
                         (Func<bool>)(() => request.StateRevision == projection.StateRevision), handler, (Action)(() => {}) });
+                    return true;
                 };
                 coordinator.GetType().GetProperty("RenderUseSelection").SetValue(coordinator, render);
                 var projection = InteractionRequestProjector.ProjectForPlayer(request, 1);

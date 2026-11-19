@@ -93,7 +93,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void Begin_MobileCityLocationIsSelectedButCannotBeToggled()
+        public void Begin_MobileCityLocationDefaultsSelectedAndCanBeToggled()
         {
             var fixture = CreateFixture();
             fixture.Context.State.Map.ResourceTokens.Add(new ResourceTokenState
@@ -107,8 +107,19 @@ namespace YC.Tests.EditMode
 
             Assert.That(fixture.Presenter.SelectedLocationIds, Does.Contain("A"));
             Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionSelected), Is.True);
-            Assert.That(fixture.Presenter.CanToggleLocation("A"), Is.False);
-            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionCandidate), Is.False);
+            Assert.That(fixture.Presenter.CanToggleLocation("A"), Is.True);
+
+            fixture.Presenter.SelectLocation("A");
+            Assert.That(fixture.Presenter.SelectedLocationIds, Does.Not.Contain("A"));
+            Assert.That(fixture.View.HasHighlight("A", WorkflowHighlightSemantic.CollectionCandidate), Is.True);
+            fixture.Presenter.RefreshFromState();
+            Assert.That(fixture.Presenter.SelectedLocationIds, Does.Not.Contain("A"), "刷新不能重置玩家的选择。");
+
+            fixture.Presenter.SelectLocation("A");
+            Assert.That(fixture.Presenter.SelectedLocationIds, Does.Contain("A"));
+            fixture.Presenter.Cancel();
+            fixture.Presenter.Begin();
+            Assert.That(fixture.Presenter.SelectedLocationIds, Does.Contain("A"), "新草稿恢复默认选择。");
         }
 
         [Test]
@@ -420,6 +431,7 @@ namespace YC.Tests.EditMode
             {
                 Phase = GamePhase.ResourceCollection,
                 Round = 1,
+                MapId = "resource-collection-presenter",
                 StartPlayerId = 1,
                 CurrentPlayerId = 1,
                 Players =

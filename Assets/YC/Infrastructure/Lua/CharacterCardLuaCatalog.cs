@@ -47,6 +47,17 @@ namespace YC.Infrastructure.Lua
                     script, EffectHandlerRole.Primary, 0, ContentInstanceId, ability.AbilityId, ability.CompletionHandlerId));
                 foreach (string eventType in ability.ObservedEvents)
                 {
+                    if (eventType == OperatorDispatchFlow.StartingEvent)
+                    {
+                        var patch = new LuaHandlerDefinition(ability.SubscriptionId + ".dispatch-count", eventType, "*", script,
+                            abilityId: ability.AbilityId, responseKind: "operatorDispatchPatches");
+                        registry.RegisterOperatorDispatchCountPolicy(patch.SubscriptionId, LuaEffectEventDispatcher.CandidateSourceIdentity(script),
+                            (context, payload) => context.State.ItemZones.Items.Where(item => item.ControllerSubject.Kind == YC.Domain.Items.ItemSubjectKind.Player &&
+                                item.ControllerSubject.PlayerId == context.Node.PlayerId && CharacterLifecycleService.IsSubscriptionActive(context.State, item.ItemId, ability.AbilityId))
+                            .OrderBy(item => item.ItemId, StringComparer.Ordinal)
+                            .Select(item => dispatcher.InvokeOperatorDispatchPatch(patch, context, payload, item.ControllerSubject.PlayerId, item.ItemId, item.ItemId)).ToArray());
+                        continue;
+                    }
                     if (eventType == "CandidateSetBuilding")
                     {
                         var candidate = new LuaHandlerDefinition(ability.SubscriptionId + ".candidates", eventType, ability.CandidateKindFilter,

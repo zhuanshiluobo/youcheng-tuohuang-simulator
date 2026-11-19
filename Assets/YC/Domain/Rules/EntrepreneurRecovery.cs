@@ -14,7 +14,12 @@ namespace YC.Domain.Rules
         private static bool Fields(JToken value, Type type) => value is JObject obj && type.GetFields().All(f => obj[f.Name] != null && obj[f.Name].Type != JTokenType.Null);
         public static bool HasRawFields(JToken state)
         {
-            if ((string)state?["RuleConfiguration"]?["RuleModeId"] != "entrepreneur") return state?["EntrepreneurSetup"] == null || state["EntrepreneurSetup"].Type == JTokenType.Null;
+            var configuration = state?["RuleConfiguration"] as JObject;
+            var recipe = state?["SetupRecipe"] as JObject;
+            bool enabled = (string)configuration?["RuleModeId"] == "entrepreneur" ||
+                (configuration?["AdditionalRuleModeIds"] as JArray)?.Values<string>().Contains("entrepreneur") == true ||
+                (recipe?["Mechanisms"] as JArray)?.Values<string>().Contains("entrepreneur_selection.v1") == true;
+            if (!enabled) return state?["EntrepreneurSetup"] == null || state["EntrepreneurSetup"].Type == JTokenType.Null;
             if (state["ContentDefinitions"]?["Entrepreneurs"] is not JArray frozen || !frozen.All(d => Fields(d, typeof(EntrepreneurDefinition)))) return false;
             foreach (var definition in frozen)
             {
@@ -48,23 +53,24 @@ namespace YC.Domain.Rules
             }
             try
             {
-                if (!EntrepreneurFlow.Enabled(state) || setup.ProtocolVersion != 1 || setup.SetupProtocolVersion != 3 || setup.ContentVersion != state.ContentPackHash ||
+                if (!EntrepreneurFlow.Enabled(state) || setup.ProtocolVersion != 1 || setup.SetupProtocolVersion != 4 || setup.ContentVersion != state.ContentPackHash ||
                     !new[] { "preview", "choosing", "complete" }.Contains(setup.Stage) || setup.CurrentIndex < 0 || setup.CurrentIndex > state.Players.Count ||
                     setup.PlayerOrder == null || setup.Players == null || setup.EnterpriseAssignments == null || setup.RemainingEntrepreneurs == null) return false;
                 EntrepreneurContent.ValidateDefinitions(state.ContentDefinitions.Entrepreneurs);
                 if (registry?.ContentDefinitions?.Entrepreneurs?.Count > 0 && !JToken.DeepEquals(JToken.FromObject(state.ContentDefinitions.Entrepreneurs), JToken.FromObject(registry.ContentDefinitions.Entrepreneurs)))
                 { diagnostic = "entrepreneur_selection.v1:frozen_definitions_mismatch"; return false; }
                 var owner = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == setup.OwnerEffectId && n.EffectTypeId == EntrepreneurFlow.SetupTypeId);
-                var parent = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == owner?.ParentEffectId && n.EffectTypeId == ExpansionSetupFlow.PreparationTypeId);
+                var parent = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == owner?.ParentEffectId);
                 if (owner == null || parent == null || !setup.PlayerOrder.SequenceEqual(setup.EnterpriseAssignments.Select(a => a.PlayerId).Reverse()) ||
                     setup.Players.Select(p => p.PlayerId).Distinct().Count() != setup.Players.Count || setup.Players.Select(p => p.DefinitionId).Distinct().Count() != setup.Players.Count ||
                     !setup.Players.Select(p => p.PlayerId).SequenceEqual(setup.PlayerOrder.Take(setup.Players.Count)) || setup.EnterpriseAssignments.Count != setup.PlayerOrder.Count) return false;
-                int draw = state.Players.Count == 2 ? 4 : 2;
-                var original = Value(parent.ContinuationData, "candidateEnterpriseItemIds").Items.Select(v => v.StringValue).ToList();
-                foreach (var assignment in setup.EnterpriseAssignments)
+                if (!EntrepreneurFlow.IsFrameworkSetupOwner(state, owner) ||
+                    !PreparationFrameworkFlow.TryValidateRuntime(state, registry, out _, false) ||
+                    state.PreparationRuntime.Distribution?.Assignments.Count != setup.EnterpriseAssignments.Count) return false;
+                for (int i = 0; i < setup.EnterpriseAssignments.Count; i++)
                 {
-                    int index = setup.EnterpriseAssignments.IndexOf(assignment);
-                    if (index < 0 || !assignment.CandidateItemIds.SequenceEqual(original.Skip(index * draw).Take(draw))) return false;
+                    var assignment = setup.EnterpriseAssignments[i]; var frozen = state.PreparationRuntime.Distribution.Assignments[i];
+                    if (assignment.PlayerId != frozen.PlayerId || !assignment.CandidateItemIds.SequenceEqual(frozen.CandidateItemIds)) return false;
                 }
                 if (setup.EnterpriseAssignments.Select(a => a.PlayerId).Distinct().Count() != setup.PlayerOrder.Count ||
                     !setup.RemainingEntrepreneurs.OrderBy(x => x).SequenceEqual(state.ContentDefinitions.Entrepreneurs.Select(d => d.DefinitionId).Except(setup.Players.Select(p => p.DefinitionId)).OrderBy(x => x))) return false;

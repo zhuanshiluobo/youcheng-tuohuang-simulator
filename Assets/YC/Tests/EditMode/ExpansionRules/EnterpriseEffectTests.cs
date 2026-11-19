@@ -57,7 +57,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static GameState State(int businessLevel = 0, int researchLevel = 0, int opponentBusinessLevel = 0, EnterpriseDefinitions definitions = null, int playerCount = 2)
         {
-            var map = new GameMapDefinition { MapId = "test.enterprise.map", MinPlayers = 2, MaxPlayers = 4 };
+            var map = new GameMapDefinition { MapId = playerCount == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId, MinPlayers = 2, MaxPlayers = 4 };
             var source = new GameState { GameId = "test.enterprise.game", MapId = map.MapId, Round = 1, ActionRound = 1, Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, ContentPackHash = "test.enterprise.content",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = playerCount, ContentPackHash = "test.enterprise.content", EnabledExpansionIds = new List<string> { "core", "enterprise" } },
                 Players = Enumerable.Range(1, playerCount).Select(player => new PlayerState { PlayerId = player, Name = "玩家" + player, Resources = new ResourceSet { OriginiumShard = player == 1 ? 6 : 0 } }).ToList() };
@@ -137,6 +137,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(); RemoveCooperationMarkerForIsolation(state, Business, 1);
             Assert.That(Level(state), Is.EqualTo(EnterpriseStateQuery.MissingCooperationLevel));
             Valid(state);
+        }
+        [Test] public void RecoveryWithNoFrozenRecipeAcceptsNullContentDefinitions()
+        {
+            var state = State(2); var registry = Registry();
+            Assert.That(state.ContentDefinitions, Is.Null);
+            Assert.That(registry.SetupRecipe, Is.Null);
+            var restored = Restore(state, registry);
+            Assert.That(restored.ContentDefinitions, Is.Null);
+            Assert.That(Level(restored), Is.EqualTo(2));
         }
         [Test] public void RewardUnlockAndBlankArrivalsRemainDistinct()
         {
@@ -501,6 +510,37 @@ namespace YC.Tests.EditMode.ExpansionRules
             int eventCount = state.EffectRuntime.RuleEvents.Count; state = Restore(state, registry);
             Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False);
             Assert.That(state.EffectRuntime.RuleEvents.Count, Is.EqualTo(eventCount)); Assert.That(Level(state), Is.EqualTo(5)); Assert.That(Level(state, playerId: 2), Is.EqualTo(5));
+        }
+        [Test]
+        public void AllPlayerUpgradeReusesOnlyClosedParentWorkAndMatchesFullCopyResults()
+        {
+            var seed = State(playerCount: 4); var registry = Registry();
+            // 与真实开局一致；旧夹具留空时存档创建会补全环序，无法直接比较完整状态。
+            seed.LaunchPlayerOrder = new TurnOrderService().GetLaunchPlayerOrder(seed).ToList();
+            var expected = GameStateCloneService.DeepClone(seed); var actual = GameStateCloneService.DeepClone(seed);
+            EffectSpec Target(GameState state) => Spec(EnterpriseEffectExecutor.UpgradeAllPlayersTypeId, 2,
+                "enterpriseItemId", NormalizedValue.CreateString(ItemId(state, Business)), "levels", NormalizedValue.CreateInteger(1));
+            using (EffectTreeExecutor.UseFullExecutionCopiesForDiagnostics()) Run(expected, Target(expected), registry);
+            int recycled = 0;
+            using (GameStateCloneService.BeginTimingScope((name, _) =>
+                { if (name == "kernel.recycled_executor." + EnterpriseEffectExecutor.UpgradeAllPlayersTypeId) recycled++; }))
+            using (GameStateCloneService.VerifySchedulingPublicationCopies()) Run(actual, Target(actual), registry);
+            Assert.That(GameStateCloneService.AreEquivalent(actual, expected), Is.True, "四人升级、奖励与事件须与完整复制一致。");
+            Assert.That(recycled, Is.GreaterThan(0));
+            foreach (int player in Enumerable.Range(1, 4))
+            {
+                Assert.That(Level(actual, playerId: player), Is.EqualTo(1));
+                Assert.That(actual.FindPlayer(player).Resources.GoldVoucher, Is.EqualTo(2));
+            }
+            Assert.That(actual.EffectRuntime.RuleEvents.Count(value => value.EventType == EnterpriseEffectExecutor.LevelChangedEvent), Is.EqualTo(4));
+            var expectedAfterRecovery = Restore(expected, registry);
+            var actualAfterRecovery = Restore(actual, registry);
+            bool originalRecoveryIdentical = GameStateCloneService.AreEquivalent(expected, expectedAfterRecovery);
+            var beforeJson = JObject.FromObject(expected); var afterJson = JObject.FromObject(expectedAfterRecovery);
+            TestContext.WriteLine("完整复制对照恢复后字段变化：" + string.Join(",", beforeJson.Properties()
+                .Where(property => !JToken.DeepEquals(property.Value, afterJson[property.Name])).Select(property => property.Name)));
+            Assert.That(originalRecoveryIdentical, Is.True, "完整复制对照组在恢复时已发生字段变化。");
+            Assert.That(GameStateCloneService.AreEquivalent(actual, actualAfterRecovery), Is.True);
         }
         [TestCase("completedPlayerIds")][TestCase("initiatingPlayerId")][TestCase("changed")]
         [TestCase("child_arrivalEventIds")][TestCase("child_changed")]

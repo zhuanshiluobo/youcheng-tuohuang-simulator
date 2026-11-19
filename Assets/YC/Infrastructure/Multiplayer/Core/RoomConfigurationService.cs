@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using YC.Application.Sessions;
 using YC.Domain.Maps;
@@ -43,15 +44,29 @@ namespace YC.Infrastructure.Multiplayer
                 var next = room.Configuration.Clone();
                 next.MapId = request.MapId;
                 next.RuleModeId = request.RuleModeId;
+                next.AdditionalRuleModeIds = request.AdditionalRuleModeIds == null || request.AdditionalRuleModeIds.Count == 0
+                    ? null : new List<string>(request.AdditionalRuleModeIds);
                 next.EnabledExpansionIds = request.EnabledExpansionIds == null ? null : new List<string>(request.EnabledExpansionIds);
                 next.PlayerCount = room.PlayerCount;
-                if (!next.TryValidate(out var reason)) return reason;
+                next.OfficialPreparationContract = (content as IRoomOfficialPreparationProvider)?.NewGamePreparationContract(next);
+                string reason;
+                if (content is IRoomContentLockProvider)
+                { if (!next.TryValidateStructure(out reason)) return reason; }
+                else if (!next.TryValidate(out reason)) return reason;
                 next.EnabledExpansionIds.Sort(StringComparer.Ordinal);
+                next.AdditionalRuleModeIds?.Sort(StringComparer.Ordinal);
                 var previous = new List<string>(room.Configuration.EnabledExpansionIds);
                 previous.Sort(StringComparer.Ordinal);
                 if (next.MapId == room.Configuration.MapId && next.RuleModeId == room.Configuration.RuleModeId &&
+                    string.Join("|", next.AdditionalRuleModeIds ?? new List<string>()) == string.Join("|", (room.Configuration.AdditionalRuleModeIds ?? new List<string>()).OrderBy(id => id, StringComparer.Ordinal)) &&
+                    next.OfficialPreparationContract == room.Configuration.OfficialPreparationContract &&
                     string.Join("|", previous) == string.Join("|", next.EnabledExpansionIds)) return string.Empty;
                 next.ContentPackHash = string.Empty;
+                if (content is IRoomContentLockProvider lockProvider)
+                {
+                    if (!lockProvider.TryPrepareLock(next, out var locks, out reason)) return reason;
+                    next.LockedContentPacks = locks;
+                }
                 if (content != null && !content.TryValidate(next, out reason)) return reason;
                 if (content == null && next.RuleModeId != "standard") return "content_not_ready";
                 next.ContentPackHash = content?.GetContentPackHash(next) ?? string.Empty;
@@ -291,6 +306,8 @@ namespace YC.Infrastructure.Multiplayer
         {
             room.Configuration.PlayerCount = room.PlayerCount;
             if (room.PlayerCount == 4) room.Configuration.MapId = StaticMapDefinitions.FourPlayerMapId;
+            if (room.Resume == null && content is IRoomOfficialPreparationProvider preparation)
+                room.Configuration.OfficialPreparationContract = preparation.NewGamePreparationContract(room.Configuration);
             if (content != null)
             {
                 room.Configuration.ContentPackHash = content.GetContentPackHash(room.Configuration);

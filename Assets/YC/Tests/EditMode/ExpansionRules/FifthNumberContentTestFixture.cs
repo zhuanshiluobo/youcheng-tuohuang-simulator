@@ -85,14 +85,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             string contentRoot = artifacts.CopyContent(baselineRoot, "第五号真实正文私有隔离输入", replacements);
             Pack = ExternalContentPack.Load(contentRoot);
             artifacts.RecordContent("第五号真实声明及Lua装载", contentRoot, Pack.ContentHash);
-            artifacts.WriteLabeledText("隔离输入边界", "私有副本改变entrepreneur定义的applicableModes，使用standard配置装配后切换隔离状态的模式并补既有企业家配方；多萝西组合用例将原配方的同名角色改为初始手牌。其余卡面、来源许可与正文不改。真实选人、选面和完成均走Host。所有运行不计正常菜单或页面验收。");
+            artifacts.WriteLabeledText("隔离输入边界", "私有副本改变entrepreneur定义的applicableModes，按企业家模式及其现有机制和配方装配；多萝西组合用例将原配方的同名角色改为初始手牌。其余卡面、来源许可与正文不改。真实选人、选面和完成均走Host。所有运行不计正常菜单或页面验收。");
             Map = StaticMapDefinitions.CreateThreePlayerMap();
             var mapQuery = new MapQueryService(Map);
-            var configuration = new GameRuleConfiguration { MapId = Map.MapId, PlayerCount = 2,
+            var configuration = new GameRuleConfiguration { MapId = Map.MapId, PlayerCount = 2, RuleModeId = "entrepreneur",
+                OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                 EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" },
                 PlayerStageSchedulingMode = concurrent ? PlayerStageSchedulingMode.Concurrent : PlayerStageSchedulingMode.Sequential };
-            // 复用真实组合器合并standard/enterprise/infected配方、替换项与公共注册。
-            // 配置以standard构造隔离前提，再进入企业家流程；不能据此宣称正常模式已验收。
+            // 使用正式模式机制与组合器；不能据此宣称正常模式已验收。
             var catalog = ActiveContentCatalogBuilder.Build(Pack, configuration);
             configuration.ContentPackHash = catalog.ContentPackHash;
             artifacts.RecordContent("第五号私有活动组合指纹", contentRoot, catalog.ContentPackHash);
@@ -107,7 +107,6 @@ namespace YC.Tests.EditMode.ExpansionRules
             Rounds = new RoundExecutionService(Registry);
 
             var recipe = catalog.SetupRecipe;
-            recipe.Entries.AddRange(GameStateCloneService.DeepClone(Pack.SetupRecipes.Single(r => r.RecipeId == "entrepreneur").Entries));
             if (dorothy)
             {
                 var entry = recipe.Entries.Single(e => e.DefinitionId == "operator.dorothy");
@@ -121,7 +120,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             State.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
             Registry.ContentDefinitions = GameStateCloneService.DeepClone(definitions);
             Registry.SetupRecipe = GameStateCloneService.DeepClone(recipe);
-            Run(ExpansionSetupFlow.PreparationSpec(1, false));
+            var started = Rounds.StartEntrance(State);
+            Assert.That(started.IsValid, Is.True, started.Reason);
             foreach (var request in State.EffectRuntime.InteractionRequests.Where(q => q.Status == "open" && q.InteractionTypeId == EntrepreneurFlow.PreviewInteraction).ToList())
                 Answer(request, NormalizedValue.CreateString("continue"));
             while (State.EntrepreneurSetup.Stage != "complete")

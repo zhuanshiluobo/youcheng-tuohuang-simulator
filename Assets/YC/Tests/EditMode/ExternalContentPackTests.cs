@@ -45,6 +45,7 @@ namespace YC.Tests.EditMode
             return root;
         }
         private static void ResetCharacters() => typeof(CharacterCardDatabase).GetMethod("ResetForTests", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+        private static void ResetEvents() => typeof(EventCardDatabase).GetMethod("ResetForTests", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
         private static EffectRegistry Registry(ExternalContentPack pack)
         {
             var registry = new EffectRegistry();
@@ -77,26 +78,63 @@ namespace YC.Tests.EditMode
         public void CorePack_LoadsAllRuntimeDefinitionsScriptsAndArtwork()
         {
             var pack = ExternalContentPack.Load(CoreRoot);
-            Assert.That(pack.Definitions, Has.Count.EqualTo(112));
+            var manifest = JObject.Parse(File.ReadAllText(Path.Combine(CoreRoot, "pack.json")));
+            var inventory = JObject.Parse(File.ReadAllText(Path.Combine(CoreRoot, (string)manifest["facilityInventory"])));
+            var declaredFiles = manifest["definitions"].Values<string>().Concat(inventory["definitionFiles"].Values<string>()).ToList();
+            int generatedFacilities = inventory["groups"].SelectMany(group => group["variants"]).Sum(variant => (int)variant["count"]);
+            Assert.That(pack.Definitions, Has.Count.EqualTo(declaredFiles.Count + generatedFacilities));
+            var loadedIds = pack.Definitions.Select(definition => definition.DefinitionId).ToList();
+            Assert.That(loadedIds, Is.Unique);
+            foreach (string relative in declaredFiles)
+                Assert.That(loadedIds, Does.Contain((string)JObject.Parse(File.ReadAllText(Path.Combine(CoreRoot, relative)))["definitionId"]), relative);
             Assert.That(pack.CreateCharacters(), Has.Count.EqualTo(5));
             Assert.That(pack.CreateEvents(), Has.Count.EqualTo(22));
             Assert.That(pack.CreateFacilities(), Has.Count.EqualTo(45));
             Assert.That(pack.CreateCityStyles(), Has.Count.EqualTo(6));
             Assert.That(pack.CreateSpecialActions(), Has.Count.EqualTo(5));
-            Assert.That(pack.CreateEvents().Single(e => e.CardId == "event_green_01").ChoiceRewards[0].OriginiumShard, Is.EqualTo(3));
+            var quarry = pack.CreateEvents().Single(e => e.CardId == "event_green_01");
+            Assert.That(quarry.Choices.Select(choice => choice.ChoiceId), Is.EqualTo(new[] { "choice_01", "choice_02" }));
+            Assert.That(pack.GetScript(quarry.Choices[0].Script), Is.Not.Empty);
             foreach (var card in pack.Definitions)
             {
-                Assert.That(pack.GetArtworkBytes(card.Artwork).Length, Is.GreaterThan(100));
+                if (string.IsNullOrEmpty(card.Artwork))
+                    Assert.That(card.ContentType == "component" && (card.CubeAppearance != null ||
+                        card.ItemTypeId == "core.die" && (string)card.Data["physicalPresentation"] == "die" && (int?)card.Data["sides"] == 6),
+                        Is.True, "只有声明了真实立方体或六面骰的组件可以没有卡面：" + card.DefinitionId);
+                else Assert.That(pack.GetArtworkBytes(card.Artwork).Length, Is.GreaterThan(100));
                 foreach (var ability in card.Abilities)
                     Assert.That(pack.GetScript(ability.Script), Does.Not.Contain("ResolveCharacterCardEffect"), ability.AbilityId);
             }
-            // 与当前启动目录合同兼容；不是只验证 JSON 能反序列化。
-            Assert.DoesNotThrow(() => EventCardDatabase.Initialize(pack.CreateEvents()));
+            // 隔离旧资产测试夹具，验证正式新目录可按启动合同初始化并重复初始化。
+            ResetEvents();
+            try
+            {
+                Assert.DoesNotThrow(() => EventCardDatabase.Initialize(pack.CreateEvents()));
+                Assert.DoesNotThrow(() => EventCardDatabase.Initialize(pack.CreateEvents()));
+                Assert.That(EventCardDatabase.Get("event_green_01").Choices[0].ChoiceId, Is.EqualTo("choice_01"));
+            }
+            finally
+            {
+                ResetEvents();
+                FacilityCardDatabaseSetUpFixture.InitializeEventAndCharacterCardDatabases();
+            }
             Assert.That(pack.CreateFacilities().Count(f => !f.ReserveOnly && f.DefaultSupply > 0), Is.EqualTo(41));
             Assert.That(pack.CreateFacilities().Count(f => f.ReserveOnly), Is.EqualTo(4));
             Assert.That(pack.CreateFacilities().Any(f => f.FacilityId == FacilityCardDatabase.EnterpriseOffice), Is.False);
             Assert.DoesNotThrow(() => CityStyleDatabase.Initialize(pack.CreateCityStyles()));
-            Assert.DoesNotThrow(() => SpecialActionDatabase.Initialize(pack.CreateSpecialActions()));
+            var resetSpecial = typeof(SpecialActionDatabase).GetMethod("ResetForTests", BindingFlags.Static | BindingFlags.NonPublic);
+            resetSpecial.Invoke(null, null);
+            try
+            {
+                Assert.DoesNotThrow(() => SpecialActionDatabase.Initialize(pack.CreateSpecialActions()));
+                Assert.DoesNotThrow(() => SpecialActionDatabase.Initialize(pack.CreateSpecialActions()));
+            }
+            finally
+            {
+                resetSpecial.Invoke(null, null);
+                typeof(FacilityCardDatabaseSetUpFixture).GetMethod("InitializeCityStyleAndSpecialActionDatabases",
+                    BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+            }
             Assert.That(pack.ContentHash, Is.Not.Empty);
         }
         [Test]
@@ -305,6 +343,17 @@ namespace YC.Tests.EditMode
             var variant = (JObject)card.DeepClone(); variant["definitionId"] = "variant"; variant["displayName"] = "替换名称";
             variant["data"] = new JObject { ["score"] = 9, ["specialActionId"] = "action.variant", ["effectScript"] = "variant.lua",
                 ["specialAction"] = new JObject { ["cityStyleId"] = "variant", ["specialActionId"] = "action.variant", ["extraMainActionCount"] = 2 } };
+            if (type == "event")
+            {
+                JObject EventData(string script) => new JObject {
+                    ["description"] = "替换事件夹具", ["color"] = 0, ["resourceType"] = 0, ["resourceAmount"] = 1,
+                    ["representativeResourceType"] = 0, ["representativeResourceAmount"] = 1,
+                    ["eventChoiceSchemaVersion"] = 1, ["choices"] = new JArray(new JObject {
+                        ["choiceId"] = "fixture_choice", ["description"] = "选择", ["button"] = new JObject {
+                            ["topPercent"] = 0, ["bottomPercent"] = 100 }, ["script"] = script, ["version"] = "1.0.0" }) };
+                card["data"] = EventData("effect.lua");
+                variant["data"] = EventData("variant.lua");
+            }
             variant["replaces"] = new JObject { ["expansionId"] = "test", ["contentType"] = type, ["definitionId"] = runtimeId };
             File.WriteAllText(Path.Combine(root, "variant.lua"), "return function(ctx) return {} end");
             File.WriteAllText(Path.Combine(root, "card.json"), card.ToString()); File.WriteAllText(Path.Combine(root, "variant.json"), variant.ToString());
@@ -312,14 +361,19 @@ namespace YC.Tests.EditMode
             ((JArray)manifest["definitions"]).Add("variant.json"); File.WriteAllText(path, manifest.ToString());
             var pack = ExternalContentPack.Load(root);
             Assert.That(pack.ActiveDefinitions, Has.Count.EqualTo(1));
-            Assert.That(pack.GetContentScript(type, runtimeId), Is.EqualTo("return function(ctx) return {} end"));
+            if (type != "event") Assert.That(pack.GetContentScript(type, runtimeId), Is.EqualTo("return function(ctx) return {} end"));
             if (type == "facility")
             {
                 var value = pack.CreateFacilities().Single(); Assert.That(value.FacilityId, Is.EqualTo(runtimeId));
                 Assert.That(value.ManifestId, Is.EqualTo(runtimeId)); Assert.That(value.Name, Is.EqualTo("替换名称")); Assert.That(value.Score, Is.EqualTo(9));
             }
             else if (type == "event")
-            { var value = pack.CreateEvents().Single(); Assert.That(value.CardId, Is.EqualTo(runtimeId)); Assert.That(value.Name, Is.EqualTo("替换名称")); }
+            {
+                var value = pack.CreateEvents().Single(); Assert.That(value.CardId, Is.EqualTo(runtimeId)); Assert.That(value.Name, Is.EqualTo("替换名称"));
+                Assert.That(value.Choices.Single().ChoiceId, Is.EqualTo("fixture_choice"));
+                Assert.That(value.Choices.Single().Script, Is.EqualTo("variant.lua"));
+                Assert.That(pack.GetScript(value.Choices.Single().Script), Is.EqualTo("return function(ctx) return {} end"));
+            }
             else
             {
                 var value = pack.CreateCityStyles().Single(); Assert.That(value.CityStyleId, Is.EqualTo(runtimeId)); Assert.That(value.Score, Is.EqualTo(9));

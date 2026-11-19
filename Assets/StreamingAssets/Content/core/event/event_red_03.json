@@ -1,47 +1,48 @@
 {
   "definitionId": "event_red_03",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "采集平台残骸",
   "artwork": "artwork/sheets/event_red_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_red_03",
-    "name": "采集平台残骸",
     "description": "你的队伍意外发现了惨遭天灾摧毁的采矿平台。它矗立在荒原上，如同无数死难者的纪念碑，这座平台上残留的异铁足够你再建一座区块了。这时，一些虚弱不堪的矿石病人从铁壳中爬出，他们是如何存活至今的？",
     "color": 2,
     "resourceType": 2,
     "resourceAmount": 1,
     "representativeResourceType": 2,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "用设备刨开掩埋残骸的障碍，也许有更多的幸存者：获得 4 源岩、3 源石碎片",
-      "他们没救了，继续回收作业：获得 4 异铁、5 金券"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 4,
-        "originiumShard": 3,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_02",
+        "description": "他们没救了，继续回收作业：获得 4 异铁、5 金券",
+        "button": {
+          "topPercent": 65.833333,
+          "bottomPercent": 75.833333
+        },
+        "script": "lua/events/choices/event_red_03.choice_02.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 4,
-        "pureOriginium": 0,
-        "goldVoucher": 5
+        "choiceId": "choice_01",
+        "description": "用设备刨开掩埋残骸的障碍，也许有更多的幸存者：获得 4 源岩、3 源石碎片",
+        "button": {
+          "topPercent": 75.833333,
+          "bottomPercent": 94.166667
+        },
+        "script": "lua/events/choices/event_red_03.choice_01.lua",
+        "version": "1.0.0"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      []
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_red_003"
+  "artworkSpriteId": "event_red_003",
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

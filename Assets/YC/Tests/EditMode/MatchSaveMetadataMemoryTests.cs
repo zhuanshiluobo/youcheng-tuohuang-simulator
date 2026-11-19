@@ -115,6 +115,9 @@ namespace YC.Tests.EditMode
                     type.GetField("preparedLocalArchive", flags).SetValue(controller, data.ArchiveJson);
                     type.GetField("preparedLocalContinuation", flags).SetValue(controller, data.ContinuationJson);
                     type.GetField("preparedLocalContentHash", flags).SetValue(controller, "installed-test-hash");
+                    var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
+                    type.GetField("preparedLocalContentGeneration", flags).SetValue(controller,
+                        runtime.GetProperty("ContentGeneration", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null));
                     resultField.SetValue(controller, result);
                 }
                 object Take(MatchSaveData source, string hash = "installed-test-hash") => take.Invoke(controller, new object[] { source, hash });
@@ -136,6 +139,67 @@ namespace YC.Tests.EditMode
             }
             finally { UnityEngine.Object.DestroyImmediate(root); }
         }
+
+        [Test]
+        public void PreparedRestoreFromEarlierContentGenerationCannotBeReused()
+        {
+            var type = Type.GetType("YC.Presentation.MatchSaveController, Assembly-CSharp", true);
+            var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
+            const BindingFlags instance = BindingFlags.NonPublic | BindingFlags.Instance;
+            var root = new UnityEngine.GameObject("内容代次隔离夹具"); root.SetActive(false);
+            try
+            {
+                var controller = root.AddComponent(type);
+                var data = new MatchSaveData { Mode = LaunchMode.Local, LocalPlayerId = 1, ArchiveJson = "隔离归档", ContinuationJson = "隔离续接" };
+                var resultField = type.GetField("preparedLocalResult", instance); var result = Activator.CreateInstance(resultField.FieldType);
+                resultField.FieldType.GetField("LocalPlayerId").SetValue(result, 1);
+                long current = (long)runtime.GetProperty("ContentGeneration", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                void Seed(long generation)
+                {
+                    type.GetField("preparedLocalSource", instance).SetValue(controller, data);
+                    type.GetField("preparedLocalArchive", instance).SetValue(controller, data.ArchiveJson);
+                    type.GetField("preparedLocalContinuation", instance).SetValue(controller, data.ContinuationJson);
+                    type.GetField("preparedLocalContentHash", instance).SetValue(controller, "相同 core 哈希");
+                    type.GetField("preparedLocalContentGeneration", instance).SetValue(controller, generation);
+                    resultField.SetValue(controller, result);
+                }
+                var take = type.GetMethod("TakePreparedLocalRestore", instance);
+                Seed(current - 1);
+                Assert.That(take.Invoke(controller, new object[] { data, "相同 core 哈希" }), Is.Null);
+                Assert.That(resultField.GetValue(controller), Is.Null, "过期对象不得留待下次复用");
+                // 当前代次通过缓存门槛后仍执行原有存档校验；这里的刻意无效归档必须被拒绝。
+                Seed(current);
+                Assert.Throws<TargetInvocationException>(() => take.Invoke(controller, new object[] { data, "相同 core 哈希" }));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+        [Test]
+        public void LeavingGameplayReleasesUnconsumedLocalRestoreWithoutBreakingNormalHandoff()
+        {
+            var type = Type.GetType("YC.Presentation.MatchSaveController, Assembly-CSharp", true);
+            var launch = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
+            const BindingFlags instance = BindingFlags.NonPublic | BindingFlags.Instance;
+            var singleton = type.GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
+            var original = singleton.GetValue(null);
+            var root = new UnityEngine.GameObject("离局释放隔离夹具"); root.SetActive(false);
+            try
+            {
+                var controller = root.AddComponent(type);
+                singleton.SetValue(null, controller);
+                var data = new MatchSaveData { ArchiveJson = "隔离归档", ContinuationJson = "隔离续接" };
+                var resultField = type.GetField("preparedLocalResult", instance);
+                var result = Activator.CreateInstance(resultField.FieldType);
+                type.GetField("preparedLocalSource", instance).SetValue(controller, data);
+                resultField.SetValue(controller, result);
+                type.GetMethod("Unbind").Invoke(controller, null);
+                Assert.That(resultField.GetValue(controller), Is.SameAs(result), "正常配置交接仍须保留准备好的恢复结果。");
+                launch.GetMethod("ShutdownOnlineSession").Invoke(null, null);
+                Assert.That(resultField.GetValue(controller), Is.Null, "离局后不能继续持有未交接的完整对局。");
+                Assert.That(type.GetField("preparedLocalSource", instance).GetValue(controller), Is.Null);
+            }
+            finally { singleton.SetValue(null, original); UnityEngine.Object.DestroyImmediate(root); }
+        }
+
         private sealed class Measurement
         {
             public double Seconds;

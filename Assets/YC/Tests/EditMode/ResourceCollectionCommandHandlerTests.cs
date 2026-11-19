@@ -1,13 +1,19 @@
 using NUnit.Framework;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using YC.Application.Gameplay;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Harvest;
 using YC.Domain.Influence;
+using YC.Domain.Items;
+using YC.Domain.Effects;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Infrastructure.Lua;
 
 namespace YC.Tests.EditMode
 {
@@ -17,18 +23,23 @@ namespace YC.Tests.EditMode
         public void CollectResource_WithMultipleTargets_SharesRouteCostPaysChosenRecipientAndAdvancesToCleanup()
         {
             var state = CreateCollectionState();
+            var map = StaticMapDefinitions.CreateFourPlayerMap();
+            state.MapId = map.MapId;
+            state.FindPlayer(1).CityLocationId = "C-01";
             state.Players.Add(new PlayerState { PlayerId = 3, Color = PlayerColor.Green });
             state.FindPlayer(1).Resources.GoldVoucher = 6;
             state.FindPlayer(2).HasCollectedResourcesThisRound = true;
             state.FindPlayer(3).HasCollectedResourcesThisRound = true;
-            AddToken(state, "mine-c", ResourceType.Iron, 1);
-            AddToken(state, "quarry-d", ResourceType.OriginiumShard, 2);
-            AddLocationInfluence(state, 1, "mine-c");
-            AddLocationInfluence(state, 1, "quarry-d");
-            AddRouteInfluence(state, 2, "route-a-hub", 0);
-            AddRouteInfluence(state, 3, "route-a-hub", 1);
-            AddRouteInfluence(state, 1, "route-hub-mine", 0);
-            var handler = CreateHandler();
+            AddToken(state, "B-01", ResourceType.Iron, 1);
+            AddToken(state, "A-02", ResourceType.OriginiumShard, 2);
+            AddLocationInfluence(state, 1, "B-01");
+            AddLocationInfluence(state, 1, "A-02");
+            AddRouteInfluence(state, 2, "C2", 0);
+            AddRouteInfluence(state, 3, "C2", 1);
+            AddRouteInfluence(state, 1, "B2", 0);
+            PrepareLegacyBudgets(state);
+            state = AssembleEntityFixture(state, map);
+            var handler = new CollectResourceCommandHandler(new ResourceCollectionService(new MapQueryService(map), new ResourceTokenService()));
 
             var result = handler.Handle(state, new GameCommand
             {
@@ -36,8 +47,9 @@ namespace YC.Tests.EditMode
                 PlayerId = 1,
                 Parameters =
                 {
-                    { CollectResourceCommandHandler.LocationIdsParameter, "mine-c,quarry-d" },
-                    { CollectResourceCommandHandler.PaymentRecipientsParameter, "route-a-hub=3" }
+                    { CollectResourceCommandHandler.LocationIdsParameter, "B-01,A-02" },
+                    { CollectResourceCommandHandler.RouteIdsParameter, "C2,B2,R6" },
+                    { CollectResourceCommandHandler.PaymentRecipientsParameter, "C2=3" }
                 }
             });
 
@@ -61,13 +73,16 @@ namespace YC.Tests.EditMode
             state.FindPlayer(1).ResourceCollectionStartGoldVoucher = 0;
             AddToken(state, "mine-c", ResourceType.GoldVoucher, 3);
             AddLocationInfluence(state, 1, "mine-c");
+            AddRouteInfluence(state, 1, "route-hub-mine", 0);
+            PrepareLegacyBudgets(state);
             var handler = CreateHandler();
 
             var result = handler.Handle(state, new GameCommand
             {
                 Kind = GameCommandKind.CollectResource,
                 PlayerId = 1,
-                TargetId = "mine-c"
+                TargetId = "mine-c",
+                Parameters = { { CollectResourceCommandHandler.RouteIdsParameter, "route-a-hub,route-hub-mine" } }
             });
 
             Assert.That(result.Succeeded, Is.False);
@@ -85,6 +100,7 @@ namespace YC.Tests.EditMode
             AddToken(state, "mine-c", ResourceType.Iron, 1);
             AddLocationInfluence(state, 1, "mine-c");
             AddRouteInfluence(state, 2, "route-a-hub", 0);
+            PrepareLegacyBudgets(state);
             var handler = CreateHandler();
 
             var result = handler.Handle(state, new GameCommand
@@ -94,6 +110,7 @@ namespace YC.Tests.EditMode
                 TargetId = "mine-c",
                 Parameters =
                 {
+                    { CollectResourceCommandHandler.RouteIdsParameter, "route-a-hub,route-hub-mine" },
                     { CollectResourceCommandHandler.PaymentRecipientsParameter, "route-a-hub=3" }
                 }
             });
@@ -111,6 +128,7 @@ namespace YC.Tests.EditMode
             var state = CreateCollectionState();
             state.FindPlayer(1).Resources.GoldVoucher = 4;
             AddToken(state, "mine-c", ResourceType.Iron, 1);
+            PrepareLegacyBudgets(state);
             var handler = CreateHandler();
 
             var result = handler.Handle(state, new GameCommand
@@ -125,6 +143,64 @@ namespace YC.Tests.EditMode
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(0));
         }
 
+        // 将旧测试的资源和影响力配置装配成当前规则要求的实体；只在隔离夹具准备时执行。
+        private static GameState AssembleEntityFixture(GameState legacy, GameMapDefinition map)
+        {
+            var placements = legacy.Map.Influences.ToArray();
+            var tokens = legacy.Map.ResourceTokens.ToArray();
+            var city = legacy.FindPlayer(1).CityLocationId;
+            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+            if (!CharacterCardDatabase.IsInitialized) CharacterCardDatabase.Initialize(pack.CreateCharacters());
+            legacy.GameId = "legacy-collection-command-fixture";
+            legacy.ContentPackHash = pack.ContentHash;
+            legacy.RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = legacy.Players.Count, ContentPackHash = pack.ContentHash };
+            legacy.ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList() };
+            var recipe = new List<ItemRecipeEntry>
+            {
+                new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
+                new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 30, PerPlayer = true, InitialZoneRole = "supply" }
+            };
+            foreach (var token in tokens)
+                recipe.Add(new ItemRecipeEntry { EntryId = "resource-" + token.LocationId, DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + token.LocationId });
+            var state = new ItemZoneStateFactory().CreateForSetup(legacy, map, recipe);
+            foreach (var id in tokens.Select(t => t.LocationId).Append(city).Distinct())
+                if (!state.Map.OpenLocationIds.Contains(id)) state.Map.OpenLocationIds.Add(id);
+            var move = typeof(ItemZoneStateMigrator).GetMethod("SetPosition", BindingFlags.Static | BindingFlags.NonPublic);
+            var cityParent = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == city);
+            var dock = state.ItemZones.Zones.Single(z => z.ParentId == cityParent.ZoneId && z.TemplateId == "core.zone.city_dock");
+            var cityItem = state.ItemZones.Items.Single(i => i.TypeId == "core.mobile_city" && i.OwnerSubject.PlayerId == 1);
+            move.Invoke(null, new object[] { state, cityItem, dock.ZoneId });
+            foreach (var token in tokens)
+            {
+                var parent = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == token.LocationId);
+                var zone = state.ItemZones.Zones.Single(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.resource_point_markers");
+                var item = state.ItemZones.Items.Single(i => i.ZoneId == zone.ZoneId && i.TypeId == "core.resource_point_token");
+                item.LocalState = ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateInteger((int)token.ResourceType), "amount", NormalizedValue.CreateInteger(token.Amount));
+            }
+            foreach (var placement in placements)
+            {
+                string id = string.IsNullOrEmpty(placement.LocationId) ? placement.RouteId : placement.LocationId;
+                string type = string.IsNullOrEmpty(placement.LocationId) ? "core.zone.map_route" : "core.zone.map_location";
+                var parent = state.ItemZones.Zones.Single(z => z.TemplateId == type && z.LocalZoneId == id);
+                var zone = state.ItemZones.Zones.Single(z => z.ParentId == parent.ZoneId && z.TemplateId == "core.zone.influence_slots");
+                var supply = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == placement.PlayerId);
+                var item = state.ItemZones.Items.First(i => i.ZoneId == supply.ZoneId && i.TypeId == "core.player_marker");
+                move.Invoke(null, new object[] { state, item, zone.ZoneId });
+                item.SlotId = placement.SlotId;
+            }
+            Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(placements.Length));
+            return state;
+        }
+
+        private static void PrepareLegacyBudgets(GameState state)
+        {
+            foreach (var player in state.Players)
+                if (player.ResourceCollectionStartGoldVoucher < 0)
+                    player.ResourceCollectionStartGoldVoucher = player.Resources.GoldVoucher;
+        }
+
         private static CollectResourceCommandHandler CreateHandler()
         {
             var mapQuery = new MapQueryService(CreateCollectionMap());
@@ -135,6 +211,7 @@ namespace YC.Tests.EditMode
         {
             return new GameState
             {
+                MapId = "resource-collection-test",
                 Phase = GamePhase.ResourceCollection,
                 Round = 1,
                 StartPlayerId = 1,

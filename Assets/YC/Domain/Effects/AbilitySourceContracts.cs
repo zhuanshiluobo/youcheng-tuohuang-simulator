@@ -25,12 +25,13 @@ namespace YC.Domain.Effects
         public string CleanupInjectionPolicy = "always";
         public List<string> CompletedEffectTypes = new List<string>();
         public List<string> EffectiveZones = new List<string>(), ObservedEvents = new List<string>(), QueryKinds = new List<string>(), AllowedOperations = new List<string>();
+        public List<string> ResponseKinds = new List<string>();
         public List<AbilityActionDeclaration> Actions = new List<AbilityActionDeclaration>();
     }
     [Serializable] public sealed class AbilityActionDeclaration
     {
         public string ActionId = "", EntryKind = "", BodyHandlerRef = "", EntryCostRef = "", EntryAfterEffectsRef = "";
-        public string UsageTrackId = "", LifecyclePolicy = "unbounded", LockPolicy = "none", DirectCallPolicy = "deny", PresentationRef = "";
+        public string UsageTrackId = "", LifecyclePolicy = "unbounded", LockPolicy = "none", PresentationRef = "";
         public int SortOrder;
         public AbilityActionPresentationDefinition Presentation;
     }
@@ -56,8 +57,9 @@ namespace YC.Domain.Effects
     {
         public int ProtocolVersion = 1;
         public string InvocationId = "", OwnerEffectId = "", CommandId = "", CommandDigest = "", OptionId = "", ActionId = "", OccupancyKey = "";
-        public string ParentEffectId = "", CallPolicyRef = "", Phase = "accepted", Outcome = "", FailureReason = "", FirstFaultPhase = "", TrackBindingId = "", UsageProviderVersion = "";
+        public string ParentEffectId = "", Phase = "accepted", Outcome = "", FailureReason = "", FirstFaultPhase = "", TrackBindingId = "", UsageProviderVersion = "";
         public bool PaymentCommitted, ActivationCommitted, MainActionCommitted;
+        public bool OmitEntryCost, OmitEntryAfterEffects, OmitMainAction;
         public string EntryConditionVersion = "", EntryConditionHandlerHash = "", EntryConditionHandlerVersion = "", EntryConditionProgramDigest = "";
         public AbilitySourceRef SourceRef;
         public AbilityVersionRef VersionRef;
@@ -87,9 +89,8 @@ namespace YC.Domain.Effects
         public AbilityVersionRef VersionRef;
         public NormalizedValue Items;
     }
-    [Serializable] public sealed class AbilityActionCallPolicy
+    [Serializable] public sealed class AbilityActionExecutionOptions
     {
-        public string PolicyRef = "", CallerAbilityId = "", TargetActionId = "", CallerHandlerRef = "", CallerHandlerHash = "";
         public bool OmitEntryCost, OmitEntryAfterEffects, OmitMainAction;
     }
     public sealed class AbilityActionCallContext
@@ -118,6 +119,7 @@ namespace YC.Domain.Effects
                 case "not_current_player": return "尚未轮到本人行动。";
                 case "pending_choice_required": case "action_window_busy": return "请先完成当前选择。";
                 case "insufficient_resources": case "insufficient_resource": return "入口资源不足。";
+                case "insufficient_items": return "所需标记或物品不足。";
                 case "insufficient_card_markers": return "牌上可支付标记不足。";
                 case "action_group_occupied": return "该行动正在执行或本次额度已用。";
                 case "usage_track_unavailable": return "使用轨道尚未接通。";

@@ -32,6 +32,7 @@ local function choose(ctx, context, stage, ids, labels, prompt, minimum, kind)
 end
 
 local function cover(ctx, c)
+    if GameData.GetPhase() ~= 'CharacterCover' then return {} end
     for _, slot in ipairs(PlayerData.Get(ctx.playerId).coveredCards) do
         if slot.reusable and slot.sourceEffectId == 'character-card:' .. c.source then return {} end
     end

@@ -158,7 +158,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void OldPublishedCheckpointExportsItsOriginalStateAndContinuationAfterTheSessionRetentionWindowExpires()
         {
-            var group = ActionGroup(requiredAnswerCount: 6); group.Seal(0, true); var host = group.Host;
+            var group = ActionGroup(requiredAnswerCount: 6, archiveSafe: true); group.Seal(0, true); var host = group.Host;
             SimulationPublishedSnapshot retained = null; string digest = null; int revision = 0;
             host.StartBackgroundExecution();
             try
@@ -196,7 +196,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void BackgroundProtocolFactFailureStillExportsTheEarlierFrozenConfirmedPrefix()
         {
-            var group = ActionGroup(maximumHostBoundaryFacts: 1); group.Seal(0, true); var host = group.Host;
+            var group = ActionGroup(maximumHostBoundaryFacts: 1, archiveSafe: true); group.Seal(0, true); var host = group.Host;
             int faults = 0; host.SimulationProtocolFaulted += _ => faults++;
             host.StartBackgroundExecution();
             try
@@ -286,6 +286,59 @@ namespace YC.Tests.EditMode
             Assert.That(group.Coordinators[1].ValidatedThroughSequence, Is.EqualTo(1));
             Assert.That(group.Coordinators.All(c => !c.IsStopped), Is.True);
             Assert.That(fixture.Installations, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void EventChoiceReplicatesOnceWhenItsOrderedCommandIsRetransmitted()
+        {
+            // 隔离副本夹具：先通过真实入场请求揭示事件，再选择当前公开候选，不计正常界面验收。
+            var group = new FormalFixture(false).Group();
+            group.Seal(0, true);
+            int player = group.Sessions[0].State.CurrentPlayerId;
+            int actor = group.Index(player);
+            var entrance = Answer(group.Sessions[actor], player, "fixture-entrance");
+            Assert.That(group.Coordinators[actor].TryCreateLocalProposal(entrance, out var entranceProposal, out _), Is.True);
+            var accepted = group.Host.AdmitProposal(player, entranceProposal);
+            Assert.That(accepted.Status, Is.EqualTo(OperationAdmissionStatus.Accepted), accepted.Reason);
+            foreach (var client in group.Coordinators.Skip(1))
+            { Assert.That(client.ReceiveOrdered(accepted.OrderedCommand).Status, Is.EqualTo(OperationReplicaStatus.Buffered)); Assert.That(client.Pump(1), Is.EqualTo(1)); }
+            Assert.That(group.Host.Pump(1), Is.EqualTo(1));
+
+            var state = group.Sessions[actor].State;
+            var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open" &&
+                value.AnsweringPlayerId == player && value.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId);
+            string cardId = ItemTransferEffectExecutor.Text(request.PromptParameters, "cardId");
+            var card = YC.Domain.Cards.EventCardDatabase.Get(state, cardId);
+            var pack = YC.Infrastructure.Lua.ExternalContentPack.Load(System.IO.Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core"));
+            var choice = card.Choices.First(value => {
+                string source = pack.GetScript(value.Script);
+                return source.Contains("Effect.GainResource") && !source.Contains("Effect.Condition") &&
+                    !source.Contains("Effect.Choice") && !source.Contains("Effect.PlaceInfluence");
+            });
+            string candidate = EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId);
+            Assert.That(request.CandidateIds, Does.Contain(candidate));
+            if (!group.Coordinators[actor].ReadWindowPermissions().Any(value => value.CanSubmitForLocalPlayer)) group.Seal(1, true);
+            var answer = Answer(group.Sessions[actor], player, "fixture-event-choice");
+            Assert.That(answer.Parameters["interactionId"], Is.EqualTo(request.GetStableInteractionId()));
+            answer.OptionIds.Clear(); answer.OptionIds.Add(candidate);
+            bool proposed = group.Coordinators[actor].TryCreateLocalProposal(answer, out var proposal, out var diagnostic);
+            Assert.That(proposed, Is.True, diagnostic?.Reason);
+            var admitted = group.Host.AdmitProposal(player, proposal);
+            Assert.That(admitted.Status, Is.EqualTo(OperationAdmissionStatus.Accepted), admitted.Reason);
+            foreach (var client in group.Coordinators.Skip(1))
+            { Assert.That(client.ReceiveOrdered(admitted.OrderedCommand).Status, Is.EqualTo(OperationReplicaStatus.Buffered)); Assert.That(client.Pump(1), Is.EqualTo(1)); }
+            Assert.That(group.Host.Pump(1), Is.EqualTo(1));
+            var before = group.Sessions.Select(value => RuleStateDigestService.Compute(value.State)).ToArray();
+            Assert.That(before.Distinct().Count(), Is.EqualTo(1));
+            foreach (var session in group.Sessions)
+                Assert.That(session.State.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == EventCardEffectTypeIds.Resolve &&
+                    node.Status == EffectNodeStatus.Completed && ItemTransferEffectExecutor.Text(node.NormalizedResult, "selectedChoiceId") == choice.ChoiceId), Is.True);
+            for (int i = 0; i < group.Coordinators.Length; i++)
+            {
+                Assert.That(group.Coordinators[i].ReceiveOrdered(admitted.OrderedCommand).Status, Is.EqualTo(OperationReplicaStatus.Duplicate));
+                Assert.That(group.Coordinators[i].Pump(8), Is.Zero);
+                Assert.That(RuleStateDigestService.Compute(group.Sessions[i].State), Is.EqualTo(before[i]));
+            }
         }
 
         [Test]
@@ -417,11 +470,19 @@ namespace YC.Tests.EditMode
             return command;
         }
 
-        private static Group ActionGroup(Action beforeHostAnswer = null, int requiredAnswerCount = 2, int maximumHostBoundaryFacts = 4096)
+        private static Group ActionGroup(Action beforeHostAnswer = null, int requiredAnswerCount = 2, int maximumHostBoundaryFacts = 4096, bool archiveSafe = false)
         {
             var state = new GameState { GameId = "same-actor-match", Phase = GamePhase.ActionRound1, Round = 1, CurrentPlayerId = 1, StartPlayerId = 1,
                 UseSeatTurnOrder = true, LaunchPlayerOrder = new List<int> { 1, 2, 3 }, MapId = StaticMapDefinitions.FourPlayerMapId };
-            for (int player = 1; player <= 3; player++) state.Players.Add(new PlayerState { PlayerId = player, CityLocationId = "B-01" });
+            for (int player = 1; player <= 3; player++) state.Players.Add(new PlayerState { PlayerId = player, CityLocationId = archiveSafe ? "" : "B-01" });
+            if (archiveSafe)
+            {
+                // 导出测试需要完整根区域；普通线程夹具仍保留最小状态，不修改产品恢复校验。
+                state.ContentPackHash = "simulation.fixture.content";
+                state.RuleConfiguration = new GameRuleConfiguration { MapId = state.MapId, PlayerCount = 3, ContentPackHash = state.ContentPackHash };
+                state = new YC.Domain.Items.ItemZoneStateFactory().CreateForSetup(state, StaticMapDefinitions.CreateFourPlayerMap(),
+                    new List<YC.Domain.Items.ItemRecipeEntry>());
+            }
             var registry = new EffectRegistry(); var round = new RoundExecutionService(registry);
             Assert.That(round.PrepareActionWindowForSmoke(state, 1).IsValid, Is.True);
             round.MarkMainActionComplete(state, 1);
@@ -502,6 +563,7 @@ namespace YC.Tests.EditMode
             {
                 if (uniqueSeatColors) foreach (var seat in seats) seat.Color = RoomConfigurationService.GetSeatColor(seat.PlayerId - 1);
                 configuration = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 3,
+                    OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                     EnabledExpansionIds = enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" } };
                 random = GameplayRandomRuntime.Create(gameId);
                 Host = Build(LaunchMode.Host, 3, false); configuration.ContentPackHash = Host.Session.State.ContentPackHash;

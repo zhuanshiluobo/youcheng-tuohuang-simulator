@@ -303,7 +303,7 @@ namespace YC.Domain.Effects
                 bool continuationFailed = HasFailedChild(context);
                 if (consumeMainAction)
                 {
-                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+                    new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, YC.Domain.Rules.MainActionBudgetService.MoveCity);
                 }
                 string routeId = ReadString(context.Node.NormalizedResult, "routeId", string.Empty);
                 var result = ResultObject("outcome", "completed",

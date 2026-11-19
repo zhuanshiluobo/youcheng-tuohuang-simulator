@@ -62,7 +62,7 @@ namespace YC.Presentation.Workflows
         public bool CanResumeDeployDraft => IsSelectingDeployTarget &&
             IsDeployDraftCurrent(deployDraft) && CanSpendDeployAction();
         public bool CanResumeDispatchDraft => (IsSelectingDispatchSource || IsSelectingDispatchTarget) &&
-            IsDeployDraftCurrent(dispatchDraft) && CanSpendDeployAction();
+            IsDeployDraftCurrent(dispatchDraft) && CanSpendAction(YC.Domain.Rules.MainActionBudgetService.Dispatch);
 
         public InfluenceActionPresenter(
             IGameplayContext context,
@@ -182,7 +182,7 @@ namespace YC.Presentation.Workflows
 
         public void BeginDispatch()
         {
-            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight || !CanSpendDeployAction()) return;
+            if (IsDeploySubmissionInFlight || IsDispatchSubmissionInFlight || !CanSpendAction(YC.Domain.Rules.MainActionBudgetService.Dispatch)) return;
             ClearState();
             var state = context.CurrentState;
             dispatchDraft = new DeployDraft { State = state, GameId = state.GameId, PlayerId = context.LocalPlayerId,
@@ -355,11 +355,13 @@ namespace YC.Presentation.Workflows
         }
         private int CurrentRevision() => ObservedStateRevision?.Invoke() ?? context.CurrentState?.EffectRuntime?.StateRevision ?? 0;
 
-        private bool CanSpendDeployAction()
+        private bool CanSpendDeployAction() => CanSpendAction(YC.Domain.Rules.MainActionBudgetService.Deploy);
+
+        private bool CanSpendAction(string actionType)
         {
             var state = context.CurrentState;
             return state != null && (state.Phase == GamePhase.ActionRound1 || state.Phase == GamePhase.ActionRound2) &&
-                   !state.HasPendingChoice() && new MainActionBudgetService().HasAvailableMainAction(state, context.LocalPlayerId);
+                   !state.HasPendingChoice() && new MainActionBudgetService().HasAvailableMainAction(state, context.LocalPlayerId, actionType);
         }
 
         private bool CanInteractWithDeploy()

@@ -170,7 +170,7 @@ namespace YC.Tests.EditMode
             var returnButtonTop = returnButton.anchoredPosition.y + returnButton.rect.height;
             Assert.That(detailsBottom, Is.GreaterThan(returnButtonTop));
 
-            FindChild(details, "Final Score Details Back Button").GetComponent<Button>().onClick.Invoke();
+            detailsButton.GetComponent<Button>().onClick.Invoke();
 
             Assert.That(GetPublicProperty<bool>("IsFinalScoreDetailsOpen"), Is.False);
             Assert.That(summary.gameObject.activeSelf, Is.True);

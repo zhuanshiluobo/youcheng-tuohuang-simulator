@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using YC.Infrastructure.Lua;
 using YC.Infrastructure.Multiplayer;
 using Unity.Profiling;
 using UnityEngine;
@@ -47,6 +49,7 @@ namespace YC.Presentation
         }
         [SerializeField] private SeatBinding[] seats;
         [SerializeField] private ContentOption[] maps, ruleModes, expansions;
+        [SerializeField] private RectTransform ruleModeContent;
         [SerializeField] private ReasonCaption[] reasons;
         [SerializeField] private Text primaryCaption, permissionsText, mapHintText, swapPromptText;
         [SerializeField] private Button passwordButton, helpButton, helpCloseButton, swapAcceptButton, swapDeclineButton;
@@ -87,6 +90,12 @@ namespace YC.Presentation
         private bool requestPending, supportsInvites, bound;
         private bool online = true, canToggleNetworking;
         private bool supportsLocalPlayers;
+        private GameplayOptionsCatalog gameplayOptions;
+        private ContentOption[] originalExpansions;
+        private ContentOption[] originalRuleModes;
+        private readonly List<GameObject> dynamicRuleModeObjects = new List<GameObject>();
+        private readonly List<GameObject> dynamicExpansionObjects = new List<GameObject>();
+        private readonly HashSet<string> dynamicExpansionIds = new HashSet<string>(StringComparer.Ordinal);
         private readonly HashSet<int> invitedSeats = new HashSet<int>();
 
         public event Action<string> MapSelectionRequested, RuleModeSelectionRequested;
@@ -103,6 +112,88 @@ namespace YC.Presentation
 
         public void SetServiceAvailability(bool friendInvites) { supportsInvites = friendInvites; }
         public void SetLocalPlayerAvailability(bool available) { supportsLocalPlayers = available; }
+        public void SetGameplayOptions(GameplayOptionsCatalog options)
+        {
+            if (ReferenceEquals(gameplayOptions, options)) return;
+            gameplayOptions = options;
+            if (originalRuleModes == null) originalRuleModes = ruleModes.ToArray();
+            foreach (var previous in dynamicRuleModeObjects)
+            {
+                if (previous == null) continue;
+                previous.SetActive(false);
+                if (UnityEngine.Application.isPlaying) Destroy(previous); else DestroyImmediate(previous);
+            }
+            dynamicRuleModeObjects.Clear();
+            var modes = new List<ContentOption>(originalRuleModes);
+            var modeTemplate = originalRuleModes.FirstOrDefault(item => item.Id == "standard" && item.Button != null && item.Selection != null);
+            if (ruleModeContent != null && modeTemplate != null && options != null)
+                foreach (var declaration in options.Modes.Where(item => !originalRuleModes.Any(existing => existing.Id == item.Id)))
+                {
+                    var clone = Instantiate(modeTemplate.Button.gameObject, ruleModeContent, false);
+                    var button = clone.GetComponent<Button>();
+                    var selected = FindCorrespondingChild(modeTemplate.Button.transform, clone.transform, modeTemplate.Selection.transform)?.GetComponent<Image>();
+                    var label = clone.GetComponentInChildren<Text>(true);
+                    if (button == null || selected == null || label == null)
+                    {
+                        if (UnityEngine.Application.isPlaying) Destroy(clone); else DestroyImmediate(clone);
+                        continue;
+                    }
+                    label.text = declaration.DisplayName;
+                    button.onClick = new Button.ButtonClickedEvent();
+                    var item = new ContentOption { Id = declaration.Id, DisplayName = declaration.DisplayName, Button = button, Selection = selected };
+                    modes.Add(item); dynamicRuleModeObjects.Add(clone);
+                    if (bound) BindRuleMode(item);
+                }
+            ruleModes = modes.ToArray();
+            if (originalExpansions == null) originalExpansions = expansions.ToArray();
+            foreach (var previous in dynamicExpansionObjects)
+            {
+                if (previous == null) continue;
+                previous.SetActive(false);
+                if (UnityEngine.Application.isPlaying) Destroy(previous); else DestroyImmediate(previous);
+            }
+            dynamicExpansionObjects.Clear(); dynamicExpansionIds.Clear();
+            var combined = new List<ContentOption>(originalExpansions);
+            var template = originalExpansions.FirstOrDefault(item => item.Id == "enterprise" && item.Button != null && item.Selection != null);
+            if (template != null && options != null)
+                foreach (var declaration in options.Expansions.Where(item => !originalExpansions.Any(existing => existing.Id == item.Id)))
+                {
+                    var clone = Instantiate(template.Button.gameObject, template.Button.transform.parent, false);
+                    var button = clone.GetComponent<Button>();
+                    var selected = FindCorrespondingChild(template.Button.transform, clone.transform, template.Selection.transform)?.GetComponent<Image>();
+                    var labels = clone.GetComponentsInChildren<Text>(true);
+                    if (button == null || selected == null || labels.Length < 2)
+                    {
+                        if (UnityEngine.Application.isPlaying) Destroy(clone); else DestroyImmediate(clone);
+                        continue;
+                    }
+                    // 名称和简介是包声明的动态数据；样式与结构沿用当前预制体中的扩展项。
+                    labels[0].text = declaration.DisplayName; labels[1].text = declaration.Description;
+                    button.onClick = new Button.ButtonClickedEvent();
+                    var item = new ContentOption { Id = declaration.Id, DisplayName = declaration.DisplayName, Button = button, Selection = selected };
+                    combined.Add(item); dynamicExpansionIds.Add(item.Id); dynamicExpansionObjects.Add(clone);
+                    if (bound) BindExpansion(item);
+                }
+            expansions = combined.ToArray();
+        }
+
+        private static Transform FindCorrespondingChild(Transform originalRoot, Transform clonedRoot, Transform originalChild)
+        {
+            var path = new Stack<int>();
+            for (var current = originalChild; current != originalRoot; current = current.parent)
+            {
+                if (current == null || current.parent == null) return null;
+                path.Push(current.GetSiblingIndex());
+            }
+            var result = clonedRoot;
+            while (path.Count > 0)
+            {
+                int index = path.Pop();
+                if (index < 0 || index >= result.childCount) return null;
+                result = result.GetChild(index);
+            }
+            return result;
+        }
         public void SetNetworkingState(bool isOnline, bool canToggle)
         { online = isOnline; canToggleNetworking = canToggle; }
         public void SetRequestPending(bool pending)
@@ -117,14 +208,8 @@ namespace YC.Presentation
             bound = true;
             foreach (var option in maps)
                 option.Button.onClick.AddListener(() => { if (CanConfigure && option.Button.interactable) MapSelectionRequested?.Invoke(option.Id); });
-            foreach (var option in ruleModes)
-                option.Button.onClick.AddListener(() => { if (CanConfigure) RuleModeSelectionRequested?.Invoke(option.Id); });
-            foreach (var option in expansions)
-                option.Button.onClick.AddListener(() =>
-                {
-                    if (CanConfigure && option.Id != "core")
-                        ExpansionSelectionRequested?.Invoke(option.Id, !renderedRoom.Configuration.EnabledExpansionIds.Contains(option.Id));
-                });
+            foreach (var option in ruleModes) BindRuleMode(option);
+            foreach (var option in expansions) BindExpansion(option);
             startButton.onClick.AddListener(() =>
             {
                 if (requestPending || renderedRoom == null || !startButton.interactable) return;
@@ -172,6 +257,23 @@ namespace YC.Presentation
             swapDeclineButton.onClick.AddListener(() => ConfirmSwap(false));
         }
 
+        private void BindExpansion(ContentOption option)
+        {
+            option.Button.onClick.AddListener(() =>
+            {
+                if (CanConfigure && option.Button.interactable && option.Id != "core")
+                    ExpansionSelectionRequested?.Invoke(option.Id, !renderedRoom.Configuration.EnabledExpansionIds.Contains(option.Id));
+            });
+        }
+
+        private void BindRuleMode(ContentOption option)
+        {
+            option.Button.onClick.AddListener(() =>
+            {
+                if (CanConfigure && option.Button.interactable) RuleModeSelectionRequested?.Invoke(option.Id);
+            });
+        }
+
         private bool CanConfigure => renderedRoom != null && renderedRoom.Resume == null && viewerId == renderedRoom.HostPlayerId && !requestPending && !renderedRoom.HasStarted;
         private bool CanUseLocalPlayers => supportsLocalPlayers && !online;
 
@@ -188,7 +290,7 @@ namespace YC.Presentation
             copyButton.interactable = online;
             networkingCaption.text = online ? disableNetworkingCaption : enableNetworkingCaption;
             validationText.text = string.Format(summaryFormat, FindName(maps, room.Configuration.MapId),
-                FindName(ruleModes, room.Configuration.RuleModeId), ExpansionNames(room.Configuration.EnabledExpansionIds),
+                string.Join(expansionNameSeparator, room.Configuration.ActiveRuleModeIds.Select(id => FindName(ruleModes, id))), ExpansionNames(room.Configuration.EnabledExpansionIds),
                 room.PlayerCount);
             permissionsText.text = room.Resume != null ? resumePermissionCaption : host ? CanUseLocalPlayers ? localPermissionCaption : hostPermissionCaption : memberPermissionCaption;
             mapHintText.text = room.PlayerCount == 4 ? fourPlayerHint : mapSelectionHint;
@@ -203,15 +305,24 @@ namespace YC.Presentation
                 states.disabledSprite = option.Frame.sprite;
                 option.Button.spriteState = states;
             }
+            var required = new HashSet<string>(StringComparer.Ordinal) { "core" };
+            if (gameplayOptions != null && gameplayOptions.TryPlanModesTransition(room.Configuration.ActiveRuleModeIds, room.Configuration.MapId,
+                room.Configuration.EnabledExpansionIds, out var transition, out _)) required.UnionWith(transition.RequiredExpansionIds);
             foreach (var option in ruleModes)
             {
-                // 保留未实现模式的请求入口，Host 拒绝后显示真实原因；绝不改成 standard。
-                option.Button.interactable = CanConfigure;
-                option.Selection.gameObject.SetActive(room.Configuration.RuleModeId == option.Id);
+                // 目录提供状态时，缺能力的模式不能被误选；未登记的旧资产仍由房间校验。
+                var declaration = gameplayOptions?.Modes.FirstOrDefault(item => item.Id == option.Id);
+                option.Button.interactable = CanConfigure && (declaration == null || declaration.Available);
+                option.Selection.gameObject.SetActive(room.Configuration.ActiveRuleModeIds.Contains(option.Id));
             }
             foreach (var option in expansions)
             {
-                option.Button.interactable = CanConfigure && option.Id != "core";
+                var declaration = gameplayOptions?.Expansions.FirstOrDefault(item => item.Id == option.Id);
+                bool applicable = declaration == null || declaration.Available &&
+                    (declaration.ApplicableModes.Count == 0 || room.Configuration.ActiveRuleModeIds.Any(declaration.ApplicableModes.Contains));
+                if (dynamicExpansionIds.Contains(option.Id)) option.Button.gameObject.SetActive(declaration != null &&
+                    (declaration.ApplicableModes.Count == 0 || room.Configuration.ActiveRuleModeIds.Any(declaration.ApplicableModes.Contains) || room.Configuration.EnabledExpansionIds.Contains(option.Id)));
+                option.Button.interactable = CanConfigure && !required.Contains(option.Id) && applicable;
                 option.Selection.gameObject.SetActive(room.Configuration.EnabledExpansionIds.Contains(option.Id));
             }
             passwordButton.gameObject.SetActive(host);
@@ -330,7 +441,7 @@ namespace YC.Presentation
             if (roomCodeText == null || copyButton == null || validationText == null ||
                 seatListRoot == null || seatTemplate == null || statusText == null ||
                 inviteButton == null || networkingCaption == null || startButton == null || backButton == null ||
-                seats == null || seats.Length != 4 || maps == null || maps.Length != 2 || ruleModes == null || expansions == null ||
+                seats == null || seats.Length != 4 || maps == null || maps.Length != 2 || ruleModes == null || ruleModeContent == null || expansions == null ||
                 primaryCaption == null || permissionsText == null || mapHintText == null || swapPromptText == null ||
                 passwordButton == null || helpButton == null || helpCloseButton == null || helpPanel == null || swapPanel == null ||
                 swapAcceptButton == null || swapDeclineButton == null || swapCloseButton == null || swapTargets == null || swapTargets.Length != 4 || reasons == null)

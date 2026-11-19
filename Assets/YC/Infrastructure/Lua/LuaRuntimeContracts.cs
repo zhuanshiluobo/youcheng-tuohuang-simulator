@@ -742,6 +742,9 @@ namespace YC.Infrastructure.Lua
         public IReadOnlyList<YC.Domain.Effects.SettlementOfferDefinition> SettlementOffers { get; private set; } = Array.Empty<YC.Domain.Effects.SettlementOfferDefinition>();
         public YC.Domain.Effects.SettlementAvailabilityResult SettlementAvailability { get; private set; }
         public NormalizedValue AbilityQueryResult { get; private set; }
+        public int OperatorDispatchCountDelta { get; private set; }
+        internal static LuaInvocationResult DispatchPatchSuccess(LuaScriptDefinition definition, int delta)
+        { var result = Success(definition, Array.Empty<LuaEffectSpec>()); result.OperatorDispatchCountDelta = delta; return result; }
         public string RewriteOperation { get; private set; } = "";
         internal static LuaInvocationResult RewriteSuccess(LuaScriptDefinition definition, string operation, IReadOnlyList<LuaEffectSpec> effects)
         { var result = Success(definition, effects); result.RewriteOperation = operation; return result; }

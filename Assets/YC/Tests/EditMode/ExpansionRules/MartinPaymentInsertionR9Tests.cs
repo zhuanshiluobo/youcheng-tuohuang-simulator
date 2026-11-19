@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -111,6 +113,124 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static string Resources(GameState s, int player = 2) => JsonConvert.SerializeObject(s.FindPlayer(player).Resources);
         private void Snapshot(string label, object value) => Artifacts.WriteLabeledText(label, JsonConvert.SerializeObject(value, Formatting.Indented));
+
+        [TestCase(false)][TestCase(true)]
+        public void FormalAwardAllocationOpensExistingDialogAndSubmitsItsSelectedResource(bool legacyRequest)
+        {
+            // 使用真实请求和原有预制体的隔离组件，不计正常对局或跨机验收。
+            var state = Fixture();
+            state.FindPlayer(2).Resources = new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2, GoldVoucher = 2 };
+            var owner = Build(state); Invoke(state, Entry(owner));
+            if (legacyRequest) Open(state).Presentation.QuantityRows.Clear();
+            var view = GameStateViewProjector.ProjectForPlayer(state, 2);
+            var visible = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 2)
+                .Single(r => r.GetStableInteractionId() == Open(state).GetStableInteractionId());
+            var projected = InteractionRequestProjector.ProjectForPlayer(visible, 2);
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+            Type Runtime(string name) => Type.GetType("YC.Presentation." + name + ", Assembly-CSharp", true);
+            object Read(object value, string name) => value.GetType().GetField(name, flags)?.GetValue(value) ?? value.GetType().GetProperty(name, flags)?.GetValue(value);
+            object Call(object value, string name, params object[] args) => value.GetType().GetMethods(flags)
+                .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(value, args);
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>("Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(prefab, Is.Not.Null);
+            var hud = UnityEngine.Object.Instantiate(prefab);
+            object dialog = null, coordinator = null;
+            try
+            {
+                var hudView = hud.GetComponent(Runtime("GameplayInteractionHudView"));
+                var frame = Read(hudView, "Frame"); Call(frame, "Awake");
+                var text = Call(Pack.Presentation, "WithContentHash", state.ContentPackHash);
+                Call(frame, "ConfigureGameplayPresentation", text, new Dictionary<string, string>());
+                var adapter = hud.GetComponent(Runtime("GameplayExpansionUi"));
+                var submitted = new List<YC.Domain.Commands.GameCommand>();
+                Func<GameStateView> currentView = () => GameStateViewProjector.ProjectForPlayer(state, 2);
+                Call(adapter, "Configure", currentView, (Func<int>)(() => 2), Registry.EnterpriseDefinitions, Registry.CharacterAbilityContracts,
+                    (Action<YC.Domain.Commands.GameCommand>)(command => submitted.Add(command)));
+                var dialogRegistry = Read(hudView, "DialogRegistry");
+                dialog = Activator.CreateInstance(Runtime("CharacterCardEffectChoiceDialog"), flags, null,
+                    new[] { dialogRegistry, Read(frame, "ContentRect") }, null);
+                coordinator = Activator.CreateInstance(Runtime("CharacterAbilityInteractionUiCoordinator"), flags, null,
+                    new object[] { (Func<GameState>)(() => state), (Func<int>)(() => 2), dialog,
+                        (Action<IReadOnlyList<YC.Presentation.Workflows.WorkflowHighlight>>)(_ => { }), (Action)(() => { }),
+                        (Action<YC.Domain.Commands.GameCommand>)(command => submitted.Add(command)), (Action<string>)(_ => { }) }, null);
+                coordinator.GetType().GetProperty("ExpansionUi", flags).SetValue(coordinator, adapter);
+                coordinator.GetType().GetProperty("GetVisibleState", flags).SetValue(coordinator, currentView);
+                coordinator.GetType().GetProperty("GetVisibleRequests", flags).SetValue(coordinator,
+                    (Func<IReadOnlyList<InteractionRequest>>)(() => state.EffectRuntime.InteractionRequests));
+                coordinator.GetType().GetProperty("CanSubmit", flags).SetValue(coordinator, (Func<bool>)(() => true));
+                Assert.That(Call(coordinator, "CanRender", projected), Is.True);
+                Call(coordinator, "Render", projected);
+                var shell = Read(dialog, "shell"); var shellView = Read(shell, "view");
+                var binding = new object[] { projected.InteractionId, null, null };
+                Assert.That(Call(shellView, "TryGetResourceAllocation", binding), Is.True, "原页面没有绑定该付款请求。");
+                var rows = ((IEnumerable)binding[2]).Cast<object>().ToArray();
+                Assert.That(rows.Length, Is.EqualTo(projected.CandidateIds.Count));
+                int iron = projected.CandidateIds.IndexOf(nameof(ResourceType.Iron));
+                Assert.That(iron, Is.GreaterThanOrEqualTo(0));
+                var plus = (UnityEngine.UI.Button)Read(rows[iron], "IncreaseButton");
+                Assert.That(plus.interactable, Is.True); plus.onClick.Invoke();
+                var confirm = (UnityEngine.UI.Button)binding[1];
+                Assert.That(confirm.interactable, Is.True); confirm.onClick.Invoke();
+                Assert.That(submitted.Count, Is.EqualTo(1));
+                Assert.That(submitted[0].Parameters[YC.Application.Interactions.AnswerInteractionCommandHandler.AnswerValueParameter], Does.Contain("Iron=1"));
+            }
+            finally
+            {
+                if (coordinator is IDisposable disposable) disposable.Dispose();
+                if (dialog != null) Call(dialog, "Hide");
+                UnityEngine.Object.DestroyImmediate(hud);
+            }
+        }
+
+        [Test] public void FormalAwardAllocationProjectsEveryAuthorizedResourceRowAndCanCompleteAfterRecovery()
+        {
+            var state = Fixture();
+            state.FindPlayer(2).Resources = new ResourceSet { Originium = 2, OriginiumShard = 2, Iron = 2, GoldVoucher = 2 };
+            var owner = Build(state); string ownerId = owner.EffectId; string before = Resources(state);
+            Invoke(state, Entry(owner));
+            void AssertVisibleRows(GameState current)
+            {
+                var original = Open(current);
+                Assert.That(original.InteractionTypeId, Is.EqualTo(ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId));
+                var authorized = Value(original.PromptParameters, "rowIds").Items.Select(v => v.StringValue).ToArray();
+                var view = GameStateViewProjector.ProjectForPlayer(current, 2);
+                var visible = YC.Presentation.Workflows.VisibleInteractionRequestSource.Read(null, view, 2)
+                    .Single(r => r.GetStableInteractionId() == original.GetStableInteractionId());
+                var projected = InteractionRequestProjector.ProjectForPlayer(visible, 2);
+                Assert.That(projected.Presentation.QuantityRows.Select(row => row.RowId), Is.EqualTo(authorized), "付款分配界面必须收到全部授权资源行。");
+                Assert.That(projected.CandidateIds, Is.EqualTo(authorized));
+                foreach (var row in projected.Presentation.QuantityRows)
+                {
+                    Assert.That(row.Label, Is.Not.Null);
+                    Assert.That(Pack.Presentation.TryGetTemplate(row.Label.Key, out _), Is.True, "资源行文案必须能从正式内容解析。");
+                    Assert.That(Pack.Presentation.TryGetIcon(row.IconKey, out _), Is.True, "资源行图标必须来自正式内容。");
+                }
+                Assert.That(InteractionRequestProjector.ProjectForPlayer(original, 3).VisibleToViewer, Is.False);
+            }
+            AssertVisibleRows(state);
+            state = Recover(state, "正式减价标识待分配恢复");
+            AssertVisibleRows(state);
+            // 旧发行版已保存的待答请求没有数量行；只修复展示投影，不能改动原权威状态。
+            var legacy = GameStateCloneService.DeepClone(state);
+            Open(legacy).Presentation.QuantityRows.Clear();
+            legacy = Recover(legacy, "旧发行版缺少资源行的待分配请求恢复");
+            AssertVisibleRows(legacy);
+            Assert.That(Open(legacy).Presentation.QuantityRows, Is.Empty, "兼容投影不能改写旧存档中的权威请求。");
+            var forged = GameStateCloneService.DeepClone(Open(legacy));
+            forged.CandidateIds[0] = "GoldVoucher";
+            Assert.That(InteractionRequestProjector.ProjectForPlayer(forged, 2).Presentation.QuantityRows, Is.Empty,
+                "候选与授权行不一致时不能补出显示行。");
+            foreach (var current in new[] { state, legacy })
+            {
+                Answer(current, NormalizedValue.CreateString("Iron=1"));
+                Assert.That(Resources(current), Is.EqualTo(before), "分配阶段不能提前扣款。");
+                Answer(current, NormalizedValue.CreateString(ResourceEffectExecutor.PaymentConfirmationCandidateId));
+                owner = current.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+                Assert.That(owner.Payment.IsCommitted, Is.True);
+                Assert.That(owner.Payment.SourceReceipts.Single().Allocation.Iron, Is.EqualTo(1));
+                Assert.That(owner.Payment.SourceReceipts.Single().ActualResourceCost.GoldVoucher, Is.EqualTo(1));
+            }
+        }
 
         [Test] public void FormalAwardBuildOffersOneNamedEntryAndCommitsOneVoucherForOneResource()
         {

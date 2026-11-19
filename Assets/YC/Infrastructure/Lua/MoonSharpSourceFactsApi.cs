@@ -55,7 +55,7 @@ namespace YC.Infrastructure.Lua
                 throw new ScriptRuntimeException("source_facts_arguments_invalid");
             Table input = args.Count == 1 ? args[0].Table : new Table(script);
             var fields = new HashSet<string>(StringComparer.Ordinal) { "cursor", "definitionId", "abilityId", "itemId", "activeFaceId", "sourceKey", "expectedStateRevision", "expectedContentHash" };
-            if(collection=="callableActions") fields=new HashSet<string>(StringComparer.Ordinal){"cursor","itemId","sourceKey","actionId","callPolicyRef","expectedStateRevision","expectedContentHash"};
+            if(collection=="callableActions") fields=new HashSet<string>(StringComparer.Ordinal){"cursor","itemId","sourceKey","actionId","expectedStateRevision","expectedContentHash"};
             if(collection=="transferableTokens") fields=new HashSet<string>(StringComparer.Ordinal){"cursor","itemId","typeId","zoneId","carrierItemId","localZoneId","expectedStateRevision","expectedContentHash"};
             foreach (var pair in input.Pairs)
                 if (pair.Key.Type != DataType.String || !fields.Contains(pair.Key.String)) throw new ScriptRuntimeException("source_facts_arguments_invalid");
@@ -70,7 +70,7 @@ namespace YC.Infrastructure.Lua
                 throw new ScriptRuntimeException("source_facts_cursor_invalid");
             int cursor = rawCursor.IsNil() ? 0 : (int)rawCursor.Number;
             var values = snapshot.Get(collection).Items.AsEnumerable();
-            foreach (string field in collection=="transferableTokens" ? new[]{"itemId","typeId","zoneId","carrierItemId","localZoneId"} : collection=="callableActions" ? new[]{"itemId","sourceKey","actionId","callPolicyRef"} : new[] { "definitionId", "abilityId", "itemId", "activeFaceId", "sourceKey" })
+            foreach (string field in collection=="transferableTokens" ? new[]{"itemId","typeId","zoneId","carrierItemId","localZoneId"} : collection=="callableActions" ? new[]{"itemId","sourceKey","actionId"} : new[] { "definitionId", "abilityId", "itemId", "activeFaceId", "sourceKey" })
             {
                 var filter = input.Get(field);
                 if (filter.IsNil()) continue;

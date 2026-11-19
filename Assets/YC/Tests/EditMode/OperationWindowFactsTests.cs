@@ -136,6 +136,8 @@ namespace YC.Tests.EditMode
             var source = Basic(GamePhase.Setup);
             source.ContentPackHash = "operation-fixture-content";
             source.RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 3, ContentPackHash = source.ContentPackHash };
+            var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
+            source.ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList() };
             foreach (var p in source.Players) { p.HandCardIds.Clear(); p.Resources.GoldVoucher = 20; }
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, new[] {
                 new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
@@ -159,7 +161,11 @@ namespace YC.Tests.EditMode
             for (int guard = 0; state.Phase == GamePhase.CharacterCover && guard < 10; guard++)
                 Submit(session, Answer(state.EffectRuntime.InteractionRequests.First(r => r.Status == "open" && r.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId)));
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ActionRound1));
-            for (int cycle = 0; cycle < 2; cycle++) for (int p = 1; p <= 3; p++) Assert.That(round.CompleteMainAction(state, p).IsValid, Is.True);
+            for (int cycle = 0; cycle < 2; cycle++) for (int p = 1; p <= 3; p++)
+            {
+                var result = round.CompleteMainAction(state, p);
+                Assert.That(result.IsValid, Is.True, result.Reason);
+            }
             Assert.That(state.Phase, Is.EqualTo(GamePhase.ResourceCollection));
             var collection = OperationWindowService.ReadOpenWindows(state).Single(w => w.WindowKind == RoundMainlineNodeTypeIds.Collection);
             Assert.That(collection.AvailablePlayerIds, Is.EqualTo(new[] { 1, 2, 3 }));
@@ -177,29 +183,7 @@ namespace YC.Tests.EditMode
         [Test]
         public void EntrancePlacementPipelineKeepsThePreviousPlayersRequiredWork()
         {
-            var state = Basic(GamePhase.Entrance, 4); state.Round = 0;
-            foreach (string location in StaticMapDefinitions.FourPlayerInitialLocationIds)
-                if (location != "B-01") state.Map.ResourceTokens.Add(new ResourceTokenState { LocationId = location, ResourceType = ResourceType.Iron, Amount = 1 });
-            state.Decks.EventDeckGreen.Add("event_green_01");
-            var handler = new SetupCommandHandler(new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap())); EventCardLuaCatalog.Register(handler.EffectRegistry);
-            var round = new RoundExecutionService(handler.EffectRegistry); Assert.That(round.StartEntrance(state).IsValid, Is.True);
-            var session = Session(state, handler.EffectRegistry, round); session.RegisterHandler(handler);
-            var first = Command(GameCommandKind.ChooseInitialLocation, 1); first.TargetId = "B-01";
-            var r = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.AnsweringPlayerId == 1 && r.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId);
-            first.Parameters["interactionId"] = r.GetStableInteractionId(); first.Parameters["expectedRevision"] = r.StateRevision.ToString(CultureInfo.InvariantCulture);
-            Submit(session, first);
-            var windows = OperationWindowService.ReadOpenWindows(state);
-            var prior = windows.Single(w => w.WindowKind == "entrance_player" && w.AuthorizedPlayerIds.Contains(1));
-            Assert.That(prior.AvailablePlayerIds, Is.EqualTo(new[] { 1 }));
-            Assert.That(windows.Any(w => w.WindowKind == "entrance_player" && w.AvailablePlayerIds.Contains(2)), Is.True);
-            Assert.That(windows.Any(w => w.AvailablePlayerIds.Contains(3)), Is.False);
-            var second = Command(GameCommandKind.ChooseInitialLocation, 2); second.TargetId = "A-01";
-            r = state.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.AnsweringPlayerId == 2 && r.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId);
-            second.Parameters["interactionId"] = r.GetStableInteractionId(); second.Parameters["expectedRevision"] = r.StateRevision.ToString(CultureInfo.InvariantCulture);
-            Submit(session, second);
-            Assert.That(state.CurrentPlayerId, Is.EqualTo(3));
-            Assert.That(state.Phase, Is.EqualTo(GamePhase.Entrance));
-            Assert.That(OperationWindowService.ReadOpenWindows(state).Any(w => w.OperationWindowId == prior.OperationWindowId && w.AvailablePlayerIds.Contains(1)), Is.True);
+            ExpansionRules.ConcurrentPlayerStageTests.AssertEntranceEventKeepsNextPicker();
         }
 
         [Test]

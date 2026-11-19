@@ -290,39 +290,41 @@ function M.cover(ctx,rules)
     return M.gainCommand(ctx,rules,1)
 end
 local function callable_actions(ctx)
-    local cursor,revision,content,total,enabled,transferable=0,nil,nil,nil,nil,nil
-    local items,seen={},{}
-    repeat
-        -- 处理器身份由真实SourceUse/已激活Action/cleanup收据决定；Lua不提供H0/H1或政策自授权。
-        local page=SourceData.GetCallableActions({cursor=cursor,expectedStateRevision=revision,expectedContentHash=content})
-        if page.protocolVersion~=1 or page.authorizedPlayerId~=ctx.playerId then error('agnes_callable_scope_invalid') end
-        if total==nil then
-            revision,content=page.stateRevision,page.contentHash
-            total=number(page.totalCount,'callableTotal'); enabled=number(page.enabledCount,'enabledCount')
-            transferable=number(page.transferableTokenCount,'transferableTokenCount')
-        elseif page.totalCount~=total or page.enabledCount~=enabled or page.transferableTokenCount~=transferable then
-            error('agnes_callable_page_changed')
-        end
-        for _, action in ipairs(page.items) do
-            if seen[action.optionId] then error('agnes_duplicate_callable_action') end
-            seen[action.optionId]=true;items[#items+1]=action
-        end
-        local nextCursor=page.nextCursor
-        if nextCursor~=-1 and (nextCursor<=cursor or nextCursor>total) then error('agnes_callable_cursor_invalid') end
-        cursor=nextCursor
-    until cursor==-1
-    local actualEnabled=0;for _, action in ipairs(items) do if action.enabled then actualEnabled=actualEnabled+1 end end
-    if #items~=total or actualEnabled~=enabled then error('agnes_callable_pages_incomplete') end
-    return items,transferable,enabled
+    local items,seenItems,tactics,seenActions={},{},{},{}
+    -- 阿格妮丝的战术行动来自已选中的三张回合牌。先按来源取实例，避免把其他内容的行动逐页搬进Lua。
+    for _, definition in ipairs({'entrepreneur.round.A.1','entrepreneur.round.A.3','entrepreneur.round.A.5'}) do
+        source_pages(ctx.playerId,SourceData.GetCurrentSources,{definitionId=definition},function(sources,count)
+            for i=1,count do
+                local source=sources[i]
+                if source.authorizedPlayerId~=ctx.playerId then error('agnes_callable_scope_invalid') end
+                if not seenItems[source.itemId] then seenItems[source.itemId]=true;items[#items+1]=source.itemId end
+            end
+        end)
+    end
+    local enabled=0
+    for _, itemId in ipairs(items) do
+        source_pages(ctx.playerId,SourceData.GetCallableActions,{itemId=itemId},function(actions,count)
+            for i=1,count do
+                local action=actions[i]
+                if string.match(action.actionId,'^entrepreneur%.A%d+%.tactic%.quick$') then
+                    if seenActions[action.optionId] then error('agnes_duplicate_callable_action') end
+                    seenActions[action.optionId]=true;tactics[#tactics+1]=action
+                    if action.enabled then enabled=enabled+1 end
+                end
+            end
+        end)
+    end
+    table.sort(tactics,function(a,b) return a.optionId<b.optionId end)
+    return tactics,enabled
 end
 local function tactic_options(ctx)
     local branches,labels={}, {}
     local actions=callable_actions(ctx)
     for _, a in ipairs(actions) do
         if a.enabled then
-            -- 每个正式来源直接绑定实际调用；执行器仍按当前来源、policy、轨道和角色限制复验。
+            -- 只调用本企业家的计谋；免入口费用、后置效果和主要行动消费，不免次数。
             branches[#branches+1]={id=a.optionId,effects={Effect.InvokeAction({apiVersion=1,player=ctx.playerId,
-                itemId=a.itemId,actionId=a.actionId,callPolicyRef=a.callPolicyRef})}}
+                itemId=a.itemId,actionId=a.actionId,omitEntryCost=true,omitEntryAfterEffects=true,omitMainAction=true})}}
             labels[#labels+1]={candidateId=a.optionId,label=text('tactic.call',{source=Text.Item(a.itemId)})}
         end
     end
@@ -338,7 +340,7 @@ function M.cleanup(ctx)
         leftEffects={M.payCommand(ctx,1)},rightEffects={choose}}),'cleanup.pay')}
 end
 function M.availability(ctx)
-    local _,_,enabled=callable_actions(ctx)
+    local _,enabled=callable_actions(ctx)
     if enabled==0 then return {enabled=false,disabledReasonKey='core:entrepreneur.A.cleanup.no_tactic'} end
     if #command_inventory(ctx)<1 then return {enabled=false,disabledReasonKey='core:entrepreneur.A.cleanup.insufficient'} end
     return {enabled=true,disabledReasonKey=''}
@@ -398,7 +400,7 @@ function M.invoke(ctx,rules)
     if ctx.payload.queryKind=='scoringModifiers.v1' then return M.scoring(ctx) end
     if a=='entrepreneur.A09.immediate.1' or a=='entrepreneur.A08.immediate.1' or a=='entrepreneur.A04.immediate.1' then return M.gainCommand(ctx,rules,2) end
     if a=='entrepreneur.A06.immediate.1' or a=='entrepreneur.A07.immediate.1' then
-        return {Effect.LoseScore({player=ctx.playerId,amount=1}),Flow.DispatchOperator({apiVersion=1,player=ctx.playerId,drawCount=3})}
+        return {Effect.LoseScore({player=ctx.playerId,amount=1}),Flow.DispatchOperator({apiVersion=2,player=ctx.playerId,deckZoneId = Global.Content.FindZones({localZoneId='operator_deck'})[1].id})}
     end
     if a=='entrepreneur.A07.immediate.2' then
         local result=M.gainCommand(ctx,rules,4)

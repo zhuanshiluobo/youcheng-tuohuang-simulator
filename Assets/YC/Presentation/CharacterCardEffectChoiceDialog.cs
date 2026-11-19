@@ -31,6 +31,9 @@ namespace YC.Presentation
         private EffectDialogShellView coverPage;
         private UnityEngine.UI.Button coverConfirm;
         private string coverPageKey, coverSelectedId;
+        private Func<string, bool> coverCanSelect;
+        private Action<string> coverSelect;
+        private Action coverSubmit;
         private List<string> coverPageCandidates;
         private readonly Dictionary<string, FacilityEffectCardView> coverRows = new Dictionary<string, FacilityEffectCardView>();
 
@@ -337,6 +340,9 @@ namespace YC.Presentation
                 ? new List<string>()
                 : new List<string>(candidateIds);
             coverSelectedId = selectedId;
+            coverCanSelect = canCover;
+            coverSelect = select;
+            coverSubmit = confirm;
             if (!string.IsNullOrEmpty(contextKey) && contextKey == coverPageKey && coverPage != null &&
                 shell.IsVisible && shell.OwnsPage(coverPage.gameObject) && coverConfirm != null &&
                 coverPageCandidates != null && coverPageCandidates.SequenceEqual(candidates) &&
@@ -348,6 +354,7 @@ namespace YC.Presentation
                     pair.Value.Button.interactable = canCover == null || canCover(pair.Key);
                     if (pair.Value.SelectionImage != null) pair.Value.SelectionImage.enabled = selected;
                     else pair.Value.Outline.enabled = selected;
+                    pair.Value.SetSelectionEffect(true, pair.Value.Button.interactable, selected);
                 }
                 int count = string.IsNullOrEmpty(selectedId) ? 0 : 1;
                 coverPage.ResourceSummaryText.text = string.Format(layoutProfile.SelectionSummaryFormat, count, 1, 1);
@@ -379,15 +386,15 @@ namespace YC.Presentation
                         : new[] { selectedId },
                     Label = id => CharacterCardPanelPresenter.ResolveCardDisplayName(ResolveCharacterDefinition?.Invoke(id) ?? id),
                     CardSprite = id => cards.GetCharacterFront(ResolveCharacterDefinition?.Invoke(id) ?? id),
-                    IsCurrent = () => candidates.Exists(id => canCover == null || canCover(id)),
-                    CanSelect = id => canCover == null || canCover(id),
+                    IsCurrent = () => candidates.Exists(id => coverCanSelect == null || coverCanSelect(id)),
+                    CanSelect = id => coverCanSelect == null || coverCanSelect(id),
                     OptionNamePrefix = "Character Cover Card ",
                     ConfirmLabel = layoutProfile.SelectionConfirmLabel,
                     CancelLabel = layoutProfile.SelectionCancelLabel,
-                    Select = id => select?.Invoke(id),
+                    Select = id => coverSelect?.Invoke(id),
                     Confirm = () =>
                     {
-                        if (!string.IsNullOrEmpty(coverSelectedId)) confirm?.Invoke();
+                        if (!string.IsNullOrEmpty(coverSelectedId)) coverSubmit?.Invoke();
                     }
                 },
                 true);
@@ -620,6 +627,7 @@ namespace YC.Presentation
         {
             if (ownsPaymentConfirmation) { ownsPaymentConfirmation = false; HidePaymentConfirmation?.Invoke(); }
             coverPageKey = coverSelectedId = null;
+            coverCanSelect = null; coverSelect = null; coverSubmit = null;
             coverPage = null; coverConfirm = null; coverPageCandidates = null;
             coverRows.Clear(); lastSelectionPanel = null;
             if (players != null) { players.Close(); UnityEngine.Object.Destroy(players.gameObject); players = null; }

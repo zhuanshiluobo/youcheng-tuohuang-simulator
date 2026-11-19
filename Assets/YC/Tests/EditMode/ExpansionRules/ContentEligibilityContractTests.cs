@@ -25,11 +25,9 @@ namespace YC.Tests.EditMode.ExpansionRules
                     AllowedOperations=new List<string>{"carrier.transfer.original_supply:"+Def+":commands:core.player_marker"}};
                 var target=new AbilitySourceDeclaration {DefinitionId=Def,AbilityId="qy007.eligibility.targets",Kind="quick",HandlerRef="qy007.target.body",DeclarationVersion="1.0.0",AuthorizationPolicy="controller",PresentationRef=Def,
                     EffectiveZones=new List<string>{targets?"core.zone.entrepreneur_active":"core.zone.box_reserve"}};
-                var policies=new List<AbilityActionCallPolicy>();
                 for(int n=0;n<6;n++) {
-                    string action="qy007.target."+n,policy="qy007.policy."+n;
-                    target.Actions.Add(new AbilityActionDeclaration {ActionId=action,EntryKind=n==0?"special":"quick",BodyHandlerRef="qy007.target.body",EntryCostRef="qy007.target.cost",EntryAfterEffectsRef="qy007.target.after",DirectCallPolicy=policy,PresentationRef=Def});
-                    policies.Add(new AbilityActionCallPolicy{PolicyRef=policy,CallerAbilityId=Caller,CallerHandlerRef=Caller,TargetActionId=action,OmitEntryCost=true,OmitEntryAfterEffects=true,OmitMainAction=true});cleanup.AllowedOperations.Add("action.invoke:"+policy);
+                    string action="qy007.target."+n;
+                    target.Actions.Add(new AbilityActionDeclaration {ActionId=action,EntryKind=n==0?"special":"quick",BodyHandlerRef="qy007.target.body",EntryCostRef="qy007.target.cost",EntryAfterEffectsRef="qy007.target.after",PresentationRef=Def});
                 }
                 ((JArray)j["abilitySources"]).Add(JObject.FromObject(cleanup));((JArray)j["abilitySources"]).Add(JObject.FromObject(target));
                 ((JArray)j["abilitySources"]).Add(JObject.FromObject(new AbilitySourceDeclaration{DefinitionId=Def,AbilityId=Boot,Kind="setup",HandlerRef=Boot,DeclarationVersion="1.0.0",AuthorizationPolicy="controller",PresentationRef=Def,EffectiveZones=cleanup.EffectiveZones,AllowedOperations=new List<string>{"carrier.load:"+Def+":commands:core.player_marker"}}));
@@ -40,14 +38,13 @@ namespace YC.Tests.EditMode.ExpansionRules
                 foreach(var h in new[]{new ExternalAbilityHandler{HandlerId=Caller,Script=CallerPath,Version="1.0.0",CompletionHandlerId=Caller+".continued"},new ExternalAbilityHandler{HandlerId=Boot,Script=BootPath,Version="1.0.0"},
                     new ExternalAbilityHandler{HandlerId="qy007.target.body",Script="lua/entrepreneurs/paul.p02.quick.lua",Version="1.0.0"},new ExternalAbilityHandler{HandlerId="qy007.target.cost",Script="lua/entrepreneurs/paul.p03.quick.lua",Version="1.0.0"},new ExternalAbilityHandler{HandlerId="qy007.target.after",Script="lua/entrepreneurs/paul.p06.immediate.lua",Version="1.0.0"}})
                     ((JArray)j["abilityHandlers"]).Add(JObject.FromObject(h));
-                j["actionCallPolicies"]=JArray.FromObject(policies);
                 string caller=@"return function(ctx) local p=ctx.payload
                     if ctx.eventType=='EffectCompleted' and not(p.continuationContext and p.continuationContext.stage=='call') then return {} end
                     local o=SourceData.GetCallableActions({actionId='qy007.target.0'}).items[1];assert(o and o.enabled)
                     if p.continuationContext and p.continuationContext.stage=='call' then
                         local v=p.normalizedResult;if type(v)=='table' then if v.value~=nil then v=v.value elseif #v==1 then v=v[1] else return {} end end
                         if v~='use' then return {} end
-                        return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=o.itemId,actionId=o.actionId,callPolicyRef=o.callPolicyRef})}
+                        return {Effect.InvokeAction({apiVersion=1,player=ctx.playerId,itemId=o.itemId,actionId=o.actionId,omitEntryCost=true,omitEntryAfterEffects=true,omitMainAction=true})}
                     end
                     local card=Global.Content.FindInstances({definitionId='entrepreneur.ability.A01',controller=ctx.playerId})[1]
                     local token=SourceData.GetTransferableTokens({carrierItemId=card.id,localZoneId='commands',typeId='core.player_marker'}).items[1];assert(token)
@@ -85,7 +82,17 @@ namespace YC.Tests.EditMode.ExpansionRules
             int score=f.State.FindPlayer(1).Score,gold=f.State.FindPlayer(1).Resources.GoldVoucher,budget=f.State.FindPlayer(1).RemainingMainActionsThisTurn;
             f.Restore("once已付费可放弃战术待答");q=f.Open.Single(r=>r.GetStableInteractionId()==q.GetStableInteractionId());
             if(decline) f.Decline(q);else f.Answer(q,"use");
-            for(int i=0;i<4 && f.Open.Any(r=>r.InteractionTypeId=="action.decline_effect");i++) f.Answer(f.Open.Last(r=>r.InteractionTypeId=="action.decline_effect"),"continue");
+            for(int i=0;i<4 && f.Open.Any(r=>r.InteractionTypeId=="action.decline_effect");i++)
+            {
+                var pending=f.Open.Last(r=>r.InteractionTypeId=="action.decline_effect");
+                if(internalShortage)
+                {
+                    Assert.That(f.Engine.TrySubmitInteraction(pending.GetStableInteractionId(),1,pending.StateRevision,NormalizedValue.CreateString("continue"),out string reason),Is.False);
+                    Assert.That(reason,Does.Contain("insufficient"));
+                    f.Answer(pending,"decline");
+                }
+                else f.Answer(pending,"continue");
+            }
             Assert.That(f.State.FindPlayer(1).Score,Is.EqualTo(score+(decline || internalShortage?0:1)));Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher,Is.EqualTo(gold));Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn,Is.EqualTo(budget));
             Assert.That(f.Registry.GetSettlementOptions(f.State,1).Any(o=>o.LocalId==Caller+".order"),Is.False);f.Restore("once正常终态不重复");
         }

@@ -10,6 +10,19 @@ namespace YC.Presentation.Validation
 {
     public sealed partial class HotseatUiValidationDriver
     {
+        // 必答移动的策略无首选时，仍只能选择当前本人原请求中实际可见的目标。
+        private static string ChooseVisibleMoveTarget(IEnumerable<string> preferred, IEnumerable<string> visible, bool mandatoryCurrent)
+        {
+            var targets = new HashSet<string>(visible.Where(value => !string.IsNullOrEmpty(value)), StringComparer.Ordinal);
+            string ranked = preferred.FirstOrDefault(targets.Contains);
+            return ranked ?? (mandatoryCurrent ? targets.OrderBy(value => value, StringComparer.Ordinal).FirstOrDefault() : null);
+        }
+
+        private static bool CanUseRequiredInfluenceTarget(string type, bool visible, bool owned, bool required,
+            bool allowDecline, bool canEnd, bool current, bool revisionMatches) =>
+            (type == "effect.influence.place.target" || type == "effect.influence.move.target") &&
+            visible && owned && required && !allowDecline && !canEnd && current && revisionMatches;
+
         private IReadOnlyList<string> RankInfluencePlacementSlots(IEnumerable<string> legal)
         {
             var map = new MapQueryService(StaticMapDefinitions.Resolve(State.MapId));

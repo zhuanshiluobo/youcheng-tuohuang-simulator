@@ -159,8 +159,8 @@ namespace YC.Infrastructure.Lua
                         foreach (string name in new[] { "color", "unique", "uniqueGroupId", "hasEntryEffect", "reserveOnly" }) fields[name] = definition.Get(name); }
                 enriched.Add(O(fields.Select(p => E(p.Key, p.Value)).ToArray()));
             }
-            // API-20 / 4.8.1：转交可解析真实接收者手牌区；身份与牌序仍按原投影遮蔽。
-            var zones = visible.Zones.Where(z => z.IdentitiesVisible || z.Zone.TemplateId == "core.zone.character_hand" || z.Zone.TemplateId == "core.zone.box_retired" || z.Zone.LocalZoneId == "facility_deck")
+            // 显式区域参数允许解析手牌、退役区与牌堆；隐藏牌堆仅公开区域元数据，牌面与牌序仍按原投影遮蔽。
+            var zones = visible.Zones.Where(z => z.IdentitiesVisible || z.Zone.TemplateId == "core.zone.character_hand" || z.Zone.TemplateId == "core.zone.box_retired" || z.Zone.TemplateId == "core.zone.card_deck")
                 .Select(z => O(E("id", S(z.Zone.ZoneId)), E("templateId", S(z.Zone.TemplateId)), E("localZoneId", S(z.Zone.LocalZoneId)),
                     E("parentId", S(z.Zone.ParentId)), E("parentKind", S(z.Zone.ParentKind.ToString())), E("owner", S(Player(z.Zone.OwnerPlayerId))), E("itemCount", N(z.ItemCount)),
                     E("orderRevision", z.IdentitiesVisible ? N(OrderRevision(state, z.Zone.ZoneId)) : LuaSnapshotValue.Null),

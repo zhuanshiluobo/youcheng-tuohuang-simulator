@@ -110,6 +110,47 @@ namespace YC.Tests.EditMode
         }
         private int Shuffles => state.EffectRuntime.EffectNodes.Count(n => n.EffectTypeId == LuaDomainEffectTypeIds.ShuffleFacilityDeck && n.Status == EffectNodeStatus.Completed);
 
+        [Test]
+        public void FormalCityStyleContinuationRemainsBoundWhenLegacyRouteUsesSameHandlerName()
+        {
+            // 隔离规则夹具：真实目录同时装配旧样式路由和正式来源能力，不计正常界面验收。
+            var pack = ExternalContentPack.Current;
+            var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 4,
+                EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
+            var catalog = ActiveContentCatalogBuilder.Build(pack, config); config.ContentPackHash = catalog.ContentPackHash;
+            registry = new EffectRegistry(); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
+            FacilityEntryEffectExecutor.Register(registry); catalog.Register(registry);
+            state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1,
+                Enumerable.Range(1, 4).Select(player => new PlayerSeat { PlayerId = player }).ToList(), config, 713,
+                catalog.SetupRecipe, catalog.ContentDefinitions, new[] { 1, 2, 3, 4 }, "continuation.version.fixture", null);
+            state.Round = 1; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1; state.FindPlayer(1).Score = 7;
+            var content = catalog.Definitions.Single(value => value.DefinitionId == "city_style_city_construction_frontier");
+            var source = content.AbilitySources.Single(value => value.Kind == "special");
+            var handler = content.AbilityHandlers.Single(value => value.HandlerId == source.HandlerRef);
+            string hash = LuaContentHasher.ComputeSha256(pack.GetScript(handler.Script));
+            string contentId = "content." + handler.HandlerId;
+            string legacyVersion = (string)content.Data["luaVersion"];
+            Assert.That(legacyVersion, Is.Not.EqualTo(handler.Version));
+            Assert.That(registry.TryGetContinuation(handler.CompletionHandlerId, "EffectCompleted", contentId,
+                CityStyleLuaCatalog.ContentInstanceId, source.AbilityId, legacyVersion, hash, out var legacy), Is.True);
+            Assert.That(registry.TryGetContinuation(handler.CompletionHandlerId, "EffectCompleted", contentId,
+                CityStyleLuaCatalog.ContentInstanceId, source.AbilityId, handler.Version, hash, out var current), Is.True);
+            Assert.That(current.SubscriptionId, Is.Not.EqualTo(legacy.SubscriptionId));
+            var loss = EffectSpec.Create("effect.score.lose", Object("player", NormalizedValue.CreateString("p1"),
+                "amount", NormalizedValue.CreateInteger(1)), 1);
+            loss.CompletionHandlerId = handler.CompletionHandlerId; loss.ContinuationContentId = contentId;
+            loss.ContinuationContentInstanceId = CityStyleLuaCatalog.ContentInstanceId;
+            loss.ContinuationAbilityId = source.AbilityId; loss.ContinuationDefinitionVersion = handler.Version;
+            loss.ContinuationContentHash = hash;
+            var engine = new EffectTreeExecutor(state, registry); string id = engine.CreateRoot(loss);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(engine.GetNode(id).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(6));
+            Assert.That(state.EffectRuntime.DispatchReceipts.Count(receipt => receipt.SubscriptionId == current.SubscriptionId && receipt.Succeeded), Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.DispatchReceipts.Any(receipt => receipt.SubscriptionId == legacy.SubscriptionId), Is.False);
+            Assert.That(HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), registry).Succeeded, Is.True);
+        }
+
         [Test] public void DeckOpensAllRealInstancesAtZeroWalletWithoutMainActionBudget()
         {
             Start(zero: true); var q = Open();

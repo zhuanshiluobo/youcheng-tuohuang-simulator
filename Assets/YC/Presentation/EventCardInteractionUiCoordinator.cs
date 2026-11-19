@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using YC.Application.Interactions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
@@ -27,7 +28,6 @@ namespace YC.Presentation
         private readonly Action clearHighlights;
         private readonly Action<GameCommand> submit;
         private readonly Action<string> setPrompt;
-        private readonly List<string> selectedInfluenceSlots = new List<string>();
 
         private string renderedInteractionId = string.Empty;
         private int renderedRevision = -1;
@@ -91,7 +91,7 @@ namespace YC.Presentation
 
             var sameRequest = projection.InteractionId == renderedInteractionId;
             if (sameRequest && projection.StateRevision < renderedRevision) return;
-            if (!sameRequest) { inFlightCommandId = string.Empty; selectedInfluenceSlots.Clear(); }
+            if (!sameRequest) inFlightCommandId = string.Empty;
             if (!string.IsNullOrEmpty(inFlightCommandId)) return;
             if (sameRequest && !needsRefresh && projection.StateRevision == renderedRevision) return;
 
@@ -99,22 +99,9 @@ namespace YC.Presentation
             renderedRevision = projection.StateRevision;
             needsRefresh = false;
             ownsPresentation = true;
-            selectedInfluenceSlots.RemoveAll(id => projection.CandidateIds == null || !projection.CandidateIds.Contains(id));
             clearHighlights();
 
-            if (projection.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId)
-            {
-                RenderOptionInteraction(projection);
-            }
-            else
-            {
-                HideOwnedDialog();
-                setHighlights(BuildInfluenceHighlights(projection.CandidateIds));
-                setPrompt("请选择事件牌要求的影响力目标。" +
-                          (projection.MinSelections > 1
-                              ? "还需选择 " + projection.MinSelections + " 个槽位。"
-                              : string.Empty));
-            }
+            RenderOptionInteraction(projection);
         }
 
         public override InteractionResult OnLocationClicked(string locationId)
@@ -127,15 +114,7 @@ namespace YC.Presentation
         public override InteractionResult OnInfluenceSlotClicked(string slotId)
         {
             if (!IsActive) return InteractionResult.Passthrough;
-            InteractionRequest request;
-            if (!TryGetRequest(out request)) return InteractionResult.Passthrough;
-            if (request.InteractionTypeId != EventCardEffectExecutor.InfluenceInteractionTypeId)
-            {
-                setPrompt("请先选择事件牌选项。");
-                return InteractionResult.Consumed;
-            }
-
-            TryHandleInfluenceSlotClicked(request, slotId);
+            setPrompt("请先选择事件牌选项。");
             return InteractionResult.Consumed;
         }
 
@@ -158,15 +137,6 @@ namespace YC.Presentation
             if (!string.IsNullOrEmpty(inFlightCommandId)) return InteractionPresentation.Busy;
             InteractionRequest request;
             if (!TryGetRequest(out request)) return InteractionPresentation.Empty;
-
-            if (request.InteractionTypeId == EventCardEffectExecutor.InfluenceInteractionTypeId)
-            {
-                return new InteractionPresentation(
-                    BuildInfluenceHighlights(request.CandidateIds),
-                    "请选择事件牌要求的影响力目标。",
-                    InteractionMode.Busy,
-                    true);
-            }
 
             return new InteractionPresentation(
                 new List<WorkflowHighlight>().AsReadOnly(),
@@ -202,7 +172,6 @@ namespace YC.Presentation
             renderedRevision = -1;
             needsRefresh = false;
             inFlightCommandId = string.Empty;
-            selectedInfluenceSlots.Clear();
             if (!ownsPresentation) return;
             ownsPresentation = false;
             HideOwnedDialog();
@@ -229,61 +198,32 @@ namespace YC.Presentation
 
             dialog.SetChoiceHighlightColor(UiTheme.CyanAccent);
             ownsDialog = true;
-            dialog.ShowEventCardOptions(
-                card,
-                string.Empty,
-                new List<ExplorePaymentChoice>(),
-                new Dictionary<string, int>(),
-                getPlayerDisplayName,
-                choiceIndex =>
-                {
-                    if (choiceIndex < 0 || choiceIndex >= card.ChoiceDescriptions.Count) return;
-                    SubmitCandidates(
-                        projection,
-                        new List<string> { EventCardOptionIdFactory.Create(card.CardId, choiceIndex) });
-                },
-                null);
+            if (card.EventChoiceSchemaVersion != 1)
+            {
+                HideOwnedDialog();
+                setPrompt("事件选择版本不受支持：" + cardId);
+                return;
+            }
+            // Get 返回独立快照，只展示本次玩家投影中真实授权的候选。
+            card.Choices = (card.Choices ?? new List<EventCardChoice>()).Where(choice => choice != null &&
+                projection.CandidateIds != null && projection.CandidateIds.Contains(
+                    EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId))).ToList();
+            if (card.Choices.Count == 0)
+            {
+                HideOwnedDialog();
+                setPrompt("当前事件没有可选择的选项。");
+                return;
+            }
+            dialog.ShowEventCardOptionsWithStableIds(card, string.Empty, choiceId =>
+            {
+                if (!card.Choices.Any(choice => string.Equals(choice.ChoiceId, choiceId, StringComparison.Ordinal))) return;
+                SubmitCandidates(projection,
+                    new List<string> { EventCardOptionIdFactory.CreateChoice(card.CardId, choiceId) });
+            });
             setPrompt("请选择事件牌选项。");
         }
 
-        public string MapConfirmationScope => !string.IsNullOrEmpty(inFlightCommandId) || !TryGetRequest(out var request)
-            ? string.Empty : request.InteractionId + ":" + request.StateRevision + ":" + request.CandidateSetVersion + ":" + selectedInfluenceSlots.Count;
-
-        private bool TryHandleInfluenceSlotClicked(InteractionRequest request, string slotId)
-        {
-            if (GameplayHudFrame.EffectInputSuspended) return false;
-            if (request == null || string.IsNullOrEmpty(slotId) ||
-                request.CandidateIds == null || !request.CandidateIds.Contains(slotId))
-            {
-                setPrompt("请选择高亮的事件牌影响力槽位。");
-                return false;
-            }
-
-            if (!string.IsNullOrEmpty(inFlightCommandId))
-            {
-                setPrompt("事件牌回答正在提交，请等待主机确认。");
-                return true;
-            }
-
-            if (selectedInfluenceSlots.Contains(slotId))
-            {
-                setPrompt("不能重复选择同一个影响力槽位。");
-                return true;
-            }
-
-            selectedInfluenceSlots.Add(slotId);
-            var required = request.MinSelections > 0 ? request.MinSelections : 1;
-            if (selectedInfluenceSlots.Count < required)
-            {
-                setHighlights(BuildInfluenceHighlights(request.CandidateIds));
-                setPrompt("还需选择 " +
-                          (required - selectedInfluenceSlots.Count) + " 个事件牌影响力槽位。");
-                return true;
-            }
-
-            SubmitCandidates(request, new List<string>(selectedInfluenceSlots));
-            return true;
-        }
+        public string MapConfirmationScope => string.Empty;
 
         private void SubmitCandidates(InteractionRequestProjection projection, IList<string> selected)
         {
@@ -319,14 +259,6 @@ namespace YC.Presentation
             }
         }
 
-        private void SubmitCandidates(InteractionRequest request, IList<string> selected)
-        {
-            if (request == null) return;
-            SubmitCandidates(
-                InteractionRequestProjector.ProjectForPlayer(request, getLocalPlayerId()),
-                selected);
-        }
-
         private bool TryGetRequest(out InteractionRequest request)
         {
             request = null;
@@ -349,29 +281,7 @@ namespace YC.Presentation
 
         private static bool IsEventCardInteraction(string interactionTypeId)
         {
-            return interactionTypeId == EventCardEffectExecutor.OptionInteractionTypeId ||
-                   interactionTypeId == EventCardEffectExecutor.InfluenceInteractionTypeId;
-        }
-
-        private List<WorkflowHighlight> BuildInfluenceHighlights(IList<string> candidateIds)
-        {
-            var highlights = new List<WorkflowHighlight>();
-            if (candidateIds == null) return highlights;
-            for (var i = 0; i < candidateIds.Count; i++)
-            {
-                var candidateId = candidateIds[i];
-                if (string.IsNullOrEmpty(candidateId) || selectedInfluenceSlots.Contains(candidateId))
-                {
-                    continue;
-                }
-
-                highlights.Add(new WorkflowHighlight(
-                    WorkflowHighlightTargetKind.InfluenceSlot,
-                    candidateId,
-                    WorkflowHighlightSemantic.EventInfluenceTarget));
-            }
-
-            return highlights;
+            return interactionTypeId == EventCardEffectExecutor.OptionInteractionTypeId;
         }
 
         private static string ReadString(NormalizedValue value, string name)

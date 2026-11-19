@@ -21,6 +21,30 @@ namespace YC.Tests.EditMode
 {
     public sealed class GameStateViewTransferTests
     {
+        [Test]
+        public void PrivatePlayerProjectionKeepsPublicEventDeckCountsWithoutRevealingCards()
+        {
+            var host = CreateCityStyleProjectionState(true);
+            var view = TransferCityStyleView(GameStateViewProjector.ProjectForPlayer(host, 1));
+            var eventDeck = new YC.Domain.Cards.EventDeckService();
+            var client = GameStateViewProjector.ToClientState(view);
+            foreach (var color in new[] { EventColor.Green, EventColor.Yellow, EventColor.Red })
+                Assert.That(eventDeck.RemainingCount(client.Decks, color), Is.EqualTo(eventDeck.RemainingCount(host.Decks, color)), color.ToString());
+            Assert.That(view.Decks.EventDeckGreenCount, Is.GreaterThan(0));
+            var hiddenZone = host.ItemZones.Zones.Single(zone => zone.LocalZoneId == "event_green");
+            var hiddenIds = host.ItemZones.Items.Where(item => item.ZoneId == hiddenZone.ZoneId).Select(item => item.ItemId).ToArray();
+            Assert.That(hiddenIds, Is.Not.Empty);
+            Assert.That(view.ItemZones.Items.Any(item => hiddenIds.Contains(item.ItemId)), Is.False);
+            Assert.That(client.ItemZones.Items.Any(item => hiddenIds.Contains(item.ItemId)), Is.False);
+            Assert.That(JsonConvert.SerializeObject(client.Decks), Does.Not.Contain("ProjectedEvent"));
+
+            // 空牌堆同样必须准确传达，不能把缺少牌面身份一律当成非空。
+            view.Decks.EventDeckGreenCount = 0;
+            var empty = GameStateViewProjector.ToClientState(view);
+            Assert.That(eventDeck.RemainingCount(empty.Decks, EventColor.Green), Is.Zero);
+            Assert.That(eventDeck.RemainingCount(empty.Decks, EventColor.Yellow), Is.EqualTo(view.Decks.EventDeckYellowCount));
+        }
+
         #region CityStyleDeclarationProjectionRepair
         [Test]
         public void NativeCityStyleDeclarationsSurviveTransferAndRejectUsedFacilityInstances()
@@ -62,6 +86,50 @@ namespace YC.Tests.EditMode
                 Assert.That(JsonConvert.SerializeObject(view), Is.EqualTo(viewJson));
             }
             Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(sourceJson));
+        }
+
+        [Test]
+        public void ClientProjectionReadsTheVisibleCurrentCityStyleMarkerWithoutAuthorityRuntime()
+        {
+            var state = CreateCityStyleProjectionState(true);
+            var registry = new EffectRegistry { ContentDefinitions = state.ContentDefinitions };
+            CityStyleDeclarationEffectExecutor.Register(registry);
+            var engine = new EffectTreeExecutor(state, registry);
+            engine.CreateRoot(CityStyleDeclarationEffectExecutor.Create(1, CityStyleDatabase.MilitaryIndustrialArea, new[] { 6, 7 }));
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var view = TransferCityStyleView(GameStateViewProjector.ProjectForPlayer(state, 1));
+            var declaration = view.Players.Single(player => player.PlayerId == 1).DeclaredCityStyles.Single();
+            var original = view.ItemZones.Items.Single(item => item.ItemId == declaration.InfluenceMarkerId);
+            var replacement = view.ItemZones.Items.First(item => item.TypeId == "core.player_marker" && item.ItemId != original.ItemId &&
+                item.OwnerSubject.Kind == ItemSubjectKind.Player && item.OwnerSubject.PlayerId == 1 && item.ZoneId != original.ZoneId);
+            string track = original.ZoneId, elsewhere = replacement.ZoneId;
+            original.ZoneId = elsewhere; original.SlotId = "";
+            replacement.ZoneId = track; replacement.SlotId = "used";
+            declaration.CurrentMarkerItemId = replacement.ItemId; declaration.MarkerArea = "used";
+            var client = GameStateViewProjector.ToClientState(view);
+            client.ContentDefinitions = state.ContentDefinitions;
+            Assert.That(client.EffectRuntime, Is.Null);
+            var projected = client.FindPlayer(1).DeclaredCityStyles.Single();
+            Assert.That(projected.GetCurrentMarkerItemId(), Is.EqualTo(replacement.ItemId));
+            Assert.That(projected.MarkerArea, Is.EqualTo("used"));
+            var factory = Type.GetType("YC.Presentation.PlayerUiReadStateFactory, Assembly-CSharp", true);
+            var create = factory.GetMethod("Create", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var uiState = (GameState)create.Invoke(null, new object[] { state, view, 1 });
+            Assert.That(uiState, Is.Not.Null);
+            Assert.That(uiState.FindPlayer(1).DeclaredCityStyles.Single().GetCurrentMarkerItemId(), Is.EqualTo(replacement.ItemId));
+            Assert.That(uiState.FindPlayer(1).DeclaredCityStyles.Single().MarkerArea, Is.EqualTo("used"));
+            var createPrivate = factory.GetMethod("CreateFromPrivateView", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            var privateState = (GameState)createPrivate.Invoke(null, new object[] { view, state.ContentDefinitions, 1, state.GameId, state.ContentPackHash });
+            Assert.That(privateState, Is.Not.Null);
+            Assert.That(privateState.FindPlayer(1).DeclaredCityStyles.Single().GetCurrentMarkerItemId(), Is.EqualTo(replacement.ItemId));
+            Assert.That(privateState.FindPlayer(1).DeclaredCityStyles.Single().MarkerArea, Is.EqualTo("used"));
+            Assert.That(privateState.EffectRuntime.EffectNodes, Is.Empty);
+            Assert.That(createPrivate.Invoke(null, new object[] { view, state.ContentDefinitions, 2, state.GameId, state.ContentPackHash }), Is.Null);
+            Assert.That(createPrivate.Invoke(null, new object[] { view, state.ContentDefinitions, 1, "其他对局", state.ContentPackHash }), Is.Null);
+            Assert.That(createPrivate.Invoke(null, new object[] { view, state.ContentDefinitions, 1, state.GameId, "其他内容" }), Is.Null);
+            client.ItemZones.Items.Single(item => item.ItemId == replacement.ItemId).ZoneId = elsewhere;
+            Assert.That(projected.GetCurrentMarkerItemId(), Is.Empty);
+            Assert.That(projected.MarkerArea, Is.Empty);
         }
 
         [Test]

@@ -370,7 +370,7 @@ namespace YC.Presentation.Validation
                     ownerPurpose?.Kind == NormalizedValueKind.Integer && ownerPurpose.IntegerValue == (int)RouteSelectionPurpose.NormalHarvest;
             }
             if (view.Phase == GamePhase.Entrance && request.Kind == "setup.enterprise.choose")
-                return owner.EffectTypeId == "setup.enterprise.select";
+                return owner.EffectTypeId == PreparationFrameworkFlow.SelectionTypeId;
             if (view.Phase == GamePhase.Entrance && request.Kind == "entrance.location")
                 return view.ViewerRole == GameStateViewerRole.Player && owner.EffectTypeId == "flow.player.enter" &&
                     request.SourceNodeId == owner.EffectId && !string.IsNullOrEmpty(owner.ParentEffectId) &&

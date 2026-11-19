@@ -136,7 +136,7 @@ namespace YC.Application.Gameplay
 
             if (!grantedByEffect && (!result.HasEventCard || result.SelectedOptionIndex >= 0))
             {
-                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.MoveCity);
             }
 
             return CommandResult.SuccessResult(events, "Player " + command.PlayerId + " moved city to " + result.TargetLocationId + ".");
@@ -250,7 +250,7 @@ namespace YC.Application.Gameplay
 
             if (consumeMainAction)
             {
-                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.MoveCity);
             }
 
             var card = EventCardDatabase.Get(state, result.EventCardId);

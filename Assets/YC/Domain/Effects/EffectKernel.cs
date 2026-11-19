@@ -98,12 +98,14 @@ namespace YC.Domain.Effects
         public int MaxEventCount { get; }
         public int MaxDispatchCount { get; }
 
+        // 整局历史必须保留供恢复与防重；默认不设累计节点、事件和分发条数上限。
+        // 单次推进步数、树深及内容自身的 Lua 预算仍独立限制异常执行。
         public static EffectRuntimeLimits Default { get; } = new EffectRuntimeLimits(
             maxSteps: 10000,
             maxTreeDepth: 64,
-            maxNodeCount: 2048,
-            maxEventCount: 4096,
-            maxDispatchCount: 16384);
+            maxNodeCount: int.MaxValue,
+            maxEventCount: int.MaxValue,
+            maxDispatchCount: int.MaxValue);
     }
 
     [Serializable]
@@ -727,6 +729,8 @@ namespace YC.Domain.Effects
         public string ContentPackHash { get; set; } = string.Empty;
         public GameSetupRecipe SetupRecipe { get; set; }
         public GameContentDefinitions ContentDefinitions { get; set; }
+        // 正式恢复时复核完整的玩法来源与精确包锁，不靠模式名称猜测来源。
+        public IGameRuleCatalog FrozenRuleCatalog { get; set; }
         public GameplayPresentationProvider GameplayPresenter { get; set; }
         public YC.Domain.Facilities.FacilityBuildCandidateQuery FacilityBuildCandidates { get; set; } = new YC.Domain.Facilities.FacilityBuildCandidateQuery();
         public GameRuleConfiguration LaunchConfiguration { get; set; }
@@ -824,12 +828,30 @@ namespace YC.Domain.Effects
             return false;
         }
 
+        public bool TryGetContinuation(string handlerId, string eventType, string contentId,
+            string contentInstanceId, string abilityId, string definitionVersion, string contentHash,
+            out EffectEventHandlerRegistration registration)
+        {
+            registration = eventHandlers.Find(candidate => candidate.Role == EffectHandlerRole.Continuation &&
+                string.Equals(candidate.HandlerId, handlerId, StringComparison.Ordinal) &&
+                string.Equals(candidate.EventType, eventType, StringComparison.Ordinal) &&
+                string.Equals(candidate.ContentId, contentId ?? string.Empty, StringComparison.Ordinal) &&
+                string.Equals(candidate.ContentInstanceId, contentInstanceId ?? string.Empty, StringComparison.Ordinal) &&
+                string.Equals(candidate.AbilityId, abilityId ?? string.Empty, StringComparison.Ordinal) &&
+                string.Equals(candidate.DefinitionVersion, definitionVersion ?? string.Empty, StringComparison.Ordinal) &&
+                string.Equals(candidate.ContentHash, contentHash ?? string.Empty, StringComparison.OrdinalIgnoreCase));
+            return registration != null;
+        }
+
         public bool HasEventHandler(string subscriptionId)
         {
             if (string.IsNullOrEmpty(subscriptionId)) return false;
             return eventHandlers.Exists(candidate =>
                 candidate != null && candidate.SubscriptionId == subscriptionId);
         }
+
+        public bool HasPrimaryEventHandler(string eventType, string routeKey) => eventHandlers.Exists(candidate =>
+            candidate != null && candidate.Role == EffectHandlerRole.Primary && candidate.EventType == eventType && candidate.RouteKey == routeKey);
 
         internal EffectEventHandlerRegistration FindEventHandler(string subscriptionId) =>
             eventHandlers.Find(candidate => candidate.SubscriptionId == subscriptionId);
@@ -853,6 +875,12 @@ namespace YC.Domain.Effects
                 {
                     throw new InvalidOperationException("同一 Event 路由只能有一个 Primary 处理器。" + registration.EventType);
                 }
+                if (existing.Role == EffectHandlerRole.Continuation && registration.Role == EffectHandlerRole.Continuation &&
+                    existing.EventType == registration.EventType && existing.HandlerId == registration.HandlerId &&
+                    existing.ContentId == registration.ContentId && existing.ContentInstanceId == registration.ContentInstanceId &&
+                    existing.AbilityId == registration.AbilityId && existing.DefinitionVersion == registration.DefinitionVersion &&
+                    string.Equals(existing.ContentHash, registration.ContentHash, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("continuation 完整身份重复：" + registration.HandlerId);
             }
 
             eventHandlers.Add(registration);
@@ -2059,6 +2087,10 @@ namespace YC.Domain.Effects
                     return false;
                 }
 
+                // 新准备流程的必选企业在提交前检查；非法答案不能关闭请求或把整条效果树送入故障。
+                if (!PreparationFrameworkFlow.TryValidateConfirmationAnswer(state, registry, requestOwner, request, answer, out reason))
+                { diagnostic = reason; return false; }
+
                 if (!ResourcePaymentPreparationService.TryValidateConfirmationAnswer(state, registry, requestOwner, request, answer, out reason))
                 { diagnostic = reason; return false; }
                 if (requestOwner?.Payment?.Preparation?.AuthorizationKind == "effect_build")
@@ -2470,11 +2502,13 @@ namespace YC.Domain.Effects
             // 仅已审计内置处理器且没有执行授权/持久来源/结算元数据才获凭据；普通注册保持完整隔离。
             // 续接元数据本身只被复制及校验；真正分发回调时仍按回调合同Expose。
             // 可选门只创建脱离原图的请求；接受后执行同一处理器，未知回调仍使凭据失效。
-            bool auditedExecution = !ExecutionWorkRetentionScope.RecyclingDisabled && registration.ExecutionDoesNotRetainState && schedulingWork?.AllowStatusPublication == true &&
+            bool closedExecutor = registration.ExecutionDoesNotRetainState ||
+                AbilityActionExecutor.CanRecycleClosedContinuation(state, source, registry, registration);
+            bool auditedExecution = !ExecutionWorkRetentionScope.RecyclingDisabled && closedExecutor && schedulingWork?.AllowStatusPublication == true &&
                 source.ExecutionBinding == null && source.PersistentSourceFacts == null && source.Settlement == null;
             if(!auditedExecution)
             {
-                string reason=ExecutionWorkRetentionScope.RecyclingDisabled ? "disabled" : !registration.ExecutionDoesNotRetainState ? "executor" : schedulingWork?.AllowStatusPublication!=true ? "shape" : "metadata";
+                string reason=ExecutionWorkRetentionScope.RecyclingDisabled ? "disabled" : !closedExecutor ? "executor" : schedulingWork?.AllowStatusPublication!=true ? "shape" : "metadata";
                 using var notRecycled=GameStateCloneService.MeasureDiagnostic("kernel.work_ineligible."+reason,source.EffectTypeId);
             }
             if (!registration.ExecutionPreservesJournalPrefix) ExecutionWorkRetentionScope.InvalidateAllJournalProofs();
@@ -2898,6 +2932,17 @@ namespace YC.Domain.Effects
                 return;
             }
 
+            if (ruleEvent.ResponseKind == RuleEventResponseKind.OperatorDispatchPatches)
+            {
+                // 特派执行器已经同步收集纯补丁并冻结数量。这里只登记事实，不二次调用效果事件观察器。
+                if (ruleEvent.EventType != YC.Domain.Cards.OperatorDispatchFlow.StartingEvent || owner.EffectTypeId != YC.Domain.Cards.OperatorDispatchFlow.TypeId ||
+                    owner.FlowStage != "before_draw" || ItemTransferEffectExecutor.Text(ruleEvent.Payload, "dispatchEffectId") != owner.EffectId ||
+                    ItemTransferEffectExecutor.Number(owner.ContinuationData, "drawCount") < 1 ||
+                    ItemTransferEffectExecutor.Number(owner.ContinuationData, "drawCount") > YC.Domain.Cards.OperatorDispatchFlow.MaximumDrawCount)
+                    throw new KernelException(EffectFaultCodes.InvalidEventResponse, "dispatch_patch_fact_invalid");
+                return;
+            }
+
             if (ruleEvent.ResponseKind != RuleEventResponseKind.Effects)
             {
                 throw new KernelException(EffectFaultCodes.InvalidEventResponse, "当前内核只支持 Effects 响应。");
@@ -2995,6 +3040,13 @@ namespace YC.Domain.Effects
                         if (attachmentOwner.ContinuationContentHash != owner.ContinuationContentHash || attachmentOwner.ContinuationAbilityId != owner.ContinuationAbilityId)
                             throw new KernelException(EffectFaultCodes.ContinuationBindingMissing, "continuation_scope_mismatch");
                     }
+                    string settlementTrigger = ruleEvent.EventId;
+                    if (ruleEvent.EventType == CleanupSourceRecovery.ReconcileEvent)
+                    {
+                        if (!CleanupSourceRecovery.IsReconcileEvent(work, attachmentOwner.SettlementWindow, ruleEvent))
+                            throw new KernelException(EffectFaultCodes.InvalidEventResponse, "cleanup_source_reconcile_scope_invalid");
+                        settlementTrigger = attachmentOwner.SettlementWindow.Context.TriggerId;
+                    }
                     if (!TryQueueDepartureResponses(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds) && !TryAttachDeferredEventResponsesOnWorking(work, ruleEvent, attachmentOwner, handler, specs, entries, attached, deferredIds))
                         attached.AddRange(AppendChildEffects(
                         work,
@@ -3002,7 +3054,7 @@ namespace YC.Domain.Effects
                         specs,
                         "event",
                         handler.SubscriptionId,
-                        entries, settlementTriggerId: ruleEvent.EventId, operationContext: ruleEvent.OperationContext));
+                        entries, settlementTriggerId: settlementTrigger, operationContext: ruleEvent.OperationContext));
                 }
 
                 string receiptId = StableIdFactory.Create(
@@ -3059,10 +3111,17 @@ namespace YC.Domain.Effects
             }
 
             EffectEventHandlerRegistration registration;
-            if (!registry.TryGetContinuation(owner.ContinuationHandlerId, "EffectCompleted", out registration))
+            if (!registry.TryGetContinuation(owner.ContinuationHandlerId, "EffectCompleted", owner.ContinuationContentId,
+                owner.ContinuationContentInstanceId, owner.ContinuationAbilityId, owner.ContinuationDefinitionVersion,
+                owner.ContinuationContentHash, out registration))
             {
-                faultCode = EffectFaultCodes.UnknownEventHandler;
-                faultMessage = "未注册 continuation 处理器：" + owner.ContinuationHandlerId;
+                faultCode = registry.TryGetContinuation(owner.ContinuationHandlerId, "EffectCompleted", out var prior)
+                    ? !string.Equals(prior.ContentHash, owner.ContinuationContentHash ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+                        ? EffectFaultCodes.ContinuationContentHashMismatch
+                        : !string.Equals(prior.DefinitionVersion, owner.ContinuationDefinitionVersion ?? string.Empty, StringComparison.Ordinal)
+                            ? EffectFaultCodes.DefinitionVersionMismatch : EffectFaultCodes.ContinuationBindingMissing
+                    : EffectFaultCodes.UnknownEventHandler;
+                faultMessage = "未注册与持久化内容、来源、版本和哈希完全匹配的 continuation 处理器：" + owner.ContinuationHandlerId;
                 return false;
             }
 
@@ -3105,7 +3164,7 @@ namespace YC.Domain.Effects
         {
             ValidateSpecList(specs, 0);
             EffectRuntimeState runtime = work.EffectRuntime;
-            if (runtime.EffectNodes.Count + specs.Count > limits.MaxNodeCount)
+            if ((long)runtime.EffectNodes.Count + specs.Count > limits.MaxNodeCount)
             {
                 throw new KernelException(EffectFaultCodes.NodeLimitExceeded, "Effect 节点数量超过上限。");
             }
@@ -3805,12 +3864,26 @@ namespace YC.Domain.Effects
                 var binding = source?.TimingBindings.Find(b => b.BindingId == ItemTransferEffectExecutor.Text(node.NormalizedArguments, "bindingId"));
                 if (binding != null) { binding.Status = "cancelled"; binding.AttachedEffectId = node.EffectId; }
             }
-            foreach (var windowOwner in runtime.EffectNodes.Where(n => n.SettlementWindow != null))
+            foreach (var windowOwner in runtime.EffectNodes.Where(n => n.SettlementWindow != null).ToArray())
             {
                 var window = windowOwner.SettlementWindow;
                 bool wasActive = window.ActiveTargetEffectId == node.EffectId;
                 SettlementEntryService.ObserveTerminal(work, window, node);
                 if (window.Context.OwnerEffectId == node.EffectId) window.IsClosed = true;
+                if (wasActive && !window.IsClosed && window.Context.Kind == SettlementEntryService.PlayerCleanup &&
+                    registry.HasEventHandler(CleanupSourceRecovery.ReconcileHandler) &&
+                    registry.QuerySources(work, window.Context.PlayerId, "cleanup", "PlayerCleanupStarted").Any(source =>
+                        !window.Entries.Any(entry => entry.SourceItemId == source.ItemId && entry.AbilityId == source.AbilityId) &&
+                        (registry.GetAbilitySourceDeclaration(source.AbilityId).RepeatPolicy == "unbounded" ||
+                         !AbilitySourceEffectExecutor.IsConsumed(work, source, "cleanup:" + work.Round))))
+                {
+                    DispatchEventsOnWorking(work, new[] { new EffectEventRequest {
+                        EventType = CleanupSourceRecovery.ReconcileEvent, SourceEffectId = node.EffectId, OwnerNodeId = windowOwner.EffectId,
+                        PlayerId = window.Context.PlayerId, Visibility = "owner", ResponseKind = RuleEventResponseKind.Effects,
+                        SemanticKey = CleanupSourceRecovery.ReconcileSemantic,
+                        Payload = ItemTransferEffectExecutor.Object("cleanupTriggerEventId", NormalizedValue.CreateString(window.Context.TriggerId))
+                    } }, windowOwner, entries);
+                }
                 if (wasActive && window.Context.Kind != SettlementEntryService.PlayerCleanup)
                 {
                     bool resumePayment = window.Context.Kind == SettlementEntryService.ResourcePayment && windowOwner.Payment != null &&

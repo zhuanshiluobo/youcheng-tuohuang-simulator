@@ -35,7 +35,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [TearDown] public void End() => artifacts?.Finish();
         private static GameRuleConfiguration Configuration(int count = 3, string mode = "standard") => new GameRuleConfiguration { PlayerCount = count, RuleModeId = mode,
             EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" }, MapId = count == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId };
-        [Test] public void Qy007B2OfficialPaymentDeclarationsLoadThroughRegisteredCapabilitiesAndKeepG0()
+        [Test] public void OfficialPaymentDeclarationsLoadThroughRegisteredCapabilities()
         {
             var composite = pack.Definitions.Single(d => d.DefinitionId == "city_style_composite_power_system");
             var reward = pack.Definitions.Single(d => d.DefinitionId == "entrepreneur.award.M01");
@@ -49,12 +49,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(active.Definitions.Any(d => d.DefinitionId == composite.DefinitionId), Is.True);
             Assert.That(active.Definitions.Any(d => d.DefinitionId == passenger.DefinitionId), Is.True);
             Assert.That(active.SetupRecipe.Entries.Any(e => e.DefinitionId == reward.DefinitionId), Is.False, "指定发放奖励不能因公共能力登记进入开局配方");
-            var missing = RuleModeReadiness.Missing(RuleModeReadiness.EntrepreneurRequirements).Split(',');
-            Assert.That(missing, Is.EquivalentTo(new[] { "entrepreneur_content.T.v1", "entrepreneur_content.A.v1", "entrepreneur_content.D.v1",
-                "entrepreneur_content.P.v1", "entrepreneur_content.M.v1", "entrepreneur_ui.v1", "host_recovery.v5", "room_protocol.v6" }));
-            var rejected = Assert.Throws<InvalidOperationException>(() => ActiveContentCatalogBuilder.Build(pack, Configuration(mode: "entrepreneur")));
-            foreach (string capability in missing) Assert.That(rejected.Message, Does.Contain(capability));
-            artifacts.WriteLabeledText("正式付款能力装配与G0保留", JsonConvert.SerializeObject(new { active.ContentPackHash, missing,
+            var missing = RuleModeReadiness.Missing(RuleModeReadiness.EntrepreneurRequirements);
+            Assert.That(missing, Is.Empty);
+            var entrepreneur = ActiveContentCatalogBuilder.Build(pack, Configuration(mode: "entrepreneur"));
+            Assert.That(entrepreneur.ContentDefinitions.Entrepreneurs, Has.Count.EqualTo(5));
+            artifacts.WriteLabeledText("正式付款与企业家能力装配", JsonConvert.SerializeObject(new { active.ContentPackHash, missing,
                 composite = composite.RequiredCapabilities, reward = reward.RequiredCapabilities, passenger = passenger.RequiredCapabilities }));
         }
         [Test] public void OfficialDefinitionsCountPhysicalEntitiesFacesAndImagesSeparately()
@@ -81,13 +80,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That((string)tower.Data["effectId"], Is.EqualTo("setup_core_command_tower")); Assert.That(tower.ArtworkSpriteId, Is.EqualTo("facility_045"));
             Assert.That(pack.Definitions.Single(d => d.DefinitionId == "reserve_001").Data["unique"].Value<bool>(), Is.True);
         }
-        [Test] public void ProductionModeRejectsRealMissingMechanismsAndDoesNotRequireNormalGameEvidence()
+        [Test] public void ProductionModeAcceptsImplementedMechanismsAndDoesNotRequireNormalGameEvidence()
         {
             var config = Configuration(mode: "entrepreneur"); Assert.That(config.TryValidate(out _), Is.True);
-            var ex = Assert.Throws<InvalidOperationException>(() => ActiveContentCatalogBuilder.Build(pack, config));
-            Assert.That(ex.Message, Does.StartWith("rule_mode_not_ready:")); Assert.That(ex.Message, Does.Contain("entrepreneur_ui.v1"));
+            Assert.That(RuleModeReadiness.Missing(RuleModeReadiness.EntrepreneurRequirements), Is.Empty);
+            Assert.That(RuleModeReadiness.Missing(new[] { "fixture.unavailable_capability" }), Does.Contain("fixture.unavailable_capability"));
+            var catalog = ActiveContentCatalogBuilder.Build(pack, config);
+            Assert.That(catalog.ContentDefinitions.Entrepreneurs, Has.Count.EqualTo(5));
             Assert.That(RuleModeReadiness.EntrepreneurRequirements.Any(c => c.Contains("019") || c.Contains("acceptance")), Is.False);
-            artifacts.WriteLabeledText("004G0正式拒绝", ex.Message);
+            artifacts.WriteLabeledText("企业家正式能力", catalog.ContentPackHash);
         }
         [TestCase("enterprise")][TestCase("infected")]
         public void ModeRequiresBothDependencies(string missing)
@@ -152,6 +153,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (var e in enterpriseDefinitions.Where(e => e.ContentType == "enterprise")) recipe.Add(e.DefinitionId, e.DefinitionId, "core.board_card", "reserve");
             recipe.CardZoneDeclarations = pack.Definitions.Where(d => d.ContentType == "entrepreneur_ability").Select(d => new ItemCardZoneDeclaration { DefinitionId = d.DefinitionId, CardZones = d.CardZones }).ToList();
             var definitions = GameContentDefinitions.CreateRegisteredStandard(); definitions.Entrepreneurs = GameStateCloneService.DeepClone(official); definitions.AbilitySources = declarations;
+            definitions.EnterpriseDefinitionIds = enterpriseDefinitions.Where(d => d.ContentType == "enterprise").Select(d => d.DefinitionId).ToList();
             definitions.Facilities.AddRange(pack.Definitions.Where(d => d.ContentType == "facility" && d.ApplicableModes.Contains("entrepreneur")).Select(d => { var value = d.Data.ToObject<YC.Domain.Facilities.FacilityCardDefinition>(); value.FacilityId = d.DefinitionId; return value; }));
             definitions.Components = pack.Definitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition { DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, CubeAppearance = d.CubeAppearance, QuantityPolicy = (string)d.Data["quantityPolicy"] }).ToList();
             var config = new GameRuleConfiguration { MapId = players == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId, PlayerCount = players, ContentPackHash = pack.ContentHash };
@@ -161,6 +163,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             state.RuleConfiguration.RuleModeId = "entrepreneur"; state.RuleConfiguration.EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" };
             state.EffectRuntime.PlayerOrderSnapshot = Enumerable.Range(1, players).ToList();
             registry.ContentDefinitions = GameStateCloneService.DeepClone(definitions);
+            FixturePreparationPlan.AttachEntrepreneur(state, registry, (string)pack.Manifest["version"]);
+            PlayerEntranceEffectExecutor.Register(registry, new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)));
             return state;
         }
         private void Run(EffectTreeExecutor engine)
@@ -174,7 +178,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         { artifacts.WriteLabeledText(label + "-原始状态", JsonConvert.SerializeObject(state)); var result = artifacts.Recover(state, label, registry); Assert.That(result.Succeeded, Is.True, result.Diagnostic); return result.State; }
         private EffectTreeExecutor SetupPlayers(GameState state, string firstAbility = "entrepreneur.ability.M13", bool recover = false)
         {
-            var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false)); Run(engine);
+            var started = new RoundExecutionService(registry).StartEntrance(state);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            var engine = new EffectTreeExecutor(state, registry);
             if (recover) engine = new EffectTreeExecutor(Restore(engine.State, "企业候选已抽只读查看"), registry);
             foreach (var preview in engine.State.EffectRuntime.InteractionRequests.Where(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction).ToList()) AnswerRequest(engine, preview, "continue");
             while (engine.State.EntrepreneurSetup.Stage != "complete")
@@ -336,8 +342,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void AllocationBreakpointDoesNotReissueFixedMarkers()
         {
-            var state = IsolatedState(2); var engine = new EffectTreeExecutor(state, registry);
-            engine.CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false)); Run(engine);
+            var state = IsolatedState(2); var started = new RoundExecutionService(registry).StartEntrance(state);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            var engine = new EffectTreeExecutor(state, registry);
             foreach (var preview in engine.State.EffectRuntime.InteractionRequests.Where(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction).ToList()) AnswerRequest(engine, preview, "continue");
             var request = engine.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.ChooseInteraction);
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, Strings(new[] { "entrepreneur.ability.T09" }), out _), Is.True);
@@ -359,15 +366,60 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction), Is.EqualTo(3));
             Restore(state, "原入场主链企业家查看阶段");
         }
+
+        [Test] public void FrameworkUsesOneDistributionForEntrepreneurPreviewReverseDraftAndRecovery()
+        {
+            var state = IsolatedState(3);
+            state.ContentDefinitions.EnterpriseDefinitionIds = pack.Definitions.Where(d => d.ExpansionId == "enterprise" && d.ContentType == "enterprise").Select(d => d.DefinitionId).ToList();
+            registry.ContentDefinitions = GameStateCloneService.DeepClone(state.ContentDefinitions);
+            var step = new PreparationStepDeclaration { StepId = "entrepreneur", Kind = "builtin", SourcePackId = "core",
+                SourcePackVersion = (string)pack.Manifest["version"], HandlerId = EntrepreneurFlow.PreparationHandlerId,
+                HandlerVersion = EntrepreneurContent.Version, Execution = "once" };
+            state.SetupRecipe.Preparation = new PreparationFlowPlan { ModeId = state.RuleConfiguration.RuleModeId,
+                Enterprise = new PreparationEnterprisePlan { PlayerCounts = new List<PreparationEnterpriseCountRule> {
+                    new PreparationEnterpriseCountRule { PlayerCount = 3, Draw = 2, Keep = 1, ExtraRandom = 1, FinalCount = 4 } } },
+                BetweenDistributionAndConfirmation = new List<PreparationStepDeclaration> { step } };
+            registry.SetupRecipe = GameStateCloneService.DeepClone(state.SetupRecipe);
+            EntrepreneurFlow.RegisterPreparationSteps(registry, state.SetupRecipe.Preparation, (string)pack.Manifest["version"]);
+            var started = new RoundExecutionService(registry).StartEntrance(state);
+            Assert.That(started.IsValid, Is.True, started.Reason);
+            Assert.That(state.EffectRuntime.Status, Is.EqualTo(EffectRuntimeStatus.Active), state.EffectRuntime.LastFaultMessage);
+            Assert.That(state.EntrepreneurSetup?.Stage, Is.EqualTo("preview"));
+            Assert.That(state.EntrepreneurSetup.SetupProtocolVersion, Is.EqualTo(4));
+            var frozen = state.PreparationRuntime.Distribution.Assignments.SelectMany(item => item.CandidateItemIds).ToArray();
+            state = Restore(state, "新准备框架企业家预览");
+            var engine = new EffectTreeExecutor(state, registry);
+            foreach (int player in new[] { 1, 2, 3 })
+            {
+                var preview = engine.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction && r.AnsweringPlayerId == player);
+                AnswerRequest(engine, preview, "continue");
+            }
+            while (engine.State.EntrepreneurSetup.Stage != "complete")
+            {
+                var request = engine.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.ChooseInteraction);
+                var resumed = Restore(engine.State, "新准备框架逆序选人" + request.AnsweringPlayerId);
+                engine = new EffectTreeExecutor(resumed, registry);
+                request = engine.State.EffectRuntime.InteractionRequests.Single(r => r.GetStableInteractionId() == request.GetStableInteractionId());
+                AnswerRequest(engine, request, request.CandidateIds.First());
+            }
+            Assert.That(engine.State.EntrepreneurSetup.Players.Select(player => player.PlayerId), Is.EqualTo(new[] { 3, 2, 1 }));
+            Assert.That(engine.State.PreparationRuntime.Distribution.Assignments.SelectMany(item => item.CandidateItemIds), Is.EqualTo(frozen));
+            Assert.That(engine.State.EntrepreneurSetup.EnterpriseAssignments.SelectMany(item => item.CandidateItemIds), Is.EqualTo(frozen));
+            Assert.That(engine.State.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction), Is.EqualTo(3));
+            Restore(engine.State, "新准备框架企业家选人完成");
+        }
         [Test] public void ActualLuaImmediateHandlersReceiveTheirOwnDeclaredSourceIdentity()
         {
             var state = IsolatedState(2); var enterprise = registry.EnterpriseDefinitions;
             var patches = new Dictionary<string, string>();
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(pack.RootPath, "pack.json")));
-            manifest["enabledExpansionIds"] = new JArray("core", "enterprise", "infected"); patches["pack.json"] = manifest.ToString();
+            manifest["enabledExpansionIds"] = new JArray("core", "enterprise", "infected");
+            var replacedScripts = new HashSet<string>(StringComparer.Ordinal);
             foreach (string relative in manifest["definitions"].Values<string>().Where(p => p.StartsWith("entrepreneur/")))
             {
                 var json = JObject.Parse(File.ReadAllText(Path.Combine(pack.RootPath, relative)));
+                foreach (var handler in json["abilityHandlers"] ?? new JArray())
+                    if ((string)handler["script"] is string script) replacedScripts.Add(script);
                 string id = (string)json["definitionId"], identity = id + ".isolated.identity";
                 json["applicableModes"] = new JArray("standard", "entrepreneur");
                 var sources = new List<AbilitySourceDeclaration>(); var handlers = new List<ExternalAbilityHandler>();
@@ -387,16 +439,34 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Add(f.RuleRefs[0], identity + "." + f.FaceId, f.FaceId, 0);
                     foreach (string handler in f.ImmediateHandlerRefs) Add(f.RuleRefs[0] + ".entry." + (f.ImmediateHandlerRefs.IndexOf(handler) + 1), handler, f.FaceId, f.ImmediateHandlerRefs.IndexOf(handler) + 1);
                 }
+                // 此夹具替换了全部正式能力来源和处理器；原订阅与展示声明不属于来源身份测试。
+                ((JObject)json["data"]).Remove("playerDetails");
+                json["abilities"] = new JArray();
                 json["abilitySources"] = JArray.FromObject(sources); json["abilityHandlers"] = JArray.FromObject(handlers); patches[relative] = json.ToString();
             }
+            if (manifest["scriptDependencies"] is JArray dependencies)
+                manifest["scriptDependencies"] = new JArray(dependencies.Where(entry => !replacedScripts.Contains((string)entry["script"])));
+            patches["pack.json"] = manifest.ToString();
             string actualRoot = artifacts.CopyContent(pack.RootPath, "004真实Lua来源绑定隔离包", patches);
             var actual = ExternalContentPack.Load(actualRoot); artifacts.RecordContent("真实Lua来源内容", actualRoot, actual.ContentHash);
+            var selectActive = typeof(ExternalContentPack).GetMethod("CreateActiveSnapshot", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
+                null, new[] { typeof(IEnumerable<string>), typeof(string), typeof(string), typeof(IEnumerable<string>) }, null);
+            Assert.That(selectActive, Is.Not.Null);
+            string activeHash = LuaContentHasher.ComputeSha256(actual.ContentHash + "|fixture.identity|entrepreneur");
+            actual = (ExternalContentPack)selectActive.Invoke(actual, new object[] { new[] { "core", "enterprise", "infected" }, activeHash,
+                "entrepreneur", new[] { "entrepreneur_selection.v1" } });
             registry = new EffectRegistry { ContentPackHash = actual.ContentHash, EnterpriseDefinitions = enterprise };
             ResourceEffectExecutor.Register(registry); ExpansionSetupFlow.Register(registry); ItemTransferEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
             AbilitySourceLuaCatalog.Register(registry, actual);
             state.ContentPackHash = state.RuleConfiguration.ContentPackHash = actual.ContentHash;
             state.ContentDefinitions.AbilitySources = registry.AbilityDeclarations.Select(GameStateCloneService.DeepClone).ToList();
             registry.ContentDefinitions = GameStateCloneService.DeepClone(state.ContentDefinitions);
+            FixturePreparationPlan.AttachEntrepreneur(state, registry, (string)actual.Manifest["version"]);
+            var absentFaces = state.ContentDefinitions.Entrepreneurs.SelectMany(item => item.RoundGroups).SelectMany(group => group.Candidates)
+                .Where(face => !registry.AbilityDeclarations.Any(declaration => declaration.DefinitionId == face.EntityDefinitionId &&
+                    declaration.ActiveFaceId == face.FaceId && declaration.AuthorizationPolicy == "active_selection"))
+                .Select(face => face.EntityDefinitionId + ":" + face.FaceId).ToArray();
+            Assert.That(absentFaces, Is.Empty, "隔离Lua登记缺少真实面的来源定义。");
             var engine = SetupPlayers(state, "entrepreneur.ability.T09"); engine = RoundChoice(engine.State, 5);
             var earlier = engine.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.FaceInteraction);
             AnswerRequest(engine, earlier, earlier.CandidateIds.First());

@@ -91,6 +91,13 @@ namespace YC.Application.Sessions
         public static GameState CreateInitialState(LaunchMode mode, int localPlayerId, IList<PlayerSeat> players,
             GameRuleConfiguration configuration, int eventDeckSeed, GameSetupRecipe recipe,
             GameContentDefinitions definitions, IReadOnlyList<int> launchPlayerOrder, string gameId, GameplayRandomState initialRandomState)
+            => CreateInitialState(mode, localPlayerId, players, configuration, eventDeckSeed, recipe, definitions,
+                launchPlayerOrder, gameId, initialRandomState, null);
+
+        public static GameState CreateInitialState(LaunchMode mode, int localPlayerId, IList<PlayerSeat> players,
+            GameRuleConfiguration configuration, int eventDeckSeed, GameSetupRecipe recipe,
+            GameContentDefinitions definitions, IReadOnlyList<int> launchPlayerOrder, string gameId, GameplayRandomState initialRandomState,
+            IGameRuleCatalog validationCatalog)
         {
             if (string.IsNullOrWhiteSpace(gameId)) throw new InvalidOperationException("random_game_id_missing");
             if (initialRandomState == null)
@@ -101,9 +108,12 @@ namespace YC.Application.Sessions
             if (!GameplayRandomRuntime.TryValidate(initialRandomState, gameId, eventDeckSeed, out var randomReason))
                 throw new InvalidOperationException(randomReason);
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-            if (!configuration.TryValidate(out var reason)) throw new InvalidOperationException(reason);
+            if (!configuration.TryValidateFrozenShape(out var reason)) throw new InvalidOperationException(reason);
+            if (validationCatalog != null ? !configuration.TryValidate(validationCatalog, out reason) :
+                configuration.LockedContentPacks.Count == 0 && !configuration.TryValidate(out reason)) throw new InvalidOperationException(reason);
             var actualCount = players == null || players.Count == 0 ? 1 : players.Count;
             if (configuration.PlayerCount != actualCount) throw new InvalidOperationException("unsupported_player_count");
+            if (configuration.LockedContentPacks.Count > 0 && definitions == null) throw new InvalidOperationException("content_not_ready");
             if (recipe == null || configuration.EnabledExpansionIds.Contains("infected") && recipe.RecipeId != "infected" ||
                 configuration.EnabledExpansionIds.Contains("enterprise") && !recipe.EnterpriseEntrance)
                 throw new InvalidOperationException("content_not_ready");

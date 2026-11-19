@@ -26,7 +26,7 @@ namespace YC.Tests.EditMode
                 'AnsweringPlayerId':2,'Status':'open','AnswerSchema':'candidate_id','MinSelections':1,'MaxSelections':1,'StateRevision':100,
                 'CandidateIds':['本人甲','本人乙'],'PromptParameters':{'Kind':'Object','Properties':[{'Name':'candidateDefinitionIds','Value':
                     {'Kind':'Array','Items':[{'Kind':'String','StringValue':'定义甲'},{'Kind':'String','StringValue':'定义乙'}]}}]}}],
-            'Effects':[{'EffectId':'正式owner','EffectTypeId':'setup.enterprise.select','PlayerId':2}],
+            'Effects':[{'EffectId':'正式owner','EffectTypeId':'setup.preparation.enterprise_selection','PlayerId':2}],
             'ItemZones':{'Items':[{'ItemId':'本人乙','DefinitionId':'定义乙'}]}}");
         private static GameCommand Decide(GameStateView view)
         {

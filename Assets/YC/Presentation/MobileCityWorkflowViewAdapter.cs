@@ -225,6 +225,8 @@ namespace YC.Presentation
         }
         public void HideBuildFacilityDraft() { if (!shuttingDown) hideBuildDraft?.Invoke(); }
         public void RefreshCityStylePreview() => cityStyleDeclarationDialog.RefreshProjection();
+        public bool OwnsCityStylePreview(GameObject page) => !shuttingDown && cityStyleDeclarationDialog.OwnsPage(page);
+        public void CloseCityStylePreview() { if (!shuttingDown) cityStyleDeclarationDialog.Hide(); }
 
         public void ShowCityStyleOptions(CityStyleOptionsViewModel model)
         {

@@ -70,6 +70,55 @@ namespace YC.Tests.EditMode.ExpansionRules
                 f.State.EffectRuntime.DeferredResponses.Any(r => r.DepartureId == departure.DepartureId && InfluenceDepartureProtocol.IsWithin(f.State, q.OwnerEffectId, r.ResponseRootEffectId))), Is.False);
         }
 
+        [TestCase("t")][TestCase("dorothy")][TestCase("supply")]
+        public void OpponentRemovalOffersTheFifthAndDorothySeparateDestinations(string destination)
+        {
+            f = new FifthNumberContentTestFixture(artifacts, concurrent: true, dorothy: true);
+            f.ActivateDorothy();
+            string item = f.Place();
+            f.Depart(item, actor: 2, actionWindow: true);
+            var responses = f.State.EffectRuntime.DeferredResponses.Where(r => r.Kind == "destination" &&
+                (r.AbilityId == "entrepreneur.T09.departure" || r.AbilityId == "operator.dorothy.tactic")).ToArray();
+            Assert.That(responses.Select(r => r.AbilityId), Is.EquivalentTo(new[] { "entrepreneur.T09.departure", "operator.dorothy.tactic" }));
+            Assert.That(responses.All(r => r.AnsweringPlayerId == 1), Is.True);
+            f.CompleteDestinations(destination, restoreEach: true);
+            var actual = f.State.ItemZones.Items.Single(i => i.ItemId == item);
+            var departure = f.State.EffectRuntime.InfluenceDepartures.Single(d => d.ItemId == item);
+            Assert.That(departure.Status, Is.EqualTo(destination == "supply" ? "returned" : "stored"));
+            if (destination == "t") Assert.That(actual.ZoneId, Is.EqualTo(f.Storage.ZoneId));
+            else if (destination == "dorothy")
+                Assert.That(f.State.ItemZones.Zones.Single(z => z.ZoneId == actual.ZoneId).ParentId,
+                    Is.EqualTo(f.State.ItemZones.Items.Single(i => i.DefinitionId == "operator.dorothy" && i.OwnerSubject.PlayerId == 1).ItemId));
+            else Assert.That(actual.ZoneId, Is.EqualTo(actual.OriginalSupplyZoneId));
+            Assert.That(f.State.EffectRuntime.Status, Is.Not.EqualTo(EffectRuntimeStatus.PausedFault));
+        }
+
+        [TestCase("t")][TestCase("supply")]
+        public void DorothyStrategyRemovesTwoFifthOwnersMarkersAndCompletesBothResponses(string destination)
+        {
+            f = new FifthNumberContentTestFixture(artifacts, dorothy: true);
+            f.FinishOtherPlayer();
+            string first = f.Place(), second = f.Place();
+            var card = f.State.ItemZones.Items.Single(i => i.DefinitionId == "operator.dorothy" && i.OwnerSubject.PlayerId == 1);
+            f.Run(EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1));
+            f.AnswerCandidate(f.Open(), card.ItemId);
+            f.Run(CharacterLifecycleService.CreateUseSpec(1, card.ItemId, "strategy"));
+            if (f.Open().InteractionTypeId == "action.decline_effect") f.Answer("continue");
+            var selected = f.Open();
+            Assert.That(selected.MinSelections, Is.EqualTo(2));
+            Assert.That(selected.CandidateIds, Does.Contain(first).And.Contain(second));
+            f.Answer(selected, Strings(new[] { first, second }));
+            f.CompleteDestinations(destination);
+            for (int i = 0; i < 3; i++)
+            {
+                var placement = f.PlacementRequest();
+                f.AnswerCandidate(placement, placement.CandidateIds.First());
+            }
+            Assert.That(f.State.EffectRuntime.InfluenceDepartures.Count(d => d.ItemId == first || d.ItemId == second), Is.EqualTo(2));
+            Assert.That(f.State.EffectRuntime.Status, Is.Not.EqualTo(EffectRuntimeStatus.PausedFault));
+            Assert.That(f.State.CharacterUses.Single(u => u.CardInstanceId == card.ItemId).CompletedModes, Does.Contain("strategy"));
+        }
+
         [TestCase(false, false)] [TestCase(false, true)]
         [TestCase(true, false)] [TestCase(true, true)]
         public void StoreChoiceOwnsCancellationAndExecutesOnlyTheActualStoreSubtree(bool replace, bool decline)

@@ -29,6 +29,12 @@ namespace YC.Tests.PlayMode.ExpansionRules
 {
     public sealed class EnterpriseGameplayUiTests
     {
+        private EffectSpec DispatchSpec()
+        {
+            Assert.That(state.SetupRecipe, Is.Not.Null);
+            state.SetupRecipe.OperatorDrawCount = 2;
+            return OperatorDispatchFlow.CreateSpec(1, FindZone(state, "operator_deck").ZoneId);
+        }
         private const BindingFlags Private = BindingFlags.Instance | BindingFlags.NonPublic;
         private Component controller, hud, adapter;
         private GameState state;
@@ -58,7 +64,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
         public IEnumerator LoadSceneWithPlayers(int count)
         {
             var launch = Presentation("GameLaunchContext").GetMethod("Ensure").Invoke(null, null);
-            var config = new GameRuleConfiguration { PlayerCount = count, MapId = count == 3 ? StaticMapDefinitions.ThreePlayerMapId : StaticMapDefinitions.FourPlayerMapId };
+            var config = new GameRuleConfiguration { PlayerCount = count, MapId = count == 3 ? StaticMapDefinitions.ThreePlayerMapId : StaticMapDefinitions.FourPlayerMapId,
+                OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion };
             var seats = Enumerable.Range(1, count).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "合同玩家" + id }).ToList();
             Presentation("GameLaunchContext").GetMethod("Configure", new[] { typeof(LaunchMode), typeof(int), typeof(string), typeof(IList<PlayerSeat>), typeof(GameRuleConfiguration) })
                 .Invoke(launch, new object[] { LaunchMode.Local, 1, "", seats, config });
@@ -77,7 +84,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             definitions = Definitions();
             registry = new EffectRegistry { ContentPackHash = state.ContentPackHash, ContentDefinitions = state.ContentDefinitions, SetupRecipe = state.SetupRecipe };
             EnterpriseEffectExecutor.Register(registry, definitions); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
-            CharacterLifecycleService.Register(registry); OperatorDispatchFlow.Register(registry); ExpansionSetupFlow.Register(registry, max => 0);
+            CharacterLifecycleService.Register(registry); OperatorDispatchFlow.Register(registry); ExpansionSetupFlow.Register(registry);
             AddBoardItems(); RefreshView();
             Call(adapter, "Configure", (Func<GameStateView>)(() => view), (Func<int>)(() => viewer), definitions,
                 registry.CharacterAbilityContracts, (Action<GameCommand>)(command => commands.Add(command)));
@@ -196,6 +203,19 @@ namespace YC.Tests.PlayMode.ExpansionRules
             var engine = new EffectTreeExecutor(state, registry); engine.CreateRoot(spec);
             var result = engine.RunUntilQuiescent(); Assert.That(result.Faulted, Is.False, state.EffectRuntime.LastFaultMessage); RefreshView();
         }
+        private void RunEnterprisePreparation()
+        {
+            // 页面隔离夹具：复用新准备节点，不代表正常菜单开局覆盖。
+            state.SetupRecipe.EnterpriseEntrance = true;
+            state.SetupRecipe.Preparation = new PreparationFlowPlan { ModeId = state.RuleConfiguration.RuleModeId,
+                Enterprise = new PreparationEnterprisePlan { PlayerCounts = new List<PreparationEnterpriseCountRule> {
+                    new PreparationEnterpriseCountRule { PlayerCount = 2, Draw = 4, Keep = 2, FinalCount = 4 },
+                    new PreparationEnterpriseCountRule { PlayerCount = 3, Draw = 2, Keep = 1, ExtraRandom = 1, FinalCount = 4 },
+                    new PreparationEnterpriseCountRule { PlayerCount = 4, Draw = 2, Keep = 1, FinalCount = 4 } } } };
+            registry.SetupRecipe = GameStateCloneService.DeepClone(state.SetupRecipe);
+            PreparationFrameworkFlow.Register(registry, max => 0);
+            Run(PreparationFrameworkFlow.Spec(1));
+        }
         private void Apply(GameCommand command)
         {
             var result = new AnswerInteractionCommandHandler(registry).Handle(state, command);
@@ -266,7 +286,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         [UnityTest] public IEnumerator InitialEnterpriseMultiChoiceUsesCandidateIdsAndHidesOnHotseat()
         {
             state.SetupRecipe.EnterpriseEntrance = true; state.EffectRuntime.PlayerOrderSnapshot = state.Players.Select(value => value.PlayerId).ToList();
-            Run(ExpansionSetupFlow.PreparationSpec(1)); Route();
+            RunEnterprisePreparation(); Route();
             var request = Open(); var dialog = EnterpriseDialog(); Assert.That(dialog.gameObject.activeInHierarchy, Is.True);
             Assert.That((bool)Call(enterpriseRenderer, "CanRender", InteractionRequestProjector.ProjectForPlayer(request, 2)), Is.False);
             ChooseAndConfirm(dialog, request.CandidateIds[0]);
@@ -346,7 +366,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 new ItemRecipeEntry { EntryId = "markers_contract", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 8, PerPlayer = true, InitialZoneRole = "supply" } });
             AddBoardItems();
             state.SetupRecipe.EnterpriseEntrance = true; state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
-            Run(ExpansionSetupFlow.PreparationSpec(1)); Route(); var request = Open();
+            RunEnterprisePreparation(); Route(); var request = Open();
             Assert.That(request.MinSelections, Is.EqualTo(2)); Assert.That(request.MaxSelections, Is.EqualTo(2));
             ChooseAndConfirm(EnterpriseDialog(), request.CandidateIds[1], request.CandidateIds[0]);
             Assert.That(commands.Single().OptionIds, Is.EqualTo(new[] { request.CandidateIds[1], request.CandidateIds[0] }));
@@ -360,7 +380,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
         [UnityTest] public IEnumerator DispatchCandidatesStayPrivateAndOnlyHostMovesAcceptedAndReturnedCards()
         {
-            AddOperators(3); Run(OperatorDispatchFlow.CreateSpec(1, 2)); Route(); var candidate = Open().CandidateIds[0];
+            AddOperators(3); Run(DispatchSpec()); Route(); var candidate = Open().CandidateIds[0];
             var incoming = state.ItemZones.Items.Single(item => item.ItemId == candidate); var originalZone = incoming.ZoneId;
             Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).ItemZones.Items.Any(item => item.ItemId == candidate), Is.False);
             Assert.That((bool)Call(characterRenderer, "CanRender", InteractionRequestProjector.ProjectForPlayer(Open(), 2)), Is.False);
@@ -382,7 +402,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         [UnityTest] public IEnumerator DeclinedDispatchAwardsOnlyAfterHostAnswerAndHotseatClearsPrivatePage()
         {
             AddOperators(2); int score = state.FindPlayer(1).Score;
-            Run(OperatorDispatchFlow.CreateSpec(1, 2)); Route(); var projection = Projection();
+            Run(DispatchSpec()); Route(); var projection = Projection();
             yield return Screenshot("特派私有候选");
             viewer = 2; RefreshView(); Route();
             Assert.That((string)Field(characterRenderer, "renderedInteractionId"), Is.Empty);
@@ -533,7 +553,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
         [UnityTest] public IEnumerator NestedEnterpriseDetailsReturnToSameRequestWithoutAnswering()
         {
-            state.SetupRecipe.EnterpriseEntrance = true; Run(ExpansionSetupFlow.PreparationSpec(1)); Route();
+            RunEnterprisePreparation(); Route();
             var dialog = EnterpriseDialog(); string requestId = Open().InteractionId, boardId = Open().CandidateIds[0];
             Call(dialog, "OpenDetails", boardId); Assert.That(((GameObject)Field(dialog, "detailPage")).activeSelf, Is.True);
             Call(dialog, "ReturnFromDetails"); Assert.That(((GameObject)Field(dialog, "detailPage")).activeSelf, Is.False);
@@ -542,7 +562,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
         }
         [UnityTest] public IEnumerator EmptyDispatchClosesWithoutRewardAndMissingEffectNoticeDoesNotExposeHands()
         {
-            int score = state.FindPlayer(1).Score; Run(OperatorDispatchFlow.CreateSpec(1, 2)); Route();
+            int score = state.FindPlayer(1).Score; Run(DispatchSpec()); Route();
             Assert.That(state.EffectRuntime.InteractionRequests.Any(value => value.Status == "open"), Is.False);
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score));
             state.Logs.Add(new GameLogEntry { Message = "incomplete_effect_skipped: enterprise.fixture", Visibility = GameStateVisibilityPolicy.Public });

@@ -14,8 +14,10 @@ namespace YC.Tests.EditMode
     {
         private sealed class Content : IRoomContentCapabilityProvider
         {
-            public string GetContentPackHash(GameRuleConfiguration c) => "room-session-test-content:" + c.PlayerCount + ":" + c.MapId + ":" + string.Join(",", c.EnabledExpansionIds);
-            public bool TryValidate(GameRuleConfiguration c, out string reason) { reason = string.Empty; return true; }
+            public string GetContentPackHash(GameRuleConfiguration c) => c != null && c.TryValidate(out _) ?
+                "room-session-test-content:" + c.PlayerCount + ":" + c.MapId + ":" + string.Join(",", c.EnabledExpansionIds) : string.Empty;
+            public bool TryValidate(GameRuleConfiguration c, out string reason)
+            { if (c != null) return c.TryValidate(out reason); reason = "content_not_ready"; return false; }
         }
         private static T Request<T>(RoomState room) where T : RoomConfigurationRequest, new() => new T
         {

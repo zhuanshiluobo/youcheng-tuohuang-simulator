@@ -187,7 +187,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             PrivateContent = content;
             var pack = ExternalContentPack.Load(content); Artifacts.RecordContent("007冻结输入", content, pack.ContentHash);
             if (!FacilityCardDatabase.IsInitialized) FacilityCardDatabase.InitializeExternal(pack.CreateFacilities());
-            var map = mapOverride ?? new GameMapDefinition { MapId = "test.transfer_map", MinPlayers = 2, MaxPlayers = 4, Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } },
+            var map = mapOverride ?? new GameMapDefinition { MapId = StaticMapDefinitions.FourPlayerMapId, MinPlayers = 2, MaxPlayers = 4, Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } },
                 Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true, InfluenceSlotCount = 2 } } };
             var input = new GameState { GameId = "game.qy007", MapId = map.MapId, ContentPackHash = "content.qy007", RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "content.qy007" },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Name = "甲", RemainingMainActionsThisTurn = 1, Resources = new ResourceSet { GoldVoucher = 100, Originium = 100, Iron = 100, OriginiumShard = 100 } }, new PlayerState { PlayerId = 2, Name = "乙" } },

@@ -46,7 +46,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static GameState State(int level = 0)
         {
-            var map = new GameMapDefinition { MapId = "test.enterprise.upgrade.map", MinPlayers = 2, MaxPlayers = 4 };
+            var map = new GameMapDefinition { MapId = StaticMapDefinitions.ThreePlayerMapId, MinPlayers = 2, MaxPlayers = 4 };
             var source = new GameState { GameId = "test.enterprise.upgrade.game", MapId = map.MapId, ContentPackHash = "test.enterprise.upgrade.content",
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = 2, ContentPackHash = "test.enterprise.upgrade.content", EnabledExpansionIds = new List<string> { "core", "enterprise" } },
                 Players = new List<PlayerState> { new PlayerState { PlayerId = 1 }, new PlayerState { PlayerId = 2 } } };
@@ -67,6 +67,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static string Id(GameState state, string definition) => state.ItemZones.Items.Single(item => item.DefinitionId == definition).ItemId;
         private static int Level(GameState state, string id) => new EnterpriseStateQuery().GetLevel(state, 1, id);
+        private static void SetLevel(GameState state, string id, int player, int level)
+        {
+            var track = state.ItemZones.Zones.Single(zone => zone.ParentId == id && zone.LocalZoneId == "cooperation_" + player);
+            state.ItemZones.Items.Single(item => item.ZoneId == track.ZoneId).SlotId = "level_" + level;
+        }
         private static EffectSpec Range(IEnumerable<string> ids, int levels = 1) => EffectSpec.Create(LuaDomainEffectTypeIds.UpgradeEnterprise,
             Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "enterpriseItemIds", Strings(ids), "levels", NormalizedValue.CreateInteger(levels)), 1);
         private static EffectNodeRuntimeState Run(GameState state, EffectRegistry registry, EffectSpec spec)
@@ -95,6 +100,36 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Level(state, first), Is.Zero); Assert.That(Level(state, second), Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
             Assert.That(state.EffectRuntime.EffectNodes.Count(value => value.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise), Is.EqualTo(1));
             Assert.That(Text(state.EffectRuntime.EffectNodes.Single(value => value.EffectId == node.EffectId).NormalizedResult, "selectedEnterpriseItemId"), Is.EqualTo(second));
+        }
+        [Test] public void UpgradeChoiceExcludesCappedBoardsAndRejectsTheirSubmission()
+        {
+            var state = State(); var registry = Registry(); string capped = Id(state, Boards[0]), second = Id(state, Boards[1]), third = Id(state, Boards[2]);
+            SetLevel(state, capped, 1, 5); Run(state, registry, Range(new[] { capped, second, third }));
+            var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            Assert.That(request.CandidateIds, Is.EquivalentTo(new[] { second, third }));
+            var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, NormalizedValue.CreateString(capped), out _), Is.False);
+            state = Restore(state, registry); Answer(state, registry, second); state = Restore(state, registry);
+            Assert.That(Level(state, capped), Is.EqualTo(5)); Assert.That(Level(state, second), Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
+        }
+        [Test] public void UpgradeChoiceUsesActualTargetPlayerRatherThanInitiator()
+        {
+            var state = State(); var registry = Registry(); string first = Id(state, Boards[0]), second = Id(state, Boards[1]), third = Id(state, Boards[2]);
+            SetLevel(state, first, 2, 5); SetLevel(state, second, 1, 5);
+            var spec = EffectSpec.Create(LuaDomainEffectTypeIds.UpgradeEnterprise,
+                Object("apiVersion", NormalizedValue.CreateInteger(2), "player", NormalizedValue.CreateString("1"), "targetPlayer", NormalizedValue.CreateString("2"),
+                    "enterpriseItemIds", Strings(new[] { first, second, third }), "levels", NormalizedValue.CreateInteger(1)), 1);
+            Run(state, registry, spec); var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            Assert.That(request.AnsweringPlayerId, Is.EqualTo(1)); Assert.That(request.CandidateIds, Is.EquivalentTo(new[] { second, third }));
+            state = Restore(state, registry); Answer(state, registry, second); state = Restore(state, registry);
+            Assert.That(Level(state, second), Is.EqualTo(5)); Assert.That(new EnterpriseStateQuery().GetLevel(state, 2, second), Is.EqualTo(1));
+            Assert.That(state.FindPlayer(2).Score, Is.EqualTo(1));
+        }
+        [Test] public void AllCappedUpgradeChoicesCompleteWithoutAnInteraction()
+        {
+            var state = State(5); var registry = Registry(); var node = Run(state, registry, Range(Boards.Select(id => Id(state, id))));
+            Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty); Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("no_candidates"));
+            Assert.That(node.EnterpriseArrivalReceipts, Is.Empty); Restore(state, registry);
         }
         [TestCase(0, 1, 1)][TestCase(5, 5, 0)] public void SingleCandidateAutomaticallyUpgradesOrCompletesAtLimit(int oldLevel, int finalLevel, int rewards)
         {
@@ -163,6 +198,26 @@ namespace YC.Tests.EditMode.ExpansionRules
             var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open"); Assert.That(request.InteractionTypeId, Is.EqualTo("enterprise.upgrade"));
             Assert.That(request.PromptKey, Is.EqualTo("enterprise.choose_distinct")); Restore(state, registry);
         }
+        [Test] public void DistinctUpgradeOnlyOffersUncappedUnchosenBoards()
+        {
+            var state = State(); var registry = Registry(); string capped = Id(state, Boards[0]), second = Id(state, Boards[1]), third = Id(state, Boards[2]);
+            SetLevel(state, capped, 1, 5); Run(state, registry, EffectSpec.Create(EnterpriseDistinctUpgradeFlow.TypeId,
+                Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "count", NormalizedValue.CreateInteger(2), "levels", NormalizedValue.CreateInteger(1)), 1));
+            Assert.That(state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open").CandidateIds, Is.EquivalentTo(new[] { second, third }));
+            state = Restore(state, registry); Answer(state, registry, second);
+            Assert.That(state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open").CandidateIds, Is.EqualTo(new[] { third }));
+            Answer(state, registry, third); Assert.That(Level(state, capped), Is.EqualTo(5)); Assert.That(Level(state, second), Is.EqualTo(1)); Assert.That(Level(state, third), Is.EqualTo(1));
+            Restore(state, registry);
+        }
+        [Test] public void DistinctUpgradePreservesInsufficientCandidatesContract()
+        {
+            var state = State(); var registry = Registry(); string first = Id(state, Boards[0]), second = Id(state, Boards[1]), third = Id(state, Boards[2]);
+            SetLevel(state, first, 1, 5); SetLevel(state, second, 1, 5);
+            var node = Run(state, registry, EffectSpec.Create(EnterpriseDistinctUpgradeFlow.TypeId,
+                Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1"), "count", NormalizedValue.CreateInteger(2), "levels", NormalizedValue.CreateInteger(1)), 1));
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(node.FailureReason, Is.EqualTo("insufficient_distinct_enterprises"));
+            Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty); Assert.That(Level(state, third), Is.Zero);
+        }
         private static EffectSpec AllPlayersRange(IEnumerable<string> ids, int player = 1) => EffectSpec.Create(EnterpriseEffectExecutor.UpgradeAllPlayersTypeId,
             Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString(player.ToString()), "enterpriseItemIds", Strings(ids), "levels", NormalizedValue.CreateInteger(1)), player);
 
@@ -184,6 +239,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(Level(state, first), Is.Zero);
             Assert.That(Value(parent.NormalizedArguments, "enterpriseItemId"), Is.Null);
         }
+        [Test] public void CollectiveChoiceExcludesOnlyBoardsCappedForEveryPlayer()
+        {
+            var state = State(); var registry = Registry(); string capped = Id(state, Boards[0]), otherPlayerCanUpgrade = Id(state, Boards[1]), third = Id(state, Boards[2]);
+            SetLevel(state, capped, 1, 5); SetLevel(state, capped, 2, 5); SetLevel(state, otherPlayerCanUpgrade, 1, 5); SetLevel(state, otherPlayerCanUpgrade, 2, 4);
+            Run(state, registry, AllPlayersRange(new[] { capped, otherPlayerCanUpgrade, third }));
+            Assert.That(state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open").CandidateIds, Is.EquivalentTo(new[] { otherPlayerCanUpgrade, third }));
+            state = Restore(state, registry); Answer(state, registry, otherPlayerCanUpgrade); state = Restore(state, registry);
+            Assert.That(Level(state, otherPlayerCanUpgrade), Is.EqualTo(5)); Assert.That(new EnterpriseStateQuery().GetLevel(state, 2, otherPlayerCanUpgrade), Is.EqualTo(5));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == EnterpriseEffectExecutor.LevelChangedEvent), Is.EqualTo(1));
+        }
         [TestCase(0)][TestCase(1)][TestCase(5)] public void CollectiveEmptyOrSingleScopeRestoresWithoutSelector(int level)
         {
             var state = State(level); var registry = Registry(); string target = Id(state, Boards[0]);
@@ -191,8 +256,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.InteractionRequests, Is.Empty); state = Restore(state, registry);
             Assert.That(Level(state, target), Is.EqualTo(level == 1 ? 2 : level));
             Assert.That(new EnterpriseStateQuery().GetLevel(state, 2, target), Is.EqualTo(level == 1 ? 2 : level));
-            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == node.EffectId).ChildEffectIds.Count, Is.EqualTo(level == 0 ? 0 : 2));
-            if (level == 0) Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("no_candidates"));
+            Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == node.EffectId).ChildEffectIds.Count, Is.EqualTo(level == 1 ? 2 : 0));
+            if (level != 1) Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("no_candidates"));
         }
         [Test] public void CollectiveFixedTargetKeepsOriginalAuthorizationAndArrivalContract()
         {
@@ -238,10 +303,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (string.IsNullOrEmpty(root)) root = Path.Combine(UnityEngine.Application.dataPath, "StreamingAssets", "Content", "core");
             string source = File.ReadAllText(Path.Combine(root, "lua", "enterprises", definition + ".level_1.special.lua"));
             LuaSnapshotValue Instance(string id, string type, string name) => LuaSnapshotValue.Object(new[] {
-                new LuaSnapshotEntry("id", LuaSnapshotValue.String(id)), new LuaSnapshotEntry("contentType", LuaSnapshotValue.String(type)), new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(name)) });
+                new LuaSnapshotEntry("id", LuaSnapshotValue.String(id)), new LuaSnapshotEntry("contentType", LuaSnapshotValue.String(type)), new LuaSnapshotEntry("definitionId", LuaSnapshotValue.String(name)),
+                new LuaSnapshotEntry("zoneId", LuaSnapshotValue.String("enterprise-display")) });
             var instances = new List<LuaSnapshotValue> { Instance("source-board", "enterprise", definition), Instance("not-board", "character", "test.character") };
             if (hasOtherBoard) instances.Add(Instance("other-board", "enterprise", "test.enterprise.other"));
-            var facade = new LuaFacadeSnapshot { GlobalContent = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("instances", LuaSnapshotValue.Array(instances)) }) };
+            var zones = new[] { LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("id", LuaSnapshotValue.String("enterprise-display")),
+                new LuaSnapshotEntry("templateId", LuaSnapshotValue.String("core.zone.enterprise_display")) }) };
+            var facade = new LuaFacadeSnapshot { GlobalContent = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("zones", LuaSnapshotValue.Array(zones)), new LuaSnapshotEntry("instances", LuaSnapshotValue.Array(instances)) }) };
             var script = new LuaScriptDefinition("test.rhodes.upgrade", "test.rhodes.upgrade", "test.rhodes.upgrade", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
             // 内容/接口合同独立于首次Mono JIT耗时；生产宿主预算保持不变。
             var budget = LuaExecutionBudget.Default;

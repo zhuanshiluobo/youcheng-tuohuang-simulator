@@ -35,6 +35,46 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static int Nodes(NormalizedValue value) => 1 + (value.Kind == NormalizedValueKind.Array ? value.Items.Sum(Nodes) :
             value.Kind == NormalizedValueKind.Object ? value.Properties.Sum(p => Nodes(p.Value)) : 0);
+
+        [TestCase(false, false)] [TestCase(false, true)] [TestCase(true, false)] [TestCase(true, true)]
+        public void ASourceAcquiredDuringCleanupIsAvailableInTheSameWindowAndSurvivesRecovery(bool originalOnce, bool acquiredRepeat)
+        {
+            // 私有内容夹具：通过正式奖励授予及结算命令取得新来源，不代表正常对局验收。
+            f = new CleanupSourceTestFixture(artifacts, legacyResource: originalOnce, lateGrant: true, lateRepeat: acquiredRepeat, inMemoryInput: true);
+            string window = f.Window.Context.Id;
+            Assert.That(f.Options.Any(o => o.SourceDefinitionId == "infected.award.score"), Is.False);
+            if (originalOnce)
+            {
+                var initial = f.Options.Single(o => o.SourceItemId == f.CardId);
+                var initialCommand = EffectInteractionCommands.InvokeSettlementOption(1, initial.OptionId, "", initial.StateRevision);
+                Assert.That(new InvokeSettlementOptionCommandHandler(f.Registry).Handle(f.State, initialCommand).Succeeded, Is.True);
+                f.Drain();
+            }
+            else f.Start("grant-during-cleanup");
+            Assert.That(f.State.ItemZones.Items.Count(i => i.DefinitionId == "infected.award.score" && i.ControllerSubject.PlayerId == 1), Is.EqualTo(1));
+            Assert.That(f.Window.Context.Id, Is.EqualTo(window));
+            Assert.That(f.Window.IsClosed, Is.False);
+            var added = f.Options.SingleOrDefault(o => o.SourceDefinitionId == "infected.award.score");
+            Assert.That(added, Is.Not.Null, "新获得的收尾来源应进入当前玩家当前窗口");
+            Assert.That(added.IsEnabled, Is.True);
+            Assert.That(f.State.EffectRuntime.RuleEvents.Count(e => e.EventType == "PlayerCleanupStarted" && e.PlayerId == 1), Is.EqualTo(1));
+            Assert.That(f.Window.Entries.Count(e => e.SourceDefinitionId == "infected.award.score"), Is.EqualTo(1));
+            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(f.State, f.Registry, out var origin), Is.True, origin);
+            var tampered = GameStateCloneService.DeepClone(f.State);
+            tampered.EffectRuntime.RuleEvents.Single(e => e.EventType == CleanupSourceRecovery.ReconcileEvent).SourceEffectId = f.RootId;
+            Assert.That(SettlementHostProtocol.TryValidateRecoveryOrigins(tampered, f.Registry, out _), Is.False, "恢复不得接受不属于已受理结算的补登记来源");
+            f.Restore("收尾中新获得来源待使用");
+            added = f.Options.Single(o => o.SourceDefinitionId == "infected.award.score");
+            var command = acquiredRepeat ? CleanupSourceCommand.Create(1, "invoke-late-source", added.CleanupRequest, f.State.EffectRuntime.StateRevision) :
+                EffectInteractionCommands.InvokeSettlementOption(1, added.OptionId, "", f.State.EffectRuntime.StateRevision);
+            var result = new InvokeSettlementOptionCommandHandler(f.Registry).Handle(f.State, command);
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            f.Drain();
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(3));
+            Assert.That(f.Options.Count(o => o.SourceDefinitionId == "infected.award.score"), Is.EqualTo(acquiredRepeat ? 1 : 0));
+            f.Restore("收尾中新获得来源已使用");
+            Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(3));
+        }
         private void AssertCompactInventory(int count)
         {
             var facts = Facts;

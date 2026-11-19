@@ -696,7 +696,7 @@
     },
     "core:infected.enterprise.rhodes_island.level_4.description": {
       "parameters": {},
-      "template": "4级：从干员牌堆直接选择1张干员，替换本人1张手牌；旧手牌展示并回盒，新干员加入手牌。"
+      "template": "4级：从干员牌堆直接选择1张干员，换出本人手牌或弃牌区的1张角色牌；旧牌展示并回盒，新干员加入手牌。"
     },
     "core:infected.enterprise.rhodes_island.level_5.description": {
       "parameters": {},

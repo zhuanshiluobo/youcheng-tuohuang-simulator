@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.ability_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [],
   "tags": [
     "entrepreneur-official"
@@ -81,7 +79,7 @@
         "InfluenceRemoved"
       ],
       "queryKinds": [],
-      "allowedOperations": [
+      "responseKinds": [
         "response.required_effect"
       ],
       "presentationRef": "entrepreneur.P09.departure",

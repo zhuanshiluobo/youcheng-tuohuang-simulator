@@ -226,6 +226,7 @@ namespace YC.Presentation
                 yield return AnimateProgressPanel(false);
             }
             // 旧页已卸载、目标尚未激活；先让动态对象的Destroy在本帧结束生效，再允许新菜单取图。
+            bool releaseGameplayMemory = CanReleaseGameplayBeforeActivation(targetScene, releaseGameplayArtwork, operation);
             if (TryReleaseGameplayArtworkBeforeActivation(targetScene, releaseGameplayArtwork, operation))
                 yield return null;
             operation.allowSceneActivation = true;
@@ -244,6 +245,14 @@ namespace YC.Presentation
 
             SceneManager.SetActiveScene(loadedTargetScene);
             activationComplete = true;
+            if (releaseGameplayMemory)
+            {
+                // 菜单已激活、旧场景已卸载；销毁请求先跨帧生效，再回收不再被菜单引用的资源和托管对象。
+                // 仍处于加载遮罩内；仅真实离局返回主菜单执行一次，正常进局和重连不执行。
+                yield return null;
+                yield return Resources.UnloadUnusedAssets();
+                System.GC.Collect();
+            }
             if (gameplayProgress != null)
             {
                 var waitingSince = Time.realtimeSinceStartup;
@@ -440,6 +449,12 @@ namespace YC.Presentation
 
         private bool TryReleaseGameplayArtworkBeforeActivation(string targetScene, bool requestedMenuReturn, AsyncOperation operation)
         {
+            if (!CanReleaseGameplayBeforeActivation(targetScene, requestedMenuReturn, operation)) return false;
+            return ExternalContentRuntime.ReleaseUnloadedGameplayArtwork();
+        }
+
+        private bool CanReleaseGameplayBeforeActivation(string targetScene, bool requestedMenuReturn, AsyncOperation operation)
+        {
             if (!requestedMenuReturn || targetScene != FallbackSceneName || !hadGameplaySource || !sourceScenesUnloaded ||
                 GameLaunchContext.Instance == null || !GameLaunchContext.Instance.IsLeavingGameplay ||
                 operation == null || operation.allowSceneActivation || operation.isDone || operation.progress < 0.9f) return false;
@@ -449,7 +464,7 @@ namespace YC.Presentation
                 var scene = SceneManager.GetSceneAt(index);
                 if (scene != gameObject.scene && scene.isLoaded) return false;
             }
-            return ExternalContentRuntime.ReleaseUnloadedGameplayArtwork();
+            return true;
         }
 
         private IEnumerator FadeBlackScreen(float from, float to, float duration)
@@ -500,7 +515,8 @@ namespace YC.Presentation
             bool recoveringConnection = transport.IsAwaitingLocalSimulationConnectionRecovery;
             bool failed = !string.IsNullOrEmpty(transport.InitialLoadingFailure) ||
                 !recoveringConnection && snapshot != null && (snapshot.IsStopped || snapshot.RequiresRecovery);
-            bool boundaryReady = !recoveringConnection && GameplayLoadingProgress.HasConfirmedSimulationState(snapshot, gameplayGameId);
+            bool boundaryReady = transport.UsesPrivateTransport ? transport.IsPrivateRoomReady :
+                !recoveringConnection && GameplayLoadingProgress.HasConfirmedSimulationState(snapshot, gameplayGameId);
             gameplayProgress.ObserveNetwork(transport.InitialLoadingReceivedBytes, transport.InitialLoadingTotalBytes,
                 transport.InitialLoadingReadyPlayerCount, transport.InitialLoadingPlayerCount,
                 transport.IsInitialLoadingStateInstalled, gameplayController.IsStartupSimulationReady, boundaryReady, failed);

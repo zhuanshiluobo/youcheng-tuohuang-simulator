@@ -204,7 +204,7 @@ namespace YC.Domain.Effects
                 costs.Add((c.Node.NestedEffects.Skip(offset).Take(size).Sum(DeclarationNodes),c.Node.AllocationOptions[i].MaxExecutions));offset+=size;
             }
             foreach(var cost in costs.OrderByDescending(v=>v.cost)) {int count=Math.Min(remaining,cost.cap);nodes+=count*cost.cost;remaining-=count;}
-            if(c.State.EffectRuntime.EffectNodes.Count+nodes>c.Limits.MaxNodeCount || c.State.EffectRuntime.RuleEvents.Count+nodes>c.Limits.MaxEventCount)
+            if((long)c.State.EffectRuntime.EffectNodes.Count+nodes>c.Limits.MaxNodeCount || (long)c.State.EffectRuntime.RuleEvents.Count+nodes>c.Limits.MaxEventCount)
                 throw new ArgumentException("allocation_execution_budget_exceeded");
         }
         private static EffectStepResult Finish(EffectNodeRuntimeState n,string outcome,int failed,string reason)

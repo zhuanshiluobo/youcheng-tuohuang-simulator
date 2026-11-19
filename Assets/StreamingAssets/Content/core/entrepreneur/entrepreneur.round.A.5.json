@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.round_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [],
   "tags": [
     "entrepreneur-official"
@@ -100,7 +98,6 @@
           "usageTrackId": "entrepreneur.A05.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "entrepreneur.A05.call.A05",
           "sortOrder": 0,
           "presentationRef": "entrepreneur.A05.tactic",
           "presentation": {
@@ -131,7 +128,6 @@
           "usageTrackId": "entrepreneur.A05.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 1,
           "presentationRef": "entrepreneur.A05.tactic",
           "presentation": {
@@ -192,12 +188,7 @@
       "queryKinds": [],
       "allowedOperations": [
         "carrier.load:entrepreneur.ability.A01:commands:core.player_marker",
-        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker",
-        "action.invoke:entrepreneur.A05.call.A09",
-        "action.invoke:entrepreneur.A05.call.A06",
-        "action.invoke:entrepreneur.A05.call.A07",
-        "action.invoke:entrepreneur.A05.call.A05",
-        "action.invoke:entrepreneur.A05.call.A08"
+        "carrier.transfer.original_supply:entrepreneur.ability.A01:commands:core.player_marker"
       ],
       "presentationRef": "entrepreneur.A05.cleanup",
       "actions": [],
@@ -324,53 +315,6 @@
       "script": "lua/entrepreneurs/agnes.invoke.lua",
       "version": "1.3.3",
       "completionHandlerId": ""
-    }
-  ],
-  "actionCallPolicies": [
-    {
-      "policyRef": "entrepreneur.A05.call.A09",
-      "callerAbilityId": "entrepreneur.A05.cleanup",
-      "callerHandlerRef": "entrepreneur.A05.cleanup",
-      "targetActionId": "entrepreneur.A09.tactic.quick",
-      "omitEntryCost": true,
-      "omitEntryAfterEffects": true,
-      "omitMainAction": true
-    },
-    {
-      "policyRef": "entrepreneur.A05.call.A06",
-      "callerAbilityId": "entrepreneur.A05.cleanup",
-      "callerHandlerRef": "entrepreneur.A05.cleanup",
-      "targetActionId": "entrepreneur.A06.tactic.quick",
-      "omitEntryCost": true,
-      "omitEntryAfterEffects": true,
-      "omitMainAction": true
-    },
-    {
-      "policyRef": "entrepreneur.A05.call.A07",
-      "callerAbilityId": "entrepreneur.A05.cleanup",
-      "callerHandlerRef": "entrepreneur.A05.cleanup",
-      "targetActionId": "entrepreneur.A07.tactic.quick",
-      "omitEntryCost": true,
-      "omitEntryAfterEffects": true,
-      "omitMainAction": true
-    },
-    {
-      "policyRef": "entrepreneur.A05.call.A05",
-      "callerAbilityId": "entrepreneur.A05.cleanup",
-      "callerHandlerRef": "entrepreneur.A05.cleanup",
-      "targetActionId": "entrepreneur.A05.tactic.quick",
-      "omitEntryCost": true,
-      "omitEntryAfterEffects": true,
-      "omitMainAction": true
-    },
-    {
-      "policyRef": "entrepreneur.A05.call.A08",
-      "callerAbilityId": "entrepreneur.A05.cleanup",
-      "callerHandlerRef": "entrepreneur.A05.cleanup",
-      "targetActionId": "entrepreneur.A08.tactic.quick",
-      "omitEntryCost": true,
-      "omitEntryAfterEffects": true,
-      "omitMainAction": true
     }
   ],
   "cardZones": [

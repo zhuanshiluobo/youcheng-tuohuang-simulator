@@ -5,6 +5,7 @@ using YC.Domain.Rules;
 using YC.Domain.Items;
 using System.Linq;
 using YC.Domain.Travel;
+using Newtonsoft.Json;
 
 namespace YC.Domain.State
 {
@@ -135,6 +136,9 @@ namespace YC.Domain.State
         public List<YC.Domain.Cards.CharacterUseRuntimeState> CharacterUses = new List<YC.Domain.Cards.CharacterUseRuntimeState>();
         public List<YC.Domain.Cards.CharacterSettlementOption> CharacterSettlementOptions = new List<YC.Domain.Cards.CharacterSettlementOption>();
         public YC.Domain.Rules.EntrepreneurStateView Entrepreneurs = new YC.Domain.Rules.EntrepreneurStateView();
+        // 仅中间流程的当前作答者可见；旧流程和其他观察者不携带该字段。
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public PreparationStateView Preparation;
         public bool HasAbilityActionCatalog;
         public List<YC.Domain.Effects.AbilityActionOption> AbilityActions = new List<YC.Domain.Effects.AbilityActionOption>();
         public List<YC.Domain.Cards.CoverSlotState> CharacterCoverSlots = new List<YC.Domain.Cards.CoverSlotState>();
@@ -227,6 +231,7 @@ namespace YC.Domain.State
         public bool ActedMainActionThisTurn;
         public int RemainingMainActionsThisTurn;
         public int RestrictedMainActionsThisTurn;
+        public List<MainActionBudgetBatch> MainActionBudgetBatches;
         public int CompletedMainActionsThisTurn;
         public bool UsedCharacterThisRound;
         public bool UsedCharacterThisTurn;
@@ -337,6 +342,10 @@ namespace YC.Domain.State
         public int EventDeckYellowCount;
         public int EventDeckRedCount;
         public int FacilityDeckCount;
+        public int FacilityDeckRedCount;
+        public int FacilityDeckYellowCount;
+        public int FacilityDeckBlueCount;
+        public int FacilityDeckRainbowCount;
         public int FacilitySupplyCount;
         public int CityStyleSupplyCount;
         public List<string> PublicFacilitySupplyIds = new List<string>();
@@ -554,9 +563,9 @@ namespace YC.Domain.State
                 view.PlayerEffects = PlayerEffectFactProjector.Project(state, view);
             }
             if (ItemZoneLegacyProjection.IsActive(state)) view.Map.FacilityInstances.RemoveAll(item => !view.ItemZones.Items.Exists(entity => entity.ItemId == item.ContentInstanceId));
-            ProjectDecks(state.Decks, view.Decks);
+            ProjectDecks(state, view.Decks);
             view.GameBox = GameBoxState.ForViewer(state.GameBox, viewer);
-            if (ItemZoneLegacyProjection.IsActive(state)) view.GameBox = GameBoxStateProjector.Project(state, view.ItemZones, viewer);
+            if (ItemZoneLegacyProjection.IsActive(state)) view.GameBox = GameBoxStateProjector.Project(state, view.ItemZones);
             ProjectFinalScoring(state.FinalScoring, viewer, view);
             ProjectInteractions(state, viewer, view);
             if (viewer.Role == GameStateViewerRole.Player && runtime != null)
@@ -596,7 +605,8 @@ namespace YC.Domain.State
             if (view.HasAbilityActionCatalog) view.CharacterSettlementOptions.RemoveAll(o => string.IsNullOrEmpty(o.EntryKind) && string.IsNullOrEmpty(o.TargetUseId));
             view.Entrepreneurs = YC.Domain.Rules.EntrepreneurContent.Project(state, viewer);
             ProjectGameplayPresentation(state, viewer, view);
-            if (!viewer.IsHost) RedactSecretHistory(state, view);
+            if (!viewer.IsHost) RedactSecretHistory(state, view, paymentRegistry);
+            view.Preparation = PreparationStateProjector.Project(state, viewer, view.Interactions);
             // 包含秘密回盒的二次过滤完成后再编号，不能暴露隐藏事件的位置或数量。
             for (int i = 0; i < view.Events.Count; i++) view.Events[i].Sequence = i + 1;
             return view;
@@ -659,10 +669,12 @@ namespace YC.Domain.State
             }
         }
 
-        private static void RedactSecretHistory(GameState state, GameStateView view)
+        private static void RedactSecretHistory(GameState state, GameStateView view, YC.Domain.Effects.EffectRegistry registry)
         {
             var secrets = new HashSet<string>(StringComparer.Ordinal);
             var secretInstances = new HashSet<string>(StringComparer.Ordinal);
+            var preparationSecrets = new HashSet<string>(StringComparer.Ordinal);
+            var preparationNames = new HashSet<string>(StringComparer.Ordinal);
             foreach (var item in state.ItemZones.Items)
             {
                 if (state.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId != "core.zone.box_secret_retired") continue;
@@ -675,20 +687,107 @@ namespace YC.Domain.State
                     if (!string.IsNullOrEmpty(definition?.Name)) secrets.Add(definition.Name);
                 }
             }
+            // 分发后、全部确认及公开前，候选仍属于各自玩家。即使公开效果或日志误带
+            // 了另一席位的实例或定义，也不能把它们通过历史字段送进本人的视图。
+            var preparation = state.PreparationRuntime;
+            bool hasPreparation = state.SetupRecipe?.Preparation?.Enterprise != null;
+            string NameOf(string itemId)
+            {
+                var item = state.ItemZones.Items.Find(value => value.ItemId == itemId);
+                return item == null ? null : registry?.EnterpriseDefinitions?.FindEnterprise(item.DefinitionId)?.DisplayNameKey;
+            }
+            bool IsSecretRetired(ItemInstanceState item) =>
+                state.ItemZones.Zones.Find(zone => zone.ZoneId == item.ZoneId)?.TemplateId == "core.zone.box_secret_retired";
+            bool IsOwn(ItemInstanceState item) => view.ViewerRole == GameStateViewerRole.Player &&
+                item.ControllerSubject?.Kind == ItemSubjectKind.Player && item.ControllerSubject.PlayerId == view.ViewerPlayerId;
+            // 不同定义可能同名；本人已有的名称本身不能区分另一席位，不能因此吞掉本人请求。
+            var ownNames = new HashSet<string>(StringComparer.Ordinal);
+            if (hasPreparation && view.ViewerRole == GameStateViewerRole.Player)
+            {
+                foreach (var assignment in preparation?.Distribution?.Assignments ?? new List<PreparationEnterpriseAssignment>())
+                    if (assignment?.PlayerId == view.ViewerPlayerId)
+                        foreach (string id in assignment.CandidateItemIds ?? new List<string>())
+                        {
+                            string name = NameOf(id);
+                            if (!string.IsNullOrEmpty(name)) ownNames.Add(name);
+                        }
+                foreach (var item in state.ItemZones.Items.Where(item => IsSecretRetired(item) && IsOwn(item)))
+                {
+                    string name = NameOf(item.ItemId);
+                    if (!string.IsNullOrEmpty(name)) ownNames.Add(name);
+                }
+            }
+            if ((preparation?.Stage == "middle" || preparation?.Stage == "confirming") &&
+                preparation.Distribution?.Assignments != null)
+            {
+                foreach (var assignment in preparation.Distribution.Assignments)
+                {
+                    if (assignment == null || view.ViewerRole == GameStateViewerRole.Player && assignment.PlayerId == view.ViewerPlayerId ||
+                        assignment.CandidateItemIds == null) continue;
+                    foreach (string itemId in assignment.CandidateItemIds)
+                    {
+                        if (string.IsNullOrEmpty(itemId)) continue;
+                        preparationSecrets.Add(itemId);
+                        var item = state.ItemZones.Items.Find(value => value.ItemId == itemId);
+                        if (!string.IsNullOrEmpty(item?.DefinitionId)) preparationSecrets.Add(item.DefinitionId);
+                        string name = NameOf(itemId);
+                        if (!string.IsNullOrEmpty(name) && !ownNames.Contains(name)) preparationNames.Add(name);
+                    }
+                }
+            }
+            if (hasPreparation)
+                foreach (var item in state.ItemZones.Items.Where(item => IsSecretRetired(item) && !IsOwn(item)))
+                {
+                    string name = NameOf(item.ItemId);
+                    if (!string.IsNullOrEmpty(name) && !ownNames.Contains(name)) preparationNames.Add(name);
+                }
+            bool IdentityCharacter(char c) => c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' ||
+                c >= '0' && c <= '9' || c == '.' || c == '_' || c == '-';
+            bool ContainsPreparationSecret(string text)
+            {
+                if (string.IsNullOrEmpty(text)) return false;
+                if (preparationNames.Any(name => text.Contains(name))) return true;
+                foreach (string secret in preparationSecrets)
+                {
+                    int start = 0;
+                    while ((start = text.IndexOf(secret, start, StringComparison.Ordinal)) >= 0)
+                    {
+                        int end = start + secret.Length;
+                        if ((start == 0 || !IdentityCharacter(text[start - 1])) &&
+                            (end == text.Length || !IdentityCharacter(text[end]))) return true;
+                        start = end;
+                    }
+                }
+                return false;
+            }
             bool Leaks(NormalizedValue value, bool instanceOnly = false)
             {
                 if (value == null) return false;
                 var hidden = instanceOnly ? secretInstances : secrets;
-                if (hidden.Any(secret => !string.IsNullOrEmpty(secret) && ((value.ReferenceId ?? string.Empty).Contains(secret) || (value.StringValue ?? string.Empty).Contains(secret)))) return true;
+                if (hidden.Any(secret => !string.IsNullOrEmpty(secret) && ((value.ReferenceId ?? string.Empty).Contains(secret) || (value.StringValue ?? string.Empty).Contains(secret))) ||
+                    ContainsPreparationSecret(value.ReferenceId) || ContainsPreparationSecret(value.StringValue)) return true;
                 return value.Items != null && value.Items.Any(item => Leaks(item, instanceOnly)) || value.Properties != null && value.Properties.Any(entry => entry != null && Leaks(entry.Value, instanceOnly));
             }
-            view.Effects.RemoveAll(node => Leaks(node.NormalizedArguments) || Leaks(node.NormalizedResult));
-            view.Events.RemoveAll(value => secrets.Contains(value.TargetEntityId) || Leaks(value.Payload) || Leaks(value.HostOnlyPayload));
+            bool LeaksText(YC.Domain.Presentation.GameplayTextRef text) => text != null &&
+                (preparationSecrets.Count > 0 || preparationNames.Count > 0) &&
+                (ContainsPreparationSecret(text.Key) || text.Arguments != null && text.Arguments.Any(argument => argument != null && Leaks(argument.Value)));
+            bool LeaksInteractionPresentation(YC.Domain.Presentation.GameplayInteractionPresentation presentation) => presentation != null &&
+                (LeaksText(presentation.Prompt) || LeaksText(presentation.Progress) ||
+                 presentation.Options != null && presentation.Options.Any(option => option != null &&
+                     (ContainsPreparationSecret(option.CandidateId) || LeaksText(option.Label) || LeaksText(option.Description) || LeaksText(option.DisabledReason))) ||
+                 presentation.QuantityRows != null && presentation.QuantityRows.Any(row => row != null &&
+                     (ContainsPreparationSecret(row.RowId) || LeaksText(row.Label) || LeaksText(row.Description) || LeaksText(row.Unit))));
+            bool LeaksEffectPresentation(YC.Domain.Presentation.EffectPresentationDefinition presentation) => presentation != null &&
+                (LeaksText(presentation.Started) || LeaksText(presentation.Waiting) || LeaksText(presentation.Succeeded) ||
+                 LeaksText(presentation.Failed) || LeaksText(presentation.Stopped) || LeaksInteractionPresentation(presentation.Interaction));
+            view.Effects.RemoveAll(node => Leaks(node.NormalizedArguments) || Leaks(node.NormalizedResult) || LeaksEffectPresentation(node.Presentation));
+            view.Events.RemoveAll(value => secrets.Contains(value.TargetEntityId) || ContainsPreparationSecret(value.TargetEntityId) || Leaks(value.Payload) || Leaks(value.HostOnlyPayload));
             // 活跃请求已经按回答者授权投影。另一玩家回盒同名牌不能抹掉本人的合法候选；
             // 仍禁止任何活跃请求携带秘密回盒的具体实例，已结束请求继续清理定义/名称历史。
-            view.Interactions.RemoveAll(value => value.CandidateIds.Any((value.Status == "open" ? secretInstances : secrets).Contains) ||
-                Leaks(value.Answer, value.Status == "open") || Leaks(value.PromptParameters, value.Status == "open"));
-            view.Logs.RemoveAll(log => secrets.Any(secret => !string.IsNullOrEmpty(secret) && log.Message.Contains(secret)));
+            view.Interactions.RemoveAll(value => value.CandidateIds.Any(id => (value.Status == "open" ? secretInstances : secrets).Contains(id) || ContainsPreparationSecret(id)) ||
+                Leaks(value.Answer, value.Status == "open") || Leaks(value.PromptParameters, value.Status == "open") || LeaksInteractionPresentation(value.Presentation));
+            view.Logs.RemoveAll(log => secrets.Any(secret => !string.IsNullOrEmpty(secret) && log.Message.Contains(secret)) || ContainsPreparationSecret(log.Message));
+            if (view.ResolutionMessage != null && LeaksText(view.ResolutionMessage.Message)) view.ResolutionMessage = null;
         }
 
         /// <summary>
@@ -735,6 +834,7 @@ namespace YC.Domain.State
                     ActedMainActionThisTurn = source.ActedMainActionThisTurn,
                     RemainingMainActionsThisTurn = source.RemainingMainActionsThisTurn,
                     RestrictedMainActionsThisTurn = source.RestrictedMainActionsThisTurn,
+                    MainActionBudgetBatches = source.MainActionBudgetBatches?.Select(batch => new MainActionBudgetBatch { Remaining = batch.Remaining, AllowedActionTypes = new List<string>(batch.AllowedActionTypes) }).ToList(),
                     CompletedMainActionsThisTurn = source.CompletedMainActionsThisTurn,
                     UsedCharacterThisRound = source.UsedCharacterThisRound,
                     UsedCharacterThisTurn = source.UsedCharacterThisTurn,
@@ -831,6 +931,11 @@ namespace YC.Domain.State
 
             if (view.Decks != null)
             {
+                // 私密投影只接收牌堆数量；不能用空的隐藏牌列表推断事件牌已耗尽。
+                state.Decks.HasProjectedEventCounts = true;
+                state.Decks.ProjectedEventGreenCount = Math.Max(0, view.Decks.EventDeckGreenCount);
+                state.Decks.ProjectedEventYellowCount = Math.Max(0, view.Decks.EventDeckYellowCount);
+                state.Decks.ProjectedEventRedCount = Math.Max(0, view.Decks.EventDeckRedCount);
                 state.Decks.FacilitySupply.AddRange(view.Decks.PublicFacilitySupplyIds ?? new List<string>());
                 state.Decks.CityStyleSupply.AddRange(view.Decks.PublicCityStyleSupplyIds ?? new List<string>());
             }
@@ -958,6 +1063,7 @@ namespace YC.Domain.State
                     ActedMainActionThisTurn = source.ActedMainActionThisTurn,
                     RemainingMainActionsThisTurn = source.RemainingMainActionsThisTurn,
                     RestrictedMainActionsThisTurn = source.RestrictedMainActionsThisTurn,
+                    MainActionBudgetBatches = source.MainActionBudgetBatches?.Select(batch => new MainActionBudgetBatch { Remaining = batch.Remaining, AllowedActionTypes = new List<string>(batch.AllowedActionTypes) }).ToList(),
                     CompletedMainActionsThisTurn = source.CompletedMainActionsThisTurn,
                     UsedCharacterThisRound = source.UsedCharacterThisRound,
                     UsedCharacterThisTurn = source.UsedCharacterThisTurn,
@@ -1084,8 +1190,9 @@ namespace YC.Domain.State
             }
         }
 
-        private static void ProjectDecks(DeckRuntimeState source, PublicDeckStateView target)
+        private static void ProjectDecks(GameState state, PublicDeckStateView target)
         {
+            var source = state?.Decks;
             if (source == null || target == null) return;
             target.CharacterDeckCount = Count(source.CharacterDeck);
             target.CharacterDiscardCount = Count(source.CharacterDiscard);
@@ -1093,6 +1200,34 @@ namespace YC.Domain.State
             target.EventDeckYellowCount = Count(source.EventDeckYellow);
             target.EventDeckRedCount = Count(source.EventDeckRed);
             target.FacilityDeckCount = Count(source.FacilityDeck);
+            // 牌堆身份与顺序仍然隐藏；仅公开玩家要求的四色数量。
+            IEnumerable<string> facilityIds = source.FacilityDeck ?? new LegacyPositionList<string>();
+            if (ItemZoneLegacyProjection.IsActive(state))
+            {
+                var deck = state.ItemZones.Zones.Find(zone => zone.LocalZoneId == "facility_deck");
+                var cards = deck == null ? new List<ItemInstanceState>() :
+                    state.ItemZones.Items.Where(item => item.ZoneId == deck.ZoneId).ToList();
+                target.FacilityDeckCount = cards.Count;
+                facilityIds = cards.Select(item => item.DefinitionId);
+            }
+            var colors = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (state.ContentDefinitions?.Facilities != null)
+                foreach (var definition in state.ContentDefinitions.Facilities)
+                    if (definition != null && !string.IsNullOrEmpty(definition.FacilityId)) colors[definition.FacilityId] = definition.Color;
+            foreach (var id in facilityIds)
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                if (!colors.TryGetValue(id, out var color) && state.ContentDefinitions == null &&
+                    YC.Domain.Facilities.FacilityCardDatabase.IsInitialized &&
+                    YC.Domain.Facilities.FacilityCardDatabase.TryGet(state, id, out var definition)) color = definition.Color;
+                switch (color)
+                {
+                    case "red": target.FacilityDeckRedCount++; break;
+                    case "yellow": target.FacilityDeckYellowCount++; break;
+                    case "blue": target.FacilityDeckBlueCount++; break;
+                    case "rainbow": target.FacilityDeckRainbowCount++; break;
+                }
+            }
             var facilitySupply = source.FacilitySupply?.ToArray();
             target.FacilitySupplyCount = facilitySupply == null ? 0 : facilitySupply.Length;
             var cityStyleSupply = source.CityStyleSupply?.ToArray();

@@ -17,6 +17,7 @@ namespace YC.Infrastructure.Multiplayer
     {
         public string MapId = string.Empty;
         public string RuleModeId = string.Empty;
+        public List<string> AdditionalRuleModeIds;
         public List<string> EnabledExpansionIds = new List<string>();
     }
     [Serializable]
@@ -49,6 +50,18 @@ namespace YC.Infrastructure.Multiplayer
     {
         string GetContentPackHash(GameRuleConfiguration configuration);
         bool TryValidate(GameRuleConfiguration configuration, out string reasonCode);
+    }
+
+    /// <summary>房主改变玩法时，先解析候选精确包锁，再原子提交整个房间配置。</summary>
+    public interface IRoomContentLockProvider
+    {
+        bool TryPrepareLock(GameRuleConfiguration configuration, out List<ContentPackLock> lockedPacks, out string reasonCode);
+    }
+
+    /// <summary>仅对新房间选择官方准备合同；续局必须保留存档中的合同。</summary>
+    public interface IRoomOfficialPreparationProvider
+    {
+        string NewGamePreparationContract(GameRuleConfiguration configuration);
     }
 
     public static class RoomServiceAvailability

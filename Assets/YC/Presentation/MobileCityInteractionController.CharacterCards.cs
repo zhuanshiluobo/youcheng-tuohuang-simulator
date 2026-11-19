@@ -124,7 +124,7 @@ namespace YC.Presentation
             characterAbilityInteraction.RenderUseSelection = request =>
             {
                 var view = characterCardPresenter.BuildProjectedView(UiReadState(), localPlayerId, VisibleSaleState());
-                if (view.CurrentUseSelection?.InteractionId == request.InteractionId) ShowCharacterUsePage(view);
+                return view.CurrentUseSelection?.InteractionId == request.InteractionId && ShowCharacterUsePage(view);
             };
             characterAbilityInteraction.ClearUseSelection = ClearCharacterUseSelectionPage;
         }
@@ -390,9 +390,9 @@ namespace YC.Presentation
             characterUsePageKey = string.Empty;
         }
 
-        private void ShowCharacterUsePage(CharacterCardPanelViewModel model)
+        private bool ShowCharacterUsePage(CharacterCardPanelViewModel model)
         {
-            if (model == null || gameplayInteractionHud == null) return;
+            if (model == null || gameplayInteractionHud == null) return false;
             if (model.UsesEntityLifecycle)
             {
                 if (!string.IsNullOrEmpty(model.CurrentUseId))
@@ -400,38 +400,36 @@ namespace YC.Presentation
                     // 首模式仍由现成卡面消费；第二模式由Host自动接续。
                     if (CharacterCardPanelPresenter.UsesOriginalModeViewer(model.CurrentUseSelection))
                     {
-                        OpenCharacterViewer(model);
-                        return;
+                        return OpenCharacterViewer(model);
                     }
-                    return;
+                    return model.CurrentUseSelection?.InteractionTypeId == CharacterLifecycleService.SecondModeInteractionTypeId;
                 }
                 else
                 {
-                    if (!model.CanUse || !string.IsNullOrEmpty(characterUseCommandId)) return;
+                    if (!model.CanUse || !string.IsNullOrEmpty(characterUseCommandId)) return false;
                     SubmitCharacterCardCommand(characterCardPresenter.CreateBeginUseCommand(localPlayerId, model.CoveredCardId),
                         string.Empty, string.Empty);
-                    return;
+                    return false;
                 }
             }
             if (!model.IsSecondEffectDecision && !model.IsSecondEffectExecution)
             {
-                OpenCharacterViewer(model);
-                return;
+                return OpenCharacterViewer(model);
             }
             // 旧全局Pending第二模式不属于当前实体生命周期；恢复层已明确拒绝，不再发布客户端值菜单。
             throw new InvalidOperationException("[character_legacy_lifecycle_not_supported] 旧第二模式页面已退役。");
         }
 
-        private void OpenCharacterViewer(CharacterCardPanelViewModel model)
+        private bool OpenCharacterViewer(CharacterCardPanelViewModel model)
         {
-            if (!model.CanUse || !string.IsNullOrEmpty(characterUseCommandId)) return;
+            if (!model.CanUse || !string.IsNullOrEmpty(characterUseCommandId)) return false;
             var selection = model.CurrentUseSelection;
-            if (model.UsesEntityLifecycle && !CharacterCardPanelPresenter.UsesOriginalModeViewer(selection)) return;
+            if (model.UsesEntityLifecycle && !CharacterCardPanelPresenter.UsesOriginalModeViewer(selection)) return false;
             if (model.UsesEntityLifecycle && characterViewer != null && !string.IsNullOrEmpty(characterViewer.CardId) &&
                 characterUsePageKey == CharacterUseKey(model) && characterViewerRequestIsCurrent?.Invoke() == true)
-            { RefreshCharacterViewerSubmissionAvailability(CanSubmitGameplayCommand); return; }
+            { RefreshCharacterViewerSubmissionAvailability(CanSubmitGameplayCommand); return true; }
             var texture = gameplayInteractionHud.DialogRegistry.CardVisualCatalog.GetCharacterFront(model.ResolveDefinitionId(model.CoveredCardId));
-            if (texture == null) return;
+            if (texture == null) return false;
             if (characterViewer == null) characterViewer = gameplayInteractionHud.DialogRegistry.InstantiateCardViewer();
             bool preserveFold = model.UsesEntityLifecycle && GameplayHudFrame.EffectInputSuspended;
             if (model.UsesEntityLifecycle)
@@ -480,11 +478,12 @@ namespace YC.Presentation
                 gameplayInteractionHud.Frame.ShowPage(characterViewer.gameObject, true);
                 if (preserveFold) gameplayInteractionHud.Frame.SuspendEffectForInformation();
             }
+            return true;
         }
 
         private Func<bool> CreateCharacterViewerCurrentGuard(CharacterCardPanelViewModel model, string key)
         {
-            var simulated = commandSubmission?.UsesDeterministicSimulation == true;
+            var simulated = commandSubmission?.UsesNetworkProjection == true;
             var owner = session; var state = simulated ? commandSubmission.PublishedState : session?.State; var visible = VisibleSaleState();
             var player = localPlayerId; var game = state?.GameId; var content = state?.ContentPackHash;
             var revision = UiReadState()?.EffectRuntime?.StateRevision ?? 0;

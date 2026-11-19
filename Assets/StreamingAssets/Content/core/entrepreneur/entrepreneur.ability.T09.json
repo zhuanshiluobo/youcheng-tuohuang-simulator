@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.ability_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [
     "ability_sources.v1",
     "card_markers.v2",
@@ -87,9 +85,11 @@
         "InfluenceRemoved"
       ],
       "queryKinds": [],
-      "allowedOperations": [
+      "responseKinds": [
         "response.destination",
-        "response.self",
+        "response.self"
+      ],
+      "allowedOperations": [
         "carrier.store:entrepreneur.ability.T09:markers:core.player_marker"
       ],
       "presentationRef": "entrepreneur.T09.departure",

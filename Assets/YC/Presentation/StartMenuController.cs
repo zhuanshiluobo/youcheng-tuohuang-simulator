@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using YC.Application.DevTools;
 using YC.Application.Sessions;
 using YC.Domain.Rules;
 using YC.Infrastructure.Multiplayer;
+using YC.Infrastructure.Lua;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,6 +30,8 @@ namespace YC.Presentation
         [SerializeField] private StartMenuView view;
 
         [NonSerialized] private IOnlineRoomService roomService;
+        [NonSerialized] private Func<DiyLocalContentConfiguration> localDiySource;
+        [NonSerialized] private Action<string> localDiyFolderOpener;
         [NonSerialized] private LobbyJoinRequestFlow lobbyJoinRequestFlow;
         [NonSerialized] private bool roomEventsSubscribed;
         private readonly object networkEventLock = new object();
@@ -55,6 +59,12 @@ namespace YC.Presentation
         [SerializeField] private string roomUnpreparedCaption = "未准备";
         [SerializeField] private string roomCanStartCaption = "所有成员已准备，可以开始游戏。";
         [SerializeField] private string roomWaitingForHostCaption = "等待房主开始游戏。";
+        [SerializeField] private string removedExpansionsFormat = "切换模式后已移除不兼容扩展：{0}";
+        [SerializeField] private string requiredExpansionFormat = "当前模式需要“{0}”，无法关闭。";
+        [SerializeField] private string expansionListSeparator = "、";
+        [SerializeField] private string savedGameplayUnavailableFormat = "无法应用保存的新局玩法：{0}。请重新选择玩法。";
+        [SerializeField] private string savedGameplayWriteFailedFormat = "玩法已应用，但未能保存新局配置：{0}";
+        [SerializeField] private string savedGameplayFourPlayerMapReason = "四人房间需要四人地图";
         [Serializable] private sealed class RoomReasonCaption
         {
             public string ReasonCode;
@@ -81,14 +91,49 @@ namespace YC.Presentation
         private string roomHostStartCaption;
         private int selectedLocalCityCount = 1;
         private bool loadingGame;
+        private string pendingSavedGameplayError, pendingSavedGameplayRoomId;
         [System.NonSerialized] private MatchSaveData resumeArchive;
         public bool CanOpenMatchSave => !loadingGame && !joiningRoom && roomPanel == null;
+        private void RequireLocalContentConfigurationBoundary()
+        {
+            bool ownPanel = managingDiy && view != null && roomPanel == view.MapSelectionPanel.gameObject && !loadingGame && !joiningRoom;
+            if ((!CanOpenMatchSave && !ownPanel) || roomService?.GetCurrentRoom() != null)
+                throw new InvalidOperationException("请先离开房间并结束启动流程，再管理本地 DIY 内容。");
+        }
+
+        private DiyLocalContentConfiguration LocalDiyConfiguration() => localDiySource?.Invoke() ?? ExternalContentRuntime.CreateLocalDiyConfiguration();
+
+        public IReadOnlyList<DiyLocalPackVersion> InspectLocalDiyContent()
+        {
+            RequireLocalContentConfigurationBoundary();
+            return LocalDiyConfiguration().Inspect();
+        }
+
+        public void SetNextLaunchDiyVersion(string packId, string version)
+        {
+            RequireLocalContentConfigurationBoundary();
+            LocalDiyConfiguration().SetNextLaunchBinding(packId, version);
+        }
+
+        public void OpenLocalDiyFolder()
+        {
+            RequireLocalContentConfigurationBoundary();
+            string directory = LocalDiyConfiguration().EnsureModsDirectory();
+            string uri = new Uri(directory).AbsoluteUri;
+            if (localDiyFolderOpener != null) localDiyFolderOpener(uri); else UnityEngine.Application.OpenURL(uri);
+        }
         public void RefreshMatchSaveAvailability()
         { if (view != null) view.SetMatchSaveAvailable(MatchSaveController.Ensure().HasSaves); }
-        public async System.Threading.Tasks.Task RestoreMatch(MatchSaveData data)
+        public System.Threading.Tasks.Task RestoreMatch(MatchSaveData data) => RestoreMatchCore(data, null);
+        public System.Threading.Tasks.Task RestoreMatchWithValidation(MatchSaveData data, MatchSaveData.ValidationScope validation)
+        {
+            if (validation == null) throw new ArgumentNullException(nameof(validation));
+            return RestoreMatchCore(data, validation);
+        }
+        private async System.Threading.Tasks.Task RestoreMatchCore(MatchSaveData data, MatchSaveData.ValidationScope validation)
         {
             if (!CanOpenMatchSave) throw new InvalidOperationException("已有房间或启动流程正在进行。");
-            data.Validate();
+            if (validation == null) data.Validate(); else validation.Validate(data);
             GameLaunchContext.Ensure().ClearRestore(); resumeArchive = null;
             if (data.Mode == LaunchMode.Local)
             {
@@ -101,7 +146,8 @@ namespace YC.Presentation
             try
             {
                 if (!(roomService is IResumableOnlineRoomService resumable)) throw new InvalidOperationException("当前房间服务不支持续局。");
-                var room = await resumable.CreateResumeRoomAsync(ResumeRoomOptions.FromSave(data));
+                var options = validation == null ? ResumeRoomOptions.FromSave(data) : ResumeRoomOptions.FromSaveWithValidation(data, validation);
+                var room = await resumable.CreateResumeRoomAsync(options);
                 if (this == null) { roomService.Shutdown(); return; }
                 resumeArchive = data; ShowRoomPanel(room, true);
             }
@@ -114,6 +160,11 @@ namespace YC.Presentation
         private float nextAutoStartLocalMirrorAttemptTime;
         private string devLocalMirrorRoomOutputPath = string.Empty;
         private bool mapSelectionCreatesOnlineRoom;
+        private bool managingDiy;
+        private const string DiyFolderSelection = "\u0001folder";
+        private IReadOnlyList<DiyLocalPackVersion> diyVersions = Array.Empty<DiyLocalPackVersion>();
+        private List<string> diyPackIds = new List<string>();
+        private int diyPackIndex, diyVersionIndex;
         private string configuredLocalMapSelectionTitle;
 
         private void Awake()
@@ -427,6 +478,8 @@ namespace YC.Presentation
                 MapId = YC.Domain.Maps.StaticMapDefinitions.ForPlayerCount(selectedRoomPlayerCount).MapId,
                 PlayerCount = seats.Count
             };
+            if (OnlineRoomServiceProvider.ContentCapabilities is IRoomOfficialPreparationProvider preparation)
+                configuration.OfficialPreparationContract = preparation.NewGamePreparationContract(configuration);
             configuration.ContentPackHash = OnlineRoomServiceProvider.ContentCapabilities.GetContentPackHash(configuration);
             GameLaunchContext.Ensure().ConfigureNewLocal(1, CreateLocalGameSeedSource(), seats, configuration, GetExplicitLocalGameSeed());
             BeginMapSceneLoad();
@@ -460,6 +513,7 @@ namespace YC.Presentation
             }
 
             joiningRoom = true;
+            pendingSavedGameplayError = null; pendingSavedGameplayRoomId = null;
             ShowRoomProgressPanel(
                 "创建房间",
                 LocalMirrorTestMode.IsEnabled ? "正在创建 Mirror 本地测试房间..." : "正在创建本地房间...");
@@ -469,17 +523,27 @@ namespace YC.Presentation
                 var room = await roomService.CreateRoomAsync(
                     LocalMirrorTestMode.IsEnabled ? LocalMirrorTestMode.PlayerName : "房主",
                     selectedRoomPlayerCount);
+                GameRuleConfiguration preference = null;
+                string preferenceError = null;
+                try { preference = LocalDiyConfiguration().LoadNewGamePreference(); }
+                catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException)
+                { preferenceError = error.Message; }
+                if (preference != null && selectedRoomPlayerCount == 4 && preference.MapId != YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId)
+                { preferenceError = savedGameplayFourPlayerMapReason; preference = null; }
                 var configured = await roomService.ChangeConfigurationAsync(new ChangeRoomConfigurationRequest
                 {
                     CommandId = Guid.NewGuid().ToString("N"), RoomId = room.RoomId,
                     RequestingPlayerId = room.LocalPlayerId, ExpectedConfigurationRevision = room.Configuration.ConfigurationRevision,
-                    MapId = selectedRoomPlayerCount == 4 ? YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId : YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId,
-                    RuleModeId = "standard", EnabledExpansionIds = new List<string> { "core" }
+                    MapId = preference?.MapId ?? (selectedRoomPlayerCount == 4 ? YC.Domain.Maps.StaticMapDefinitions.FourPlayerMapId : YC.Domain.Maps.StaticMapDefinitions.ThreePlayerMapId),
+                    RuleModeId = preference?.RuleModeId ?? "standard", AdditionalRuleModeIds = preference?.AdditionalRuleModeIds,
+                    EnabledExpansionIds = preference?.EnabledExpansionIds ?? new List<string> { "core" }
                 });
-                if (!configured.Success) throw new InvalidOperationException(configured.ReasonCode);
-                room = configured.Snapshot;
+                if (!configured.Success && preference == null) throw new InvalidOperationException(configured.ReasonCode);
+                if (!configured.Success) preferenceError = configured.ReasonCode;
+                room = configured.Snapshot ?? room;
                 if (this == null) return;
                 joiningRoom = false;
+                pendingSavedGameplayError = preferenceError; pendingSavedGameplayRoomId = room.RoomId;
                 ShowRoomPanel(room, true);
             }
             catch (Exception ex)
@@ -538,6 +602,7 @@ namespace YC.Presentation
             YC.PlayerJourney.PlayerAutomationId.Attach(view.MapSelectionPanel.StartButton.gameObject, "start.four_player_map");
             BindButton(view.OnlineModeButton, JoinRoom);
             BindButton(view.AchievementsButton, ShowAchievementsPanel);
+            BindButton(view.DiyContentButton, ShowDiyContentManagement);
             BindButton(view.QuitGameButton, QuitGame);
             BindButton(view.CreatorSiteButton, () => UnityEngine.Application.OpenURL(CreatorSiteUrl));
             BindButton(view.OfficialSiteButton, () => UnityEngine.Application.OpenURL(OfficialSiteUrl));
@@ -546,10 +611,10 @@ namespace YC.Presentation
             BindButton(view.AchievementsPanel.CollectionRoomButton, EnterCollectionRoom);
             BindButton(view.AchievementsPanel.BackButton, HideRoomPanel);
 
-            BindButton(view.MapSelectionPanel.PreviousCountButton, () => ChangeLocalCityCount(-1));
-            BindButton(view.MapSelectionPanel.NextCountButton, () => ChangeLocalCityCount(1));
-            BindButton(view.MapSelectionPanel.PreviousMapButton, ToggleSelectedMap);
-            BindButton(view.MapSelectionPanel.NextMapButton, ToggleSelectedMap);
+            BindButton(view.MapSelectionPanel.PreviousCountButton, () => { if (managingDiy) ChangeDiyPack(-1); else ChangeLocalCityCount(-1); });
+            BindButton(view.MapSelectionPanel.NextCountButton, () => { if (managingDiy) ChangeDiyPack(1); else ChangeLocalCityCount(1); });
+            BindButton(view.MapSelectionPanel.PreviousMapButton, () => { if (managingDiy) ChangeDiyVersion(-1); else ToggleSelectedMap(); });
+            BindButton(view.MapSelectionPanel.NextMapButton, () => { if (managingDiy) ChangeDiyVersion(1); else ToggleSelectedMap(); });
             BindButton(view.MapSelectionPanel.StartButton, ConfirmSelectedMap);
             BindButton(view.MapSelectionPanel.BackButton, HideRoomPanel);
 
@@ -625,6 +690,7 @@ namespace YC.Presentation
         {
             view.HideRoomPanels();
             var panel = view.MapSelectionPanel;
+            managingDiy = false; panel.SetDiyMode(false);
             panel.gameObject.SetActive(true);
             panel.TitleText.text = createsOnlineRoom ? panel.OnlineModeTitle : configuredLocalMapSelectionTitle;
             mapSelectionCreatesOnlineRoom = createsOnlineRoom;
@@ -654,12 +720,110 @@ namespace YC.Presentation
             panel.MapText.text = selectedRoomPlayerCount == 3 ? "三人地图" : "四人地图";
             panel.PreviousCountButton.interactable = !mapSelectionCreatesOnlineRoom && selectedLocalCityCount > 1;
             panel.NextCountButton.interactable = !mapSelectionCreatesOnlineRoom && selectedLocalCityCount < selectedRoomPlayerCount;
+            panel.PreviousMapButton.interactable = panel.NextMapButton.interactable = panel.StartButton.interactable = true;
         }
         private void ConfirmSelectedMap()
         {
+            if (managingDiy) { ApplySelectedDiyVersion(); return; }
             if (loadingGame || SceneTransitionContext.IsTransitionInProgress) return;
             if (mapSelectionCreatesOnlineRoom) CreateRoom();
             else StartGame();
+        }
+
+        public void ShowDiyContentManagement()
+        {
+            RequireLocalContentConfigurationBoundary();
+            try { diyVersions = InspectLocalDiyContent(); }
+            catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException)
+            { ShowOperationError(view.MapSelectionPanel.DiyErrorTitle, error.Message); return; }
+            diyPackIds = diyVersions.Select(row => row.PackId).Distinct(StringComparer.Ordinal).OrderBy(id => id, StringComparer.Ordinal).ToList();
+            diyPackIds.Add(DiyFolderSelection);
+            diyPackIndex = diyVersionIndex = 0;
+            SelectBoundDiyVersion();
+            view.HideRoomPanels();
+            var panel = view.MapSelectionPanel;
+            managingDiy = true; panel.SetDiyMode(true); panel.gameObject.SetActive(true);
+            roomPanel = panel.gameObject; joinRoomInput = null; roomStatusText = null;
+            RefreshDiyContent();
+        }
+
+        private List<DiyLocalPackVersion> SelectedDiyVersions() => diyPackIds.Count == 0 ? new List<DiyLocalPackVersion>() :
+            diyVersions.Where(row => row.PackId == diyPackIds[diyPackIndex]).ToList();
+
+        private void ChangeDiyPack(int delta)
+        {
+            if (diyPackIds.Count == 0) return;
+            diyPackIndex = Mathf.Clamp(diyPackIndex + delta, 0, diyPackIds.Count - 1); SelectBoundDiyVersion();
+            RefreshDiyContent();
+        }
+
+        private void SelectBoundDiyVersion()
+        {
+            int bound = SelectedDiyVersions().FindIndex(row => row.IsBound);
+            diyVersionIndex = bound < 0 ? 0 : bound;
+        }
+
+        private void ChangeDiyVersion(int delta)
+        {
+            var versions = SelectedDiyVersions();
+            if (versions.Count == 0) return;
+            diyVersionIndex = Mathf.Clamp(diyVersionIndex + delta, 0, versions.Count - 1);
+            RefreshDiyContent();
+        }
+
+        private static string PlainDiyText(string value) => (value ?? "").Replace('<', '＜').Replace('>', '＞');
+
+        private void RefreshDiyContent()
+        {
+            var panel = view.MapSelectionPanel; var versions = SelectedDiyVersions();
+            bool folder = diyPackIds.Count > 0 && diyPackIds[diyPackIndex] == DiyFolderSelection;
+            panel.SetDiyFolderAction(folder);
+            panel.TitleText.text = panel.DiyTitle;
+            panel.PreviousCountButton.interactable = diyPackIndex > 0;
+            panel.NextCountButton.interactable = diyPackIndex + 1 < diyPackIds.Count;
+            panel.PreviousMapButton.interactable = diyVersionIndex > 0;
+            panel.NextMapButton.interactable = diyVersionIndex + 1 < versions.Count;
+            panel.StartButton.interactable = folder || versions.Count > 0;
+            if (folder)
+            {
+                panel.CountText.text = panel.DiyFolderCaption; panel.MapText.text = ""; panel.DiyStatusText.text = panel.DiyFolderDescription;
+                return;
+            }
+            if (versions.Count == 0)
+            {
+                panel.CountText.text = panel.DiyEmptyCaption; panel.MapText.text = ""; panel.DiyStatusText.text = panel.DiyNoSelection;
+                return;
+            }
+            var selected = versions[diyVersionIndex];
+            string name = string.IsNullOrWhiteSpace(selected.DisplayName) ? selected.PackId : selected.DisplayName;
+            panel.CountText.text = PlainDiyText(string.IsNullOrWhiteSpace(name) ? panel.DiyUnknownPack : name);
+            panel.MapText.text = PlainDiyText(selected.Version) + (selected.IsBound ? panel.DiyBoundSuffix : selected.Available ? "" : panel.DiyDamagedSuffix);
+            panel.DiyStatusText.text = string.Format(panel.DiyDetailsFormat, PlainDiyText(selected.PackId + " " + selected.Description), PlainDiyText(selected.Diagnostic));
+        }
+
+        private void ApplySelectedDiyVersion()
+        {
+            if (diyPackIds.Count > 0 && diyPackIds[diyPackIndex] == DiyFolderSelection) { OpenDiyFolderFromPanel(); return; }
+            var versions = SelectedDiyVersions();
+            if (versions.Count == 0) return;
+            var selected = versions[diyVersionIndex];
+            try
+            {
+                if (!selected.Available) throw new InvalidDataException(selected.Diagnostic);
+                SetNextLaunchDiyVersion(selected.PackId, selected.Version);
+                diyVersions = InspectLocalDiyContent();
+                RefreshDiyContent();
+                view.MapSelectionPanel.TitleText.text = view.MapSelectionPanel.DiySavedTitle;
+            }
+            catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException || error is ArgumentException)
+            { view.MapSelectionPanel.DiyStatusText.text = error.Message; }
+        }
+
+        private void OpenDiyFolderFromPanel()
+        {
+            try { OpenLocalDiyFolder(); }
+            catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException || error is ArgumentException)
+            { view.MapSelectionPanel.DiyStatusText.text = error.Message; }
         }
 
         private void ShowJoinRoomPanel()
@@ -797,11 +961,17 @@ namespace YC.Presentation
             }
 
             panel.SetServiceAvailability(roomService.SupportsFriendInvites);
+            panel.SetGameplayOptions(ExternalContentRuntime.GetGameplayOptions());
             var networking = roomService as IRoomNetworkingControl;
             panel.SetNetworkingState(networking == null || networking.IsOnline, networking != null);
             var supportsLocalPlayers = roomService is ILocalRoomPlayerControl local && local.SupportsLocalPlayers;
             panel.SetLocalPlayerAvailability(supportsLocalPlayers);
             panel.Render(room, room.LocalPlayerId);
+            if (!string.IsNullOrEmpty(pendingSavedGameplayError) && pendingSavedGameplayRoomId == room.RoomId && room.LocalPlayerId == room.HostPlayerId)
+            {
+                panel.StartButton.interactable = false;
+                SetRoomStatus(string.Format(savedGameplayUnavailableFormat, pendingSavedGameplayError));
+            }
 
             if (autoStartLocalMirrorGame && hostControls && panel.CanStartCurrentRoom)
             {
@@ -814,23 +984,67 @@ namespace YC.Presentation
             var room = view.RoomPanel.DisplayedRoom;
             if (room == null || room.LocalPlayerId != room.HostPlayerId) return;
             var selected = new List<string>(room.Configuration.EnabledExpansionIds);
+            var selectedModes = room.Configuration.ActiveRuleModeIds.ToList();
+            var options = ExternalContentRuntime.GetGameplayOptions();
+            string removedCaption = null;
+            string selectedModeDescription = ruleModeId == null ? null : options.Modes.FirstOrDefault(item => item.Id == ruleModeId)?.Description;
+            if (ruleModeId != null)
+            {
+                if (selectedModes.Contains(ruleModeId))
+                {
+                    if (selectedModes.Count > 1) selectedModes.Remove(ruleModeId);
+                    else if (ruleModeId != "standard") selectedModes = new List<string> { "standard" };
+                    else return;
+                }
+                else if (selectedModes.Count == 1 && selectedModes[0] == "standard")
+                    selectedModes = new List<string> { ruleModeId };
+                else selectedModes.Add(ruleModeId);
+                if (!options.TryPlanModesTransition(selectedModes, mapId ?? room.Configuration.MapId, selected, out var transition, out string reason))
+                { SetRoomStatus(reason); return; }
+                selected = new List<string>(transition.ExpansionIds);
+                if (transition.RemovedExpansionIds.Count > 0)
+                {
+                    string names = string.Join(expansionListSeparator, transition.RemovedExpansionIds.Select(id =>
+                        options.Expansions.FirstOrDefault(item => item.Id == id)?.DisplayName ?? id));
+                    removedCaption = string.Format(removedExpansionsFormat, names);
+                }
+            }
             if (expansionId != null)
             {
+                if (!enabled && options.TryPlanModesTransition(selectedModes, mapId ?? room.Configuration.MapId,
+                    selected, out var transition, out _) && transition.RequiredExpansionIds.Contains(expansionId))
+                {
+                    string name = options.Expansions.FirstOrDefault(item => item.Id == expansionId)?.DisplayName ?? expansionId;
+                    SetRoomStatus(string.Format(requiredExpansionFormat, name)); return;
+                }
                 if (enabled && !selected.Contains(expansionId)) selected.Add(expansionId);
                 else if (!enabled) selected.Remove(expansionId);
             }
             SendRoomRequest(new ChangeRoomConfigurationRequest
             {
                 MapId = mapId ?? room.Configuration.MapId,
-                RuleModeId = ruleModeId ?? room.Configuration.RuleModeId,
+                RuleModeId = selectedModes[0], AdditionalRuleModeIds = selectedModes.Count > 1 ? selectedModes.Skip(1).ToList() : null,
                 EnabledExpansionIds = selected
-            }, roomService.ChangeConfigurationAsync);
+            }, roomService.ChangeConfigurationAsync, () =>
+            {
+                if (pendingSavedGameplayRoomId == room.RoomId)
+                {
+                    pendingSavedGameplayError = null; pendingSavedGameplayRoomId = null;
+                    view.RoomPanel.StartButton.interactable = view.RoomPanel.CanStartCurrentRoom;
+                }
+                try { LocalDiyConfiguration().SaveNewGamePreference(view.RoomPanel.DisplayedRoom.Configuration); }
+                catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException)
+                { SetRoomStatus(string.Format(savedGameplayWriteFailedFormat, error.Message)); return; }
+                if (removedCaption != null) SetRoomStatus(removedCaption);
+                else if (!string.IsNullOrEmpty(selectedModeDescription)) SetRoomStatus(selectedModeDescription);
+            });
         }
 
-        private async void SendRoomRequest<T>(T request, Func<T, Task<RoomConfigurationResult>> send) where T : RoomConfigurationRequest
+        private async void SendRoomRequest<T>(T request, Func<T, Task<RoomConfigurationResult>> send, Action afterSuccess = null) where T : RoomConfigurationRequest
         {
             var room = view.RoomPanel.DisplayedRoom;
             if (roomRequestPending || room == null) return;
+            if (request is StartConfiguredGameRequest && pendingSavedGameplayRoomId == room.RoomId && !string.IsNullOrEmpty(pendingSavedGameplayError)) return;
             var hostOnly = request is ChangeRoomConfigurationRequest || request is SetRoomSeatStatusRequest || request is StartConfiguredGameRequest ||
                 request is AddLocalRoomPlayerRequest || request is RemoveLocalRoomPlayerRequest;
             if (hostOnly && room.LocalPlayerId != room.HostPlayerId) return;
@@ -847,12 +1061,20 @@ namespace YC.Presentation
             roomRequestPending = false;
             view.RoomPanel.SetRequestPending(false);
             if (roomPanel == view.RoomPanel.gameObject && view.RoomPanel.DisplayedRoom?.RoomId == request.RoomId)
+            {
                 view.RoomPanel.ShowCommandResult(result);
+                if (result.Success) afterSuccess?.Invoke();
+                if (pendingSavedGameplayRoomId == room.RoomId && !string.IsNullOrEmpty(pendingSavedGameplayError))
+                {
+                    view.RoomPanel.StartButton.interactable = false;
+                    if (result.Success) SetRoomStatus(string.Format(savedGameplayUnavailableFormat, pendingSavedGameplayError));
+                }
+            }
         }
 
         private void TryAutoStartLocalMirrorGame()
         {
-            if (!autoStartLocalMirrorGame ||
+            if (!autoStartLocalMirrorGame || !string.IsNullOrEmpty(pendingSavedGameplayError) && pendingSavedGameplayRoomId == view.RoomPanel.DisplayedRoom?.RoomId ||
                 autoStartLocalMirrorRequestPending ||
                 loadingGame ||
                 Time.unscaledTime < nextAutoStartLocalMirrorAttemptTime)
@@ -1034,6 +1256,7 @@ namespace YC.Presentation
 
         private void HideRoomPanel()
         {
+            if (managingDiy) { managingDiy = false; view.MapSelectionPanel.SetDiyMode(false); }
             resumeArchive = null;
             roomNetworkingRequestVersion++;
             roomRequestPending = false;

@@ -71,7 +71,7 @@ namespace YC.Domain.Rules
             var owner = request == null ? null : state.EffectRuntime.EffectNodes.Find(n => n.EffectId == request.OwnerEffectId);
             if (owner == null || Terminal(owner.Status) || owner.PlayerId != command.PlayerId || state.FindPlayer(command.PlayerId) == null) return false;
             bool potentialProfile = (owner.EffectTypeId == CharacterCoverEffectExecutor.EffectTypeId && ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "apiVersion") < 2||MainCoverAuthority.IsMainBody(owner)) && request.InteractionTypeId == CharacterCoverEffectExecutor.InteractionTypeId ||
-                owner.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction ||
+                owner.EffectTypeId == PreparationFrameworkFlow.SelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction ||
                 owner.EffectTypeId == RouteResourceSelectionEffectExecutor.TypeId && request.InteractionTypeId == "route_resource.selection" &&
                     ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "purpose") == (int)RouteSelectionPurpose.NormalHarvest;
             if (!potentialProfile) return false;
@@ -83,10 +83,11 @@ namespace YC.Domain.Rules
                 TryGroup(state, owner, "character_cover_players", out groupOwner, out task) && (task == owner||MainCoverAuthority.TryGetTask(state,owner,true,out var actualTask)&&actualTask.EffectId==task.EffectId) &&
                 RoundExecutionService.IsParallelCoverExecution(groupOwner) && ActiveMain(state, groupOwner, RoundMainlineNodeTypeIds.CharacterCover))
                 profile = NormalCover;
-            else if (owner.EffectTypeId == ExpansionSetupFlow.EnterpriseSelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction &&
-                TryGroup(state, owner, "initial_enterprise_selections", out groupOwner, out task) && task == owner &&
-                groupOwner.EffectTypeId == ExpansionSetupFlow.PreparationTypeId && ItemTransferEffectExecutor.Number(groupOwner.NormalizedArguments, "setupProtocolVersion") == 2 &&
-                groupOwner.FlowStage == "awaiting_initial_enterprise_tasks" && ActiveAncestor(state, groupOwner, RoundMainlineNodeTypeIds.PlayerEntranceSetup))
+            else if (owner.EffectTypeId == PreparationFrameworkFlow.SelectionTypeId && request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction &&
+                TryGroup(state, owner, PreparationFrameworkFlow.GroupKey, out groupOwner, out task) && task == owner &&
+                groupOwner.EffectTypeId == PreparationFrameworkFlow.TypeId && groupOwner.FlowStage == "confirming" &&
+                state.PreparationRuntime?.Stage == "confirming" && state.PreparationRuntime.OwnerEffectId == groupOwner.EffectId &&
+                PreparationFrameworkFlow.TryValidateRuntime(state, null, out _) && ActiveAncestor(state, groupOwner, RoundMainlineNodeTypeIds.PlayerEntranceSetup))
                 profile = InitialEnterprise;
             else if (owner.EffectTypeId == RouteResourceSelectionEffectExecutor.TypeId && request.InteractionTypeId == "route_resource.selection" &&
                 ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "purpose") == (int)RouteSelectionPurpose.NormalHarvest &&
@@ -141,16 +142,23 @@ namespace YC.Domain.Rules
             if (profile == InitialEnterprise)
             {
                 var group = groupOwner.ChildSchedulingGroups.Single(g => g.StableGroupKey == "initial_enterprise_selections");
-                int count = group.ChildEffectIds.Count, draw = count == 2 ? 4 : 2, keep = count == 2 ? 2 : 1;
+                int count = group.ChildEffectIds.Count;
+                var newPlan = groupOwner.EffectTypeId == PreparationFrameworkFlow.TypeId ? state.PreparationRuntime?.EffectiveEnterprise : null;
+                var countRule = newPlan?.PlayerCounts.SingleOrDefault(rule => rule.PlayerCount == count);
+                int draw = newPlan == null ? (count == 2 ? 4 : 2) : countRule?.Draw ?? -1;
+                int keep = newPlan == null ? (count == 2 ? 2 : 1) : countRule?.Keep ?? -1;
                 var candidates = ReadIds(ItemTransferEffectExecutor.Value(owner.NormalizedArguments, "candidateEnterpriseItemIds"));
-                var assigned = ReadIds(ItemTransferEffectExecutor.Value(groupOwner.ContinuationData, "candidateEnterpriseItemIds"))
-                    .Skip(group.ChildEffectIds.IndexOf(owner.EffectId) * draw).Take(draw).ToArray();
+                var assignment = newPlan == null ? null : state.PreparationRuntime.Distribution.Assignments.SingleOrDefault(item => item.PlayerId == command.PlayerId);
+                var assigned = newPlan == null ? ReadIds(ItemTransferEffectExecutor.Value(groupOwner.ContinuationData, "candidateEnterpriseItemIds"))
+                    .Skip(group.ChildEffectIds.IndexOf(owner.EffectId) * draw).Take(draw).ToArray() : assignment?.CandidateItemIds.ToArray() ?? Array.Empty<string>();
                 if (owner.FlowStage != "awaiting_selection" || request.AllowDecline ||
                     state.SetupRecipe?.EnterpriseEntrance != true || count < 2 || count > 4 || ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "keepCount") != keep ||
-                    !candidates.SequenceEqual(assigned) || request.MinSelections != keep || request.MaxSelections != keep ||
+                    candidates.Length != draw || !candidates.SequenceEqual(assigned) || request.MinSelections != keep || request.MaxSelections != keep ||
+                    newPlan != null && (assignment == null || assignment.Confirmed || !ReadIds(ItemTransferEffectExecutor.Value(owner.NormalizedArguments, "requiredEnterpriseItemIds")).SequenceEqual(assignment.RequiredItemIds)) ||
                     !request.CandidateIds.OrderBy(x => x, StringComparer.Ordinal).SequenceEqual(candidates.OrderBy(x => x, StringComparer.Ordinal)))
                 { validation = Invalid("enterprise_request_assignment_changed"); return false; }
                 Text("keep", keep); Ids("assigned", assigned);
+                if (assignment != null) Ids("required", assignment.RequiredItemIds);
             }
             if (profile == NormalCover || profile == InitialEnterprise)
             {
@@ -228,6 +236,14 @@ namespace YC.Domain.Rules
                 validation = new RouteSelectionSessionAuthority().TryValidateNormalHarvestRequest(state, owner, request, command.OptionIds);
                 return validation.IsValid;
             }
+            if (authority.Profile == InitialEnterprise && state.PreparationRuntime?.Stage == "confirming")
+            {
+                var assignment = state.PreparationRuntime.Distribution?.Assignments.SingleOrDefault(item => item.PlayerId == command.PlayerId);
+                var ids = answer.Kind == NormalizedValueKind.Array ? ReadIds(answer) :
+                    new[] { answer.Kind == NormalizedValueKind.StableReference ? answer.ReferenceId : answer.StringValue };
+                if (assignment == null || assignment.RequiredItemIds.Any(id => !ids.Contains(id)))
+                { validation = Invalid("enterprise_required_candidate_missing"); return false; }
+            }
             if (authority.Profile == NormalCover && ItemZoneLegacyProjection.IsActive(state))
             {
                 var ids = answer.Kind == NormalizedValueKind.Array ? answer.Items.Select(v => v.Kind == NormalizedValueKind.StableReference ? v.ReferenceId : v.StringValue).ToArray() :
@@ -286,7 +302,7 @@ namespace YC.Domain.Rules
                     var order = new TurnOrderService().GetTurnOrder(state, main.StartPlayerId);
                     var children = group.ChildEffectIds.Select(id => state.EffectRuntime.EffectNodes.Find(n => n.EffectId == id)).ToArray();
                     string type = key == "character_cover_players" ? CharacterCoverEffectExecutor.EffectTypeId :
-                        key == "initial_enterprise_selections" ? ExpansionSetupFlow.EnterpriseSelectionTypeId : RouteResourceSelectionEffectExecutor.TypeId;
+                        key == "initial_enterprise_selections" ? PreparationFrameworkFlow.SelectionTypeId : RouteResourceSelectionEffectExecutor.TypeId;
                     if (children.Any(n => n == null || n.ParentEffectId != parent.EffectId || n.EffectTypeId != type || n.Visibility != GameStateVisibilityPolicy.Owner) ||
                         children.Select(n => n.PlayerId).Distinct().Count() != children.Length ||
                         !order.Where(p => children.Any(n => n.PlayerId == p)).SequenceEqual(children.Select(n => n.PlayerId)) ||

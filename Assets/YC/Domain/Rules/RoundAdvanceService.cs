@@ -79,9 +79,9 @@ namespace YC.Domain.Rules
             roundExecutionService.CompleteMainAction(state, playerId);
         }
 
-        public void MarkMainActionComplete(GameState state, int playerId)
+        public void MarkMainActionComplete(GameState state, int playerId, string actionType = null)
         {
-            roundExecutionService.MarkMainActionComplete(state, playerId);
+            roundExecutionService.MarkMainActionComplete(state, playerId, actionType);
         }
 
         public ValidationResult EndCompletedAction(GameState state, int playerId)

@@ -185,6 +185,29 @@ namespace YC.Tests.EditMode
             Assert.That(after.CanEndAction, Is.True);
         }
 
+        [TestCase("deploy")]
+        [TestCase("dispatch")]
+        [TestCase("explore")]
+        [TestCase("move_city")]
+        [TestCase("build")]
+        [TestCase("special")]
+        public void ActionPanel_UsesTheSameAllowedTypesAsTheBudget(string actionType)
+        {
+            var fixture = CreateFixture();
+            var budget = new MainActionBudgetService();
+            budget.EndActionTurn(fixture.Context.State, 1);
+            budget.GrantAdditionalMainActions(fixture.Context.State, 1, 1, new[] { actionType });
+            fixture.Presenter.ActionPanelPresenter.HasUsableSpecialAction = () => true;
+
+            var panel = fixture.Presenter.BuildActionPanelViewModel();
+            Assert.That(panel.CanDeploy, Is.EqualTo(actionType == "deploy"));
+            Assert.That(panel.CanDispatch, Is.EqualTo(actionType == "dispatch"));
+            Assert.That(panel.CanExplore, Is.EqualTo(actionType == "explore"));
+            Assert.That(panel.CanMoveCity, Is.EqualTo(actionType == "move_city"));
+            Assert.That(panel.CanBuild, Is.EqualTo(actionType == "build"));
+            Assert.That(panel.CanUseSpecialAction, Is.EqualTo(actionType == "special"));
+        }
+
         [Test]
         public void ActionPanel_MainlineCompletionInteraction_DoesNotBlockActionOrLookLikeEventChoice()
         {

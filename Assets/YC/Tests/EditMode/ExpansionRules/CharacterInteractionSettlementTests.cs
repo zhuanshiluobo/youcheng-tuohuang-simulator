@@ -121,6 +121,88 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(iron + 3));
             Assert.That(state.CharacterUses.Single().CompletedModes, Does.Contain("tactic"));
         }
+
+        [Test] public void EunectesTacticHandlesLargePublicInventoryWithinDefaultLuaBudget()
+        {
+            var card = SetUpEunectesTactic();
+            var reserve = state.ItemZones.Zones.Single(z => z.LocalZoneId == "reserve");
+            var retired = FindZone(state, "retired");
+            var exemplar = state.ItemZones.Items.First(item => item.TypeId == "core.facility_card");
+            // 仅隔离规则夹具扩充公开库存，用于覆盖后期对局的区域和实体规模。
+            for (int i = 0; i < 450; i++)
+            {
+                var extra = GameStateCloneService.DeepClone(reserve);
+                extra.ZoneId = "fixture_public_zone_" + i;
+                extra.LocalZoneId = "fixture_public_zone_" + i;
+                extra.VisibilityPolicyId = ItemZoneVisibility.Public;
+                state.ItemZones.Zones.Add(extra);
+            }
+            for (int i = 0; i < 60; i++)
+            {
+                var extra = GameStateCloneService.DeepClone(exemplar);
+                extra.ItemId = "fixture_retired_facility_" + i;
+                extra.ZoneId = retired.ZoneId; extra.SlotId = string.Empty;
+                state.ItemZones.Items.Add(extra);
+            }
+            Assert.That(new ItemZoneQuery().TryValidate(state, out var reason), Is.True, reason);
+            string firstSlot = FindZone(state, "facility_supply_0").ZoneId;
+            string secondSlot = FindZone(state, "facility_supply_1").ZoneId;
+            Run(RefillSpec(1, firstSlot)); Run(RefillSpec(1, secondSlot));
+            var supplied = new[] { firstSlot, secondSlot }.Select(slot => state.ItemZones.Items.Single(item => item.ZoneId == slot).ItemId).ToArray();
+            int iron = state.FindPlayer(1).Resources.Iron;
+            Run(EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId, playerId: 1)); Answer(card.ItemId);
+            string use = Run(CharacterLifecycleService.CreateUseSpec(1, card.ItemId, "tactic"));
+            Assert.That(Open().CandidateIds, Is.EqualTo(supplied));
+            Answer(supplied[0]);
+            Assert.That(state.ItemZones.Items.Single(item => item.ItemId == supplied[0]).ZoneId, Is.EqualTo(retired.ZoneId));
+            Assert.That(state.ItemZones.Items.Count(item => item.ZoneId == firstSlot), Is.EqualTo(1));
+            Answer(NormalizedValue.CreateBoolean(false));
+            Assert.That(Engine().GetNode(use).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.EffectRuntime.Status, Is.Not.EqualTo(EffectRuntimeStatus.PausedFault));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(iron + 3));
+        }
+
+        [TestCase("operator.closure.tactic.lua", true)]
+        [TestCase("infected.character.flowing_shape_beta.strategy.lua", false)]
+        public void SupplyTopSelectionHandlesLargePublicInventoryWithoutGlobalLuaIteration(string file, bool stored)
+        {
+            var zones = new Newtonsoft.Json.Linq.JArray {
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "supply.a", ["templateId"] = "core.zone.facility_supply_slot", ["topItemId"] = "facility.a" },
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "supply.b", ["templateId"] = "core.zone.facility_supply_slot", ["topItemId"] = "facility.b" },
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "supply.empty", ["templateId"] = "core.zone.facility_supply_slot", ["topItemId"] = null },
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "destination", ["localZoneId"] = stored ? "orders" : "facility_deck", ["parentId"] = "carrier" }
+            };
+            for (int i = 0; i < 450; i++) zones.Add(new Newtonsoft.Json.Linq.JObject { ["id"] = "other.zone." + i, ["templateId"] = "core.zone.reserve" });
+            var instances = new Newtonsoft.Json.Linq.JArray {
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "facility.a", ["typeId"] = "core.facility_card", ["definitionId"] = "def.a", ["zoneId"] = "supply.a" },
+                new Newtonsoft.Json.Linq.JObject { ["id"] = "facility.b", ["typeId"] = "core.facility_card", ["definitionId"] = "def.b", ["zoneId"] = "supply.b" }
+            };
+            for (int i = 0; i < 1400; i++) instances.Add(new Newtonsoft.Json.Linq.JObject { ["id"] = "retired." + i,
+                ["typeId"] = "core.facility_card", ["definitionId"] = "def.a", ["zoneId"] = "retired" });
+            var content = new Newtonsoft.Json.Linq.JObject { ["zones"] = zones, ["instances"] = instances,
+                ["definitions"] = new Newtonsoft.Json.Linq.JArray { new Newtonsoft.Json.Linq.JObject { ["id"] = "def.a", ["name"] = "设施甲" },
+                    new Newtonsoft.Json.Linq.JObject { ["id"] = "def.b", ["name"] = "设施乙" } } };
+            var facade = LuaFacadeSnapshot.FromInvocation("p1", 0, 0, 2, "1.0.0");
+            facade.GlobalContent = AgnesContentTestFixture.Snapshot(content);
+            string source = File.ReadAllText(Path.Combine(contentRoot, "lua", "characters", file));
+            var script = new LuaScriptDefinition("fixture.supply", "fixture.supply", "fixture.supply", "1.0.0", source, LuaContentHasher.ComputeSha256(source));
+            LuaInvocationResult Invoke(bool continued)
+            {
+                facade.EventPayload = AgnesContentTestFixture.Snapshot(continued
+                    ? new Newtonsoft.Json.Linq.JObject { ["outcome"] = "completed", ["continuationContext"] = new Newtonsoft.Json.Linq.JObject {
+                        ["source"] = "carrier", ["stage"] = "refilled", ["destination"] = "destination", ["names"] = new Newtonsoft.Json.Linq.JArray("设施甲") } }
+                    : new Newtonsoft.Json.Linq.JObject { ["cardInstanceRef"] = "carrier" });
+                return new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("fixture.supply", continued ? "EffectCompleted" : "AbilityInvoked",
+                    "p1", 0, "1.0.0", 2, 0, 0, facade));
+            }
+            var first = Invoke(false);
+            Assert.That(first.IsSuccess, Is.True, first.Diagnostic);
+            Assert.That(Value(first.Effects.Single().RawArguments, "options").Items.Select(item => item.StringValue), Is.EquivalentTo(new[] { "facility.a", "facility.b" }));
+            var second = Invoke(true);
+            Assert.That(second.IsSuccess, Is.True, second.Diagnostic);
+            Assert.That(Value(second.Effects.Single().RawArguments, "options").Items.Select(item => item.StringValue), Is.EqualTo(new[] { "facility.b" }));
+        }
+
         private ItemInstanceState SetUpEunectesTactic()
         {
             var map = StaticMapDefinitions.CreateThreePlayerMap();

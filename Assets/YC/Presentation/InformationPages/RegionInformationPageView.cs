@@ -35,12 +35,14 @@ namespace YC.Presentation
             reason = valid ? string.Empty : "区控页面引用不完整。"; return valid;
         }
         public void Render(GameState state, IMapQueryService map)
+            => Render(state, map, null, false);
+        public void Render(GameState state, IMapQueryService map, RegionControlPreview preview, bool waitingForPreview)
         {
             if (state == null || map == null) return;
             var players = new List<PlayerState>();
             foreach (var id in new YC.Domain.Rules.TurnOrderService().GetLaunchPlayerOrder(state))
                 players.Add(state.FindPlayer(id));
-            Projection = RegionInformationQuery.Build(state, map);
+            Projection = preview == null ? RegionInformationQuery.Build(state, map) : RegionInformationQuery.Build(state, map, preview);
             mapSummary.text = string.Format(mapSummaryFormat,
                 map.Map.MapId == StaticMapDefinitions.ThreePlayerMapId ? threePlayerMap : fourPlayerMap, Projection.Count);
             while (headers.Count < players.Count)
@@ -60,7 +62,7 @@ namespace YC.Presentation
             {
                 rows[i].gameObject.SetActive(i < Projection.Count);
                 if (i >= Projection.Count) continue;
-                rows[i].Render(Projection[i], players);
+                rows[i].Render(Projection[i], players, waitingForPreview);
                 if (Projection[i].EmptySlots.HasValue) total += Projection[i].EmptySlots.Value; else complete = false;
             }
             emptySummary.text = string.Format(emptySummaryFormat, complete ? total.ToString() : unknown);

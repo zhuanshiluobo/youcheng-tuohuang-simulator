@@ -1,47 +1,48 @@
 {
   "definitionId": "event_yellow_09",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "富异铁区",
   "artwork": "artwork/sheets/event_yellow_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_yellow_09",
-    "name": "富异铁区",
     "description": "一伙荒地人袭击了你的车队，但护卫的魔族佬利索地压制了他们，你们发现荒地人的武器虽做工粗糙，但锋刃都由优质异铁制成。不出意料，这里附近一定有一处异铁矿。",
     "color": 1,
     "resourceType": 2,
     "resourceAmount": 1,
     "representativeResourceType": 2,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "你正好有一批军方订单，先去找找矿脉的位置：获得 3 异铁",
-      "向荒地人村落索要赔偿金：获得 2 源石碎片、5 金券"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 3,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "你正好有一批军方订单，先去找找矿脉的位置：获得 3 异铁",
+        "button": {
+          "topPercent": 66.666667,
+          "bottomPercent": 79.166667
+        },
+        "script": "lua/events/choices/event_yellow_09.choice_01.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 2,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 5
+        "choiceId": "choice_02",
+        "description": "向荒地人村落索要赔偿金：获得 2 源石碎片、5 金券",
+        "button": {
+          "topPercent": 79.166667,
+          "bottomPercent": 92.5
+        },
+        "script": "lua/events/choices/event_yellow_09.choice_02.lua",
+        "version": "1.0.0"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      []
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_yellow_009"
+  "artworkSpriteId": "event_yellow_009",
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

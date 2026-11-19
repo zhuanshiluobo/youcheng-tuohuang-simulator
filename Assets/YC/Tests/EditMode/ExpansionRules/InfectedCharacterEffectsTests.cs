@@ -40,6 +40,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         private static readonly string[] CharacterKeys = { "amiya", "muelsyse", "jessica_the_liberated", "swire", "lin", "silence_the_paradigmatic", "hellagur", "gavial_the_invincible", "ceobe", "flowing_shape_alpha", "flowing_shape_beta", "flowing_shape_gamma" };
         private static readonly string[] DefinitionPaths = EnterprisePaths.Concat(new[]{"liskarm","elysium","texas","cannot","tin-man"}.Select(id=>"character/"+id+".json")).Concat(CharacterKeys.Select(key => "character/infected.character." + key + ".json")).Concat(new[] { "component/infected.component.gavial_token.json", "component/infected.component.influence_lock_token.json" }).ToArray();
         private int diceFace = 5;
+        private bool includeMaylanderAndAwards;
         private static readonly string[] ScriptCategories = { "enterprises", "departments", "characters" };
         private ExternalContentPack pack;
         private ExternalContentPack core;
@@ -47,7 +48,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         private GameMapDefinition map;
         private IsolatedTestArtifacts artifacts;
         private GameState observed;
-        [SetUp] public void BeginEvidence() { artifacts = IsolatedTestArtifacts.BeginCase(); observed = null; diceFace = 5; }
+        [SetUp] public void BeginEvidence() { artifacts = IsolatedTestArtifacts.BeginCase(); observed = null; diceFace = 5; includeMaylanderAndAwards = false; }
         [TearDown] public void FinishEvidence()
         {
             if (observed != null) artifacts.WriteLabeledText("感染角色隔离当前状态", JsonConvert.SerializeObject(observed));
@@ -64,7 +65,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         private GameState State(int players = 2, bool formalAbilities = false, int additionalInitialHandCharacters = 0)
         {
             map = StaticMapDefinitions.CreateThreePlayerMap();
-            var active = pack.ActiveDefinitions.Where(d => DefinitionPaths.Contains(d.ContentType + "/" + d.DefinitionId + ".json")).ToArray();
+            var active = pack.ActiveDefinitions.Where(d => DefinitionPaths.Contains(d.ContentType + "/" + d.DefinitionId + ".json") ||
+                includeMaylanderAndAwards && d.DefinitionId == "infected.enterprise.maylander_foundation").ToArray();
             registry = new EffectRegistry { ContentPackHash = pack.ContentHash };
             DiceRollEffectExecutor.Register(registry, max => diceFace - 1); ResourceEffectExecutor.Register(registry); GenericLuaEffectExecutor.Register(registry);
             ItemTransferEffectExecutor.Register(registry); DeckShuffleEffectExecutor.Register(registry);
@@ -84,6 +86,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 Characters = pack.CreateCharacters().ToList(), Facilities = pack.CreateFacilities().ToList(),
                 Events = pack.CreateEvents().ToList(), CityStyles = pack.CreateCityStyles().ToList(), SpecialActions = pack.CreateSpecialActions().ToList()
             };
+            if (includeMaylanderAndAwards) definitions.Awards = ContentLifecycleLuaCatalog.CreateAwards(pack);
             var source = new GameState { GameId = "game.enterprise_content", MapId = map.MapId, ContentPackHash = pack.ContentHash,
                 Round = 1, ActionRound = 1, StartPlayerId = 1, CurrentPlayerId = 1, Phase = GamePhase.ActionRound1,
                 ContentDefinitions = definitions, RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = pack.ContentHash, EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } } };
@@ -100,6 +103,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             });
 
             foreach (string id in new[] { "liskarm", "elysium", "texas", "cannot", "tin-man" }) entries.Add(new ItemRecipeEntry { EntryId = "initial_" + id, DefinitionId = id, TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" });
+            if (includeMaylanderAndAwards) entries.Add(new ItemRecipeEntry { EntryId = "fixture.formal.maylander.award", DefinitionId = "infected.award.permanent_support", TypeId = "core.award_card", Quantity = 1, InitialZoneRole = "awards" });
             if (additionalInitialHandCharacters > 0) entries.Add(new ItemRecipeEntry { EntryId = "api30.initial.hand.boundary", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = additionalInitialHandCharacters, PerPlayer = true, InitialZoneRole = "hand" });
             foreach (var location in map.Locations.Where(l => !l.IsRedZone)) entries.Add(new ItemRecipeEntry { EntryId = "resource_point_" + location.LocationId, DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             foreach (var facility in definitions.Facilities.Where(d => d.GoldVoucherCost > 0).GroupBy(d => d.Name).Select(g => g.First()).Take(9)) entries.Add(new ItemRecipeEntry { EntryId = facility.FacilityId, DefinitionId = facility.FacilityId, TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" });
@@ -129,6 +133,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 state.ContentDefinitions.AbilitySources = AbilitySourceLuaCatalog.CreateDeclarations(pack);
                 registry.ContentDefinitions = state.ContentDefinitions;
                 AbilitySourceLuaCatalog.Register(registry, pack);
+                if (includeMaylanderAndAwards) ContentLifecycleLuaCatalog.Register(registry, pack);
             }
             Valid(state); return observed = state;
         }
@@ -404,19 +409,51 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void MuelsyseReusesOneExtraSlotAndCollectionReturnsOnlyCoveredShape()
         {
             var state=State(); StartCard(state,"muelsyse","tactic"); Answer(state,"hand");Answer(state,"hand");Answer(state,"discard");
+            Assert.That(Open(state),Is.Null,"使用计谋分配完流形后不能在行动轮盖放。");
+            state.Round=2; state.ActionRound=0; state.Phase=GamePhase.CharacterCover;
+            string primary=state.ItemZones.Items.First(i=>i.ZoneId==FindZone(state,"hand",1).ZoneId&&i.TypeId=="core.basic_character_card").ItemId;
+            Run(state,EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId,playerId:1)); Answer(state,primary);
+            Assert.That(Open(state)?.PromptKey,Is.EqualTo("core:interaction.muelsyse.cover"));
             string first=Open(state).CandidateIds.First(id=>id!="decline");Answer(state,first); Drain(state);
             var slot=state.CharacterCoverSlots.Single(v=>v.Reusable);string slotId=slot.SlotId;
             var detail = YC.Presentation.Workflows.PlayerDetailEntryProjector.Project(View(state), PlayerDetailDisplayCatalog.Read(pack.ActiveDefinitions)).Single(value => value.SourceItemId == Card(state, "muelsyse").ItemId);
             Assert.That(detail.CoverSlotIds, Is.EqualTo(new[] { slotId }));
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==first).ZoneId,Is.EqualTo(FindZone(state,"covered",1).ZoneId));
+            state.ActionRound=1;state.Phase=GamePhase.ActionRound1;
+            int coverRequests=state.EffectRuntime.InteractionRequests.Count(r=>r.PromptKey=="core:interaction.muelsyse.cover");
             Run(state,CharacterLifecycleService.CreateUseSpec(1,first,"strategy"));
-            while(Open(state)!=null && Open(state).PromptKey != "core:interaction.muelsyse.cover")Answer(state,Open(state).CandidateIds.First());
-            Assert.That(Open(state),Is.Not.Null); string second=Open(state).CandidateIds.First(id=>id!="decline");Answer(state,second);Drain(state);
+            Drain(state);
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r=>r.PromptKey=="core:interaction.muelsyse.cover"),Is.EqualTo(coverRequests),"使用流形后不能在行动轮补盖。");
+            state.ActionRound=2;state.Phase=GamePhase.ActionRound2;state.FindPlayer(1).CharacterCardLockedThisTurn=false;
+            Run(state,CharacterLifecycleService.CreateUseSpec(1,primary,"strategy"));Drain(state);
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r=>r.PromptKey=="core:interaction.muelsyse.cover"),Is.EqualTo(coverRequests));
+            state.Round=3;state.ActionRound=0;state.Phase=GamePhase.CharacterCover;
+            string nextPrimary=state.ItemZones.Items.First(i=>i.ZoneId==FindZone(state,"hand",1).ZoneId&&i.TypeId=="core.basic_character_card").ItemId;
+            Run(state,EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId,playerId:1));Answer(state,nextPrimary);
+            Assert.That(Open(state)?.PromptKey,Is.EqualTo("core:interaction.muelsyse.cover"));
+            string second=Open(state).CandidateIds.First(id=>id!="decline");Answer(state,second);Drain(state);
             Assert.That(state.CharacterCoverSlots.Count(v=>v.Reusable),Is.EqualTo(1));Assert.That(state.CharacterCoverSlots.Single(v=>v.Reusable).SlotId,Is.EqualTo(slotId));
-            state=Restore(state); Emit(state,"CollectionStarted");Answer(state,"recycle");
+            state=Restore(state);state.Phase=GamePhase.ResourceCollection; Emit(state,"CollectionStarted");Answer(state,"recycle");
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==first).ZoneId,Is.EqualTo(FindZone(state,"discard",1).ZoneId));
             Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==second).ZoneId,Is.EqualTo(FindZone(state,"hand",1).ZoneId));
             Assert.That(Card(state,"muelsyse").ZoneId,Is.EqualTo(FindZone(state,"persistent",1).ZoneId));
+        }
+        [Test]
+        public void MuelsyseDoesNotOfferAnotherCoverAfterFlowingShapeAlphaTactic()
+        {
+            var state=State();StartCard(state,"muelsyse","tactic");
+            Answer(state,"hand");Answer(state,"hand");Answer(state,"hand");
+            Assert.That(Open(state),Is.Null,"计谋分配流形后不能立即发起盖放。");
+            state.Round=2;state.ActionRound=0;state.Phase=GamePhase.CharacterCover;
+            string primary=state.ItemZones.Items.First(i=>i.ZoneId==FindZone(state,"hand",1).ZoneId&&i.TypeId=="core.basic_character_card").ItemId;
+            Run(state,EffectSpec.Create(CharacterCoverEffectExecutor.EffectTypeId,playerId:1));Answer(state,primary);
+            Assert.That(Open(state)?.PromptKey,Is.EqualTo("core:interaction.muelsyse.cover"));
+            string alpha=Card(state,"flowing_shape_alpha").ItemId;Answer(state,alpha);
+            state.ActionRound=1;state.Phase=GamePhase.ActionRound1;
+            int coverRequests=state.EffectRuntime.InteractionRequests.Count(r=>r.PromptKey=="core:interaction.muelsyse.cover");
+            Run(state,CharacterLifecycleService.CreateUseSpec(1,alpha,"tactic"));Drain(state);
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r=>r.PromptKey=="core:interaction.muelsyse.cover"),Is.EqualTo(coverRequests),"流形甲计谋结束后不能发起额外盖放。");
+            Assert.That(state.ItemZones.Items.Single(i=>i.ItemId==alpha).ZoneId,Is.EqualTo(FindZone(state,"retired").ZoneId));
         }
         [TestCase("flowing_shape_alpha")][TestCase("flowing_shape_beta")][TestCase("flowing_shape_gamma")]
         public void GeneratedModesHaveIndependentDiscardAndRetirement(string key)
@@ -725,7 +762,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var state=State(3, formalAbilities: key == "lin");LoadInitialMarkers(state,key,2);
             var markers=StoredMarkers(state,key);Assert.That(markers.Count,Is.EqualTo(2));if(key=="swire")Assert.That(markers.Select(i=>i.OwnerSubject.PlayerId).Distinct().Count(),Is.EqualTo(2));else Assert.That(markers.All(i=>i.OwnerSubject.PlayerId==1),Is.True);
-            int gold=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);Answer(state,markers.First().ItemId);
+            int gold=state.FindPlayer(1).Resources.GoldVoucher;Cleanup(state);InvokeCleanup(state);Answer(state,key=="swire" ? "p"+markers.First().OwnerSubject.PlayerId : markers.First().ItemId);
             if(key=="swire")
             {
                 string enterprise=Open(state).CandidateIds.First();int owner=markers.First().OwnerSubject.PlayerId;var levels=new EnterpriseStateQuery(registry.EnterpriseDefinitions);int ownLevel=levels.GetLevel(state,1,enterprise),otherLevel=levels.GetLevel(state,owner,enterprise);

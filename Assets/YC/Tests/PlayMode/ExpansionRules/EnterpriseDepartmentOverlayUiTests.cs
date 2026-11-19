@@ -387,13 +387,6 @@ namespace YC.Tests.PlayMode.ExpansionRules
             {
                 var request = f.Request;
                 IEnumerable<string> choices = request.CandidateIds;
-                if (request.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId)
-                {
-                    var owner = f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == request.OwnerEffectId);
-                    var card = EventCardDatabase.Get(f.State, ItemTransferEffectExecutor.Text(owner.NormalizedResult, "cardId"));
-                    choices = choices.Where(id => EventCardOptionIdFactory.TryRead(id, card.CardId, card.ChoiceDescriptions.Count, out int index) &&
-                        card.ChoicePendingEffects[index].All(effect => effect.Kind != EventEffectKind.PlaceInfluence));
-                }
                 var command = new GameCommand { CommandId = Guid.NewGuid().ToString("N"), Kind = GameCommandKind.AnswerInteraction,
                     PlayerId = request.AnsweringPlayerId };
                 command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
@@ -599,7 +592,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 Assert.That(renderer?.GetType().Name, Is.EqualTo("EventCardInteractionUiCoordinator"));
                 var page = Active("EventChoiceDialogView").Single();
                 var optionIndex = definitionId.EndsWith("collection_platform", StringComparison.Ordinal) ? 2 : 0;
-                var option = HotseatUiInputDriver.Marker("event.option." + optionIndex);
+                string choiceId = optionIndex == 2 ? "choice_03" : "choice_01";
+                var option = HotseatUiInputDriver.Marker("event.choice." + choiceId);
                 Assert.That(option, Is.Not.Null);
                 Assert.That(HotseatUiInputDriver.TryPoint(option, out _, out _), Is.True, "事件奖励必须实际可射线命中");
                 yield return f.Capture(definitionId + "_正式存档事件页已出现", page);
@@ -608,7 +602,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 // 在开放时保留旧回答协议，完成后再次送交 Host；不能用已关闭的请求构造新回答。
                 var duplicate = EffectInteractionCommands.Answer(
                     YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, request.AnsweringPlayerId),
-                    request.AnsweringPlayerId, new[] { definitionId + ":option:" + optionIndex });
+                    request.AnsweringPlayerId, new[] { EventCardOptionIdFactory.CreateChoice(definitionId, choiceId) });
                 using (var count = new RuleSubmitCounter())
                 {
                     yield return f.Click(option, "正式替换事件_选择实际奖励按钮");

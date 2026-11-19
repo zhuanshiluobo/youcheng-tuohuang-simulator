@@ -53,8 +53,8 @@ namespace YC.Tests.EditMode
             if (grouped)
             {
                 // 只测试共享调度和请求门禁；不替代真实企业业务测试。
-                registry.Register(ExpansionSetupFlow.PreparationTypeId, context =>
-                    EffectStepResult.Completed().WithFlowStage("awaiting_initial_enterprise_tasks")
+                registry.Register(PreparationFrameworkFlow.TypeId, context =>
+                    EffectStepResult.Completed().WithFlowStage("confirming")
                         .AddIndependentChildren("initial_enterprise_selections", new[]
                         {
                             EffectSpec.Create(ChoiceType, playerId: 1),
@@ -83,14 +83,7 @@ namespace YC.Tests.EditMode
         {
             state = CreateState();
             var executor = new EffectTreeExecutor(state, CreateRegistry(true));
-            rootId = executor.CreateRoot(EffectSpec.Create(ExpansionSetupFlow.PreparationTypeId,
-                NormalizedValue.CreateObject(new List<NormalizedValueEntry>
-                {
-                    new NormalizedValueEntry
-                    {
-                        Name = "setupProtocolVersion", Value = NormalizedValue.CreateInteger(2)
-                    }
-                })));
+            rootId = executor.CreateRoot(EffectSpec.Create(PreparationFrameworkFlow.TypeId));
             Run(executor);
             PublishKernelFixtureInteractionRevisions(state);
             return executor;

@@ -34,8 +34,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             string root = new EffectTreeExecutor(state, registry).CreateRoot(CompileLua("Effect.ExecuteMainAction({player=ctx.playerId,executionMode='immediate',allowedActionTypes={'explore'}})"));
             Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False);
             var choice = state.EffectRuntime.InteractionRequests.Single(q => q.Status == "open"); Submit(state, registry, choice, new[] { "explore" });
-            var selection = state.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == root);
-            Assert.That(selection.EffectTypeId, Is.EqualTo(ExplorationEffectTypeIds.Explore));
+            // 按刚回答的行动选择定位探索效果，不假定它直接挂在最外层效果下。
+            var selection = state.EffectRuntime.EffectNodes.Single(n =>
+                n.ParentEffectId == choice.OwnerEffectId && n.EffectTypeId == ExplorationEffectTypeIds.Explore);
             Assert.That(YC.Domain.Effects.ItemTransferEffectExecutor.Number(selection.NormalizedArguments, "apiVersion"), Is.EqualTo(3));
             Assert.That(YC.Domain.Effects.ItemTransferEffectExecutor.Value(selection.NormalizedArguments, "consumeMainAction").BooleanValue, Is.False);
             state = ExploreRecover(state, registry, "即时探索共用地图待答"); var q = Selection(state);

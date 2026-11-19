@@ -16,6 +16,8 @@ namespace YC.Presentation
         [SerializeField] private InformationPileView eventPile;
         [SerializeField] private GameBoxEventListView eventListPrefab;
         public GameBoxEventListView EventListPrefab => eventListPrefab;
+        [SerializeField] private GameBoxEnterpriseBoardItemView enterpriseBoardItemPrefab;
+        public GameBoxEnterpriseBoardItemView EnterpriseBoardItemPrefab => enterpriseBoardItemPrefab;
         [SerializeField] private InformationPileView enterprisePile;
         [SerializeField] private InfluenceMarker2DView[] playerMarkers;
         [SerializeField] private EnterpriseBoardCatalog enterprises;
@@ -64,6 +66,8 @@ namespace YC.Presentation
         {
             if (eventListPrefab == null || !eventListPrefab.IsConfigured)
             { reason = "游戏盒事件专用列表引用不完整。"; return false; }
+            if (enterpriseBoardItemPrefab == null || !enterpriseBoardItemPrefab.IsConfigured)
+            { reason = "游戏盒企业合作板原图条目引用不完整。"; return false; }
             var references = new UnityEngine.Object[] { dismiss, window, characterPile, eventPile, enterprisePile, enterprises, artwork,
                 tokenScroll, tokenRows, tokenTemplate, tokensEmpty };
             var names = new[] { "关闭层", "窗口布局", "角色牌堆", "事件牌堆", "企业合作板堆", "企业板图集", "组件图集",

@@ -27,6 +27,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             if (page != null) UnityEngine.Object.Destroy(page.gameObject);
             if (profiler != null) { profiler.Finish(completed); UnityEngine.Object.Destroy(profiler.gameObject); }
             yield return null;
+            yield return GameplayUiReworkFixture.ReturnToMenu();
         }
 
         [UnityTest] public IEnumerator EnterpriseCoverAndRealCharacterFiveSixNineFiveUseScreenCenteredWholeWindow()
@@ -101,7 +102,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
                     var ids = DisplayOrder(realPool).Take(count).ToArray();
                     Action render = null;
                     render = () => GameplayUiReworkFixture.Call(dialog, "ShowCoverSelection", ids, selected,
-                        (Func<string, bool>)(id => ids.Contains(id)), (Action<string>)(id => { selected = id; render(); }), (Action)(() => confirms++));
+                        (Func<string, bool>)(id => ids.Contains(id)), (Action<string>)(id => { selected = id; render(); }),
+                        (Action)(() => confirms++), "fixture.cover." + count);
                     render();
                     page = (Component)GameplayUiReworkFixture.Field(GameplayUiReworkFixture.Field(dialog, "shell"), "view");
                     yield return GameplayPageAcceptanceFixture.Settle();
@@ -192,9 +194,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
                     var face = GameplayUiReworkFixture.ScreenRect(((RawImage)GameplayUiReworkFixture.Property(card, "CardImage")).rectTransform);
                     Assert.That(face.height / face.width, Is.EqualTo(17f / 12f).Within(.01f));
                     Assert.That(face.yMin, Is.GreaterThanOrEqualTo(bar.yMax - .5f), "卡面不能覆盖滚条热区");
-                    var selectedFrame = (Image)GameplayUiReworkFixture.Property(card, "SelectionImage");
-                    if (selectedFrame != null)
-                        Assert.That(GameplayUiReworkFixture.ScreenRect(selectedFrame.rectTransform).yMin, Is.GreaterThanOrEqualTo(bar.yMax - .5f), "勾选边框不能覆盖滚条热区");
+                    var selection = (Component)GameplayUiReworkFixture.Property(card, "SelectionEffect");
+                    if (selection != null)
+                        Assert.That(GameplayUiReworkFixture.ScreenRect((RectTransform)selection.transform).yMin, Is.GreaterThanOrEqualTo(bar.yMax - .5f), "选中特效不能覆盖滚条热区");
                 }
             }
             var title = (Text)GameplayUiReworkFixture.Field(owner, "titleText");

@@ -275,9 +275,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var restored=bootstrapper.GetMethod("Restore",BindingFlags.Static|BindingFlags.Public).Invoke(null,new object[]{null,data});
             var session=(GameSession)restored.GetType().GetField("Session").GetValue(restored);
             session.EnableConfirmedRecoveryCapture();session.ExecutionTimings.Enabled=true;
-            Assert.That(YC.Domain.State.RuleStateDigestService.Compute(session.State),Is.EqualTo(LegacyRuleStateDigestReference.Compute(session.State)),"原档完整规则摘要必须兼容");
-            Assert.That(LegacyRuleStateDigestReference.Compute(YC.Domain.State.GameStateCloneService.DeepClone(session.State)),
-                Is.EqualTo(LegacyRuleStateDigestReference.Compute(session.State)),"空壳优化仍须深复制原档的所有持久字段");
+            Assert.That(YC.Domain.State.RuleStateDigestService.Compute(session.State),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(session.State)),"原档完整规则摘要必须兼容");
+            Assert.That(LegacyRuleStateDigestReference.ComputeCurrent(YC.Domain.State.GameStateCloneService.DeepClone(session.State)),
+                Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(session.State)),"空壳优化仍须深复制原档的所有持久字段");
             timing=(phase,definition,ticks)=>session.ExecutionTimings.AddSample(phase,ticks);
             YC.Infrastructure.Lua.LuaEffectEventDispatcher.CpuTimingSample+=timing;
             var rows=new List<object>();
@@ -377,7 +377,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(rows.Count,Is.GreaterThan(0));
             Assert.That(session.State.EffectRuntime.StateRevision,Is.EqualTo(lastExpected));
             Assert.That(session.State.EffectRuntime.Status,Is.EqualTo(YC.Domain.State.EffectRuntimeStatus.Active),session.State.EffectRuntime.LastFaultMessage);
-            Assert.That(YC.Domain.State.RuleStateDigestService.Compute(session.State),Is.EqualTo(LegacyRuleStateDigestReference.Compute(session.State)),"重放后完整规则摘要必须兼容");
+            Assert.That(YC.Domain.State.RuleStateDigestService.Compute(session.State),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(session.State)),"重放后完整规则摘要必须兼容");
             if(Arg("--yc-replay-capture-final-state")=="true")capturedReplayState=session.State;
             if (Arg("--yc-replay-require-work-recycling") == "true")
                 Assert.That(session.ExecutionTimings.Snapshot().TryGetValue("kernel.recycled_execution_work.calls", out var recycled) && recycled > 0,

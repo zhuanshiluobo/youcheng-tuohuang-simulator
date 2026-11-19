@@ -1,0 +1,22 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.basic",
+  "version": "1.0.0",
+  "displayName": "基础配方示例",
+  "author": "游城拓荒",
+  "description": "不添加卡牌，展示如何声明独立模式。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "diy.rule_modes.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "ruleModes": [{
+    "modeId": "example.basic.mode",
+    "displayName": "基础配方示例",
+    "description": "使用基础配方的示例模式。",
+    "requires": ["core"],
+    "applicableMapIds": ["map-three-players", "map-four-players"],
+    "setupRecipeRefs": [{"packId": "core", "recipeId": "standard"}]
+  }],
+  "definitions": [],
+  "setupRecipes": []
+}

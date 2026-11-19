@@ -11,6 +11,7 @@ using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
+using YC.Domain.Influence;
 using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
@@ -39,19 +40,18 @@ namespace YC.Tests.EditMode
             for (int seed = 1; seed <= 16; seed++)
             {
                 var candidate = Build(LaunchMode.Local, true, 2, seed);
-                var preparation = candidate.State.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ExpansionSetupFlow.PreparationTypeId);
-                var draft = ItemTransferEffectExecutor.Value(preparation.ContinuationData, "candidateEnterpriseItemIds").Items;
-                if (draft.Skip(4).Any(id => IsRhine(candidate, id.StringValue))) { fixture = candidate; break; }
+                var draft = candidate.State.PreparationRuntime.Distribution.Assignments.Single(item => item.PlayerId == 2).CandidateItemIds;
+                if (draft.Any(id => IsRhine(candidate, id))) { fixture = candidate; break; }
             }
             Assert.That(fixture != null, Is.True, "正式种子中须有后位莱茵候选。");
             Assert.That(fixture.State.RuleConfiguration.PlayerStageSchedulingMode, Is.EqualTo(PlayerStageSchedulingMode.Sequential));
             Assert.That(fixture.State.EffectRuntime.MainNodes.Where(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntrance).Select(n => n.PlayerId), Is.EqualTo(new[] { 1, 2 }));
             Assert.That(fixture.State.EffectRuntime.MainNodes.Any(n => n.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup), Is.False);
-            var first = Open(fixture).Single();
+            var first = Open(fixture).Single(r => r.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction && r.AnsweringPlayerId == 1);
             Assert.That(first.AnsweringPlayerId, Is.EqualTo(1));
             var firstChoices = first.CandidateIds.Where(id => !IsRhine(fixture, id)).Take(first.MinSelections).ToArray();
             Submit(fixture, first, firstChoices);
-            var second = Open(fixture).Single();
+            var second = Open(fixture).Single(r => r.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction && r.AnsweringPlayerId == 2);
             Assert.That(second.AnsweringPlayerId, Is.EqualTo(2));
             string rhine = second.CandidateIds.Single(id => IsRhine(fixture, id));
             Submit(fixture, second, new[] { rhine }.Concat(second.CandidateIds.Where(id => id != rhine)).Take(second.MinSelections));
@@ -96,7 +96,12 @@ namespace YC.Tests.EditMode
             Assert.That(RuleStateDigestService.Compute(recovered.State), Is.EqualTo(digest));
             fixture.Session.ReplaceState(recovered.State);
             var oldJson = JObject.Parse(json); ((JObject)oldJson["Snapshot"]["State"]["RuleConfiguration"]).Remove("PlayerStageSchedulingMode");
-            var old = HostRecoveryService.RecoverJson(oldJson.ToString(Formatting.None), fixture.Registry);
+            var incompatible = HostRecoveryService.RecoverJson(oldJson.ToString(Formatting.None), fixture.Registry);
+            Assert.That(incompatible.Succeeded, Is.False, "顺序调度冻结目录不能冒充缺省并发旧目录。");
+            var oldFixture = Build(LaunchMode.Host, true, 2, 42);
+            RegisterHold(oldFixture, PlayerEntranceEffectExecutor.EventType);
+            var oldRegistry = oldFixture.Registry;
+            var old = HostRecoveryService.RecoverJson(oldJson.ToString(Formatting.None), oldRegistry);
             Assert.That(old.Succeeded, Is.True, old.Diagnostic);
             Assert.That(old.State.RuleConfiguration.PlayerStageSchedulingMode, Is.EqualTo(PlayerStageSchedulingMode.Concurrent));
             Assert.That(old.State.EffectRuntime.MainNodes.Select(n => n.NodeId), Is.EqualTo(original.EffectRuntime.MainNodes.Select(n => n.NodeId)), "缺省策略不重建已在途的逐位主链。");
@@ -131,11 +136,21 @@ namespace YC.Tests.EditMode
             Assert.That(fixture.State.Phase, Is.EqualTo(GamePhase.CharacterCover));
             Submit(fixture, Open(fixture).Single(r => r.InteractionTypeId == HoldType));
             DriveUntil(fixture, () => fixture.State.Phase == GamePhase.ActionRound1);
-            var round = new RoundExecutionService(fixture.Registry);
-            for (int action = 0; action < 6; action++)
+            var influence = new InfluenceService(new MapQueryService(StaticMapDefinitions.Resolve(fixture.State.MapId)));
+            for (int guard = 0; guard < 40 && fixture.State.Phase != GamePhase.ResourceCollection; guard++)
             {
-                var result = round.CompleteMainAction(fixture.State, fixture.State.CurrentPlayerId);
-                Assert.That(result.IsValid, Is.True, result.Reason);
+                var pending = Open(fixture).FirstOrDefault();
+                if (pending != null) { Submit(fixture, pending); continue; }
+                int player = fixture.State.CurrentPlayerId;
+                var command = new GameCommand { CommandId = "hotseat-check-" + (++commandOrdinal), PlayerId = player };
+                if (fixture.State.FindPlayer(player).ActedMainActionThisTurn) command.Kind = GameCommandKind.EndAction;
+                else
+                {
+                    command.Kind = GameCommandKind.DeployInfluence;
+                    command.TargetId = influence.GetLegalPlacementSlotIds(fixture.State, player).FirstOrDefault();
+                    Assert.That(command.TargetId, Is.Not.Null.And.Not.Empty, "前置行动必须有合法放置目标。");
+                }
+                SubmitCommand(fixture, command, "前置主行动");
             }
             Assert.That(fixture.State.Phase, Is.EqualTo(GamePhase.ResourceCollection));
             var requests = Open(fixture).Where(r => r.InteractionTypeId == "route_resource.selection").ToArray();
@@ -215,8 +230,29 @@ namespace YC.Tests.EditMode
             command.Parameters["expectedRevision"] = request.StateRevision.ToString(CultureInfo.InvariantCulture);
             if (request.AnswerSchema == "boolean_accept") command.Parameters["answerValue"] = request.AllowDecline ? "false" : "true";
             else command.OptionIds.AddRange(choices ?? request.CandidateIds.Take(Math.Max(1, request.MinSelections)));
-            var result = fixture.Session.Submit(command);
-            Assert.That(result.Succeeded, Is.True, request.InteractionTypeId + ": " + result.Validation?.Reason);
+            SubmitCommand(fixture, command, request.InteractionTypeId);
+        }
+        private static void SubmitCommand(Fixture fixture, GameCommand command, string label)
+        {
+            if (fixture.State.PrivateCommandLedger == null)
+            {
+                var result = fixture.Session.Submit(command);
+                Assert.That(result.Succeeded, Is.True, label + ": " + result.Validation?.Reason);
+            }
+            else
+            {
+                // 联机夹具通过正式房主认证和防重入口提交，而不是绕过权限检查。
+                var probe = GameStateCloneService.DeepClone(fixture.State);
+                OperationWindowService.Synchronize(probe);
+                Assert.That(OperationWindowService.TryResolveCommandContext(probe, command, out var context, out var validation), Is.True, validation.Reason);
+                var ledger = fixture.State.PrivateCommandLedger;
+                var proposal = new OperationCommandProposalDto { GameId = fixture.State.GameId, SimulationEpoch = 1, MembershipVersion = 1,
+                    ClientSubmissionSequence = ledger.Receipts.LongCount(item => item.PlayerId == command.PlayerId) + 1,
+                    ObservedGlobalSequence = ledger.CommittedSequence, ObservedStateRevision = fixture.State.EffectRuntime.StateRevision,
+                    OperationWindowId = context.OperationWindowId, WindowGeneration = context.WindowGeneration, Command = GameCommandDto.FromCommand(command) };
+                var result = fixture.Session.SubmitAuthenticatedPrivateCommand(proposal, command.PlayerId, 1, 1, fixture.State.ContentPackHash);
+                Assert.That(result.Status, Is.EqualTo(PrivateCommandStatus.Committed), label + ": " + result.Reason);
+            }
         }
         private static void RegisterHold(Fixture fixture, string eventType)
         {
@@ -238,6 +274,7 @@ namespace YC.Tests.EditMode
                 setter.Invoke(null, new object[] { null }); host = new GameObject("HotseatSequentialStage"); var context = host.AddComponent(contextType);
                 const string gameId = "hotseat-sequential-check";
                 var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = players,
+                    OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                     EnabledExpansionIds = enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" } };
                 var order = Enumerable.Range(1, players).ToArray();
                 var seats = order.Select(p => new PlayerSeat { PlayerId = p, PlayerName = "玩家" + p }).ToList();

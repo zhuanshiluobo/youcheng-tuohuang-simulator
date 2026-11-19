@@ -305,7 +305,7 @@ namespace YC.Editor
             var art = Node("Artwork",face).gameObject.AddComponent<RawImage>(); Stretch(art.rectTransform); art.raycastTarget = false;
             var fallback = Label("Missing Artwork Label",face,"",24,false,TextAnchor.MiddleCenter); Stretch(fallback.rectTransform);
             var selected = Node("Selected Frame",face).gameObject.AddComponent<Image>();
-            selected.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/YC/Presentation/Layout/card-selected.png");
+            selected.sprite = null; // 选中状态由现行 SelectionFX 组件绘制。
             selected.raycastTarget = false; selected.enabled = false;
             Map(selected.rectTransform,1054,1493,new Rect(80,130,896,1280));
             var outline = face.gameObject.AddComponent<Outline>(); outline.enabled = false;

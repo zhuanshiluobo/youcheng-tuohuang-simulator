@@ -38,28 +38,32 @@ namespace YC.Tests.EditMode.ExpansionRules
             if (observed != null) artifacts.WriteLabeledText("当前真实状态", JsonConvert.SerializeObject(observed));
             artifacts.Finish();
         }
-        private static GameState State(int operators = 4, int players = 2, int companyMarkers = 0)
+        private static GameState State(int operators = 4, int players = 2, int companyMarkers = 0, bool dispatchRecipe = false)
         {
-            var map = new GameMapDefinition { MapId = "test.character_map", MinPlayers = 2, MaxPlayers = 4,
-                Regions = new List<MapRegionDefinition> { new MapRegionDefinition { RegionId = "harbor_region" } },
-                Locations = new List<MapLocationDefinition> { new MapLocationDefinition { LocationId = "harbor", RegionId = "harbor_region", CanDockCity = true, InfluenceSlotCount = 2 } } };
+            // 规则隔离夹具使用正式地图定义；不冒充正常菜单／对局验收。
+            var map = players == 4 ? StaticMapDefinitions.CreateFourPlayerMap() : StaticMapDefinitions.CreateThreePlayerMap();
             var source = new GameState { GameId = "game.character", ContentPackHash = "content.character", MapId = map.MapId,
                 RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = "content.character" },
                 Players = Enumerable.Range(1, players).Select(id => new PlayerState { PlayerId = id, Name = "玩家" + id, Resources = new ResourceSet { GoldVoucher = id == 1 ? 8 : 0 } }).ToList() };
-            if (companyMarkers > 0)
+            if (companyMarkers > 0 || dispatchRecipe)
             {
                 source.ContentDefinitions = new GameContentDefinitions { Characters = frozenPack.CreateCharacters().ToList(), Facilities = frozenPack.CreateFacilities().ToList() };
                 source.ContentDefinitions.Components = frozenPack.Definitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition {
                     DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"], CubeAppearance = d.CubeAppearance }).ToList();
             }
             source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
-            var state = new ItemZoneStateFactory().CreateForSetup(source, map, new[] {
-                new ItemRecipeEntry { EntryId = "initial_characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 3, PerPlayer = true, InitialZoneRole = "hand" },
+            var recipe = new[] {
+                new ItemRecipeEntry { EntryId = "initial_characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = dispatchRecipe ? 5 : 3, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "generated_character", DefinitionId = "texas", TypeId = "core.generated_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "operator_pool", DefinitionId = "texas", TypeId = "core.operator_card", Quantity = operators, InitialZoneRole = "operator_deck" },
                 new ItemRecipeEntry { EntryId = "supply", DefinitionId = "component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" },
                 new ItemRecipeEntry { EntryId = "stored_facilities", DefinitionId = "facility.fixture", TypeId = "core.facility_card", Quantity = 2, InitialZoneRole = "facility_deck" },
-                new ItemRecipeEntry { EntryId = "company_components", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = companyMarkers, InitialZoneRole = "company_markers" } });
+                new ItemRecipeEntry { EntryId = "company_components", DefinitionId = "infected.component.company_marker", TypeId = "infected.company_marker", Quantity = companyMarkers, InitialZoneRole = "company_markers" } };
+            if (dispatchRecipe) source.SetupRecipe = new GameSetupRecipe {
+                OperatorDrawCount = 2,
+                Entries = recipe.Where(e => e.Quantity > 0).Select(e => new SetupRecipeEntry { EntryId = e.EntryId, DefinitionId = e.DefinitionId,
+                    TypeId = e.TypeId, Quantity = e.Quantity, PerPlayer = e.PerPlayer, InitialZoneRole = e.InitialZoneRole }).ToList() };
+            var state = new ItemZoneStateFactory().CreateForSetup(source, map, recipe);
             state.Round = 1; state.ActionRound = 1; state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.StartPlayerId = 1;
             return observed = state;
         }
@@ -81,6 +85,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             registry.Register("test.cleanup_event", context => EffectStepResult.Completed().AddEvent(new EffectEventRequest { EventType = "PlayerCleanupStarted", PlayerId = 1 }));
             registry.Register("test.granted_cover", context => CharacterLifecycleService.Cover(context, Text(context.Node.NormalizedArguments, "cardId"), true, acceptedTypeId: "core.generated_character_card", reusable: true));
             return registry;
+        }
+        private static GameState DispatchState(int operators = 4, int players = 2) => State(operators, players, dispatchRecipe: true);
+        private static EffectSpec DispatchSpec(GameState state, int count, IEnumerable<string> excluded = null, IEnumerable<string> zones = null)
+        {
+            Assert.That(state.SetupRecipe, Is.Not.Null);
+            state.SetupRecipe.OperatorDrawCount = count;
+            return OperatorDispatchFlow.CreateSpec(1, FindZone(state, "operator_deck").ZoneId, excluded, zones);
         }
         private static List<string> Ids(GameState state, string local, int player = -1) => new ItemZoneQuery().GetItemIds(state, FindZone(state, local, player).ZoneId).ToList();
         private static EffectNodeRuntimeState Run(GameState state, EffectRegistry registry, EffectSpec spec)
@@ -258,8 +269,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [TestCase(2)][TestCase(3)] public void DispatchAcceptsActualTopCandidatesAndRecoversBeforeReturn(int count)
         {
-            int randomCalls = 0; var registry = Registry(random: maximum => { randomCalls++; return 0; }); var state = State(); var top = new ItemZoneQuery().GetTopItemIds(state, FindZone(state, "operator_deck").ZoneId, count); var all = state.ItemZones.Items.Select(item => item.ItemId).ToArray();
-            Run(state, registry, OperatorDispatchFlow.CreateSpec(1, count)); Assert.That(Open(state).CandidateIds, Is.EquivalentTo(top));
+            int randomCalls = 0; var registry = Registry(random: maximum => { randomCalls++; return 0; }); var state = DispatchState(); var top = new ItemZoneQuery().GetTopItemIds(state, FindZone(state, "operator_deck").ZoneId, count); var all = state.ItemZones.Items.Select(item => item.ItemId).ToArray();
+            Run(state, registry, DispatchSpec(state, count)); Assert.That(Open(state).CandidateIds, Is.EquivalentTo(top));
             Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).Interactions, Is.Empty); Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).ItemZones.Items.Any(item => top.Contains(item.ItemId)), Is.False);
             var savedCandidates = Open(state).CandidateIds.ToArray(); state = Restore(state, registry); Assert.That(Open(state).CandidateIds, Is.EqualTo(savedCandidates)); string selected = top[1]; AnswerRequest(state, registry, selected);
             Assert.That(Ids(state, "hand", 1), Does.Contain(selected)); Assert.That(Open(state).InteractionTypeId, Is.EqualTo("operator.dispatch.return")); var deckOrder = Ids(state, "operator_deck").ToArray(); int callsBefore = randomCalls;
@@ -278,16 +289,16 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [TestCase(1, 3)][TestCase(2, 3)] public void ShortDispatchDeckNeverInventsCandidates(int actual, int requested)
         {
-            var state = State(actual); var registry = Registry(); Run(state, registry, OperatorDispatchFlow.CreateSpec(1, requested)); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(actual)); AnswerRequest(state, registry, decline: true); Assert.That(Ids(state, "operator_deck").Count, Is.EqualTo(actual)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
+            var state = DispatchState(actual); var registry = Registry(); Run(state, registry, DispatchSpec(state, requested)); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(actual)); AnswerRequest(state, registry, decline: true); Assert.That(Ids(state, "operator_deck").Count, Is.EqualTo(actual)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
         }
-        [Test] public void EmptyDispatchDeckDoesNotAwardDeclineScore()
+        [Test] public void EmptyDispatchDeckAwardsOnePointWithoutAChoice()
         {
-            var state = State(0); var registry = Registry(); var node = Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("empty_deck")); Assert.That(state.FindPlayer(1).Score, Is.Zero); Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open"), Is.False);
+            var state = DispatchState(0); var registry = Registry(); var node = Run(state, registry, DispatchSpec(state, 3)); Assert.That(Text(node.NormalizedResult, "reasonCode"), Is.EqualTo("empty_deck")); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1)); Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open"), Is.False);
         }
         [Test] public void SingleDispatchCandidateAcceptsAndKeepsEmptyUnselectedStepRecoverable()
         {
-            int calls = 0; var state = State(1); var registry = Registry(random: maximum => { calls++; return 0; });
-            var dispatch = Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); string selected = Open(state).CandidateIds.Single();
+            int calls = 0; var state = DispatchState(1); var registry = Registry(random: maximum => { calls++; return 0; });
+            var dispatch = Run(state, registry, DispatchSpec(state, 3)); string selected = Open(state).CandidateIds.Single();
             AnswerRequest(state, registry, selected);
             Assert.That(Open(state).InteractionTypeId, Is.EqualTo("operator.dispatch.return"));
             var empty = state.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == dispatch.EffectId && n.EffectTypeId == TypeId &&
@@ -304,7 +315,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void DispatchDeclineRestoresDeckAndAwardsScoreOnlyOnce()
         {
-            int calls = 0; var registry = Registry(random: maximum => { calls++; return 0; }); var state = State(); var original = Ids(state, "operator_deck").ToArray(); Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); AnswerRequest(state, registry, decline: true);
+            int calls = 0; var registry = Registry(random: maximum => { calls++; return 0; }); var state = DispatchState(); var original = Ids(state, "operator_deck").ToArray(); Run(state, registry, DispatchSpec(state, 3)); AnswerRequest(state, registry, decline: true);
             Assert.That(Ids(state, "operator_deck"), Is.EquivalentTo(original)); Assert.That(calls, Is.EqualTo(3)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
             state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(calls, Is.EqualTo(3)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(1));
         }
@@ -314,6 +325,35 @@ namespace YC.Tests.EditMode.ExpansionRules
             Run(state, registry, EffectSpec.Create(OperatorDispatchFlow.ReplaceTypeId, Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1")), 1)); AnswerRequest(state, registry, incoming); state = Restore(state, registry); AnswerRequest(state, registry, outgoing);
             Assert.That(Ids(state, "hand", 1), Does.Contain(incoming)); Assert.That(Ids(state, "retired"), Does.Contain(outgoing)); Assert.That(calls, Is.Zero); Assert.That(state.FindPlayer(1).Score, Is.Zero); Assert.That(state.ItemZones.Zones.Any(zone => zone.OwnerEffectId.Length > 0), Is.False);
             Assert.That(GameStateViewProjector.ProjectForPlayer(state, 2).Events.Any(value => value.EventType == "OperatorDispatchReturnShown" && Text(value.Payload, "itemId") == outgoing), Is.True);
+        }
+        [TestCase(false)] [TestCase(true)]
+        public void DirectReplacementCanReturnOwnDiscardCardAndKeepsOtherPlayersCardsPrivate(bool emptyHand)
+        {
+            var registry = Registry(); var state = State();
+            string incoming = Ids(state, "operator_deck")[1];
+            string outgoing = Ids(state, "hand", 1)[0];
+            string foreign = Ids(state, "hand", 2)[0];
+            var ownHand = Ids(state, "hand", 1).ToArray();
+            foreach (string card in emptyHand ? ownHand : new[] { outgoing })
+                Run(state, registry, CharacterCardMovement.Create(state, 1, card, FindZone(state, "discard", 1).ZoneId));
+            Run(state, registry, CharacterCardMovement.Create(state, 2, foreign, FindZone(state, "discard", 2).ZoneId));
+            var otherHand = Ids(state, "hand", 1).ToArray();
+            Run(state, registry, EffectSpec.Create(OperatorDispatchFlow.ReplaceTypeId,
+                Object("apiVersion", NormalizedValue.CreateInteger(1), "player", NormalizedValue.CreateString("1")), 1));
+            AnswerRequest(state, registry, incoming);
+            Assert.That(Open(state).CandidateIds, Does.Contain(outgoing));
+            Assert.That(Open(state).CandidateIds, Does.Not.Contain(foreign));
+            Assert.That(Open(state).CandidateIds, Is.SupersetOf(otherHand));
+            state = Restore(state, registry);
+            AnswerRequest(state, registry, outgoing);
+            Assert.That(Ids(state, "hand", 1), Is.EquivalentTo(otherHand.Concat(new[] { incoming })));
+            Assert.That(Ids(state, "discard", 1), Does.Not.Contain(outgoing));
+            Assert.That(Ids(state, "retired"), Does.Contain(outgoing));
+            Assert.That(Ids(state, "discard", 2), Does.Contain(foreign));
+            Assert.That(state.FindPlayer(1).Score, Is.Zero);
+            state = Restore(state, registry);
+            new EffectTreeExecutor(state, registry).RunUntilQuiescent();
+            Assert.That(Ids(state, "retired").Count(id => id == outgoing), Is.EqualTo(1));
         }
         [Test] public void CurrentUseInsertionConsumesOnceAndInvalidatesOnlyItsModeRequest()
         {
@@ -374,7 +414,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.EffectRuntime.EffectNodes.SelectMany(node => node.TimingBindings).Count(binding => binding.Status == "registered"), Is.EqualTo(1)); state = Restore(state, registry);
             Run(state, registry, EffectSpec.Create("test.cleanup_event", playerId: 1)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(9)); state = Restore(state, registry); new EffectTreeExecutor(state, registry).RunUntilQuiescent(); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(9));
         }
-        [TestCase("Flow.DispatchOperator({apiVersion=1,player=ctx.playerId,drawCount=3,excludedReturnItemIds={}})", OperatorDispatchFlow.TypeId)]
+        [TestCase("Flow.DispatchOperator({apiVersion=2,player=ctx.playerId,deckZoneId='deck',excludedReturnItemIds={}})", OperatorDispatchFlow.TypeId)]
         [TestCase("Flow.ReplaceHandWithOperator({apiVersion=1,player=ctx.playerId})", OperatorDispatchFlow.ReplaceTypeId)]
         [TestCase("Effect.SetCharacterDoubleUseRule({apiVersion=1,player=ctx.playerId,scope='action_round',expiresActionRoundSequence=1})", LuaDomainEffectTypeIds.SetCharacterDoubleUseRule)]
         [TestCase("Effect.MoveCharacterCard({apiVersion=2,player=ctx.playerId,itemRefs={{itemId='card'}},expectedSource={zoneId='source'},destination={zoneId='target'},insertion={kind='unordered'},operationProfileId='core.character_card_transfer',requiredCount=1})", LuaDomainEffectTypeIds.MoveCharacterCard)]
@@ -385,16 +425,18 @@ namespace YC.Tests.EditMode.ExpansionRules
             var invocation = new MoonSharpLuaRuntimeHost().Invoke(script, new LuaInvocationContext("event.character", "test.event", "1", 0, "1.0.0", 2, 0, 0)); Assert.That(invocation.IsSuccess, Is.True, invocation.Diagnostic);
             Assert.That(new LuaEffectSpecCompiler().TryCompile(invocation, new LuaEffectCompilationContext { PlayerId = 1 }, out var specs, out var fault), Is.True, fault?.Diagnostic); Assert.That(specs.Single().EffectTypeId, Is.EqualTo(type));
             var registry = Registry(); CharacterLifecycleService.Register(registry); Assert.That(registry.Get(type).DefinitionVersion,
-                Is.EqualTo(type == LuaDomainEffectTypeIds.MoveCharacterCard ? CharacterCardMovement.DefinitionVersion : type == CharacterCoverEffectExecutor.EffectTypeId ? CharacterCoverEffectExecutor.SharedCoverDefinitionVersion : type == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.DefinitionVersion : "v1"));
+                Is.EqualTo(type == OperatorDispatchFlow.TypeId ? OperatorDispatchFlow.DefinitionVersion : type == LuaDomainEffectTypeIds.MoveCharacterCard ? CharacterCardMovement.DefinitionVersion : type == CharacterCoverEffectExecutor.EffectTypeId ? CharacterCoverEffectExecutor.SharedCoverDefinitionVersion : type == LuaDomainEffectTypeIds.SetCharacterDoubleUseRule ? CharacterLifecycleService.DefinitionVersion : "v1"));
         }
         [TestCase("drawCount=4")][TestCase("seed=11")][TestCase("player='2'")]
         public void DispatchCannotAcceptWrongCountRandomnessOrExecutingPlayer(string extra)
         {
-            var state = State(); var registry = Registry(); var spec = OperatorDispatchFlow.CreateSpec(1, 3);
-            if (extra.StartsWith("drawCount")) Value(spec.NormalizedArguments, "drawCount").IntegerValue = 4;
+            var state = DispatchState(); var registry = Registry(); var spec = DispatchSpec(state, 3);
+            if (extra.StartsWith("drawCount")) spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "drawCount", Value = NormalizedValue.CreateInteger(4) });
             else if (extra.StartsWith("player")) Value(spec.NormalizedArguments, "player").StringValue = "2";
             else spec.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "seed", Value = NormalizedValue.CreateInteger(11) });
-            Assert.That(Run(state, registry, spec).Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(Ids(state, "operator_deck").Count, Is.EqualTo(4));
+            if (extra.StartsWith("player")) Assert.That(Run(state, registry, spec).Status, Is.EqualTo(EffectNodeStatus.Failed));
+            else Assert.That(new EffectTreeExecutor(state, registry).TryCreateRoot(spec, "", "", out _), Is.False);
+            Assert.That(Ids(state, "operator_deck").Count, Is.EqualTo(4));
         }
 
         [Test] public void PersistentObserversTriggerOncePerActualInstanceAndStopOnExit()
@@ -424,7 +466,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [Test] public void DispatchRecoversSelectedHandCardBeforeUnselectedCandidatesReturn()
         {
-            int calls = 0; var state = State(); var registry = Registry(random: maximum => { calls++; return 0; }); Run(state, registry, OperatorDispatchFlow.CreateSpec(1, 3)); string selected = Open(state).CandidateIds[1];
+            int calls = 0; var state = DispatchState(); var registry = Registry(random: maximum => { calls++; return 0; }); Run(state, registry, DispatchSpec(state, 3)); string selected = Open(state).CandidateIds[1];
             var request = Open(state); var engine = new EffectTreeExecutor(state, registry); Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision, NormalizedValue.CreateString(selected), out string reason), Is.True, reason);
             for (int step = 0; step < 100 && !Ids(state, "hand", 1).Contains(selected); step++) Assert.That(engine.Advance(), Is.True);
             Assert.That(calls, Is.Zero); Assert.That(Ids(state, "operator_deck").Count, Is.EqualTo(1)); state = Restore(state, registry); Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False);
@@ -472,8 +514,9 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         [TestCase(false)][TestCase(true)] public void DispatchReturnSourcesAndCurrentUseExclusionComeFromItsEntry(bool excludeCurrent)
         {
-            var state = State(); string card = Ids(state, "hand", 1)[0];
-            var registry = Registry(tactic: context => new List<EffectSpec> { OperatorDispatchFlow.CreateSpec(1, 3, excludeCurrent ? new[] { card } : Array.Empty<string>(), new[] { FindZone(context.State, "hand", 1).ZoneId, FindZone(context.State, "covered", 1).ZoneId }) });
+            var state = DispatchState(); string card = Ids(state, "hand", 1)[0];
+            state.SetupRecipe.OperatorDrawCount = 3;
+            var registry = Registry(tactic: context => new List<EffectSpec> { OperatorDispatchFlow.CreateSpec(1, FindZone(context.State, "operator_deck").ZoneId, excludeCurrent ? new[] { card } : Array.Empty<string>(), new[] { FindZone(context.State, "hand", 1).ZoneId, FindZone(context.State, "covered", 1).ZoneId }) });
             Cover(state, registry, card); Use(state, registry, card, "tactic"); AnswerRequest(state, registry, Open(state).CandidateIds[0]);
             Assert.That(Open(state).CandidateIds.Contains(card), Is.EqualTo(!excludeCurrent)); state = Restore(state, registry);
             string outgoing = excludeCurrent ? Open(state).CandidateIds.First(id => id != card) : card; AnswerRequest(state, registry, outgoing);
@@ -525,9 +568,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             Cover(state, registry, card); var use = Use(state, registry, card, "tactic"); Assert.That(use.Finished, Is.True); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(stored)); Assert.That(Ids(state, "supply", 1).Count, Is.EqualTo(6 - stored));
             state = Restore(state, registry); Assert.That(new ItemZoneQuery().GetItemIds(state, storage).Count, Is.EqualTo(stored));
         }
-        [TestCase(2, false, 3)][TestCase(3, false, 2)][TestCase(4, false, 2)][TestCase(3, true, 3)][TestCase(4, true, 3)] public void OrdinaryDispatchCountUsesFrozenPlayersAndExpansion(int players, bool infected, int expected)
+        [TestCase(2, false, 3)][TestCase(3, false, 2)][TestCase(4, false, 2)][TestCase(3, true, 3)][TestCase(4, true, 3)] public void OrdinaryDispatchCountUsesComposedConfiguration(int players, bool infected, int expected)
         {
-            var state = State(players: players); if (infected) state.RuleConfiguration.EnabledExpansionIds.Add("infected"); var registry = Registry(); Run(state, registry, OperatorDispatchFlow.CreateSpec(state, 1)); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(expected));
+            var state = DispatchState(players: players); if (infected) state.RuleConfiguration.EnabledExpansionIds.Add("infected"); state.SetupRecipe.OperatorDrawCount = expected; var registry = Registry(); Run(state, registry, OperatorDispatchFlow.CreateSpec(1, FindZone(state, "operator_deck").ZoneId)); Assert.That(Open(state).CandidateIds.Count, Is.EqualTo(expected));
         }
         [Test] public void MissingModeContractCannotSilentlyBecomeNormalOrCreatePartialUse()
         {

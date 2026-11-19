@@ -81,7 +81,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 j["abilityHandlers"] = new JArray(new JObject { ["handlerId"] = id + ".handler", ["script"] = "lua/characters/" + id + ".lua", ["version"] = "1.0.0", ["completionHandlerId"] = id == "qy006.commands" || id == "qy006.quick" ? id + ".complete" : "" });
                 j["abilitySources"] = JArray.FromObject(new[] { new AbilitySourceDeclaration { AbilityId = id + ".source", Kind = kind, HandlerRef = id + ".handler", DeclarationVersion = "1.0.0", AuthorizationPolicy = "controller",
                     EffectiveZones = new List<string> { "core.zone.player_rewards" }, ObservedEvents = kind == "event" ? new List<string> { "InfluenceRemoved", "InfluenceReplaced" } : new List<string>(), QueryKinds = queries?.ToList() ?? new List<string>(),
-                    AllowedOperations = operations.ToList(), PresentationRef = id, Actions = kind == "quick" ? new List<AbilityActionDeclaration> { new AbilityActionDeclaration { ActionId=id+".action", EntryKind="quick", BodyHandlerRef=id+".handler", PresentationRef=id } } : new List<AbilityActionDeclaration>() } });
+                    AllowedOperations = operations.Where(value => !value.StartsWith("response.", StringComparison.Ordinal)).ToList(),
+                    ResponseKinds = operations.Where(value => value.StartsWith("response.", StringComparison.Ordinal)).ToList(), PresentationRef = id, Actions = kind == "quick" ? new List<AbilityActionDeclaration> { new AbilityActionDeclaration { ActionId=id+".action", EntryKind="quick", BodyHandlerRef=id+".handler", PresentationRef=id } } : new List<AbilityActionDeclaration>() } });
                 ((JArray)manifest["definitions"]).Add("character/" + id + ".json");
                 replacements["character/" + id + ".json"] = j.ToString(); replacements["lua/characters/" + id + ".lua"] = code;
             }
@@ -444,11 +445,15 @@ local options={}; for k=1,limit")
             Setup(hook:true,secondHook:true,secondHookScript:HookScript); Run(InfluenceEffectSpecFactory.PlaceInfluence(1,Slot()));
             Assert.That(state.EffectRuntime.InfluencePlaceMappings.Single().Sources.Count,Is.EqualTo(2)); Answer("ordinary"); Assert.That(state.Map.Influences.Count,Is.EqualTo(1)); Restore("同义改写归并");
         }
-        [Test] public void ChosenEmptyGangDoesNotFallBackToOrdinarySupply()
+        [Test] public void EmptyGangIsNotOfferedAndAnInvalidAnswerCannotPlaceAnything()
         {
             Setup(hook:true,gangStock:0); Run(InfluenceEffectSpecFactory.PlaceInfluence(1,Slot()));
-            var choice=state.EffectRuntime.InteractionRequests.Single(q=>q.Status=="open"); Assert.That(choice.CandidateIds,Is.EquivalentTo(new[]{"ordinary","gang"})); Answer("gang");
-            Assert.That(state.Map.Influences,Is.Empty); Assert.That(state.EffectRuntime.InfluencePlaceMappings.Count,Is.EqualTo(1)); Restore("空帮派不回退");
+            var choice=state.EffectRuntime.InteractionRequests.Single(q=>q.Status=="open"); Assert.That(choice.CandidateIds,Is.EquivalentTo(new[]{"ordinary"}));
+            Assert.That(Engine().TrySubmitInteraction(choice.GetStableInteractionId(),1,choice.StateRevision,NormalizedValue.CreateString("gang"),out _),Is.False);
+            Assert.That(state.Map.Influences,Is.Empty); Answer("ordinary");
+            Assert.That(state.Map.Influences.Count,Is.EqualTo(1));
+            Assert.That(state.ItemZones.Items.Single(item=>item.ItemId==state.Map.Influences.Single().InfluenceId).TypeId,Is.EqualTo("core.player_marker"));
+            Assert.That(state.EffectRuntime.InfluencePlaceMappings.Count,Is.EqualTo(1)); Restore("空帮派不可选择");
         }
         [Test] public void MainActionCancellationPermissionSurvivesTypeChoice()
         {

@@ -410,6 +410,243 @@ namespace YC.Tests.EditMode
             Assert.That(allRetained, Is.True, "增大内容长度不能清除正式文档");
         }
 
+        [UnityTest] public IEnumerator SpecialActionRowsKeepFormalIconsInTheirDescriptions()
+        {
+            yield return new EnterPlayMode();
+            var catalog = PresentationOnly(); var hud = CreateHud(catalog); var frame = Read(hud, "Frame");
+            var state = new GameState { GameId = "fixture.special.icons", ContentPackHash = catalog.ContentHash,
+                CurrentPlayerId = 1, StartPlayerId = 1, LaunchPlayerOrder = new List<int> { 1, 2 },
+                Players = new List<PlayerState> { new PlayerState { PlayerId = 1, Name = "夹具甲" }, new PlayerState { PlayerId = 2, Name = "夹具乙" } } };
+            state.EffectRuntime.StateRevision = 7;
+            var request = new YC.Domain.State.InteractionRequest {
+                InteractionId = "fixture.special.choice", SourceNodeId = "fixture.special.node", OwnerEffectId = "fixture.special.node",
+                InteractionTypeId = "effect.choice.execute", Status = "open", Visibility = "owner", AnsweringPlayerId = 1,
+                StateRevision = 7, CandidateSetId = "fixture.special.sources", CandidateSetVersion = 1,
+                MinSelections = 0, MaxSelections = 1, AllowDecline = true, AnswerSchema = "candidate_id",
+                Presentation = new GameplayInteractionPresentation { Prompt = new GameplayTextRef("core:interaction.special.choose_source") } };
+            state.EffectRuntime.InteractionRequests.Add(request);
+            var visible = GameStateViewProjector.ProjectForPlayer(state, 1);
+            Call(frame, "BindGameplaySnapshot", visible);
+            var expected = new Dictionary<string, string[]> {
+                ["A08"] = new[] { "core:rule.deploy", "core:resource.gold_voucher" },
+                ["A06"] = new[] { "core:rule.deploy", "core:rule.remove", "core:resource.orirock", "core:resource.originium_shard", "core:resource.iron", "core:resource.gold_voucher" }
+            };
+            foreach (var sample in expected)
+            {
+                string round = sample.Key == "A08" ? "1" : "3";
+                var metadata = JObject.Parse(File.ReadAllText(Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core/entrepreneur/entrepreneur.round.A." + round + ".json")));
+                var action = metadata.SelectTokens("$..actions[*]").OfType<JObject>().Single(a => (string)a["actionId"] == "entrepreneur." + sample.Key + ".tactic.special");
+                var presentation = (YC.Domain.Presentation.AbilityActionPresentationDefinition)typeof(GameplayPresentationCatalog).GetMethod("ReadDto", Flags)
+                    .MakeGenericMethod(typeof(YC.Domain.Presentation.AbilityActionPresentationDefinition)).Invoke(null, new object[] { action["presentation"] });
+                string Plain(GameplayTextRef reference) => reference == null ? "" : ((GameplayTextDocument)Call(frame, "ResolveGameplayText", reference)).ToPlainText();
+                var option = new YC.Domain.Effects.AbilityActionOption { OptionId = "fixture.special." + sample.Key, EntryKind = "special",
+                    SourceRef = new YC.Domain.Effects.AbilitySourceRef { AuthorizedPlayerId = 1 }, DisplayNameRef = presentation.Name,
+                    DescriptionRef = presentation.Description, EntryCostDescriptionRef = presentation.EntryCost,
+                    EntryAfterEffectsDescriptionRef = presentation.EntryAfterEffects, DisplayName = Plain(presentation.Name),
+                    Description = Plain(presentation.Description), EntryCostDescription = Plain(presentation.EntryCost),
+                    EntryAfterEffectsDescription = Plain(presentation.EntryAfterEffects) };
+                visible.AbilityActions.Add(option); request.CandidateIds.Add(option.OptionId);
+                request.Presentation.Options.Add(new GameplayOptionPresentation { CandidateId = option.OptionId, Label = option.DisplayNameRef,
+                    Description = new GameplayTextRef(YC.Domain.Effects.ImmediateSpecialActionFlow.ActionDetailsTextKey,
+                        new GameplayTextArgument { Name = "cost", Kind = "text", Value = NormalizedValue.CreateString(option.EntryCostDescription) },
+                        new GameplayTextArgument { Name = "body", Kind = "text", Value = NormalizedValue.CreateString(option.Description) },
+                        new GameplayTextArgument { Name = "after", Kind = "text", Value = NormalizedValue.CreateString(option.EntryAfterEffectsDescription) }) });
+            }
+            // 按原公开投影重建交互后再呈现；候选和文档均仅属于隔离夹具。
+            var projected = GameStateViewProjector.ProjectForPlayer(state, 1);
+            projected.AbilityActions.AddRange(visible.AbilityActions); visible = projected;
+            Call(frame, "BindGameplaySnapshot", visible);
+            var expansion = Read(hud, "ExpansionUi");
+            Call(expansion, "Configure", new Func<GameStateView>(() => visible), new Func<int>(() => 1), null, null,
+                new Action<YC.Domain.Commands.GameCommand>(_ => Assert.Fail("隔离浏览不能派令")));
+            var dialog = Activator.CreateInstance(Production("CharacterCardEffectChoiceDialog"), Flags, null,
+                new object[] { Read(hud, "DialogRegistry"), Read(frame, "ContentRect") }, null);
+            var renderer = (YC.Presentation.Workflows.IInteractionRequestRenderer)Activator.CreateInstance(Production("CharacterAbilityInteractionUiCoordinator"), Flags, null,
+                new object[] { new Func<GameState>(() => state), new Func<int>(() => 1), dialog,
+                    new Action<IReadOnlyList<YC.Presentation.Workflows.WorkflowHighlight>>(_ => {}), new Action(() => {}),
+                    new Action<YC.Domain.Commands.GameCommand>(_ => Assert.Fail("隔离浏览不能派令")), new Action<string>(_ => {}) }, null);
+            renderer.GetType().GetProperty("GetVisibleState").SetValue(renderer, new Func<GameStateView>(() => visible));
+            renderer.GetType().GetProperty("ExpansionUi").SetValue(renderer, expansion);
+            renderer.Render(YC.Domain.Interactions.InteractionRequestProjector.ProjectForPlayer(request, 1));
+            for (int i = 0; i < 3; i++) yield return null;
+            var shell = Read(dialog, "shell"); var shellView = (Component)Read(shell, "view");
+            var rows = shellView.GetComponentsInChildren(Production("UiEffectRowView"), true).Cast<Component>().ToArray();
+            foreach (var sample in expected)
+            {
+                var row = rows.Single(value => (string)Read(value, "ItemId") == "fixture.special." + sample.Key);
+                var body = (Text)Read(row, "DescriptionText"); var host = body.GetComponent(Production("GameplayTextView"));
+                Assert.That((bool)Read(host, "HasDocument"), Is.True);
+                var doc = (GameplayTextDocument)Read(host, "document");
+                var icons = doc.Runs.OfType<IconRun>().Select(icon => icon.IconKey).ToArray();
+                Assert.That(icons, Is.SupersetOf(sample.Value), "特殊行动正文须保留正式图标引用");
+                Assert.That(body.GetComponentsInChildren<Image>(true).Any(image => image.gameObject.activeInHierarchy && image.sprite != null), Is.True);
+            }
+            renderer.Clear();
+            Save("特殊行动条目图文来源", new { catalog.ContentHash, scope = "实际对话框和公开候选的隔离验证，非正常对局" });
+        }
+
+        [UnityTest] public IEnumerator DetailMarkersUseActualOwnersAndCombineOnlySingleBasicColors()
+        {
+            yield return new EnterPlayMode();
+            string isolated = Path.Combine(Environment.GetEnvironmentVariable("QY017_R18_OUTPUT"), "隔离显示登记");
+            Directory.CreateDirectory(isolated);
+            Production("ExternalContentRuntime").GetMethod("ConfigureRegistered", Flags).Invoke(null,
+                new object[] { Path.Combine(UnityEngine.Application.streamingAssetsPath, "Content/core"), isolated });
+            var catalog = PresentationOnly(); var hud = CreateHud(catalog); var expansion = Read(hud, "ExpansionUi");
+            var view = BarePublicInput(catalog);
+            view.Players.Add(new PlayerStateView { PlayerId = 3, Name = "夹具蓝", Color = PlayerColor.Blue, Resources = new ResourceSet() });
+            view.Players.Add(new PlayerStateView { PlayerId = 4, Name = "夹具黄", Color = PlayerColor.Yellow, Resources = new ResourceSet() });
+            view.Players[0].Color = PlayerColor.Green; view.Players[1].Color = PlayerColor.Red;
+            var source = new ItemInstanceState { ItemId = "fixture.swire", DefinitionId = "infected.character.swire", TypeId = "core.operator_card" };
+            view.ItemZones.Items.Add(source);
+            view.ItemZones.Zones.Add(new ZoneStateView { Zone = new ZoneInstanceState { ZoneId = "fixture.storage", ParentId = source.ItemId, LocalZoneId = "markers" } });
+            var entry = new YC.Presentation.Workflows.PlayerDetailEntry { SourceItemId = source.ItemId, DetailPlayerId = 1 };
+            entry.StorageZoneIds.Add("fixture.storage");
+            // 本人供应里有标记，但卡上只有两位对手的标记。
+            view.CubeColors.Add(new CubeColorView { ItemId = "fixture.supply", TypeId = "core.player_marker", OwnerPlayerId = 1,
+                Mode = "owner_player", PlayerColor = PlayerColor.Green });
+            void Add(int owner, int count, string type = "core.player_marker", string fixedName = null)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    string id = type + ":" + owner + ":" + i;
+                    view.ItemZones.Items.Add(new ItemInstanceState { ItemId = id, ZoneId = "fixture.storage", TypeId = type,
+                        PhysicalKind = ItemPhysicalKind.Cube, OwnerSubject = ItemSubjectRef.Player(owner) });
+                    view.CubeColors.Add(new CubeColorView { ItemId = id, TypeId = type, OwnerPlayerId = owner,
+                        Mode = fixedName == null ? "owner_player" : "fixed", Name = fixedName ?? "", Rgb = fixedName == null ? "" : "9A3CCB",
+                        PlayerColor = view.Players.Single(player => player.PlayerId == owner).Color });
+                }
+            }
+            void ResetMarkers()
+            {
+                view.ItemZones.Items.RemoveAll(item => item.ZoneId == "fixture.storage");
+                view.CubeColors.RemoveAll(color => color.ItemId != "fixture.supply");
+            }
+            Array Markers() => (Array)Call(expansion, "DetailMarkers", view, entry);
+            int Mask(object marker) => (int)Read(marker, "Mask");
+            int Count(object marker) => (int)Read(marker, "Count");
+
+            Add(2, 1); Add(3, 1);
+            var combined = Markers();
+            Assert.That(combined.Length, Is.EqualTo(1));
+            Assert.That(Mask(combined.GetValue(0)), Is.EqualTo(12), "红蓝各一枚应完整显示，不能插入本人绿色零标记");
+            var host = (RectTransform)Read(Read(hud, "Frame"), "ContentRect");
+            var row = (Component)Call(Read(hud, "DialogRegistry"), "InstantiateEffectRow", host);
+            var bindingType = Production("UiEffectRowView").GetNestedType("Binding"); var binding = Activator.CreateInstance(bindingType);
+            bindingType.GetField("RowMode").SetValue(binding, Enum.Parse(Production("UiEffectRowView").GetNestedType("Mode"), "PersistentDetail"));
+            bindingType.GetField("Markers").SetValue(binding, combined);
+            Call(row, "Bind", binding, new Func<string, int, bool>((_, __) => true), null, null);
+            var image = ((Image[])Read(row, "markerImages"))[0];
+            var square = image.GetComponent(Production("InfluenceMarker2DView"));
+            Assert.That(Convert.ToInt32(Read(square, "ColorPreset")), Is.EqualTo(12));
+            Assert.That((bool)Read(square, "ShowNumber"), Is.False);
+
+            ResetMarkers(); Add(2, 2); Add(3, 1);
+            var unequal = Markers().Cast<object>().ToArray();
+            Assert.That(unequal.Select(Mask), Is.EquivalentTo(new[] { 8, 4 }));
+            Assert.That(unequal.Select(Count), Is.EquivalentTo(new[] { 2, 1 }));
+            ResetMarkers(); Add(2, 2); Add(3, 3); Add(4, 1);
+            var overflow = Markers().Cast<object>().ToArray();
+            Assert.That(overflow, Has.Length.EqualTo(3));
+            Assert.That(overflow.All(marker => !string.IsNullOrEmpty((string)Read(marker, "Description"))), Is.True);
+            ResetMarkers(); Add(2, 1); Add(3, 1, "fixture.fixed", "紫色");
+            var fixedColor = Markers().Cast<object>().ToArray();
+            Assert.That(fixedColor, Has.Length.EqualTo(2));
+            Assert.That(fixedColor.Count(marker => (bool)Read(marker, "FixedColor")), Is.EqualTo(1));
+            Save("条目真实标记与四色合并", new { scope = "实际条目组件和隔离标记投影，非正常对局", combined = 12 });
+        }
+
+        [UnityTest] public IEnumerator QuickActionIconsSurviveTabSwitchAndClearWithTheirScope()
+        {
+            // 仅隔离验证当前HUD的行动行、页签和正式文字渲染器，不计正常对局验收。
+            yield return new EnterPlayMode();
+            var catalog = PresentationOnly();
+            var hud = CreateHud(catalog);
+            var frame = Read(hud, "Frame");
+            var snapshot = BarePublicInput(catalog);
+            Call(frame, "BindGameplaySnapshot", snapshot);
+            var panel = Read(hud, "ActionPanelView");
+            var controllerType = Production("ActionPanelController");
+            var arguments = new object[11];
+            arguments[0] = panel;
+            arguments[1] = Read(Read(hud, "DialogRegistry"), "CardVisualCatalog");
+            var controller = controllerType.GetMethod("Bind", Flags).Invoke(null, arguments);
+            Assert.That(controller, Is.Not.Null);
+            var option = new YC.Domain.Effects.AbilityActionOption {
+                OptionId = "fixture.quick.action", DisplayName = "图标替代文字：夹具行动",
+                DisplayNameRef = new GameplayTextRef("fixture.quick.name"), Enabled = false,
+                DisabledReason = "insufficient_items", EntryKind = "quick" };
+            var name = new GameplayTextDocument(new GameplayTextRun[] {
+                new IconRun("core:timing.tactical_action", "图标替代文字"), new TextRun("：夹具行动") }, "fixture.name");
+            controllerType.GetProperty("ResolveActionText", Flags).SetValue(controller,
+                new Func<GameplayTextRef, GameplayTextDocument>(_ => name));
+            controllerType.GetProperty("RenderActionText", Flags).SetValue(controller,
+                new Action<Component, GameplayTextDocument, bool>((host, doc, single) => Call(frame, "RenderGameplayText", host, doc, single)));
+            var model = YC.Presentation.Workflows.CharacterCardPanelViewModel.Empty(string.Empty);
+            model.HasAbilityActionCatalog = true;
+            model.DeclaredQuickActions = new[] { option };
+            var tabs = hudObject.GetComponentInChildren(Production("UiMainActionTabs"), true);
+            var tabButtons = (Button[])Read(tabs, "tabs");
+            tabButtons[1].onClick.Invoke();
+            Call(controller, "RenderCharacterQuickAction", model);
+            var rows = (IDictionary)Read(controller, "characterRows");
+            var row = (Component)rows[option.OptionId];
+            var label = (Text)Read(row, "label");
+            var textView = label.GetComponent(Production("GameplayTextView"));
+            bool HasVisibleIcon() => label.GetComponentsInChildren<Image>(true)
+                .Any(image => image.gameObject.activeInHierarchy && image.enabled && image.sprite != null);
+            for (int i = 0; i < 3; i++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.That(HasVisibleIcon(), Is.True, "切换前必须显示正式图标");
+            Assert.That(row.GetComponent<Button>().interactable, Is.False);
+            var disabledText = ((GameplayTextDocument)Read(textView, "document")).ToPlainText();
+            Assert.That(disabledText, Does.Contain(YC.Domain.Effects.AbilityActionReasons.Display("insufficient_items")));
+            Assert.That(disabledText, Does.Not.Contain("insufficient_items"), "费用不足的内部原因码不能显示给玩家");
+
+            // 多次同帧切换，期间不触发任何投影或行动行重绑。
+            tabButtons[0].onClick.Invoke(); tabButtons[1].onClick.Invoke();
+            tabButtons[2].onClick.Invoke(); tabButtons[1].onClick.Invoke();
+            for (int i = 0; i < 3; i++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.That((bool)Read(textView, "HasDocument"), Is.True, "隐藏页签不应清除仍有效的行动图文");
+            Assert.That(HasVisibleIcon(), Is.True, "返回快速行动页后仍须显示图标");
+
+            // 隐藏期间投影变化，重新显示时必须使用最新文档和可用状态。
+            tabButtons[0].onClick.Invoke();
+            option.Enabled = true;
+            name = new GameplayTextDocument(new GameplayTextRun[] {
+                new IconRun("core:timing.tactical_action", "新图标替代文字"), new TextRun("：新夹具行动") }, "fixture.next");
+            option.DisplayName = "新图标替代文字：新夹具行动";
+            Call(controller, "RenderCharacterQuickAction", model);
+            tabButtons[1].onClick.Invoke();
+            for (int i = 0; i < 3; i++) yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.That(HasVisibleIcon(), Is.True);
+            Assert.That(row.GetComponent<Button>().interactable, Is.True);
+            Assert.That(((GameplayTextDocument)Read(textView, "document")).ToPlainText(), Does.Contain("新夹具行动"));
+
+            // 正式显示作用域撤销时不得因页面重开恢复旧文档。
+            tabButtons[0].onClick.Invoke();
+            Call(frame, "BindGameplaySnapshot", new object[] { null });
+            tabButtons[1].onClick.Invoke();
+            yield return null;
+            Assert.That((bool)Read(textView, "HasDocument"), Is.False);
+            Call(frame, "BindGameplaySnapshot", snapshot);
+            Call(controller, "RenderCharacterQuickAction", model);
+            yield return null;
+            Assert.That((bool)Read(textView, "HasDocument"), Is.True);
+            option.DisplayNameRef = null;
+            option.DisplayName = "纯文本夹具行动";
+            Call(controller, "RenderCharacterQuickAction", model);
+            tabButtons[0].onClick.Invoke(); tabButtons[1].onClick.Invoke();
+            yield return null;
+            Canvas.ForceUpdateCanvases();
+            Assert.That((bool)Read(textView, "HasDocument"), Is.False, "回退到纯文本时应撤销旧图文");
+            Assert.That(HasVisibleIcon(), Is.False);
+            Assert.That(label.text, Is.EqualTo(option.DisplayName));
+            Save("快速行动切页图标生命周期", new { catalog.ContentHash, scope = "实际HUD副本和正式文本组件的隔离测试，非对局验收" });
+        }
+
         [UnityTest] public IEnumerator QuickActionResearchMeasuresCurrentAndProposedParagraphsWithoutChangingAssets()
         {
             yield return new EnterPlayMode(); var catalog = PresentationOnly(); var hud = CreateHud(catalog);

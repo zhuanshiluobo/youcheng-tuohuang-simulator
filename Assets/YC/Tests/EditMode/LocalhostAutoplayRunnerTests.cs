@@ -1,8 +1,10 @@
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using YC.Domain.Effects;
 using YC.Application.DevTools;
+using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
@@ -13,6 +15,24 @@ namespace YC.Tests.EditMode
 {
     public sealed class LocalhostAutoplayRunnerTests
     {
+        [Test]
+        public void CoverageResultDoesNotHideMissingPaidCollection()
+        {
+            var result = new LocalhostAutoplayResult
+            {
+                DeployInfluenceSuccesses = 1, ExploreLocationSuccesses = 1, BuildFacilitySuccesses = 1,
+                CharacterCardUseSuccesses = 1, MoveCitySuccesses = 1, DispatchInfluenceSuccesses = 1,
+                DeclareCityStyleSuccesses = 1, SpecialActionSuccesses = 2,
+                Seats = new List<PlayerSeat> { new PlayerSeat(), new PlayerSeat(), new PlayerSeat(), new PlayerSeat() }
+            };
+            var check = typeof(LocalhostAutoplayRunner).GetMethod("HasCompletedRequiredActionCoverage", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.That((bool)check.Invoke(null, new object[] { result }), Is.False);
+            result.ResourceCollectionSubmissions = 4;
+            result.PaidRouteCollectionSuccesses = 1;
+            result.OpponentRouteRecipientCollectionSuccesses = 1;
+            Assert.That((bool)check.Invoke(null, new object[] { result }), Is.True);
+        }
+
         private static void RegisterContentAndObserveMainline(EffectRegistry registry)
         {
             YC.Infrastructure.Lua.LuaContentCatalog.Register(registry);

@@ -1,7 +1,7 @@
 {
   "definitionId": "infected.facility.rhodes_office_yellow",
   "contentType": "facility",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "罗德岛办事处",
   "expansionId": "infected",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.infected.facility.rhodes_office_yellow.entry",
       "script": "lua/facilities/infected.facility.rhodes_office_yellow.entry.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],

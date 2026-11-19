@@ -76,7 +76,28 @@ namespace YC.Presentation
             Action<int> onChoiceSelected,
             Action<string, int> onPaymentRecipientSelected)
         {
-            if (card == null || card.ChoiceRewards.Count == 0)
+            if (card == null || card.EventChoiceSchemaVersion != 1)
+                throw new ArgumentException("事件选择要求版本 1 的事件定义。", nameof(card));
+            ShowEventCardOptionsCore(card, metadataLabel, paymentChoices, paymentRecipients, getPlayerDisplayName,
+                (index, _) => onChoiceSelected?.Invoke(index), onPaymentRecipientSelected);
+        }
+
+        public void ShowEventCardOptionsWithStableIds(EventCardDefinition card, string metadataLabel,
+            Action<string> onChoiceSelected)
+        {
+            if (card == null || card.EventChoiceSchemaVersion != 1)
+                throw new ArgumentException("稳定事件选择要求版本 1 的事件定义。", nameof(card));
+            ShowEventCardOptionsCore(card, metadataLabel, null, null, null,
+                (_, choiceId) => onChoiceSelected?.Invoke(choiceId), null);
+        }
+
+        private void ShowEventCardOptionsCore(EventCardDefinition card, string metadataLabel,
+            IReadOnlyList<ExplorePaymentChoice> paymentChoices, IReadOnlyDictionary<string, int> paymentRecipients,
+            Func<int, string> getPlayerDisplayName, Action<int, string> onChoiceSelected,
+            Action<string, int> onPaymentRecipientSelected)
+        {
+            var choiceCount = card.Choices.Count;
+            if (choiceCount == 0)
             {
                 return;
             }
@@ -114,7 +135,7 @@ namespace YC.Presentation
                 descriptionBottom,
                 paymentChoiceCount);
             var lastChoiceBottom = firstChoiceCenterOffset +
-                                   (card.ChoiceRewards.Count - 1) * layout.EventCardChoiceStep +
+                                   (choiceCount - 1) * layout.EventCardChoiceStep +
                                    layout.ChoiceRowTemplateLayout.SizeDelta.y * 0.5f;
             var expandedHeight = lastChoiceBottom + layout.EventCardToggleButtonTopGap +
                                  layout.EventCardToggleButtonTopInset;
@@ -147,15 +168,17 @@ namespace YC.Presentation
                 descriptionBottom + layout.EventCardPaymentFirstRowGap,
                 layout.EventCardPaymentRowStep);
 
-            for (var i = 0; i < card.ChoiceRewards.Count; i++)
+            for (var i = 0; i < choiceCount; i++)
             {
                 var capturedIndex = i;
+                var choiceId = card.Choices[i].ChoiceId;
                 var row = view.CreateChoiceRow(view.EventChoiceHost);
-                  row.Root.gameObject.name = "Choice " + (i + 1);
-                  YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
-                row.Label.text = card.ChoiceDescriptions[i];
+                row.Root.gameObject.name = "Choice " + (i + 1);
+                YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject,
+                    "event.choice." + choiceId);
+                row.Label.text = card.Choices[i].Description;
                 BindInput(row.Button,() => InvokeStep(
-                    () => onChoiceSelected?.Invoke(capturedIndex)));
+                    () => onChoiceSelected?.Invoke(capturedIndex, choiceId)));
             }
 
         }
@@ -164,7 +187,7 @@ namespace YC.Presentation
             EventCardDefinition card,
             string metadataLabel,
             Sprite artwork,
-            Action<int> onChoiceSelected)
+            Action<int, string> onChoiceSelected)
         {
             var layout = GetLayoutProfile();
             var eventCardExpandedSize = new Vector2(artwork.rect.width, artwork.rect.height);
@@ -197,101 +220,39 @@ namespace YC.Presentation
                 ? choiceHighlightColor
                 : UiTheme.CyanAccent;
 
-            for (var i = 0; i < card.ChoiceRewards.Count; i++)
+            int choiceCount = card.Choices.Count;
+            for (var i = 0; i < choiceCount; i++)
             {
-                // 图片顺序不等于规则编号；仅转换图片按钮，保留原待选会话编号。
-                var capturedIndex = GetArtworkChoiceIndex(card.CardId, i);
+                var capturedIndex = i;
+                var choiceId = card.Choices[i].ChoiceId;
                 var row = view.CreateArtworkChoiceRow(view.ArtworkChoiceHost);
-                YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject, "event.option." + i);
+                YC.PlayerJourney.PlayerAutomationId.Attach(row.Button.gameObject,
+                    "event.choice." + choiceId);
                 row.Root.gameObject.name = "Choice " + (i + 1);
-                ConfigureAssetizedChoiceRow(
-                    row,
-                    card.CardId,
-                    i,
-                    card.ChoiceRewards.Count,
-                    hoverColor);
+                ConfigureChoicePercent(row, card.Choices[i].Button);
+                var feedback = row.Root.GetComponent<ActionButtonPressFeedback>();
+                if (feedback == null) throw new InvalidOperationException("资产化事件选项缺少行动按钮反馈组件。");
+                feedback.Configure(row.Button, null, hoverColor);
                 BindInput(row.Button,() => InvokeStep(
-                    () => onChoiceSelected?.Invoke(capturedIndex)));
+                    () => onChoiceSelected?.Invoke(capturedIndex, choiceId)));
             }
 
         }
 
-        private static int GetArtworkChoiceIndex(string cardId, int visualIndex)
+        private static void ConfigureChoicePercent(EventChoiceDialogView.ButtonRow row, EventCardChoiceButton button)
         {
-            // 险中净土、采集平台残骸的前两项在原图中与目录顺序相反。
-            if ((cardId == "event_red_01" || cardId == "event_red_03") && visualIndex < 2)
-            {
-                return 1 - visualIndex;
-            }
-
-            return visualIndex;
-        }
-
-        private static Vector4 GetArtworkChoiceBounds(string cardId, int choiceCount)
-        {
-            // 原图为 850×600，边界按图片顶部向下计量。
-            // 多行描述和奖励归属同一框；分界位于选项之间，各框不重叠。
-            switch (cardId)
-            {
-                case "event_green_06":
-                case "event_red_03":
-                    return new Vector4(395f, 455f, 565f, 0f);
-                case "event_red_02":
-                    return new Vector4(395f, 485f, 555f, 0f);
-                case "event_red_06":
-                    return new Vector4(395f, 475f, 555f, 0f);
-                case "event_yellow_07":
-                    return new Vector4(400f, 475f, 570f, 0f);
-                case "event_red_01":
-                    return new Vector4(390f, 438f, 483f, 580f);
-                case "event_red_04":
-                    return new Vector4(385f, 435f, 488f, 555f);
-                case "event_red_05":
-                    return new Vector4(395f, 448f, 495f, 570f);
-                case "event_yellow_04":
-                    return new Vector4(390f, 475f, 515f, 570f);
-                case "event_yellow_05":
-                    return new Vector4(400f, 455f, 505f, 560f);
-                default:
-                    return choiceCount >= 3
-                        ? new Vector4(390f, 450f, 505f, 570f)
-                        : new Vector4(400f, 475f, 555f, 0f);
-            }
-        }
-
-        private static void ConfigureAssetizedChoiceRow(
-            EventChoiceDialogView.ButtonRow row,
-            string cardId,
-            int choiceIndex,
-            int choiceCount,
-            Color hoverColor)
-        {
+            if (button == null) throw new InvalidOperationException("事件选项缺少卡面按钮区域。");
             var rect = row.Root;
-            var bounds = GetArtworkChoiceBounds(cardId, choiceCount);
-            var choiceTop = bounds[choiceIndex];
-            var choiceBottom = bounds[choiceIndex + 1];
-            // 图片局部的归一化热点跟随最终等比显示区域，不再使用屏幕像素。
-            rect.anchorMin = new Vector2(90f / 850f, 1f - choiceBottom / 600f);
-            rect.anchorMax = new Vector2(810f / 850f, 1f - choiceTop / 600f);
-            rect.offsetMin = rect.offsetMax = Vector2.zero;
-
-            var image = row.Root.GetComponent<Image>();
-            image.color = Color.clear;
-            image.raycastTarget = true;
-            var outline = row.Root.GetComponent<Outline>();
-            outline.enabled = false;
-            outline.effectColor = Color.clear;
-            row.Label.text = string.Empty;
-            row.Label.gameObject.SetActive(false);
-            row.Button.targetGraphic = image;
-            row.Button.transition = Selectable.Transition.None;
-            row.Button.navigation = new Navigation { mode = Navigation.Mode.None };
-            var feedback = row.Root.GetComponent<ActionButtonPressFeedback>();
-            if (feedback == null)
-            {
-                throw new InvalidOperationException("资产化事件选项缺少行动按钮反馈组件。");
-            }
-            feedback.Configure(row.Button, null, hoverColor);
+            var min = rect.anchorMin; var max = rect.anchorMax;
+            min.y = 1f - (float)(button.BottomPercent / 100d);
+            max.y = 1f - (float)(button.TopPercent / 100d);
+            rect.anchorMin = min; rect.anchorMax = max;
+            var offsetMin = rect.offsetMin; var offsetMax = rect.offsetMax;
+            offsetMin.y = offsetMax.y = 0f;
+            rect.offsetMin = offsetMin; rect.offsetMax = offsetMax;
+            var boundary = rect.GetComponent<EventChoiceBoundaryFilter>();
+            if (boundary == null) boundary = rect.gameObject.AddComponent<EventChoiceBoundaryFilter>();
+            boundary.Configure(rect.parent as RectTransform, min.y, max.y);
         }
 
         private void ConfigureEventCardMetadataRibbon(

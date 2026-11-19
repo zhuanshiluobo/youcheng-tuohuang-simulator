@@ -1,65 +1,66 @@
 {
   "definitionId": "event_yellow_05",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "情报交换（4）",
   "artwork": "artwork/sheets/event_yellow_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_yellow_05",
-    "name": "情报交换（4）",
     "description": "早在第一家采矿公司来到这片荒地时，老杰弗里的驿站就已经屹立于此。其为旅客提供的佳酿据说源自一个古老的国家，那独特的味道曾在拓荒者间广受好评。不过你的特使来此可不是为了品酒的，至少不完全是……",
     "color": 1,
     "resourceType": 1,
     "resourceAmount": 1,
     "representativeResourceType": 1,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "杰弗里为你提供了一些当地的人脉：在此资源点相邻的航道上放置 1 个影响力标识",
-      "源石矿脉的位置可比美酒和伙计重要：获得 1 源岩、3 源石碎片",
-      "“杰弗里，这儿归我了，把酒馆开到城里去吧！”：获得 3 异铁"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "杰弗里为你提供了一些当地的人脉：在此资源点相邻的航道上放置 1 个影响力标识",
+        "button": {
+          "topPercent": 66.666667,
+          "bottomPercent": 75.833333
+        },
+        "script": "lua/events/choices/event_yellow_05.choice_01.lua",
+        "version": "1.0.0",
+        "completionHandlerId": "event_yellow_05.choice_01.completed"
       },
       {
-        "originium": 1,
-        "originiumShard": 3,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_02",
+        "description": "源石矿脉的位置可比美酒和伙计重要：获得 1 源岩、3 源石碎片",
+        "button": {
+          "topPercent": 75.833333,
+          "bottomPercent": 84.166667
+        },
+        "script": "lua/events/choices/event_yellow_05.choice_02.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 3,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_03",
+        "description": "“杰弗里，这儿归我了，把酒馆开到城里去吧！”：获得 3 异铁",
+        "button": {
+          "topPercent": 84.166667,
+          "bottomPercent": 93.333333
+        },
+        "script": "lua/events/choices/event_yellow_05.choice_03.lua",
+        "version": "1.0.0"
       }
-    ],
-    "choicePendingEffects": [
-      [
-        {
-          "kind": 3,
-          "resourceType": 0,
-          "amount": 1,
-          "targetScope": 4,
-          "costResourceType": 4,
-          "costAmount": 0
-        }
-      ],
-      [],
-      []
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_yellow_005"
+  "artworkSpriteId": "event_yellow_005",
+  "abilityHandlers": [
+    {
+      "handlerId": "event_yellow_05.choice_01.completed",
+      "script": "lua/events/choices/event_yellow_05.choice_01.completed.lua",
+      "version": "1.0.0"
+    }
+  ],
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

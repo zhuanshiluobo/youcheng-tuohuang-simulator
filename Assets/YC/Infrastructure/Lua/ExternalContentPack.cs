@@ -83,7 +83,7 @@ namespace YC.Infrastructure.Lua
         public string ArtworkSpriteId = "";
         [JsonIgnore] public ExternalArtworkSlice ArtworkSlice;
         public string[] Tags = Array.Empty<string>();
-        public List<string> ApplicableModes = new List<string>(), RequiredCapabilities = new List<string>();
+        public List<string> ApplicableModes = new List<string>(), RequiredCapabilities = new List<string>(), RequiredMechanisms = new List<string>();
         public JArray PlayerMarkerZones = new JArray();
         public string ItemTypeId = string.Empty;
         public CubeAppearanceDeclaration CubeAppearance;
@@ -92,7 +92,6 @@ namespace YC.Infrastructure.Lua
         public List<ExternalAbilityDefinition> Abilities = new List<ExternalAbilityDefinition>();
         public List<AbilitySourceDeclaration> AbilitySources = new List<AbilitySourceDeclaration>();
         public List<ExternalAbilityHandler> AbilityHandlers = new List<ExternalAbilityHandler>();
-        public List<AbilityActionCallPolicy> ActionCallPolicies = new List<AbilityActionCallPolicy>();
         public string DataTemplate = "";
         [JsonIgnore] public string RuntimeId = "";
         public JObject Data = new JObject();
@@ -108,6 +107,12 @@ namespace YC.Infrastructure.Lua
         private readonly Dictionary<string, string> runtimeIds = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> scripts = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly Dictionary<string, byte[]> files = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+        // 虚拟路径仅供组合快照内部寻址；身份始终还原为所属包与包内原始路径。
+        private readonly Dictionary<string, (string PackId, string Relative)> mountedScriptOrigins = new Dictionary<string, (string, string)>(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> definitionOrigins = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly List<YC.Domain.Rules.SetupRecipeEntry> diyAppendEntries = new List<YC.Domain.Rules.SetupRecipeEntry>();
+        internal DiyResolvedContent DiyComposition { get; private set; }
+        internal IReadOnlyList<YC.Domain.Rules.SetupRecipeEntry> DiyAppendEntries => diyAppendEntries.Select(YC.Domain.State.GameStateCloneService.DeepClone).ToList().AsReadOnly();
         private readonly HashSet<string> presentationFiles = new HashSet<string>(StringComparer.Ordinal);
         public GameplayPresentationCatalog Presentation { get; private set; } = new GameplayPresentationCatalog();
         public string PresentationContentHash { get; private set; } = string.Empty;
@@ -184,8 +189,50 @@ namespace YC.Infrastructure.Lua
             }
             return LoadCombined(RootPath, Array.Empty<string>(), "", input);
         }
+
+        private void PrepareEventChoiceDefinition(ExternalContentDefinition definition, string relative)
+        {
+            string source = PackId + "/" + relative;
+            if (definition.Data["cardId"] != null && (definition.Data["cardId"].Type != JTokenType.String || (string)definition.Data["cardId"] != definition.DefinitionId))
+                throw new InvalidDataException(source + ":data.cardId: 必须与最终定义 ID 一致；替换目标放在 replaces 中。");
+            var handlers = (definition.AbilityHandlers ?? new List<ExternalAbilityHandler>())
+                .Where(handler => handler != null).Select(handler => handler.HandlerId).ToArray();
+            string ReadChoiceScript(string path)
+            {
+                ValidateEventScriptPath(path);
+                try { LoadScript(path); }
+                catch (SyntaxErrorException error)
+                { throw new InvalidDataException("Lua 编译失败 " + path + "：" + error.Message, error); }
+                return GetScript(path);
+            }
+            var contract = EventChoiceContract.Parse(definition.Data, source, ReadChoiceScript, handlers);
+            foreach (string completionId in contract.Choices.Select(choice => choice.CompletionHandlerId).Where(id => !string.IsNullOrEmpty(id)).Distinct(StringComparer.Ordinal))
+            {
+                var matching = definition.AbilityHandlers.Where(handler => handler != null && handler.HandlerId == completionId).ToArray();
+                if (matching.Length != 1) throw new InvalidDataException(source + ": 完成处理器身份重复或不存在：" + completionId);
+                var handler = matching[0];
+                handler.Script = EventChoiceContract.ValidateReferencedScript(handler.Script, source,
+                    "abilityHandlers[" + completionId + "]", ReadChoiceScript);
+            }
+            var rawChoices = (JArray)definition.Data["choices"];
+            for (int i = 0; i < contract.Choices.Count; i++) rawChoices[i]["script"] = contract.Choices[i].Script;
+            if (contract.ImmediateResolve != null) definition.Data["immediateResolve"]["script"] = contract.ImmediateResolve.Script;
+        }
+
+        private void ValidateEventScriptPath(string relative)
+        {
+            string resolved = ResolvePath(relative);
+            for (string current = resolved; current != null; current = Path.GetDirectoryName(current))
+            {
+                if ((File.Exists(current) || Directory.Exists(current)) && (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
+                    throw new InvalidDataException("事件脚本路径不能包含重解析点：" + relative);
+                if (string.Equals(current, RootPath, StringComparison.OrdinalIgnoreCase)) return;
+            }
+            throw new InvalidDataException("事件脚本不在所属包内：" + relative);
+        }
+
         private static ExternalContentPack LoadCombined(string root, IEnumerable<string> presentationRoots, string registrationIdentity,
-            IReadOnlyDictionary<string, byte[]> snapshotInput = null)
+            IReadOnlyDictionary<string, byte[]> snapshotInput = null, ExternalContentPack presentationSeed = null)
         {
             var pack = new ExternalContentPack { RootPath = Path.GetFullPath(root), snapshotInput = snapshotInput };
             JObject manifest = pack.ReadJson("pack.json");
@@ -196,9 +243,29 @@ namespace YC.Infrastructure.Lua
             pack.SchemaVersion = (int)manifest["schemaVersion"];
             pack.Manifest = (JObject)manifest.DeepClone();
             if (manifest["uiIcons"] != null) throw new InvalidDataException("uiIcons 已撤销，请使用 presentation.icons。");
-            pack.Presentation = GameplayPresentationCatalog.Load(manifest["presentation"], pack.PackId, pack.ReadPresentationJson, pack.ReadPresentationArtwork);
-            pack.LoadPresentationSources(presentationRoots);
+            if (presentationSeed == null)
+            {
+                pack.Presentation = GameplayPresentationCatalog.Load(manifest["presentation"], pack.PackId, pack.ReadPresentationJson, pack.ReadPresentationArtwork);
+                pack.LoadPresentationSources(presentationRoots);
+            }
+            else
+            {
+                pack.Presentation = presentationSeed.Presentation.WithContentHash("");
+                presentationSeed.CopyPresentationSourcesTo(pack);
+                foreach (string path in presentationSeed.presentationFiles) { pack.ReadFile(path); pack.presentationFiles.Add(path); }
+            }
             pack.presentationSourceInput += registrationIdentity;
+            if (manifest["diyPresentations"] != null)
+            {
+                if (snapshotInput == null || !(manifest["diyPresentations"] is JArray additions)) throw new InvalidDataException("diy_presentation_snapshot_invalid");
+                foreach (var token in additions)
+                {
+                    if (!(token is JObject item) || item["packId"]?.Type != JTokenType.String || !(item["presentation"] is JObject declaration))
+                        throw new InvalidDataException("diy_presentation_declaration_invalid");
+                    pack.Presentation.AddDiyPresentation((string)item["packId"], declaration, pack.ReadPresentationJson, pack.ReadPresentationArtwork);
+                }
+                pack.Presentation.ValidateAllReferences();
+            }
             foreach (string path in pack.Presentation.DefaultScriptPaths) pack.LoadPresentationScript(path);
             if (manifest["settlementHandlers"] is JArray handlers)
                 foreach (var token in handlers)
@@ -218,6 +285,13 @@ namespace YC.Infrastructure.Lua
             var ids = new HashSet<string>(StringComparer.Ordinal);
             var abilityIds = new HashSet<string>(StringComparer.Ordinal);
             var subscriptionIds = new HashSet<string>(StringComparer.Ordinal);
+            // schema 3 的玩法身份来自清单；schema 2 没有模式目录，只保留旧包兼容。
+            var knownModes = new HashSet<string>(pack.SchemaVersion == 2 ? new[] { "standard", "entrepreneur" } : Array.Empty<string>(), StringComparer.Ordinal);
+            var knownMechanisms = GameplayMechanismCatalog.Read(manifest);
+            if (manifest["ruleModes"] is JArray declaredModes)
+                foreach (var item in declaredModes.OfType<JObject>())
+                    if (item["modeId"]?.Type == JTokenType.String && !knownModes.Add((string)item["modeId"]) && pack.SchemaVersion == 3)
+                        throw new InvalidDataException("rule_mode_duplicate:" + (string)item["modeId"]);
             foreach (var document in pack.ReadDefinitionDocuments(manifest))
             {
                 string relative = document.Key;
@@ -254,8 +328,10 @@ namespace YC.Infrastructure.Lua
                 if (definition == null || string.IsNullOrWhiteSpace(definition.DefinitionId) || !ids.Add(definition.DefinitionId) ||
                     string.IsNullOrWhiteSpace(definition.Version) || string.IsNullOrWhiteSpace(definition.DisplayName) || definition.Data == null || definition.Abilities == null)
                     throw new InvalidDataException("内容定义缺字段或 ID 重复：" + relative);
-                if (definition.ApplicableModes == null || definition.RequiredCapabilities == null ||
-                    definition.ApplicableModes.Distinct().Count() != definition.ApplicableModes.Count || definition.ApplicableModes.Any(m => m != "standard" && m != "entrepreneur") ||
+                if (definition.ApplicableModes == null || definition.RequiredCapabilities == null || definition.RequiredMechanisms == null ||
+                    definition.ApplicableModes.Distinct().Count() != definition.ApplicableModes.Count || definition.ApplicableModes.Any(m => !knownModes.Contains(m)) ||
+                    definition.RequiredMechanisms.Distinct(StringComparer.Ordinal).Count() != definition.RequiredMechanisms.Count ||
+                    definition.RequiredMechanisms.Any(m => !knownMechanisms.ContainsKey(m)) ||
                     definition.RequiredCapabilities.Any(string.IsNullOrWhiteSpace)) throw new InvalidDataException("content_mode_declaration_invalid:" + definition.DefinitionId);
                 ValidateItemZoneDeclaration(json, definition);
                 UsageTrackContent.Validate(json, definition);
@@ -266,6 +342,8 @@ namespace YC.Infrastructure.Lua
                 if (!string.IsNullOrEmpty(definition.Presentation?.DetailScript)) pack.LoadPresentationScript(definition.Presentation.DetailScript);
                 if (!new[] { "character", "facility", "event", "city_style", "enterprise", "department", "component", "contract", "award", "enterprise_board", "entrepreneur_ability", "entrepreneur_round" }.Contains(definition.ContentType))
                     throw new InvalidDataException("未知内容类型：" + definition.ContentType);
+                // 正式内容只接受稳定选择合同；旧数组属于离线迁移输入。
+                if (definition.ContentType == "event") pack.PrepareEventChoiceDefinition(definition, relative);
                 ValidateReplacement(definition);
                 if (!string.IsNullOrEmpty(definition.DataTemplate))
                 {
@@ -336,7 +414,7 @@ namespace YC.Infrastructure.Lua
                     pack.LoadScript(ability.Script);
                     if (!string.IsNullOrEmpty(ability.CleanupScript)) pack.LoadScript(ability.CleanupScript);
                     if (ability.ObservedEvents == null || ability.ObservedEvents.Distinct(StringComparer.Ordinal).Count() != ability.ObservedEvents.Length ||
-                        ability.ObservedEvents.Any(eventType => !new[] { "InfluenceRemoved", "InfluenceReplaced", "CharacterCardCovered", "CharacterEffectCompleted", "CharacterUseFinished", "CollectionStarted", "CandidateSetBuilding" }.Contains(eventType)) ||
+                        ability.ObservedEvents.Any(eventType => !new[] { "InfluenceRemoved", "InfluenceReplaced", "CharacterCardCovered", "CharacterEffectCompleted", "CharacterUseFinished", "CollectionStarted", "OperatorDispatchStarting", "CandidateSetBuilding" }.Contains(eventType)) ||
                         ability.ObservedEvents.Length > 0 && (ability.SkillType != "persistent" || !new[] { "departed_owner", "self" }.Contains(ability.ObserverSubjectPolicy)) ||
                         ability.ObservedEvents.Length == 0 && ability.ObserverSubjectPolicy != "") throw new InvalidDataException("持续事件声明无效：" + ability.AbilityId);
                     if (ability.EventResponseAttachments == null || ability.EventResponseAttachments.Any(pair =>
@@ -345,6 +423,9 @@ namespace YC.Infrastructure.Lua
                         (ability.ObserverSubjectPolicy != "departed_owner" || !new[] { "InfluenceRemoved", "InfluenceReplaced" }.Contains(pair.Key))))
                         throw new InvalidDataException("事件响应挂载声明无效：" + ability.AbilityId);
                     bool candidateObserver = ability.ObservedEvents.Contains("CandidateSetBuilding");
+                    if (ability.ObservedEvents.Contains(OperatorDispatchFlow.StartingEvent) && (ability.ObserverSubjectPolicy != "self" ||
+                        ability.EventResponseAttachments.ContainsKey(OperatorDispatchFlow.StartingEvent)))
+                        throw new InvalidDataException("特派数量修正必须使用self，且不能声明效果响应挂载：" + ability.AbilityId);
                     if (candidateObserver ? ability.ObserverSubjectPolicy != "self" || ability.CandidateKindFilter != YC.Domain.Facilities.FacilityBuildCandidateQuery.CandidateKind : ability.CandidateKindFilter != "")
                         throw new InvalidDataException("持续候选声明无效：" + ability.AbilityId);
                     if (ability.SettlementActionId.Length > 0 && (ability.SkillType != "persistent" || !new[] { CharacterSettlementOptionQuery.DoubleUseActionId, CharacterContentEffectExecutor.CleanupActionId }.Contains(ability.SettlementActionId))) throw new InvalidDataException("结算来源声明无效：" + ability.AbilityId);
@@ -373,6 +454,42 @@ namespace YC.Infrastructure.Lua
             }
             EntrepreneurContentCatalog.ValidateInstalled(pack.definitions);
             AbilitySourceLuaCatalog.ValidateCarrierPermissions(pack.definitions);
+            if (manifest["diyRuleBindings"] != null)
+            {
+                if (snapshotInput == null || !(manifest["diyRuleBindings"] is JArray ruleBindings))
+                    throw new InvalidDataException("diy_rule_binding_snapshot_invalid");
+                foreach (var token in ruleBindings)
+                {
+                    if (!(token is JObject binding) || binding["script"]?.Type != JTokenType.String || binding["eventType"]?.Type != JTokenType.String)
+                        throw new InvalidDataException("diy_rule_binding_invalid");
+                    string bindingEvent = (string)binding["eventType"];
+                    if (bindingEvent == "CandidateSetBuilding")
+                    {
+                        if (((string)binding["candidateKind"] != YC.Domain.Movement.CityDestinationQueryService.CandidateKind &&
+                            (string)binding["candidateKind"] != YC.Domain.Facilities.FacilityBuildCandidateQuery.CandidateKind) || binding["completion"] != null ||
+                            binding["completedEffectTypes"] != null || binding["completionPolicy"] != null)
+                            throw new InvalidDataException("diy_rule_binding_candidate_invalid");
+                    }
+                    else if (bindingEvent == "EffectCompleted")
+                    {
+                        if (binding["candidateKind"] != null || !(binding["completedEffectTypes"] is JArray types) ||
+                            types.Any(type => type.Type != JTokenType.String) || !DiyRuleBinding.ValidCompletedTypes(types.Values<string>().ToArray()) ||
+                            (string)binding["completionPolicy"] != "succeeded" && (string)binding["completionPolicy"] != "terminal")
+                            throw new InvalidDataException("diy_rule_binding_completion_filter_invalid");
+                    }
+                    else if (DiyRuleBindingCatalog.SupportsPatchEvent(bindingEvent))
+                    {
+                        if (binding["completion"] != null || binding["candidateKind"] != null || binding["completedEffectTypes"] != null || binding["completionPolicy"] != null)
+                            throw new InvalidDataException("diy_rule_binding_dispatch_patch_invalid");
+                    }
+                    else if (!DiyRuleBindingCatalog.SupportsEffectEvent(bindingEvent) || binding["candidateKind"] != null ||
+                        binding["completedEffectTypes"] != null || binding["completionPolicy"] != null)
+                        throw new InvalidDataException("diy_rule_binding_invalid");
+                    pack.LoadScript((string)binding["script"]);
+                    if (binding["completion"] is JObject completion) pack.LoadScript((string)completion["script"]);
+                    else if (binding["completion"] != null) throw new InvalidDataException("diy_rule_binding_completion_invalid");
+                }
+            }
             pack.LoadFrozenModules(manifest);
             pack.ResolveActiveDefinitions(manifest["enabledExpansionIds"]);
             if (pack.activeDefinitions.Count == 0) throw new InvalidDataException("内容包没有启用的定义。");
@@ -449,7 +566,10 @@ namespace YC.Infrastructure.Lua
         }
 
         // 替换的是稳定牌组槽位，来源 definitionId 保留以便追踪扩展；不由加载顺序决定胜者。
-        private void ResolveActiveDefinitions(JToken selection, string mode = "standard")
+        private void ResolveActiveDefinitions(JToken selection, string mode = "standard", IEnumerable<string> mechanisms = null)
+            => ResolveActiveDefinitionsForModes(selection, mode, mechanisms, null);
+
+        private void ResolveActiveDefinitionsForModes(JToken selection, string mode, IEnumerable<string> mechanisms, IEnumerable<string> modes)
         {
             HashSet<string> expansions = null;
             if (selection != null)
@@ -457,10 +577,12 @@ namespace YC.Infrastructure.Lua
                 if (!(selection is JArray values) || values.Any(v => v.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)v)))
                     throw new InvalidDataException("enabledExpansionIds 必须为非空字符串数组。");
                 expansions = new HashSet<string>(values.Values<string>(), StringComparer.Ordinal);
-                if (expansions.Count != values.Count || expansions.Any(id => !definitions.Any(d => d.ExpansionId == id)))
+                if (expansions.Count != values.Count || expansions.Any(id => !definitions.Any(d => d.ExpansionId == id) &&
+                    (DiyComposition == null || !(Manifest["expansionDependencies"] as JArray ?? new JArray()).OfType<JObject>().Any(d => (string)d["expansionId"] == id))))
                     throw new InvalidDataException("启用扩展 ID 重复或未在内容清单中定义。");
             }
-            var selected = definitions.Where(d => d.Enabled && (expansions == null || expansions.Contains(d.ExpansionId)) && (d.ApplicableModes.Count == 0 || d.ApplicableModes.Contains(mode))).ToList();
+            var selected = definitions.Where(d => d.Enabled && (expansions == null || expansions.Contains(d.ExpansionId)) &&
+                GameplayMechanismCatalog.AppliesToModes(d, modes ?? new[] { mode }, mechanisms)).ToList();
             var byId = selected.ToDictionary(d => d.DefinitionId, StringComparer.Ordinal);
             var replacements = new Dictionary<string, ExternalContentDefinition>(StringComparer.Ordinal);
             foreach (var definition in selected)
@@ -498,10 +620,16 @@ namespace YC.Infrastructure.Lua
         public ExternalContentPack CreateActiveSnapshot(YC.Domain.Rules.GameRuleConfiguration configuration)
             => ActiveContentCatalogBuilder.Build(this, configuration).Pack;
 
-        internal ExternalContentPack CreateActiveSnapshot(IEnumerable<string> expansions, string activeHash = "", string mode = "standard")
+        internal ExternalContentPack CreateActiveSnapshot(IEnumerable<string> expansions, string activeHash = "", string mode = "standard", IEnumerable<string> mechanisms = null)
+            => CreateActiveSnapshotForModes(expansions, activeHash, new[] { mode }, mechanisms);
+
+        internal ExternalContentPack CreateActiveSnapshotForModes(IEnumerable<string> expansions, string activeHash, IEnumerable<string> modes, IEnumerable<string> mechanisms)
         {
+            // 组合包有惰性读取的冻结文件；活动快照必须沿用同一输入，不能退回 core 磁盘路径。
             var snapshot = new ExternalContentPack { RootPath = RootPath, PackId = PackId, SchemaVersion = SchemaVersion,
-                Manifest = (JObject)Manifest.DeepClone(), ContentHash = activeHash, PresentationContentHash = PresentationContentHash, Presentation = Presentation.WithContentHash(activeHash) };
+                Manifest = (JObject)Manifest.DeepClone(), ContentHash = activeHash, PresentationContentHash = PresentationContentHash,
+                Presentation = Presentation.WithContentHash(activeHash), snapshotInput = this.snapshotInput,
+                officialPreparationOrigin = officialPreparationOrigin ?? this };
             CopyPresentationSourcesTo(snapshot);
             snapshot.definitions.AddRange(definitions.Select(Clone));
             snapshot.presentationFiles.UnionWith(presentationFiles);
@@ -511,7 +639,11 @@ namespace YC.Infrastructure.Lua
             foreach (var pair in artworkSlices) snapshot.artworkSlices.Add(pair.Key, CloneSlice(pair.Value));
             foreach (var pair in sharedArtwork) snapshot.sharedArtwork.Add(pair.Key, pair.Value);
             snapshot.setupRecipes.AddRange(setupRecipes.Select(YC.Domain.State.GameStateCloneService.DeepClone));
-            snapshot.ResolveActiveDefinitions(new JArray(expansions), mode);
+            snapshot.DiyComposition = DiyComposition;
+            foreach (var pair in mountedScriptOrigins) snapshot.mountedScriptOrigins.Add(pair.Key, pair.Value);
+            foreach (var pair in definitionOrigins) snapshot.definitionOrigins.Add(pair.Key, pair.Value);
+            snapshot.diyAppendEntries.AddRange(diyAppendEntries.Select(YC.Domain.State.GameStateCloneService.DeepClone));
+            snapshot.ResolveActiveDefinitionsForModes(new JArray(expansions), "standard", mechanisms, modes);
             return snapshot;
         }
 
@@ -729,8 +861,12 @@ namespace YC.Infrastructure.Lua
         public string GetScriptEntryId(string relative)
         {
             GetScript(relative); // 身份只来自当前包中已登记的路径，不能由 Lua 指定任意存储槽。
-            return YC.Domain.State.StableIdFactory.Create("lua-script-entry", PackId, relative);
+            return mountedScriptOrigins.TryGetValue(relative, out var origin)
+                ? YC.Domain.State.StableIdFactory.Create("lua-script-entry", origin.PackId, origin.Relative)
+                : YC.Domain.State.StableIdFactory.Create("lua-script-entry", PackId, relative);
         }
+        public string GetDefinitionSourcePackId(string definitionId) =>
+            definitionId != null && definitionOrigins.TryGetValue(definitionId, out var source) ? source : PackId;
         public byte[] GetArtworkBytes(string relative) => (byte[])ReadFile(relative).Clone();
         public string FindArtwork(string type, string id) => FindActiveDefinition(type, id)?.Artwork;
         public ExternalArtworkSlice FindArtworkSlice(string type, string id) => CloneSlice(FindActiveDefinition(type, id)?.ArtworkSlice);

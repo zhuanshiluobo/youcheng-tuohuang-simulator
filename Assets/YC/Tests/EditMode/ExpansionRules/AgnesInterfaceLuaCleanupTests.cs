@@ -60,6 +60,29 @@ namespace YC.Tests.EditMode.ExpansionRules
             // 真实声明/来源/生产查询服务；controlClaims是隔离输入，不计正常区控或页面验收。
         }
 
+        [Test]
+        public void RegionPreviewShowsCityAndItsOfficialModifierAsOneContribution()
+        {
+            using var f = new AgnesContentTestFixture();
+            f.Formal(); f.Choose(1, "A09", declineGain: true); f.Choose(7, "A03");
+            var map = new MapQueryService(StaticMapDefinitions.Resolve(f.State.MapId));
+            var location = map.Map.Locations.First(value => value.CanDockCity && !value.IsRedZone);
+            var parent = f.State.ItemZones.Zones.Single(value => value.TemplateId == "core.zone.map_location" && value.LocalZoneId == location.LocationId);
+            var dock = f.State.ItemZones.Zones.Single(value => value.TemplateId == "core.zone.city_dock" && value.ParentId == parent.ZoneId);
+            var city = f.State.ItemZones.Items.Single(value => value.TypeId == "core.mobile_city" && value.OwnerSubject.PlayerId == 1);
+            typeof(YC.Domain.Items.ItemZoneStateMigrator).GetMethod("SetPosition", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
+                .Invoke(null, new object[] { f.State, city, dock.ZoneId });
+            string before = JsonConvert.SerializeObject(f.State);
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            var preview = RegionInformationQuery.CreatePreview(f.State, map, f.Registry);
+            watch.Stop(); TestContext.WriteLine("指令正式效果的区控预览耗时：{0} 毫秒", watch.ElapsedMilliseconds);
+            var row = RegionInformationQuery.Build(f.State, map, preview).Single(value => value.RegionId == location.RegionId);
+            var parts = preview.Regions.Single(value => value.RegionId == location.RegionId).Players.Single(value => value.PlayerId == 1);
+            Assert.That(parts.Contributions.Sum(), Is.EqualTo(4));
+            Assert.That(row.InfluenceDisplay[1], Is.EqualTo(parts.MarkerCount + "+4"));
+            Assert.That(JsonConvert.SerializeObject(f.State), Is.EqualTo(before));
+        }
+
         [TestCase("opaque.owner", 1)]
         [TestCase("another.owner", 0)]
         public void LuaUsesOpaqueScopeHeaderEvenWhenOwnerIsOutsideFirstPage(string claimSource, int expected)
@@ -93,7 +116,7 @@ namespace YC.Tests.EditMode.ExpansionRules
 
         [TestCase("A09", 1)] [TestCase("A08", 1)] [TestCase("A06", 3)]
         [TestCase("A07", 3)] [TestCase("A05", 5)]
-        public void DeclarationsKeepQuickSpecialAndCleanupDirectPoliciesSeparate(string face, int round)
+        public void DeclarationsKeepQuickAndSpecialEntrySemanticsSeparate(string face, int round)
         {
             using var f = new AgnesContentTestFixture();
             var definition = Definition(f, round);
@@ -117,12 +140,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var cleanup = cleanupDefinition["abilitySources"].Single(s => (string)s["abilityId"] == "entrepreneur.A05.cleanup");
             Assert.That((string)cleanup["repeatPolicy"], Is.EqualTo("once"));
             Assert.That((string)cleanup["cleanupInjectionPolicy"], Is.EqualTo("when_available"));
-            var policy = cleanupDefinition["actionCallPolicies"].Single(p => (string)p["targetActionId"] == (string)quick["actionId"]);
-            Assert.That((string)policy["callerAbilityId"], Is.EqualTo("entrepreneur.A05.cleanup"));
-            Assert.That((string)policy["callerHandlerRef"], Is.EqualTo("entrepreneur.A05.cleanup"));
-            Assert.That((bool)policy["omitEntryCost"], Is.True);
-            Assert.That((bool)policy["omitEntryAfterEffects"], Is.True);
-            Assert.That((bool)policy["omitMainAction"], Is.True);
+            Assert.That(cleanupDefinition["actionCallPolicies"], Is.Null);
+            Assert.That(quick["directCallPolicy"], Is.Null);
             // 不锁人工静态文案、坐标或样式；费用的真实执行及恢复另有定向用例。
         }
 
@@ -203,7 +222,10 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             using var f = new AgnesContentTestFixture(); f.Formal();
             f.Choose(1, "A08", stock == 0 ? null : "1", declineGain: stock == 0);
-            Assert.That(f.Action("entrepreneur.A08.tactic.quick").Enabled, Is.False);
+            var action = f.Action("entrepreneur.A08.tactic.quick");
+            Assert.That(action.Enabled, Is.False);
+            Assert.That(action.DisabledReason, Is.EqualTo("insufficient_items"));
+            Assert.That(AbilityActionReasons.Display(action.DisabledReason), Is.Not.EqualTo(action.DisabledReason));
             Assert.That(f.Stored, Is.EqualTo(stock));
             Assert.That(f.State.EffectRuntime.AbilityActionInvocations.Any(i => i.ActionId == "entrepreneur.A08.tactic.quick"), Is.False);
             f.AssertNoTokenPaymentSelection();

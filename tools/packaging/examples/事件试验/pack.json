@@ -1,0 +1,21 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.events",
+  "version": "1.0.0",
+  "displayName": "事件新增与替换试验",
+  "author": "游城拓荒",
+  "description": "绿色牌堆的新增与替换示例；试验奖励不按图中资源符号解释。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "event.choices.v1", "event.artwork_buttons.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "expansions": [{
+    "expansionId": "example.events.green",
+    "displayName": "事件新增与替换试验",
+    "description": "在绿色牌堆追加一张并替换一张；仅演示，奖励以示例说明为准。",
+    "requires": ["core"]
+  }],
+  "definitions": ["event/support.json", "event/dream.json"],
+  "setupRecipes": ["recipes/green.json"],
+  "artworkSlices": "artwork/slices.json"
+}

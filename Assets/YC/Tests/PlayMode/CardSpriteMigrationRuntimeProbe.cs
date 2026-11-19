@@ -145,10 +145,9 @@ namespace YC.Tests.PlayMode
             var eventDialog = new EventChoiceDialog(registry, () => canvas);
             foreach (var id in new[] { "event_green_01", "event_yellow_02", "event_red_03" })
             {
-                var chosen = -1;
+                var chosen = string.Empty;
                 var eventCard = pack.CreateEvents().Single(e => e.CardId == id);
-                eventDialog.ShowEventCardOptions(eventCard, "切片验收", Array.Empty<ExplorePaymentChoice>(),
-                    new Dictionary<string, int>(), p => p.ToString(), choice => chosen = choice, null);
+                eventDialog.ShowEventCardOptionsWithStableIds(eventCard, "切片验收", choice => chosen = choice);
                 for (var i = 0; i < 5; i++) yield return null;
                 var view = FindObjectOfType<EventChoiceDialogView>();
                 AssertSprite(view.EventCardArtworkImage, registry.CardVisualCatalog.GetEvent(id));
@@ -160,8 +159,8 @@ namespace YC.Tests.PlayMode
                 Require(hits.Any(h => h.gameObject == button.gameObject || h.gameObject.transform.IsChildOf(button.transform)), "事件选项点击位置不在实际按钮内");
                 yield return Capture("事件选项-" + id);
                 button.onClick.Invoke();
-                // 红色第3张的牌面首项对应既有规则索引1，迁移不能改变既有选项语义。
-                Require(chosen == (id == "event_red_03" ? 1 : 0), "事件选项回调错误");
+                // 红色第 3 张首项沿用旧规则第二项的稳定身份。
+                Require(chosen == (id == "event_red_03" ? "choice_02" : "choice_01"), "事件选项回调错误");
                 eventDialog.Hide();
             }
             // 拖拽使用正式公共工具、原布局配置与 Sprite，检查单格 UV 及输入穿透。

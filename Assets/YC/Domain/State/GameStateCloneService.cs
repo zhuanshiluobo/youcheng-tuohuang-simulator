@@ -558,6 +558,10 @@ namespace YC.Domain.State
             finally { ReturnComparisonPairs(visited); }
         }
 
+        /// <summary>比较同类型的持久化数据，不共享或修改双方的可写对象。</summary>
+        public static bool AreEquivalentPersistent<T>(T left, T right)
+            => AreEquivalentPersistentValues(left, right, typeof(T));
+
         internal static bool AreEquivalentPersistentValues(object left, object right, Type declaredType)
         {
             var visited = RentComparisonPairs();

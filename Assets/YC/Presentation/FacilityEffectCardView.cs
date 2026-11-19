@@ -1,4 +1,5 @@
 using System;
+using NoMadCity.SelectionFX;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,8 @@ namespace YC.Presentation
         [SerializeField] private CardPointerInteraction pointerInteraction;
         [SerializeField] private Button detailsButton;
         [SerializeField] private Image selectionImage;
+        [SerializeField] private SelectionEffectGraphic selectionEffect;
+        [SerializeField] private SelectionEffectInput selectionInput;
 
         [SerializeField] private RectTransform face;
         [SerializeField] private Vector2 referenceFaceSize = new Vector2(180f, 255f);
@@ -81,6 +84,17 @@ namespace YC.Presentation
         public CardPointerInteraction PointerInteraction => pointerInteraction;
         public Button DetailsButton => detailsButton;
         public Image SelectionImage => selectionImage;
+        public SelectionEffectGraphic SelectionEffect => selectionEffect;
+
+        public void SetSelectionEffect(bool show, bool available, bool selected)
+        {
+            if (selectionEffect == null) return;
+            if (selectionImage != null) selectionImage.enabled = false;
+            if (selectionInput != null) selectionInput.enabled = show;
+            selectionEffect.gameObject.SetActive(show);
+            if (show) selectionEffect.SetState(!available ? SelectionEffectGraphic.SelectionState.Unavailable : selected
+                ? SelectionEffectGraphic.SelectionState.Selected : SelectionEffectGraphic.SelectionState.Available);
+        }
 
         // 卡槽预制体统一拥有查看手势；页面只提供查看内容与返回上下文。
         public void ConfigureInspection(Action open, Func<bool> isCurrent)

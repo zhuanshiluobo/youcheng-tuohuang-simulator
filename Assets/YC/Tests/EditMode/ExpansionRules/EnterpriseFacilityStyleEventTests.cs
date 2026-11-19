@@ -10,6 +10,7 @@ using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Effects;
 using YC.Domain.Enterprises;
+using YC.Domain.Exploration;
 using YC.Domain.Facilities;
 using YC.Domain.Influence;
 using YC.Domain.Items;
@@ -119,7 +120,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             var map = new MapQueryService(StaticMapDefinitions.Resolve(state.MapId)); var influence = new InfluenceService(map);
             state.Map.OpenLocationIds.AddRange(map.Map.Locations.Select(location => location.LocationId));
             InfluenceEffectExecutor.Register(registry, influence);
-            EventCardEffectExecutor.Register(registry, map, influence, new EventDeckService(), new ResourceTokenService());
+            var decks = new EventDeckService(); var tokens = new ResourceTokenService();
+            EventCardEffectExecutor.Register(registry, map, influence, decks, tokens);
+            ExplorationEffectExecutor.Register(registry, map, new ExplorationService(map, influence, decks, tokens), decks, tokens);
             CityMoveEffectExecutor.Register(registry, map, influence, new CityMovementService(map, influence, new TravelCostService(map)), new TravelCostService(map), new ResourceTokenService());
             var query = new SpecialActionOptionQueryService(map, influence, new CityMovementService(map, influence, new TravelCostService(map)), new SpecialActionLifecycleService(), new MainActionBudgetService());
             CityStyleSpecialActionEffectExecutor.Register(registry, query, null, map, influence, new CityMovementService(map, influence, new TravelCostService(map)));
@@ -311,7 +314,22 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { "build", "explore", "move_city" }));
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1));
             state = Restore(state, registry); Answer(state, registry, "build");
-            while (Open(state) != null) Answer(state, registry, Open(state).CandidateIds.First());
+            while (Open(state) != null)
+            {
+                var request = Open(state);
+                if (request.InteractionTypeId == FacilitySelectionEffectExecutor.NormalBuildInteractionType)
+                {
+                    string selected = request.CandidateIds.First();
+                    string source = state.ItemZones.Items.Single(item => item.ItemId == selected).ZoneId;
+                    var engine = new EffectTreeExecutor(state, registry);
+                    Assert.That(engine.TryPrepareEffectBuildPayment(1, request.OwnerEffectId, request.GetStableInteractionId(),
+                        request.CandidateSetId, request.CandidateSetVersion, selected,
+                        Object("paymentMode", NormalizedValue.CreateString("gold"), "expectedSourceZoneId", NormalizedValue.CreateString(source)),
+                        state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string reason), Is.True, reason);
+                    Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+                }
+                else Answer(state, registry, request.CandidateIds.First());
+            }
             Assert.That(state.EffectRuntime.EffectNodes.Any(node => (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments)) && node.Status == EffectNodeStatus.Completed), Is.True);
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.Zero); Assert.That(state.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(1));
         }
@@ -456,9 +474,13 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(out var registry); var marker = Declare(state, registry, StyleIds[0]); int score = state.FindPlayer(1).Score;
             var order = state.ItemZones.Orders.Single(value => value.ZoneId == FindZone(state, "facility_deck").ZoneId); int revision = order.OrderRevision;
             Activate(state, registry, marker); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score - 1));
-            Assert.That(Open(state).CandidateIds, Does.Contain("choice.skip"));
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
+            Assert.That(Open(state).AllowDecline, Is.True);
             if (restoreBeforeDecline) state = Restore(state, registry);
-            Answer(state, registry, "choice.skip");
+            var request = Open(state); var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, request.StateRevision,
+                NormalizedValue.CreateBoolean(false), out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state);
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score - 1));
             Assert.That(state.ItemZones.Orders.Single(value => value.ZoneId == order.ZoneId).OrderRevision, Is.EqualTo(revision + 1));
         }
@@ -468,11 +490,27 @@ namespace YC.Tests.EditMode.ExpansionRules
             var state = State(out var registry); var marker = Declare(state, registry, StyleIds[0]); int score = state.FindPlayer(1).Score;
             state.FindPlayer(1).Resources = new ResourceSet { Originium = 3, OriginiumShard = 1, Iron = 3 };
             Position(state, Item(state, OfficeIds[0]), "facility_deck");
-            Activate(state, registry, marker); Answer(state, registry, Item(state, OfficeIds[0]));
+            Activate(state, registry, marker);
+            var request = Open(state); string selected = Item(state, OfficeIds[0]);
+            Assert.That(request.CandidateIds, Does.Contain(selected));
+            var engine = new EffectTreeExecutor(state, registry);
+            Assert.That(engine.TryPrepareEffectBuildPayment(1, request.OwnerEffectId, request.GetStableInteractionId(),
+                request.CandidateSetId, request.CandidateSetVersion, selected,
+                Object("paymentMode", NormalizedValue.CreateString("resources"), "expectedSourceZoneId", NormalizedValue.CreateString(FindZone(state, "facility_deck").ZoneId)),
+                state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var payment = Open(state); Assert.That(ResourcePaymentPreparationService.CanConfirm(state, engine.GetNode(payment.OwnerEffectId), registry), Is.True);
             state.FindPlayer(1).Resources = new ResourceSet();
             var order = state.ItemZones.Orders.Single(value => value.ZoneId == FindZone(state, "facility_deck").ZoneId); int revision = order.OrderRevision;
-            Answer(state, registry, "resources");
-            Assert.That(state.EffectRuntime.EffectNodes.Any(node => (node.EffectTypeId == FacilityEntryEffectTypeIds.Build && !FacilityBuildContract.IsSelection(node.EffectTypeId, node.NormalizedArguments)) && node.Status == EffectNodeStatus.Failed), Is.True);
+            Assert.That(ResourcePaymentPreparationService.CanConfirm(state, engine.GetNode(payment.OwnerEffectId), registry), Is.False);
+            Assert.That(engine.TryCancelPreparedEffectBuildPayment(1, payment.OwnerEffectId, state.EffectRuntime.StateRevision,
+                Guid.NewGuid().ToString("N"), out reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            request = Open(state); Assert.That(request.AllowDecline, Is.True);
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision,
+                NormalizedValue.CreateBoolean(false), out reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage); Valid(state);
+            Assert.That(state.EffectRuntime.EffectNodes.Any(node => node.EffectTypeId == FacilityEntryEffectTypeIds.Build && node.Status == EffectNodeStatus.Completed), Is.True);
             Assert.That(state.ItemZones.Orders.Single(value => value.ZoneId == order.ZoneId).OrderRevision, Is.EqualTo(revision + 1));
             Assert.That(state.FindPlayer(1).Score, Is.EqualTo(score - 1));
         }
@@ -491,16 +529,14 @@ namespace YC.Tests.EditMode.ExpansionRules
             SetPosition(state, city, dock.ZoneId);
             // 沿真实事件揭示链创建资源指示物，使用完事件后再发动据点。
             Reveal(state, registry, EventIds[1], EventColor.Yellow, location.LocationId);
-            Answer(state, registry, EventCardOptionIdFactory.Create(EventIds[1], 0));
+            Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[1], "choice_01"));
             var slots = Enumerable.Range(0, location.InfluenceSlotCount).Select(index => InfluenceService.GetLocationSlotId(location.LocationId, index)).ToList();
             Activate(state, registry, first);
-            Assert.That(Open(state), Is.Not.Null, string.Join(";", state.EffectRuntime.EffectNodes.Select(node =>
-                node.EffectTypeId + ":" + node.Status + ":" + node.FailureReason + ":" + node.NormalizedArguments)));
-            Assert.That(Open(state).CandidateIds.All(slots.Contains), Is.True);
-            Answer(state, registry, Open(state).CandidateIds.First());
-            Assert.That(Open(state).CandidateIds.All(slots.Contains), Is.True);
-            Answer(state, registry, Open(state).CandidateIds.First());
-            Assert.That(state.Map.Influences.Count(value => value.LocationId == location.LocationId && value.PlayerId == 1), Is.EqualTo(2));
+            var placed = state.Map.Influences.Where(value => value.LocationId == location.LocationId && value.PlayerId == 1).ToArray();
+            Assert.That(placed.Length, Is.EqualTo(2));
+            Assert.That(placed.All(value => slots.Contains(value.SlotId)), Is.True);
+            Assert.That(Open(state), Is.Not.Null, "两次定点放置完成后应进入影响力移动请求。");
+            Assert.That(Open(state).CandidateIds.All(value => value.StartsWith("move|", StringComparison.Ordinal)), Is.True);
             state = Restore(state, registry);
             for (int moved = 0; moved < 2; moved++)
             {
@@ -563,10 +599,42 @@ namespace YC.Tests.EditMode.ExpansionRules
             Run(state, registry, EventCardEffectSpecFactory.Resolve(1, color, location));
         }
         [Test]
+        public void CaveChoiceSurvivesHostArchiveBeforeAnswerAndAfterCompletion()
+        {
+            var state = State(out var registry);
+            int beforeRock = state.FindPlayer(1).Resources.Originium;
+            Reveal(state, registry, EventIds[1], EventColor.Yellow);
+            var request = Open(state);
+            string interactionId = request.GetStableInteractionId();
+            string candidate = EventCardOptionIdFactory.CreateChoice(EventIds[1], "choice_01");
+            Assert.That(request.CandidateIds, Does.Contain(candidate));
+            string deckId = FindZone(state, "event_yellow").ZoneId;
+            int remaining = state.ItemZones.Orders.Single(value => value.ZoneId == deckId).ItemIds.Count;
+            int tokens = state.Map.ResourceTokens.Count;
+            state = Restore(state, registry);
+            Assert.That(Open(state).GetStableInteractionId(), Is.EqualTo(interactionId));
+            Assert.That(Open(state).CandidateIds, Does.Contain(candidate));
+            Assert.That(state.ItemZones.Orders.Single(value => value.ZoneId == deckId).ItemIds.Count, Is.EqualTo(remaining));
+            Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(tokens));
+            Answer(state, registry, candidate);
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(beforeRock + 5));
+            int resolvedEvents = state.EffectRuntime.RuleEvents.Count(value => value.EventType == EventCardEffectEventTypeIds.Resolved);
+            Assert.That(resolvedEvents, Is.EqualTo(1));
+            state = Restore(state, registry);
+            Assert.That(new EffectTreeExecutor(state, registry).RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(beforeRock + 5));
+            Assert.That(state.ItemZones.Orders.Single(value => value.ZoneId == deckId).ItemIds.Count, Is.EqualTo(remaining));
+            Assert.That(state.Map.ResourceTokens, Has.Count.EqualTo(tokens));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(value => value.EventType == EventCardEffectEventTypeIds.Resolved), Is.EqualTo(resolvedEvents));
+        }
+        [Test]
         public void CollectionPlatformLosesScoreBelowZeroAndActivatesSavedSpecialOnSameEnterprise()
         {
             var state = State(out var registry); Reveal(state, registry, EventIds[0], EventColor.Red);
-            Answer(state, registry, EventCardOptionIdFactory.Create(EventIds[0], 0)); Assert.That(state.FindPlayer(1).Score, Is.EqualTo(-1));
+            Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[0], "choice_01"));
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            state = Restore(state, registry); Answer(state, registry, "continue");
+            Assert.That(state.FindPlayer(1).Score, Is.EqualTo(-1));
             var candidate = Open(state).CandidateIds.First(); var frozen = state.EffectRuntime.EffectNodes.Last(node => node.EffectTypeId == EnterpriseSpecialSelectionExecutor.UpgradeThenActivateTypeId).FrozenEnterpriseSpecials.Single(special => special.Candidate.CandidateId == candidate);
             string selectedEnterprise = frozen.Candidate.EnterpriseItemId;
             state = Restore(state, registry); Answer(state, registry, candidate);
@@ -577,20 +645,59 @@ namespace YC.Tests.EditMode.ExpansionRules
         public void CaveSponsorOnlyUpgradesAndDoesNotTriggerUnlockedSpecial()
         {
             var state = State(out var registry); state.FindPlayer(1).Resources.Iron = 1; Reveal(state, registry, EventIds[1], EventColor.Yellow);
-            Answer(state, registry, EventCardOptionIdFactory.Create(EventIds[1], 2)); state = Restore(state, registry); Answer(state, registry, Item(state, Business));
+            Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[1], "choice_03"));
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            state = Restore(state, registry); Answer(state, registry, "continue"); Answer(state, registry, Item(state, Business));
             Assert.That(Level(state), Is.EqualTo(1)); Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.Zero);
             Assert.That(state.EffectRuntime.RuleEvents.Any(evt => evt.EventType == "EnterpriseSpecialEffectActivated"), Is.False);
+        }
+        [Test]
+        public void CaveSponsorExcludesVisibleRetiredEnterpriseAndResolvesAfterPayment()
+        {
+            // 隔离复现正式单机故障：玩家可见自己退场的企业，但它不能成为场上升级范围。
+            var state = State(out var registry);
+            string businessId = Item(state, Business), logisticsId = Item(state, Logistics);
+            state.ContentDefinitions.EnterpriseDefinitionIds.AddRange(new[] { Business, Logistics });
+            registry.ContentDefinitions = GameStateCloneService.DeepClone(state.ContentDefinitions);
+            var retired = GameStateCloneService.DeepClone(state.ItemZones.Items.Single(item => item.DefinitionId == Logistics));
+            retired.ItemId = "fixture.retired.enterprise";
+            retired.ZoneId = state.ItemZones.Zones.Single(zone => zone.TemplateId == "core.zone.box_secret_retired").ZoneId;
+            retired.ControllerSubject = ItemSubjectRef.Player(1);
+            retired.SlotId = string.Empty;
+            state.ItemZones.Items.Add(retired);
+            Valid(state);
+            Assert.That(new ItemZoneQuery().Project(state, GameStateViewer.Player(1)).Items.Any(item => item.ItemId == retired.ItemId), Is.True,
+                "夹具必须保留本人可见的退场实例，才能复现原始候选污染。");
+            state.FindPlayer(1).Resources.Iron = 1;
+            Reveal(state, registry, EventIds[1], EventColor.Yellow);
+            Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[1], "choice_03"));
+            Assert.That(Open(state)?.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Answer(state, registry, "continue");
+            Assert.That(Open(state), Is.Not.Null, "支付后必须进入合法的场上企业选择。");
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo("enterprise.upgrade"));
+            Assert.That(Open(state).CandidateIds, Is.EquivalentTo(new[] { businessId, logisticsId }));
+            Assert.That(Open(state).CandidateIds, Does.Not.Contain(retired.ItemId));
+            state = Restore(state, registry);
+            Answer(state, registry, businessId);
+            Assert.That(Level(state), Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
+            Assert.That(state.EffectRuntime.EffectNodes.Last(node => node.EffectTypeId == LuaDomainEffectTypeIds.UpgradeEnterprise).Status,
+                Is.EqualTo(EffectNodeStatus.Completed));
+            state = Restore(state, registry);
+            new EffectTreeExecutor(state, registry).RunUntilQuiescent();
+            Assert.That(Level(state), Is.EqualTo(1));
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.Zero);
         }
         [TestCase(0, 5, 0)][TestCase(1, 0, 10)]
         public void CaveOtherOptionsApplyOnlySelectedReward(int option, int rock, int gold)
         {
-            var state = State(out var registry); Reveal(state, registry, EventIds[1], EventColor.Yellow); Answer(state, registry, EventCardOptionIdFactory.Create(EventIds[1], option));
+            var state = State(out var registry); Reveal(state, registry, EventIds[1], EventColor.Yellow); Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[1], "choice_" + (option + 1).ToString("D2")));
             Assert.That(state.FindPlayer(1).Resources.Originium, Is.EqualTo(rock)); Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold)); Assert.That(Level(state), Is.Zero);
         }
         [TestCase(1, 4, 3, 0, 0)][TestCase(2, 0, 0, 4, 5)]
         public void CollectionOtherOptionsApplyOnlySelectedReward(int option, int rock, int shards, int iron, int gold)
         {
-            var state = State(out var registry); Reveal(state, registry, EventIds[0], EventColor.Red); Answer(state, registry, EventCardOptionIdFactory.Create(EventIds[0], option));
+            var state = State(out var registry); Reveal(state, registry, EventIds[0], EventColor.Red); Answer(state, registry, EventCardOptionIdFactory.CreateChoice(EventIds[0], "choice_" + (option + 1).ToString("D2")));
             var resources = state.FindPlayer(1).Resources; Assert.That(resources.Originium, Is.EqualTo(rock)); Assert.That(resources.OriginiumShard, Is.EqualTo(shards));
             Assert.That(resources.Iron, Is.EqualTo(iron)); Assert.That(resources.GoldVoucher, Is.EqualTo(gold)); Assert.That(Level(state), Is.Zero);
         }

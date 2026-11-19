@@ -115,6 +115,8 @@ namespace YC.Infrastructure.Multiplayer
                 isHost = true;
                 roomGeneration++;
                 currentRoom = CreateDefaultRoom(roomId, playerCount);
+                if (resume == null && content is IRoomOfficialPreparationProvider preparation)
+                    currentRoom.Configuration.OfficialPreparationContract = preparation.NewGamePreparationContract(currentRoom.Configuration);
                 nextPlayerId = 2;
                 currentRoom.LocalPlayerId = currentRoom.HostPlayerId;
                 currentRoom.Seats[0].PlayerName = string.IsNullOrEmpty(hostPlayerName) ? "Player 1" : hostPlayerName;
@@ -150,6 +152,8 @@ namespace YC.Infrastructure.Multiplayer
             var stream = activeClient.GetStream();
             var activeWriter = new StreamWriter(stream) { AutoFlush = true };
             var localConfiguration = new GameRuleConfiguration();
+            if (content is IRoomOfficialPreparationProvider preparation)
+                localConfiguration.OfficialPreparationContract = preparation.NewGamePreparationContract(localConfiguration);
             activeWriter.WriteLine("JOIN|3|" + Escape(playerName) + "|" +
                 (content?.GetContentPackHash(localConfiguration) ?? string.Empty) + "|" + localConfiguration.RuleContractVersion + "|" + Escape(operatorId));
 

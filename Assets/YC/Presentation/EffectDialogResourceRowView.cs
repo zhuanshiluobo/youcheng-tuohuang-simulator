@@ -26,6 +26,7 @@ namespace YC.Presentation
         private readonly List<GameplayTextHostStandard> standards = new List<GameplayTextHostStandard>();
         private GameplayTextDocument originalLabelDocument, renderedLabelDocument;
         private Action<Component, GameplayTextDocument, bool> renderLabel;
+        private Func<bool> labelVisibilityBindingIsCurrent;
         private int resourceIndex = -1, renderedResourceIndex = -2;
         public InputField ValueInput => valueInput;
 
@@ -46,13 +47,24 @@ namespace YC.Presentation
         {
             RestoreStandards();
             if (originalLabelDocument != null && labelDocument != null && !labelDocument.HasDocument)
-            { originalLabelDocument = renderedLabelDocument = null; renderLabel = null; renderedResourceIndex = -2; }
+            { originalLabelDocument = renderedLabelDocument = null; renderLabel = null; labelVisibilityBindingIsCurrent = null; renderedResourceIndex = -2; }
+        }
+        private void OnEnable()
+        {
+            if (labelVisibilityBindingIsCurrent != null && !labelVisibilityBindingIsCurrent()) ClearLabelBinding();
         }
         private void OnDisable()
         {
+            // 收起同一效果请求只隐藏页面；新请求或真正关闭时仍清掉旧正文。
+            if (originalLabelDocument != null && labelVisibilityBindingIsCurrent?.Invoke() == true) return;
+            ClearLabelBinding();
+        }
+        private void ClearLabelBinding()
+        {
             originalLabelDocument = renderedLabelDocument = null; renderLabel = null;
+            labelVisibilityBindingIsCurrent = null;
             renderedResourceIndex = -2; resourceIndex = -1;
-            if (labelDocument != null) labelDocument.ClearBinding();
+            if (labelDocument != null) { labelDocument.SetVisibilityBindingGuard(null); labelDocument.ClearBinding(); }
         }
 
         public void RenderDraft(string resource, int inventory, int amount, int? price, bool showInventoryPreview = true, bool showResourceIdentity = true)
@@ -90,7 +102,9 @@ namespace YC.Presentation
             if (reason.Length > 0) return false;
             RestoreStandards();
             originalLabelDocument = document; renderedLabelDocument = null; renderLabel = render;
-            if (document == null) { labelDocument.ClearBinding(); return true; }
+            labelVisibilityBindingIsCurrent = GameplayHudFrame.Active?.CreateEffectPageVisibilityGuard(labelDocument.transform);
+            labelDocument.SetVisibilityBindingGuard(labelVisibilityBindingIsCurrent);
+            if (document == null) { ClearLabelBinding(); return true; }
             RenderLabelDocument();
             return true;
         }

@@ -369,9 +369,10 @@ namespace YC.Application.Sessions
 
         public WindowExecutionSeal Seal(bool explicitYield = false)
         {
-            if (IsStopped || busy || !connected || pending.Count != 0 || boundaryReason == "" && !explicitYield)
+            if (IsStopped || busy || !connected || pending.Count != 0)
                 throw new InvalidOperationException("cannot_seal_unfinished_or_faulted_stream");
             if (seal != null) return WindowExecutionCodec.Copy(seal);
+            if (boundaryReason == "" && !explicitYield) throw new InvalidOperationException("cannot_seal_unfinished_or_faulted_stream");
             seal = new WindowExecutionSeal { GrantId = grant.GrantId, OperationCount = Tail, GlobalSequence = GlobalSequence,
                 PrefixDigest = prefix, RuleDigest = Digest(), WindowProgressDigest = ProgressDigest(), Reason = boundaryReason == "" ? "explicit_yield" : boundaryReason };
             seal.SealDigest = WindowExecutionCodec.SealDigest(seal); return WindowExecutionCodec.Copy(seal);

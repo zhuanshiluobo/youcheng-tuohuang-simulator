@@ -193,15 +193,18 @@ namespace YC.Domain.Effects
                 }
                 else if (reason.Length == 0 && (entry.EntryKind == OptionalInsertion || entry.WholeEffectPolicy == SettlementWholeEffectPolicy.Optional))
                     reason = "settlement_availability_missing";
+                // 付款来源可以再次配置；持久状态保留上一段的真实目标，展示为可用时不能把历史目标当成当前执行目标。
+                var projectedState = entry.PaymentInsertion != null && reason.Length == 0 ? "available" : entry.SettlementState;
+                var projectedTarget = entry.PaymentInsertion != null && projectedState == "available" ? "" : entry.TargetEffectId;
                 result.Add(new CharacterSettlementOption { OptionId = entry.OptionId, WindowId = window.Context.Id,
                     OwnerEffectId = window.Context.OwnerEffectId, InteractionId = request?.GetStableInteractionId() ?? "",
                     SourceItemId = entry.SourceItemId, SourceDefinitionId = entry.SourceDefinitionId,
                     LocalId = entry.LocalId, EntryKind = entry.EntryKind,
-                    TargetEffectId = entry.TargetEffectId, CandidateId = entry.CleanupSource != null ? entry.OptionId : entry.EntryKind == CleanupOrder ? entry.TargetEffectId : entry.SourceItemId,
+                    TargetEffectId = projectedTarget, CandidateId = entry.CleanupSource != null ? entry.OptionId : entry.EntryKind == CleanupOrder ? entry.TargetEffectId : entry.SourceItemId,
                     TargetUseId = window.Context.TargetUseId, AnsweringPlayerId = viewerPlayerId,
                     StateRevision = state.EffectRuntime.StateRevision, CandidateSetVersion = request?.CandidateSetVersion ?? 0,
                     RegistrationSequence = entry.RegistrationSequence, CanDeclineWholeEffect = entry.WholeEffectPolicy == SettlementWholeEffectPolicy.Optional,
-                    SettlementState = entry.PaymentInsertion != null && reason.Length == 0 ? "available" : entry.SettlementState, Presentation = GameplayPresentationNormalizer.Clone(entry.Presentation),
+                    SettlementState = projectedState, Presentation = GameplayPresentationNormalizer.Clone(entry.Presentation),
                     IsEnabled = reason.Length == 0, VisibleToViewer = true, DisabledReasonCode = reason });
             }
             return result;

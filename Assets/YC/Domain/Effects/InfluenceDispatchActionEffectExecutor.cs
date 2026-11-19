@@ -66,7 +66,7 @@ namespace YC.Domain.Effects
             int movedCount = moves.Count(move => ItemTransferEffectExecutor.Value(move.NormalizedResult, "changed")?.BooleanValue == true);
             // 已生效的移动不能成为免费行动；主动跳过则正常收束此主要行动。
             bool spendBudget = failed == null || movedCount > 0;
-            if (spendBudget) new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+            if (spendBudget) new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Dispatch);
             var result = ItemTransferEffectExecutor.Object(
                 "operationKind", NormalizedValue.CreateString("dispatch"),
                 "changed", NormalizedValue.CreateBoolean(movedCount > 0),

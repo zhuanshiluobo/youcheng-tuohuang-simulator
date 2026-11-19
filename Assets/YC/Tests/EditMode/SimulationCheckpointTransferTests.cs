@@ -32,6 +32,158 @@ namespace YC.Tests.EditMode
         public static GameSession CreateDeferredClient(out EffectRegistry registry)
         { var built = Shared.Build(LaunchMode.Client, true); registry = built.Registry; return built.Session; }
 
+        internal static string LargeTransportFixture()
+        {
+            var bytes = new byte[800000];
+            new System.Random(4721).NextBytes(bytes);
+            return JsonConvert.SerializeObject(new { fixture = Convert.ToBase64String(bytes) });
+        }
+
+        [TestCase(false, "middle", true, true)]
+        [TestCase(true, "complete", true, true)]
+        [TestCase(false, "before", false, true)]
+        [TestCase(false, "before", false, false)]
+        public void PrivatePreparationNeverEntersFullReplicaTransfer(bool resume, string stage, bool enterprise, bool hasPreparation)
+        {
+            var state = new GameState { GameId = "private-preparation-fixture", ContentPackHash = "fixture-content",
+                SetupRecipe = new GameSetupRecipe { Preparation = hasPreparation ? new PreparationFlowPlan { Enterprise = enterprise ? new PreparationEnterprisePlan() : null } : null },
+                PreparationRuntime = new PreparationRuntimeState { Stage = stage } };
+            if (!hasPreparation) state.RandomRuntime = GameplayRandomRuntime.CreatePrivate(state.GameId);
+            var session = new GameSession(state);
+            var seats = new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } };
+            var options = DeterministicSimulationSessionOptions.CreateInitial(true, 1, session, new[] { 1, 2 });
+            SimulationCheckpointEnvelope identity = null;
+            if (resume)
+            {
+                options.SimulationEpoch = 2;
+                identity = new SimulationCheckpointEnvelope { ProtocolVersion = SimulationCheckpointEnvelope.SavedProtocolVersion,
+                    Purpose = SimulationCheckpointEnvelope.SavedSimulation, GameId = state.GameId, ContentPackHash = state.ContentPackHash,
+                    SimulationEpoch = 2, SourceSimulationEpoch = 1, MembershipVersion = 1, CheckpointId = "fixture.saved" };
+                Assert.That(identity.HasValidIdentity(), Is.True);
+            }
+            int archiveCalls = 0, coordinatorCalls = 0;
+            Func<string> archive = () => { archiveCalls++; return "fixture"; };
+            Func<DeterministicSimulationCoordinator> coordinator = resume ? (Func<DeterministicSimulationCoordinator>)(() => { coordinatorCalls++; return null; }) : null;
+            var root = new GameObject("私密准备传输隔离夹具");
+            root.SetActive(false);
+            try
+            {
+                var type = Type.GetType("YC.Infrastructure.Multiplayer.MirrorCommandTransport, Assembly-CSharp", true);
+                var transport = root.AddComponent(type);
+                var initialize = type.GetMethods().Single(method => method.Name == "InitializeDeterministicSimulation" && method.GetParameters().Length == 9);
+                var error = Assert.Throws<TargetInvocationException>(() => initialize.Invoke(transport,
+                    new object[] { session, LaunchMode.Host, 1, seats, options, null, archive, identity, coordinator }));
+                Assert.That(error.InnerException, Is.TypeOf<InvalidOperationException>());
+                Assert.That(error.InnerException.Message, Is.EqualTo("preparation_private_replica_transport_unavailable"));
+                Assert.That(archiveCalls, Is.Zero);
+                Assert.That(coordinatorCalls, Is.Zero);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void LargeCheckpointUsesIndependentBoundedWindowsForThreeSlowPeers()
+        {
+            var identity = InitialIdentity;
+            var archive = LargeTransportFixture();
+            var transfer = SimulationCheckpointTransfer.Encode(identity, archive);
+            Assert.That(transfer.Envelope.EncodedByteCount, Is.GreaterThan(524288), "夹具必须超过 Steam 默认发送缓冲。");
+            var senders = Enumerable.Range(0, 3).Select(_ => new SimulationCheckpointSendWindow(transfer)).ToArray();
+            var receivers = Enumerable.Range(0, 3).Select(_ => new SimulationCheckpointTransfer.Assembler(identity)).ToArray();
+            var queues = Enumerable.Range(0, 3).Select(_ => new Queue<SimulationCheckpointPart>()).ToArray();
+            var restored = new string[3];
+
+            void Fill(int peer)
+            {
+                while (senders[peer].TryTake(out var part)) queues[peer].Enqueue(part);
+                Assert.That(senders[peer].SentBytes - senders[peer].AcknowledgedBytes,
+                    Is.LessThanOrEqualTo(SimulationCheckpointSendWindow.MaximumInFlightBytes));
+                Assert.That(queues[peer].Sum(part => part.Payload.Length),
+                    Is.LessThanOrEqualTo(SimulationCheckpointSendWindow.MaximumInFlightBytes));
+            }
+            void Consume(int peer)
+            {
+                var part = queues[peer].Dequeue();
+                Assert.That(receivers[peer].TryAppendReliable(part.Envelope, part.Offset, part.Payload, out var value, out var fault), Is.True, fault);
+                var acknowledged = value == null ? receivers[peer].BufferedBytes : part.Offset + part.Payload.Length;
+                Assert.That(senders[peer].TryAcknowledge(acknowledged), Is.True);
+                if (value != null) restored[peer] = value;
+                Fill(peer);
+            }
+
+            for (int peer = 0; peer < 3; peer++) Fill(peer);
+            Assert.That(queues[2].Count, Is.EqualTo(4));
+            for (int steps = 0; restored[0] == null || restored[1] == null; steps++)
+            {
+                Assert.That(steps, Is.LessThan(1000));
+                for (int peer = 0; peer < 2; peer++) if (restored[peer] == null) Consume(peer);
+                Assert.That(queues[2].Count, Is.EqualTo(4), "慢玩家没有确认时不能继续排入发送队列。");
+                Assert.That(senders[2].TryTake(out _), Is.False);
+            }
+            while (restored[2] == null) Consume(2);
+            foreach (var value in restored) Assert.That(value, Is.EqualTo(archive));
+            foreach (var sender in senders) Assert.That(sender.AcknowledgedBytes, Is.EqualTo(sender.TotalBytes));
+        }
+
+        [Test]
+        public void DroppedReorderedAndDuplicateChunksAreRetriedWithoutPartialOrCorruptRestore()
+        {
+            var identity = InitialIdentity;
+            var archive = LargeTransportFixture();
+            var transfer = SimulationCheckpointTransfer.Encode(identity, archive);
+            var sender = new SimulationCheckpointSendWindow(transfer);
+            var receiver = new SimulationCheckpointTransfer.Assembler(identity);
+            var first = new List<SimulationCheckpointPart>();
+            while (sender.TryTake(out var part)) first.Add(part);
+            Assert.That(first.Count, Is.EqualTo(4));
+            Assert.That(receiver.TryAppendReliable(first[1].Envelope, first[1].Offset, first[1].Payload, out var value, out var fault), Is.True, fault);
+            Assert.That(value, Is.Null); Assert.That(receiver.BufferedBytes, Is.Zero);
+            Assert.That(sender.TryAcknowledge(0), Is.True);
+
+            var retry = sender.Unacknowledged().ToArray();
+            Assert.That(retry.Select(part => part.Offset), Is.EqualTo(first.Select(part => part.Offset)));
+            foreach (var part in retry)
+                Assert.That(receiver.TryAppendReliable(part.Envelope, part.Offset, part.Payload, out value, out fault), Is.True, fault);
+            Assert.That(receiver.BufferedBytes, Is.EqualTo(SimulationCheckpointSendWindow.MaximumInFlightBytes));
+            Assert.That(receiver.TryAppendReliable(first[1].Envelope, first[1].Offset, first[1].Payload, out value, out fault), Is.True, fault);
+            var altered = transfer.PartAt(first[1].Offset); altered.Payload[0] ^= 1;
+            Assert.That(receiver.TryAppendReliable(altered.Envelope, altered.Offset, altered.Payload, out _, out fault), Is.False);
+            Assert.That(fault, Is.EqualTo("checkpoint_chunk_conflict"));
+            Assert.That(receiver.BufferedBytes, Is.Zero);
+
+            // 发生冲突后用新连接从头接收，保持原完整性校验。
+            sender = new SimulationCheckpointSendWindow(transfer);
+            receiver = new SimulationCheckpointTransfer.Assembler(identity);
+            value = null;
+            while (value == null)
+            {
+                Assert.That(sender.TryTake(out var part), Is.True);
+                Assert.That(receiver.TryAppendReliable(part.Envelope, part.Offset, part.Payload, out value, out fault), Is.True, fault);
+                Assert.That(sender.TryAcknowledge(value == null ? receiver.BufferedBytes : part.Offset + part.Payload.Length), Is.True);
+            }
+            Assert.That(value, Is.EqualTo(archive));
+        }
+
+        [Test]
+        public void CheckpointAcknowledgementsCannotAdvanceBeyondSentOrRewindProgress()
+        {
+            var transfer = SimulationCheckpointTransfer.Encode(InitialIdentity, LargeTransportFixture());
+            var sender = new SimulationCheckpointSendWindow(transfer);
+            Assert.That(sender.TryTake(out _), Is.True);
+            Assert.That(sender.TryAcknowledge(-1), Is.False);
+            Assert.That(sender.TryAcknowledge(1), Is.False);
+            Assert.That(sender.TryAcknowledge(2 * SimulationCheckpointTransfer.ChunkBytes), Is.False);
+            Assert.That(sender.AcknowledgedBytes, Is.Zero);
+            Assert.That(sender.TryAcknowledge(SimulationCheckpointTransfer.ChunkBytes), Is.True);
+            Assert.That(sender.TryAcknowledge(0), Is.True);
+            Assert.That(sender.AcknowledgedBytes, Is.EqualTo(SimulationCheckpointTransfer.ChunkBytes));
+            var reconnected = new SimulationCheckpointSendWindow(transfer);
+            Assert.That(reconnected.SentBytes, Is.Zero);
+            Assert.That(reconnected.AcknowledgedBytes, Is.Zero);
+            Assert.That(reconnected.TryTake(out var first), Is.True);
+            Assert.That(first.Offset, Is.Zero);
+        }
+
         [Test]
         public void HostChannelInstallsRealCompleteArchiveOnceAndConfirmsOnlyBoundPeer()
         {

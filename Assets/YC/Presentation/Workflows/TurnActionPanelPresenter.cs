@@ -160,21 +160,21 @@ namespace YC.Presentation.Workflows
                 (canOpenUnfinishedCharacterUse ||
                  (canChooseQuickAction && !player.CharacterCardLockedThisTurn)),
                 canChooseQuickAction,
-                canChooseMainAction,
-                canChooseMainAction,
-                canChooseMainAction,
-                canChooseMainAction && player != null,
-                canChooseMainAction,
+                canChooseMainAction && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Deploy),
+                canChooseMainAction && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Dispatch),
+                canChooseMainAction && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Explore),
+                canChooseMainAction && player != null && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.MoveCity),
+                canChooseMainAction && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Build),
                 ((canStopPendingCharacterMode?.Invoke() ?? false) || canEndCurrentAction()) && !RoundTrackRule.IsFinalState(state),
                 waiting) { CanInspectCityStyles = player != null,
-                    CanUseSpecialAction = canChooseMainAction && (HasUsableSpecialAction?.Invoke() ?? false),
+                    CanUseSpecialAction = canChooseMainAction && MainActionBudgetService.HasAvailableMainAction(state, context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Special) && (HasUsableSpecialAction?.Invoke() ?? false),
                     AllCollectionLocationsSelected = resourceCollectionPresenter.AllLocationsCovered,
                     CanViewFacilitySupply = player != null };
         }
 
-        public bool CanStartMainAction()
+        public bool CanStartMainAction(string actionType = null)
         {
-            return HasCommittedSettlement?.Invoke() != true && CanStartAction(false);
+            return HasCommittedSettlement?.Invoke() != true && CanStartAction(false, actionType);
         }
 
         public bool CanStartQuickAction()
@@ -267,7 +267,7 @@ namespace YC.Presentation.Workflows
                 : actionName + "已完成";
         }
 
-        private bool CanStartAction(bool quickAction)
+        private bool CanStartAction(bool quickAction, string actionType = null)
         {
             if (HasMainActionSubmissionInFlight?.Invoke() == true) return false;
             var state = context.CurrentState;
@@ -308,7 +308,7 @@ namespace YC.Presentation.Workflows
             {
                 var budgetValidation = MainActionBudgetService.ValidateCanSpend(
                     state,
-                    context.LocalPlayerId);
+                    context.LocalPlayerId, actionType);
                 if (!budgetValidation.IsValid)
                 {
                     view.ShowPrompt(budgetValidation.Reason);

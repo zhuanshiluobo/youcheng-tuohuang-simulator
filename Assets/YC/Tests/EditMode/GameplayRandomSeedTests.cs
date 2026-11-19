@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -34,6 +35,69 @@ namespace YC.Tests.EditMode
             Assert.That(GameplayRandomRuntime.TryValidate(state.RandomRuntime, state.GameId, state.EventDeckSeed, out _), Is.False);
             state.RandomRuntime.AlgorithmVersion = GameplayRandomRuntime.AlgorithmVersion;
             Assert.That(JsonConvert.SerializeObject(state.RandomRuntime), Is.EqualTo(before));
+        }
+
+        [Test]
+        public void PrivateRandomUsesIndependentKeyAndRestoresWithoutLeakingIntoRoom()
+        {
+            var state = new GameState { GameId = "private-fixture", EventDeckSeed = 42,
+                RandomRuntime = GameplayRandomRuntime.CreatePrivate("private-fixture") };
+            // 固定密钥只用于本夹具，期望值由独立 HMAC-SHA256 实现计算。
+            state.RandomRuntime.PrivateKeyHex = string.Concat(Enumerable.Range(0, 32).Select(value => value.ToString("x2")));
+            Assert.That(Enumerable.Range(0, 12).Select(_ => GameplayRandomRuntime.Next(state, GameplayRandomRuntime.Dice, 6)),
+                Is.EqualTo(new[] { 3, 3, 5, 2, 5, 4, 1, 0, 2, 3, 1, 1 }));
+            var earlier = state.RandomRuntime.Clone();
+            var restored = JsonConvert.DeserializeObject<GameplayRandomState>(JsonConvert.SerializeObject(state.RandomRuntime));
+            var control = new GameState { GameId = state.GameId, EventDeckSeed = state.EventDeckSeed, RandomRuntime = restored };
+            Assert.That(GameplayRandomRuntime.Next(control, GameplayRandomRuntime.Dice, 1000),
+                Is.EqualTo(GameplayRandomRuntime.Next(state, GameplayRandomRuntime.Dice, 1000)));
+            Assert.That(GameplayRandomRuntime.IsContinuation(earlier, restored, state.EventDeckSeed), Is.True);
+            restored.PrivateKeyHex = new string('f', 64);
+            Assert.That(GameplayRandomRuntime.IsContinuation(earlier, restored, state.EventDeckSeed), Is.False);
+            restored.PrivateKeyHex = "invalid";
+            Assert.That(GameplayRandomRuntime.TryValidate(restored, state.GameId, state.EventDeckSeed, out _), Is.False);
+
+            var service = new RoomConfigurationService(new Capabilities(), true, seedSource: () => 42);
+            var room = Room(service);
+            Assert.That(service.TryFreezeForLaunch(room, Request(room), out _, out _), Is.True);
+            room.RandomRuntime = GameplayRandomRuntime.CreatePrivate(room.GameId);
+            Assert.That(RoomStateSerializer.TryValidate(room, out _), Is.False);
+            Assert.Throws<InvalidOperationException>(() => RoomStateSerializer.Serialize(room));
+        }
+
+        [Test]
+        public void HostContextCreatesPrivateRandomOnceAndNeverExposesItAsRoomRandom()
+        {
+            var type = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
+            var instance = type.GetProperty("Instance", BindingFlags.Public | BindingFlags.Static);
+            var previous = instance.GetValue(null); var setter = instance.GetSetMethod(true);
+            UnityEngine.GameObject root = null;
+            try
+            {
+                setter.Invoke(null, new object[] { null });
+                root = new UnityEngine.GameObject("private-random-context-fixture");
+                var context = root.AddComponent(type);
+                type.GetField("Mode").SetValue(context, LaunchMode.Host);
+                type.GetField("GameId").SetValue(context, "private-host-fixture");
+                type.GetField("EventDeckSeed").SetValue(context, 42);
+                var publicRandom = GameplayRandomRuntime.Create("private-host-fixture");
+                type.GetField("InitialRandomState").SetValue(context, publicRandom);
+                var create = type.GetMethod("GetOrCreateHostPrivateRandom", BindingFlags.Instance | BindingFlags.NonPublic);
+                var first = (GameplayRandomState)create.Invoke(context, null);
+                var second = (GameplayRandomState)create.Invoke(context, null);
+                Assert.That(first.AlgorithmVersion, Is.EqualTo(GameplayRandomRuntime.PrivateAlgorithmVersion));
+                Assert.That(first.PrivateKeyHex, Is.EqualTo(second.PrivateKeyHex));
+                first.PrivateKeyHex = new string('0', 64);
+                Assert.That(((GameplayRandomState)create.Invoke(context, null)).PrivateKeyHex, Is.EqualTo(second.PrivateKeyHex));
+                Assert.That(((GameplayRandomState)type.GetField("InitialRandomState").GetValue(context)).PrivateKeyHex, Is.Null);
+                type.GetField("Mode").SetValue(context, LaunchMode.Client);
+                Assert.Throws<TargetInvocationException>(() => create.Invoke(context, null));
+            }
+            finally
+            {
+                if (root != null) UnityEngine.Object.DestroyImmediate(root);
+                setter.Invoke(null, new[] { previous });
+            }
         }
         private static void Reject(Action action)
         {

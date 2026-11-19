@@ -22,6 +22,11 @@ namespace YC.Domain.Enterprises
                 level < 0 || level > 5 || marker.SlotId != "level_" + level) throw new InvalidOperationException("enterprise_level_slot_invalid");
             return level;
         }
+        internal bool CanUpgrade(GameState state, int playerId, string enterpriseItemId)
+        {
+            int level = GetLevel(state, playerId, enterpriseItemId);
+            return level != MissingCooperationLevel && level < 5;
+        }
         internal ItemInstanceState GetCooperationMarker(GameState state, int playerId, string enterpriseItemId)
         {
             if (state?.FindPlayer(playerId) == null) throw new InvalidOperationException("invalid_player");

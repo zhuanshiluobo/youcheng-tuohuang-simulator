@@ -10,15 +10,24 @@ namespace YC.Domain.Effects
     // API-11：Build 自身拥有选择与准备；这里没有新公开节点或旧 choose_build 转发。
     public static class FacilityBuildContract
     {
-        public const string Version = "facility.build.v3.1";
+        public const string Version = "facility.build.v3.2";
         public static string ValidateSavedVersion(string type,string version,bool runtimeNode=false)=>type!=FacilityEntryEffectTypeIds.Build||version==FacilityBuildEffectExecutor.DefinitionVersion||!runtimeNode&&string.IsNullOrEmpty(version)?"":"facility_build_execution_version_unsupported";
+        public static bool IsCompletedLegacy(string type,string version,int status) =>
+            type == FacilityEntryEffectTypeIds.Build && version == "2.2.0" && status == (int)EffectNodeStatus.Completed;
+        public static bool IsCompletedLegacy(EffectNodeRuntimeState node) => node != null &&
+            IsCompletedLegacy(node.EffectTypeId,node.DefinitionVersion,(int)node.Status);
         public const string Semantic = "facility_build_v3";
         public static readonly string[] Fields = { "kind", "effectTypeId", "apiVersion", "targetMode", "player", "sourceKind",
             "sourceKey", "expectedSourceZoneId", "paymentMode", "consumeMainAction", "allowDecline", "facilityId", "cityBoardSlotIndex",
             "effectId", "includeStoredFacilities", "excludeRainbow", "maxGoldVoucherCost" };
         public static bool IsV3(NormalizedValue args) => Value(args, "apiVersion") != null || Value(args, "targetMode") != null;
+        public static bool IsExplicitAuto(NormalizedValue args) =>
+            Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Value(args, "apiVersion").IntegerValue == 3 &&
+            Text(args, "targetMode") == "explicit" && Text(args, "paymentMode") == "auto";
+        // 准备流程既包括选牌，也包括固定实例的支付方式选择；实际建设由付款后的子节点提交。
         public static bool IsSelection(string type, NormalizedValue args) => type == FacilityEntryEffectTypeIds.Build &&
-            Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Value(args, "apiVersion").IntegerValue == 3 && Text(args, "targetMode") == "select";
+            Value(args, "apiVersion")?.Kind == NormalizedValueKind.Integer && Value(args, "apiVersion").IntegerValue == 3 &&
+            (Text(args, "targetMode") == "select" || IsExplicitAuto(args));
         public static bool IsSelectionOwner(EffectNodeRuntimeState node) => node != null &&
             IsSelection(node.EffectTypeId, node.NormalizedArguments);
         public static string SourceKind(string type, NormalizedValue args) => Text(args,
@@ -82,7 +91,8 @@ namespace YC.Domain.Effects
                 return "build_contract_control_mismatch";
             return spec.NestedEffects.Count > 0 || spec.NestedGroupSizes.Count > 0 ? "build_contract_body_rejected" : "";
         }
-        private static string Digest(EffectNodeRuntimeState node) => StableIdFactory.Create(Version,
+        // 旧版已经完成的建设只复验旧协议摘要；运行中的建设始终要求当前版本。
+        private static string Digest(EffectNodeRuntimeState node) => StableIdFactory.Create(IsCompletedLegacy(node) ? "facility.build.v3.1" : Version,
             node.PlayerId.ToString(CultureInfo.InvariantCulture), node.SourceId ?? "", node.NormalizedArguments.ToDeterministicString());
         internal static void Initialize(EffectNodeRuntimeState node)
         {
@@ -136,9 +146,29 @@ namespace YC.Domain.Effects
             }
             if (!new[] { "", "deck_select", "deck_preparing", "deck_declined", "card", "built" }.Contains(node.FlowStage) ||
                 node.NestedEffects.Count > 0 || node.NestedGroupSizes.Count > 0) return false;
+            if (IsExplicitAuto(node.NormalizedArguments) && node.FlowStage.Length > 0 && Number(node.NormalizedArguments, "cityBoardSlotIndex", -1) >= 0)
+            {
+                var observation = Value(node.ContinuationData, "explicitSlotObservation");
+                if (observation == null || Number(observation, "slotIndex", -1) != Number(node.NormalizedArguments, "cityBoardSlotIndex", -1) ||
+                    !FacilityPlacementObservations.TryValidate(NormalizedValue.CreateArray(new[] { observation }.ToList()), node.PlayerId,
+                        Text(node.NormalizedArguments, "facilityId"), state.EffectRuntime.StateRevision, out error)) return false;
+            }
+            error = "build_contract_state_invalid";
             foreach (var request in state.EffectRuntime.InteractionRequests.Where(q => q.OwnerEffectId == node.EffectId))
+            {
                 if (Text(request.PromptParameters, "interactionSemantic") != Semantic || Text(request.PromptParameters, "sourceKind") != SourceKind(node) ||
                     Text(request.PromptParameters, "ownerEffectTypeId") != FacilityEntryEffectTypeIds.Build || Number(request.PromptParameters, "buildApiVersion") != 3) return false;
+                if (IsExplicitAuto(node.NormalizedArguments) && (request.CandidateIds.Count != 1 ||
+                    request.CandidateIds[0] != Text(node.NormalizedArguments, "facilityId") ||
+                    Text(request.PromptParameters, "fixedFacilityId") != request.CandidateIds[0])) return false;
+                if (IsExplicitAuto(node.NormalizedArguments))
+                {
+                    var record = state.EffectRuntime.CandidateResolutions.SingleOrDefault(r => r.CandidateSetId == request.CandidateSetId && r.Version == request.CandidateSetVersion);
+                    if (record == null || record.SourceEffectId != node.EffectId || !record.FinalCandidateIds.SequenceEqual(request.CandidateIds) ||
+                        record.FacilitySourceProofs.Count != 1 || record.FacilitySourceProofs[0].ItemId != request.CandidateIds[0] ||
+                        record.FacilitySourceProofs[0].SourceZoneId != Text(request.PromptParameters, "expectedSourceZoneId")) return false;
+                }
+            }
             if (node.ChildEffectIds.Distinct().Count() != node.ChildEffectIds.Count || node.ChildEffectIds.Any(id => !state.EffectRuntime.EffectNodes.Any(n => n.EffectId == id))) return false;
             var children = node.ChildEffectIds.Select(id => state.EffectRuntime.EffectNodes.First(n => n.EffectId == id))
                 .Where(n => !state.EffectRuntime.DispatchReceipts.Any(r => r.Succeeded && r.AttachedEffectIds.Contains(n.EffectId))).ToList();
@@ -151,10 +181,12 @@ namespace YC.Domain.Effects
                 if (selected?.Kind != NormalizedValueKind.Array || selected.Items.Count != 1 || selected.Items[0].Kind != NormalizedValueKind.String) return false;
                 string item = selected.Items[0].StringValue;
                 if (string.IsNullOrEmpty(item) || child.PlayerId != node.PlayerId || IsV3(child.NormalizedArguments)) return false;
+                if (IsExplicitAuto(node.NormalizedArguments) && item != Text(node.NormalizedArguments, "facilityId")) return false;
                 string mode = Text(child.NormalizedArguments, "paymentMode"), requested = Text(node.NormalizedArguments, "paymentMode");
                 if (requested == "auto" ? mode != "resources" && mode != "gold" : mode != requested) return false;
                 var expected = FacilityBuildEffectSpecFactory.Build(node.PlayerId, item, -1, mode, SourceKind(node) == "reserve", node.SourceId,
                     Flag(node.NormalizedArguments, "consumeMainAction"), Text(node.ContinuationData, "selectedSourceZoneId"), SourceKind(node), Text(node.NormalizedArguments, "sourceKey"));
+                ApplyExplicitSlot(node, expected);
                 var bound = Value(node.NormalizedArguments, "maxGoldVoucherCost");
                 if (bound != null) expected.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "maxGoldVoucherCost", Value = bound.Clone() });
                 if (mode != "free")
@@ -195,8 +227,18 @@ namespace YC.Domain.Effects
             foreach (var entry in Object("interactionSemantic", NormalizedValue.CreateString(Semantic), "sourceKind", NormalizedValue.CreateString(SourceKind(node)),
                 "ownerEffectTypeId", NormalizedValue.CreateString(node.EffectTypeId), "buildApiVersion", NormalizedValue.CreateInteger(3)).Properties)
                 request.PromptParameters.Properties.Add(entry);
+            if (IsExplicitAuto(node.NormalizedArguments))
+                request.PromptParameters.Properties.Add(new NormalizedValueEntry { Name = "fixedFacilityId", Value = Value(node.NormalizedArguments, "facilityId").Clone() });
             request.PromptParameters.Properties.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
             return request;
+        }
+        internal static void ApplyExplicitSlot(EffectNodeRuntimeState parent, EffectSpec child)
+        {
+            int slot = Number(parent.NormalizedArguments, "cityBoardSlotIndex", -1);
+            if (!IsExplicitAuto(parent.NormalizedArguments) || slot < 0) return;
+            child.NormalizedArguments.Properties.Single(p => p.Name == "cityBoardSlotIndex").Value = NormalizedValue.CreateInteger(slot);
+            child.NormalizedArguments.Properties.Add(new NormalizedValueEntry { Name = "slotObservation",
+                Value = Value(parent.ContinuationData, "explicitSlotObservation").Clone() });
         }
         internal static EffectStepResult Complete(EffectExecutionContext context, EffectStepResult result)
         {

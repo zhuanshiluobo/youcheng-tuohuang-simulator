@@ -242,10 +242,13 @@ namespace YC.Presentation
                 settlementHost != null && settlementStrip != null && settlementStrip.transform.IsChildOf(settlementHost) &&
                 settlementStrip.ValidateReferences(out reason) && mapTokenHost != null && mapTokenViewport != null && mapTokenTemplate != null && mapTokenTemplate.GetComponent<Button>() != null &&
                 mapCompanyTokenTemplate != null && mapCompanyTokenTemplate.targetGraphic != null && mapGavialTokenTemplate != null && mapGavialTokenTemplate.sprite != null &&
-                quickActionHost != null && quickActionTemplate != null && cooperationNames.Length == 4 && cooperationOpenButton != null && cooperationGrades.Length == 24 &&
+                quickActionHost != null && quickActionTemplate != null && cooperationNames != null && cooperationNames.Length >= 2 && cooperationOpenButton != null &&
+                cooperationScroll != null && cooperationContent != null && cooperationContentLayout != null && cooperationScroll.content == cooperationContent &&
+                cooperationGrades != null && cooperationGrades.Length == cooperationNames.Length * 6 &&
                 cooperationNames.All(value => value != null) && cooperationGrades.All(value => value != null) &&
-                cooperationLogos.Length == 4 && cooperationLogos.All(value => value != null) && cooperationLevelHeaders != null &&
-                cooperationEmptySlots.Length == 24 && cooperationEmptySlots.All(value => value != null) &&
+                cooperationNames.All(value => value.transform.parent != null && value.transform.parent.parent == cooperationContent) &&
+                cooperationLogos != null && cooperationLogos.Length == cooperationNames.Length && cooperationLogos.All(value => value != null) && cooperationLevelHeaders != null &&
+                cooperationEmptySlots != null && cooperationEmptySlots.Length == cooperationNames.Length * 6 && cooperationEmptySlots.All(value => value != null) &&
                 cooperationMasks.Length == 16 && cooperationMasks.Skip(1).All(value => value != null) &&
                 levelAreas != null && levelAreas.Length == 6 && enterpriseArtwork.TryValidateConfiguration(out reason);
         }
@@ -399,6 +402,7 @@ namespace YC.Presentation
         internal static bool IsAuthorizedEnterpriseDefinitionCandidate(GameStateView view, InteractionRequestProjection request,
             string candidateId, string definitionId)
         {
+            if (IsPreparationEnterpriseCandidate(view, request, candidateId, definitionId)) return true;
             if ((request?.InteractionTypeId == EntrepreneurFlow.PreviewInteraction || request?.InteractionTypeId == EntrepreneurFlow.ChooseInteraction) &&
                 GameplayHudFrame.MatchesSummaryRequest(request, view))
             {
@@ -517,6 +521,7 @@ namespace YC.Presentation
             if (shuttingDown) return;
             var view = VisibleView();
             if (view == null || hud == null) { Clear(); return; }
+            RefreshPreparationEnterprisePreview();
             int player = getPlayer();
             if (renderedPlayer != player)
             {
@@ -551,13 +556,23 @@ namespace YC.Presentation
                     if (row == null) continue;
                     used.Add(entry.EntryId);
                     if (entry.DetailPlayerId == player) row.transform.SetAsLastSibling();
+                    var markers = DetailMarkers(view, entry);
+                    // 原条目只有两个标记位。无法无损合并的额外数量沿正文显示，不能静默截断。
+                    var overflow = string.Join("；", markers.Skip(2).Select(marker => marker.Description).Where(text => !string.IsNullOrEmpty(text)));
+                    var description = entry.EffectText ?? string.Empty;
+                    if (!string.IsNullOrEmpty(overflow)) description += (description.Length == 0 ? "" : "\n") + overflow;
                     row.Bind(new UiEffectRowView.Binding { StableItemId = entry.EntryId, RequestId = view.GameId, Revision = view.StateRevision,
-                        RowMode = UiEffectRowView.Mode.PersistentDetail, Title = entry.DisplayName, Description = entry.EffectText,
-                        Markers = DetailMarkers(view, entry) },
+                        RowMode = UiEffectRowView.Mode.PersistentDetail, Title = entry.DisplayName, Description = description,
+                        Markers = markers },
                         (request, revision) => snapshotIsCurrent() && view.GameId == request && view.StateRevision == revision,
                         _ => InspectDetail(entry), null);
                     if (entry.EffectTextRef != null)
-                        RenderEnterpriseDetails(row.DescriptionText.GetComponent<GameplayTextView>(), ResolveGameplayText(entry.EffectTextRef), false);
+                    {
+                        var document = ResolveGameplayText(entry.EffectTextRef);
+                        if (document != null && !string.IsNullOrEmpty(overflow))
+                            document = new GameplayTextDocument(document.Runs.Concat(new GameplayTextRun[] { new LineBreak(), new TextRun(overflow) }));
+                        RenderEnterpriseDetails(row.DescriptionText.GetComponent<GameplayTextView>(), document, false);
+                    }
                 }
             }
             using(UiRegressionMetrics.Measure("hud.expansion.cooperation")) RefreshCooperation(view);
@@ -599,7 +614,7 @@ namespace YC.Presentation
                 // 可见区域会剥离内部Configuration；零库存的类型来自该来源公开声明的附属区。
                 var acceptedTypes = metadata?.CardZones.FirstOrDefault(z => z.LocalZoneId == zone?.LocalZoneId)?.AcceptedTypeIds;
                 foreach (var type in acceptedTypes ?? new List<string>())
-                    if (view.CubeColors.Any(c => c.TypeId == type)) counters[Tuple.Create(type, entry.DetailPlayerId)] = 0;
+                    if (type != "core.player_marker" && view.CubeColors.Any(c => c.TypeId == type)) counters[Tuple.Create(type, entry.DetailPlayerId)] = 0;
                 foreach (var item in view.ItemZones.Items.Where(i => i.ZoneId == zoneId && i.PhysicalKind == ItemPhysicalKind.Cube))
                 {
                     var key = Tuple.Create(item.TypeId, item.OwnerSubject.PlayerId);
@@ -615,15 +630,31 @@ namespace YC.Presentation
                 counters[Tuple.Create(component.TypeId, entry.DetailPlayerId)] = view.ItemZones.Items.Count(i =>
                     zones.Contains(i.ZoneId) && i.TypeId == component.TypeId && i.OwnerSubject.PlayerId == entry.DetailPlayerId);
             }
-            return counters.Take(2).Select(counter => {
+            var projected = counters.Select(counter => {
                 var color = view.CubeColors.FirstOrDefault(c => c.TypeId == counter.Key.Item1 && c.OwnerPlayerId == counter.Key.Item2) ??
                     view.CubeColors.FirstOrDefault(c => c.TypeId == counter.Key.Item1 && c.Mode == "fixed");
                 var owner = view.Players.Find(p => p.PlayerId == counter.Key.Item2);
                 if (owner == null && color?.Mode != "fixed")
-                { Debug.LogError("玩家详情标记缺少真实所有者：" + counter.Key.Item2); return (UiEffectRowView.Marker?)null; }
-                return new UiEffectRowView.Marker { Mask = owner == null ? 1 : (int)RegionInformationPageView.PlayerColor(owner.Color),
-                    Count = counter.Value, FixedColor = color?.Mode == "fixed", Tint = color == null ? Color.white : CubeColorResolver.Resolve(color) };
-            }).Where(marker => marker.HasValue).Select(marker => marker.Value).ToArray();
+                { Debug.LogError("玩家详情标记缺少真实所有者：" + counter.Key.Item2); return (key: counter.Key, marker: (UiEffectRowView.Marker?)null); }
+                string colorName = color?.Mode == "fixed" ? color.Name : owner.Color == PlayerColor.Red ? "红色" :
+                    owner.Color == PlayerColor.Blue ? "蓝色" : owner.Color == PlayerColor.Green ? "绿色" : "黄色";
+                return (key: counter.Key, marker: (UiEffectRowView.Marker?)new UiEffectRowView.Marker {
+                    Mask = owner == null ? 1 : (int)RegionInformationPageView.PlayerColor(owner.Color),
+                    Count = counter.Value, FixedColor = color?.Mode == "fixed", Tint = color == null ? Color.white : CubeColorResolver.Resolve(color),
+                    Description = colorName + "标记 × " + counter.Value });
+            }).Where(value => value.marker.HasValue).Select(value => (value.key, marker: value.marker.Value)).ToList();
+            // 仅基础四色、每色恰有一枚时，拼色方块才能无歧义地表示实际数量。
+            var singles = projected.Where(value => value.key.Item1 == "core.player_marker" && !value.marker.FixedColor && value.marker.Count == 1).ToList();
+            if (singles.Count > 1 && singles.Select(value => value.marker.Mask).Distinct().Count() == singles.Count)
+            {
+                int first = projected.FindIndex(value => singles.Any(single => single.key.Equals(value.key)));
+                int mask = singles.Aggregate(0, (current, value) => current | value.marker.Mask);
+                var combined = new UiEffectRowView.Marker { Mask = mask, Count = 1,
+                    Description = string.Join("；", singles.Select(value => value.marker.Description)) };
+                projected.RemoveAll(value => singles.Any(single => single.key.Equals(value.key)));
+                projected.Insert(first, (singles[0].key, combined));
+            }
+            return projected.Select(value => value.marker).ToArray();
         }
 
         private void InspectDetail(PlayerDetailEntry entry)
@@ -686,25 +717,26 @@ namespace YC.Presentation
             var items = view.ItemZones.Items.Where(item => IsIn(view, item, "core.zone.enterprise_display")).ToList();
             if (cooperationEmpty != null) cooperationEmpty.SetActive(items.Count == 0);
             cooperationLevelHeaders.SetActive(items.Count > 0);
-            for (var i = 0; i < cooperationNames.Length; i++)
+            var visibleRows = PrepareCooperationRows(items.Count);
+            for (var i = 0; i < visibleRows.Count; i++)
             {
                 var exists = i < items.Count;
-                cooperationNames[i].transform.parent.gameObject.SetActive(exists);
+                var row = visibleRows[i];
+                row.Root.SetActive(exists);
                 if (!exists) continue;
                 var board = ProjectBoard(view, items[i].ItemId, items[i].DefinitionId);
-                cooperationNames[i].text = board.Label;
-                cooperationLogos[i].sprite = enterpriseArtwork.Logo(board.VisualKey);
-                cooperationLogos[i].enabled = cooperationLogos[i].sprite != null;
+                row.Name.text = board.Label;
+                row.Logo.sprite = enterpriseArtwork.Logo(board.VisualKey);
+                row.Logo.enabled = row.Logo.sprite != null;
                 for (var level = 0; level < 6; level++)
                 {
                     // 素材位值：绿 1、黄 2、蓝 4、红 8。同级合并为一张分色标记。
                     int mask = 0;
                     for (var player = 0; player < view.Players.Count; player++)
                         if (board.PlayerLevels[player] == level) mask |= (int)RegionInformationPageView.PlayerColor(view.Players[player].Color);
-                    var index = i * 6 + level;
-                    cooperationGrades[index].sprite = cooperationMasks[mask];
-                    cooperationGrades[index].enabled = mask != 0;
-                    cooperationEmptySlots[index].SetActive(mask == 0);
+                    row.Grades[level].sprite = cooperationMasks[mask];
+                    row.Grades[level].enabled = mask != 0;
+                    row.EmptySlots[level].SetActive(mask == 0);
                 }
             }
         }
@@ -1276,6 +1308,8 @@ namespace YC.Presentation
 
         public void Clear()
         {
+            ClearPreparationEnterprisePreview();
+            ClearCooperationRows();
             ClearEntrepreneurPresentation();
             storageBrowser?.Hide(); storageBrowserCurrent = null;
             presentationBinding = new object();
@@ -1311,6 +1345,6 @@ namespace YC.Presentation
             if (getPlayer != null && renderedPlayer != getPlayer()) Clear();
             PositionMapTokens();
         }
-        private void OnDestroy() { BeginShutdown(); Clear(); if (publicBoards != null) Destroy(publicBoards.gameObject); if (publicDepartments != null) Destroy(publicDepartments.gameObject); if (cardViewer != null) Destroy(cardViewer.gameObject); if (entrepreneurViewer != null) Destroy(entrepreneurViewer.gameObject); }
+        private void OnDestroy() { BeginShutdown(); Clear(); if (preparationPreview != null) Destroy(preparationPreview.gameObject); if (publicBoards != null) Destroy(publicBoards.gameObject); if (publicDepartments != null) Destroy(publicDepartments.gameObject); if (cardViewer != null) Destroy(cardViewer.gameObject); if (entrepreneurViewer != null) Destroy(entrepreneurViewer.gameObject); }
     }
 }

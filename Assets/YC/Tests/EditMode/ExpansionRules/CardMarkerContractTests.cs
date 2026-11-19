@@ -347,6 +347,7 @@ end)()";
             foreach (var e in enterprises.Where(e => e.ContentType == "enterprise")) recipe.Add(e.DefinitionId, e.DefinitionId, "core.board_card", "reserve");
             recipe.CardZoneDeclarations = pack.Definitions.Where(d => d.ContentType == "entrepreneur_ability").Select(d => new ItemCardZoneDeclaration { DefinitionId = d.DefinitionId, CardZones = d.CardZones }).ToList();
             var definitions = GameContentDefinitions.CreateRegisteredStandard(); definitions.Entrepreneurs = official; definitions.AbilitySources = declarations;
+            definitions.EnterpriseDefinitionIds = enterprises.Where(d => d.ContentType == "enterprise").Select(d => d.DefinitionId).ToList();
             definitions.Components = pack.Definitions.Where(d => d.ContentType == "component").Select(d => new ComponentContentDefinition { DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, CubeAppearance = d.CubeAppearance, QuantityPolicy = (string)d.Data["quantityPolicy"] }).ToList();
             Func<GameState> initial = () => GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, new[] { new PlayerSeat { PlayerId = 1, PlayerName = "隔离甲" }, new PlayerSeat { PlayerId = 2, PlayerName = "隔离乙" } },
                 new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 2, ContentPackHash = pack.ContentHash }, 47, recipe, definitions, new[] { 1, 2 }, "qy005.setup.shortage." + available, null);
@@ -360,7 +361,9 @@ end)()";
             state.RuleConfiguration.RuleModeId = "entrepreneur"; state.RuleConfiguration.EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" };
             state.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 }; registry.ContentDefinitions = GameStateCloneService.DeepClone(definitions);
             Assert.That(enterprises.Any(d => d.ContentType == "enterprise") && enterprises.Where(d => d.ContentType == "enterprise").All(d => registry.EnterpriseDefinitions.FindEnterprise(d.DefinitionId) != null), Is.True, "本例须消费当前真实企业定义，不能以历史G0替代设置验证。");
-            Engine().CreateRoot(ExpansionSetupFlow.PreparationSpec(1, false)); Run();
+            FixturePreparationPlan.AttachEntrepreneur(state, registry, (string)pack.Manifest["version"]);
+            var started = new RoundExecutionService(registry).StartEntrance(state);
+            Assert.That(started.IsValid, Is.True, started.Reason);
             foreach (var request in state.EffectRuntime.InteractionRequests.Where(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction).ToList())
             { RoundExecutionService.RefreshConcurrentInteractionRevisions(state); Assert.That(Engine().TrySubmitInteraction(request.GetStableInteractionId(), request.AnsweringPlayerId, Strings(new[] { "continue" }), out string reason), Is.True, reason); Run(); }
             RoundExecutionService.RefreshConcurrentInteractionRevisions(state);

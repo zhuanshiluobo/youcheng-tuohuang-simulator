@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using YC.Application.Sessions;
+using YC.Application.Gameplay;
 using YC.Domain.Effects;
 using YC.Domain.Facilities;
 using YC.Domain.Items;
@@ -38,10 +39,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             var slot = state.ItemZones.Zones.Where(z => z.TemplateId == FacilityLayerQuery.SupplyTemplate).ElementAt(index);
             Transfer(state, Leg(state, id, slot.ZoneId, "top")); return id;
         }
-        private void Prepare(GameState state, string root, string item)
+        private void Prepare(GameState state, string root, string item, string mode = "gold")
         {
             var q = Open(state); Assert.That(q.OwnerEffectId, Is.EqualTo(root));
-            var args = Object("paymentMode", NormalizedValue.CreateString("gold"), "expectedSourceZoneId", NormalizedValue.CreateString(state.ItemZones.Items.Single(i => i.ItemId == item).ZoneId));
+            var args = Object("paymentMode", NormalizedValue.CreateString(mode), "expectedSourceZoneId", NormalizedValue.CreateString(state.ItemZones.Items.Single(i => i.ItemId == item).ZoneId));
             Assert.That(new EffectTreeExecutor(state, Registry).TryPrepareEffectBuildPayment(1, root, q.GetStableInteractionId(), q.CandidateSetId,
                 q.CandidateSetVersion, item, args, state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out string error), Is.True, error);
         }
@@ -68,6 +69,28 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(Value(FacilityLayerLuaCatalog.EnrichEventPayload(state, actualEvent, actualEvent.Payload), "buildFacts"), Is.Not.Null);
             Recover(state, "v3免费建设完成");
         }
+        [Test] public void CompletedVersionTwoTwoSelectionRetainsItsOriginalContractDigest()
+        {
+            var state = State(); string item = SupplyCard(state); string root = Run(state, Compile(Base)).EffectId;
+            Answer(state, item); Answer(state, "0");
+            var node = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == root);
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Completed));
+            node.DefinitionVersion = "2.2.0";
+            string digest = StableIdFactory.Create("facility.build.v3.1", node.PlayerId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                node.SourceId ?? "", node.NormalizedArguments.ToDeterministicString());
+            Set(node, "buildContractArgumentsDigest", NormalizedValue.CreateString(digest));
+            Assert.That(FacilityBuildContract.TryValidateNode(state, node, out var valid), Is.True, valid);
+            string clean = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            var restored = HostRecoveryService.RecoverJson(clean, Registry);
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
+            var broken = JObject.Parse(clean);
+            var raw = broken["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectId"] == root);
+            raw["ContinuationData"]["Properties"].Single(p => (string)p["Name"] == "buildContractArgumentsDigest")["Value"]["StringValue"] = "forged";
+            Assert.That(HostRecoveryService.RecoverJson(broken.ToString(), Registry).Succeeded, Is.False);
+            broken = JObject.Parse(clean);
+            broken["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"].Single(n => (string)n["EffectId"] == root)["Status"] = (int)EffectNodeStatus.Ready;
+            Assert.That(HostRecoveryService.RecoverJson(broken.ToString(), Registry).Succeeded, Is.False);
+        }
         [Test] public void PaidSelectionHasOnePreparationAndNeverChargesAgainAfterRecovery()
         {
             var state = State(); string item = SupplyCard(state); int gold = state.FindPlayer(1).Resources.GoldVoucher;
@@ -91,6 +114,106 @@ namespace YC.Tests.EditMode.ExpansionRules
             var result = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == root).NormalizedResult;
             Assert.That(Text(result, "outcome"), Is.EqualTo("built")); Assert.That(Text(result, "builtItemId"), Is.EqualTo(item));
             Assert.That(Text(result, "buildEffectId"), Is.EqualTo(root)); Recover(state, "v3显式建设完成");
+        }
+        [TestCase("deck", "resources", -1)] [TestCase("deck", "gold", 3)]
+        [TestCase("supply", "gold", -1)] [TestCase("supply", "resources", 3)]
+        [TestCase("authorized", "gold", -1)]
+        public void ExplicitAutoLocksOneCardAndPaysChosenModeOnceAcrossRecovery(string source, string mode, int slot)
+        {
+            var fixtureDefinition = Pack.CreateFacilities().Where(f => !f.HasEntryEffect && f.Color != "rainbow").OrderBy(f => f.Score).ThenBy(f => f.FacilityId, StringComparer.Ordinal).First().FacilityId;
+            var state = State(extraRecipe: source != "authorized" ? null : new[] { new ItemRecipeEntry {
+                EntryId = "explicit-authorized-facility", DefinitionId = fixtureDefinition, TypeId = "core.facility_card",
+                Quantity = 1, PerPlayer = true, InitialZoneRole = "supply" } });
+            string definition = Definition(state, f => !f.HasEntryEffect && f.Color != "rainbow");
+            string item = source == "supply" ? SupplyCard(state) : Card(state, definition).ItemId;
+            string sourceKey = "";
+            if (source == "authorized")
+            {
+                string zone = state.ItemZones.Zones.First(z => z.TemplateId == "core.zone.player_supply" && z.OwnerPlayerId == 1).ZoneId;
+                item = state.ItemZones.Items.Single(i => i.ZoneId == zone && i.DefinitionId == fixtureDefinition).ItemId;
+                sourceKey = Registry.FacilityBuildQueries.ResolveAuthorizedSources(state, 1, "authorized", "test.explicit").Single(a => a.ItemId == item).SourceKey;
+            }
+            var original = state.FindPlayer(1).Resources.Clone();
+            var facility = FacilityCardDatabase.Get(state, state.ItemZones.Items.Single(i => i.ItemId == item).DefinitionId);
+            var cost = mode == "gold" ? new ResourceSet { GoldVoucher = facility.GoldVoucherCost } :
+                new FacilityBuildCostService().GetEffectiveResourceCostForInstances(state, state.FindPlayer(1), facility, Array.Empty<string>());
+            var expected = original.Clone(); Assert.That(expected.TryPay(cost), Is.True);
+            string fields = Base.Replace("targetMode='select'", "targetMode='explicit'").Replace("paymentMode='free'", "paymentMode='auto'")
+                .Replace("sourceKind='supply'", "sourceKind='" + source + "'") + ",facilityId='" + item + "',cityBoardSlotIndex=" + slot;
+            if (sourceKey.Length > 0) fields += ",sourceKey='" + sourceKey + "'";
+            string root = Run(state, Compile(fields)).EffectId;
+            Assert.That(Open(state).InteractionTypeId, Is.EqualTo(FacilitySelectionEffectExecutor.NormalBuildInteractionType));
+            Assert.That(Open(state).CandidateIds, Is.EqualTo(new[] { item }));
+            Assert.That(Text(Open(state).PromptParameters, "fixedFacilityId"), Is.EqualTo(item));
+            Assert.That(Open(state).AllowDecline, Is.False);
+            Assert.That(EffectBuildScope.TryReadEffectBuildScope(state, GameStateViewProjector.ProjectForPlayer(state, 1), 1, root, out var scope), Is.True);
+            Assert.That(scope.TryGetCandidateSourceZoneId(item, out string actualSource), Is.True);
+            Assert.That(actualSource, Is.EqualTo(state.ItemZones.Items.Single(i => i.ItemId == item).ZoneId));
+            Assert.That(JsonConvert.SerializeObject(state.FindPlayer(1).Resources), Is.EqualTo(JsonConvert.SerializeObject(original)));
+            state = Recover(state, "指定牌支付方式待选");
+            var q = Open(state);
+            string other = state.ItemZones.Items.First(i => i.ItemId != item && i.TypeId == "core.facility_card").ItemId;
+            Assert.That(new EffectTreeExecutor(state, Registry).TryPrepareEffectBuildPayment(1, root, q.GetStableInteractionId(), q.CandidateSetId,
+                q.CandidateSetVersion, other, Object("paymentMode", NormalizedValue.CreateString(mode), "expectedSourceZoneId",
+                    NormalizedValue.CreateString(state.ItemZones.Items.Single(i => i.ItemId == other).ZoneId)),
+                state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out _), Is.False);
+            Prepare(state, root, item, mode); state = Recover(state, "指定牌付款待确认");
+            Answer(state, "pay");
+            Assert.That(JsonConvert.SerializeObject(state.FindPlayer(1).Resources), Is.EqualTo(JsonConvert.SerializeObject(expected)));
+            if (slot < 0)
+            {
+                Assert.That(Open(state).InteractionTypeId, Is.EqualTo(FacilityBuildEffectExecutor.PlacementInteractionType));
+                Assert.That(Text(Open(state).PromptParameters, "fixedFacilityId"), Is.EqualTo(item));
+                state = Recover(state, "指定牌已付待落位"); Answer(state, "0");
+            }
+            state = Recover(state, "指定牌建成");
+            Assert.That(Cell(state, slot < 0 ? 0 : slot).TopItemId, Is.EqualTo(item));
+            Assert.That(JsonConvert.SerializeObject(state.FindPlayer(1).Resources), Is.EqualTo(JsonConvert.SerializeObject(expected)));
+            Assert.That(Text(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == root).NormalizedResult, "builtItemId"), Is.EqualTo(item));
+            Assert.That(state.EffectRuntime.EffectNodes.Count(n => n.Payment?.Preparation?.IsPromoted == true), Is.EqualTo(1));
+        }
+        [Test] public void ExplicitAutoCanChangePaymentPreparationWithoutChangingTarget()
+        {
+            var state = State(); string item = SupplyCard(state);
+            string root = Run(state, Compile(Base.Replace("targetMode='select'", "targetMode='explicit'")
+                .Replace("paymentMode='free'", "paymentMode='auto'") + ",facilityId='" + item + "'")).EffectId;
+            string before = JsonConvert.SerializeObject(state.FindPlayer(1).Resources);
+            Prepare(state, root, item, "resources");
+            Assert.That(new EffectTreeExecutor(state, Registry).TryCancelPreparedEffectBuildPayment(1, Open(state).OwnerEffectId,
+                state.EffectRuntime.StateRevision, Guid.NewGuid().ToString("N"), out var reason), Is.True, reason);
+            Assert.That(Open(state).CandidateIds, Is.EqualTo(new[] { item }));
+            state = Recover(state, "指定牌改选支付方式"); Prepare(state, root, item, "gold");
+            Assert.That(JsonConvert.SerializeObject(state.FindPlayer(1).Resources), Is.EqualTo(before));
+            Answer(state, "pay"); Answer(state, "0"); Recover(state, "指定牌改选后建成");
+        }
+        [TestCase("source_zone_changed")] [TestCase("insufficient_resources")]
+        public void ExplicitAutoInvalidInputFailsWithoutOpeningAnUnanswerablePanel(string failure)
+        {
+            var state = State(); var definition = Definition(state, d => !d.HasEntryEffect && d.GoldVoucherCost > 0 && d.ResourceCost.Enumerate().Any(v => v.Value > 0));
+            string item = Card(state, definition).ItemId;
+            if (failure == "insufficient_resources") state.FindPlayer(1).Resources = new ResourceSet();
+            string fields = Base.Replace("targetMode='select'", "targetMode='explicit'").Replace("sourceKind='supply'", "sourceKind='deck'")
+                .Replace("paymentMode='free'", "paymentMode='auto'") + ",facilityId='" + item + "'";
+            if (failure == "source_zone_changed") fields += ",expectedSourceZoneId='missing'";
+            var node = Run(state, Compile(fields));
+            Assert.That(node.Status, Is.EqualTo(EffectNodeStatus.Failed)); Assert.That(node.FailureReason, Is.EqualTo(failure));
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(q => q.OwnerEffectId == node.EffectId), Is.False);
+            Recover(state, "指定牌无效输入明确失败");
+        }
+        [Test] public void ExplicitAutoRestoreRejectsChangedFixedCardOrSource()
+        {
+            var state = State(); string item = SupplyCard(state);
+            Run(state, Compile(Base.Replace("targetMode='select'", "targetMode='explicit'")
+                .Replace("paymentMode='free'", "paymentMode='auto'") + ",facilityId='" + item + "'"));
+            string archive = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            foreach (string field in new[] { "fixedFacilityId", "expectedSourceZoneId" })
+            {
+                var bad = JObject.Parse(archive);
+                var request = bad["Snapshot"]["State"]["EffectRuntime"]["InteractionRequests"].Single(q => (string)q["Status"] == "open");
+                request["PromptParameters"]["Properties"].Single(p => (string)p["Name"] == field)["Value"]["StringValue"] = "forged";
+                Assert.That(HostRecoveryService.RecoverJson(bad.ToString(), Registry).Succeeded, Is.False, field);
+            }
+            Recover(state, "指定牌合法选择页未被反例修改");
         }
         [Test] public void CancellationReturnsToCurrentCandidatesWithoutSpendingOrReusingProof()
         {

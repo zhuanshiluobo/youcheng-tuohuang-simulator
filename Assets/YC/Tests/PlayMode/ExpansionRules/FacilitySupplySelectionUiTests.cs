@@ -228,7 +228,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
                 return (BuildFacilityDraftViewModel)constructor.Invoke(new object[] {
                     Enum.Parse(constructor.GetParameters()[0].ParameterType, phase), options, null,
                     phase == "Placing" ? FacilityCardDatabase.Get(state, "building_015") : null, slot, mode, string.Empty,
-                    legal, dispatch, true });
+                    legal, dispatch, true, string.Empty });
             }
             var selecting = Model("Selecting", -1, string.Empty, new List<int>());
             Show(selecting, false); yield return null;

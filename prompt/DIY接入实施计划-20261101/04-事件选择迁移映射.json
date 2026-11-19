@@ -1,0 +1,1355 @@
+{
+  "baselineCommit": "6651983f728c05442d30b5d5a35207fd78daa5af",
+  "coreVersion": "2.1.70",
+  "buttonEvidence": "旧运行时卡面像素边界换算；需要实际显示核验，不能视为视觉验收",
+  "definitions": [
+    {
+      "definitionId": "event_green_01",
+      "source": "event/event_green_01.json",
+      "sourceSha256": "86b40e71f5857bbc830f8044e8b5868f7be574db700f6304c5329e6e57bcfb2c",
+      "artworkSpriteId": "event_green_001",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "“我们只是过来兑换一些燃料，并谈谈生意”：获得 3 源石碎片",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_green_01.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "“今天起这里不再由你说了算了”：获得 2 异铁、2 金券",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_green_01.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 2,
+            "pureOriginium": 0,
+            "goldVoucher": 2
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_green_02",
+      "source": "event/event_green_02.json",
+      "sourceSha256": "721b8a4c73329fcad8d4d020366451cb223200c5a04b90fd0089e4d621ec898a",
+      "artworkSpriteId": "event_green_002",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "向当地治安官邀功：获得 7 金券",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_green_02.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 7
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "附近聚落居民向你表达感谢：获得 3 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_green_02.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_green_03",
+      "source": "event/event_green_03.json",
+      "sourceSha256": "a420c887332b26c7dcd13db739f52e8a1e39b015f93ef1e18827bb33d667159c",
+      "artworkSpriteId": "event_green_003",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "清理出一片场地来建设矿区：获得 4 源岩",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_green_03.choice_01.lua",
+          "legacyReward": {
+            "originium": 4,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "把成堆的粗劣源石带回城：获得 3 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_green_03.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_green_04",
+      "source": "event/event_green_04.json",
+      "sourceSha256": "9f956bb40f24a813222bed7de1c46a632edbb708f582f775af98ec05f1b05e8a",
+      "artworkSpriteId": "event_green_004",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "现在就装一车源岩回城：获得 4 源岩",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_green_04.choice_01.lua",
+          "legacyReward": {
+            "originium": 4,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "找卖你地图的家伙弥补损失：获得 3 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_green_04.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_green_05",
+      "source": "event/event_green_05.json",
+      "sourceSha256": "15bf7fc5f13ab432f9460280b627c0336d106ea8c7a79222d4ad0b8b32a9c71f",
+      "artworkSpriteId": "event_green_005",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "用约翰老妈提供的抑制剂换取开采合同：获得 3 源石碎片",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_green_05.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "收取费用，并为他们提供一片相对安全的聚居区：获得 7 金券",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_green_05.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 7
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_green_06",
+      "source": "event/event_green_06.json",
+      "sourceSha256": "a809b69e00d8d2588e13a6ab156d7f98219a76568eae7eea8db9016fc87085a7",
+      "artworkSpriteId": "event_green_006",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "先把矿井外围留下的资源设备收走：获得 2 异铁、2 金券",
+          "button": {
+            "topPercent": 65.833333,
+            "bottomPercent": 75.833333
+          },
+          "script": "lua/events/choices/event_green_06.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 2,
+            "pureOriginium": 0,
+            "goldVoucher": 2
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "“看看你们干的好事！天黑前要是不把这挖通我就把你们活埋在源岩里！”：获得 4 源岩",
+          "button": {
+            "topPercent": 75.833333,
+            "bottomPercent": 94.166667
+          },
+          "script": "lua/events/choices/event_green_06.choice_02.lua",
+          "legacyReward": {
+            "originium": 4,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_01",
+      "source": "event/event_red_01.json",
+      "sourceSha256": "6edba6bced5d1064765317aeb85b68cca0fe089bf1287a7c9be6b2f8555db431",
+      "artworkSpriteId": "event_red_001",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 0,
+          "description": "在更多人遇害前开始清理源石：获得 6 源石碎片",
+          "button": {
+            "topPercent": 65.0,
+            "bottomPercent": 73.0
+          },
+          "script": "lua/events/choices/event_red_01.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 6,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 1,
+          "description": "开采源岩，那些学者自有人去救：获得 7 源岩",
+          "button": {
+            "topPercent": 73.0,
+            "bottomPercent": 80.5
+          },
+          "script": "lua/events/choices/event_red_01.choice_01.lua",
+          "legacyReward": {
+            "originium": 7,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "你的人搭救了遇险的考察队，他们愿意还这份人情：获得 6 金券；在此资源点或相邻的航道上放置 1 个影响力标识",
+          "button": {
+            "topPercent": 80.5,
+            "bottomPercent": 96.666667
+          },
+          "script": "lua/events/choices/event_red_01.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 6
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 3,
+              "resourceType": 0,
+              "amount": 1,
+              "targetScope": 3,
+              "costResourceType": 4,
+              "costAmount": 0
+            }
+          ]
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_02",
+      "source": "event/event_red_02.json",
+      "sourceSha256": "1a7b6d4b020b59cea6574d472e7337f0fda9376e27797f2a42810d329aa7d96c",
+      "artworkSpriteId": "event_red_002",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "高纯度源石矿的发现将为你的城邦拉开新的篇章：获得 1 异铁、1 至纯源石",
+          "button": {
+            "topPercent": 65.833333,
+            "bottomPercent": 80.833333
+          },
+          "script": "lua/events/choices/event_red_02.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 1,
+            "pureOriginium": 1,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "收集裂隙层的源石碎片：获得 3 源岩、3 源石碎片",
+          "button": {
+            "topPercent": 80.833333,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_red_02.choice_02.lua",
+          "legacyReward": {
+            "originium": 3,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_03",
+      "source": "event/event_red_03.json",
+      "sourceSha256": "05c97b7e796f53d2719850d442a515f12bc0e95c3c7c629c9ebe03688956c7f5",
+      "artworkSpriteId": "event_red_003",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 0,
+          "description": "他们没救了，继续回收作业：获得 4 异铁、5 金券",
+          "button": {
+            "topPercent": 65.833333,
+            "bottomPercent": 75.833333
+          },
+          "script": "lua/events/choices/event_red_03.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 4,
+            "pureOriginium": 0,
+            "goldVoucher": 5
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 1,
+          "description": "用设备刨开掩埋残骸的障碍，也许有更多的幸存者：获得 4 源岩、3 源石碎片",
+          "button": {
+            "topPercent": 75.833333,
+            "bottomPercent": 94.166667
+          },
+          "script": "lua/events/choices/event_red_03.choice_01.lua",
+          "legacyReward": {
+            "originium": 4,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_04",
+      "source": "event/event_red_04.json",
+      "sourceSha256": "66f2ea3205ee55794dddd5385655f6ae758b3ed3fb946248a93a26183adc56ab",
+      "artworkSpriteId": "event_red_004",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "恳求赞助商协助建设矿区：获得 2 源岩、2 源石碎片、2 异铁",
+          "button": {
+            "topPercent": 64.166667,
+            "bottomPercent": 72.5
+          },
+          "script": "lua/events/choices/event_red_04.choice_01.lua",
+          "legacyReward": {
+            "originium": 2,
+            "originiumShard": 2,
+            "iron": 2,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "把报告给治安官看看，希望他也会中招：获得 18 金券",
+          "button": {
+            "topPercent": 72.5,
+            "bottomPercent": 81.333333
+          },
+          "script": "lua/events/choices/event_red_04.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 18
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "工人冒着风险为你提炼出了高纯度源石矿：获得 1 至纯源石、4 金券",
+          "button": {
+            "topPercent": 81.333333,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_red_04.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 1,
+            "goldVoucher": 4
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_05",
+      "source": "event/event_red_05.json",
+      "sourceSha256": "03e9bd23dc09bc4d4f80220609c8c452e61f52998facdb6a2f5916284d4df6eb",
+      "artworkSpriteId": "event_red_005",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "先试着采集一些深层矿物样本：获得 1 源岩、1 至纯源石",
+          "button": {
+            "topPercent": 65.833333,
+            "bottomPercent": 74.666667
+          },
+          "script": "lua/events/choices/event_red_05.choice_01.lua",
+          "legacyReward": {
+            "originium": 1,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 1,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "让矿业机械逐步挖开坚硬岩层：获得 3 源石碎片、2 异铁",
+          "button": {
+            "topPercent": 74.666667,
+            "bottomPercent": 82.5
+          },
+          "script": "lua/events/choices/event_red_05.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 3,
+            "iron": 2,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "向联邦提出拨款请求以协助建设：获得 18 金券；所有对手获得 3 金券",
+          "button": {
+            "topPercent": 82.5,
+            "bottomPercent": 95.0
+          },
+          "script": "lua/events/choices/event_red_05.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 18
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 2,
+              "resourceType": 4,
+              "amount": 3,
+              "targetScope": 2,
+              "costResourceType": 0,
+              "costAmount": 0
+            }
+          ]
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_red_06",
+      "source": "event/event_red_06.json",
+      "sourceSha256": "9af52b3d0d7ac2580d73ef4a6c4788f9bbf390c580d38a6afd1fa7cff5ce31b0",
+      "artworkSpriteId": "event_red_006",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "何必多想，这里的宝贝足够帮你解决眼前更棘手的问题：获得 1 源石碎片、1 至纯源石",
+          "button": {
+            "topPercent": 65.833333,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_red_06.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 1,
+            "iron": 0,
+            "pureOriginium": 1,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "帮助地质学家清除矿脉上的杂质，弄不好会有其他有价值的发现？：获得 3 源岩、3 异铁",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_red_06.choice_02.lua",
+          "legacyReward": {
+            "originium": 3,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_01",
+      "source": "event/event_yellow_01.json",
+      "sourceSha256": "956a30872bfa00333da4a01c51be397b3e42752cf7f15303f6c0f8a62d22c618",
+      "artworkSpriteId": "event_yellow_001",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "独享这片矿区，趁其他人还未发现这里：获得 5 源岩",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_01.choice_01.lua",
+          "legacyReward": {
+            "originium": 5,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "以部分开采权为代价，与聚合剂厂商合作：获得 4 金券、1 分数",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_01.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 4
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 1,
+              "resourceType": 0,
+              "amount": 1,
+              "targetScope": 1,
+              "costResourceType": 0,
+              "costAmount": 0
+            }
+          ]
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_02",
+      "source": "event/event_yellow_02.json",
+      "sourceSha256": "196508ddc68d685145ba0816b9f1a2a6bfe1f825a1aa0d4233c2d88c885609ae",
+      "artworkSpriteId": "event_yellow_002",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "爆破！我们不是来考古的：获得 5 源岩",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_02.choice_01.lua",
+          "legacyReward": {
+            "originium": 5,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "给“梅兰德历史协会”写一封信：获得 10 金券",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_02.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 10
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_03",
+      "source": "event/event_yellow_03.json",
+      "sourceSha256": "78af63df35b9265006cb83b87a9c77b9dbe81c2e9b51426fd1cbafdd3e727be8",
+      "artworkSpriteId": "event_yellow_003",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "换取荒地人的服务：获得 3 源岩、1 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_03.choice_01.lua",
+          "legacyReward": {
+            "originium": 3,
+            "originiumShard": 0,
+            "iron": 1,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "你找到的源石矿储量不多，不过多少有点收获：获得 4 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_03.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 4,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_04",
+      "source": "event/event_yellow_04.json",
+      "sourceSha256": "34c582ffc1c99da2b85b4da5137f118ffaab0239a29149b2158848ee39d06f49",
+      "artworkSpriteId": "event_yellow_004",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "名为岩蹄安保的组织愿意保护矿区，但价格低廉得可疑……：可以支付 4 金券来放置 1 个影响力标识",
+          "button": {
+            "topPercent": 65.0,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_04.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 3,
+              "resourceType": 0,
+              "amount": 1,
+              "targetScope": 0,
+              "costResourceType": 4,
+              "costAmount": 4
+            }
+          ]
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "真是中了大奖！向治安官举报此事：获得 10 金券",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 85.833333
+          },
+          "script": "lua/events/choices/event_yellow_04.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 10
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "别招惹这些硬茬，埋头做我们的事：获得 4 源石碎片",
+          "button": {
+            "topPercent": 85.833333,
+            "bottomPercent": 95.0
+          },
+          "script": "lua/events/choices/event_yellow_04.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 4,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_05",
+      "source": "event/event_yellow_05.json",
+      "sourceSha256": "39605deeb7fe226797bab4eabfe804c0cdd5c30e895067f42cd23998ddd39910",
+      "artworkSpriteId": "event_yellow_005",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "杰弗里为你提供了一些当地的人脉：在此资源点相邻的航道上放置 1 个影响力标识",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 75.833333
+          },
+          "script": "lua/events/choices/event_yellow_05.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 3,
+              "resourceType": 0,
+              "amount": 1,
+              "targetScope": 4,
+              "costResourceType": 4,
+              "costAmount": 0
+            }
+          ]
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "源石矿脉的位置可比美酒和伙计重要：获得 1 源岩、3 源石碎片",
+          "button": {
+            "topPercent": 75.833333,
+            "bottomPercent": 84.166667
+          },
+          "script": "lua/events/choices/event_yellow_05.choice_02.lua",
+          "legacyReward": {
+            "originium": 1,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "“杰弗里，这儿归我了，把酒馆开到城里去吧！”：获得 3 异铁",
+          "button": {
+            "topPercent": 84.166667,
+            "bottomPercent": 93.333333
+          },
+          "script": "lua/events/choices/event_yellow_05.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_06",
+      "source": "event/event_yellow_06.json",
+      "sourceSha256": "e7dc07a4dc295337a77a336972c178bcef053e14178486e999900ac2525bfc64",
+      "artworkSpriteId": "event_yellow_006",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "在外围挖掘地址样本，谨慎点，我不需要死掉的手下！：获得 3 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_06.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "叫你的手下开始搭建矿井，他们之后会有很长的假期：获得 4 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_06.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 4,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_07",
+      "source": "event/event_yellow_07.json",
+      "sourceSha256": "2dd9025a5b09773eefe603baac15f310c513bcdfe512476b43d3a4ccdc24a9fe",
+      "artworkSpriteId": "event_yellow_007",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "“我可没有义务分享成果”你打发走了治安官：获得 3 源岩、1 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_07.choice_01.lua",
+          "legacyReward": {
+            "originium": 3,
+            "originiumShard": 0,
+            "iron": 1,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "“联邦万岁！”你向治安官伸出了手：获得 13 金券；所有对手获得 1 异铁",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 95.0
+          },
+          "script": "lua/events/choices/event_yellow_07.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 13
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 2,
+              "resourceType": 2,
+              "amount": 1,
+              "targetScope": 2,
+              "costResourceType": 0,
+              "costAmount": 0
+            }
+          ]
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_08",
+      "source": "event/event_yellow_08.json",
+      "sourceSha256": "01ef073e3b31f02958eeb2ae5138927ea61b21d25784f4eacc25f84a8f564f84",
+      "artworkSpriteId": "event_yellow_008",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "派一队佣兵和磐蟹“谈判”：获得 3 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_08.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "雇佣萨尔贡术士役使这些大块头：获得 2 源岩、1 分数",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_08.choice_02.lua",
+          "legacyReward": {
+            "originium": 2,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": [
+            {
+              "kind": 1,
+              "resourceType": 0,
+              "amount": 1,
+              "targetScope": 1,
+              "costResourceType": 0,
+              "costAmount": 0
+            }
+          ]
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_09",
+      "source": "event/event_yellow_09.json",
+      "sourceSha256": "1a0ea20758bf448988a6c9648843c05aaef3581cef6e450d599c3a394c68a948",
+      "artworkSpriteId": "event_yellow_009",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "你正好有一批军方订单，先去找找矿脉的位置：获得 3 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_09.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "向荒地人村落索要赔偿金：获得 2 源石碎片、5 金券",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_09.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 2,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 5
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "event_yellow_10",
+      "source": "event/event_yellow_10.json",
+      "sourceSha256": "275986d4555bce856c7027a916db4c1ceea853fe6c05b9776c47ee5f5894a792",
+      "artworkSpriteId": "event_yellow_010",
+      "legacyEffectScript": "",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "拆除这里的设备，带走有用的材料：获得 3 异铁",
+          "button": {
+            "topPercent": 66.666667,
+            "bottomPercent": 79.166667
+          },
+          "script": "lua/events/choices/event_yellow_10.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 3,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "恢复矿场的运行：获得 4 源石碎片",
+          "button": {
+            "topPercent": 79.166667,
+            "bottomPercent": 92.5
+          },
+          "script": "lua/events/choices/event_yellow_10.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 4,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": ""
+    },
+    {
+      "definitionId": "enterprise.event.collection_platform",
+      "source": "event/enterprise.event.collection_platform.json",
+      "sourceSha256": "7ce9de9eb3945da932e62e5830bcf69367e30bb98bff5ea6f5531c704ca45ee0",
+      "artworkSpriteId": "event_red_007",
+      "legacyEffectScript": "lua/events/enterprise.event.collection_platform.resolve.lua",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "安置幸存者：失去1分，选择同一家企业升级1级并触发特效",
+          "button": {
+            "topPercent": 65.0,
+            "bottomPercent": 75.0
+          },
+          "script": "lua/events/choices/enterprise.event.collection_platform.choice_01.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "搜寻更多幸存者：获得4源岩、3源石碎片",
+          "button": {
+            "topPercent": 75.0,
+            "bottomPercent": 84.166667
+          },
+          "script": "lua/events/choices/enterprise.event.collection_platform.choice_02.lua",
+          "legacyReward": {
+            "originium": 4,
+            "originiumShard": 3,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "继续回收：获得4异铁、5金券",
+          "button": {
+            "topPercent": 84.166667,
+            "bottomPercent": 95.0
+          },
+          "script": "lua/events/choices/enterprise.event.collection_platform.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 4,
+            "pureOriginium": 0,
+            "goldVoucher": 5
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": "41a1110f0ddc257a436befe07dce579d1078ab7edb990e607b2d1184ff9a89d2"
+    },
+    {
+      "definitionId": "enterprise.event.cave_ruins",
+      "source": "event/enterprise.event.cave_ruins.json",
+      "sourceSha256": "c9560703afd1ba40eedfd78b6d1077d64d7318636d1fd3122e793071867f2604",
+      "artworkSpriteId": "event_yellow_012",
+      "legacyEffectScript": "lua/events/enterprise.event.cave_ruins.resolve.lua",
+      "choices": [
+        {
+          "choiceId": "choice_01",
+          "legacyIndex": 0,
+          "visualOrder": 0,
+          "description": "爆破：获得5源岩",
+          "button": {
+            "topPercent": 65.0,
+            "bottomPercent": 75.0
+          },
+          "script": "lua/events/choices/enterprise.event.cave_ruins.choice_01.lua",
+          "legacyReward": {
+            "originium": 5,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_02",
+          "legacyIndex": 1,
+          "visualOrder": 1,
+          "description": "写信给梅兰德历史协会：获得10金券",
+          "button": {
+            "topPercent": 75.0,
+            "bottomPercent": 84.166667
+          },
+          "script": "lua/events/choices/enterprise.event.cave_ruins.choice_02.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 10
+          },
+          "legacyPendingEffects": []
+        },
+        {
+          "choiceId": "choice_03",
+          "legacyIndex": 2,
+          "visualOrder": 2,
+          "description": "联系赞助商：支付1异铁，选择1家企业升级1级",
+          "button": {
+            "topPercent": 84.166667,
+            "bottomPercent": 95.0
+          },
+          "script": "lua/events/choices/enterprise.event.cave_ruins.choice_03.lua",
+          "legacyReward": {
+            "originium": 0,
+            "originiumShard": 0,
+            "iron": 0,
+            "pureOriginium": 0,
+            "goldVoucher": 0
+          },
+          "legacyPendingEffects": []
+        }
+      ],
+      "legacyEffectScriptSha256": "eff9d6e4e630a3fe359714cff4b07160e1cb6cf3643abf581ac3c86f2d809653"
+    }
+  ]
+}

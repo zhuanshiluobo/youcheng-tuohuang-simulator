@@ -1,9 +1,7 @@
 {
   "schemaVersion": 1,
   "recipeId": "entrepreneur",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "entries": [
     {
       "entryId": "entrepreneur.round.A.1",

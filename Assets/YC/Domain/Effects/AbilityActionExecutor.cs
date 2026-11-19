@@ -16,11 +16,29 @@ namespace YC.Domain.Effects
     {
         public const string DirectAdmissionVersion="direct_admission.v1.0.2";
         public const string CostReceiptPolicyVersion = "cost_operation_receipts.v2";
-        public const string TypeId = "effect.ability.action.invoke", DirectTypeId = "effect.ability.action.authorized", Version = "1.1.0";
+        public const string TypeId = "effect.ability.action.invoke", DirectTypeId = "effect.ability.action.authorized", Version = "1.2.0";
         public static void Register(EffectRegistry registry)
         {
             if (!registry.TryGet(TypeId, out _)) registry.Register(new EffectRegistration(TypeId, Execute, EffectExecutorKind.IntrinsicFlow, Version));
             if (!registry.TryGet(DirectTypeId, out _)) registry.Register(new EffectRegistration(DirectTypeId, Execute, EffectExecutorKind.IntrinsicFlow, Version));
+        }
+        // 费用构造、正文构造和使用次数提供器都可能是外部回调；只审计它们之后的封闭续接。
+        internal static bool CanRecycleClosedContinuation(GameState state, EffectNodeRuntimeState node, EffectRegistry registry, EffectRegistration registration)
+        {
+            if (node == null || registry == null || registration == null ||
+                node.EffectTypeId != TypeId && node.EffectTypeId != DirectTypeId ||
+                registration.DefinitionVersion != Version || !registration.Executor.Equals((Func<EffectExecutionContext, EffectStepResult>)Execute)) return false;
+            var invocations = state?.EffectRuntime?.AbilityActionInvocations;
+            if (invocations == null) return false;
+            AbilityActionInvocation found = null;
+            foreach (var invocation in invocations)
+            {
+                if (invocation == null || invocation.OwnerEffectId != node.EffectId) continue;
+                if (found != null) return false;
+                found = invocation;
+            }
+            return found != null && (found.Phase == "activated" || found.Phase == "body" || found.Phase == "completed") &&
+                registry.HasBuiltinEmptyActionArgumentProtocol(found.ActionId);
         }
         public static string Digest(NormalizedValue value)
         { using (var sha = SHA256.Create()) return string.Concat(sha.ComputeHash(Encoding.UTF8.GetBytes(value.ToDeterministicString())).Select(b => b.ToString("x2", CultureInfo.InvariantCulture))); }
@@ -33,8 +51,10 @@ namespace YC.Domain.Effects
                 "contentHash", NormalizedValue.CreateString(option.VersionRef.ContentPackHash), "arguments", arguments?.Clone() ?? Object()), option.SourceRef.AuthorizedPlayerId);
             spec.DefinitionVersion = Version; spec.StableKey = "command:" + commandId; return spec;
         }
-        public static EffectSpec CreateAuthorized(int player, string itemId, string actionId, string callPolicyRef) => EffectSpec.Create(DirectTypeId,
-            Object("itemId", NormalizedValue.CreateString(itemId), "actionId", NormalizedValue.CreateString(actionId), "callPolicyRef", NormalizedValue.CreateString(callPolicyRef)), player);
+        public static EffectSpec CreateAuthorized(int player, string itemId, string actionId, bool omitEntryCost = false, bool omitEntryAfterEffects = false, bool omitMainAction = false) => EffectSpec.Create(DirectTypeId,
+            Object("itemId", NormalizedValue.CreateString(itemId), "actionId", NormalizedValue.CreateString(actionId),
+                "omitEntryCost", NormalizedValue.CreateBoolean(omitEntryCost), "omitEntryAfterEffects", NormalizedValue.CreateBoolean(omitEntryAfterEffects),
+                "omitMainAction", NormalizedValue.CreateBoolean(omitMainAction)), player);
 
         public static string PreviewCost(GameState state, int player, IList<EffectSpec> costs) =>
             PreviewCost(state, player, costs, null, null);
@@ -93,26 +113,30 @@ namespace YC.Domain.Effects
             if (invocation == null)
             {
                 bool direct = node.EffectTypeId == DirectTypeId;
+                if (direct && (Value(node.NormalizedArguments, "callPolicyRef") != null ||
+                    Value(node.NormalizedArguments, "player") != null && GenericLuaEffectExecutor.ReadPlayerId(node.NormalizedArguments, -1) != node.PlayerId ||
+                    new[] { "omitEntryCost", "omitEntryAfterEffects", "omitMainAction" }.Any(field => Value(node.NormalizedArguments, field) is NormalizedValue value && value.Kind != NormalizedValueKind.Boolean)))
+                    return EffectStepResult.Failed("action_direct_arguments_invalid");
                 string command = direct ? "effect:" + node.EffectId : Text(node.NormalizedArguments, "commandId");
                 if (string.IsNullOrWhiteSpace(command)) return EffectStepResult.Failed("action_command_id_missing");
                 string digest = Digest(node.NormalizedArguments);
                 var duplicate = state.EffectRuntime.AbilityActionInvocations.Find(i => i.CommandId == command);
                 if (duplicate != null) return EffectStepResult.Failed(duplicate.CommandDigest == digest ? "action_command_already_accepted" : "action_command_payload_conflict");
-                if(direct && !AbilityLegacyStyleBridge.IsBridge(node))
+                bool bridge = AbilityLegacyStyleBridge.IsBridge(node);
+                var options = direct ? ReadExecutionOptions(node.NormalizedArguments) : new AbilityActionExecutionOptions();
+                if(direct && !bridge)
                 {
-                    if(!registry.TryCallPolicy(Text(node.NormalizedArguments,"callPolicyRef"),out var callerPolicy)) return EffectStepResult.Failed("action_direct_policy_denied");
-                    string callerError=registry.ValidateActionCaller(state,node.ParentEffectId,callerPolicy,node.PlayerId);
+                    string callerError=registry.ValidateActionCaller(state,node.ParentEffectId,node.PlayerId);
                     if(callerError.Length>0) return EffectStepResult.Failed(callerError);
                 }
-                var option = AbilityLegacyStyleBridge.IsBridge(node) ? AbilityLegacyStyleBridge.QueryOption(context) : direct ? registry.QueryAuthorizedActions(state,node.ParentEffectId,Text(node.NormalizedArguments,"callPolicyRef")).SingleOrDefault(o => o.SourceRef.ItemId == Text(node.NormalizedArguments, "itemId") && o.ActionId == Text(node.NormalizedArguments, "actionId")) :
+                var option = bridge ? AbilityLegacyStyleBridge.QueryOption(context) : direct ? registry.QueryAuthorizedActions(state,node.ParentEffectId,options).SingleOrDefault(o => o.SourceRef.ItemId == Text(node.NormalizedArguments, "itemId") && o.ActionId == Text(node.NormalizedArguments, "actionId")) :
                     registry.QueryActions(state, node.PlayerId).SingleOrDefault(o => o.OptionId == Text(node.NormalizedArguments, "optionId"));
                 if (option == null) return EffectStepResult.Failed("action_source_invalid");
-                AbilityActionCallPolicy policy = null;
                 if (direct)
                 {
-                    if (AbilityLegacyStyleBridge.IsBridge(node))
-                    { if (!option.Enabled) return EffectStepResult.Failed(option.DisabledReason); policy = AbilityLegacyStyleBridge.Policy; }
-                    else { string error = ValidateDirect(context, option, out policy); if (error.Length > 0) return EffectStepResult.Failed(error); }
+                    if (!option.Enabled) return EffectStepResult.Failed(option.DisabledReason);
+                    string error = registry.ValidateAuthorizedActionEntry(state, option.SourceRef, registry.ActionDeclaration(option.ActionId), options);
+                    if (error.Length > 0) return EffectStepResult.Failed(error);
                 }
                 else if (!option.Enabled || Text(node.NormalizedArguments, "requestId") != option.RequestRef.InteractionId ||
                     Text(node.NormalizedArguments, "factsDigest") != option.RequestRef.FactsDigest || Text(node.NormalizedArguments, "contentHash") != option.VersionRef.ContentPackHash)
@@ -126,24 +150,25 @@ namespace YC.Domain.Effects
                     ParentEffectId = node.ParentEffectId, CommandId = command, CommandDigest = digest, OptionId = option.OptionId, ActionId = option.ActionId,
                     OccupancyKey = occupied, SourceRef = GameStateCloneService.DeepClone(option.SourceRef), VersionRef = GameStateCloneService.DeepClone(option.VersionRef),
                     TrackBindingId = option.TrackBindingId, UsageProviderVersion = registry.UsageProvider(action.UsageTrackId)?.DefinitionVersion ?? "",
-                    RequestRef = GameStateCloneService.DeepClone(option.RequestRef), CallPolicyRef = policy?.PolicyRef ?? "" };
+                    RequestRef = GameStateCloneService.DeepClone(option.RequestRef), OmitEntryCost = options.OmitEntryCost,
+                    OmitEntryAfterEffects = options.OmitEntryAfterEffects, OmitMainAction = options.OmitMainAction };
                 invocation.ReceiptIds.Add(StableIdFactory.Create("action-receipt", invocation.InvocationId, "accepted"));
                 state.EffectRuntime.AbilityActionInvocations.Add(invocation);
                 state.EffectRuntime.AbilityActionProtocolVersion = 1;
                 return EffectStepResult.Continue("accepted");
             }
             var declaration = registry.ActionDeclaration(invocation.ActionId);
-            registry.TryCallPolicy(invocation.CallPolicyRef, out var callPolicy);
-            if (invocation.CallPolicyRef == AbilityLegacyStyleBridge.PolicyRef) callPolicy = AbilityLegacyStyleBridge.Policy;
+            var callOptions = new AbilityActionExecutionOptions { OmitEntryCost = invocation.OmitEntryCost,
+                OmitEntryAfterEffects = invocation.OmitEntryAfterEffects, OmitMainAction = invocation.OmitMainAction };
             string normalizedError = registry.NormalizeActionArguments(declaration.ActionId, Value(node.NormalizedArguments, "arguments") ?? Object(), out var normalizedArguments);
             if (normalizedError.Length > 0) return Fault(invocation, normalizedError);
             var call = new AbilityActionCallContext { State = state, OwnerNode = node, SourceRef = invocation.SourceRef, Action = declaration, Arguments = normalizedArguments };
             if (invocation.Phase == "accepted")
             {
                 if (!SourceCurrent(state, registry, invocation)) return Complete(invocation, "source_invalid_before_payment", false);
-                string entryError = ValidateInvocationEntry(context, invocation, declaration, callPolicy);
+                string entryError = ValidateInvocationEntry(context, invocation, declaration, callOptions);
                 if (entryError.Length > 0) return Complete(invocation, entryError, false);
-                var costs = declaration.EntryCostRef.Length > 0 && callPolicy?.OmitEntryCost != true ? registry.ConstructAbilityBody(declaration.EntryCostRef, call) : new List<EffectSpec>();
+                var costs = declaration.EntryCostRef.Length > 0 && !callOptions.OmitEntryCost ? registry.ConstructAbilityBody(declaration.EntryCostRef, call) : new List<EffectSpec>();
                 string error = registry.ValidateActionEntryCost(state, invocation.SourceRef, declaration, costs); if (error.Length > 0) return Complete(invocation, error, false);
                 if (AbilityActionEntryCondition.IsGate(costs))
                 {
@@ -181,7 +206,7 @@ namespace YC.Domain.Effects
                 }
                 if (!SourceCurrent(state, registry, invocation))
                     return invocation.PaymentCommitted ? Fault(invocation, "action_source_invalid_after_payment") : Complete(invocation, "source_invalid_before_activation", false);
-                string activationError = ValidateInvocationEntry(context, invocation, declaration, callPolicy);
+                string activationError = ValidateInvocationEntry(context, invocation, declaration, callOptions);
                 if (activationError.Length > 0) return invocation.PaymentCommitted ? Fault(invocation, activationError) : Complete(invocation, activationError, false);
                 if (declaration.UsageTrackId.Length > 0)
                 {
@@ -195,7 +220,7 @@ namespace YC.Domain.Effects
                 if (declaration.LockPolicy == "character_action_round") new MainActionBudgetService().LockCharacterCard(state, node.PlayerId);
                 invocation.ActivationCommitted = true; invocation.Phase = "activated";
                 var bodies = registry.ConstructAbilityBody(declaration.BodyHandlerRef, call);
-                if (declaration.EntryAfterEffectsRef.Length > 0 && callPolicy?.OmitEntryAfterEffects != true) bodies = bodies.Concat(registry.ConstructAbilityBody(declaration.EntryAfterEffectsRef, call)).ToList();
+                if (declaration.EntryAfterEffectsRef.Length > 0 && !callOptions.OmitEntryAfterEffects) bodies = bodies.Concat(registry.ConstructAbilityBody(declaration.EntryAfterEffectsRef, call)).ToList();
                 invocation.ReceiptIds.Add(StableIdFactory.Create("action-receipt", invocation.InvocationId, "activated"));
                 var step = EffectStepResult.Continue("activated"); foreach (var body in bodies) step.AddChild(body); return step;
             }
@@ -212,9 +237,9 @@ namespace YC.Domain.Effects
                     n.EffectTypeId == ItemTransferEffectExecutor.TypeId && !ItemTransferEffectExecutor.IsExpectedIndependentFailure(n) && !ConsumedByCondition(state, n));
                 if (strictFailure != null) return Fault(invocation, "action_required_transfer_failed:" + strictFailure.EffectId + ":" + strictFailure.FailureReason);
                 // 正文自己的条件不成立、空集合或玩家放弃不撤销已激活的行动。
-                if (declaration.EntryKind == "special" && callPolicy?.OmitMainAction != true && !invocation.MainActionCommitted)
+                if (declaration.EntryKind == "special" && !callOptions.OmitMainAction && !invocation.MainActionCommitted)
                 {
-                    string budgetError = registry.ValidateActionMainBudget(state, node.PlayerId, declaration, callPolicy);
+                    string budgetError = registry.ValidateActionMainBudget(state, node.PlayerId, declaration, callOptions);
                     if (budgetError.Length > 0) return Fault(invocation, budgetError);
                     var player = state.FindPlayer(node.PlayerId); int before = player.CompletedMainActionsThisTurn, remaining = player.RemainingMainActionsThisTurn;
                     new MainActionBudgetService().SpendCompletedMainAction(state, node.PlayerId, true);
@@ -227,27 +252,16 @@ namespace YC.Domain.Effects
             return Fault(invocation, "action_phase_invalid");
         }
 
-        private static string ValidateDirect(EffectExecutionContext context, AbilityActionOption option, out AbilityActionCallPolicy policy)
+        private static AbilityActionExecutionOptions ReadExecutionOptions(NormalizedValue arguments) => new AbilityActionExecutionOptions {
+            OmitEntryCost = Flag(arguments, "omitEntryCost"), OmitEntryAfterEffects = Flag(arguments, "omitEntryAfterEffects"), OmitMainAction = Flag(arguments, "omitMainAction") };
+
+        private static string ValidateInvocationEntry(EffectExecutionContext context, AbilityActionInvocation invocation, AbilityActionDeclaration action, AbilityActionExecutionOptions options)
         {
-            policy = null; var node = context.Node; var registry = context.Registry;
-            if (!registry.TryCallPolicy(Text(node.NormalizedArguments, "callPolicyRef"), out policy) || policy.TargetActionId != option.ActionId ||
-                registry.ActionDeclaration(option.ActionId).DirectCallPolicy != policy.PolicyRef) return "action_direct_policy_denied";
-            var authorizedPolicy = policy;
-            string callerError = registry.ValidateActionCaller(context.State, node.ParentEffectId, policy, node.PlayerId);
-            if (callerError.Length > 0) return callerError;
-            // 只允许编译自同一冻结正文的子式；任意外部根、客户端参数、伪装SourceId均不能授权。
-            if (!context.State.EffectRuntime.DispatchReceipts.Any(r => r.AttachedEffectIds.Contains(node.EffectId) && r.AbilityId == authorizedPolicy.CallerAbilityId) &&
-                (node.ContinuationAbilityId != policy.CallerAbilityId || node.ContinuationContentHash != policy.CallerHandlerHash)) return "action_direct_provenance_missing";
-            var action = registry.ActionDeclaration(option.ActionId);
-            return registry.ValidateAuthorizedActionEntry(context.State, option.SourceRef, action, policy);
-        }
-        private static string ValidateInvocationEntry(EffectExecutionContext context, AbilityActionInvocation invocation, AbilityActionDeclaration action, AbilityActionCallPolicy policy)
-        {
-            if (policy == null) return context.Registry.ValidateActionMainBudget(context.State, context.Node.PlayerId, action, policy);
-            if (policy.PolicyRef == AbilityLegacyStyleBridge.PolicyRef)
-                return context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, policy, invocation.InvocationId, false);
-            string callerError = context.Registry.ValidateActionCaller(context.State, invocation.ParentEffectId, policy, context.Node.PlayerId);
-            return callerError.Length > 0 ? callerError : context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, policy, invocation.InvocationId, false);
+            if (context.Node.EffectTypeId != DirectTypeId) return context.Registry.ValidateActionMainBudget(context.State, context.Node.PlayerId, action, options);
+            if (AbilityLegacyStyleBridge.IsBridge(context.Node))
+                return context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, options, invocation.InvocationId, false);
+            string callerError = context.Registry.ValidateActionCaller(context.State, invocation.ParentEffectId, context.Node.PlayerId);
+            return callerError.Length > 0 ? callerError : context.Registry.ValidateAuthorizedActionEntry(context.State, invocation.SourceRef, action, options, invocation.InvocationId, false);
         }
         private static EffectStepResult Complete(AbilityActionInvocation invocation, string outcome, bool success)
         {
@@ -255,7 +269,7 @@ namespace YC.Domain.Effects
             invocation.ReceiptIds.Add(StableIdFactory.Create("action-receipt", invocation.InvocationId, "completed"));
             return success ? EffectStepResult.Completed(NormalizedValue.CreateString(invocation.InvocationId)) : EffectStepResult.Failed(outcome);
         }
-        private static bool SourceCurrent(GameState state, EffectRegistry registry, AbilityActionInvocation invocation) => invocation.CallPolicyRef == AbilityLegacyStyleBridge.PolicyRef
+        private static bool SourceCurrent(GameState state, EffectRegistry registry, AbilityActionInvocation invocation) => AbilityLegacyStyleBridge.IsBridge(state.EffectRuntime.EffectNodes.Find(n => n.EffectId == invocation.OwnerEffectId))
             ? AbilityLegacyStyleBridge.SourceCurrent(state, invocation) : registry.IsCurrentAbilitySource(state, invocation.SourceRef);
         // 通用转移的已提交事实来自原执行节点/真实位置变化和原批次收据，不根据载体或物品名称推断费用。
         public static bool IsTokenTransferOperation(EffectNodeRuntimeState node)

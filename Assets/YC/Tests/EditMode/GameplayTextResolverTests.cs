@@ -10,6 +10,20 @@ namespace YC.Tests.EditMode
 {
     public sealed class GameplayTextResolverTests
     {
+        [TestCase("", "选择1家企业，连续提升2级合作等级。", "", "选择1家企业，连续提升2级合作等级。")]
+        [TestCase("费用", "正文", "", "费用\n正文")]
+        [TestCase("", "正文", "后续", "正文\n后续")]
+        [TestCase("费用", "", "后续", "费用\n后续")]
+        [TestCase("费用", "正文", "后续", "费用\n正文\n后续")]
+        [TestCase("", "第一行\n第二行", "", "第一行\n第二行")]
+        public void SpecialActionDetailsSkipOnlyEmptyOptionalSections(string cost,string body,string after,string expected)
+        {
+            var catalog=Catalog();catalog.Add("core:interaction.special.action_details","{cost}\n{body}\n{after}",
+                "cost","text","body","text","after","text");
+            var doc=new GameplayTextResolver(catalog).Resolve(new GameplayTextRef("core:interaction.special.action_details",
+                Arg("cost","text",cost),Arg("body","text",body),Arg("after","text",after)),Context(catalog));
+            Assert.That(doc.ToPlainText(),Is.EqualTo(expected));
+        }
         [Test] public void ParametersAndNamesRemainLiteralAndInheritFormatting()
         {
             var catalog = Catalog(); catalog.Add("core:test", "[b]{name}[/b]：{text}，{amount}。", "name", "player", "text", "text", "amount", "integer");

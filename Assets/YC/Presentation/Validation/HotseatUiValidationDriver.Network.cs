@@ -14,6 +14,7 @@ using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Travel;
 using YC.Infrastructure.Multiplayer;
+using YC.Infrastructure.Lua;
 using YC.PlayerJourney;
 using YC.Presentation.Workflows;
 using UnityEngine;
@@ -546,6 +547,67 @@ namespace YC.Presentation.Validation
         }
         private static float NetworkActiveClock(float now, float previousPauses, bool paused, float pauseBegan) =>
             now - previousPauses - (paused ? now - pauseBegan : 0f);
+        private sealed class NetworkManualReconnectMarker
+        {
+            public string GameId, Role;
+            public long Epoch;
+            public int PlayerId;
+        }
+
+        // 仅显式隔离参数触发；四端等待同一边界，由本人通过设置页原按钮主动重连。
+        private IEnumerator NetworkProbeManualReconnect()
+        {
+            string actor = Argument("--yc-network-manual-reconnect-role=");
+            if (string.IsNullOrEmpty(actor)) yield break;
+            Require(YC.Infrastructure.Multiplayer.LocalMirrorTestMode.IsEnabled &&
+                !string.IsNullOrEmpty(Argument("--yc-test-content-root=")) &&
+                (actor == "client2" || actor == "client3" || actor == "client4"), "主动重连观察仅允许明确的隔离客户端。");
+            stage = "四端等待设置页主动重连观察";
+            long sourceEpoch = networkTransport.SimulationCoordinator.SessionOptions.SimulationEpoch;
+            Write("主动重连入场.json", new NetworkManualReconnectMarker { GameId = networkBoundGameId,
+                Role = networkRole, Epoch = sourceEpoch, PlayerId = LocalPlayer });
+            yield return NetworkUntil(() => networkRoles.All(role => {
+                var ready = NetworkRead<NetworkManualReconnectMarker>(Path.Combine(role, "主动重连入场.json"));
+                return ready != null && ready.GameId == networkBoundGameId && ready.Role == role && ready.Epoch == sourceEpoch;
+            }), "四端在同一对局和代次准备主动重连");
+            if (networkRole == actor)
+            {
+                stage = "本人通过局内设置页主动重连";
+                var settings = FindObjectOfType<GameSettingsMenuView>();
+                Require(settings != null, "局内没有实际设置页面");
+                yield return Press(hud.Frame.SettingsButton, "打开局内设置");
+                yield return Press(settings.PlaceholderTabButton, "打开连接状态页");
+                var status = settings.FutureContentObject.GetComponent<GameConnectionStatusView>();
+                Require(status != null && status.gameObject.activeInHierarchy, "实际连接状态页未显示");
+                var list = (Text)Read(status, "playerStatuses");
+                var reconnect = (Button)Read(status, "reconnectButton");
+                Require(list != null && reconnect != null && reconnect.IsInteractable() &&
+                    GameLaunchContext.Instance.Players.All(player => list.text.Contains(player.PlayerName)),
+                    "连接状态页未展示原四名玩家或重连按钮不可操作");
+                yield return Capture("设置页原连接状态");
+                yield return Press(reconnect, "本人设置页重新连接按钮");
+                yield return NetworkUntil(() => networkTransport?.SimulationCoordinator != null &&
+                    networkTransport.SimulationCoordinator.SessionOptions.SimulationEpoch == sourceEpoch + 1 &&
+                    !networkTransport.IsRecoveringConfirmedPrefix && !networkTransport.IsAwaitingLocalSimulationConnectionRecovery &&
+                    networkSubmissionObserver.IsSimulationReady, "本人原身份重新连接及对局恢复完成", 180f);
+                File.WriteAllText(NetworkPath("主动重连已完成.json"), JsonConvert.SerializeObject(new NetworkManualReconnectMarker {
+                    GameId = networkBoundGameId, Role = networkRole, Epoch = sourceEpoch + 1, PlayerId = LocalPlayer }));
+                if (settings.OverlayObject.activeInHierarchy) yield return Press(settings.HeaderCloseButton, "关闭连接状态页");
+            }
+            else yield return NetworkUntil(() => {
+                var done = NetworkRead<NetworkManualReconnectMarker>("主动重连已完成.json");
+                return done != null && done.GameId == networkBoundGameId && done.Role == actor && done.Epoch == sourceEpoch + 1;
+            }, "等待本人从设置页完成主动重连", 180f);
+            yield return NetworkUntil(() => networkTransport?.SimulationCoordinator != null &&
+                networkTransport.SimulationCoordinator.SessionOptions.SimulationEpoch == sourceEpoch + 1 &&
+                !networkTransport.IsRecoveringConfirmedPrefix && networkSubmissionObserver.IsSimulationReady,
+                "本端确认同局新代次及操作权限", 180f);
+            Write("主动重连本端结果.json", new { GameId = networkBoundGameId, Role = networkRole, LocalPlayer,
+                SourceEpoch = sourceEpoch, CurrentEpoch = networkTransport.SimulationCoordinator.SessionOptions.SimulationEpoch,
+                networkTransport.SimulationCoordinator.LastAppliedSequence, networkTransport.SimulationCoordinator.ValidatedThroughSequence,
+                DirectStateReplacement = false, OriginalControlUsed = networkRole == actor });
+        }
+
         private float NetworkActiveTime => NetworkActiveClock(Time.realtimeSinceStartup,
             networkRecoveryPausedSeconds, networkRecoveryPaused, networkRecoveryPauseBegan);
         private static bool NetworkRecoveryFaultCanWait(SimulationProtocolFaultDto fault,
@@ -736,6 +798,21 @@ namespace YC.Presentation.Validation
             }
             if (settleAfter) yield return Settle();
         }
+        private HashSet<string> NetworkRequestedExpansionIds()
+        {
+            var requested = new HashSet<string>(StringComparer.Ordinal) { "core" };
+            foreach (string id in (Argument("--yc-campaign-expansions=") ?? "enterprise,infected").Split(','))
+            {
+                if (string.IsNullOrEmpty(id)) continue;
+                Require(DiyIdentifiers.ValidIdentity(id) && (id == "enterprise" || id == "infected" ||
+                    !string.IsNullOrEmpty(Argument("--yc-test-content-root="))), "联机夹具扩展身份无效或缺少隔离内容根：" + id);
+                requested.Add(id);
+            }
+            if (EntrepreneurUiMode) Require(requested.Contains("enterprise") && requested.Contains("infected"),
+                "企业家正常房间必须同时启用企业和感染者扩展。");
+            return requested;
+        }
+
         private IEnumerator NetworkRoomFlow(StartMenuView menu)
         {
             networkRoot = Argument("--yc-network-ui-root=");
@@ -743,6 +820,7 @@ namespace YC.Presentation.Validation
             Require(Path.IsPathRooted(networkRoot ?? "") && Directory.Exists(networkRoot) && networkRoles.Contains(networkRole), "联机验收输出及角色参数不完整");
             Require(LocalMirrorTestMode.IsEnabled && !Environment.GetCommandLineArgs().Any(arg => arg.StartsWith("--yc-dev-local-mirror", StringComparison.Ordinal)),
                 "只选本地Mirror后端，不启用绕过菜单的自动建房/加入入口");
+            var requestedExpansions = NetworkRequestedExpansionIds();
             if (networkRole == "host")
             {
                 stage = "联机房主正常菜单建房";
@@ -752,21 +830,33 @@ namespace YC.Presentation.Validation
                 if (EntrepreneurUiMode) yield return ConfigureEntrepreneurRoom(room);
                 else
                 {
-                var options = (StartMenuRoomPanelView.ContentOption[])Read(room, "expansions");
-                foreach (string id in new[] { "enterprise", "infected" })
-                {
-                    var option = options.Single(value => value.Id == id);
-                    if (!option.Selection.gameObject.activeSelf) yield return Press(option.Button, "联机房间启用" + id);
+                    var map = ((StartMenuRoomPanelView.ContentOption[])Read(room, "maps")).Single(value => value.Id == "map-four-players");
+                    if (!map.Selection.gameObject.activeSelf)
+                        yield return EntrepreneurRoomControl(room, map.Button, "联机房间原四人地图按钮", () => room.DisplayedRoom.Configuration.MapId == "map-four-players");
+                    if (RequestedUiRuleMode != "standard")
+                    {
+                        var mode = ((StartMenuRoomPanelView.ContentOption[])Read(room, "ruleModes")).Single(value => value.Id == RequestedUiRuleMode);
+                        if (!mode.Selection.gameObject.activeSelf)
+                            yield return EntrepreneurRoomControl(room, mode.Button, "联机房间选择模式" + RequestedUiRuleMode,
+                                () => room.DisplayedRoom.Configuration.RuleModeId == RequestedUiRuleMode);
+                    }
+                    var options = (StartMenuRoomPanelView.ContentOption[])Read(room, "expansions");
+                    foreach (var option in options.Where(value => value.Id != "core"))
+                    {
+                        bool desired = requestedExpansions.Contains(option.Id);
+                        if (room.DisplayedRoom.Configuration.EnabledExpansionIds.Contains(option.Id) != desired)
+                            yield return EntrepreneurRoomControl(room, option.Button, "联机房间调整扩展" + option.Id,
+                                () => room.DisplayedRoom.Configuration.EnabledExpansionIds.Contains(option.Id) == desired);
+                    }
                 }
-                var map = ((StartMenuRoomPanelView.ContentOption[])Read(room, "maps")).Single(value => value.Id == "map-four-players");
-                if (!map.Selection.gameObject.activeSelf) yield return Press(map.Button, "联机房间原四人地图按钮");
-                }
-                Require(room.DisplayedRoom?.Configuration.MapId == "map-four-players", "原菜单没有建立四人地图房间");
-                yield return Capture("联机房主真实房间及感染者配置");
+                Require(room.DisplayedRoom?.Configuration.MapId == "map-four-players" &&
+                    room.DisplayedRoom.Configuration.RuleModeId == RequestedUiRuleMode &&
+                    requestedExpansions.SetEquals(room.DisplayedRoom.Configuration.EnabledExpansionIds), "原菜单房间地图、模式或扩展与请求不符");
+                yield return Capture("联机房主真实房间及玩法配置");
                 File.WriteAllText(NetworkPath("正式房间号.json"), JsonConvert.SerializeObject(new NetworkRoomCode { RoomCode = room.DisplayedRoom.RoomId }));
                 yield return NetworkUntil(() => room.DisplayedRoom.PlayerCount == 4 && room.CanStartCurrentRoom && room.StartButton.IsInteractable(), "四名真实成员连接、身份验证及准备", 180f);
                 Require(room.DisplayedRoom.PlayerCount == 4 && room.DisplayedRoom.Seats.Count == 4, "房间未到齐四名真实成员");
-                Require(!EntrepreneurUiMode || room.DisplayedRoom.Configuration.RuleModeId == "entrepreneur", "联机房间企业家配置在准备时变化");
+                Require(room.DisplayedRoom.Configuration.RuleModeId == RequestedUiRuleMode, "联机房间模式在准备时变化");
                 yield return Capture("四名联机成员原房间准备完成");
                 yield return Press(room.StartButton, "房主原开始游戏按钮");
             }
@@ -788,9 +878,9 @@ namespace YC.Presentation.Validation
                 yield return Press(menu.JoinPanel.JoinButton, "成员原连接房间按钮");
                 yield return NetworkUntil(() => menu.RoomPanel.gameObject.activeInHierarchy && menu.RoomPanel.DisplayedRoom != null && menu.RoomPanel.StartButton.IsInteractable(), "成员正常进入并通过房间门禁");
                 Require(menu.RoomPanel.DisplayedRoom.Configuration.MapId == "map-four-players" &&
-                    (!EntrepreneurUiMode || menu.RoomPanel.DisplayedRoom.Configuration.RuleModeId == "entrepreneur") &&
-                    new[] { "core", "enterprise", "infected" }.All(menu.RoomPanel.DisplayedRoom.Configuration.EnabledExpansionIds.Contains),
-                    "成员只读房间配置未匹配四人地图、双扩及请求模式");
+                    menu.RoomPanel.DisplayedRoom.Configuration.RuleModeId == RequestedUiRuleMode &&
+                    requestedExpansions.SetEquals(menu.RoomPanel.DisplayedRoom.Configuration.EnabledExpansionIds),
+                    "成员只读房间配置未匹配四人地图、请求扩展及请求模式");
                 yield return Capture("联机成员原房间准备前");
                 yield return Press(menu.RoomPanel.StartButton, "成员原准备按钮");
                 yield return NetworkUntil(() => FindObjectOfType<MobileCityInteractionController>() != null, "等待房主原按钮开局", 180f);
@@ -827,7 +917,7 @@ namespace YC.Presentation.Validation
             NetworkPublish();
             yield return NetworkUntil(() => networkRoles.All(role => NetworkRead<NetworkPeerStatus>("状态-" + role + ".json")?.GameId == networkBoundGameId), "四个独立实例进入同一正式GameId");
             Write("联机运行身份.json", new { Role = networkRole, LocalPlayer, State.GameId, State.ContentPackHash,
-                RuleModeId = State.RuleConfiguration.RuleModeId, RequestedRuleMode = EntrepreneurUiMode ? "entrepreneur" : "standard",
+                RuleModeId = State.RuleConfiguration.RuleModeId, RequestedRuleMode = RequestedUiRuleMode,
                 Mode = GameLaunchContext.Instance.Mode.ToString(), ExpectedPlayers = 4, NormalMenuFlow = true,
                 FixtureState = false, DirectServiceCalls = false, DirectSubmission = false });
         }
@@ -1623,20 +1713,29 @@ namespace YC.Presentation.Validation
             }
             if (code == 0 && networkRole != "host")
             {
-                // 成功短局由房主先走正式保存退出；客户端保持连接，收到断开并回到主页后再退出。
-                // 同时关闭会把“主动保存退出”变成中途断线，属于另外的生命周期验收。
+                // 短局仍等待返回主页；完整终局会按产品合同在断开后保留本地结算页。
+                // 客户端在核对本人终局及房主正常退出请求后，才能请求自身正常关闭。
                 began = Time.realtimeSinceStartup;
-                while (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "StartScene" &&
-                    Time.realtimeSinceStartup - began < 120f)
+                bool retained = false;
+                while (Time.realtimeSinceStartup - began < 120f)
+                {
+                    if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "StartScene") break;
+                    retained = NetworkCanExitRetainedTerminal(
+                        File.Exists(Path.Combine(networkRoot, "host", "正常退出请求.json")),
+                        GameLaunchContext.Instance != null && GameLaunchContext.Instance.IsCompletedSessionDetached,
+                        session?.State, networkBoundGameId, networkBoundContentHash);
+                    if (retained) break;
                     yield return new WaitForSecondsRealtime(.2f);
-                if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "StartScene")
+                }
+                if (!retained && UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "StartScene")
                 {
                     Write("正常退出等待失败.json", new { AtUtc = DateTime.UtcNow.ToString("o"),
-                        Reason = "等待房主保存退出后返回主页超时", WindowPreserved = true, ForcedQuit = false });
+                        Reason = "等待房主退出及客户端终局保留或返回主页超时", WindowPreserved = true, ForcedQuit = false });
                     yield break;
                 }
-                Write("房主退出后正常返回主页.json", new { AtUtc = DateTime.UtcNow.ToString("o"),
-                    Scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, ForcedQuit = false });
+                Write(retained ? "终局保留后正常退出.json" : "房主退出后正常返回主页.json", new { AtUtc = DateTime.UtcNow.ToString("o"),
+                    Scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, GameId = networkBoundGameId,
+                    ContentHash = networkBoundContentHash, RetainedCompletedSettlement = retained, ForcedQuit = false });
             }
             // 退出受产品保存门禁约束；一次请求被拦截后保留现场，不循环触发保存失败弹窗。
             Write("正常退出请求.json", new { AtUtc = DateTime.UtcNow.ToString("o"), ExitCode = code, RequestCount = 1,
@@ -1651,6 +1750,11 @@ namespace YC.Presentation.Validation
             Write("正常退出尚未完成.json", new { AtUtc = DateTime.UtcNow.ToString("o"), ExitCode = code,
                 RequestCount = 1, AutomaticRetry = false, WindowPreserved = true, ForcedQuit = false });
         }
+        private static bool NetworkCanExitRetainedTerminal(bool hostQuitRequested, bool detached, YC.Domain.State.GameState state,
+            string gameId, string contentHash) => hostQuitRequested && detached && state != null &&
+            !string.IsNullOrEmpty(gameId) && !string.IsNullOrEmpty(contentHash) && state.GameId == gameId && state.ContentPackHash == contentHash &&
+            state.Round == 8 && state.MaxRounds == 8 && (state.Phase == GamePhase.FinalScoring || state.Phase == GamePhase.GameOver) &&
+            state.FinalScoring?.IsResolved == true && state.Players.Count == 4 && state.FinalScoring.PlayerScores.Count == 4;
     }
 }
 #endif

@@ -1,7 +1,7 @@
 {
   "definitionId": "enterprise.event.cave_ruins",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "洞穴遗迹",
   "expansionId": "enterprise",
   "replaces": {
@@ -15,59 +15,50 @@
     "enterprise"
   ],
   "playerMarkerZones": [],
-  "abilities": [
-    {
-      "abilityId": "enterprise.event.cave_ruins.resolve",
-      "mode": "resolve",
-      "skillType": "normal",
-      "subscriptionId": "content.enterprise.event.cave_ruins.resolve",
-      "script": "lua/events/enterprise.event.cave_ruins.resolve.lua",
-      "version": "1.0.0",
-      "completionHandlerId": ""
-    }
-  ],
+  "abilities": [],
   "data": {
-    "cardId": "event_yellow_02",
-    "name": "洞穴遗迹",
     "description": "“头儿，爆破小组炸开了一条隐藏的通道，后面竟然是一片……人造建筑的遗址，我们无法确认其年代，也无法确认其建造者。”——信使所带回的信息。",
     "color": 1,
     "resourceType": 0,
     "resourceAmount": 1,
     "representativeResourceType": 0,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "爆破：获得5源岩",
-      "写信给梅兰德历史协会：获得10金券",
-      "联系赞助商：支付1异铁，选择1家企业升级1级"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 5,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "爆破：获得5源岩",
+        "button": {
+          "topPercent": 65.0,
+          "bottomPercent": 75.0
+        },
+        "script": "lua/events/choices/enterprise.event.cave_ruins.choice_01.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 10
+        "choiceId": "choice_02",
+        "description": "写信给梅兰德历史协会：获得10金券",
+        "button": {
+          "topPercent": 75.0,
+          "bottomPercent": 84.166667
+        },
+        "script": "lua/events/choices/enterprise.event.cave_ruins.choice_02.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_03",
+        "description": "联系赞助商：支付1异铁，选择1家企业升级1级",
+        "button": {
+          "topPercent": 84.166667,
+          "bottomPercent": 95.0
+        },
+        "script": "lua/events/choices/enterprise.event.cave_ruins.choice_03.lua",
+        "version": "1.0.1"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      [],
-      []
-    ],
-    "effectScript": "lua/events/enterprise.event.cave_ruins.resolve.lua"
-  }
+    ]
+  },
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

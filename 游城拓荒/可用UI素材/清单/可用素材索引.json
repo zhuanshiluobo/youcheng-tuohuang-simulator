@@ -20005,12 +20005,14 @@
         {
           "package": "MainButtons-v3.2-Patch.zip",
           "member": "assets/bases/action-default.png",
-          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族default态；此前本模式Frontier3.1期望撤销",
-          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮",
+          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族default态；此前本模式Frontier3.1期望撤销；U04 两页互查按钮使用建设取消按钮同源 action 四态；G02 局内设置连接状态页的重连按钮复用同页返回主菜单按钮四态",
+          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮；U04 FacilityBuildDialog/View City Styles 与 CityStyleDeclarationPreviewDialog/View Facility Supply；G02 InGameSettingsMenu/占位 Content/Reconnect Button",
           "evidence": [
             "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
             "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
-            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销"
+            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销",
+            "2026-11-12 用户指定两页互查按钮使用建设页面取消按钮样式",
+            "2026-11-13 用户明确授权重连按钮复用局内设置页现有按钮四态"
           ],
           "packageNotes": [
             "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
@@ -20086,7 +20088,9 @@
       ],
       "currentUsageStandards": [
         "A02",
-        "C01"
+        "C01",
+        "U04",
+        "G02"
       ],
       "actualUsage": "参数/项目实际用法/实际使用参数.json"
     },
@@ -20199,12 +20203,14 @@
         {
           "package": "MainButtons-v3.2-Patch.zip",
           "member": "assets/bases/action-disabled.png",
-          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族disabled态；此前本模式Frontier3.1期望撤销",
-          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮",
+          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族disabled态；此前本模式Frontier3.1期望撤销；U04 两页互查按钮使用建设取消按钮同源 action 四态；G02 局内设置连接状态页的重连按钮复用同页返回主菜单按钮四态",
+          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮；U04 FacilityBuildDialog/View City Styles 与 CityStyleDeclarationPreviewDialog/View Facility Supply；G02 InGameSettingsMenu/占位 Content/Reconnect Button",
           "evidence": [
             "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
             "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
-            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销"
+            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销",
+            "2026-11-12 用户指定两页互查按钮使用建设页面取消按钮样式",
+            "2026-11-13 用户明确授权重连按钮复用局内设置页现有按钮四态"
           ],
           "packageNotes": [
             "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
@@ -20280,7 +20286,9 @@
       ],
       "currentUsageStandards": [
         "A02",
-        "C01"
+        "C01",
+        "U04",
+        "G02"
       ],
       "actualUsage": "参数/项目实际用法/实际使用参数.json"
     },
@@ -20393,12 +20401,14 @@
         {
           "package": "MainButtons-v3.2-Patch.zip",
           "member": "assets/bases/action-hover.png",
-          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族hover态；此前本模式Frontier3.1期望撤销",
-          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮",
+          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族hover态；此前本模式Frontier3.1期望撤销；U04 两页互查按钮使用建设取消按钮同源 action 四态；G02 局内设置连接状态页的重连按钮复用同页返回主菜单按钮四态",
+          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮；U04 FacilityBuildDialog/View City Styles 与 CityStyleDeclarationPreviewDialog/View Facility Supply；G02 InGameSettingsMenu/占位 Content/Reconnect Button",
           "evidence": [
             "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
             "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
-            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销"
+            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销",
+            "2026-11-12 用户指定两页互查按钮使用建设页面取消按钮样式",
+            "2026-11-13 用户明确授权重连按钮复用局内设置页现有按钮四态"
           ],
           "packageNotes": [
             "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
@@ -20474,7 +20484,9 @@
       ],
       "currentUsageStandards": [
         "A02",
-        "C01"
+        "C01",
+        "U04",
+        "G02"
       ],
       "actualUsage": "参数/项目实际用法/实际使用参数.json"
     },
@@ -20587,12 +20599,14 @@
         {
           "package": "MainButtons-v3.2-Patch.zip",
           "member": "assets/bases/action-pressed.png",
-          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族pressed态；此前本模式Frontier3.1期望撤销",
-          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮",
+          "purpose": "当前3.2负责主界面11按钮及企业/科室确认/返回/取消等已用按钮；action/primary四态按实际绑定。UI-011普通按钮期望仍为3.1；建设/部署图标按项目现用图；C01条件确认与普通Pay共用ConditionPayment Mode的放弃按钮使用本族pressed态；此前本模式Frontier3.1期望撤销；U04 两页互查按钮使用建设取消按钮同源 action 四态；G02 局内设置连接状态页的重连按钮复用同页返回主菜单按钮四态",
+          "scope": "主界面11按钮、企业/科室按钮，以及其他已明确采用3.2的目标；C01 EventChoiceDialog.prefab/ConditionPayment Mode；条件确认与普通Pay共用此模式的执行、放弃两按钮的放弃按钮；U04 FacilityBuildDialog/View City Styles 与 CityStyleDeclarationPreviewDialog/View Facility Supply；G02 InGameSettingsMenu/占位 Content/Reconnect Button",
           "evidence": [
             "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
             "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
-            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销"
+            "2026-10-15 用户明确纠正：条件式确认窗口应该用MainButtons-v3.2-Patch；原Frontier3.1指定撤销",
+            "2026-11-12 用户指定两页互查按钮使用建设页面取消按钮样式",
+            "2026-11-13 用户明确授权重连按钮复用局内设置页现有按钮四态"
           ],
           "packageNotes": [
             "企业/科室按钮3.2为当前标准，不是用途例外；以本轮用户确认覆写旧文档的不覆盖企业窗口结论。",
@@ -20668,7 +20682,9 @@
       ],
       "currentUsageStandards": [
         "A02",
-        "C01"
+        "C01",
+        "U04",
+        "G02"
       ],
       "actualUsage": "参数/项目实际用法/实际使用参数.json"
     },
@@ -41038,7 +41054,7 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/window.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
@@ -41099,7 +41115,7 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/button-primary.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
@@ -41212,63 +41228,6 @@
       }
     },
     {
-      "path": "资产/多卡选择/Card-Picker-UI-v1/assets/card-selected.png",
-      "sha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf",
-      "bytes": 125932,
-      "format": ".png",
-      "image": {
-        "width": 1054,
-        "height": 1493
-      },
-      "uses": [
-        {
-          "package": "Card-Picker-UI-v1.zip",
-          "member": "assets/card-selected.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
-          "scope": "全部",
-          "evidence": [
-            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
-            "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
-          ],
-          "packageNotes": [
-            "旧金色主按钮不允许挪回CardViewer3.6.2；同哈希保存一份不等于允许跨用途。",
-            "2026-11-01 P01将CardPicker次按钮期望直接覆写为botton-secondary-v2.0.png；旧图没有其他有效用途，退出可用候选"
-          ],
-          "documents": [
-            "文档/原始说明/Card-Picker-UI-v1/UI_LAYOUT.md",
-            "文档/CardPicker次按钮2.0替换登记.md"
-          ],
-          "parameters": [
-            {
-              "parameter": "layout.json/assets/card-selected.png",
-              "spec": {
-                "path": "assets/card-selected.png",
-                "size": [
-                  1054,
-                  1493
-                ],
-                "source_reference_rect": [
-                  80,
-                  130,
-                  896,
-                  1280
-                ],
-                "mode": "RGBA",
-                "reference_kind": "card_content_safe_rect"
-              },
-              "parentSpec": null
-            }
-          ]
-        }
-      ],
-      "sources": [
-        {
-          "package": "Card-Picker-UI-v1.zip",
-          "member": "assets/card-selected.png"
-        }
-      ]
-    },
-    {
       "path": "资产/多卡选择/Card-Picker-UI-v1/assets/card-slot.png",
       "sha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30",
       "bytes": 1453194,
@@ -41281,7 +41240,7 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/card-slot.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
@@ -41338,7 +41297,7 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/scrollbar-thumb.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
@@ -41412,7 +41371,7 @@
         {
           "package": "Card-Picker-UI-v1.zip",
           "member": "assets/scrollbar-track.png",
-          "purpose": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+          "purpose": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
           "scope": "全部",
           "evidence": [
             "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",

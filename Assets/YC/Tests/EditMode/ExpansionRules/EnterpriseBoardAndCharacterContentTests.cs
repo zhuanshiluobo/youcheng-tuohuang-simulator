@@ -85,6 +85,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var source = new GameState { GameId = "game.enterprise_content", MapId = map.MapId, ContentPackHash = pack.ContentHash,
                 Round = 1, ActionRound = 1, StartPlayerId = 1, CurrentPlayerId = 1, Phase = GamePhase.ActionRound1,
                 ContentDefinitions = definitions, RuleConfiguration = new GameRuleConfiguration { MapId = map.MapId, PlayerCount = players, ContentPackHash = pack.ContentHash } };
+            source.RandomRuntime = GameplayRandomRuntime.Create(source.GameId);
             for (int player = 1; player <= players; player++) source.Players.Add(new PlayerState { PlayerId = player, Resources = new ResourceSet { GoldVoucher = 80, Originium = 20, OriginiumShard = 20, Iron = 20, PureOriginium = 3 } });
             var entries = new List<ItemRecipeEntry> {
                 new ItemRecipeEntry { EntryId = "supply", DefinitionId = "core.player_marker", TypeId = "core.player_marker", Quantity = 29, PerPlayer = true, InitialZoneRole = "supply" },
@@ -99,6 +100,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             foreach (string id in new[] { "liskarm", "elysium", "texas", "cannot", "tin-man" }) entries.Add(new ItemRecipeEntry { EntryId = "initial_" + id, DefinitionId = id, TypeId = "core.basic_character_card", Quantity = 1, PerPlayer = true, InitialZoneRole = "hand" });
             foreach (var location in map.Locations.Where(l => !l.IsRedZone)) entries.Add(new ItemRecipeEntry { EntryId = "resource_point_" + location.LocationId, DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/" + location.LocationId });
             foreach (var facility in definitions.Facilities.Where(d => d.GoldVoucherCost > 0).Take(9)) entries.Add(new ItemRecipeEntry { EntryId = facility.FacilityId, DefinitionId = facility.FacilityId, TypeId = "core.facility_card", Quantity = 1, InitialZoneRole = "facility_deck" });
+            source.SetupRecipe = new GameSetupRecipe { OperatorDrawCount = players == 2 ? 3 : 2,
+                InitialBasicCharacterCount = entries.Where(e => e.PerPlayer && e.InitialZoneRole == "hand" && e.TypeId == "core.basic_character_card").Sum(e => e.Quantity),
+                Entries = entries.Select(e => new SetupRecipeEntry { EntryId = e.EntryId, DefinitionId = e.DefinitionId, TypeId = e.TypeId,
+                    Quantity = e.Quantity, PerPlayer = e.PerPlayer, InitialZoneRole = e.InitialZoneRole }).ToList() };
             var state = new ItemZoneStateFactory().CreateForSetup(source, map, entries, pack.ActiveDefinitions.Select(d => new ItemCardZoneDeclaration { DefinitionId = d.DefinitionId, CardZones = d.CardZones }).ToList());
             foreach (var token in state.ItemZones.Items.Where(i => i.TypeId == "core.resource_point_token"))
                 token.LocalState = Object("resourceType", NormalizedValue.CreateInteger((int)ResourceType.Originium), "amount", NormalizedValue.CreateInteger(2));
@@ -442,7 +447,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void WRegisteredCleanupSurvivesOperatorReplacementAndRecovery()
         {
             var state = State(); UseCard(state, "operator.w", "strategy");
-            Run(state, OperatorDispatchFlow.CreateSpec(state, 1));
+            Run(state, OperatorDispatchFlow.CreateSpec(1, FindZone(state, "operator_deck").ZoneId));
             var request = state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open");
             Answer(state, Item(state, "operator.mudrock").ItemId);
             Assert.That(state.EffectRuntime.InteractionRequests.Last(r => r.Status == "open").CandidateIds, Does.Contain(Item(state, "operator.w").ItemId));
@@ -728,8 +733,11 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void DorothyStrategyPreflightsBothInstancesAndRecoversCompleteSelection()
         {
             var state = State(); var location = map.Locations.First(l => !l.IsRedZone && l.InfluenceSlotCount >= 2); Place(state, 1, InfluenceService.GetLocationSlotId(location.LocationId, 0));
-            Invoke(state, "lua/characters/operator.dorothy.strategy.lua"); Assert.That(state.Map.Influences.Count, Is.EqualTo(1)); Assert.That(state.EffectRuntime.RuleEvents.Any(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.False);
+            Invoke(state, "lua/characters/operator.dorothy.strategy.lua");
+            if (state.EffectRuntime.InteractionRequests.LastOrDefault(r => r.Status == "open")?.InteractionTypeId == "action.decline_effect") Answer(state, "continue");
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(1)); Assert.That(state.EffectRuntime.RuleEvents.Any(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.False);
             Place(state, 1, InfluenceService.GetLocationSlotId(location.LocationId, 1)); Invoke(state, "lua/characters/operator.dorothy.strategy.lua");
+            if (state.EffectRuntime.InteractionRequests.LastOrDefault(r => r.Status == "open")?.InteractionTypeId == "action.decline_effect") Answer(state, "continue");
             Assert.That(CurrentRequest(state).MinSelections, Is.EqualTo(2)); state = Restore(state); Answer(state, CurrentRequest(state).CandidateIds.Take(2).ToArray()); Drain(state);
             Assert.That(state.Map.Influences.Count, Is.EqualTo(3)); Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == InfluenceEventTypeIds.InfluenceRemoved), Is.EqualTo(2));
         }

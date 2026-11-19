@@ -33,6 +33,15 @@ namespace YC.Application.Sessions
         public List<WindowExecutionRecord> Records = new List<WindowExecutionRecord>();
     }
 
+    [Serializable]
+    public sealed class CoordinatedReconnectMessage : SimulationIdentityDto
+    {
+        public string RequestId = string.Empty;
+        public string GrantId = string.Empty;
+        public int RequestingPlayerId;
+        public int WindowOwnerPlayerId;
+    }
+
     public sealed partial class DeterministicSimulationCoordinator
     {
         private int windowExecutionVersion;
@@ -40,6 +49,10 @@ namespace YC.Application.Sessions
         private WindowLocalExecution windowExecution;
         private WindowExecutionGrant activeWindowGrant;
         private bool windowSealPublished, windowReadyPublished;
+        private volatile bool coordinatedReconnectBarrier;
+        private int coordinatedReconnectPlayer;
+        private string coordinatedReconnectRequest = string.Empty;
+        private bool coordinatedReconnectReady;
         private readonly Dictionary<string, WindowLocalExecution> windowExecutions = new Dictionary<string, WindowLocalExecution>(StringComparer.Ordinal);
         private readonly Dictionary<string, WindowExecutionGrant> windowExecutionGrants = new Dictionary<string, WindowExecutionGrant>(StringComparer.Ordinal);
         private readonly List<WindowExecutionRecord> beforeWindowGrant = new List<WindowExecutionRecord>();
@@ -50,6 +63,83 @@ namespace YC.Application.Sessions
         public event Action<WindowExecutionConfirmation> WindowExecutionConfirmed;
         public event Action<WindowExecutionRangeMessage> WindowExecutionMissingRequested;
         public event Action<WindowExecutionRangeMessage> WindowExecutionRangeProduced;
+        public event Action<CoordinatedReconnectMessage> CoordinatedReconnectYieldRequested;
+        public event Action<CoordinatedReconnectMessage> CoordinatedReconnectReady;
+
+        // Host 主线程先阻止新的全局提案，worker 再收齐当前窗口；未确认的操作不能丢弃。
+        public bool RequestCoordinatedReconnect(int authenticatedPlayer, string requestId)
+        {
+            if (!options.IsHost || authenticatedPlayer == options.LocalPlayerId || !options.FrozenPlayerIds.Contains(authenticatedPlayer) ||
+                !Guid.TryParseExact(requestId, "N", out _) || IsStopped || IsRecoveringConfirmedPrefix || coordinatedReconnectBarrier) return false;
+            if (OnBackgroundMainThread)
+            {
+                coordinatedReconnectBarrier = true;
+                RetirePendingAdmissions("正在等待安全边界，原待准入操作未执行。");
+                PostBackground(() => BeginCoordinatedReconnect(authenticatedPlayer, requestId));
+            }
+            else { coordinatedReconnectBarrier = true; BeginCoordinatedReconnect(authenticatedPlayer, requestId); }
+            return true;
+        }
+
+        private void BeginCoordinatedReconnect(int player, string requestId)
+        {
+            if (stopped || recoveryFrozen) return;
+            coordinatedReconnectPlayer = player; coordinatedReconnectRequest = requestId;
+            TryPrepareCoordinatedReconnect();
+        }
+
+        private CoordinatedReconnectMessage CoordinatedReconnectNotice(string grantId = "", int owner = 0) =>
+            new CoordinatedReconnectMessage { GameId = options.GameId, SimulationEpoch = options.SimulationEpoch,
+                MembershipVersion = options.MembershipVersion, RequestId = coordinatedReconnectRequest,
+                RequestingPlayerId = coordinatedReconnectPlayer, GrantId = grantId, WindowOwnerPlayerId = owner };
+
+        private void TryPrepareCoordinatedReconnect()
+        {
+            if (!options.IsHost || coordinatedReconnectPlayer <= 0 || coordinatedReconnectReady || stopped || recoveryFrozen) return;
+            if (windowExecution != null)
+            {
+                if (activeWindowGrant.OwnerPlayerId == options.LocalPlayerId) YieldWindowForReconnect(activeWindowGrant.GrantId);
+                else
+                {
+                    var notice = CoordinatedReconnectNotice(activeWindowGrant.GrantId, activeWindowGrant.OwnerPlayerId);
+                    Emit(() => Deliver(CoordinatedReconnectYieldRequested, notice));
+                }
+                return;
+            }
+            if (queue.Count != 0 || pendingLocal != null || sequencer == null ||
+                LastAppliedSequence != validatedThrough || sequencer.LastSequencedSequence != validatedThrough) return;
+            // 主线程提案门闩已关闭，现有窗口和已编序尾段均已确认。
+            BeginConfirmedRecovery(); coordinatedReconnectReady = true;
+            var readyNotice = CoordinatedReconnectNotice();
+            Emit(() => Deliver(CoordinatedReconnectReady, readyNotice));
+        }
+
+        public void YieldWindowForReconnect(string grantId)
+        {
+            if (string.IsNullOrEmpty(grantId)) return;
+            if (OnBackgroundMainThread) { PostBackground(() => YieldWindowForReconnect(grantId)); return; }
+            if (stopped || recoveryFrozen || windowExecution == null || activeWindowGrant.GrantId != grantId ||
+                activeWindowGrant.OwnerPlayerId != options.LocalPlayerId) return;
+            try { windowExecution.Seal(true); FinishWindowExecution(windowExecution); }
+            catch (InvalidOperationException) { /* 尚有缺包或执行中，下次原许可重试。 */ }
+        }
+
+        public void CancelCoordinatedReconnect(int authenticatedPlayer, string requestId)
+        {
+            if (!options.IsHost || authenticatedPlayer <= 0 || string.IsNullOrEmpty(requestId)) return;
+            if (OnBackgroundMainThread) { PostBackground(() => CancelCoordinatedReconnect(authenticatedPlayer, requestId)); return; }
+            if (coordinatedReconnectPlayer != authenticatedPlayer || coordinatedReconnectRequest != requestId || stopped) return;
+            bool frozen = coordinatedReconnectReady && recoveryFrozen;
+            coordinatedReconnectPlayer = 0; coordinatedReconnectRequest = string.Empty; coordinatedReconnectReady = false;
+            if (frozen) CompleteConfirmedRecovery(true);
+            coordinatedReconnectBarrier = false;
+            if (frozen)
+            {
+                foreach (var record in windows.Values.Where(record => record.Open)) PublishPermission(record);
+                if (permits.TryGetValue(validatedThrough, out var permit)) TryGrantWindowExecution(permit);
+                else TryPermit(validatedThrough);
+            }
+        }
 
         public void ConfigureWindowExecution(int version)
         {
@@ -120,6 +210,7 @@ namespace YC.Application.Sessions
         }
         private void TryGrantWindowExecution(SimulationWindowPermitDto permit)
         {
+            if (coordinatedReconnectBarrier) { TryPrepareCoordinatedReconnect(); return; }
             if (windowExecutionVersion == 0 || !options.IsHost || windowExecution != null || queue.Count != 0 || sequencer.LastSequencedSequence != LastAppliedSequence) return;
             var root = ExclusiveWindow(); if (root == null) return;
             var grant = WindowExecutionCodec.CreateGrant(session, options, permit, root.AuthorizedPlayerIds[0], root.OperationWindowId,
@@ -235,6 +326,7 @@ namespace YC.Application.Sessions
                     validatedThrough = LastAppliedSequence; CaptureConfirmedFacts(replica.GetAppliedCommand(validatedThrough)?.Command.CommandId);
                     var notice = WindowExecutionCodec.Copy(confirmation); Emit(() => Deliver(WindowExecutionConfirmed, notice));
                     sequencer.ReleaseWindowExecution(activeWindowGrant.GrantId); windowExecution = null; activeWindowGrant = null;
+                    TryPrepareCoordinatedReconnect();
                     CaptureBoundary(); PublishHostValidation();
                 }
             }
@@ -296,6 +388,7 @@ namespace YC.Application.Sessions
         {
             if (windowExecutionVersion == 0) return;
             if (OnBackgroundMainThread) { PostBackground(RetryWindowExecutionReplication); return; }
+            TryPrepareCoordinatedReconnect();
             if (stopped || windowExecution == null) return;
             if (options.IsHost && windowExecution.Tail == 0) { var grant = WindowExecutionCodec.Copy(activeWindowGrant); Emit(() => Deliver(WindowExecutionGranted, grant)); }
             if (pendingReplicaSeals.TryGetValue(activeWindowGrant.GrantId, out var seal))

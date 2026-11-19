@@ -27,12 +27,14 @@ namespace YC.Presentation
         [SerializeField] private EffectDialogResourceRowView resourceRowTemplate;
         [SerializeField] private Text resourceSummaryText;
         [SerializeField] private EffectDialogActionButtonView[] actionButtons;
+        [SerializeField] private EffectDialogActionButtonView preparationPreviewButton;
         [SerializeField] private FacilityEffectCardView facilityCardTemplate;
         [SerializeField] private RectTransform footer;
         [SerializeField] private UiWindowSizeInput boundedLayout;
         [SerializeField] private UiEffectRowView effectRowTemplate;
         [SerializeField] private UiCardCollectionLayout cardGrid;
         [SerializeField] private CardPickerRowLayout cardPickerRow;
+        [SerializeField] private LayoutElement cardPickerHeaderSpacing, cardPickerFooterSpacing;
         [SerializeField] private Text cardPickerHint;
         [SerializeField] private string cardPickerSelectionHint;
         [SerializeField] private string cardPickerReadOnlyHint;
@@ -41,6 +43,8 @@ namespace YC.Presentation
         [SerializeField] private RawImage optionScrollbarThumbArtwork;
         private float? pendingScrollPosition;
         private Action dismissOnBackgroundClick;
+        private bool pickerSpacingOverridden;
+        private float savedHeaderSpacing, savedFooterSpacing;
         private readonly System.Collections.Generic.List<GameObject> dynamicRows = new System.Collections.Generic.List<GameObject>();
         public bool IsCardPicker => cardPickerRow != null;
         // 保留既有“1 = 列表开头”的草稿协议；卡牌页将其映射到横向滚动。
@@ -185,6 +189,7 @@ namespace YC.Presentation
             Require(facilityCardTemplate, nameof(facilityCardTemplate));
             Require(footer, nameof(footer));
             if (actionButtons == null || actionButtons.Length < 2) missing.Add(nameof(actionButtons));
+            if (IsCardPicker) Require(preparationPreviewButton, nameof(preparationPreviewButton));
             if (!IsCardPicker)
             {
                 Require(resourceRowTemplate, nameof(resourceRowTemplate));
@@ -220,6 +225,7 @@ namespace YC.Presentation
                     return false;
                 }
             }
+            if (IsCardPicker && !preparationPreviewButton.TryValidateConfiguration(out reason)) return false;
 
             reason = string.Empty;
             return true;
@@ -250,6 +256,7 @@ namespace YC.Presentation
                 actionButtons[i].Button.onClick.RemoveAllListeners();
                 actionButtons[i].gameObject.SetActive(false);
             }
+            ResetPreparationPreviewButton();
         }
 
         public void ConfigureHeading(
@@ -280,6 +287,7 @@ namespace YC.Presentation
                 render == null ? "正文渲染回调缺失。" : string.Empty;
             if (reason.Length > 0) return false;
             descriptionText.gameObject.SetActive(document != null && document.Runs.Count > 0);
+            descriptionDocument.SetVisibilityBindingGuard(GameplayHudFrame.Active?.CreateEffectPageVisibilityGuard(descriptionDocument.transform));
             render(descriptionDocument, document, false);
             return true;
         }
@@ -348,6 +356,33 @@ namespace YC.Presentation
             return OptionContent;
         }
 
+        public RectTransform ConfigureEnterpriseBoardScroll(Vector2 preferredCardSize, float minimumCardWidth, GameBoxEnterpriseBoardItemView template)
+        {
+            var layout = expandedContent == null ? null : expandedContent.GetComponent<VerticalLayoutGroup>();
+            if (cardPickerRow == null || cardPickerHeaderSpacing == null || cardPickerFooterSpacing == null || layout == null || template == null)
+                throw new InvalidOperationException("企业合作板浏览缺少已有横向列表或页面间距配置。");
+            if (!pickerSpacingOverridden)
+            {
+                savedHeaderSpacing = cardPickerHeaderSpacing.preferredHeight;
+                savedFooterSpacing = cardPickerFooterSpacing.preferredHeight;
+                pickerSpacingOverridden = true;
+            }
+            cardPickerHeaderSpacing.preferredHeight = template.HeaderSpacing;
+            cardPickerFooterSpacing.preferredHeight = template.FooterSpacing;
+            var content = ConfigureCardScroll(preferredCardSize, minimumCardWidth);
+            cardPickerRow.SetBoardArtworkMode(true, template.VerticalMargin, template.ArtworkScale, template.ArtworkAlignment);
+            return content;
+        }
+
+        public GameBoxEnterpriseBoardItemView CreateEnterpriseBoardItem(GameBoxEnterpriseBoardItemView template)
+        {
+            if (template == null || !template.IsConfigured) throw new InvalidOperationException("企业合作板原图条目引用不完整。");
+            var item = Instantiate(template, OptionContent, false);
+            dynamicRows.Add(item.gameObject);
+            item.gameObject.SetActive(true);
+            return item;
+        }
+
         public UiEffectRowView CreateEffectRow()
         {
             ConfigureOptionScroll("Option Scroll", 0, 0);
@@ -379,11 +414,34 @@ namespace YC.Presentation
                 if (!IsCardPicker) action.transform.SetParent(footer == null ? expandedContent : footer, false);
                 if (footer != null) footer.gameObject.SetActive(true);
                 action.Button.onClick.RemoveAllListeners();
+                // 固定按钮槽可被多个请求复用；每次获取后由新请求重新决定是否禁用。
+                action.Button.interactable = true;
                 action.gameObject.SetActive(true);
                 return action;
             }
 
             throw new InvalidOperationException("效果对话框没有足够的固定动作按钮槽位。");
+        }
+
+        internal Button AcquirePreparationPreviewButton()
+        {
+            if (!IsCardPicker || preparationPreviewButton == null || preparationPreviewButton.transform.parent == null)
+                throw new InvalidOperationException("卡牌选择页缺少准备阶段企业查看按钮。 ");
+            if (footer != null) footer.gameObject.SetActive(true);
+            preparationPreviewButton.Button.onClick.RemoveAllListeners();
+            preparationPreviewButton.Button.interactable = true;
+            preparationPreviewButton.transform.parent.gameObject.SetActive(true);
+            preparationPreviewButton.gameObject.SetActive(true);
+            return preparationPreviewButton.Button;
+        }
+
+        private void ResetPreparationPreviewButton()
+        {
+            if (preparationPreviewButton == null) return;
+            preparationPreviewButton.Button.onClick.RemoveAllListeners();
+            preparationPreviewButton.gameObject.SetActive(false);
+            if (preparationPreviewButton.transform.parent != null)
+                preparationPreviewButton.transform.parent.gameObject.SetActive(false);
         }
 
         public FacilityEffectCardView CreateFacilityCard()
@@ -416,12 +474,21 @@ namespace YC.Presentation
                 if (UnityEngine.Application.isPlaying) Destroy(item); else DestroyImmediate(item);
             }
             dynamicRows.Clear();
+            if (cardPickerRow != null) cardPickerRow.SetBoardArtworkMode(false);
+            if (pickerSpacingOverridden)
+            {
+                if (cardPickerHeaderSpacing != null) cardPickerHeaderSpacing.preferredHeight = savedHeaderSpacing;
+                if (cardPickerFooterSpacing != null) cardPickerFooterSpacing.preferredHeight = savedFooterSpacing;
+                pickerSpacingOverridden = false;
+                LayoutRebuilder.MarkLayoutForRebuild(expandedContent);
+            }
             dismissOnBackgroundClick = null;
             if (titleText != null) titleText.text = string.Empty;
             if (descriptionDocument != null) descriptionDocument.ClearBinding();
             if (descriptionText != null) descriptionText.text = string.Empty;
             if (resourceSummaryText != null) resourceSummaryText.text = string.Empty;
             foreach (var action in actionButtons) if (action != null) { action.Button.onClick.RemoveAllListeners(); action.gameObject.SetActive(false); }
+            ResetPreparationPreviewButton();
         }
 
     }

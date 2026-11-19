@@ -136,6 +136,8 @@ namespace YC.Domain.Rules
         {
             if (state.Phase != GamePhase.Setup && state.Phase != GamePhase.Entrance)
                 return ValidationResult.Failure(CommandErrorCode.WrongPhase, "只能在开局建立入场主链。");
+            if (state.SetupRecipe?.Preparation == null)
+                return ValidationResult.Failure(CommandErrorCode.WrongPhase, "preparation_framework_missing");
             return CreateAndRunRound(state, 1, state.StartPlayerId, false, true);
         }
 
@@ -375,6 +377,10 @@ namespace YC.Domain.Rules
             var prepared = EnsureLegacyMainlineIfNeeded(state);
             if (!prepared.IsValid) return prepared;
             var node = GetActiveNode(state);
+            if (node != null && node.NodeTypeId == RoundMainlineNodeTypeIds.Collection &&
+                state.RuleConfiguration?.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Sequential &&
+                state.CurrentPlayerId != playerId)
+                return ValidationResult.Failure(CommandErrorCode.NotCurrentPlayer, "请按当前玩家顺序采集。");
             return node != null && node.NodeTypeId == RoundMainlineNodeTypeIds.Collection
                 ? ValidationResult.Success
                 : ValidationResult.Failure(CommandErrorCode.WrongPhase, "当前不是采集主链节点。");
@@ -490,14 +496,14 @@ namespace YC.Domain.Rules
             return ValidationResult.Success;
         }
 
-        public void MarkMainActionComplete(GameState state, int playerId)
+        public void MarkMainActionComplete(GameState state, int playerId, string actionType = null)
         {
             if (state == null)
             {
                 throw new ArgumentNullException(nameof(state));
             }
 
-            mainActionBudgetService.SpendCompletedMainAction(state, playerId);
+            mainActionBudgetService.SpendCompletedMainAction(state, playerId, actionType);
         }
 
         public ValidationResult CompleteMainAction(GameState state, int playerId)
@@ -620,6 +626,8 @@ namespace YC.Domain.Rules
             bool legacyImport,
             bool includeEntrance = false)
         {
+            // 已处于采集阶段的无主链旧档，其阶段开始效果和预算已属于历史事实。
+            bool importLegacyCollection = legacyImport && state.Phase == GamePhase.ResourceCollection;
             if (state.EffectRuntime == null)
             {
                 state.EffectRuntime = new EffectRuntimeState();
@@ -679,7 +687,7 @@ namespace YC.Domain.Rules
             }
 
             projector.Project(state);
-            return RunActiveMainline(state);
+            return RunActiveMainline(state, importLegacyCollection);
         }
 
         private ValidationResult EnsureLegacyMainlineIfNeeded(GameState state)
@@ -704,15 +712,15 @@ namespace YC.Domain.Rules
             return CreateAndRunRound(state, roundNumber, state.StartPlayerId, true);
         }
 
-        private ValidationResult RunActiveMainline(GameState state)
+        private ValidationResult RunActiveMainline(GameState state, bool importLegacyCollection = false)
         {
             using var diagnostic = GameStateCloneService.MeasureDiagnostic("round.advance");
-            var result = RunActiveMainlineCore(state);
+            var result = RunActiveMainlineCore(state, importLegacyCollection);
             if (result.IsValid) OperationWindowService.Synchronize(state);
             return result;
         }
 
-        private ValidationResult RunActiveMainlineCore(GameState state)
+        private ValidationResult RunActiveMainlineCore(GameState state, bool importLegacyCollection)
         {
             for (var guard = 0; guard < 1024; guard++)
             {
@@ -778,7 +786,7 @@ namespace YC.Domain.Rules
                     var executor = CreateExecutor(state);
                     string effectId;
                     if (!executor.TryCreateRoot(
-                            CreateMainlineEffectSpec(state, mainNode),
+                            CreateMainlineEffectSpec(state, mainNode, importLegacyCollection && mainNode.NodeTypeId == RoundMainlineNodeTypeIds.Collection),
                             mainNode.RoundNumber.ToString(CultureInfo.InvariantCulture),
                             mainNode.NodeId,
                             out effectId))
@@ -787,6 +795,7 @@ namespace YC.Domain.Rules
                     }
 
                     mainNode.ExecutionEffectId = effectId;
+                    if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.Collection) importLegacyCollection = false;
                 }
 
                 var runExecutor = CreateExecutor(state);
@@ -1032,6 +1041,7 @@ namespace YC.Domain.Rules
             if (!effectRegistry.TryGet(UsageTracks.InitializeTypeId, out _)) { UsageTracks.Register(effectRegistry); UsageTracks.RegisterResetBinding(effectRegistry); }
             GenericLuaEffectExecutor.Register(effectRegistry);
             ExpansionSetupFlow.Register(effectRegistry);
+            PreparationFrameworkFlow.Register(effectRegistry);
             if (!effectRegistry.TryGet(PlayerEntranceTaskTypeId, out _))
                 effectRegistry.Register(PlayerEntranceTaskTypeId, ExecuteEntrancePlayerTask, EffectExecutorKind.IntrinsicFlow);
             if (!effectRegistry.TryGet(PlayerCharacterRecyclingTypeId, out _)) effectRegistry.RegisterWithoutStateRetention(PlayerCharacterRecyclingTypeId, context =>
@@ -1052,7 +1062,7 @@ namespace YC.Domain.Rules
             }
         }
 
-        private EffectSpec CreateMainlineEffectSpec(GameState state, MainlineNodeRuntimeState node)
+        private EffectSpec CreateMainlineEffectSpec(GameState state, MainlineNodeRuntimeState node, bool importLegacyCollection)
         {
             var spec = EffectSpec.Create(
                 MainlineEffectTypeId,
@@ -1078,6 +1088,8 @@ namespace YC.Domain.Rules
             if (node.NodeTypeId == RoundMainlineNodeTypeIds.Collection &&
                 state.RuleConfiguration?.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Sequential)
                 RouteSelectionSessionAuthority.Set(spec.NormalizedArguments, "collectionTaskSchedulingVersion", NormalizedValue.CreateInteger(2));
+            if (importLegacyCollection)
+                RouteSelectionSessionAuthority.Set(spec.NormalizedArguments, "legacyCollectionTaskImport", NormalizedValue.CreateInteger(1));
             return spec;
         }
 
@@ -1100,8 +1112,13 @@ namespace YC.Domain.Rules
 
             if (mainNode.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntrance)
             {
-                if (context.Node.FlowStage == string.Empty && context.State.SetupRecipe?.EnterpriseEntrance == true && mainNode.PlayerId == context.State.EffectRuntime.PlayerOrderSnapshot[0])
-                    return EffectStepResult.Continue("preparing_enterprises").AddChild(ExpansionSetupFlow.PreparationSpec(mainNode.PlayerId, false));
+                if (context.Node.FlowStage == string.Empty &&
+                    mainNode.PlayerId == context.State.EffectRuntime.PlayerOrderSnapshot[0] &&
+                    context.State.SetupRecipe?.Preparation == null)
+                    throw new InvalidOperationException("preparation_framework_missing");
+                if (context.Node.FlowStage == string.Empty &&
+                    mainNode.PlayerId == context.State.EffectRuntime.PlayerOrderSnapshot[0])
+                    return EffectStepResult.Continue("preparing_enterprises").AddChild(PreparationFrameworkFlow.Spec(mainNode.PlayerId));
                 if (context.Node.FlowStage == string.Empty || context.Node.FlowStage == "preparing_enterprises")
                 {
                     if (HasNonTerminalChild(context)) return EffectStepResult.NoProgress("等待企业入场。");
@@ -1272,6 +1289,23 @@ namespace YC.Domain.Rules
             {
                 if (context.Node.FlowStage == string.Empty)
                 {
+                    if (ItemTransferEffectExecutor.Number(context.Node.NormalizedArguments, "legacyCollectionTaskImport") == 1)
+                    {
+                        // 旧档已经进入采集：沿用旧完成任务，不重发阶段开始事件，也不覆盖原预算。
+                        CaptureCollectionStartBudgets(context.State, context.Node);
+                        var legacyOpen = EffectStepResult.Continue("collection_open");
+                        foreach (var playerId in context.State.EffectRuntime.PlayerOrderSnapshot)
+                        {
+                            var player = context.State.FindPlayer(playerId);
+                            if (player == null || player.HasCollectedResourcesThisRound) continue;
+                            legacyOpen.AddInteraction(new EffectInteractionSpec
+                            {
+                                InteractionTypeId = "collection.task", AnsweringPlayerId = playerId,
+                                Visibility = "owner", AnswerSchema = "boolean_accept"
+                            });
+                        }
+                        return legacyOpen;
+                    }
                     // 开始响应与玩家任务必须跨持久化阶段，不能依赖同一结果中的装配顺序。
                     CaptureCollectionStartBudgets(context.State, context.Node);
                     var collectionStarted = EffectStepResult.Continue("collection_started");
@@ -2138,9 +2172,11 @@ namespace YC.Domain.Rules
         {
             if (ItemTransferEffectExecutor.Number(context.Node.NormalizedArguments, "setupProtocolVersion") != 2)
                 return EffectStepResult.Failed("entrance_setup_protocol_invalid");
+            if (context.Node.FlowStage == string.Empty && context.State.SetupRecipe?.Preparation == null)
+                throw new InvalidOperationException("preparation_framework_missing");
             if (context.Node.FlowStage == string.Empty)
                 return EffectStepResult.Continue("preparing_enterprises").AddChild(
-                    ExpansionSetupFlow.PreparationSpec(context.State.EffectRuntime.PlayerOrderSnapshot[0]));
+                    PreparationFrameworkFlow.Spec(context.State.EffectRuntime.PlayerOrderSnapshot[0]));
             foreach (var child in context.ChildNodes)
                 if (child.Status == EffectNodeStatus.Failed || child.Status == EffectNodeStatus.Faulted)
                     return EffectStepResult.Failed(child.FailureReason);
@@ -2339,9 +2375,10 @@ namespace YC.Domain.Rules
                     request.StateRevision = runtime.StateRevision;
                     continue;
                 }
-                if (IsEntrepreneurInitialEnterpriseRequest(state, request, owner))
+                if (owner.EffectTypeId == PreparationFrameworkFlow.SelectionTypeId &&
+                    request.InteractionTypeId == ExpansionSetupFlow.EnterpriseChoiceInteraction)
                 {
-                    request.StateRevision = runtime.StateRevision;
+                    if (IsFrameworkEnterpriseRequest(state, request, owner)) request.StateRevision = runtime.StateRevision;
                     continue;
                 }
                 if (IsNormalCollectionRequest(state, request, owner))
@@ -2356,10 +2393,7 @@ namespace YC.Domain.Rules
                     if (IsParallelCoverExecution(ancestor) && IsActiveMainlineExecution(runtime, ancestor) ||
                         ancestor.EffectTypeId == MainlineEffectTypeId &&
                             GetStringProperty(ancestor.NormalizedArguments, "nodeTypeId") == RoundMainlineNodeTypeIds.PlayerEntranceSetup &&
-                            ItemTransferEffectExecutor.Number(ancestor.NormalizedArguments, "setupProtocolVersion") == 2 && IsActiveMainlineExecution(runtime, ancestor) ||
-                        ancestor.EffectTypeId == ExpansionSetupFlow.PreparationTypeId &&
-                            ItemTransferEffectExecutor.Number(ancestor.NormalizedArguments, "setupProtocolVersion") == 2 &&
-                            FindEntranceExecution(runtime, ancestor) is EffectNodeRuntimeState setup && IsActiveMainlineExecution(runtime, setup))
+                            ItemTransferEffectExecutor.Number(ancestor.NormalizedArguments, "setupProtocolVersion") == 2 && IsActiveMainlineExecution(runtime, ancestor))
                     { concurrent = true; break; }
                     var parent = RuntimeNode(runtime, ancestor.ParentEffectId);
                     if (parent != null && !parent.ChildEffectIds.Contains(ancestor.EffectId)) break;
@@ -2367,6 +2401,26 @@ namespace YC.Domain.Rules
                 }
                 if (concurrent) request.StateRevision = runtime.StateRevision;
             }
+        }
+
+        private static bool IsFrameworkEnterpriseRequest(GameState state, InteractionRequest request, EffectNodeRuntimeState owner)
+        {
+            if (owner.EffectTypeId != PreparationFrameworkFlow.SelectionTypeId ||
+                request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
+                request.AnsweringPlayerId != owner.PlayerId || state.PreparationRuntime?.Stage != "confirming") return false;
+            var runtime = state.EffectRuntime;
+            var preparation = RuntimeNode(runtime, owner.ParentEffectId);
+            if (preparation?.EffectTypeId != PreparationFrameworkFlow.TypeId ||
+                preparation.EffectId != state.PreparationRuntime.OwnerEffectId || preparation.FlowStage != "confirming" ||
+                !preparation.ChildEffectIds.Contains(owner.EffectId) ||
+                !preparation.ChildSchedulingGroups.Any(group => group.StableGroupKey == PreparationFrameworkFlow.GroupKey &&
+                    group.ChildEffectIds.Contains(owner.EffectId))) return false;
+            var main = RuntimeNode(runtime, preparation.ParentEffectId);
+            string entranceType = state.RuleConfiguration?.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Sequential
+                ? RoundMainlineNodeTypeIds.PlayerEntrance : RoundMainlineNodeTypeIds.PlayerEntranceSetup;
+            return main?.EffectTypeId == MainlineEffectTypeId && main.FlowStage == "preparing_enterprises" &&
+                GetStringProperty(main.NormalizedArguments, "nodeTypeId") == entranceType &&
+                main.ChildEffectIds.Contains(preparation.EffectId) && IsActiveMainlineExecution(runtime, main);
         }
 
         private static bool IsNormalCollectionRequest(GameState state, InteractionRequest request, EffectNodeRuntimeState owner)
@@ -2378,30 +2432,6 @@ namespace YC.Domain.Rules
             return parent?.EffectTypeId == MainlineEffectTypeId &&
                 GetStringProperty(parent.NormalizedArguments, "nodeTypeId") == RoundMainlineNodeTypeIds.Collection &&
                 parent.ChildEffectIds.Contains(owner.EffectId) && IsActiveMainlineExecution(state.EffectRuntime, parent);
-        }
-
-        private static bool IsEntrepreneurInitialEnterpriseRequest(GameState state, InteractionRequest request, EffectNodeRuntimeState owner)
-        {
-            if (owner.EffectTypeId != ExpansionSetupFlow.EnterpriseSelectionTypeId ||
-                request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
-                request.AnsweringPlayerId != owner.PlayerId || state.EntrepreneurSetup?.Stage != "complete") return false;
-            var runtime = state.EffectRuntime;
-            var parent = RuntimeNode(runtime, owner.ParentEffectId);
-            if (parent?.EffectTypeId != ExpansionSetupFlow.PreparationTypeId ||
-                parent.FlowStage != "awaiting_initial_enterprise_tasks" ||
-                ItemTransferEffectExecutor.Number(parent.ContinuationData, "setupProtocolVersion") != 3 ||
-                parent.Status == EffectNodeStatus.Completed || parent.Status == EffectNodeStatus.Failed || parent.Status == EffectNodeStatus.Faulted ||
-                !parent.ChildEffectIds.Contains(state.EntrepreneurSetup.OwnerEffectId) ||
-                RuntimeNode(runtime, state.EntrepreneurSetup.OwnerEffectId)?.EffectTypeId != EntrepreneurFlow.SetupTypeId ||
-                !ValidatePlayerGroup(runtime, parent, "initial_enterprise_selections", runtime.PlayerOrderSnapshot,
-                    ExpansionSetupFlow.EnterpriseSelectionTypeId, out var tasks) || !tasks.Contains(owner)) return false;
-            int draw = tasks.Count == 2 ? 4 : 2, keep = tasks.Count == 2 ? 2 : 1;
-            var candidates = SetupIds(owner.NormalizedArguments, "candidateEnterpriseItemIds");
-            var frozen = SetupIds(parent.ContinuationData, "candidateEnterpriseItemIds").Skip(tasks.IndexOf(owner) * draw).Take(draw);
-            return candidates.Count == draw && candidates.SequenceEqual(frozen) &&
-                ItemTransferEffectExecutor.Number(owner.NormalizedArguments, "keepCount") == keep &&
-                request.MinSelections == keep && request.MaxSelections == keep && !request.AllowDecline &&
-                request.CandidateIds.SequenceEqual(candidates.OrderBy(id => id, StringComparer.Ordinal));
         }
 
         private static bool IsActiveMainlineExecution(EffectRuntimeState runtime, EffectNodeRuntimeState execution) =>
@@ -2444,6 +2474,8 @@ namespace YC.Domain.Rules
         {
             diagnostic = "concurrent_setup_invalid";
             if (state?.EffectRuntime == null) return false;
+            if (!PreparationFrameworkFlow.TryValidateRuntime(state, registry, out diagnostic)) return false;
+            diagnostic = "concurrent_setup_invalid";
             var runtime = state.EffectRuntime;
             foreach (var main in runtime.MainNodes.Where(node => node.NodeTypeId == RoundMainlineNodeTypeIds.PlayerEntranceSetup))
             {
@@ -2469,11 +2501,11 @@ namespace YC.Domain.Rules
                     if (execution.ChildEffectIds.Count != 0) return false;
                     continue;
                 }
+                if (state.SetupRecipe?.Preparation == null) return false;
                 var preparation = execution.ChildEffectIds.Select(id => RuntimeNode(runtime, id))
-                    .Where(node => node?.EffectTypeId == ExpansionSetupFlow.PreparationTypeId).ToList();
+                    .Where(node => node?.EffectTypeId == PreparationFrameworkFlow.TypeId).ToList();
                 if (preparation.Count != 1 || preparation[0].PlayerId != order[0] ||
-                    preparation[0].ParentEffectId != execution.EffectId ||
-                    ItemTransferEffectExecutor.Number(preparation[0].NormalizedArguments, "setupProtocolVersion") != 2) return false;
+                    preparation[0].ParentEffectId != execution.EffectId) return false;
                 if (execution.FlowStage == "preparing_enterprises")
                 {
                     if (EntranceGroup(execution) != null) return false;
@@ -2540,89 +2572,8 @@ namespace YC.Domain.Rules
                     tasks.Any(task => task.Status != EffectNodeStatus.Completed)) return false;
                 if (main.NodeId == runtime.ActiveMainNodeId && main.ActiveTaskPlayerId != GetEntrancePicker(runtime, execution)) return false;
             }
-            foreach (var preparation in runtime.EffectNodes.Where(node =>
-                node.EffectTypeId == ExpansionSetupFlow.PreparationTypeId &&
-                ItemTransferEffectExecutor.Value(node.NormalizedArguments, "setupProtocolVersion") != null))
-            {
-                if (ItemTransferEffectExecutor.Number(preparation.NormalizedArguments, "setupProtocolVersion") != 2) return false;
-                if (state.SetupRecipe?.EnterpriseEntrance != true || preparation.FlowStage == string.Empty) continue;
-                var parent = RuntimeNode(runtime, preparation.ParentEffectId);
-                var main = runtime.MainNodes.Find(node => node.ExecutionEffectId == parent?.EffectId);
-                if (main == null || main.NodeTypeId != RoundMainlineNodeTypeIds.PlayerEntranceSetup) return false;
-                var order = new TurnOrderService().GetTurnOrder(state, main.StartPlayerId);
-                if (preparation.FlowStage == "entrepreneur_setup")
-                {
-                    if (!EntrepreneurFlow.Enabled(state) || ItemTransferEffectExecutor.Number(preparation.ContinuationData, "setupProtocolVersion") != 3 ||
-                        preparation.ChildSchedulingGroups.Any(g => g.StableGroupKey == "initial_enterprise_selections") ||
-                        preparation.ChildEffectIds.Count != 1 || RuntimeNode(runtime, preparation.ChildEffectIds[0])?.EffectTypeId != EntrepreneurFlow.SetupTypeId) return false;
-                    continue;
-                }
-                if (!ValidatePlayerGroup(runtime, preparation, "initial_enterprise_selections", order,
-                    ExpansionSetupFlow.EnterpriseSelectionTypeId, out var tasks)) return false;
-                var candidates = SetupIds(preparation.ContinuationData, "candidateEnterpriseItemIds");
-                var unassigned = SetupIds(preparation.ContinuationData, "unassignedEnterpriseItemIds");
-                int draw = order.Count == 2 ? 4 : 2, keep = order.Count == 2 ? 2 : 1;
-                if (candidates.Count != draw * order.Count || candidates.Distinct().Count() != candidates.Count ||
-                    unassigned.Distinct().Count() != unassigned.Count || candidates.Intersect(unassigned).Any() ||
-                    candidates.Concat(unassigned).Any(id => !IsSetupEnterpriseItem(state, registry, id))) return false;
-                var chosen = new List<string>();
-                var selectedOwners = new List<KeyValuePair<string, int>>();
-                for (int index = 0; index < tasks.Count; index++)
-                {
-                    var task = tasks[index];
-                    if (ItemTransferEffectExecutor.Number(task.NormalizedArguments, "keepCount") != keep ||
-                        !SetupIds(task.NormalizedArguments, "candidateEnterpriseItemIds").SequenceEqual(candidates.Skip(index * draw).Take(draw))) return false;
-                    if (task.Status == EffectNodeStatus.Completed)
-                    {
-                        var selected = SetupIds(task.NormalizedResult, "selectedEnterpriseItemIds");
-                        if (selected.Count != keep || selected.Distinct().Count() != keep ||
-                            selected.Any(id => !candidates.Skip(index * draw).Take(draw).Contains(id))) return false;
-                        chosen.AddRange(selected);
-                        selectedOwners.AddRange(selected.Select(id => new KeyValuePair<string, int>(id, task.PlayerId)));
-                    }
-                    var body=YC.Domain.Cards.MainCoverAuthority.Body(state,task);
-                    foreach (var request in runtime.InteractionRequests.Where(request => (request.OwnerEffectId == task.EffectId||body!=null&&request.OwnerEffectId==body.EffectId) && request.Status == "open"))
-                        if (request.InteractionTypeId != ExpansionSetupFlow.EnterpriseChoiceInteraction ||
-                            request.AnsweringPlayerId != task.PlayerId || request.Visibility != GameStateVisibilityPolicy.Owner ||
-                            request.MinSelections != keep || request.MaxSelections != keep ||
-                            !request.CandidateIds.OrderBy(id => id).SequenceEqual(candidates.Skip(index * draw).Take(draw).OrderBy(id => id))) return false;
-                }
-                if (order.Count == 3)
-                {
-                    string extra = GetStringProperty(preparation.ContinuationData, "randomEnterpriseItemId");
-                    if (!unassigned.Contains(extra)) return false;
-                    chosen.Add(extra);
-                }
-                if (preparation.FlowStage != "awaiting_initial_enterprise_tasks")
-                {
-                    var owners = ItemTransferEffectExecutor.Value(preparation.ContinuationData, "initialEnterprisePlayerIds");
-                    if (tasks.Any(task => task.Status != EffectNodeStatus.Completed) || chosen.Count != 4 ||
-                        !SetupIds(preparation.ContinuationData, "selectedEnterpriseItemIds").SequenceEqual(chosen) ||
-                        owners?.Kind != NormalizedValueKind.Array || owners.Items.Count != selectedOwners.Count) return false;
-                    for (int index = 0; index < selectedOwners.Count; index++)
-                        if (GetStringProperty(owners.Items[index], "enterpriseItemId") != selectedOwners[index].Key ||
-                            ItemTransferEffectExecutor.Number(owners.Items[index], "playerId", -1) != selectedOwners[index].Value) return false;
-                    if (chosen.Any(id => !IsSetupEnterpriseItem(state, registry, id) || !state.ItemZones.Items.Any(item => item.ItemId == id &&
-                        state.ItemZones.Zones.Any(zone => zone.ZoneId == item.ZoneId && zone.LocalZoneId == "enterprises")))) return false;
-                }
-            }
             diagnostic = string.Empty;
             return true;
-        }
-
-        private static List<string> SetupIds(NormalizedValue value, string field) =>
-            ItemTransferEffectExecutor.Value(value, field)?.Items?.Select(item =>
-                item.Kind == NormalizedValueKind.StableReference ? item.ReferenceId : item.StringValue).ToList() ?? new List<string>();
-
-        private static bool IsSetupEnterpriseItem(GameState state, EffectRegistry registry, string itemId)
-        {
-            var item = state.ItemZones?.Items?.Find(candidate => candidate.ItemId == itemId);
-            if (item == null) return false;
-            if (registry != null) return registry.EnterpriseDefinitions?.FindEnterprise(item.DefinitionId) != null;
-            // 创建/追加归档没有 registry：只用本局已绑定的企业语义分类和真实实体类型。
-            // Recover 传入 registry 时仍走上面的完整定义查找，不以快照替代内容验证。
-            return item.TypeId == "core.board_card" && item.PhysicalKind == YC.Domain.Items.ItemPhysicalKind.Card &&
-                state.ContentDefinitions?.EnterpriseDefinitionIds?.Contains(item.DefinitionId) == true;
         }
 
         public static bool TryValidateParallelCoverTasks(GameState state, EffectRegistry registry, out string diagnostic)

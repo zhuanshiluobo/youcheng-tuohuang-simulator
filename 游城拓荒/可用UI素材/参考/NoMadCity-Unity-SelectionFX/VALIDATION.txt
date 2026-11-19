@@ -1,0 +1,12 @@
+Validation performed in cloud workspace, 2026-11-13 UTC.
+PASS: 148 offline mathematical/structural checks (Tests/validate.py).
+Checked 5 aspect ratios, contour center/edges/cut corners/padding,
+selection sweep timing, pulse range, UI masking declarations,
+unscaled time use, resource cleanup and no texture replacement.
+
+NOT RUN: Unity C# compilation, ShaderLab/backend compilation,
+Editor preview rendering, Play Mode, UGUI clipping visually,
+Built-in/URP platform matrix, player build, mobile GPU tests.
+Reason: this workspace has no Unity editor or C# compiler and no user project.
+
+The README provides the required integration acceptance checklist.

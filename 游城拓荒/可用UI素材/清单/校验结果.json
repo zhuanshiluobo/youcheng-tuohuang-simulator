@@ -1,14 +1,16 @@
 {
-  "date": "2026-11-03",
-  "assets": 1396,
+  "date": "2026-11-18",
+  "assets": 1395,
   "formats": {
-    ".png": 1330,
+    ".png": 1329,
     ".jpg": 61,
     ".ttf": 3,
     ".ttc": 1,
     ".otf": 1
   },
-  "bytes": 112457964,
+  "bytes": 112332032,
+  "componentFiles": 5,
+  "componentBytes": 19682,
   "errors": [],
-  "scope": "只核对可用库清单/哈希/PNG CRC与解压，不访问受限原档案，不代表Unity视觉验收"
+  "scope": "只核对可用库清单/哈希/PNG CRC与解压及组件依赖，不访问受限原档案、不执行组件代码，不代表Unity编译或视觉验收"
 }

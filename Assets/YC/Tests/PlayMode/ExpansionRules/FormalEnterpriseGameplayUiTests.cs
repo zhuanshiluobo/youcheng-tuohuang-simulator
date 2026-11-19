@@ -80,7 +80,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Assert.That(dorothy.ZoneId, Is.EqualTo(deck.ZoneId), "受控特派需先在开局选入罗德岛，使正式配方激活干员牌堆。");
             var order = State.ItemZones.Orders.Single(o => o.ZoneId == deck.ZoneId);
             order.ItemIds.Remove(dorothy.ItemId); order.ItemIds.Insert(0, dorothy.ItemId); order.OrderRevision++;
-            Run(OperatorDispatchFlow.CreateSpec(State, 1));
+            Run(OperatorDispatchFlow.CreateSpec(1, FindZone(State, "operator_deck").ZoneId));
             Assert.That(Request.InteractionTypeId, Is.EqualTo("operator.dispatch.choose"));
             ShowFor(1); yield return Capture("正式特派私密候选");
             Assert.That(GameStateViewProjector.ProjectForPlayer(State, 2).Interactions, Is.Empty);

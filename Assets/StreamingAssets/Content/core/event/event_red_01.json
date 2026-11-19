@@ -1,65 +1,66 @@
 {
   "definitionId": "event_red_01",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "险中净土",
   "artwork": "artwork/sheets/event_red_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_red_01",
-    "name": "险中净土",
     "description": "天灾后，这块盆地的源石尘很快散去，只留下裸露的源岩层。这里成了一些科技公司的科研前哨，但你发现这里并不像想象中的安全。活性源石隐藏在连通外界的轨道里，勘探队很快就收到了遇险者的求救信号。",
     "color": 2,
     "resourceType": 0,
     "resourceAmount": 2,
     "representativeResourceType": 0,
     "representativeResourceAmount": 2,
-    "choiceDescriptions": [
-      "开采源岩，那些学者自有人去救：获得 7 源岩",
-      "在更多人遇害前开始清理源石：获得 6 源石碎片",
-      "你的人搭救了遇险的考察队，他们愿意还这份人情：获得 6 金券；在此资源点或相邻的航道上放置 1 个影响力标识"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 7,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_02",
+        "description": "在更多人遇害前开始清理源石：获得 6 源石碎片",
+        "button": {
+          "topPercent": 65.0,
+          "bottomPercent": 73.0
+        },
+        "script": "lua/events/choices/event_red_01.choice_02.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 6,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "开采源岩，那些学者自有人去救：获得 7 源岩",
+        "button": {
+          "topPercent": 73.0,
+          "bottomPercent": 80.5
+        },
+        "script": "lua/events/choices/event_red_01.choice_01.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 6
+        "choiceId": "choice_03",
+        "description": "你的人搭救了遇险的考察队，他们愿意还这份人情：获得 6 金券；在此资源点或相邻的航道上放置 1 个影响力标识",
+        "button": {
+          "topPercent": 80.5,
+          "bottomPercent": 96.666667
+        },
+        "script": "lua/events/choices/event_red_01.choice_03.lua",
+        "version": "1.0.0",
+        "completionHandlerId": "event_red_01.choice_03.completed"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      [],
-      [
-        {
-          "kind": 3,
-          "resourceType": 0,
-          "amount": 1,
-          "targetScope": 3,
-          "costResourceType": 4,
-          "costAmount": 0
-        }
-      ]
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_red_001"
+  "artworkSpriteId": "event_red_001",
+  "abilityHandlers": [
+    {
+      "handlerId": "event_red_01.choice_03.completed",
+      "script": "lua/events/choices/event_red_01.choice_03.completed.lua",
+      "version": "1.0.0"
+    }
+  ],
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

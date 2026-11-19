@@ -1,10 +1,13 @@
 {
-  "date": "2026-11-01",
+  "date": "2026-11-16",
   "basis": [
     "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
     "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md",
     "2026-10-23 用户明确要求：新增Settlement-Icons-EndPhase-v1.2，整理进可用UI素材",
-    "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材"
+    "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
+    "2026-11-12 用户指定建设与城市样式互查按钮复用建设取消按钮样式",
+    "2026-11-13 用户授权局内连接状态页的重连按钮复用设置页返回主菜单按钮四态",
+    "2026-11-16 用户指定 C:\\Users\\wzy\\Downloads\\NoMadCity-Unity-SelectionFX.zip 整理入库"
   ],
   "interpretation": "当前用途标准优先于原包旧映射。用户明确更改用途时直接覆写对应用途期望，不将旧默认与新例外并存。",
   "standards": [
@@ -58,7 +61,7 @@
       "role": "UI-011普通页面按钮",
       "expected": "Frontier3.1主/次/禁用按钮",
       "status": "待修正",
-      "scope": "设置、日志、图片查看器等报告U01普通页面；不覆盖A02；不含C01条件确认/普通Pay共用模式两按钮",
+      "scope": "设置、日志、图片查看器等报告U01普通页面；不覆盖A02；不含C01条件确认/普通Pay共用模式两按钮；不含 U04 两页互查按钮",
       "basis": [
         "2026-10-08 用户本轮明确确认；随后要求直接覆写当前期望，不登记为用途例外",
         "游城拓荒/可用UI素材/文档/当前用途标准与实际参数.md"
@@ -609,7 +612,7 @@
       "id": "P01",
       "role": "CardPicker次按钮",
       "expected": "用户指定botton-secondary-v2.0.png，直接替换原Card-Picker-UI-v1 button-secondary.png",
-      "status": "可用库替换完成；只读核对的CardPickerDialog源Prefab仍用旧图，本次未导入Unity或换绑",
+      "status": "2026-11-13 已按用户授权将2.0图换绑至CardPickerDialog源Prefab；原UV与ColorTint不变，正常流程视觉验收待完成",
       "scope": "仅专用CardPicker的次按钮（取消、返回、重新选择等由当前流程决定的次操作）；不扩展到主按钮、CardViewer、普通窗口或其他同名按钮",
       "basis": [
         "2026-11-01 用户明确指定 botton-secondary-v2.0.png 替换 Card-Picker-UI-v1 的次按钮，整理进可用UI素材",
@@ -621,6 +624,82 @@
       ],
       "replacedAssetHashes": [
         "15a6e668d41e417f50c946110288475d72524972e5937808274a2d110f60e7a2"
+      ]
+    },
+    {
+      "id": "U04",
+      "role": "建设与城市样式互查按钮",
+      "expected": "建设取消按钮同源 MainButtons 3.2 action 四态，UiMainButtonState 驱动",
+      "status": "两个源预制体已绑定；隔离界面与付款放置夹具通过，正常独立程序视觉待验",
+      "scope": "FacilityBuildDialog/View City Styles；CityStyleDeclarationPreviewDialog/View Facility Supply",
+      "basis": [
+        "2026-11-12 用户指定建设页和城市样式页各加互查按钮并使用建设页取消按钮样式"
+      ],
+      "parameters": "参数/项目实际用法/建设与城市样式互查按钮.json",
+      "assetHashes": [
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae"
+      ]
+    },
+    {
+      "id": "G02",
+      "role": "局内设置连接状态页重连按钮",
+      "expected": "局内设置页返回主菜单按钮同源 MainButtons 3.2 action 四态，UiMainButtonState 驱动",
+      "status": "源预制体已绑定；界面与联机重连验收进行中",
+      "scope": "InGameSettingsMenu/占位 Content/Reconnect Button",
+      "basis": [
+        "2026-11-13 用户授权复用局内设置页返回主菜单按钮的四态样式"
+      ],
+      "parameters": "参数/项目实际用法/局内连接状态重连按钮.json",
+      "assetHashes": [
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae"
+      ]
+    },
+    {
+      "id": "F02",
+      "role": "计分详情玩家切换按钮",
+      "expected": "终局页面收起按钮同源 MainButtons 3.2 action 四态，UiMainButtonState 驱动",
+      "status": "源预制体已绑定，正常独立程序视觉待验",
+      "scope": "FinalScore.prefab/Final Score Detail Player Row Template/Player Switch",
+      "basis": [
+        "2026-11-17 用户指定计分详情的切换按钮使用与收起按钮相同的通用按钮素材"
+      ],
+      "parameters": "参数/项目实际用法/计分详情玩家切换按钮.json",
+      "assetHashes": [
+        "079072283a94c6250ffec782a1343c0f2220fac037e72fafa8831e8410dd8615",
+        "744cb1414223be8e28d2dac592c1e98ccf583252e2cd1bd8abb4232b55020ca1",
+        "3379c0efe18212368dec821fab8e96ee5196044b3ba1d7cca8a0fe8ac22bb541",
+        "33c15dfc0af935ed58dfc32a343054e18ad0778a64903609f872d34a08d253ae"
+      ]
+    },
+    {
+      "id": "FX01",
+      "role": "五类候选对象的程序化选择装饰",
+      "expected": "SelectionFX v8：限定对象选中态使用金属装饰，移除旧选中框；无额外白色焦点外框，其他状态沿用原界面",
+      "status": "Unity 编辑器编译与隔离组件渲染检查通过；独立程序正常流程画面尚未验收",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+      "basis": [
+        "2026-11-16 用户指定 v8 包，要求完整更新代码并保留原有 meta",
+        "文档/SelectionFX程序化选择效果登记.md",
+        "2026-11-17 用户明确要求清除已由特效接管的旧选中状态贴图"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "assetHashes": [],
+      "componentIds": [
+        "SelectionFX.Shader",
+        "SelectionFX.Graphic",
+        "SelectionFX.Input",
+        "SelectionFX.Inspector",
+        "SelectionFX.AlignmentEditor"
+      ],
+      "relationship": "选中态替代限定对象的旧选中框；共享素材如仍服务其他用途则保留。CardPicker旧选中图无其他有效用途，退出可用候选。",
+      "replacedAssetHashes": [
+        "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf"
       ]
     }
   ]

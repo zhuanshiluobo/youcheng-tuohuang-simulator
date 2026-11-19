@@ -29,7 +29,7 @@ namespace YC.Domain.Effects
                 {
                     var declaration=registry.GetAbilitySourceDeclaration(source.AbilityId);
                     if(!MatchesCompletion(context.State,context.Event,declaration))continue;
-                    if(declaration.Kind=="event" && declaration.AllowedOperations.Any(p=>p.StartsWith("response.",StringComparison.Ordinal)))continue;
+                    if(declaration.Kind=="event" && declaration.ResponseKinds.Count>0)continue;
                     if(AbilitySourceEffectExecutor.IsConsumed(context.State,source,"event:"+context.Event.EventId))continue;
                     effects.Add(AbilitySourceEffectExecutor.Create(source,context.Event,declaration.HandlerRef,false,context.State.Round));
                 }

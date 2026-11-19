@@ -52,6 +52,9 @@ namespace YC.Infrastructure.Multiplayer
                     configuration["RuleModeId"]?.Type != JTokenType.String || configuration["EnabledExpansionIds"]?.Type != JTokenType.Array ||
                     configuration["PlayerCount"]?.Type != JTokenType.Integer || configuration["ConfigurationRevision"]?.Type != JTokenType.Integer ||
                     configuration["ContentPackHash"]?.Type != JTokenType.String || configuration["RuleContractVersion"]?.Type != JTokenType.String) return false;
+                if (configuration["AdditionalRuleModeIds"] != null && configuration["AdditionalRuleModeIds"].Type != JTokenType.Null &&
+                    configuration["AdditionalRuleModeIds"].Type != JTokenType.Array) return false;
+                if (configuration["AdditionalRuleModeIds"] is JArray modes && modes.Any(mode => mode.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)mode))) return false;
                 foreach (var slot in slots)
                     if (!(slot is JObject entry) || entry["SeatIndex"]?.Type != JTokenType.Integer || entry["Status"]?.Type != JTokenType.String ||
                         entry["IsUserReady"]?.Type != JTokenType.Boolean || entry["ReadyConfigurationRevision"]?.Type != JTokenType.Integer ||
@@ -89,7 +92,8 @@ namespace YC.Infrastructure.Multiplayer
                 room.Configuration == null || room.SeatSlots == null || room.SeatSlots.Count != 4 ||
                 room.PendingSeatSwaps == null || room.StateRevision < 0 || room.Configuration.ConfigurationRevision < 0)
                 return false;
-            if (!room.Configuration.TryValidate(out reasonCode)) return false;
+            // 房间反序列化只检查协议和锁定形状；未知玩法仍须能显示缺包，准备/开局由本机目录精确校验。
+            if (!room.Configuration.TryValidateFrozenShape(out reasonCode)) return false;
             reasonCode = "room_protocol_mismatch";
             var players = new HashSet<int>();
             for (var i = 0; i < 4; i++)
@@ -123,6 +127,7 @@ namespace YC.Infrastructure.Multiplayer
             if (room.RandomReady)
             {
                 if (room.RandomAlgorithmVersion != GameplayRandomRuntime.AlgorithmVersion ||
+                    room.RandomRuntime?.AlgorithmVersion != GameplayRandomRuntime.AlgorithmVersion ||
                     !GameplayRandomRuntime.TryValidate(room.RandomRuntime, room.GameId, room.EventDeckSeed, out _)) return false;
             }
             else if (!string.IsNullOrEmpty(room.GameId) || room.EventDeckSeed != 0 || room.RandomRuntime != null ||

@@ -138,19 +138,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Artifacts.WriteLabeledText("I01SourceRef原始token挑战结果",JsonConvert.SerializeObject(new{stateAfter,result.Succeeded,result.Diagnostic}));Assert.That(result.Succeeded,Is.False,"字符串token不能由反序列化强转为合法player整数");
         }
         [Test]
-        public void I01Q201IndependentActionHandlerReadsAllSourceApisAndOnlyItsOwnPoliciesAcrossPages()
+        public void I01Q201IndependentActionHandlerReadsAllAvailableActionsAcrossPagesWithoutPolicies()
         {
-            const string h0policy="i01.h0.policy";
             string script=@"return function(ctx) local a=SourceData.GetCurrentSources({abilityId='qy007.public.body'});assert(a.totalCount==1 and a.items[1].itemId==ctx.payload.sourceItemId)
                 local g=SourceData.GetGrantSources();assert(g.ruleOwnerSourceKey==a.items[1].sourceKey)
-                local cursor,n=0,0;repeat local p=SourceData.GetCallableActions({cursor=cursor});for _,o in ipairs(p.items) do assert(o.enabled and o.callPolicyRef~='i01.h0.policy');n=n+1 end;cursor=p.nextCursor until cursor==-1
-                assert(n==6,'independent_handler_policy_count');return {Effect.GainScore({player=ctx.playerId,amount=1})} end";
+                local cursor,n=0,0;repeat local p=SourceData.GetCallableActions({cursor=cursor});for _,o in ipairs(p.items) do if string.match(o.actionId,'^i01%.target%.') then assert(o.enabled);n=n+1 end end;cursor=p.nextCursor until cursor==-1
+                assert(n==7,'independent_handler_target_count');return {Effect.GainScore({player=ctx.playerId,amount=1})} end";
             using var f=Fixture("return function(ctx) return {} end",script,j=>{
                 var s=ReviewSource(j);s["Kind"]="quick";var actions=new List<AbilityActionDeclaration>{new AbilityActionDeclaration{ActionId="i01.independent.caller",EntryKind="quick",BodyHandlerRef=Due,PresentationRef=Definition}};
-                var policies=new List<AbilityActionCallPolicy>();
-                for(int i=0;i<7;i++) {string policy=i==6?h0policy:"i01.h1.policy."+i,action="i01.target."+i;actions.Add(new AbilityActionDeclaration{ActionId=action,EntryKind="quick",BodyHandlerRef=Signal,DirectCallPolicy=policy,PresentationRef=Definition});
-                    policies.Add(new AbilityActionCallPolicy{PolicyRef=policy,CallerAbilityId=Signal,CallerHandlerRef=i==6?Signal:Due,TargetActionId=action,OmitEntryCost=true,OmitEntryAfterEffects=true,OmitMainAction=true});((JArray)s["AllowedOperations"]).Add("action.invoke:"+policy);}
-                s["Actions"]=JArray.FromObject(actions);j["actionCallPolicies"]=JArray.FromObject(policies);
+                for(int i=0;i<7;i++) {string action="i01.target."+i;actions.Add(new AbilityActionDeclaration{ActionId=action,EntryKind="quick",BodyHandlerRef=Signal,PresentationRef=Definition});}
+                s["Actions"]=JArray.FromObject(actions);
             },fullRound:true);
             for(int guard=0;guard<200 && f.State.Phase!=GamePhase.ActionRound1;guard++) AdvanceVisible(f);
             int score=f.State.FindPlayer(1).Score;f.Run(AbilityActionExecutor.Create(f.Registry.QueryActions(f.State,1).Single(o=>o.ActionId=="i01.independent.caller"),"i01.independent.action",Object()));

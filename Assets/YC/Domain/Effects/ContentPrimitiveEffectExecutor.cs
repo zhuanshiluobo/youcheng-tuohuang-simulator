@@ -139,7 +139,8 @@ namespace YC.Domain.Effects
                 if (!AllocationEffects.ValidateNode(state,node,out reason)) return false;
                 reason = RetiredMarkerContractReason(node.EffectTypeId, node.NormalizedArguments); if (reason.Length > 0) return false;
                 reason = ItemMovementV4.ValidateSavedVersion(node.EffectTypeId, node.NormalizedArguments, node.DefinitionVersion, true); if (reason.Length > 0) return false;
-                reason=FacilityBuildContract.ValidateSavedVersion(node.EffectTypeId,node.DefinitionVersion,true);if(reason.Length>0)return false;
+                reason=FacilityBuildContract.ValidateSavedVersion(node.EffectTypeId,node.DefinitionVersion,true);
+                if(reason.Length>0 && !FacilityBuildContract.IsCompletedLegacy(node))return false;
                 reason=CharacterDoubleUseConsumption.ValidateSavedVersion(node.EffectTypeId,node.DefinitionVersion,true);if(reason.Length>0)return false;
                 if(!CharacterDoubleUseConsumption.TryValidate(state,node)){reason="character_double_use_source_state_invalid";return false;}
                 reason = CharacterCoverEffectExecutor.ValidateSavedVersion(node.EffectTypeId, node.NormalizedArguments, node.DefinitionVersion, true); if (reason.Length > 0) return false;

@@ -11,8 +11,8 @@ namespace YC.Domain.Effects
     /// <summary>把原有受授权样式原语转接到同一调用帧；不公开客户端跳费开关。</summary>
     public static class AbilityLegacyStyleBridge
     {
-        public const string PolicyRef = "host.legacy_style.v1", AuthorizationPrefix = "legacy-style-effect:";
-        public static AbilityActionCallPolicy Policy => new AbilityActionCallPolicy { PolicyRef = PolicyRef, OmitMainAction = true };
+        public const string AuthorizationPrefix = "legacy-style-effect:";
+        public static AbilityActionExecutionOptions Options => new AbilityActionExecutionOptions { OmitMainAction = true };
         public static EffectStepResult ExecuteActivation(EffectExecutionContext context)
         {
             if (!context.Registry.HasAbilityCatalog) return EffectStepResult.Failed("ability_catalog_required");
@@ -22,9 +22,9 @@ namespace YC.Domain.Effects
             var child = context.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == context.Node.EffectId && IsBridge(n));
             return child.Status == EffectNodeStatus.Failed ? EffectStepResult.Failed(child.FailureReason) : EffectStepResult.Completed();
         }
-        public static bool IsBridge(EffectNodeRuntimeState node) => node.EffectTypeId == AbilityActionExecutor.DirectTypeId && Flag(node.NormalizedArguments, "hostLegacyStyleGrant");
+        public static bool IsBridge(EffectNodeRuntimeState node) => node != null && node.EffectTypeId == AbilityActionExecutor.DirectTypeId && Flag(node.NormalizedArguments, "hostLegacyStyleGrant");
         public static EffectSpec Create(int player, string actionId, string markerId) => EffectSpec.Create(AbilityActionExecutor.DirectTypeId,
-            Object("hostLegacyStyleGrant", NormalizedValue.CreateBoolean(true), "actionId", NormalizedValue.CreateString(actionId), "markerId", NormalizedValue.CreateString(markerId), "callPolicyRef", NormalizedValue.CreateString(PolicyRef)), player);
+            Object("hostLegacyStyleGrant", NormalizedValue.CreateBoolean(true), "actionId", NormalizedValue.CreateString(actionId), "markerId", NormalizedValue.CreateString(markerId), "omitMainAction", NormalizedValue.CreateBoolean(true)), player);
         private static bool ValidateParent(GameState state, EffectNodeRuntimeState activation, int player, string actionId, string markerId)
         {
             if (activation?.EffectTypeId != CityStyleSpecialActionEffectTypeIds.Activate || activation.PlayerId != player ||
@@ -43,7 +43,7 @@ namespace YC.Domain.Effects
             if (!IsBridge(node) || !ValidateParent(state, activation, node.PlayerId, actionId, markerId)) return null;
             var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.Actions.Any(a => a.ActionId == actionId));
             var action = declaration?.Actions.Single(a => a.ActionId == actionId);
-            if (action?.DirectCallPolicy != PolicyRef) return null;
+            if (action?.EntryKind != "special") return null;
             var item = state.ItemZones.Items.SingleOrDefault(i => i.DefinitionId == declaration.DefinitionId && state.ItemZones.Zones.Any(z => z.ZoneId == i.ZoneId && z.TemplateId == "core.zone.city_style_display"));
             if (item == null) return null;
             bool publicSource = Text(activation.NormalizedArguments, "activationSource") == "public_style";

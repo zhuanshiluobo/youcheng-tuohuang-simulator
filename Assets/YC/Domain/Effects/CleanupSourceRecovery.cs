@@ -9,6 +9,33 @@ namespace YC.Domain.Effects
 {
     public static class CleanupSourceRecovery
     {
+        public const string ReconcileEvent = "PlayerCleanupSourcesUpdated";
+        public const string ReconcileHandler = "ability-source.event.PlayerCleanupSourcesUpdated";
+        public const string ReconcileSemantic = "cleanup-source-refresh";
+
+        // 补登记必须指向同一收尾窗内刚完成的已受理效果；原收尾开始事件仍是窗口身份。
+        public static bool IsReconcileEvent(GameState state, SettlementWindowRuntimeState window, RuleEvent value)
+        {
+            if (state?.EffectRuntime == null || window?.Context?.Kind != SettlementEntryService.PlayerCleanup || value == null ||
+                value.EventType != ReconcileEvent || value.OwnerNodeId != window.Context.OwnerEffectId || value.PlayerId != window.Context.PlayerId ||
+                Text(value.Payload, "cleanupTriggerEventId") != window.Context.TriggerId ||
+                value.EventId != StableIdFactory.Create("event", value.SourceEffectId, ReconcileEvent, "", ReconcileSemantic) ||
+                !state.EffectRuntime.RuleEvents.Any(e => e.EventId == window.Context.TriggerId && e.EventType == "PlayerCleanupStarted" &&
+                    e.OwnerNodeId == window.Context.OwnerEffectId && e.PlayerId == window.Context.PlayerId)) return false;
+            var cause = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == value.SourceEffectId);
+            return cause != null && cause.ParentEffectId == window.Context.OwnerEffectId && cause.PlayerId == window.Context.PlayerId &&
+                (cause.Status == EffectNodeStatus.Completed || cause.Status == EffectNodeStatus.Failed) &&
+                window.Entries.Any(e => e.AcceptedUseCount > 0 && (e.TargetEffectId == cause.EffectId ||
+                    e.CleanupSource?.Invocations.Any(i => i.TargetEffectId == cause.EffectId && i.Status != "executing") == true));
+        }
+
+        public static bool HasReconcileReceipt(GameState state, SettlementWindowRuntimeState window, string targetId, string eventId = null)
+        {
+            var runtime = state.EffectRuntime;
+            return runtime.DispatchReceipts.Any(r => r.Succeeded && r.HandlerId == ReconcileHandler && (eventId == null || r.EventId == eventId) && r.AttachedEffectIds.Contains(targetId) &&
+                IsReconcileEvent(state, window, runtime.RuleEvents.SingleOrDefault(e => e.EventId == r.EventId)));
+        }
+
         // 由公共Host恢复入口调用；不得让JSON默认值掩盖被删掉的收据字段。
         public static bool HasRawFields(JObject state)
         {
@@ -73,7 +100,8 @@ namespace YC.Domain.Effects
                 Text(anchor.NormalizedArguments, "handlerRef") != source.BodyHandlerRef ||
                 anchor.Settlement.AbilityId != entry.AbilityId || anchor.Settlement.LocalId != entry.LocalId || anchor.Settlement.SourceItemId != entry.SourceItemId ||
                 anchor.Settlement.SourceEffectId != entry.SourceEffectId || anchor.Settlement.WholeEffectPolicy != entry.WholeEffectPolicy ||
-                !runtime.DispatchReceipts.Any(r => r.EventId == window.Context.TriggerId && r.Succeeded && r.HandlerId == "ability-source.event.PlayerCleanupStarted" && r.AttachedEffectIds.Contains(anchor.EffectId))) return false;
+                !runtime.DispatchReceipts.Any(r => r.EventId == window.Context.TriggerId && r.Succeeded && r.HandlerId == "ability-source.event.PlayerCleanupStarted" && r.AttachedEffectIds.Contains(anchor.EffectId)) &&
+                !HasReconcileReceipt(state, window, anchor.EffectId)) return false;
             var declaration = (registry?.AbilityDeclarations ?? state.ContentDefinitions?.AbilitySources)?.SingleOrDefault(d => d.AbilityId == entry.AbilityId && d.DefinitionId == entry.SourceDefinitionId);
             if (declaration == null || declaration.Kind != "cleanup" || declaration.RepeatPolicy != source.RepeatPolicy ||
                 declaration.HandlerRef != source.BodyHandlerRef || declaration.DeclarationVersion != source.VersionRef.DefinitionVersion ||

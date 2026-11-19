@@ -14,6 +14,8 @@ namespace YC.Infrastructure.Lua
     /// <summary>所有物理类型共享来源目录；这里只装配冻结处理器，不执行收益。</summary>
     public static class AbilitySourceLuaCatalog
     {
+        // 完成处理器按完整来源和版本身份登记；变更时进入对局内容指纹。
+        public const string ContinuationBindingVersion = "2.0.0";
         public static void ValidateCarrierPermissions(IEnumerable<ExternalContentDefinition> definitions)
         {
             var all = definitions.ToList(); var types = ItemTypeRegistry.CreateBuiltIn();
@@ -41,7 +43,7 @@ namespace YC.Infrastructure.Lua
             }
         }
         private static readonly string[] Events = { "PlayerCleanupStarted", "RoundStarted", "RoundEnded", "CharacterCardCovered", "CharacterCoverCompleted", "CharacterEffectCompleted", "CharacterUseFinished", "EffectCompleted",
-            "CollectionStarted", "CityMoveCompleted", "InfluenceRemoved", "InfluenceReplaced", "FacilityPlaced", "FinalScoringStarted", "CandidateSetBuilding" };
+            "CollectionStarted", "OperatorDispatchStarting", "CityMoveCompleted", "InfluenceRemoved", "InfluenceReplaced", "FacilityPlaced", "FinalScoringStarted", "CandidateSetBuilding" };
         private static readonly string[] Queries = { "scoringModifiers.v1", "collection_free_locations.v1", "city_destination.v1", "built_facilities.v1", "payment_substitution.v1", "influence_place_attaching.v1",
             ResourcePaymentSourceService.QueryKind, ResourcePaymentCostPreview.DemandQueryKind,
             YC.Domain.Facilities.FacilityBuildQueryService.SlotKind, YC.Domain.Facilities.FacilityBuildQueryService.SourceKind };
@@ -54,11 +56,11 @@ namespace YC.Infrastructure.Lua
                 if (value is not Newtonsoft.Json.Linq.JObject obj || obj.Properties().Any(p => !fields.Contains(p.Name))) throw new InvalidDataException("ability_declaration_unknown_field:" + type.Name);
                 string[] required = type == typeof(AbilitySourceDeclaration) ? new[] { "ProtocolVersion", "AbilityId", "Kind", "HandlerRef", "DeclarationVersion", "AuthorizationPolicy", "EffectiveZones", "PresentationRef" } :
                     type == typeof(AbilityActionDeclaration) ? new[] { "ActionId", "EntryKind", "BodyHandlerRef", "PresentationRef" } :
-                    type == typeof(ExternalAbilityHandler) ? new[] { "HandlerId", "Script", "Version" } : new[] { "PolicyRef", "CallerAbilityId", "TargetActionId" };
+                    new[] { "HandlerId", "Script", "Version" };
                 if (required.Any(name => obj.GetValue(name, StringComparison.OrdinalIgnoreCase) == null || obj.GetValue(name, StringComparison.OrdinalIgnoreCase).Type == Newtonsoft.Json.Linq.JTokenType.Null))
                     throw new InvalidDataException("ability_declaration_required_field:" + type.Name);
             }
-            foreach (var pair in new[] { new { Name = "abilitySources", Type = typeof(AbilitySourceDeclaration) }, new { Name = "abilityHandlers", Type = typeof(ExternalAbilityHandler) }, new { Name = "actionCallPolicies", Type = typeof(AbilityActionCallPolicy) } })
+            foreach (var pair in new[] { new { Name = "abilitySources", Type = typeof(AbilitySourceDeclaration) }, new { Name = "abilityHandlers", Type = typeof(ExternalAbilityHandler) } })
             {
                 if (json[pair.Name] == null) continue;
                 if (json[pair.Name] is not Newtonsoft.Json.Linq.JArray array) throw new InvalidDataException("ability_declaration_array_required:" + pair.Name);
@@ -77,7 +79,7 @@ namespace YC.Infrastructure.Lua
         }
         public static void ValidateAndLoad(ExternalContentPack pack, ExternalContentDefinition content)
         {
-            if (content.AbilitySources == null || content.AbilityHandlers == null || content.ActionCallPolicies == null) throw new InvalidDataException("ability_source_list_missing:" + content.DefinitionId);
+            if (content.AbilitySources == null || content.AbilityHandlers == null) throw new InvalidDataException("ability_source_list_missing:" + content.DefinitionId);
             var zones = ZoneTemplateRegistry.CreateBuiltIn(ItemTypeRegistry.CreateBuiltIn());
             foreach (var source in content.AbilitySources)
             {
@@ -177,22 +179,44 @@ namespace YC.Infrastructure.Lua
                     });
                 foreach (var handler in handlers)
                 {
+                    var owningSource = content.AbilitySources.FirstOrDefault(s => s.HandlerRef == handler.HandlerId || s.AllowedOperations.Contains("cleanup.defer:"+handler.HandlerId) || s.Actions.Any(a => a.BodyHandlerRef == handler.HandlerId || a.EntryCostRef == handler.HandlerId || a.EntryAfterEffectsRef == handler.HandlerId));
+                    var owningAbility = content.Abilities.FirstOrDefault(a => a.SubscriptionId == handler.HandlerId);
+                    bool eventCompletionOnly = content.ContentType == "event" && owningSource == null && owningAbility == null &&
+                        (content.Data["choices"] as Newtonsoft.Json.Linq.JArray)?.Any(choice => (string)choice["completionHandlerId"] == handler.HandlerId) == true;
+                    if (eventCompletionOnly) continue; // 由事件选择目录按冻结定义和完整续接身份登记。
                     if (!registrations.Add(handler.HandlerId)) throw new InvalidOperationException("ability_handler_duplicate:" + handler.HandlerId);
                     string source = pack.GetScript(handler.Script), hash = LuaContentHasher.ComputeSha256(source);
-                    var owningSource = content.AbilitySources.FirstOrDefault(s => s.HandlerRef == handler.HandlerId || s.AllowedOperations.Contains("cleanup.defer:"+handler.HandlerId) || s.Actions.Any(a => a.BodyHandlerRef == handler.HandlerId || a.EntryCostRef == handler.HandlerId || a.EntryAfterEffectsRef == handler.HandlerId));
-                    string ability = owningSource?.AbilityId ?? content.Abilities.First(a => a.SubscriptionId == handler.HandlerId).AbilityId;
+                    string ability = owningSource?.AbilityId ?? owningAbility?.AbilityId ?? throw new InvalidOperationException("ability_handler_source_missing:" + handler.HandlerId);
                     string contentId = content.ContentType == "city_style" ? "content." + handler.HandlerId : content.DefinitionId;
                     string instanceId = content.ContentType == "city_style" ? CityStyleLuaCatalog.ContentInstanceId : content.DefinitionId;
                     var definition = new LuaHandlerDefinition(handler.HandlerId, "AbilityInvoked", "", new LuaScriptDefinition(contentId, ability, handler.HandlerId, handler.Version, source, hash, pack.GetScriptEntryId(handler.Script)),
                         EffectHandlerRole.Primary, contentInstanceId: instanceId, abilityId: ability, completionHandlerId: handler.CompletionHandlerId);
-                    if (owningSource != null && handler.CompletionHandlerId.Length > 0 && !registry.HasEventHandler(handler.CompletionHandlerId))
-                        dispatcher.RegisterContinuation(new LuaHandlerDefinition(handler.CompletionHandlerId, "EffectCompleted", "", new LuaScriptDefinition(contentId, ability, handler.CompletionHandlerId, handler.Version, source, hash, definition.Script.EntryId),
+                    if (owningSource != null && handler.CompletionHandlerId.Length > 0 &&
+                        !registry.TryGetContinuation(handler.CompletionHandlerId, "EffectCompleted", contentId, instanceId,
+                            ability, handler.Version, hash, out _))
+                    {
+                        // 旧城市样式路由和来源能力可能使用同一个完成处理器名但不同入口版本；
+                        // 为各自的完整内容身份登记，不能因为名字相同而丢弃正式来源的续接。
+                        string subscription = registry.HasEventHandler(handler.CompletionHandlerId)
+                            ? StableIdFactory.Create("ability-source-continuation", contentId, instanceId, ability,
+                                handler.CompletionHandlerId, handler.Version, hash)
+                            : handler.CompletionHandlerId;
+                        dispatcher.RegisterContinuation(new LuaHandlerDefinition(subscription, "EffectCompleted", "", new LuaScriptDefinition(contentId, ability, handler.CompletionHandlerId, handler.Version, source, hash, definition.Script.EntryId),
                             EffectHandlerRole.Continuation, contentInstanceId: instanceId, abilityId: ability));
+                    }
                     registry.RegisterNonRetainedSourceHandler(handler.HandlerId, hash, call =>
                     {
                         var bound = BindSource(definition, call.SourceRef.AbilityId);
                         return dispatcher.Invoke(bound, Context(call, bound, registry));
                     },handler.Version);
+                    if (content.AbilitySources.Any(s => s.Kind == "event" && s.HandlerRef == handler.HandlerId && s.ObservedEvents.Contains(YC.Domain.Cards.OperatorDispatchFlow.StartingEvent)))
+                        registry.RegisterOperatorDispatchCountPolicy("ability-source.dispatch-count." + handler.HandlerId,
+                            LuaEffectEventDispatcher.CandidateSourceIdentity(definition.Script), (context, payload) =>
+                            registry.QuerySources(context.State, -1, "event", YC.Domain.Cards.OperatorDispatchFlow.StartingEvent)
+                                .Where(sourceRef => registry.GetAbilitySourceDeclaration(sourceRef.AbilityId).HandlerRef == handler.HandlerId)
+                                .OrderBy(sourceRef => sourceRef.SourceKey, StringComparer.Ordinal)
+                                .Select(sourceRef => dispatcher.InvokeOperatorDispatchPatch(BindSource(definition, sourceRef.AbilityId), context, payload,
+                                    sourceRef.AuthorizedPlayerId, sourceRef.ItemId)).ToArray());
                     if (content.AbilitySources.Any(s => s.Kind == "ruleQuery" && s.HandlerRef == handler.HandlerId && s.QueryKinds.Contains("influence_place_attaching.v1")))
                         registry.RegisterInfluencePlaceHandler(handler.HandlerId, (state, sourceRef, facts) =>
                         {
@@ -218,14 +242,6 @@ namespace YC.Infrastructure.Lua
                         return dispatcher.InvokeAbilityQuery(bound, context);
                     });
                 }
-                foreach (var policy in content.ActionCallPolicies)
-                {
-                    var caller = content.AbilitySources.Single(s => s.AbilityId == policy.CallerAbilityId);
-                    var handler = content.AbilityHandlers.FirstOrDefault(h => h.HandlerId == (policy.CallerHandlerRef.Length > 0 ? policy.CallerHandlerRef : caller.HandlerRef)) ??
-                        content.AbilityHandlers.FirstOrDefault(h => caller.Actions.Any(a => a.BodyHandlerRef == h.HandlerId));
-                    if (handler == null) throw new InvalidOperationException("action_call_caller_handler_missing");
-                    policy.CallerHandlerHash = LuaContentHasher.ComputeSha256(pack.GetScript(handler.Script)); registry.RegisterActionCallPolicy(policy);
-                }
             }
             UsageTracks.Register(registry, pack.ActiveDefinitions.SelectMany(d => d.UsageTracks));
             UsageTracks.RegisterResetBinding(registry);
@@ -235,7 +251,7 @@ namespace YC.Infrastructure.Lua
             DepartureSourceLuaCatalog.Register(registry, pack);
             var settlements = SettlementHostCatalog.Register(registry, pack);
             CleanupSourceLuaCatalog.Register(registry, settlements);
-            foreach (string eventType in Events.Where(e => e != "CandidateSetBuilding"))
+            foreach (string eventType in Events.Where(e => e != "CandidateSetBuilding" && e != YC.Domain.Cards.OperatorDispatchFlow.StartingEvent))
             {
                 if (eventType == "EffectCompleted" && AbilityCompletionSourceCatalog.TryRegister(registry, pack.ContentHash)) continue;
                 string subscription = "ability-source.event." + eventType;
@@ -247,7 +263,7 @@ namespace YC.Infrastructure.Lua
                     {
                         var declaration = registry.GetAbilitySourceDeclaration(source.AbilityId);
                         if (!AbilityEventLuaFacts.MatchesCompletion(context.State, context.Event, declaration)) continue;
-                        if (declaration.Kind == "event" && declaration.AllowedOperations.Any(p => p.StartsWith("response.", StringComparison.Ordinal))) continue;
+                        if (declaration.Kind == "event" && declaration.ResponseKinds.Count > 0) continue;
                         EffectSpec root;
                         if (declaration.Kind == "cleanup" && declaration.RepeatPolicy == "unbounded")
                             root = registry.CreateCleanupSourceRegistration(source, context.Event);
@@ -266,6 +282,28 @@ namespace YC.Infrastructure.Lua
                     // 这些路径只从真实来源构造脱离原图的Spec；可用性回调及收尾注入不作此声明。
                     .WithNonRetainedStateContract(() => eventType != "PlayerCleanupStarted" && !registry.HasAvailabilityControlledEventSource(eventType)));
             }
+            // 收尾效果执行完后，只补入当前窗此前没有登记的新来源；不重发收尾开始事件。
+            registry.RegisterEventHandler(new EffectEventHandlerRegistration(CleanupSourceRecovery.ReconcileHandler,
+                CleanupSourceRecovery.ReconcileEvent, "", CleanupSourceRecovery.ReconcileHandler, context =>
+                {
+                    var window = context.OwnerNode.SettlementWindow;
+                    if (window == null || window.IsClosed || !CleanupSourceRecovery.IsReconcileEvent(context.State, window, context.Event))
+                        throw new InvalidOperationException("cleanup_source_reconcile_scope_invalid");
+                    var trigger = context.State.EffectRuntime.RuleEvents.Single(e => e.EventId == window.Context.TriggerId);
+                    var effects = new List<EffectSpec>();
+                    foreach (var source in registry.QuerySources(context.State, window.Context.PlayerId, "cleanup", "PlayerCleanupStarted"))
+                    {
+                        if (window.Entries.Any(entry => entry.SourceItemId == source.ItemId && entry.AbilityId == source.AbilityId)) continue;
+                        var declaration = registry.GetAbilitySourceDeclaration(source.AbilityId);
+                        if (declaration.RepeatPolicy != "unbounded" && AbilitySourceEffectExecutor.IsConsumed(context.State, source, "cleanup:" + context.State.Round)) continue;
+                        if (declaration.CleanupInjectionPolicy == "when_available" && !SettlementHostCatalog.CanInjectCleanup(context.State, registry, settlements, source, trigger)) continue;
+                        var root = declaration.RepeatPolicy == "unbounded" ? registry.CreateCleanupSourceRegistration(source, trigger) :
+                            AbilitySourceEffectExecutor.Create(source, context.Event, declaration.HandlerRef, true, context.State.Round);
+                        effects.Add(settlements.DecorateCleanupRoot(root, source.AbilityId, source.ItemId,
+                            ContentLifecycleEffectExecutor.Acquisition(context.State, source.ItemId)?.EffectId ?? trigger.OwnerNodeId));
+                    }
+                    return effects;
+                }, EffectHandlerRole.Observer, definitionVersion: "1.0.0", contentHash: pack.ContentHash, contentId: "ability-source.catalog"));
         }
         private static LuaHandlerDefinition BindSource(LuaHandlerDefinition definition, string abilityId) => new LuaHandlerDefinition(definition.SubscriptionId,
             definition.EventType, definition.RouteKey, new LuaScriptDefinition(definition.Script.ContentId, abilityId, definition.Script.HandlerId,
@@ -302,10 +340,9 @@ namespace YC.Infrastructure.Lua
             }
             var callable = new List<NormalizedValue>();
             if (call.OwnerNode != null && registry.TryResolveSourceFactsCall(call, definition.Script.HandlerId, definition.Script.ContentHash, out _, out bool includeCallableActions) && includeCallableActions)
-                foreach (string policy in registry.ActionCallPoliciesFor(definition.AbilityId, definition.Script.ContentHash))
-                foreach (var action in registry.QueryAuthorizedActions(call.State, call.OwnerNode.EffectId, policy))
+                foreach (var action in registry.QueryAuthorizedActions(call.State, call.OwnerNode.EffectId, new AbilityActionExecutionOptions { OmitEntryCost = true, OmitMainAction = true }))
                     callable.Add(Object("optionId", NormalizedValue.CreateString(action.OptionId), "itemId", NormalizedValue.CreateString(action.SourceRef.ItemId), "actionId", NormalizedValue.CreateString(action.ActionId),
-                        "callPolicyRef", NormalizedValue.CreateString(policy), "enabled", NormalizedValue.CreateBoolean(action.Enabled), "disabledReason", NormalizedValue.CreateString(action.DisabledReason)));
+                        "enabled", NormalizedValue.CreateBoolean(action.Enabled), "disabledReason", NormalizedValue.CreateString(action.DisabledReason)));
             // 旧调用兼容仅限完整集合不超过一页；更大的集合必须使用只读分页，绝不广播截断候选。
             payload.Properties.Add(new NormalizedValueEntry { Name = "callableActions", Value = NormalizedValue.CreateArray(callable.Count<=SourceFactsLuaCatalog.PageSize ? callable : new List<NormalizedValue>()) });
             payload.Properties.Add(new NormalizedValueEntry { Name="callableActionsRequirePaging",Value=NormalizedValue.CreateBoolean(callable.Count>SourceFactsLuaCatalog.PageSize) });

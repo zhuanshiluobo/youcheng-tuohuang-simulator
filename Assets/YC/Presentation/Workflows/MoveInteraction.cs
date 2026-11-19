@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Application.Gameplay;
 using YC.Domain.Commands;
 using YC.Domain.Maps;
@@ -37,6 +38,16 @@ namespace YC.Presentation.Workflows
         private int selectionRevision;
         private string confirmedTarget, preselectedTarget;
         private PreparedActionPaymentView observedPreparation;
+        private YC.Domain.Effects.EffectRegistry destinationRegistry;
+        private GameState destinationCacheState;
+        private int destinationCacheRevision = -1, destinationCachePlayer = -1;
+        private string destinationCacheLocation, destinationCacheContent, destinationQueryError;
+        private HashSet<string> destinationCache;
+        public YC.Domain.Effects.EffectRegistry DestinationRegistry
+        {
+            get => destinationRegistry;
+            set { if (!ReferenceEquals(destinationRegistry, value)) { destinationRegistry = value; destinationCacheState = null; } }
+        }
         public Func<int> ObservedStateRevision { private get; set; }
         public Func<bool> CanSubmitInitialPlacement { private get; set; }
         public Func<GameStateView> GetVisibleState { set => paymentPreparation.GetVisibleState = value; }
@@ -80,7 +91,8 @@ namespace YC.Presentation.Workflows
             if (player == null || string.IsNullOrEmpty(player.CityLocationId)) return false;
             foreach (var location in mapQuery.GetAdjacentLocations(player.CityLocationId))
                 if (location.LocationId == targetId) return !IsOccupiedByAnotherCity(targetId) &&
-                    !RedZoneAccessRule.IsClosed(context.CurrentState, mapQuery.Map, location);
+                    !RedZoneAccessRule.IsClosed(context.CurrentState, mapQuery.Map, location) &&
+                    (AllowedDestinations(context.CurrentState, player)?.Contains(targetId) ?? true);
             return false;
         }
 
@@ -259,10 +271,12 @@ namespace YC.Presentation.Workflows
                 return InteractionPresentation.Empty;
             }
 
+            var highlights = BuildMoveTargetHighlights();
             return new InteractionPresentation(
-                BuildMoveTargetHighlights(),
+                highlights,
                 IsSubmissionInFlight
                     ? CommandGateway.BuildWaitingForHostPrompt("\u79fb\u52a8\u547d\u4ee4")
+                    : !string.IsNullOrEmpty(destinationQueryError) ? "无法计算城市移动目标：" + destinationQueryError
                     : "城市移动：预计花费" + new TravelCostService(mapQuery).GetCityMoveBaseCost().OriginiumShard + "源石碎片",
                 InteractionMode.Busy);
         }
@@ -511,10 +525,11 @@ namespace YC.Presentation.Workflows
             }
 
             var adjacent = mapQuery.GetAdjacentLocations(player.CityLocationId);
+            var allowed = AllowedDestinations(state, player);
             for (var i = 0; i < adjacent.Count; i++)
             {
                 var target = adjacent[i];
-                if (IsOccupiedByAnotherCity(target.LocationId) ||
+                if (allowed != null && !allowed.Contains(target.LocationId) || IsOccupiedByAnotherCity(target.LocationId) ||
                     RedZoneAccessRule.IsClosed(state, mapQuery.Map, target))
                 {
                     continue;
@@ -527,6 +542,36 @@ namespace YC.Presentation.Workflows
             }
 
             return highlights;
+        }
+
+        private HashSet<string> AllowedDestinations(GameState state, PlayerState player)
+        {
+            if (destinationRegistry == null) { destinationQueryError = null; return null; }
+            if (!destinationRegistry.CityDestinationCandidatePolicies.HasMatchingRegistration(CityDestinationQueryService.CandidateKind) &&
+                !(state.ContentDefinitions?.AbilitySources?.Any(source => source.Kind == "ruleQuery" &&
+                    source.QueryKinds != null && source.QueryKinds.Contains(CityDestinationQueryService.QueryKind)) ?? false))
+            { destinationQueryError = null; return null; }
+            int revision = state.EffectRuntime?.StateRevision ?? 0;
+            if (ReferenceEquals(destinationCacheState, state) && destinationCacheRevision == revision &&
+                destinationCachePlayer == player.PlayerId && destinationCacheLocation == player.CityLocationId &&
+                destinationCacheContent == state.ContentPackHash) return destinationCache;
+            destinationCacheState = state; destinationCacheRevision = revision; destinationCachePlayer = player.PlayerId;
+            destinationCacheLocation = player.CityLocationId; destinationCacheContent = state.ContentPackHash;
+            try
+            {
+                // 与首次目标费用预备使用同一现有查询合同；提交时宿主仍会重新校验。
+                var topology = mapQuery.GetAdjacentLocations(player.CityLocationId).Select(location => location.LocationId).ToArray();
+                var result = new CityDestinationQueryService(mapQuery, destinationRegistry).Query(state,
+                    new CityDestinationQuery(player.PlayerId, "", "specified", "standard", topology));
+                destinationQueryError = null;
+                destinationCache = new HashSet<string>(result.AllowedLocationIds, StringComparer.Ordinal);
+            }
+            catch (InvalidOperationException error)
+            {
+                destinationQueryError = error.Message;
+                destinationCache = new HashSet<string>(StringComparer.Ordinal);
+            }
+            return destinationCache;
         }
 
         private bool CanUseInitialPlacementLocation(string locationId)

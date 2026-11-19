@@ -12253,12 +12253,12 @@
     "sha256": "c7a4fe46dff130f2c12b459ea7c3f0f9c19e9001d5b5039618f19143d358607d",
     "bytes": 1631112,
     "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12292,19 +12292,19 @@
     "member": "assets/card-selected.png",
     "sha256": "2e25904eda1ccde4c73d3f209587a3d6eb12c960576df2764cf7f5d4f4e33bcf",
     "bytes": 125932,
-    "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "decision": "不选用",
+    "reason": "2026-11-17 用户要求清除已由 SelectionFX 接管的旧选中贴图；CardPicker 旧选中框没有其他有效用途，退出可用候选。",
     "rule": {
-      "pattern": "assets/*",
-      "decision": "保留",
-      "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "pattern": "assets/card-selected.png",
+      "decision": "排除",
+      "scope": "CardPicker选中框",
+      "reason": "2026-11-17 用户要求清除已由 SelectionFX 接管的旧选中贴图；CardPicker 旧选中框没有其他有效用途，退出可用候选。",
       "evidence": [
-        "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
-        "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
+        "2026-11-17 用户明确要求清除由 SelectionFX 取代的旧选中状态贴图",
+        "文档/SelectionFX程序化选择效果登记.md"
       ]
     },
-    "catalogPath": "资产/多卡选择/Card-Picker-UI-v1/assets/card-selected.png"
+    "replacementStandard": "FX01"
   },
   {
     "package": "Card-Picker-UI-v1.zip",
@@ -12312,12 +12312,12 @@
     "sha256": "cad1ce0d56de793abb08452559682f64c3c8ac52beb95f086db3a6bb33470e30",
     "bytes": 1453194,
     "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12339,12 +12339,12 @@
     "sha256": "1a1c94d2e50d626a8907ca4c9d959eb371d67d52f0e2ab75bf082a1caa160eec",
     "bytes": 259540,
     "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12358,12 +12358,12 @@
     "sha256": "71e22e53ddc5593942cbe128dae1cdce43ab1050f455eeb74e7f4a5d4a54f523",
     "bytes": 192239,
     "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -12377,12 +12377,12 @@
     "sha256": "e6d9f698114af5c966f085a801963b4bf55aca36ace85e0eab1fc42ec7f9a469",
     "bytes": 2185173,
     "decision": "可用",
-    "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+    "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
     "rule": {
       "pattern": "assets/*",
       "decision": "保留",
       "scope": "全部",
-      "reason": "CardPicker原包除次按钮外的六张素材按专用用途保留；次按钮已由P01的2.0单图替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
+      "reason": "CardPicker原包除次按钮和选中框外的五张素材按专用用途保留；次按钮由P01替换，选中框由FX01替换；限定多卡候选选择/盖牌选择/只读弃牌等专用CardPicker",
       "evidence": [
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:10",
         "prompt/UI换新/执行记录/2026-09-27_Card-Picker完整视觉补齐.md:21"
@@ -49298,5 +49298,135 @@
     "bytes": 955,
     "decision": "不选用",
     "reason": "文档、参数或生产工具，非贴图"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "README.zh-CN.md",
+    "sha256": "547b73d288e4b61a5ae5ec7faa85e685b772d49293f1ebb9fc70afab89c9ff77",
+    "bytes": 8277,
+    "decision": "说明",
+    "reason": "原始说明",
+    "catalogPath": "文档/原始说明/NoMadCity-Unity-SelectionFX/README.zh-CN.md"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+    "sha256": "ba63a9f855e4555e2f1c6df3e806146f9e65cf99db1dd598728b76e32df9de32",
+    "bytes": 3700,
+    "decision": "已替换",
+    "reason": "旧 Shader 在 D3D11 使用保留字导致编译失败；用户指定新包同名 Shader 替换"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+    "sha256": "5e6419d8a26a5b2943a63f4eb2d1701cc410e114c4b4b0ae64147ee29c3eadee",
+    "bytes": 4942,
+    "decision": "已替换",
+    "reason": "用户指定 v3 版本替换"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+    "sha256": "ad0a1251fd7248a1bbe49d84145f0d2552b3cfce1e44f410d267ae1bb9dea644",
+    "bytes": 963,
+    "decision": "已替换",
+    "reason": "用户指定 v3 版本替换"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+    "sha256": "701e9bfa686b4401f4f3a48561e1f0b482dfbeebc7ad94ad9e90bf6da5b9d1f3",
+    "bytes": 2180,
+    "decision": "仅参考",
+    "reason": "只读交付参考，不是正式组件或素材；演示生成器不得作为常规检查运行",
+    "catalogPath": "参考/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+    "sha256": "aa5208927171dfa672d8898de61af337e73d665bed6b6bf5a84eb771e82f8ceb",
+    "bytes": 759,
+    "decision": "已替换",
+    "reason": "用户指定 v3 版本替换"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "VALIDATION.txt",
+    "sha256": "10c0fa850528c13a5628aa7306e8fff882ecc958f9ff34bfd47c23b18c6f100d",
+    "bytes": 653,
+    "decision": "仅参考",
+    "reason": "只读交付参考，不是正式组件或素材；演示生成器不得作为常规检查运行",
+    "catalogPath": "参考/NoMadCity-Unity-SelectionFX/VALIDATION.txt"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX.zip",
+    "member": "Tests/validate.py",
+    "sha256": "1bc0381510891acf4a90fb3827db404efb4a249aacc1e280f2306a656137a8a6",
+    "bytes": 1681,
+    "decision": "仅参考",
+    "reason": "只读交付参考，不是正式组件或素材；演示生成器不得作为常规检查运行",
+    "catalogPath": "参考/NoMadCity-Unity-SelectionFX/Tests/validate.py"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX (1).zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+    "sha256": "e6a5666ddd4e5837e8322d875ba903f22566a1a57950aa32f4d958803d284b6e",
+    "bytes": 3736,
+    "decision": "已替换",
+    "reason": "用户指定 v3 版本替换"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+    "sha256": "ef7e6661aa7fe546de84fd6e5d7c87864a0b2f8b0b1e31bf72dae669906c6949",
+    "bytes": 4374,
+    "decision": "可用组件",
+    "reason": "用户指定按 v3 更新",
+    "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+    "sha256": "cecc7824fa1409b24eb105b81690472034beea3faa4e2caefb3911fd78234a19",
+    "bytes": 6304,
+    "decision": "可用组件",
+    "reason": "用户指定按 v3 更新",
+    "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+    "sha256": "ad0a1251fd7248a1bbe49d84145f0d2552b3cfce1e44f410d267ae1bb9dea644",
+    "bytes": 963,
+    "decision": "可用组件",
+    "reason": "用户指定按 v3 更新",
+    "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+    "sha256": "9eb8e0fe7fb94dc4d0aa0422e537cb3d109d76697fb6ba78eac89b22fca15edc",
+    "bytes": 2018,
+    "decision": "可用组件",
+    "reason": "用户指定按 v3 更新",
+    "catalogPath": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectDemoControls.cs",
+    "sha256": "1b29645eb31425de88a46402d93317049d44713c4808a852e0b4d0d89d1436e8",
+    "bytes": 1662,
+    "decision": "仅参考",
+    "reason": "用户指定按包说明复制；仅供演示，不自动执行或挂到生产界面",
+    "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v3/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectDemoControls.cs"
+  },
+  {
+    "package": "NoMadCity-Unity-SelectionFX-v3.zip",
+    "member": "NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+    "sha256": "00fcf5fecdb26ad3b92f193f98f5dc3389e9eed5b50d604c96896d2bec9802e4",
+    "bytes": 2469,
+    "decision": "仅参考",
+    "reason": "用户指定按包说明复制；仅供演示，不自动执行或挂到生产界面",
+    "catalogPath": "参考/NoMadCity-Unity-SelectionFX-v3/Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs"
   }
 ]

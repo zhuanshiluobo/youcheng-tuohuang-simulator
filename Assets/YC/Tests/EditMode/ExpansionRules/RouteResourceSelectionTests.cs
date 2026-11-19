@@ -58,12 +58,13 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
         private static NormalizedValue Record(EffectNodeRuntimeState owner) => owner.ContinuationData.Properties.Find(p => p.Name == "routeSelection").Value;
 
-        private static void Production(out GameState state, out EffectRegistry registry, out ExplorationService exploration)
+        private static void Production(out GameState state, out EffectRegistry registry, out ExplorationService exploration, int playerCount = 2)
         {
             var pack = ExternalContentPack.Load(Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core"));
-            var config = new GameRuleConfiguration { PlayerCount = 2, EnabledExpansionIds = new List<string> { "core" } };
+            var config = new GameRuleConfiguration { PlayerCount = playerCount, EnabledExpansionIds = new List<string> { "core" } };
+            if (playerCount == 4) config.MapId = StaticMapDefinitions.FourPlayerMapId;
             var catalog = ActiveContentCatalogBuilder.Build(pack, config); config.ContentPackHash = catalog.ContentPackHash;
-            state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, new List<PlayerSeat> { new PlayerSeat { PlayerId = 1 }, new PlayerSeat { PlayerId = 2 } }, config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
+            state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Local, 1, Enumerable.Range(1, playerCount).Select(id => new PlayerSeat { PlayerId = id }).ToList(), config, 321, catalog.SetupRecipe, catalog.ContentDefinitions);
             // 保留工厂的GameId与随机账本绑定，隔离恢复同样使用真实身份。
             state.Phase = GamePhase.ActionRound1; state.CurrentPlayerId = 1; state.Round = 1;
             state.FindPlayer(1).Resources.GoldVoucher = 4; state.FindPlayer(1).RemainingMainActionsThisTurn = 1;

@@ -31,7 +31,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         [OneTimeSetUp] public void LoadCurrentInstalledContentOnce()
         {
             pack = ExternalContentPack.Current;
-            Assert.That(pack.ContentHash, Is.EqualTo("882c2e2e38ab21218b2059108a70f8c43e7f4de242048616e9dcb794ad4e3d7e"), "本轮应使用36指定的整合内容");
+            Assert.That(pack.ContentHash, Does.Match("^[0-9a-f]{64}$"));
         }
         [SetUp] public void StartCase()
         {
@@ -45,36 +45,24 @@ namespace YC.Tests.EditMode.ExpansionRules
         private void StartHostPreparation(int players)
         {
             var config = new GameRuleConfiguration { PlayerCount = players, MapId = players == 4 ? StaticMapDefinitions.FourPlayerMapId : StaticMapDefinitions.ThreePlayerMapId,
+                RuleModeId = "entrepreneur", OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                 EnabledExpansionIds = new List<string> { "core", "enterprise", "infected" } };
             if (!catalogs.TryGetValue(players, out var catalog)) catalogs.Add(players, catalog = ActiveContentCatalogBuilder.Build(pack, config));
             var recipe = catalog.SetupRecipe; var definitions = catalog.ContentDefinitions;
-            var installed = pack.Definitions;
-            definitions.Entrepreneurs = EntrepreneurContentCatalog.Read(installed);
-            Assert.That(definitions.Entrepreneurs.All(d => d.SetupHandlerRefs.Count == 0), Is.True, "不能跳过新增必做设置正文");
-            recipe.Entries.AddRange(pack.SetupRecipes.Single(r => r.RecipeId == "entrepreneur").Entries);
-            recipe.CardZoneDeclarations.AddRange(installed.Where(d => d.ContentType == "entrepreneur_ability" && d.CardZones.Count > 0)
-                .Select(d => new ItemCardZoneDeclaration { DefinitionId = d.DefinitionId, CardZones = d.CardZones }));
-            definitions.Components.AddRange(installed.Where(d => d.ContentType == "component" && !definitions.Components.Any(c => c.DefinitionId == d.DefinitionId))
-                .Select(d => new ComponentContentDefinition { DefinitionId = d.DefinitionId, TypeId = d.ItemTypeId, QuantityPolicy = (string)d.Data["quantityPolicy"], CubeAppearance = d.CubeAppearance }));
-            definitions.Facilities.AddRange(installed.Where(d => d.ContentType == "facility" && d.ApplicableModes.Contains("entrepreneur"))
-                .Select(d => { var value = d.Data.ToObject<FacilityCardDefinition>(); value.FacilityId = d.DefinitionId; return value; }));
             registry = new EffectRegistry(); catalog.Register(registry);
-            registry.ContentPackHash = config.ContentPackHash = pack.ContentHash;
+            registry.ContentPackHash = config.ContentPackHash = catalog.ContentPackHash;
             registry.ContentDefinitions = GameStateCloneService.DeepClone(definitions); registry.SetupRecipe = GameStateCloneService.DeepClone(recipe);
             var seats = Enumerable.Range(1, players).Select(p => new PlayerSeat { PlayerId = p, PlayerName = "隔离玩家" + p }).ToList();
             state = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, seats, config, 2210, recipe, definitions,
                 seats.Select(p => p.PlayerId).ToList(), "qy004.own-candidates.r1." + players, null);
-            // G0不变。仅在内存隔离中进入原企业家准备子树；不启用正式房间模式、不代做卡面正文。
-            var formalMode = config.Clone(); formalMode.RuleModeId = "entrepreneur"; formalMode.ContentPackHash = "";
-            Assert.Throws<InvalidOperationException>(() => ActiveContentCatalogBuilder.Build(pack, formalMode));
-            state.RuleConfiguration.RuleModeId = "entrepreneur";
+            // 规则隔离：使用正式企业家内容及准备合同，不作为可见对局验收。
             rounds = new RoundExecutionService(registry);
             var started = rounds.StartEntrance(state);
             Assert.That(started.IsValid, Is.True, started.Reason);
             Assert.That(state.EntrepreneurSetup.Stage, Is.EqualTo("preview"));
             Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == EntrepreneurFlow.PreviewInteraction), Is.EqualTo(players));
             artifacts.WriteLabeledText("Host实际分配", JsonConvert.SerializeObject(new { state.GameId, state.EntrepreneurSetup, state.RandomRuntime,
-                preparation = state.EffectRuntime.EffectNodes.Single(n => n.EffectTypeId == ExpansionSetupFlow.PreparationTypeId).ContinuationData }));
+                preparation = state.PreparationRuntime.Distribution }));
         }
         private GameStateView Project(GameStateViewer viewer) => new GameSession(state).ProjectFor(viewer);
         private void AssertOwn(GameStateView view, int player, int expected)

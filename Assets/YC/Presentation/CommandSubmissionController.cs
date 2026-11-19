@@ -4,6 +4,7 @@ using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.Effects;
 using YC.Domain.State;
+using YC.Domain.Scoring;
 using System.Collections.Generic;
 using System.Linq;
 using YC.Infrastructure.Multiplayer;
@@ -13,7 +14,7 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Presentation
 {
-    internal sealed class CommandSubmissionController : IDisposable
+    internal sealed partial class CommandSubmissionController : IDisposable
     {
         private static readonly Unity.Profiling.ProfilerMarker RuleSubmitMarker = new Unity.Profiling.ProfilerMarker("YC.RuleSubmit");
         private static readonly Dictionary<MirrorCommandTransport, CommandSubmissionController> SimulationTransportOwners =
@@ -44,6 +45,10 @@ namespace YC.Presentation
         private EffectRegistry simulationRegistry;
         private GameState simulationProjectionState;
         private GameStateView simulationProjectionView;
+        private RegionControlPreview regionPreview;
+        private string regionPreviewKey = "";
+        private float nextRegionPreviewRetry;
+        private bool regionPreviewFailed;
         private long simulationSubscriptionGeneration, recoveryTargetEpoch;
         private Action<DeterministicSimulationCoordinator> simulationReadySubscription, recoveryCompletedSubscription;
         private Action<SimulationCommandAppliedDto> simulationAppliedSubscription;
@@ -80,6 +85,8 @@ namespace YC.Presentation
         internal GameState PublishedState { get { EnsureSimulationLocalProjection(); return simulationProjectionState; } }
         internal GameStateView PublishedView { get { EnsureSimulationLocalProjection(); return simulationProjectionView; } }
         public bool UsesDeterministicSimulation => usesDeterministicSimulation;
+        public bool UsesPrivateTransport => usesPrivateTransport;
+        public bool UsesNetworkProjection => UsesDeterministicSimulation || UsesPrivateTransport;
         public string LastPaymentSourcePageFailure { get; private set; }
         public int LastPaymentSourcePageViewer { get; private set; }
         public PaymentSourceQuery LastPaymentSourcePageQuery { get; private set; }
@@ -93,7 +100,7 @@ namespace YC.Presentation
             LastPaymentSourcePageFailure = null; LastPaymentSourcePageViewer = localPlayerId;
             if (disposed || query == null || launchContext?.IsLeavingGameplay == true)
                 return RejectPaymentSourcePage("payment_source_reader_inactive_or_query_missing");
-            if (UsesDeterministicSimulation)
+            if (UsesNetworkProjection)
             {
                 // 联网始终认证固定本机席位，不能使用本地热座视角替换网络身份。
                 if (query.PlayerId != localPlayerId) return RejectPaymentSourcePage("payment_source_network_viewer_mismatch");
@@ -114,9 +121,41 @@ namespace YC.Presentation
             return response.Page;
         }
         private void OnPaymentSourcePageAvailable()
-        { if (!disposed && SimulationBindingIsCurrent) refreshFromState?.Invoke(); }
-        public bool IsSimulationReady => !disposed && (!UsesDeterministicSimulation ||
-            SimulationBindingIsCurrent && simulationCoordinator != null && !simulationCoordinator.IsStopped && !simulationCoordinator.RequiresRecovery);
+        { if (!disposed && (SimulationBindingIsCurrent || PrivateBindingIsCurrent)) refreshFromState?.Invoke(); }
+        public RegionControlPreview ReadRegionControlPreview(GameState visibleState, int viewer, EffectRegistry registry)
+        {
+            if (disposed || launchContext?.IsLeavingGameplay == true || visibleState?.EffectRuntime == null || registry == null ||
+                visibleState.FindPlayer(viewer) == null) return null;
+            string game = visibleState.GameId, content = visibleState.ContentPackHash;
+            int revision = visibleState.EffectRuntime.StateRevision;
+            if (UsesPrivateTransport)
+                return IsSimulationReady && viewer == localPlayerId
+                    ? simulationTransport.ReadPrivateRegionPreview(game, content, revision) : null;
+            string key = game + "|" + content + "|" + viewer + "|" + revision;
+            if (regionPreviewKey == key && regionPreview != null) return regionPreview;
+            if (regionPreviewKey != key) { regionPreviewKey = key; regionPreview = null; regionPreviewFailed = false; nextRegionPreviewRetry = 0; }
+            if (regionPreviewFailed) return null;
+            if (Time.unscaledTime < nextRegionPreviewRetry) return null;
+            nextRegionPreviewRetry = Time.unscaledTime + 3f;
+            if (UsesDeterministicSimulation)
+            {
+                if (!IsSimulationReady || viewer != localPlayerId) return null;
+                var owner = simulationCoordinator;
+                owner.TryQueryRegionControlPreview(viewer, game, content, revision, registry, result => {
+                    if (disposed || !ReferenceEquals(owner, simulationCoordinator) || regionPreviewKey != key) return;
+                    regionPreview = result; regionPreviewFailed = result == null;
+                    refreshFromState?.Invoke();
+                });
+                return regionPreview;
+            }
+            if (GameSessionBootstrapper.IsNetworkLaunch(launchContext)) return null;
+            try { regionPreview = session.QueryRegionControlPreview(viewer, game, content, revision, registry); }
+            catch (Exception error) when (!(error is OutOfMemoryException)) { regionPreviewFailed = true; Debug.LogException(error, logContext); }
+            return regionPreview;
+        }
+        public bool IsSimulationReady => !disposed && (UsesPrivateTransport
+            ? PrivateBindingIsCurrent && simulationTransport.IsPrivateRoomReady
+            : !UsesDeterministicSimulation || SimulationBindingIsCurrent && simulationCoordinator != null && !simulationCoordinator.IsStopped && !simulationCoordinator.RequiresRecovery);
         public string InitializationFailure { get; private set; }
         private int traceSubmissionFlags = -1;
         public bool CanSubmitForLocalPlayer
@@ -124,7 +163,7 @@ namespace YC.Presentation
             get
             {
                 bool result = !disposed && (launchContext == null || !launchContext.IsLeavingGameplay) &&
-                    (UsesDeterministicSimulation
+                    (UsesPrivateTransport ? IsSimulationReady && simulationTransport.CanSubmitPrivateCommand : UsesDeterministicSimulation
                         ? IsSimulationReady && !simulationCoordinator.HasPendingLocalApplication && simulationPermissions.Values.Any(value => value)
                         : !GameSessionBootstrapper.IsNetworkLaunch(launchContext) || commandTransport != null);
                 if (InteractionLatencyTrace.Enabled)
@@ -187,7 +226,7 @@ namespace YC.Presentation
 
         public void Initialize()
         {
-            if (disposed || UsesDeterministicSimulation) throw new InvalidOperationException("submission_transport_mode_already_selected");
+            if (disposed || UsesNetworkProjection) throw new InvalidOperationException("submission_transport_mode_already_selected");
             if (GameSessionBootstrapper.IsNetworkLaunch(launchContext))
                 throw new InvalidOperationException("联网必须提供效果注册表并初始化确定性模拟。");
         }
@@ -196,8 +235,10 @@ namespace YC.Presentation
         {
             if (effectRegistry == null) throw new ArgumentNullException(nameof(effectRegistry));
             if (!GameSessionBootstrapper.IsNetworkLaunch(launchContext)) { Initialize(); return; }
-            if (disposed || commandTransport != null || UsesDeterministicSimulation)
+            if (disposed || commandTransport != null || UsesNetworkProjection)
                 throw new InvalidOperationException("submission_transport_mode_already_selected");
+            if (session.State.SetupRecipe?.Preparation != null)
+            { InitializePrivate(effectRegistry); return; }
             usesDeterministicSimulation = true;
             try
             {
@@ -498,14 +539,14 @@ namespace YC.Presentation
                 if (command?.Parameters != null && command.Parameters.TryGetValue("requestId", out var request))
                     InteractionLatencyTrace.Point("submit.request", command.CommandId, request);
             }
-            if (disposed || UsesDeterministicSimulation && !SimulationBindingIsCurrent)
+            if (disposed || UsesDeterministicSimulation && !SimulationBindingIsCurrent || UsesPrivateTransport && !PrivateBindingIsCurrent)
             {
                 appliedLocally = false;
                 return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand,
                     "当前模拟会话已停止或切换，请返回房间重试。"));
             }
-            submittedCommands.Record(UsesDeterministicSimulation ? simulationGameId : session.State.GameId, command);
-            if (UsesDeterministicSimulation && command != null && command.PlayerId == localPlayerId && !string.IsNullOrEmpty(command.CommandId))
+            submittedCommands.Record(UsesNetworkProjection ? simulationGameId : session.State.GameId, command);
+            if (UsesNetworkProjection && command != null && command.PlayerId == localPlayerId && !string.IsNullOrEmpty(command.CommandId))
                 unresolvedSimulationSubmissions[command.CommandId] = new KeyValuePair<string, int>(simulationGameId, command.PlayerId);
             if (disposed || launchContext != null && launchContext.IsLeavingGameplay)
             {
@@ -522,7 +563,7 @@ namespace YC.Presentation
                 if (transported != null && (appliedLocally || !transported.Succeeded))
                     ResolveSubmitted(command?.CommandId, command?.PlayerId ?? -1, null, transported.Succeeded,
                         transported.Validation?.ErrorCode ?? CommandErrorCode.UnknownCommand,
-                        UsesDeterministicSimulation && !transported.Succeeded);
+                        UsesNetworkProjection && !transported.Succeeded);
                 return transported;
             }
 
@@ -562,9 +603,11 @@ namespace YC.Presentation
             if (!ReferenceEquals(simulationTransport, null))
             {
                 simulationTransport.PaymentSourcePageAvailable -= OnPaymentSourcePageAvailable;
+                simulationTransport.RegionControlPreviewAvailable -= OnPaymentSourcePageAvailable;
                 bool ownsTransport = OwnsSimulationTransport;
                 simulationSubscriptionGeneration++;
                 UnbindSimulationSubscriptions();
+                UnbindPrivateSubscriptions();
                 if (ownsTransport)
                 {
                     SimulationTransportOwners.Remove(simulationTransport);
@@ -580,7 +623,7 @@ namespace YC.Presentation
         private void OnOnlineSessionNotice(string message)
         {
             if (disposed || launchContext == null || launchContext.IsLeavingGameplay ||
-                UsesDeterministicSimulation && (!OwnsSimulationTransport || launchContext.GameId != simulationGameId ||
+                UsesNetworkProjection && (!OwnsSimulationTransport || launchContext.GameId != simulationGameId ||
                     launchContext.Mode != simulationLaunchMode || launchContext.LocalPlayerId != localPlayerId)) return;
             launchContext?.TryConsumeOnlineSessionNotice(out _);
             setPrompt(message);

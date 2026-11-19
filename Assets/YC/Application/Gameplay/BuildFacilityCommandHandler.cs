@@ -118,7 +118,7 @@ namespace YC.Application.Gameplay
                 {
                     return CommandResult.Invalid(result.Validation);
                 }
-                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId);
+                roundAdvanceService.MarkMainActionComplete(state, command.PlayerId, YC.Domain.Rules.MainActionBudgetService.Build);
             }
             else
             {

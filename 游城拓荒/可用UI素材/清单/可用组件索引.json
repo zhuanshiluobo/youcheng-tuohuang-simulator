@@ -1,0 +1,125 @@
+{
+  "date": "2026-11-16",
+  "rule": "仅明确登记的组件与用途可接入；引用依赖须完整，原始示例/安装说明不授予覆盖UI权限。",
+  "components": [
+    {
+      "id": "SelectionFX.Shader",
+      "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+      "member": "Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+      "path": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Resources/NoMadCitySelection.shader",
+      "sha256": "b48337a31ff81faf82d6969393d7d198764a14fc15c8280f5bbe8e3f74809920",
+      "bytes": 6547,
+      "format": ".shader",
+      "kind": "运行时",
+      "purpose": "仅选中时的金属边框、呼吸和双光点；无额外白色焦点外框",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+      "dependsOn": [],
+      "documents": [
+        "文档/SelectionFX程序化选择效果登记.md",
+        "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "currentUsageStandards": [
+        "FX01"
+      ],
+      "status": "v8 已导入，Unity 编译及实际画面验收进行中"
+    },
+    {
+      "id": "SelectionFX.Graphic",
+      "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+      "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+      "path": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectGraphic.cs",
+      "sha256": "1b78af632887d21e357483aa114aa3f71fbb411376d5190fb93be087ce1d8324",
+      "bytes": 6332,
+      "format": ".cs",
+      "kind": "运行时",
+      "purpose": "MaskableGraphic状态与几何控制，不参与业务选择",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+      "dependsOn": [
+        "SelectionFX.Shader"
+      ],
+      "documents": [
+        "文档/SelectionFX程序化选择效果登记.md",
+        "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "currentUsageStandards": [
+        "FX01"
+      ],
+      "status": "v8 已导入，Unity 编译及实际画面验收进行中"
+    },
+    {
+      "id": "SelectionFX.Input",
+      "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+      "member": "Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+      "path": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Runtime/SelectionEffectInput.cs",
+      "sha256": "ad0a1251fd7248a1bbe49d84145f0d2552b3cfce1e44f410d267ae1bb9dea644",
+      "bytes": 963,
+      "format": ".cs",
+      "kind": "运行时",
+      "purpose": "在已有可点击候选上转发hover与EventSystem焦点，不选择或提交",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+      "dependsOn": [
+        "SelectionFX.Graphic"
+      ],
+      "documents": [
+        "文档/SelectionFX程序化选择效果登记.md",
+        "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "currentUsageStandards": [
+        "FX01"
+      ],
+      "status": "v8 已导入，Unity 编译及实际画面验收进行中"
+    },
+    {
+      "id": "SelectionFX.Inspector",
+      "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+      "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+      "path": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectGraphicEditor.cs",
+      "sha256": "731152f216dd96920db60ce343d06ced72b00d87273b0d41826b53b4729e880d",
+      "bytes": 3067,
+      "format": ".cs",
+      "kind": "可选编辑器辅助",
+      "purpose": "SelectionEffectGraphic检查器；对齐功能仅显式手动使用",
+      "scope": "仅企业整板、规则指定的企业候选效果行、真实卡面、城市样式候选卡、莱茵科室候选板的选择状态装饰；这些对象的选中态由特效替代旧选中框，其他状态与其他用途保留，不新增交互",
+      "dependsOn": [
+        "SelectionFX.Graphic",
+        "SelectionFX.AlignmentEditor"
+      ],
+      "documents": [
+        "文档/SelectionFX程序化选择效果登记.md",
+        "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "currentUsageStandards": [
+        "FX01"
+      ],
+      "status": "v8 已导入，Unity 编译及实际画面验收进行中"
+    },
+    {
+      "id": "SelectionFX.AlignmentEditor",
+      "package": "NoMadCity-Unity-SelectionFX-v8.zip",
+      "member": "Assets/NoMadCitySelectionFX/Editor/SelectionEffectAlignmentTools.cs",
+      "path": "组件/选择状态特效/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectAlignmentTools.cs",
+      "format": ".cs",
+      "kind": "可选编辑器辅助",
+      "purpose": "对齐工具；仅在用户授权目标资产覆盖时手动运行",
+      "scope": "仅服务FX01现有候选覆盖层；不自动修改场景或预制体",
+      "dependsOn": [
+        "SelectionFX.Graphic"
+      ],
+      "documents": [
+        "文档/SelectionFX程序化选择效果登记.md",
+        "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md"
+      ],
+      "parameters": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+      "currentUsageStandards": [
+        "FX01"
+      ],
+      "status": "v8 已导入，尚未运行对齐工具",
+      "sha256": "50fa2201cc0fce29e83e2c6a77dfca6716f6a4421698079fc447bea9a65a8e81",
+      "bytes": 2773
+    }
+  ]
+}

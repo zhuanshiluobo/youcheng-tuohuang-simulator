@@ -62,7 +62,7 @@ namespace YC.Presentation
             get
             {
                 var submission = getCommandSubmission();
-                return submission != null && (!submission.UsesDeterministicSimulation ||
+                return submission != null && (!submission.UsesNetworkProjection ||
                     (submission.IsSimulationReady && submission.CanSubmitForLocalPlayer));
             }
         }

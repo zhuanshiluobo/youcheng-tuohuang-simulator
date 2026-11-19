@@ -102,6 +102,69 @@ namespace YC.Tests.EditMode
             AssertWithin(Property<RawImage>(cards[0], "CardImage").rectTransform, scroll.viewport);
         }
 
+        [TestCase(1, 1920)]
+        [TestCase(12, 1024)]
+        public void EnterpriseBoardArtworkKeepsAspectAndCanReachBothEnds(int count, int width)
+        {
+            ((RectTransform)canvasRoot.transform).sizeDelta = new Vector2(width, width * 9f / 16f);
+            var templateAsset = AssetDatabase.LoadAssetAtPath<GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/Dialogs/Information/GameBoxEnterpriseBoardItem.prefab");
+            var template = templateAsset.GetComponent(RuntimeType("GameBoxEnterpriseBoardItemView"));
+            var page = UnityEngine.Object.Instantiate(Property<Component>(registry, "CardPickerPrefab"), canvasRoot.transform, false);
+            var texture = new Texture2D(60, 180);
+            var sprite = Sprite.Create(texture, new Rect(0, 0, 60, 180), new Vector2(.5f, .5f));
+            try
+            {
+                page.gameObject.SetActive(true);
+                Call(page, "PrepareForUse", "合作板夹具", "合作板夹具", Vector2.one, Vector2.zero, true);
+                var body = Property<RectTransform>(page, "ExpandedContent").GetComponent<VerticalLayoutGroup>();
+                var originalTop = body.padding.top;
+                var originalBottom = body.padding.bottom;
+                var header = (LayoutElement)Field(page, "cardPickerHeaderSpacing");
+                var footer = (LayoutElement)Field(page, "cardPickerFooterSpacing");
+                var originalHeader = header.preferredHeight;
+                var originalFooter = footer.preferredHeight;
+                Call(page, "ConfigureEnterpriseBoardScroll", Vector2.one, 1f, template);
+                var items = new List<Component>();
+                for (int i = 0; i < count; i++)
+                {
+                    var item = (Component)Call(page, "CreateEnterpriseBoardItem", template);
+                    Call(item, "Bind", "fixture." + i, sprite, new Action(() => { }), new Func<bool>(() => true));
+                    items.Add(item);
+                }
+                Refresh(page);
+                var scroll = Property<ScrollRect>(page, "OptionScroll");
+                var row = scroll.content.GetComponent(RuntimeType("CardPickerRowLayout"));
+                var originalBoardHeight = (float)Field(row, "referenceViewportHeight") - 2 * (int)Field(row, "verticalInset");
+                var requestedBoardHeight = originalBoardHeight * Property<float>(template, "ArtworkScale");
+                Assert.That(page.GetComponentsInChildren(RuntimeType("FacilityEffectCardView"), false), Is.Empty);
+                foreach (var item in items)
+                {
+                    var artwork = Property<RawImage>(item, "Artwork");
+                    Assert.That(artwork.rectTransform.rect.width / artwork.rectTransform.rect.height,
+                        Is.EqualTo(sprite.rect.width / sprite.rect.height).Within(.002f));
+                    Assert.That(artwork.rectTransform.rect.height, Is.EqualTo(requestedBoardHeight).Within(.5f));
+                }
+                Call(page, "RestoreScrollPosition", 1f);
+                Refresh(page);
+                AssertWithin(Property<RawImage>(items[0], "Artwork").rectTransform, scroll.viewport);
+                Call(page, "RestoreScrollPosition", 0f);
+                Refresh(page);
+                AssertWithin(Property<RawImage>(items[items.Count - 1], "Artwork").rectTransform, scroll.viewport);
+                Call(page, "ClearDynamicContent");
+                Assert.That(body.padding.top, Is.EqualTo(originalTop));
+                Assert.That(body.padding.bottom, Is.EqualTo(originalBottom));
+                Assert.That(header.preferredHeight, Is.EqualTo(originalHeader));
+                Assert.That(footer.preferredHeight, Is.EqualTo(originalFooter));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(page.gameObject);
+                UnityEngine.Object.DestroyImmediate(sprite);
+                UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
         [TestCase("CharacterCardEffectChoiceDialog")]
         [TestCase("FacilityEffectChoiceDialog")]
         public void ArtworkSelectionUsesCardPicker_AndUntypedValueChoiceIsRejected(string typeName)
@@ -229,6 +292,35 @@ namespace YC.Tests.EditMode
                 artifacts.WriteLabeledText("原盖放入口缺图与草稿", Newtonsoft.Json.JsonConvert.SerializeObject(new { ids, selected, submissions }));
             }
             finally { artifacts.Finish(); }
+        }
+
+        [Test]
+        public void ReusedCoverPageUsesTheLatestSelectionAndConfirmationCallbacks()
+        {
+            var dialog = NewDialog("CharacterCardEffectChoiceDialog");
+            var ids = new[] { "isolated.cover.latest.1", "isolated.cover.latest.2" };
+            foreach (var id in ids)
+                LogAssert.Expect(LogType.Warning, "[card_artwork_missing] request=character-cover item=" + id);
+            int oldSelections = 0, oldConfirms = 0, newSelections = 0, newConfirms = 0;
+            string selected = null;
+            Call(dialog, "ShowCoverSelection", ids, selected, new Func<string, bool>(_ => true),
+                new Action<string>(_ => oldSelections++), new Action(() => oldConfirms++), "same-request");
+            var page = Page(dialog);
+            void ShowCurrent() => Call(dialog, "ShowCoverSelection", ids, selected,
+                new Func<string, bool>(id => id == ids[1]),
+                new Action<string>(id => { selected = id; newSelections++; }),
+                new Action(() => newConfirms++), "same-request");
+            ShowCurrent();
+            Assert.That(Page(dialog), Is.SameAs(page));
+            Assert.That(Property<Button>(Cards(page)[0], "Button").interactable, Is.False);
+            Property<Button>(Cards(page)[1], "Button").onClick.Invoke();
+            Assert.That(selected, Is.EqualTo(ids[1]));
+            Assert.That(newSelections, Is.EqualTo(1));
+            Assert.That(oldSelections, Is.Zero);
+            ShowCurrent();
+            FindButton(page, "Confirm Selection").onClick.Invoke();
+            Assert.That(newConfirms, Is.EqualTo(1));
+            Assert.That(oldConfirms, Is.Zero);
         }
 
         [TestCase("CharacterCardEffectChoiceDialog", "character")]
@@ -397,7 +489,8 @@ namespace YC.Tests.EditMode
             Refresh(page);
             Assert.That(Property<float>(page, "ScrollPosition"), Is.EqualTo(.27f).Within(.002f));
             var cards = Cards(page);
-            Assert.That(Property<Image>(cards[1], "SelectionImage").enabled, Is.True);
+            Assert.That(Property<Image>(cards[1], "SelectionImage").enabled, Is.False);
+            Assert.That(Property<object>(Property<Component>(cards[1], "SelectionEffect"), "State").ToString(), Is.EqualTo("Selected"));
             OpenCardPreview(Property<Button>(cards[cards.Length - 1], "Button"));
             Assert.That(selectCalls, Is.Zero, "打开详情不得切换预选。");
             Assert.That(submissions, Is.Zero, "打开详情不得提交。");
@@ -411,7 +504,8 @@ namespace YC.Tests.EditMode
             Refresh(page);
             Assert.That(Page(dialog), Is.SameAs(page));
             Assert.That(Property<float>(page, "ScrollPosition"), Is.EqualTo(.27f).Within(.002f));
-            Assert.That(Property<Image>(cards[1], "SelectionImage").enabled, Is.True);
+            Assert.That(Property<Image>(cards[1], "SelectionImage").enabled, Is.False);
+            Assert.That(Property<object>(Property<Component>(cards[1], "SelectionEffect"), "State").ToString(), Is.EqualTo("Selected"));
             Assert.That(selectCalls, Is.Zero);
             Assert.That(submissions, Is.Zero);
         }

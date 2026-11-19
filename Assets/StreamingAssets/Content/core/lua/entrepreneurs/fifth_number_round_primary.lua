@@ -38,7 +38,7 @@ return function(ctx)
     if face == 'T03' or face == 'T04' then
         -- 这是独立立即①，特派主动放弃不成为独立立即②的条件。
         return { Effect.LoseScore({ player = ctx.playerId, amount = 2 }),
-            Flow.DispatchOperator({ apiVersion = 1, player = ctx.playerId, drawCount = 3 }) }
+            Flow.DispatchOperator({ apiVersion = 2, player = ctx.playerId, deckZoneId = Global.Content.FindZones({localZoneId='operator_deck'})[1].id }) }
     end
     if face == 'T02' then
         -- 两个图标是两个兄弟节点，无第一次成功才执行第二次的条件。

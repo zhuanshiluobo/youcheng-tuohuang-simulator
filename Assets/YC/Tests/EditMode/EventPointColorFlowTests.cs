@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
+using YC.Application.DevTools;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
 using YC.Domain.Exploration;
@@ -89,6 +90,26 @@ namespace YC.Tests.EditMode
             }
         }
 
+        [Test]
+        public void AutoplayExplorationPlanDoesNotDependOnHiddenEventRewards()
+        {
+            // 两个夹具牌的高收益位于不同旧索引；计划阶段不应读取它们来预选。
+            var map = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
+            var player = new PlayerState { PlayerId = 1, CityLocationId = "A-02", InfluenceSupply = 30,
+                RemainingMainActionsThisTurn = 1, Resources = new ResourceSet { GoldVoucher = 30 } };
+            var state = new GameState { GameId = "autoplay-visible-choice-fixture", MapId = map.Map.MapId,
+                Round = 1, Phase = GamePhase.ActionRound1, CurrentPlayerId = 1, Players = new List<PlayerState> { player } };
+            var service = new ExplorationService(map);
+            var method = typeof(LocalhostAutoplayRunner).GetMethod("TryFindExplorePlan", BindingFlags.NonPublic | BindingFlags.Static);
+            state.Decks.EventDeckGreen.Add("event_green_01");
+            var first = new object[] { state, player, "A-01", service, null };
+            Assert.That((bool)method.Invoke(null, first), Is.True);
+            state.Decks.EventDeckGreen[0] = "event_green_02";
+            var second = new object[] { state, player, "A-01", service, null };
+            Assert.That((bool)method.Invoke(null, second), Is.True);
+            Assert.That(((MapPath)second[4]).RouteIds, Is.EqualTo(((MapPath)first[4]).RouteIds));
+        }
+
         private void VerifyReveal(GameMapDefinition map, string target, EventColor expectedColor, bool explore, int players)
         {
             var source = target == "F-01" ? "D-02" : "A-02";
@@ -139,9 +160,11 @@ namespace YC.Tests.EditMode
             Assert.That(revealed.TargetEntityId, Is.EqualTo(target));
             Assert.That(revealed.RouteKey, Is.EqualTo(expectedCard), "目标地点的颜色必须决定抽牌池。");
             Assert.That(report.WaitingForInput, Is.True);
+            var expectedChoices = EventCardDatabase.Get(expectedCard).Choices.Select(choice =>
+                EventCardOptionIdFactory.CreateChoice(expectedCard, choice.ChoiceId)).ToArray();
             Assert.That(state.EffectRuntime.InteractionRequests.Any(request => request.Status == "open" &&
                 request.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId &&
-                request.CandidateIds.All(id => id.StartsWith(expectedCard + ":option:", StringComparison.Ordinal))), Is.True);
+                request.CandidateIds.SequenceEqual(expectedChoices)), Is.True);
             foreach (var color in Colors)
                 Assert.That(decks.RemainingCount(state.Decks, color),
                     Is.EqualTo(counts[color] - (color == expectedColor ? 1 : 0)), "只消耗对应颜色的一张事件牌。");

@@ -25,6 +25,87 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.Map.Influences.Count, Is.EqualTo(count)); Assert.That(f.State.EffectRuntime.InfluencePlaceMappings.Count, Is.EqualTo(records));
             Assert.That(f.Engine.TrySubmitInteraction(requestId, 1, NormalizedValue.CreateString("ordinary"), out _), Is.False);
         }
+
+        [TestCase("P01")][TestCase("P02")]
+        public void EarlyPlacementUsesLastGangThenKeepsOriginalWhenSupplyIsEmpty(string face)
+        {
+            f = new PaulContentTestFixture(); f.Choose(1, face);
+            var slots = f.Map.Locations.Where(location => !location.IsRedZone)
+                .SelectMany(location => Enumerable.Range(0, location.InfluenceSlotCount)
+                    .Select(index => InfluenceService.GetLocationSlotId(location.LocationId, index)))
+                .Where(slot => f.State.Map.Influences.All(value => value.SlotId != slot)).Take(5).ToArray();
+            Assert.That(slots.Length, Is.EqualTo(5));
+            for (int i = 0; i < 3; i++)
+            {
+                string placed = f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[i], itemTypeId: "entrepreneur.gang_marker"));
+                Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == placed).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            }
+            string last = f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[3]));
+            var choice = f.Request(last, "effect.choice.execute");
+            Assert.That(choice.CandidateIds, Is.EquivalentTo(new[] { "ordinary", "gang" }));
+            f.Answer(choice, "gang");
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == last).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            string ordinary = f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[4]));
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == ordinary).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(f.State.EffectRuntime.InfluencePlaceMappings.Any(mapping => mapping.ActualRootEffectId == ordinary), Is.False);
+            var influence = f.State.Map.Influences.Single(value => value.SlotId == slots[4]);
+            Assert.That(f.State.ItemZones.Items.Single(item => item.ItemId == influence.InfluenceId).TypeId, Is.EqualTo("core.player_marker"));
+            Assert.That(f.Open.Any(request => f.Within(request.OwnerEffectId, ordinary)), Is.False);
+            f.Restore("帮派用尽后保留原放置");
+        }
+
+        [Test] public void EarlyQueuedPlacementsDoNotOfferAnAlreadyConsumedGangMarker()
+        {
+            f = new PaulContentTestFixture(); f.Choose(1, "P01");
+            var slots = f.Map.Locations.Where(location => !location.IsRedZone)
+                .SelectMany(location => Enumerable.Range(0, location.InfluenceSlotCount)
+                    .Select(index => InfluenceService.GetLocationSlotId(location.LocationId, index)))
+                .Where(slot => f.State.Map.Influences.All(value => value.SlotId != slot)).Take(5).ToArray();
+            Assert.That(slots.Length, Is.EqualTo(5));
+            for (int i = 0; i < 3; i++) f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[i], itemTypeId: "entrepreneur.gang_marker"));
+            f.Registry.Register("fixture.paul.queued-placements", context => context.Node.FlowStage == ""
+                ? EffectStepResult.Continue("waiting").AddChildren(new[] {
+                    InfluenceEffectSpecFactory.PlaceInfluence(1, slots[3]), InfluenceEffectSpecFactory.PlaceInfluence(1, slots[4]) })
+                : context.ChildNodes.Any(node => node.Status != EffectNodeStatus.Completed)
+                    ? EffectStepResult.NoProgress() : EffectStepResult.Completed());
+            string root = f.Run(EffectSpec.Create("fixture.paul.queued-placements", playerId: 1));
+            f.Answer(f.Request(root, "effect.choice.execute"), "gang");
+            var later = f.Open.LastOrDefault(request => f.Within(request.OwnerEffectId, root) && request.InteractionTypeId == "effect.choice.execute");
+            if (later != null)
+            {
+                Assert.That(later.CandidateIds, Does.Not.Contain("gang"));
+                f.Answer(later, "ordinary");
+            }
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(f.State.Map.Influences.Count(value => value.SlotId == slots[3] || value.SlotId == slots[4]), Is.EqualTo(2));
+        }
+
+        [Test] public void GangChoiceReopensWithLiveStockWhenItChangesBeforeAnswer()
+        {
+            f = new PaulContentTestFixture(); f.Choose(1, "P01");
+            var slots = f.Map.Locations.Where(location => !location.IsRedZone)
+                .SelectMany(location => Enumerable.Range(0, location.InfluenceSlotCount)
+                    .Select(index => InfluenceService.GetLocationSlotId(location.LocationId, index)))
+                .Where(slot => f.State.Map.Influences.All(value => value.SlotId != slot)).Take(5).ToArray();
+            Assert.That(slots.Length, Is.EqualTo(5));
+            for (int i = 0; i < 3; i++) f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[i], itemTypeId: "entrepreneur.gang_marker"));
+            string root = f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[3]));
+            var pending = f.Request(root, "effect.choice.execute");
+            string oldId = pending.GetStableInteractionId();
+            f.Run(InfluenceEffectSpecFactory.PlaceInfluence(1, slots[4], itemTypeId: "entrepreneur.gang_marker"));
+            // 仅隔离模拟并发请求已发布的最新版本；实际请求版本由正式并发协议发布。
+            pending = f.Open.Single(value => value.GetStableInteractionId() == oldId);
+            pending.StateRevision = f.State.EffectRuntime.StateRevision;
+            Assert.That(f.Engine.TrySubmitInteraction(oldId, 1, pending.StateRevision, NormalizedValue.CreateString("gang"), out string reason), Is.True, reason);
+            f.Pump();
+            var renewed = f.Request(root, "effect.choice.execute");
+            Assert.That(renewed.GetStableInteractionId(), Is.Not.EqualTo(oldId));
+            Assert.That(renewed.CandidateIds, Is.EquivalentTo(new[] { "ordinary" }));
+            Assert.That(renewed.Presentation.Options.Select(option => option.CandidateId), Is.EquivalentTo(renewed.CandidateIds));
+            f.Restore("帮派库存变化后重新选择");
+            f.Answer(f.Request(root, "effect.choice.execute"), "ordinary");
+            Assert.That(f.State.EffectRuntime.EffectNodes.Single(node => node.EffectId == root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+        }
         [TestCase(0)][TestCase(1)] public void StrictShortLeftAndConditionResultRestoreWithoutUpgradingToFault(int count)
         {
             f = new PaulContentTestFixture(); f.Choose(5, "P05"); f.DockCity(f.Location); for (int i = 0; i < count; i++) f.Place(f.Location, i);

@@ -37,11 +37,14 @@ end
 local function next_card(ctx,c)
     if #c.names >= 2 then return finish(ctx) end
     local ids,labels={},{}
-    for _, item in ipairs(Global.Content.FindInstances({typeId='core.facility_card'})) do
-        local z=Global.Content.FindZones({id=item.zoneId})[1]
-        local definition=Global.Content.GetDefinition(item.definitionId)
-        if z ~= nil and z.templateId=='core.zone.facility_supply_slot' and z.topItemId==item.id and not has(c.names,definition.name) then
-            ids[#ids+1]=item.id;labels[item.id]=Text.Ref('core:interaction.entity.item',{entity=Text.Item(item.id)})
+    for _, z in ipairs(Global.Content.FindZones({templateId='core.zone.facility_supply_slot'})) do
+        local item = z.topItemId and Global.Content.GetInstance(z.topItemId)
+        if item ~= nil and item.typeId == 'core.facility_card' then
+            local definition = Global.Content.GetDefinition(item.definitionId)
+            if definition == nil then error('facility_definition_missing') end
+            if not has(c.names,definition.name) then
+                ids[#ids+1]=item.id;labels[item.id]=Text.Ref('core:interaction.entity.item',{entity=Text.Item(item.id)})
+            end
         end
     end
     return {choose(ctx,c,'selected',ids,labels,'core:interaction.facility.take.choose',0,'lua.choice')}
@@ -51,14 +54,12 @@ return function(ctx)
         if ctx.payload.candidateKind ~= 'facility.build.card' then return {} end
         local allowed, ids, destination = {}, {}, nil
         for _, id in ipairs(ctx.payload.candidatePoolIds) do allowed[id] = true end
-        for _, zone in ipairs(Global.Content.FindZones()) do
-            if zone.parentId == ctx.payload.cardInstanceRef and zone.localZoneId == 'orders' then
-                destination = zone.id
-            end
+        for _, zone in ipairs(Global.Content.FindZones({parentId=ctx.payload.cardInstanceRef,localZoneId='orders'})) do
+            destination = zone.id
         end
         if destination == nil then return {} end
-        for _, item in ipairs(Global.Content.FindInstances()) do
-            if item.zoneId == destination and allowed[item.id] then ids[#ids + 1] = item.id end
+        for _, item in ipairs(Global.Content.FindInstances({zoneId=destination})) do
+            if allowed[item.id] then ids[#ids + 1] = item.id end
         end
         if #ids == 0 then return {} end
         return { Candidate.Add({ ids = ids, reasonCode = 'facility.stored_source' }) }

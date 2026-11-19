@@ -241,8 +241,10 @@ namespace YC.Tests.EditMode
             public readonly string Output = EvidenceDirectory();
             public SimulationDriverFixture(bool productionResults = false)
             {
-                scenario = Call(shell, "Create"); Mobile = Get(scenario, "Mobile"); Transport = Get(scenario, "Transport");
                 previousTransport = Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport").GetField("<Instance>k__BackingField", Statics).GetValue(null);
+                try
+                {
+                scenario = Call(shell, "Create"); Mobile = Get(scenario, "Mobile"); Transport = Get(scenario, "Transport");
                 Call(Get(scenario, "Controller"), "Dispose");
                 var group = typeof(ConfirmedSimulationRecoveryTests).GetMethod("CreateGroup", Statics).Invoke(null, new object[] { false });
                 Group = group;
@@ -273,6 +275,9 @@ namespace YC.Tests.EditMode
                 Set(scenario, "Controller", submission); Set(Mobile, "commandSubmission", submission);
                 if (!productionResults) Call(submission, "Initialize", Registry);
                 Call(Transport, "AttachSimulation", Coordinator, true);
+                WaitForBackgroundPublication(Coordinator);
+                // 与生产 Update 相同：首个真实快照发布后才通知提交控制器 Ready。
+                Call(Transport, "PublishSimulationReady");
                 var factory = typeof(SimulationUiTestShell).GetMethod("ControllerFactory", Statics)
                     .MakeGenericMethod(submission.GetType()).Invoke(null, new[] { submission });
                 var adapter = Activator.CreateInstance(Target("YC.Presentation.MobileCityGameplayAdapter"), new object[] {
@@ -284,6 +289,32 @@ namespace YC.Tests.EditMode
                 driverObject = new UnityEngine.GameObject("正式驱动原生检查"); Driver = driverObject.AddComponent(Target("YC.Presentation.NetworkGameValidationDriver"));
                 Set(Driver, "output", Output); Set(Driver, "observationOnly", true);
                 Call(Driver, "AttachSimulationTransport", Transport);
+                }
+                catch
+                {
+                    if (Transport != null) Call(Transport, "Shutdown");
+                    if (driverObject != null) UnityEngine.Object.DestroyImmediate(driverObject);
+                    shell.Clear();
+                    if (contextObject != null) UnityEngine.Object.DestroyImmediate(contextObject);
+                    Target("YC.Infrastructure.Multiplayer.MirrorCommandTransport").GetField("<Instance>k__BackingField", Statics).SetValue(null, previousTransport);
+                    throw;
+                }
+            }
+            private static void WaitForBackgroundPublication(DeterministicSimulationCoordinator coordinator)
+            {
+                WaitForBackground(coordinator, () => coordinator.TryReadPublishedSnapshot(out _));
+            }
+            public static void WaitForBackground(DeterministicSimulationCoordinator coordinator, Func<bool> condition)
+            {
+                var elapsed = System.Diagnostics.Stopwatch.StartNew();
+                while (elapsed.Elapsed < TimeSpan.FromSeconds(15))
+                {
+                    coordinator.DrainMainThreadNotifications(128);
+                    if (condition()) return;
+                    if (coordinator.BackgroundExecutionException != null) throw coordinator.BackgroundExecutionException;
+                    System.Threading.Thread.Sleep(5);
+                }
+                Assert.Fail("等待正式后台模拟发布首个隔离快照超时。");
             }
             public GameCommand Submit(string id)
             {
@@ -336,12 +367,17 @@ namespace YC.Tests.EditMode
                 fixture.Coordinator.ReceiveProposalResult(accepted);
                 fixture.Coordinator.ReceiveOrdered(accepted.OrderedCommand);
                 fixture.Host.Pump(1); fixture.Coordinator.Pump(1);
+                SimulationDriverFixture.WaitForBackground(fixture.Coordinator, () =>
+                    Get(fixture.Driver, "pendingSimulationCommand") == null &&
+                    string.IsNullOrEmpty((string)Get(fixture.Mobile, "pendingEffectCommandId")));
                 Assert.That(Get(fixture.Driver, "pendingSimulationCommand"), Is.Null);
                 Assert.That(Get(fixture.Mobile, "pendingEffectCommandId"), Is.Null.Or.Empty);
                 Assert.That(fixture.Coordinator.LastAppliedSequence, Is.EqualTo(1));
                 Assert.That(fixture.Coordinator.ValidatedThroughSequence, Is.EqualTo(0), "本地解锁不等待Host前缀通知。");
                 Assert.That(File.Exists(Path.Combine(fixture.Output, "confirmed.jsonl")), Is.False);
                 fixture.Coordinator.ReceiveValidationPrefix(fixture.Host.ReadLocalValidationPrefix());
+                SimulationDriverFixture.WaitForBackground(fixture.Coordinator, () =>
+                    (long)Get(fixture.Driver, "hostValidatedSequence") == 1);
                 Assert.That(Get(fixture.Driver, "hostValidatedSequence"), Is.EqualTo(1));
                 Assert.That(File.ReadAllLines(Path.Combine(fixture.Output, "simulation-applied.jsonl")).Length, Is.EqualTo(1));
                 File.WriteAllText(Path.Combine(fixture.Output, "正式入口观察.json"), JsonConvert.SerializeObject(new {
@@ -444,6 +480,8 @@ namespace YC.Tests.EditMode
                 fixture.Coordinator.ReceiveProposalResult(admitted);fixture.Coordinator.ReceiveOrdered(admitted.OrderedCommand);
                 int applications=0;fixture.Coordinator.SimulationCommandApplied+=_=>applications++;
                 fixture.Host.Pump(1);fixture.Coordinator.Pump(1);
+                SimulationDriverFixture.WaitForBackground(fixture.Coordinator,()=>applications==1 &&
+                    string.IsNullOrEmpty((string)Get(fixture.Mobile,"pendingEffectCommandId")));
                 Assert.That(applications,Is.EqualTo(1));Assert.That(Get(fixture.Mobile,"pendingEffectCommandId"),Is.Null.Or.Empty);
                 Assert.That(Get(fixture.Driver,"pendingSimulationCommand"),Is.Null);
                 Assert.That(fixture.Coordinator.IsStopped,Is.False,fixture.Coordinator.LastFault?.Diagnostic);
@@ -558,18 +596,28 @@ namespace YC.Tests.EditMode
             Assert.That(throwing.ExecutionTimings.Snapshot()["submit.handler.calls"],Is.EqualTo(1));
         }
 
-        [Test]
-        public void NativeAcceptedDisconnectWaitsForConfirmedRecoveryAndNextRoute()
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator NativeAcceptedDisconnectWaitsForConfirmedRecoveryAndNextRoute()
         {
             using(var fixture=new SimulationDriverFixture(productionResults:true))
             {
-                WithLocalRecoveryRuntime(fixture, (runtime, transport) =>
+                var runtimeType=Target("YC.Infrastructure.Multiplayer.MirrorNetworkRuntime");
+                var previous=runtimeType.GetProperty("Instance",Statics).GetValue(null);
+                var root=new UnityEngine.GameObject("正式异步恢复状态消费者夹具"); root.SetActive(false);
+                var runtime=root.AddComponent(runtimeType); var transport=fixture.Transport;
+                try
                 {
+                runtimeType.GetField("<Instance>k__BackingField",Statics).SetValue(null,runtime);
+                runtimeType.GetProperty("IsLocalTestMode").GetSetMethod(true).Invoke(runtime,new object[]{true});
+                Call(runtime,"SetLocalClientIdentityTicket","driver-original-session-ticket");
+                Call(transport,"ConfigureConfirmedRecovery",new SimulationConfirmedRecoveryInstaller(fixture.Session,fixture.Registry,GameStateViewer.Player(1),fixture.Coordinator.SessionOptions));
                 var pending=fixture.SubmitFromOwnerView();
                 var options=fixture.Coordinator.SessionOptions;
                 Set(fixture.Driver,"finalHostExportStarted",true);
                 File.WriteAllText(Path.Combine(fixture.Output,"protocol-summary.json"),JsonConvert.SerializeObject(Call(fixture.Mobile,"ValidationProtocolSummary",fixture.Coordinator)));
                 Call(transport,"OnCheckpointClientDisconnected");
+                SimulationDriverFixture.WaitForBackground(fixture.Coordinator, () => fixture.Coordinator.LastFault != null &&
+                    (bool)Get(fixture.Driver,"awaitingAcceptedSessionRecovery"));
                 Assert.That(Call(transport,"CanAwaitLocalSimulationConnectionRecovery",fixture.Coordinator.LastFault),Is.True);
                 Assert.That(Get(fixture.Driver,"stopped"),Is.False);
                 Assert.That(Get(fixture.Driver,"awaitingAcceptedSessionRecovery"),Is.True);
@@ -588,18 +636,26 @@ namespace YC.Tests.EditMode
                 Set(transport,"checkpointHostConnection",Target("Mirror.NetworkClient").GetProperty("connection",Statics).GetValue(null));
                 ReceiveValidationRecoveryControl(transport,notice);
                 Assert.That(Get(fixture.Driver,"recoveringSimulation"),Is.True);
-                var envelope=new SimulationCheckpointEnvelope {ProtocolVersion=SimulationCheckpointEnvelope.RecoveryProtocolVersion,
-                    Purpose=SimulationCheckpointEnvelope.ConfirmedSimulationRecovery,GameId=options.GameId,ContentPackHash=options.ContentPackHash,
-                    SourceSimulationEpoch=1,SimulationEpoch=2,MembershipVersion=1,CheckpointId=notice.CheckpointId,
-                    GlobalCommandSequence=0,ArchiveDigestVersion=SimulationCheckpointEnvelope.RecoveryDigestVersion};
+                var envelope=(SimulationCheckpointEnvelope)Call(transport,"RecoveryEnvelope",notice);
+                envelope.ContentPackHash=options.ContentPackHash;
                 var transfer=SimulationCheckpointTransfer.Encode(envelope,SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint));
                 foreach(var part in transfer.Split())
                     Call(transport,"ReceiveConfirmedRecoveryPart",ValidationCheckpointPart(transport,transfer.Envelope,part),transfer.Envelope);
+                var deadline=DateTime.UtcNow.AddSeconds(15);
+                while(Get(transport,"preparedRecovery")==null && !(bool)Get(transport,"recoveryFailed") && DateTime.UtcNow<deadline)
+                    yield return null;
+                Assert.That(Get(transport,"preparedRecovery"),Is.Not.Null,"等待真实异步准备完成，不能提前提交恢复。");
                 notice.Phase=SimulationRecoveryPhase.Commit;ReceiveValidationRecoveryControl(transport,notice);
                 Assert.That(RecoveryProperty(transport,"IsAwaitingLocalSimulationConnectionRecovery"),Is.True,"安装完成仍须规定成员完整恢复。");
                 Assert.That(Get(fixture.Driver,"pendingSimulationCommand"),Is.Not.Null);
                 notice.Phase=SimulationRecoveryPhase.Installed;ReceiveValidationRecoveryControl(transport,notice);
                 var target=(DeterministicSimulationCoordinator)RecoveryProperty(transport,"SimulationCoordinator");
+                deadline=DateTime.UtcNow.AddSeconds(15);
+                while((bool)Get(fixture.Driver,"recoveringSimulation") && DateTime.UtcNow<deadline)
+                {
+                    Call(transport,"Update");
+                    yield return null;
+                }
                 Assert.That(RecoveryProperty(transport,"IsAwaitingLocalSimulationConnectionRecovery"),Is.False);
                 Assert.That(Get(fixture.Driver,"stopped"),Is.False);Assert.That(Get(fixture.Driver,"awaitingAcceptedSessionRecovery"),Is.False);
                 Assert.That(Get(fixture.Driver,"recoveringSimulation"),Is.False);Assert.That(Get(fixture.Driver,"pendingSimulationCommand"),Is.Null);
@@ -617,6 +673,7 @@ namespace YC.Tests.EditMode
                     coordinators[index]=peer.Coordinator;peer.Coordinator.CompleteConfirmedRecovery(true);
                 }
                 typeof(ConfirmedSimulationRecoveryTests).GetMethod("Seal",Statics).Invoke(null,new[]{fixture.Group,(object)0L});
+                SimulationDriverFixture.WaitForBackground(target, () => target.ReadWindowPermissions().Any(p=>p.CanSubmitForLocalPlayer));
                 Assert.That(target.ReadWindowPermissions().Any(p=>p.CanSubmitForLocalPlayer),Is.True);
                 Call(fixture.Driver,"RefreshFinalProtocolSummary",fixture.Mobile);
                 var finalProtocol=JObject.Parse(File.ReadAllText(Path.Combine(fixture.Output,"protocol-summary.json")));
@@ -631,13 +688,21 @@ namespace YC.Tests.EditMode
                     GameId=options.GameId,SourceEpoch=1,TargetEpoch=2,OriginalCommandId=pending.CommandId,NextCommandId=next.CommandId,
                     OriginalFaultPreserved=true,NoPrematureResult=true,PendingRetiredAfterResume=true,
                     Boundary="实际Local接纳、断线记录、运输恢复控制与分片、Installer、完成通知及真实许可后新提交；连接输入为夹具，非TCP重连"},Formatting.Indented));
-                });
+                }
+                finally
+                {
+                    Call(fixture.Driver,"BindRecoveryRuntime",new object[]{null});
+                    runtimeType.GetField("<Instance>k__BackingField",Statics).SetValue(null,previous);
+                    UnityEngine.Object.DestroyImmediate(root);
+                }
             }
             using(var fixture=new SimulationDriverFixture())
             {
                 WithLocalRecoveryRuntime(fixture,(runtime,transport)=>
                 {
                     Call(transport,"OnCheckpointClientDisconnected");
+                    SimulationDriverFixture.WaitForBackground(fixture.Coordinator, () => fixture.Coordinator.LastFault != null &&
+                        (bool)Get(fixture.Driver,"awaitingAcceptedSessionRecovery"));
                     Assert.That(Get(fixture.Driver,"stopped"),Is.False);
                     Call(transport,"OnLocalClientReconnectFailed","simulation_local_reconnect_timeout");
                     Assert.That(RecoveryProperty(transport,"IsAwaitingLocalSimulationConnectionRecovery"),Is.False);
@@ -652,6 +717,7 @@ namespace YC.Tests.EditMode
                 var o=fixture.Coordinator.SessionOptions;
                 fixture.Coordinator.ReceiveRemoteFault(new SimulationProtocolFaultDto {GameId=o.GameId,SimulationEpoch=o.SimulationEpoch,
                     MembershipVersion=o.MembershipVersion,FaultCode="simulation_connection_lost",RequiresRecovery=true});
+                SimulationDriverFixture.WaitForBackground(fixture.Coordinator, () => (bool)Get(fixture.Driver,"stopped"));
                 Assert.That(Get(fixture.Driver,"stopped"),Is.True,"未被生产接受的恢复不能仅凭RequiresRecovery吞故障。");
                 Assert.That(File.Exists(Path.Combine(fixture.Output,"result.json")),Is.True);
             }
@@ -1189,11 +1255,16 @@ namespace YC.Tests.EditMode
                 var notice=new SimulationRecoveryNoticeDto {GameId=checkpoint.Baseline.GameId,SimulationEpoch=2,SourceSimulationEpoch=1,MembershipVersion=1,
                     CheckpointId=checkpoint.Baseline.CheckpointId,ConfirmedGlobalSequence=0,MetadataDigest=checkpoint.Baseline.MetadataDigest,Phase=SimulationRecoveryPhase.Prepare,ResumeAllowed=true};
                 var installer=new SimulationConfirmedRecoveryInstaller(fixture.Session,fixture.Registry,GameStateViewer.Player(1),fixture.Coordinator.SessionOptions);
-                Assert.That(installer.TryPrepare(notice,SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint),out var prepared,out var preparedResult),Is.True,preparedResult?.Reason);
+                var preparation=installer.PrepareAsync(notice,SimulationConfirmedRecoveryInstaller.SerializeCheckpoint(checkpoint),fixture.Coordinator);
+                Assert.That(preparation.Wait(TimeSpan.FromSeconds(15)),Is.True,"旧后台执行器须在安全点退出后准备恢复。");
+                var prepared=preparation.GetAwaiter().GetResult();
                 Set(fixture.Transport,"recoveryInstaller",installer);Set(fixture.Transport,"preparedRecovery",prepared);
                 Set(fixture.Transport,"recoveryNotice",notice);Set(fixture.Transport,"recoveryCommitIssued",true);
                 Call(fixture.Transport,"InstallLocalRecovery");
-                var target=prepared.Coordinator; target.CompleteConfirmedRecovery(true);
+                var target=prepared.Coordinator;
+                SimulationDriverFixture.WaitForBackground(target, () => target.TryReadPublishedSnapshot(out _));
+                target.CompleteConfirmedRecovery(true);
+                SimulationDriverFixture.WaitForBackground(target, () => !target.IsRecoveringConfirmedPrefix);
                 Set(fixture.Transport,"recoveryFinished",true);
                 // 专用安装后的真实运输事件消费者接缝；全员运输汇合由协议原件覆盖，本例不冒称联网恢复。
                 ((Delegate)Get(fixture.Transport,"SimulationRecoveryCompleted")).DynamicInvoke(target);
@@ -1216,6 +1287,7 @@ namespace YC.Tests.EditMode
                 }
                 // 使用三份真实恢复副本的同前缀边界与许可；不手填允许操作的标志。
                 typeof(ConfirmedSimulationRecoveryTests).GetMethod("Seal",Statics).Invoke(null,new[]{fixture.Group,(object)0L});
+                SimulationDriverFixture.WaitForBackground(target, () => target.ReadWindowPermissions().Any(p=>p.CanSubmitForLocalPlayer));
                 Assert.That(target.ReadWindowPermissions().Any(p=>p.CanSubmitForLocalPlayer),Is.True);
                 var next=fixture.SubmitFromOwnerView();
                 Assert.That(next.CommandId,Is.Not.EqualTo(command.CommandId));
@@ -1244,10 +1316,11 @@ namespace YC.Tests.EditMode
                 var accepted=coordinators[0].AdmitProposal(1,target.ReadPendingLocalProposal());
                 Assert.That(accepted.Status,Is.EqualTo(OperationAdmissionStatus.Accepted));
                 Assert.That(accepted.OrderedCommand.SimulationEpoch,Is.EqualTo(2));
-                target.ReceiveProposalResult(accepted);target.ReceiveOrdered(accepted.OrderedCommand);
                 SimulationCommandAppliedDto actualApplied=null;int applications=0;
                 target.SimulationCommandApplied+=value=>{actualApplied=value;applications++;};
+                target.ReceiveProposalResult(accepted);target.ReceiveOrdered(accepted.OrderedCommand);
                 coordinators[0].Pump(1);target.Pump(1);
+                SimulationDriverFixture.WaitForBackground(target, () => applications > 0);
                 Assert.That(applications,Is.EqualTo(1));Assert.That(Get(fixture.Mobile,"pendingEffectCommandId"),Is.Null.Or.Empty);
                 Assert.That(Get(fixture.Driver,"pendingSimulationCommand"),Is.Null);
                 int afterRevision=fixture.Session.State.EffectRuntime.StateRevision;frames=fixture.QueuedFrameCount;

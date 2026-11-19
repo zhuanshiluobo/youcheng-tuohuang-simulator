@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YC.Domain.Rules;
@@ -50,6 +51,10 @@ namespace YC.Infrastructure.Multiplayer
             {
                 case nameof(ChangeRoomConfigurationRequest):
                     Require(input, "MapId", JTokenType.String); Require(input, "RuleModeId", JTokenType.String); Require(input, "EnabledExpansionIds", JTokenType.Array);
+                    if (input["AdditionalRuleModeIds"] != null && input["AdditionalRuleModeIds"].Type != JTokenType.Null && input["AdditionalRuleModeIds"].Type != JTokenType.Array)
+                        throw new JsonSerializationException("room_protocol_mismatch");
+                    if (input["AdditionalRuleModeIds"] is JArray modes && modes.Any(mode => mode.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)mode)))
+                        throw new JsonSerializationException("room_protocol_mismatch");
                     return input.ToObject<ChangeRoomConfigurationRequest>();
                 case nameof(SetRoomReadyRequest):
                     Require(input, "IsUserReady", JTokenType.Boolean); return input.ToObject<SetRoomReadyRequest>();

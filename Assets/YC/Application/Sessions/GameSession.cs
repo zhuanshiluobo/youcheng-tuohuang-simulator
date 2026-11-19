@@ -12,6 +12,8 @@ using YC.Domain.Facilities;
 using YC.Domain.SpecialActions;
 using YC.Domain.State;
 using YC.Domain.Rules;
+using YC.Domain.Maps;
+using YC.Domain.Scoring;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace YC.Application.Sessions
@@ -34,6 +36,19 @@ namespace YC.Application.Sessions
             (commandHandlers.Find(handler => handler is IPreparedActionConfirmationProvider provider && provider.PaymentRegistry != null)
                 as IPreparedActionConfirmationProvider)?.PaymentRegistry;
 
+        // 页面按需查询；只返回公开数字，不能持久化或推动最终计分。
+        public RegionControlPreview QueryRegionControlPreview(int playerId, string gameId, string contentHash,
+            int stateRevision, EffectRegistry registry)
+        {
+            EnsureExecutionOwner();
+            if (playerId <= 0 || State.FindPlayer(playerId) == null || registry == null ||
+                State.GameId != gameId || State.ContentPackHash != contentHash || registry.ContentPackHash != contentHash ||
+                State.EffectRuntime == null || State.EffectRuntime.StateRevision != stateRevision) return null;
+            var map = new MapQueryService(StaticMapDefinitions.Resolve(State.MapId));
+            var preview = RegionInformationQuery.CreatePreview(State, map, registry);
+            return State.EffectRuntime.StateRevision == stateRevision ? preview : null;
+        }
+
         public GameStateView ProjectFor(GameStateViewer viewer)
         {
             if (IsBackgroundReader)
@@ -46,6 +61,27 @@ namespace YC.Application.Sessions
             // 不跨命令、帧或工作副本缓存规则响应和可变状态。
             using var queryScope = ReadOnlyStateQueryScope.Begin(State);
             return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer), settlementProjectionProvider?.GetAbilityActions(State, viewer), PaymentProjectionRegistry);
+        }
+
+        /// <summary>为私密传输构造单个玩家视图；传输层仍须认证连接和席位。</summary>
+        public GameStateView ProjectForPlayerWithContent(int playerId, EffectRegistry registry)
+        {
+            EnsureExecutionOwner();
+            if (playerId <= 0 || State.FindPlayer(playerId) == null || registry == null ||
+                string.IsNullOrEmpty(State.ContentPackHash) || registry.ContentPackHash != State.ContentPackHash)
+                throw new InvalidOperationException("private_view_content_or_player_invalid");
+            if (State.SetupRecipe?.Preparation?.Enterprise != null)
+            {
+                var ids = State.ContentDefinitions?.EnterpriseDefinitionIds;
+                if (ids == null || ids.Count == 0 || ids.Any(id => {
+                    var definition = registry.EnterpriseDefinitions?.FindEnterprise(id);
+                    return definition == null || string.IsNullOrWhiteSpace(definition.DisplayNameKey);
+                })) throw new InvalidOperationException("private_view_enterprise_catalog_incomplete");
+            }
+            var viewer = GameStateViewer.Player(playerId);
+            using var queryScope = ReadOnlyStateQueryScope.Begin(State);
+            return GameStateViewProjector.Project(State, viewer, settlementProjectionProvider?.GetSettlementOptions(State, viewer),
+                settlementProjectionProvider?.GetAbilityActions(State, viewer), registry);
         }
 
         /// <summary>完整模拟状态的展示入口；只更新观察者投影，不提交规则或裁剪 State。</summary>
@@ -188,10 +224,12 @@ namespace YC.Application.Sessions
             return SubmitCore(command, digest);
         }
 
-        private CommandResult SubmitCore(GameCommand command, string verifiedOrderedRequestDigest)
+        private CommandResult SubmitCore(GameCommand command, string verifiedOrderedRequestDigest, Action<GameState> privateCommit = null)
         {
             EnsureExecutionOwner();
             using var saveCritical = new SaveCriticalScope(this);
+            if ((State.PrivateCommandLedger != null || State.RandomRuntime?.AlgorithmVersion == GameplayRandomRuntime.PrivateAlgorithmVersion) && privateCommit == null)
+                return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.InvalidPlayer, "私密联机命令必须经过房主认证与防重入口。"));
             if (CommandsSuspended) return CommandResult.Invalid(ValidationResult.Failure(CommandErrorCode.UnknownCommand, "正在保存对局，请稍候。"));
             using var submitSample = new ExecutionSample(ExecutionTimings, "submit.total");
             using var allocationSample = ExecutionTimings.MeasureSubmitAllocation(command?.CommandId);
@@ -315,8 +353,12 @@ namespace YC.Application.Sessions
                             beforeRevision,
                             eventEntries,
                             recordedEvents,
-                            confirmedRecoveryCaptureEnabled ? (Action<GameState>)(finalState =>
-                                pendingRecoveryCapture = PrepareRecoveryCapture(finalState, nextPendingActionLog, command.CommandId)) : null);
+                            privateCommit != null || confirmedRecoveryCaptureEnabled ? (Action<GameState>)(finalState =>
+                            {
+                                privateCommit?.Invoke(finalState);
+                                if (confirmedRecoveryCaptureEnabled)
+                                    pendingRecoveryCapture = PrepareRecoveryCapture(finalState, nextPendingActionLog, command.CommandId);
+                            }) : null);
                 }
                 catch (Exception ex)
                 {

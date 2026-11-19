@@ -37,11 +37,14 @@ end
 local function next_card(ctx,c)
     if #c.names >= 2 then return finish(ctx) end
     local ids,labels={},{}
-    for _, item in ipairs(Global.Content.FindInstances({typeId='core.facility_card'})) do
-        local z=Global.Content.FindZones({id=item.zoneId})[1]
-        local definition=Global.Content.GetDefinition(item.definitionId)
-        if z ~= nil and z.templateId=='core.zone.facility_supply_slot' and z.topItemId==item.id and not has(c.names,definition.name) then
-            ids[#ids+1]=item.id;labels[item.id]=Text.Ref('core:interaction.entity.item',{entity=Text.Item(item.id)})
+    for _, z in ipairs(Global.Content.FindZones({templateId='core.zone.facility_supply_slot'})) do
+        local item = z.topItemId and Global.Content.GetInstance(z.topItemId)
+        if item ~= nil and item.typeId == 'core.facility_card' then
+            local definition = Global.Content.GetDefinition(item.definitionId)
+            if definition == nil then error('facility_definition_missing') end
+            if not has(c.names,definition.name) then
+                ids[#ids+1]=item.id;labels[item.id]=Text.Ref('core:interaction.entity.item',{entity=Text.Item(item.id)})
+            end
         end
     end
     return {choose(ctx,c,'selected',ids,labels,'core:interaction.facility.take.choose',0,'lua.choice')}
@@ -50,7 +53,7 @@ return function(ctx)
     
     local c=state(ctx);if c==nil then return {} end
     if c.stage=='start' then
-        c.names={};for _,z in ipairs(Global.Content.FindZones()) do if z.templateId=='core.zone.box_retired' then c.destination=z.id end end;if c.destination==nil then error('facility_destination_missing') end
+        c.names={};for _,z in ipairs(Global.Content.FindZones({templateId='core.zone.box_retired'})) do c.destination=z.id end;if c.destination==nil then error('facility_destination_missing') end
         return next_card(ctx,c)
     elseif c.stage=='selected' then
         local id=ctx.payload.normalizedResult;if id==nil then return finish(ctx) end

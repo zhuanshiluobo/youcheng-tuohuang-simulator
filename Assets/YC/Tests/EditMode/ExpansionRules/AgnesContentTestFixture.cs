@@ -172,10 +172,10 @@ namespace YC.Tests.EditMode.ExpansionRules
             // 规则隔离装配：调用生产内部活动快照，保G0；不进入正常启动，不补manifest或缺失依赖。
             // 哈希明确标为隔离活动身份，原始安装输入及生产装载ContentHash另由Artifacts封存。
             var select = typeof(ExternalContentPack).GetMethod("CreateActiveSnapshot", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-                null, new[] { typeof(IEnumerable<string>), typeof(string), typeof(string) }, null);
+                null, new[] { typeof(IEnumerable<string>), typeof(string), typeof(string), typeof(IEnumerable<string>) }, null);
             Assert.That(select, Is.Not.Null);
             string isolatedHash = LuaContentHasher.ComputeSha256(Pack.ContentHash + "|qy013.formal.isolated|entrepreneur");
-            Pack = (ExternalContentPack)select.Invoke(Pack, new object[] { new[] { "core", "enterprise", "infected" }, isolatedHash, "entrepreneur" });
+            Pack = (ExternalContentPack)select.Invoke(Pack, new object[] { new[] { "core", "enterprise", "infected" }, isolatedHash, "entrepreneur", new[] { "entrepreneur_selection.v1" } });
             var defs = Pack.ActiveDefinitions;
             var recipes = Pack.SetupRecipes;
             var recipe = recipes.Single(r => r.RecipeId == "standard");
@@ -210,6 +210,8 @@ namespace YC.Tests.EditMode.ExpansionRules
             var map = StaticMapDefinitions.CreateThreePlayerMap(); var query = new MapQueryService(map); var influence = new InfluenceService(query);
             ResourceEffectExecutor.Register(Registry); GenericLuaEffectExecutor.Register(Registry); ItemTransferEffectExecutor.Register(Registry);
             ContentPrimitiveEffectExecutor.Register(Registry, query, influence); InfluenceEffectExecutor.Register(Registry, influence);
+            PlayerEntranceEffectExecutor.Register(Registry, query);
+            EventCardEffectExecutor.Register(Registry, query, influence, new YC.Domain.Cards.EventDeckService(), new YC.Domain.Cards.ResourceTokenService());
             PlayerEntranceLuaCatalog.Register(Registry); EventCardLuaCatalog.Register(Registry, Pack); CityStyleLuaCatalog.Register(Registry, Pack);
             ContentLifecycleLuaCatalog.Register(Registry, Pack);
             CityDestinationLuaCatalog.Register(Registry, Pack); FacilityLayerLuaCatalog.Register(Registry);
@@ -222,7 +224,9 @@ namespace YC.Tests.EditMode.ExpansionRules
             State = GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, new[] { new PlayerSeat { PlayerId = 1, PlayerName = "隔离甲" },
                 new PlayerSeat { PlayerId = 2, PlayerName = "隔离乙" } }, config, 47, recipe, content, new[] { 1, 2 }, "qy013.formal.isolated", null);
             State.RuleConfiguration.RuleModeId = "entrepreneur"; State.EffectRuntime.PlayerOrderSnapshot = new List<int> { 1, 2 };
-            Run(ExpansionSetupFlow.PreparationSpec(1, false));
+            FixturePreparationPlan.AttachEntrepreneur(State, Registry, (string)Pack.Manifest["version"]);
+            var started = new RoundExecutionService(Registry).StartEntrance(State);
+            Assert.That(started.IsValid, Is.True, started.Reason);
             for (int guard = 0; guard < 200 && State.EntrepreneurSetup?.Stage != "complete"; guard++)
             {
                 var request = Open;

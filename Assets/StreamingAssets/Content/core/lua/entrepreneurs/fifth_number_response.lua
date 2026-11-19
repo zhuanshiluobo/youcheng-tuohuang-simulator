@@ -14,11 +14,11 @@ local function current_item(ctx, event, expected_zone)
         or (expected_zone ~= nil and item.zoneId ~= expected_zone) then
         return nil
     end
-    for _, zone in ipairs(Global.Content.FindZones()) do
-        if zone.id == item.zoneId and zone.templateId == 'core.zone.effect_staging'
-            and zone.localZoneId == 'removed_influence' and zone.parentKind == 'Zone' then
-            return item
-        end
+    local zones = Global.Content.FindZones({ id = item.zoneId })
+    local zone = zones[1]
+    if zone ~= nil and zone.templateId == 'core.zone.effect_staging'
+        and zone.localZoneId == 'removed_influence' and zone.parentKind == 'Zone' then
+        return item
     end
     return nil
 end

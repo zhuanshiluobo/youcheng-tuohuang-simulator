@@ -78,11 +78,45 @@ namespace YC.Tests.EditMode
             data["protocolVersion"] = SteamLobbyPolicy.ProtocolVersion + "-mismatch";
             Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 4, out _));
             data = CompatibleData();
+            data["protocolVersion"] = "8";
+            Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 4, out reason));
+            Assert.AreEqual("room_protocol_mismatch", reason);
+            data = CompatibleData();
             data["roomStatus"] = SteamLobbyPolicy.StartedStatus;
             Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 4, out _));
             data = CompatibleData();
             data["hostSteamId"] = "0";
             Assert.IsFalse(SteamLobbyPolicy.IsCompatible(data, 4, out _));
+        }
+
+        [Test]
+        public void RegionPreviewSegmentsRoundTripWithoutTruncationAndRejectBadParts()
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(new string('区', 20000) + "完整末尾");
+            var payload = new PrivateRegionPreviewPayload(bytes);
+            Assert.That(payload.PartCount, Is.GreaterThan(1));
+            using (var receiver = new PrivateRegionPreviewReceiver())
+            {
+                Assert.That(receiver.TryAppend(1, payload.PartCount, payload.Digest, payload.ReadPart(1), out _), Is.False);
+                Assert.That(receiver.TryAppend(0, payload.PartCount, payload.Digest, payload.ReadPart(0).Substring(4), out _), Is.False);
+                byte[] result = null;
+                for (int part = 0; part < payload.PartCount; part++)
+                {
+                    Assert.That(receiver.TryAppend(part, payload.PartCount, payload.Digest, payload.ReadPart(part), out result), Is.True);
+                    if (part + 1 < payload.PartCount) Assert.That(result, Is.Null);
+                }
+                CollectionAssert.AreEqual(bytes, result);
+            }
+            using (var corrupted = new PrivateRegionPreviewReceiver())
+            {
+                string first = payload.ReadPart(0);
+                first = (first[0] == 'A' ? "B" : "A") + first.Substring(1);
+                Assert.That(corrupted.TryAppend(0, payload.PartCount, payload.Digest, first, out _), Is.True);
+                for (int part = 1; part < payload.PartCount - 1; part++)
+                    Assert.That(corrupted.TryAppend(part, payload.PartCount, payload.Digest, payload.ReadPart(part), out _), Is.True);
+                Assert.That(corrupted.TryAppend(payload.PartCount - 1, payload.PartCount, payload.Digest,
+                    payload.ReadPart(payload.PartCount - 1), out _), Is.False, "最后一段必须核对完整摘要。");
+            }
         }
 
         [Test]

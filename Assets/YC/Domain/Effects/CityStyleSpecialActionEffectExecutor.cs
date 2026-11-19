@@ -401,9 +401,7 @@ namespace YC.Domain.Effects
             int amount = ReadInt(context.Node.NormalizedArguments, "amount", 0);
             if (amount <= 0) return EffectStepResult.Failed("invalid_amount");
             var allowed = ReadStringArray(context.Node.NormalizedArguments, "allowedActionTypes");
-            if (allowed.Count > 0 && (allowed.Count != 3 || !allowed.Contains("build") || !allowed.Contains("explore") || !allowed.Contains("move_city")))
-                return EffectStepResult.Failed("main_action_restriction_invalid");
-            new MainActionBudgetService().GrantAdditionalMainActions(context.State, context.Node.PlayerId, amount, allowed.Count > 0);
+            new MainActionBudgetService().GrantAdditionalMainActions(context.State, context.Node.PlayerId, amount, allowed);
             if (ReadBool(context.Node.NormalizedArguments, "lockCharacterCard", true))
                 new MainActionBudgetService().LockCharacterCard(context.State, context.Node.PlayerId);
             return EffectStepResult.Completed(NormalizedValue.CreateInteger(amount));
@@ -419,9 +417,9 @@ namespace YC.Domain.Effects
                 ItemTransferEffectExecutor.Value(args, "lockCharacterCard") is NormalizedValue locked && locked.Kind != NormalizedValueKind.Boolean)
                 return "main_action_grant_arguments_invalid";
             var allowed = ItemTransferEffectExecutor.Value(args, "allowedActionTypes");
-            if (allowed != null && (allowed.Kind != NormalizedValueKind.Array || allowed.Items.Count != 0 &&
-                (allowed.Items.Count != 3 || allowed.Items.Any(v => v.Kind != NormalizedValueKind.String) ||
-                 !new[] { "build", "explore", "move_city" }.All(id => allowed.Items.Any(v => v.StringValue == id)))))
+            if (allowed != null && (allowed.Kind != NormalizedValueKind.Array || allowed.Items == null ||
+                allowed.Items.Any(v => v == null || v.Kind != NormalizedValueKind.String || !MainActionBudgetService.IsSupportedActionType(v.StringValue)) ||
+                allowed.Items.Select(v => v.StringValue).Distinct(StringComparer.Ordinal).Count() != allowed.Items.Count))
                 return "main_action_restriction_invalid";
             return "";
         }

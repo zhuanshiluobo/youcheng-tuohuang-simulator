@@ -569,7 +569,8 @@ namespace YC.Domain.Cards
                 !state.EffectRuntime.RuleEvents.Any(e => ReferenceEquals(e, context.Event)) || context.Event.EventType != "EffectCompleted" ||
                 context.Event.OwnerNodeId != owner.EffectId || context.Event.SourceEffectId != owner.EffectId || context.Event.EventId != owner.CompletedEventId ||
                 owner.ContinuationHandlerId != handlerId || owner.ContinuationContentHash != handlerHash ||
-                !registry.TryGetContinuation(handlerId, "EffectCompleted", out var registration) || !ReferenceEquals(registration, context.Registration) ||
+                !registry.TryGetContinuation(handlerId, "EffectCompleted", owner.ContinuationContentId, owner.ContinuationContentInstanceId,
+                    owner.ContinuationAbilityId, owner.ContinuationDefinitionVersion, owner.ContinuationContentHash, out var registration) || !ReferenceEquals(registration, context.Registration) ||
                 !registration.Matches(context.Event, owner, true) ||
                 state.EffectRuntime.DispatchReceipts.Any(r => r.EventId == context.Event.EventId && r.SubscriptionId == registration.SubscriptionId)) return false;
             var root = PersistentSourceFactsRoot(state, owner);

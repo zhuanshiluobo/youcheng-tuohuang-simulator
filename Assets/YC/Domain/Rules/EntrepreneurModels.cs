@@ -123,7 +123,7 @@ namespace YC.Domain.Rules
         public static EntrepreneurStateView Project(GameState state, GameStateViewer viewer)
         {
             var result = new EntrepreneurStateView(); var setup = state.EntrepreneurSetup;
-            if (setup == null || state.RuleConfiguration?.RuleModeId != "entrepreneur") return result;
+            if (setup == null || !EntrepreneurFlow.Enabled(state)) return result;
             result.Stage = setup.Stage;
             if (setup.CurrentIndex < setup.PlayerOrder.Count && setup.Stage != "complete") result.ChoosingPlayerId = setup.PlayerOrder[setup.CurrentIndex];
             result.RemainingEntrepreneurDefinitionIds.AddRange(setup.RemainingEntrepreneurs);

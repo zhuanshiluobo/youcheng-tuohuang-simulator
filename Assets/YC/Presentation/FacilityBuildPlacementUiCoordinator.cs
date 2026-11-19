@@ -27,6 +27,7 @@ namespace YC.Presentation
         private int selectedSlot = -1;
         private string inFlight = string.Empty;
         public Func<IReadOnlyList<InteractionRequest>> GetVisibleRequests { private get; set; }
+        public Func<GameStateView> GetVisibleState { private get; set; }
 
         public FacilityBuildPlacementUiCoordinator(Func<GameState> state, Func<int> player,
             GameplayDialogRegistry registry, RectTransform parent, Action<GameCommand> submit)
@@ -69,13 +70,13 @@ namespace YC.Presentation
             if (rendered == request.InteractionId && revision >= request.StateRevision && page != null) return;
             if (!string.IsNullOrEmpty(inFlight)) return;
             if (rendered != request.InteractionId) selectedSlot = -1;
-            rendered = request.InteractionId; revision = request.StateRevision;
-            Show(request);
+            // 只在页面成功绑定后记录渲染版本；异常或状态尚未到达时仍可重试。
+            if (Show(request)) { rendered = request.InteractionId; revision = request.StateRevision; }
         }
 
-        private void Show(InteractionRequestProjection request)
+        private bool Show(InteractionRequestProjection request)
         {
-            if (!IsCurrent(request) || state() == null) return;
+            if (!IsCurrent(request) || state() == null) return false;
             if (page == null) page = registry.InstantiateFacilityBuild(parent);
             string Parameter(string name)
             {
@@ -85,15 +86,17 @@ namespace YC.Presentation
                 return string.Empty;
             }
             var facilityId = Parameter("facilityId");
+            var fixedFacilityId = Parameter("fixedFacilityId");
             var legal = new List<int>();
             foreach (var candidate in request.CandidateIds)
                 if (int.TryParse(candidate, NumberStyles.Integer, CultureInfo.InvariantCulture, out var slot)) legal.Add(slot);
             if (!legal.Contains(selectedSlot)) selectedSlot = -1;
+            // 已选设施和合法位置都来自此放置请求；供应区仅展示，不应重新询问建设资格。
             var model = new BuildFacilityDraftViewModel(BuildFacilityDraftPhase.Placing,
-                new BuildFacilityOptionQueryService().Query(state(), player()), null,
+                Array.Empty<BuildFacilityOptionQueryResult>(), null,
                 FacilityCardDatabase.Get(state(), facilityId), selectedSlot, Parameter("paymentMode"),
-                string.Empty, legal, _ => { });
-            page.RefreshSupplyStatus(state(), player());
+                string.Empty, legal, _ => { }, fixedFacilityId: fixedFacilityId);
+            page.RefreshSupplyStatus(state(), player(), GetVisibleState?.Invoke()?.Decks);
             page.Show(model, state().Map.Facilities, player(), registry.CardVisualCatalog,
                 registry.EffectDialogLayoutProfile, facilityId, string.Empty, () => IsCurrent(request),
                 _ => { }, slot =>
@@ -101,6 +104,7 @@ namespace YC.Presentation
                     if (!IsCurrent(request) || !legal.Contains(slot)) return;
                     selectedSlot = slot; Show(request);
                 }, _ => { }, () => Answer(request), () => { });
+            return true;
         }
 
         private void Answer(InteractionRequestProjection request)

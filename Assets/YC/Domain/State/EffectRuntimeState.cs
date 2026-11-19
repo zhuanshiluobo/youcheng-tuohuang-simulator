@@ -53,7 +53,8 @@ namespace YC.Domain.State
     {
         None,
         Effects,
-        CandidatePatches
+        CandidatePatches,
+        OperatorDispatchPatches
     }
 
     public enum NormalizedValueKind
@@ -360,7 +361,18 @@ namespace YC.Domain.State
                         }
 
                         previousName = entry.Name;
-                        if (!entry.Value.TryValidate(depth + 1, ref elementCount, out reason)) return false;
+                        if (entry.Name == "options" && Properties.Any(property => property?.Name == "interactionType" &&
+                                property.Value?.Kind == NormalizedValueKind.String && property.Value.StringValue == "effect.influence.place.target") &&
+                            entry.Value.Kind == NormalizedValueKind.Array && entry.Value.Items != null &&
+                            entry.Value.Items.All(item => item?.Kind == NormalizedValueKind.String))
+                        {
+                            // 选点列表不是固定大小的规则参数；逐个核验引用，不将候选数量计入通用对象预算。
+                            if (depth + 2 > MaxDepth || ++elementCount > MaxElements)
+                            { reason = "归一化值嵌套深度或元素数量超过限制。"; return false; }
+                            foreach (var item in entry.Value.Items)
+                                if (!TryValidateString(item.StringValue, out reason)) return false;
+                        }
+                        else if (!entry.Value.TryValidate(depth + 1, ref elementCount, out reason)) return false;
                     }
 
                     reason = string.Empty;
@@ -1655,13 +1667,10 @@ namespace YC.Domain.State
 
         private string RequiredChildSchedulingGroup(EffectNodeRuntimeState owner)
         {
+            if (owner.EffectTypeId == YC.Domain.Rules.PreparationFrameworkFlow.TypeId && owner.FlowStage == "confirming")
+                return YC.Domain.Rules.PreparationFrameworkFlow.GroupKey;
             int setupVersion = YC.Domain.Effects.ItemTransferEffectExecutor.Number(
                 owner.NormalizedArguments, "setupProtocolVersion");
-            if (owner.EffectTypeId == YC.Domain.Rules.ExpansionSetupFlow.PreparationTypeId &&
-                setupVersion == 2 && !string.IsNullOrEmpty(owner.FlowStage) &&
-                !(owner.FlowStage == "entrepreneur_setup" && YC.Domain.Effects.ItemTransferEffectExecutor.Number(owner.ContinuationData, "setupProtocolVersion") == 3))
-                return "initial_enterprise_selections";
-
             if (owner.EffectTypeId != YC.Domain.Rules.RoundExecutionService.MainlineEffectTypeId)
                 return string.Empty;
             string nodeType = YC.Domain.Effects.ItemTransferEffectExecutor.Text(owner.NormalizedArguments, "nodeTypeId");

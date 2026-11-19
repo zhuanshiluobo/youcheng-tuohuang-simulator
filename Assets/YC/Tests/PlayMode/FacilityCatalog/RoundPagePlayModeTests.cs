@@ -9,6 +9,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using YC.Application.Sessions;
+using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
 
@@ -16,6 +18,19 @@ namespace YC.Tests.PlayMode
 {
     public sealed class RoundPagePlayModeTests
     {
+        [UnityTearDown]
+        public IEnumerator ReleaseFixtureScene()
+        {
+            // 本夹具直接切场景，不经过正式离局加载器；先卸载场景，再释放其冻结内容。
+            var previous = SceneManager.GetActiveScene();
+            var empty = SceneManager.CreateScene("FinalScoreFixtureCleanup_" + Guid.NewGuid().ToString("N"));
+            SceneManager.SetActiveScene(empty);
+            if (previous.IsValid() && previous.isLoaded)
+                yield return SceneManager.UnloadSceneAsync(previous);
+            var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
+            runtime.GetMethod("ReleaseUnloadedGameplayArtwork", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, null);
+        }
+
         [UnityTest]
         public IEnumerator FinalPage_SampleScene_StaysInsideContentAndReceivesInput()
         { return CheckFinalPage("SampleScene", 4); }
@@ -34,6 +49,11 @@ namespace YC.Tests.PlayMode
                 UnityEngine.Object.Destroy(context.gameObject);
                 yield return null;
             }
+            // 此测试只验证界面；给场景提供完整的隔离席位，避免依赖其他用例留下的单例。
+            context = contextType.GetMethod("Ensure", BindingFlags.Public | BindingFlags.Static).Invoke(null, null) as Component;
+            var seats = Enumerable.Range(1, count).Select(id => new PlayerSeat { PlayerId = id, PlayerName = "夹具玩家" + id }).ToList();
+            var configuration = new GameRuleConfiguration { MapId = StaticMapDefinitions.ForPlayerCount(count).MapId, PlayerCount = count };
+            contextType.GetMethod("ConfigureNewLocal").Invoke(context, new object[] { 1, "fixture-final-score", seats, configuration, (int?)123, Enumerable.Range(1, count).ToArray() });
             yield return SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
             yield return null;
             var frame = Find("YC.Presentation.GameplayHudFrame");
@@ -75,14 +95,21 @@ namespace YC.Tests.PlayMode
             yield return null;
             Canvas.ForceUpdateCanvases();
             Assert.That(Get<bool>(round, "IsFinalScoreDetailsOpen"), Is.True);
-            AssertHit(Get<Button>(view, "FinalScoreDetailsBackButton"));
+            AssertHit(Get<Button>(view, "FinalScoreDetailsButton"));
             AssertHit(Get<Button>(view, "ReturnStartButton"));
             AssertInside(ScreenRect(panel), ScreenRect(content), "详情状态仍在内容区");
             var players = Get<RectTransform>(view, "DetailPlayerRowsContainer");
             var playerScroll = players.GetComponentInParent<ScrollRect>();
             Assert.That(playerScroll, Is.Not.Null, "明细玩家必须可在自己的视口滚动");
-            yield return ScrollToEndThroughRaycast(playerScroll);
-            var lastPlayer = players.GetComponentsInChildren<Button>().Last();
+            var playerButtons = players.GetComponentsInChildren<Button>();
+            Assert.That(playerButtons.Length, Is.EqualTo(count));
+            foreach (var playerButton in playerButtons)
+            {
+                AssertInside(ScreenRect(playerButton.GetComponent<RectTransform>()), ScreenRect(playerScroll.viewport),
+                    "不滚动时每位玩家的切换按钮都应位于视口内");
+                AssertHit(playerButton);
+            }
+            var lastPlayer = playerButtons.Last();
             AssertInside(ScreenRect((RectTransform)lastPlayer.transform), ScreenRect(playerScroll.viewport),
                 "最后一名玩家切换按钮必须完整进入视口");
             AssertHit(lastPlayer);
@@ -107,8 +134,8 @@ namespace YC.Tests.PlayMode
             yield return ScrollToEndThroughRaycast(formulaScroll);
             Assert.That(ScreenRect(formula.rectTransform).yMin,
                 Is.EqualTo(ScreenRect(formulaScroll.viewport).yMin).Within(.1f), "公式末端必须滚入原槽底部");
-            AssertHit(Get<Button>(view, "FinalScoreDetailsBackButton"));
-            Get<Button>(view, "FinalScoreDetailsBackButton").onClick.Invoke();
+            AssertHit(Get<Button>(view, "FinalScoreDetailsButton"));
+            Get<Button>(view, "FinalScoreDetailsButton").onClick.Invoke();
             Assert.That(Get<bool>(round, "IsFinalScoreDetailsOpen"), Is.False);
             // 只执行页面内详情/返回，不触发ReturnStart，不提交业务命令，也不保存资产。
         }

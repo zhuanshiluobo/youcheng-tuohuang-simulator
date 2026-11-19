@@ -128,7 +128,6 @@
           "usageTrackId": "usage.city_style_source_stone_industrial_hub",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "character_action_round",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "city_style_source_stone_industrial_hub"
         }

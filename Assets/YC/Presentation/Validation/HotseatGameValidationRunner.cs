@@ -337,7 +337,7 @@ public static bool TryCompleteRouteSelectionAnswer(GameStateView view, GameComma
                 var args = Plain(node.NormalizedArguments) as JObject ?? new JObject();
                 switch (node.EffectTypeId)
                 {
-                    case "setup.enterprise.select":
+                    case "setup.preparation.enterprise_selection":
                         foreach (var id in resultObject["selectedEnterpriseItemIds"] ?? new JArray()) add("enterprise_selected", definitionFor(id.Value<string>()), "", node.EffectId);
                         break;
                     case "effect.operator.dispatch":
@@ -348,7 +348,8 @@ public static bool TryCompleteRouteSelectionAnswer(GameStateView view, GameComma
                         break;
                     case "effect.event_card.resolve":
                         add("event_resolved", definitionFor(resultObject.Value<string>("cardId")), "", node.EffectId);
-                        if (resultObject["selectedOptionIndex"] != null) add("event_option", definitionFor(resultObject.Value<string>("cardId")), resultObject["selectedOptionIndex"].ToString(), node.EffectId);
+                        if (!string.IsNullOrEmpty(resultObject.Value<string>("selectedChoiceId")))
+                            add("event_option", definitionFor(resultObject.Value<string>("cardId")), resultObject.Value<string>("selectedChoiceId"), node.EffectId);
                         break;
                     case "effect.city_style.special_action.activate":
                         add("special_action_used", args.Value<string>("specialActionId"), "", node.EffectId); break;

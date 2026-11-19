@@ -26,8 +26,8 @@ namespace YC.Domain.Effects
                 {
                     ability = Text(spec.NormalizedArguments, "abilityId"); card = Text(spec.NormalizedArguments, "itemId"); sourceKey = Text(spec.NormalizedArguments, "sourceKey");
                     declaration = registry.SelectSingleAbilityDeclaration(s => s.AbilityId == ability);
-                    if (declaration.AllowedOperations.Contains("response.destination")) kind = "destination";
-                    if (declaration.AllowedOperations.Contains("response.optional_effect"))
+                    if (declaration.ResponseKinds.Contains("response.destination")) kind = "destination";
+                    if (declaration.ResponseKinds.Contains("response.optional_effect"))
                     { if (kind.Length > 0) throw new InvalidOperationException("response_kind_conflict"); kind = "optional_effect"; }
                 }
                 else if (spec.SourceId.StartsWith("character-card:", StringComparison.Ordinal))
@@ -36,7 +36,7 @@ namespace YC.Domain.Effects
                     if (InfluenceDestinationResolver.HasStorageChoice(spec, spec.PlayerId, card, d.ItemId)) kind = "destination";
                 }
                 if (kind.Length == 0) { ordinary.Add(spec); continue; }
-                if (declaration?.AllowedOperations.Contains("response.batch") == true)
+                if (declaration?.ResponseKinds.Contains("response.batch") == true)
                 {
                     if (kind != "optional_effect") throw new InvalidOperationException("batch_response_must_not_hold_item");
                     var batch = work.EffectRuntime.InfluenceDepartureBatches.Single(b => b.BatchId == d.BatchId);
@@ -63,7 +63,7 @@ namespace YC.Domain.Effects
             bool bypass = work.RuleConfiguration.PlayerStageSchedulingMode == PlayerStageSchedulingMode.Concurrent &&
                 OperationWindowService.TryResolveSingleMainWindowOnWorking(work, e, out _) &&
                 (handler.AttachmentKind == EventResponseAttachmentKind.DeferredPlayerResponse ||
-                 registry.ContainsAbilityDeclaration(a => a.AbilityId == ability && a.AllowedOperations.Contains("response.self")));
+                 registry.ContainsAbilityDeclaration(a => a.AbilityId == ability && a.ResponseKinds.Contains("response.self")));
             OperationWindowService.TryResolveSingleMainWindowOnWorking(work, e, out var mainContext);
             var rootSpec = SettlementEntryService.CreateCleanupSegment(spec.PlayerId, id, Array.Empty<EffectSpec>());
             rootSpec.SourceId = "departure-response:" + card;
@@ -259,7 +259,7 @@ namespace YC.Domain.Effects
                 {
                     var declaration = registry.SelectSingleOrDefaultAbilityDeclaration(d => d.AbilityId == r.AbilityId && d.DefinitionId == r.SourceRef.DefinitionId);
                     if (declaration == null || declaration.DeclarationVersion != r.SourceRef.DeclarationVersion || r.VersionRef.DefinitionVersion != declaration.DeclarationVersion || r.VersionRef.HandlerHash != registry.HandlerHash(declaration.HandlerRef)) return false;
-                    if (r.IsBypass && !declaration.AllowedOperations.Contains("response.self") && handler.AttachmentKind != EventResponseAttachmentKind.DeferredPlayerResponse) return false;
+                    if (r.IsBypass && !declaration.ResponseKinds.Contains("response.self") && handler.AttachmentKind != EventResponseAttachmentKind.DeferredPlayerResponse) return false;
                 }
                 else if (r.IsBypass && handler.AttachmentKind != EventResponseAttachmentKind.DeferredPlayerResponse) return false;
             }

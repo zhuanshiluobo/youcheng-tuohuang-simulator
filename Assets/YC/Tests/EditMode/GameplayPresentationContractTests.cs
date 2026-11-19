@@ -380,7 +380,11 @@ end
                 new LuaSnapshotEntry("owner", LuaSnapshotValue.String(owner)),
                 new LuaSnapshotEntry("hasEntryEffect", LuaSnapshotValue.Boolean(entry)),
                 new LuaSnapshotEntry("color", LuaSnapshotValue.String(color)) });
-            context.FacadeSnapshot.GlobalContent = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("instances", LuaSnapshotValue.Array(new[] {
+            context.FacadeSnapshot.GlobalContent = LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("zones", LuaSnapshotValue.Array(new[] {
+                LuaSnapshotValue.Object(new[] { new LuaSnapshotEntry("id", LuaSnapshotValue.String("fixture-green-deck")),
+                    new LuaSnapshotEntry("templateId", LuaSnapshotValue.String("core.zone.card_deck")),
+                    new LuaSnapshotEntry("localZoneId", LuaSnapshotValue.String("event_green")), new LuaSnapshotEntry("itemCount", LuaSnapshotValue.Integer(1)) })
+            })), new LuaSnapshotEntry("instances", LuaSnapshotValue.Array(new[] {
                 Instance(0, 3, "p1", true, "red"), Instance(1, 5, "p1", true, "blue"),
                 Instance(2, 1, "p2", true, "red"), Instance(3, 7, "p1", true, "rainbow"),
                 Instance(4, 0, "p1", true, "red"), Instance(5, 1, "p1", false, "blue") })) });

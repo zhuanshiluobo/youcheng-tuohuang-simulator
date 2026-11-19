@@ -71,7 +71,7 @@ namespace YC.Domain.Items
         {
             migrated = null; reason = "player_area_migration_evidence_required";
             if (source?.ItemZones?.NamingVersion != 1 || source.SetupRecipe == null || source.ContentDefinitions == null || source.EffectRuntime == null) return false;
-            if (source.RuleConfiguration?.RuleModeId != "standard" || source.EffectRuntime.UsageTrackBindings.Count > 0 || source.ItemZones.Items.Any(i => i.TypeId == "entrepreneur.ability_card" || i.TypeId == "entrepreneur.round_card")) return false;
+            if (source.RuleConfiguration?.RuleModeId != "standard" || source.RuleConfiguration.AdditionalRuleModeIds?.Count > 0 || source.EffectRuntime.UsageTrackBindings.Count > 0 || source.ItemZones.Items.Any(i => i.TypeId == "entrepreneur.ability_card" || i.TypeId == "entrepreneur.round_card")) return false;
             if (source.EffectRuntime.AbilityActionInvocations.Count > 0 || source.Players.Any(p => p.DeclaredCityStyles.Count > 0) || source.EffectRuntime.EffectNodes.Any(n => n.Status != EffectNodeStatus.Completed && n.Status != EffectNodeStatus.Failed)) { reason = "usage_history_migration_requires_matching_executor"; return false; }
             var copy = GameStateCloneService.DeepClone(source);
             foreach (var player in copy.Players)

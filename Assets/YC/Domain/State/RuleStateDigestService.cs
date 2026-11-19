@@ -16,7 +16,7 @@ namespace YC.Domain.State
     /// <summary>完整持久化字段图的只读规范摘要；不是 archive 字节摘要或玩家视图摘要。</summary>
     public static class RuleStateDigestService
     {
-        public const string DigestVersion = "yc.rule-state.sha256.v1";
+        public const string DigestVersion = "yc.rule-state.sha256.v3";
         private static readonly UTF8Encoding Utf8 = new UTF8Encoding(false, true);
         private static readonly ConcurrentDictionary<Type, TypePlan> Plans = new ConcurrentDictionary<Type, TypePlan>();
         // 仅缓存类型描述字节；绝不缓存可变字段值、摘要或对局对象。
@@ -112,12 +112,29 @@ namespace YC.Domain.State
 
         private static void WriteObjectFields(BinaryWriter writer,object value,TypePlan plan,HashSet<object> active,bool root,bool gameLogs)
         {
+            // R956 及更早的配方没有准备合同。该字段为空时必须保留旧摘要的字段数量和字节；
+            // 非空合同照常纳入摘要，不能为了兼容旧档而丢掉新规则身份。
+            bool omitEmptyPreparation = value is YC.Domain.Rules.GameSetupRecipe recipe && recipe.Preparation == null;
+            bool omitEmptyPreparationRuntime = value is GameState state && state.PreparationRuntime == null;
+            bool omitEmptyPrivateLedger = value is GameState game && game.PrivateCommandLedger == null;
+            bool omitEmptyRandomKey = value is YC.Domain.Rules.GameplayRandomState random && random.PrivateKeyHex == null;
+            bool omitEmptyOfficialPreparation = value is YC.Domain.Rules.GameRuleConfiguration configuration && configuration.OfficialPreparationContract == null;
             writer.Write((byte)32);writer.Write(plan.TypeRecord);
-            writer.Write(plan.Fields.Length-(gameLogs?plan.LogMessageCount:0));
-            if(plan.WriteFields!=null){plan.WriteFields(writer,value,active,root,gameLogs);return;}
+            writer.Write(plan.Fields.Length-(gameLogs?plan.LogMessageCount:0)-(omitEmptyPreparation?1:0)-(omitEmptyPreparationRuntime?1:0)-(omitEmptyPrivateLedger?1:0)-(omitEmptyRandomKey?1:0)-(omitEmptyOfficialPreparation?1:0));
+            if(!omitEmptyPreparation && !omitEmptyPreparationRuntime && !omitEmptyPrivateLedger && !omitEmptyRandomKey && !omitEmptyOfficialPreparation && plan.WriteFields!=null){plan.WriteFields(writer,value,active,root,gameLogs);return;}
             foreach(var field in plan.Fields)
             {
                 if(gameLogs && field.LogMessage)continue;
+                if(omitEmptyPreparation && field.Field.DeclaringType == typeof(YC.Domain.Rules.GameSetupRecipe) &&
+                    field.Field.Name == nameof(YC.Domain.Rules.GameSetupRecipe.Preparation))continue;
+                if(omitEmptyPreparationRuntime && field.Field.DeclaringType == typeof(GameState) &&
+                    field.Field.Name == nameof(GameState.PreparationRuntime))continue;
+                if(omitEmptyPrivateLedger && field.Field.DeclaringType == typeof(GameState) &&
+                    field.Field.Name == nameof(GameState.PrivateCommandLedger))continue;
+                if(omitEmptyRandomKey && field.Field.DeclaringType == typeof(YC.Domain.Rules.GameplayRandomState) &&
+                    field.Field.Name == nameof(YC.Domain.Rules.GameplayRandomState.PrivateKeyHex))continue;
+                if(omitEmptyOfficialPreparation && field.Field.DeclaringType == typeof(YC.Domain.Rules.GameRuleConfiguration) &&
+                    field.Field.Name == nameof(YC.Domain.Rules.GameRuleConfiguration.OfficialPreparationContract))continue;
                 writer.Write(field.Record);
                 if(field.WriteScalar!=null)field.WriteScalar(writer,value);
                 else WriteValue(writer,field.Get(value),active,false,root && field.RootLogs);

@@ -115,7 +115,36 @@ namespace YC.Domain.Interactions
                     ? request.NormalizedAnswer.Clone()
                     : null
             };
+            RestoreLegacyPaymentRows(request, projection);
             return projection;
+        }
+
+        // 旧版付款插入请求未保存数量行；只从本人已授权的资源候选补齐显示，不改权威请求或付款规则。
+        private static void RestoreLegacyPaymentRows(InteractionRequest request, InteractionRequestProjection projection)
+        {
+            if (!projection.VisibleToViewer || request.Status != "open" ||
+                request.InteractionTypeId != ResourcePaymentSubstitutionEffectExecutor.InteractionTypeId ||
+                request.AnswerSchema != ResourcePaymentSubstitutionEffectExecutor.AnswerSchema ||
+                request.Presentation == null || request.Presentation.QuantityRows.Count != 0 || projection.Presentation == null)
+                return;
+            var rows = ItemTransferEffectExecutor.Value(request.PromptParameters, "rowIds");
+            var maximums = ItemTransferEffectExecutor.Value(request.PromptParameters, "rowMaximums");
+            if (rows?.Kind != NormalizedValueKind.Array || maximums?.Kind != NormalizedValueKind.Object ||
+                rows.Items.Count == 0 || request.CandidateIds == null || rows.Items.Count != request.CandidateIds.Count ||
+                maximums.Properties.Count != rows.Items.Count) return;
+            var types = new List<YC.Domain.Rules.ResourceType>();
+            for (int i = 0; i < rows.Items.Count; i++)
+            {
+                var item = rows.Items[i];
+                if (item?.Kind != NormalizedValueKind.String || item.StringValue != request.CandidateIds[i] ||
+                    !Enum.TryParse(item.StringValue, false, out YC.Domain.Rules.ResourceType type) ||
+                    !Enum.IsDefined(typeof(YC.Domain.Rules.ResourceType), type) || type.ToString() != item.StringValue || types.Contains(type)) return;
+                var matches = maximums.Properties.Where(p => p.Name == item.StringValue).ToArray();
+                if (matches.Length != 1 || matches[0].Value?.Kind != NormalizedValueKind.Integer ||
+                    matches[0].Value.IntegerValue < 0 || matches[0].Value.IntegerValue > 99) return;
+                types.Add(type);
+            }
+            foreach (var type in types) projection.Presentation.QuantityRows.Add(ResourcePaymentSubstitutionEffectExecutor.ResourceRow(type));
         }
 
     }

@@ -29,6 +29,10 @@ namespace YC.Presentation
         [SerializeField, Min(0f)] private float scrollbarReservedHeight = 44f;
 
         private readonly List<FacilityEffectCardView> cards = new List<FacilityEffectCardView>();
+        private readonly List<GameBoxEnterpriseBoardItemView> boards = new List<GameBoxEnterpriseBoardItemView>();
+        private bool boardArtworkMode;
+        private float boardVerticalMargin, boardArtworkScale = 1f;
+        private TextAnchor boardArtworkAlignment;
         private readonly Vector3[] corners = new Vector3[4];
         private GameObject lastSelection;
         private Vector2 lastViewportSize;
@@ -78,9 +82,29 @@ namespace YC.Presentation
                 LayoutRebuilder.MarkLayoutForRebuild(transform as RectTransform);
         }
 
+        public void SetBoardArtworkMode(bool enabled, float verticalMargin = 0f, float artworkScale = 1f,
+            TextAnchor artworkAlignment = TextAnchor.UpperCenter)
+        {
+            if (boardArtworkMode == enabled && (!enabled ||
+                Mathf.Approximately(boardVerticalMargin, verticalMargin) && Mathf.Approximately(boardArtworkScale, artworkScale) &&
+                boardArtworkAlignment == artworkAlignment)) return;
+            boardArtworkMode = enabled;
+            boardVerticalMargin = Mathf.Max(0, verticalMargin);
+            boardArtworkScale = Mathf.Max(.1f, artworkScale);
+            boardArtworkAlignment = artworkAlignment;
+            if (row != null) row.childAlignment = enabled ? artworkAlignment : TextAnchor.MiddleCenter;
+            cards.Clear(); boards.Clear();
+            Refresh();
+        }
+
         public void CalculateLayoutInputHorizontal()
         {
             if (row == null || row.transform != transform || viewport == null) return;
+            if (boardArtworkMode)
+            {
+                CalculateBoardArtwork();
+                return;
+            }
             var oldCount = cards.Count;
             cards.Clear();
             for (var i = 0; i < row.transform.childCount; i++)
@@ -122,6 +146,46 @@ namespace YC.Presentation
             row.CalculateLayoutInputHorizontal();
         }
 
+        private void CalculateBoardArtwork()
+        {
+            boards.Clear();
+            for (var i = 0; i < row.transform.childCount; i++)
+            {
+                var child = row.transform.GetChild(i);
+                var board = child.GetComponent<GameBoxEnterpriseBoardItemView>();
+                var element = child.GetComponent<LayoutElement>();
+                if (board != null && board.isActiveAndEnabled && element != null && !element.ignoreLayout)
+                    boards.Add(board);
+            }
+            var size = viewport.rect.size;
+            lastViewportSize = size;
+            var fittingCount = Mathf.Min(boards.Count, Mathf.Max(1, visibleCardLimit));
+            float availableWidth = fittingCount == 0 ? 0 : Mathf.Min(maximumFaceWidth,
+                Mathf.Max(1, (size.x - (fittingCount - 1) * spacing) / fittingCount - 2f * horizontalInset));
+            float requestedHeight = Mathf.Max(1, referenceViewportHeight - 2f * verticalInset) * boardArtworkScale;
+            float availableHeight = Mathf.Max(1, Mathf.Min(requestedHeight, size.y - 2f * boardVerticalMargin));
+            void MeasureBoards()
+            {
+                measuredContentWidth = 2f * RowSidePadding(boards.Count) + Mathf.Max(0, boards.Count - 1) * spacing;
+                foreach (var board in boards)
+                {
+                    var measured = board.Measure(new Vector2(availableWidth, availableHeight));
+                    board.SetSize(measured);
+                    measuredContentWidth += measured.x;
+                }
+            }
+            MeasureBoards();
+            if (IsOverflowing)
+            {
+                availableHeight = Mathf.Max(1, Mathf.Min(requestedHeight, size.y - 2f * boardVerticalMargin - scrollbarReservedHeight));
+                MeasureBoards();
+            }
+            ApplyRowPadding();
+            FitsAvailableHeight = boards.Count == 0 || availableHeight + 2f * boardVerticalMargin +
+                (IsOverflowing ? scrollbarReservedHeight : 0f) <= size.y + .01f;
+            row.CalculateLayoutInputHorizontal();
+        }
+
         public void CalculateLayoutInputVertical() { }
 
         private float FloorWidth(float value) => Mathf.Floor(Mathf.Max(0f, value) / widthStep) * widthStep;
@@ -129,7 +193,7 @@ namespace YC.Presentation
 
         private void ApplyRowPadding()
         {
-            var horizontal = RowSidePadding(cards.Count);
+            var horizontal = RowSidePadding(boardArtworkMode ? boards.Count : cards.Count);
             var bottom = IsOverflowing ? Mathf.CeilToInt(scrollbarReservedHeight) : 0;
             var padding = row.padding;
             if (padding.left != horizontal || padding.right != horizontal || padding.top != 0 || padding.bottom != bottom)
@@ -180,7 +244,7 @@ namespace YC.Presentation
             if (row == null || row.transform != transform) return;
             ApplyRowPadding();
             row.spacing = spacing;
-            row.childAlignment = TextAnchor.MiddleCenter;
+            row.childAlignment = boardArtworkMode ? boardArtworkAlignment : TextAnchor.MiddleCenter;
             row.childControlWidth = row.childControlHeight = true;
             row.childForceExpandWidth = row.childForceExpandHeight = false;
             row.childScaleWidth = row.childScaleHeight = false;
@@ -224,7 +288,9 @@ namespace YC.Presentation
                 !target.gameObject.activeInHierarchy || !target.IsChildOf(row.transform)) return;
             var item = target;
             while (item != null && item.parent != null && item.parent != row.transform) item = item.parent as RectTransform;
-            if (item == null || item.GetComponent<FacilityEffectCardView>() == null) return;
+            if (item == null || (boardArtworkMode
+                ? item.GetComponent<GameBoxEnterpriseBoardItemView>() == null
+                : item.GetComponent<FacilityEffectCardView>() == null)) return;
             if (!CanvasUpdateRegistry.IsRebuildingLayout()) Canvas.ForceUpdateCanvases();
             var hiddenWidth = (row.transform as RectTransform).rect.width - viewport.rect.width;
             if (hiddenWidth <= .01f) return;
@@ -258,6 +324,7 @@ namespace YC.Presentation
                     if (!child.gameObject.activeSelf) continue;
                     var item = child.GetComponent<LayoutElement>();
                     if (item != null && item.ignoreLayout) continue;
+                    if (boardArtworkMode && child.GetComponent<GameBoxEnterpriseBoardItemView>() != null && item != null) continue;
                     var card = child.GetComponent<FacilityEffectCardView>();
                     var face = child.Find("Card Face");
                     if (card == null || item == null || child.GetComponent<VerticalLayoutGroup>() == null ||

@@ -6,17 +6,21 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using YC.Application.Gameplay;
 using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Domain.Cards;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
+using YC.Domain.Harvest;
+using YC.Domain.Interactions;
 using YC.Domain.Items;
 using YC.Domain.Maps;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Domain.Travel;
 using YC.Infrastructure.Lua;
+using YC.Presentation.Workflows;
 
 namespace YC.Tests.EditMode.ExpansionRules
 {
@@ -223,7 +227,214 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.Phase, Is.EqualTo(GamePhase.CharacterCover));
         }
 
-        private GameState EnterCollection(EffectRegistry registry, out RoundExecutionService round)
+        [Test]
+        public void HistoricalCollectionTask_RestoredCityResourceCanBeSelectedAndCollected()
+        {
+            var prototype = new RoundExecutionService();
+            var original = prototype.EffectRegistry.Get(RoundExecutionService.MainlineEffectTypeId);
+            var registry = new EffectRegistry();
+            registry.Register(new EffectRegistration(original.EffectTypeId, context =>
+            {
+                var main = context.State.EffectRuntime.MainNodes.Single(n => n.ExecutionEffectId == context.Node.EffectId);
+                if (main.NodeTypeId != RoundMainlineNodeTypeIds.Collection || context.Node.FlowStage.Length > 0)
+                    return original.Executor(context);
+                var opened = EffectStepResult.Continue("collection_open");
+                foreach (var player in context.State.EffectRuntime.PlayerOrderSnapshot)
+                    opened.AddInteraction(new EffectInteractionSpec
+                    {
+                        InteractionTypeId = "collection.task", AnsweringPlayerId = player, AnswerSchema = "boolean_accept"
+                    });
+                return opened;
+            }, original.ExecutorKind, original.DefinitionVersion));
+            var state = EnterCollection(registry, out _, includeCityResource: true);
+            var city = state.FindPlayer(1).CityLocationId;
+            var productionRegistry = new RoundExecutionService().EffectRegistry;
+            state = Restore(state, productionRegistry, omitSchedulingGroups: true);
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == "collection.task"), Is.EqualTo(3));
+            Assert.That(OpenSelections(state), Is.Empty);
+            var round = new RoundExecutionService(productionRegistry);
+            Assert.That(round.Advance(state).IsValid, Is.True);
+            var map = new MapQueryService(StaticMapDefinitions.CreateFourPlayerMap());
+            var service = new ResourceCollectionService(map) { RuleRegistry = productionRegistry };
+            var handler = new CollectResourceCommandHandler(service, new RoundAdvanceService(round));
+            var session = new GameSession(state);
+            session.RegisterHandler(handler);
+            var port = new LegacyCollectionPort { State = state, Handler = handler, Session = session };
+            var presenter = new ResourceCollectionPresenter(new LegacyCollectionContext { State = state }, port, new LegacyCollectionView(), map, service);
+            presenter.HasRouteSelectionRequest = () => state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" &&
+                r.InteractionTypeId == "route_resource.selection" && r.AnsweringPlayerId == 1 &&
+                InteractionRequestProjector.ProjectForPlayer(r, 1).VisibleToViewer);
+            Assert.That(presenter.IsActive, Is.True);
+            presenter.Begin();
+            Assert.That(presenter.CurrentQuery.IsValid, Is.True, presenter.CurrentQuery.Validation.Reason);
+            Assert.That(presenter.CurrentQuery.CandidateLocationIds, Does.Contain(city));
+            Assert.That(presenter.SelectedLocationIds, Does.Contain(city));
+            Assert.That(presenter.CanToggleLocation(city), Is.True);
+            presenter.SelectLocation(city);
+            Assert.That(presenter.SelectedLocationIds, Does.Not.Contain(city));
+            presenter.RefreshFromState();
+            Assert.That(presenter.SelectedLocationIds, Does.Not.Contain(city));
+            presenter.SelectLocation(city);
+            Assert.That(presenter.SelectedLocationIds, Does.Contain(city));
+            var before = state.FindPlayer(1).Resources.Iron;
+            presenter.Submit();
+            Assert.That(port.LastResult, Is.Not.Null);
+            Assert.That(port.LastResult.Succeeded, Is.True, port.LastResult.Validation?.Reason);
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(before + 1));
+            Assert.That(state.FindPlayer(1).HasCollectedResourcesThisRound, Is.True);
+            var resumed = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(session.CreateHostArchive()), productionRegistry);
+            Assert.That(resumed.Succeeded, Is.True, resumed.Diagnostic);
+            var resumedSession = new GameSession(resumed.State);
+            resumedSession.RegisterHandler(new CollectResourceCommandHandler(
+                new ResourceCollectionService(map) { RuleRegistry = productionRegistry },
+                new RoundAdvanceService(new RoundExecutionService(productionRegistry))));
+            var second = resumedSession.Submit(new GameCommand { Kind = GameCommandKind.CollectResource, PlayerId = 2 });
+            Assert.That(second.Succeeded, Is.True, second.Validation?.Reason);
+            Assert.That(resumedSession.State.FindPlayer(1).Resources.Iron, Is.EqualTo(before + 1));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void HistoricalNoMainlineArchive_RecoveryAndCollectionSubmission(bool sequential)
+        {
+            var definition = StaticMapDefinitions.CreateFourPlayerMap();
+            var source = new GameState
+            {
+                GameId = "legacy-no-mainline-fixture", MapId = definition.MapId, ContentPackHash = pack.ContentHash,
+                Phase = GamePhase.ResourceCollection, Round = 1, MaxRounds = 8, StartPlayerId = 1, CurrentPlayerId = 1,
+                LaunchPlayerOrder = new List<int> { 1, 2 },
+                RuleConfiguration = new GameRuleConfiguration { MapId = definition.MapId, PlayerCount = 2, ContentPackHash = pack.ContentHash,
+                    PlayerStageSchedulingMode = sequential ? PlayerStageSchedulingMode.Sequential : PlayerStageSchedulingMode.Concurrent },
+                ContentDefinitions = new GameContentDefinitions { Characters = pack.CreateCharacters().ToList() },
+                Players = new List<PlayerState>
+                {
+                    new PlayerState { PlayerId = 1, Color = PlayerColor.Red, ResourceCollectionStartGoldVoucher = 20, Resources = new ResourceSet { GoldVoucher = 20 } },
+                    new PlayerState { PlayerId = 2, Color = PlayerColor.Blue, ResourceCollectionStartGoldVoucher = 20, Resources = new ResourceSet { GoldVoucher = 20 } }
+                }
+            };
+            var state = new ItemZoneStateFactory().CreateForSetup(source, definition, new[]
+            {
+                new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
+                new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
+                new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" },
+                new ItemRecipeEntry { EntryId = "resource", DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/A-01" }
+            });
+            var token = state.ItemZones.Items.Single(i => i.TypeId == "core.resource_point_token");
+            token.LocalState = ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateInteger((int)ResourceType.Iron), "amount", NormalizedValue.CreateInteger(1));
+            state.Map.OpenLocationIds.Add("A-01");
+            foreach (var pair in new[] { (player: 1, location: "A-01"), (player: 2, location: "B-01") })
+            {
+                var cityItem = state.ItemZones.Items.Single(i => i.PhysicalKind == ItemPhysicalKind.MobileCity && i.OwnerSubject.PlayerId == pair.player);
+                var location = state.ItemZones.Zones.Single(z => z.TemplateId == "core.zone.map_location" && z.LocalZoneId == pair.location);
+                var dock = state.ItemZones.Zones.Single(z => z.ParentId == location.ZoneId && z.TemplateId == "core.zone.city_dock");
+                typeof(ItemZoneStateMigrator).GetMethod("SetPosition", BindingFlags.Static | BindingFlags.NonPublic)
+                    .Invoke(null, new object[] { state, cityItem, dock.ZoneId });
+            }
+            Assert.That(state.EffectRuntime.ActiveMainNodeId, Is.Empty);
+            var registry = new RoundExecutionService().EffectRegistry;
+            var archive = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            var restored = HostRecoveryService.RecoverJson(archive, registry);
+            artifacts.WriteLabeledText("无主链历史档恢复观察", JsonConvert.SerializeObject(new { restored.Succeeded, restored.FaultCode, restored.Diagnostic }, Formatting.Indented));
+            Assert.That(restored.Succeeded, Is.True, restored.Diagnostic);
+            state = restored.State;
+            var incompleteBudget = GameStateCloneService.DeepClone(state);
+            incompleteBudget.FindPlayer(2).ResourceCollectionStartGoldVoucher = -1;
+            var incompleteBefore = GameStateCloneService.DeepClone(incompleteBudget);
+            var incompleteMap = new MapQueryService(definition);
+            var incompleteSession = new GameSession(incompleteBudget);
+            incompleteSession.RegisterHandler(new CollectResourceCommandHandler(
+                new ResourceCollectionService(incompleteMap) { RuleRegistry = registry },
+                new RoundAdvanceService(new RoundExecutionService(registry))));
+            var incompleteResult = incompleteSession.Submit(new GameCommand { Kind = GameCommandKind.CollectResource, PlayerId = 1, TargetId = "A-01" });
+            Assert.That(incompleteResult.Succeeded, Is.False, "缺失阶段预算时不能猜测补账。");
+            Assert.That(GameStateCloneService.AreEquivalent(incompleteBefore, incompleteSession.State), Is.True, "失败命令应整体回滚。");
+            var round = new RoundExecutionService(registry);
+            var map = new MapQueryService(definition);
+            var service = new ResourceCollectionService(map) { RuleRegistry = registry };
+            var handler = new CollectResourceCommandHandler(service, new RoundAdvanceService(round));
+            var session = new GameSession(state);
+            session.RegisterHandler(handler);
+            if (sequential)
+            {
+                var outOfTurn = session.Submit(new GameCommand { Kind = GameCommandKind.CollectResource, PlayerId = 2 });
+                Assert.That(outOfTurn.Succeeded, Is.False);
+                Assert.That(outOfTurn.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.NotCurrentPlayer));
+                Assert.That(state.EffectRuntime.ActiveMainNodeId, Is.Empty, "非法命令不能提交迁移工作副本。");
+            }
+            var port = new LegacyCollectionPort { State = state, Handler = handler, Session = session };
+            var presenter = new ResourceCollectionPresenter(new LegacyCollectionContext { State = state }, port, new LegacyCollectionView(), map, service);
+            presenter.HasRouteSelectionRequest = () => state.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" && r.InteractionTypeId == "route_resource.selection" && r.AnsweringPlayerId == 1);
+            presenter.Begin();
+            Assert.That(presenter.IsActive, Is.True);
+            Assert.That(presenter.SelectedLocationIds, Does.Contain("A-01"));
+            var startedBefore = state.EffectRuntime.RuleEvents.Count(e => e.EventType == "CollectionStarted");
+            presenter.Submit();
+            artifacts.WriteLabeledText("无主链历史档采集提交观察", JsonConvert.SerializeObject(new
+            {
+                succeeded = port.LastResult?.Succeeded,
+                reason = port.LastResult?.Validation?.Reason,
+                openRequests = state.EffectRuntime.InteractionRequests.Where(r => r.Status == "open").Select(r => new { r.InteractionTypeId, r.AnsweringPlayerId }).ToArray(),
+                iron = state.FindPlayer(1).Resources.Iron
+            }, Formatting.Indented));
+            Assert.That(port.LastResult, Is.Not.Null);
+            Assert.That(port.LastResult.Succeeded, Is.True, port.LastResult.Validation?.Reason);
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(state.EffectRuntime.RuleEvents.Count(e => e.EventType == "CollectionStarted"), Is.EqualTo(startedBefore));
+            Assert.That(state.Players.Select(p => p.ResourceCollectionStartGoldVoucher), Is.EqualTo(new[] { 20, 20 }));
+            Assert.That(state.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == "collection.task" && r.AnsweringPlayerId == 2), Is.EqualTo(1));
+            var duplicate = session.Submit(port.LastCommand);
+            Assert.That(duplicate.Succeeded, Is.False);
+            Assert.That(state.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            var tampered = GameStateCloneService.DeepClone(state);
+            tampered.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == "collection.task").AnsweringPlayerId = 1;
+            Assert.Throws<InvalidOperationException>(() => HostRecoveryService.CreateArchive(tampered));
+            var again = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(session.CreateHostArchive()), registry);
+            Assert.That(again.Succeeded, Is.True, again.Diagnostic);
+            Assert.That(again.State.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(again.State.EffectRuntime.InteractionRequests.Count(r => r.Status == "open" && r.InteractionTypeId == "collection.task" && r.AnsweringPlayerId == 2), Is.EqualTo(1));
+            var resumed = new GameSession(again.State);
+            resumed.RegisterHandler(new CollectResourceCommandHandler(new ResourceCollectionService(map) { RuleRegistry = registry }, new RoundAdvanceService(new RoundExecutionService(registry))));
+            var second = resumed.Submit(new GameCommand { Kind = GameCommandKind.CollectResource, PlayerId = 2 });
+            Assert.That(second.Succeeded, Is.True, second.Validation?.Reason);
+            Assert.That(resumed.State.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+            Assert.That(resumed.State.Phase, Is.Not.EqualTo(GamePhase.ResourceCollection));
+            var finalRestore = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(resumed.CreateHostArchive()), registry);
+            Assert.That(finalRestore.Succeeded, Is.True, finalRestore.Diagnostic);
+            Assert.That(finalRestore.State.FindPlayer(1).Resources.Iron, Is.EqualTo(1));
+        }
+
+        private sealed class LegacyCollectionContext : IGameplayContext
+        {
+            public GameState State;
+            public GameState CurrentState => State;
+            public int LocalPlayerId => 1;
+        }
+        private sealed class LegacyCollectionPort : IGameCommandPort
+        {
+            public GameState State;
+            public CollectResourceCommandHandler Handler;
+            public GameSession Session;
+            public GameCommand LastCommand;
+            public CommandResult LastResult;
+            public WorkflowSubmissionResult Submit(GameCommand command)
+            {
+                LastCommand = command;
+                LastResult = Session == null ? Handler.Handle(State, command) : Session.Submit(command);
+                return new WorkflowSubmissionResult(LastResult, true);
+            }
+        }
+        private sealed class LegacyCollectionView : IResourceCollectionView
+        {
+            public void ShowPrompt(string message) { }
+            public void SetHighlights(IReadOnlyList<WorkflowHighlight> highlights) { }
+            public void ClearHighlights() { }
+            public void ShowRoutePaymentOptions(string routeId, int cost, IReadOnlyList<int> recipients) { }
+            public string GetPlayerDisplayName(int playerId) => playerId.ToString();
+            public void RefreshSelectionView() { }
+            public void RefreshFromState() { }
+        }
+
+        private GameState EnterCollection(EffectRegistry registry, out RoundExecutionService round, bool includeCityResource = false)
         {
             var map = StaticMapDefinitions.CreateFourPlayerMap();
             var source = new GameState
@@ -238,12 +449,21 @@ namespace YC.Tests.EditMode.ExpansionRules
                     PlayerId = id, Color = (PlayerColor)(id - 1), Resources = new ResourceSet { GoldVoucher = 20 }
                 }).ToList()
             };
-            var state = new ItemZoneStateFactory().CreateForSetup(source, map, new[]
+            var recipe = new List<ItemRecipeEntry>
             {
                 new ItemRecipeEntry { EntryId = "characters", DefinitionId = "texas", TypeId = "core.basic_character_card", Quantity = 2, PerPlayer = true, InitialZoneRole = "hand" },
                 new ItemRecipeEntry { EntryId = "cities", DefinitionId = "core.mobile_city", TypeId = "core.mobile_city", Quantity = 1, PerPlayer = true, InitialZoneRole = "city_reserve" },
                 new ItemRecipeEntry { EntryId = "markers", DefinitionId = "core.component.marker", TypeId = "core.player_marker", Quantity = 6, PerPlayer = true, InitialZoneRole = "supply" }
-            });
+            };
+            if (includeCityResource)
+                recipe.Add(new ItemRecipeEntry { EntryId = "resource", DefinitionId = "core.resource_point", TypeId = "core.resource_point_token", Quantity = 1, InitialZoneRole = "location/A-01" });
+            var state = new ItemZoneStateFactory().CreateForSetup(source, map, recipe);
+            if (includeCityResource)
+            {
+                var token = state.ItemZones.Items.Single(i => i.TypeId == "core.resource_point_token");
+                token.LocalState = ItemTransferEffectExecutor.Object("resourceType", NormalizedValue.CreateInteger((int)ResourceType.Iron), "amount", NormalizedValue.CreateInteger(1));
+                state.Map.OpenLocationIds.Add("A-01");
+            }
             var locations = new[] { "A-01", "B-01", "C-01" };
             for (var id = 1; id <= 3; id++)
             {

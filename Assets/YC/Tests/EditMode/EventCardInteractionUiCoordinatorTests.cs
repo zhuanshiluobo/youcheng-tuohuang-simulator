@@ -129,12 +129,107 @@ namespace YC.Tests.EditMode
             return (Component)dialog.GetType().GetField("view", Instance).GetValue(dialog);
         }
 
-        private static Button OptionButton(Component view, int visualIndex)
+        private Button OptionButton(Component view, string definitionId, int visualIndex)
+        {
+            return ChoiceButton(view, EventCardDatabase.Get(state, definitionId).Choices[visualIndex].ChoiceId);
+        }
+
+        private static Button ChoiceButton(Component view, string choiceId)
         {
             var markerType = Type.GetType("YC.PlayerJourney.PlayerAutomationId, YC.PlayerJourney", true);
             var marker = view.GetComponentsInChildren(markerType, true).Single(component =>
-                (string)markerType.GetField("Id").GetValue(component) == "event.option." + visualIndex);
+                (string)markerType.GetField("Id").GetValue(component) == "event.choice." + choiceId);
             return marker.GetComponent<Button>();
+        }
+
+        [Test]
+        public void SixChoiceFixtureUsesStableIdsAndConfiguredCardPercentages()
+        {
+            RevealFormalFourPlayerEvent("event_green_01", false);
+            // 数据库查询返回克隆；夹具应修改当前对局快照，供渲染器再次查询。
+            var card = state.ContentDefinitions.Events.Single(value => value.CardId == "event_green_01");
+            card.EventChoiceSchemaVersion = 1;
+            var bounds = new[] { 0d, 7d, 21d, 33d, 62d, 75d, 100d };
+            card.Choices = Enumerable.Range(0, 6).Select(i => new EventCardChoice
+            {
+                ChoiceId = "fixture_" + (5 - i), Description = "夹具选项", Script = "fixture.lua", Version = "1",
+                Button = new EventCardChoiceButton { TopPercent = bounds[i], BottomPercent = bounds[i + 1] }
+            }).ToList();
+            request.CandidateIds = card.Choices.Select(choice => EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId)).ToList();
+            request.CandidateSetVersion = 2;
+            var view = Render();
+            Assert.That(view, Is.Not.Null);
+            Canvas.ForceUpdateCanvases();
+            var template = view.GetType().GetField("artworkChoiceRowTemplate", Instance).GetValue(view);
+            var templateRect = Property<RectTransform>(template, "Root");
+            for (int i = 0; i < card.Choices.Count; i++)
+            {
+                var rect = (RectTransform)ChoiceButton(view, card.Choices[i].ChoiceId).transform;
+                Assert.That(rect.anchorMin.x, Is.EqualTo(templateRect.anchorMin.x));
+                Assert.That(rect.anchorMax.x, Is.EqualTo(templateRect.anchorMax.x));
+                Assert.That(rect.anchorMin.y, Is.EqualTo(1d - bounds[i + 1] / 100d).Within(0.00001));
+                Assert.That(rect.anchorMax.y, Is.EqualTo(1d - bounds[i] / 100d).Within(0.00001));
+            }
+            var filterType = Runtime("EventChoiceBoundaryFilter");
+            for (int i = 0; i + 1 < card.Choices.Count; i++)
+            {
+                var upper = (RectTransform)ChoiceButton(view, card.Choices[i].ChoiceId).transform;
+                var lower = (RectTransform)ChoiceButton(view, card.Choices[i + 1].ChoiceId).transform;
+                var point = RectTransformUtility.WorldToScreenPoint(null,
+                    upper.TransformPoint(new Vector3(upper.rect.center.x, upper.rect.yMin, 0f)));
+                bool upperHit = ((ICanvasRaycastFilter)upper.GetComponent(filterType)).IsRaycastLocationValid(point, null);
+                bool lowerHit = ((ICanvasRaycastFilter)lower.GetComponent(filterType)).IsRaycastLocationValid(point, null);
+                Assert.That(upperHit ^ lowerHit, Is.True, "共同边界必须恰好命中一个按钮。");
+            }
+            ChoiceButton(view, "fixture_1").onClick.Invoke();
+            Assert.That(commands, Has.Count.EqualTo(1));
+            Assert.That(commands[0].OptionIds, Is.EqualTo(new[] { EventCardOptionIdFactory.CreateChoice(card.CardId, "fixture_1") }));
+        }
+
+        [TestCase(4, 0)] [TestCase(4, 1)] [TestCase(4, 2)] [TestCase(4, 3)]
+        [TestCase(6, 0)] [TestCase(6, 1)] [TestCase(6, 2)] [TestCase(6, 3)] [TestCase(6, 4)] [TestCase(6, 5)]
+        public void EachMultiChoiceButtonSubmitsItsOwnStableCandidate(int count, int selectedIndex)
+        {
+            const string id = "event_green_01";
+            RevealFormalFourPlayerEvent(id, false);
+            // 此处是数据隔离定位：替换本次测试快照，不作为正常对局覆盖。
+            var card = state.ContentDefinitions.Events.Single(value => value.CardId == id);
+            var bounds = count == 4 ? new[] { 8d, 26d, 47d, 70d, 94d } : new[] { 0d, 7d, 21d, 33d, 62d, 75d, 100d };
+            card.EventChoiceSchemaVersion = 1;
+            card.Choices = Enumerable.Range(0, count).Select(i => new EventCardChoice
+            {
+                ChoiceId = "choice_" + (i + 1).ToString("D2"), Description = "夹具选项", Script = "fixture.lua", Version = "1",
+                Button = new EventCardChoiceButton { TopPercent = bounds[i], BottomPercent = bounds[i + 1] }
+            }).ToList();
+            request.CandidateIds = card.Choices.Select(choice => EventCardOptionIdFactory.CreateChoice(id, choice.ChoiceId)).ToList();
+            request.CandidateSetVersion = 2;
+            var view = Render();
+            Assert.That(view, Is.Not.Null);
+            var button = ChoiceButton(view, card.Choices[selectedIndex].ChoiceId);
+            Assert.That(button.IsInteractable(), Is.True);
+            button.onClick.Invoke();
+            AssertAnswer(id, selectedIndex);
+        }
+
+        [Test]
+        public void StableChoiceFixtureDisplaysOnlyCandidatesVisibleToThePlayer()
+        {
+            RevealFormalFourPlayerEvent("event_green_01", false);
+            var card = state.ContentDefinitions.Events.Single(value => value.CardId == "event_green_01");
+            card.EventChoiceSchemaVersion = 1;
+            card.Choices = new[] { "available", "hidden" }.Select((id, index) => new EventCardChoice {
+                ChoiceId = id, Description = "夹具选项", Script = "fixture.lua", Version = "1",
+                Button = new EventCardChoiceButton { TopPercent = index * 50, BottomPercent = (index + 1) * 50 }
+            }).ToList();
+            request.CandidateIds = new List<string> { EventCardOptionIdFactory.CreateChoice(card.CardId, "available") };
+            request.CandidateSetVersion = 2;
+            var view = Render();
+            var markerType = Type.GetType("YC.PlayerJourney.PlayerAutomationId, YC.PlayerJourney", true);
+            var ids = view.GetComponentsInChildren(markerType, true).Select(component => (string)markerType.GetField("Id").GetValue(component)).ToList();
+            Assert.That(ids, Does.Contain("event.choice.available"));
+            Assert.That(ids, Does.Not.Contain("event.choice.hidden"));
+            ChoiceButton(view, "available").onClick.Invoke();
+            Assert.That(commands.Single().OptionIds, Is.EqualTo(request.CandidateIds));
         }
 
         private void AssertArtwork(Component view, string definitionId, string spriteName)
@@ -156,7 +251,7 @@ namespace YC.Tests.EditMode
             var command = commands.Single();
             Assert.That(command.Kind, Is.EqualTo(GameCommandKind.AnswerInteraction));
             Assert.That(command.PlayerId, Is.EqualTo(1));
-            Assert.That(command.OptionIds, Is.EqualTo(new[] { EventCardOptionIdFactory.Create(definitionId, optionIndex) }));
+            Assert.That(command.OptionIds, Is.EqualTo(new[] { EventCardOptionIdFactory.CreateChoice(definitionId, "choice_" + (optionIndex + 1).ToString("D2")) }));
             Assert.That(command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter], Is.EqualTo(request.GetStableInteractionId()));
             Assert.That(command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter], Is.EqualTo(request.StateRevision.ToString()));
             return command;
@@ -170,7 +265,7 @@ namespace YC.Tests.EditMode
             string original = id == Platform ? "event_red_03" : "event_yellow_02";
             Assert.That(state.ItemZones.Items.Any(item => item.DefinitionId == original), Is.False);
             var view = Render(); AssertArtwork(view, id, spriteName);
-            OptionButton(view, option).onClick.Invoke(); AssertAnswer(id, option);
+            OptionButton(view, id, option).onClick.Invoke(); AssertAnswer(id, option);
             Assert.That(Property<bool>(dialog, "IsShowing"), Is.False);
         }
 
@@ -180,7 +275,7 @@ namespace YC.Tests.EditMode
         {
             RevealFormalFourPlayerEvent(id, false);
             var view = Render(); Assert.That(view, Is.Not.Null);
-            OptionButton(view, visualIndex).onClick.Invoke(); AssertAnswer(id, ruleIndex);
+            OptionButton(view, id, visualIndex).onClick.Invoke(); AssertAnswer(id, ruleIndex);
         }
 
         [TestCase(Platform)] [TestCase(Cave)]
@@ -190,7 +285,7 @@ namespace YC.Tests.EditMode
             request.PromptParameters.Properties.Single(value => value.Name == "cardId").Value = NormalizedValue.CreateString(revealedItem.ItemId);
             Assert.That(revealedItem.ItemId, Is.Not.EqualTo(id));
             var view = Render(); AssertArtwork(view, id, id == Platform ? "event_red_007" : "event_yellow_012");
-            OptionButton(view, 1).onClick.Invoke(); AssertAnswer(id, 1);
+            OptionButton(view, id, 1).onClick.Invoke(); AssertAnswer(id, 1);
         }
 
         [TestCase("event_green_01")] [TestCase("event.unknown")]
@@ -216,7 +311,7 @@ namespace YC.Tests.EditMode
         public void ChangedRevisionOrCandidateVersionRejectsPreviouslyDisplayedButton(bool changeRevision)
         {
             RevealFormalFourPlayerEvent(Platform, true);
-            var button = OptionButton(Render(), 1);
+            var button = OptionButton(Render(), Platform, 1);
             if (changeRevision) request.StateRevision++; else request.CandidateSetVersion++;
             button.onClick.Invoke(); Assert.That(commands, Is.Empty);
         }
@@ -227,7 +322,7 @@ namespace YC.Tests.EditMode
         {
             RevealFormalFourPlayerEvent(id, true);
             var before = GameStateCloneService.DeepClone(state.FindPlayer(1).Resources);
-            OptionButton(Render(), option).onClick.Invoke();
+            OptionButton(Render(), id, option).onClick.Invoke();
             var command = AssertAnswer(id, option);
             var handler = new AnswerInteractionCommandHandler(effects);
             var result = handler.Handle(state, command);

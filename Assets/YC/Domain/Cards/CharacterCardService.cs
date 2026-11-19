@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using YC.Domain.Commands;
 using YC.Domain.Economy;
 using YC.Domain.Effects;
@@ -1487,6 +1488,8 @@ namespace YC.Domain.Cards
                 targetPlayer.CoveredCharacterCardId = sourcePlayer.CoveredCharacterCardId;
                 targetPlayer.ActedMainActionThisTurn = sourcePlayer.ActedMainActionThisTurn;
                 targetPlayer.RemainingMainActionsThisTurn = sourcePlayer.RemainingMainActionsThisTurn;
+                targetPlayer.RestrictedMainActionsThisTurn = sourcePlayer.RestrictedMainActionsThisTurn;
+                targetPlayer.MainActionBudgetBatches = sourcePlayer.MainActionBudgetBatches?.Select(batch => new MainActionBudgetBatch { Remaining = batch.Remaining, AllowedActionTypes = new List<string>(batch.AllowedActionTypes) }).ToList();
                 targetPlayer.CompletedMainActionsThisTurn = sourcePlayer.CompletedMainActionsThisTurn;
                 targetPlayer.UsedCharacterThisRound = sourcePlayer.UsedCharacterThisRound;
                 targetPlayer.UsedCharacterThisTurn = sourcePlayer.UsedCharacterThisTurn;

@@ -18,6 +18,7 @@ namespace YC.Infrastructure.Multiplayer
             simulationOptions?.SimulationEpoch + "|" + simulationOptions?.MembershipVersion + "|" + clientConnectionToken;
         public PaymentSourceProjection ReadPaymentSourcePage(PaymentSourceQuery query)
         {
+            if (privateMode) return ReadPrivatePaymentSourcePage(query);
             if (!initialized || simulationCoordinator == null || simulationCoordinator.IsStopped || simulationCoordinator.RequiresRecovery ||
                 IsRecoveringConfirmedPrefix || query?.PlayerId != localPlayerId || !PaymentSourcePageProtocol.Valid(query) ||
                 mode == LaunchMode.Client && !NetworkClient.isConnected) return null;

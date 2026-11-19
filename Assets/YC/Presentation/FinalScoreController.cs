@@ -54,7 +54,6 @@ namespace YC.Presentation
             finalScoreDetailsButtonLabel = view.FinalScoreDetailsButtonLabel;
 
             view.FinalScoreDetailsButton.onClick.AddListener(ToggleFinalScoreDetails);
-            view.FinalScoreDetailsBackButton.onClick.AddListener(CloseFinalScoreDetails);
             view.ReturnStartButton.onClick.AddListener(ReturnToStartScene);
 
             view.GameOverOverlay.SetActive(false);

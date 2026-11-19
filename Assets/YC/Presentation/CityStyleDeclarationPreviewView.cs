@@ -48,6 +48,7 @@ namespace YC.Presentation
         [SerializeField] private CityStyleDeclarationPreviewInputHandler inputHandler;
         [SerializeField] private Button closeButton;
         [SerializeField] private Text closeButtonLabel;
+        [SerializeField] private Button viewFacilitySupply;
         [SerializeField] private CardBoardVisualLayout cardBoardVisualLayout;
         [SerializeField] private CardInteractionLayoutProfile cardInteractionLayoutProfile;
         [SerializeField] private RawImage cityStyleCardImage;
@@ -180,7 +181,9 @@ namespace YC.Presentation
                     item.PointerInteraction.ConfigureClick(item.Button, () => {
                         if (CurrentBinding(binding)) choose(index);
                     });
-                    item.GetComponent<CityStyleCardStateView>().Bind(option.CanDeclare);
+                    var selectionState = item.GetComponent<CityStyleCardStateView>();
+                    selectionState.SetSelectionEffectEnabled(model.DeclareMode);
+                    selectionState.Bind(option.CanDeclare);
                     item.GetComponent<CityStyleCardGesture>().Configure(() => {
                         if (!CurrentBinding(binding)) return;
                         choose(index);
@@ -257,6 +260,7 @@ namespace YC.Presentation
         public RectTransform Panel => panel;
         internal CityStyleDeclarationPreviewInputHandler InputHandler => inputHandler;
         public Button CloseButton => closeButton;
+        public Button ViewFacilitySupply => viewFacilitySupply;
         public Text CloseButtonLabel => closeButtonLabel;
         public CardBoardVisualLayout CardBoardVisualLayout => cardBoardVisualLayout;
         public CardInteractionLayoutProfile CardInteractionLayoutProfile => cardInteractionLayoutProfile;
@@ -299,7 +303,7 @@ namespace YC.Presentation
             { reason = "城市样式列表与详情引用不完整：" + string.Join("、", missingReferences) + "。"; return false; }
 
             if (overlayCanvas == null || rootRect == null || overlayObject == null || overlayImage == null ||
-                panel == null || inputHandler == null || closeButton == null || closeButtonLabel == null ||
+                panel == null || inputHandler == null || closeButton == null || closeButtonLabel == null || viewFacilitySupply == null ||
                 cardBoardVisualLayout == null || cardInteractionLayoutProfile == null ||
                 cityStyleCardImage == null || cityStyleInfluenceMarkerRoot == null ||
                 cityStyleCardPlaceholder == null || cityStyleTitleText == null || matchStatusText == null ||
@@ -455,6 +459,7 @@ namespace YC.Presentation
                 item.GetComponent<CityStyleCardGesture>().Configure(null);
             }
             closeButton.onClick.RemoveAllListeners();
+            if (viewFacilitySupply != null) viewFacilitySupply.onClick.RemoveAllListeners();
             confirmDeclarationButton.onClick.RemoveAllListeners();
             cancelSpecialActionWarningButton.onClick.RemoveAllListeners();
             confirmSpecialActionWarningButton.onClick.RemoveAllListeners();

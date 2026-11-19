@@ -184,6 +184,14 @@ namespace YC.Domain.Cards
                 throw new InvalidOperationException(definition.CardId + " 的颜色或代表资源字段无效。");
             }
 
+            if (definition.EventChoiceSchemaVersion == 1)
+            {
+                ValidateChoiceContract(definition);
+                return;
+            }
+            if (definition.EventChoiceSchemaVersion != 0)
+                throw new InvalidOperationException(definition.CardId + " 的事件选择版本不支持。");
+
             if (definition.ChoiceDescriptions == null || definition.ChoiceRewards == null ||
                 definition.ChoicePendingEffects == null ||
                 definition.ChoiceDescriptions.Count > 3 ||
@@ -212,6 +220,40 @@ namespace YC.Domain.Cards
                     ValidateEffect(effects[effectIndex], definition.CardId);
                 }
             }
+        }
+
+        private static void ValidateChoiceContract(EventCardDefinition definition)
+        {
+            if (definition.Choices == null || definition.Choices.Count > 16 ||
+                definition.ChoiceDescriptions == null || definition.ChoiceDescriptions.Count != 0 ||
+                definition.ChoiceRewards == null || definition.ChoiceRewards.Count != 0 ||
+                definition.ChoicePendingEffects == null || definition.ChoicePendingEffects.Count != 0)
+                throw new InvalidOperationException(definition.CardId + " 的事件选择结构无效或混用了旧字段。");
+            if (definition.Choices.Count == 0)
+            {
+                if (definition.ImmediateResolve == null || string.IsNullOrWhiteSpace(definition.ImmediateResolve.Script) ||
+                    string.IsNullOrWhiteSpace(definition.ImmediateResolve.Version))
+                    throw new InvalidOperationException(definition.CardId + " 的零选项事件缺少立即入口。");
+                return;
+            }
+            if (definition.ImmediateResolve != null)
+                throw new InvalidOperationException(definition.CardId + " 的有选项事件不能同时声明立即入口。");
+            var ids = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var choice in definition.Choices)
+            {
+                if (choice == null || string.IsNullOrWhiteSpace(choice.ChoiceId) || choice.ChoiceId.Length > 128 ||
+                    choice.ChoiceId.IndexOfAny(new[] { '\r', '\n', '\0' }) >= 0 || !ids.Add(choice.ChoiceId) ||
+                    string.IsNullOrWhiteSpace(choice.Description) || string.IsNullOrWhiteSpace(choice.Script) ||
+                    string.IsNullOrWhiteSpace(choice.Version) || choice.Button == null ||
+                    double.IsNaN(choice.Button.TopPercent) || double.IsInfinity(choice.Button.TopPercent) ||
+                    double.IsNaN(choice.Button.BottomPercent) || double.IsInfinity(choice.Button.BottomPercent) ||
+                    choice.Button.TopPercent < 0 || choice.Button.TopPercent >= choice.Button.BottomPercent || choice.Button.BottomPercent > 100)
+                    throw new InvalidOperationException(definition.CardId + " 的事件选择无效或 ID 重复：" + (choice?.ChoiceId ?? ""));
+            }
+            var ordered = definition.Choices.OrderBy(choice => choice.Button.TopPercent).ToList();
+            for (int i = 1; i < ordered.Count; i++)
+                if (ordered[i].Button.TopPercent < ordered[i - 1].Button.BottomPercent)
+                    throw new InvalidOperationException(definition.CardId + " 的事件按钮区域重叠：" + ordered[i - 1].ChoiceId + " / " + ordered[i].ChoiceId);
         }
 
         private static void ValidateResourceSet(ResourceSet value, string label)
@@ -268,6 +310,16 @@ namespace YC.Domain.Cards
                 ResourceAmount = source.ResourceAmount,
                 RepresentativeResourceType = source.RepresentativeResourceType,
                 RepresentativeResourceAmount = source.RepresentativeResourceAmount,
+                EventChoiceSchemaVersion = source.EventChoiceSchemaVersion,
+                Choices = source.Choices == null ? null : source.Choices.Select(choice => choice == null ? null : new EventCardChoice
+                {
+                    ChoiceId = choice.ChoiceId, Description = choice.Description, Script = choice.Script,
+                    Version = choice.Version, CompletionHandlerId = choice.CompletionHandlerId,
+                    Button = choice.Button == null ? null : new EventCardChoiceButton
+                    { TopPercent = choice.Button.TopPercent, BottomPercent = choice.Button.BottomPercent }
+                }).ToList(),
+                ImmediateResolve = source.ImmediateResolve == null ? null : new EventCardImmediateResolve
+                { Script = source.ImmediateResolve.Script, Version = source.ImmediateResolve.Version },
                 ChoiceDescriptions = new List<string>(source.ChoiceDescriptions),
                 ChoiceRewards = new List<ResourceSet>(source.ChoiceRewards.Count),
                 ChoicePendingEffects = new List<List<EventEffect>>(source.ChoicePendingEffects.Count)
@@ -326,6 +378,8 @@ namespace YC.Domain.Cards
                 left.ResourceType != right.ResourceType || left.ResourceAmount != right.ResourceAmount ||
                 left.RepresentativeResourceType != right.RepresentativeResourceType ||
                 left.RepresentativeResourceAmount != right.RepresentativeResourceAmount ||
+                left.EventChoiceSchemaVersion != right.EventChoiceSchemaVersion ||
+                !ChoicesEqual(left, right) ||
                 left.ChoiceDescriptions.Count != right.ChoiceDescriptions.Count)
             {
                 return false;
@@ -351,6 +405,23 @@ namespace YC.Domain.Cards
                 }
             }
 
+            return true;
+        }
+
+        private static bool ChoicesEqual(EventCardDefinition left, EventCardDefinition right)
+        {
+            if (left.Choices == null || right.Choices == null) return left.Choices == right.Choices;
+            if (left.Choices.Count != right.Choices.Count || (left.ImmediateResolve == null) != (right.ImmediateResolve == null)) return false;
+            if (left.ImmediateResolve != null && (left.ImmediateResolve.Script != right.ImmediateResolve.Script ||
+                left.ImmediateResolve.Version != right.ImmediateResolve.Version)) return false;
+            for (int i = 0; i < left.Choices.Count; i++)
+            {
+                var a = left.Choices[i]; var b = right.Choices[i];
+                if (a == null || b == null) { if (a != b) return false; continue; }
+                if (a.ChoiceId != b.ChoiceId || a.Description != b.Description || a.Script != b.Script || a.Version != b.Version ||
+                    a.CompletionHandlerId != b.CompletionHandlerId || (a.Button == null) != (b.Button == null) ||
+                    a.Button != null && (a.Button.TopPercent != b.Button.TopPercent || a.Button.BottomPercent != b.Button.BottomPercent)) return false;
+            }
             return true;
         }
 

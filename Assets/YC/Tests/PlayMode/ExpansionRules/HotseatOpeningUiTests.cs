@@ -488,13 +488,11 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
         private static GameObject EventOption()
         {
-            // 选择画面上一个真实事件热点；原图序号映射仍由生产回调处理。
-            for (var index = 0; index < 10; index++)
-            {
-                var target = HotseatUiInputDriver.Marker("event.option." + index);
-                if (target != null && target.GetComponent<Button>()?.IsInteractable() == true) return target;
-            }
-            return null;
+            // 只选择当前实际显示并可交互的稳定选择按钮。
+            var markerType = HotseatUiInputDriver.RuntimeType("YC.PlayerJourney.PlayerAutomationId");
+            return Object.FindObjectsOfType(markerType).Cast<Component>().Where(marker =>
+                ((string)markerType.GetField("Id").GetValue(marker)).StartsWith("event.choice.", StringComparison.Ordinal) &&
+                marker.GetComponent<Button>()?.IsInteractable() == true).Select(marker => marker.gameObject).FirstOrDefault();
         }
 
         private IEnumerator Answered(InteractionRequest request) => input.Until(() => !Same(Open, request),

@@ -61,8 +61,8 @@ namespace YC.Domain.Items
                 source.RuleConfiguration.PlayerCount != source.Players.Count || source.RuleConfiguration.ContentPackHash != source.ContentPackHash ||
                 source.RuleConfiguration.RuleContractVersion != GameRuleConfiguration.CurrentRuleContractVersion)
                 throw new InvalidOperationException("RuleConfiguration_setup_mismatch");
-            if (source.RuleConfiguration.RuleModeId != "standard" && source.RuleConfiguration.RuleModeId != "entrepreneur") throw new InvalidOperationException("rule_mode_not_implemented");
-            if (source.RuleConfiguration.RuleModeId == "entrepreneur" && (!source.RuleConfiguration.EnabledExpansionIds.Contains("enterprise") || !source.RuleConfiguration.EnabledExpansionIds.Contains("infected")))
+            if (!source.RuleConfiguration.TryValidateFrozenShape(out string configurationReason)) throw new InvalidOperationException(configurationReason);
+            if (EntrepreneurFlow.Enabled(source) && (!source.RuleConfiguration.EnabledExpansionIds.Contains("enterprise") || !source.RuleConfiguration.EnabledExpansionIds.Contains("infected")))
                 throw new InvalidOperationException("missing_entrepreneur_dependency");
             RuleModeReadiness.ValidateReady(source);
             if (source.ItemZones != null && (source.ItemZones.Items.Count > 0 || source.ItemZones.Zones.Count > 0)) throw new InvalidOperationException("setup_recipe_already_created");

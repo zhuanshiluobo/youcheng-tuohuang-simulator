@@ -208,8 +208,10 @@ namespace YC.Tests.EditMode.ExpansionRules
                 var invoke = choice.NestedEffectGroups[i].Single();
                 Assert.That(invoke.EffectTypeId, Is.EqualTo(AbilityActionExecutor.DirectTypeId));
                 Assert.That(Text(invoke.RawArguments, "itemId"), Is.EqualTo("real.card." + i));
-                Assert.That(Text(invoke.RawArguments, "actionId"), Is.EqualTo("real.action." + i));
-                Assert.That(Text(invoke.RawArguments, "callPolicyRef"), Is.EqualTo("real.policy." + i));
+                Assert.That(Text(invoke.RawArguments, "actionId"), Is.EqualTo("entrepreneur.A" + (5 + i).ToString("00") + ".tactic.quick"));
+                Assert.That(Value(invoke.RawArguments, "omitEntryCost").BooleanValue, Is.True);
+                Assert.That(Value(invoke.RawArguments, "omitEntryAfterEffects").BooleanValue, Is.True);
+                Assert.That(Value(invoke.RawArguments, "omitMainAction").BooleanValue, Is.True);
             }
             // 手工只读事实仅核构树；正式Host用例另证来源与调用授权。
         }
@@ -296,8 +298,16 @@ namespace YC.Tests.EditMode.ExpansionRules
         [Test] public void CallableCandidatesReadEveryPageAndIgnorePayloadAndLegacyFacts()
         {
             using var f = new AgnesContentTestFixture();
+            var facts = CallableFactsJson(9, 1, disabledLast: 2);
+            // 多个行动共享一张来源牌，多个来源也共享该牌；两类查询均超过单页。
+            for (int i = 0; i < 5; i++)
+            {
+                facts["callableActions"][i]["itemId"] = "real.card.0";
+                ((JArray)facts["sources"]).Add(new JObject { ["itemId"] = "real.card.0",
+                    ["definitionId"] = "entrepreneur.round.A.1", ["authorizedPlayerId"] = "p1", ["sourceKey"] = "extra.source." + i });
+            }
             var result = f.Lua("{\"abilityId\":\"entrepreneur.A05.cleanup\",\"callableActions\":[{\"optionId\":\"forged\",\"enabled\":true}]}",
-                snapshot: Inventory(0, -1, 0), sourceFacts: CallableFacts(9, 1, disabledLast: 2));
+                snapshot: Inventory(0, -1, 0), sourceFacts: AgnesContentTestFixture.Snapshot(facts));
             Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
             var options = Value(result.Effects.Single().NestedEffectGroups[1].Single().RawArguments, "options").Items.Select(x => x.StringValue).ToArray();
             Assert.That(options, Is.EqualTo(Enumerable.Range(0, 7).Select(i => "real.option." + i).ToArray()));
@@ -305,8 +315,27 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(result.Effects.Single().NestedEffectGroups[1].Single().NestedEffectGroups.Count, Is.EqualTo(7));
             Assert.That(result.Effects.Single().NestedEffectGroups[1].Single().NestedEffectGroups.All(g =>
                 g.Count == 1 && g[0].EffectTypeId == AbilityActionExecutor.DirectTypeId), Is.True);
-            var availability = f.Lua("{}", "return A.availability(ctx)", responseKind: "settlementAvailability", sourceFacts: CallableFacts(9, 1, disabledLast: 2));
+            var availability = f.Lua("{}", "return A.availability(ctx)", responseKind: "settlementAvailability", sourceFacts: AgnesContentTestFixture.Snapshot(facts));
             Assert.That(availability.IsSuccess, Is.True, availability.Diagnostic); Assert.That(availability.SettlementAvailability.Enabled, Is.True);
+        }
+        [Test] public void CallableCandidatesIgnoreManyUnrelatedActions()
+        {
+            using var f = new AgnesContentTestFixture();
+            var facts = CallableFactsJson(5, 1);
+            var actions = (JArray)facts["callableActions"];
+            for (int i = 0; i < 200; i++)
+            {
+                actions.Add(new JObject { ["optionId"] = "other.option." + i, ["itemId"] = "other.card." + i,
+                    ["actionId"] = "other.action." + i, ["enabled"] = true,
+                    ["sourceKey"] = "other.source." + i, ["handlerHash"] = "other.handler." + i });
+                ((JArray)facts["sources"]).Add(new JObject { ["itemId"] = "other.card." + i,
+                    ["definitionId"] = "other.definition." + i, ["authorizedPlayerId"] = "p1", ["sourceKey"] = "other.source." + i });
+            }
+            var result = f.Lua("{\"abilityId\":\"entrepreneur.A05.cleanup\"}", snapshot: Inventory(0, -1, 0),
+                sourceFacts: AgnesContentTestFixture.Snapshot(facts));
+            Assert.That(result.IsSuccess, Is.True, result.Diagnostic);
+            var options = Value(result.Effects.Single().NestedEffectGroups[1].Single().RawArguments, "options").Items.Select(x => x.StringValue).ToArray();
+            Assert.That(options, Is.EqualTo(Enumerable.Range(0, 5).Select(i => "real.option." + i).ToArray()));
         }
         [Test] public void A08MainBodyHasTwoIndependentPlacementsThenOneFrozenSchedule()
         {
@@ -364,7 +393,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.EffectRuntime.EffectNodes.Single(n => n.EffectId == dueOption.TargetEffectId).ParentEffectId, Is.EqualTo(dueOption.OwnerEffectId));
             Assert.That(f.OwnMapCount, Is.EqualTo(2)); f.StartCleanupObligation(); f.ResolveMapRequests();
             var call = f.State.EffectRuntime.AbilityActionInvocations.Single(i => i.ActionId == "entrepreneur.A08.tactic.quick");
-            Assert.That(call.CallPolicyRef, Is.EqualTo("entrepreneur.A05.call.A08")); Assert.That(call.ActivationCommitted, Is.True);
+            Assert.That(call.OmitEntryCost && call.OmitEntryAfterEffects && call.OmitMainAction, Is.True); Assert.That(call.ActivationCommitted, Is.True);
             Assert.That(call.PaymentEffectIds, Is.Empty); Assert.That(call.MainActionCommitted, Is.False);
             Assert.That(f.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(gold)); Assert.That(f.State.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(budget));
             Assert.That(f.Stored, Is.Zero); Assert.That(f.OwnMapCount, Is.EqualTo(1));
@@ -403,15 +432,16 @@ namespace YC.Tests.EditMode.ExpansionRules
             f.Answer("1"); Assert.That(f.Stored, Is.EqualTo(1));
             Assert.That(f.State.EffectRuntime.AbilitySourceUses.Count(u => u.AbilityId == "entrepreneur.A01.cover" && u.Outcome == "completed"), Is.EqualTo(2), "两次不同阶段事件各有真实来源收据，第一份无本人收益");
         }
-        [Test] public void ActualIndependentH1ReadsItsOwnPoliciesWhenH0HasNoCallableActions()
+        [Test] public void DistinctSourceHandlersCanQueryAndInvokeWithoutCallPolicy()
         {
             using var f = new AgnesContentTestFixture(independentH1: true); f.Formal(); f.Choose(1, "A08", "1"); f.Choose(5, "A05");
             var owner = f.Registry.QuerySources(f.State, 1).Single(s => s.AbilityId == "entrepreneur.A05.cleanup");
             var facts = SourceFactsLuaCatalog.Create(f.State, f.Registry, owner);
-            Assert.That(facts.Get("callableActions").Items, Is.Empty, "纯声明H0不能借用H1政策");
+            Assert.That(facts.Get("callableActions").Items.Any(item => item.Get("actionId").StringValue == "entrepreneur.A08.tactic.quick" && item.Get("enabled").BooleanValue), Is.True,
+                "声明处理器和真实正文不同也不需要登记调用许可");
             var snapshot = LuaFacadeSnapshot.FromInvocation("p1", 0, 0, 2, "1.1.0"); snapshot.StateRevision = f.State.EffectRuntime.StateRevision;
             var pure = f.Lua("{}", "return A.availability(ctx)", responseKind: "settlementAvailability", snapshot: snapshot, sourceFacts: facts);
-            Assert.That(pure.IsSuccess, Is.True, pure.Diagnostic); Assert.That(pure.SettlementAvailability.Enabled, Is.False);
+            Assert.That(pure.IsSuccess, Is.True, pure.Diagnostic); Assert.That(pure.SettlementAvailability.Enabled, Is.True);
             string target = f.Action("entrepreneur.A08.tactic.quick").OptionId;
             f.Invoke("qy013.A05.H1.action"); f.Answer("continue"); Assert.That(f.Open.CandidateIds, Does.Contain(target));
             f.Answer(target); f.ResolveMapRequests();
@@ -435,7 +465,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ContentPrimitiveEffectExecutor.IncompleteEffect &&
                 invoked.BodyEffectIds.Any(id => InfluenceDepartureProtocol.IsWithin(f.State, n.EffectId, id))), Is.False);
             Assert.That(f.State.Map.Influences.Count, Is.EqualTo(mapCount));
-            Assert.That(invoked.ActivationCommitted, Is.True); Assert.That(invoked.CallPolicyRef, Is.EqualTo("entrepreneur.A05.call.A07"));
+            Assert.That(invoked.ActivationCommitted, Is.True); Assert.That(invoked.OmitEntryCost && invoked.OmitEntryAfterEffects && invoked.OmitMainAction, Is.True);
             Assert.That(f.State.FindPlayer(1).Resources.OriginiumShard, Is.Zero); Assert.That(f.Action("entrepreneur.A07.tactic.special").Enabled, Is.False);
         }
         [TestCase("A09", "A06", "A09")][TestCase("A08", "A06", "A06")]
@@ -462,7 +492,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             var invocation = f.State.EffectRuntime.AbilityActionInvocations.Single(i => i.ActionId == action);
             Assert.That(f.State.EffectRuntime.EffectNodes.Any(n => n.EffectTypeId == ContentPrimitiveEffectExecutor.IncompleteEffect &&
                 invocation.BodyEffectIds.Any(id => InfluenceDepartureProtocol.IsWithin(f.State, n.EffectId, id))), Is.False);
-            Assert.That(invocation.CallPolicyRef, Is.EqualTo("entrepreneur.A05.call." + targetFace)); Assert.That(invocation.ActivationCommitted, Is.True);
+            Assert.That(invocation.OmitEntryCost && invocation.OmitEntryAfterEffects && invocation.OmitMainAction, Is.True); Assert.That(invocation.ActivationCommitted, Is.True);
             Assert.That(invocation.PaymentEffectIds, Is.Empty); Assert.That(invocation.MainActionCommitted, Is.False);
             Assert.That(f.Action("entrepreneur." + targetFace + ".tactic.special").Enabled, Is.False);
         }
@@ -536,14 +566,21 @@ namespace YC.Tests.EditMode.ExpansionRules
         internal static JObject CallableFactsJson(int candidates, int transferable, int disabledLast = 0)
         {
             var actions = new JArray();
-            for (int i = 0; i < candidates; i++) actions.Add(new JObject { ["optionId"] = "real.option." + i, ["itemId"] = "real.card." + i,
-                ["actionId"] = "real.action." + i, ["callPolicyRef"] = "real.policy." + i, ["enabled"] = i < candidates - disabledLast,
-                ["sourceKey"] = "opaque.source." + i, ["handlerHash"] = "actual.execution.handler." + i });
+            var sources = new JArray(new JObject { ["itemId"] = "a01", ["definitionId"] = "entrepreneur.ability.A01",
+                ["authorizedPlayerId"] = "p1", ["sourceKey"] = "opaque.a01" });
+            for (int i = 0; i < candidates; i++)
+            {
+                actions.Add(new JObject { ["optionId"] = "real.option." + i, ["itemId"] = "real.card." + i,
+                    ["actionId"] = "entrepreneur.A" + (5 + i).ToString("00") + ".tactic.quick", ["enabled"] = i < candidates - disabledLast,
+                    ["sourceKey"] = "opaque.source." + i, ["handlerHash"] = "actual.execution.handler." + i });
+                sources.Add(new JObject { ["itemId"] = "real.card." + i,
+                    ["definitionId"] = "entrepreneur.round.A." + new[] { 1, 3, 5 }[i % 3],
+                    ["authorizedPlayerId"] = "p1", ["sourceKey"] = "opaque.source." + i });
+            }
             var tokens = new JArray(Enumerable.Range(0, transferable).Select(i => TokenFact("command." + i)));
             return new JObject { ["protocolVersion"] = 1, ["stateRevision"] = 0, ["contentHash"] = "qy013.readonly.snapshot",
                 ["authorizedPlayerId"] = "p1", ["ruleOwnerSourceKey"] = "opaque.owner", ["ruleOwnerItemId"] = "real.owner", ["transferableTokenCount"] = transferable,
-                ["callableActions"] = actions, ["sources"] = new JArray(new JObject { ["itemId"] = "a01", ["definitionId"] = "entrepreneur.ability.A01",
-                    ["authorizedPlayerId"] = "p1", ["sourceKey"] = "opaque.a01" }), ["grants"] = new JArray(), ["transferableTokens"] = tokens };
+                ["callableActions"] = actions, ["sources"] = sources, ["grants"] = new JArray(), ["transferableTokens"] = tokens };
         }
         internal static JObject TokenFact(string id, string card = "a01", string owner = "p1") => new JObject {
             ["itemId"] = id, ["typeId"] = "core.player_marker", ["physicalKind"] = "Cube", ["zoneId"] = "commands",

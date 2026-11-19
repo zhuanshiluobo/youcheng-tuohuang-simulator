@@ -149,8 +149,24 @@ namespace YC.Presentation
     public static class ExternalContentRuntime
     {
         private static ExternalContentPack pack;
+        private static ExternalContentPack gameplayPack;
+        private static DiyInstalledRepository diyRepository;
+        private static GameplayOptionsCatalog gameplayOptions;
+        internal static long ContentGeneration { get; private set; }
         private static string coreRoot, registryRoot;
-        public static string DefaultPresentationRegistryRoot => Path.Combine(UnityEngine.Application.persistentDataPath, "Presentation");
+        internal static string UserContentDataRoot
+        {
+            get
+            {
+                string normal = UnityEngine.Application.persistentDataPath;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                return SelectFixtureDataRoot(normal, Environment.GetCommandLineArgs());
+#else
+                return normal;
+#endif
+            }
+        }
+        public static string DefaultPresentationRegistryRoot => Path.Combine(UserContentDataRoot, "Presentation");
         private static readonly Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>(StringComparer.Ordinal);
         private static readonly Dictionary<string, Sprite> sprites = new Dictionary<string, Sprite>(StringComparer.Ordinal);
         private static ArtworkMemoryCounters memoryCounters;
@@ -180,7 +196,7 @@ namespace YC.Presentation
         private static ArtworkBinding FindInstalledArtwork(string type, string id)
         {
             using var lookup = Workflows.UiRegressionMetrics.Measure("artwork.definition_lookup");
-            var currentPack = Pack;
+            var currentPack = gameplayPack ?? Pack;
             if (!ReferenceEquals(artworkPack, currentPack))
             {
                 using var build = Workflows.UiRegressionMetrics.Measure("artwork.definition_index_build");
@@ -217,6 +233,86 @@ namespace YC.Presentation
                 return pack;
             }
         }
+        /// <summary>仅在需要 DIY 时扫描当前构建的用户目录；快照保持到安全重载或进程结束。</summary>
+        public static DiyInstalledRepository InstalledDiy
+        {
+            get
+            {
+                var core = Pack;
+                if (diyRepository == null)
+                {
+                    var paths = new DiyDataPaths(UserContentDataRoot);
+                    var found = DiyPackDiscovery.Scan(paths, ValidateDiyImage);
+                    string profilePath = Path.Combine(paths.Profiles, "default.json");
+                    var profile = DiyVersionProfile.Load(profilePath);
+                    if (profile.BindUniqueDefaults(found)) profile.Save(profilePath);
+                    diyRepository = new DiyInstalledRepository(core, found, profile);
+                }
+                return diyRepository;
+            }
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 只隔离测试的内容和版本配置目录，不改变正式菜单、玩法选择或对局状态。
+        internal static string SelectFixtureDataRoot(string normalRoot, string[] arguments)
+        {
+            if (arguments == null) throw new ArgumentNullException(nameof(arguments));
+            const string option = "--yc-test-content-root";
+            string selected = null;
+            foreach (string argument in arguments)
+            {
+                if (argument == null || !argument.StartsWith(option, StringComparison.OrdinalIgnoreCase)) continue;
+                if (selected != null || !argument.StartsWith(option + "=", StringComparison.Ordinal))
+                    throw new InvalidOperationException("隔离内容目录参数必须只提供一次，并使用完整等号形式。");
+                selected = argument.Substring(option.Length + 1);
+            }
+            return selected == null ? normalRoot : PerformanceSavePath.Select(normalRoot, new[] { "--yc-performance-save-root=" + selected });
+        }
+#endif
+
+        public static GameplayOptionsCatalog GetGameplayOptions()
+        {
+            if (gameplayOptions != null) return gameplayOptions;
+            try { gameplayOptions = InstalledDiy.GetOptions(); }
+            catch (Exception error) when (error is InvalidDataException || error is IOException || error is UnauthorizedAccessException)
+            {
+                // 本地 DIY 配置损坏不应阻止基础游戏；诊断仍保留在目录中。
+                gameplayOptions = GameplayOptionsCatalog.CoreOnly(Pack, error.Message);
+            }
+            return gameplayOptions;
+        }
+
+        internal static DiyLocalContentConfiguration CreateLocalDiyConfiguration() =>
+            new DiyLocalContentConfiguration(new DiyDataPaths(UserContentDataRoot), ValidateDiyImage);
+
+        // 发现阶段仅解码独立临时纹理，不写游戏贴图缓存或改变正在使用的快照。
+        private static void ValidateDiyImage(byte[] encoded, string relative, int expectedWidth, int expectedHeight)
+        {
+            Texture2D texture = null;
+            try
+            {
+                texture = new Texture2D(2, 2, TextureFormat.RGBA32, false) { hideFlags = HideFlags.HideAndDontSave };
+                if (!texture.LoadImage(encoded, true)) throw new InvalidDataException("图片解码失败：" + relative);
+                if (texture.width != expectedWidth || texture.height != expectedHeight ||
+                    texture.width > DiyPackLimits.MaximumImageDimension || texture.height > DiyPackLimits.MaximumImageDimension ||
+                    (long)texture.width * texture.height > DiyPackLimits.MaximumImagePixels ||
+                    SystemInfo.maxTextureSize > 0 && (texture.width > SystemInfo.maxTextureSize || texture.height > SystemInfo.maxTextureSize))
+                    throw new InvalidDataException("图片尺寸与声明不符或超过设备限制：" + relative);
+            }
+            finally
+            {
+                // 同步扫描可能包含多张大图，及时释放临时纹理，不累计到下一帧。
+                if (texture != null) UnityEngine.Object.DestroyImmediate(texture);
+            }
+        }
+
+        public static ActiveContentCatalog BuildActiveCatalog(YC.Domain.Rules.GameRuleConfiguration configuration)
+        {
+            var core = Pack;
+            if (configuration?.LockedContentPacks == null || configuration.LockedContentPacks.Count == 0)
+                return ActiveContentCatalogBuilder.Build(core, configuration);
+            return ActiveContentCatalogBuilder.Build(core, configuration, InstalledDiy.ResolveExact(configuration));
+        }
         /// <summary>与首次启动相同的JSON登记入口；成功校验后才替换当前冻结包。</summary>
         public static void ConfigureRegistered(string contentRoot, string presentationRegistryRoot)
         {
@@ -238,17 +334,32 @@ namespace YC.Presentation
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void Reset()
         {
+            unchecked { ContentGeneration++; }
             foreach (var sprite in sprites.Values) Release(sprite);
             sprites.Clear();
             installedArtwork = null; artworkPack = null;
             foreach (var texture in textures.Values) Release(texture);
             textures.Clear(); memoryCounters?.Cleared();
-            GameplayIconResourceResolver.Clear(); pack = null; coreRoot = null; registryRoot = null;
+            GameplayIconResourceResolver.Clear(); pack = null; gameplayPack = null; diyRepository = null; gameplayOptions = null; coreRoot = null; registryRoot = null;
+        }
+
+        internal static void BindGameplayPack(ExternalContentPack snapshot)
+        {
+            if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+            if (gameplayPack != null && gameplayPack.ContentHash != snapshot.ContentHash)
+                throw new InvalidOperationException("当前对局仍持有另一份冻结内容，不能热换。");
+            if (ReferenceEquals(gameplayPack, snapshot)) return;
+            foreach (var sprite in sprites.Values) Release(sprite);
+            sprites.Clear();
+            foreach (var texture in textures.Values) Release(texture);
+            textures.Clear(); memoryCounters?.Cleared(); installedArtwork = null; artworkPack = null;
+            gameplayPack = snapshot;
         }
 
         /// <summary>仅供正式离局加载器在旧场景全部卸载、新菜单未激活时调用；保留冻结内容和图标。</summary>
         internal static bool ReleaseUnloadedGameplayArtwork()
         {
+            gameplayPack = null; installedArtwork = null; artworkPack = null;
             if (sprites.Count == 0 && textures.Count == 0) return false;
             foreach (var sprite in sprites.Values) Release(sprite);
             sprites.Clear();
@@ -278,7 +389,7 @@ namespace YC.Presentation
         }
         public static Texture2D GetSharedArtwork(string id)
         {
-            string relative = Pack.FindSharedArtwork(id);
+            string relative = (gameplayPack ?? Pack).FindSharedArtwork(id);
             return relative == null ? null : LoadTexture(relative);
         }
         public static Sprite GetArtworkSprite(string type, string id)
@@ -286,16 +397,17 @@ namespace YC.Presentation
             // 本局实例解析为冻结 definitionId；只读取已安装素材，不改变全局活动牌池。
             var artwork = FindInstalledArtwork(type, id);
             if (artwork != null) return LoadSprite(artwork.Path, artwork.Slice);
-            string relative = Pack.FindArtwork(type, id);
+            var source = gameplayPack ?? Pack;
+            string relative = source.FindArtwork(type, id);
             if (relative == null) return null;
-            var slice = Pack.FindArtworkSlice(type, id);
+            var slice = source.FindArtworkSlice(type, id);
             return LoadSprite(relative, slice);
         }
 
         /// <summary>仅供素材预览使用，不据此激活任何规则定义或牌池。</summary>
         public static Sprite GetRegisteredArtworkSprite(string spriteId)
         {
-            var slice = Pack.FindRegisteredArtworkSlice(spriteId);
+            var slice = (gameplayPack ?? Pack).FindRegisteredArtworkSlice(spriteId);
             return slice == null ? null : LoadSprite(slice.Artwork, slice);
         }
 
@@ -309,7 +421,7 @@ namespace YC.Presentation
         /// <summary>按真实面身份读取已登记正面，不能降级为另一面。</summary>
         public static Sprite GetDeclaredCardArtwork(string definitionId, string faceId = "")
         {
-            return Pack.TryGetDeclaredArtwork(definitionId,faceId,out var artwork,out var slice)?LoadSprite(artwork,slice):null;
+            return (gameplayPack ?? Pack).TryGetDeclaredArtwork(definitionId,faceId,out var artwork,out var slice)?LoadSprite(artwork,slice):null;
         }
 
         private static Sprite LoadSprite(string relative, ExternalArtworkSlice slice)
@@ -347,7 +459,7 @@ namespace YC.Presentation
             {
                 texture = new Texture2D(2, 2, TextureFormat.RGBA32, false) { name = relative, wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear, hideFlags = HideFlags.HideAndDontSave };
-                var encoded = Pack.GetArtworkBytes(relative);
+                var encoded = (gameplayPack ?? Pack).GetArtworkBytes(relative);
                 int encodedBytes = memoryCounters != null && memoryCounters.Enabled && encoded != null ? encoded.Length : -1;
                 if (!texture.LoadImage(encoded, true))
                 {

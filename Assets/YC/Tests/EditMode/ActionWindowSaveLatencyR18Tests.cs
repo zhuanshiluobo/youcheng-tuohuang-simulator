@@ -132,7 +132,7 @@ namespace YC.Tests.EditMode
 #if !YC_WINDOW_EXECUTION_OFFLINE
         [Test]
 #endif
-        public async Task SingleArchiveParseStillRejectsChangedConfigurationRandomSeedOrderAndDuplicateFields()
+        public void SingleArchiveParseStillRejectsChangedConfigurationRandomSeedOrderAndDuplicateFields()
         {
             var f = R16LocalFixture("r18-single-parse");
             // 先经过真实随机流调用；没有流的初始夹具不能检验流状态与 seed 的绑定。
@@ -141,7 +141,7 @@ namespace YC.Tests.EditMode
             var source = capture.Archive.Snapshot.State;
             var header = new MatchSaveData { Mode = LaunchMode.Local, GameId = source.GameId, ContentHash = source.ContentPackHash,
                 LocalPlayerId = 1, Seats = source.Players.Select(p => new MatchSaveSeat { PlayerId = p.PlayerId, Color = p.Color, PlayerName = p.Name }).ToList() };
-            var data = await MatchSaveData.CreateFromLocalCaptureAsync(header, capture); data.Validate(); string original = data.ArchiveJson;
+            var data = MatchSaveData.CreateFromLocalCaptureAsync(header, capture).GetAwaiter().GetResult(); data.Validate(); string original = data.ArchiveJson;
             void Reject(Action<JObject> tamper)
             {
                 var archive = JObject.Parse(original); tamper((JObject)archive["Snapshot"]["State"]); data.ArchiveJson = archive.ToString(Formatting.None);

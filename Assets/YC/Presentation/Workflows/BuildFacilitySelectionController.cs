@@ -58,9 +58,9 @@ namespace YC.Presentation
             if (scope == null) throw new ArgumentNullException(nameof(scope));
             Reset(); PlayerId = scope.PlayerId; effectBuildOwner = scope.OwnerEffectId;
             Phase = BuildFacilityDraftPhase.Selecting;
-            if (scope.Payment != null)
+            if (scope.Payment != null || scope.FixedFacilityId.Length > 0)
             {
-                FacilityId = scope.Payment.TargetId;
+                FacilityId = scope.Payment?.TargetId ?? scope.FixedFacilityId;
                 scope.TryGetCandidateSourceZoneId(FacilityId, out selectedSourceZoneId);
                 Phase = BuildFacilityDraftPhase.Focused;
             }

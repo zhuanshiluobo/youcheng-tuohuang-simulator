@@ -291,6 +291,50 @@ def verify_standard_parameters(standard, library_root, errors):
                       + "（应为路径字符串或内嵌对象，实际为" + type(parameters).__name__ + "）")
 
 
+def verify_components(library_root, standards, errors):
+    """只校验登记的组件文件与依赖，不加载、编译或执行包内代码。"""
+    catalog = library_root / "清单/可用组件索引.json"
+    components = json.loads(catalog.read_text(encoding="utf-8"))["components"] if catalog.is_file() else []
+    component_root = library_root / "组件"
+    by_id = {}
+    expected = set()
+    by_standard = {s["id"]: s for s in standards}
+    for component in components:
+        identity = component["id"]
+        if identity in by_id:
+            errors.append("重复组件ID：" + identity)
+        by_id[identity] = component
+        try:
+            path = library_root / safe_relative(component["path"].replace("\\", "/"))
+            if not path.resolve().is_relative_to(component_root.resolve()) or path.suffix not in (".cs", ".shader"):
+                raise ValueError("组件必须位于组件目录且为已支持的源文件")
+        except ValueError:
+            errors.append("组件路径非法：" + identity)
+            continue
+        expected.add(path.resolve())
+        if not path.is_file() or sha(path.read_bytes()) != component["sha256"]:
+            errors.append("组件缺失或字节变化：" + component["path"])
+        if not component.get("scope") or not component.get("purpose"):
+            errors.append("组件用途缺失：" + identity)
+        verify_standard_parameters({"id": identity, "parameters": component.get("parameters")}, library_root, errors)
+        for standard_id in component.get("currentUsageStandards", []):
+            if standard_id not in by_standard or identity not in by_standard[standard_id].get("componentIds", []):
+                errors.append("组件与当前用途标准映射不一致：" + identity + "/" + standard_id)
+    actual = {p.resolve() for p in component_root.rglob("*") if p.is_file()} if component_root.is_dir() else set()
+    errors.extend("未登记组件文件：" + str(p) for p in actual - expected)
+    for component in components:
+        for dependency in component.get("dependsOn", []):
+            if dependency not in by_id:
+                errors.append("组件依赖缺失：" + component["id"] + "/" + dependency)
+    for standard in standards:
+        for identity in standard.get("componentIds", []):
+            if identity not in by_id:
+                errors.append("当前标准引用未收录组件：" + standard["id"] + "/" + identity)
+            elif standard["id"] not in by_id[identity].get("currentUsageStandards", []):
+                errors.append("当前标准缺少组件反向登记：" + standard["id"] + "/" + identity)
+    return components
+
+
 def verify():
     index = json.loads((DEST / "清单/可用素材索引.json").read_text(encoding="utf-8"))
     errors = []
@@ -310,6 +354,7 @@ def verify():
         p = DEST / safe_relative(a["path"])
         if not p.is_file() or sha(p.read_bytes()) != a["sha256"]:
             errors.append("原说明或参数变化：" + a["path"])
+    standards = []
     standards_path = DEST / "清单/当前用途标准.json"
     if standards_path.is_file():
         standards = json.loads(standards_path.read_text(encoding="utf-8"))["standards"]
@@ -326,7 +371,8 @@ def verify():
                     errors.append("素材与当前用途标准映射不一致：" + a["path"] + "/" + standard_id)
             if a.get("actualUsage") and not (DEST / safe_relative(a["actualUsage"])).is_file():
                 errors.append("素材缺少实际使用参数：" + a["path"])
-    result = {"date": datetime.now(timezone(timedelta(hours=8))).date().isoformat(), "assets": len(expected), "formats": dict(Counter(a["format"] for a in index["assets"])), "bytes": sum(a["bytes"] for a in index["assets"]), "errors": errors, "scope": "只核对可用库清单/哈希/PNG CRC与解压，不访问受限原档案，不代表Unity视觉验收"}
+    components = verify_components(DEST, standards, errors)
+    result = {"date": datetime.now(timezone(timedelta(hours=8))).date().isoformat(), "assets": len(expected), "formats": dict(Counter(a["format"] for a in index["assets"])), "bytes": sum(a["bytes"] for a in index["assets"]), "componentFiles": len(components), "componentBytes": sum(c["bytes"] for c in components), "errors": errors, "scope": "只核对可用库清单/哈希/PNG CRC与解压及组件依赖，不访问受限原档案、不执行组件代码，不代表Unity编译或视觉验收"}
     save(DEST / "清单/校验结果.json", result)
     print(json.dumps(result, ensure_ascii=False))
     if errors:

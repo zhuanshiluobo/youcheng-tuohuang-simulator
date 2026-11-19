@@ -136,7 +136,6 @@
           "usageTrackId": "usage.infected.city_style.enterprise_offices",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "character_action_round",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "infected.city_style.enterprise_offices"
         }

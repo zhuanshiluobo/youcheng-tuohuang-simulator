@@ -19,6 +19,7 @@ namespace YC.Presentation.Validation
         private static bool RequestedEntrepreneurMode(string mode, string legacy) =>
             !string.IsNullOrEmpty(mode) ? string.Equals(mode, "entrepreneur", StringComparison.OrdinalIgnoreCase) : legacy == "true";
         private bool EntrepreneurUiMode => RequestedEntrepreneurMode(Argument("--yc-ui-rule-mode="), Argument("--yc-hotseat-entrepreneur="));
+        private string RequestedUiRuleMode => Argument("--yc-ui-rule-mode=") ?? (EntrepreneurUiMode ? "entrepreneur" : "standard");
         private static int RequestedLocalPlayerCount(bool entrepreneur, string supplied)
         {
             if (!entrepreneur) return 4;

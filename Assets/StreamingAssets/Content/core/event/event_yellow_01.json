@@ -1,56 +1,48 @@
 {
   "definitionId": "event_yellow_01",
   "contentType": "event",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "大型源岩场",
   "artwork": "artwork/sheets/event_yellow_faces.jpg",
   "tags": [],
   "playerMarkerZones": [],
   "abilities": [],
   "data": {
-    "cardId": "event_yellow_01",
-    "name": "大型源岩场",
     "description": "勘测队的信使迫不及待地将他们的发现带回了城中，新勘探的固源岩样本之纯度震惊了你手下的地质专家。这些优质的固源岩对于聚合剂市场的开拓有不小的价值。",
     "color": 1,
     "resourceType": 0,
     "resourceAmount": 1,
     "representativeResourceType": 0,
     "representativeResourceAmount": 1,
-    "choiceDescriptions": [
-      "独享这片矿区，趁其他人还未发现这里：获得 5 源岩",
-      "以部分开采权为代价，与聚合剂厂商合作：获得 4 金券、1 分数"
-    ],
-    "choiceRewards": [
+    "eventChoiceSchemaVersion": 1,
+    "choices": [
       {
-        "originium": 5,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 0
+        "choiceId": "choice_01",
+        "description": "独享这片矿区，趁其他人还未发现这里：获得 5 源岩",
+        "button": {
+          "topPercent": 66.666667,
+          "bottomPercent": 79.166667
+        },
+        "script": "lua/events/choices/event_yellow_01.choice_01.lua",
+        "version": "1.0.0"
       },
       {
-        "originium": 0,
-        "originiumShard": 0,
-        "iron": 0,
-        "pureOriginium": 0,
-        "goldVoucher": 4
+        "choiceId": "choice_02",
+        "description": "以部分开采权为代价，与聚合剂厂商合作：获得 4 金券、1 分数",
+        "button": {
+          "topPercent": 79.166667,
+          "bottomPercent": 92.5
+        },
+        "script": "lua/events/choices/event_yellow_01.choice_02.lua",
+        "version": "1.0.0"
       }
-    ],
-    "choicePendingEffects": [
-      [],
-      [
-        {
-          "kind": 1,
-          "resourceType": 0,
-          "amount": 1,
-          "targetScope": 1,
-          "costResourceType": 0,
-          "costAmount": 0
-        }
-      ]
     ]
   },
   "expansionId": "core",
   "replaces": null,
-  "artworkSpriteId": "event_yellow_001"
+  "artworkSpriteId": "event_yellow_001",
+  "requiredCapabilities": [
+    "event.artwork_buttons.v1",
+    "event.choices.v1"
+  ]
 }

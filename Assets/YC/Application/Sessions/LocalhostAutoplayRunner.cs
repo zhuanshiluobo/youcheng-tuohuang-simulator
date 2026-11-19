@@ -100,7 +100,7 @@ namespace YC.Application.DevTools
                 }
                 else if (!completedRequiredActionCoverage)
                 {
-                    result.FailureReason = "自动跑局未完整覆盖部署、探索、建设、发动角色卡、移动、宣告和特殊行动。";
+                    result.FailureReason = "自动跑局未完整覆盖部署、探索、建设、角色、移动、调度、宣告、特殊行动及付费采集。";
                 }
             }
 
@@ -243,6 +243,8 @@ namespace YC.Application.DevTools
             session.RegisterHandler(new AnswerInteractionCommandHandler(effectRegistry, roundExecutionService));
             session.RegisterHandler(new InvokeSettlementOptionCommandHandler(effectRegistry, roundExecutionService));
             session.RegisterHandler(new PreparePaymentDraftCommandHandler(effectRegistry, roundExecutionService));
+            var entrance = roundExecutionService.StartEntrance(state);
+            if (!entrance.IsValid) throw new InvalidOperationException("自动夹具无法建立入场主链：" + entrance.Reason);
             return session;
         }
 
@@ -403,7 +405,7 @@ namespace YC.Application.DevTools
                     if (!new ItemZoneStateFactory().TryCreateEffectStaging(state, context.Node.EffectId, staging, out string zone, out string reason)) throw new InvalidOperationException(reason);
                     foreach (string id in ids.Concat(displaced == null ? Array.Empty<string>() : new[] { displaced })) move(id, zone, "unordered");
                     if (displaced != null) move(displaced, ItemTransferEffectExecutor.FindZone(state, "facility_deck").ZoneId, "bottom");
-                    for (int index = 0; index < ids.Count; index++) move(ids[index], ItemTransferEffectExecutor.FindZone(state, "facility_supply_" + index).ZoneId, "unordered");
+                    for (int index = 0; index < ids.Count; index++) move(ids[index], ItemTransferEffectExecutor.FindZone(state, "facility_supply_" + index).ZoneId, "top");
                 }
                 return EffectStepResult.Completed();
             });
@@ -435,26 +437,31 @@ namespace YC.Application.DevTools
             var initialLocations = state.Players.Count == 3 ? ThreePlayerInitialLocations : FourPlayerInitialLocations;
             for (var i = 0; i < initialLocations.Length; i++)
             {
-                var playerId = i + 1;
-                if (!SubmitCommand(session, CreateCommand(
+                var playerId = state.CurrentPlayerId;
+                var request = state.EffectRuntime.InteractionRequests.Find(item => item.Status == "open" &&
+                    item.AnsweringPlayerId == playerId && item.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId);
+                if (request == null || playerId <= 0 || playerId > initialLocations.Length ||
+                    !request.CandidateIds.Contains(initialLocations[playerId - 1]))
+                {
+                    result.FailureReason = "入场夹具没有找到当前玩家的合法目标或有效请求。";
+                    return false;
+                }
+                var command = CreateCommand(
                     "autoplay-place-" + playerId,
                     GameCommandKind.ChooseInitialLocation,
                     playerId,
-                    initialLocations[i]), result))
+                    initialLocations[playerId - 1]);
+                command.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.GetStableInteractionId();
+                command.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = request.StateRevision.ToString();
+                if (!SubmitCommand(session, command, result))
                 {
                     return false;
                 }
-
-                // 入场事件属于当前玩家的阻塞子树，结算完才提交下一人的入场位置。
-                while (state.Phase == GamePhase.Entrance && state.CurrentPlayerId == playerId &&
-                    state.HasOpenActionableInteraction())
-                {
-                    if (result.SubmittedCommands >= 320 || !TrySubmitAutoplayInteraction(session, state, result))
-                    {
-                        return false;
-                    }
-                }
             }
+
+            // 各玩家入场子树可以并行等待事件；所有选点后按公开请求完成剩余交互。
+            while (state.Phase == GamePhase.Entrance && state.HasOpenActionableInteraction())
+                if (result.SubmittedCommands >= 320 || !TrySubmitAutoplayInteraction(session, state, result)) return false;
 
             if (state.Phase == GamePhase.CharacterCover && state.Round == 1)
             {
@@ -875,6 +882,7 @@ namespace YC.Application.DevTools
             if (!SubmitCommand(session, command, result)) return false;
 
             RefreshAutoplayCharacterCardCompletionEvidence(state, result);
+            RefreshAutoplaySpecialActionCompletionEvidence(state, result, command.CommandId);
 
             if (!string.IsNullOrEmpty(specialActionRootId))
             {
@@ -924,6 +932,21 @@ namespace YC.Application.DevTools
             result.CharacterCardExecutions[lastIndex] = evidence.Replace(
                 "waitingForInteraction=true",
                 "waitingForInteraction=true discardCount=" + player.DiscardCardIds.Count);
+            result.CharacterCardUseSuccesses++;
+        }
+
+        private static void RefreshAutoplaySpecialActionCompletionEvidence(GameState state, LocalhostAutoplayResult result, string completionCommandId)
+        {
+            foreach (var invocation in state.EffectRuntime.AbilityActionInvocations.Where(value => value != null &&
+                (value.CommandId ?? string.Empty).StartsWith("autoplay-use-special-", StringComparison.Ordinal) &&
+                value.Phase == "completed" && value.Outcome == "completed" && value.SourceRef != null))
+            {
+                var player = state.FindPlayer(invocation.SourceRef.AuthorizedPlayerId);
+                var declaration = player?.DeclaredCityStyles.Find(value => value != null && value.UnlockedSpecialActionId == invocation.ActionId);
+                if (declaration != null)
+                    RecordCompletedSpecialAction(state, result, player.PlayerId, invocation.ActionId,
+                        declaration.InfluenceMarkerId, invocation.CommandId, completionCommandId);
+            }
         }
 
         private static string FindSpecialActionRootId(GameState state, string effectId)
@@ -1116,16 +1139,26 @@ namespace YC.Application.DevTools
             var cardId = player.CoveredCharacterCardId;
             var resourceId = ResolveMinimumBasicResourceId(player.Resources);
             var beforeAmount = GetBasicResourceAmount(player.Resources, resourceId);
-            var command = CreateCommand(
-                "autoplay-use-character-r" + state.Round + "-a" + state.ActionRound +
-                "-p" + player.PlayerId + "-" + result.CharacterCardUseAttempts,
-                GameCommandKind.UseCharacterCard,
-                player.PlayerId,
-                cardId);
-            command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
-            command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] =
-                CharacterEffectModes.Strategy;
-            command.Parameters[CharacterEffectParameterKeys.ResourceType] = resourceId;
+            string commandId = "autoplay-use-character-r" + state.Round + "-a" + state.ActionRound +
+                "-p" + player.PlayerId + "-" + result.CharacterCardUseAttempts;
+            var visible = session.ProjectFor(GameStateViewer.Player(player.PlayerId));
+            GameCommand command;
+            if (visible.HasAbilityActionCatalog)
+            {
+                var option = visible.AbilityActions.FirstOrDefault(value => value.EntryKind == "quick" && value.Enabled &&
+                    value.SourceRef != null && value.SourceRef.ItemId == cardId);
+                if (option == null) return true;
+                command = AbilityActionCommand.Create(player.PlayerId, option);
+                command.CommandId = commandId;
+                command.Parameters["mode"] = CharacterEffectModes.Strategy;
+            }
+            else
+            {
+                command = CreateCommand(commandId, GameCommandKind.UseCharacterCard, player.PlayerId, cardId);
+                command.Parameters[UseCharacterCardCommandHandler.CardIdParameter] = cardId;
+                command.Parameters[UseCharacterCardCommandHandler.EffectModeParameter] = CharacterEffectModes.Strategy;
+                command.Parameters[CharacterEffectParameterKeys.ResourceType] = resourceId;
+            }
 
             result.CharacterCardUseAttempts++;
             if (!SubmitCommand(session, command, result))
@@ -1137,7 +1170,6 @@ namespace YC.Application.DevTools
             // 后续循环会回答交互并继续推进同一棵 Effect 树，不能把“尚未最终结算”判为命令失败。
             if (state.HasOpenActionableInteraction())
             {
-                result.CharacterCardUseSuccesses++;
                 result.CharacterCardExecutions.Add(
                     "P" + player.PlayerId +
                     " card=" + cardId +
@@ -1364,25 +1396,37 @@ namespace YC.Application.DevTools
                 return false;
             }
 
-            var option = CreateAutoplaySpecialActionOptionQuery(state)
-                .Query(state, player.PlayerId)
-                .Find(specialActionId, declaration.InfluenceMarkerId);
-            if (option == null || !option.CanUse)
+            var visible = session.ProjectFor(GameStateViewer.Player(player.PlayerId));
+            SpecialActionOption option = null;
+            AbilityActionOption declaredOption = null;
+            if (visible.HasAbilityActionCatalog)
+                declaredOption = visible.AbilityActions.FirstOrDefault(value => value.EntryKind == "special" && value.Enabled &&
+                    value.ActionId == specialActionId && value.SourceRef != null &&
+                    (visible.UsageTracks.Find(track => track?.Binding?.BindingId == value.TrackBindingId)?.MarkerItemId ?? value.SourceRef.ItemId) == declaration.InfluenceMarkerId);
+            else
+                option = CreateAutoplaySpecialActionOptionQuery(state).Query(state, player.PlayerId)
+                    .Find(specialActionId, declaration.InfluenceMarkerId);
+            if (visible.HasAbilityActionCatalog ? declaredOption == null : option == null || !option.CanUse)
             {
                 return false;
             }
 
-            var command = CreateCommand(
-                "autoplay-use-special-r" + state.Round + "-a" + state.ActionRound +
-                "-p" + player.PlayerId + "-" + result.SpecialActionAttempts,
-                GameCommandKind.UseSpecialAction,
-                player.PlayerId,
-                specialActionId);
-            command.SourceId = declaration.InfluenceMarkerId;
-            command.Parameters[UseSpecialActionCommandHandler.SpecialActionIdParameter] = specialActionId;
-            command.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter] =
-                declaration.InfluenceMarkerId;
-            if (specialActionId == SpecialActionDatabase.CompositePowerSystem)
+            string commandId = "autoplay-use-special-r" + state.Round + "-a" + state.ActionRound +
+                "-p" + player.PlayerId + "-" + result.SpecialActionAttempts;
+            GameCommand command;
+            if (declaredOption != null)
+            {
+                command = AbilityActionCommand.Create(player.PlayerId, declaredOption);
+                command.CommandId = commandId;
+            }
+            else
+            {
+                command = CreateCommand(commandId, GameCommandKind.UseSpecialAction, player.PlayerId, specialActionId);
+                command.SourceId = declaration.InfluenceMarkerId;
+                command.Parameters[UseSpecialActionCommandHandler.SpecialActionIdParameter] = specialActionId;
+                command.Parameters[UseSpecialActionCommandHandler.DeclarationMarkerIdParameter] = declaration.InfluenceMarkerId;
+            }
+            if (declaredOption == null && specialActionId == SpecialActionDatabase.CompositePowerSystem)
             {
                 if (option.PaymentOptions.Count == 0)
                 {
@@ -1399,6 +1443,15 @@ namespace YC.Application.DevTools
             if (!SubmitCommand(session, command, result))
             {
                 return false;
+            }
+
+            if (declaredOption != null)
+            {
+                RefreshAutoplaySpecialActionCompletionEvidence(state, result, command.CommandId);
+                if (state.HasOpenActionableInteraction())
+                    result.SpecialActionPendingSteps.Add("P" + player.PlayerId + " action=" + specialActionId +
+                        " step=interaction remainingMainActions=" + player.RemainingMainActionsThisTurn);
+                return true;
             }
 
             var pending = state.PendingSpecialAction;
@@ -1507,6 +1560,10 @@ namespace YC.Application.DevTools
                    result.BuildFacilitySuccesses >= 1 &&
                    result.CharacterCardUseSuccesses >= 1 &&
                    result.MoveCitySuccesses >= 1 &&
+                   result.DispatchInfluenceSuccesses >= RequiredDispatchInfluenceSuccesses &&
+                   result.ResourceCollectionSubmissions >= result.Seats.Count &&
+                   result.PaidRouteCollectionSuccesses >= RequiredPaidRouteCollectionSuccesses &&
+                   result.OpponentRouteRecipientCollectionSuccesses >= RequiredOpponentRouteRecipientCollectionSuccesses &&
                    result.DeclareCityStyleSuccesses >= 1 &&
                    result.SpecialActionSuccesses >= 1;
         }
@@ -1577,8 +1634,7 @@ namespace YC.Application.DevTools
                 }
 
                 MapPath path;
-                int optionIndex;
-                if (!TryFindExplorePlan(state, player, targetLocationId, explorationService, out path, out optionIndex))
+                if (!TryFindExplorePlan(state, player, targetLocationId, explorationService, out path))
                 {
                     continue;
                 }
@@ -1588,14 +1644,6 @@ namespace YC.Application.DevTools
                     GameCommandKind.ExploreLocation,
                     player.PlayerId,
                     targetLocationId);
-                var influenceSlotId = FindFirstOpenInfluenceSlot(state, targetLocationId);
-                if (string.IsNullOrEmpty(influenceSlotId))
-                {
-                    continue;
-                }
-                command.Parameters[ExploreLocationCommandHandler.InfluenceSlotIdParameter] = influenceSlotId;
-                command.OptionIds.Add(optionIndex.ToString());
-                command.Parameters[ExploreLocationCommandHandler.EventOptionIdParameter] = optionIndex.ToString();
                 command.Parameters[ExploreLocationCommandHandler.PathLocationIdsParameter] =
                     string.Join(",", path.LocationIds.ToArray());
                 command.Parameters[ExploreLocationCommandHandler.RouteIdsParameter] =
@@ -1620,30 +1668,14 @@ namespace YC.Application.DevTools
             return false;
         }
 
-        private static string FindFirstOpenInfluenceSlot(GameState state, string locationId)
-        {
-            var map = StaticMapDefinitions.CreateFourPlayerMap();
-            var location = map.Locations.Find(candidate => candidate.LocationId == locationId);
-            if (location == null) return string.Empty;
-            for (var i = 0; i < location.InfluenceSlotCount; i++)
-            {
-                var slotId = InfluenceService.GetLocationSlotId(locationId, i);
-                var occupied = state.Map.Influences.Exists(influence => influence != null && influence.SlotId == slotId);
-                if (!occupied) return slotId;
-            }
-            return string.Empty;
-        }
-
         private static bool TryFindExplorePlan(
             GameState state,
             PlayerState player,
             string targetLocationId,
             ExplorationService explorationService,
-            out MapPath path,
-            out int optionIndex)
+            out MapPath path)
         {
             path = null;
-            optionIndex = -1;
 
             IReadOnlyList<MapPath> choices;
             try
@@ -1655,44 +1687,25 @@ namespace YC.Application.DevTools
                 return false;
             }
 
-            var card = PeekEventCard(state, targetLocationId);
-            if (card == null)
-            {
-                return false;
-            }
-
             var paymentRecipients = new Dictionary<string, int>();
-            var bestRewardScore = int.MinValue;
             for (var pathIndex = 0; pathIndex < choices.Count; pathIndex++)
             {
-                for (var choiceIndex = 0; choiceIndex < card.ChoiceRewards.Count; choiceIndex++)
+                var validation = explorationService.CanExplore(
+                    state,
+                    player.PlayerId,
+                    targetLocationId,
+                    choices[pathIndex],
+                    -1,
+                    string.Empty,
+                    paymentRecipients,
+                    validateEventOption: false);
+                if (validation.IsValid)
                 {
-                    var validation = explorationService.CanExplore(
-                        state,
-                        player.PlayerId,
-                        targetLocationId,
-                        choices[pathIndex],
-                        choiceIndex,
-                        string.Empty,
-                        paymentRecipients);
-                    if (!validation.IsValid)
-                    {
-                        continue;
-                    }
-
-                    var rewardScore = ScoreRewardForAutoplay(card.ChoiceRewards[choiceIndex]);
-                    if (path != null && rewardScore <= bestRewardScore)
-                    {
-                        continue;
-                    }
-
                     path = choices[pathIndex];
-                    optionIndex = choiceIndex;
-                    bestRewardScore = rewardScore;
+                    return true;
                 }
             }
-
-            return path != null && optionIndex >= 0;
+            return false;
         }
 
         private static bool TrySubmitAutoplayMoveCity(
@@ -1723,8 +1736,7 @@ namespace YC.Application.DevTools
             for (var i = 0; i < adjacentLocations.Count; i++)
             {
                 var targetLocationId = adjacentLocations[i].LocationId;
-                int optionIndex;
-                if (!TryFindMoveCityOption(state, player, targetLocationId, movementService, out optionIndex))
+                if (!movementService.CanMoveCity(state, player.PlayerId, targetLocationId).IsValid)
                 {
                     continue;
                 }
@@ -1734,12 +1746,6 @@ namespace YC.Application.DevTools
                     GameCommandKind.MoveCity,
                     player.PlayerId,
                     CityMoveCandidateQueryService.CandidatePrefix + targetLocationId);
-                if (optionIndex >= 0)
-                {
-                    command.OptionIds.Add(optionIndex.ToString());
-                    command.Parameters[MoveCityCommandHandler.EventOptionIdParameter] = optionIndex.ToString();
-                }
-
                 result.MoveCityAttempts++;
                 var sourceLocationId = player.CityLocationId;
                 if (!SubmitCommand(session, command, result))
@@ -1758,47 +1764,6 @@ namespace YC.Application.DevTools
             }
 
             return false;
-        }
-
-        private static bool TryFindMoveCityOption(
-            GameState state,
-            PlayerState player,
-            string targetLocationId,
-            CityMovementService movementService,
-            out int optionIndex)
-        {
-            optionIndex = -1;
-            if (HasResourceToken(state, targetLocationId))
-            {
-                return movementService.CanMoveCity(state, player.PlayerId, targetLocationId).IsValid;
-            }
-
-            var card = PeekEventCard(state, targetLocationId);
-            if (card == null)
-            {
-                return false;
-            }
-
-            var bestRewardScore = int.MinValue;
-            for (var choiceIndex = 0; choiceIndex < card.ChoiceRewards.Count; choiceIndex++)
-            {
-                var validation = movementService.CanMoveCity(state, player.PlayerId, targetLocationId, choiceIndex);
-                if (!validation.IsValid)
-                {
-                    continue;
-                }
-
-                var rewardScore = ScoreRewardForAutoplay(card.ChoiceRewards[choiceIndex]);
-                if (optionIndex >= 0 && rewardScore <= bestRewardScore)
-                {
-                    continue;
-                }
-
-                optionIndex = choiceIndex;
-                bestRewardScore = rewardScore;
-            }
-
-            return optionIndex >= 0;
         }
 
         private static bool TrySubmitAutoplayDispatchInfluence(
@@ -1827,7 +1792,8 @@ namespace YC.Application.DevTools
                 "autoplay-dispatch-r" + state.Round + "-a" + state.ActionRound + "-p" + player.PlayerId + "-" + result.DispatchInfluenceAttempts,
                 GameCommandKind.DispatchInfluence,
                 player.PlayerId,
-                string.Empty);
+                targetSlotId);
+            command.SourceId = sourceItemId;
 
             result.DispatchInfluenceAttempts++;
             if (!SubmitCommand(session, command, result))
@@ -2954,32 +2920,6 @@ namespace YC.Application.DevTools
             return pendingSpecialAction != null && pendingSpecialAction.IsValid()
                 ? pendingSpecialAction.Step
                 : "None";
-        }
-
-        private static EventCardDefinition PeekEventCard(GameState state, string locationId)
-        {
-            var eventColor = StaticMapDefinitions.GetEventColor(state.MapId, locationId);
-            var eventDeckService = new EventDeckService();
-            if (eventDeckService.RemainingCount(state.Decks, eventColor) <= 0)
-            {
-                return null;
-            }
-
-            return EventCardDatabase.Get(eventDeckService.Peek(state.Decks, eventColor));
-        }
-
-        private static int ScoreRewardForAutoplay(ResourceSet reward)
-        {
-            if (reward == null)
-            {
-                return 0;
-            }
-
-            return reward.OriginiumShard * 100 +
-                   reward.GoldVoucher * 10 +
-                   reward.Iron * 4 +
-                   reward.Originium * 3 +
-                   reward.PureOriginium * 2;
         }
 
         private static int CountReadySeats(IList<PlayerSeat> seats)

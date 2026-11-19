@@ -167,7 +167,7 @@ namespace YC.Presentation
                 viewModel.CanMoveCity,
                 viewModel.CanBuild || viewModel.CanViewFacilitySupply,
                 viewModel.CanEndAction, viewModel.CanUseSpecialAction);
-            view.SetBuildSupplyMode(viewModel.CanViewFacilitySupply);
+            view.SetBuildSupplyMode(viewModel.CanViewFacilitySupply && !viewModel.CanBuild);
             SetStatus(viewModel.StatusText + (viewModel.AllCollectionLocationsSelected
                 ? "\n" + view.AllCollectionLocationsSelectedText : string.Empty));
         }
@@ -218,13 +218,12 @@ namespace YC.Presentation
                 if (!characterRows.TryGetValue(option.OptionId, out var row))
                 { row = UnityEngine.Object.Instantiate(template, template.transform.parent, false); characterRows.Add(option.OptionId, row); }
                 var current = option;
-                row.Bind(option.DisplayName + (option.Enabled ? "" : "\n" + YC.Domain.Effects.AbilityActionReasons.Display(option.DisabledReason)),
+                row.BindWithGameplayText(option.DisplayName + (option.Enabled ? "" : "\n" + YC.Domain.Effects.AbilityActionReasons.Display(option.DisabledReason)),
                     option.Enabled && CanBeginAction?.Invoke() != false && CanSubmitCharacter?.Invoke() != false, () => {
                         using var inputRead = BeginInputRead?.Invoke();
                         using var input = UiRegressionMetrics.Measure("action.declared.click");
                         DeclaredActionRequested?.Invoke(current);
-                    });
-                row.BindGameplayText(YC.Application.Presentation.AbilityActionTextDocuments.Name(option, ResolveActionText,
+                    }, YC.Application.Presentation.AbilityActionTextDocuments.Name(option, ResolveActionText,
                     option.Enabled ? "" : "\n" + YC.Domain.Effects.AbilityActionReasons.Display(option.DisabledReason)), RenderActionText);
                 characterAvailability[option.OptionId] = option.Enabled;
                 row.gameObject.SetActive(true); row.transform.SetSiblingIndex(template.transform.GetSiblingIndex() + present.Count);

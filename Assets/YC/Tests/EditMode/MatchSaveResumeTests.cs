@@ -196,6 +196,91 @@ namespace YC.Tests.EditMode
             save = Save(); var json = JObject.Parse(save.ContinuationJson); json["Message"] = "混合保存点";
             save.ContinuationJson = json.ToString(); Assert.Throws<InvalidOperationException>(save.Validate);
         }
+        private sealed class ValidationTrace : IMatchSaveTrace
+        {
+            public int Reused;
+            public void SetSourceRevision(int revision) { }
+            public void Point(string stage) { if (stage == "save.validate.reused") Reused++; }
+            public IDisposable Begin(string stage) => null;
+        }
+        [Test]
+        public void LoadValidationReusesOnlyTheSameUnchangedValidatedSave()
+        {
+            var save = Save(); var trace = new ValidationTrace();
+            using var scope = new MatchSaveData.ValidationScope(true, trace);
+            scope.Validate(save); scope.Validate(save);
+            Assert.That(trace.Reused, Is.EqualTo(1));
+            var oldVersion = save.Version; var oldRound = save.Round; var oldGame = save.GameId;
+            var oldArchive = save.ArchiveJson; var oldContinuation = save.ContinuationJson; var oldCheckpoint = save.SimulationCheckpointJson;
+            var oldSteam = save.Seats[0].SteamId; var oldColor = save.Seats[0].Color; var oldName = save.Seats[0].PlayerName;
+            void Invalid(Action change, Action undo)
+            {
+                scope.Validate(save); int before = trace.Reused;
+                change(); Assert.Catch(() => scope.Validate(save)); Assert.That(trace.Reused, Is.EqualTo(before));
+                undo(); scope.Validate(save);
+            }
+            Invalid(() => save.Version = 1, () => save.Version = oldVersion);
+            Invalid(() => save.Round = oldRound + 1, () => save.Round = oldRound);
+            Invalid(() => save.GameId = "changed", () => save.GameId = oldGame);
+            Invalid(() => save.ArchiveJson = "{}", () => save.ArchiveJson = oldArchive);
+            Invalid(() => save.ContinuationJson = "{}", () => save.ContinuationJson = oldContinuation);
+            Invalid(() => save.SimulationCheckpointJson = "{}", () => save.SimulationCheckpointJson = oldCheckpoint);
+            Invalid(() => save.Seats[0].SteamId = 0, () => save.Seats[0].SteamId = oldSteam);
+            Invalid(() => save.Seats[0].Color = save.Seats[1].Color, () => save.Seats[0].Color = oldColor);
+            int beforeName = trace.Reused; save.Seats[0].PlayerName = oldName + "新"; scope.Validate(save);
+            Assert.That(trace.Reused, Is.EqualTo(beforeName));
+            var first = scope.ReadRecoveryBaseline(save); first.GameId = "mutated-copy";
+            Assert.That(scope.ReadRecoveryBaseline(save).GameId, Is.EqualTo(save.GameId));
+            var changed = ResumeRoomOptions.FromSaveWithValidation(save, scope);
+            Assert.That(changed.Seats[0].PlayerName, Is.EqualTo(oldName + "新"));
+        }
+        [Test]
+        public void LoadValidationDoesNotReuseAnotherSaveOrAChangedJsonReference()
+        {
+            var save = Save(); var trace = new ValidationTrace();
+            using var scope = new MatchSaveData.ValidationScope(true, trace);
+            scope.Validate(save); int before = trace.Reused;
+            save.ArchiveJson = new string(save.ArchiveJson.ToCharArray()); scope.Validate(save);
+            Assert.That(trace.Reused, Is.EqualTo(before));
+            var copy = (MatchSaveData)typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(save, null);
+            scope.Validate(copy); Assert.That(trace.Reused, Is.EqualTo(before));
+            scope.Validate(copy); Assert.That(trace.Reused, Is.EqualTo(before + 1));
+        }
+        [Test]
+        public void ExplicitlySuppliedIsolatedHostSaveCanRecoverAndAnswerItsPendingRequest()
+        {
+            const string prefix = "--yc-isolated-host-save=";
+            string requested = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith(prefix, StringComparison.Ordinal));
+            if (requested == null) Assert.Ignore("仅显式提供 TestResults 内的存档副本时运行。");
+            string root = Path.GetFullPath(requested.Substring(prefix.Length));
+            string allowed = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "TestResults")) + Path.DirectorySeparatorChar;
+            Assert.That(root.StartsWith(allowed, StringComparison.OrdinalIgnoreCase), Is.True);
+            var storeType = Type.GetType("YC.Infrastructure.Persistence.MatchSaveStore, Assembly-CSharp", true);
+            var store = Activator.CreateInstance(storeType, root);
+            using var validation = new MatchSaveData.ValidationScope(reuseUnchangedValidation: true);
+            var save = (MatchSaveData)storeType.GetMethod("ReadWithValidation").Invoke(store, new object[] { 4, validation });
+            string core = Path.Combine(Directory.GetCurrentDirectory(), "Builds/SaveRecoveryDistributionR1-20261114/tuohuang_Data/StreamingAssets/Content/core");
+            var runtime = Type.GetType("YC.Presentation.ExternalContentRuntime, Assembly-CSharp", true);
+            runtime.GetMethod("ConfigureRegistered", BindingFlags.Public | BindingFlags.Static).Invoke(null, new object[] { core, Path.Combine(root, "隔离表现目录") });
+            var bootstrapper = Type.GetType("YC.Presentation.GameSessionBootstrapper, Assembly-CSharp", true);
+            object result = null;
+            try { result = bootstrapper.GetMethod("RestoreWithValidation").Invoke(null, new object[] { null, save, validation }); }
+            catch (TargetInvocationException error) { Assert.Fail(error.InnerException?.ToString() ?? error.ToString()); }
+            var session = (GameSession)result.GetType().GetField("Session").GetValue(result);
+            Assert.That(session.State.Round, Is.EqualTo(7));
+            Assert.That(validation.ReadRecoveryBaseline(save).ConfirmedCommands.Count, Is.EqualTo(696));
+            var card = session.State.ItemZones.Items.Single(i => i.DefinitionId == "entrepreneur.ability.T09" && i.OwnerSubject.PlayerId == 3);
+            var zone = session.State.ItemZones.Zones.Single(z => z.ParentId == card.ItemId && z.LocalZoneId == "markers");
+            Assert.That(session.State.ItemZones.Items.Count(i => i.ZoneId == zone.ZoneId && i.TypeId == "core.player_marker" && i.OwnerSubject.PlayerId == 3), Is.EqualTo(2));
+            var request = session.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.AnsweringPlayerId == 3);
+            Assert.That(session.ProjectFor(GameStateViewer.Player(3)).Interactions.Any(q => q.InteractionId == request.GetStableInteractionId()), Is.True);
+            int revision = session.State.EffectRuntime.StateRevision;
+            var answer = DeterministicSimulationCoordinatorTests.CreateCurrentAnswer(session, 3, "isolated-host-save-answer");
+            var applied = session.Submit(answer);
+            Assert.That(applied.Succeeded, Is.True, applied.LogMessage);
+            Assert.That(session.State.EffectRuntime.StateRevision, Is.GreaterThan(revision));
+            Assert.That(session.State.EffectRuntime.LastFaultCode, Is.Empty);
+        }
         [Test]
         public void StoreRoundTripsFullCheckpointAndDetectsCorruption()
         {

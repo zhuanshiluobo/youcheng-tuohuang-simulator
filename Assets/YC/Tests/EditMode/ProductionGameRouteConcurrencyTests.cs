@@ -115,7 +115,7 @@ namespace YC.Tests.EditMode
             view.Effects.Add(new EffectNodeView
             {
                 EffectId = "本人owner", ParentEffectId = "稳定父owner", PlayerId = 2,
-                EffectTypeId = kind == Kinds[0] ? "effect.route_resource.select" : kind == Kinds[1] ? "setup.enterprise.select" : "character.cover.task",
+                EffectTypeId = kind == Kinds[0] ? "effect.route_resource.select" : kind == Kinds[1] ? PreparationFrameworkFlow.SelectionTypeId : "character.cover.task",
                 NormalizedArguments = Arguments(Integer("purpose", 0), Integer("keepCount", 1), Integer("round", 1))
             });
             return view;
@@ -167,6 +167,7 @@ namespace YC.Tests.EditMode
                 Path.Combine(Directory.GetCurrentDirectory(), "Assets/StreamingAssets/Content/core");
             var pack = ExternalContentPack.Load(content);
             var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 3,
+                OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                 EnabledExpansionIds = stage == "enterprise" || stage == "entrance-location"
                     ? new List<string> { "core", "enterprise" } : new List<string> { "core" } };
             var catalog = ActiveContentCatalogBuilder.Build(pack, config);
@@ -433,8 +434,21 @@ namespace YC.Tests.EditMode
                 var chosen = fixture.Submit(FormalCandidateAnswer(choice));
                 Assert.That(chosen.Succeeded, Is.True, chosen.Validation?.Reason);
             }
-            var firstRequest = fixture.Session.State.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" &&
+            for (int guard = 0; guard < 16 && !fixture.Session.State.EffectRuntime.InteractionRequests.Any(r => r.Status == "open" &&
+                r.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId && r.AnsweringPlayerId == 1); guard++)
+            {
+                // 新准备流程中企业初始升级可能产生合法的部门等额外选择。
+                var prelude = fixture.Session.State.EffectRuntime.InteractionRequests.FirstOrDefault(r => r.Status == "open" &&
+                    !r.InteractionTypeId.StartsWith(InteractionRequest.MainlineCompletionInteractionPrefix, StringComparison.Ordinal));
+                Assert.That(prelude, Is.Not.Null, "准备流程尚未完成，但没有可回答的前置请求。");
+                var answered = fixture.Submit(FormalCandidateAnswer(prelude));
+                Assert.That(answered.Succeeded, Is.True, answered.Validation?.Reason);
+            }
+            var firstRequest = fixture.Session.State.EffectRuntime.InteractionRequests.SingleOrDefault(r => r.Status == "open" &&
                 r.InteractionTypeId == PlayerEntranceEffectExecutor.InteractionTypeId && r.AnsweringPlayerId == 1);
+            Assert.That(firstRequest, Is.Not.Null, "企业选择后未出现 1 号入场选点，当前请求：" + string.Join(", ",
+                fixture.Session.State.EffectRuntime.InteractionRequests.Where(r => r.Status == "open")
+                    .Select(r => r.InteractionTypeId + ":" + r.AnsweringPlayerId)) + "; 故障：" + fixture.Session.State.EffectRuntime.LastFaultMessage);
             var placed = fixture.Submit(FormalCandidateAnswer(firstRequest));
             Assert.That(placed.Succeeded, Is.True, placed.Validation?.Reason);
             var firstView = fixture.Session.ProjectFor(GameStateViewer.Player(1));

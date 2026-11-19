@@ -89,14 +89,5 @@ namespace YC.Domain.Effects
                 new AbilityActionCallContext { State = state, OwnerNode = owner, SourceRef = source, Arguments = Object() });
 
         // 留给公共授权入口的精确接点；旧once仍沿原SourceUse证明，不改其策略。
-        internal bool IsCleanupInvocationCaller(GameState state, string parentId, AbilityActionCallPolicy policy, int player)
-        {
-            var parent = state.EffectRuntime.EffectNodes.SingleOrDefault(n => n.EffectId == parentId);
-            var invocation = CleanupSourceService.Invocations(state).SingleOrDefault(i => i.TargetEffectId == parentId && i.Status == "executing");
-            return parent?.EffectTypeId == CleanupSourceInvocationExecutor.TypeId && parent.PlayerId == player &&
-                parent.Status != EffectNodeStatus.Faulted && !CleanupSourceService.Terminal(parent) && invocation != null &&
-                invocation.SourceRef.AuthorizedPlayerId == player && invocation.SourceRef.AbilityId == policy.CallerAbilityId &&
-                invocation.VersionRef.HandlerHash == policy.CallerHandlerHash && invocation.VersionRef.ContentPackHash == ContentPackHash;
-        }
     }
 }

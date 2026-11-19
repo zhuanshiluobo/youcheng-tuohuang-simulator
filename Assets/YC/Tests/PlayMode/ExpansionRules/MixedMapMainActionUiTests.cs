@@ -370,8 +370,9 @@ namespace YC.Tests.PlayMode.ExpansionRules
                     yield return Wait(() => Active("EventChoiceDialogView").Length == 1, "真实事件页未出现");
                     Assert.That(Read(Read(f.Gameplay, "interactionRequestRouter"), "activeRenderer").GetType().Name, Is.EqualTo("EventCardInteractionUiCoordinator"));
                     string choice = ChooseCandidates(request).Single();
-                    int option = int.Parse(choice.Substring(choice.LastIndexOf(':') + 1));
-                    var button = HotseatUiInputDriver.Marker("event.option." + option);
+                    var card = EventCardDatabase.Get(f.State, Text(Node(request.OwnerEffectId).NormalizedResult, "cardId"));
+                    var selected = card.Choices.Single(item => EventCardOptionIdFactory.CreateChoice(card.CardId, item.ChoiceId) == choice);
+                    var button = HotseatUiInputDriver.Marker("event.choice." + selected.ChoiceId);
                     Assert.That(button, Is.Not.Null);
                     yield return f.Capture("实际事件待选_" + eventPages, Active("EventChoiceDialogView").Single());
                     using (var count = new RuleSubmitCounter())
@@ -406,13 +407,10 @@ namespace YC.Tests.PlayMode.ExpansionRules
             {
                 var card = EventCardDatabase.Get(f.State, Text(Node(request.OwnerEffectId).NormalizedResult, "cardId"));
                 Assert.That(card, Is.Not.Null);
-                return request.CandidateIds.OrderByDescending(id =>
-                {
-                    int index = int.Parse(id.Substring(id.LastIndexOf(':') + 1));
-                    var reward = card.ChoiceRewards[index];
-                    // 只在合法候选中优先碎片，不改牌序或奖励来制备局面。
-                    return reward.OriginiumShard * 1000 + reward.GoldVoucher - card.ChoicePendingEffects[index].Count * 100;
-                }).Take(1).ToArray();
+                // 只依据已公开的选项文案与正式候选排序，不读取未选奖励脚本。
+                return card.Choices.Where(choice => request.CandidateIds.Contains(EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId)))
+                    .OrderByDescending(choice => (choice.Description ?? "").Contains("源石碎片"))
+                    .Select(choice => EventCardOptionIdFactory.CreateChoice(card.CardId, choice.ChoiceId)).Take(1).ToArray();
             }
             if (request.InteractionTypeId == EventCardEffectExecutor.InfluenceInteractionTypeId || request.InteractionTypeId == "setup.influence.optional")
                 return SafeInfluenceCandidates(request.AnsweringPlayerId, request.CandidateIds).Take(Math.Max(1, request.MinSelections)).ToArray();

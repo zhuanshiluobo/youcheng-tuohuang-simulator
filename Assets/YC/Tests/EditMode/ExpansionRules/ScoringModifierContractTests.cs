@@ -84,6 +84,15 @@ namespace YC.Tests.EditMode.ExpansionRules
             var r = fixture.Snapshot().Regions.Single(v => v.RegionId == fixture.RegionId);
             Assert.That(r.ControllerPlayerId, Is.EqualTo(1)); Assert.That(r.ControlClaims, Is.Empty); Assert.That(r.ScoreValue, Is.EqualTo(r.BaseScoreValue));
         }
+        [Test] public void RegionPreviewDoesNotExposePrivateScoringSources()
+        {
+            fixture = new FinalScoringTestFixture(new[] { (FinalScoringTestFixture.ReturnItem(
+                "{kind='influence_delta',regionId=f.regionId,playerId=me,delta=1}"), new[] { "influence_delta" }) });
+            string before = JsonConvert.SerializeObject(fixture.State);
+            Assert.That(() => RegionInformationQuery.CreatePreview(fixture.State, fixture.Map, fixture.Registry),
+                Throws.InvalidOperationException.With.Message.EqualTo("region_preview_private_source"));
+            Assert.That(JsonConvert.SerializeObject(fixture.State), Is.EqualTo(before));
+        }
         [Test] public void DifferentPositiveTieClaimantsConflictInsteadOfChoosingRegistrationOrder()
         {
             fixture = new FinalScoringTestFixture(new[] { (FinalScoringTestFixture.ReturnItem("{kind='tie_claim',regionId=f.regionId,playerId=me,ruleId='priority'}"), new[] { "tie_claim" }) });
@@ -185,11 +194,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             if(departureResponse) {
                 sources.Add(new AbilitySourceDeclaration {AbilityId="qy011.actual-departure",Kind="event",HandlerRef="qy011.actual-departure",DeclarationVersion="1.0.0",AuthorizationPolicy="owner",
                     EffectiveZones=new List<string>{"core.zone.box_reserve"},PresentationRef=Token,ObservedEvents=new List<string>{"InfluenceRemoved"},
-                    AllowedOperations=new List<string>{"response.optional_effect","response.self","response.batch"}});
+                    ResponseKinds=new List<string>{"response.optional_effect","response.self","response.batch"}});
                 handlers.Add(new ExternalAbilityHandler {HandlerId="qy011.actual-departure",Script="lua/qy011/actual-departure.lua",Version="1.0.0"});
                 replacements["lua/qy011/actual-departure.lua"]="return function(ctx) if ctx.payload.ownerPlayerId~=tonumber(string.sub(ctx.playerId,2)) then return {} end; return {Effect.Choice({player=ctx.playerId,interactionType='effect.choice.execute',branches={{id='iron',effects={Effect.GainResource({player=ctx.playerId,resourceType='iron',amount=4})}},{id='leave',effects={}}}})} end";
             }
-            token["abilitySources"] = JArray.FromObject(sources); token["abilityHandlers"] = JArray.FromObject(handlers); token["actionCallPolicies"] = new JArray(); replacements["component/" + Token + ".json"] = token.ToString();
+            token["abilitySources"] = JArray.FromObject(sources); token["abilityHandlers"] = JArray.FromObject(handlers); replacements["component/" + Token + ".json"] = token.ToString();
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(installed, "pack.json"))); manifest["enabledExpansionIds"] = new JArray("core", "enterprise", "infected"); replacements["pack.json"] = manifest.ToString();
             string input = Artifacts.CopyContent(installed, "终局私有规则输入", replacements); var pack = ExternalContentPack.Load(input); Artifacts.RecordContent("终局实际装载内容", input, pack.ContentHash);
             Registry = new EffectRegistry { ContentPackHash = pack.ContentHash };

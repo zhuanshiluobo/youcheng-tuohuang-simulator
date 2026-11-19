@@ -5,6 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using YC.Application.Gameplay;
+using YC.Application.Interactions;
 using YC.Domain.Commands;
 using YC.Domain.Cards;
 using YC.Domain.Effects;
@@ -114,7 +115,7 @@ namespace YC.Tests.EditMode
             string completed = JsonConvert.SerializeObject(state);
             var duplicate = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2, fixture.Item3).Handle(state, cleanupCommand);
             Assert.That(duplicate.Succeeded, Is.False);
-            Assert.That(duplicate.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.WrongPhase));
+            Assert.That(duplicate.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.SettlementWindowMismatch));
             Assert.That(JsonConvert.SerializeObject(state), Is.EqualTo(completed), "旧命令不得重复推进。");
         }
 
@@ -129,6 +130,31 @@ namespace YC.Tests.EditMode
             Assert.That(main.CompletionRequested, Is.True);
             Assert.That(state.EffectRuntime.EffectNodes.Single(n => n.EffectId == main.ExecutionEffectId).Status, Is.EqualTo(EffectNodeStatus.Completed));
             Assert.That(state.Round, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void ActiveSettlementCanEndOutsideAnOrdinaryActionPhase()
+        {
+            var fixture = CleanupCommandFixture(4, true); var state = fixture.Item1;
+            state.Phase = GamePhase.ResourceCollection;
+            var result = new EndActionCommandHandler(new RoundAdvanceService(), null, fixture.Item2).Handle(state, cleanupCommand);
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            Assert.That(state.EffectRuntime.EffectNodes.Single(node => node.SettlementWindow != null).SettlementWindow.IsClosed, Is.True);
+        }
+
+        [Test]
+        public void ActiveSettlementOptionCanBeInvokedOutsideAnOrdinaryActionPhase()
+        {
+            var fixture = CleanupCommandFixture(4, false); var state = fixture.Item1;
+            SettlementEntryService.Register(fixture.Item2);
+            state.Phase = GamePhase.ResourceCollection;
+            var window = state.EffectRuntime.EffectNodes.Single(node => node.SettlementWindow != null).SettlementWindow;
+            var command = new GameCommand { Kind = GameCommandKind.InvokeSettlementOption, PlayerId = window.Context.PlayerId, CommandId = "fixture.outside-phase.invoke" };
+            command.Parameters["optionId"] = window.Entries.Single().OptionId;
+            command.Parameters["expectedRevision"] = state.EffectRuntime.StateRevision.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var result = new InvokeSettlementOptionCommandHandler(fixture.Item2).Handle(state, command);
+            Assert.That(result.Succeeded, Is.True, result.Validation?.Reason);
+            Assert.That(state.EffectRuntime.EffectNodes.Single(node => node.SettlementWindow != null).SettlementWindow.Entries.Single().AcceptedUseCount, Is.EqualTo(1));
         }
 
         [Test]

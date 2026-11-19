@@ -1,0 +1,36 @@
+{
+  "format": "nomadcity.diy",
+  "schemaVersion": 1,
+  "packId": "example.mixed",
+  "version": "1.0.0",
+  "displayName": "城市候选示例",
+  "author": "游城拓荒",
+  "description": "同时提供模式和必需扩展，演示只读城市目标规则。",
+  "contentApiVersion": 1,
+  "requiredCapabilities": ["diy.pack.v1", "diy.rule_modes.v1", "diy.rule_bindings.candidate.v1"],
+  "dependencies": [{"packId": "core", "versionRange": ">=2.2.0 <3.0.0"}],
+  "ruleModes": [{
+    "modeId": "example.mixed.mode",
+    "displayName": "城市候选示例",
+    "description": "城市移动时不选择 A-01 位置。",
+    "requires": ["core", "example.mixed.rules"],
+    "applicableMapIds": ["map-three-players", "map-four-players"],
+    "setupRecipeRefs": [{"packId": "core", "recipeId": "standard"}]
+  }],
+  "expansions": [{
+    "expansionId": "example.mixed.rules",
+    "displayName": "城市目标规则",
+    "description": "移除城市移动候选中的 A-01。",
+    "applicableModes": ["example.mixed.mode"],
+    "requires": ["core"],
+    "ruleBindings": [{
+      "bindingId": "example.mixed.city",
+      "eventType": "CandidateSetBuilding",
+      "candidateKind": "city_destination",
+      "script": "lua/city.lua",
+      "version": "1.0.0"
+    }]
+  }],
+  "definitions": [],
+  "setupRecipes": []
+}

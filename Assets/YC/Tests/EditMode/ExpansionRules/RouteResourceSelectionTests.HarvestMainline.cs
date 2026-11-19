@@ -36,7 +36,8 @@ namespace YC.Tests.EditMode.ExpansionRules
                 foreach (var order in new[] { new[] { 2, 1, 3 }, new[] { 1, 3, 2 } })
                 {
                     var pack = ExternalContentPack.Current;
-                    var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 3, EnabledExpansionIds = new List<string> { "core" } };
+                    var config = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 3,
+                        OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion, EnabledExpansionIds = new List<string> { "core" } };
                     var catalog = ActiveContentCatalogBuilder.Build(pack, config); config.ContentPackHash = catalog.ContentPackHash;
                     var recipe = GameStateCloneService.DeepClone(catalog.SetupRecipe);
                     foreach (string location in StaticMapDefinitions.FourPlayerInitialLocationIds)

@@ -105,7 +105,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                 markers[0].LocalState = Object("amount", NormalizedValue.CreateInteger(1));
             }
             Bind(state, reg, "character/operator.passenger.json", "operator.passenger.payment", maxUses, !withAward);
-            if (withAward) Bind(state, reg, "award/entrepreneur.award.M01.json", "entrepreneur.award.M01.payment", 1);
+            if (withAward) Bind(state, reg, "award/entrepreneur.award.M01.json", "entrepreneur.award.M01.payment", -1);
             state.CharacterUses.Clear();
             state.ItemZones.Items.RemoveAll(i => i.TypeId == "core.generated_character_card" || i.TypeId == "core.basic_character_card");
             var card = state.ItemZones.Items.Single(i => i.DefinitionId == "operator.passenger" && i.ControllerSubject.PlayerId == 1);
@@ -324,6 +324,87 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(p.IsCommitted, Is.True); Assert.That(p.SourceReceipts.Count, Is.EqualTo(2));
             Assert.That(p.FinalCost.GoldVoucher, Is.EqualTo(4)); Assert.That(s.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(1));
             Assert.That(p.SourceReceipts.Sum(x => x.ItemIds.Count), Is.EqualTo(1));
+        }
+        [Test] public void MartinPaymentReplacementReturnsToBuildAndRetainsHistoricalInvocation()
+        {
+            var fixture = Fixture(1, build: true, withAward: true); var state = fixture.Item1; var registry = fixture.Item2;
+            state.FindPlayer(1).Resources.Originium = 2;
+            var supply = state.ItemZones.Items.Single(i => i.ZoneId == FindZone(state, "facility_supply_0").ZoneId);
+            var spec = FacilityBuildEffectSpecFactory.Build(1, supply.ItemId, -1, "resources", false, "fixture.build",
+                consumeMainAction: false, expectedSourceZoneId: supply.ZoneId);
+            new EffectTreeExecutor(state, registry).CreateRoot(spec); Run(state, registry);
+            string ownerId = Open(state).OwnerEffectId;
+            var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+            string optionId = owner.SettlementWindow.Entries.Single(e => e.PaymentInsertion?.Rule?.RuleId == "martin.concession").OptionId;
+            Invoke(state, registry, optionId); Answer(state, registry, NormalizedValue.CreateString("Iron=1"));
+            owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+            var entry = owner.SettlementWindow.Entries.Single(e => e.OptionId == optionId);
+            Assert.That(entry.TargetEffectId, Is.Not.Empty, "历史执行节点必须留存供恢复校验");
+            Assert.That(entry.PaymentInsertion.Invocations, Has.Count.EqualTo(1));
+            var option = registry.GetSettlementOptions(state, 1).Single(o => o.OptionId == optionId);
+            Assert.That(option.SettlementState, Is.EqualTo("available")); Assert.That(option.IsEnabled, Is.True);
+            var type = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Assembly-CSharp")
+                .GetType("YC.Presentation.SettlementEffectStripBinding", true);
+            var binding = Activator.CreateInstance(type);
+            type.GetMethod("SetScope").Invoke(binding, new object[] { state.GameId, 1 });
+            Assert.DoesNotThrow(() => type.GetMethod("BindWindow").Invoke(binding,
+                new object[] { option.WindowId, new[] { SettlementOptionView.FromOption(option) } }),
+                "支付替代完成后必须接受正式结算投影，才能返回建设付款");
+            Assert.That(Open(state).OwnerEffectId, Is.EqualTo(ownerId));
+            var other = owner.SettlementWindow.Entries.Single(e => e.PaymentInsertion?.Rule?.RuleId == "passenger.stored_markers");
+            Invoke(state, registry, other.OptionId);
+            var waiting = registry.GetSettlementOptions(state, 1);
+            Assert.That(waiting.Single(o => o.OptionId == optionId).IsEnabled, Is.False);
+            Assert.That(waiting.Single(o => o.OptionId == other.OptionId).SettlementState, Is.EqualTo("executing"));
+            Assert.DoesNotThrow(() => type.GetMethod("BindWindow").Invoke(binding,
+                new object[] { option.WindowId, waiting.Select(SettlementOptionView.FromOption).ToArray() }),
+                "另一个付款来源执行时，前一来源仍应保留有效但禁用的展示投影");
+            Answer(state, registry, NormalizedValue.CreateBoolean(false));
+            Answer(state, registry, NormalizedValue.CreateString(ResourceEffectExecutor.PaymentConfirmationCandidateId));
+            owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+            Assert.That(owner.Payment.IsCommitted, Is.True);
+            Assert.That(owner.Payment.SourceReceipts.Count(receipt => receipt.Rule.RuleId == "martin.concession"), Is.EqualTo(1));
+            Restore(state, registry);
+        }
+        [TestCase("Originium", "Iron", false)] [TestCase("Iron", "OriginiumShard", false)] [TestCase("OriginiumShard", "Originium", false)]
+        [TestCase("Originium", "Iron", true)] [TestCase("Iron", "OriginiumShard", true)] [TestCase("OriginiumShard", "Originium", true)]
+        public void ActualMartinAndPassengerPaymentSourcesBothReturnToBuild(string martinResource, string passengerResource, bool passengerFirst)
+        {
+            // 两项均使用原始正式Lua；不为异客夹具注入新的insertion声明。
+            var fixture = Fixture(-1, build: true, withAward: true); var state = fixture.Item1; var registry = fixture.Item2;
+            var supply = state.ItemZones.Items.Single(i => i.ZoneId == FindZone(state, "facility_supply_0").ZoneId);
+            state.ContentDefinitions.Facilities.Single(f => f.FacilityId == supply.DefinitionId).ResourceCost.OriginiumShard = 2;
+            state.FindPlayer(1).Resources = new ResourceSet { Originium = 3, OriginiumShard = 3, Iron = 3, GoldVoucher = 10 };
+            new EffectTreeExecutor(state, registry).CreateRoot(FacilityBuildEffectSpecFactory.Build(1, supply.ItemId, -1,
+                "resources", false, "fixture.actual-sources", consumeMainAction: false, expectedSourceZoneId: supply.ZoneId));
+            Run(state, registry);
+            string ownerId = Open(state).OwnerEffectId;
+            var owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+            string martin = owner.SettlementWindow.Entries.Single(e => e.PaymentInsertion?.Rule?.RuleId == "martin.concession").OptionId;
+            string passenger = owner.SettlementWindow.Entries.Single(e => e.SourceDefinitionId == "operator.passenger" && e.PaymentInsertion == null).OptionId;
+            var options = registry.GetSettlementOptions(state, 1);
+            var type = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "Assembly-CSharp")
+                .GetType("YC.Presentation.SettlementEffectStripBinding", true);
+            var binding = Activator.CreateInstance(type);
+            type.GetMethod("SetScope").Invoke(binding, new object[] { state.GameId, 1 });
+            string windowId = options.Single(o => o.OptionId == martin).WindowId;
+            var steps = passengerFirst ? new[] { (passenger, passengerResource), (martin, martinResource) }
+                : new[] { (martin, martinResource), (passenger, passengerResource) };
+            foreach (var step in steps)
+            {
+                Invoke(state, registry, step.Item1);
+                Assert.DoesNotThrow(() => type.GetMethod("BindWindow").Invoke(binding,
+                    new object[] { windowId, registry.GetSettlementOptions(state, 1).Select(SettlementOptionView.FromOption).ToArray() }));
+                Answer(state, registry, NormalizedValue.CreateString(step.Item2 + "=1"));
+                Assert.DoesNotThrow(() => type.GetMethod("BindWindow").Invoke(binding,
+                    new object[] { windowId, registry.GetSettlementOptions(state, 1).Select(SettlementOptionView.FromOption).ToArray() }));
+            }
+            Answer(state, registry, NormalizedValue.CreateString(ResourceEffectExecutor.PaymentConfirmationCandidateId));
+            owner = state.EffectRuntime.EffectNodes.Single(n => n.EffectId == ownerId);
+            Assert.That(owner.Payment.IsCommitted, Is.True);
+            Assert.That(owner.Payment.SourceReceipts.Select(receipt => receipt.Rule.RuleId), Does.Contain("martin.concession"));
+            Assert.That(owner.Payment.SourceReceipts.Select(receipt => receipt.Rule.RuleId), Does.Contain("passenger.stored_markers"));
+            Restore(state, registry);
         }
         [Test] public void ExistingVersionOneInsertionStillRestoresWhilePending()
         {

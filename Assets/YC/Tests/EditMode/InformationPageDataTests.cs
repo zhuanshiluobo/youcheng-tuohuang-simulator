@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using YC.Domain.Influence;
@@ -29,6 +31,124 @@ namespace YC.Tests.EditMode
             state.Map.Influences[0].SlotId="unknown-slot";
             Assert.That(RegionInformationQuery.Build(state,query)[0].EmptySlots,Is.Null,"未知槽位不能被当成空位。");
         }
+        [Test]
+        public void RegionRows_UsePreviewWithoutChangingPhysicalVacanciesOrSource()
+        {
+            var map = StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId);
+            var query = new MapQueryService(map);
+            var region = map.Regions.First();
+            var location = map.Locations.First(value => region.LocationIds.Contains(value.LocationId) && value.InfluenceSlotCount > 0);
+            var state = new GameState { GameId = "预览局", ContentPackHash = "规则版本", MapId = map.MapId };
+            state.Players.Add(new PlayerState { PlayerId = 1, CityLocationId = location.LocationId });
+            state.Players.Add(new PlayerState { PlayerId = 2 });
+            state.Map.Influences.Add(new InfluencePlacement { PlayerId = 1,
+                SlotId = InfluenceSlotReference.ForLocation(location.LocationId, 0).SlotId, LocationId = location.LocationId });
+            var before = RegionInformationQuery.Build(state, query).Single(row => row.RegionId == region.RegionId);
+            var preview = new RegionControlPreview { GameId = state.GameId, ContentHash = state.ContentPackHash,
+                MapId = state.MapId, StateRevision = state.EffectRuntime.StateRevision,
+                Regions = map.Regions.Select(value => new RegionControlPreviewRow { RegionId = value.RegionId,
+                    ScoreValue = value.ScoreValue, Players = new List<RegionInfluencePreview> {
+                        new RegionInfluencePreview { PlayerId = 1 }, new RegionInfluencePreview { PlayerId = 2 } } }).ToList() };
+            var scored = preview.Regions.Single(value => value.RegionId == region.RegionId);
+            scored.ScoreValue = region.ScoreValue - 2;
+            scored.Players[0].MarkerCount = 5;
+            scored.Players[1].MarkerCount = 5;
+
+            var row = RegionInformationQuery.Build(state, query, preview).Single(value => value.RegionId == region.RegionId);
+            Assert.That(row.Points, Is.EqualTo(region.ScoreValue - 2));
+            Assert.That(row.Influence, Is.EquivalentTo(new Dictionary<int, int> { [1] = 5, [2] = 5 }));
+            Assert.That(row.EmptySlots, Is.EqualTo(before.EmptySlots), "计分修正不能改变实体空位。");
+            row.Influence[1] = 99;
+            Assert.That(scored.Players[0].MarkerCount, Is.EqualTo(5), "页面不得修改控制结果。");
+            Assert.That(RegionInformationQuery.Build(state, query).Single(value => value.RegionId == region.RegionId).Influence[1], Is.EqualTo(3));
+
+            preview.Regions.RemoveAt(0);
+            Assert.Throws<ArgumentException>(() => RegionInformationQuery.Build(state, query, preview));
+            preview.Regions.Add(scored);
+            preview.Regions[1] = preview.Regions[0];
+            Assert.Throws<ArgumentException>(() => RegionInformationQuery.Build(state, query, preview));
+        }
+        [Test]
+        public void RegionRows_SumAdditionalInfluenceAndRejectStalePreview()
+        {
+            var map = StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId);
+            var query = new MapQueryService(map);
+            var state = new GameState { GameId = "预览局", ContentPackHash = "规则版本", MapId = map.MapId };
+            state.Players.Add(new PlayerState { PlayerId = 1 });
+            state.Players.Add(new PlayerState { PlayerId = 2 });
+            state.EffectRuntime.StateRevision = 5;
+            var preview = new RegionControlPreview { GameId = state.GameId, ContentHash = state.ContentPackHash,
+                MapId = state.MapId, StateRevision = 5 };
+            foreach (var region in map.Regions)
+                preview.Regions.Add(new RegionControlPreviewRow { RegionId = region.RegionId, ScoreValue = region.ScoreValue,
+                    Players = new List<RegionInfluencePreview> { new RegionInfluencePreview { PlayerId = 1 }, new RegionInfluencePreview { PlayerId = 2 } } });
+            preview.Regions[0].Players[0].MarkerCount = 3;
+            preview.Regions[0].Players[0].Contributions.AddRange(new[] { 4, 1, 1 });
+            preview.Regions[0].Players[1].MarkerCount = 3;
+            preview.Regions[0].Players[1].Contributions.AddRange(new[] { 2, -5 });
+            preview.Regions[1].Players[0].MarkerCount = 2;
+            preview.Regions[1].Players[0].Contributions.AddRange(new[] { 2, -2 });
+            preview.Regions[0].ScoreValue++;
+            var row = RegionInformationQuery.Build(state, query, preview).Single(value => value.RegionId == preview.Regions[0].RegionId);
+            Assert.That(row.Influence[1], Is.EqualTo(9));
+            Assert.That(row.InfluenceDisplay[1], Is.EqualTo("3+6"));
+            Assert.That(row.InfluenceDisplay[2], Is.EqualTo("3-3"));
+            Assert.That(RegionInformationQuery.Build(state, query, preview)[1].InfluenceDisplay[1], Is.EqualTo("2"));
+            Assert.That(row.Points, Is.EqualTo(map.Regions.Single(value => value.RegionId == row.RegionId).ScoreValue + 1));
+            state.EffectRuntime.StateRevision++;
+            Assert.Throws<ArgumentException>(() => RegionInformationQuery.Build(state, query, preview));
+        }
+
+        [Test]
+        public void RegionPreviewBindsDynamicValuesOnTheGameplayHudReferencedPrefab()
+        {
+            var hud = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.GameObject>(
+                "Assets/YC/Presentation/Prefabs/Gameplay/GameplayInteractionHud.prefab");
+            Assert.That(hud, Is.Not.Null);
+            var pagesType = Type.GetType("YC.Presentation.GameplayInformationPages, Assembly-CSharp", true);
+            var pages = hud.GetComponentInChildren(pagesType, true);
+            Assert.That(pages, Is.Not.Null);
+            var prefab = (UnityEngine.Component)pagesType.GetField("regionPrefab",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(pages);
+            Assert.That(prefab, Is.Not.Null);
+            var root = new UnityEngine.GameObject("隔离区控页面夹具", typeof(UnityEngine.RectTransform), typeof(UnityEngine.Canvas));
+            try
+            {
+                var page = UnityEngine.Object.Instantiate(prefab, root.transform, false);
+                var map = StaticMapDefinitions.Resolve(StaticMapDefinitions.FourPlayerMapId);
+                var query = new MapQueryService(map);
+                var state = new GameState { GameId = "预览局", ContentPackHash = "规则版本", MapId = map.MapId };
+                for (int id = 1; id <= 4; id++) state.Players.Add(new PlayerState { PlayerId = id, Color = (PlayerColor)(id - 1) });
+                state.EffectRuntime.StateRevision = 5;
+                var preview = new RegionControlPreview { GameId = state.GameId, ContentHash = state.ContentPackHash,
+                    MapId = state.MapId, StateRevision = 5 };
+                foreach (var region in map.Regions)
+                    preview.Regions.Add(new RegionControlPreviewRow { RegionId = region.RegionId, ScoreValue = region.ScoreValue,
+                        Players = state.Players.Select(player => new RegionInfluencePreview { PlayerId = player.PlayerId }).ToList() });
+                preview.Regions[0].ScoreValue++;
+                preview.Regions[0].Players[0].MarkerCount = 3;
+                preview.Regions[0].Players[0].Contributions.AddRange(new[] { 4, 1, 1 });
+                var before = GameStateCloneService.DeepClone(state);
+                var render = page.GetType().GetMethod("Render", new[] { typeof(GameState), typeof(IMapQueryService),
+                    typeof(RegionControlPreview), typeof(bool) });
+                render.Invoke(page, new object[] { state, query, preview, false });
+                var rows = (Array)page.GetType().GetField("rows", System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic).GetValue(page);
+                var first = rows.GetValue(0);
+                var participants = (System.Collections.IList)first.GetType().GetField("participants",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(first);
+                var value = (UnityEngine.UI.Text)participants[0].GetType().GetProperty("Label").GetValue(participants[0]);
+                var points = (UnityEngine.UI.Text)first.GetType().GetField("points",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(first);
+                Assert.That(value.text, Is.EqualTo("3+6"));
+                Assert.That(points.text, Is.EqualTo(preview.Regions[0].ScoreValue.ToString()));
+                render.Invoke(page, new object[] { state, query, null, true });
+                Assert.That(value.text, Is.EqualTo("—"), "预览尚未到达时不展示旧结果。");
+                Assert.That(GameStateCloneService.AreEquivalent(before, state), Is.True);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void GameBox_ClonesAndShowsOnlyAuthorizedIdentitiesRegardlessOfFaceOrientation()
         {

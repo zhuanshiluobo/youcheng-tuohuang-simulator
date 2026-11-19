@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using YC.Domain.Commands;
 using YC.Domain.Rules;
 using YC.Domain.State;
+using YC.Domain.Effects;
+using YC.Domain.Scoring;
 
 namespace YC.Application.Sessions
 {
@@ -353,6 +355,20 @@ namespace YC.Application.Sessions
                 loop.AddNotification(() => reply(result));
             });
         }
+        public bool TryQueryRegionControlPreview(int playerId, string gameId, string contentHash, int stateRevision,
+            EffectRegistry registry, Action<RegionControlPreview> reply)
+        {
+            if (reply == null || registry == null) return false;
+            RegionControlPreview Query()
+            {
+                try { return session.QueryRegionControlPreview(playerId, gameId, contentHash, stateRevision, registry); }
+                catch (Exception error) when (!(error is OutOfMemoryException)) { return null; }
+            }
+            if (background == null) { reply(Query()); return true; }
+            background.EnsureMainThread();
+            var loop = background;
+            return loop.TryEnqueue(() => { var result = Query(); loop.AddNotification(() => reply(result)); });
+        }
         public Task ExecutionStopped => background?.Completion ?? Task.CompletedTask;
         public Exception BackgroundExecutionException => background?.Fatal;
 
@@ -532,7 +548,7 @@ namespace YC.Application.Sessions
         private bool TryCreateBackgroundProposal(GameCommand command, out OperationCommandProposalDto proposal, out ValidationResult validation)
         {
             proposal = null; validation = new ValidationResult(false, CommandErrorCode.WrongPhase, "当前固定版本或窗口尚未就绪。");
-            if (background.IsStopping || backgroundRecoveryRequested || backgroundPendingLocal != null || !TryReadPublishedSnapshot(out var snapshot) ||
+            if (background.IsStopping || backgroundRecoveryRequested || coordinatedReconnectBarrier || backgroundPendingLocal != null || !TryReadPublishedSnapshot(out var snapshot) ||
                 snapshot.IsStopped || snapshot.IsRecoveringConfirmedPrefix || command == null) return false;
             if (command.PlayerId != options.LocalPlayerId) { validation = new ValidationResult(false, CommandErrorCode.InvalidPlayer, "只能提交本人命令。"); return false; }
             if (command.Parameters != null && command.Parameters.TryGetValue("expectedRevision", out var expected) &&
@@ -575,7 +591,7 @@ namespace YC.Application.Sessions
                 ExpectedClientSubmissionSequence = sequencer?.ReadNextSubmissionSequence(sourcePlayer) ?? 1 };
             try { result.Proposal = OperationCommandCanonicalizer.SnapshotProposal(proposal); OperationCommandCanonicalizer.CanonicalProposalDigest(result.Proposal); }
             catch (ArgumentException exception) { result.ErrorCode = CommandErrorCode.UnknownCommand; result.Reason = exception.Message; return result; }
-            if (background.IsStopping || backgroundRecoveryRequested || sequencer == null || backgroundAdmitting) return result;
+            if (background.IsStopping || backgroundRecoveryRequested || coordinatedReconnectBarrier || sequencer == null || backgroundAdmitting) return result;
             var owned = result.Proposal; var snapshot = background.Latest;
             if (!Identity(owned.GameId, owned.SimulationEpoch, owned.MembershipVersion) || !options.FrozenPlayerIds.Contains(sourcePlayer) || owned.Command.PlayerId != sourcePlayer)
             { result.ErrorCode = CommandErrorCode.InvalidPlayer; return result; }

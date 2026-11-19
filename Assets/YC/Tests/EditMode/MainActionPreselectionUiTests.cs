@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -81,7 +80,7 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
-        public void MainDraftsSwitchToOtherMainBuildAndQuickWithoutCancellationCommands()
+        public void MainDraftSwitchWaitsForExactPaymentPreparationRejection()
         {
             var f = Production(); var flow = new InteractionFlowCoordinator(); flow.ResetToChooseAction();
             var collection = new ResourceCollectionPresenter(f.Context, f.Port, f.View, f.Map, new ResourceCollectionService(f.Map));
@@ -95,15 +94,26 @@ namespace YC.Tests.EditMode
             var before = Snapshot(f.State);
             turn.BeginDeployAction(); f.Presenter.SelectSlot(f.Influence.GetLegalPlacementSlotIds(f.State, 1).First());
             turn.BeginMoveAction(); Assert.That(f.Presenter.IsActive, Is.False);
+            var preparation = f.Port.Commands.Single();
+            Assert.That(preparation.Kind, Is.EqualTo(GameCommandKind.PreparePaymentDraft));
+            Assert.That(preparation.Parameters["operation"], Is.EqualTo("prepare_action"));
+            Assert.That(turn.MoveInteraction.IsSubmissionInFlight, Is.True);
+            turn.BeginExploreAction(); Assert.That(localExplore, Is.False, "在途付款准备未回执时不能切换草稿。");
+            turn.MoveInteraction.NotifyInteractionCommandResolved(f.State.GameId, preparation.CommandId, false, CommandErrorCode.InvalidTarget);
+            Assert.That(turn.MoveInteraction.IsSubmissionInFlight, Is.False);
             var target = turn.MoveInteraction.BuildPresentation().Highlights.First().TargetId;
             router.OnLocationClicked(target, 10); Assert.That(router.HasPendingMapConfirmation, Is.True);
+            var targetPreparation = f.Port.Commands.Last();
+            Assert.That(targetPreparation.TargetId, Is.EqualTo(target));
+            turn.MoveInteraction.NotifyInteractionCommandResolved(f.State.GameId, targetPreparation.CommandId, false, CommandErrorCode.InvalidTarget);
             turn.BeginExploreAction(); Assert.That(router.HasPendingMapConfirmation, Is.False); Assert.That(localExplore, Is.True);
             turn.BeginDispatchAction(); Assert.That(localExplore, Is.False);
             Assert.That(turn.ActionPanelPresenter.CanStartQuickAction(), Is.True);
             Assert.That(turn.TryClearMainActionDraft(), Is.True);
             turn.BeginExploreAction(); turn.BeginBuildAction();
             Assert.That(localExplore, Is.False); Assert.That(f.Presenter.IsActive, Is.False);
-            Assert.That(f.Port.Commands, Is.Empty); Assert.That(Snapshot(f.State), Is.EqualTo(before));
+            Assert.That(f.Port.Commands.All(command => command.Kind == GameCommandKind.PreparePaymentDraft), Is.True);
+            Assert.That(Snapshot(f.State), Is.EqualTo(before));
         }
 
         [Test]
@@ -113,17 +123,51 @@ namespace YC.Tests.EditMode
             MoveInteraction move = null;
             move = new MoveInteraction(f.Context, f.Port, f.View, flow, f.Map, () => move.Activate(), () => true, _ => { });
             var router = new InteractionRouter(_ => { }); router.Register(move); move.Begin();
+            var preparation = f.Port.Commands.Single();
+            Assert.That(preparation.Kind, Is.EqualTo(GameCommandKind.PreparePaymentDraft));
             var target = move.BuildPresentation().Highlights.First().TargetId;
             router.OnLocationClicked(target, 21); f.State.EffectRuntime.StateRevision++;
-            router.OnLocationClicked(target, 22); Assert.That(f.Port.Commands, Is.Empty);
-            move.Cancel(); move.Begin(); router.ClearMapConfirmation();
-            router.OnLocationClicked(target, 23); router.OnLocationClicked(target, 24);
-            var command = f.Port.Commands.Single(); Assert.That(command.Kind, Is.EqualTo(GameCommandKind.MoveCity));
+            router.OnLocationClicked(target, 22);
+            Assert.That(f.Port.Commands.Count, Is.EqualTo(1), "修订变化不能提交城市移动或重复预备。");
             move.Cancel(); Assert.That(move.IsSubmissionInFlight, Is.True);
             move.NotifyInteractionCommandResolved(f.State.GameId, "wrong", false, CommandErrorCode.InvalidTarget);
             Assert.That(move.IsSubmissionInFlight, Is.True);
-            move.NotifyInteractionCommandResolved(f.State.GameId, command.CommandId, false, CommandErrorCode.InvalidTarget);
+            move.NotifyInteractionCommandResolved(f.State.GameId, preparation.CommandId, false, CommandErrorCode.InvalidTarget);
             Assert.That(move.IsSubmissionInFlight, Is.False);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void MoveHighlightsAndPreselectionRespectRegisteredDestinationPolicy(bool projected)
+        {
+            var f = Production();
+            if (projected)
+            {
+                var visible = GameStateViewProjector.ProjectForPlayer(f.State, 1);
+                var local = GameStateViewProjector.ToClientState(visible);
+                local.EffectRuntime = new EffectRuntimeState { StateRevision = visible.StateRevision,
+                    ActiveMainNodeId = visible.ActiveMainNodeId, Status = visible.IsPausedFault ? EffectRuntimeStatus.PausedFault : EffectRuntimeStatus.Active };
+                local.ContentDefinitions = GameStateCloneService.DeepClone(f.State.ContentDefinitions);
+                f.Context.State = local;
+            }
+            var flow = new InteractionFlowCoordinator(); flow.ResetToChooseAction();
+            MoveInteraction move = null;
+            move = new MoveInteraction(f.Context, f.Port, f.View, flow, f.Map, () => move.Activate(), () => true, _ => { });
+            move.Begin();
+            var original = move.BuildPresentation().Highlights.Select(item => item.TargetId).ToArray();
+            Assert.That(original.Length, Is.GreaterThan(1));
+            string excluded = original[0];
+            f.Registry.CityDestinationCandidatePolicies.Register(new YC.Domain.Interactions.CandidatePolicyRegistration(
+                "fixture.mode.exclusion", YC.Domain.Movement.CityDestinationQueryService.CandidateKind,
+                _ => new List<CandidatePatch> { new CandidatePatch { Operation = CandidatePatchOperation.Remove,
+                    CandidateIds = new List<string> { YC.Domain.Movement.CityDestinationQueryService.CandidateId(excluded) }, ReasonCode = "fixture.mode" } }));
+            move.DestinationRegistry = f.Registry;
+            var filtered = move.BuildPresentation().Highlights.Select(item => item.TargetId).ToArray();
+            Assert.That(filtered, Does.Not.Contain(excluded));
+            Assert.That(filtered, Is.EquivalentTo(original.Skip(1)));
+            int before = f.Port.Commands.Count;
+            move.OnMapTargetPreselected(WorkflowHighlightTargetKind.Location, excluded);
+            Assert.That(f.Port.Commands.Count, Is.EqualTo(before), "被规则排除的目标不能触发费用预备。");
         }
 
         [Test]
@@ -337,12 +381,25 @@ namespace YC.Tests.EditMode
                 Call(native.Mobile, "BeginMoveAction");
                 var presentation = (InteractionPresentation)Call(move, "BuildPresentation");
                 var target = presentation.Highlights.First(highlight => highlight.TargetKind == WorkflowHighlightTargetKind.Location && highlight.IsInteractive).TargetId;
-                var before = Snapshot(native.Session.State);
+                var playerBefore = native.Session.State.FindPlayer(1);
+                var cityBefore = playerBefore.CityLocationId;
+                var resourcesBefore = JsonConvert.SerializeObject(playerBefore.Resources);
+                var actionsBefore = playerBefore.RemainingMainActionsThisTurn;
+                var decksBefore = JsonConvert.SerializeObject(native.Session.State.Decks);
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 Call(native.Mobile, "OnMapButtonClicked", WorkflowHighlightTargetKind.Location, target); watch.Stop();
                 stages.Add(new { Stage = "地图首击", Milliseconds = watch.Elapsed.TotalMilliseconds, Commands = native.Observed.Commands.Count, Counters = native.Session.ExecutionTimings.Snapshot() });
-                Assert.That(native.Observed.Commands, Is.Empty); Assert.That(Snapshot(native.Session.State), Is.EqualTo(before));
+                // 首击现在会创建正式付款准备，但不能提交移动、扣资源、消耗行动或抽事件。
+                Assert.That(native.Observed.Commands.Any(command => command.Kind == GameCommandKind.MoveCity), Is.False);
+                var afterFirstClick = native.Session.State.FindPlayer(1);
+                Assert.That(afterFirstClick.CityLocationId, Is.EqualTo(cityBefore));
+                Assert.That(JsonConvert.SerializeObject(afterFirstClick.Resources), Is.EqualTo(resourcesBefore));
+                Assert.That(afterFirstClick.RemainingMainActionsThisTurn, Is.EqualTo(actionsBefore));
+                Assert.That(JsonConvert.SerializeObject(native.Session.State.Decks), Is.EqualTo(decksBefore));
                 yield return null;
+                var preparation = Read(Read(move, "paymentPreparation"), "Current");
+                Assert.That(preparation, Is.Not.Null, "首击必须建立所选目标的正式付款准备。");
+                Assert.That(Read(preparation, "TargetId"), Is.EqualTo(target));
                 watch.Restart(); Call(native.Mobile, "OnMapButtonClicked", WorkflowHighlightTargetKind.Location, target); watch.Stop();
                 var dialog = Read(native.Mobile, "eventChoiceDialog");
                 var requests = native.Session.State.EffectRuntime.InteractionRequests.Where(request => request.Status == "open" && request.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId).ToList();
@@ -365,8 +422,8 @@ namespace YC.Tests.EditMode
                 var revision = native.Session.State.EffectRuntime.StateRevision;
                 var view = (Component)Read(dialog, "view");
                 var markerType = Type.GetType("YC.PlayerJourney.PlayerAutomationId, YC.PlayerJourney", true);
-                var button = view.GetComponentsInChildren(markerType, true).Single(marker =>
-                    (string)markerType.GetField("Id").GetValue(marker) == "event.option.0").GetComponent<Button>();
+                var button = view.GetComponentsInChildren(markerType, true).First(marker =>
+                    ((string)markerType.GetField("Id").GetValue(marker)).StartsWith("event.choice.", StringComparison.Ordinal)).GetComponent<Button>();
                 watch.Restart(); button.onClick.Invoke(); watch.Stop();
                 stages.Add(new { Stage = "事件牌选项提交", Milliseconds = watch.Elapsed.TotalMilliseconds, Commands = native.Observed.Commands.Count,
                     Counters = native.Session.ExecutionTimings.Snapshot() }); WriteHotseatEvidence(stages);
@@ -462,14 +519,14 @@ namespace YC.Tests.EditMode
                 Assert.That(Read(route, "HasUnsubmittedMainActionDraft"), Is.EqualTo(true),
                     previewCheck.Reason + ";CanSubmit=" + Read(native.Mobile, "CanSubmitGameplayCommand") + ";pending=" + Read(native.Mobile, "pendingEffectCommandId"));
                 var stale = new GameCommand { Kind = GameCommandKind.ExploreLocation, PlayerId = 1, TargetId = "A-01" };
-                stale.Parameters["expectedRevision"] = (native.Session.State.EffectRuntime.StateRevision - 1).ToString();
+                stale.Parameters["expectedRevision"] = (network.Snapshot().StateRevision - 1).ToString();
                 Call(route, "Dispatch", stale);
                 Assert.That(native.Observed.Last.CommandResult.Validation.ErrorCode, Is.EqualTo(CommandErrorCode.StateRevisionMismatch));
                 Assert.That(network.Actor.HasPendingLocalApplication, Is.False);
                 Assert.That(Read(native.Mobile, "pendingEffectCommandId"), Is.Null.Or.Empty);
                 Assert.That(Read(route, "IsMainActionSubmissionInFlight"), Is.EqualTo(false));
                 Call(route, "BeginLocalExploration"); SelectExplore(route);
-                var consumed = native.Session.State.FindPlayer(1).CompletedMainActionsThisTurn;
+                var consumed = network.Snapshot().ReadView().Players.Single(player => player.PlayerId == 1).CompletedMainActionsThisTurn;
                 Call(route, "Confirm");
                 Assert.That(native.Observed.Last.CommandResult.Succeeded, Is.True, native.Observed.Last.CommandResult.Validation?.Reason);
                 Assert.That(native.Observed.Last.AppliedLocally, Is.False);
@@ -482,12 +539,12 @@ namespace YC.Tests.EditMode
                 network.ApplyPending();
                 Assert.That(Read(native.Mobile, "pendingEffectCommandId"), Is.Null.Or.Empty);
                 Assert.That(Read(route, "IsMainActionSubmissionInFlight"), Is.EqualTo(false));
-                Assert.That(native.Session.State.FindPlayer(1).CompletedMainActionsThisTurn, Is.EqualTo(consumed));
+                Assert.That(network.Snapshot().ReadView().Players.Single(player => player.PlayerId == 1).CompletedMainActionsThisTurn, Is.EqualTo(consumed));
                 var request = (YC.Domain.Interactions.InteractionRequestProjection)Read(Read(native.Mobile, "interactionRequestRouter"), "CurrentRequest");
                 Assert.That(request?.InteractionTypeId, Is.EqualTo(EventCardEffectExecutor.OptionInteractionTypeId));
-                var after = Snapshot(native.Session.State);
+                var after = JsonConvert.SerializeObject(network.Snapshot().ReadView());
                 Call(network.Transport, "OnSimulationApplied", network.LastApplied);
-                Assert.That(Snapshot(native.Session.State), Is.EqualTo(after), "重复准确回执不得再次结算");
+                Assert.That(JsonConvert.SerializeObject(network.Snapshot().ReadView()), Is.EqualTo(after), "重复准确回执不得再次结算");
                 Call(native.Mobile, "SubmitPendingEffectCommand", EffectInteractionCommands.Answer(request, 1, new[] { request.CandidateIds.First() }, false));
                 Assert.That(network.Actor.HasPendingLocalApplication, Is.True, "后继实际事件答案必须通过同一Mobile入口");
                 network.ApplyPending();
@@ -502,6 +559,8 @@ namespace YC.Tests.EditMode
             public SimulationCommandAppliedDto LastApplied;
             private readonly DeterministicSimulationCoordinator[] replicas = new DeterministicSimulationCoordinator[3];
             private readonly object shell, previousTransport;
+            private bool actorBackground;
+            private long consumedSequence;
             public NativeExploreSimulation(NativeExploreScene native)
             {
                 var shellType = typeof(MainActionPreselectionUiTests).Assembly.GetType("YC.Tests.EditMode.SimulationUiTestShell", true);
@@ -526,15 +585,53 @@ namespace YC.Tests.EditMode
                     }
                     replicas[i] = new DeterministicSimulationCoordinator(sessions[i],
                         DeterministicSimulationSessionOptions.CreateInitial(i == 0, i == 0 ? 3 : i, sessions[i], new[] { 1, 2, 3 }));
-                    replicas[i].Begin(); Assert.That(replicas[i].IsStopped, Is.False);
+                    if (i != 1)
+                    {
+                        replicas[i].ConfigureRequestContractValidation(OperationCommandProtocol.RequestContractVersion);
+                        replicas[i].ConfigureWindowExecution(WindowExecutionGrant.Version);
+                        replicas[i].Begin(); Assert.That(replicas[i].IsStopped, Is.False);
+                    }
                 }
-                Seal(0);
                 native.Session.RefreshLocalProjection(GameStateViewer.Player(1));
                 Call(native.Mobile, "BuildCommandSubmission", native.Context);
                 Write(scenario, "Controller", Read(native.Mobile, "commandSubmission"));
                 Call(Transport, "AttachSimulation", Actor, true);
-                Actor.SimulationCommandApplied += value => LastApplied = value;
-                Assert.That(Read(native.Mobile, "CanSubmitGameplayCommand"), Is.EqualTo(true));
+                actorBackground = true;
+                try
+                {
+                    Actor.Begin();
+                    Wait(() => Actor.TryReadPublishedSnapshot(out _), "初始后台快照");
+                    Actor.SimulationCommandApplied += value => LastApplied = value;
+                    Call(Transport, "PublishSimulationReady");
+                    Seal(0);
+                    Wait(() => Actor.TryReadPublishedSnapshot(out var snapshot) && snapshot.WindowExecution?.IsActive == true &&
+                        Actor.ReadWindowPermissions().Any(permission => permission.CanSubmitForLocalPlayer), "初始正式窗口授予");
+                    var submission = Read(native.Mobile, "commandSubmission");
+                    Assert.That(Read(native.Mobile, "CanSubmitGameplayCommand"), Is.EqualTo(true),
+                        "初始化=" + Read(submission, "InitializationFailure") + ";就绪=" + Read(submission, "IsSimulationReady") +
+                        ";可提交=" + Read(submission, "CanSubmitForLocalPlayer") + ";待通知=" + Read(Transport, "initialReadyPending") +
+                        ";选手=" + Actor.SessionOptions.LocalPlayerId + ";权限=" + JsonConvert.SerializeObject(Actor.ReadWindowPermissions()));
+                }
+                catch { Dispose(); throw; }
+            }
+            public SimulationPublishedSnapshot Snapshot()
+            {
+                Wait(() => Actor.TryReadPublishedSnapshot(out _), "读取后台快照");
+                Assert.That(Actor.TryReadPublishedSnapshot(out var snapshot), Is.True);
+                return snapshot;
+            }
+            private void Wait(Func<bool> predicate, string phase)
+            {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                while (!predicate())
+                {
+                    Actor.DrainMainThreadNotifications(128);
+                    if (Actor.IsStopped || Actor.BackgroundExecutionException != null)
+                        throw new InvalidOperationException(phase + "：" + (Actor.LastFault?.Diagnostic ?? Actor.BackgroundExecutionException?.Message));
+                    if (watch.Elapsed.TotalSeconds > 15) throw new TimeoutException(phase + "超时");
+                    System.Threading.Thread.Sleep(1);
+                }
+                Actor.DrainMainThreadNotifications(128);
             }
             private void Seal(long sequence)
             {
@@ -547,33 +644,41 @@ namespace YC.Tests.EditMode
                     return;
                 }
                 SimulationWindowPermitDto permit = null; Action<SimulationWindowPermitDto> listener = value => permit = value;
+                WindowExecutionGrant grant = null; Action<WindowExecutionGrant> grantListener = value => grant = value;
                 host.WindowPermitProduced += listener;
+                host.WindowExecutionGranted += grantListener;
                 try
                 {
                     for (int i = 1; i < 3; i++)
                     {
                         Assert.That(replicas[i].ReceiveBoundary(boundary), Is.True);
+                        if (i == 1 && actorBackground)
+                            Wait(() => Actor.ReadBoundary(sequence) != null, "接收边界");
                         Assert.That(host.ReceiveWindowReady(i, new SimulationWindowReadyDto { GameId = boundary.GameId,
                             SimulationEpoch = boundary.SimulationEpoch, MembershipVersion = boundary.MembershipVersion, PlayerId = i,
                             ReplicaId = DeterministicSimulationSessionOptions.ReplicaIdForPlayer(i), Boundary = replicas[i].ReadBoundary(sequence) }), Is.True);
                     }
                     if (permit != null) foreach (var replica in replicas.Skip(1)) Assert.That(replica.ReceiveWindowPermit(permit), Is.True);
+                    if (permit != null && actorBackground)
+                        Wait(() => Actor.IsBoundaryPermitted(sequence), "应用边界许可");
+                    Assert.That(grant, Is.Not.Null, "正式单人窗口必须取得宿主授予。");
+                    foreach (var replica in replicas.Skip(1)) replica.ReceiveWindowExecutionGrant(grant);
                 }
-                finally { host.WindowPermitProduced -= listener; }
+                finally { host.WindowPermitProduced -= listener; host.WindowExecutionGranted -= grantListener; }
                 Assert.That(host.IsBoundaryPermitted(sequence), Is.True);
             }
             public void ApplyPending()
             {
-                var admitted = replicas[0].AdmitProposal(1, Actor.ReadPendingLocalProposal());
-                Assert.That(admitted.Status, Is.EqualTo(OperationAdmissionStatus.Accepted), admitted.Reason);
-                Actor.ReceiveProposalResult(admitted);
-                foreach (var replica in replicas.Skip(1)) replica.ReceiveOrdered(admitted.OrderedCommand);
-                foreach (var replica in replicas) Assert.That(replica.Pump(1), Is.EqualTo(1), replica.LastFault?.Diagnostic);
-                foreach (var replica in replicas.Skip(1)) Assert.That(replica.ReceiveValidationPrefix(replicas[0].ReadLocalValidationPrefix()), Is.True);
-                Seal(admitted.OrderedCommand.GlobalCommandSequence);
+                // 当前正式单人窗口先在本地执行；该隔离用例只验证本地准确回执和后继页面，
+                // 多副本回放及边界确认由 WindowLocalExecutionProtocolTests 独立覆盖。
+                Wait(() => LastApplied != null && LastApplied.GlobalCommandSequence > consumedSequence &&
+                    !Actor.HasPendingLocalApplication, "后台执行原命令及准确回执");
+                consumedSequence = LastApplied.GlobalCommandSequence;
             }
             public void Dispose()
             {
+                Actor.RequestStop();
+                Assert.That(Actor.ExecutionStopped.Wait(TimeSpan.FromSeconds(15)), Is.True, "隔离后台模拟未退出");
                 Call(shell, "Clear");
                 Transport.GetType().GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, previousTransport);
             }

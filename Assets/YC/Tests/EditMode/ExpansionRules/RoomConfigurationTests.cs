@@ -160,17 +160,19 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(service.ChangeConfiguration(room, Change(room, "map-four-players", "core", "infected")).ReasonCode,
                 Is.EqualTo("missing_enterprise_dependency"));
             var entrepreneur = Change(room); entrepreneur.RuleModeId = "entrepreneur";
-            Assert.That(service.ChangeConfiguration(room, entrepreneur).ReasonCode, Is.EqualTo("rule_mode_not_implemented"));
+            Assert.That(service.ChangeConfiguration(room, entrepreneur).ReasonCode, Is.EqualTo("missing_entrepreneur_dependency"));
             Assert.That(RoomStateSerializer.Serialize(room), Is.EqualTo(before));
         }
 
         [Test]
         public void UnimplementedExpansionCannotFreezeOrCreateFakeInitialState()
         {
-            var room = Room(); Assert.That(service.ChangeConfiguration(room, Change(room, "map-four-players", "core", "enterprise")).Success, Is.True);
-            Assert.That(service.TryFreezeForLaunch(room, Request<StartConfiguredGameRequest>(room), out _, out var reason), Is.False);
-            Assert.That(reason, Is.EqualTo("content_not_ready")); Assert.That(room.HasStarted, Is.False);
-            Assert.That(() => GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, room.Seats, room.Configuration, 42),
+            var room = Room(); var before = RoomStateSerializer.Serialize(room);
+            var rejected = service.ChangeConfiguration(room, Change(room, "map-four-players", "core", "enterprise"));
+            Assert.That(rejected.Success, Is.False); Assert.That(rejected.ReasonCode, Is.EqualTo("content_not_ready"));
+            Assert.That(RoomStateSerializer.Serialize(room), Is.EqualTo(before)); Assert.That(room.HasStarted, Is.False);
+            var unsupported = room.Configuration.Clone(); unsupported.EnabledExpansionIds.Add("enterprise");
+            Assert.That(() => GameLaunchStateFactory.CreateInitialState(LaunchMode.Host, 1, room.Seats, unsupported, 42),
                 Throws.InvalidOperationException.With.Message.EqualTo("content_not_ready"));
         }
 
@@ -278,7 +280,7 @@ namespace YC.Tests.EditMode.ExpansionRules
         {
             var room = Room();
             var first = Change(room);
-            var second = Change(room, "map-four-players", "core", "enterprise");
+            var second = Change(room);
             var results = new RoomConfigurationResult[2];
             Parallel.Invoke(() => results[0] = service.ChangeConfiguration(room, first),
                 () => results[1] = service.ChangeConfiguration(room, second));
@@ -425,8 +427,11 @@ namespace YC.Tests.EditMode.ExpansionRules
             var providerType = Type.GetType("YC.Infrastructure.Multiplayer.BasicRoomContentCapabilityProvider, Assembly-CSharp", true);
             var capabilities = (IRoomContentCapabilityProvider)Activator.CreateInstance(providerType);
             var configure = contextType.GetMethod("Configure", new[] { typeof(LaunchMode), typeof(int), typeof(string), typeof(IList<PlayerSeat>), typeof(GameRuleConfiguration) });
+            int sceneIndex = 0;
             foreach (var sceneName in new[] { "ThreePlayerScene", "SampleScene" })
             {
+                // 两个隔离场景用例各自进入 PlayMode，不能在一局仍持有冻结目录时直接热换另一个游戏场景。
+                if (sceneIndex++ > 0) { yield return new ExitPlayMode(); yield return new EnterPlayMode(); }
                 var mapId = sceneName == "ThreePlayerScene" ? "map-three-players" : "map-four-players";
                 var authority = new RoomConfigurationService(capabilities);
                 var room = new RoomState { RoomId = "001208", HostPlayerId = 1, LocalPlayerId = 1 };

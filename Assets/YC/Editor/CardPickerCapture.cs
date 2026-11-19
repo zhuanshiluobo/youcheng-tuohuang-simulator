@@ -186,9 +186,8 @@ namespace YC.Presentation.Editor
                 card.Button.onClick.RemoveAllListeners();
                 card.Button.interactable = true;
                 if (card.DetailsButton != null) card.DetailsButton.onClick.RemoveAllListeners();
-                if (card.SelectionImage == null) throw new InvalidOperationException("正式卡牌缺少选中框引用。");
-                card.SelectionImage.gameObject.SetActive(true);
-                card.SelectionImage.enabled = index == (captureCase.End ? captureCase.Count - 1 : 0);
+                if (card.SelectionEffect == null) throw new InvalidOperationException("正式卡牌缺少选中特效引用。");
+                card.SetSelectionEffect(true, true, index == (captureCase.End ? captureCase.Count - 1 : 0));
                 Cards.Add(card);
             }
             page.ResourceSummaryText.text = "已选择 1 / 1";
@@ -239,8 +238,8 @@ namespace YC.Presentation.Editor
                     textureAsset = card.CardImage.texture.name,
                     itemRect = ScreenRect(card.CardRect), faceRect = ScreenRect(card.CardImage.rectTransform),
                     faceFullyInsideViewport = Contains(viewport, ScreenRect(card.CardImage.rectTransform)),
-                    selected = card.SelectionImage.enabled && card.SelectionImage.gameObject.activeInHierarchy,
-                    selectionRect = ScreenRect(card.SelectionImage.rectTransform),
+                    selected = card.SelectionEffect.gameObject.activeInHierarchy && card.SelectionEffect.State == NoMadCity.SelectionFX.SelectionEffectGraphic.SelectionState.Selected,
+                    selectionRect = ScreenRect(card.SelectionEffect.rectTransform),
                     active = card.gameObject.activeInHierarchy, interactable = card.Button.IsInteractable()
                 }).ToArray(),
                 entries = page.GetComponentsInChildren<RectTransform>(true).Select(rect => new Entry

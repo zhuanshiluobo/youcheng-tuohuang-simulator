@@ -78,7 +78,7 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(GameStateCloneService.AreEquivalent(baseline,session.State),Is.True,"两条重演路径均不得改写原档状态");
             using(ItemTransferService.VerifyRecoveryReplayCopies())HostRecoveryService.CreateSnapshot(session.State);
             Assert.That(GameStateCloneService.AreEquivalent(baseline,session.State),Is.True);
-            Assert.That(RuleStateDigestService.Compute(optimized.State),Is.EqualTo(LegacyRuleStateDigestReference.Compute(optimized.State)));
+            Assert.That(RuleStateDigestService.Compute(optimized.State),Is.EqualTo(LegacyRuleStateDigestReference.ComputeCurrent(optimized.State)));
             File.WriteAllText(report,JsonConvert.SerializeObject(new {Scope="同原档保存校验隔离对照；不是正常界面或P95验收",data.GameId,Revision=baseline.EffectRuntime.StateRevision,Measurements=measurements,CloneProbes=cloneProbes,CopyProbes=copyProbes,FullFieldsEquivalent=true,OriginalUnchanged=true,ForcedGc=false},Formatting.Indented));
         }
     }

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "coordinateOrigin": "bottom-left",
+  "sheets": [{"id": "example.events.purple-sheet", "artwork": "artwork/purple-events.png", "width": 2550, "height": 1200, "rows": 2, "columns": 3, "cellWidth": 850, "cellHeight": 600, "skippedCells": [1, 4, 5, 6]}],
+  "slices": [
+    {"id": "example.events.support-face", "sheetId": "example.events.purple-sheet", "cell": 2, "row": 1, "column": 2, "name": "互助", "contentType": "event", "definitionIds": ["example.events.support"], "expansionId": "example.events.green", "rect": {"x": 850, "y": 600, "width": 850, "height": 600}},
+    {"id": "example.events.dream-face", "sheetId": "example.events.purple-sheet", "cell": 3, "row": 1, "column": 3, "name": "好梦在何方", "contentType": "event", "definitionIds": ["example.events.dream"], "expansionId": "example.events.green", "rect": {"x": 1700, "y": 600, "width": 850, "height": 600}}
+  ]
+}

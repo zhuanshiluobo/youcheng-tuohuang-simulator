@@ -271,7 +271,7 @@ namespace YC.Domain.Items
             return result;
         }
         private static bool SourceWasPersistent(List<ItemPositionChange> changes, string itemId, GameState state) => changes.Any(change => change.ItemId == itemId && state.ItemZones.Zones.Any(zone => zone.ZoneId == change.From.ZoneId && zone.TemplateId == "core.zone.character_persistent"));
-        private static bool CanAccess(GameState state, ZoneInstanceState zone, int playerId, bool source)
+        internal static bool CanAccess(GameState state, ZoneInstanceState zone, int playerId, bool source)
         {
             var visited = new HashSet<string>();
             while (zone != null && visited.Add(zone.ZoneId))

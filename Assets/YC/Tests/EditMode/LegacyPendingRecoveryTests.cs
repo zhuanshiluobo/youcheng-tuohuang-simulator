@@ -221,7 +221,8 @@ namespace YC.Tests.EditMode
             launchType = Type.GetType("YC.Presentation.GameLaunchContext, Assembly-CSharp", true);
             f.Owner = new UnityEngine.GameObject("旧Pending隔离恢复检查"); f.Owner.SetActive(false); launch = f.Owner.AddComponent(launchType);
 #endif
-            var configuration = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 3, EnabledExpansionIds = new List<string> { "core" } };
+            var configuration = new GameRuleConfiguration { MapId = StaticMapDefinitions.FourPlayerMapId, PlayerCount = 3,
+                OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion, EnabledExpansionIds = new List<string> { "core" } };
             var values = new Dictionary<string, object> { { "Mode", LaunchMode.Host }, { "LocalPlayerId", 1 }, { "RoomId", "旧Pending隔离" }, { "GameId", "legacy.pending.recovery" },
                 { "EventDeckSeed", 321 }, { "InitialRandomState", GameplayRandomRuntime.Create("legacy.pending.recovery") }, { "RandomReady", true }, { "RuleConfiguration", configuration },
                 { "Players", Enumerable.Range(1, 3).Select(id => new PlayerSeat { PlayerId = id }).ToList() }, { "LaunchPlayerOrder", new List<int> { 1, 2, 3 } }, { "MapId", configuration.MapId } };

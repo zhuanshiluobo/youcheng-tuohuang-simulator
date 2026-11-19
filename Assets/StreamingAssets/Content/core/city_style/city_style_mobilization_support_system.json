@@ -107,7 +107,6 @@
           "usageTrackId": "usage.city_style_mobilization_support_system",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "city_style_mobilization_support_system"
         }

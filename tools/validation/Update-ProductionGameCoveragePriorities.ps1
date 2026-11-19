@@ -44,6 +44,24 @@ function Add-Expected([string]$Category,[string]$Id,[string]$Mode='') {
     $key=$Category+'|'+$Id+'|'+$Mode
     if ($Id -and -not $expectedKeys.ContainsKey($key)) {$expectedKeys[$key]=$true;$expected.Add([ordered]@{Category=$Category;DefinitionId=$Id;Mode=$Mode})}
 }
+function Get-EventChoiceCandidate([string]$DefinitionId,[string]$ChoiceId) {
+    if ([string]::IsNullOrWhiteSpace($DefinitionId) -or [string]::IsNullOrWhiteSpace($ChoiceId)) { throw '事件选择缺少稳定身份。' }
+    $stream=[IO.MemoryStream]::new()
+    try {
+        # StableIdFactory 的组件数不含协议前缀，整数为网络字节序。
+        $stream.Write([byte[]](0,0,0,3),0,4)
+        foreach ($part in @('nmc.stable-id.v1','event-choice',$DefinitionId,$ChoiceId)) {
+            $bytes=[Text.Encoding]::UTF8.GetBytes($part)
+            $stream.WriteByte(1)
+            [uint32]$length=$bytes.Length
+            $stream.Write([byte[]]@((($length -shr 24) -band 255),(($length -shr 16) -band 255),(($length -shr 8) -band 255),($length -band 255)),0,4)
+            $stream.Write($bytes,0,$bytes.Length)
+        }
+        $sha=[Security.Cryptography.SHA256]::Create()
+        try { return 'event-choice_'+[BitConverter]::ToString($sha.ComputeHash($stream.ToArray())).Replace('-','').ToLowerInvariant() }
+        finally { $sha.Dispose() }
+    } finally { $stream.Dispose() }
+}
 foreach ($definition in $catalog.definitions) {
     switch ($definition.ContentType) {
         'enterprise' {Add-Expected 'enterprise_selected' $definition.DefinitionId}
@@ -54,7 +72,7 @@ foreach ($definition in $catalog.definitions) {
         'facility' {if (-not $definition.Data.reserveOnly) {Add-Expected 'facility_built' $definition.DefinitionId}}
         'city_style' {Add-Expected 'city_style_declared' $definition.DefinitionId}
         'event' {Add-Expected 'event_resolved' $definition.DefinitionId
-            for ($option=0;$option -lt @($definition.Data.choiceDescriptions).Count;$option++) {Add-Expected 'event_option' $definition.DefinitionId ([string]$option)}
+            foreach ($choice in @($definition.Data.choices)) {Add-Expected 'event_option' $definition.DefinitionId ([string]$choice.choiceId)}
         }
         'department' {Add-Expected 'definition_effect' $definition.DefinitionId}
     }
@@ -69,8 +87,8 @@ $priorities=[ordered]@{
 }
 $eventPriorities=@($missing|Where-Object Category -EQ 'event_option'|ForEach-Object {
     $definition=$catalog.definitions|Where-Object DefinitionId -EQ $_.DefinitionId|Select-Object -First 1
-    # 正式EventCardOptionIdFactory.Create(cardId, optionIndex)的稳定合同；只生成目录内真实选项。
-    [string]$definition.RuntimeId+':option:'+([int]$_.Mode).ToString([Globalization.CultureInfo]::InvariantCulture)
+    # 使用最终定义身份和 choiceId，编码须与正式 EventCardOptionIdFactory 一致。
+    Get-EventChoiceCandidate ([string]$definition.DefinitionId) ([string]$_.Mode)
 })
 $candidatePriorities=@($eventPriorities + @($missing|Where-Object {$_.Category -in 'dispatch_character','facility_built','definition_effect'}|ForEach-Object DefinitionId)|Select-Object -Unique)
 $noProgress=@($runRows|Select-Object -Last 2|Where-Object NewCoverage -EQ 0).Count -eq 2

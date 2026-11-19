@@ -548,6 +548,7 @@ GameObject:
   - component: {fileID: 8050941456796434660}
   - component: {fileID: 8310048017869117138}
   - component: {fileID: 7451260000000000006}
+  - component: {fileID: 7777777777714}
   m_Layer: 5
   m_Name: Facility Card Template
   m_TagString: Untagged
@@ -722,6 +723,87 @@ MonoBehaviour:
   pointerInteraction: {fileID: 5634830830642908594}
   detailsButton: {fileID: 2106083455859421410}
   selectionImage: {fileID: 1722442953135348552}
+  selectionEffect: {fileID: 7777777777713}
+  selectionInput: {fileID: 7777777777714}
+--- !u!1 &7777777777710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7777777777711}
+  - component: {fileID: 7777777777712}
+  - component: {fileID: 7777777777713}
+  m_Layer: 5
+  m_Name: Selection FX Card Face
+  m_TagString: Untagged
+  m_IsActive: 0
+--- !u!224 &7777777777711
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7777777777710}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4000835939101205346}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!222 &7777777777712
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7777777777710}
+  m_CullTransparentMesh: 1
+--- !u!114 &7777777777713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7777777777710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6951ea095c54717a1e9178cf51739dd, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 0.6901961, b: 0.14901961, a: 1}
+  m_RaycastTarget: 0
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  state: 0
+  lineWidth: 2
+  cornerCut: 5
+  glowRadius: 9
+  reducedMotion: 0
+  selectedBadge: {fileID: 0}
+  unavailableBadge: {fileID: 0}
+--- !u!114 &7777777777714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1965632131201511046}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 107f6be398c6487d84b038efad25e533, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  effect: {fileID: 7777777777713}
 --- !u!114 &8310048017869117138
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2049,7 +2131,8 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7777777777711}
   m_Father: {fileID: 6012904627349877177}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2852,7 +2935,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 4314884ccfb8de54ab623cf8cbbaba6d, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

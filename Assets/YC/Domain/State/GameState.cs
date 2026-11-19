@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using YC.Domain.CityStyles;
 using YC.Domain.Rules;
 using YC.Domain.SpecialActions;
@@ -23,6 +24,11 @@ namespace YC.Domain.State
         public string ContentPackHash = string.Empty;
         public GameRuleConfiguration RuleConfiguration;
         public GameSetupRecipe SetupRecipe;
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public PreparationRuntimeState PreparationRuntime;
+        // 仅房主权威联机使用；客户端玩家视图不包含该账本。旧档不包含此字段。
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public PrivateCommandLedger PrivateCommandLedger;
         public EntrepreneurSetupState EntrepreneurSetup;
         public GameContentDefinitions ContentDefinitions;
         public GamePhase Phase = GamePhase.Setup;
@@ -302,6 +308,14 @@ namespace YC.Domain.State
     }
 
     [Serializable]
+    public sealed class MainActionBudgetBatch
+    {
+        public int Remaining;
+        // 空集合表示该批额度可用于所有主要行动。
+        public List<string> AllowedActionTypes = new List<string>();
+    }
+
+    [Serializable]
     public sealed class PlayerState
     {
         public int PlayerId;
@@ -340,6 +354,8 @@ namespace YC.Domain.State
         public bool ActedMainActionThisTurn;
         public int RemainingMainActionsThisTurn = 1;
         public int RestrictedMainActionsThisTurn;
+        // null 表示旧存档，按旧的总数与限制计数迁移。
+        public List<MainActionBudgetBatch> MainActionBudgetBatches;
         public int CompletedMainActionsThisTurn;
         public bool UsedCharacterThisRound;
         public bool UsedCharacterThisTurn;
@@ -380,7 +396,12 @@ namespace YC.Domain.State
         public int LegacyRemainingSpecialActionUses;
         [NonSerialized] private GameState itemZoneState;
         [NonSerialized] internal string ProjectedCurrentMarkerItemId;
-        public string GetCurrentMarkerItemId() => itemZoneState == null ? ProjectedCurrentMarkerItemId ?? InfluenceMarkerId : YC.Domain.Effects.UsageTracks.DeclarationMarker(itemZoneState, this)?.ItemId ?? "";
+        public string GetCurrentMarkerItemId()
+        {
+            if (itemZoneState == null) return ProjectedCurrentMarkerItemId ?? InfluenceMarkerId;
+            if (ProjectedCurrentMarkerItemId != null) return GetActualMarkerArea().Length == 0 ? "" : ProjectedCurrentMarkerItemId;
+            return YC.Domain.Effects.UsageTracks.DeclarationMarker(itemZoneState, this)?.ItemId ?? "";
+        }
         public string MarkerArea { get => itemZoneState == null ? LegacyMarkerArea : GetActualMarkerArea();
             set { if (itemZoneState != null) throw new InvalidOperationException("legacy_position_write_rejected: city_style_marker"); LegacyMarkerArea = value; } }
         public int RemainingSpecialActionUses { get => itemZoneState == null ? LegacyRemainingSpecialActionUses : MarkerArea == "2" || MarkerArea == "used_from_2" ? 2 : MarkerArea == "1" || MarkerArea == "unused" || MarkerArea == "used_from_1" ? 1 : 0;
@@ -395,8 +416,21 @@ namespace YC.Domain.State
                     if (declaration.CityStyleId != CityStyleId) continue;
                     if (ReferenceEquals(declaration, this))
                     {
+                        if (ProjectedCurrentMarkerItemId != null)
+                        {
+                            var projected = itemZoneState.ItemZones.Items.Find(i => i.ItemId == ProjectedCurrentMarkerItemId);
+                            var projectedZone = projected == null ? null : itemZoneState.ItemZones.Zones.Find(z => z.ZoneId == projected.ZoneId);
+                            if (projected?.TypeId != "core.player_marker" || projected.OwnerSubject?.Kind != YC.Domain.Items.ItemSubjectKind.Player ||
+                                projected.OwnerSubject.PlayerId != player.PlayerId || projectedZone?.ParentId != CityStyleItemId ||
+                                projectedZone.TemplateId != "core.zone.board_marker_track") return "";
+                            bool declarationArea = projectedZone.LocalZoneId == "declaration_" + player.PlayerId + "_" + index;
+                            var carrier = itemZoneState.ItemZones.Items.Find(item => item.ItemId == CityStyleItemId);
+                            bool usageArea = index == 0 && carrier != null && itemZoneState.ContentDefinitions?.UsageTracks?.Any(track =>
+                                track.DefinitionId == carrier.DefinitionId && YC.Domain.Items.PlayerMarkerTrackPolicy.IsUsageArea(projectedZone, CityStyleItemId, track, player.PlayerId)) == true;
+                            return declarationArea || usageArea ? projected.SlotId ?? "" : "";
+                        }
                         // 首次宣告的初始化实例是历史凭证；当前权限/次数读取同域的真实成员。
-                        var binding = index == 0 ? itemZoneState.EffectRuntime.UsageTrackBindings.SingleOrDefault(b =>
+                        var binding = index == 0 ? itemZoneState.EffectRuntime?.UsageTrackBindings?.SingleOrDefault(b =>
                             b.SourceItemId == CityStyleItemId && b.PlayerId == player.PlayerId) : null;
                         if (binding != null) return YC.Domain.Effects.UsageTracks.CurrentMarker(itemZoneState, binding)?.SlotId ?? "";
                         var marker = itemZoneState.ItemZones.Items.Find(i => i.ItemId == InfluenceMarkerId);
@@ -538,6 +572,11 @@ namespace YC.Domain.State
     [Serializable]
     public sealed class DeckRuntimeState
     {
+        // 仅玩家只读投影使用公开的事件牌堆数量，不公开未翻开的牌或顺序。
+        [NonSerialized, JsonIgnore] internal bool HasProjectedEventCounts;
+        [NonSerialized, JsonIgnore] internal int ProjectedEventGreenCount;
+        [NonSerialized, JsonIgnore] internal int ProjectedEventYellowCount;
+        [NonSerialized, JsonIgnore] internal int ProjectedEventRedCount;
         public LegacyPositionList<string> CharacterDeck = new LegacyPositionList<string>();
         public LegacyPositionList<string> CharacterDiscard = new LegacyPositionList<string>();
         public LegacyPositionList<string> EventDeckGreen = new LegacyPositionList<string>();

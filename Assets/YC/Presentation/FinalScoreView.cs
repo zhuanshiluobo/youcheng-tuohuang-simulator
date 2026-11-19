@@ -17,7 +17,6 @@ namespace YC.Presentation
         [SerializeField] private Text tiebreakText;
         [SerializeField] private Text finalScoreDetailsButtonLabel;
         [SerializeField] private Button finalScoreDetailsButton;
-        [SerializeField] private Button finalScoreDetailsBackButton;
         [SerializeField] private Button returnStartButton;
         [SerializeField] private RectTransform rankingRowsContainer;
         [SerializeField] private RectTransform detailPlayerRowsContainer;
@@ -39,7 +38,6 @@ namespace YC.Presentation
         public Text TiebreakText => tiebreakText;
         public Text FinalScoreDetailsButtonLabel => finalScoreDetailsButtonLabel;
         public Button FinalScoreDetailsButton => finalScoreDetailsButton;
-        public Button FinalScoreDetailsBackButton => finalScoreDetailsBackButton;
         public Button ReturnStartButton => returnStartButton;
         public RectTransform RankingRowsContainer => rankingRowsContainer;
         public RectTransform DetailPlayerRowsContainer => detailPlayerRowsContainer;
@@ -56,7 +54,7 @@ namespace YC.Presentation
                 finalScoreSummaryView == null || finalScoreDetailsView == null ||
                 finalScoreMessage == null || finalScoreMessageText == null || winnerText == null ||
                 tiebreakText == null || finalScoreDetailsButtonLabel == null ||
-                finalScoreDetailsButton == null || finalScoreDetailsBackButton == null || returnStartButton == null)
+                finalScoreDetailsButton == null || returnStartButton == null)
             {
                 reason = "游戏结束固定窗口引用不完整。";
                 return false;

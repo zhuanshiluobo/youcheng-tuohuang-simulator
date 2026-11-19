@@ -1399,7 +1399,7 @@ namespace YC.Presentation.Validation
                     shell.IsCardPicker;
             });
             if (selectionConfirm != null) { yield return Press(selectionConfirm, "当前原卡牌选择确认"); yield break; }
-            foreach (string prefix in new[] { "supply.select.", "selection.card.", "event.option." })
+            foreach (string prefix in new[] { "supply.select.", "selection.card.", "event.choice." })
             {
                 var marker = FindObjectsOfType<PlayerAutomationId>().Where(value => value.Id.StartsWith(prefix, StringComparison.Ordinal) &&
                     value.Id != "supply.select.confirm" && PerformanceReady(value.GetComponent<Button>()) && !performanceDraftClicks.Contains(key + value.Id))

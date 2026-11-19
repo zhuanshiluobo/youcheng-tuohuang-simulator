@@ -139,6 +139,7 @@ namespace YC.Tests.EditMode
                 setter.Invoke(null, new object[] { null }); host = new GameObject("HostRecoveryCollection"); var context = host.AddComponent(contextType);
                 const string gameId = "collection-recovery-match";
                 var config = suppliedConfiguration == null ? new GameRuleConfiguration { MapId = StaticMapDefinitions.ThreePlayerMapId, PlayerCount = 3,
+                    OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
                     EnabledExpansionIds = enterprise ? new List<string> { "core", "enterprise" } : new List<string> { "core" } }
                     : GameStateCloneService.DeepClone(suppliedConfiguration);
                 var order = Enumerable.Range(1, config.PlayerCount).ToArray();

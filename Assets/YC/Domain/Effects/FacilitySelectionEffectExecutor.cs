@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using YC.Domain.Facilities;
 using YC.Domain.State;
+using YC.Domain.Interactions;
 
 namespace YC.Domain.Effects
 {
@@ -118,7 +119,18 @@ namespace YC.Domain.Effects
         {
             if (!IsNormalBuildSelection(selection) || state?.ItemZones == null || string.IsNullOrEmpty(sourceZoneId) ||
                 Text(selection.NormalizedArguments,"expectedSourceZoneId").Length>0 && Text(selection.NormalizedArguments,"expectedSourceZoneId")!=sourceZoneId) return false;
-            if(requireCurrentSource && Flag(selection.NormalizedArguments,"consumeMainAction") && !new YC.Domain.Rules.MainActionBudgetService().ValidateCanSpend(state,selection.PlayerId).IsValid) return false;
+            if(requireCurrentSource && Flag(selection.NormalizedArguments,"consumeMainAction") && !new YC.Domain.Rules.MainActionBudgetService().ValidateCanSpend(state,selection.PlayerId,YC.Domain.Rules.MainActionBudgetService.Build).IsValid) return false;
+            if (FacilityBuildContract.IsExplicitAuto(selection.NormalizedArguments))
+            {
+                if (targetItemId != Text(selection.NormalizedArguments, "facilityId")) return false;
+                if (requireCurrentSource && Number(selection.NormalizedArguments, "cityBoardSlotIndex", -1) >= 0)
+                {
+                    if (registry == null) return false;
+                    try { registry.FacilityBuildQueries.RevalidateSlot(state,
+                        FacilityBuildJournal.DecodeSlot(Value(selection.ContinuationData, "explicitSlotObservation")), selection.EffectId); }
+                    catch (InvalidOperationException) { return false; }
+                }
+            }
             string requested = Text(selection.NormalizedArguments, "paymentMode", "auto");
             if (paymentMode != "resources" && paymentMode != "gold" || requested != "auto" && requested != paymentMode) return false;
             var item = state.ItemZones.Items.Find(i => i.ItemId == targetItemId);
@@ -201,6 +213,45 @@ namespace YC.Domain.Effects
 
         internal static EffectStepResult ExecuteBuildSelection(EffectExecutionContext c) => ExecuteEntity(c);
 
+        // 指定实例不重新调用选牌策略；只为付款页建立单张实例的真实来源证明。
+        private static string ResolveExplicitPayment(EffectExecutionContext c, out FacilityBuildCandidateSnapshot snapshot)
+        {
+            snapshot = null;
+            var args = c.Node.NormalizedArguments;
+            var item = c.State.ItemZones.Items.Find(i => i.ItemId == Text(args, "facilityId"));
+            if (!FacilityLayerQuery.IsFacility(item)) return "facility_instance_required";
+            if (Text(args, "expectedSourceZoneId").Length > 0 && item.ZoneId != Text(args, "expectedSourceZoneId")) return "source_zone_changed";
+            var definition = FacilityCardDatabase.Get(c.State, item.DefinitionId);
+            if (definition == null || !WithinCost(c, item)) return "facility_cost_above_limit";
+            FacilityBuildSourceAuthorization authorization;
+            try { authorization = c.Registry.FacilityBuildQueries.AuthorizeSource(c.State, c.Node.PlayerId, item.ItemId,
+                FacilityBuildContract.SourceKind(c.Node), c.Node.EffectId, Text(args, "sourceKey")); }
+            catch (InvalidOperationException e) when (e.Message == "invalid_build_source") { return "invalid_build_source"; }
+            var built = c.Registry.FacilityBuildQueries.ResolveBuiltFacts(c.State, c.Node.PlayerId, c.Node.EffectId);
+            var slots = c.Registry.FacilityBuildQueries.ResolveSlots(c.State, c.Node.PlayerId, item.ItemId, c.Node.EffectId);
+            int slot = Number(args, "cityBoardSlotIndex", -1);
+            if (FacilityCardDatabase.PlayerHasBuiltUniqueFacilityForInstances(c.State, c.State.FindPlayer(c.Node.PlayerId), definition, built.ItemIds) ||
+                slots.Count == 0 || slot >= 0 && !slots.Any(s => s.SlotIndex == slot)) return "invalid_build_slot";
+            if (slot >= 0) Set(c.Node, "explicitSlotObservation", FacilityBuildJournal.EncodeSlot(slots.Single(s => s.SlotIndex == slot)));
+            var cost = new FacilityBuildCostService().GetEffectiveResourceCostForInstances(c.State, c.State.FindPlayer(c.Node.PlayerId), definition, built.ItemIds);
+            var preview = new EffectNodeRuntimeState { EffectId = StableIdFactory.Create("build-payment-preview", c.Node.EffectId),
+                ParentEffectId = c.Node.EffectId, EffectTypeId = FacilityBuildEffectExecutor.PaymentTypeId, PlayerId = c.Node.PlayerId };
+            bool resources = c.Registry.HasAbilityCatalog ? ResourcePaymentCostPreview.CanPay(c.State, c.Registry, preview, cost) :
+                ResourceEffectExecutor.CanPayWithStoredMarkers(c.State, c.Node.PlayerId, cost);
+            if (!resources && c.State.FindPlayer(c.Node.PlayerId).Resources.GoldVoucher < definition.GoldVoucherCost) return "insufficient_resources";
+            var ids = new List<string> { item.ItemId };
+            var draft = new CandidateSetDraft { CandidateSetId = StableIdFactory.Create("explicit-build-payment", c.State.GameId,
+                c.Node.EffectId, c.State.EffectRuntime.StateRevision.ToString(CultureInfo.InvariantCulture)), Version = 1,
+                CandidateKind = FacilityBuildCandidateQuery.CandidateKind, SourceEffectId = c.Node.EffectId, ExecutingPlayerId = c.Node.PlayerId,
+                CandidatePoolIds = ids, DefaultCandidateIds = new List<string>(ids), CurrentIds = new List<string>(ids),
+                Context = Object("sourceZone", NormalizedValue.CreateString(FacilityBuildContract.SourceKind(c.Node))) };
+            var resolved = new CandidateSetResolver().Resolve(c.State, draft, new CandidatePolicyRegistry(), c.State.EffectRuntime.StateRevision + 1);
+            if (!resolved.Succeeded) throw new InvalidOperationException(resolved.FaultCode + ":" + resolved.Diagnostic);
+            snapshot = new FacilityBuildCandidateSnapshot(resolved.Record, new[] { new FacilityBuildCandidate(item,
+                c.State.ItemZones.Zones.Single(z => z.ZoneId == item.ZoneId), authorization) }, false);
+            return "";
+        }
+
         private static EffectStepResult ExecuteEntity(EffectExecutionContext c)
         {
             var rainbow = Value(c.Node.NormalizedArguments, "excludeRainbow");
@@ -213,7 +264,7 @@ namespace YC.Domain.Effects
             string source = FacilityBuildContract.SourceKind(c.Node);
             if (source != "supply" && source != "deck" && source != "reserve" && source != "authorized") return EffectStepResult.Failed("unsupported_build_source");
             if (source == "authorized" && Text(c.Node.NormalizedArguments, "sourceKey").Length == 0) return EffectStepResult.Failed("facility_source_authorization_required");
-            if(c.Node.FlowStage.Length==0 && Flag(c.Node.NormalizedArguments,"consumeMainAction") && !new YC.Domain.Rules.MainActionBudgetService().ValidateCanSpend(c.State,c.Node.PlayerId).IsValid) return EffectStepResult.Failed("main_action_budget_unavailable");
+            if(c.Node.FlowStage.Length==0 && Flag(c.Node.NormalizedArguments,"consumeMainAction") && !new YC.Domain.Rules.MainActionBudgetService().ValidateCanSpend(c.State,c.Node.PlayerId,YC.Domain.Rules.MainActionBudgetService.Build).IsValid) return EffectStepResult.Failed("main_action_budget_unavailable");
             c.Registry.FacilityBuildCandidates.UseQueries(c.Registry.FacilityBuildQueries);
             bool free = source == "reserve" || Text(c.Node.NormalizedArguments, "paymentMode") == "free";
             if (c.Node.FlowStage == "built")
@@ -236,7 +287,13 @@ namespace YC.Domain.Effects
                     if (previous != null && previous.Kind != NormalizedValueKind.Null) return EffectStepResult.Failed("effect_build_requires_preparation");
                 }
                 if (c.Node.FlowStage.Length != 0 && c.Node.FlowStage != "deck_select") return EffectStepResult.Failed("effect_build_stage_invalid");
-                var scope = c.Registry.FacilityBuildCandidates.Resolve(c.State, c.Node.PlayerId,
+                FacilityBuildCandidateSnapshot scope;
+                if (FacilityBuildContract.IsExplicitAuto(c.Node.NormalizedArguments))
+                {
+                    string invalid = ResolveExplicitPayment(c, out scope);
+                    if (invalid.Length > 0) return EffectStepResult.Failed(invalid);
+                }
+                else scope = c.Registry.FacilityBuildCandidates.Resolve(c.State, c.Node.PlayerId,
                     new FacilityBuildCandidateOptions { SourceZone = source, SourceKey = Text(c.Node.NormalizedArguments, "sourceKey"), ExpectedSourceZoneId=Text(c.Node.NormalizedArguments,"expectedSourceZoneId"), IncludeStoredFacilities = source == "supply" && (includeStored == null || Flag(c.Node.NormalizedArguments, "includeStoredFacilities")),
                         EffectId = Text(c.Node.NormalizedArguments, "effectId"), ExcludeRainbow = Flag(c.Node.NormalizedArguments, "excludeRainbow"),
                         MaxGoldVoucherCost = Value(c.Node.NormalizedArguments, "maxGoldVoucherCost") == null ? (int?)null : Number(c.Node.NormalizedArguments, "maxGoldVoucherCost") },
@@ -249,7 +306,8 @@ namespace YC.Domain.Effects
                     AllowDecline = Flag(c.Node.NormalizedArguments, "allowDecline"), CandidateSetId = record.CandidateSetId,
                     CandidateResolutionId = record.CandidateSetId, CandidateSetVersion = record.Version,
                     PromptParameters = Object("sourceZone", NormalizedValue.CreateString(source),
-                        "expectedSourceZoneId", NormalizedValue.CreateString(source == "deck" ? FindZone(c.State, "facility_deck").ZoneId : ""),
+                        "expectedSourceZoneId", NormalizedValue.CreateString(FacilityBuildContract.IsExplicitAuto(c.Node.NormalizedArguments)
+                            ? scope.Candidates.Single().SourceZoneId : source == "deck" ? FindZone(c.State, "facility_deck").ZoneId : ""),
                         "candidateDefinitionIds", Strings(scope.Candidates.Select(candidate => candidate.DefinitionId)),
                         "isDefaultSupplySet", NormalizedValue.CreateBoolean(scope.IsDefaultSupplySet)) };
                 request.CandidateIds.AddRange(record.FinalCandidateIds); c.State.EffectRuntime.CandidateResolutions.Add(record);

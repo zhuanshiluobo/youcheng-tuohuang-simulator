@@ -103,11 +103,6 @@ namespace YC.Application.Setup
                     out expectedRevision) || expectedRevision < 0))
                 return Invalid(CommandErrorCode.InvalidTarget, "入场命令缺少有效的 expectedRevision。");
             string candidate = command.OptionIds.Count > 0 ? command.OptionIds[0] : command.TargetId;
-            if (command.Kind == GameCommandKind.ResolveEntranceEvent && int.TryParse(candidate, out int index))
-            {
-                if (index < 0 || index >= request.CandidateIds.Count) return Invalid(CommandErrorCode.InvalidTarget, "事件牌选项无效。");
-                candidate = request.CandidateIds[index];
-            }
             var answer = new GameCommand { Kind = GameCommandKind.AnswerInteraction, PlayerId = command.PlayerId, CommandId = command.CommandId };
             answer.Parameters[AnswerInteractionCommandHandler.InteractionIdParameter] = request.InteractionId;
             answer.Parameters[AnswerInteractionCommandHandler.ExpectedRevisionParameter] = expectedRevision.ToString(CultureInfo.InvariantCulture);

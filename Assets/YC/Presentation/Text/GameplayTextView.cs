@@ -50,6 +50,7 @@ namespace YC.Presentation
         private bool legacySuspended, legacyWasEnabled;
         private readonly List<LegacyVisual> legacyVisuals = new List<LegacyVisual>();
         public event Action<string> Diagnostic;
+        public event Action<Text, GameplayTextRunStyle> TextFragmentRendered;
         internal event Action LayoutInputChanged;
         public int BindCount { get; private set; }
         public int LayoutCount { get; private set; }
@@ -498,6 +499,7 @@ namespace YC.Presentation
                 {
                     var text = GetText(textCount++); text.gameObject.SetActive(true);
                     SetText(text, fragment.Text, group.Font, size, group.Color);
+                    TextFragmentRendered?.Invoke(text, group.Style);
                     var metric = Measure(fragment.Text, group.Font, size);
                     float baseline = y + fragment.Ascent;
                     Place(text.rectTransform, x, GameplayTextLayout.TextTopForBaseline(baseline, metric.BaselineFromTop), fragment.Width + .1f, fragment.Height);

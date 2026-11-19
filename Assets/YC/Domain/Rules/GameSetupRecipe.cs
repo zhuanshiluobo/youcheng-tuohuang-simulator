@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using YC.Domain.Cards;
 using YC.Domain.CityStyles;
 using YC.Domain.Facilities;
@@ -65,6 +66,8 @@ namespace YC.Domain.Rules
         public int Quantity;
         public bool PerPlayer;
         public string InitialZoneRole = string.Empty;
+        // 空列表表示所有正式地图；限制随配方槽位生效，替换定义不改变地图适用范围。
+        public List<string> ApplicableMapIds = new List<string>();
         public SetupRecipeCondition Condition = new SetupRecipeCondition();
     }
 
@@ -75,6 +78,9 @@ namespace YC.Domain.Rules
         public int SchemaVersion = 1;
         public string RecipeId = "standard";
         public List<string> ApplicableModes = new List<string>();
+        public List<string> RequiredMechanisms = new List<string>();
+        // 已装配机制随对局冻结，恢复与规则调用不依赖玩法 ID 的命名。
+        public List<string> Mechanisms = new List<string>();
         public List<string> RequiredCapabilities = new List<string>();
         public int InitialBasicCharacterCount = 5;
         public int BasicCharacterKeepCount = 5;
@@ -83,14 +89,23 @@ namespace YC.Domain.Rules
         public int CityStyleLevelTwoDrawCount = 2;
         public bool EnterpriseEntrance;
         public int OperatorDrawCount = 2;
+        // 旧合同保持 null 且不进入 JSON／活动指纹；新准备计划只由模式装配。
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public PreparationFlowPlan Preparation;
         public List<SetupRecipeEntry> Entries = new List<SetupRecipeEntry>();
         public List<ItemCardZoneDeclaration> CardZoneDeclarations = new List<ItemCardZoneDeclaration>();
 
         public void Validate()
         {
-            if (SchemaVersion != 1 || InitialBasicCharacterCount < BasicCharacterKeepCount || BasicCharacterKeepCount != 5 ||
+            Preparation?.Validate();
+            if (OperatorDrawCount < 1 || OperatorDrawCount > YC.Domain.Cards.OperatorDispatchFlow.MaximumDrawCount || SchemaVersion != 1 || Mechanisms == null || Mechanisms.Any(string.IsNullOrWhiteSpace) ||
+                Mechanisms.Distinct(StringComparer.Ordinal).Count() != Mechanisms.Count || RequiredMechanisms == null ||
+                RequiredMechanisms.Any(string.IsNullOrWhiteSpace) || RequiredMechanisms.Distinct(StringComparer.Ordinal).Count() != RequiredMechanisms.Count ||
+                InitialBasicCharacterCount < BasicCharacterKeepCount || BasicCharacterKeepCount != 5 ||
                 MaxRetainedBasicCharacterCount != 5 || Entries == null || Entries.Any(e => e == null || string.IsNullOrWhiteSpace(e.EntryId) ||
                 string.IsNullOrWhiteSpace(e.DefinitionId) || string.IsNullOrWhiteSpace(e.InitialZoneRole) || e.Quantity <= 0 || e.Condition == null ||
+                e.ApplicableMapIds == null || e.ApplicableMapIds.Any(id => id != StaticMapDefinitions.ThreePlayerMapId && id != StaticMapDefinitions.FourPlayerMapId) ||
+                e.ApplicableMapIds.Distinct(StringComparer.Ordinal).Count() != e.ApplicableMapIds.Count ||
                 e.Condition.Kind == "enterprise_selected" && string.IsNullOrWhiteSpace(e.Condition.RuntimeId) || (e.Condition.Kind == "ability_granted" || e.Condition.Kind == "entrepreneur_selected") && string.IsNullOrWhiteSpace(e.Condition.AbilityId) ||
                 !new[] { "always", "enterprise_selected", "ability_granted", "entrepreneur_selected" }.Contains(e.Condition.Kind)) ||
                 Entries.Select(e => e.EntryId).Distinct(StringComparer.Ordinal).Count() != Entries.Count)
@@ -126,10 +141,22 @@ namespace YC.Domain.Rules
             foreach (int level in new[] { 1, 2 })
             {
                 var candidates = styles.Where(i => CityStyleDatabase.Get(state, i.DefinitionId).Level == level).ToList();
-                GameplayRandomRuntime.Shuffle(candidates, state, GameplayRandomRuntime.SetupStyles);
-                int count = level == 1 ? CityStyleLevelOneDrawCount : CityStyleLevelTwoDrawCount;
-                if (candidates.Count < count) throw new InvalidOperationException("content_not_ready");
-                foreach (var item in candidates.Skip(count)) ItemZoneStateMigrator.SetPosition(state, item, ItemZoneStateFactory.Zone(state, "reserve").ZoneId);
+                var policy = level == 1 ? Preparation?.CityStyles?.LevelOne : Preparation?.CityStyles?.LevelTwo;
+                if (policy == null)
+                {
+                    GameplayRandomRuntime.Shuffle(candidates, state, GameplayRandomRuntime.SetupStyles);
+                    int count = level == 1 ? CityStyleLevelOneDrawCount : CityStyleLevelTwoDrawCount;
+                    if (candidates.Count < count) throw new InvalidOperationException("content_not_ready");
+                    foreach (var item in candidates.Skip(count)) ItemZoneStateMigrator.SetPosition(state, item, ItemZoneStateFactory.Zone(state, "reserve").ZoneId);
+                }
+                else
+                {
+                    var selected = PreparationPoolResolver.Resolve(policy, candidates, item => item.DefinitionId,
+                        items => GameplayRandomRuntime.Shuffle(items, state, GameplayRandomRuntime.SetupStyles), "city_style_level_" + level);
+                    var selectedIds = new HashSet<string>(selected.Select(item => item.ItemId), StringComparer.Ordinal);
+                    foreach (var item in candidates.Where(item => !selectedIds.Contains(item.ItemId)))
+                        ItemZoneStateMigrator.SetPosition(state, item, ItemZoneStateFactory.Zone(state, "reserve").ZoneId);
+                }
             }
             var deck = ItemZoneStateFactory.Zone(state, "facility_deck");
             var deckOrder = state.ItemZones.Orders.Single(o => o.ZoneId == deck.ZoneId);

@@ -110,8 +110,11 @@ $results=@()
 for($game=1;$game -le $Games;$game++){
     if((Processes).Count){throw '当前有效隔离上限为1，保留已有进程。'}
     $case=Join-Path $run ('full-game-局'+$game);New-Item -ItemType Directory -Path $case | Out-Null
+    $fixtureSave=Join-Path $case '隔离存档';$fixtureContent=Join-Path $case '隔离用户内容'
+    New-Item -ItemType Directory -Path $fixtureSave,$fixtureContent | Out-Null
     $arguments=@('-screen-fullscreen','0','-screen-width','1280','-screen-height','720','-logFile',(Join-Path $case 'Player.log'),
         ('--yc-hotseat-ui-validation-output='+$case),'--yc-hotseat-ui-validation-case=full-game',
+        ('--yc-performance-save-root='+$fixtureSave),('--yc-test-content-root='+$fixtureContent),
         ('--yc-ui-campaign-path='+(Join-Path $stage '整局覆盖进度.json')),('--yc-campaign-expansions='+$CampaignExpansions),
         ('--yc-campaign-requested-priorities='+($PriorityKeys -join ';')),
         ('--yc-amiya-original-viewer='+$saved.AmiyaOriginalViewer.ToString().ToLowerInvariant()))

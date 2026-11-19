@@ -38,6 +38,52 @@ namespace YC.Tests.EditMode
             Assert.That(state.EffectRuntime.LastFaultCode, Is.EqualTo(EffectFaultCodes.StepLimitExceeded));
         }
 
+        [Test]
+        public void CompletedEventHistoryPastTheOldLimitDoesNotBlockANewEvent()
+        {
+            // 仅隔离容量边界：预置历史事件，不作为正常完整对局验收。
+            var state = NewState("isolated.event-history");
+            var registry = new EffectRegistry();
+            registry.Register("test.finished", _ => EffectStepResult.Completed());
+            registry.Register("test.new-event", _ => EffectStepResult.Completed().AddEvent(new EffectEventRequest {
+                EventType = "fresh-event", SemanticKey = "fresh" }));
+            var executor = new EffectTreeExecutor(state, registry);
+            string source = executor.CreateRoot(EffectSpec.Create("test.finished"));
+            Assert.That(executor.RunUntilQuiescent().Faulted, Is.False);
+            for (int i = state.EffectRuntime.RuleEvents.Count; i < 4096; i++)
+                state.EffectRuntime.RuleEvents.Add(new RuleEvent { EventId = "historical-event-" + i,
+                    EventType = "historical", SourceEffectId = source, OwnerNodeId = source });
+            string next = executor.CreateRoot(EffectSpec.Create("test.new-event"));
+            var run = executor.RunUntilQuiescent();
+            Assert.That(run.Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(executor.GetNode(next).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.EffectRuntime.RuleEvents.Count, Is.GreaterThan(4096));
+            Assert.That(state.EffectRuntime.RuleEvents.Exists(e => e.EventType == "fresh-event"), Is.True);
+        }
+
+        [Test]
+        public void CompletedDispatchHistoryPastTheOldLimitDoesNotBlockANewDispatch()
+        {
+            // 仅隔离容量边界：预置历史分发记录，不作为正常完整对局验收。
+            var state = NewState("isolated.dispatch-history");
+            var registry = new EffectRegistry();
+            registry.Register("test.new-event", _ => EffectStepResult.Completed().AddEvent(new EffectEventRequest {
+                EventType = "fresh-event", SemanticKey = "fresh" }));
+            registry.RegisterEventHandler(new EffectEventHandlerRegistration(
+                "fresh-subscription", "fresh-event", "*", "fresh-handler", _ => new List<EffectSpec>(),
+                EffectHandlerRole.Observer, 0, "test.content", "test.ability"));
+            for (int i = 0; i < 16384; i++)
+                state.EffectRuntime.DispatchReceipts.Add(new DispatchReceipt {
+                    EventId = "historical-event-" + i, SubscriptionId = "historical-subscription" });
+            var executor = new EffectTreeExecutor(state, registry);
+            string next = executor.CreateRoot(EffectSpec.Create("test.new-event"));
+            var run = executor.RunUntilQuiescent();
+            Assert.That(run.Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(executor.GetNode(next).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.EffectRuntime.DispatchReceipts.Count, Is.GreaterThan(16384));
+            Assert.That(state.EffectRuntime.DispatchReceipts.Exists(r => r.SubscriptionId == "fresh-subscription"), Is.True);
+        }
+
         [TestCase(EffectNodeStatus.Completed)]
         [TestCase(EffectNodeStatus.Failed)]
         public void ParentChildOutcomeMatrix_DoesNotPropagateBusinessFailure(

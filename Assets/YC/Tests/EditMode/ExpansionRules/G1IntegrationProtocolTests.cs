@@ -36,7 +36,8 @@ namespace YC.Tests.EditMode.ExpansionRules
         private ActiveContentCatalog Start(string mode, string expansions, int players = 2, bool entrance = true)
         {
             var config = new GameRuleConfiguration { PlayerCount = players, MapId = StaticMapDefinitions.ThreePlayerMapId,
-                RuleModeId = mode, EnabledExpansionIds = expansions.Split(',').ToList() };
+                RuleModeId = mode, OfficialPreparationContract = GameRuleConfiguration.OfficialPreparationVersion,
+                EnabledExpansionIds = expansions.Split(',').ToList() };
             var catalog = ActiveContentCatalogBuilder.Build(pack, config);
             config.ContentPackHash = catalog.ContentPackHash;
             registry = new EffectRegistry(); catalog.Register(registry);

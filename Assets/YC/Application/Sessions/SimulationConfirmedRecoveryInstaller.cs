@@ -89,6 +89,11 @@ namespace YC.Application.Sessions
         public static SimulationRecoveryBaselineDto ReadBaseline(string json)
         {
             var root = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            return ReadBaselineFromParsedCheckpoint(root);
+        }
+
+        internal static SimulationRecoveryBaselineDto ReadBaselineFromParsedCheckpoint(JObject root)
+        {
             if (root.Count != 3 || !(root["Baseline"] is JObject) || root["Archive"] == null || root["Continuation"] == null)
                 throw new ArgumentException("recovery_package_incomplete");
             return root["Baseline"].ToObject<SimulationRecoveryBaselineDto>(JsonSerializer.Create(Settings));

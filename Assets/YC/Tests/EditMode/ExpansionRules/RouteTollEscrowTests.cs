@@ -413,6 +413,72 @@ namespace YC.Tests.EditMode.ExpansionRules
         }
 
         [Test]
+        public void EventPaymentAndTargetSurviveJsonRecoveryWithoutPayingOrDrawingTwice()
+        {
+            // 隔离规则夹具只为定位固定牌序；不计作正常对局或画面验收。
+            var scenario = Production();
+            var state = scenario.State;
+            state.FindPlayer(1).Resources.GoldVoucher = 8;
+            var deck = ItemTransferEffectExecutor.FindZone(state, "event_yellow");
+            var order = state.ItemZones.Orders.Single(value => value.ZoneId == deck.ZoneId);
+            var card = state.ItemZones.Items.Single(value => value.ZoneId == deck.ZoneId && value.DefinitionId == "event_yellow_04");
+            Assert.That(order.ItemIds.Remove(card.ItemId), Is.True);
+            order.ItemIds.Insert(0, card.ItemId);
+            order.OrderRevision++;
+            int deckBefore = state.Decks.EventDeckYellow.Count;
+            string primary = InfluenceService.GetLocationSlotId("A-01", 0);
+            var engine = new EffectTreeExecutor(state, scenario.Registry);
+            string eventId = engine.CreateRoot(EventCardEffectSpecFactory.Resolve(1, EventColor.Yellow, "A-01", primary));
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            var request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            string choice = EventCardOptionIdFactory.CreateChoice("event_yellow_04", "choice_01");
+            Assert.That(request.CandidateIds, Does.Contain(choice));
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision,
+                NormalizedValue.CreateString(choice), out string reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo("action.decline_effect"));
+            Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), 1, request.StateRevision,
+                NormalizedValue.CreateString("continue"), out reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            Assert.That(request.InteractionTypeId, Is.EqualTo("effect.influence.place.target"));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
+            Assert.That(state.Map.Influences.Count, Is.EqualTo(1), "等待付费放置目标时只应存在基础影响力。");
+            string requestId = request.GetStableInteractionId();
+            var candidates = request.CandidateIds.ToArray();
+
+            string archive = HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            var newRegistry = Production().Registry;
+            var recovered = HostRecoveryService.RecoverJson(archive, newRegistry);
+            Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
+            state = recovered.State;
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
+            Assert.That(state.Decks.EventDeckYellow.Count, Is.EqualTo(deckBefore - 1));
+            request = state.EffectRuntime.InteractionRequests.Single(value => value.Status == "open");
+            Assert.That(request.GetStableInteractionId(), Is.EqualTo(requestId));
+            Assert.That(request.CandidateIds, Is.EqualTo(candidates));
+            engine = new EffectTreeExecutor(state, newRegistry);
+            Assert.That(engine.TrySubmitInteraction(requestId, 1, request.StateRevision,
+                NormalizedValue.CreateString(candidates[0]), out reason), Is.True, reason);
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(engine.GetNode(eventId).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(state.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
+            int placements = state.Map.Influences.Count;
+            Assert.That(placements, Is.EqualTo(2), "基础影响力与付费收益应各结算一次。");
+            Assert.That(state.EffectRuntime.InteractionRequests.Any(value => value.Status == "open"), Is.False);
+            int events = state.EffectRuntime.RuleEvents.Count;
+
+            recovered = HostRecoveryService.RecoverJson(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)), newRegistry);
+            Assert.That(recovered.Succeeded, Is.True, recovered.Diagnostic);
+            Assert.That(new EffectTreeExecutor(recovered.State, newRegistry).RunUntilQuiescent().Faulted, Is.False);
+            Assert.That(recovered.State.FindPlayer(1).Resources.GoldVoucher, Is.EqualTo(4));
+            Assert.That(recovered.State.Decks.EventDeckYellow.Count, Is.EqualTo(deckBefore - 1));
+            Assert.That(recovered.State.Map.Influences.Count, Is.EqualTo(placements));
+            Assert.That(recovered.State.EffectRuntime.RuleEvents.Count, Is.EqualTo(events));
+        }
+
+        [Test]
         public void LegacyAlreadyPrepaidExplorationDoesNotAcquireANewEscrowOrTailPayment()
         {
             var scenario = Production(); var state = scenario.State;

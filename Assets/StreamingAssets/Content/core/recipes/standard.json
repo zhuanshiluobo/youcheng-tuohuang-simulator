@@ -779,6 +779,7 @@
       "quantity": 1,
       "perPlayer": false,
       "definitionId": "event_green_06",
+      "applicableMapIds": ["map-four-players"],
       "initialZoneRole": "event_green",
       "condition": {
         "abilityId": "",
@@ -839,6 +840,7 @@
       "quantity": 1,
       "perPlayer": false,
       "definitionId": "event_red_05",
+      "applicableMapIds": ["map-four-players"],
       "initialZoneRole": "event_red",
       "condition": {
         "abilityId": "",
@@ -911,6 +913,7 @@
       "quantity": 1,
       "perPlayer": false,
       "definitionId": "event_yellow_05",
+      "applicableMapIds": ["map-four-players"],
       "initialZoneRole": "event_yellow",
       "condition": {
         "abilityId": "",
@@ -947,6 +950,7 @@
       "quantity": 1,
       "perPlayer": false,
       "definitionId": "event_yellow_08",
+      "applicableMapIds": ["map-four-players"],
       "initialZoneRole": "event_yellow",
       "condition": {
         "abilityId": "",

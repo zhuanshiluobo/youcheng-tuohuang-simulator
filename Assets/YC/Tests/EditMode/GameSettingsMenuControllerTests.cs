@@ -150,6 +150,28 @@ namespace YC.Tests.EditMode
         }
 
         [Test]
+        public void InGameConnectionPageHasBoundStatusAndSafeLocalReconnectControl()
+        {
+            if (prefabPath != ViewerPrefabTestUtility.InGameSettingsPrefabPath) return;
+            var page = FindNamed("占位 Content");
+            var type = Type.GetType("YC.Presentation.GameConnectionStatusView, Assembly-CSharp", true);
+            var status = page.GetComponent(type);
+            Assert.That(status, Is.Not.Null);
+            var serialized = new SerializedObject(status);
+            var list = serialized.FindProperty("playerStatuses").objectReferenceValue as Text;
+            var hint = serialized.FindProperty("reconnectHint").objectReferenceValue as Text;
+            var reconnect = serialized.FindProperty("reconnectButton").objectReferenceValue as Button;
+            Assert.That(list, Is.Not.Null); Assert.That(hint, Is.Not.Null); Assert.That(reconnect, Is.Not.Null);
+            Assert.That(list.transform.IsChildOf(page), Is.True);
+            Assert.That(hint.transform.IsChildOf(page), Is.True);
+            Assert.That(reconnect.transform.IsChildOf(page), Is.True);
+            FindNamed("占位 Button").GetComponent<Button>().onClick.Invoke();
+            status.GetType().GetMethod("Refresh").Invoke(status, null);
+            Assert.That(reconnect.interactable, Is.False, "没有活动联机会话时不能发起重连。");
+            Assert.That(list.text, Is.Not.Empty);
+        }
+
+        [Test]
         public void HandleEscapePressed_WhileImageViewerIsOpen_DoesNotOpenSettings()
         {
             var viewerType = Type.GetType("YC.Presentation.ZoomableImageViewerController, Assembly-CSharp", false);

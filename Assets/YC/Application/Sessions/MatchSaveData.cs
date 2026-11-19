@@ -24,17 +24,65 @@ namespace YC.Application.Sessions
     [Serializable]
     public sealed class MatchSaveData
     {
-        /// <summary>一次保存准备内复用同一不可变归档文本的解析树；各次语义校验仍完整执行。</summary>
+        /// <summary>一次操作内复用不可变归档解析；仅显式启用的读档流程复用未变化数据的校验结果。</summary>
         public sealed class ValidationScope : IDisposable
         {
             private readonly object gate = new object();
             private string archiveJson;
             private JObject archive;
             private bool archiveIsLocalProjection;
+            private string checkpointJson;
+            private JObject checkpoint;
+            private readonly bool reuseUnchangedValidation;
+            private ValidatedHeader validated;
             private bool disposed;
             private IMatchSaveTrace trace;
             public ValidationScope() { }
             public ValidationScope(IMatchSaveTrace trace) { this.trace = trace; }
+            public ValidationScope(bool reuseUnchangedValidation) { this.reuseUnchangedValidation = reuseUnchangedValidation; }
+            public ValidationScope(bool reuseUnchangedValidation, IMatchSaveTrace trace)
+            { this.reuseUnchangedValidation = reuseUnchangedValidation; this.trace = trace; }
+
+            // 存档头和席位可变，完整复制其值；大 JSON 是不可变字符串，按引用识别。
+            private sealed class ValidatedHeader
+            {
+                private readonly MatchSaveData source;
+                private readonly string format, map, game, content, archive, continuation, checkpoint, privateCheckpoint;
+                private readonly int version, local, round;
+                private readonly long ticks;
+                private readonly LaunchMode mode;
+                private readonly bool localNetwork;
+                private readonly ulong host;
+                private readonly MatchSaveSeat[] seats;
+                public ValidatedHeader(MatchSaveData data)
+                {
+                    source = data; format = data.Format; version = data.Version; ticks = data.SavedUtcTicks;
+                    mode = data.Mode; localNetwork = data.LocalTestNetwork; local = data.LocalPlayerId; host = data.HostSteamId;
+                    map = data.MapId; game = data.GameId; round = data.Round; content = data.ContentHash;
+                    archive = data.ArchiveJson; continuation = data.ContinuationJson; checkpoint = data.SimulationCheckpointJson;
+                    privateCheckpoint = data.PrivateCheckpointJson;
+                    seats = data.Seats?.Select(s => s == null ? null : new MatchSaveSeat { PlayerId = s.PlayerId,
+                        SteamId = s.SteamId, OperatorId = s.OperatorId, PlayerName = s.PlayerName, Color = s.Color }).ToArray();
+                }
+                public bool Matches(MatchSaveData data)
+                {
+                    if (!ReferenceEquals(source, data) || format != data.Format || version != data.Version || ticks != data.SavedUtcTicks ||
+                        mode != data.Mode || localNetwork != data.LocalTestNetwork || local != data.LocalPlayerId || host != data.HostSteamId ||
+                        map != data.MapId || game != data.GameId || round != data.Round || content != data.ContentHash ||
+                        !ReferenceEquals(archive, data.ArchiveJson) || !ReferenceEquals(continuation, data.ContinuationJson) ||
+                        !ReferenceEquals(checkpoint, data.SimulationCheckpointJson) || !ReferenceEquals(privateCheckpoint, data.PrivateCheckpointJson) ||
+                        seats == null || data.Seats == null || seats.Length != data.Seats.Count)
+                        return false;
+                    for (int i = 0; i < seats.Length; i++)
+                    {
+                        var a = seats[i]; var b = data.Seats[i];
+                        if (a == null || b == null) { if (!ReferenceEquals(a, b)) return false; continue; }
+                        if (a.PlayerId != b.PlayerId || a.SteamId != b.SteamId || a.OperatorId != b.OperatorId ||
+                            a.PlayerName != b.PlayerName || a.Color != b.Color) return false;
+                    }
+                    return true;
+                }
+            }
             internal MatchSaveTraceScope BeginStage(string stage) => MatchSaveTraceScope.Begin(trace, stage);
             internal void Point(string stage) => MatchSaveTraceScope.Point(trace, stage);
             internal void Source(int revision) => MatchSaveTraceScope.Source(trace, revision);
@@ -47,6 +95,15 @@ namespace YC.Application.Sessions
                 }
                 return archive;
             }
+            internal JObject ReadCheckpoint(string json)
+            {
+                if (!ReferenceEquals(checkpointJson, json))
+                {
+                    checkpoint = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                    checkpointJson = json;
+                }
+                return checkpoint;
+            }
             public void Validate(MatchSaveData data)
             {
                 if (data == null) throw new ArgumentNullException(nameof(data));
@@ -54,12 +111,27 @@ namespace YC.Application.Sessions
                 {
                     if (disposed) throw new ObjectDisposedException(nameof(ValidationScope));
                     using var marker = BeginStage("save.validate");
+                    if (reuseUnchangedValidation && Newtonsoft.Json.JsonConvert.DefaultSettings == null && validated?.Matches(data) == true)
+                    { Point("save.validate.reused"); return; }
+                    validated = null;
                     data.ValidateCore(this);
+                    if (reuseUnchangedValidation && Newtonsoft.Json.JsonConvert.DefaultSettings == null) validated = new ValidatedHeader(data);
+                }
+            }
+            public SimulationRecoveryBaselineDto ReadRecoveryBaseline(MatchSaveData data)
+            {
+                lock (gate)
+                {
+                    Validate(data);
+                    if (data.Mode != LaunchMode.Host || !string.IsNullOrEmpty(data.PrivateCheckpointJson))
+                        throw new InvalidOperationException("此存档不包含旧版确定性模拟确认边界。");
+                    return SimulationConfirmedRecoveryInstaller.ReadBaselineFromParsedCheckpoint(ReadCheckpoint(data.SimulationCheckpointJson));
                 }
             }
             public void Dispose()
             {
-                lock (gate) { archiveJson = null; archive = null; archiveIsLocalProjection = false; trace = null; disposed = true; }
+                lock (gate) { archiveJson = null; archive = null; checkpointJson = null; checkpoint = null;
+                    validated = null; archiveIsLocalProjection = false; trace = null; disposed = true; }
             }
         }
 
@@ -84,6 +156,32 @@ namespace YC.Application.Sessions
                 data.ArchiveJson = HostRecoveryService.SerializeArchive(capture.Archive);
                 data.ContinuationJson = SimulationConfirmedRecoveryInstaller.SerializeContinuation(capture.Continuation);
                 data.SimulationCheckpointJson = null;
+                if (validation == null) data.Validate(); else validation.Validate(data);
+                return data;
+            });
+        }
+
+        /// <summary>私密房主独占捕获；规则原包和随机密钥只写入本机，不能作为房间元数据。</summary>
+        public static Task<MatchSaveData> CreateFromPrivateCaptureAsync(MatchSaveData header, GameSessionRecoveryExport capture,
+            long epoch, int membership, ValidationScope validation = null)
+        {
+            if (header == null || capture?.Archive?.Snapshot?.State == null || header.Mode != LaunchMode.Host ||
+                header.GameId != capture.Archive.Snapshot.State.GameId || header.ContentHash != capture.Archive.Snapshot.State.ContentPackHash)
+                throw new ArgumentException("private_save_identity_invalid");
+            var data = new MatchSaveData { Format = header.Format, Version = header.Version, SavedUtcTicks = header.SavedUtcTicks,
+                Mode = header.Mode, LocalTestNetwork = header.LocalTestNetwork, LocalPlayerId = header.LocalPlayerId, HostSteamId = header.HostSteamId,
+                Seats = header.Seats?.Select(seat => seat == null ? null : new MatchSaveSeat { PlayerId = seat.PlayerId, SteamId = seat.SteamId,
+                    OperatorId = seat.OperatorId, PlayerName = seat.PlayerName, Color = seat.Color }).ToList() };
+            return Task.Run(() => {
+                var state = capture.Archive.Snapshot.State;
+                validation?.Source(state.EffectRuntime?.StateRevision ?? 0);
+                using var marker = validation?.BeginStage("save.prepare.private");
+                data.GameId = state.GameId; data.ContentHash = state.ContentPackHash; data.MapId = state.MapId; data.Round = state.Round;
+                if (data.SavedUtcTicks <= 0) data.SavedUtcTicks = DateTime.UtcNow.Ticks;
+                data.ArchiveJson = HostRecoveryService.SerializeArchive(capture.Archive);
+                data.ContinuationJson = SimulationConfirmedRecoveryInstaller.SerializeContinuation(capture.Continuation);
+                data.PrivateCheckpointJson = Newtonsoft.Json.JsonConvert.SerializeObject(PrivateHostCheckpoint.Create(state,
+                    data.LocalPlayerId, epoch, membership, data.ArchiveJson, data.ContinuationJson));
                 if (validation == null) data.Validate(); else validation.Validate(data);
                 return data;
             });
@@ -162,12 +260,38 @@ namespace YC.Application.Sessions
         public string ArchiveJson;
         public string ContinuationJson;
         public string SimulationCheckpointJson;
+        [Newtonsoft.Json.JsonProperty(NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string PrivateCheckpointJson;
+        [NonSerialized] private JObject previewMetadata;
+
+        // 文件正文是不可变字符串；独立复制可变的席位和预览树，供受控的短期读档缓存使用。
+        public MatchSaveData CreateDetachedCopy()
+        {
+            var copy = (MatchSaveData)MemberwiseClone();
+            copy.Seats = Seats?.Select(s => s == null ? null : new MatchSaveSeat { PlayerId = s.PlayerId, SteamId = s.SteamId,
+                OperatorId = s.OperatorId, PlayerName = s.PlayerName, Color = s.Color }).ToList();
+            copy.previewMetadata = previewMetadata == null ? null : (JObject)previewMetadata.DeepClone();
+            return copy;
+        }
 
         public JObject ReadArchiveState() => (JObject)JObject.Parse(ArchiveJson,
             new Newtonsoft.Json.Linq.JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error })["Snapshot"]?["State"];
         // 启动和列表只需要少量字段；不得为每个便利属性物化包含效果历史的整份归档。
-        // 不缓存原包/可变树，避免替换ArchiveJson后残留旧档或跨调用共享可变配置。
-        public JObject ReadArchiveMetadata() => (JObject)LocalArchiveValidationProjection.Read(ArchiveJson, true)["Snapshot"]?["State"];
+        // 列表专用副本只保留展示字段；完整存档仍以磁盘为准，读取时重新校验。
+        public MatchSaveData CreateMetadataPreview()
+        {
+            var metadata = ReadArchiveMetadata();
+            return new MatchSaveData { Format = Format, Version = Version, SavedUtcTicks = SavedUtcTicks,
+                Mode = Mode, LocalTestNetwork = LocalTestNetwork, LocalPlayerId = LocalPlayerId, HostSteamId = HostSteamId,
+                MapId = MapId, GameId = GameId, Round = Round, ContentHash = ContentHash,
+                Seats = Seats?.Select(s => s == null ? null : new MatchSaveSeat { PlayerId = s.PlayerId, SteamId = s.SteamId,
+                    OperatorId = s.OperatorId, PlayerName = s.PlayerName, Color = s.Color }).ToList(),
+                previewMetadata = metadata };
+        }
+        // 完整存档不缓存可变树；列表副本每次返回独立投影，不与调用方共享修改。
+        public JObject ReadArchiveMetadata() => ArchiveJson == null && previewMetadata != null
+            ? (JObject)previewMetadata.DeepClone()
+            : (JObject)LocalArchiveValidationProjection.Read(ArchiveJson, true)["Snapshot"]?["State"];
         public sealed class LaunchMetadata
         {
             public GameRuleConfiguration Configuration;
@@ -191,8 +315,8 @@ namespace YC.Application.Sessions
             => localProjection ? LocalArchiveValidationProjection.Read(json) : JObject.Parse(json,
                 new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
 
-        // 供本地ValidateCore及启动/列表元数据读取；完整语法和所有对象查重仍由逐token读取验证。
-        // 公开ReadArchiveState与Host继续构建完整树；不要把此投影传给恢复或DeepEquals。
+        // 供本地和私密房主的ValidateCore及启动/列表元数据读取；完整语法和所有对象查重仍由逐token读取验证。
+        // 公开ReadArchiveState与旧版联机DeepEquals继续构建完整树；不要把此投影传给正式恢复或DeepEquals。
         private static class LocalArchiveValidationProjection
         {
             private enum Shape { Discard, Full, Root, Snapshot, State, Players, Player, Journal }
@@ -299,6 +423,7 @@ namespace YC.Application.Sessions
                         break;
                     case Shape.State:
                         if (metadata && (name == "CurrentPlayerId" || name == "ActionRound")) return Shape.Full;
+                        if (!metadata && name == "PrivateCommandLedger") return Shape.Full;
                         if (name == "Players") return Shape.Players;
                         if (name == "ContentPackHash" || name == "GameId" || name == "MapId" || name == "Round" ||
                             name == "RuleConfiguration" || name == "RandomRuntime" || name == "EventDeckSeed" ||
@@ -324,8 +449,9 @@ namespace YC.Application.Sessions
             if (Mode != LaunchMode.Local && Mode != LaunchMode.Host || string.IsNullOrEmpty(ArchiveJson) ||
                 string.IsNullOrEmpty(ContinuationJson) || SavedUtcTicks <= 0 || SavedUtcTicks > DateTime.MaxValue.Ticks)
                 throw new InvalidOperationException("存档缺少完整的权威状态。");
-            bool localProjection = Mode == LaunchMode.Local && Newtonsoft.Json.JsonConvert.DefaultSettings == null;
-            var root = validation == null ? ReadValidationArchive(ArchiveJson, localProjection) : validation.ReadArchive(ArchiveJson, localProjection);
+            bool privateProjection = Mode == LaunchMode.Host && !string.IsNullOrEmpty(PrivateCheckpointJson) && Newtonsoft.Json.JsonConvert.DefaultSettings == null;
+            bool compactProjection = (Mode == LaunchMode.Local || privateProjection) && Newtonsoft.Json.JsonConvert.DefaultSettings == null;
+            var root = validation == null ? ReadValidationArchive(ArchiveJson, compactProjection) : validation.ReadArchive(ArchiveJson, compactProjection);
             var state = root["Snapshot"]?["State"] as JObject;
             if (state == null || (int?)root["Snapshot"]?["SchemaVersion"] != HostSnapshotDto.CurrentSchemaVersion ||
                 (int?)root["Journal"]?["SchemaVersion"] != HostJournalDto.CurrentSchemaVersion ||
@@ -333,10 +459,12 @@ namespace YC.Application.Sessions
                 (string)root["Snapshot"]?["ContentHash"] != ContentHash || (string)state["ContentPackHash"] != ContentHash ||
                 (string)state["GameId"] != GameId || (string)state["MapId"] != MapId || (int?)state["Round"] != Round)
                 throw new InvalidOperationException("存档摘要与规则快照不一致。");
-            // 完整扫描一次归档；Local仅物化校验读集，Host保留完整树；公开便利属性不可在此重复读取。
+            // 完整扫描一次归档；Local及私密Host仅物化校验读集，旧版联机保留完整树用于DeepEquals。
             var configuration = state["RuleConfiguration"].ToObject<GameRuleConfiguration>();
-            if (configuration == null || !configuration.TryValidate(out _) || configuration.ContentPackHash != ContentHash ||
-                configuration.MapId != MapId || !GameplayRandomRuntime.TryValidate(state["RandomRuntime"].ToObject<GameplayRandomState>(),
+            // 此处只验证存档形状；正式恢复继续按锁定包重新装配并核对完整指纹。
+            var randomState = state["RandomRuntime"].ToObject<GameplayRandomState>();
+            if (configuration == null || !configuration.TryValidateFrozenShape(out _) || configuration.ContentPackHash != ContentHash ||
+                configuration.MapId != MapId || !GameplayRandomRuntime.TryValidate(randomState,
                     GameId, (int)state["EventDeckSeed"], out _))
                 throw new InvalidOperationException("存档的规则配置或随机状态无效。");
             var players = ((JArray)state["Players"]).Select(p => (int)p["PlayerId"]).OrderBy(id => id).ToArray();
@@ -351,22 +479,35 @@ namespace YC.Application.Sessions
             SimulationConfirmedRecoveryInstaller.ReadContinuation(ContinuationJson);
             if (Mode == LaunchMode.Host)
             {
-                if (string.IsNullOrEmpty(SimulationCheckpointJson) || Seats.Any(s => s.SteamId == 0) ||
+                bool privateSave = !string.IsNullOrEmpty(PrivateCheckpointJson);
+                if (privateSave != (randomState.AlgorithmVersion == GameplayRandomRuntime.PrivateAlgorithmVersion) ||
+                    privateSave == !string.IsNullOrEmpty(SimulationCheckpointJson) || Seats.Any(s => s.SteamId == 0) ||
                     Seats.Select(s => s.SteamId).Distinct().Count() != Seats.Count ||
                     !Seats.Any(s => s.PlayerId == LocalPlayerId && s.SteamId == HostSteamId))
                     throw new InvalidOperationException("联机存档缺少确认边界或操作者身份。");
                 if (LocalTestNetwork && (Seats.Any(s => string.IsNullOrEmpty(s.OperatorId)) || Seats.Select(s => s.OperatorId).Distinct().Count() != Seats.Count))
                     throw new InvalidOperationException("本地联机存档缺少原操作者身份。");
-                var checkpoint = JObject.Parse(SimulationCheckpointJson);
-                var baseline = SimulationConfirmedRecoveryInstaller.ReadBaseline(SimulationCheckpointJson);
-                if (baseline.GameId != GameId || baseline.ContentPackHash != ContentHash ||
-                    !JToken.DeepEquals(checkpoint["Archive"], root) ||
-                    !JToken.DeepEquals(checkpoint["Continuation"], JObject.Parse(ContinuationJson)))
-                    throw new InvalidOperationException("规则快照与联机确认边界不是同一保存点。");
-                var options = OptionsFor(baseline, true, LocalPlayerId);
-                OperationCommandCanonicalizer.ValidateRecoveryBaseline(options, baseline);
+                if (privateSave)
+                {
+                    var checkpoint = PrivateHostCheckpoint.Parse(PrivateCheckpointJson);
+                    if (privateProjection) checkpoint.ValidateProjected(this, state);
+                    else checkpoint.Validate(this, state);
+                }
+                else
+                {
+                    var checkpoint = validation == null ? JObject.Parse(SimulationCheckpointJson,
+                        new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error }) : validation.ReadCheckpoint(SimulationCheckpointJson);
+                    var baseline = SimulationConfirmedRecoveryInstaller.ReadBaselineFromParsedCheckpoint(checkpoint);
+                    if (baseline.GameId != GameId || baseline.ContentPackHash != ContentHash ||
+                        !JToken.DeepEquals(checkpoint["Archive"], root) ||
+                        !JToken.DeepEquals(checkpoint["Continuation"], JObject.Parse(ContinuationJson)))
+                        throw new InvalidOperationException("规则快照与联机确认边界不是同一保存点。");
+                    var options = OptionsFor(baseline, true, LocalPlayerId);
+                    OperationCommandCanonicalizer.ValidateRecoveryBaseline(options, baseline);
+                }
             }
-            else if (!string.IsNullOrEmpty(SimulationCheckpointJson))
+            else if (!string.IsNullOrEmpty(SimulationCheckpointJson) || !string.IsNullOrEmpty(PrivateCheckpointJson) ||
+                randomState.AlgorithmVersion == GameplayRandomRuntime.PrivateAlgorithmVersion)
                 throw new InvalidOperationException("本地存档包含不适用的联机上下文。");
         }
 

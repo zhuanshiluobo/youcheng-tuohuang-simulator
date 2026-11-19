@@ -67,7 +67,6 @@
           "usageTrackId": "",
           "lifecyclePolicy": "once",
           "lockPolicy": "none",
-          "directCallPolicy": "deny",
           "sortOrder": 100,
           "presentationRef": "infected.award.enterprise_special"
         }

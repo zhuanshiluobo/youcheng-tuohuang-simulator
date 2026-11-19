@@ -137,7 +137,7 @@ namespace YC.Presentation
             };
             selection.AddSelection(panel, selectionSpec);
             selection.RestoreScroll(position);
-            if (shown.InteractionTypeId == EntrepreneurFlow.ChooseInteraction)
+            if (shown.InteractionTypeId == EntrepreneurFlow.ChooseInteraction && !adapter.CanPreviewPreparationEnterprises(shown))
             {
                 var inspect = EffectDialogShell.CreateButton(panel, "Inspect Assigned Enterprises", copy.OwnEnterpriseLabel, 18, false);
                 inspect.onClick.AddListener(() => {

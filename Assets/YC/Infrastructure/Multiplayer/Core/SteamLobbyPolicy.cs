@@ -7,7 +7,8 @@ namespace YC.Infrastructure.Multiplayer
     {
         public const uint AppId = 480;
         public const string GameKey = "yc_nomad_city";
-        public const string ProtocolVersion = "8";
+        // 区控只读预览增加了联机消息；旧房主无法识别它，不能与新版客户端混用。
+        public const string ProtocolVersion = "9";
         public const string WaitingStatus = "waiting";
         public const string StartedStatus = "started";
         public const string SessionKindKey = "sessionKind";

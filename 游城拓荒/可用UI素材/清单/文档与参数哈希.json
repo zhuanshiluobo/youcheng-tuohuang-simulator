@@ -746,6 +746,42 @@
   },
   {
     "path": "参数/项目实际用法/CardPicker次按钮2.0替换登记.json",
-    "sha256": "94c774fee4f9f53c28ef406405f190a3097dc0e6b9fe7e7df6f48d0e26be2742"
+    "sha256": "f89d9141918923255503c462206c79d542b68ef69d77bed19eaeb7a87c3f91f8"
+  },
+  {
+    "path": "文档/原始说明/NoMadCity-Unity-SelectionFX/README.zh-CN.md",
+    "sha256": "547b73d288e4b61a5ae5ec7faa85e685b772d49293f1ebb9fc70afab89c9ff77"
+  },
+  {
+    "path": "参考/NoMadCity-Unity-SelectionFX/VALIDATION.txt",
+    "sha256": "10c0fa850528c13a5628aa7306e8fff882ecc958f9ff34bfd47c23b18c6f100d"
+  },
+  {
+    "path": "参考/NoMadCity-Unity-SelectionFX/Tests/validate.py",
+    "sha256": "1bc0381510891acf4a90fb3827db404efb4a249aacc1e280f2306a656137a8a6"
+  },
+  {
+    "path": "参考/NoMadCity-Unity-SelectionFX/Assets/NoMadCitySelectionFX/Editor/SelectionEffectDemo.cs",
+    "sha256": "701e9bfa686b4401f4f3a48561e1f0b482dfbeebc7ad94ad9e90bf6da5b9d1f3"
+  },
+  {
+    "path": "参数/NoMadCity-Unity-SelectionFX/入库参数.json",
+    "sha256": "c2f903bcd97184939fef26cc94259c6e545508ed2296f450a547048c180c5524"
+  },
+  {
+    "path": "文档/原始说明/NoMadCity-Unity-SelectionFX-v3/README.zh-CN.md",
+    "sha256": "b73ac79f9ee74eba112d0cc181bdccd685fdba16e7dc627455f96fdb8d7f321d"
+  },
+  {
+    "path": "参考/NoMadCity-Unity-SelectionFX-v3/VALIDATION.txt",
+    "sha256": "400c1f71c357e8afccaff28f9f175cd9315a61ffc333972a20db62767eef172f"
+  },
+  {
+    "path": "文档/原始说明/NoMadCity-Unity-SelectionFX-v8/README.zh-CN.md",
+    "sha256": "c386e0c6b2b70a254ca114669a7ecec3c3cf27b25134bfd5b05f552f2afc071f"
+  },
+  {
+    "path": "参考/NoMadCity-Unity-SelectionFX-v8/VALIDATION.txt",
+    "sha256": "3e2b792c92aba700b74ea900a143e091c42c27edf2ed2daec951a9c80e0d47ae"
   }
 ]

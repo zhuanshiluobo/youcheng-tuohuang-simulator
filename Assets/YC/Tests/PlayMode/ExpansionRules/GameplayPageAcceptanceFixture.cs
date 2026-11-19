@@ -263,6 +263,12 @@ namespace YC.Tests.PlayMode.ExpansionRules
             Func<Component, IEnumerator> firstEnterpriseCheck = null,
             Func<InteractionRequest, IEnumerator> openingRequestCheck = null, string mapId = null)
         {
+            // 此夹具会正常建房并触发自动存档及新游戏偏好写入，必须先隔离两类用户数据。
+            var arguments = Environment.GetCommandLineArgs();
+            Assert.That(arguments.Any(arg => arg.StartsWith("--yc-performance-save-root=", StringComparison.Ordinal)),
+                Is.True, "运行界面夹具必须指定隔离存档目录 --yc-performance-save-root=<绝对路径>。");
+            Assert.That(arguments.Any(arg => arg.StartsWith("--yc-test-content-root=", StringComparison.Ordinal)),
+                Is.True, "运行界面夹具必须指定隔离配置目录 --yc-test-content-root=<绝对路径>。");
             Record("验收边界", new { players, scope = "正常房间→实际场景；企业/科室及待验页面走EventSystem；其他开局请求只经正式Submit加速，无全局性能采样" });
             yield return SceneManager.LoadSceneAsync("StartScene"); yield return null;
             yield return Resolution(Sizes[0]);
@@ -278,6 +284,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
             if (CurrentRoom().Configuration.MapId != map) yield return Click(Option("maps", map), "选择实际地图");
             if (!CurrentRoom().Configuration.EnabledExpansionIds.Contains("enterprise"))
                 yield return Click(Option("expansions", "enterprise"), "启用企业扩展");
+            if (CurrentRoom().Configuration.EnabledExpansionIds.Contains("infected"))
+                yield return Click(Option("expansions", "infected"), "关闭不属于本夹具的感染者扩展");
             Assert.That(CurrentRoom().Configuration.EnabledExpansionIds, Is.EquivalentTo(new[] { "core", "enterprise" }));
             Record("正式房间配置", CurrentRoom().Configuration);
             yield return Click(ButtonObject(room, "StartButton"), "开始真实新局");

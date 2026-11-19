@@ -118,6 +118,43 @@ namespace YC.Application.Sessions
             return JsonConvert.SerializeObject(archive, ArchiveSettings);
         }
 
+        // 仅供私密房主保存点核验规则摘要；正式恢复仍须执行 RecoverJson 的完整校验。
+        internal static GameState ReadRawStateForPrivateCheckpoint(JObject state) =>
+            state?.ToObject<GameState>(JsonSerializer.Create(ArchiveSettings));
+
+        // 调用方必须先完整读取并检查JSON语法及所有重复属性；这里只避免把整份历史同时物化成JToken树。
+        internal static GameState ReadPrivateCheckpointStateFromArchive(string archiveJson)
+        {
+            using var text = new System.IO.StringReader(archiveJson);
+            using var reader = new JsonTextReader(text);
+            bool NextContent()
+            {
+                while (reader.Read()) if (reader.TokenType != JsonToken.Comment) return true;
+                return false;
+            }
+            if (!NextContent() || reader.TokenType != JsonToken.StartObject)
+                throw new JsonSerializationException("私密归档不是JSON对象。");
+            while (NextContent() && reader.TokenType != JsonToken.EndObject)
+            {
+                if (reader.TokenType != JsonToken.PropertyName) throw new JsonSerializationException("私密归档属性无效。");
+                string name = (string)reader.Value;
+                if (!NextContent()) throw new JsonSerializationException("私密归档属性值缺失。");
+                if (name != "Snapshot") { reader.Skip(); continue; }
+                if (reader.TokenType != JsonToken.StartObject) throw new JsonSerializationException("私密归档快照无效。");
+                while (NextContent() && reader.TokenType != JsonToken.EndObject)
+                {
+                    if (reader.TokenType != JsonToken.PropertyName) throw new JsonSerializationException("私密快照属性无效。");
+                    string snapshotName = (string)reader.Value;
+                    if (!NextContent()) throw new JsonSerializationException("私密快照属性值缺失。");
+                    if (snapshotName == "State")
+                        return JsonSerializer.Create(ArchiveSettings).Deserialize<GameState>(reader);
+                    reader.Skip();
+                }
+                break;
+            }
+            throw new JsonSerializationException("私密归档缺少状态。");
+        }
+
         /// <summary>
         /// 沿原 Host 格式直接写入，不构造完整 JSON 字符串或重复校验档案。
         /// writer 由调用者持有并负责 flush/关闭；失败保留已写出的部分及原异常。
@@ -139,10 +176,27 @@ namespace YC.Application.Sessions
 
         /// <summary>先核验原 JSON 字段存在性；初始化器不参与旧版本判断。</summary>
         public static HostRecoveryResult RecoverJson(string json, EffectRegistry registry = null, GameMapDefinition legacyMap = null, ItemZoneMigrationEvidence evidence = null)
+            => RecoverJsonCore(json, registry, legacyMap, evidence, useHistoryProjection: true, releaseProjectionEarly: false);
+
+        // 仅启动装配使用：大档在临时校验树离开栈后释放它，再建立实际规则对象图。
+        internal static HostRecoveryResult RecoverJsonForBootstrap(string json, EffectRegistry registry)
+            => RecoverJsonCore(json, registry, null, null, useHistoryProjection: true, releaseProjectionEarly: true);
+
+        private static HostRecoveryResult RecoverJsonCore(string json, EffectRegistry registry, GameMapDefinition legacyMap,
+            ItemZoneMigrationEvidence evidence, bool useHistoryProjection, bool releaseProjectionEarly)
         {
             try
             {
-                var raw = JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                HostSessionArchiveDto archive = null;
+                bool deserializeOriginal = false;
+                // 原始 JToken 树仅用于字段校验和反序列化。单独栈帧结束后再恢复状态，
+                // 避免整个恢复和复制过程中仍持有一整份大型原始树。
+                HostRecoveryResult ParseValidatedArchive()
+                {
+                bool projected = false;
+                var raw = useHistoryProjection
+                    ? ReadRecoveryValidationProjection(json, out projected)
+                    : JObject.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
                 var snapshot = raw["Snapshot"] as JObject;
                 var journal = raw["Journal"] as JObject;
                 if (snapshot == null || journal == null || snapshot["SchemaVersion"] == null || journal["SchemaVersion"] == null)
@@ -173,9 +227,12 @@ namespace YC.Application.Sessions
                     if (!TryValidateRetiredCardMarkerRawState(state, out string retiredMarkerReason)) return Fault(null, SnapshotInvalid, retiredMarkerReason);
                     if (!HasCurrentStateProtocol(state)) return Fault(null, SnapshotInvalid, "host_state_protocol_or_required_fields_missing");
                     if (!HasRawAbilityActionState(state)) return Fault(null, SnapshotInvalid, "ability_action.v1:raw_fields_missing");
+                    if (!HasRawMainActionBatches(state)) return Fault(null, SnapshotInvalid, "main_action_budget:raw_fields_missing");
                     if (!LuaEntryMemoryStore.HasRawFields(state)) return Fault(null, SnapshotInvalid, "lua_memory_raw_fields_missing");
                     if (!HasRawPersistentSourceFacts(state, out string persistentFactsReason)) return Fault(null, SnapshotInvalid, persistentFactsReason);
                     if (!YC.Domain.Rules.EntrepreneurRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "entrepreneur_selection.v1:raw_fields_missing");
+                    if (!HasRawPreparationFields(state)) return Fault(null, SnapshotInvalid, "preparation_flow.v1:raw_fields_missing");
+                    if (!PrivateCommandLedgerPolicy.HasRawFields(state)) return Fault(null, SnapshotInvalid, "private_command_ledger.v1:raw_fields_missing");
                     if (!UsageTrackRecovery.HasRawFields(state)) return Fault(null, SnapshotInvalid, "usage_tracks.v2:raw_fields_missing_or_legacy_naming");
                     if (!YC.Domain.Items.ItemMovementV4.HasRawFields(state)) return Fault(null, SnapshotInvalid, ItemMovementV4.ContractVersion+":raw_fields_missing");
                     if (!InfluenceDepartureCompletion.HasRawFields(state)) return Fault(null, SnapshotInvalid, "departure_completion:raw_fields_missing");
@@ -197,6 +254,8 @@ namespace YC.Application.Sessions
                         return Fault(null, SnapshotInvalid, tollDiagnostic);
                     if (!HasRawResourcePaymentFields(state, out string paymentDiagnostic))
                         return Fault(null, SnapshotInvalid, paymentDiagnostic);
+                    if (!HasRawEventChoiceFields(state))
+                        return Fault(null, SnapshotInvalid, "event_choice_v1:raw_fields_missing：事件选择快照缺少原始身份、脚本或按钮区域。");
                     if (registry?.SetupRecipe != null && (state["SetupRecipe"] is not JObject || state["ContentDefinitions"] is not JObject))
                         return Fault(null, SnapshotInvalid, "content_snapshot_missing：缺少原始本局配方或有效定义快照。");
                     if (state["EntitySchemaVersion"] == null)
@@ -217,6 +276,9 @@ namespace YC.Application.Sessions
                             configuration["RuleModeId"] == null || configuration["EnabledExpansionIds"] == null || configuration["ConfigurationRevision"] == null ||
                             configuration["ContentPackHash"] == null || configuration["RuleContractVersion"] == null)
                             return Fault(null, ItemZoneStateMigrator.Unsupported, "新状态缺少原始 RuleConfiguration。");
+                        if (configuration["AdditionalRuleModeIds"] != null && configuration["AdditionalRuleModeIds"].Type != JTokenType.Null &&
+                            (!(configuration["AdditionalRuleModeIds"] is JArray rawModes) || rawModes.Any(mode => mode.Type != JTokenType.String || string.IsNullOrWhiteSpace((string)mode))))
+                            return Fault(null, SnapshotInvalid, "多模式存档缺少有效的模式身份。");
                         if (state.Value<int>("EntitySchemaVersion") != GameProtocolVersions.Entity || !(state["ItemZones"] is JObject entities) ||
                             entities["Items"] == null || entities["Zones"] == null || entities["Orders"] == null || entities["Relations"] == null ||
                             state["EffectRuntime"]?["SchemaVersion"]?.Type != JTokenType.Integer)
@@ -266,13 +328,49 @@ namespace YC.Application.Sessions
                 // 旧实体迁移维持原有流程；玩家环序在 Recover 的旧版本分支中确定性继承。
                 snapshot["SchemaVersion"] = snapshotVersion < 3 ? 2 : snapshotVersion;
                 journal["SchemaVersion"] = snapshot["SchemaVersion"];
-                var archive = raw.ToObject<HostSessionArchiveDto>(JsonSerializer.Create(ArchiveSettings));
-                return Recover(archive, registry);
+                if (projected) deserializeOriginal = true;
+                else archive = raw.ToObject<HostSessionArchiveDto>(JsonSerializer.Create(ArchiveSettings));
+                return null;
+                }
+                var parseFault = ParseValidatedArchive();
+                if (parseFault != null) return parseFault;
+                if (deserializeOriginal)
+                {
+                    // 校验树不再可达；只在大档启动装配时回收临时树，避免与完整状态图同时占用堆。
+                    if (releaseProjectionEarly && json.Length >= 4 * 1024 * 1024) GC.Collect();
+                    using var source = new System.IO.StringReader(json);
+                    using var reader = new JsonTextReader(source);
+                    archive = JsonSerializer.Create(ArchiveSettings).Deserialize<HostSessionArchiveDto>(reader);
+                }
+                // 本方法刚从文本创建的 DTO 没有外部持有者；恢复过程可独占它，避免再次复制整局历史。
+                return RecoverCore(archive, registry, ownedArchive: true);
             }
             catch (Exception exception) when (exception is JsonException || exception is ArgumentException || exception is InvalidOperationException || exception is OverflowException)
             {
                 return Fault(null, SnapshotInvalid, "Host JSON 校验失败：" + exception.GetType().Name + ":" + exception.Message);
             }
+        }
+
+        private static bool HasRawEventChoiceFields(JObject state)
+        {
+            var rawDefinitions = state["ContentDefinitions"];
+            // 无冻结配方的旧状态允许没有内容快照；正式注册表的必需快照仍由调用处严格校验。
+            if (rawDefinitions == null || rawDefinitions.Type == JTokenType.Null) return true;
+            if (rawDefinitions is not JObject definitions) return false;
+            if (definitions["Events"] is not JArray events) return true;
+            foreach (var card in events)
+            {
+                if (card is not JObject) return false;
+                if ((int?)card["EventChoiceSchemaVersion"] != 1) continue;
+                if (card["Choices"] is not JArray choices || card["ImmediateResolve"] == null) return false;
+                foreach (var choice in choices)
+                    if (choice is not JObject || new[] { "ChoiceId", "Description", "Script", "Version", "CompletionHandlerId" }
+                        .Any(name => choice[name]?.Type != JTokenType.String) || choice["Button"] is not JObject button ||
+                        button["TopPercent"] == null || button["BottomPercent"] == null) return false;
+                if (choices.Count == 0 && (card["ImmediateResolve"] is not JObject immediate ||
+                    immediate["Script"]?.Type != JTokenType.String || immediate["Version"]?.Type != JTokenType.String)) return false;
+            }
+            return true;
         }
 
         private static bool HasRawResourcePaymentFields(JObject state, out string diagnostic)
@@ -452,6 +550,7 @@ namespace YC.Application.Sessions
         private static bool TryValidateRetiredCardMarkerRawState(JObject state, out string diagnostic)
         {
             diagnostic = "";
+            var argumentSerializer = JsonSerializer.Create(ArchiveSettings);
             string NodeReason(JObject node, bool runtimeNode = false)
             {
                 string allocationRaw=AllocationEffects.ValidateRaw(node,runtimeNode);if(allocationRaw.Length>0)return allocationRaw;
@@ -460,24 +559,27 @@ namespace YC.Application.Sessions
                 string insertionRaw = ResourcePaymentInsertionService.ValidateItemSelectionRaw(node, runtimeNode); if (insertionRaw.Length > 0) return insertionRaw;
                 string pairRaw = CarrierTokenPairReturnChoice.ValidateRaw(node, runtimeNode); if (pairRaw.Length > 0) return pairRaw;
                 string itemInputRaw = ItemMoveInputNormalization.ValidateRaw(node); if (itemInputRaw.Length > 0) return itemInputRaw;
-                string itemMoveVersion = ItemMovementV4.ValidateSavedVersion(node.Value<string>("EffectTypeId"), node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)), node.Value<string>("DefinitionVersion"), runtimeNode);
+                // 各版本校验器只读同一份参数；每个节点只从原始字段转换一次。
+                var normalizedArguments = node["NormalizedArguments"]?.ToObject<NormalizedValue>(argumentSerializer);
+                string itemMoveVersion = ItemMovementV4.ValidateSavedVersion(node.Value<string>("EffectTypeId"), normalizedArguments, node.Value<string>("DefinitionVersion"), runtimeNode);
                 if (itemMoveVersion.Length > 0) return itemMoveVersion;
                 string buildExecutionVersion=FacilityBuildContract.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
-                if(buildExecutionVersion.Length>0)return buildExecutionVersion;
+                if(buildExecutionVersion.Length>0 && !(runtimeNode && node["Status"]?.Type==JTokenType.Integer &&
+                    FacilityBuildContract.IsCompletedLegacy(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),node.Value<int>("Status"))))return buildExecutionVersion;
                 string doubleUseSourceVersion=YC.Domain.Cards.CharacterDoubleUseConsumption.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
                 if(doubleUseSourceVersion.Length>0)return doubleUseSourceVersion;
-                string coverVersion = YC.Domain.Cards.CharacterCoverEffectExecutor.ValidateSavedVersion(node.Value<string>("EffectTypeId"), node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                string coverVersion = YC.Domain.Cards.CharacterCoverEffectExecutor.ValidateSavedVersion(node.Value<string>("EffectTypeId"), normalizedArguments,node.Value<string>("DefinitionVersion"),runtimeNode);
                 if (coverVersion.Length > 0) return coverVersion;
                 string returnMarkerVersion = ContentLifecycleEffectExecutor.ValidateSavedReturnMarkerVersion(node.Value<string>("EffectTypeId"), node.Value<string>("DefinitionVersion"), runtimeNode);
                 if (returnMarkerVersion.Length > 0) return returnMarkerVersion;
                 string characterMoveVersion = YC.Domain.Cards.CharacterCardMovement.ValidateSavedVersion(node.Value<string>("EffectTypeId"),
-                    node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)), node.Value<string>("DefinitionVersion"), runtimeNode);
+                    normalizedArguments, node.Value<string>("DefinitionVersion"), runtimeNode);
                 if (characterMoveVersion.Length > 0) return characterMoveVersion;
-                string markerOperationVersion=PlayerMarkerOperation.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                string markerOperationVersion=PlayerMarkerOperation.ValidateSavedVersion(node.Value<string>("EffectTypeId"),normalizedArguments,node.Value<string>("DefinitionVersion"),runtimeNode);
                 if(markerOperationVersion.Length>0)return markerOperationVersion;
                 string tokenMoveVersion=YC.Domain.Movement.MapOperationEffectExecutor.ValidateSavedVersion(node.Value<string>("EffectTypeId"),node.Value<string>("DefinitionVersion"),runtimeNode);
                 if(tokenMoveVersion.Length>0)return tokenMoveVersion;
-                string supplyVersion=ItemTransferEffectExecutor.ValidateSavedSupplyVersion(node.Value<string>("EffectTypeId"),node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)),node.Value<string>("DefinitionVersion"),runtimeNode);
+                string supplyVersion=ItemTransferEffectExecutor.ValidateSavedSupplyVersion(node.Value<string>("EffectTypeId"),normalizedArguments,node.Value<string>("DefinitionVersion"),runtimeNode);
                 if(supplyVersion.Length>0)return supplyVersion;
                 if(!ItemTransferEffectExecutor.HasRawSupplyFlowFields(node))return "facility_supply_raw_fields_invalid";
                 string influenceType = node.Value<string>("EffectTypeId");
@@ -492,7 +594,7 @@ namespace YC.Application.Sessions
                         if (!HasRawNormalizedFields(node["NormalizedArguments"] as JObject, 0) || node["PlayerId"]?.Type != JTokenType.Integer ||
                             node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
                             node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray) return "explore_contract_raw_fields_invalid";
-                        var exploreArgs = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        var exploreArgs = normalizedArguments;
                         string invalidExplore = ExplorationContract.ValidateArguments(exploreArgs);
                         if (invalidExplore.Length > 0) return invalidExplore;
                         if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
@@ -517,7 +619,7 @@ namespace YC.Application.Sessions
                             node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
                             node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray)
                             return "build_contract_raw_fields_invalid";
-                        var buildArgs = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        var buildArgs = normalizedArguments;
                         string invalidBuild = FacilityBuildContract.ValidateArguments(buildArgs);
                         if (invalidBuild.Length > 0) return invalidBuild;
                         if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
@@ -546,7 +648,7 @@ namespace YC.Application.Sessions
                             node["AllowDecline"]?.Type != JTokenType.Boolean || node["DecisionPlayerId"]?.Type != JTokenType.Integer ||
                             node["NestedEffects"] is not JArray || node["NestedGroupSizes"] is not JArray)
                             return "influence_selection_raw_fields_invalid";
-                        var args = node["NormalizedArguments"].ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                        var args = normalizedArguments;
                         string invalid = InfluenceSelectionFlow.ValidateArguments(influenceType, args);
                         if (invalid.Length > 0) return invalid;
                         if (runtimeNode && (node["FlowStage"]?.Type != JTokenType.String || node["DefinitionVersion"]?.Type != JTokenType.String ||
@@ -564,7 +666,7 @@ namespace YC.Application.Sessions
                 }
                 if (node.Value<string>("EffectTypeId") == LuaDomainEffectTypeIds.ShuffleFacilityDeck)
                 {
-                    var arguments = node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings)) ?? NormalizedValue.CreateNull();
+                    var arguments = normalizedArguments ?? NormalizedValue.CreateNull();
                     string shuffleReason = ContentPrimitiveEffectExecutor.RetiredMarkerContractReason(LuaDomainEffectTypeIds.ShuffleFacilityDeck, arguments);
                     if (shuffleReason.Length > 0) return shuffleReason;
                 }
@@ -580,7 +682,7 @@ namespace YC.Application.Sessions
                 }
                 if (node.Value<string>("EffectTypeId") == LuaDomainEffectTypeIds.ExecuteMainAction)
                 {
-                    var arguments = node["NormalizedArguments"]?.ToObject<NormalizedValue>(JsonSerializer.Create(ArchiveSettings));
+                    var arguments = normalizedArguments;
                     string actionReason = GenericLuaEffectExecutor.ValidateMainActionArguments(arguments);
                     if (actionReason.Length > 0) return actionReason;
                     actionReason = GenericLuaEffectExecutor.ValidateSavedMainActionVersion(node.Value<string>("DefinitionVersion"), runtimeNode);
@@ -723,7 +825,7 @@ namespace YC.Application.Sessions
             if (state == null) throw new ArgumentNullException(nameof(state));
             state = WithLegacyLaunchOrder(state);
             string diagnostic;
-            if (!TryValidateHostState(state, null, out diagnostic, requireDeferredRegistry: false))
+            if (!TryValidateHostState(state, null, out diagnostic, requireDeferredRegistry: false, validateFrozenCatalog: false))
                 throw new InvalidOperationException("无法创建 Host snapshot：" + diagnostic);
 
             EffectRuntimeState runtime = state.EffectRuntime;
@@ -814,7 +916,7 @@ namespace YC.Application.Sessions
             if (pending.Count == 0)
             {
                 // 没有新journal也必须拒绝损坏的当前业务状态；只读校验，不制造checkpoint。
-                if (!TryValidateHostState(committedState, null, out diagnostic, launchOrder, false))
+                if (!TryValidateHostState(committedState, null, out diagnostic, launchOrder, false, false))
                     throw new InvalidOperationException("无法追加 Host journal：" + diagnostic);
                 return;
             }
@@ -822,7 +924,7 @@ namespace YC.Application.Sessions
             // 所有元数据先在局部列表核验；只为本批真实最终状态克隆一次。
             var checkpoint = GameStateCloneService.DeepClone(committedState);
             checkpoint.LaunchPlayerOrder = new List<int>(launchOrder);
-            if (!TryValidateHostState(checkpoint, null, out diagnostic, requireDeferredRegistry: false))
+            if (!TryValidateHostState(checkpoint, null, out diagnostic, requireDeferredRegistry: false, validateFrozenCatalog: false))
                 throw new InvalidOperationException("无法追加 Host journal：" + diagnostic);
             pending[pending.Count - 1].StateAfter = checkpoint;
             archive.Journal.Entries.AddRange(pending);
@@ -831,6 +933,10 @@ namespace YC.Application.Sessions
         public static HostRecoveryResult Recover(
             HostSessionArchiveDto archive,
             EffectRegistry registry = null)
+            => RecoverCore(archive, registry, ownedArchive: false);
+
+        private static HostRecoveryResult RecoverCore(
+            HostSessionArchiveDto archive, EffectRegistry registry, bool ownedArchive)
         {
             if (archive == null)
                 return Fault(null, SnapshotInvalid, "Host archive 为空。");
@@ -848,7 +954,13 @@ namespace YC.Application.Sessions
             // 旧runtime及checkpoint的兼容校验可能规范化字段；只允许改独立恢复图。
             try
             {
-                archive = GameStateCloneService.DeepClone(archive);
+                if (!ownedArchive) archive = GameStateCloneService.DeepClone(archive);
+                // 归档作为 DTO 整体克隆时，内部 GameState 不会经过顶层克隆的投影绑定。
+                // 在独立恢复图上重建只读实体投影，使预检读取实际城市位置及其他派生位置；不改原档或权威实体。
+                ItemZoneLegacyProjection.Bind(archive.Snapshot.State);
+                if (archive.Journal?.Entries != null)
+                    foreach (var entry in archive.Journal.Entries)
+                        ItemZoneLegacyProjection.Bind(entry?.StateAfter);
             }
             catch (Exception exception)
             {
@@ -884,7 +996,9 @@ namespace YC.Application.Sessions
             GameState recovered;
             try
             {
-                recovered = GameStateCloneService.DeepClone(archive.Snapshot.State);
+                // 无后续 journal 时，独占 DTO 的快照就是唯一恢复目标；其他入口或带历史检查点仍隔离复制。
+                recovered = ownedArchive && journal.Entries.Count == 0
+                    ? archive.Snapshot.State : GameStateCloneService.DeepClone(archive.Snapshot.State);
             }
             catch (Exception exception)
             {
@@ -1340,9 +1454,21 @@ namespace YC.Application.Sessions
             if (state["GameId"]?.Type != JTokenType.String || state["EventDeckSeed"]?.Type != JTokenType.Integer ||
                 state["RandomRuntime"] is not JObject random || random["GameId"]?.Type != JTokenType.String ||
                 random["AlgorithmVersion"]?.Type != JTokenType.String || random["Streams"] is not JArray streams) return false;
+            if ((string)random["AlgorithmVersion"] == GameplayRandomRuntime.PrivateAlgorithmVersion &&
+                random["PrivateKeyHex"]?.Type != JTokenType.String) return false;
             return streams.All(stream => stream is JObject && stream["StreamId"]?.Type == JTokenType.String &&
                 stream["State"]?.Type == JTokenType.Integer && stream["WordsConsumed"]?.Type == JTokenType.Integer &&
                 stream["RequestsConsumed"]?.Type == JTokenType.Integer);
+        }
+
+        private static bool HasRawMainActionBatches(JToken state)
+        {
+            if (state?["Players"] is not JArray players) return false;
+            return players.All(player => player is JObject &&
+                (player["MainActionBudgetBatches"] == null || player["MainActionBudgetBatches"].Type == JTokenType.Null ||
+                 player["MainActionBudgetBatches"] is JArray batches && batches.All(batch => batch is JObject &&
+                     batch["Remaining"]?.Type == JTokenType.Integer && batch["AllowedActionTypes"] is JArray types &&
+                     types.All(type => type.Type == JTokenType.String))));
         }
 
         private static bool HasRawAbilityActionState(JToken state)
@@ -1353,7 +1479,8 @@ namespace YC.Application.Sessions
             if (version == 0) return !usesNewNodes;
             if (version != 1 || runtime["AbilityActionInvocations"] is not JArray invocations || runtime["AbilitySourceUses"] is not JArray uses) return false;
             bool Fields(JToken value, params string[] fields) => value is JObject && fields.All(field => value[field] != null && value[field].Type != JTokenType.Null);
-            return invocations.All(i => Fields(i, "ProtocolVersion", "InvocationId", "OwnerEffectId", "CommandId", "CommandDigest", "OptionId", "ActionId", "OccupancyKey", "ParentEffectId", "CallPolicyRef", "Phase", "Outcome", "FailureReason", "FirstFaultPhase", "TrackBindingId", "UsageProviderVersion", "PaymentCommitted", "ActivationCommitted", "MainActionCommitted", "SourceRef", "VersionRef", "RequestRef", "PaymentEffectIds", "BodyEffectIds", "ReceiptIds") &&
+            return invocations.All(i => Fields(i, "ProtocolVersion", "InvocationId", "OwnerEffectId", "CommandId", "CommandDigest", "OptionId", "ActionId", "OccupancyKey", "ParentEffectId", "Phase", "Outcome", "FailureReason", "FirstFaultPhase", "TrackBindingId", "UsageProviderVersion", "PaymentCommitted", "ActivationCommitted", "MainActionCommitted", "OmitEntryCost", "OmitEntryAfterEffects", "OmitMainAction", "SourceRef", "VersionRef", "RequestRef", "PaymentEffectIds", "BodyEffectIds", "ReceiptIds") &&
+                i["OmitEntryCost"].Type == JTokenType.Boolean && i["OmitEntryAfterEffects"].Type == JTokenType.Boolean && i["OmitMainAction"].Type == JTokenType.Boolean &&
                 Fields(i["SourceRef"], "SourceKey", "ItemId", "DefinitionId", "AbilityId", "ActiveFaceId", "DeclarationVersion", "AuthorizedPlayerId", "AuthorizationRef", "EffectiveZoneId", "RuleOwnerItemId", "GrantingSourceRefs") &&
                 Fields(i["VersionRef"], "ContractVersion", "ContentPackHash", "DefinitionVersion", "HandlerHash", "ExecutorVersion") &&
                 Fields(i["RequestRef"], "InteractionId", "OwnerEffectId", "WindowId", "FactsDigest", "AnsweringPlayerId", "CandidateSetVersion", "RequestGeneration", "AllowedAnswers")) &&
@@ -1363,7 +1490,7 @@ namespace YC.Application.Sessions
         }
 
         private static bool TryValidateHostState(GameState state, EffectRegistry registry, out string diagnostic,
-            IReadOnlyList<int> launchOrderOverride = null, bool requireDeferredRegistry = true)
+            IReadOnlyList<int> launchOrderOverride = null, bool requireDeferredRegistry = true, bool validateFrozenCatalog = true)
         {
             diagnostic = string.Empty;
             if (state == null || state.EffectRuntime == null)
@@ -1372,9 +1499,10 @@ namespace YC.Application.Sessions
                 return false;
             }
             if (state.RandomRuntime != null && !GameplayRandomRuntime.TryValidate(state.RandomRuntime, state.GameId, state.EventDeckSeed, out diagnostic)) return false;
-            if (state.Players == null || state.Players.Any(player => player.RestrictedMainActionsThisTurn < 0 || player.RestrictedMainActionsThisTurn > player.RemainingMainActionsThisTurn))
+            if (state.Players == null || state.Players.Any(player => !MainActionBudgetService.HasValidBatches(player)))
             { diagnostic = "main_action_budget_invalid"; return false; }
             if (!state.EffectRuntime.TryValidate(out diagnostic)) return false;
+            if (!PrivateCommandLedgerPolicy.TryValidate(state, out diagnostic)) return false;
             if (!CleanupObligation.TryValidate(state,registry,out diagnostic)) return false;
             if (!AbilityActionRecovery.TryValidateAbilityActions(state, registry, out diagnostic)) return false;
             if (!YC.Domain.Cards.CharacterLifecycleService.TryValidatePersistentSourceFacts(state, registry, out diagnostic)) return false;
@@ -1459,6 +1587,18 @@ namespace YC.Application.Sessions
                 state.RuleConfiguration.ConfigurationRevision < 0 ||
                 state.RuleConfiguration.RuleContractVersion != YC.Domain.Rules.GameRuleConfiguration.CurrentRuleContractVersion))
             { diagnostic = "RuleConfiguration_restore_mismatch"; return false; }
+            string lockReason = string.Empty;
+            if (state.RuleConfiguration != null && !state.RuleConfiguration.TryValidateFrozenShape(out lockReason))
+            { diagnostic = "RuleConfiguration_restore_invalid:" + lockReason; return false; }
+            if (state.RuleConfiguration != null && validateFrozenCatalog)
+            {
+                // 有冻结目录时必须复核精确锁和玩法身份；无目录的旧档只允许原内置合同。
+                // 这不是房间消息的形状检查：恢复不能把无锁 DIY 模式当作合法内置玩法。
+                bool valid = registry?.FrozenRuleCatalog != null
+                    ? state.RuleConfiguration.TryValidate(registry.FrozenRuleCatalog, out lockReason)
+                    : state.RuleConfiguration.LockedContentPacks.Count > 0 || state.RuleConfiguration.TryValidate(out lockReason);
+                if (!valid) { diagnostic = "RuleConfiguration_restore_invalid:" + lockReason; return false; }
+            }
 
             EffectRuntimeState runtime = state.EffectRuntime;
             if (!string.IsNullOrEmpty(runtime.FirstMainNodeId) &&
@@ -1483,6 +1623,7 @@ namespace YC.Application.Sessions
                     diagnostic = "Effect 节点为空或 ID 重复。";
                     return false;
                 }
+                if (!EventCardEffectExecutor.TryValidateSaved(state, node, out diagnostic)) return false;
                 if (registry != null && !registry.TryGet(node.EffectTypeId, out _))
                 {
                     diagnostic = UnknownHandler + "：未知 Effect 类型 " + node.EffectTypeId;
@@ -1538,9 +1679,13 @@ namespace YC.Application.Sessions
                 {
                     if (registry == null) continue;
                     EffectEventHandlerRegistration registration;
-                    if (!registry.TryGetContinuation(node.ContinuationHandlerId, "EffectCompleted", out registration))
+                    if (!registry.TryGetContinuation(node.ContinuationHandlerId, "EffectCompleted", node.ContinuationContentId,
+                        node.ContinuationContentInstanceId, node.ContinuationAbilityId, node.ContinuationDefinitionVersion,
+                        node.ContinuationContentHash, out registration))
                     {
-                        diagnostic = UnknownHandler + "：" + node.ContinuationHandlerId;
+                        diagnostic = (registry.TryGetContinuation(node.ContinuationHandlerId, "EffectCompleted", out _)
+                            ? ContentHashMismatch + "：continuation handler 的内容、来源、版本或哈希不匹配 "
+                            : UnknownHandler + "：") + node.ContinuationHandlerId;
                         return false;
                     }
                     if (!string.Equals(registration.DefinitionVersion, node.ContinuationDefinitionVersion ?? string.Empty, StringComparison.Ordinal) ||

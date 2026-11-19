@@ -9,6 +9,7 @@ using YC.Application.Interactions;
 using YC.Application.Sessions;
 using YC.Domain.Commands;
 using YC.Domain.Effects;
+using YC.Domain.Interactions;
 using YC.Domain.Rules;
 using YC.Domain.State;
 using YC.Presentation.Workflows;
@@ -137,38 +138,52 @@ namespace YC.Presentation.Validation
             var button = hud.ActionPanelView.SpecialButton;
             Require(button.IsActive() && button.IsInteractable(), "正式共用轨道特殊候选可用，但原特殊入口不可用");
             yield return Press(button, "同来源快速行动已结清，优先补合法特殊入口缺口");
-            var projected = (Read(mobile, "turnActionPresenter") as TurnActionPresenter)?.CityStyleInteraction.QuerySpecialActions().Options
-                .SingleOrDefault(value => value.DeclaredAction?.OptionId == option.OptionId && value.CanUse);
-            if (projected == null)
+            // 入口打开后会产生正式选择请求，重新查询行动可用性会因该请求存在而返回 pending_choice_required。
+            // 使用本人当前请求及其实际渲染行，不能把入口查询的禁用结果当作候选失效。
+            var choice = Request;
+            var current = CurrentPaymentView();
+            if (!SharedSpecialChoiceMatches(visible, current, choice, option))
             {
                 CheckContent(false, "原特殊页面没有对应本人当前正式候选，不能点击旧行");
                 Append("共用轨道特殊入口差异.jsonl", new { visible.GameId, visible.Round, visible.StateRevision,
                     Player = visible.ViewerPlayerId, PriorOption = option,
-                    CurrentFormal = CurrentPaymentView()?.AbilityActions,
+                    CurrentRequest = choice, CurrentFormal = current?.AbilityActions,
                     ActualPage = (Read(mobile, "turnActionPresenter") as TurnActionPresenter)?.CityStyleInteraction.QuerySpecialActions().Options,
                     Selected = false, Passed = false, StateReplaced = false });
                 // 可选入口不可对应不终止本局；回到原页签，下一步重新读本人的真实合法候选。
                 if (Request == null) yield return Press(MarkedButton("action.tab.0"), "可选特殊入口未对应后返回原主要行动页签");
                 yield break;
             }
-            string stable = projected.DeclarationMarkerId + ":" + projected.SpecialActionId;
-            var row = FindObjectsOfType<UiEffectRowView>().SingleOrDefault(value => value.ItemId == stable &&
+            string requestId = choice.InteractionId, ownerEffectId = choice.OwnerEffectId;
+            int requestRevision = choice.StateRevision;
+            string requestContract = InteractionCommandIntent.ContractKey(choice);
+            var row = FindObjectsOfType<UiEffectRowView>().SingleOrDefault(value => value.ItemId == option.OptionId &&
+                (string)Read(value, "requestId") == requestId && Read(value, "revision") is int revision && revision == requestRevision &&
                 Read(value, "mode") is UiEffectRowView.Mode mode && mode == UiEffectRowView.Mode.ChoiceExecute);
-            var actual = Read(row, "statusButton") as UnityEngine.UI.Button;
+            var actual = row?.StatusButton;
             Require(actual != null && actual.IsActive() && actual.IsInteractable(), "原特殊页面缺少对应声明的实际执行按钮");
             var matrix = BeginCoverageAttempt(CoverageRow(visible, "特殊行动", option.SourceRef.ItemId, option.SourceRef.DefinitionId,
                 option.SourceRef.ActiveFaceId, option.ActionId, option.DisplayName));
             matrix.Legal = matrix.Selected = true; matrix.Reason = "快速入口已正常结清；本次只使用当前仍合法的共用轨道特殊候选";
-            CoverageEvent(matrix, "选择", new { option.OptionId, option.TrackBindingId, StableRow = stable });
+            CoverageEvent(matrix, "选择", new { option.OptionId, option.TrackBindingId, RequestId = requestId, RequestRevision = requestRevision });
             int before = commands.Count;
             yield return Press(actual, "正常原特殊行动行");
-            var accepted = commands.Skip(before).Where(record => AccurateDriverQuickReceipt(option, visible.ViewerPlayerId,
-                Read(record, "Command") as GameCommand, Read(record, "Result") as WorkflowSubmissionResult)).ToArray();
+            var accepted = commands.Skip(before).Where(record =>
+            {
+                var networkRecord = NetworkMode ? record as NetworkCommandRecord : null;
+                if (NetworkMode && (networkRecord == null || networkRecord.StepId != networkActiveStepId ||
+                    networkRecord.RetiredByRecovery || networkRecord.RejectedByCompetition || networkRecord.ContentRejected)) return false;
+                return Read(record, "BeforeRevision") is int submitted && AccurateSharedSpecialAnswer(requestId, requestContract,
+                    requestRevision, visible.ViewerPlayerId, option.OptionId, Read(record, "Command") as GameCommand,
+                    Read(record, "Result") as WorkflowSubmissionResult, submitted, NetworkMode,
+                    networkRecord?.SubmittedRequestRevision ?? -1, networkRecord?.SubmittedRequestContract);
+            }).ToArray();
             Require(accepted.Length == 1, "特殊行动未得到唯一原请求的准确成功Applied回执");
             var command = (GameCommand)Read(accepted[0], "Command");
-            // 仅核对这次原命令已经产生的本人调用收据；不以Host数据选择动作或候选。
-            var invocation = State.EffectRuntime.AbilityActionInvocations.SingleOrDefault(value => value.CommandId == command.CommandId &&
-                value.OptionId == option.OptionId && value.SourceRef?.AuthorizedPlayerId == visible.ViewerPlayerId);
+            // 选择回答与内部调用的命令身份不同；以后者属于当前请求效果树来核对同次调用。
+            var invocation = State.EffectRuntime.AbilityActionInvocations.SingleOrDefault(value => value.OptionId == option.OptionId &&
+                value.SourceRef?.SourceKey == option.SourceRef.SourceKey && value.SourceRef?.AuthorizedPlayerId == visible.ViewerPlayerId &&
+                SharedSpecialEffectBelongsToRequest(State, value.OwnerEffectId, ownerEffectId));
             Require(invocation != null, "原特殊命令未关联到同次本人来源调用");
             matrix.Confirmed = true; matrix.NextRequest = Request?.InteractionTypeId; matrix.Evidence = command.CommandId;
             CoverageEvent(matrix, "确认", new { command.CommandId, invocation.InvocationId });
@@ -177,6 +192,40 @@ namespace YC.Presentation.Validation
                     KindKey = "special-kind:declared" }, Coverage = matrix, InvocationId = invocation.InvocationId,
                 RootId = invocation.OwnerEffectId, GameId = visible.GameId, CommandReceipt = accepted[0] });
             driverQuickActionPerformed = true; ObserveDriverQuickActionCompletion();
+        }
+
+        private static bool SharedSpecialChoiceMatches(GameStateView prior, GameStateView current,
+            InteractionRequestProjection request, AbilityActionOption option) =>
+            prior != null && current != null && request != null && option?.Enabled == true && option.SourceRef != null &&
+            prior.GameId == current.GameId && prior.ContentPackHash == current.ContentPackHash &&
+            prior.ViewerPlayerId == current.ViewerPlayerId && option.SourceRef.AuthorizedPlayerId == current.ViewerPlayerId &&
+            request.VisibleToViewer && request.Status == "open" && request.AnsweringPlayerId == current.ViewerPlayerId &&
+            request.InteractionTypeId == "effect.choice.execute" && request.AnswerSchema == "candidate_id" &&
+            request.MinSelections == 0 && request.MaxSelections == 1 && request.StateRevision == current.StateRevision &&
+            !string.IsNullOrEmpty(request.InteractionId) && !string.IsNullOrEmpty(request.OwnerEffectId) &&
+            request.CandidateIds != null && request.CandidateIds.Contains(option.OptionId);
+
+        private static bool AccurateSharedSpecialAnswer(string requestId, string requestContract, int requestRevision,
+            int player, string optionId, GameCommand command, WorkflowSubmissionResult result, int receiptRevision,
+            bool network, int submittedRevision, string submittedContract) =>
+            command?.Kind == GameCommandKind.AnswerInteraction && command.PlayerId == player &&
+            command.OptionIds != null && command.OptionIds.Count == 1 && command.OptionIds[0] == optionId &&
+            result?.CommandResult?.Succeeded == true && result.AppliedLocally &&
+            SameObservedRequest(requestId, requestContract, requestRevision, command, receiptRevision,
+                network, submittedRevision, submittedContract);
+
+        private static bool SharedSpecialEffectBelongsToRequest(GameState state, string effectId, string ownerEffectId)
+        {
+            if (state?.EffectRuntime?.EffectNodes == null || string.IsNullOrEmpty(ownerEffectId)) return false;
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            while (!string.IsNullOrEmpty(effectId) && seen.Add(effectId))
+            {
+                var node = state.EffectRuntime.EffectNodes.FirstOrDefault(value => value.EffectId == effectId);
+                if (node == null) return false;
+                if (effectId == ownerEffectId) return true;
+                effectId = node.ParentEffectId;
+            }
+            return false;
         }
 
         private IEnumerator TryVisibleCleanupAction()

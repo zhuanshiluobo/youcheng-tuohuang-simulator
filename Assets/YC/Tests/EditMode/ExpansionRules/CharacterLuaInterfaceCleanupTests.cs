@@ -127,7 +127,7 @@ namespace YC.Tests.EditMode.ExpansionRules
                     Item("marker.p3", "core.player_marker", "fixture.markers", "p3", "core.player_marker"))));
             var choice = Only(Invoke("infected.character.swire", "tactic", snapshot, eventType: "PlayerCleanupStarted"));
             Assert.That(choice.EffectTypeId, Is.EqualTo(LuaDomainEffectTypeIds.Choice));
-            Assert.That(Options(choice), Is.EquivalentTo(new[] { "marker.p2", "marker.p3" }));
+            Assert.That(Options(choice), Is.EquivalentTo(new[] { "p2", "p3" }));
         }
     }
 }

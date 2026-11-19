@@ -8,6 +8,7 @@ using System.Threading;
 using System.Reflection;
 using System.Globalization;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using YC.Application.Sessions;
 
@@ -70,9 +71,9 @@ namespace YC.Infrastructure.Persistence
         }
         private static string Hash(string value)
         {
-            using (var sha = SHA256.Create()) return Convert.ToBase64String(sha.ComputeHash(Encoding.UTF8.GetBytes(value)));
+            return HashUtf8Bounded(value);
         }
-        // 只用于新档checksum；公开Read的原Hash/完整校验保持。
+        // 保存与读取使用相同的 UTF-8 和 SHA-256；分块处理避免额外分配整份存档大小的字节数组。
         private static string HashUtf8Bounded(string value)
         {
             if (value == null) throw new ArgumentNullException(nameof(value));
@@ -229,7 +230,7 @@ namespace YC.Infrastructure.Persistence
         }
         // 只由串行保存/删除队列访问；Read/List不读写此缓存。
         // 验证器或JSON契约改变时须递增；Store不跨程序集/域重载存活。
-        private const int OwnershipValidationContract = 1;
+        private const int OwnershipValidationContract = 2;
         private readonly ValidatedOwnership[] ownershipCache = new ValidatedOwnership[SlotCount];
         private sealed class SlotOwnershipData
         {
@@ -244,11 +245,21 @@ namespace YC.Infrastructure.Persistence
             internal SlotOwnershipData Data;
             internal string Error;
         }
-        private readonly struct FileIdentity
+        internal readonly struct FileIdentity
         {
             internal readonly string Digest;
             internal readonly long Bytes;
             internal FileIdentity(string digest, long bytes) { Digest = digest; Bytes = bytes; }
+        }
+        // 只记录本次完整校验实际读取的文件摘要，不持有存档正文或可变规则状态。
+        public sealed class ResumeReadObservation
+        {
+            internal readonly MatchSaveStore owner;
+            internal readonly int slot;
+            internal readonly string gameId;
+            internal readonly FileIdentity identity;
+            internal ResumeReadObservation(MatchSaveStore owner, int slot, string gameId, FileIdentity identity)
+            { this.owner = owner; this.slot = slot; this.gameId = gameId; this.identity = identity; }
         }
         private sealed class ValidatedOwnership
         {
@@ -257,6 +268,26 @@ namespace YC.Infrastructure.Persistence
             internal readonly int FormatVersion = MatchSaveData.CurrentVersion, Contract = OwnershipValidationContract;
             internal ValidatedOwnership(SlotOwnershipData data, FileIdentity file) { Data = data; File = file; }
         }
+        private sealed class ValidatedPreview
+        {
+            internal readonly MatchSaveData Data;
+            internal readonly FileIdentity File;
+            internal ValidatedPreview(MatchSaveData data, FileIdentity file) { Data = data; File = file; }
+        }
+        private readonly object previewLock = new object();
+        private readonly ValidatedPreview[] previewCache = new ValidatedPreview[SlotCount];
+        // 最多保留一份有界的不可变存档正文，避免反复解析同一大档导致 Mono 堆持续扩大。
+        // 超出此尺寸只关闭优化，读档能力和合法性不受影响。
+        private const long MaxResumeCacheCharacters = 64L * 1024 * 1024;
+        private sealed class ValidatedResume
+        {
+            internal readonly int Slot;
+            internal readonly FileIdentity File;
+            internal readonly MatchSaveData Data;
+            internal ValidatedResume(int slot, FileIdentity file, MatchSaveData data) { Slot = slot; File = file; Data = data; }
+        }
+        private readonly object resumeLock = new object();
+        private ValidatedResume resumeCache;
         private readonly struct PreparedPayload
         {
             internal readonly string Json;
@@ -320,6 +351,7 @@ namespace YC.Infrastructure.Persistence
         public void BeginMatch(string gameId, bool isNewMatch)
         {
             lock (queueLock) newGameId = isNewMatch ? gameId : null;
+            if (isNewMatch) lock (resumeLock) resumeCache = null;
         }
         public void SetRestoreSource(int slot, string gameId)
         {
@@ -361,30 +393,387 @@ namespace YC.Infrastructure.Persistence
             return Path.Combine(directory, (slot < ManualCount ? "manual-" : "auto-") + (slot % 3 + 1) + ".json");
         }
         public MatchSaveData Read(int slot) => ReadValidated(slot, out _);
-        private MatchSaveData ReadValidated(int slot, out string validatedPayloadChecksum)
+        public MatchSaveData ReadWithValidation(int slot, MatchSaveData.ValidationScope validation)
         {
-            validatedPayloadChecksum = null;
-            string text;
+            if (validation == null) throw new ArgumentNullException(nameof(validation));
+            return ReadValidated(slot, out _, validation);
+        }
+        public MatchSaveData ReadForResume(int slot, MatchSaveData.ValidationScope validation, out ResumeReadObservation observation)
+        {
+            var cached = ReadUnchangedResume(slot);
+            if (cached != null)
+            {
+                var copy = cached.Data.CreateDetachedCopy();
+                // 每次恢复仍执行原存档校验；缓存只复用经过摘要验证的不可变字符串。
+                if (validation == null) copy.Validate(); else validation.Validate(copy);
+                observation = new ResumeReadObservation(this, slot, copy.GameId, cached.File);
+                return copy;
+            }
+            lock (resumeLock) resumeCache = null;
+            var data = ReadValidated(slot, out _, out var identity, validation);
+            long retained = (long)(data.ArchiveJson?.Length ?? 0) + (data.ContinuationJson?.Length ?? 0) +
+                (data.SimulationCheckpointJson?.Length ?? 0) + (data.PrivateCheckpointJson?.Length ?? 0);
+            var snapshot = identity.Digest != null && retained <= MaxResumeCacheCharacters && CanStreamEnvelope()
+                ? new ValidatedResume(slot, identity, data.CreateDetachedCopy()) : null;
+            lock (resumeLock) resumeCache = snapshot;
+            observation = identity.Digest == null ? null : new ResumeReadObservation(this, slot, data.GameId, identity);
+            return data;
+        }
+        private ValidatedResume ReadUnchangedResume(int slot)
+        {
+            ValidatedResume cached;
+            lock (resumeLock) cached = resumeCache;
+            if (cached == null || cached.Slot != slot || !CanStreamEnvelope()) return null;
+            try
+            {
+                using (var stream = OpenOwnershipStream(slot))
+                {
+                    if (stream == null) return null;
+                    var current = ReadFileIdentity(stream);
+                    return current.Bytes == cached.File.Bytes && current.Digest == cached.File.Digest && CanStreamEnvelope()
+                        ? cached : null;
+                }
+            }
+            catch (Exception error) when (!(error is OutOfMemoryException)) { return null; }
+        }
+        private void InvalidateResumeCache(int slot)
+        {
+            lock (resumeLock) if (resumeCache?.Slot == slot) resumeCache = null;
+        }
+        private MatchSaveData ReadValidated(int slot, out string validatedPayloadChecksum, MatchSaveData.ValidationScope validation = null)
+            => ReadValidated(slot, out validatedPayloadChecksum, out _, validation);
+        private MatchSaveData ReadValidated(int slot, out string validatedPayloadChecksum, out FileIdentity validatedFile,
+            MatchSaveData.ValidationScope validation = null)
+        {
+            validatedPayloadChecksum = null; validatedFile = default;
+            string text = null;
+            FileEnvelope envelope = null;
+            MatchSaveData canonical = null;
+            string canonicalChecksum = null;
+            bool streaming = CanStreamEnvelope();
             // 槽位列表读取不阻挡后台原子替换；已打开句柄仍读取同一份完整文件。
             using (var stream = new FileStream(PathFor(slot), FileMode.Open,
                 FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-            using (var reader = new StreamReader(stream, Encoding.UTF8)) text = reader.ReadToEnd();
-            return ParseValidated(text, out validatedPayloadChecksum);
+            {
+                // 正常写出的标准包装先逐块校验，再从同一文件句柄反序列化。
+                // 避免先物化整份嵌套 Payload 字符串；非标准格式仍走原解析器。
+                if (!streaming || !TryReadCanonicalEnvelope(stream, out canonical, out canonicalChecksum, out validatedFile))
+                {
+                    stream.Position = 0;
+                    using (var reader = new StreamReader(stream, Encoding.UTF8))
+                    {
+                        if (streaming) envelope = ReadEnvelope(reader);
+                        else text = reader.ReadToEnd();
+                    }
+                }
+            }
+            // 完整读完并关闭同一文件句柄后，仍执行原校验、DTO反序列化和存档校验。
+            if (canonical != null)
+            {
+                if (validation == null) canonical.Validate(); else validation.Validate(canonical);
+                validatedPayloadChecksum = canonicalChecksum;
+                return canonical;
+            }
+            return streaming ? ValidateEnvelope(envelope, out validatedPayloadChecksum, validation) :
+                ParseValidated(text, out validatedPayloadChecksum, validation);
         }
-        private static MatchSaveData ParseValidated(string text, out string validatedPayloadChecksum)
+
+        // 仅识别本程序无自定义 JSON 设置时写出的标准字段顺序。任何其它合法写法、
+        // 损坏或不完整的输入都交回原路径，由原校验决定结果和错误。
+        private static bool TryReadCanonicalEnvelope(FileStream stream, out MatchSaveData data, out string checksum, out FileIdentity identity)
+        {
+            data = null; checksum = null; identity = default;
+            try
+            {
+                if (!ReadCanonicalPass(stream, false, out _, out string first, out _)) return false;
+                if (!ReadCanonicalPass(stream, true, out data, out string second, out identity) || first != second || data == null)
+                { data = null; identity = default; return false; }
+                checksum = second;
+                return true;
+            }
+            catch (Exception error) when (!(error is IOException) && !(error is OutOfMemoryException))
+            { data = null; identity = default; return false; }
+        }
+
+        private static bool ReadCanonicalPass(FileStream stream, bool deserialize, out MatchSaveData data, out string checksum,
+            out FileIdentity identity)
+        {
+            data = null; checksum = null; identity = default; stream.Position = 0;
+            using (var raw = deserialize ? new IdentityReadStream(stream) : null)
+            using (var source = new StreamReader(raw ?? (Stream)stream, Encoding.UTF8, true, 8192, true))
+            {
+                string prefix = "{\"Format\":\"YC.MatchSave\",\"Version\":" +
+                    MatchSaveData.CurrentVersion.ToString(CultureInfo.InvariantCulture) + ",\"Payload\":\"";
+                if (!ReadExact(source, prefix)) return false;
+                using (var payload = new EscapedPayloadReader(source))
+                {
+                    if (deserialize)
+                    {
+                        using (var filtered = new CanonicalPayloadFieldReader(payload))
+                        using (var reader = new JsonTextReader(filtered) { CloseInput = false, MaxDepth = JsonSettings.MaxDepth })
+                        {
+                            data = JsonSerializer.CreateDefault(JsonSettings).Deserialize<MatchSaveData>(reader);
+                            while (reader.Read()) if (reader.TokenType != JsonToken.Comment) return false;
+                            if (data != null) filtered.Apply(data);
+                        }
+                    }
+                    else
+                    {
+                        var buffer = new char[8192];
+                        while (payload.Read(buffer, 0, buffer.Length) != 0) { }
+                    }
+                    if (!payload.Closed || payload.CharacterCount == 0) return false;
+                    string computed = payload.CompleteHash();
+                    if (!ReadExact(source, ",\"Checksum\":\"")) return false;
+                    var chars = new char[44];
+                    for (int i = 0; i < chars.Length; i++)
+                    {
+                        int ch = source.Read();
+                        if (ch < 0) return false;
+                        chars[i] = (char)ch;
+                    }
+                    if (!ReadExact(source, "\"}")) return false;
+                    int tail;
+                    while ((tail = source.Read()) >= 0)
+                        if (tail != ' ' && tail != '\t' && tail != '\r' && tail != '\n') return false;
+                    checksum = new string(chars);
+                    if (computed != checksum) return false;
+                    if (raw != null) identity = raw.Complete();
+                    return true;
+                }
+            }
+        }
+
+        // 标准字段以有界块还原大正文，元数据仍由 Json.NET 解析；非标准内容退回原解析器。
+        private sealed class CanonicalPayloadFieldReader : TextReader
+        {
+            private static readonly HashSet<string> LargeFields = new HashSet<string>(StringComparer.Ordinal)
+                { "ArchiveJson", "ContinuationJson", "SimulationCheckpointJson", "PrivateCheckpointJson" };
+            private static readonly HashSet<string> KnownFields = new HashSet<string>(StringComparer.Ordinal)
+                { "Format", "Version", "SavedUtcTicks", "Mode", "LocalTestNetwork", "LocalPlayerId", "HostSteamId",
+                  "MapId", "GameId", "Round", "ContentHash", "Seats", "ArchiveJson", "ContinuationJson",
+                  "SimulationCheckpointJson", "PrivateCheckpointJson" };
+            private readonly BufferedPayloadCursor source;
+            private readonly Dictionary<string, string> values = new Dictionary<string, string>(StringComparer.Ordinal);
+            private readonly HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            private string pending;
+            private readonly char[] single = new char[1];
+            private int pendingOffset, depth;
+            private bool inString, escaping, expectProperty;
+            internal CanonicalPayloadFieldReader(TextReader source) { this.source = new BufferedPayloadCursor(source); }
+            internal void Apply(MatchSaveData data)
+            {
+                if (values.TryGetValue("ArchiveJson", out var archive)) data.ArchiveJson = archive;
+                if (values.TryGetValue("ContinuationJson", out var continuation)) data.ContinuationJson = continuation;
+                if (values.TryGetValue("SimulationCheckpointJson", out var simulation)) data.SimulationCheckpointJson = simulation;
+                if (values.TryGetValue("PrivateCheckpointJson", out var checkpoint)) data.PrivateCheckpointJson = checkpoint;
+            }
+            public override int Read(char[] buffer, int index, int count)
+            {
+                if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+                if (index < 0 || count < 0 || index > buffer.Length - count) throw new ArgumentOutOfRangeException();
+                int written = 0;
+                while (written < count)
+                {
+                    if (pending != null)
+                    {
+                        int n = Math.Min(count - written, pending.Length - pendingOffset);
+                        pending.CopyTo(pendingOffset, buffer, index + written, n);
+                        written += n; pendingOffset += n;
+                        if (pendingOffset == pending.Length) { pending = null; pendingOffset = 0; }
+                        continue;
+                    }
+                    int ch = source.Read();
+                    if (ch < 0) break;
+                    if (!inString && depth == 1 && expectProperty && ch == '"')
+                    { ReadProperty(); continue; }
+                    Advance(ch);
+                    buffer[index + written++] = (char)ch;
+                }
+                return written;
+            }
+            public override int Read()
+            {
+                return Read(single, 0, 1) == 0 ? -1 : single[0];
+            }
+            private void Advance(int ch)
+            {
+                if (inString)
+                {
+                    if (escaping) escaping = false;
+                    else if (ch == '\\') escaping = true;
+                    else if (ch == '"') inString = false;
+                    return;
+                }
+                if (ch == '/' || ch == '\'' || ch == '(' || ch == ')') throw new FormatException("非标准结构需常规解析。");
+                if (depth == 1 && expectProperty && ch != '}' && ch != ' ' && ch != '\t' && ch != '\r' && ch != '\n')
+                    throw new FormatException("未引用的属性需常规解析。");
+                if (ch == '"') inString = true;
+                else if (ch == '{' || ch == '[') { depth++; if (depth == 1 && ch == '{') expectProperty = true; }
+                else if (ch == '}' || ch == ']') depth--;
+                else if (ch == ',' && depth == 1) expectProperty = true;
+            }
+            private void ReadProperty()
+            {
+                var prefix = new StringBuilder("\"");
+                var name = new StringBuilder();
+                int ch;
+                while ((ch = source.Read()) >= 0 && ch != '"')
+                {
+                    // 标准 DTO 字段名不含转义；其它情况退回完整解析。
+                    if (ch == '\\' || ch < 0x20 || name.Length >= 256) throw new FormatException("属性名需常规解析。");
+                    prefix.Append((char)ch); name.Append((char)ch);
+                }
+                if (ch != '"') throw new FormatException("属性名未结束。");
+                prefix.Append('"');
+                while ((ch = source.Read()) == ' ' || ch == '\r' || ch == '\n' || ch == '\t') prefix.Append((char)ch);
+                if (ch != ':') throw new FormatException("属性分隔符无效。");
+                prefix.Append(':');
+                while ((ch = source.Read()) == ' ' || ch == '\r' || ch == '\n' || ch == '\t') prefix.Append((char)ch);
+                if (ch < 0) throw new FormatException("属性值缺失。");
+                string key = name.ToString();
+                // 原反序列化器接受大小写别名及重复字段；快路径只处理精确且唯一的正式字段。
+                if (!KnownFields.Contains(key) || !seen.Add(key)) throw new FormatException("非标准字段需常规解析。");
+                expectProperty = false;
+                if (LargeFields.Contains(key))
+                {
+                    if (ch == '"')
+                    {
+                        var text = new StringBuilder();
+                        using (var decoded = new EscapedPayloadReader(source))
+                        {
+                            var block = new char[8192];
+                            int read;
+                            while ((read = decoded.Read(block, 0, block.Length)) != 0) text.Append(block, 0, read);
+                            if (!decoded.Closed) throw new FormatException("正文未结束。");
+                        }
+                        values.Add(key, text.ToString());
+                        pending = prefix.Append("null").ToString();
+                        return;
+                    }
+                    if (ch != 'n') throw new FormatException("正文类型需常规解析。");
+                }
+                prefix.Append((char)ch);
+                Advance(ch);
+                pending = prefix.ToString();
+            }
+        }
+        private sealed class BufferedPayloadCursor : TextReader
+        {
+            private readonly TextReader source;
+            private readonly char[] buffer = new char[8192];
+            private int position, length;
+            internal BufferedPayloadCursor(TextReader source) { this.source = source; }
+            public override int Read()
+            {
+                if (position == length)
+                {
+                    length = source.Read(buffer, 0, buffer.Length); position = 0;
+                    if (length == 0) return -1;
+                }
+                return buffer[position++];
+            }
+        }
+
+        private static bool ReadExact(TextReader source, string expected)
+        {
+            foreach (char ch in expected) if (source.Read() != ch) return false;
+            return true;
+        }
+
+        // 只解码外层 JSON 字符串，向内层 Json.NET 提供有界字符流，并按原 UTF-8 合同计算摘要。
+        private sealed class EscapedPayloadReader : TextReader
+        {
+            private readonly TextReader source;
+            private readonly BoundedUtf8Writer hash = new BoundedUtf8Writer(null, true, true);
+            private readonly char[] single = new char[1];
+            internal bool Closed { get; private set; }
+            internal long CharacterCount { get; private set; }
+            internal EscapedPayloadReader(TextReader source) { this.source = source; }
+            internal string CompleteHash() => hash.Complete().Digest;
+            public override int Read() => Read(single, 0, 1) == 0 ? -1 : single[0];
+            public override int Read(char[] buffer, int index, int count)
+            {
+                if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+                if (index < 0 || count < 0 || index > buffer.Length - count) throw new ArgumentOutOfRangeException();
+                int written = 0;
+                while (written < count && !Closed)
+                {
+                    int ch = source.Read();
+                    if (ch < 0) throw new FormatException("存档字符串未结束。");
+                    if (ch == '"') { Closed = true; break; }
+                    if (ch == '\\')
+                    {
+                        ch = source.Read();
+                        switch (ch)
+                        {
+                            case '"': case '\\': case '/': break;
+                            case 'b': ch = '\b'; break;
+                            case 'f': ch = '\f'; break;
+                            case 'n': ch = '\n'; break;
+                            case 'r': ch = '\r'; break;
+                            case 't': ch = '\t'; break;
+                            case 'u':
+                                ch = 0;
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    int digit = source.Read();
+                                    if (digit >= '0' && digit <= '9') digit -= '0';
+                                    else if (digit >= 'a' && digit <= 'f') digit -= 'a' - 10;
+                                    else if (digit >= 'A' && digit <= 'F') digit -= 'A' - 10;
+                                    else throw new FormatException("存档 Unicode 转义无效。");
+                                    ch = (ch << 4) | digit;
+                                }
+                                // Json.NET 对孤立代理项有专门的替换规则；交给原解析器处理。
+                                if (ch >= 0xd800 && ch <= 0xdfff) throw new FormatException("存档代理项转义需常规解析。");
+                                break;
+                            default: throw new FormatException("存档字符串转义无效。");
+                        }
+                    }
+                    else if (ch < 0x20) throw new FormatException("存档字符串包含控制字符。");
+                    buffer[index + written++] = (char)ch;
+                }
+                if (written != 0) { hash.Write(buffer, index, written); CharacterCount += written; }
+                return written;
+            }
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) hash.Dispose();
+                base.Dispose(disposing);
+            }
+        }
+        private static FileEnvelope ReadEnvelope(TextReader source)
+        {
+            using (var reader = new JsonTextReader(source) { CloseInput = false, MaxDepth = JsonSettings.MaxDepth })
+            {
+                var root = JObject.Load(reader);
+                if (root.Property("Format", StringComparison.Ordinal) == null || root.Property("Version", StringComparison.Ordinal) == null)
+                    throw new InvalidDataException("不是完整的对局存档文件。");
+                // JsonConvert.DeserializeObject 原有的完整输入检查：尾部注释可以跳过，额外 JSON 值必须拒绝。
+                while (reader.Read())
+                    if (reader.TokenType != JsonToken.Comment) throw new JsonSerializationException("存档外层包含额外内容。");
+                return root.ToObject<FileEnvelope>(JsonSerializer.CreateDefault(JsonSettings));
+            }
+        }
+        private static MatchSaveData ParseValidated(string text, out string validatedPayloadChecksum, MatchSaveData.ValidationScope validation = null)
         {
             validatedPayloadChecksum = null;
             // 在反序列化前检查包装版本；禁用类型名称加载。
             if (!text.Contains("\"Format\"") || !text.Contains("\"Version\""))
                 throw new InvalidDataException("不是完整的对局存档文件。");
             var envelope = JsonConvert.DeserializeObject<FileEnvelope>(text, JsonSettings);
+            return ValidateEnvelope(envelope, out validatedPayloadChecksum, validation);
+        }
+        private static MatchSaveData ValidateEnvelope(FileEnvelope envelope, out string validatedPayloadChecksum, MatchSaveData.ValidationScope validation = null)
+        {
+            validatedPayloadChecksum = null;
             if (envelope == null || envelope.Format != "YC.MatchSave" || envelope.Version != MatchSaveData.CurrentVersion)
                 throw new InvalidDataException("不支持此对局存档文件版本。");
             if (string.IsNullOrEmpty(envelope.Payload) || envelope.Checksum != Hash(envelope.Payload))
                 throw new InvalidDataException("存档完整性检查失败，无法读取。");
             var data = JsonConvert.DeserializeObject<MatchSaveData>(envelope.Payload, JsonSettings);
             if (data == null) throw new InvalidDataException("对局存档内容为空。");
-            data.Validate();
+            if (validation == null) data.Validate(); else validation.Validate(data);
             validatedPayloadChecksum = envelope.Checksum;
             return data;
         }
@@ -432,11 +821,13 @@ namespace YC.Infrastructure.Persistence
                         using (var hashing = new IdentityReadStream(stream))
                         using (var reader = new StreamReader(hashing, Encoding.UTF8, true, 1024, true))
                         {
-                            string text = reader.ReadToEnd();
+                            bool streaming = CanStreamEnvelope();
+                            FileEnvelope envelope = streaming ? ReadEnvelope(reader) : null;
+                            string text = streaming ? null : reader.ReadToEnd();
                             validatedFile = hashing.Complete();
-                            // 与原Read一致：全文件字节/文本取得后先关句柄，再做重校验。
+                            // 与原Read一致：全文件字节取得后先关句柄，再做重校验。
                             stream.Close();
-                            data = ParseValidated(text, out checksum);
+                            data = streaming ? ValidateEnvelope(envelope, out checksum) : ParseValidated(text, out checksum);
                         }
                     }
                     else
@@ -506,10 +897,93 @@ namespace YC.Infrastructure.Persistence
         }
         // 列表中的文件读取、校验和 DTO 反序列化不访问 Unity，可在后台完成。
         public Task<List<MatchSaveSlot>> ListAsync() => Task.Run(List);
-        public void EnsureResumeCapacity(string gameId)
+        // UI 只保留验证后的显示信息；槽位确认读取时仍重新读取文件并执行完整恢复校验。
+        public List<MatchSaveSlot> ListPreviews()
         {
-            foreach (var slot in List())
-                if (slot.Index >= ManualCount && (!slot.Exists || slot.Data?.GameId == gameId)) return;
+            var result = new List<MatchSaveSlot>();
+            for (int i = 0; i < SlotCount; i++)
+            {
+                var slot = new MatchSaveSlot { Index = i, Exists = File.Exists(PathFor(i)) };
+                if (!slot.Exists)
+                {
+                    lock (previewLock) previewCache[i] = null;
+                }
+                else
+                {
+                    try
+                    {
+                        slot.Data = ReadUnchangedPreview(i);
+                        if (slot.Data == null)
+                        {
+                            var complete = ReadValidated(i, out _, out var identity);
+                            slot.Data = complete.CreateMetadataPreview();
+                            var privateCopy = identity.Digest != null && CanStreamEnvelope()
+                                ? new ValidatedPreview(slot.Data.CreateMetadataPreview(), identity) : null;
+                            lock (previewLock) previewCache[i] = privateCopy;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        lock (previewLock) previewCache[i] = null;
+                        slot.Data = null; slot.Error = ex.Message;
+                    }
+                }
+                result.Add(slot);
+            }
+            return result;
+        }
+        private MatchSaveData ReadUnchangedPreview(int index)
+        {
+            ValidatedPreview cached;
+            lock (previewLock) cached = previewCache[index];
+            if (cached == null || !CanStreamEnvelope()) return null;
+            try
+            {
+                using (var stream = OpenOwnershipStream(index))
+                {
+                    if (stream == null) return null;
+                    var current = ReadFileIdentity(stream);
+                    if (current.Bytes != cached.File.Bytes || current.Digest != cached.File.Digest || !CanStreamEnvelope()) return null;
+                    return cached.Data.CreateMetadataPreview();
+                }
+            }
+            catch (Exception error) when (!(error is OutOfMemoryException)) { return null; }
+        }
+        public Task<List<MatchSaveSlot>> ListPreviewsAsync() => Task.Run(ListPreviews);
+        public void EnsureResumeCapacity(string gameId)
+            => EnsureResumeCapacityForRead(gameId, null);
+        public void EnsureResumeCapacityForRead(string gameId, ResumeReadObservation observation)
+        {
+            // 只需要自动槽，并在首个可用或属于本局的槽位处结束；手动档及后续大档不应为此重复反序列化。
+            for (int index = ManualCount; index < SlotCount; index++)
+            {
+                // 列表预览只有在完整文件摘要仍一致时才复用，损坏或替换后回到原槽位读取。
+                var preview = ReadUnchangedPreview(index);
+                if (preview != null)
+                {
+                    if (preview.GameId == gameId) return;
+                    continue;
+                }
+                if (observation != null && ReferenceEquals(observation.owner, this) && observation.slot == index &&
+                    observation.gameId == gameId && CanStreamEnvelope())
+                {
+                    try
+                    {
+                        using (var stream = OpenOwnershipStream(index))
+                        {
+                            if (stream != null)
+                            {
+                                var current = ReadFileIdentity(stream);
+                                if (current.Bytes == observation.identity.Bytes && current.Digest == observation.identity.Digest && CanStreamEnvelope())
+                                    return;
+                            }
+                        }
+                    }
+                    catch (Exception error) when (!(error is OutOfMemoryException)) { /* 交给原槽位读取处理错误。 */ }
+                }
+                var slot = ReadSlot(index);
+                if (!slot.Exists || slot.Data?.GameId == gameId) return;
+            }
             throw new IOException("本对局没有可更新的自动存档，自动槽位已满。请先删除一个不再需要的自动存档，再读取此对局。");
         }
         public Task SaveAsync(MatchSaveData data, int manualSlot = -1)
@@ -666,6 +1140,7 @@ namespace YC.Infrastructure.Persistence
                     }
                     cancellation.ThrowIfCancellationRequested();
                     ownershipCache[slot] = null;
+                    InvalidateResumeCache(slot);
                     FileIdentity writtenFile;
                     using (MatchSaveTraceScope.Begin(trace, "save.write"))
                         writtenFile = streamingEnvelope == null
@@ -744,6 +1219,7 @@ namespace YC.Infrastructure.Persistence
                     try { await previous.ConfigureAwait(false); } catch { }
                     // 仅处理玩家确认的这个槽位，不枚举或递归删除目录。
                     ownershipCache[slot] = null;
+                    InvalidateResumeCache(slot);
                     File.Delete(path);
                     File.Delete(path + ".bak"); // 删除槽位时一并清理旧版本留下的文件。
                     File.Delete(path + ".tmp");

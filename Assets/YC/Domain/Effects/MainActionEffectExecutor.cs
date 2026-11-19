@@ -42,7 +42,7 @@ namespace YC.Domain.Effects
                     return EffectStepResult.NoProgress("等待主要行动子效果完成。");
             }
 
-            new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId);
+            new MainActionBudgetService().SpendCompletedMainAction(context.State, context.Node.PlayerId, YC.Domain.Rules.MainActionBudgetService.Deploy);
             return EffectStepResult.Completed();
         }
     }

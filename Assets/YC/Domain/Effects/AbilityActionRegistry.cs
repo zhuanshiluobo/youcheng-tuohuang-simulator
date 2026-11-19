@@ -17,7 +17,6 @@ namespace YC.Domain.Effects
         private readonly Dictionary<string, Func<AbilityActionCallContext, IList<EffectSpec>>> abilityBodies = new Dictionary<string, Func<AbilityActionCallContext, IList<EffectSpec>>>(StringComparer.Ordinal);
         private readonly HashSet<string> nonRetainedSourceBodies = new HashSet<string>(StringComparer.Ordinal);
         private readonly Dictionary<string, string> abilityHandlerHashes = new Dictionary<string, string>(StringComparer.Ordinal);
-        private readonly Dictionary<string, AbilityActionCallPolicy> actionCallPolicies = new Dictionary<string, AbilityActionCallPolicy>(StringComparer.Ordinal);
         private readonly Dictionary<string, IAbilityActionUsageProvider> actionUsageProviders = new Dictionary<string, IAbilityActionUsageProvider>(StringComparer.Ordinal);
         private readonly Dictionary<string, AbilityActionArgumentNormalizer> actionArgumentProtocols = new Dictionary<string, AbilityActionArgumentNormalizer>(StringComparer.Ordinal);
         public void RegisterActionArgumentProtocol(string handlerRef, AbilityActionArgumentNormalizer normalize)
@@ -34,6 +33,23 @@ namespace YC.Domain.Effects
             if (actionArgumentProtocols.TryGetValue(action.BodyHandlerRef, out var normalize)) return normalize(input, out normalized);
             if (input.Properties.Count > 0) return "action_arguments_not_supported";
             normalized = Object(); return "";
+        }
+        // 只有冻结目录中唯一行动使用内置空参数校验时，后续阶段才不会把工作图交给外部参数回调。
+        internal bool HasBuiltinEmptyActionArgumentProtocol(string actionId)
+        {
+            if (!HasAbilityCatalog || string.IsNullOrEmpty(actionId)) return false;
+            AbilityActionDeclaration found = null;
+            foreach (var source in abilityDeclarations)
+            {
+                if (source?.Actions == null) return false;
+                foreach (var action in source.Actions)
+                {
+                    if (action == null || action.ActionId != actionId) continue;
+                    if (found != null) return false;
+                    found = action;
+                }
+            }
+            return found != null && !string.IsNullOrEmpty(found.BodyHandlerRef) && !actionArgumentProtocols.ContainsKey(found.BodyHandlerRef);
         }
         public bool HasAbilityCatalog { get; private set; }
         public readonly Dictionary<string, string> AbilityPresentationNames = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -102,12 +118,6 @@ namespace YC.Domain.Effects
             RegisterAbilityHandler(id, hash, handler, version);
             nonRetainedSourceBodies.Add(id);
         }
-        public void RegisterActionCallPolicy(AbilityActionCallPolicy policy)
-        {
-            if (HasAbilityCatalog || policy == null || string.IsNullOrEmpty(policy.PolicyRef) || string.IsNullOrEmpty(policy.CallerAbilityId) ||
-                string.IsNullOrEmpty(policy.TargetActionId) || string.IsNullOrEmpty(policy.CallerHandlerHash)) throw new ArgumentException("action_call_policy_invalid");
-            actionCallPolicies.Add(policy.PolicyRef, GameStateCloneService.DeepClone(policy));
-        }
         public void RegisterActionUsageProvider(string trackId, IAbilityActionUsageProvider provider)
         {
             if (string.IsNullOrEmpty(trackId) || provider == null || string.IsNullOrEmpty(provider.DefinitionVersion)) throw new ArgumentException("action_usage_provider_invalid");
@@ -129,7 +139,10 @@ namespace YC.Domain.Effects
                     string.IsNullOrWhiteSpace(d.DeclarationVersion) || !new[] { "event", "cleanup", "quick", "special", "ruleQuery", "setup" }.Contains(d.Kind) ||
                     !new[] { "controller", "holder", "owner", "character_covered", "character_subscription", "active_selection", "public_declaration" }.Contains(d.AuthorizationPolicy) ||
                     d.EffectiveZones == null || d.EffectiveZones.Count == 0 || d.EffectiveZones.Distinct().Count() != d.EffectiveZones.Count || d.Actions == null ||
-                    d.ObservedEvents == null || d.QueryKinds == null || d.AllowedOperations == null || string.IsNullOrEmpty(d.PresentationRef) || !abilityBodies.ContainsKey(d.HandlerRef) ||
+                    d.ObservedEvents == null || d.QueryKinds == null || d.AllowedOperations == null || d.ResponseKinds == null ||
+                    d.ResponseKinds.Distinct(StringComparer.Ordinal).Count() != d.ResponseKinds.Count ||
+                    d.ResponseKinds.Any(p => !new[] { "response.destination", "response.self", "response.optional_effect", "response.batch", "response.required_effect" }.Contains(p)) ||
+                    d.ResponseKinds.Count > 0 && d.Kind != "event" || string.IsNullOrEmpty(d.PresentationRef) || !abilityBodies.ContainsKey(d.HandlerRef) ||
                     d.Kind == "ruleQuery" && !abilityPureHandlers.ContainsKey(d.HandlerRef)) throw new InvalidOperationException("ability_declaration_invalid:" + d.AbilityId);
                 foreach (var a in d.Actions)
                 {
@@ -145,14 +158,11 @@ namespace YC.Domain.Effects
                         !new[] { "unbounded", "once", "round", "action_round", "position" }.Contains(a.LifecyclePolicy) ||
                         !new[] { "none", "character_action_round" }.Contains(a.LockPolicy) || string.IsNullOrEmpty(a.PresentationRef) ||
                         !abilityBodies.ContainsKey(a.BodyHandlerRef) || a.EntryCostRef.Length > 0 && !abilityBodies.ContainsKey(a.EntryCostRef) ||
-                        a.EntryAfterEffectsRef.Length > 0 && !abilityBodies.ContainsKey(a.EntryAfterEffectsRef) || a.DirectCallPolicy != "deny" && a.DirectCallPolicy != AbilityLegacyStyleBridge.PolicyRef && !actionCallPolicies.ContainsKey(a.DirectCallPolicy)) throw new InvalidOperationException("action_declaration_invalid:" + a.ActionId);
+                        a.EntryAfterEffectsRef.Length > 0 && !abilityBodies.ContainsKey(a.EntryAfterEffectsRef)) throw new InvalidOperationException("action_declaration_invalid:" + a.ActionId);
                 }
                 foreach (var group in d.Actions.Where(a => a.UsageTrackId.Length > 0).GroupBy(a => a.UsageTrackId))
                     if (group.Select(a => a.BodyHandlerRef).Distinct().Count() != 1) throw new InvalidOperationException("action_shared_body_conflict:" + group.Key);
             }
-            foreach (var p in actionCallPolicies.Values)
-                if (!values.Any(d => d.AbilityId == p.CallerAbilityId && d.AllowedOperations.Contains("action.invoke:" + p.PolicyRef)) ||
-                    !values.SelectMany(d => d.Actions).Any(a => a.ActionId == p.TargetActionId && a.DirectCallPolicy == p.PolicyRef)) throw new InvalidOperationException("action_call_policy_unbound:" + p.PolicyRef);
             abilityDeclarations = values; HasAbilityCatalog = true;
             if (ContentDefinitions != null) ContentDefinitions.AbilitySources = AbilityDeclarations.ToList();
         }
@@ -239,12 +249,10 @@ namespace YC.Domain.Effects
             a.AuthorizationRef == b.AuthorizationRef && a.EffectiveZoneId == b.EffectiveZoneId && a.RuleOwnerItemId == b.RuleOwnerItemId &&
             a.GrantingSourceRefs != null && b.GrantingSourceRefs != null && a.GrantingSourceRefs.SequenceEqual(b.GrantingSourceRefs);
         internal IAbilityActionUsageProvider UsageProvider(string track) => actionUsageProviders.TryGetValue(track, out var provider) ? provider : null;
-        internal bool TryCallPolicy(string id, out AbilityActionCallPolicy policy) => actionCallPolicies.TryGetValue(id ?? "", out policy);
         internal IList<EffectSpec> ConstructAbilityBody(string handler, AbilityActionCallContext context)
         {
             if (!abilityBodies.TryGetValue(handler, out var body)) throw new InvalidOperationException("ability_handler_missing:" + handler);
-            bool detached = nonRetainedSourceBodies.Contains(handler) && context?.SourceRef != null && context.Action == null &&
-                !actionCallPolicies.Values.Any(policy => policy.CallerAbilityId == context.SourceRef.AbilityId && policy.CallerHandlerHash == HandlerHash(handler));
+            bool detached = nonRetainedSourceBodies.Contains(handler) && context?.SourceRef != null && context.Action == null;
             if(detached)ExecutionWorkRetentionScope.NoteExternalStateCallback(context?.State);
             else ExecutionWorkRetentionScope.Expose(context?.State);
             using var sample = detached ? GameStateCloneService.MeasureDiagnostic("ability.body.nonretained_source") : default;
@@ -253,8 +261,8 @@ namespace YC.Domain.Effects
         public IReadOnlyList<AbilityActionOption> QueryActions(GameState state, int playerId, string windowId = "", string contentVersion = "")
             => QueryActionOptions(state,playerId,windowId,contentVersion,null);
         public IReadOnlyList<AbilityActionOption> QuerySpecialActionSources(GameState state, int player, bool immediate) =>
-            QueryActionOptions(state, player, "", "", immediate ? AbilityLegacyStyleBridge.Policy : null, true);
-        private IReadOnlyList<AbilityActionOption> QueryActionOptions(GameState state,int playerId,string windowId,string contentVersion,AbilityActionCallPolicy directPolicy, bool specialOnly = false)
+            QueryActionOptions(state, player, "", "", immediate ? AbilityLegacyStyleBridge.Options : null, true);
+        private IReadOnlyList<AbilityActionOption> QueryActionOptions(GameState state,int playerId,string windowId,string contentVersion,AbilityActionExecutionOptions directOptions, bool specialOnly = false)
         {
             if (!HasAbilityCatalog || state.FindPlayer(playerId) == null) return Array.Empty<AbilityActionOption>();
             if (contentVersion.Length > 0 && contentVersion != ContentPackHash) throw new InvalidOperationException("content_version_mismatch");
@@ -265,20 +273,19 @@ namespace YC.Domain.Effects
             foreach (var action in SourceDeclaration(source).Actions)
             {
                 if (specialOnly && action.EntryKind != "special") continue;
-                if(directPolicy!=null && ((!specialOnly && action.ActionId!=directPolicy.TargetActionId) || action.DirectCallPolicy!=directPolicy.PolicyRef)) continue;
                 string binding = "";
-                string reason = directPolicy==null ? AbilitySourceService.WindowReason(state, source, action) : ValidateAuthorizedActionEntry(state,source,action,directPolicy);
+                string reason = directOptions==null ? AbilitySourceService.WindowReason(state, source, action) : ValidateAuthorizedActionEntry(state,source,action,directOptions);
                 if (action.UsageTrackId.Length > 0)
                 {
                     string trackReason = UsageProvider(action.UsageTrackId)?.Validate(state, source, action, out binding) ?? "usage_track_unavailable";
                     if (reason.Length == 0) reason = trackReason;
                 }
                 var call = new AbilityActionCallContext { State = state, SourceRef = source, Action = action, Arguments = Object() };
-                if (directPolicy==null && reason.Length == 0 && action.EntryCostRef.Length > 0) reason = ValidateActionEntryCost(state, source, action, ConstructAbilityBody(action.EntryCostRef, call));
+                if (directOptions==null && reason.Length == 0 && action.EntryCostRef.Length > 0) reason = ValidateActionEntryCost(state, source, action, ConstructAbilityBody(action.EntryCostRef, call));
                 string optionId = StableIdFactory.Create("ability-action", source.SourceKey, action.ActionId);
                 int generation = checked(1 + state.EffectRuntime.AbilityActionInvocations.Count(i => i.OptionId == optionId && i.RequestRef.WindowId == window));
                 string digest = AbilityActionExecutor.Digest(Object("costReceiptPolicyVersion", NormalizedValue.CreateString(AbilityActionExecutor.CostReceiptPolicyVersion),
-                    "callPolicyRef",NormalizedValue.CreateString(directPolicy?.PolicyRef ?? ""),"source", NormalizedValue.CreateString(source.SourceKey), "authorization", NormalizedValue.CreateString(source.AuthorizationRef),
+                    "omitEntryCost",NormalizedValue.CreateBoolean(directOptions?.OmitEntryCost == true), "omitEntryAfterEffects",NormalizedValue.CreateBoolean(directOptions?.OmitEntryAfterEffects == true), "omitMainAction",NormalizedValue.CreateBoolean(directOptions?.OmitMainAction == true), "source", NormalizedValue.CreateString(source.SourceKey), "authorization", NormalizedValue.CreateString(source.AuthorizationRef),
                     "zone", NormalizedValue.CreateString(source.EffectiveZoneId), "face", NormalizedValue.CreateString(source.ActiveFaceId), "grants", Strings(source.GrantingSourceRefs), "window", NormalizedValue.CreateString(window), "binding", NormalizedValue.CreateString(binding),
                     "round", NormalizedValue.CreateInteger(state.Round), "generation", NormalizedValue.CreateInteger(generation), "reason", NormalizedValue.CreateString(reason), "resources", AbilityActionExecutor.CostValue(state.FindPlayer(playerId).Resources)));
                 result.Add(new AbilityActionOption { OptionId = optionId, ActionId = action.ActionId, SourceRef = source, EntryKind = action.EntryKind,

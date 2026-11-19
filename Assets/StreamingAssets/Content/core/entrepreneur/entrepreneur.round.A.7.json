@@ -8,9 +8,7 @@
   "expansionId": "infected",
   "replaces": null,
   "itemTypeId": "entrepreneur.round_card",
-  "applicableModes": [
-    "entrepreneur"
-  ],
+  "requiredMechanisms": ["entrepreneur_selection.v1"],
   "requiredCapabilities": [],
   "tags": [
     "entrepreneur-official"
@@ -144,7 +142,6 @@
           "usageTrackId": "entrepreneur.A03.track",
           "lifecyclePolicy": "round",
           "lockPolicy": "character_action_round",
-          "directCallPolicy": "deny",
           "sortOrder": 0,
           "presentationRef": "entrepreneur.A03.special",
           "presentation": {
@@ -303,7 +300,6 @@
       "completionHandlerId": "entrepreneur.A03.special.completed"
     }
   ],
-  "actionCallPolicies": [],
   "cardZones": [
     {
       "localZoneId": "tactic_A03",

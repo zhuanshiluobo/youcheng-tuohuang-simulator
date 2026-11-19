@@ -90,7 +90,15 @@ namespace YC.Infrastructure.Multiplayer
                 return Reply(SimulationCheckpointReceiveStatus.Rejected, "checkpoint_host_binding_mismatch");
             if (installedEnvelope != null && !SimulationCheckpointEnvelope.SamePayload(installedEnvelope, envelope))
             { assembler.Reset(); return Reply(SimulationCheckpointReceiveStatus.Rejected, "checkpoint_installed_conflict"); }
-            if (!assembler.TryAppend(envelope, offset, payload, out var json, out var fault)) return Reply(SimulationCheckpointReceiveStatus.Rejected, fault);
+            if (installedEnvelope != null)
+            {
+                if (payload == null || payload.Length == 0 || payload.Length > SimulationCheckpointTransfer.ChunkBytes || offset < 0 ||
+                    offset > installedEnvelope.EncodedByteCount - payload.Length || offset % SimulationCheckpointTransfer.ChunkBytes != 0 ||
+                    payload.Length != Math.Min(SimulationCheckpointTransfer.ChunkBytes, installedEnvelope.EncodedByteCount - offset))
+                    return Reply(SimulationCheckpointReceiveStatus.Rejected, "checkpoint_chunk_invalid");
+                return Reply(SimulationCheckpointReceiveStatus.AlreadyInstalled, string.Empty);
+            }
+            if (!assembler.TryAppendReliable(envelope, offset, payload, out var json, out var fault)) return Reply(SimulationCheckpointReceiveStatus.Rejected, fault);
             if (json == null) return Reply(SimulationCheckpointReceiveStatus.Buffered, string.Empty);
             if (installedEnvelope != null) return Reply(SimulationCheckpointReceiveStatus.AlreadyInstalled, string.Empty);
             if (!installer.TryInstall(envelope.CheckpointId, json, out var result))

@@ -57,9 +57,13 @@ namespace YC.Presentation
         {
             var model = draft;
             if (!Current(model)) return;
+            var view = visible();
+            var playerId = player();
+            if (view == null || view.ViewerPlayerId != playerId || view.StateRevision != model.Request.StateRevision) return;
             if (page == null) page = registry.InstantiateFacilityBuild(parent);
             var document = ExpansionUi == null ? null : EffectDialogTextDocuments.ResolvePrompt(model.Request, ExpansionUi.ResolveGameplayText);
-            page.ShowSupplySelection(model, registry.CardVisualCatalog, selected, () => Current(model),
+            page.RefreshVisibleSupplyStatus(view, playerId);
+            page.ShowSupplySelection(model, view, playerId, registry.CardVisualCatalog, selected, () => Current(model),
                 id => { if (Current(model) && model.CanSelect(id)) { selected = id; Draw(); } },
                 () => Answer(model, false), () => Answer(model, true),
                 document == null ? (Action<GameplayTextView>)null : text => ExpansionUi.RenderEnterpriseDetails(text, document, false));

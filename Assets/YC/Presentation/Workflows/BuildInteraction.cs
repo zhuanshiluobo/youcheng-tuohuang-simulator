@@ -607,6 +607,7 @@ namespace YC.Presentation.Workflows
                 Dispatch, selection.IsSupplySource);
             model.PaymentPreparation = paymentPreparation.Current;
             model.IsEffectBuild = IsEffectBuild;
+            model.FixedFacilityId = EffectBuildScope?.FixedFacilityId ?? string.Empty;
             if (IsEffectBuild) model.CanCancel = EffectBuildScope?.Input?.AllowDecline == true;
             return model;
         }
@@ -661,7 +662,7 @@ namespace YC.Presentation.Workflows
                                   !ActionPaymentPreparation.HasBlockingChoice(state.EffectRuntime.InteractionRequests, context.LocalPlayerId) &&
                                   MainActionBudgetService.HasAvailableMainAction(
                                       state,
-                                      context.LocalPlayerId);
+                                      context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Build);
             if (canUseMainBuild)
             {
                 var options = selection.QueryOptions(state, context.LocalPlayerId);
@@ -678,7 +679,7 @@ namespace YC.Presentation.Workflows
                                    state.CurrentPlayerId == context.LocalPlayerId &&
                                    !MainActionBudgetService.HasAvailableMainAction(
                                        state,
-                                       context.LocalPlayerId)
+                                       context.LocalPlayerId, YC.Domain.Rules.MainActionBudgetService.Build)
                 ? "本行动轮行动次数已用尽。"
                 : string.Empty;
             return new BuildFacilityAvailabilityViewModel(

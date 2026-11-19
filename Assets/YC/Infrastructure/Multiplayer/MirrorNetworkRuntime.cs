@@ -54,6 +54,7 @@ namespace YC.Infrastructure.Multiplayer
         private string localClientIdentityTicket = string.Empty;
         private bool localIdentitySendPending;
         private bool reconnectLocalClient;
+        private bool reconnectWaitingForRetry;
         private float nextLocalReconnectTime;
         private float localReconnectDeadline;
         private int localReconnectAttempts;
@@ -71,7 +72,9 @@ namespace YC.Infrastructure.Multiplayer
         private Func<ulong, int> steamMemberCountProbe;
         private Func<ulong, int, ulong> steamMemberProbe;
         public bool IsReconnectingClient => reconnectLocalClient;
+        public bool IsClientReconnectWaitingForRetry => reconnectWaitingForRetry;
         public bool IsReconnectingLocalClient => IsReconnectingClient;
+        public bool IsClientTransportConnected => !NetworkServer.active && NetworkClient.isConnected;
         public bool HasLocalClientIdentityTicket { get { lock (localIdentityLock) return !string.IsNullOrEmpty(localClientIdentityTicket); } }
         public bool HasClientReconnectIdentity => !networkShutdownRequested && (IsLocalTestMode ? HasLocalClientIdentityTicket :
             steamReconnectLobbyId != 0 && steamReconnectHostId != 0 && steamReconnectLocalId != 0 && !string.IsNullOrEmpty(steamReconnectGameId) &&
@@ -129,7 +132,7 @@ namespace YC.Infrastructure.Multiplayer
             Transport.enabled = false;
             if (IsLocalTestMode)
             {
-                LocalTransport.port = LocalMirrorTestMode.MirrorPort;
+                LocalTransport.port = LocalMirrorTestMode.RuntimeMirrorPort;
                 ActiveTransport = LocalTransport;
             }
             else
@@ -230,9 +233,10 @@ namespace YC.Infrastructure.Multiplayer
             {
                 if (Time.unscaledTime >= localReconnectDeadline)
                 {
-                    FailClientReconnect(IsLocalTestMode ? "simulation_local_reconnect_timeout" : "simulation_steam_reconnect_timeout");
+                    if (!TryValidateReconnectIdentity(out var timeoutFailure)) FailClientReconnect(timeoutFailure);
+                    else SuspendClientReconnectForRetry();
                 }
-                else if (!NetworkClient.isConnected && !NetworkClient.isConnecting)
+                else if (!NetworkClient.isConnected && !NetworkClient.isConnecting && NetworkClient.connection == null)
                 {
                     if (!TryValidateReconnectIdentity(out var failure)) { FailClientReconnect(failure); return; }
                     nextLocalReconnectTime = Time.unscaledTime + 3f;
@@ -249,9 +253,44 @@ namespace YC.Infrastructure.Multiplayer
 
         public bool TryBeginLocalClientReconnect() => IsLocalTestMode && TryBeginClientReconnect();
 
+        /// <summary>保留原房间身份，重试已断开的本机客户端连接。</summary>
+        public bool TryRequestClientReconnect()
+        {
+            if (networkShutdownRequested || NetworkServer.active) return false;
+            if (reconnectWaitingForRetry)
+            {
+                if (NetworkClient.isConnected || NetworkClient.isConnecting || !TryValidateReconnectIdentity(out _)) return false;
+                reconnectWaitingForRetry = false;
+                if (!TryBeginClientReconnect()) { reconnectWaitingForRetry = true; return false; }
+                nextLocalReconnectTime = Time.unscaledTime;
+                return true;
+            }
+            if (reconnectLocalClient)
+            {
+                if (!HasClientReconnectIdentity || !TryValidateReconnectIdentity(out _)) return false;
+                if (!NetworkClient.isConnected && !NetworkClient.isConnecting) nextLocalReconnectTime = Time.unscaledTime;
+                return true;
+            }
+            // 活跃窗口可能有未确认操作；不能为了重连主动切断健康链路。
+            if (NetworkClient.isConnected || NetworkClient.isConnecting || !TryBeginClientReconnect()) return false;
+            nextLocalReconnectTime = Time.unscaledTime;
+            return true;
+        }
+
+        // 只由已认证 Host 的安全边界许可调用；普通按钮不能直接切断连接。
+        internal bool TryReconnectAfterHostPause()
+        {
+            if (networkShutdownRequested || NetworkServer.active || !NetworkClient.isConnected || reconnectLocalClient || !TryBeginClientReconnect()) return false;
+            NetworkClient.Disconnect();
+            OnLocalNetworkDisconnected();
+            return true;
+        }
+
         public bool TryBeginClientReconnect()
         {
             if (networkShutdownRequested || NetworkServer.active || !HasClientReconnectIdentity || !TryValidateReconnectIdentity(out _)) return false;
+            // 停止旧连接时可能再次收到断线回调；只有玩家主动请求才开启新一轮尝试。
+            if (reconnectWaitingForRetry) return true;
             if (reconnectLocalClient) return true;
             reconnectLocalClient = true;
             localReconnectAttempts = 0;
@@ -260,6 +299,16 @@ namespace YC.Infrastructure.Multiplayer
             NetworkExecutionObservation.Event("connection.reconnect.accepted", ObservationContext(), "physical_deadline_seconds=60");
             Debug.Log("[ClientReconnectLifecycle] 已接纳原身份回连，模式=" + (IsLocalTestMode ? "Local" : "Steam") + "，期限秒=60。");
             return true;
+        }
+
+        private void SuspendClientReconnectForRetry()
+        {
+            reconnectLocalClient = false;
+            reconnectWaitingForRetry = true;
+            NetworkExecutionObservation.Event("connection.reconnect.waiting_for_retry", ObservationContext(), "physical_deadline_seconds=60");
+            Debug.LogWarning("[ClientReconnectLifecycle] 本轮自动回连超时，保留原房间身份以便手动重试。");
+            // 在 Update 中停止尚未完成的传输，避免继续占用连接；断线回调不得终结原会话。
+            if (NetworkClient.active) Manager.StopClient();
         }
 
         public void ConfigureSteamClientReconnect(ulong lobbyId, ulong hostSteamId, ulong localSteamId, string gameId)
@@ -276,6 +325,7 @@ namespace YC.Infrastructure.Multiplayer
         public void ClearSteamClientReconnect()
         {
             if (!IsLocalTestMode) { reconnectLocalClient = false; steamReconnectCancelled = true; }
+            reconnectWaitingForRetry = false;
             steamReconnectLobbyId = steamReconnectHostId = steamReconnectLocalId = 0; steamReconnectGameId = null;
         }
 
@@ -327,6 +377,8 @@ namespace YC.Infrastructure.Multiplayer
                 ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartHost();
+                MirrorCommandTransport.RegisterEarlyCheckpointHandler();
+                MirrorCommandTransport.RegisterEarlyPrivateHandler();
                 SubscribeMirrorCallbacks();
                 PublishExistingConnections();
             }
@@ -340,6 +392,8 @@ namespace YC.Infrastructure.Multiplayer
                 ActivateConfiguredTransport();
                 PrepareForNetworkStart();
                 Manager.StartHost();
+                MirrorCommandTransport.RegisterEarlyCheckpointHandler();
+                MirrorCommandTransport.RegisterEarlyPrivateHandler();
                 SubscribeMirrorCallbacks();
                 NetworkServer.RegisterHandler<WaitingRoomLocalIdentityMessage>(OnWaitingRoomLocalIdentity, false);
                 PublishExistingConnections();
@@ -512,7 +566,7 @@ namespace YC.Infrastructure.Multiplayer
 
         private void OnLocalNetworkConnected()
         {
-            if (networkShutdownRequested || !IsLocalTestMode && steamReconnectCancelled || localClientConnectedPublished) return;
+            if (networkShutdownRequested || reconnectWaitingForRetry || !IsLocalTestMode && steamReconnectCancelled || localClientConnectedPublished) return;
             NetworkExecutionObservation.Event("connection.client.connected_callback", ObservationContext());
             if (reconnectLocalClient && !TryValidateReconnectIdentity(out var failure)) { FailClientReconnect(failure); return; }
             localClientConnectedPublished = true;
@@ -535,8 +589,8 @@ namespace YC.Infrastructure.Multiplayer
             LocalClientDisconnected?.Invoke();
             if (networkShutdownRequested) return;
             Debug.LogWarning("[LocalMirrorLifecycle] 本地连接断开，模式=" + IsLocalTestMode + "，回连接纳=" + reconnectLocalClient + "，原票据存在=" + HasLocalClientIdentityTicket);
-            // 已接纳的物理断线不是房间终结；保留原断线事件，期限耗尽才发终结。
-            if (!reconnectLocalClient) ClientDisconnected?.Invoke();
+            // 已接纳的物理断线及等待手动重试均不表示原房间终结。
+            if (!reconnectLocalClient && !reconnectWaitingForRetry) ClientDisconnected?.Invoke();
         }
 
         private void OnTransportClientError(TransportError error, string reason)

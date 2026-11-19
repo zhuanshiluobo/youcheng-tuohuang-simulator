@@ -995,7 +995,7 @@ namespace YC.Presentation
                 var label = isEmpty ? string.Empty : definition?.Name ?? facilityId;
                 Sprite sprite;
                 using (InteractionLatencyTrace.Begin("city.sprite_lookup")) sprite = isEmpty ? null : TryLoadFacilityCardSprite(definitionId);
-                var isUsedForDeclaration = IsCityBoardSlotUsedForDeclaration(slotIndex);
+                var isUsedForDeclaration = IsCityBoardSlotUsedForDeclaration(slotIndex, instanceId);
                 var detailTitle = isUsedForDeclaration ? label + "（已使用）" : label;
                 var gameId = currentState?.GameId ?? string.Empty;
                 var identityChanged = binding.GameId != gameId || binding.PlayerId != CityDisplayPlayerId ||
@@ -1103,16 +1103,24 @@ namespace YC.Presentation
             return "空位 " + (slotIndex + 1);
         }
 
-        private bool IsCityBoardSlotUsedForDeclaration(int slotIndex)
+        private bool IsCityBoardSlotUsedForDeclaration(int slotIndex, string instanceId)
         {
             if (cityVisibleView != null)
-                return cityVisibleView.Players.Find(p => p.PlayerId == CityDisplayPlayerId)?.CityStyleUsedSlotIndexes.Contains(slotIndex) == true;
+            {
+                var visiblePlayer = cityVisibleView.Players.Find(p => p.PlayerId == CityDisplayPlayerId);
+                if (cityVisibleView.ItemZones?.Zones.Count > 0)
+                    return !string.IsNullOrEmpty(instanceId) && visiblePlayer?.DeclaredCityStyles.Any(d => d.UsedFacilityIds.Contains(instanceId)) == true;
+                return visiblePlayer?.CityStyleUsedSlotIndexes.Contains(slotIndex) == true;
+            }
             if (!IsOwnCityDisplayed) return false;
             var player = currentState == null ? null : currentState.FindPlayer(currentPlayerId);
             if (player == null || player.DeclaredCityStyles == null)
             {
                 return false;
             }
+
+            if (YC.Domain.Items.ItemZoneLegacyProjection.IsActive(currentState))
+                return !string.IsNullOrEmpty(instanceId) && player.DeclaredCityStyles.Any(d => d.UsedFacilityIds.Contains(instanceId));
 
             for (var i = 0; i < player.DeclaredCityStyles.Count; i++)
             {

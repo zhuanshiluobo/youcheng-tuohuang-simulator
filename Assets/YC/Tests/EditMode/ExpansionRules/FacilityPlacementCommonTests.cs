@@ -34,6 +34,25 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).Score,Is.EqualTo(score));Assert.That(state.EffectRuntime.RuleEvents.Count(e=>e.EventType==FacilityBuildJournal.EventType),Is.EqualTo(1));
         }
         [Test]
+        public void CompletedVersionTwoTwoBuildKeepsItsProofDuringRecoveryButCannotBecomeAnActiveBuild()
+        {
+            var state=State();var build=CompleteCommonBuild(state);
+            var body=state.EffectRuntime.EffectNodes.Single(n=>n.CommonItemMovementV4?.FacilityPlacement?.BuildEffectId==build.EffectId);
+            build.DefinitionVersion="2.2.0";
+            string clean=HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state));
+            var recovered=HostRecoveryService.RecoverJson(clean,Registry);
+            Assert.That(recovered.Succeeded,Is.True,recovered.Diagnostic);
+            Assert.That(recovered.State.EffectRuntime.EffectNodes.Single(n=>n.EffectId==build.EffectId).DefinitionVersion,Is.EqualTo("2.2.0"));
+            Assert.That(FacilityPlacementMovement.ValidateHistory(state,body,body.CommonItemMovementV4),Is.True);
+
+            var raw=JObject.Parse(clean);var nodes=raw["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"];
+            nodes.Single(n=>(string)n["EffectId"]==build.EffectId)["Status"]=(int)EffectNodeStatus.Blocked;
+            Assert.That(HostRecoveryService.RecoverJson(raw.ToString(),Registry).Succeeded,Is.False,"不能把旧版在途建设交给新执行器。");
+            raw=JObject.Parse(clean);nodes=raw["Snapshot"]["State"]["EffectRuntime"]["EffectNodes"];
+            nodes.Single(n=>(string)n["EffectId"]==body.EffectId)["CommonItemMovementV4"]["FacilityPlacement"]["BuildFactsDigest"]="altered";
+            Assert.That(HostRecoveryService.RecoverJson(raw.ToString(),Registry).Succeeded,Is.False,"旧版已完成建设仍须核验原始凭据。");
+        }
+        [Test]
         public void CopiedPlacementArgumentsAndBuildSourceCannotAuthorizeAnotherRoot()
         {
             var state=State();var build=CompleteCommonBuild(state);var body=state.EffectRuntime.EffectNodes.Single(n=>n.CommonItemMovementV4?.FacilityPlacement?.BuildEffectId==build.EffectId);

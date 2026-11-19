@@ -111,6 +111,53 @@ namespace YC.Tests.EditMode.ExpansionRules
             Assert.That(state.FindPlayer(1).RemainingMainActionsThisTurn, Is.EqualTo(1)); Assert.That(state.FindPlayer(1).RestrictedMainActionsThisTurn, Is.Zero);
         }
         [Test]
+        public void GrantBatchesPreserveAllowedTypesAcrossRecoveryAndSpendMostRestrictedMatch()
+        {
+            var state = State(); var player = state.FindPlayer(1); var budget = new MainActionBudgetService();
+            budget.EndActionTurn(state, 1);
+            budget.GrantAdditionalMainActions(state, 1, 1, new[] { "deploy" });
+            budget.GrantAdditionalMainActions(state, 1, 2, new[] { "deploy", "dispatch" });
+            budget.GrantAdditionalMainActions(state, 1, 1, Array.Empty<string>());
+            Assert.That(budget.ValidateCanSpend(state, 1, "deploy").IsValid, Is.True);
+            Assert.That(budget.ValidateCanSpend(state, 1, "dispatch").IsValid, Is.True);
+            Assert.That(budget.ValidateCanSpend(state, 1, "build").IsValid, Is.True);
+            budget.SpendCompletedMainAction(state, 1, "deploy");
+            Assert.That(player.MainActionBudgetBatches.Any(batch => batch.AllowedActionTypes.SequenceEqual(new[] { "deploy" })), Is.False);
+            var raw = JObject.Parse(HostRecoveryService.SerializeArchive(HostRecoveryService.CreateArchive(state)));
+            ((JObject)raw["Snapshot"]["State"]["Players"][0]["MainActionBudgetBatches"][0]).Remove("AllowedActionTypes");
+            var corrupt = HostRecoveryService.RecoverJson(raw.ToString(), Registry);
+            Assert.That(corrupt.Succeeded, Is.False);
+            Assert.That(corrupt.Diagnostic, Does.Contain("main_action_budget:raw_fields_missing"));
+            state = Recover(state, "行动额度按类型扣减后"); player = state.FindPlayer(1);
+            Assert.That(player.RemainingMainActionsThisTurn, Is.EqualTo(3));
+            budget.SpendCompletedMainAction(state, 1, "special");
+            Assert.That(budget.ValidateCanSpend(state, 1, "build").IsValid, Is.False);
+            Assert.That(budget.ValidateCanSpend(state, 1, "special").IsValid, Is.False);
+            Assert.That(budget.ValidateCanSpend(state, 1, "dispatch").IsValid, Is.True);
+            budget.SpendCompletedMainAction(state, 1, "dispatch");
+            budget.SpendCompletedMainAction(state, 1, "deploy");
+            Assert.That(player.RemainingMainActionsThisTurn, Is.Zero);
+            Assert.That(player.CompletedMainActionsThisTurn, Is.EqualTo(4));
+        }
+
+        [Test]
+        public void GrantEffectAcceptsSupportedCombinationsAndRejectsInvalidTypes()
+        {
+            var state = State(); var budget = new MainActionBudgetService(); budget.EndActionTurn(state, 1);
+            CityStyleSpecialActionEffectExecutor.RegisterPrimitives(Registry);
+            var args = Object("player", NormalizedValue.CreateString("1"), "amount", NormalizedValue.CreateInteger(1),
+                "lockCharacterCard", NormalizedValue.CreateBoolean(false), "allowedActionTypes", Strings(new[] { "deploy", "dispatch" }));
+            var engine = new EffectTreeExecutor(state, Registry);
+            string root = engine.CreateRoot(EffectSpec.Create(CityStyleSpecialActionEffectTypeIds.GrantMainActions, args, 1));
+            Assert.That(engine.RunUntilQuiescent().Faulted, Is.False, state.EffectRuntime.LastFaultMessage);
+            Assert.That(engine.GetNode(root).Status, Is.EqualTo(EffectNodeStatus.Completed));
+            Assert.That(budget.ValidateCanSpend(state, 1, "deploy").IsValid, Is.True);
+            Assert.That(budget.ValidateCanSpend(state, 1, "dispatch").IsValid, Is.True);
+            Assert.That(budget.ValidateCanSpend(state, 1, "build").IsValid, Is.False);
+            Assert.That(CityStyleSpecialActionEffectExecutor.ValidateGrantArguments(Object("amount", NormalizedValue.CreateInteger(1),
+                "allowedActionTypes", Strings(new[] { "deploy", "bogus" }))), Is.EqualTo("main_action_restriction_invalid"));
+        }
+        [Test]
         public void FormalCommercialRewardPrecedesImmediatePaidBuildAndLaterRewardWaitsForPlacement()
         {
             var state = State(); state.FindPlayer(1).RemainingMainActionsThisTurn = 1;

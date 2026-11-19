@@ -18,11 +18,28 @@ namespace YC.Presentation
         [SerializeField] private string emptyCharacterName = "未盖放";
         private bool hover;
         private bool focus;
+        private bool gameplayBindingActive;
+        private string gameplayBindingSource;
         public Button Button => button;
 
         public void Bind(string text, bool available, System.Action execute)
         {
-            label.text = text;
+            ClearGameplayBinding();
+            BindButton(text, available, execute);
+        }
+
+        public void BindWithGameplayText(string text, bool available, System.Action execute,
+            YC.Domain.Presentation.GameplayTextDocument document,
+            System.Action<Component, YC.Domain.Presentation.GameplayTextDocument, bool> render)
+        {
+            if (gameplayBindingActive && gameplayBindingSource != (text ?? string.Empty)) ClearGameplayBinding();
+            BindButton(text, available, execute);
+            BindGameplayText(document, render);
+        }
+
+        private void BindButton(string text, bool available, System.Action execute)
+        {
+            label.text = text ?? string.Empty;
             button.onClick.RemoveAllListeners();
             if (execute != null) button.onClick.AddListener(() => { if (button.interactable) execute(); });
             SetAvailable(available);
@@ -30,6 +47,7 @@ namespace YC.Presentation
 
         public void SetCharacterName(string name)
         {
+            ClearGameplayBinding();
             label.text = string.Format(characterFormat, string.IsNullOrEmpty(name) ? emptyCharacterName : name);
         }
 
@@ -37,11 +55,27 @@ namespace YC.Presentation
             System.Action<Component, YC.Domain.Presentation.GameplayTextDocument, bool> render)
         {
             var host = label.GetComponent<GameplayTextView>();
-            if (document == null) { if (host != null) host.ClearBinding(); return; }
-            if (render == null) { label.text = document.ToPlainText(); return; }
+            if (document == null) { ClearGameplayBinding(); return; }
+            if (render == null) { ClearGameplayBinding(); label.text = document.ToPlainText(); return; }
             // 动态行只补已有文本渲染组件，不改变模板资产、文字框或交互结构。
             if (host == null) host = label.gameObject.AddComponent<GameplayTextView>();
+            gameplayBindingActive = true;
+            gameplayBindingSource = label.text;
+            host.SetVisibilityBindingGuard(IsGameplayBindingCurrent);
             render(host, document, false);
+        }
+
+        private bool IsGameplayBindingCurrent() => this != null && gameplayBindingActive && label != null &&
+            label.text == gameplayBindingSource;
+
+        private void ClearGameplayBinding()
+        {
+            gameplayBindingActive = false;
+            gameplayBindingSource = null;
+            var host = label != null ? label.GetComponent<GameplayTextView>() : null;
+            if (host == null) return;
+            host.SetVisibilityBindingGuard(null);
+            host.ClearBinding();
         }
 
         public void SetAvailable(bool available) { button.interactable = available; Refresh(); }

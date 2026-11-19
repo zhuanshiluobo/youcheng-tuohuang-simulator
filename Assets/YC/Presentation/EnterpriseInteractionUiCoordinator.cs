@@ -134,6 +134,16 @@ namespace YC.Presentation
                 }
             }
             result.Boards = boardList.Values.ToArray(); result.Targets = targets.ToArray();
+            var required = YC.Domain.Effects.ItemTransferEffectExecutor.Value(request.PromptParameters, "requiredEnterpriseItemIds");
+            if (required != null)
+            {
+                if (request.InteractionTypeId != "setup.enterprise.choose" || required.Kind != NormalizedValueKind.Array ||
+                    required.Items.Any(value => value.Kind != NormalizedValueKind.String || !request.CandidateIds.Contains(value.StringValue)) ||
+                    required.Items.Select(value => value.StringValue).Distinct(StringComparer.Ordinal).Count() != required.Items.Count ||
+                    required.Items.Count > request.MaxSelections)
+                    result.SubmissionAvailable = false;
+                else result.RequiredTargetIds = required.Items.Select(value => value.StringValue).ToArray();
+            }
             return result;
         }
         public void Render(InteractionRequestProjection request)

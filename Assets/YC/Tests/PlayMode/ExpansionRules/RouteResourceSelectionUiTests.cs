@@ -131,7 +131,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             AssertBalance(player, 0, 4);
             Assert.That(f.State.FindPlayer(receiver).Resources.GoldVoucher, Is.EqualTo(receiverBefore));
             Assert.That(f.State.FindPlayer(player).CompletedMainActionsThisTurn, Is.EqualTo(actionsBefore));
-            Assert.That(f.Request.CandidateIds, Does.Contain(EnterpriseEvent + ":option:1"));
+            Assert.That(f.Request.CandidateIds, Does.Contain(EventCardOptionIdFactory.CreateChoice(EnterpriseEvent, "choice_02")));
             Assert.That(new RouteSelectionSessionAuthority().TryResolveFinalized(f.State, selectionOwner, out _, out var commitment).IsValid, Is.True);
             Assert.That(commitment.AcceptedPreview.PlanDigest, Is.EqualTo(preview.PlanDigest));
             var explorer = f.State.EffectRuntime.EffectNodes.Single(n => n.ParentEffectId == selectionOwner && n.EffectTypeId == ExplorationEffectTypeIds.Explore);
@@ -151,8 +151,8 @@ namespace YC.Tests.PlayMode.ExpansionRules
 
             // 同一 held 存档的独立规则分支逐步观察真实奖励提交点；不改变 UI 主分支、不伪造 receipt。
             ObserveRewardBeforeSettlement(player, receiver, receiverBefore, 10);
-            var duplicateEvent = Answer(f.Request, new[] { EnterpriseEvent + ":option:1" });
-            var eventButton = HotseatUiInputDriver.Marker("event.option.1").GetComponent<Button>();
+            var duplicateEvent = Answer(f.Request, new[] { EventCardOptionIdFactory.CreateChoice(EnterpriseEvent, "choice_02") });
+            var eventButton = HotseatUiInputDriver.Marker("event.choice.choice_02").GetComponent<Button>();
             var lateCallback = eventButton.onClick;
             using (var counter = new RuleSubmitCounter())
             {
@@ -620,7 +620,7 @@ namespace YC.Tests.PlayMode.ExpansionRules
             var request = branch.EffectRuntime.InteractionRequests.Single(r => r.Status == "open" && r.InteractionTypeId == EventCardEffectExecutor.OptionInteractionTypeId);
             var engine = new EffectTreeExecutor(branch, Registry);
             Assert.That(engine.TrySubmitInteraction(request.GetStableInteractionId(), player, request.StateRevision,
-                NormalizedValue.CreateString(EnterpriseEvent + ":option:1"), out var reason), Is.True, reason);
+                NormalizedValue.CreateString(EventCardOptionIdFactory.CreateChoice(EnterpriseEvent, "choice_02")), out var reason), Is.True, reason);
             var samples = new List<int[]>();
             var observationStates = new List<GameState>();
             for (int i = 0; i < 1000; i++)

@@ -1,7 +1,7 @@
 {
   "definitionId": "city_style_large_enterprise_park",
   "contentType": "city_style",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "displayName": "大型企业园",
   "expansionId": "enterprise",
   "replaces": null,
@@ -18,7 +18,7 @@
       "skillType": "normal",
       "subscriptionId": "content.city_style_large_enterprise_park.special",
       "script": "lua/city_styles/city_style_large_enterprise_park.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],
@@ -115,7 +115,6 @@
           "usageTrackId": "usage.city_style_large_enterprise_park",
           "lifecyclePolicy": "unbounded",
           "lockPolicy": "none",
-          "directCallPolicy": "host.legacy_style.v1",
           "sortOrder": 200,
           "presentationRef": "city_style_large_enterprise_park"
         }
@@ -126,7 +125,7 @@
     {
       "handlerId": "content.city_style_large_enterprise_park.special",
       "script": "lua/city_styles/city_style_large_enterprise_park.special.lua",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "completionHandlerId": ""
     }
   ],
